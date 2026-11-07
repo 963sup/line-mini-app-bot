@@ -1,0 +1,86 @@
+min_version = "2026.11.3"
+
+[env]
+GOFLAGS = "-mod=readonly"
+GOTOOLCHAIN = "local"
+GOPATH = "/workspace/tooling/go"
+GOCACHE = "/workspace/tooling/cache/go-build"
+
+[tools]
+go = "1.27.3"
+node = "24.22.1"
+"go:golang.org/x/tools/gopls" = "0.24.0"
+"npm:@playwright/mcp" = "0.0.84"
+"npm:chrome-devtools-mcp" = "1.12.0"
+
+uv = "0.13.7"
+"pipx:graphifyy" = { version = "0.9.103", extras = "mcp,terraform" }
+"npm:repomix" = "1.18.1"
+
+[settings]
+exec_auto_install = false
+task.run_auto_install = false
+
+[tasks.check]
+run = ["go mod verify", "go vet ./...", "go test -race ./..."]
+
+[tasks.build]
+run = "go build ./..."
+
+[tasks.mcp-playwright]
+run = "playwright-mcp --headless"
+
+[tasks.mcp-chrome]
+run = "chrome-devtools-mcp"
+
+[tasks.graphify-update]
+description = "Build a local code graph without LLM calls"
+run = "graphify extract /workspace/line-mini-app-bot --code-only --allow-dedup-shrink --out /workspace/tooling/cache/graphify"
+
+[tasks.install-core]
+description = "Install pinned Go toolchain and language server"
+run = "mise install go go:golang.org/x/tools/gopls"
+
+[tasks.install-mcp]
+description = "Install optional local MCP tools separately from Go"
+run = "mise install node uv npm:repomix pipx:graphifyy"
+
+[tasks.install-cloud]
+description = "Install pinned Google Cloud CLI (no authentication or deployment)"
+run = "mise install gcloud@592.0.0"
+
+[tasks.doctor]
+description = "Check local Go and Cloud development prerequisites"
+run = "bash scripts/doctor.sh"
+
+[tasks.dev]
+description = "Run the application once cmd/server exists"
+run = "bash scripts/app-task.sh dev"
+
+[tasks.deps]
+description = "Download and verify existing module dependencies"
+run = "bash scripts/app-task.sh deps"
+
+[tasks.container-build]
+description = "Build locally using the project's Dockerfile"
+run = "bash scripts/app-task.sh container-build"
+
+[tasks.firestore-emulator]
+description = "Start local Firestore emulator; requires gcloud emulator component"
+run = "mise exec gcloud@592.0.0 -- gcloud emulators firestore start --host-port=127.0.0.1:8085"
+
+[tasks.install-emulator]
+description = "Install Firestore emulator component into pinned Google Cloud SDK"
+run = "mise exec gcloud@592.0.0 -- gcloud components install cloud-firestore-emulator --quiet"
+
+[tasks.bootstrap]
+description = "Prepare core tools and all configured MCP services"
+run = "bash scripts/bootstrap.sh all"
+
+[tasks.doctor-mcp]
+description = "Verify all seven MCP handshakes and tool allowlists (requires network and GitHub token)"
+run = "python3 scripts/mcp-doctor.py"
+
+[tasks.install-browser-mcp]
+description = "Install optional browser MCP tools"
+run = "mise install node npm:@playwright/mcp npm:chrome-devtools-mcp"

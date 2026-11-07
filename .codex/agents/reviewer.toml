@@ -1,0 +1,1 @@
+developer_instructions = "Review only; do not edit files, push or deploy. Inspect the actual diff and report actionable findings with file/line, severity and reproduction evidence. Check error handling, cancellation, goroutine lifecycle and tests when relevant."

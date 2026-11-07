@@ -1,0 +1,81 @@
+[features]
+multi_agent = true
+
+[agents]
+max_threads = 6
+max_depth = 1
+
+[agents.architect]
+description = "Design proportional Go package boundaries and consumer-owned interfaces."
+config_file = "agents/architect.toml"
+
+[agents.researcher]
+description = "Research Go and SDK documentation."
+config_file = "agents/researcher.toml"
+
+[agents.reviewer]
+description = "Independently review Go correctness and tests."
+config_file = "agents/reviewer.toml"
+
+[agents.environment]
+description = "Verify mise, Go tooling and MCP readiness."
+config_file = "agents/environment.toml"
+
+[mcp_servers.graphify]
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "graphify-mcp", "/workspace/tooling/cache/graphify/graphify-out/graph.json"]
+enabled = true
+required = false
+startup_timeout_sec = 45
+tool_timeout_sec = 60
+enabled_tools = ["query_graph", "get_node", "get_neighbors", "get_community", "god_nodes", "graph_stats", "shortest_path"]
+
+[mcp_servers.openaiDeveloperDocs]
+url = "https://developers.openai.com/mcp"
+enabled = true
+required = false
+startup_timeout_sec = 20
+tool_timeout_sec = 45
+
+[mcp_servers.context7]
+url = "https://mcp.context7.com/mcp"
+enabled = true
+required = false
+startup_timeout_sec = 20
+tool_timeout_sec = 45
+
+[mcp_servers.repomix_skills]
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "repomix", "--mcp"]
+enabled_tools = ["generate_skill"]
+default_tools_approval_mode = "prompt"
+enabled = true
+required = false
+startup_timeout_sec = 45
+tool_timeout_sec = 120
+
+
+[mcp_servers.repomix]
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "repomix", "--mcp", "--sandbox", "/workspace/line-mini-app-bot"]
+enabled_tools = ["pack_codebase", "read_repomix_output", "grep_repomix_output", "file_system_read_file", "file_system_read_directory"]
+enabled = true
+required = false
+startup_timeout_sec = 45
+tool_timeout_sec = 120
+
+[mcp_servers.gopls]
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "gopls", "mcp"]
+enabled = true
+required = false
+startup_timeout_sec = 120
+tool_timeout_sec = 60
+
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+bearer_token_env_var = "GITHUB_MCP_TOKEN"
+enabled = true
+required = false
+startup_timeout_sec = 30
+tool_timeout_sec = 60

@@ -1,0 +1,1 @@
+developer_instructions = "Inspect current code before proposing architecture. Prefer simple concrete types; introduce abstractions only for current requirements. Report decisions, affected packages, risks and acceptance criteria."
