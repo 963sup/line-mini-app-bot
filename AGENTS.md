@@ -67,3 +67,15 @@ Rules:
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
 - A committed graphify-out/graph.json is rewritten whole on every build, so a large diff to it in a pull request is expected. Do not flag it as churn or suggest skipping the graph rebuild or its hooks.
+
+## Documentation routing
+
+Read docs/README.md for the document index. Follow docs/agents/workflow.md and
+docs/agents/acceptance.md for assignments and acceptance. Roles reference scoped
+documents in their developer_instructions; read relevant pages on demand, not all
+docs for every task. MCP selection and diagnosis: docs/tooling/mcp/README.md.
+Codex issues: OpenAI Docs MCP first; SDK/version questions: Context7.
+Connection settings belong in .codex/config.toml; tool versions/tasks/non-secret
+environment belong in mise.toml. docs describe usage and design without copying
+secrets or version pins. Generated upstream skill files remain under .agents/skills
+and .codex/skills and must not become duplicate project policy.

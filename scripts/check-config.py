@@ -1,5 +1,6 @@
 """Validate repository configuration without installing tools or contacting services."""
 import json
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -34,6 +35,19 @@ def check():
         instructions = agent.get("developer_instructions")
         if not isinstance(instructions, str) or not instructions.strip():
             raise ValueError(f"Missing agent instructions: {name}")
+    # Catch stale role-document paths after moving or renaming documentation.
+    for role in roles.values():
+        instructions = tomllib.loads((codex_dir / role["config_file"]).read_text())["developer_instructions"]
+        for reference in re.findall(r"docs/[A-Za-z0-9_./-]+\.md", instructions):
+            if not (ROOT / reference).is_file():
+                raise ValueError(f"Missing role document: {reference}")
+    docs = list((ROOT / "docs").rglob("*.md"))
+    for path in docs:
+        for target in re.findall(r"\]\(([^)]+)\)", path.read_text()):
+            if "://" in target or target.startswith("#"):
+                continue
+            if not (path.parent / target.split("#", 1)[0]).is_file():
+                raise ValueError(f"Broken documentation link in {path.relative_to(ROOT)}: {target}")
     if not isinstance(mise.get("tools", {}).get("go"), str):
         raise ValueError("mise.toml must pin Go")
     # Reuse the same constrained parser as bootstrap rather than silently accepting
