@@ -118,7 +118,7 @@ run = "python3 scripts/check-config.py"
 
 [tasks.repomix]
 description = "Pack project sources with security checking and without generated skills"
-run = "repomix --config repomix.config.json"
+run = "repomix --style xml --parsable-style --output repomix-output.xml"
 
 [tasks.docs-openai]
 description = "Search official OpenAI docs through MCP; append --arguments JSON to override query"
