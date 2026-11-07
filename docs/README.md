@@ -10,6 +10,7 @@ Read relevant pages on demand; Codex does not automatically load all docs.
 - [Architecture](architecture/overview.md) and [decision records](architecture/decisions/README.md)
 - [LINE](integrations/line.md) and [Firestore](integrations/firestore.md)
 - [Cloud Run](operations/cloud-run.md) and [troubleshooting](operations/troubleshooting.md)
+- [Fly.io deployment from main](operations/fly.md)
 
 Configuration sources: `.codex/config.toml` owns roles/MCP connections;
 `mise.toml` owns tool versions, non-secret environment and tasks;

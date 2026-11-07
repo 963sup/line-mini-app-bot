@@ -1,0 +1,47 @@
+name: Fly production deploy
+
+# Deploy only after the existing checks pass for a push to main.
+on:
+  workflow_run:
+    workflows: [Repository checks]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fly-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FLY_APP_NAME: ${{ vars.FLY_APP_NAME }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+
+      - name: Check deployment prerequisites
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          test -n "$FLY_APP_NAME" || { echo 'Set repository variable FLY_APP_NAME.'; exit 1; }
+          test -n "$FLY_API_TOKEN" || { echo 'Set repository secret FLY_API_TOKEN.'; exit 1; }
+          test -f go.mod || { echo 'Deployment requires a Go application with go.mod.'; exit 1; }
+          test -f Dockerfile || { echo 'Deployment requires an application Dockerfile.'; exit 1; }
+
+      - uses: superfly/flyctl-actions/setup-flyctl@98172f70657cb3e15db199af139be99bd3e61200
+
+      - name: Deploy tested commit to the existing app
+        run: flyctl deploy --remote-only --config fly.toml --app "$FLY_APP_NAME"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
