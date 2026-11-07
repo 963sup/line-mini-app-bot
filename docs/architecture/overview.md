@@ -1,65 +1,78 @@
-# 應用架構
+# LINE 平台架構總覽
 
-> 目標設計：LINE Messaging API＋LINE MINI App＋Go＋Firestore。
-> 本頁描述設計方向，不表示應用或部署已實作。
+> 狀態：目標設計；不是功能已實作的證明。後端使用 Go、LINE Messaging API、Firestore、Garr。
+> MINI App 由 Go 提供 HTML/CSS，瀏覽器仍需 LIFF JavaScript；不需要 Node.js 後端。
 
-## 1. 先看整體流程
+## 文件路由
+
+| 任務 | 必讀文件 |
+| --- | --- |
+| 新增或移動套件 | [目錄規劃](layout.md)、[依賴規則](dependencies.md) |
+| Webhook、Reply、Push、Worker | [可靠性與資料](reliability.md)、[LINE 整合](../integrations/line.md) |
+| 排定實作與驗收 | [交付計畫](delivery.md) |
+| Go 實作慣例 | [開發原則](principles.md)、[Go 慣例](../development/go.md) |
+
+## 執行流程
 
 ```mermaid
 flowchart TD
-    DM[一對一聊天] --> WH[Messaging API Webhook]
-    GROUP[群組聊天] --> WH
-    WH --> VERIFY[原始 body 簽章驗證]
-    VERIFY --> ROUTE[事件去重、來源與事件分流]
-    ROUTE --> UC[Go 業務使用案例與授權]
-    MINI[LINE MINI App：LIFF SDK] --> AUTH[HTTPS API：驗證 LINE token 與請求]
-    AUTH --> UC
-    UC --> STORE[Firestore adapter]
-    UC --> FORMAT[訊息組裝：文字、Flex、Quick Reply 等]
-    FORMAT --> SEND[Messaging API：Reply / Push]
-    SEND --> DM
-    SEND --> GROUP
-    UC --> SERVICE[MINI App Service Message adapter：符合資格時]
-    SERVICE --> NOTICE[LINE MINI App 通知聊天室]
-    MENU[Rich Menu：一對一聊天入口] --> ACTION[Postback / URI / 其他支援 action]
-    ACTION --> WH
-    ACTION --> MINI
+  DM[LINE 一對一] --> WH[Go Webhook：原始 body 驗簽]
+  GROUP[LINE 群組] --> WH
+  WH --> INBOX[Firestore Inbox：去重、可靠保存]
+  INBOX --> ROUTE{source.type}
+  ROUTE -->|user| DIRECT[一對一 Input Port → Use Cases → 個人 Entities]
+  ROUTE -->|group| GRP[群組 Input Port → Use Cases → 群組 Entities]
+  ROUTE -->|範圍外| IGNORE[忽略並觀測]
+  MINI[MINI App：Go HTML + LIFF JS] --> AUTH[LINE token 驗證與 session]
+  AUTH --> DIRECT
+  AUTH --> GRP
+  DIRECT --> PORTS[Output Ports：資料、回覆、通知]
+  GRP --> PORTS
+  PORTS --> STORE[Firestore Adapter]
+  PORTS --> REPLY[Reply 快速通道]
+  PORTS --> OUT[Firestore Outbox]
+  OUT --> WORKER[持續運行的 Go Worker：租約 + Garr]
+  WORKER --> PUSH[個人 Push / 群組 Push Adapter]
+  REPLY --> LINE[LINE Messaging API]
+  PUSH --> LINE
+  ADMIN[Go 管理介面 + RBAC] --> TM[Flex 模板：版本、驗證、發布]
+  TM -.-> DIRECT
+  TM -.-> GRP
+  ADMIN --> RM[Rich Menu 管理：僅一對一]
+  RM --> LINE
 ```
 
-圖中 action 是概念分流：Postback 產生事件；URI 開啟頁面，不會直接產生 postback。
-Rich Menu、Flex 與發送方式分屬互動入口、訊息內容、傳遞管道，不能合併為單一功能。
-完整能力與限制見 [LINE 整合](../integrations/line.md)。
+## 核心邊界
 
-
-Webhook 與 MINI App API 共用業務使用案例。例如兩個入口都能建立預約，
-預約資格與時段限制只在業務層定義一次。「預約」是說明範例，並非已確認需求。
-
-## 2. 每層只負責什麼
-
-| 層級 | 責任 | 不應放入 |
+| 模組 | 身分與狀態 | 使用案例與授權 |
 | --- | --- | --- |
-| HTTP 入口 | 簽章／身分驗證、請求解析、呼叫使用案例、轉換回應 | 業務規則、Firestore 查詢 |
-| 業務使用案例 | 協調操作、授權、業務規則、定義需要的小介面 | HTTP 狀態碼、LINE SDK 與 Firestore 型別 |
-| 技術 adapter | 實作資料存取與訊息發送介面、轉換外部型別 | 跨入口共用的業務判斷 |
-| 組裝入口 `main` | 建立 client、注入依賴、啟動與關閉服務 | 業務流程 |
+| direct | User、DirectConversation、個人資源 | Message/Postback、Follow/Unfollow、Unsend；資源擁有權 |
+| group | Group、GroupRole、群組資源 | Message/Postback、Join/Leave、成員事件、Unsend；群組角色與資源權限 |
+| identity | 經驗證的 LINE 身分、session | 驗證預期 channel 與有效性；不信任前端 profile 或 decoded token |
+| templates | 模板與不可變發布版本 | 驗證、測試發送、發布、回復 |
+| richmenu | 選單、圖片參照、alias、指派 | 預設／個人化／切換；統一以 Messaging API 管理 |
+| jobs | Inbox/Outbox 狀態、租約、typed target | 領取、重試、完成、人工處理 |
 
-執行時由使用案例呼叫 adapter；程式碼依賴方向則由 adapter 實作業務端需要的介面。
-只在實際需要隔離外部依賴時建立介面，不為每個 struct 配一個介面。
+群組 userId 可能缺少，需個人權限的操作拒絕執行。平台群組管理角色須明確綁定，不假設 LINE 提供完整管理員名單。
+群組內容對成員可見，私人結果導向 MINI App／一對一。群組不提供 Rich Menu。
+新產品只支援 user/group；room 是仍有官方相容支援的歷史來源，不宣稱 API 全部已淘汰。
+Service Message 待資格與模板確認後使用獨立 adapter，不當作任意 Flex Push。
 
-## 3. 模組如何拆分
+## 查核依據與限制
 
-採模組化單體：一個 Go 服務部署至 Cloud Run，依實際業務能力劃分套件。
-會員、預約、通知可作為討論範例；未確認需求前不預建這些模組。
-先保留簡單套件，當責任或依賴明確分化時再拆分，避免為每項功能建立固定四層目錄。
+2026-11-07：Context7 查詢 `/line/line-openapi`（source、Reply、Push retry key、Rich Menu）、
+`/line/line-liff-v2-starter`（vanilla LIFF）、`/websites/cloud_google_firestore_native`（交易、IAM）。
+LIFF starter 不涵蓋完整 token 驗證，該項以官方 LIFF 文件補足。Garr 無 Context7 專屬索引，核對已安裝模組文件。
+官方來源庫 main 查核提交：`090500a12f9777995006d9fb5cafab8d83a792b2`；不代表官方網站所有頁面均被來源庫收錄。
 
-## 4. 接下來查哪裡
+- [LINE 官方來源快照](https://github.com/line/line-developers-docs-source/tree/090500a12f9777995006d9fb5cafab8d83a792b2)
+- [群組](https://developers.line.biz/en/docs/messaging-api/group-chats/)、[Rich Menu](https://developers.line.biz/en/docs/messaging-api/rich-menus-overview/)
+- [LIFF 後端身分](https://developers.line.biz/en/docs/liff/using-user-profile/)
+- [Firestore transactions](https://docs.cloud.google.com/firestore/native/docs/manage-data/transactions)
+- [Garr](https://github.com/line/garr)
 
-| 問題 | 文件 |
-| --- | --- |
-| 實作時採哪些原則？ | [開發原則與決策](principles.md) |
-| Webhook、MINI App 如何驗證？ | [LINE 整合](../integrations/line.md) |
-| Firestore 權限、交易如何處理？ | [Firestore 整合](../integrations/firestore.md) |
-| Go 程式怎麼寫、怎麼驗證？ | [Go 慣例](../development/go.md)、[測試](../development/testing.md) |
-| 如何部署與管理機密？ | [Cloud Run](../operations/cloud-run.md) |
+文件核對不取代真實渠道、IAM、索引、裝置與發布資格驗收。
 
-影響模組邊界、資料一致性或部署方式的決策，記錄於 [ADR](decisions/README.md)。
+詳細契約入口：[Codex 接手索引](codex-readiness.md)。
+
+部署已決定：[Fly.io ADR](decisions/0001-fly-deployment.md)。定位功能依 [Web Geolocation 契約](../integrations/web-geolocation.md)，前端 API 與 Go 後端授權分離。

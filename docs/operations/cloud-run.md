@@ -1,11 +1,5 @@
-# Cloud Run delivery
+# 部署文件已移至 Fly.io
 
-Target: containerized Go HTTP service on Cloud Run, images in Artifact Registry,
-secrets from Secret Manager and structured logs in Cloud Logging.
-The service must listen on the provided PORT and support graceful shutdown.
-Use Cloud Run service identity and minimal Google IAM permissions.
-
-Build locally with the existing container-build task once Dockerfile exists.
-Deployment needs an explicitly chosen project, region, image and authorization;
-this document does not perform provisioning or authorize deployment.
-Validate service authentication separately from LINE end-user identity.
+本儲存庫唯一應用部署目標為 Fly.io；本頁僅保留既有連結導向，沒有 Cloud Run 部署步驟。
+請讀 [Fly.io 部署](fly.md) 與 [ADR 0001](../architecture/decisions/0001-fly-deployment.md)。
+Firestore／可選 Secret Manager 仍可使用 Google Cloud 服務，不代表應用部署在 Google Cloud。

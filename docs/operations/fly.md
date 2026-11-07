@@ -8,9 +8,11 @@ default branch. Pull request checks do not trigger deployment.
 
 ## One-time setup
 
-1. Add the Go application (`go.mod`, source, and a production Dockerfile).
-   Listen on `0.0.0.0:8080` and handle graceful shutdown. This repository currently
-   contains environment configuration, not a deployable LINE application.
+1. The repository has a Go health server, go.mod and a Dockerfile. LINE handlers
+   and the worker remain planned. Before adding SDK imports/internal packages,
+   update Docker COPY/module-download steps and verify the image. Listen on
+   `0.0.0.0:8080` and handle graceful shutdown. Current fly.toml configures HTTP
+   only; a persistent worker needs explicit process/Machine lifecycle configuration.
 2. Authenticate with `fly auth login`, then create an app once with
    `fly apps create <unique-app-name>` (or reuse an existing app).
    Keep the committed fly.toml; do not run fly launch on every deployment.
@@ -22,7 +24,7 @@ default branch. Pull request checks do not trigger deployment.
 5. Set `LINE_MESSAGING_API_CHANNEL_SECRET` and `LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN` in Fly Secrets,
    matching the environment names used by the future application. If using
    Firestore, also configure Google authentication and its project separately;
-   Fly does not automatically inherit a Cloud Run service identity.
+   Fly requires an explicitly configured Google ADC/IAM credential; no Google runtime identity is automatically provided.
 6. Commit the configuration to main. After the application and prerequisites
    exist, a successful main check run triggers deployment automatically.
 7. Configure LINE's webhook as `https://<unique-app-name>.fly.dev/webhook`, using
@@ -45,3 +47,13 @@ Reference: https://docs.fly.io/launch/continuous-deployment-with-github-actions
 See [Fly MCP](../tooling/mcp/fly.md) for OAuth setup, account/resource inspection
 and transport limitations. MCP connection does not configure the GitHub deployment
 secret or replace the CI deployment workflow.
+
+## Selected deployment architecture
+
+Fly.io is the sole application runtime; see [ADR 0001](../architecture/decisions/0001-fly-deployment.md).
+Use Fly Secrets for runtime secrets. Firestore remains external and requires explicitly configured Google ADC/IAM.
+The worker needs an always-running Machine/process, separate from request-driven HTTP auto-start/stop.
+Current fly.toml and Dockerfile do not yet configure/build the worker. Validate process routing,
+lease recovery, shutdown, Google authentication and image contents before deployment.
+Serve MINI App over HTTPS. Geolocation policy and browser/device acceptance are specified
+in [Web Geolocation](../integrations/web-geolocation.md); platform HTTPS alone does not grant browser permission.

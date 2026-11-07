@@ -21,3 +21,12 @@ roles to relevant documents. Resolve routine issues within the authorized scope;
 report host restrictions accurately. Consult [MCP guidance](../tooling/mcp/README.md)
 for tool selection and transport diagnostics. Integration does not grant permission
 to push or deploy.
+
+## Deployment and browser location routing
+
+Application deployment uses Fly.io only. Read docs/architecture/decisions/0001-fly-deployment.md
+and docs/operations/fly.md before deployment work; Google Firestore needs explicit ADC/IAM on Fly.
+For location tasks read docs/integrations/web-geolocation.md: browser JavaScript obtains location,
+Go validates untrusted coordinates and authorization. No location history or presence verification
+without the product contract. Read docs/architecture/codex-readiness.md and
+docs/development/naming.md for implementation handoffs. Preserve generated upstream skills.
