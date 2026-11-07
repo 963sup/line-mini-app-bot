@@ -1,0 +1,53 @@
+{
+  "installedAt": "2026-11-08",
+  "skills": [
+    {
+      "name": "fly",
+      "repository": "https://github.com/superfly/skills",
+      "revision": "ba182c9ba6ffa5b107d5f7c77e0a2c37eeef89d3",
+      "path": "plugins/fly/skills/fly",
+      "destination": ".agents/skills/fly",
+      "files": 17
+    },
+    {
+      "name": "brand",
+      "repository": "https://github.com/superfly/skills",
+      "revision": "ba182c9ba6ffa5b107d5f7c77e0a2c37eeef89d3",
+      "path": "plugins/fly/skills/brand",
+      "destination": ".agents/skills/brand",
+      "files": 1
+    },
+    {
+      "name": "golang-gopls",
+      "repository": "https://github.com/samber/cc-skills-golang",
+      "revision": "bb1d43d98a3f8ab639a0042f90d0ec524e39a477",
+      "path": "skills/golang-gopls",
+      "destination": ".agents/skills/golang-gopls",
+      "files": 6
+    },
+    {
+      "name": "context7-mcp",
+      "repository": "https://github.com/upstash/context7",
+      "revision": "078c0c731d19eb88d2391b236ab82a127dbabac3",
+      "path": "skills/context7-mcp",
+      "destination": ".agents/skills/context7-mcp",
+      "files": 1
+    },
+    {
+      "name": "repomix-explorer",
+      "repository": "https://github.com/yamadashy/repomix",
+      "revision": "5becbb59429aa9d570ae7b7af710e98871721fca",
+      "path": "skills/repomix-explorer",
+      "destination": ".agents/skills/repomix-explorer",
+      "files": 1
+    },
+    {
+      "name": "openai-docs",
+      "repository": "https://github.com/openai/skills",
+      "revision": "49f948faa9258a0c61caceaf225e179651397431",
+      "path": "skills/.curated/openai-docs",
+      "destination": ".agents/skills/openai-docs",
+      "files": 10
+    }
+  ]
+}

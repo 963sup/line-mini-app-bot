@@ -47,3 +47,10 @@ Configuration sources: `.codex/config.toml` owns roles/MCP connections;
 LINE 設定命名與機密注入：[環境變數規格](integrations/line-environment.md)。
 
 瀏覽器定位：[Web Geolocation API](integrations/web-geolocation.md)（安全 context、同意、Go 驗證、實機驗收）。
+
+## 強制查證規則（全儲存庫、所有角色）
+
+LINE 問題先查 [官方文件來源庫](https://github.com/line/line-developers-docs-source) 的最新版本；其他技術問題或任何實作不確定一律先查 Context7。
+不可用記憶代替查證；來源不可用或不足時明確回報，受影響決策保持待確認。完整規則見根目錄 AGENTS.md。
+
+專案技能清單與來源：[Skills](tooling/skills.md)。
