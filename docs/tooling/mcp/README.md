@@ -18,7 +18,9 @@ Use Graphify/gopls for structure and verify source claims; Repomix bundles sourc
 
 Configuration, installation, initialize/tools-list, host loading and functional
 operations are separate verification stages. `mise run doctor-mcp` checks transport
-and tool allowlists only. Use single-server checks when optional credentials are
+and tool allowlists only. Explicit host-OAuth services are reported as
+HOST_REQUIRED with their MCP URL and host login command, not as PASS.
+Optional host-only verification does not block bootstrap; real probe failures do. Use single-server checks when optional credentials are
 unavailable. Local servers run through tool-exec.sh with workspace-owned state.
 
 ## Host environment inheritance

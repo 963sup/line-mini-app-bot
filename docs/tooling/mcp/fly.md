@@ -47,12 +47,23 @@ secret updates, remote commands or sending feedback to Fly staff.
 bash scripts/tool-exec.sh mise run doctor-fly
 ```
 
-The repository doctor probes initialize/tools-list but does not implement OAuth
-or load tokens from Codex credential storage. A 401 may therefore mean this direct
-client needs authentication even when the host is authenticated. A 403 can also
-be a network policy or service rejection; do not interpret it as successful setup.
-Use host-exposed tools after OAuth for real account access verification. Do not
-export OAuth credentials merely to make this unauthenticated smoke check pass.
+The doctor explicitly marks Fly as **HOST_REQUIRED — 需在宿主內驗證**.
+It prints the configured MCP endpoint URL and this supported login command:
+
+    codex mcp login fly-mcp --no-browser
+
+The command must run in a compatible host that has loaded the server configuration.
+That host generates the actual OAuth authorization URL; the printed MCP endpoint
+is not an authorization link. The doctor never initiates login, reads stored tokens
+or reports authentication as passed. After login, use a host-exposed read-only tool.
+
+This optional host-only check does not fail bootstrap. Actual direct probe failures
+still exit nonzero; if a host-only server is marked required, pending verification
+also exits nonzero. For explicit unauthenticated transport diagnosis:
+
+    bash scripts/tool-exec.sh python scripts/mcp-doctor.py --server fly-mcp --direct
+
+A direct 401 remains a failure and does not prove the host is signed out.
 
 ## Troubleshooting
 

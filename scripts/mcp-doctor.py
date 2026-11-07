@@ -9,9 +9,59 @@ import subprocess
 import threading
 import tomllib
 import urllib.request
+from urllib.parse import urlsplit, urlunsplit
+import shlex
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG = tomllib.loads((ROOT / '.codex/config.toml').read_text())['mcp_servers']
+
+# Explicit host-managed OAuth services; arbitrary HTTP 401s are not skips.
+HOST_OAUTH_SERVERS = {"fly-mcp"}
+
+
+def host_verification(name, config):
+    endpoint = urlsplit(config.get("url", ""))
+    if endpoint.scheme != "https" or not endpoint.hostname:
+        raise RuntimeError("host OAuth server requires a valid HTTPS URL")
+    host = endpoint.hostname
+    if ":" in host:
+        host = "[" + host + "]"
+    if endpoint.port:
+        host += ":" + str(endpoint.port)
+    safe_url = urlunsplit(("https", host, endpoint.path, "", ""))
+    print(f"HOST_REQUIRED {name}: 需在宿主內驗證（未執行直接連線檢查）", flush=True)
+    print(f"  MCP URL: {safe_url} (服務端點，不是 OAuth 授權 URL)", flush=True)
+    print(f"  Login: codex mcp login {shlex.quote(name)} --no-browser", flush=True)
+    print("  由支援的 Codex 宿主產生實際授權 URL；登入後呼叫宿主內唯讀工具驗證。", flush=True)
+
+
+def check_servers(configs, server=None, call=None, arguments=None, direct=False):
+    counts = {"PASS": 0, "FAIL": 0, "HOST_REQUIRED": 0, "SKIP": 0}
+    required_pending = False
+    for name, config in configs.items():
+        if server and name != server:
+            continue
+        if config.get("enabled", True) is False:
+            counts["SKIP"] += 1
+            print(f"SKIP {name}: disabled", flush=True)
+            continue
+        try:
+            if name in HOST_OAUTH_SERVERS and not direct:
+                host_verification(name, config)
+                counts["HOST_REQUIRED"] += 1
+                required_pending |= bool(config.get("required", False))
+            else:
+                probe(name, config, call, arguments)
+                counts["PASS"] += 1
+        except Exception as exc:
+            counts["FAIL"] += 1
+            detail = str(exc) if isinstance(exc, RuntimeError) else type(exc).__name__
+            print(f"FAIL {name}: {detail}", flush=True)
+    print("Summary: " + ", ".join(f"{key}={value}" for key, value in counts.items()), flush=True)
+    print("Transport probes do not prove the current chat host loaded these servers.", flush=True)
+    if required_pending:
+        print("Required host OAuth verification is pending; readiness is incomplete.", flush=True)
+    return int(bool(counts["FAIL"] or required_pending))
 
 
 def probe(name, config, call=None, arguments=None):
@@ -121,6 +171,7 @@ def probe(name, config, call=None, arguments=None):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--server', choices=sorted(CONFIG))
+    parser.add_argument('--direct', action='store_true', help='Explicitly probe host-OAuth servers without host credentials (401 remains a failure)')
     parser.add_argument('--call', help='Explicit read-only tool call; requires --server')
     parser.add_argument('--arguments', default='{}', help='JSON tool arguments; never include credentials')
     args = parser.parse_args()
@@ -131,19 +182,4 @@ if __name__ == '__main__':
     arguments = json.loads(args.arguments)
     if not isinstance(arguments, dict):
         parser.error('--arguments must be a JSON object')
-    failures = 0
-    for name, config in CONFIG.items():
-        if args.server and name != args.server:
-            continue
-        if config.get('enabled', True) is False:
-            print(f'SKIP {name}: disabled', flush=True)
-            continue
-        try:
-            probe(name, config, args.call, arguments)
-        except Exception as exc:
-            failures += 1
-            # Do not print response bodies or request headers containing credentials.
-            detail = str(exc) if isinstance(exc, RuntimeError) else type(exc).__name__
-            print(f'FAIL {name}: {detail}', flush=True)
-    print('Transport probes do not prove the current chat host loaded these servers.', flush=True)
-    raise SystemExit(bool(failures))
+    raise SystemExit(check_servers(CONFIG, args.server, args.call, arguments, args.direct))
