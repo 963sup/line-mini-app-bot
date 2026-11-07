@@ -5,10 +5,10 @@ import "github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 
 func Help(group bool, appURL string) messaging_api.MessageInterface {
 	title := "LINE 功能選單"
-	description := "一對一連線已接通。可查看連線狀態，或開啟網頁服務；出勤尚未啟用。"
+	description := "一對一連線已接通。輸入「出勤紀錄」查詢本人紀錄，或開啟網頁服務。"
 	if group {
 		title = "群組功能選單"
-		description = "群組只提供公開功能說明與連線狀態。個人資料請至一對一或網頁查看。"
+		description = "輸入「打卡」叫出上下班按鈕，也可直接輸入「上班」「下班」。歷史紀錄請私訊查詢。"
 	}
 	buttons := []messaging_api.FlexComponentInterface{
 		&messaging_api.FlexButton{
@@ -34,6 +34,20 @@ func Help(group bool, appURL string) messaging_api.MessageInterface {
 			Footer: &messaging_api.FlexBox{Layout: "vertical", Contents: buttons},
 		},
 	}
+}
+
+// AttendanceMenu uses silent postbacks so a click doesn't send an extra text message.
+func AttendanceMenu() messaging_api.MessageInterface {
+	return &messaging_api.FlexMessage{AltText: "出勤打卡：上班／下班", Contents: &messaging_api.FlexBubble{
+		Body: &messaging_api.FlexBox{Layout: "vertical", Contents: []messaging_api.FlexComponentInterface{
+			&messaging_api.FlexText{Text: "出勤打卡", Weight: "bold", Size: "xl"},
+			&messaging_api.FlexText{Text: "點選記錄本人的上下班時間；結果會顯示在群組。", Wrap: true, Margin: "md"},
+		}},
+		Footer: &messaging_api.FlexBox{Layout: "horizontal", Spacing: "md", Contents: []messaging_api.FlexComponentInterface{
+			&messaging_api.FlexButton{Style: "primary", Action: &messaging_api.PostbackAction{Label: "上班", Data: "action=clock-in"}},
+			&messaging_api.FlexButton{Style: "secondary", Action: &messaging_api.PostbackAction{Label: "下班", Data: "action=clock-out"}},
+		}},
+	}}
 }
 
 // RichMenu describes three horizontal areas matching a 2500 x 843 image.

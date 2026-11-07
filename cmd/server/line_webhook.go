@@ -15,7 +15,7 @@ import (
 )
 
 // registerLINEWebhook enables the connectivity prototype only when configured.
-func registerLINEWebhook(mux *http.ServeMux, appURL string) error {
+func registerLINEWebhook(mux *http.ServeMux, appURL string, attendance *attendanceBot) error {
 	channelID := os.Getenv("LINE_MESSAGING_API_CHANNEL_ID")
 	secret := os.Getenv("LINE_MESSAGING_API_CHANNEL_SECRET")
 	token := os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN")
@@ -45,12 +45,13 @@ func registerLINEWebhook(mux *http.ServeMux, appURL string) error {
 		return errors.New("cannot initialize LINE Messaging API client")
 	}
 	path := "/webhooks/line/" + channelID
-	mux.HandleFunc("POST "+path, lineWebhookHandler(secret, bot, appURL))
+	mux.HandleFunc("POST "+path, lineWebhookHandler(secret, bot, appURL, attendance))
 	slog.Info("LINE connectivity prototype enabled", "path", path)
 	return nil
 }
 
-func lineWebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, appURL string) http.HandlerFunc {
+func lineWebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, appURL string, attendance *attendanceBot) http.HandlerFunc {
+	weather := newWeatherClient()
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
 		callback, err := webhook.ParseRequest(secret, r)
@@ -73,7 +74,20 @@ func lineWebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, appUR
 		client := *bot
 		client.WithContext(ctx)
 		for _, event := range callback.Events {
-			reply := replyForEvent(event, appURL)
+			reply, handled, attendanceErr := attendance.reply(ctx, event)
+			if attendanceErr != nil {
+				// A retry reuses the persisted event result if commit already succeeded.
+				slog.Warn("attendance operation unavailable")
+				http.Error(w, "attendance unavailable; retry safely", http.StatusServiceUnavailable)
+				return
+			}
+			if !handled {
+				var weatherHandled bool
+				reply, weatherHandled = weatherReply(ctx, event, weather)
+				if !weatherHandled {
+					reply = replyForEvent(event, appURL)
+				}
+			}
 			if reply.message == nil {
 				continue
 			}
@@ -82,6 +96,10 @@ func lineWebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, appUR
 				Messages:   []messaging_api.MessageInterface{reply.message},
 			})
 			if err != nil {
+				if handled {
+					http.Error(w, "attendance reply unavailable", http.StatusServiceUnavailable)
+					return
+				}
 				// Raw SDK errors can include request details; log no token or payload.
 				slog.Warn("LINE prototype reply failed; not retried")
 			}

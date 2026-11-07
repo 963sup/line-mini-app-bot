@@ -1,6 +1,6 @@
 # 基礎出勤
 
-首版只處理人員上班、下班與查看本人出勤紀錄。這是功能設計範圍，不表示已實作。
+首版只處理人員上班、下班與查看本人出勤紀錄。群組文字與按鈕打卡已接入程式；部署與真實 LINE／Firestore 驗收需另外執行。
 先完成 [基礎設施與接入](../development/foundation.md)，再開發本頁功能；
 不要求在目前階段新增測試方案、案例或工具。
 
@@ -22,13 +22,43 @@
 排班、請假、加班審核、薪資、GPS／人臉打卡、補登審核、管理員報表與通知推送。
 不為上述功能預建模組或通用框架；既有 LINE 能力矩陣是參考，不代表全部都要實作。
 
-## 功能實作前需收斂的必要決策
+## 已採用的首版規則
+
+- 入口採 Messaging API：Bot 所在群組成員輸入「打卡」取得 Flex 上下班按鈕，也可直接輸入「上班」「下班」。一對一輸入「出勤紀錄」取得最近五筆本人資料；群組查詢只回覆私訊引導。
+- 各群組獨立計算；每人每群組同時只允許一段未完成出勤，一天可以多段。跨日下班關閉原本未完成紀錄。
+- 顯示 Asia/Taipei，Firestore 保存 UTC。使用伺服器處理時間，不將事件時間當打卡時間；事件時間只用來拒絕早於最近處理事件的亂序操作。
+- 重複上班回傳原上班時間；沒有未完成紀錄時下班明確拒絕。相同事件重送讀取原交易結果。
+- 不需群組或人員核准名單，也不查好友資格。從已驗簽群組事件取得 groupId、userId；缺少任一身分時不打卡。按鈕採 Postback，不額外送出指令文字；結果回覆仍為全群可見。
+
+## 啟用與資料
+
+設定 `GOOGLE_CLOUD_PROJECT` 與 `LINE_MESSAGING_API_CHANNEL_ID` 後初始化出勤資料庫；任一未設定則出勤關閉，打卡回覆尚未啟用。
+可選用 `FIRESTORE_DATABASE_ID`（省略為 `(default)`）。
+沿用既有 Messaging API secret／access token 與 runtime ADC，執行帳戶需具有指定資料庫讀寫權限。
+
+LINE Developers Console 需開啟 Allow bot to join group chats，再邀請 Bot 入群。群組成員不必先各自加 Bot 好友；私訊查紀錄可先加好友開啟一對一。
+舊有 `ATTENDANCE_MEMBERS_JSON` 設定不再讀取，不影響使用資格。私訊上下班只引導回群組，不建立另一套個人打卡。
+
+資料位於 `channels/{channelID}/users/{SHA256(userID)}` 下：
+
+- `attendance/{SHA256([groupID,eventID])}`：schemaVersion、groupID、clockInAt、clockOutAt（尚未下班則省略）。
+- `attendanceStates/{SHA256(groupID)}`：recordID、lastEventTime。
+- `attendanceEvents/{SHA256([groupID,eventID,action])}`：code、record（原操作結果快照）。
+
+複合 ID 使用 JSON array 編碼後雜湊。事件結果、出勤紀錄與狀態在同一交易提交；回覆在交易外發送。
+一對一查詢固定本人路徑，按 clockInAt 倒序限制五筆，不需複合索引。
+不儲存 reply token、完整事件、姓名或座標。資料保存期尚待營運決策，正式啟用前必須決定清理政策；去重結果不能先於可能重送期間刪除。
+
+LINE Developers Console 必須啟用 Webhook redelivery。寫入或出勤回覆失敗回傳 503，允許重送；
+reply token 有效期與一次使用限制仍適用，去重保證不重複打卡，不保證每次回覆送達。遇回覆不明確時，私訊查詢本人紀錄。
+
+## 後續產品變更
 
 - 首期入口：Bot 或 MINI App 選定其一先接通；不預設兩者同步開發。
 - 人員識別：LINE 身分如何對應允許打卡的人員，首次使用如何取得資格。
 - 時間歸屬：顯示時區、跨日下班如何對應上班紀錄，以及是否允許一天多段出勤。
 - 操作結果：重複上班／下班、沒有上班就下班時，明確拒絕或回傳既有結果的規則。
 
-以上未定事項集中在此確認，不以程式碼默認值代替產品決策。
+以上項目首版已依前節收斂；後續若改動，在本頁更新規則。
 確認後才固定相應 API、Firestore 路徑／欄位、唯一性與原子更新方式；
 不在基礎設施尚未穩定時一次建完全部功能。

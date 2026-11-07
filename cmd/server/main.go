@@ -31,7 +31,12 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	if err := registerLINEWebhook(mux, appURL); err != nil {
+	attendance, closeAttendance, err := newAttendanceBot(context.Background(), os.Getenv("LINE_MESSAGING_API_CHANNEL_ID"))
+	if err != nil {
+		return err
+	}
+	defer closeAttendance()
+	if err := registerLINEWebhook(mux, appURL, attendance); err != nil {
 		return err
 	}
 	server := &http.Server{
