@@ -12,6 +12,8 @@ Read relevant pages on demand; Codex does not automatically load all docs.
 | 決定模組、介面與業務規則放哪裡 | [開發原則與決策](architecture/principles.md) |
 | 開始寫 Go | [環境設定](development/setup.md) → [Go 慣例](development/go.md) → [測試](development/testing.md) |
 
+- [Codex Cloud 設定與 MCP 驗收](development/codex-cloud.md)
+
 ## 文件索引
 
 - [Agent workflow](agents/workflow.md) and [acceptance](agents/acceptance.md)
