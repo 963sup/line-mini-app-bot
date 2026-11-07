@@ -9,6 +9,7 @@
 | [repomix_skills](repomix-skills.md) | Researcher, Implementer |
 | [gopls](gopls.md) | Explorer, Implementer, Tester, Reviewer |
 | [github](github.md) | Orchestrator, Reviewer, Integrator |
+| [fly-mcp](fly.md) | Orchestrator, Implementer, Reviewer, Integrator |
 
 Roles share services; this mapping is guidance, not access control. Host tool
 exposure, server allowlists and user authorization determine actual access.

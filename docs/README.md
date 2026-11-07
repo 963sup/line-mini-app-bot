@@ -15,7 +15,7 @@ Read relevant pages on demand; Codex does not automatically load all docs.
 ## 文件索引
 
 - [Agent workflow](agents/workflow.md) and [acceptance](agents/acceptance.md)
-- [mise](tooling/mise.md) and [seven MCP services](tooling/mcp/README.md)
+- [mise](tooling/mise.md) and [MCP services](tooling/mcp/README.md)
 - [Environment setup](development/setup.md), [Go conventions](development/go.md), [tests](development/testing.md)
 - [應用架構與流程](architecture/overview.md)、[開發原則與決策](architecture/principles.md)、[決策紀錄](architecture/decisions/README.md)
 - [LINE 能力矩陣：一對一、群組、Rich Menu、Flex、MINI App](integrations/line.md) and [Firestore](integrations/firestore.md)

@@ -99,7 +99,7 @@ description = "Prepare Go tools without requiring remote MCP credentials"
 run = "bash scripts/bootstrap.sh core"
 
 [tasks.doctor-mcp]
-description = "Verify all seven MCP handshakes and tool allowlists (requires network and GitHub token)"
+description = "Verify configured MCP handshakes and tool allowlists (requires network and GitHub token)"
 run = "python3 scripts/mcp-doctor.py"
 
 [tasks.install-graphify]
@@ -126,3 +126,7 @@ run = "python3 scripts/mcp-doctor.py --server openaiDeveloperDocs --call search_
 [tasks.doctor-openai]
 description = "Check OpenAI Docs MCP independently of optional GitHub credentials"
 run = "python3 scripts/mcp-doctor.py --server openaiDeveloperDocs"
+
+[tasks.doctor-fly]
+description = "Probe Fly MCP transport; direct probe does not use Codex OAuth credentials"
+run = "python3 scripts/mcp-doctor.py --server fly-mcp"

@@ -39,3 +39,9 @@ Dockerfile or GitHub settings are missing. Syntax checks alone do not establish
 that a deployment works. This setup does not change Codex's working branches.
 
 Reference: https://docs.fly.io/launch/continuous-deployment-with-github-actions
+
+## MCP operations
+
+See [Fly MCP](../tooling/mcp/fly.md) for OAuth setup, account/resource inspection
+and transport limitations. MCP connection does not configure the GitHub deployment
+secret or replace the CI deployment workflow.

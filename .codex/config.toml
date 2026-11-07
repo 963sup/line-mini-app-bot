@@ -2,6 +2,7 @@
 multi_agent = true
 
 [agents]
+# Spawned threads exclude the primary; actual host limits take precedence.
 max_concurrent_threads_per_session = 6
 max_depth = 2
 
@@ -47,6 +48,8 @@ tool_timeout_sec = 60
 enabled_tools = ["query_graph", "get_node", "get_neighbors", "get_community", "god_nodes", "graph_stats", "shortest_path"]
 
 [mcp_servers.openaiDeveloperDocs]
+# Keep documentation context focused on search and retrieval.
+enabled_tools = ["search_openai_docs", "fetch_openai_doc"]
 url = "https://developers.openai.com/mcp"
 enabled = true
 required = false
@@ -95,3 +98,11 @@ enabled = true
 required = false
 startup_timeout_sec = 30
 tool_timeout_sec = 60
+
+[mcp_servers.fly-mcp]
+url = "https://mcp.fly.io"
+enabled = true
+required = false
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+default_tools_approval_mode = "prompt"

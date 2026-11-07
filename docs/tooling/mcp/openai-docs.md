@@ -36,3 +36,11 @@ bash scripts/tool-exec.sh python3 scripts/mcp-doctor.py --server openaiDeveloper
 Prefer exposed host tools. The direct client is a fallback and does not register
 servers in the host. Search and fetch are the only direct tool calls allowed by
 this client. Report tool errors and do not treat a handshake as a successful query.
+
+## Codex configuration policy
+
+The configured allowlist contains search_openai_docs and fetch_openai_doc.
+Agent roles inherit parent MCP servers and permissions; a role description is
+not a separate filesystem sandbox. Optional server failure must be reported
+without claiming host loading succeeded. See the official [MCP configuration](https://developers.openai.com/codex/mcp)
+and [subagent guidance](https://developers.openai.com/codex/multi-agent).
