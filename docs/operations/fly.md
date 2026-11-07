@@ -20,6 +20,8 @@ default branch. Pull request checks do not trigger deployment.
    The server listens on port 8080 by default and supports graceful shutdown.
    LINE and Firestore application integration is not implemented yet; deploying
    the HTTP skeleton does not establish that these integrations work.
+   Docker already copies go.mod/go.sum and cmd; add any new application packages
+   to the build context when needed. Current fly.toml configures HTTP only.
 2. Authenticate with `fly auth login`, then create an app once with
    `fly apps create <unique-app-name>` (or reuse an existing app).
    Keep the committed fly.toml; do not run fly launch on every deployment.
@@ -54,3 +56,14 @@ Reference: https://docs.fly.io/launch/continuous-deployment-with-github-actions
 See [Fly MCP](../tooling/mcp/fly.md) for OAuth setup, account/resource inspection
 and transport limitations. MCP connection does not configure the GitHub deployment
 secret or replace the CI deployment workflow.
+
+## Selected deployment architecture
+
+Fly.io is the sole application runtime; see [ADR 0001](../architecture/decisions/0001-fly-deployment.md).
+Use Fly Secrets for runtime secrets. Firestore remains external and requires explicitly configured Google ADC/IAM.
+Worker and browser location are deferred, not prerequisites for the foundation or basic attendance.
+If a worker is later required, it needs an always-running Machine/process, separate from request-driven HTTP auto-start/stop.
+Current fly.toml and Dockerfile do not yet configure/build the worker. Validate process routing,
+lease recovery, shutdown, Google authentication and image contents before deployment.
+Serve MINI App over HTTPS. Geolocation policy and browser/device acceptance are specified
+in [Web Geolocation](../integrations/web-geolocation.md); platform HTTPS alone does not grant browser permission.

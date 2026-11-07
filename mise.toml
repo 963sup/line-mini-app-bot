@@ -43,6 +43,7 @@ node = "24.22.1"
 uv = "0.13.7"
 python = "3.12.14"
 "npm:repomix" = "1.18.1"
+"npm:skills" = "1.7.6"
 
 [settings]
 exec_auto_install = false
@@ -113,7 +114,7 @@ run = "python3 scripts/check-config.py"
 
 [tasks.repomix]
 description = "Pack project sources with security checking and without generated skills"
-run = "repomix --config repomix.config.json"
+run = "repomix --style xml --parsable-style --output repomix-output.xml"
 
 [tasks.docs-openai]
 description = "Search official OpenAI docs through MCP; append --arguments JSON to override query"
@@ -126,3 +127,11 @@ run = "python3 scripts/mcp-doctor.py --server openaiDeveloperDocs"
 [tasks.doctor-fly]
 description = "Probe Fly MCP transport; direct probe does not use Codex OAuth credentials"
 run = "python3 scripts/mcp-doctor.py --server fly-mcp"
+
+[tasks.install-skills-cli]
+description = "Install the pinned skills.sh CLI without adding skills"
+run = "mise install node npm:skills"
+
+[tasks.skills-list]
+description = "List project skills available to Codex"
+run = "skills list --agent codex"

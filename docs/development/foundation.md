@@ -1,7 +1,7 @@
 # 基礎設施與分階段落地
 
 先建好可執行、可部署、可連線的基礎，再實作 [基礎出勤](../features/attendance.md)。
-沿用 [架構基線](../architecture/decisions/0001-baseline.md)，應用只部署至 Fly.io。
+沿用 [架構基線](../architecture/decisions/0002-baseline.md)，應用只部署至 Fly.io。
 本文件是工作順序與完成條件，不表示資源已建立，也不授權建立雲端資源或部署。
 目前不新增測試方案、案例或工具，保留既有 CI。
 

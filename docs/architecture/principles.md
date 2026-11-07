@@ -48,3 +48,5 @@
 當獨立部署、讀寫差異或事件稽核需求成立時，再重新評估。
 
 實作細節見 [Go 慣例](../development/go.md)；驗證方式見 [測試](../development/testing.md)。
+
+目標套件配置見 [目錄規劃](layout.md)，依賴方向見 [依賴規則](dependencies.md)。

@@ -3,7 +3,7 @@
 首版僅做 [基礎出勤](../docs/features/attendance.md)：上班、下班與本人紀錄。
 依 [分階段落地](../docs/development/foundation.md) 先穩定執行／部署基礎，再接入資料與 LINE，
 最後開發出勤；具體規則集中在功能規格確認。架構與階段範圍依
-[已接受的基線](../docs/architecture/decisions/0001-baseline.md)：目前先穩定基礎，
+[已接受的基線](../docs/architecture/decisions/0002-baseline.md)：目前先穩定基礎，
 不新增測試方案、案例或工具，保留現有 CI。
 
 Source scripts/cloud-env.sh in every shell, or use scripts/tool-exec.sh.

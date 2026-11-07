@@ -5,7 +5,7 @@
 
 首版功能方向為「基礎出勤」，應用僅部署至 Fly.io，機密透過 Fly Secrets 注入。
 目前先穩定基礎，不新增測試方案、案例或工具；保留既有 CI。
-架構與階段範圍依 [已接受的基線](docs/architecture/decisions/0001-baseline.md)，
+架構與階段範圍依 [已接受的基線](docs/architecture/decisions/0002-baseline.md)，
 首版只處理上班、下班與本人紀錄，見 [基礎出勤](docs/features/attendance.md)。
 開發順序為 [執行／部署基礎 → 資料與 LINE 接入 → 基礎出勤](docs/development/foundation.md)，
 不在基礎設施尚未確認可用時直接堆疊業務功能；具體出勤規則集中在功能規格確認。

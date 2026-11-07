@@ -3,7 +3,7 @@
 Current phase: stabilize the foundation; do not add test plans, cases or tools.
 The test-related matrix entries below are retained for the later testing phase.
 Keep existing CI; this phase note does not authorize removing checks or claiming
-unrun checks passed. Scope follows the [accepted baseline](../architecture/decisions/0001-baseline.md).
+unrun checks passed. Scope follows the [accepted baseline](../architecture/decisions/0002-baseline.md).
 
 
 
@@ -26,3 +26,11 @@ Graphify AST extraction can omit TOML, documentation and dynamic calls. Repomix
 is a source bundle, not a correctness proof. Configuration parsing, MCP handshake,
 host tool exposure and representative tool operations are separate checks.
 Do not claim a fresh Cloud environment works based on an existing tool cache.
+
+## Fly and browser location
+
+Fly changes: verify image contents, HTTP/process routing, persistent worker lifecycle,
+shutdown/lease recovery and explicit Google ADC/IAM; config parsing is not a deployment test.
+Geolocation changes: permission denied, unavailable, timeout, unsupported/insecure context,
+coordinate validation, missing fields, cancellation/watch cleanup and authorization.
+Report LINE iOS/Android and external-browser acceptance separately; mocks do not prove device support.
