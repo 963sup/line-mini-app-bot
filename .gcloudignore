@@ -1,0 +1,11 @@
+# Allow only container inputs and the build definition in manual source uploads.
+**
+!.dockerignore
+!Dockerfile
+!cloudbuild.yaml
+!go.mod
+!go.sum
+!cmd/
+!cmd/**
+!internal/
+!internal/**

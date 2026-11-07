@@ -1,0 +1,94 @@
+# Runtime credentials are Secret Manager references, never build substitutions.
+steps:
+  - id: validate-settings
+    name: gcr.io/google.com/cloudsdktool/google-cloud-cli:592.0.0-slim
+    entrypoint: bash
+    env:
+      - 'LINE_MESSAGING_API_CHANNEL_ID=${_MESSAGING_API_CHANNEL_ID}'
+      - 'LINE_MINI_APP_CHANNEL_ID=${_MINI_APP_CHANNEL_ID}'
+      - 'LINE_MINI_APP_LIFF_ID=${_MINI_APP_LIFF_ID}'
+      - 'SECRET_VERSION=${_CHANNEL_SECRET_VERSION}'
+      - 'TOKEN_VERSION=${_CHANNEL_ACCESS_TOKEN_VERSION}'
+    args:
+      - -ceu
+      - |
+        [[ "$${LINE_MESSAGING_API_CHANNEL_ID}" =~ ^[0-9]+$ ]] || {
+          echo 'Set _MESSAGING_API_CHANNEL_ID to the Messaging API Channel ID.' >&2; exit 2;
+        }
+        if [[ -n "$${LINE_MINI_APP_CHANNEL_ID}" || -n "$${LINE_MINI_APP_LIFF_ID}" ]]; then
+          [[ "$${LINE_MINI_APP_CHANNEL_ID}" =~ ^[0-9]+$ ]] &&
+          [[ "$${LINE_MINI_APP_LIFF_ID}" =~ ^[0-9]+-[A-Za-z0-9]+$ ]] || {
+            echo 'Set both _MINI_APP_CHANNEL_ID and _MINI_APP_LIFF_ID, or leave both empty.' >&2; exit 2;
+          }
+        fi
+        [[ "$${SECRET_VERSION}" =~ ^[1-9][0-9]*$ ]] &&
+        [[ "$${TOKEN_VERSION}" =~ ^[1-9][0-9]*$ ]] || {
+          echo 'Secret versions must be positive version numbers, not latest.' >&2; exit 2;
+        }
+
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --tag
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REPOSITORY}/${_SERVICE}:$BUILD_ID'
+      - .
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REPOSITORY}/${_SERVICE}:$BUILD_ID'
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/google-cloud-cli:592.0.0-slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - '${_SERVICE}'
+      - '--project=$PROJECT_ID'
+      - '--region=${_REGION}'
+      - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REPOSITORY}/${_SERVICE}:$BUILD_ID'
+      - '--service-account=${_RUNTIME_SERVICE_ACCOUNT}@$PROJECT_ID.iam.gserviceaccount.com'
+      - --allow-unauthenticated
+      - --ingress=all
+      - --port=8080
+      - --startup-probe=tcpSocket.port=8080
+      - --cpu=1
+      - --memory=512Mi
+      - --min=0
+      - --max=3
+      - --concurrency=20
+      - --timeout=15s
+      - --deploy-health-check
+      - '--set-env-vars=GOOGLE_CLOUD_PROJECT=$PROJECT_ID,LINE_MESSAGING_API_CHANNEL_ID=${_MESSAGING_API_CHANNEL_ID},LINE_MINI_APP_CHANNEL_ID=${_MINI_APP_CHANNEL_ID},LINE_MINI_APP_LIFF_ID=${_MINI_APP_LIFF_ID}'
+      - '--set-secrets=LINE_MESSAGING_API_CHANNEL_SECRET=${_CHANNEL_SECRET_NAME}:${_CHANNEL_SECRET_VERSION},LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN=${_CHANNEL_ACCESS_TOKEN_NAME}:${_CHANNEL_ACCESS_TOKEN_VERSION}'
+      - --quiet
+
+images:
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REPOSITORY}/${_SERVICE}:$BUILD_ID'
+
+serviceAccount: 'projects/$PROJECT_ID/serviceAccounts/${_BUILD_SERVICE_ACCOUNT}@$PROJECT_ID.iam.gserviceaccount.com'
+
+substitutions:
+  _SERVICE: line-mini-app-bot
+  _REGION: asia-east1
+  _ARTIFACT_REPOSITORY: applications
+  _BUILD_SERVICE_ACCOUNT: cloud-build-deployer
+  _RUNTIME_SERVICE_ACCOUNT: line-mini-app-runtime
+  # Required at submission/trigger setup; no real Channel ID is committed.
+  _MESSAGING_API_CHANNEL_ID: ''
+  # Optional pair; leave both empty to disable MINI App authentication.
+  _MINI_APP_CHANNEL_ID: ''
+  _MINI_APP_LIFF_ID: ''
+  _CHANNEL_SECRET_NAME: line-messaging-api-channel-secret
+  _CHANNEL_SECRET_VERSION: '1'
+  _CHANNEL_ACCESS_TOKEN_NAME: line-messaging-api-channel-access-token
+  _CHANNEL_ACCESS_TOKEN_VERSION: '1'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  dynamicSubstitutions: true
+
+timeout: 1200s

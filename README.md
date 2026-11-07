@@ -10,6 +10,8 @@
 
 首版功能方向為「基礎出勤」，應用部署至 Google Cloud Run，機密透過
 Secret Manager 綁定。
+部署配置為根目錄 `cloudbuild.yaml`，採建置 → Artifact Registry → Cloud Run；
+首次設定、IAM 與操作步驟見 [Cloud Run 部署](docs/operations/cloud-run.md)。
 目前先穩定基礎，不新增測試方案、案例或工具；保留既有 CI。
 架構與階段範圍依 [已接受的基線](docs/architecture/decisions/0002-baseline.md)，
 首版只處理上班、下班與本人紀錄，見 [基礎出勤](docs/features/attendance.md)。
