@@ -39,6 +39,8 @@ description = "Change integration, conflict resolution and final acceptance."
 config_file = "agents/integrator.toml"
 
 [mcp_servers.graphify]
+# Forward runtime network settings by name; never store credential values.
+env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
 command = "bash"
 args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "graphify-mcp", "/workspace/line-mini-app-bot/graphify-out/graph.json"]
 enabled = true
@@ -64,6 +66,8 @@ startup_timeout_sec = 20
 tool_timeout_sec = 45
 
 [mcp_servers.repomix_skills]
+# Forward runtime network settings by name; never store credential values.
+env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
 command = "bash"
 args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "repomix", "--mcp"]
 enabled_tools = ["generate_skill"]
@@ -75,6 +79,8 @@ tool_timeout_sec = 120
 
 
 [mcp_servers.repomix]
+# Forward runtime network settings by name; never store credential values.
+env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
 command = "bash"
 args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "repomix", "--mcp", "--sandbox", "/workspace/line-mini-app-bot"]
 enabled_tools = ["pack_codebase", "read_repomix_output", "grep_repomix_output", "file_system_read_file", "file_system_read_directory"]
@@ -84,6 +90,8 @@ startup_timeout_sec = 45
 tool_timeout_sec = 120
 
 [mcp_servers.gopls]
+# Forward runtime network settings by name; never store credential values.
+env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS", "GOPROXY", "GOPRIVATE", "GONOPROXY", "GONOSUMDB", "GOSUMDB"]
 command = "bash"
 args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "gopls", "mcp"]
 enabled = true
