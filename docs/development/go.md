@@ -11,3 +11,5 @@ Format modified Go files; run focused tests before shared acceptance checks.
 Do not globally disable CGO: the race detector needs a working C toolchain.
 See [tests](testing.md), [LINE](../integrations/line.md) and
 [Firestore](../integrations/firestore.md) for boundary-specific requirements.
+
+架構與抽象選擇依 [開發原則與決策](../architecture/principles.md)；層級責任見 [應用架構](../architecture/overview.md)。

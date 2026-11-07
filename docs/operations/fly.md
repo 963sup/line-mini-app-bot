@@ -19,7 +19,7 @@ default branch. Pull request checks do not trigger deployment.
 4. In GitHub Settings -> Secrets and variables -> Actions, add the repository
    variable `FLY_APP_NAME` and repository secret `FLY_API_TOKEN`.
    Store the token only as a secret and rotate it before expiry.
-5. Set `LINE_CHANNEL_SECRET` and `LINE_CHANNEL_ACCESS_TOKEN` in Fly Secrets,
+5. Set `LINE_MESSAGING_API_CHANNEL_SECRET` and `LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN` in Fly Secrets,
    matching the environment names used by the future application. If using
    Firestore, also configure Google authentication and its project separately;
    Fly does not automatically inherit a Cloud Run service identity.
