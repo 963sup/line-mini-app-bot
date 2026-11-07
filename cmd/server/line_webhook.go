@@ -15,7 +15,7 @@ import (
 )
 
 // registerLINEWebhook enables the connectivity prototype only when configured.
-func registerLINEWebhook(mux *http.ServeMux, appURL string, attendance *attendanceBot) error {
+func registerLINEWebhook(mux *http.ServeMux, appURL string, attendance *attendanceBot, summaries *summaryBot) error {
 	channelID := os.Getenv("LINE_MESSAGING_API_CHANNEL_ID")
 	secret := os.Getenv("LINE_MESSAGING_API_CHANNEL_SECRET")
 	token := os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN")
@@ -45,12 +45,12 @@ func registerLINEWebhook(mux *http.ServeMux, appURL string, attendance *attendan
 		return errors.New("cannot initialize LINE Messaging API client")
 	}
 	path := "/webhooks/line/" + channelID
-	mux.HandleFunc("POST "+path, lineWebhookHandler(secret, bot, appURL, attendance))
+	mux.HandleFunc("POST "+path, lineWebhookHandler(secret, bot, appURL, attendance, summaries))
 	slog.Info("LINE connectivity prototype enabled", "path", path)
 	return nil
 }
 
-func lineWebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, appURL string, attendance *attendanceBot) http.HandlerFunc {
+func lineWebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, appURL string, attendance *attendanceBot, summaries *summaryBot) http.HandlerFunc {
 	weather := newWeatherClient()
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
@@ -74,6 +74,18 @@ func lineWebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, appUR
 		client := *bot
 		client.WithContext(ctx)
 		for _, event := range callback.Events {
+			summaryReply, summaryHandled, summaryErr := summaries.observe(ctx, event)
+			if summaryErr != nil {
+				http.Error(w, "summary temporarily unavailable", http.StatusServiceUnavailable)
+				return
+			}
+			if summaryHandled {
+				if summaryReply.message != nil {
+					// Reply is best effort; the durable job and enqueue have already succeeded.
+					_, _ = client.ReplyMessage(&messaging_api.ReplyMessageRequest{ReplyToken: summaryReply.token, Messages: []messaging_api.MessageInterface{summaryReply.message}})
+				}
+				continue
+			}
 			reply, handled, attendanceErr := attendance.reply(ctx, event)
 			if attendanceErr != nil {
 				// A retry reuses the persisted event result if commit already succeeded.

@@ -36,13 +36,18 @@ func run() error {
 		return err
 	}
 	defer closeAttendance()
-	if err := registerLINEWebhook(mux, appURL, attendance); err != nil {
+	summaries, closeSummaries, err := registerSummary(context.Background(), mux)
+	if err != nil {
+		return err
+	}
+	defer closeSummaries()
+	if err := registerLINEWebhook(mux, appURL, attendance, summaries); err != nil {
 		return err
 	}
 	server := &http.Server{
 		Addr: net.JoinHostPort("", port), Handler: mux,
 		ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second,
-		WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second,
+		WriteTimeout: 100 * time.Second, IdleTimeout: 60 * time.Second,
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()

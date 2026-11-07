@@ -19,6 +19,8 @@ Read relevant pages on demand; Codex does not automatically load all docs.
 
 ## 快速入口
 
+群組功能：[位置天氣](features/weather.md)、[基礎群聊摘要](features/summary.md)（含模型與任務佇列啟用設定）。
+
 | 你現在要做什麼？ | 從這裡開始 |
 | --- | --- |
 | 穩定基礎、確認開發先後順序 | [基礎設施與分階段落地](development/foundation.md) |

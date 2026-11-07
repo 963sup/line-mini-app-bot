@@ -8,7 +8,7 @@ func Help(group bool, appURL string) messaging_api.MessageInterface {
 	description := "一對一連線已接通。輸入「出勤紀錄」查詢本人紀錄，或開啟網頁服務。"
 	if group {
 		title = "群組功能選單"
-		description = "輸入「打卡」叫出上下班按鈕，也可直接輸入「上班」「下班」。歷史紀錄請私訊查詢。"
+		description = "輸入「打卡」叫出上下班按鈕；分享位置查天氣。輸入「摘要」整理最近群聊，「關閉摘要／開啟摘要」切換收集。歷史出勤請私訊查詢。"
 	}
 	buttons := []messaging_api.FlexComponentInterface{
 		&messaging_api.FlexButton{

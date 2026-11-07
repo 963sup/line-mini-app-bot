@@ -129,7 +129,7 @@ func TestAttendanceWebhookRejectsUnsignedRequest(t *testing.T) {
 	b := &attendanceBot{store: s}
 	r := httptest.NewRequest(http.MethodPost, "/webhooks/line/123", strings.NewReader(`{"events":[]}`))
 	w := httptest.NewRecorder()
-	lineWebhookHandler("secret", nil, "", b)(w, r)
+	lineWebhookHandler("secret", nil, "", b, nil)(w, r)
 	if w.Code != http.StatusUnauthorized || s.calls != 0 {
 		t.Fatalf("status=%d calls=%d", w.Code, s.calls)
 	}
