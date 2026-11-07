@@ -31,8 +31,11 @@ Rich Menu、Flex 與發送方式分屬互動入口、訊息內容、傳遞管道
 完整能力與限制見 [LINE 整合](../integrations/line.md)。
 
 
-Webhook 與 MINI App API 共用業務使用案例。例如兩個入口都能建立預約，
-預約資格與時段限制只在業務層定義一次。「預約」是說明範例，並非已確認需求。
+首版功能方向為「基礎出勤」。Webhook 與 MINI App API 若提供相同出勤操作，
+共用業務使用案例，出勤操作資格與規則只在業務層定義一次。
+首版範圍為上班、下班與本人紀錄，具體規則見 [基礎出勤](../features/attendance.md)。
+依 [分階段落地](../development/foundation.md) 先穩定執行與部署基礎、再完成資料與 LINE 接入，
+最後實作出勤；不要求兩個入口同時開發。本頁不表示這些行為已實作。
 
 ## 2. 每層只負責什麼
 
@@ -48,8 +51,9 @@ Webhook 與 MINI App API 共用業務使用案例。例如兩個入口都能建�
 
 ## 3. 模組如何拆分
 
-採模組化單體：一個 Go 服務部署至 Cloud Run，依實際業務能力劃分套件。
-會員、預約、通知可作為討論範例；未確認需求前不預建這些模組。
+採模組化單體：一個 Go 服務僅部署至 Fly.io，依實際業務能力劃分套件。
+先圍繞已確認的「基礎出勤」方向逐步實作；會員管理與通知等能力待需求確認後再加入，
+不預建這些模組。
 先保留簡單套件，當責任或依賴明確分化時再拆分，避免為每項功能建立固定四層目錄。
 
 ## 4. 接下來查哪裡
@@ -60,6 +64,6 @@ Webhook 與 MINI App API 共用業務使用案例。例如兩個入口都能建�
 | Webhook、MINI App 如何驗證？ | [LINE 整合](../integrations/line.md) |
 | Firestore 權限、交易如何處理？ | [Firestore 整合](../integrations/firestore.md) |
 | Go 程式怎麼寫、怎麼驗證？ | [Go 慣例](../development/go.md)、[測試](../development/testing.md) |
-| 如何部署與管理機密？ | [Cloud Run](../operations/cloud-run.md) |
+| 如何部署與管理機密？ | [Fly.io](../operations/fly.md) |
 
 影響模組邊界、資料一致性或部署方式的決策，記錄於 [ADR](decisions/README.md)。

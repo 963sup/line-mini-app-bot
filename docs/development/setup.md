@@ -1,5 +1,9 @@
 # Environment setup
 
+Current priority is the execution/deployment foundation, not attendance behavior.
+Follow [the phased foundation plan](foundation.md) for prerequisites, current
+evidence and completion criteria before implementing [attendance](../features/attendance.md).
+
 From the repository root:
 
 ```bash

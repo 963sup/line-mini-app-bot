@@ -7,7 +7,9 @@ Handle errors with context; do not log secrets, access tokens or raw identity to
 
 Use the pinned mise toolchain and GOTOOLCHAIN=local. Normal verification uses
 readonly modules. Change dependencies deliberately and review go.mod/go.sum.
-Format modified Go files; run focused tests before shared acceptance checks.
+Format modified Go files. Test development is deferred during the current foundation
+phase; keep existing CI. Follow the [accepted baseline](../architecture/decisions/0001-baseline.md)
+for current scope and [testing guidance](testing.md) when that phase resumes.
 Do not globally disable CGO: the race detector needs a working C toolchain.
 See [tests](testing.md), [LINE](../integrations/line.md) and
 [Firestore](../integrations/firestore.md) for boundary-specific requirements.

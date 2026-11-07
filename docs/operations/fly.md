@@ -1,5 +1,13 @@
 # Fly.io deployment from main
 
+Fly.io is the only application deployment target. Google Cloud is used for
+Firestore access, not application hosting. Runtime application secrets are
+injected through Fly Secrets; Google authentication must be configured separately.
+
+Follow [the foundation plan](../development/foundation.md): first establish the
+HTTP skeleton deployment, then data/LINE connectivity, then attendance behavior.
+Configuration files and a deployment workflow are not evidence of provisioned resources.
+
 Push to `main` -> Repository checks succeed -> Fly production deploy updates the
 same Fly App. No branch or preview app is created. The deployment checks out the
 exact commit tested by Repository checks, not a potentially newer main commit.
@@ -8,9 +16,10 @@ default branch. Pull request checks do not trigger deployment.
 
 ## One-time setup
 
-1. Add the Go application (`go.mod`, source, and a production Dockerfile).
-   Listen on `0.0.0.0:8080` and handle graceful shutdown. This repository currently
-   contains environment configuration, not a deployable LINE application.
+1. The repository already contains `go.mod`, a minimal HTTP server and Dockerfile.
+   The server listens on port 8080 by default and supports graceful shutdown.
+   LINE and Firestore application integration is not implemented yet; deploying
+   the HTTP skeleton does not establish that these integrations work.
 2. Authenticate with `fly auth login`, then create an app once with
    `fly apps create <unique-app-name>` (or reuse an existing app).
    Keep the committed fly.toml; do not run fly launch on every deployment.
@@ -22,7 +31,7 @@ default branch. Pull request checks do not trigger deployment.
 5. Set `LINE_MESSAGING_API_CHANNEL_SECRET` and `LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN` in Fly Secrets,
    matching the environment names used by the future application. If using
    Firestore, also configure Google authentication and its project separately;
-   Fly does not automatically inherit a Cloud Run service identity.
+   Fly does not automatically provide Google Application Default Credentials.
 6. Commit the configuration to main. After the application and prerequisites
    exist, a successful main check run triggers deployment automatically.
 7. Configure LINE's webhook as `https://<unique-app-name>.fly.dev/webhook`, using

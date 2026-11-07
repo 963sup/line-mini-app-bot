@@ -4,9 +4,7 @@ go 1.27.3
 
 require (
 	cloud.google.com/go/firestore v1.29.2
-	cloud.google.com/go/secretmanager v1.24.0
 	github.com/line/line-bot-sdk-go/v8 v8.23.0
-	go.linecorp.com/garr v0.1.1
 )
 
 require (

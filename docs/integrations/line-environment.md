@@ -51,7 +51,7 @@ MINI App 的 Developing／Review／Published 有不同內部 Channel；每個部
 ## 5. 注入與驗證
 
 - `mise.toml` 管理工具與非機密共用預設；真實 Channel／LIFF ID 由部署環境提供，避免提交某個環境的固定值。
-- 機密由 Cloud Run／Secret Manager 或本機安全注入，不提交至 mise、範例檔或版本庫。
+- 正式環境機密由 Fly Secrets 注入，本機由執行環境安全注入，不提交至 mise、範例檔或版本庫。
 - 前端只公開必要的 LIFF ID 等非機密資訊；所有 Channel token／secret 限後端使用。
 - 啟動時依啟用功能檢查必填值，錯誤只列變數名稱，不輸出值；不讀取舊 `LINE_CHANNEL_*` 別名。
 - Channel ID 與 LIFF ID 使用字串，不能互換；群組來源 ID 也不能拿來作使用者授權。

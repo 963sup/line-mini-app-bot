@@ -58,6 +58,10 @@ run = "go build ./..."
 description = "Build a local code graph without LLM calls"
 run = "graphify extract /workspace/line-mini-app-bot --code-only --allow-dedup-shrink --out /workspace/line-mini-app-bot"
 
+[tasks.graphify-docs]
+description = "Build a separate docs heading/link graph without API credentials"
+run = "python3 scripts/docs-graph.py"
+
 [tasks.install-core]
 description = "Install pinned Go toolchain and language server"
 run = "mise install go go:golang.org/x/tools/gopls"
@@ -85,14 +89,6 @@ run = "bash scripts/app-task.sh deps"
 [tasks.container-build]
 description = "Build locally using the project's Dockerfile"
 run = "bash scripts/app-task.sh container-build"
-
-[tasks.firestore-emulator]
-description = "Start local Firestore emulator; requires gcloud emulator component"
-run = "mise exec gcloud@592.0.0 -- gcloud emulators firestore start --host-port=127.0.0.1:8085"
-
-[tasks.install-emulator]
-description = "Install Firestore emulator component into pinned Google Cloud SDK"
-run = "mise exec gcloud@592.0.0 -- gcloud components install cloud-firestore-emulator --quiet"
 
 [tasks.bootstrap]
 description = "Prepare Go tools without requiring remote MCP credentials"

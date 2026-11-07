@@ -1,27 +1,32 @@
-# LINE / Go / Cloud Run
+# LINE / Go / Fly.io
+
+首版僅做 [基礎出勤](../docs/features/attendance.md)：上班、下班與本人紀錄。
+依 [分階段落地](../docs/development/foundation.md) 先穩定執行／部署基礎，再接入資料與 LINE，
+最後開發出勤；具體規則集中在功能規格確認。架構與階段範圍依
+[已接受的基線](../docs/architecture/decisions/0001-baseline.md)：目前先穩定基礎，
+不新增測試方案、案例或工具，保留現有 CI。
 
 Source scripts/cloud-env.sh in every shell, or use scripts/tool-exec.sh.
 Run bash scripts/bootstrap.sh for Go setup, then mise run doctor.
 Install optional tooling using mise run install-cloud or install-mcp.
 
-SDK dependencies belong in the future application's go.mod:
+SDK dependencies are managed in the existing application's go.mod/go.sum:
 - github.com/line/line-bot-sdk-go/v8
 - cloud.google.com/go/firestore
 net/http, html/template and log/slog require no extra packages.
 
-The repository has no application module yet. mise run dev expects cmd/server
-and defaults PORT to 8080. Cloud Run requires listening on :PORT.
-mise run container-build requires an application Dockerfile and a Docker daemon.
+The repository contains go.mod, cmd/server and a Dockerfile. The HTTP skeleton
+currently provides GET /healthz; attendance, LINE and Firestore behavior is not
+implemented. mise run dev defaults PORT to 8080. Fly.io routes to port 8080 as
+configured in fly.toml. mise run container-build also needs a Docker daemon.
 
 Use the pinned gcloud with: mise exec gcloud@592.0.0 -- gcloud ...
-Install emulator component with: gcloud components install cloud-firestore-emulator --quiet
-Then run mise run firestore-emulator. Only the local application process should set
-FIRESTORE_EMULATOR_HOST=127.0.0.1:8085 and a local Google Cloud project ID.
-Never carry the emulator variable into a production deployment.
 
-Cloud Run, Artifact Registry and Secret Manager require an actual project, region
-and authorized identity. Prefer Cloud Run service identity / ADC, not downloaded
-service-account keys. No deployment or remote writes are part of environment setup.
+Fly.io is the only application deployment target. Runtime secrets use Fly Secrets.
+Firestore access requires a Google project, explicit authentication and appropriate
+IAM; a Fly Machine does not automatically provide Google credentials. See the
+[Fly deployment guide](../docs/operations/fly.md). No deployment or remote writes
+are part of environment setup.
 Supply LINE secrets securely at runtime; local HMAC signature verification needs the
 actual channel secret, not a proxy-only placeholder. Verify webhook signatures on
 the original request bytes, and validate MINI App ID tokens server-side for the
@@ -44,8 +49,9 @@ it is not a claim of portability to arbitrary host paths.
 GitHub Actions validates repository configuration on every push/PR and runs Go
 checks only when go.mod exists. It reads the Go version from mise.toml but does
 not apply Cloud-specific /workspace environment variables to hosted runners.
-Until an application module exists, CI explicitly reports application checks
-NOT RUN. Local doctor tests the toolchain, not application behavior.
+The module now exists, so CI selects its Go checks. This describes workflow
+configuration, not evidence that a particular run passed. Local doctor checks
+the toolchain, not application behavior.
 
 ## Analysis and Codex
 
@@ -55,6 +61,12 @@ pack focused. This scanner is not a guarantee that arbitrary secrets are absent.
 mise run graphify-update writes graphify-out/graph.json in the project. AGENTS.md
 and the Graphify MCP configuration refer to that same file. The graph is generated
 and ignored, so rebuild it after restoring a clean checkout.
+
+mise run graphify-docs builds a separate heading/link graph of maintained project
+documentation, including README and scripts guides, outside the source tree.
+Use graphify query/path with --graph /workspace/tooling/cache/graphify-docs/graph.json
+to follow related documents. Corroborate consistency against source text; this is
+not semantic extraction. After correcting documents, rebuild and query again.
 
 The eight standalone agent files include name, description and instructions.
 Project .codex configuration requires the host to trust and load the project.
