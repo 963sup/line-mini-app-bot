@@ -1,0 +1,16 @@
+# Local secrets and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+service-account*.json
+# Generated analysis and local build outputs
+graphify-out/
+repomix-output.*
+bin/
+coverage.out
+*.test
+__pycache__/
+.venv/

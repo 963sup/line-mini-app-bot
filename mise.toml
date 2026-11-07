@@ -26,10 +26,8 @@ npm_config_userconfig = "/workspace/tooling/config/npm/npmrc"
 UV_CACHE_DIR = "/workspace/tooling/cache/uv"
 UV_TOOL_DIR = "/workspace/tooling/data/uv/tools"
 UV_TOOL_BIN_DIR = "/workspace/tooling/bin"
-UV_PYTHON_INSTALL_DIR = "/workspace/tooling/data/uv/python"
+UV_PYTHON_DOWNLOADS = "never"
 PIP_CACHE_DIR = "/workspace/tooling/cache/pip"
-PIPX_HOME = "/workspace/tooling/data/pipx"
-PIPX_BIN_DIR = "/workspace/tooling/bin"
 PYTHONPYCACHEPREFIX = "/workspace/tooling/cache/python"
 PLAYWRIGHT_BROWSERS_PATH = "/workspace/tooling/cache/ms-playwright"
 HISTFILE = "/workspace/tooling/state/bash_history"
@@ -38,13 +36,12 @@ DOCKER_CONFIG = "{{ env.DOCKER_CONFIG | default(value=\"/workspace/tooling/confi
 
 [tools]
 go = "1.27.3"
+# Node includes npm and npx.
 node = "24.22.1"
 "go:golang.org/x/tools/gopls" = "0.24.0"
-"npm:@playwright/mcp" = "0.0.84"
-"npm:chrome-devtools-mcp" = "1.12.0"
 
 uv = "0.13.7"
-"pipx:graphifyy" = { version = "0.9.103", extras = "mcp,terraform" }
+python = "3.12.14"
 "npm:repomix" = "1.18.1"
 
 [settings]
@@ -57,15 +54,9 @@ run = ["go mod verify", "go vet ./...", "go test -race ./..."]
 [tasks.build]
 run = "go build ./..."
 
-[tasks.mcp-playwright]
-run = "playwright-mcp --headless"
-
-[tasks.mcp-chrome]
-run = "chrome-devtools-mcp"
-
 [tasks.graphify-update]
 description = "Build a local code graph without LLM calls"
-run = "graphify extract /workspace/line-mini-app-bot --code-only --allow-dedup-shrink --out /workspace/tooling/cache/graphify"
+run = "graphify extract /workspace/line-mini-app-bot --code-only --allow-dedup-shrink --out /workspace/line-mini-app-bot"
 
 [tasks.install-core]
 description = "Install pinned Go toolchain and language server"
@@ -73,7 +64,7 @@ run = "mise install go go:golang.org/x/tools/gopls"
 
 [tasks.install-mcp]
 description = "Install optional local MCP tools separately from Go"
-run = "mise install node uv npm:repomix pipx:graphifyy"
+run = ["mise install node python uv npm:repomix", "mise run install-graphify"]
 
 [tasks.install-cloud]
 description = "Install pinned Google Cloud CLI (no authentication or deployment)"
@@ -104,13 +95,34 @@ description = "Install Firestore emulator component into pinned Google Cloud SDK
 run = "mise exec gcloud@592.0.0 -- gcloud components install cloud-firestore-emulator --quiet"
 
 [tasks.bootstrap]
-description = "Prepare core tools and all configured MCP services"
-run = "bash scripts/bootstrap.sh all"
+description = "Prepare Go tools without requiring remote MCP credentials"
+run = "bash scripts/bootstrap.sh core"
 
 [tasks.doctor-mcp]
 description = "Verify all seven MCP handshakes and tool allowlists (requires network and GitHub token)"
 run = "python3 scripts/mcp-doctor.py"
 
-[tasks.install-browser-mcp]
-description = "Install optional browser MCP tools"
-run = "mise install node npm:@playwright/mcp npm:chrome-devtools-mcp"
+[tasks.install-graphify]
+description = "Install Graphify with uv using the mise Python interpreter"
+run = [
+  "mise install python uv",
+  'uv tool install --python "$(mise which python)" --no-python-downloads "graphifyy[mcp,terraform]==0.9.103"',
+  "graphify install --platform codex --project",
+  "graphify install --platform agents --project",
+]
+
+[tasks.check-config]
+description = "Validate repository tooling and agent configuration"
+run = "python3 scripts/check-config.py"
+
+[tasks.repomix]
+description = "Pack project sources with security checking and without generated skills"
+run = "repomix --config repomix.config.json"
+
+[tasks.docs-openai]
+description = "Search official OpenAI docs through MCP; append --arguments JSON to override query"
+run = "python3 scripts/mcp-doctor.py --server openaiDeveloperDocs --call search_openai_docs"
+
+[tasks.doctor-openai]
+description = "Check OpenAI Docs MCP independently of optional GitHub credentials"
+run = "python3 scripts/mcp-doctor.py --server openaiDeveloperDocs"

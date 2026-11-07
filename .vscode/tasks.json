@@ -1,0 +1,63 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Go: setup",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "scripts/bootstrap.sh",
+        "core"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Environment: doctor",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "scripts/tool-exec.sh",
+        "mise",
+        "run",
+        "doctor"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Go: check application",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "scripts/tool-exec.sh",
+        "mise",
+        "run",
+        "check"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$go"
+      ],
+      "group": "test"
+    },
+    {
+      "label": "Repository: check configuration",
+      "type": "process",
+      "command": "python3",
+      "args": [
+        "scripts/check-config.py"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

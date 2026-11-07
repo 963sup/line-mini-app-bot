@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 source scripts/cloud-env.sh
-mode="${1:-all}"
+mode="${1:-core}"
 case "$mode" in core|mcp|all) ;; *) echo "Usage: $0 [core|mcp|all]" >&2; exit 2;; esac
 version=2026.11.3
 case "$(uname -m)" in x86_64) arch=x64;; aarch64) arch=arm64;; *) exit 1;; esac

@@ -1,0 +1,69 @@
+# Task orchestration
+
+For every new user request, the top-level agent must invoke the configured
+orchestrator agent before implementation or substantive investigation. Send the
+user's goal, constraints, relevant prior decisions, current work state and expected
+deliverable. Continue the same orchestrator for follow-up instructions on that task;
+do not create a new orchestrator for every message.
+
+The top-level agent owns user communication and delivers the verified result.
+The orchestrator owns planning, delegation, integration and validation.
+This routing rule does not require extra user confirmation.
+
+## Delegation boundaries
+
+- Only the top-level agent invokes orchestrator. Orchestrator must never invoke
+  itself or another orchestrator.
+- Specialists receiving an assigned subtask execute that subtask and report to
+  their orchestrator; they must not restart this routing rule or delegate further.
+- Orchestrator may use architect, researcher, explorer, implementer, tester,
+  reviewer and integrator when useful.
+  Small tasks can be completed by orchestrator directly; do not run all eight
+  roles automatically. Roles are capabilities, not a required parallel fan-out.
+- Assign one writer per file scope; parallelize only independent tasks. Respect
+  the host's actual concurrency and depth limits (configured depth is 2).
+- Preserve existing changes. Follow the user's scope and authorization; agent
+  delegation does not authorize pushing, publishing, deploying or external writes.
+- Validate the result with relevant checks and distinguish installed/configured
+  tools from services actually available to the current host.
+- If the host cannot invoke the configured orchestrator, report that specific
+  limitation. The top-level agent must explicitly adopt the orchestrator's
+  instructions as a fallback, never claim a sub-agent was invoked, and continue
+  authorized work without silently bypassing coordination.
+- This policy remains subordinate to system/developer instructions and the user's
+  explicit instructions.
+
+## Registered roles
+
+| Role | Responsibility |
+| --- | --- |
+| Orchestrator | Task decomposition, assignment, coordination and result integration |
+| Architect | System architecture, technical decisions and module boundaries |
+| Researcher | Technical research, official documentation and option comparisons |
+| Explorer | Code exploration, dependency analysis and change impact |
+| Implementer | Implementation, refactoring, bug fixes and scoped environment repairs |
+| Tester | Test design, execution and issue verification |
+| Reviewer | Code quality, security and architectural compliance review |
+| Integrator | Change integration, conflict resolution and final acceptance |
+
+Every handoff includes the goal, owned files, constraints, dependencies and
+acceptance checks. Every result includes evidence, actual test outcomes and
+remaining limitations. Integrator receives exclusive file ownership before
+resolving conflicts and checks the combined result; orchestrator retains final
+coordination responsibility. Integration never grants permission to push, merge
+remote changes, deploy or publish. The configured thread limit remains six and
+depth remains two; schedule specialists within the host's actual limits.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
+
+Rules:
+- When graphify-out/graph.json exists, run `graphify query "<question>"` before your first grep, search or source-file read for a codebase question, and put this rule in every subagent prompt that explores code. Read raw files only for lines the graph or an earlier read already located. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+- A committed graphify-out/graph.json is rewritten whole on every build, so a large diff to it in a pull request is expected. Do not flag it as churn or suggest skipping the graph rebuild or its hooks.

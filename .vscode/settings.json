@@ -1,0 +1,21 @@
+{
+  "go.alternateTools": {
+    "go": "${workspaceFolder}/scripts/go-tool.sh",
+    "gopls": "${workspaceFolder}/scripts/gopls-tool.sh"
+  },
+  "go.toolsManagement.autoUpdate": false,
+  "[go]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  "files.watcherExclude": {
+    "**/graphify-out/**": true
+  },
+  "search.exclude": {
+    "**/graphify-out/**": true,
+    "**/repomix-output.*": true
+  }
+}

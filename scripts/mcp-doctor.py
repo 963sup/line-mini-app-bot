@@ -1,4 +1,5 @@
 """Probe configured MCP transports without changing host configuration or credentials."""
+import argparse
 import json
 import os
 from pathlib import Path
@@ -13,7 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 CONFIG = tomllib.loads((ROOT / '.codex/config.toml').read_text())['mcp_servers']
 
 
-def probe(name, config):
+def probe(name, config, call=None, arguments=None):
     process = None
     session = None
     protocol = '2025-03-26'
@@ -46,7 +47,7 @@ def probe(name, config):
             if wanted is None:
                 return None
             while True:
-                item = inbox.get(timeout=45)
+                item = inbox.get(timeout=config.get('startup_timeout_sec', 45))
                 if item is None:
                     raise RuntimeError('server exited before reply')
                 if item.get('id') == wanted:
@@ -97,6 +98,13 @@ def probe(name, config):
             raise RuntimeError('configured tools not offered: ' + ', '.join(sorted(missing)))
         if not names:
             raise RuntimeError('empty tools list')
+        if call:
+            if call not in names:
+                raise RuntimeError('requested tool is not offered')
+            result = request(102, 'tools/call', {'name': call, 'arguments': arguments or {}})
+            if result.get('isError'):
+                raise RuntimeError('tool returned an error')
+            print(json.dumps(result), flush=True)
         print(f'PASS {name}: initialize + tools/list ({len(names)} tools)', flush=True)
     finally:
         if process:
@@ -111,10 +119,27 @@ def probe(name, config):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--server', choices=sorted(CONFIG))
+    parser.add_argument('--call', help='Explicit read-only tool call; requires --server')
+    parser.add_argument('--arguments', default='{}', help='JSON tool arguments; never include credentials')
+    args = parser.parse_args()
+    if args.call and not args.server:
+        parser.error('--call requires --server')
+    if args.call and (args.server != 'openaiDeveloperDocs' or args.call not in {'search_openai_docs', 'fetch_openai_doc'}):
+        parser.error('--call currently supports only OpenAI Docs search/fetch')
+    arguments = json.loads(args.arguments)
+    if not isinstance(arguments, dict):
+        parser.error('--arguments must be a JSON object')
     failures = 0
     for name, config in CONFIG.items():
+        if args.server and name != args.server:
+            continue
+        if config.get('enabled', True) is False:
+            print(f'SKIP {name}: disabled', flush=True)
+            continue
         try:
-            probe(name, config)
+            probe(name, config, args.call, arguments)
         except Exception as exc:
             failures += 1
             # Do not print response bodies or request headers containing credentials.

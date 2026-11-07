@@ -1,4 +1,9 @@
 # Source this file; values are owned exclusively by mise.toml.
+# The base image must provide Python 3.11+; mise Python is installed later.
+if ! command -v python3 >/dev/null 2>&1; then
+  printf "%s\n" "Bootstrap requires Python 3.11+ on PATH before mise is installed." >&2
+  return 1
+fi
 _cloud_env_exports="$(python3 "$(dirname "${BASH_SOURCE[0]}")/load-env.py")" || return
 eval "$_cloud_env_exports"
 unset _cloud_env_exports

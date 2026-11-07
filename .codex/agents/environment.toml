@@ -1,1 +1,0 @@
-developer_instructions = "Inspect tools and configuration. Repair only environment setup within the assigned scope. Preserve TLS, checksums and provenance verification. Distinguish configured, installed, started and functionally verified. Never print credentials or claim MCP host availability from config alone."

@@ -2,28 +2,44 @@
 multi_agent = true
 
 [agents]
-max_threads = 6
-max_depth = 1
+max_concurrent_threads_per_session = 6
+max_depth = 2
+
+[agents.orchestrator]
+description = "Task decomposition, assignment, coordination and result integration."
+config_file = "agents/orchestrator.toml"
 
 [agents.architect]
-description = "Design proportional Go package boundaries and consumer-owned interfaces."
+description = "System architecture, technical decisions and module boundaries."
 config_file = "agents/architect.toml"
 
 [agents.researcher]
-description = "Research Go and SDK documentation."
+description = "Technical research, official documentation and option comparisons."
 config_file = "agents/researcher.toml"
 
+[agents.explorer]
+description = "Code exploration, dependency analysis and change impact."
+config_file = "agents/explorer.toml"
+
+[agents.implementer]
+description = "Implementation, refactoring, bug fixes and scoped environment repairs."
+config_file = "agents/implementer.toml"
+
+[agents.tester]
+description = "Test design, execution and issue verification."
+config_file = "agents/tester.toml"
+
 [agents.reviewer]
-description = "Independently review Go correctness and tests."
+description = "Code quality, security and architectural compliance review."
 config_file = "agents/reviewer.toml"
 
-[agents.environment]
-description = "Verify mise, Go tooling and MCP readiness."
-config_file = "agents/environment.toml"
+[agents.integrator]
+description = "Change integration, conflict resolution and final acceptance."
+config_file = "agents/integrator.toml"
 
 [mcp_servers.graphify]
 command = "bash"
-args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "graphify-mcp", "/workspace/tooling/cache/graphify/graphify-out/graph.json"]
+args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "graphify-mcp", "/workspace/line-mini-app-bot/graphify-out/graph.json"]
 enabled = true
 required = false
 startup_timeout_sec = 45
