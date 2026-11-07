@@ -45,6 +45,7 @@ SIGTERM 停止領取、限制關閉等待，未完成工作到期可恢復。斷
 MINI App 使用 LIFF token 後端驗證，不信任 profile；session 使用安全 cookie 與 CSRF 防護。Provider／channel 身分關聯須明確核對。
 群組管理角色需驗證綁定，不以首次操作自動授予。日誌不記 secret、token、完整私人訊息。
 觀測 Inbox/Outbox 積壓、最老工作時間、Reply 延遲、重試、失敗、breaker 狀態；記錄渠道與追蹤 ID。
-部署唯一使用 Fly.io（ADR 0001）；需確認 Worker 常駐 Machine、Google ADC/IAM 與區域。現有 HTTP 配置不代表 Worker 已可運行。
+Cloud Run 是部署目標（ADR 0003）。若後續需要 Worker，必須重新確認執行模型、
+租約、Google ADC/IAM 與區域；現有 HTTP 配置不代表 Worker 已可運行。
 
 依據：[Firestore 交易](https://docs.cloud.google.com/firestore/native/docs/manage-data/transactions)、[IAM](https://docs.cloud.google.com/firestore/native/docs/security/iam)、[Garr](https://github.com/line/garr)、[LINE 能力矩陣](../integrations/line.md)。

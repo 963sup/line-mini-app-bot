@@ -2,20 +2,28 @@
   "installedAt": "2026-11-08",
   "skills": [
     {
-      "name": "fly",
-      "repository": "https://github.com/superfly/skills",
-      "revision": "ba182c9ba6ffa5b107d5f7c77e0a2c37eeef89d3",
-      "path": "plugins/fly/skills/fly",
-      "destination": ".agents/skills/fly",
-      "files": 17
+      "name": "gcloud",
+      "repository": "https://github.com/google/skills",
+      "revision": "2194d3b8b1f31975fef2f1a0ae6b9ab55bd7ceee",
+      "path": "skills/cloud/gcloud",
+      "destination": ".agents/skills/gcloud",
+      "files": 4
     },
     {
-      "name": "brand",
-      "repository": "https://github.com/superfly/skills",
-      "revision": "ba182c9ba6ffa5b107d5f7c77e0a2c37eeef89d3",
-      "path": "plugins/fly/skills/brand",
-      "destination": ".agents/skills/brand",
-      "files": 1
+      "name": "cloud-run-basics",
+      "repository": "https://github.com/google/skills",
+      "revision": "2194d3b8b1f31975fef2f1a0ae6b9ab55bd7ceee",
+      "path": "skills/cloud/cloud-run-basics",
+      "destination": ".agents/skills/cloud-run-basics",
+      "files": 9
+    },
+    {
+      "name": "retrieving-developer-knowledge",
+      "repository": "https://github.com/google/skills",
+      "revision": "2194d3b8b1f31975fef2f1a0ae6b9ab55bd7ceee",
+      "path": "skills/developers/retrieving-developer-knowledge",
+      "destination": ".agents/skills/retrieving-developer-knowledge",
+      "files": 5
     },
     {
       "name": "golang-gopls",

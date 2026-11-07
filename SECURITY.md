@@ -25,7 +25,7 @@ https://github.com/963sup/line-mini-app-bot/security/advisories/new
 ## Credential exposure
 
 發現憑證外洩時先撤銷／輪替，檢查權限與使用紀錄，再處理歷史資料；刪除 Git 檔案不足以撤銷 token。
-LINE secrets、Fly tokens 與 Google 認證限安全注入，不提交版本庫或分析產出。
+LINE secrets 與 Google 認證限安全注入，不提交版本庫或分析產出。
 
 ## Review boundaries
 

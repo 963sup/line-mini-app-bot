@@ -2,21 +2,22 @@
 
 狀態：Accepted
 
-延續 ADR 0001 的 Fly-only 決策，取代其「持續 Worker 必須隨首版部署」的假設。
+本 ADR 的舊部署平台部分已由 [ADR 0003](0003-cloud-run-primary.md) 取代；
+其餘應用基線仍有效。本 ADR 取代 ADR 0001「持續 Worker 必須隨首版部署」的假設。
 平台擴充契約保留為後續參考，遇到範圍或交付順序衝突時以本紀錄為準。
 
 ## 背景
 
-現有架構已明確定義程式分層；文件曾同時指向 Cloud Run 與 Fly.io，造成部署方向不一致。
-使用者確認僅使用 Fly.io，並要求先穩定基礎，暫不展開測試工作。
+現有架構已明確定義程式分層；部署決策後續更新為只使用 Cloud Run。
+先穩定基礎及暫不展開測試工作的順序不變。
 
 ## 決策
 
-- Go 模組化單體，一個服務僅部署至 Fly.io。
+- Go 模組化單體，一個容器部署至 Cloud Run。
 - 採輕量 Hexagonal：HTTP 入口、業務使用案例與外部 adapter 分工，在 main 組裝依賴。
 - Webhook 與 MINI App 共用業務使用案例；業務層不依賴 LINE／Firestore SDK 型別。
 - Firestore 為持久化方向；後端負責授權，外部發送不放入 transaction callback。
-- 正式環境機密使用 Fly Secrets。Fly 存取 Google 資源的身分與 IAM 必須另外配置。
+- Cloud Run 使用執行服務帳戶與最小 IAM，機密由 Secret Manager 綁定。
 - 不預建未確認業務模組，不引入微服務、完整 CQRS、Event Sourcing 或通用 Repository 框架。
 
 ## 階段範圍
@@ -37,5 +38,6 @@ API、資料欄位與功能細節在此基線內逐步補齊，不因尚未展�
 
 ## 查核
 
-文件中的部署目標與機密注入方式應一致指向 Fly.io／Fly Secrets。
-參考：[應用架構](../overview.md)、[開發原則](../principles.md)、[Fly.io](../../operations/fly.md)。
+文件中的部署目標應一致指向 Cloud Run。
+參考：[應用架構](../overview.md)、[開發原則](../principles.md)、
+[Cloud Run](../../operations/cloud-run.md)。

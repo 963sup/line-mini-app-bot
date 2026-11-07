@@ -4,7 +4,8 @@
 目前提供 HTTP 服務與可選的 [LINE 接入試作](docs/development/line-prototype.md)，
 沒有健康檢查路由；Firestore 與出勤功能尚未實作。
 
-首版功能方向為「基礎出勤」，應用僅部署至 Fly.io，機密透過 Fly Secrets 注入。
+首版功能方向為「基礎出勤」，應用部署至 Google Cloud Run，機密透過
+Secret Manager 綁定。
 目前先穩定基礎，不新增測試方案、案例或工具；保留既有 CI。
 架構與階段範圍依 [已接受的基線](docs/architecture/decisions/0002-baseline.md)，
 首版只處理上班、下班與本人紀錄，見 [基礎出勤](docs/features/attendance.md)。

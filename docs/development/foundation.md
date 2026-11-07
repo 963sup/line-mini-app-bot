@@ -1,7 +1,8 @@
 # 基礎設施與分階段落地
 
 先建好可執行、可部署、可連線的基礎，再實作 [基礎出勤](../features/attendance.md)。
-沿用 [架構基線](../architecture/decisions/0002-baseline.md)，應用只部署至 Fly.io。
+沿用 [架構基線](../architecture/decisions/0002-baseline.md)與
+[部署決策](../architecture/decisions/0003-cloud-run-primary.md)，應用只部署至 Cloud Run。
 本文件是工作順序與完成條件，不表示資源已建立，也不授權建立雲端資源或部署。
 目前不新增測試方案、案例或工具，保留既有 CI。
 
@@ -11,7 +12,7 @@
 | --- | --- | --- |
 | 本機工具 | 有 mise 設定與 bootstrap／doctor 指令 | 乾淨環境是否可完整重建 |
 | HTTP 骨架 | 有 cmd/server、可選 LINE 接入與正常關閉，沒有健康檢查路由 | 目標環境實際啟動狀態 |
-| 容器與 Fly | 有 Dockerfile、fly.toml 與部署 workflow | 容器實際建置、Fly App、部署憑證及上線狀態 |
+| 容器與部署 | 有 Dockerfile；尚無 Cloud Run workflow | 容器實際建置、Cloud Run 資源、部署憑證及上線狀態 |
 | 設定 | 已讀 PORT 與 Messaging API 設定，不自動讀 .env | Firestore／MINI App 設定載入尚未實作 |
 | Firestore | 已宣告 SDK 依賴 | 資料庫、身分、IAM、client 與連線尚未確認 |
 | LINE | 已有可選 Webhook 驗簽與固定文字回覆試作 | 真實回覆尚未確認；MINI App 尚未實作 |
@@ -24,16 +25,17 @@
 1. 依 [環境設定](setup.md) 準備工具，整理啟動所需的設定與注入來源。
 2. 啟動現有 HTTP 骨架，記錄 PORT、啟動指令、實際路由與關閉方式，不新增健康檢查路由。
 3. 確認 Docker 可用，依現有 container-build 任務建置骨架；建置問題在此階段處理。
-4. 依 [Fly 指南](../operations/fly.md) 選定既有或待建立的 App、region、部署身分與 Fly Secrets。
-5. 在取得部署授權及必要設定後，先部署骨架，記錄 URL、程序日誌與實際路由狀態。
+4. 依 [Cloud Run 指南](../operations/cloud-run.md) 選定 project、region、Artifact Registry、
+   執行服務帳戶與機密來源。
+5. 在取得部署授權及必要設定後，先部署 Cloud Run 骨架，記錄 URL、revision、
+   服務帳戶、程序日誌與實際路由狀態。
 
-完成條件：本機可啟動、容器可建置、Fly 骨架可存取，並有對應執行紀錄。
+完成條件：本機可啟動、容器可建置、Cloud Run 骨架可存取，並有對應執行紀錄。
 尚未授權或缺憑證的項目標記阻塞，不把出勤功能混入這一階段。
 
 ## 第二階段：資料與 LINE 接入基礎
 
-1. 決定 Firestore project、database 與位置，配置 Fly 執行環境的 Google 身分與最小 IAM。
-   Google 身分的具體提供方式必須先記錄，不假設 Fly 自帶 Google 憑證。
+1. 決定 Firestore project、database 與位置，配置 Cloud Run 執行服務帳戶與最小 IAM。
 2. 依 [Firestore 文件](../integrations/firestore.md) 配置應用所需的資料庫連線與認證。
 3. 在應用中實作設定載入、缺值時的啟動錯誤、Firestore client 生命週期與基本連線。
 4. 確認首期只採用的 LINE 入口及對應 Channel，依 [LINE 設定契約](../integrations/line-environment.md)

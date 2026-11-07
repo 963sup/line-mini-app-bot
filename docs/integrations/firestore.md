@@ -7,5 +7,5 @@ Use transactions where concurrent updates require atomic read/modify/write;
 transaction callbacks may retry, so keep external side effects outside them.
 
 Configure the selected Google Cloud project, database and application identity
-explicitly. Fly.io requires separately supplied Google authentication and
+explicitly. Cloud Run uses the attached runtime service account and
 appropriate IAM; do not assume credentials are provided by the deployment host.

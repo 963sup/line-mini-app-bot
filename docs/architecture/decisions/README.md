@@ -1,8 +1,7 @@
 # Architecture decision records
 
-- [Accepted, Worker scope superseded by ADR 0002: Fly.io deployment](0001-fly-deployment.md)
-
-- [Accepted: application baseline and Fly.io deployment](0002-baseline.md)
+- [Accepted, deployment portion superseded by ADR 0003: application baseline](0002-baseline.md)
+- [Accepted: Cloud Run deployment](0003-cloud-run-primary.md)
 
 Add a numbered record when a consequential technical choice is made.
 Include status, problem/context, options, decision, consequences and validation.

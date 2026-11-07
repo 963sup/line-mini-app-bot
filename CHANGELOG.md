@@ -13,7 +13,7 @@
 
 ### Changed
 
-- 應用部署目標統一為 Fly.io；Worker 與 Google ADC/IAM 仍待實作驗收。
+- 應用部署目標統一為 Cloud Run；Worker 與 Google ADC/IAM 仍待實作驗收。
 - Repomix 採用 .repomixignore，XML 輸出選項由 mise 任務管理，不再維護 JSON 配置。
 
 ### Implementation status

@@ -4,7 +4,7 @@ These documents describe the development workflow and intended application.
 Application design is a target, not evidence that Go code or deployment exists.
 Read relevant pages on demand; Codex does not automatically load all docs.
 
-目前階段：先穩定基礎設定與應用骨架，部署僅使用 Fly.io。
+目前階段：先穩定基礎設定與應用骨架；部署使用 Cloud Run。
 首版僅做 [基礎出勤](features/attendance.md)：上班、下班、本人紀錄。
 先完成 [基礎設施與分階段落地](development/foundation.md)，再接入 LINE／Firestore，最後開發出勤功能。
 架構依 [已接受的基線](architecture/decisions/0002-baseline.md)；目前不新增測試方案、
@@ -48,8 +48,7 @@ Read relevant pages on demand; Codex does not automatically load all docs.
 - [Environment setup](development/setup.md), [Go conventions](development/go.md), [tests](development/testing.md)
 - [應用架構與流程](architecture/overview.md)、[開發原則與決策](architecture/principles.md)、[決策紀錄](architecture/decisions/README.md)
 - [LINE 能力矩陣：一對一、群組、Rich Menu、Flex、MINI App](integrations/line.md) and [Firestore](integrations/firestore.md)
-- [Fly.io 部署](operations/fly.md)、[部署 ADR](architecture/decisions/0001-fly-deployment.md) and [troubleshooting](operations/troubleshooting.md)
-- [Fly.io deployment from main](operations/fly.md)
+- [Cloud Run 部署](operations/cloud-run.md)、[部署 ADR](architecture/decisions/0003-cloud-run-primary.md) and [troubleshooting](operations/troubleshooting.md)
 
 Configuration sources: `.codex/config.toml` owns roles/MCP connections;
 `mise.toml` owns tool versions, non-secret environment and tasks;

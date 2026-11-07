@@ -8,7 +8,7 @@
 
 ## 第一個可實作切片
 
-目前先完成 HTTP／容器／Fly 骨架，再接入資料與首期 LINE 入口。
+目前先完成 HTTP／容器／Cloud Run 骨架，再接入資料與首期 LINE 入口。
 後續平台切片參考：接收 user/group Webhook、驗簽、持久接收、去重與 source 分流。
 目前只有 [最小接入試作](../development/line-prototype.md)，不含持久接收；不新增健康檢查路由。
 本切片不執行任意 Postback、不授予群組管理權、不自動 Push；未知事件安全記錄中繼資料並忽略。
@@ -23,7 +23,7 @@
 | P03 | 管理員登入來源與身分 provisioning | 不自動給 LINE 使用者管理權 | RBAC 契約、無登入回拒絕 |
 | P04 | LINE Provider／channels、地區與 MINI App 資格 | 不假設跨 Provider user ID 相同 | token 驗證 adapter 的受控測試 |
 | P05 | 訊息額度、保存期、通知與超時補發政策 | 不自行決定行銷、永久保存或結果不明後補發 | 狀態機、可配置退避 |
-| P06 | Fly 已定；區域與 Google 認證待配置，Worker 延後 | 不把擴充規劃當首版前置條件 | 本機啟動與容器設計 |
+| P06 | Cloud Run 已定；區域、服務帳戶與 IAM 待配置，Worker 延後 | 不把擴充規劃當首版前置條件 | 本機啟動與容器設計 |
 | P07 | 圖片儲存、公開 URL 與刪除政策 | 不把圖片 bytes 存進 Firestore | 模板純資料驗證 |
 
 每筆決策需：owner、答案、狀態、日期、受影響 API/schema/tests；確認後以 ADR／功能契約落地。

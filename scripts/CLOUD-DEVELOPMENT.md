@@ -1,4 +1,4 @@
-# LINE / Go / Fly.io
+# LINE / Go / Cloud Run
 
 首版僅做 [基礎出勤](../docs/features/attendance.md)：上班、下班與本人紀錄。
 依 [分階段落地](../docs/development/foundation.md) 先穩定執行／部署基礎，再接入資料與 LINE，
@@ -18,15 +18,16 @@ net/http, html/template and log/slog require no extra packages.
 The repository contains go.mod, cmd/server and a Dockerfile. The HTTP skeleton
 currently provides an optional LINE webhook connectivity prototype, without health
 routes. Attendance and Firestore behavior is not implemented. See the
-[prototype guide](../docs/development/line-prototype.md). mise run dev defaults PORT to 8080. Fly.io routes to port 8080 as
-configured in fly.toml. mise run container-build also needs a Docker daemon.
+[prototype guide](../docs/development/line-prototype.md). mise run dev defaults PORT to 8080.
+Cloud Run injects `PORT`; mise run container-build also needs a Docker daemon.
 
 Use the pinned gcloud with: mise exec gcloud@592.0.0 -- gcloud ...
 
-Fly.io is the only application deployment target. Runtime secrets use Fly Secrets.
+Cloud Run is the application deployment target and uses a runtime service
+account plus Secret Manager bindings.
 Firestore access requires a Google project, explicit authentication and appropriate
-IAM; a Fly Machine does not automatically provide Google credentials. See the
-[Fly deployment guide](../docs/operations/fly.md). No deployment or remote writes
+IAM. See the [Cloud Run deployment guide](../docs/operations/cloud-run.md).
+No deployment or remote writes
 are part of environment setup.
 Supply LINE secrets securely at runtime; local HMAC signature verification needs the
 actual channel secret, not a proxy-only placeholder. Verify webhook signatures on

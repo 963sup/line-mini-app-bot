@@ -5,7 +5,7 @@
 ## 當前交付順序
 
 依 [ADR 0002](decisions/0002-baseline.md)、[分階段落地](../development/foundation.md)
-與 [基礎出勤](../features/attendance.md)：執行／Fly 骨架 → 資料與首期 LINE 接入 → 上班、下班與本人紀錄。
+與 [基礎出勤](../features/attendance.md)：執行／Cloud Run 骨架 → 資料與首期 LINE 接入 → 上班、下班與本人紀錄。
 目前不新增測試方案、案例或工具，既有 CI 保留。
 
 ## 後續平台擴充參考

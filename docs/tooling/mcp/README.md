@@ -9,18 +9,18 @@
 | [repomix_skills](repomix-skills.md) | Researcher, Implementer |
 | [gopls](gopls.md) | Explorer, Implementer, Tester, Reviewer |
 | [github](github.md) | Orchestrator, Reviewer, Integrator |
-| [fly-mcp](fly.md) | Orchestrator, Implementer, Reviewer, Integrator |
+| [Google Developer Knowledge / gcloud](google.md) | Researcher, Implementer, Reviewer, Integrator |
 
 Roles share services; this mapping is guidance, not access control. Host tool
 exposure, server allowlists and user authorization determine actual access.
-Use OpenAI Docs first for Codex questions and Context7 for library/version questions.
+Use OpenAI Docs first for Codex questions, Google Developer Knowledge and installed
+Google skills for Google Cloud, and Context7 for other library/version questions.
 Use Graphify/gopls for structure and verify source claims; Repomix bundles sources.
 
 Configuration, installation, initialize/tools-list, host loading and functional
 operations are separate verification stages. `mise run doctor-mcp` checks transport
-and tool allowlists only. Explicit host-OAuth services are reported as
-HOST_REQUIRED with their MCP URL and host login command, not as PASS.
-Optional host-only verification does not block bootstrap; real probe failures do. Use single-server checks when optional credentials are
+and tool allowlists only. Missing credentials or failed requests are not PASS.
+Use single-server checks when optional credentials are
 unavailable. Local servers run through tool-exec.sh with workspace-owned state.
 
 ## Host environment inheritance

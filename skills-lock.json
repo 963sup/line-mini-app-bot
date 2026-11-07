@@ -1,6 +1,22 @@
 {
   "version": 1,
   "skills": {
+    "cloud-run-basics": {
+      "source": "google/skills",
+      "ref": "2194d3b8b1f31975fef2f1a0ae6b9ab55bd7ceee",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/cloud-run-basics/SKILL.md",
+      "computedHash": "0c1323791e24cc34e977e7b4f41b016863c0faec9dc855a590db402dfb3ab7c5",
+      "installMode": "copy"
+    },
+    "gcloud": {
+      "source": "google/skills",
+      "ref": "2194d3b8b1f31975fef2f1a0ae6b9ab55bd7ceee",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/gcloud/SKILL.md",
+      "computedHash": "f9bedf763490d4c446c315cc988c38fd6f2aed8a3b17d797adf99dbca48442f1",
+      "installMode": "copy"
+    },
     "golang-benchmark": {
       "source": "samber/cc-skills-golang",
       "sourceType": "github",
@@ -276,6 +292,14 @@
       "sourceType": "github",
       "skillPath": "skills/golang-uber-fx/SKILL.md",
       "computedHash": "e08067cdc0bb745483dafe455d71b9f3172d5ef488be829bbce34b0526d3c541"
+    },
+    "retrieving-developer-knowledge": {
+      "source": "google/skills",
+      "ref": "2194d3b8b1f31975fef2f1a0ae6b9ab55bd7ceee",
+      "sourceType": "github",
+      "skillPath": "skills/developers/retrieving-developer-knowledge/SKILL.md",
+      "computedHash": "f4ac5fd363551ef83a6151b9455332fda818fc74507d78193988d8dcadc813b2",
+      "installMode": "copy"
     }
   }
 }

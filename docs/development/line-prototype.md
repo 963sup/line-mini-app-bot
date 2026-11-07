@@ -12,8 +12,8 @@ LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN，實際值不得提交至 Git。
 
 ## 接入流程
 
-既有 Fly App 與憑證就緒、取得部署授權後，透過 Fly Secrets 注入設定並部署。
-LINE Console 的 Webhook URL 為 `https://<app>.fly.dev/webhooks/line/<channelID>`。
+Cloud Run 資源與憑證就緒、取得部署授權後，透過 Secret Manager 綁定設定並部署。
+LINE Console 的 Webhook URL 為 `<cloud-run-service-url>/webhooks/line/<channelID>`。
 啟用 Webhook，確認 Official Account Manager 自動回覆不干擾，再使用一對一聊天發文字。
 預期回覆「LINE 連線已接通，目前尚未提供出勤功能。」。
 簽章有效的空事件回 200。群組、standby、非文字與 isRedelivery 重送事件忽略，不做 Push。
@@ -25,7 +25,7 @@ body 上限 1 MiB；過大回 413、簽章錯誤回 401、其他無效輸入回 
 整批回覆共用 5 秒期限，發送失敗只記固定警告、不自動重試，Webhook 仍回 200。
 此試作的 200 不表示回覆送達或工作已持久保存；跳過 isRedelivery 不等於完整冪等性。
 不得直接把此 handler 用作出勤寫入；後續平台的可靠接收契約尚未實作。
-目前環境未提供 LINE 憑證，尚未驗證真實收訊、回覆或 Fly 部署；未新增測試工程。
+目前環境未提供 LINE 憑證，尚未驗證真實收訊、回覆或 Cloud Run 部署；未新增測試工程。
 
 ## 查核來源
 

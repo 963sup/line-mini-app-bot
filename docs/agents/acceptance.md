@@ -27,10 +27,10 @@ is a source bundle, not a correctness proof. Configuration parsing, MCP handshak
 host tool exposure and representative tool operations are separate checks.
 Do not claim a fresh Cloud environment works based on an existing tool cache.
 
-## Fly and browser location
+## Cloud Run and browser location
 
-Fly changes: verify image contents, HTTP/process routing, persistent worker lifecycle,
-shutdown/lease recovery and explicit Google ADC/IAM; config parsing is not a deployment test.
+Cloud Run changes: verify image contents, HTTP routing, service account, IAM, secrets,
+revision readiness and shutdown behavior; config parsing is not a deployment test.
 Geolocation changes: permission denied, unavailable, timeout, unsupported/insecure context,
 coordinate validation, missing fields, cancellation/watch cleanup and authorization.
 Report LINE iOS/Android and external-browser acceptance separately; mocks do not prove device support.

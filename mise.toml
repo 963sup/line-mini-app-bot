@@ -44,6 +44,8 @@ uv = "0.13.7"
 python = "3.12.14"
 "npm:repomix" = "1.18.1"
 "npm:skills" = "1.7.6"
+gcloud = "592.0.0"
+"npm:@google-cloud/gcloud-mcp" = "0.5.3"
 
 [settings]
 exec_auto_install = false
@@ -72,8 +74,16 @@ description = "Install optional local MCP tools separately from Go"
 run = ["mise install node python uv npm:repomix", "mise run install-graphify"]
 
 [tasks.install-cloud]
-description = "Install pinned Google Cloud CLI (no authentication or deployment)"
-run = "mise install gcloud@592.0.0"
+description = "Install pinned Google Cloud CLI and local MCP (no authentication or deployment)"
+run = "mise install gcloud npm:@google-cloud/gcloud-mcp"
+
+[tasks.doctor-google-knowledge]
+description = "Verify Google Developer Knowledge MCP using the host API key"
+run = "python3 scripts/mcp-doctor.py --server google-developer-knowledge"
+
+[tasks.doctor-gcloud]
+description = "Verify local gcloud MCP discovery without changing cloud resources"
+run = "python3 scripts/mcp-doctor.py --server gcloud"
 
 [tasks.doctor]
 description = "Check local Go and Cloud development prerequisites"
@@ -123,10 +133,6 @@ run = "python3 scripts/mcp-doctor.py --server openaiDeveloperDocs --call search_
 [tasks.doctor-openai]
 description = "Check OpenAI Docs MCP independently of optional GitHub credentials"
 run = "python3 scripts/mcp-doctor.py --server openaiDeveloperDocs"
-
-[tasks.doctor-fly]
-description = "Probe Fly MCP transport; direct probe does not use Codex OAuth credentials"
-run = "python3 scripts/mcp-doctor.py --server fly-mcp"
 
 [tasks.install-skills-cli]
 description = "Install the pinned skills.sh CLI without adding skills"

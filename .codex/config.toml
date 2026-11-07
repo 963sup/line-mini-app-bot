@@ -107,10 +107,21 @@ required = false
 startup_timeout_sec = 30
 tool_timeout_sec = 60
 
-[mcp_servers.fly-mcp]
-url = "https://mcp.fly.io"
+[mcp_servers.google-developer-knowledge]
+url = "https://developerknowledge.googleapis.com/mcp"
+env_http_headers = { "X-Goog-Api-Key" = "DEVELOPERKNOWLEDGE_API_KEY" }
 enabled = true
 required = false
 startup_timeout_sec = 30
 tool_timeout_sec = 60
+
+[mcp_servers.gcloud]
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "gcloud-mcp"]
+env_vars = ["CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "SSL_CERT_FILE", "NODE_EXTRA_CA_CERTS"]
+enabled_tools = ["run_gcloud_command"]
 default_tools_approval_mode = "prompt"
+enabled = true
+required = false
+startup_timeout_sec = 60
+tool_timeout_sec = 120

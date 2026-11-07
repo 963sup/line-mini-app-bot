@@ -1,12 +1,12 @@
 # LINE 平台架構總覽
 
-> 狀態：架構基線已接受，應用功能尚未實作。後端採 Go、LINE Messaging API 與 Firestore，只部署 Fly.io。
+> 狀態：架構基線已接受，應用功能尚未實作。後端採 Go、LINE Messaging API 與 Firestore，部署至 Cloud Run。
 > MINI App 由 Go 提供 HTML/CSS，瀏覽器仍需 LIFF JavaScript；不需要 Node.js 後端。
 
 ## 目前基線
 
 依 [已接受的基線](decisions/0002-baseline.md) 與 [分階段落地](../development/foundation.md)，
-先穩定 HTTP／容器／Fly，再接入資料與首期 LINE 入口，最後實作基礎出勤。
+先穩定 HTTP／容器／Cloud Run，再接入資料與首期 LINE 入口，最後實作基礎出勤。
 維持一個服務，HTTP、使用案例與 adapter 分工；業務層不依賴 SDK 型別，由 main 組裝。
 Webhook 與 MINI App 若提供相同出勤操作，共用使用案例。
 Worker、Garr、群組角色、管理後台、Rich Menu 與定位不列為首版必做項目。
@@ -78,7 +78,7 @@ Service Message 待資格與模板確認後使用獨立 adapter，不當作任�
 
 ## 模組拆分
 
-採模組化單體：一個 Go 服務僅部署至 Fly.io，依實際業務能力劃分套件。
+採模組化單體：一個 Go 服務容器部署至 Cloud Run，依實際業務能力劃分套件。
 先圍繞已確認的「基礎出勤」方向逐步實作；會員管理與通知等能力待需求確認後再加入，
 不預建這些模組。
 先保留簡單套件，當責任或依賴明確分化時再拆分，避免為每項功能建立固定四層目錄。
@@ -102,10 +102,10 @@ LIFF starter 不涵蓋完整 token 驗證，該項以官方 LIFF 文件補足。
 | Webhook、MINI App 如何驗證？ | [LINE 整合](../integrations/line.md) |
 | Firestore 權限、交易如何處理？ | [Firestore 整合](../integrations/firestore.md) |
 | Go 程式怎麼寫、怎麼驗證？ | [Go 慣例](../development/go.md)、[測試](../development/testing.md) |
-| 如何部署與管理機密？ | [Fly.io](../operations/fly.md) |
+| 如何部署與管理機密？ | [Cloud Run](../operations/cloud-run.md) |
 
 文件核對不取代真實渠道、IAM、索引、裝置與發布資格驗收。
 
 詳細契約入口：[Codex 接手索引](codex-readiness.md)。
 
-部署已決定：[Fly.io ADR](decisions/0001-fly-deployment.md)。後續若啟用定位才參考 [Web Geolocation 契約](../integrations/web-geolocation.md)。
+部署已決定：[Cloud Run ADR](decisions/0003-cloud-run-primary.md)。後續若啟用定位才參考 [Web Geolocation 契約](../integrations/web-geolocation.md)。

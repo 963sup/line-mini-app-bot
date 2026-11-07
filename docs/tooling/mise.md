@@ -9,9 +9,10 @@ Do not change platform HOME/CODEX_HOME or copy authentication files.
 - `install-mcp`: optional local MCP tools and generated Graphify skills.
 - `graphify-update` / `repomix`: refresh analysis artifacts.
 - `check-config` / `doctor`: configuration and Go environment verification.
-- `doctor-mcp`: configured service transports; needs network and GitHub token. Fly OAuth requires host-side verification.
+- `doctor-mcp`: configured service transports; needs network and GitHub token.
 - `doctor-openai`: isolated documentation transport diagnosis.
-- `doctor-fly`: direct Fly transport probe; does not load host OAuth credentials.
+- `install-cloud`: pinned gcloud CLI and local gcloud MCP installation.
+- `doctor-gcloud` / `doctor-google-knowledge`: separate Google MCP transport checks; see [Google setup](mcp/google.md).
 - `check` / `build`: application checks; require an existing Go module.
 
 Use `mise tasks` to discover current tasks. Bootstrap needs system Python 3.11+,
