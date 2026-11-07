@@ -1,7 +1,7 @@
 # LINE 環境變數規格
 
 > 所有名稱使用全大寫與底線。依產品區分前綴，不共用模糊的 `LINE_CHANNEL_*` 名稱。
-> 本頁為設定契約；應用讀取與驗證邏輯尚未實作。
+> Messaging API 三項設定已供 [接入試作](../development/line-prototype.md) 讀取與檢查；MINI App 設定尚未實作。
 
 ## 1. 命名與來源
 

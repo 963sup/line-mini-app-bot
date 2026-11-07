@@ -22,6 +22,7 @@ Read relevant pages on demand; Codex does not automatically load all docs.
 | 你現在要做什麼？ | 從這裡開始 |
 | --- | --- |
 | 穩定基礎、確認開發先後順序 | [基礎設施與分階段落地](development/foundation.md) |
+| 試接 Messaging API | [最小 LINE 接入試作](development/line-prototype.md) |
 | 確認首版出勤範圍與待定規則 | [基礎出勤](features/attendance.md) |
 | 理解 LINE／MINI App／Go／Firestore 如何協作 | [應用架構](architecture/overview.md) |
 | 決定模組、介面與業務規則放哪裡 | [開發原則與決策](architecture/principles.md) |

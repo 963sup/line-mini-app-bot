@@ -10,11 +10,11 @@
 | 項目 | 版本庫可確認的狀態 | 尚未證明的事項 |
 | --- | --- | --- |
 | 本機工具 | 有 mise 設定與 bootstrap／doctor 指令 | 乾淨環境是否可完整重建 |
-| HTTP 骨架 | 有 go.mod、cmd/server、GET /healthz 與 graceful shutdown | 目標環境實際啟動狀態 |
+| HTTP 骨架 | 有 cmd/server、可選 LINE 接入與正常關閉，沒有健康檢查路由 | 目標環境實際啟動狀態 |
 | 容器與 Fly | 有 Dockerfile、fly.toml 與部署 workflow | 容器實際建置、Fly App、部署憑證及上線狀態 |
-| 設定 | 有 .env.example；現有服務只讀 PORT，不自動讀 .env | LINE／Firestore 設定載入與啟動檢查尚未實作 |
+| 設定 | 已讀 PORT 與 Messaging API 設定，不自動讀 .env | Firestore／MINI App 設定載入尚未實作 |
 | Firestore | 已宣告 SDK 依賴 | 資料庫、身分、IAM、client 與連線尚未確認 |
-| LINE | 已宣告 SDK 依賴並有設定命名契約 | Channel 配置、身分驗證、Webhook／MINI App 串接尚未確認 |
+| LINE | 已有可選 Webhook 驗簽與固定文字回覆試作 | 真實回覆尚未確認；MINI App 尚未實作 |
 | 基礎出勤 | 已確認首版方向 | 功能程式尚未實作 |
 
 不以設定檔存在、工具索引成功或依賴已下載，推論服務已可用。
@@ -22,10 +22,10 @@
 ## 第一階段：執行與部署基礎（目前優先）
 
 1. 依 [環境設定](setup.md) 準備工具，整理啟動所需的設定與注入來源。
-2. 啟動現有 HTTP 骨架，記錄 PORT、啟動指令、健康端點與關閉方式。
+2. 啟動現有 HTTP 骨架，記錄 PORT、啟動指令、實際路由與關閉方式，不新增健康檢查路由。
 3. 確認 Docker 可用，依現有 container-build 任務建置骨架；建置問題在此階段處理。
 4. 依 [Fly 指南](../operations/fly.md) 選定既有或待建立的 App、region、部署身分與 Fly Secrets。
-5. 在取得部署授權及必要設定後，先部署骨架，記錄 URL、/healthz 狀態與日誌查看方式。
+5. 在取得部署授權及必要設定後，先部署骨架，記錄 URL、程序日誌與實際路由狀態。
 
 完成條件：本機可啟動、容器可建置、Fly 骨架可存取，並有對應執行紀錄。
 尚未授權或缺憑證的項目標記阻塞，不把出勤功能混入這一階段。

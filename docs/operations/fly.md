@@ -18,8 +18,9 @@ default branch. Pull request checks do not trigger deployment.
 
 1. The repository already contains `go.mod`, a minimal HTTP server and Dockerfile.
    The server listens on port 8080 by default and supports graceful shutdown.
-   LINE and Firestore application integration is not implemented yet; deploying
-   the HTTP skeleton does not establish that these integrations work.
+   An optional [LINE connectivity prototype](../development/line-prototype.md) is
+   available; attendance and Firestore integration are not implemented. No health
+   endpoint is configured. Deploying the skeleton does not prove live LINE connectivity.
    Docker already copies go.mod/go.sum and cmd; add any new application packages
    to the build context when needed. Current fly.toml configures HTTP only.
 2. Authenticate with `fly auth login`, then create an app once with

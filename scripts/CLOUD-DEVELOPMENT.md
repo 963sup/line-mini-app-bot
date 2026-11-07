@@ -16,8 +16,9 @@ SDK dependencies are managed in the existing application's go.mod/go.sum:
 net/http, html/template and log/slog require no extra packages.
 
 The repository contains go.mod, cmd/server and a Dockerfile. The HTTP skeleton
-currently provides GET /healthz; attendance, LINE and Firestore behavior is not
-implemented. mise run dev defaults PORT to 8080. Fly.io routes to port 8080 as
+currently provides an optional LINE webhook connectivity prototype, without health
+routes. Attendance and Firestore behavior is not implemented. See the
+[prototype guide](../docs/development/line-prototype.md). mise run dev defaults PORT to 8080. Fly.io routes to port 8080 as
 configured in fly.toml. mise run container-build also needs a Docker daemon.
 
 Use the pinned gcloud with: mise exec gcloud@592.0.0 -- gcloud ...

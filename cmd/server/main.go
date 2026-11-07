@@ -26,14 +26,18 @@ func run() error {
 		port = "8080"
 	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"status":"ok"}`))
-	})
-	server := &http.Server{Addr: net.JoinHostPort("", port), Handler: mux, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second}
+	if err := registerLINEWebhook(mux); err != nil {
+		return err
+	}
+	server := &http.Server{
+		Addr: net.JoinHostPort("", port), Handler: mux,
+		ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second,
+		WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second,
+	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	result := make(chan error, 1)
+	slog.Info("server starting", "port", port)
 	go func() { result <- server.ListenAndServe() }()
 	select {
 	case err := <-result:

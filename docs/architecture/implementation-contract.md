@@ -9,7 +9,8 @@
 ## 第一個可實作切片
 
 目前先完成 HTTP／容器／Fly 骨架，再接入資料與首期 LINE 入口。
-後續平台切片參考：接收 user/group Webhook、驗簽、持久接收、去重與 source 分流，提供 health/readiness。
+後續平台切片參考：接收 user/group Webhook、驗簽、持久接收、去重與 source 分流。
+目前只有 [最小接入試作](../development/line-prototype.md)，不含持久接收；不新增健康檢查路由。
 本切片不執行任意 Postback、不授予群組管理權、不自動 Push；未知事件安全記錄中繼資料並忽略。
 這個切片能先開始，不等於完整業務產品。
 

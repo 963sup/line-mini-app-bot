@@ -1,7 +1,8 @@
 # LINE MINI App Bot
 
 以 Go 建置 LINE Messaging API Webhook、MINI App API 與 Firestore 整合。
-目前提供最小 HTTP 服務與 `GET /healthz`；LINE 與 Firestore 業務整合尚未實作。
+目前提供 HTTP 服務與可選的 [LINE 接入試作](docs/development/line-prototype.md)，
+沒有健康檢查路由；Firestore 與出勤功能尚未實作。
 
 首版功能方向為「基礎出勤」，應用僅部署至 Fly.io，機密透過 Fly Secrets 注入。
 目前先穩定基礎，不新增測試方案、案例或工具；保留既有 CI。
@@ -31,11 +32,10 @@ bash scripts/tool-exec.sh mise run doctor
 
 ```bash
 bash scripts/tool-exec.sh mise run dev
-# 另一個終端：curl http://localhost:8080/healthz
+# LINE 憑證未注入時不註冊 Webhook；連線方式見接入試作文件。
 ```
 
-服務讀取 `PORT`（預設 8080），不會自動載入 `.env`。其他設定名稱見 `.env.example`。
-目前 HTTP 服務僅使用標準庫；`go.mod`／`go.sum` 已納入整合所需的第三方依賴，
-不表示 LINE 與 Firestore 功能已完成串接。
+服務讀取 `PORT`（預設 8080）與 Messaging API 三項設定，不會自動載入 `.env`。
+設定名稱見 `.env.example`。LINE SDK 已用於接入試作；Firestore 依賴仍待實際串接。
 
 授權尚未選定，目前依 `LICENSE` 保留所有權利。
