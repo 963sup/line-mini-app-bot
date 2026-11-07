@@ -25,3 +25,8 @@ bash scripts/tool-exec.sh python3 scripts/mcp-doctor.py --server graphify
 This checks initialize, tools/list and configured allowlists. Verify a representative
 operation separately. For failures distinguish missing binary, network, credential,
 workspace prerequisites and host loading; see [troubleshooting](../../operations/troubleshooting.md).
+
+Project exclusions live in `.graphifyignore` (gitignore-style). After changing
+exclusions, run `graphify extract . --code-only --force --allow-dedup-shrink --out .`
+through the project tooling to rescan and prune old indexed skill/example sources.
+AST-only extraction does not turn Markdown plans into an implemented code graph.

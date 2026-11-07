@@ -8,7 +8,7 @@ Bundle relevant source for review and impact analysis.
 
 ## Prerequisites and configuration
 
-Node and Repomix installed by install-mcp. repomix.config.json controls CLI scope and exclusions; explicitly scope MCP packing too. Security scanning is not a proof that no secrets exist.
+Node and Repomix installed by install-mcp. repomix.config.json controls output/security options; .repomixignore owns project exclusions; explicitly scope MCP packing too. Security scanning is not a proof that no secrets exist.
 Connection, timeouts and enabled tool names are owned by `.codex/config.toml`.
 Tool versions are owned by `mise.toml`; never copy token values into documentation.
 
@@ -25,3 +25,7 @@ bash scripts/tool-exec.sh python3 scripts/mcp-doctor.py --server repomix
 This checks initialize, tools/list and configured allowlists. Verify a representative
 operation separately. For failures distinguish missing binary, network, credential,
 workspace prerequisites and host loading; see [troubleshooting](../../operations/troubleshooting.md).
+
+Project exclusions use gitignore syntax in `.repomixignore`; keep project docs,
+agent configuration and application source, while excluding upstream skills and
+agent-specific copies. The ignore file does not replace output/security configuration.

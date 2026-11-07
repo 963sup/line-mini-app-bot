@@ -1,0 +1,27 @@
+# Third-party skills and agent-specific installation copies
+/.agents/skills/
+/.codex/skills/
+/.claude/
+/agent/
+
+# Generated analysis outputs
+/graphify-out/
+/repomix-output.*
+
+# Dependencies, caches and build outputs
+**/node_modules/
+**/vendor/
+**/.venv/
+**/__pycache__/
+/bin/
+/server
+/coverage.out
+
+# Secrets and credentials
+.env
+.env.*
+**/*.pem
+**/*.key
+**/credentials*.json
+**/service-account*.json
+.git/
