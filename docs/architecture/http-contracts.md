@@ -7,6 +7,10 @@
 
 > 狀態：本專案技術基線；尚未實作。產品路由必須經功能契約補足，不預設完整 CRUD。
 
+目前已實作的連線入口見 [LINE 接入能力](../development/line-prototype.md)：
+Webhook、MINI App 公開設定與每次驗證 ID token 的本人 API。
+目前沒有 session／業務 CRUD／持久 Inbox；下列持久接收回應仍屬目標契約。
+
 ## 基礎入口
 
 | Route | 驗證 | 成功 | 失敗 |

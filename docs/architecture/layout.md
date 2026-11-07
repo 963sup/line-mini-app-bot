@@ -5,7 +5,9 @@
 
 本頁是後續平台參考配置，不是首版必建目錄。依 [ADR 0002](decisions/0002-baseline.md)
 及 [分階段落地](../development/foundation.md) 先穩定基礎，再新增出勤需要的套件。
-Worker、Garr、管理後台、模板與 Rich Menu 目前不實作，也不新增測試工程。
+Worker、Garr、管理後台與通用模板系統目前不實作，也不新增測試工程。
+已提供的接入能力位於 cmd/server、cmd/richmenu、cmd/firestorecheck 與 internal/lineui；
+Rich Menu 僅提供明確執行的 CLI，不預建管理後台或完整四層模組。
 
 ## 第二層與第三層目錄
 

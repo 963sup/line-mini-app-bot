@@ -15,7 +15,7 @@ import (
 )
 
 // registerLINEWebhook enables the connectivity prototype only when configured.
-func registerLINEWebhook(mux *http.ServeMux) error {
+func registerLINEWebhook(mux *http.ServeMux, appURL string) error {
 	channelID := os.Getenv("LINE_MESSAGING_API_CHANNEL_ID")
 	secret := os.Getenv("LINE_MESSAGING_API_CHANNEL_SECRET")
 	token := os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN")
@@ -45,12 +45,12 @@ func registerLINEWebhook(mux *http.ServeMux) error {
 		return errors.New("cannot initialize LINE Messaging API client")
 	}
 	path := "/webhooks/line/" + channelID
-	mux.HandleFunc("POST "+path, lineWebhookHandler(secret, bot))
+	mux.HandleFunc("POST "+path, lineWebhookHandler(secret, bot, appURL))
 	slog.Info("LINE connectivity prototype enabled", "path", path)
 	return nil
 }
 
-func lineWebhookHandler(secret string, bot *messaging_api.MessagingApiAPI) http.HandlerFunc {
+func lineWebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, appURL string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
 		callback, err := webhook.ParseRequest(secret, r)
@@ -73,28 +73,13 @@ func lineWebhookHandler(secret string, bot *messaging_api.MessagingApiAPI) http.
 		client := *bot
 		client.WithContext(ctx)
 		for _, event := range callback.Events {
-			message, ok := event.(webhook.MessageEvent)
-			if !ok {
-				continue
-			}
-			if message.Mode != "active" || message.ReplyToken == "" {
-				continue
-			}
-			if _, ok := message.Source.(webhook.UserSource); !ok {
-				continue
-			}
-			if _, ok := message.Message.(webhook.TextMessageContent); !ok {
-				continue
-			}
-			// Do not deliberately retry a short-lived reply in this prototype.
-			if message.DeliveryContext != nil && message.DeliveryContext.IsRedelivery {
+			reply := replyForEvent(event, appURL)
+			if reply.message == nil {
 				continue
 			}
 			_, err := client.ReplyMessage(&messaging_api.ReplyMessageRequest{
-				ReplyToken: message.ReplyToken,
-				Messages: []messaging_api.MessageInterface{
-					messaging_api.TextMessage{Text: "LINE 連線已接通，目前尚未提供出勤功能。"},
-				},
+				ReplyToken: reply.token,
+				Messages:   []messaging_api.MessageInterface{reply.message},
 			})
 			if err != nil {
 				// Raw SDK errors can include request details; log no token or payload.

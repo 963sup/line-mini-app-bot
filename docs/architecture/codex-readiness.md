@@ -38,7 +38,8 @@ flowchart TD
 ## 現況與設計分開
 
 目前程式：cmd/server 提供可選 LINE 接入與正常關閉，沒有健康檢查路由；尚無 internal/ 或 cmd/worker。
-Dockerfile 已複製 go.mod、go.sum 與 cmd；新增 internal/ 與 SDK 實際 import 時須同步檢查建置內容，不能據此宣稱整合應用已可部署。
+Dockerfile 已複製 go.mod、go.sum、cmd 與 internal；頁面資產透過 go:embed 建入 server。
+Messaging API／MINI App 與 Rich Menu CLI 已有接入程式；真實渠道與雲端連線仍待驗收。
 Cloud Run 已確定為唯一部署目標（ADR 0003）。Cloud Run workflow、服務帳戶、
 ADC/IAM 與實際部署尚未驗收。
 

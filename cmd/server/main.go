@@ -26,7 +26,12 @@ func run() error {
 		port = "8080"
 	}
 	mux := http.NewServeMux()
-	if err := registerLINEWebhook(mux); err != nil {
+	registerGeolocation(mux)
+	appURL, err := registerMiniApp(mux)
+	if err != nil {
+		return err
+	}
+	if err := registerLINEWebhook(mux, appURL); err != nil {
 		return err
 	}
 	server := &http.Server{

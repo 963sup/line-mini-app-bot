@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LINE 基礎服務</title>
+  <link rel="stylesheet" href="/assets/geolocation.css">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" defer></script>
+  <script src="/assets/miniapp.js" defer></script>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">LINE · Go + Vanilla JS</p>
+    <h1>LINE 基礎服務</h1>
+    <p>登入後，由本站後端向 LINE 驗證您的身分。身分資料只用於本次顯示，不保存。</p>
+    <p id="mini-status" role="status" aria-live="polite">正在準備登入……</p>
+    <div class="actions">
+      <button id="login" type="button" hidden>使用 LINE 登入</button>
+      <button id="verify" type="button" hidden>驗證本人身分</button>
+      <button id="logout" type="button" hidden>登出此頁</button>
+    </div>
+    <dl id="identity" hidden>
+      <div><dt>LINE 名稱</dt><dd id="display-name"></dd></div>
+      <div><dt>本人 ID</dt><dd id="user-id"></dd></div>
+    </dl>
+    <p><a href="/location">開啟定位示範</a></p>
+    <p class="note">目前提供連線、身分驗證與定位示範。尚未提供出勤紀錄或群組管理權限。</p>
+    <noscript>請啟用 JavaScript，以使用 LINE 登入。</noscript>
+  </main>
+</body>
+</html>

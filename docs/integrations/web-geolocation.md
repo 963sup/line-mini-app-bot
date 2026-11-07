@@ -1,9 +1,52 @@
 # Web Geolocation API 整合契約
 
-範圍：定位不納入首版 [基礎出勤](../features/attendance.md)。本頁保留為後續需求成立時的參考，
-不構成目前基礎設施、功能或測試工作的前置要求。
+範圍：已實作 Go + Vanilla JS 的獨立定位示範，尚未接入 [基礎出勤](../features/attendance.md)。
+業務定位、身分驗證、地理圍欄與保存規則仍依後續需求決定。
 
-> 狀態：已選技術、尚未實作。2026-11-07 透過 Context7 `/mdn/content` 核對；具體定位業務、精度、保存期仍需功能契約。
+> 狀態：示範已實作，尚待 LINE／手機實機確認。透過 Context7 `/mdn/content` 核對
+> getCurrentPosition、secure context、權限與錯誤碼；具體定位業務、精度、保存期仍需功能契約。
+
+## 執行示範
+
+```bash
+bash scripts/tool-exec.sh mise run dev
+```
+
+開啟 `http://localhost:8080/location`。正式環境使用 Cloud Run HTTPS 網址加 `/location`。
+頁面由 Go 提供，HTML／CSS／JS 透過 `go:embed` 放入執行檔，不需要 Node.js 服務、
+前端建置、Google Maps key 或 LINE 憑證；現有 Dockerfile 會一併建入這些資產。
+
+按下「取得位置並驗證」後才請求瀏覽器權限。成功時顯示座標、精度與採樣時間，
+並傳送 `POST /api/location/validate`；取消、切換頁面或逾時後忽略遲到 callback，
+並中止尚在等待的 fetch。已送出的資料無法撤回。
+
+此公開端點只檢查資料，不讀寫資料庫、不關聯使用者、不賦予出勤或資源權限。
+不將座標寫入一般應用日誌，回應只包含 `valid` 與伺服器 `receivedAt`；設定 `no-store`。
+若日後加入業務操作，必須另接可信身分、CSRF 與資源授權。
+
+## 示範 API
+
+`POST /api/location/validate`，Content-Type 為 `application/json`，body 上限 2 KiB。
+不啟用跨來源 CORS，使用 Go `CrossOriginProtection` 拒絕瀏覽器跨來源寫入請求。
+
+```json
+{
+  "latitude": 25.033,
+  "longitude": 121.5654,
+  "accuracyMeters": 20,
+  "capturedAt": "2026-11-08T00:00:00Z"
+}
+```
+
+範例時間請替換為目前時間。四欄皆必填，不接受 null、額外欄位或多個 JSON 值。
+示範僅接受採樣時間在伺服器時間前 5 分鐘至後 1 分鐘之間；這是輸入新鮮度檢查，
+不是出勤業務規則，不限制定位精度上限。`0,0` 是合法座標，缺欄不視為 0。
+成功回應 `200 {"valid":true,"receivedAt":"..."}`；錯誤回應為 `{"error":"..."}`。
+無效欄位／JSON 為 400、body 過大為 413、不支援的 Content-Type 為 415。
+跨來源拒絕由 Go middleware 回應 403 純文字，錯誤 method 為 405。
+
+實作位於 `cmd/server/geolocation.go` 與 `cmd/server/web/geolocation.*`。
+以下為加入定位業務時的完整邊界；不是示範已完成登入或出勤的宣告。
 
 ## 邊界
 
@@ -27,7 +70,7 @@ LINE 訊息的 location／位置 action 與 Web Geolocation 是不同輸入，�
 getCurrentPosition 沒有 AbortSignal 取消介面；取消頁面操作後忽略遲到 callback，不再送 API。
 錯誤碼 1=PERMISSION_DENIED、2=POSITION_UNAVAILABLE、3=TIMEOUT；分別顯示可理解的拒絕／不可用／重試提示，不顯示原始敏感錯誤。
 
-## Go 接收契約（業務 route 尚未選定）
+## Go 接收契約（示範 route 已實作，業務 route 尚未選定）
 
 | 欄位 | JSON／Go | 驗證 |
 | --- | --- | --- |
@@ -42,7 +85,7 @@ Go 另產生 receivedAt，不信任客戶端時間；必填數值用 pointer／�
 位置可偽造，不能作付款、身分或高風險授權唯一條件。精確位置不寫一般日誌、不自動推到群組。
 保存僅在產品明確需要時啟用；預設不建立定位歷史 collection。保存期、同意、刪除與目的確立後才更新 schema。
 
-## 規劃檔案與函數
+## 後續業務整合規劃檔案與函數
 
 - `internal/web/static/geolocation.js`：`requestCurrentPosition`、`stopPositionWatch`；只採樣與 UI，無授權。
 - `internal/adapters/http/miniapi/location.go`：`Handler.SubmitLocation`；僅在定位功能契約確定後建立 route。

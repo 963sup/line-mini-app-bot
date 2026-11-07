@@ -11,6 +11,11 @@
 Webhook 與 MINI App 若提供相同出勤操作，共用使用案例。
 Worker、Garr、群組角色、管理後台、Rich Menu 與定位不列為首版必做項目。
 
+目前另有獨立的 [LINE 接入能力](../development/line-prototype.md) 與
+[定位示範](../integrations/web-geolocation.md)：含群組／1:1 公開指令、Flex、
+Postback、MINI App ID token 驗證、Rich Menu CLI 及 Firestore 唯讀連線工具。
+這些接入程式不代表出勤、群組角色、可靠接收或 MINI App 發布已完成。
+
 ## 文件路由
 
 | 任務 | 必讀文件 |

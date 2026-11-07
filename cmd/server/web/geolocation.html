@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>取得目前位置</title>
+  <link rel="stylesheet" href="/assets/geolocation.css">
+  <script src="/assets/geolocation.js" defer></script>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">WEB GEOLOCATION · Go + Vanilla JS</p>
+    <h1>取得目前位置</h1>
+    <p>按下按鈕並允許定位後，會將經緯度、精度與採樣時間傳送至本站伺服器驗證。資料不會保存。</p>
+    <div class="actions">
+      <button id="locate" type="button">取得位置並驗證</button>
+      <button id="cancel" type="button" hidden>取消</button>
+    </div>
+    <p id="status" role="status" aria-live="polite">尚未要求定位。</p>
+    <dl id="result" hidden>
+      <div><dt>緯度</dt><dd id="latitude"></dd></div>
+      <div><dt>經度</dt><dd id="longitude"></dd></div>
+      <div><dt>估計精度</dt><dd id="accuracy"></dd></div>
+      <div><dt>採樣時間</dt><dd id="captured"></dd></div>
+      <div><dt>伺服器驗證</dt><dd id="validation">尚未驗證</dd></div>
+    </dl>
+    <p class="note">定位可能受裝置、網路與權限影響；座標可被偽造，此頁不提供打卡或到場認證。</p>
+    <p class="note">若拒絕權限，可在瀏覽器或系統設定允許定位後，再按一次按鈕。也可改用支援定位的外部瀏覽器。</p>
+    <noscript>請啟用 JavaScript，以使用瀏覽器定位功能。</noscript>
+  </main>
+</body>
+</html>

@@ -22,7 +22,8 @@ Read relevant pages on demand; Codex does not automatically load all docs.
 | 你現在要做什麼？ | 從這裡開始 |
 | --- | --- |
 | 穩定基礎、確認開發先後順序 | [基礎設施與分階段落地](development/foundation.md) |
-| 試接 Messaging API | [最小 LINE 接入試作](development/line-prototype.md) |
+| 接入 Messaging API／MINI App／Rich Menu | [LINE 接入能力與操作](development/line-prototype.md) |
+| 使用 Go + Vanilla JS 取得位置 | [Web Geolocation 示範與契約](integrations/web-geolocation.md) |
 | 確認首版出勤範圍與待定規則 | [基礎出勤](features/attendance.md) |
 | 理解 LINE／MINI App／Go／Firestore 如何協作 | [應用架構](architecture/overview.md) |
 | 決定模組、介面與業務規則放哪裡 | [開發原則與決策](architecture/principles.md) |
@@ -56,7 +57,7 @@ Configuration sources: `.codex/config.toml` owns roles/MCP connections;
 
 LINE 設定命名與機密注入：[環境變數規格](integrations/line-environment.md)。
 
-後續定位參考：[Web Geolocation API](integrations/web-geolocation.md)；不納入首版基礎出勤。
+已提供獨立的 [Web Geolocation 示範](integrations/web-geolocation.md)；未接入首版基礎出勤。
 
 ## 強制查證規則（全儲存庫、所有角色）
 
