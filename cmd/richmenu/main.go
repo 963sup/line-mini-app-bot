@@ -34,6 +34,7 @@ func run(args []string) error {
 	appURL := flags.String("app-url", "", "HTTPS MINI App permanent link")
 	imagePath := flags.String("image", "", "2500 x 843 PNG or JPEG, at most 1 MiB")
 	apply := flags.Bool("apply", false, "create/upload on LINE; otherwise preview only")
+	attendance := flags.Bool("attendance-preview", false, "preview attendance tabs and alias names")
 	setDefault := flags.Bool("set-default", false, "also replace the default rich menu when applying")
 	menuID := flags.String("menu-id", "", "resume upload using a previously created menu ID")
 	if err := flags.Parse(args); err != nil {
@@ -50,6 +51,12 @@ func run(args []string) error {
 		return errors.New("-app-url must not contain credentials or a fragment")
 	}
 	menu := lineui.RichMenu(parsed.String())
+	if *attendance {
+		if *apply {
+			return errors.New("attendance prototype supports preview only")
+		}
+		return json.NewEncoder(os.Stdout).Encode(lineui.AttendanceRichMenus(parsed.String()))
+	}
 	if !*apply {
 		return json.NewEncoder(os.Stdout).Encode(struct {
 			Menu       *messaging_api.RichMenuRequest `json:"menu"`

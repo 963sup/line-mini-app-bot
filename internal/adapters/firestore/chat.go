@@ -21,6 +21,42 @@ type chatState struct {
 	Epoch, Revision, LastControl int64
 }
 
+// Edit only updates a retained original, preserving its original expiry and
+// rejecting reordered edits. Revision invalidates in-flight summary results.
+func (s *Chat) Edit(ctx context.Context, g, id, text string, timestamp int64) error {
+	if id == "" || timestamp <= 0 || timestamp > time.Now().Add(time.Minute).UnixMilli() {
+		return nil
+	}
+	root := s.group(g)
+	ref := root.Collection("summaryMessages").Doc(key(id))
+	return s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
+		st, err := state(tx, root)
+		if err != nil || st.Disabled {
+			return err
+		}
+		doc, err := tx.Get(ref)
+		if status.Code(err) == codes.NotFound {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		var m summary.Message
+		if err := doc.DataTo(&m); err != nil {
+			return err
+		}
+		if m.Deleted || m.Epoch != st.Epoch || !m.ExpireAt.After(time.Now()) || timestamp <= m.EditedAt || timestamp < m.OccurredAt.UnixMilli() {
+			return nil
+		}
+		m.Text, m.EditedAt = text, timestamp
+		st.Revision++
+		if err := tx.Set(root, st); err != nil {
+			return err
+		}
+		return tx.Set(ref, m)
+	})
+}
+
 func (s *Chat) group(g string) *db.DocumentRef {
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("summaryGroups").Doc(key(g))
 }

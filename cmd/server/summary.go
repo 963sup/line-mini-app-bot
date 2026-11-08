@@ -149,6 +149,16 @@ func (b *summaryBot) observe(ctx context.Context, event webhook.EventInterface) 
 	if b == nil {
 		return lineReply{}, false, nil
 	}
+	if e, ok := event.(webhook.MessageEditedEvent); ok {
+		g, group := e.Source.(webhook.GroupSource)
+		m, text := e.Message.(webhook.TextMessageContent)
+		if editor, supported := b.store.(interface {
+			Edit(context.Context, string, string, string, int64) error
+		}); supported && group && text && g.GroupId != "" && e.Mode == "active" {
+			return lineReply{}, false, editor.Edit(ctx, g.GroupId, m.Id, m.Text, e.Timestamp)
+		}
+		return lineReply{}, false, nil
+	}
 	if e, ok := event.(webhook.UnsendEvent); ok {
 		g, ok := e.Source.(webhook.GroupSource)
 		if !ok || g.GroupId == "" || e.Unsend == nil {

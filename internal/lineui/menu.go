@@ -3,6 +3,23 @@ package lineui
 
 import "github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 
+// AttendanceRichMenus previews two tabs. Aliases must be bound to uploaded menu
+// IDs before publishing. Switching tabs never records attendance.
+func AttendanceRichMenus(appURL string) map[string]*messaging_api.RichMenuRequest {
+	menus := make(map[string]*messaging_api.RichMenuRequest)
+	for _, tab := range []struct{ alias, other, label, action string }{
+		{"attendance-in", "attendance-out", "上班", "clock-in"},
+		{"attendance-out", "attendance-in", "下班", "clock-out"},
+	} {
+		menu := RichMenu(appURL)
+		menu.Name = "出勤：" + tab.label
+		menu.Areas[0].Action = &messaging_api.PostbackAction{Label: tab.label, Data: "action=" + tab.action}
+		menu.Areas[1].Action = &messaging_api.RichMenuSwitchAction{Label: "切換分頁", RichMenuAliasId: tab.other, Data: "tab=" + tab.other}
+		menus[tab.alias] = menu
+	}
+	return menus
+}
+
 func Help(group bool, appURL string) messaging_api.MessageInterface {
 	title := "LINE 功能選單"
 	description := "一對一連線已接通。輸入「出勤紀錄」查詢本人紀錄，或開啟網頁服務。"

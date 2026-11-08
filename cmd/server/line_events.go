@@ -18,6 +18,12 @@ func replyForEvent(event webhook.EventInterface, appURL string) lineReply {
 	var source webhook.SourceInterface
 	var command, token string
 	switch e := event.(type) {
+	case webhook.JoinEvent:
+		g, ok := e.Source.(webhook.GroupSource)
+		if !ok || g.GroupId == "" || !canReply(e.Mode, e.ReplyToken, e.DeliveryContext) {
+			return lineReply{}
+		}
+		return lineReply{token: e.ReplyToken, message: lineui.Help(true, appURL)}
 	case webhook.MessageEvent:
 		if !canReply(e.Mode, e.ReplyToken, e.DeliveryContext) {
 			return lineReply{}

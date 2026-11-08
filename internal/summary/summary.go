@@ -16,6 +16,7 @@ type Message struct {
 	OccurredAt, ExpireAt      time.Time
 	Epoch                     int64
 	Deleted                   bool
+	EditedAt                  int64
 }
 
 type Job struct {
