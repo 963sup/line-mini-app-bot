@@ -1,12 +1,12 @@
-# LINE / Go / Cloud Run
+# Cloud development environment
 
-首版僅做 [基礎出勤](../docs/features/attendance.md)：上班、下班與本人紀錄。
-依 [分階段落地](../docs/development/foundation.md) 先穩定執行／部署基礎，再接入資料與 LINE，
+首版僅做 [基礎出勤](../features/attendance.md)：上班、下班與本人紀錄。
+依 [分階段落地](../development/foundation.md) 先穩定執行／部署基礎，再接入資料與 LINE，
 最後開發出勤；具體規則集中在功能規格確認。架構與階段範圍依
-[已接受的基線](../docs/architecture/decisions/0002-baseline.md)：目前先穩定基礎，
+[已接受的基線](../architecture/decisions/0002-baseline.md)：目前先穩定基礎，
 不新增測試方案、案例或工具，保留現有 CI。
 
-Source scripts/cloud-env.sh in every shell, or use scripts/tool-exec.sh.
+Source scripts/dev-env.sh in every shell, or use scripts/tool-exec.sh.
 Run bash scripts/bootstrap.sh for Go setup, then mise run doctor.
 Install optional tooling using mise run install-cloud or install-mcp.
 
@@ -18,7 +18,7 @@ net/http, html/template and log/slog require no extra packages.
 The repository contains go.mod, cmd/server and a Dockerfile. The HTTP skeleton
 currently provides an optional LINE webhook connectivity prototype, without health
 routes. Attendance and Firestore behavior is not implemented. See the
-[prototype guide](../docs/development/line-prototype.md). mise run dev defaults PORT to 8080.
+[prototype guide](../development/line-prototype.md). mise run dev defaults PORT to 8080.
 Cloud Run injects `PORT`; mise run container-build also needs a Docker daemon.
 
 Use the pinned gcloud with: mise exec gcloud@592.0.0 -- gcloud ...
@@ -26,7 +26,7 @@ Use the pinned gcloud with: mise exec gcloud@592.0.0 -- gcloud ...
 Cloud Run is the application deployment target and uses a runtime service
 account plus Secret Manager bindings.
 Firestore access requires a Google project, explicit authentication and appropriate
-IAM. See the [Cloud Run deployment guide](../docs/operations/cloud-run.md).
+IAM. See the [Cloud Run deployment guide](../operations/cloud-run.md).
 No deployment or remote writes
 are part of environment setup.
 Supply LINE secrets securely at runtime; local HMAC signature verification needs the

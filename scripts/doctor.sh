@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
-source scripts/cloud-env.sh
+source scripts/dev-env.sh
 mise exec -- go version
 for name in GOPATH GOCACHE GOMODCACHE GOENV GOTMPDIR; do
   value="$(mise exec -- go env "$name")"

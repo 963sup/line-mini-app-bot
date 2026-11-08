@@ -53,7 +53,7 @@ def check():
     # Reuse the same constrained parser as bootstrap rather than silently accepting
     # env constructs that would work in mise but fail before mise is installed.
     from importlib.util import module_from_spec, spec_from_file_location
-    spec = spec_from_file_location("load_env", ROOT / "scripts/load-env.py")
+    spec = spec_from_file_location("render_env", ROOT / "scripts/render-env.py")
     module = module_from_spec(spec)
     spec.loader.exec_module(module)
     module.render_exports(mise["env"], {})

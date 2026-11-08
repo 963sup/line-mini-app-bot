@@ -23,7 +23,7 @@ def check_servers(configs, server=None, call=None, arguments=None):
             print(f"SKIP {name}: disabled", flush=True)
             continue
         try:
-            probe(name, config, call, arguments)
+            probe_server(name, config, call, arguments)
             counts["PASS"] += 1
         except Exception as exc:
             counts["FAIL"] += 1
@@ -34,7 +34,7 @@ def check_servers(configs, server=None, call=None, arguments=None):
     return int(bool(counts["FAIL"]))
 
 
-def probe(name, config, call=None, arguments=None):
+def probe_server(name, config, call=None, arguments=None):
     process = None
     session = None
     protocol = '2025-03-26'
