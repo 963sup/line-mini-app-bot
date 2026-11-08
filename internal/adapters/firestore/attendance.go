@@ -19,13 +19,8 @@ type Attendance struct {
 	ChannelID string
 }
 
-func key(parts ...string) string {
-	b, _ := json.Marshal(parts)
-	return fmt.Sprintf("%x", sha256.Sum256(b))
-}
-
 func (s *Attendance) user(user string) *db.DocumentRef {
-	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("users").Doc(key(user))
+	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("users").Doc(documentKey(user))
 }
 
 // Punch atomically records an event result, the shift and its active pointer.
@@ -36,8 +31,8 @@ func (s *Attendance) Punch(ctx context.Context, group, user, event, action strin
 
 func (s *Attendance) punch(ctx context.Context, group, user, event, action string, now time.Time, eventTime int64, position *attendance.Position, requestID string) (attendance.Result, error) {
 	u := s.user(user)
-	state := u.Collection("attendanceStates").Doc(key(group))
-	receipt := u.Collection("attendanceEvents").Doc(key(group, event, action))
+	state := u.Collection("attendanceStates").Doc(documentKey(group))
+	receipt := u.Collection("attendanceEvents").Doc(documentKey(group, event, action))
 	var result attendance.Result
 	err := s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		result = attendance.Result{}
@@ -50,7 +45,7 @@ func (s *Attendance) punch(ctx context.Context, group, user, event, action strin
 			if err := snap.DataTo(&request); err != nil {
 				return err
 			}
-			if request.UserID != key(user) || request.GroupID != group || request.EventID != event || request.Action != action {
+			if request.UserID != documentKey(user) || request.GroupID != group || request.EventID != event || request.Action != action {
 				return attendance.ErrInvalidRequest
 			}
 		}
@@ -108,7 +103,7 @@ func (s *Attendance) punch(ctx context.Context, group, user, event, action strin
 				record.SchemaVersion = 2
 				record.ClockInPosition = position
 			}
-			id := key(group, event)
+			id := documentKey(group, event)
 			if err := tx.Create(u.Collection("attendance").Doc(id), record); err != nil {
 				return err
 			}
@@ -148,8 +143,8 @@ func (s *Attendance) requests() *db.CollectionRef {
 }
 
 func (s *Attendance) CreateRequest(ctx context.Context, request attendance.Request) (string, error) {
-	id := key(request.GroupID, request.UserID, request.EventID, request.Action)
-	request.UserID = key(request.UserID)
+	id := documentKey(request.GroupID, request.UserID, request.EventID, request.Action)
+	request.UserID = documentKey(request.UserID)
 	_, err := s.requests().Doc(id).Create(ctx, request)
 	if status.Code(err) == codes.AlreadyExists {
 		err = nil
@@ -169,7 +164,7 @@ func (s *Attendance) Submit(ctx context.Context, id, user string, position atten
 	if err := snapshot.DataTo(&request); err != nil {
 		return attendance.Result{}, err
 	}
-	if request.UserID != key(user) {
+	if request.UserID != documentKey(user) {
 		return attendance.Result{}, attendance.ErrInvalidRequest
 	}
 	return s.punch(ctx, request.GroupID, user, request.EventID, request.Action, now, request.EventTime, &position, id)
@@ -214,6 +209,11 @@ func (s *Attendance) RecentGroup(ctx context.Context, user, group string) ([]att
 		records = records[:5]
 	}
 	return records, nil
+}
+
+func documentKey(parts ...string) string {
+	b, _ := json.Marshal(parts)
+	return fmt.Sprintf("%x", sha256.Sum256(b))
 }
 
 func (s *Attendance) Recent(ctx context.Context, user string) ([]attendance.Record, error) {

@@ -130,18 +130,7 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 		if err != nil {
 			return lineReply{}, true, err
 		}
-		text := "本人最近出勤紀錄（最多五筆）："
-		for _, record := range records {
-			out := "尚未下班"
-			if !record.ClockOutAt.IsZero() {
-				out = b.format(record.ClockOutAt)
-			}
-			text += fmt.Sprintf("\n群組 %s\n上班 %s\n下班 %s", record.GroupID, b.format(record.ClockInAt), out)
-		}
-		if len(records) == 0 {
-			text = "目前沒有出勤紀錄。"
-		}
-		return respond(text)
+		return respond(b.recordsText(records))
 	}
 	group, ok := source.(webhook.GroupSource)
 	if !ok {

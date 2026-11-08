@@ -8,7 +8,6 @@ import (
 	"mime"
 	"net/http"
 	"os"
-	"regexp"
 	"time"
 
 	"github.com/963sup/line-mini-app-bot/internal/attendance"
@@ -18,12 +17,12 @@ func registerAttendanceAPI(mux *http.ServeMux, bot *attendanceBot) {
 	app := &miniApp{channelID: os.Getenv("LINE_MINI_APP_CHANNEL_ID"), client: &http.Client{Timeout: 5 * time.Second}}
 	mux.Handle("POST /api/v1/attendance/punches", http.NewCrossOriginProtection().Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if bot == nil {
-			apiError(w, 503, "not_configured", "出勤尚未啟用。")
+			writeAPIError(w, 503, "not_configured", "出勤尚未啟用。")
 			return
 		}
 		store, ok := bot.store.(attendance.LocatedStore)
 		if !ok {
-			apiError(w, 503, "not_configured", "定位打卡尚未啟用。")
+			writeAPIError(w, 503, "not_configured", "定位打卡尚未啟用。")
 			return
 		}
 		user, _, ok := app.authenticate(w, r)
@@ -32,7 +31,7 @@ func registerAttendanceAPI(mux *http.ServeMux, bot *attendanceBot) {
 		}
 		media, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		if err != nil || media != "application/json" {
-			apiError(w, 415, "invalid_content_type", "請使用 JSON。")
+			writeAPIError(w, 415, "invalid_content_type", "請使用 JSON。")
 			return
 		}
 		r.Body = http.MaxBytesReader(w, r.Body, 2048)
@@ -43,17 +42,17 @@ func registerAttendanceAPI(mux *http.ServeMux, bot *attendanceBot) {
 			locationInput
 		}
 		if err := decoder.Decode(&input); err != nil {
-			apiError(w, 400, "invalid_input", "打卡資料無效。")
+			writeAPIError(w, 400, "invalid_input", "打卡資料無效。")
 			return
 		}
 		var extra any
 		if decoder.Decode(&extra) != io.EOF {
-			apiError(w, 400, "invalid_input", "打卡資料無效。")
+			writeAPIError(w, 400, "invalid_input", "打卡資料無效。")
 			return
 		}
 		now := time.Now().UTC()
-		if !regexp.MustCompile(`^[a-f0-9]{64}$`).MatchString(input.RequestID) || !validAttendanceLocation(input.locationInput, now) {
-			apiError(w, 400, "invalid_position", "位置資料無效或過期，請重新取得位置。")
+		if !requestIDPattern.MatchString(input.RequestID) || !validAttendanceLocation(input.locationInput, now) {
+			writeAPIError(w, 400, "invalid_position", "位置資料無效或過期，請重新取得位置。")
 			return
 		}
 		position := attendance.Position{Latitude: *input.Latitude, Longitude: *input.Longitude, AccuracyMeters: *input.AccuracyMeters, CapturedAt: *input.CapturedAt}
@@ -61,11 +60,11 @@ func registerAttendanceAPI(mux *http.ServeMux, bot *attendanceBot) {
 		defer cancel()
 		result, err := store.Submit(ctx, input.RequestID, user, position, now)
 		if errors.Is(err, attendance.ErrInvalidRequest) {
-			apiError(w, 403, "invalid_request", "此打卡連結已過期或不屬於本人，請回原群組重新操作。")
+			writeAPIError(w, 403, "invalid_request", "此打卡連結已過期或不屬於本人，請回原群組重新操作。")
 			return
 		}
 		if err != nil {
-			apiError(w, 503, "unavailable", "暫時無法確認打卡結果，請重試或私訊查詢本人紀錄。")
+			writeAPIError(w, 503, "unavailable", "暫時無法確認打卡結果，請重試或私訊查詢本人紀錄。")
 			return
 		}
 		message := "尚無未完成的上班紀錄，未新增打卡。"

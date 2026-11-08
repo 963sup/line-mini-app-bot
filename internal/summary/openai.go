@@ -15,16 +15,16 @@ type OpenAI struct {
 	HTTP       *http.Client
 }
 
-func (g *OpenAI) Summarize(ctx context.Context, messages []Message) (string, error) {
+func (o *OpenAI) Summarize(ctx context.Context, messages []Message) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 45*time.Second)
 	defer cancel()
 	input, sources := Input(messages)
-	config := openai.DefaultConfig(g.Key)
-	if g.HTTP != nil {
-		config.HTTPClient = g.HTTP
+	config := openai.DefaultConfig(o.Key)
+	if o.HTTP != nil {
+		config.HTTPClient = o.HTTP
 	}
 	response, err := openai.NewClientWithConfig(config).CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model:               g.Model,
+		Model:               o.Model,
 		MaxCompletionTokens: 1500,
 		Messages: []openai.ChatCompletionMessage{
 			{Role: openai.ChatMessageRoleSystem, Content: summaryInstruction},

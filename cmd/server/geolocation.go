@@ -28,25 +28,11 @@ type locationInput struct {
 }
 
 func registerGeolocation(mux *http.ServeMux) {
-	mux.HandleFunc("GET /location", locationAsset(geolocationPage, "text/html; charset=utf-8"))
-	mux.HandleFunc("GET /assets/geolocation.js", locationAsset(geolocationScript, "text/javascript; charset=utf-8"))
-	mux.HandleFunc("GET /assets/geolocation.css", locationAsset(geolocationStyle, "text/css; charset=utf-8"))
+	mux.HandleFunc("GET /location", staticAssetHandler(geolocationPage, "text/html; charset=utf-8"))
+	mux.HandleFunc("GET /assets/geolocation.js", staticAssetHandler(geolocationScript, "text/javascript; charset=utf-8"))
+	mux.HandleFunc("GET /assets/geolocation.css", staticAssetHandler(geolocationStyle, "text/css; charset=utf-8"))
 	protection := http.NewCrossOriginProtection()
 	mux.Handle("POST /api/location/validate", protection.Handler(http.HandlerFunc(validateLocation)))
-}
-
-func locationAsset(content []byte, contentType string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", contentType)
-		w.Header().Set("Cache-Control", "no-store")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("Referrer-Policy", "no-referrer")
-		w.Header().Set("Permissions-Policy", "geolocation=(self)")
-		w.Header().Set("Content-Security-Policy",
-			"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; "+
-				"base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
-		_, _ = w.Write(content)
-	}
 }
 
 // validateLocation is a public, stateless diagnostic. It grants no attendance or identity claims.

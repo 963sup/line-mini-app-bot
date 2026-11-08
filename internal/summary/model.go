@@ -26,12 +26,14 @@ func NewModel(provider, key, model string, client *http.Client) (Model, error) {
 	}
 }
 
+var summaryCitationPattern = regexp.MustCompile(`\[S([0-9]+)\]`)
+
 func validateSummary(text string, sourceCount int) (string, error) {
 	result := strings.TrimSpace(text)
 	if result == "" || utf8.RuneCountInString(result) > 4000 {
 		return "", errors.New("invalid summary length")
 	}
-	citations := regexp.MustCompile(`\[S([0-9]+)\]`).FindAllStringSubmatch(result, -1)
+	citations := summaryCitationPattern.FindAllStringSubmatch(result, -1)
 	if len(citations) == 0 {
 		return "", errors.New("summary omitted sources")
 	}

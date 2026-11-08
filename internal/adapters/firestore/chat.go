@@ -28,7 +28,7 @@ func (s *Chat) Edit(ctx context.Context, g, id, text string, timestamp int64) er
 		return nil
 	}
 	root := s.group(g)
-	ref := root.Collection("summaryMessages").Doc(key(id))
+	ref := root.Collection("summaryMessages").Doc(documentKey(id))
 	return s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		st, err := state(tx, root)
 		if err != nil || st.Disabled {
@@ -58,7 +58,7 @@ func (s *Chat) Edit(ctx context.Context, g, id, text string, timestamp int64) er
 }
 
 func (s *Chat) group(g string) *db.DocumentRef {
-	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("summaryGroups").Doc(key(g))
+	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("summaryGroups").Doc(documentKey(g))
 }
 
 func state(tx *db.Transaction, r *db.DocumentRef) (chatState, error) {
@@ -79,7 +79,7 @@ func (s *Chat) Collect(ctx context.Context, g string, m summary.Message) error {
 		return nil
 	}
 	root := s.group(g)
-	ref := root.Collection("summaryMessages").Doc(key(m.ID))
+	ref := root.Collection("summaryMessages").Doc(documentKey(m.ID))
 	return s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		st, e := state(tx, root)
 		if e != nil {
@@ -119,7 +119,7 @@ func (s *Chat) Unsend(ctx context.Context, g, id string) error {
 			return e
 		}
 		// A tombstone prevents a delayed original message from restoring content.
-		return tx.Set(root.Collection("summaryMessages").Doc(key(id)), summary.Message{ID: id, Deleted: true, Epoch: st.Epoch, ExpireAt: time.Now().Add(48 * time.Hour)})
+		return tx.Set(root.Collection("summaryMessages").Doc(documentKey(id)), summary.Message{ID: id, Deleted: true, Epoch: st.Epoch, ExpireAt: time.Now().Add(48 * time.Hour)})
 	})
 	if err != nil {
 		return err
@@ -151,7 +151,7 @@ func (s *Chat) Unsend(ctx context.Context, g, id string) error {
 
 func (s *Chat) Command(ctx context.Context, g, event, command string, timestamp int64) (summary.Job, error) {
 	root := s.group(g)
-	id := key(event)
+	id := documentKey(event)
 	ref := root.Collection("summaryJobs").Doc(id)
 	var job summary.Job
 	now := time.Now().UTC()

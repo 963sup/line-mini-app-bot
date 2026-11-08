@@ -21,54 +21,11 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 	"golang.org/x/oauth2/google"
-	"google.golang.org/api/idtoken"
 )
 
 type summaryBot struct {
 	store summary.Store
 	queue summary.Queue
-}
-type summaryTasks struct {
-	client            *http.Client
-	queue, url, email string
-}
-type summaryDelivery struct {
-	bot *messaging_api.MessagingApiAPI
-}
-
-func (d summaryDelivery) Send(ctx context.Context, group, text, retry string) error {
-	client := *d.bot
-	client.WithContext(ctx)
-	res, _, e := client.PushMessageWithHttpInfo(&messaging_api.PushMessageRequest{To: group, Messages: []messaging_api.MessageInterface{&messaging_api.TextMessage{Text: text}}}, retry)
-	// LINE's 409 means this retry key was already accepted, not a new delivery.
-	if res != nil && res.StatusCode == http.StatusConflict {
-		return nil
-	}
-	return e
-}
-
-func (q *summaryTasks) Enqueue(ctx context.Context, j summary.Job) error {
-	payload, _ := json.Marshal(map[string]string{"group": j.GroupID, "id": j.ID})
-	body, _ := json.Marshal(map[string]any{"task": map[string]any{
-		"name": q.queue + "/tasks/" + j.ID, "dispatchDeadline": "120s",
-		"httpRequest": map[string]any{"url": q.url, "httpMethod": "POST", "headers": map[string]string{"Content-Type": "application/json"}, "body": base64.StdEncoding.EncodeToString(payload), "oidcToken": map[string]string{"serviceAccountEmail": q.email, "audience": q.url}},
-	}})
-	req, e := http.NewRequestWithContext(ctx, http.MethodPost, "https://cloudtasks.googleapis.com/v2/"+q.queue+"/tasks", bytes.NewReader(body))
-	if e != nil {
-		return errors.New("cannot create summary task")
-	}
-	req.Header.Set("Content-Type", "application/json")
-	res, e := q.client.Do(req)
-	if e != nil {
-		return errors.New("summary queue unavailable")
-	}
-	// The response is read-only; closing cannot commit application state.
-	defer func() { _ = res.Body.Close() }()
-	_, _ = io.Copy(io.Discard, io.LimitReader(res.Body, 4096))
-	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusConflict {
-		return errors.New("summary queue rejected task")
-	}
-	return nil
 }
 
 func registerSummary(ctx context.Context, mux *http.ServeMux) (*summaryBot, func() error, error) {
@@ -118,39 +75,6 @@ func registerSummary(ctx context.Context, mux *http.ServeMux) (*summaryBot, func
 	service := &summary.Service{Store: store, Model: modelAdapter, Sender: summaryDelivery{bot: line}}
 	mux.HandleFunc("POST /internal/summary", summaryWorker(service, target, email))
 	return &summaryBot{store: store, queue: &summaryTasks{client: auth, queue: queue, url: target, email: email}}, db.Close, nil
-}
-
-func summaryWorker(service *summary.Service, target, email string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), 80*time.Second)
-		defer cancel()
-		parts := strings.Fields(r.Header.Get("Authorization"))
-		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-			http.Error(w, "unauthorized", http.StatusUnauthorized)
-			return
-		}
-		claims, e := idtoken.Validate(ctx, parts[1], target)
-		if e != nil || claims.Claims["email"] != email || claims.Claims["email_verified"] != true {
-			http.Error(w, "unauthorized", http.StatusUnauthorized)
-			return
-		}
-		var input struct{ Group, ID string }
-		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 2048))
-		decoder.DisallowUnknownFields()
-		if e := decoder.Decode(&input); e != nil || !regexp.MustCompile(`^C[0-9a-f]{32}$`).MatchString(input.Group) || !regexp.MustCompile(`^[0-9a-f]{64}$`).MatchString(input.ID) {
-			http.Error(w, "invalid job", http.StatusBadRequest)
-			return
-		}
-		if decoder.Decode(new(any)) != io.EOF {
-			http.Error(w, "invalid job", http.StatusBadRequest)
-			return
-		}
-		if e := service.Run(ctx, input.Group, input.ID); e != nil {
-			http.Error(w, "summary temporarily unavailable", http.StatusServiceUnavailable)
-			return
-		}
-		w.WriteHeader(http.StatusNoContent)
-	}
 }
 
 // observe is independent of command replies: ordinary text remains silent.
@@ -205,7 +129,7 @@ func (b *summaryBot) observe(ctx context.Context, event webhook.EventInterface) 
 		text := "正在整理最近24小時的群聊（最多100則）。"
 		if j.Status == "disabled" {
 			text = "摘要已關閉，輸入「開啟摘要」可恢復。"
-		} else if j.Status != "done" {
+		} else {
 			if err := b.queue.Enqueue(ctx, j); err != nil {
 				return lineReply{}, true, err
 			}
@@ -233,4 +157,48 @@ func skipSummaryText(text string) bool {
 		return true
 	}
 	return false
+}
+
+type summaryDelivery struct {
+	bot *messaging_api.MessagingApiAPI
+}
+
+func (d summaryDelivery) Send(ctx context.Context, group, text, retry string) error {
+	client := *d.bot
+	client.WithContext(ctx)
+	res, _, e := client.PushMessageWithHttpInfo(&messaging_api.PushMessageRequest{To: group, Messages: []messaging_api.MessageInterface{&messaging_api.TextMessage{Text: text}}}, retry)
+	// LINE's 409 means this retry key was already accepted, not a new delivery.
+	if res != nil && res.StatusCode == http.StatusConflict {
+		return nil
+	}
+	return e
+}
+
+type summaryTasks struct {
+	client            *http.Client
+	queue, url, email string
+}
+
+func (q *summaryTasks) Enqueue(ctx context.Context, j summary.Job) error {
+	payload, _ := json.Marshal(map[string]string{"group": j.GroupID, "id": j.ID})
+	body, _ := json.Marshal(map[string]any{"task": map[string]any{
+		"name": q.queue + "/tasks/" + j.ID, "dispatchDeadline": "120s",
+		"httpRequest": map[string]any{"url": q.url, "httpMethod": "POST", "headers": map[string]string{"Content-Type": "application/json"}, "body": base64.StdEncoding.EncodeToString(payload), "oidcToken": map[string]string{"serviceAccountEmail": q.email, "audience": q.url}},
+	}})
+	req, e := http.NewRequestWithContext(ctx, http.MethodPost, "https://cloudtasks.googleapis.com/v2/"+q.queue+"/tasks", bytes.NewReader(body))
+	if e != nil {
+		return errors.New("cannot create summary task")
+	}
+	req.Header.Set("Content-Type", "application/json")
+	res, e := q.client.Do(req)
+	if e != nil {
+		return errors.New("summary queue unavailable")
+	}
+	// The response is read-only; closing cannot commit application state.
+	defer func() { _ = res.Body.Close() }()
+	_, _ = io.Copy(io.Discard, io.LimitReader(res.Body, 4096))
+	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusConflict {
+		return errors.New("summary queue rejected task")
+	}
+	return nil
 }

@@ -39,10 +39,10 @@ func registerMiniApp(mux *http.ServeMux) (string, error) {
 		return "", err
 	}
 	mux.HandleFunc("GET /miniapp", serveMiniApp)
-	mux.HandleFunc("GET /assets/miniapp.js", locationAsset(miniAppScript, "text/javascript; charset=utf-8"))
-	mux.HandleFunc("GET /assets/attendance.js", locationAsset(attendanceScript, "text/javascript; charset=utf-8"))
-	mux.HandleFunc("GET /api/v1/miniapp/config", app.config)
-	mux.HandleFunc("GET /api/v1/me", app.me)
+	mux.HandleFunc("GET /assets/miniapp.js", staticAssetHandler(miniAppScript, "text/javascript; charset=utf-8"))
+	mux.HandleFunc("GET /assets/attendance.js", staticAssetHandler(attendanceScript, "text/javascript; charset=utf-8"))
+	mux.HandleFunc("GET /api/v1/miniapp/config", app.handleConfig)
+	mux.HandleFunc("GET /api/v1/me", app.handleMe)
 	if app.liffID == "" {
 		return "", nil
 	}
@@ -62,9 +62,9 @@ func (app *miniApp) validateConfig() error {
 	return nil
 }
 
-func (app *miniApp) config(w http.ResponseWriter, r *http.Request) {
+func (app *miniApp) handleConfig(w http.ResponseWriter, r *http.Request) {
 	if app.liffID == "" {
-		apiError(w, http.StatusServiceUnavailable, "not_configured", "MINI App 尚未設定。")
+		writeAPIError(w, http.StatusServiceUnavailable, "not_configured", "MINI App 尚未設定。")
 		return
 	}
 	writeJSON(w, http.StatusOK, struct {
@@ -85,7 +85,7 @@ func serveMiniApp(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(miniAppPage)
 }
 
-func (app *miniApp) me(w http.ResponseWriter, r *http.Request) {
+func (app *miniApp) handleMe(w http.ResponseWriter, r *http.Request) {
 	user, name, ok := app.authenticate(w, r)
 	if !ok {
 		return
@@ -98,16 +98,16 @@ func (app *miniApp) me(w http.ResponseWriter, r *http.Request) {
 
 func (app *miniApp) authenticate(w http.ResponseWriter, r *http.Request) (string, string, bool) {
 	if app.channelID == "" {
-		apiError(w, http.StatusServiceUnavailable, "not_configured", "MINI App 尚未設定。")
+		writeAPIError(w, http.StatusServiceUnavailable, "not_configured", "MINI App 尚未設定。")
 		return "", "", false
 	}
 	authorization := strings.Fields(r.Header.Get("Authorization"))
 	if len(authorization) != 2 || !strings.EqualFold(authorization[0], "Bearer") {
-		apiError(w, http.StatusUnauthorized, "unauthenticated", "請先登入 LINE。")
+		writeAPIError(w, http.StatusUnauthorized, "unauthenticated", "請先登入 LINE。")
 		return "", "", false
 	}
 	if len(authorization[1]) > 16384 {
-		apiError(w, http.StatusUnauthorized, "unauthenticated", "無效的 LINE token。")
+		writeAPIError(w, http.StatusUnauthorized, "unauthenticated", "無效的 LINE token。")
 		return "", "", false
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
@@ -120,23 +120,23 @@ func (app *miniApp) authenticate(w http.ResponseWriter, r *http.Request) (string
 		strings.NewReader(form.Encode()),
 	)
 	if err != nil {
-		apiError(w, http.StatusServiceUnavailable, "unavailable", "暫時無法驗證 LINE 身分。")
+		writeAPIError(w, http.StatusServiceUnavailable, "unavailable", "暫時無法驗證 LINE 身分。")
 		return "", "", false
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	response, err := app.client.Do(req)
 	if err != nil {
-		apiError(w, http.StatusServiceUnavailable, "unavailable", "暫時無法驗證 LINE 身分。")
+		writeAPIError(w, http.StatusServiceUnavailable, "unavailable", "暫時無法驗證 LINE 身分。")
 		return "", "", false
 	}
 	// The response is read-only; closing cannot commit application state.
 	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode == http.StatusBadRequest || response.StatusCode == http.StatusUnauthorized {
-		apiError(w, http.StatusUnauthorized, "unauthenticated", "LINE 登入已失效，請重新登入。")
+		writeAPIError(w, http.StatusUnauthorized, "unauthenticated", "LINE 登入已失效，請重新登入。")
 		return "", "", false
 	}
 	if response.StatusCode != http.StatusOK {
-		apiError(w, http.StatusServiceUnavailable, "unavailable", "暫時無法驗證 LINE 身分。")
+		writeAPIError(w, http.StatusServiceUnavailable, "unavailable", "暫時無法驗證 LINE 身分。")
 		return "", "", false
 	}
 	var claims struct {
@@ -147,32 +147,14 @@ func (app *miniApp) authenticate(w http.ResponseWriter, r *http.Request) (string
 		Name     string `json:"name"`
 	}
 	if err := json.NewDecoder(io.LimitReader(response.Body, 16<<10)).Decode(&claims); err != nil {
-		apiError(w, http.StatusServiceUnavailable, "unavailable", "LINE 驗證回應無效。")
+		writeAPIError(w, http.StatusServiceUnavailable, "unavailable", "LINE 驗證回應無效。")
 		return "", "", false
 	}
 	validChannel := claims.Issuer == "https://access.line.me" && claims.Audience == app.channelID
 	validUser := claims.Subject != "" && claims.Expires > time.Now().Unix()
 	if !validChannel || !validUser {
-		apiError(w, http.StatusUnauthorized, "unauthenticated", "LINE 身分驗證未通過。")
+		writeAPIError(w, http.StatusUnauthorized, "unauthenticated", "LINE 身分驗證未通過。")
 		return "", "", false
 	}
 	return claims.Subject, claims.Name, true
-}
-
-func writeJSON(w http.ResponseWriter, status int, value any) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-store")
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(value)
-}
-
-func apiError(w http.ResponseWriter, status int, code, message string) {
-	type detail struct {
-		Code    string `json:"code"`
-		Message string `json:"message"`
-	}
-	writeJSON(w, status, struct {
-		Error detail `json:"error"`
-	}{Error: detail{Code: code, Message: message}})
 }

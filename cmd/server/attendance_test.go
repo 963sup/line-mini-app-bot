@@ -22,6 +22,7 @@ type attendanceStub struct {
 	queriedUser        string
 	queriedGroup       string
 	groups             []string
+	records            []attendance.Record
 	punchCalls         int
 }
 
@@ -56,7 +57,35 @@ func (s *attendanceStub) Punch(_ context.Context, group, user, event, action str
 
 func (s *attendanceStub) Recent(_ context.Context, user string) ([]attendance.Record, error) {
 	s.queriedUser = user
-	return nil, s.err
+	return s.records, s.err
+}
+
+func TestAttendanceLegacyHistory(t *testing.T) {
+	zone, err := time.LoadLocation("Asia/Taipei")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name    string
+		records []attendance.Record
+		want    string
+	}{
+		{"empty", nil, "目前沒有出勤紀錄。"},
+		{"active shift", []attendance.Record{{GroupID: "g", ClockInAt: time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC)}}, "本人最近出勤紀錄（最多五筆）：\n群組 g\n上班 2026-01-02 08:00:00\n下班 尚未下班"},
+		{"completed shift", []attendance.Record{{GroupID: "g", ClockInAt: time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC), ClockOutAt: time.Date(2026, 1, 2, 9, 0, 0, 0, time.UTC)}}, "本人最近出勤紀錄（最多五筆）：\n群組 g\n上班 2026-01-02 08:00:00\n下班 2026-01-02 17:00:00"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			s := &attendanceStub{records: tc.records}
+			// Expose the legacy Store contract without the optional LocatedStore methods.
+			b := &attendanceBot{store: struct{ attendance.Store }{s}, zone: zone}
+			e := webhook.MessageEvent{Mode: "active", ReplyToken: "reply", Source: webhook.UserSource{UserId: "actor"}, Message: webhook.TextMessageContent{Text: "出勤紀錄"}}
+			reply, handled, err := b.reply(context.Background(), e)
+			text, ok := reply.message.(*messaging_api.TextMessage)
+			if err != nil || !handled || !ok || text.Text != tc.want || s.queriedUser != "actor" || s.calls != 0 {
+				t.Fatalf("unexpected history response: message=%+v handled=%v err=%v", reply.message, handled, err)
+			}
+		})
+	}
 }
 
 func TestAttendancePostback(t *testing.T) {
