@@ -80,7 +80,7 @@ Secret Manager 與兩條部署路徑的關係如下。`cloudbuild.yaml` 的「�
 | --- | --- | --- | --- |
 | `cwa-api-key` | `CWA_API_KEY` | `1` | 綁定 `1`；天氣功能使用。 |
 | `gemini-api-key` | `GEMINI_API_KEY` | `latest` | 未綁定；Secret 尚無 version，不能解析 `latest`。OpenAI provider 不使用它。 |
-| `line-messaging-api-channel-access-token` | `LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN` | `1` | 綁定 `1`；LINE Reply／Push 使用。 |
+| `line-messaging-api-channel-access-token` | `LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN` | `2` | 綁定 `2`；LINE Reply／Push 使用。舊版 `1` 保留。 |
 | `line_mini_app_channel_secret` | `LINE_MINI_APP_CHANNEL_SECRET` | `1` | 未綁定；目前 server 未讀取，僅為未來 Service Message 預留。 |
 | `line-messaging-api-channel-secret` | `LINE_MESSAGING_API_CHANNEL_SECRET` | `2` | 綁定 `2`；LINE Webhook 驗簽使用。舊版 `1` 已停用。 |
 | `openai-api-key` | `OPENAI_API_KEY` | `1` | 綁定 `1`；目前 OpenAI 摘要使用。 |
@@ -102,7 +102,7 @@ service account `roles/cloudtasks.enqueuer`，但仍須以真實任務驗收 OID
 | _CHANNEL_SECRET_NAME | LINE_MESSAGING_API_CHANNEL_SECRET 的 secret 名稱 | line-messaging-api-channel-secret |
 | _CHANNEL_SECRET_VERSION | 上述 secret 的版本 | 2 |
 | _CHANNEL_ACCESS_TOKEN_NAME | LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN 的 secret 名稱 | line-messaging-api-channel-access-token |
-| _CHANNEL_ACCESS_TOKEN_VERSION | 上述 secret 的版本 | 1 |
+| _CHANNEL_ACCESS_TOKEN_VERSION | 上述 secret 的版本 | 2 |
 
 使用版本 1 前須確認已存在且 enabled；若實際版本不同，明確覆寫。
 preflight 拒絕 `latest`，避免輪替後同一 revision 的新 instance 取得未記錄的新機密版本。
@@ -135,7 +135,7 @@ bash scripts/tool-exec.sh gcloud builds submit . \
   --region=asia-east1 \
   --gcs-source-staging-dir=gs://YOUR_SOURCE_BUCKET/source \
   --config=cloudbuild.yaml \
-  --substitutions=_MESSAGING_API_CHANNEL_ID=YOUR_CHANNEL_ID,_CHANNEL_SECRET_VERSION=2,_CHANNEL_ACCESS_TOKEN_VERSION=1 \
+  --substitutions=_MESSAGING_API_CHANNEL_ID=YOUR_CHANNEL_ID,_CHANNEL_SECRET_VERSION=2,_CHANNEL_ACCESS_TOKEN_VERSION=2 \
   --quiet
 ```
 

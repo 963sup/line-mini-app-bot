@@ -89,7 +89,7 @@ substitutions:
   _CHANNEL_SECRET_NAME: line-messaging-api-channel-secret
   _CHANNEL_SECRET_VERSION: '2'
   _CHANNEL_ACCESS_TOKEN_NAME: line-messaging-api-channel-access-token
-  _CHANNEL_ACCESS_TOKEN_VERSION: '1'
+  _CHANNEL_ACCESS_TOKEN_VERSION: '2'
   # Configure the provider, matching model and all three task settings together.
   _SUMMARY_PROVIDER: 'openai'
   _SUMMARY_MODEL: 'gpt-4.1-mini'
