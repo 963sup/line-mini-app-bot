@@ -61,4 +61,24 @@ dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .app-footer { padding: 8px 4px; color: #6a7c76; font-size: .84rem; }
 .app-footer a { color: #126e51; font-weight: 700; text-decoration: none; }
 .app-footer a:hover { text-decoration: underline; }
-@media (max-width: 600px) { .field-grid { grid-template-columns: 1fr; gap: 0; } .app-shell { padding: 12px 14px 48px; } .panel { border-radius: 18px; } .app-page button { max-width: 100%; } }
+@media (max-width: 600px) {
+  .field-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .app-shell { padding: 16px 12px 48px; }
+  .app-hero { padding: 14px 6px 24px; }
+  .app-hero h1 { font-size: clamp(2rem, 9vw, 2.8rem); }
+  .panel { padding: 22px 18px; border-radius: 18px; }
+  .section-heading { align-items: flex-start; }
+  .section-heading > div { min-width: 0; }
+  .section-heading h2 { font-size: 1.35rem; }
+  .subsection { padding: 24px 0; }
+  .subhint { margin: 5px 0 16px; }
+  .app-page label { margin: 16px 0; }
+  .app-page input:not([type=checkbox]), .app-page select, .app-page textarea { max-width: 100%; }
+  .app-page button { box-sizing: border-box; width: 100%; max-width: 100%; margin: 5px 0; white-space: normal; }
+  .app-page .actions { display: grid; gap: 8px; }
+  .app-page .actions button { margin: 0; }
+  .app-page fieldset { min-width: 0; padding: 14px 12px; }
+  #correction-breaks > div { display: grid; gap: 8px; }
+  .app-page .check-row input { flex: none; }
+  .app-page pre { box-sizing: border-box; max-width: 100%; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+}

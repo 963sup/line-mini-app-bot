@@ -34,17 +34,16 @@
       <p id="punch-status" role="status" aria-live="polite"></p>
     </section>
     <section id="worktime" class="panel">
-      <div class="section-heading"><span class="step">02</span><div><p class="section-kicker">出勤管理</p></div></div>
-      <h2>本人出勤與更正</h2>
+      <div class="section-heading"><span class="step">03</span><div><p class="section-kicker">出勤管理</p><h2>本人出勤與更正</h2></div></div>
       <p>請先登入 LINE。時間均為臺灣時間；更正需要授權審核者核准。</p>
-      <div class="subsection"><h3>查詢月紀錄</h3>
+      <div class="subsection"><h3>查詢月紀錄</h3><p class="subhint">先載入群組，再選擇月份查看紀錄。</p>
       <button id="load-groups" type="button">載入本人群組</button>
       <div class="field-grid"><label>群組 <select id="history-group"></select></label>
       <label>月份 <input id="history-month" type="month"></label></div>
       <button id="load-month" type="button">查詢月紀錄</button>
       <p id="work-status" role="status" aria-live="polite"></p>
       <pre id="month-summary"></pre>
-      </div><div class="subsection"><h3>提出更正</h3>
+      </div><div class="subsection"><h3>提出更正</h3><p class="subhint">選擇班次，填寫實際工作時間與更正原因。</p>
       <label>選擇要更正的班次 <select id="correction-record"></select></label>
       <form id="correction-form">
         <div class="field-grid"><label>上班時間 <input id="correction-start" type="datetime-local" step="1" required></label>
@@ -56,7 +55,7 @@
         <label class="check-row"><input id="correction-confirm" type="checkbox" required>已確認以上實際工作與休息時間；沒有休息區間代表本班無可扣除的休息。</label>
         <button type="submit">送出更正申請</button>
       </form>
-      </div><div class="subsection"><h3>查看申請結果</h3>
+      </div><div class="subsection"><h3>查看申請結果</h3><p class="subhint">輸入送出申請時取得的編號。</p>
       <label>申請編號 <input id="correction-id" type="text" maxlength="128"></label>
       <button id="check-correction" type="button" class="secondary">查詢本人申請</button>
       </div><div class="subsection"><h3>授權審核者</h3>

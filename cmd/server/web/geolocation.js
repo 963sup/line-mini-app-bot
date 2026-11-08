@@ -1,7 +1,6 @@
 "use strict";
 
 const locate = document.querySelector("#locate");
-const cancel = document.querySelector("#cancel");
 const status = document.querySelector("#status");
 const result = document.querySelector("#result");
 let requestID = 0;
@@ -14,7 +13,6 @@ function stopRequest(message) {
   controller?.abort();
   controller = undefined;
   locate.disabled = false;
-  cancel.hidden = true;
   result.hidden = true;
   status.textContent = message;
 }
@@ -23,11 +21,11 @@ function finishRequest(id, message) {
   if (id !== requestID) return;
   clearTimeout(deadline);
   locate.disabled = false;
-  cancel.hidden = true;
   status.textContent = message;
 }
 
 function requestCurrentPosition() {
+  if (locate.disabled) return;
   stopRequest("正在取得位置，請回應瀏覽器的權限提示……");
   const id = requestID;
   if (!window.isSecureContext) {
@@ -39,9 +37,8 @@ function requestCurrentPosition() {
     return;
   }
   locate.disabled = true;
-  cancel.hidden = false;
-  // The browser's timeout starts after permission and visibility checks.
-  // Keep the cancel button available while the permission prompt is open.
+  // Geolocation's own timeout may not cover a pending permission prompt.
+  deadline = setTimeout(() => stopRequest("定位等待逾時，請檢查權限後重試。"), 15000);
   try {
     navigator.geolocation.getCurrentPosition(
       (position) => { void submitPosition(id, position); },
@@ -103,5 +100,4 @@ async function submitPosition(id, position) {
 }
 
 locate.addEventListener("click", requestCurrentPosition);
-cancel.addEventListener("click", () => stopRequest("已取消。本次不再傳送位置；已送出的資料無法撤回。"));
 window.addEventListener("pagehide", () => stopRequest("已停止定位。"));
