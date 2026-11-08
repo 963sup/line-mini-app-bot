@@ -87,7 +87,7 @@ substitutions:
   _CHANNEL_ACCESS_TOKEN_NAME: line-messaging-api-channel-access-token
   _CHANNEL_ACCESS_TOKEN_VERSION: '1'
   # Set all four summary substitutions together to enable the feature.
-  _SUMMARY_MODEL: ''
+  _SUMMARY_MODEL: 'gemini-2.5-flash-lite'
   _SUMMARY_TASK_QUEUE: 'projects/bubbly-area-513305-s0/locations/asia-east1/queues/line-summary-tasks'
   _SUMMARY_TASK_URL: 'https://line-mini-app-bot-jtghegqd7q-de.a.run.app/internal/summary'
   _SUMMARY_TASK_SERVICE_ACCOUNT: 'line-summary-task@bubbly-area-513305-s0.iam.gserviceaccount.com'
