@@ -73,8 +73,13 @@ func (q *summaryTasks) Enqueue(ctx context.Context, j summary.Job) error {
 
 func registerSummary(ctx context.Context, mux *http.ServeMux) (*summaryBot, func() error, error) {
 	noop := func() error { return nil }
-	key, model, queue, target, email := os.Getenv("GEMINI_API_KEY"), os.Getenv("SUMMARY_MODEL"), os.Getenv("SUMMARY_TASK_QUEUE"), os.Getenv("SUMMARY_TASK_URL"), os.Getenv("SUMMARY_TASK_SERVICE_ACCOUNT")
-	if key == "" && model == "" && queue == "" && target == "" && email == "" {
+	provider := os.Getenv("SUMMARY_PROVIDER")
+	keyName := "GEMINI_API_KEY"
+	if provider == "openai" {
+		keyName = "OPENAI_API_KEY"
+	}
+	key, model, queue, target, email := os.Getenv(keyName), os.Getenv("SUMMARY_MODEL"), os.Getenv("SUMMARY_TASK_QUEUE"), os.Getenv("SUMMARY_TASK_URL"), os.Getenv("SUMMARY_TASK_SERVICE_ACCOUNT")
+	if provider == "" && key == "" && model == "" && queue == "" && target == "" && email == "" {
 		return nil, noop, nil
 	}
 	project, channel := os.Getenv("GOOGLE_CLOUD_PROJECT"), os.Getenv("LINE_MESSAGING_API_CHANNEL_ID")
@@ -84,6 +89,11 @@ func registerSummary(ctx context.Context, mux *http.ServeMux) (*summaryBot, func
 	u, e := url.Parse(target)
 	if e != nil || u.Scheme != "https" || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || u.Path != "/internal/summary" {
 		return nil, nil, fmt.Errorf("SUMMARY_TASK_URL must be the HTTPS /internal/summary URL")
+	}
+	modelClient := &http.Client{Timeout: 45 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	modelAdapter, err := summary.NewModel(provider, key, model, modelClient)
+	if err != nil {
+		return nil, nil, err
 	}
 	database := os.Getenv("FIRESTORE_DATABASE_ID")
 	if database == "" {
@@ -105,7 +115,7 @@ func registerSummary(ctx context.Context, mux *http.ServeMux) (*summaryBot, func
 		return nil, nil, errors.Join(e, db.Close())
 	}
 	store := &storage.Chat{Client: db, ChannelID: channel}
-	service := &summary.Service{Store: store, Model: &summary.Gemini{Key: key, Model: model, HTTP: &http.Client{Timeout: 45 * time.Second, CheckRedirect: noRedirect}}, Sender: summaryDelivery{bot: line}}
+	service := &summary.Service{Store: store, Model: modelAdapter, Sender: summaryDelivery{bot: line}}
 	mux.HandleFunc("POST /internal/summary", summaryWorker(service, target, email))
 	return &summaryBot{store: store, queue: &summaryTasks{client: auth, queue: queue, url: target, email: email}}, db.Close, nil
 }

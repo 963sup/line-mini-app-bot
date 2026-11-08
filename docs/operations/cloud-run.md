@@ -59,7 +59,7 @@ Cloud Run 透過執行帳戶提供 ADC，不上傳 Google service-account key fi
 
 ### Secret Manager 與環境變數
 
-你提供的 Secret Manager 清單如下。`cloudbuild.yaml` 目前只將標為「已引用」的三項注入 Cloud Run；部署檔不寫機密明文：
+你提供的 Secret Manager 清單如下。`cloudbuild.yaml` 目前只將標為「已引用」的項目注入 Cloud Run；部署檔不寫機密明文：
 
 | Secret Manager 名稱 | 容器環境變數 | 部署檔參照 | 用途／狀態 |
 | --- | --- | --- | --- |
@@ -68,11 +68,11 @@ Cloud Run 透過執行帳戶提供 ADC，不上傳 Google service-account key fi
 | `line-bot-openai-api-key` | 無 | 未引用 | 目前程式與部署檔均未引用。 |
 | `line-messaging-api-channel-access-token` | `LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN` | `1` | 已引用；LINE Messaging API 使用。 |
 | `line-messaging-api-channel-secret` | `LINE_MESSAGING_API_CHANNEL_SECRET` | `1` | 已引用；LINE Webhook 驗簽使用。 |
-| `openai-api-key` | 無 | 未引用 | 目前程式與部署檔均未引用。 |
+| `openai-api-key` | `OPENAI_API_KEY` | `1` | 已引用；OpenAI 群聊摘要使用。 |
 
 「未引用」只表示此儲存庫目前沒有將該 Secret 綁定到 Cloud Run，不代表 Secret 不存在。Secret 內容與版本是否在 Google Cloud 可用，需在雲端另行確認。
 
-`_SUMMARY_MODEL=gemini-2.5-flash-lite` 則透過 `--set-env-vars` 成為容器的 `SUMMARY_MODEL`，它不是機密。摘要還需要 `SUMMARY_TASK_QUEUE`、`SUMMARY_TASK_URL`、`SUMMARY_TASK_SERVICE_ACCOUNT`；這三項的值也由同一個部署檔注入。Cloud Build Trigger 若設定同名 substitutions，會覆寫部署檔中的預設值；請以實際 Build 與 Cloud Run revision 設定驗收。
+`_SUMMARY_PROVIDER=openai` 與 `_SUMMARY_MODEL=gpt-4.1-mini` 透過 `--set-env-vars` 成為容器的 `SUMMARY_PROVIDER`、`SUMMARY_MODEL`，兩者不是機密。摘要還需要 `SUMMARY_TASK_QUEUE`、`SUMMARY_TASK_URL`、`SUMMARY_TASK_SERVICE_ACCOUNT`；這三項的值也由同一個部署檔注入。Cloud Build Trigger 若設定同名 substitutions，會覆寫部署檔中的預設值；請以實際 Build 與 Cloud Run revision 設定驗收。
 
 | Cloud Build substitution | 注入位置／用途 | 預設 |
 | --- | --- | --- |

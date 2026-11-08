@@ -1,7 +1,7 @@
 # 基礎群聊摘要
 
 實作範圍：群組文字收集、按需摘要與開關；沒有排程摘要、私訊群聊、查姓名、向量搜尋或管理後台。
-這是程式交付說明，不代表 Gemini、Cloud Tasks、Firestore 或 LINE 已完成真實整合驗收。
+這是程式交付說明，不代表 OpenAI、Gemini、Cloud Tasks、Firestore 或 LINE 已完成真實整合驗收。
 
 ## 使用
 
@@ -22,12 +22,14 @@
 ## 部署設定（不自動建立雲端資源）
 
 沿用 GOOGLE_CLOUD_PROJECT、LINE_MESSAGING_API_CHANNEL_ID、LINE_MESSAGING_API_CHANNEL_SECRET、LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN、FIRESTORE_DATABASE_ID 與 runtime ADC。
-以下五項全部未設定時，摘要模組不啟用；設定任何一項後則檢查完整性。這是模組部署條件，群組使用時無需再逐一開啟。
+以下 provider、選用的 API key、模型與三項 task 設定全部未設定時，摘要模組不啟用；設定任何一項後則檢查完整性。這是模組部署條件，群組使用時無需再逐一開啟。
 
 | 環境變數 | 值 |
 | --- | --- |
-| GEMINI_API_KEY | Secret Manager 注入的 Gemini API key。 |
-| SUMMARY_MODEL | 該 key／專案可使用、支援 generateContent 的文字模型名稱；不硬編碼版本。 |
+| SUMMARY_PROVIDER | `openai` 或 `gemini`；未設定時沿用 Gemini。 |
+| OPENAI_API_KEY | 選用 OpenAI 時，由 Secret Manager 的 `openai-api-key` 注入。 |
+| GEMINI_API_KEY | 選用 Gemini 時，由 Secret Manager 注入。 |
+| SUMMARY_MODEL | 該 key／專案可使用、支援對應 provider API 的文字模型名稱（OpenAI 使用 Chat Completions、Gemini 使用 generateContent）；不硬編碼版本。 |
 | SUMMARY_TASK_QUEUE | projects/PROJECT_ID/locations/REGION/queues/QUEUE_ID。 |
 | SUMMARY_TASK_URL | 本服務 https://HOST/internal/summary，不能有 query 或 fragment。 |
 | SUMMARY_TASK_SERVICE_ACCOUNT | Cloud Tasks 發送 OIDC token 使用的專用服務帳戶 email。 |
@@ -37,7 +39,7 @@ runtime 帳戶需指定資料庫讀寫、指定 queue enqueue 權限，以及代
 task service account 與 queue 使用同專案。入口驗證 Google token 簽章、有效期限、audience（完整 SUMMARY_TASK_URL）、email 與 email_verified。
 現有服務公開模式不能保護此內部入口，所以不能移除應用層 token 檢查。若服務另外啟用 Cloud Run invoker IAM，task service account 也需該服務 invoker 權限。
 Cloud Run 請求逾時需至少100秒；程式 worker deadline80秒、模型45秒、LINE Push10秒，租約120秒。仍是同一個容器，沒有常駐 goroutine worker。
-LINE Console 開啟 Webhook redelivery；Gemini API key 的計費與模型資料處理政策應依實際帳戶確認。
+LINE Console 開啟 Webhook redelivery；所選模型 API key 的計費與模型資料處理政策應依實際帳戶確認。
 
 ## 資料與可靠性
 
@@ -69,3 +71,5 @@ TTL 可能延遲刪除，程式讀取仍會排除過期資料。工作期限也�
 - [Gemini generateContent](https://ai.google.dev/gemini-api/docs/text-generation)（Context7 官方文件查詢，模型名稱由設定指定）。
 - [Cloud Tasks create](https://docs.cloud.google.com/tasks/docs/create-tasks)、[task de-duplication](https://docs.cloud.google.com/tasks/docs/reference/rest/v2/projects.locations.queues.tasks/create)。
 - [Firestore TTL](https://docs.cloud.google.com/firestore/native/docs/ttl)。Developer Knowledge MCP 未連線，本輪使用 Context7 取得官方文件。
+
+OpenAI adapter 使用 `github.com/sashabaranov/go-openai`（版本以 go.mod 為準）。兩個 provider 共用匿名化輸入、指令與引用檢查；截斷、拒絕、空結果或無效引用不發送。沿用現有 Cloud Tasks 重試，不在模型 adapter 另外重試。部署預設 OpenAI／`gpt-4.1-mini`，可用 substitutions 切回 Gemini 並同步設定對應模型。模型存取權、Secret 版本及實際呼叫仍需線上驗收。

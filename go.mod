@@ -5,6 +5,7 @@ go 1.27.3
 require (
 	cloud.google.com/go/firestore v1.29.2
 	github.com/line/line-bot-sdk-go/v8 v8.23.0
+	github.com/sashabaranov/go-openai v1.43.0
 	golang.org/x/oauth2 v0.37.0
 	google.golang.org/api v0.304.0
 	google.golang.org/grpc v1.84.0

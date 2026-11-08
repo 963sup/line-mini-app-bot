@@ -62,8 +62,8 @@ steps:
       - --concurrency=20
       - --timeout=100s
       - --deploy-health-check
-      - '--set-env-vars=GOOGLE_CLOUD_PROJECT=$PROJECT_ID,LINE_MESSAGING_API_CHANNEL_ID=${_MESSAGING_API_CHANNEL_ID},LINE_MINI_APP_CHANNEL_ID=${_MINI_APP_CHANNEL_ID},LINE_MINI_APP_LIFF_ID=${_MINI_APP_LIFF_ID},SUMMARY_MODEL=${_SUMMARY_MODEL},SUMMARY_TASK_QUEUE=${_SUMMARY_TASK_QUEUE},SUMMARY_TASK_URL=${_SUMMARY_TASK_URL},SUMMARY_TASK_SERVICE_ACCOUNT=${_SUMMARY_TASK_SERVICE_ACCOUNT}'
-      - '--set-secrets=LINE_MESSAGING_API_CHANNEL_SECRET=${_CHANNEL_SECRET_NAME}:${_CHANNEL_SECRET_VERSION},LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN=${_CHANNEL_ACCESS_TOKEN_NAME}:${_CHANNEL_ACCESS_TOKEN_VERSION},GEMINI_API_KEY=gemini-api-key:${_GEMINI_API_KEY_VERSION},CWA_API_KEY=cwa-api-key:${_CWA_API_KEY_VERSION}'
+      - '--set-env-vars=GOOGLE_CLOUD_PROJECT=$PROJECT_ID,LINE_MESSAGING_API_CHANNEL_ID=${_MESSAGING_API_CHANNEL_ID},LINE_MINI_APP_CHANNEL_ID=${_MINI_APP_CHANNEL_ID},LINE_MINI_APP_LIFF_ID=${_MINI_APP_LIFF_ID},SUMMARY_PROVIDER=${_SUMMARY_PROVIDER},SUMMARY_MODEL=${_SUMMARY_MODEL},SUMMARY_TASK_QUEUE=${_SUMMARY_TASK_QUEUE},SUMMARY_TASK_URL=${_SUMMARY_TASK_URL},SUMMARY_TASK_SERVICE_ACCOUNT=${_SUMMARY_TASK_SERVICE_ACCOUNT}'
+      - '--set-secrets=LINE_MESSAGING_API_CHANNEL_SECRET=${_CHANNEL_SECRET_NAME}:${_CHANNEL_SECRET_VERSION},LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN=${_CHANNEL_ACCESS_TOKEN_NAME}:${_CHANNEL_ACCESS_TOKEN_VERSION},GEMINI_API_KEY=gemini-api-key:${_GEMINI_API_KEY_VERSION},OPENAI_API_KEY=openai-api-key:${_OPENAI_API_KEY_VERSION},CWA_API_KEY=cwa-api-key:${_CWA_API_KEY_VERSION}'
       - --quiet
 
 images:
@@ -77,8 +77,8 @@ substitutions:
   _ARTIFACT_REPOSITORY: applications
   _BUILD_SERVICE_ACCOUNT: cloud-build-deployer
   _RUNTIME_SERVICE_ACCOUNT: line-mini-app-runtime
-  # Required at submission/trigger setup; no real Channel ID is committed.
-  _MESSAGING_API_CHANNEL_ID: ''
+  # Messaging API Channel ID; submission/trigger substitutions may override it.
+  _MESSAGING_API_CHANNEL_ID: '2012305727'
   # Optional pair; leave both empty to disable MINI App authentication.
   _MINI_APP_CHANNEL_ID: ''
   _MINI_APP_LIFF_ID: ''
@@ -86,12 +86,14 @@ substitutions:
   _CHANNEL_SECRET_VERSION: '1'
   _CHANNEL_ACCESS_TOKEN_NAME: line-messaging-api-channel-access-token
   _CHANNEL_ACCESS_TOKEN_VERSION: '1'
-  # Set all four summary substitutions together to enable the feature.
-  _SUMMARY_MODEL: 'gemini-2.5-flash-lite'
+  # Configure the provider, matching model and all three task settings together.
+  _SUMMARY_PROVIDER: 'openai'
+  _SUMMARY_MODEL: 'gpt-4.1-mini'
   _SUMMARY_TASK_QUEUE: 'projects/bubbly-area-513305-s0/locations/asia-east1/queues/line-summary-tasks'
   _SUMMARY_TASK_URL: 'https://line-mini-app-bot-jtghegqd7q-de.a.run.app/internal/summary'
   _SUMMARY_TASK_SERVICE_ACCOUNT: 'line-summary-task@bubbly-area-513305-s0.iam.gserviceaccount.com'
   _GEMINI_API_KEY_VERSION: 'latest'
+  _OPENAI_API_KEY_VERSION: '1'
   _CWA_API_KEY_VERSION: '1'
 
 options:
