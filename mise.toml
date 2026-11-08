@@ -126,6 +126,14 @@ run = "python3 scripts/check-config.py"
 description = "Pack project sources with security checking and without generated skills"
 run = "repomix --style xml --parsable-style --output repomix-output.xml"
 
+[tasks.analysis-scope]
+description = "Validate classification of all versioned sources"
+run = "python3 scripts/analysis-scope.py"
+
+[tasks.analysis-audit]
+description = "Cross-check Graphify and Repomix against the source contract"
+run = "python3 scripts/analysis-scope.py --audit"
+
 [tasks.docs-openai]
 description = "Search official OpenAI docs through MCP; append --arguments JSON to override query"
 run = "python3 scripts/mcp-doctor.py --server openaiDeveloperDocs --call search_openai_docs"

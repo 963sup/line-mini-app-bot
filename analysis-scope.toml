@@ -1,0 +1,29 @@
+schema = 1
+# Universe: git ls-files, plus these explicit files before their first commit.
+additional = ["analysis-scope.toml", "scripts/analysis-scope.py", "docs/tooling/analysis-scope.md"]
+managed_suffixes = [".go", ".mod", ".sum", ".sh", ".py", ".toml", ".md", ".json", ".yaml", ".yml", ".js", ".css", ".html", ".txt"]
+managed_names = ["Dockerfile", "LICENSE", "GOOGLE-SKILLS-LICENSE", ".editorconfig", ".gcloudignore", ".gitattributes", ".gitignore", ".dockerignore", ".graphifyignore", ".repomixignore", ".env.example"]
+
+[[exclude]]
+pattern = ".agents/skills/*"
+reason = "Upstream skills have their own provenance and maintenance lifecycle"
+impact = "Third-party skill internals are not project dependency evidence"
+owner = "tooling"
+
+[[exclude]]
+pattern = ".codex/skills/*"
+reason = "Generated installation copies of upstream skills"
+impact = "Installation copies are not analyzed"
+owner = "tooling"
+
+[[exclude]]
+pattern = "graphify-out/*"
+reason = "Generated analysis artifacts; avoid recursive analysis"
+impact = "Graph structure and coverage are verified separately during audit"
+owner = "tooling"
+
+[[exclude]]
+pattern = "repomix-output.*"
+reason = "Generated source bundle"
+impact = "Bundle coverage is verified separately during audit"
+owner = "tooling"

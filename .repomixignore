@@ -83,3 +83,6 @@ crash.log
 # Environment secrets
 .env
 .env.*
+# Non-secret template and maintained documentation are analysis inputs.
+!.env.example
+!docs/tooling/mcp/repomix-skills.md
