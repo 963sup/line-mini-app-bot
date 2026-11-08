@@ -22,7 +22,8 @@ async function initialize() {
     }
     verifyButton.hidden = false;
     logoutButton.hidden = false;
-    miniStatus.textContent = "LINE 已登入，按下按鈕將 ID token 送往本站驗證。";
+    miniStatus.textContent = "LINE 已登入，正在確認身分……";
+    await verifyIdentity();
   } catch (error) {
     miniStatus.textContent = error.message || "無法初始化 LINE，請稍後重試。";
   }

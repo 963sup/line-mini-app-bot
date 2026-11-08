@@ -17,7 +17,7 @@ bash scripts/tool-exec.sh mise run dev
 前端建置、Google Maps key 或 LINE 憑證；現有 Dockerfile 會一併建入這些資產。
 
 按下「取得位置並驗證」後才請求瀏覽器權限。成功時顯示座標、精度與採樣時間，
-並傳送 `POST /api/location/validate`；取消、切換頁面或逾時後忽略遲到 callback，
+並傳送 `POST /api/location/validate`；取消、離開頁面或伺服器逾時後忽略遲到 callback，
 並中止尚在等待的 fetch。已送出的資料無法撤回。
 
 此公開端點只檢查資料，不讀寫資料庫、不關聯使用者、不賦予出勤或資源權限。
@@ -65,7 +65,9 @@ LINE 訊息的 location／位置 action 與 Web Geolocation 是不同輸入，�
 
 ## 取得位置
 
-預設單次 `getCurrentPosition`；專案初始選項 `enableHighAccuracy:false, timeout:10000, maximumAge:0`，不是官方保證或產品精度門檻。
+預設單次 `getCurrentPosition`；獨立示範使用 `enableHighAccuracy:false, timeout:10000, maximumAge:0`；出勤打卡不傳定位選項，使用瀏覽器預設的 `maximumAge:0` 與無限定位 timeout；每次要求新的位置，不使用瀏覽器快取。前端只檢查時間格式，後端驗證座標、精度與採樣時間。這些設定不是官方保證或產品精度門檻。
+定位示範頁也在等待權限時保留取消按鈕，不因頁面暫時隱藏而取消（系統權限介面可能使頁面隱藏）。伺服器送出階段另設逾時。
+出勤頁使用單次 `getCurrentPosition`，不提供取消按鈕，也不設前端逾時；離頁或登出後忽略遲到的定位 callback，已送出的請求仍須查詢紀錄確認結果。
 高精度可能耗電／變慢，也不保證 GPS。只有明確連續定位需求才用 watchPosition；離開、取消、隱藏／登出時依生命週期 clearWatch。
 getCurrentPosition 沒有 AbortSignal 取消介面；取消頁面操作後忽略遲到 callback，不再送 API。
 錯誤碼 1=PERMISSION_DENIED、2=POSITION_UNAVAILABLE、3=TIMEOUT；分別顯示可理解的拒絕／不可用／重試提示，不顯示原始敏感錯誤。
@@ -114,7 +116,7 @@ sequenceDiagram
 
 ## 驗收
 
-HTTPS／不安全來源、不支援 API、權限拒絕、OS 關閉定位、逾時、低精度、過舊／未來時間、缺欄／越界、取消後 callback、watch 清理、跨群組越權。
+HTTPS／不安全來源、不支援 API、權限拒絕、OS 關閉定位、逾時、低精度、過舊／未來時間、缺欄／越界、離頁後 callback、跨群組越權。
 受控測試使用 mock position；定位成功必須另有 LINE iOS/Android 與外部瀏覽器實機證據，不以桌面模擬取代。
 
 來源：[Geolocation API](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API)、[getCurrentPosition](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition)、[watchPosition](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/watchPosition)、[Permissions Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Permissions-Policy/geolocation)。

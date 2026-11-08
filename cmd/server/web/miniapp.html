@@ -8,59 +8,67 @@
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" defer></script>
   <script src="/assets/miniapp.js" defer></script>
 </head>
-<body>
-  <main>
-    <p class="eyebrow">LINE · Go + Vanilla JS</p>
-    <h1>LINE 基礎服務</h1>
-    <p>登入後，由本站後端向 LINE 驗證您的身分。身分資料只用於本次顯示，不保存。</p>
+<body class="app-page">
+  <main class="app-shell">
+    <header class="app-hero"><p class="eyebrow">LINE 出勤服務</p>
+    <h1>每一天，都有清楚的紀錄。</h1>
+    <p class="hero-copy">查看出勤、確認工時，並在需要時提出更正。</p></header>
+    <div class="panel"><div class="section-heading"><span class="step">01</span><div><p class="section-kicker">開始使用</p><h2>確認身分</h2></div></div>
+    <p>登入後會自動驗證身分；身分資料只用於本次顯示，不保存。</p>
     <p id="mini-status" role="status" aria-live="polite">正在準備登入……</p>
     <div class="actions">
       <button id="login" type="button" hidden>使用 LINE 登入</button>
-      <button id="verify" type="button" hidden>驗證本人身分</button>
+      <button id="verify" type="button" hidden>重新驗證身分</button>
       <button id="logout" type="button" hidden>登出此頁</button>
     </div>
     <dl id="identity" hidden>
       <div><dt>LINE 名稱</dt><dd id="display-name"></dd></div>
       <div><dt>本人 ID</dt><dd id="user-id"></dd></div>
     </dl>
-    <section id="attendance" hidden>
+    </div>
+    <section id="attendance" class="panel accent-panel" hidden>
+      <div class="section-heading"><span class="step">02</span><div><p class="section-kicker">快速操作</p></div></div>
       <h2>群組定位打卡</h2>
       <p>此連結只供原操作者使用。送出後會保存此次打卡位置、精度與採樣時間；不判斷工作半徑。</p>
       <button id="punch" type="button">取得位置並完成打卡</button>
       <p id="punch-status" role="status" aria-live="polite"></p>
     </section>
-    <section id="worktime">
+    <section id="worktime" class="panel">
+      <div class="section-heading"><span class="step">02</span><div><p class="section-kicker">出勤管理</p></div></div>
       <h2>本人出勤與更正</h2>
       <p>請先登入 LINE。時間均為臺灣時間；更正需要授權審核者核准。</p>
+      <div class="subsection"><h3>查詢月紀錄</h3>
       <button id="load-groups" type="button">載入本人群組</button>
-      <label>群組 <select id="history-group"></select></label>
-      <label>月份 <input id="history-month" type="month"></label>
+      <div class="field-grid"><label>群組 <select id="history-group"></select></label>
+      <label>月份 <input id="history-month" type="month"></label></div>
       <button id="load-month" type="button">查詢月紀錄</button>
       <p id="work-status" role="status" aria-live="polite"></p>
       <pre id="month-summary"></pre>
+      </div><div class="subsection"><h3>提出更正</h3>
       <label>選擇要更正的班次 <select id="correction-record"></select></label>
       <form id="correction-form">
-        <label>上班時間 <input id="correction-start" type="datetime-local" step="1" required></label>
-        <label>下班時間 <input id="correction-end" type="datetime-local" step="1" required></label>
+        <div class="field-grid"><label>上班時間 <input id="correction-start" type="datetime-local" step="1" required></label>
+        <label>下班時間 <input id="correction-end" type="datetime-local" step="1" required></label></div>
         <fieldset><legend>實際休息區間</legend><div id="correction-breaks"></div>
-          <button id="add-break" type="button">新增休息區間</button>
+          <button id="add-break" type="button" class="secondary">新增休息區間</button>
         </fieldset>
         <label>更正原因 <textarea id="correction-reason" required maxlength="500"></textarea></label>
-        <label><input id="correction-confirm" type="checkbox" required>已確認以上實際工作與休息時間；沒有休息區間代表本班無可扣除的休息。</label>
+        <label class="check-row"><input id="correction-confirm" type="checkbox" required>已確認以上實際工作與休息時間；沒有休息區間代表本班無可扣除的休息。</label>
         <button type="submit">送出更正申請</button>
       </form>
-      <h3>查看申請結果</h3>
+      </div><div class="subsection"><h3>查看申請結果</h3>
       <label>申請編號 <input id="correction-id" type="text" maxlength="128"></label>
-      <button id="check-correction" type="button">查詢本人申請</button>
-      <h3>授權審核者</h3>
+      <button id="check-correction" type="button" class="secondary">查詢本人申請</button>
+      </div><div class="subsection"><h3>授權審核者</h3>
       <p>取得員工提供的申請編號後，先讀取內容再核准。不能審核自己的申請。</p>
-      <button id="review-correction" type="button">讀取審核內容</button>
+      <button id="review-correction" type="button" class="secondary">讀取審核內容</button>
       <pre id="review-details"></pre>
-      <button id="approve-correction" type="button" disabled>核准已讀取的申請</button>
+      <button id="approve-correction" type="button" disabled>核准已讀取的申請</button></div>
     </section>
     <script src="/assets/worktime.js" defer></script>
-    <p><a href="/location">開啟定位示範</a></p>
+    <footer class="app-footer"><p><a href="/location">開啟定位示範 ↗</a></p>
     <p class="note">從群組開啟連結完成定位打卡；私訊 Bot 輸入「出勤紀錄」選群組查詢。</p>
+    </footer>
     <script src="/assets/attendance.js" defer></script>
     <noscript>請啟用 JavaScript，以使用 LINE 登入。</noscript>
   </main>

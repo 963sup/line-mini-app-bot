@@ -40,8 +40,8 @@ function requestCurrentPosition() {
   }
   locate.disabled = true;
   cancel.hidden = false;
-  // Browser acquisition timeout excludes time spent waiting for permission.
-  deadline = setTimeout(() => stopRequest("等待定位或權限回應逾時，請確認設定後再試。"), 30000);
+  // The browser's timeout starts after permission and visibility checks.
+  // Keep the cancel button available while the permission prompt is open.
   try {
     navigator.geolocation.getCurrentPosition(
       (position) => { void submitPosition(id, position); },
@@ -105,6 +105,3 @@ async function submitPosition(id, position) {
 locate.addEventListener("click", requestCurrentPosition);
 cancel.addEventListener("click", () => stopRequest("已取消。本次不再傳送位置；已送出的資料無法撤回。"));
 window.addEventListener("pagehide", () => stopRequest("已停止定位。"));
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) stopRequest("頁面已切換，請回到頁面後重新定位。");
-});
