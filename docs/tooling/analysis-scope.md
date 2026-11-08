@@ -1,7 +1,7 @@
 # Analysis scope and evidence
 
 `analysis-scope.toml` owns the analysis boundary. The universe is `git ls-files`
-plus explicitly named first-commit additions. Untracked local tools and binaries
+minus working-tree deletions, plus explicitly named first-commit additions. Untracked local tools and binaries
 are outside this universe; they must be explicitly added before use as evidence.
 Every file must match a managed type/name or a documented exclusion. Unknown
 types and missing sources fail classification. Exclusions record reason, impact

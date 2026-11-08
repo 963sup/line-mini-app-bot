@@ -87,7 +87,7 @@ func validateLocation(w http.ResponseWriter, r *http.Request) {
 }
 
 func locationNumberInRange(value, minimum, maximum float64) bool {
-	return !math.IsNaN(value) && value >= minimum && value <= maximum
+	return value >= minimum && value <= maximum
 }
 
 func locationDecodeError(w http.ResponseWriter, err error) {

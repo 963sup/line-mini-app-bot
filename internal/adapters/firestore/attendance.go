@@ -56,10 +56,8 @@ func (s *Attendance) punch(ctx context.Context, group, user, event, action strin
 		if status.Code(err) != codes.NotFound {
 			return err
 		}
-		if requestID != "" {
-			if !now.Before(request.ExpiresAt) {
-				return attendance.ErrInvalidRequest
-			}
+		if requestID != "" && !now.Before(request.ExpiresAt) {
+			return attendance.ErrInvalidRequest
 		}
 		var active struct {
 			RecordID      string `firestore:"recordID"`

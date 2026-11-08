@@ -1,10 +1,34 @@
 package main
 
 import (
+	"math"
 	"regexp"
 	"strings"
 	"testing"
 )
+
+func TestLocationNumberInRange(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		value float64
+		valid bool
+	}{
+		{"minimum", -90, true},
+		{"maximum", 90, true},
+		{"zero", 0, true},
+		{"below", -91, false},
+		{"above", 91, false},
+		{"NaN", math.NaN(), false},
+		{"positive infinity", math.Inf(1), false},
+		{"negative infinity", math.Inf(-1), false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := locationNumberInRange(tc.value, -90, 90); got != tc.valid {
+				t.Fatalf("valid=%v want=%v", got, tc.valid)
+			}
+		})
+	}
+}
 
 func TestRequestIDPattern(t *testing.T) {
 	for _, tc := range []struct {

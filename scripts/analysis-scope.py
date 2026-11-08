@@ -25,6 +25,7 @@ def sha256_file(path):
 def build_manifest():
     config = tomllib.loads((ROOT / "analysis-scope.toml").read_text())
     paths = set(git("ls-files", "-z").decode().split("\0")) - {""}
+    paths.difference_update(git("ls-files", "--deleted", "-z").decode().split("\0"))
     paths.update(config["additional"])
     rows = []
     for name in sorted(paths):
