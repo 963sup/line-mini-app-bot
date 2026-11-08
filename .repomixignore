@@ -3,9 +3,9 @@
 
 # Repomix outputs
 repomix-output.*
-repomix-*.xml
-repomix-*.md
-repomix-*.json
+/repomix-*.xml
+/repomix-*.md
+/repomix-*.json
 
 # Local runtime and tooling
 .cache/

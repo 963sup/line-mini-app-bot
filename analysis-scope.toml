@@ -5,6 +5,18 @@ managed_suffixes = [".go", ".mod", ".sum", ".sh", ".py", ".toml", ".md", ".json"
 managed_names = ["Dockerfile", "LICENSE", "GOOGLE-SKILLS-LICENSE", ".editorconfig", ".gcloudignore", ".gitattributes", ".gitignore", ".dockerignore", ".graphifyignore", ".repomixignore", ".env.example"]
 
 [[exclude]]
+pattern = ".agents/*"
+reason = "Agent installation metadata and upstream skill provenance are outside application analysis"
+impact = "Agent metadata is not project dependency evidence; maintained project documentation remains included"
+owner = "tooling"
+
+[[exclude]]
+pattern = "skills-lock.json"
+reason = "Generated upstream skill installation lockfile"
+impact = "Skill installation metadata is not application dependency evidence"
+owner = "tooling"
+
+[[exclude]]
 pattern = ".agents/skills/*"
 reason = "Upstream skills have their own provenance and maintenance lifecycle"
 impact = "Third-party skill internals are not project dependency evidence"
