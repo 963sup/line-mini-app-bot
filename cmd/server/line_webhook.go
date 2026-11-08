@@ -44,6 +44,19 @@ func registerLINEWebhook(mux *http.ServeMux, appURL string, attendance *attendan
 	if err != nil {
 		return errors.New("cannot initialize LINE Messaging API client")
 	}
+	if attendance != nil {
+		attendance.groupName = func(ctx context.Context, group string) string {
+			lookupCtx, cancel := context.WithTimeout(ctx, 400*time.Millisecond)
+			defer cancel()
+			client := *bot
+			client.WithContext(lookupCtx)
+			summary, err := client.GetGroupSummary(group)
+			if err != nil || summary == nil {
+				return ""
+			}
+			return summary.GroupName
+		}
+	}
 	path := "/webhooks/line/" + channelID
 	mux.HandleFunc("POST "+path, lineWebhookHandler(secret, bot, appURL, attendance, summaries))
 	slog.Info("LINE connectivity prototype enabled", "path", path)

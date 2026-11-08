@@ -134,7 +134,7 @@ func TestAttendanceHistoryUsesDirectActor(t *testing.T) {
 	}
 	e.Message = webhook.TextMessageContent{Text: "出勤紀錄 2"}
 	_, handled, err = b.reply(context.Background(), e)
-	if err != nil || !handled || s.queriedGroup != "group-b" || s.queriedUser != "actor" || s.calls != 0 {
+	if err != nil || !handled || s.queriedGroup != "" || s.queriedUser != "actor" || s.calls != 0 {
 		t.Fatal("history must stay in selected group and direct actor")
 	}
 }
@@ -210,4 +210,37 @@ func TestAttendanceWebhookRejectsUnsignedRequest(t *testing.T) {
 	if w.Code != http.StatusUnauthorized || s.calls != 0 {
 		t.Fatal("browser punch must require LINE authentication")
 	}
+}
+
+func TestHistorySingleGroupAndPostbackAuthorization(t *testing.T) {
+	s := &attendanceStub{groups: []string{"group-a"}}
+	b := &attendanceBot{store: s}
+	e := webhook.MessageEvent{Mode: "active", ReplyToken: "reply", Source: webhook.UserSource{UserId: "actor"}, Message: webhook.TextMessageContent{Text: "出勤紀錄"}}
+	reply, handled, err := b.reply(context.Background(), e)
+	if err != nil || !handled || s.queriedGroup != "" {
+		t.Fatalf("single group: %v %v %s", err, handled, s.queriedGroup)
+	}
+	if _, ok := reply.message.(*messaging_api.FlexMessage); !ok {
+		t.Fatal("expected result card")
+	}
+	for _, group := range []string{"group-a", "forbidden"} {
+		s.queriedGroup = ""
+		p := webhook.PostbackEvent{Mode: "active", ReplyToken: "reply", Source: webhook.UserSource{UserId: "actor"}, Postback: &webhook.PostbackContent{Data: "action=attendance-history&month=2026-11&group=" + group}}
+		_, handled, err = b.reply(context.Background(), p)
+		if err != nil || !handled {
+			t.Fatalf("postback %s: %v", group, err)
+		}
+		if group == "forbidden" && s.queriedGroup != "" {
+			t.Fatal("queried unauthorized group")
+		}
+		if group == "group-a" && s.queriedGroup != group {
+			t.Fatal("did not query selected group")
+		}
+	}
+}
+
+func (s *attendanceStub) MonthGroup(_ context.Context, user, group string, _ time.Time) ([]attendance.Record, error) {
+	s.queriedUser = user
+	s.queriedGroup = group
+	return s.records, s.err
 }

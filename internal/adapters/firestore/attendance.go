@@ -189,6 +189,30 @@ func (s *Attendance) Groups(ctx context.Context, user string) ([]string, error) 
 }
 
 func (s *Attendance) RecentGroup(ctx context.Context, user, group string) ([]attendance.Record, error) {
+	records, err := s.groupRecords(ctx, user, group)
+	if len(records) > 5 {
+		records = records[:5]
+	}
+	return records, err
+}
+
+// MonthGroup assigns overnight shifts to the month of clock-in in Taiwan time.
+func (s *Attendance) MonthGroup(ctx context.Context, user, group string, start time.Time) ([]attendance.Record, error) {
+	records, err := s.groupRecords(ctx, user, group)
+	if err != nil {
+		return nil, err
+	}
+	end := start.AddDate(0, 1, 0)
+	result := make([]attendance.Record, 0)
+	for _, r := range records {
+		if !r.ClockInAt.Before(start) && r.ClockInAt.Before(end) {
+			result = append(result, r)
+		}
+	}
+	return result, nil
+}
+
+func (s *Attendance) groupRecords(ctx context.Context, user, group string) ([]attendance.Record, error) {
 	// Equality-only query preserves existing data without a new composite index.
 	docs, err := s.user(user).Collection("attendance").Where("groupID", "==", group).Documents(ctx).GetAll()
 	if err != nil {
@@ -203,9 +227,6 @@ func (s *Attendance) RecentGroup(ctx context.Context, user, group string) ([]att
 		records = append(records, record)
 	}
 	sort.Slice(records, func(i, j int) bool { return records[i].ClockInAt.After(records[j].ClockInAt) })
-	if len(records) > 5 {
-		records = records[:5]
-	}
 	return records, nil
 }
 

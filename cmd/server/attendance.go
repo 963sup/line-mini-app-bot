@@ -21,9 +21,10 @@ import (
 )
 
 type attendanceBot struct {
-	store  attendance.Store
-	zone   *time.Location
-	appURL string
+	store     attendance.Store
+	zone      *time.Location
+	appURL    string
+	groupName func(context.Context, string) string
 }
 
 func newAttendanceBot(ctx context.Context, channel string) (*attendanceBot, func() error, error) {
@@ -52,7 +53,9 @@ func newAttendanceBot(ctx context.Context, channel string) (*attendanceBot, func
 // reply handles attendance before the prototype's redelivery filter.
 func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface) (lineReply, bool, error) {
 	var source webhook.SourceInterface
-	var command, token, eventID string
+	var command, token, eventID, selectedGroup string
+	page := 0
+	month := ""
 	var timestamp int64
 	switch e := event.(type) {
 	case webhook.MessageEvent:
@@ -70,10 +73,42 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 			return lineReply{}, false, nil
 		}
 		values, err := url.ParseQuery(e.Postback.Data)
-		if err != nil || len(values) != 1 || len(values["action"]) != 1 {
+		if err != nil || len(values["action"]) != 1 {
 			return lineReply{}, false, nil
 		}
-		switch values.Get("action") {
+		action := values.Get("action")
+		if action == "attendance-history" {
+			if len(values) > 4 {
+				return lineReply{}, false, nil
+			}
+			if _, ok := values["group"]; ok {
+				if len(values["group"]) != 1 || values.Get("group") == "" {
+					return lineReply{}, false, nil
+				}
+				selectedGroup = values.Get("group")
+			}
+			for key, entries := range values {
+				if len(entries) != 1 || (key != "action" && key != "group" && key != "page" && key != "month") {
+					return lineReply{}, false, nil
+				}
+			}
+			month = values.Get("month")
+			if month != "" {
+				if _, err := time.Parse("2006-01", month); err != nil || selectedGroup == "" {
+					return lineReply{}, false, nil
+				}
+			}
+			if _, ok := values["page"]; ok {
+				var err error
+				page, err = strconv.Atoi(values.Get("page"))
+				if err != nil || page < 0 || len(values["page"]) != 1 {
+					return lineReply{}, false, nil
+				}
+			}
+		} else if len(values) != 1 {
+			return lineReply{}, false, nil
+		}
+		switch action {
 		case "clock-in":
 			command = "上班"
 		case "clock-out":
@@ -112,22 +147,49 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 			if len(groups) == 0 {
 				return respond("目前沒有出勤紀錄。")
 			}
-			if command == "出勤紀錄" {
-				text := "請選擇群組，輸入「出勤紀錄 編號」："
-				for i, group := range groups {
-					text += fmt.Sprintf("\n%d. %s", i+1, group)
+			if selectedGroup != "" {
+				allowed := false
+				for _, group := range groups {
+					if group == selectedGroup {
+						allowed = true
+						break
+					}
 				}
-				return respond(text)
+				if !allowed {
+					return respond("您沒有這個群組的出勤紀錄，請重新選擇。")
+				}
+			} else if command == "出勤紀錄" {
+				return lineReply{token: token, message: b.historyGroups(ctx, groups, page)}, true, nil
+			} else {
+				number, err := strconv.Atoi(strings.TrimSpace(strings.TrimPrefix(command, "出勤紀錄 ")))
+				if err != nil || number < 1 || number > len(groups) {
+					return respond("群組編號無效，請輸入「出勤紀錄」重新選擇。")
+				}
+				selectedGroup = groups[number-1]
 			}
-			number, err := strconv.Atoi(strings.TrimSpace(strings.TrimPrefix(command, "出勤紀錄 ")))
-			if err != nil || number < 1 || number > len(groups) {
-				return respond("群組編號無效，請輸入「出勤紀錄」重新選擇。")
+			zone := b.zone
+			if zone == nil {
+				zone = time.FixedZone("Asia/Taipei", 8*60*60)
 			}
-			records, err := store.RecentGroup(ctx, user.UserId, groups[number-1])
+			now := time.Now().In(zone)
+			start := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, zone)
+			if month != "" {
+				start, _ = time.ParseInLocation("2006-01", month, zone)
+			}
+			if month == "" {
+				return lineReply{token: token, message: b.historyMonths(ctx, selectedGroup, page)}, true, nil
+			}
+			monthly, ok := b.store.(interface {
+				MonthGroup(context.Context, string, string, time.Time) ([]attendance.Record, error)
+			})
+			if !ok {
+				return respond("月度出勤查詢尚未啟用。")
+			}
+			records, err := monthly.MonthGroup(ctx, user.UserId, selectedGroup, start)
 			if err != nil {
 				return lineReply{}, true, err
 			}
-			return respond(b.recordsText(records))
+			return lineReply{token: token, message: b.historyResult(ctx, selectedGroup, records, start, page)}, true, nil
 		}
 		records, err := b.store.Recent(ctx, user.UserId)
 		if err != nil {
