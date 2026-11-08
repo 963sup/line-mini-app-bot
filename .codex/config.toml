@@ -149,3 +149,15 @@ enabled = true
 required = false
 startup_timeout_sec = 120
 tool_timeout_sec = 120
+
+[mcp_servers.toolbox]
+# Official MCP Toolbox; use the project's existing Firestore integration.
+# Requires FIRESTORE_PROJECT and ADC; FIRESTORE_DATABASE is optional.
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "npx", "-y", "@toolbox-sdk/server", "--prebuilt", "firestore", "--stdio"]
+env_vars = ["FIRESTORE_PROJECT", "FIRESTORE_DATABASE", "CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
+default_tools_approval_mode = "prompt"
+enabled = true
+required = false
+startup_timeout_sec = 120
+tool_timeout_sec = 120
