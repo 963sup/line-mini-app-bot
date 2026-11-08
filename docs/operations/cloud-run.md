@@ -1,10 +1,23 @@
 # Cloud Run 部署
 
 依 [ADR 0003](../architecture/decisions/0003-cloud-run-primary.md)，只部署一個 Go HTTP 服務。
-根目錄 `cloudbuild.yaml` 使用現有 Dockerfile，依序檢查設定、建置、推送 Artifact Registry、
-部署 Cloud Run。機密不進入建置環境；僅由 Cloud Run 引用 Secret Manager。
 
-## 預設配置
+目前有兩條不同的部署路徑，不能混為一談：
+
+1. 現行 GitHub managed trigger 監聽 `main`，使用 Google 管理的 inline build 與根目錄
+   `Dockerfile` 建置映像，再以 image-only update 更新 Cloud Run。它不讀取 repository
+   `cloudbuild.yaml`，也不會把該檔的 substitutions、環境變數或服務帳戶套入服務。
+2. 根目錄 `cloudbuild.yaml` 是手動 `gcloud builds submit --config=cloudbuild.yaml`
+   或未來自訂 Trigger 的完整 build → push → deploy 配置。
+
+現行 managed trigger 的 runtime 環境變數與 Secret reference 以 Cloud Run service
+configuration 為準；image-only update 會沿用當時的 service template。Git push 不會把
+repository 的 `.env.example` 或 `cloudbuild.yaml` 設定同步到 Cloud Run。機密只由
+Cloud Run 引用 Secret Manager，不進入 Dockerfile、映像或 Git。
+
+## Repository `cloudbuild.yaml` 預設配置
+
+下表描述 repository 配置，不代表現行 managed trigger 或 serving revision 已套用相同值。
 
 | 項目 | 預設值 |
 | --- | --- |
@@ -17,12 +30,12 @@
 | CPU／記憶體 | 1 CPU／512 MiB |
 | Service instance 範圍 | min=0、max=3；不是成本上限或 HA 保證 |
 | 每 instance concurrency | 20，初始配置，非效能驗收結果 |
-| 請求 timeout | 15 秒；應用內 LINE 呼叫仍有自己的 5 秒期限 |
+| 請求 timeout | 100 秒；應用內 LINE 呼叫仍有自己的期限 |
 | HTTP | 公開 ingress，允許 LINE Webhook 與瀏覽器存取 |
 | PORT | 使用 Cloud Run 注入的 8080，不透過自訂 env 覆寫 |
 
 Cloud Run 明確使用 8080 的 startup TCP probe 檢查容器啟動；本專案沒有 /healthz，沒有新增 HTTP health probe。
-此配置不包括 Scheduler、Worker、Terraform 或另一套 GitHub 部署 workflow。
+此配置不包括 Scheduler、Worker、Terraform 或另一套 GitHub Actions 部署 workflow。
 既有 GitHub Repository checks 保留；Cloud Build Trigger 不會自動等待 GitHub checks。
 
 ## 一次性準備
@@ -48,7 +61,7 @@ Cloud Run 明確使用 8080 的 startup TCP probe 檢查容器啟動；本專案
 | 建置服務帳戶 | Cloud Run Admin，目標 project，用於初次建立與設定公開存取；日後可依服務範圍縮限 |
 | 建置服務帳戶 | Service Account User，只針對應用執行服務帳戶 |
 | 建置服務帳戶 | 手動提交時，Storage Object Viewer，限此次來源 bucket |
-| 執行服務帳戶 | Secret Manager Secret Accessor，針對部署檔引用的四個 secrets 分別授權 |
+| 執行服務帳戶 | Secret Manager Secret Accessor，針對部署檔引用的六個 secrets 分別授權 |
 
 建置帳戶不需讀取 LINE 機密內容。執行帳戶不需要部署、建置或 registry 寫入權限。
 Cloud Run 透過執行帳戶提供 ADC，不上傳 Google service-account key file。
@@ -59,27 +72,33 @@ Cloud Run 透過執行帳戶提供 ADC，不上傳 Google service-account key fi
 
 ### Secret Manager 與環境變數
 
-你提供的 Secret Manager 清單如下。`cloudbuild.yaml` 目前只將標為「已引用」的項目注入 Cloud Run；部署檔不寫機密明文：
+Secret Manager 與兩條部署路徑的關係如下。`cloudbuild.yaml` 的「部署檔參照」只在手動或
+自訂 Trigger 真正執行該檔時生效；「現行服務」記錄 2026-11-08 revision
+`line-mini-app-bot-00027-695` 的 metadata，不包含 Secret payload：
 
-| Secret Manager 名稱 | 容器環境變數 | 部署檔參照 | 用途／狀態 |
+| Secret Manager 名稱 | 容器環境變數 | 部署檔參照 | 現行服務／用途 |
 | --- | --- | --- | --- |
-| `cwa-api-key` | `CWA_API_KEY` | `1` | 已引用；天氣功能使用。 |
-| `gemini-api-key` | `GEMINI_API_KEY` | `latest` | 已引用；群聊摘要使用。 |
-| `line-bot-openai-api-key` | 無 | 未引用 | 目前程式與部署檔均未引用。 |
-| `line-messaging-api-channel-access-token` | `LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN` | `1` | 已引用；LINE Messaging API 使用。 |
-| `line_mini_app_channel_secret` | `LINE_MINI_APP_CHANNEL_SECRET` | `1` | 預留綁定；目前程式未讀取。 |
-| `line-messaging-api-channel-secret` | `LINE_MESSAGING_API_CHANNEL_SECRET` | `1` | 已引用；LINE Webhook 驗簽使用。 |
-| `openai-api-key` | `OPENAI_API_KEY` | `1` | 已引用；OpenAI 群聊摘要使用。 |
+| `cwa-api-key` | `CWA_API_KEY` | `1` | 綁定 `1`；天氣功能使用。 |
+| `gemini-api-key` | `GEMINI_API_KEY` | `latest` | 未綁定；Secret 尚無 version，不能解析 `latest`。OpenAI provider 不使用它。 |
+| `line-messaging-api-channel-access-token` | `LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN` | `1` | 綁定 `1`；LINE Reply／Push 使用。 |
+| `line_mini_app_channel_secret` | `LINE_MINI_APP_CHANNEL_SECRET` | `1` | 未綁定；目前 server 未讀取，僅為未來 Service Message 預留。 |
+| `line-messaging-api-channel-secret` | `LINE_MESSAGING_API_CHANNEL_SECRET` | `1` | 綁定 `1`；LINE Webhook 驗簽使用。 |
+| `openai-api-key` | `OPENAI_API_KEY` | `1` | 綁定 `1`；目前 OpenAI 摘要使用。 |
 
-「未引用」只表示此儲存庫目前沒有將該 Secret 綁定到 Cloud Run，不代表 Secret 不存在。Secret 內容與版本是否在 Google Cloud 可用，需在雲端另行確認。
+Secret 名稱存在不代表已有 enabled version。新增或輪替 version 後仍須更新 Cloud Run
+reference 並建立 Ready revision；不得用文件或 Secret 名稱推定 payload 正確。
 
-`_SUMMARY_PROVIDER=openai` 與 `_SUMMARY_MODEL=gpt-4.1-mini` 透過 `--set-env-vars` 成為容器的 `SUMMARY_PROVIDER`、`SUMMARY_MODEL`，兩者不是機密。摘要還需要 `SUMMARY_TASK_QUEUE`、`SUMMARY_TASK_URL`、`SUMMARY_TASK_SERVICE_ACCOUNT`；這三項的值也由同一個部署檔注入。Cloud Build Trigger 若設定同名 substitutions，會覆寫部署檔中的預設值；請以實際 Build 與 Cloud Run revision 設定驗收。
+`_SUMMARY_PROVIDER=openai` 與 `_SUMMARY_MODEL=gpt-4.1-mini` 只在執行
+`cloudbuild.yaml` 時透過 `--set-env-vars` 成為 runtime 設定。摘要還需要
+`SUMMARY_TASK_QUEUE`、`SUMMARY_TASK_URL`、`SUMMARY_TASK_SERVICE_ACCOUNT`。現行服務已由
+Cloud Run service configuration 成套設定 OpenAI provider；queue 層級也已授予 runtime
+service account `roles/cloudtasks.enqueuer`，但仍須以真實任務驗收 OIDC、模型與 LINE Push。
 
 | Cloud Build substitution | 注入位置／用途 | 預設 |
 | --- | --- | --- |
-| _MESSAGING_API_CHANNEL_ID | LINE_MESSAGING_API_CHANNEL_ID；必填 | 空，缺少時 preflight 失敗 |
-| _MINI_APP_CHANNEL_ID | LINE_MINI_APP_CHANNEL_ID；選用 | 空 |
-| _MINI_APP_LIFF_ID | LINE_MINI_APP_LIFF_ID；選用，需與上一項一起提供 | 空 |
+| _MESSAGING_API_CHANNEL_ID | LINE_MESSAGING_API_CHANNEL_ID；必填 | `2012305727` |
+| _MINI_APP_CHANNEL_ID | LINE_MINI_APP_CHANNEL_ID；選用 | `2012412007` |
+| _MINI_APP_LIFF_ID | LINE_MINI_APP_LIFF_ID；選用，需與上一項一起提供 | `2012412007-0xCIzCmZ` |
 | _CHANNEL_SECRET_NAME | LINE_MESSAGING_API_CHANNEL_SECRET 的 secret 名稱 | line-messaging-api-channel-secret |
 | _CHANNEL_SECRET_VERSION | 上述 secret 的版本 | 1 |
 | _CHANNEL_ACCESS_TOKEN_NAME | LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN 的 secret 名稱 | line-messaging-api-channel-access-token |
@@ -94,7 +113,7 @@ GOOGLE_CLOUD_PROJECT 自動設為此次 Build 的 project。MINI App 兩個 ID �
 Service Message token、MCP API key、使用者 ID token 與 ADC 憑證不屬於本部署的 substitutions。
 應用設定命名仍依 [LINE 契約](../integrations/line-environment.md)。
 
-部署檔使用 set-env-vars／set-secrets 宣告完整集合，會移除未列出的手動 env／secret 綁定；
+`cloudbuild.yaml` 使用 set-env-vars／set-secrets 宣告完整集合，會移除未列出的手動 env／secret 綁定；
 新增功能時先更新檔案，不能只在 Console 臨時補值。這些值都在執行期注入，沒有 bake 進映像。
 
 ## 首次手動部署
@@ -124,7 +143,24 @@ bash scripts/tool-exec.sh gcloud builds submit . \
 需要 MINI App 時，在 substitutions 加入 _MINI_APP_CHANNEL_ID 與 _MINI_APP_LIFF_ID。
 所有 gcloud 命令以實際安裝版本的 leaf-level help 為準；builds submit／run deploy 沒有一般 dry-run 旗標。
 
-## GitHub 自動部署（手動部署驗收後）
+## 現行 GitHub managed trigger
+
+目前 Cloud Build Trigger `rmgpgab-line-mini-app-bot-asia-east1-963sup-line-mini-app-boohl`
+只監聽 `^main$`，Build configuration 是 Google 管理的 inline build。Build step 使用
+`Dockerfile`；Deploy step 只更新 image，因此沿用 Cloud Run service template 的 runtime
+設定。修改 repository `cloudbuild.yaml` 或只 push 相同 commit 都不會改變 runtime 設定；
+環境變數或 Secret reference 變更必須在 Cloud Run 建立新 revision。
+
+截至 2026-11-08，現行服務使用
+`185354881750-compute@developer.gserviceaccount.com` 作為 runtime service account；這與
+repository `cloudbuild.yaml` 預設的 `line-mini-app-runtime` 不同。兩者的 IAM 不會自動同步，
+切換部署路徑前必須重新核對 Secret、Firestore、Cloud Tasks 與 service account impersonation。
+
+每次 `main` push 後要同時驗證 Build 的 source SHA、Deploy step、latest Ready revision、
+traffic 與該 revision 的 env／Secret reference。Build 綠燈不等於 LINE 驗簽、Firestore、
+Cloud Tasks、模型或訊息送達已通過端到端測試。
+
+## 改用 repository `cloudbuild.yaml` 的自訂 Trigger
 
 在 Cloud Build Console 連接本 repository、建立 push Trigger，選定一個部署分支，
 設定 Build configuration 為根目錄 cloudbuild.yaml，填入相同的非機密 substitutions。

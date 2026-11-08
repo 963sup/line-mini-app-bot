@@ -41,6 +41,12 @@ task service account 與 queue 使用同專案。入口驗證 Google token 簽�
 Cloud Run 請求逾時需至少100秒；程式 worker deadline80秒、模型45秒、LINE Push10秒，租約120秒。仍是同一個容器，沒有常駐 goroutine worker。
 LINE Console 開啟 Webhook redelivery；所選模型 API key 的計費與模型資料處理政策應依實際帳戶確認。
 
+截至 2026-11-08，serving revision `line-mini-app-bot-00027-695` 設定 OpenAI／
+`gpt-4.1-mini`，以 Secret Manager `openai-api-key:1` 注入；Cloud Tasks queue 為 RUNNING，
+runtime service account 在該 queue 具有 enqueue 權限。`gemini-api-key` 尚無任何 version，
+因此 `GEMINI_API_KEY` 未綁定。這些 metadata 與 revision Ready 只證明初始化成功；尚未以
+真實群組事件證明 Cloud Tasks OIDC、模型回應與 LINE Push 的完整鏈路。
+
 ## 資料與可靠性
 
 資料以 channels/{channelID}/summaryGroups/{hash(groupID)} 隔離：

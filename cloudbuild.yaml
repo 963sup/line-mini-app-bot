@@ -1,3 +1,5 @@
+# Manual/custom-trigger deployment configuration. The current GitHub managed
+# trigger uses an inline build with Dockerfile and does not execute this file.
 # Runtime credentials are Secret Manager references, never build substitutions.
 steps:
   - id: validate-settings
