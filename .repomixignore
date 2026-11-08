@@ -66,13 +66,13 @@ crash.log
 *.tar
 *.gz
 
-# Project-specific skills and installation copies
-/.agents/skills/
-/.codex/skills/
+# Agent content (all .agents files); .codex remains available for analysis
+/.agents/**
 /.claude/
 /agent/
 
 # Project-specific dependencies and generated graph
+/.artifacts/
 /graphify-out/
 **/vendor/
 **/.venv/
@@ -85,4 +85,6 @@ crash.log
 .env.*
 # Non-secret template and maintained documentation are analysis inputs.
 !.env.example
-!docs/tooling/mcp/repomix-skills.md
+
+# Agent metadata and local installation copies
+skills-lock.json

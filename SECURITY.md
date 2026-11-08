@@ -33,3 +33,13 @@ Firestore server SDK 使用 IAM 並繞過 Security Rules；後端仍需個人／
 瀏覽器座標、postback data 與前端 profile 都是不可信輸入。
 第三方 skills/plugins 與更新需審查來源及權限；安裝不授權部署或外部操作。
 安全掃描與測試不是無漏洞保證；未執行的真實渠道／裝置驗收必須明確列出。
+
+## Analysis artifacts and Cloud development
+
+Graphify 圖譜、Repomix 原文包、coverage／profile 與工具日誌可能包含程式、設定或個人資料；
+僅在受控工作區處理，分享前檢查實際內容，不將產物提交至 Git 或公開通報。
+`.env.example` 只能放非機密範例；真實憑證透過環境安全注入。
+ignore 只控制各工具的收錄，不撤銷已提交的秘密；已追蹤檔案也不受 `.gitignore` 保護。
+分析入口排除 `.agents`、`.claude`、`agent` 與 `skills-lock.json`，但排除規則及安全掃描
+都不能證明剩餘內容不含敏感資訊。保留既有安全掃描，不以停用排除規則解決漏檔。
+Codex Cloud 安裝、MCP 握手、應用測試與真實服務權限需分開驗證。

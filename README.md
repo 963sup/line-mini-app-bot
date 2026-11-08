@@ -28,6 +28,10 @@ bash scripts/tool-exec.sh mise run doctor
 ```
 
 完整 Cloud／MCP 安裝與限制請見 [Codex Cloud 設定](docs/development/codex-cloud.md)。
+需要 Graphify／Repomix 與 MCP 時使用 `bash scripts/bootstrap.sh all`；工具安裝、
+MCP 握手與聊天主機實際可用性須分別驗收，不因快取存在而視為全新環境已驗證。
+工具與非機密環境以 `mise.toml` 為準；日常命令使用 `scripts/tool-exec.sh`。
+
 
 - [文件索引](docs/README.md)
 - [架構與流程](docs/architecture/overview.md)
@@ -36,6 +40,23 @@ bash scripts/tool-exec.sh mise run doctor
 - [安全問題回報](.github/SECURITY.md)
 
 工具版本與非機密環境變數由 `mise.toml` 管理。請勿提交 LINE token、channel secret 或雲端憑證。
+
+## 儲存庫分析
+
+在儲存庫根目錄執行既有 CLI 任務：
+
+```bash
+bash scripts/tool-exec.sh mise run graphify-update
+bash scripts/tool-exec.sh graphify query "registerLINEWebhook"
+bash scripts/tool-exec.sh mise run repomix
+```
+
+Graphify 輸出 `graphify-out/graph.json`，目前任務只做 AST 抽取；文件、TOML、
+HTML/CSS 與鎖檔不保證被解析。使用 Repomix 的 `repomix-output.xml` 閱讀文件及設定原文，
+再對照實際來源；打包與查詢成功都不代表程式正確或整合已驗收。
+兩工具均排除 `.agents`、`.claude`、`agent` 與 `skills-lock.json`；`.codex` 保留為分析來源，
+仍受工具原生格式支援與內建排除限制。各 ignore 規則不等於完整收錄保證。
+範圍契約及獨立 audit 的用途與限制見 [分析證據](docs/tooling/analysis-scope.md)。
 
 ## 執行服務
 

@@ -15,3 +15,13 @@ coverage.out
 *.test
 __pycache__/
 .venv/
+
+# Agent workspace and local tooling (tracked files are unaffected).
+/.agents/**
+/.claude/
+/agent/
+/server
+.cache/
+.npm-cache/
+node_modules/
+vendor/

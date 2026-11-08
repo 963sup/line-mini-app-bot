@@ -1,6 +1,5 @@
-# Third-party skills and agent-specific installation copies
-/.agents/skills/
-/.codex/skills/
+# Agent files and installation copies
+/.agents/**
 /.claude/
 /agent/
 
@@ -15,13 +14,18 @@
 **/__pycache__/
 /bin/
 /server
+/.artifacts/
 /coverage.out
 
 # Secrets and credentials
 .env
 .env.*
+!.env.example
 **/*.pem
 **/*.key
 **/credentials*.json
 **/service-account*.json
 .git/
+
+# Agent metadata and local installation copies
+skills-lock.json

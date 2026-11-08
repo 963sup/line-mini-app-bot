@@ -5,3 +5,25 @@
 !cmd/**
 !internal/
 !internal/**
+
+# Always exclude agent material, including future allowlist changes.
+/.agents/**
+
+# Local files under allowed source directories are not build inputs.
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/*credentials*.json
+**/*service-account*.json
+**/*service_account*.json
+**/node_modules/**
+**/vendor/**
+**/__pycache__/**
+**/.venv/**
+**/.artifacts/**
+
+# Agent metadata and local installation copies
+skills-lock.json
+/.claude/
+/agent/
