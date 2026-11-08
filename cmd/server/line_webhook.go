@@ -15,7 +15,7 @@ import (
 )
 
 // registerLINEWebhook enables the connectivity prototype only when configured.
-func registerLINEWebhook(mux *http.ServeMux, appURL string, attendance *attendanceBot, summaries *summaryBot) error {
+func registerLINEWebhook(mux *http.ServeMux, appURL string, attendance *attendanceBot, summaries *summaryBot, polls ...*pollBot) error {
 	channelID := os.Getenv("LINE_MESSAGING_API_CHANNEL_ID")
 	secret := os.Getenv("LINE_MESSAGING_API_CHANNEL_SECRET")
 	token := os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN")
@@ -45,12 +45,12 @@ func registerLINEWebhook(mux *http.ServeMux, appURL string, attendance *attendan
 		return errors.New("cannot initialize LINE Messaging API client")
 	}
 	path := "/webhooks/line/" + channelID
-	mux.HandleFunc("POST "+path, lineWebhookHandler(secret, bot, appURL, attendance, summaries))
+	mux.HandleFunc("POST "+path, lineWebhookHandler(secret, bot, appURL, attendance, summaries, polls...))
 	slog.Info("LINE connectivity prototype enabled", "path", path)
 	return nil
 }
 
-func lineWebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, appURL string, attendance *attendanceBot, summaries *summaryBot) http.HandlerFunc {
+func lineWebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, appURL string, attendance *attendanceBot, summaries *summaryBot, polls ...*pollBot) http.HandlerFunc {
 	weather := newWeatherClient()
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
@@ -74,6 +74,21 @@ func lineWebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, appUR
 		client := *bot
 		client.WithContext(ctx)
 		for _, event := range callback.Events {
+			var voting *pollBot
+			if len(polls) > 0 {
+				voting = polls[0]
+			}
+			pollReply, pollHandled, pollErr := voting.handle(ctx, event)
+			if pollErr != nil {
+				http.Error(w, "poll unavailable; retry safely", http.StatusServiceUnavailable)
+				return
+			}
+			if pollHandled {
+				if pollReply.message != nil && pollReply.token != "" {
+					_, _ = client.ReplyMessage(&messaging_api.ReplyMessageRequest{ReplyToken: pollReply.token, Messages: []messaging_api.MessageInterface{pollReply.message}})
+				}
+				continue
+			}
 			summaryReply, summaryHandled, summaryErr := summaries.observe(ctx, event)
 			if summaryErr != nil {
 				http.Error(w, "summary temporarily unavailable", http.StatusServiceUnavailable)
