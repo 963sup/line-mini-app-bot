@@ -44,6 +44,11 @@ jobs:
           if not exists:
               print("Application checks NOT RUN: no go.mod exists yet.")
           PY
+      - name: Prepare development tooling directory
+        if: steps.module.outputs.present == 'true'
+        # mise.toml and bootstrap share the Codex Cloud tooling path.
+        # GitHub-hosted runners need it created for the unprivileged runner user.
+        run: sudo install -d -m 0755 -o "$(id -u)" -g "$(id -g)" /workspace/tooling
       - name: Install pinned Go development environment
         if: steps.module.outputs.present == 'true'
         run: bash scripts/bootstrap.sh core
