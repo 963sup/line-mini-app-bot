@@ -65,7 +65,7 @@ async function verifyIdentity() {
 }
 
 loginButton.addEventListener("click", () => {
-  liff.login({ redirectUri: new URL("/miniapp", window.location.origin).href });
+  liff.login({ redirectUri: window.location.href });
 });
 verifyButton.addEventListener("click", () => { void verifyIdentity(); });
 logoutButton.addEventListener("click", () => {

@@ -3,7 +3,9 @@
 以 Go 建置 LINE Messaging API Webhook、MINI App API 與 Firestore 整合。
 目前提供 HTTP 服務與可選的 [LINE 接入能力](docs/development/line-prototype.md)：
 一對一／群組指令、Flex／Postback、MINI App 身分驗證與 Rich Menu CLI。
-另有 Firestore 唯讀連線檢查工具；出勤與應用資料持久化尚未實作，沒有健康檢查路由。
+另有 Firestore 唯讀連線檢查工具；基礎出勤已實作 Firestore 持久化，目標環境的端到端驗收仍需另行確認。服務沒有健康檢查路由。
+
+出勤分工：群組發起上下班，從連結開啟 MINI App、取得位置後送出；1:1 私訊「出勤紀錄」選擇群組，再輸入「出勤紀錄 編號」查本人最近五筆。各群組狀態獨立，定位只記錄位置，不判斷工作半徑。
 
 另有 [Go + Vanilla JS 定位示範](docs/integrations/web-geolocation.md)：啟動後開啟
 `http://localhost:8080/location`，點擊按鈕取得位置並傳送至 Go 驗證，不保存位置。

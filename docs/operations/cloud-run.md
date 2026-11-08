@@ -48,11 +48,11 @@ Cloud Run 明確使用 8080 的 startup TCP probe 檢查容器啟動；本專案
 | 建置服務帳戶 | Cloud Run Admin，目標 project，用於初次建立與設定公開存取；日後可依服務範圍縮限 |
 | 建置服務帳戶 | Service Account User，只針對應用執行服務帳戶 |
 | 建置服務帳戶 | 手動提交時，Storage Object Viewer，限此次來源 bucket |
-| 執行服務帳戶 | Secret Manager Secret Accessor，只針對下列兩個 secrets |
+| 執行服務帳戶 | Secret Manager Secret Accessor，針對部署檔引用的四個 secrets 分別授權 |
 
 建置帳戶不需讀取 LINE 機密內容。執行帳戶不需要部署、建置或 registry 寫入權限。
 Cloud Run 透過執行帳戶提供 ADC，不上傳 Google service-account key file。
-目前 HTTP 服務尚無 Firestore 讀寫，不預先授予資料寫入角色；接入出勤時再授予必要 IAM。
+出勤與群聊摘要已有 Firestore 讀寫實作；執行帳戶需具備目標資料庫所需權限，並以實際讀寫驗收。
 `cmd/firestorecheck` 仍使用執行該工具之身分的 ADC，與 Cloud Run 服務是否部署成功分開驗證。
 
 ## 設定契約
@@ -63,7 +63,7 @@ Cloud Run 透過執行帳戶提供 ADC，不上傳 Google service-account key fi
 
 | Secret Manager 名稱 | 容器環境變數 | 部署檔參照 | 用途／狀態 |
 | --- | --- | --- | --- |
-| `cwa-api-key` | `CWA_API_KEY` | 未引用 | 天氣功能會讀取此變數；目前部署檔未注入，天氣功能將顯示未設定。 |
+| `cwa-api-key` | `CWA_API_KEY` | `1` | 已引用；天氣功能使用。 |
 | `gemini-api-key` | `GEMINI_API_KEY` | `latest` | 已引用；群聊摘要使用。 |
 | `line-bot-openai-api-key` | 無 | 未引用 | 目前程式與部署檔均未引用。 |
 | `line-messaging-api-channel-access-token` | `LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN` | `1` | 已引用；LINE Messaging API 使用。 |
@@ -141,7 +141,7 @@ Trigger 啟動時會忽略 YAML 的 serviceAccount 欄位，只採用 Trigger �
 3. 在 LINE Developers 將 Webhook 設為 `<service-url>/webhooks/line/<Messaging API Channel ID>`，
    驗證後確認一對一／群組公開指令；MINI App Endpoint 設為 `<service-url>/miniapp`。
 4. 公開 HTTP 不代表免除應用驗證；Webhook 仍驗簽，/api/v1/me 仍驗 LINE ID token。
-5. 出勤與 Firestore 持久化尚未實作，不能把 revision Ready 當作完成出勤驗收。
+5. 出勤與 Firestore 持久化已有程式實作；需實測 LINE 事件、資料庫讀寫與本人紀錄，不能把 revision Ready 當作完成出勤驗收。
 
 回滾時在 Cloud Run Console 的 Revisions 選取前一個已驗收 revision，將流量切回 100%，
 再確認 LINE 收訊與頁面。不要刪除其映像或 secret versions，直到回滾保留期結束。

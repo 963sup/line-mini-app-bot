@@ -1,7 +1,7 @@
 # Web Geolocation API 整合契約
 
-範圍：已實作 Go + Vanilla JS 的獨立定位示範，尚未接入 [基礎出勤](../features/attendance.md)。
-業務定位、身分驗證、地理圍欄與保存規則仍依後續需求決定。
+範圍：保留 Go + Vanilla JS 的獨立定位示範，另由 MINI App 接入 [基礎出勤](../features/attendance.md)。
+出勤使用單次定位，驗證 LINE 身分與原群組打卡請求後保存位置、精度及採樣時間；不做工作半徑判斷或持續追蹤。以下示範 API 仍不寫入資料，出勤契約以功能頁為準。
 
 > 狀態：示範已實作，尚待 LINE／手機實機確認。透過 Context7 `/mdn/content` 核對
 > getCurrentPosition、secure context、權限與錯誤碼；具體定位業務、精度、保存期仍需功能契約。
@@ -70,7 +70,7 @@ LINE 訊息的 location／位置 action 與 Web Geolocation 是不同輸入，�
 getCurrentPosition 沒有 AbortSignal 取消介面；取消頁面操作後忽略遲到 callback，不再送 API。
 錯誤碼 1=PERMISSION_DENIED、2=POSITION_UNAVAILABLE、3=TIMEOUT；分別顯示可理解的拒絕／不可用／重試提示，不顯示原始敏感錯誤。
 
-## Go 接收契約（示範 route 已實作，業務 route 尚未選定）
+## Go 接收契約（示範與出勤 route 均已實作）
 
 | 欄位 | JSON／Go | 驗證 |
 | --- | --- | --- |
@@ -80,17 +80,18 @@ getCurrentPosition 沒有 AbortSignal 取消介面；取消頁面操作後忽略
 | 採樣時間 | capturedAt／CapturedAt time.Time | JS timestamp 轉 RFC3339 UTC；過舊／未來門檻依業務契約 |
 
 Go 另產生 receivedAt，不信任客戶端時間；必填數值用 pointer／存在性檢查，不能把缺欄誤當合法 0。
-不收集不必要的 altitude、heading、speed。精度／新鮮度上限與地理圍欄半徑先由功能契約決定；未決定時不能啟用打卡／到場判定。
+不收集不必要的 altitude、heading、speed。出勤 route 依功能契約驗證定位新鮮度；目前只保存單次打卡位置，不設定精度上限或地理圍欄，也不宣稱到場判定。
 驗證 session、CSRF、資源權限與 body limit；不接受任意 userId/groupId 作身分。
 位置可偽造，不能作付款、身分或高風險授權唯一條件。精確位置不寫一般日誌、不自動推到群組。
-保存僅在產品明確需要時啟用；預設不建立定位歷史 collection。保存期、同意、刪除與目的確立後才更新 schema。
+出勤只把單次定位附在該次打卡紀錄，不建立持續定位歷史 collection。保存期與刪除政策仍須在正式營運前確立。
 
-## 後續業務整合規劃檔案與函數
+## 現有出勤整合檔案與責任
 
-- `internal/web/static/geolocation.js`：`requestCurrentPosition`、`stopPositionWatch`；只採樣與 UI，無授權。
-- `internal/adapters/http/miniapi/location.go`：`Handler.SubmitLocation`；僅在定位功能契約確定後建立 route。
-- 對應業務 application：`SubmitLocation`；檢查資源權限與定位規則，adapter DTO 不進領域。
-- 純驗證 helper 使用 `validateCoordinates`；距離計算單位寫進名稱如 `distanceMeters`，座標系 WGS84。
+- `cmd/server/attendance_http.go`：註冊 `POST /api/v1/attendance/punches`，驗證 LINE 身分、請求內容與原群組打卡請求。
+- `cmd/server/web/attendance.js`：由 MINI App 取得單次定位並提交；只負責採樣、UI 與請求，不決定授權。
+- `cmd/server/miniapp.go`：提供可共用的 LINE 身分驗證；後端不信任前端自行傳入的 user ID。
+- `internal/adapters/firestore/attendance.go`：在交易中驗證短效打卡請求，隔離群組狀態並保存單次定位。
+- `cmd/server/geolocation.go` 與 `cmd/server/web/geolocation.*`：保留獨立定位示範，不寫入出勤資料。
 
 ```mermaid
 sequenceDiagram

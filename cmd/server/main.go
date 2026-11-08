@@ -36,6 +36,10 @@ func run() error {
 		return err
 	}
 	defer closeAttendance()
+	if attendance != nil && os.Getenv("LINE_MINI_APP_LIFF_ID") != "" {
+		attendance.appURL = "https://liff.line.me/" + os.Getenv("LINE_MINI_APP_LIFF_ID")
+	}
+	registerAttendanceAPI(mux, attendance)
 	summaries, closeSummaries, err := registerSummary(context.Background(), mux)
 	if err != nil {
 		return err

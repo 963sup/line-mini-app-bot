@@ -3,14 +3,43 @@ package attendance
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
+var ErrInvalidRequest = errors.New("invalid or expired attendance request")
+
+type Position struct {
+	Latitude       float64   `json:"latitude" firestore:"latitude"`
+	Longitude      float64   `json:"longitude" firestore:"longitude"`
+	AccuracyMeters float64   `json:"accuracyMeters" firestore:"accuracyMeters"`
+	CapturedAt     time.Time `json:"capturedAt" firestore:"capturedAt"`
+}
+
+type Request struct {
+	GroupID   string    `firestore:"groupID"`
+	UserID    string    `firestore:"userKey"`
+	EventID   string    `firestore:"eventID"`
+	Action    string    `firestore:"action"`
+	EventTime int64     `firestore:"eventTime"`
+	ExpiresAt time.Time `firestore:"expiresAt"`
+}
+
+// LocatedStore binds a browser submission to its original signed group event.
+type LocatedStore interface {
+	CreateRequest(context.Context, Request) (string, error)
+	Submit(context.Context, string, string, Position, time.Time) (Result, error)
+	Groups(context.Context, string) ([]string, error)
+	RecentGroup(context.Context, string, string) ([]Record, error)
+}
+
 type Record struct {
-	SchemaVersion int       `firestore:"schemaVersion"`
-	GroupID       string    `firestore:"groupID"`
-	ClockInAt     time.Time `firestore:"clockInAt"`
-	ClockOutAt    time.Time `firestore:"clockOutAt,omitempty"`
+	SchemaVersion    int       `firestore:"schemaVersion"`
+	GroupID          string    `firestore:"groupID"`
+	ClockInAt        time.Time `firestore:"clockInAt"`
+	ClockOutAt       time.Time `firestore:"clockOutAt,omitempty"`
+	ClockInPosition  *Position `firestore:"clockInPosition,omitempty"`
+	ClockOutPosition *Position `firestore:"clockOutPosition,omitempty"`
 }
 
 type Result struct {

@@ -14,9 +14,9 @@
 | HTTP 骨架 | 有 cmd/server、可選 LINE 接入與正常關閉，沒有健康檢查路由 | 目標環境實際啟動狀態 |
 | 容器與部署 | 有 Dockerfile、cloudbuild.yaml 與來源上傳範圍設定 | Cloud Run／Artifact Registry、IAM、secrets、Trigger 與實際部署尚未驗收 |
 | 設定 | 已讀 PORT、Messaging API、MINI App 設定，不自動讀 .env | 真實渠道與環境對應尚未確認 |
-| Firestore | 已有 cmd/firestorecheck 唯讀連線工具 | 資料庫、身分、IAM 與真實連線尚未確認；應用持久化未實作 |
+| Firestore | 已有 cmd/firestorecheck 唯讀連線工具，以及出勤和群聊摘要的 Firestore adapter | 目標環境的資料庫、身分、IAM 與讀寫驗收 |
 | LINE | 已有 Webhook、1:1／群組、Flex／Postback、MINI App 驗證及 Rich Menu CLI | 真實收發、登入、選單設定與 MINI App 發布尚未確認 |
-| 基礎出勤 | 已確認首版方向 | 功能程式尚未實作 |
+| 基礎出勤 | 已有群組定位上下班、1:1 選群組查本人紀錄及 Firestore 持久化 | 目標環境的 LINE／Firestore 交易與手機定位端到端驗收 |
 
 不以設定檔存在、工具索引成功或依賴已下載，推論服務已可用。
 

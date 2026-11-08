@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	_ "time/tzdata"
@@ -19,8 +20,9 @@ import (
 )
 
 type attendanceBot struct {
-	store attendance.Store
-	zone  *time.Location
+	store  attendance.Store
+	zone   *time.Location
+	appURL string
 }
 
 func newAttendanceBot(ctx context.Context, channel string) (*attendanceBot, func() error, error) {
@@ -83,7 +85,7 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 	default:
 		return lineReply{}, false, nil
 	}
-	if command != "打卡" && command != "上班" && command != "下班" && command != "出勤紀錄" {
+	if command != "打卡" && command != "上班" && command != "下班" && command != "出勤紀錄" && !strings.HasPrefix(command, "出勤紀錄 ") {
 		return lineReply{}, false, nil
 	}
 	respond := func(text string) (lineReply, bool, error) {
@@ -93,11 +95,36 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 		return respond("出勤尚未啟用。")
 	}
 	if user, ok := source.(webhook.UserSource); ok {
-		if command != "出勤紀錄" {
+		if command != "出勤紀錄" && !strings.HasPrefix(command, "出勤紀錄 ") {
 			return respond("請在群組輸入「打卡」，點選上班或下班。")
 		}
 		if user.UserId == "" {
 			return respond("無法確認本人身分。")
+		}
+		if store, ok := b.store.(attendance.LocatedStore); ok {
+			groups, err := store.Groups(ctx, user.UserId)
+			if err != nil {
+				return lineReply{}, true, err
+			}
+			if len(groups) == 0 {
+				return respond("目前沒有出勤紀錄。")
+			}
+			if command == "出勤紀錄" {
+				text := "請選擇群組，輸入「出勤紀錄 編號」："
+				for i, group := range groups {
+					text += fmt.Sprintf("\n%d. %s", i+1, group)
+				}
+				return respond(text)
+			}
+			number, err := strconv.Atoi(strings.TrimSpace(strings.TrimPrefix(command, "出勤紀錄 ")))
+			if err != nil || number < 1 || number > len(groups) {
+				return respond("群組編號無效，請輸入「出勤紀錄」重新選擇。")
+			}
+			records, err := store.RecentGroup(ctx, user.UserId, groups[number-1])
+			if err != nil {
+				return lineReply{}, true, err
+			}
+			return respond(b.recordsText(records))
 		}
 		records, err := b.store.Recent(ctx, user.UserId)
 		if err != nil {
@@ -120,7 +147,7 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 	if !ok {
 		return respond("請在群組打卡，或私訊查詢本人紀錄。")
 	}
-	if command == "出勤紀錄" {
+	if command == "出勤紀錄" || strings.HasPrefix(command, "出勤紀錄 ") {
 		return respond("請私訊輸入「出勤紀錄」，查看本人紀錄。")
 	}
 	if group.UserId == "" || group.GroupId == "" {
@@ -136,22 +163,33 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 	if command == "下班" {
 		action = "clock-out"
 	}
-	result, err := b.store.Punch(ctx, group.GroupId, group.UserId, eventID, action, time.Now().UTC(), timestamp)
-	if err != nil {
-		return lineReply{}, true, err
+	if store, ok := b.store.(attendance.LocatedStore); ok {
+		if b.appURL == "" {
+			return respond("定位打卡頁尚未設定，未執行打卡。")
+		}
+		requestID, err := store.CreateRequest(ctx, attendance.Request{GroupID: group.GroupId, UserID: group.UserId, EventID: eventID, Action: action, EventTime: timestamp, ExpiresAt: time.Now().UTC().Add(10 * time.Minute)})
+		if err != nil {
+			return lineReply{}, true, err
+		}
+		link := b.appURL + "?request=" + url.QueryEscape(requestID)
+		return lineReply{token: token, message: &messaging_api.TemplateMessage{AltText: "開啟定位打卡頁，取得位置後完成打卡", Template: &messaging_api.ButtonsTemplate{Text: "請本人開啟定位打卡頁，取得位置後確認送出；連結有效十分鐘。", Actions: []messaging_api.ActionInterface{&messaging_api.UriAction{Label: "開啟定位打卡", Uri: link}}}}}, true, nil
 	}
-	switch result.Code {
-	case "stale_event":
-		return respond("收到較早的延遲事件，未變更出勤；請確認紀錄後重新操作。")
-	case "clocked_in":
-		return respond("上班打卡成功，" + b.format(result.Record.ClockInAt))
-	case "already_in":
-		return respond("已於 " + b.format(result.Record.ClockInAt) + " 上班，無須重複打卡。")
-	case "clocked_out":
-		return respond("下班打卡成功，" + b.format(result.Record.ClockOutAt))
-	default:
-		return respond("尚無未完成的上班紀錄，未新增打卡。")
+	return respond("定位打卡尚未啟用，未執行打卡。")
+}
+
+func (b *attendanceBot) recordsText(records []attendance.Record) string {
+	text := "本人最近出勤紀錄（最多五筆）："
+	for _, record := range records {
+		out := "尚未下班"
+		if !record.ClockOutAt.IsZero() {
+			out = b.format(record.ClockOutAt)
+		}
+		text += fmt.Sprintf("\n群組 %s\n上班 %s\n下班 %s", record.GroupID, b.format(record.ClockInAt), out)
 	}
+	if len(records) == 0 {
+		return "目前沒有出勤紀錄。"
+	}
+	return text
 }
 
 func (b *attendanceBot) format(t time.Time) string { return t.In(b.zone).Format("2006-01-02 15:04:05") }

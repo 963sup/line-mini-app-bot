@@ -1,6 +1,6 @@
 # LINE 平台架構總覽
 
-> 狀態：架構基線已接受，應用功能尚未實作。後端採 Go、LINE Messaging API 與 Firestore，部署至 Cloud Run。
+> 狀態：群組定位打卡與 1:1 分群查詢已有基礎實作，尚待線上與手機驗收。後端採 Go、LINE Messaging API 與 Firestore，部署至 Cloud Run。
 > MINI App 由 Go 提供 HTML/CSS，瀏覽器仍需 LIFF JavaScript；不需要 Node.js 後端。
 
 ## 目前基線
@@ -9,12 +9,12 @@
 先穩定 HTTP／容器／Cloud Run，再接入資料與首期 LINE 入口，最後實作基礎出勤。
 維持一個服務，HTTP、使用案例與 adapter 分工；業務層不依賴 SDK 型別，由 main 組裝。
 Webhook 與 MINI App 若提供相同出勤操作，共用使用案例。
-Worker、Garr、群組角色、管理後台、Rich Menu 與定位不列為首版必做項目。
+定位打卡採 Messaging API 群組入口與 MINI App 單次 Web Geolocation；1:1 僅查本人紀錄。Worker、Garr、群組角色、管理後台及工作半徑不列為本次範圍。
 
 目前另有獨立的 [LINE 接入能力](../development/line-prototype.md) 與
 [定位示範](../integrations/web-geolocation.md)：含群組／1:1 公開指令、Flex、
 Postback、MINI App ID token 驗證、Rich Menu CLI 及 Firestore 唯讀連線工具。
-這些接入程式不代表出勤、群組角色、可靠接收或 MINI App 發布已完成。
+出勤已串接群組打卡請求、MINI App 身分／定位與 Firestore 交易；保留舊資料路徑，以 groupID 和分群狀態隔離群組。程式實作不代表真實 Firestore 交易、手機定位或 MINI App 發布已驗收。
 
 ## 文件路由
 

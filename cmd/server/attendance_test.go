@@ -20,9 +20,31 @@ type attendanceStub struct {
 	group, user, event string
 	action             string
 	queriedUser        string
+	queriedGroup       string
+	groups             []string
+	punchCalls         int
+}
+
+func (s *attendanceStub) CreateRequest(_ context.Context, request attendance.Request) (string, error) {
+	s.calls++
+	s.group, s.user, s.event, s.action = request.GroupID, request.UserID, request.EventID, request.Action
+	return strings.Repeat("a", 64), s.err
+}
+func (s *attendanceStub) Submit(context.Context, string, string, attendance.Position, time.Time) (attendance.Result, error) {
+	return attendance.Result{}, s.err
+}
+func (s *attendanceStub) Groups(_ context.Context, user string) ([]string, error) {
+	s.queriedUser = user
+	return s.groups, s.err
+}
+func (s *attendanceStub) RecentGroup(_ context.Context, user, group string) ([]attendance.Record, error) {
+	s.queriedUser = user
+	s.queriedGroup = group
+	return nil, s.err
 }
 
 func (s *attendanceStub) Punch(_ context.Context, group, user, event, action string, now time.Time, _ int64) (attendance.Result, error) {
+	s.punchCalls++
 	s.calls++
 	s.group, s.user, s.event = group, user, event
 	s.action = action
@@ -48,26 +70,39 @@ func TestAttendancePostback(t *testing.T) {
 	} {
 		t.Run(tc.data, func(t *testing.T) {
 			s := &attendanceStub{}
-			b := &attendanceBot{store: s, zone: zone}
+			b := &attendanceBot{store: s, zone: zone, appURL: "https://liff.line.me/test"}
 			e := webhook.PostbackEvent{Mode: "active", ReplyToken: "reply", WebhookEventId: "event", Source: webhook.GroupSource{GroupId: "group", UserId: "actor"}, Postback: &webhook.PostbackContent{Data: tc.data}, DeliveryContext: &webhook.DeliveryContext{IsRedelivery: true}}
-			_, handled, err := b.reply(context.Background(), e)
+			reply, handled, err := b.reply(context.Background(), e)
 			if err != nil || handled != tc.handled || s.action != tc.action {
 				t.Fatalf("handled=%v action=%s err=%v", handled, s.action, err)
 			}
 			if handled && (s.calls != 1 || s.user != "actor" || s.group != "group" || s.event != "event") {
 				t.Fatal("must use signed event identity and scope")
 			}
+			if s.punchCalls != 0 {
+				t.Fatal("group click must not punch without position")
+			}
+			if handled {
+				if _, ok := reply.message.(*messaging_api.TemplateMessage); !ok {
+					t.Fatal("must provide location link")
+				}
+			}
 		})
 	}
 }
 
 func TestAttendanceHistoryUsesDirectActor(t *testing.T) {
-	s := &attendanceStub{}
+	s := &attendanceStub{groups: []string{"group-a", "group-b"}}
 	b := &attendanceBot{store: s}
 	e := webhook.MessageEvent{Mode: "active", ReplyToken: "reply", Source: webhook.UserSource{UserId: "actor"}, Message: webhook.TextMessageContent{Text: "出勤紀錄"}}
 	_, handled, err := b.reply(context.Background(), e)
 	if err != nil || !handled || s.queriedUser != "actor" || s.calls != 0 {
 		t.Fatal("history must read only the direct actor without approval")
+	}
+	e.Message = webhook.TextMessageContent{Text: "出勤紀錄 2"}
+	_, handled, err = b.reply(context.Background(), e)
+	if err != nil || !handled || s.queriedGroup != "group-b" || s.queriedUser != "actor" || s.calls != 0 {
+		t.Fatal("history must stay in selected group and direct actor")
 	}
 }
 
@@ -101,7 +136,7 @@ func TestAttendanceIdentityAndRedelivery(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			s := &attendanceStub{}
-			b := &attendanceBot{store: s, zone: zone}
+			b := &attendanceBot{store: s, zone: zone, appURL: "https://liff.line.me/test"}
 			e := webhook.MessageEvent{Mode: "active", ReplyToken: "token", WebhookEventId: tc.event, Source: webhook.GroupSource{GroupId: tc.group, UserId: tc.user}, Message: webhook.TextMessageContent{Text: tc.command}, DeliveryContext: &webhook.DeliveryContext{IsRedelivery: tc.redelivery}}
 			_, _, err := b.reply(context.Background(), e)
 			if err != nil || s.calls != tc.calls {
@@ -116,7 +151,7 @@ func TestAttendanceIdentityAndRedelivery(t *testing.T) {
 
 func TestAttendanceFailureDoesNotReplySuccess(t *testing.T) {
 	s := &attendanceStub{err: errors.New("unavailable")}
-	b := &attendanceBot{store: s}
+	b := &attendanceBot{store: s, appURL: "https://liff.line.me/test"}
 	e := webhook.MessageEvent{Mode: "active", ReplyToken: "token", WebhookEventId: "event", Source: webhook.GroupSource{GroupId: "g", UserId: "u"}, Message: webhook.TextMessageContent{Text: "上班"}}
 	reply, handled, err := b.reply(context.Background(), e)
 	if !handled || err == nil || reply.message != nil {
@@ -132,5 +167,14 @@ func TestAttendanceWebhookRejectsUnsignedRequest(t *testing.T) {
 	lineWebhookHandler("secret", nil, "", b, nil)(w, r)
 	if w.Code != http.StatusUnauthorized || s.calls != 0 {
 		t.Fatalf("status=%d calls=%d", w.Code, s.calls)
+	}
+	t.Setenv("LINE_MINI_APP_CHANNEL_ID", "123")
+	mux := http.NewServeMux()
+	registerAttendanceAPI(mux, b)
+	r = httptest.NewRequest(http.MethodPost, "/api/v1/attendance/punches", strings.NewReader(`{}`))
+	w = httptest.NewRecorder()
+	mux.ServeHTTP(w, r)
+	if w.Code != http.StatusUnauthorized || s.calls != 0 {
+		t.Fatal("browser punch must require LINE authentication")
 	}
 }
