@@ -8,8 +8,8 @@ import "github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 func AttendanceRichMenus(appURL string) map[string]*messaging_api.RichMenuRequest {
 	menus := make(map[string]*messaging_api.RichMenuRequest)
 	for _, tab := range []struct{ alias, other, label, action string }{
-		{"attendance-in", "attendance-out", "上班", "clock-in"},
-		{"attendance-out", "attendance-in", "下班", "clock-out"},
+		{"attendance-in", "attendance-out", "出勤紀錄", "attendance-history"},
+		{"attendance-out", "attendance-in", "功能說明", "help"},
 	} {
 		menu := RichMenu(appURL)
 		menu.Name = "出勤：" + tab.label
@@ -31,6 +31,9 @@ func Help(group bool, appURL string) messaging_api.MessageInterface {
 		&messaging_api.FlexButton{
 			Action: &messaging_api.PostbackAction{Label: "連線狀態", Data: "action=status"},
 		},
+	}
+	if !group {
+		buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.PostbackAction{Label: "出勤紀錄", Data: "action=attendance-history"}})
 	}
 	if appURL != "" {
 		buttons = append(buttons, &messaging_api.FlexButton{

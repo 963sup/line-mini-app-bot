@@ -5,6 +5,9 @@
 !cmd/**
 !internal/
 !internal/**
+!assets/
+!assets/richmenu/
+!assets/richmenu/**
 
 # Always exclude agent material, including future allowlist changes.
 /.agents/**

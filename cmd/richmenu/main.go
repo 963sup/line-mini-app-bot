@@ -30,11 +30,15 @@ func main() {
 }
 
 func run(args []string) error {
+	if len(args) > 0 && args[0] == "sync" {
+		return syncMenus(args[1:])
+	}
 	flags := flag.NewFlagSet("richmenu", flag.ContinueOnError)
 	appURL := flags.String("app-url", "", "HTTPS MINI App permanent link")
 	imagePath := flags.String("image", "", "2500 x 843 PNG or JPEG, at most 1 MiB")
 	apply := flags.Bool("apply", false, "create/upload on LINE; otherwise preview only")
 	attendance := flags.Bool("attendance-preview", false, "preview attendance tabs and alias names")
+	alias := flags.String("alias", "", "attendance-in or attendance-out; create its switch alias after upload")
 	setDefault := flags.Bool("set-default", false, "also replace the default rich menu when applying")
 	menuID := flags.String("menu-id", "", "resume upload using a previously created menu ID")
 	if err := flags.Parse(args); err != nil {
@@ -51,6 +55,13 @@ func run(args []string) error {
 		return errors.New("-app-url must not contain credentials or a fragment")
 	}
 	menu := lineui.RichMenu(parsed.String())
+	if *alias != "" {
+		var ok bool
+		menu, ok = lineui.AttendanceRichMenus(parsed.String())[*alias]
+		if !ok {
+			return errors.New("-alias must be attendance-in or attendance-out")
+		}
+	}
 	if *attendance {
 		if *apply {
 			return errors.New("attendance prototype supports preview only")
@@ -101,7 +112,23 @@ func run(args []string) error {
 	if _, err := blob.SetRichMenuImage(*menuID, contentType, bytes.NewReader(content)); err != nil {
 		return errors.New("image upload failed; resume with -menu-id using the printed ID; default menu was not changed")
 	}
+	if *alias != "" {
+		existing, lookupErr := api.GetRichMenuAlias(*alias)
+		if lookupErr == nil && existing.RichMenuId == *menuID {
+			// A resumed upload already has the requested alias.
+		} else if _, err := api.CreateRichMenuAlias(&messaging_api.CreateRichMenuAliasRequest{RichMenuAliasId: *alias, RichMenuId: *menuID}); err != nil {
+			return errors.New("alias creation failed; inspect existing aliases before retrying; default unchanged")
+		}
+	}
 	if *setDefault {
+		// Both aliases must exist before a switching menu becomes the default.
+		if *alias != "" {
+			for _, name := range []string{"attendance-in", "attendance-out"} {
+				if _, err := api.GetRichMenuAlias(name); err != nil {
+					return errors.New("publish both aliases before setting the default")
+				}
+			}
+		}
 		if _, err := api.SetDefaultRichMenu(*menuID); err != nil {
 			return errors.New("setting default failed; inspect the current default before retrying with -menu-id")
 		}

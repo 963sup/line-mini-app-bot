@@ -78,6 +78,8 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 			command = "上班"
 		case "clock-out":
 			command = "下班"
+		case "attendance-history":
+			command = "出勤紀錄"
 		default:
 			return lineReply{}, false, nil
 		}
