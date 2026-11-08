@@ -60,7 +60,8 @@ func (c *Client) Lookup(ctx context.Context, lat, lon float64, address string) (
 	if err != nil {
 		return Forecast{}, errors.New("forecast service unavailable")
 	}
-	defer res.Body.Close()
+	// The response is read-only; closing cannot commit application state.
+	defer func() { _ = res.Body.Close() }()
 	if res.StatusCode != http.StatusOK {
 		return Forecast{}, errors.New("forecast service rejected request")
 	}

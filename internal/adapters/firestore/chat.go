@@ -134,11 +134,16 @@ func (s *Chat) Unsend(ctx context.Context, g, id string) error {
 		if len(docs) == 0 {
 			return nil
 		}
-		batch := s.Client.Batch()
-		for _, d := range docs {
-			batch.Update(d.Ref, []db.Update{{Path: "Result", Value: ""}, {Path: "Sources", Value: []string{}}, {Path: "Status", Value: "done"}})
-		}
-		if _, e = batch.Commit(ctx); e != nil {
+		// Keep each page atomic without the deprecated WriteBatch API.
+		e = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+			for _, d := range docs {
+				if err := tx.Update(d.Ref, []db.Update{{Path: "Result", Value: ""}, {Path: "Sources", Value: []string{}}, {Path: "Status", Value: "done"}}); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+		if e != nil {
 			return e
 		}
 	}
@@ -302,11 +307,15 @@ func (s *Chat) Purge(ctx context.Context, j summary.Job) error {
 			if len(docs) == 0 {
 				break
 			}
-			batch := s.Client.Batch()
-			for _, d := range docs {
-				batch.Delete(d.Ref)
-			}
-			if _, e = batch.Commit(ctx); e != nil {
+			e = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+				for _, d := range docs {
+					if err := tx.Delete(d.Ref); err != nil {
+						return err
+					}
+				}
+				return nil
+			})
+			if e != nil {
 				return e
 			}
 		}

@@ -62,7 +62,8 @@ func (q *summaryTasks) Enqueue(ctx context.Context, j summary.Job) error {
 	if e != nil {
 		return errors.New("summary queue unavailable")
 	}
-	defer res.Body.Close()
+	// The response is read-only; closing cannot commit application state.
+	defer func() { _ = res.Body.Close() }()
 	_, _ = io.Copy(io.Discard, io.LimitReader(res.Body, 4096))
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusConflict {
 		return errors.New("summary queue rejected task")
@@ -94,16 +95,14 @@ func registerSummary(ctx context.Context, mux *http.ServeMux) (*summaryBot, func
 	}
 	auth, e := google.DefaultClient(ctx, "https://www.googleapis.com/auth/cloud-platform")
 	if e != nil {
-		db.Close()
-		return nil, nil, errors.New("cannot initialize summary queue credentials")
+		return nil, nil, errors.Join(errors.New("cannot initialize summary queue credentials"), db.Close())
 	}
 	auth.Timeout = 4 * time.Second
 	noRedirect := func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
 	auth.CheckRedirect = noRedirect
 	line, e := messaging_api.NewMessagingApiAPI(os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN"), messaging_api.WithHTTPClient(&http.Client{Timeout: 10 * time.Second}))
 	if e != nil {
-		db.Close()
-		return nil, nil, e
+		return nil, nil, errors.Join(e, db.Close())
 	}
 	store := &storage.Chat{Client: db, ChannelID: channel}
 	service := &summary.Service{Store: store, Model: &summary.Gemini{Key: key, Model: model, HTTP: &http.Client{Timeout: 45 * time.Second, CheckRedirect: noRedirect}}, Sender: summaryDelivery{bot: line}}
@@ -117,30 +116,30 @@ func summaryWorker(service *summary.Service, target, email string) http.HandlerF
 		defer cancel()
 		parts := strings.Fields(r.Header.Get("Authorization"))
 		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-			http.Error(w, "unauthorized", 401)
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 		claims, e := idtoken.Validate(ctx, parts[1], target)
 		if e != nil || claims.Claims["email"] != email || claims.Claims["email_verified"] != true {
-			http.Error(w, "unauthorized", 401)
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 		var input struct{ Group, ID string }
 		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 2048))
 		decoder.DisallowUnknownFields()
 		if e := decoder.Decode(&input); e != nil || !regexp.MustCompile(`^C[0-9a-f]{32}$`).MatchString(input.Group) || !regexp.MustCompile(`^[0-9a-f]{64}$`).MatchString(input.ID) {
-			http.Error(w, "invalid job", 400)
+			http.Error(w, "invalid job", http.StatusBadRequest)
 			return
 		}
 		if decoder.Decode(new(any)) != io.EOF {
-			http.Error(w, "invalid job", 400)
+			http.Error(w, "invalid job", http.StatusBadRequest)
 			return
 		}
 		if e := service.Run(ctx, input.Group, input.ID); e != nil {
-			http.Error(w, "summary temporarily unavailable", 503)
+			http.Error(w, "summary temporarily unavailable", http.StatusServiceUnavailable)
 			return
 		}
-		w.WriteHeader(204)
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 

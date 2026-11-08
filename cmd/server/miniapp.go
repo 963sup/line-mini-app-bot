@@ -129,7 +129,8 @@ func (app *miniApp) authenticate(w http.ResponseWriter, r *http.Request) (string
 		apiError(w, http.StatusServiceUnavailable, "unavailable", "暫時無法驗證 LINE 身分。")
 		return "", "", false
 	}
-	defer response.Body.Close()
+	// The response is read-only; closing cannot commit application state.
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode == http.StatusBadRequest || response.StatusCode == http.StatusUnauthorized {
 		apiError(w, http.StatusUnauthorized, "unauthenticated", "LINE 登入已失效，請重新登入。")
 		return "", "", false

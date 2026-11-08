@@ -22,7 +22,7 @@ func main() {
 	}
 }
 
-func run() error {
+func run() (resultErr error) {
 	document := flag.String("document", "", "document path to read; contents will not be printed")
 	flag.Parse()
 	project := os.Getenv("GOOGLE_CLOUD_PROJECT")
@@ -42,13 +42,13 @@ func run() error {
 	if err != nil {
 		return errors.New("cannot initialize Firestore; check ADC and project configuration")
 	}
-	defer client.Close()
+	defer func() { resultErr = errors.Join(resultErr, client.Close()) }()
 	_, err = client.Doc(*document).Get(ctx)
 	if status.Code(err) == codes.NotFound {
-		return errors.New("Firestore returned NotFound; confirm database and document exist; read access not confirmed")
+		return errors.New("firestore returned NotFound; confirm database and document exist; read access not confirmed")
 	}
 	if err != nil {
-		return errors.New("Firestore read failed; check project, database, IAM and connectivity")
+		return errors.New("firestore read failed; check project, database, IAM and connectivity")
 	}
 	fmt.Println("Firestore read access confirmed; document exists; contents not printed; no data written")
 	return nil

@@ -36,7 +36,8 @@ func (g *Gemini) Summarize(ctx context.Context, messages []Message) (string, err
 	if e != nil {
 		return "", errors.New("summary model unavailable")
 	}
-	defer res.Body.Close()
+	// The response is read-only; closing cannot commit application state.
+	defer func() { _ = res.Body.Close() }()
 	if res.StatusCode != http.StatusOK {
 		return "", errors.New("summary model rejected request")
 	}

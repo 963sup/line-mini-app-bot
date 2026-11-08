@@ -95,7 +95,9 @@ func run(args []string) error {
 		}
 		*menuID = created.RichMenuId
 	}
-	fmt.Fprintln(os.Stdout, "richMenuId:", *menuID)
+	if _, err := fmt.Fprintln(os.Stdout, "richMenuId:", *menuID); err != nil {
+		return errors.New("cannot print rich menu ID; inspect existing menus before retrying")
+	}
 	if _, err := blob.SetRichMenuImage(*menuID, contentType, bytes.NewReader(content)); err != nil {
 		return errors.New("image upload failed; resume with -menu-id using the printed ID; default menu was not changed")
 	}
@@ -103,7 +105,9 @@ func run(args []string) error {
 		if _, err := api.SetDefaultRichMenu(*menuID); err != nil {
 			return errors.New("setting default failed; inspect the current default before retrying with -menu-id")
 		}
-		fmt.Fprintln(os.Stdout, "default rich menu updated")
+		if _, err := fmt.Fprintln(os.Stdout, "default rich menu updated"); err != nil {
+			return errors.New("default menu updated but confirmation output failed")
+		}
 	}
 	return nil
 }
@@ -113,7 +117,8 @@ func readMenuImage(path string) ([]byte, string, error) {
 	if err != nil {
 		return nil, "", errors.New("provide a readable -image file")
 	}
-	defer file.Close()
+	// This file is read-only; no writes need to be committed on close.
+	defer func() { _ = file.Close() }()
 	content, err := io.ReadAll(io.LimitReader(file, (1<<20)+1))
 	if err != nil || len(content) > 1<<20 {
 		return nil, "", errors.New("image is unreadable or exceeds 1 MiB")

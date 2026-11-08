@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -43,8 +44,7 @@ func newAttendanceBot(ctx context.Context, channel string) (*attendanceBot, func
 	}
 	zone, err := time.LoadLocation("Asia/Taipei")
 	if err != nil {
-		client.Close()
-		return nil, nil, err
+		return nil, nil, errors.Join(err, client.Close())
 	}
 	return &attendanceBot{store: &storage.Attendance{Client: client, ChannelID: channel}, zone: zone}, client.Close, nil
 }

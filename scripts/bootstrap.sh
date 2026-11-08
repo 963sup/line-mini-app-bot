@@ -11,8 +11,13 @@ if [[ ! -x /workspace/tooling/bin/mise ]] || [[ "$(/workspace/tooling/bin/mise -
   trap 'rm -rf "$stage"' EXIT
   artifact="mise-v$version-linux-$arch.tar.gz"
   base="https://github.com/jdx/mise/releases/download/v$version"
-  curl -fsSL "$base/$artifact" -o "$stage/$artifact"
-  curl -fsSL "$base/SHASUMS256.txt" -o "$stage/SHASUMS256.txt"
+  # Release/CDN 429/5xx and timeouts are transient; bound retries and keep
+  # checksum verification below authoritative before installing anything.
+  download_options=(--fail --silent --show-error --location --retry 5
+    --retry-max-time 180 --connect-timeout 15 --max-time 60)
+  echo "Downloading pinned mise $version ($arch) and checksums"
+  curl "${download_options[@]}" "$base/$artifact" -o "$stage/$artifact"
+  curl "${download_options[@]}" "$base/SHASUMS256.txt" -o "$stage/SHASUMS256.txt"
   (cd "$stage"; awk -v file="$artifact" '$2 == file || $2 == "*"file { print }' SHASUMS256.txt > selected.sha256; test -s selected.sha256; sha256sum -c selected.sha256)
   tar -xzf "$stage/$artifact" -C "$stage"
   mkdir -p /workspace/tooling/bin

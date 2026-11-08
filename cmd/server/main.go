@@ -19,7 +19,7 @@ func main() {
 	}
 }
 
-func run() error {
+func run() (resultErr error) {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -35,7 +35,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	defer closeAttendance()
+	defer func() { resultErr = errors.Join(resultErr, closeAttendance()) }()
 	if attendance != nil && os.Getenv("LINE_MINI_APP_LIFF_ID") != "" {
 		attendance.appURL = "https://liff.line.me/" + os.Getenv("LINE_MINI_APP_LIFF_ID")
 	}
@@ -44,7 +44,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	defer closeSummaries()
+	defer func() { resultErr = errors.Join(resultErr, closeSummaries()) }()
 	if err := registerLINEWebhook(mux, appURL, attendance, summaries); err != nil {
 		return err
 	}
