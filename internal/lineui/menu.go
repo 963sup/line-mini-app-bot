@@ -61,11 +61,14 @@ func AttendanceMenu() messaging_api.MessageInterface {
 	return &messaging_api.FlexMessage{AltText: "出勤打卡：上班／下班", Contents: &messaging_api.FlexBubble{
 		Body: &messaging_api.FlexBox{Layout: "vertical", Contents: []messaging_api.FlexComponentInterface{
 			&messaging_api.FlexText{Text: "出勤打卡", Weight: "bold", Size: "xl"},
-			&messaging_api.FlexText{Text: "點選記錄本人的上下班時間；結果會顯示在群組。", Wrap: true, Margin: "md"},
+			&messaging_api.FlexText{Text: "記錄上下班與休息；下班前請確認本班休息紀錄。", Wrap: true, Margin: "md"},
 		}},
-		Footer: &messaging_api.FlexBox{Layout: "horizontal", Spacing: "md", Contents: []messaging_api.FlexComponentInterface{
+		Footer: &messaging_api.FlexBox{Layout: "vertical", Spacing: "md", Contents: []messaging_api.FlexComponentInterface{
 			&messaging_api.FlexButton{Style: "primary", Action: &messaging_api.PostbackAction{Label: "上班", Data: "action=clock-in"}},
 			&messaging_api.FlexButton{Style: "secondary", Action: &messaging_api.PostbackAction{Label: "下班", Data: "action=clock-out"}},
+			&messaging_api.FlexButton{Action: &messaging_api.PostbackAction{Label: "休息開始", Data: "action=break-start"}},
+			&messaging_api.FlexButton{Action: &messaging_api.PostbackAction{Label: "休息結束", Data: "action=break-end"}},
+			&messaging_api.FlexButton{Action: &messaging_api.PostbackAction{Label: "確認本班休息紀錄", Data: "action=confirm-rest"}},
 		}},
 	}}
 }

@@ -113,6 +113,12 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 			command = "上班"
 		case "clock-out":
 			command = "下班"
+		case "break-start":
+			command = "休息開始"
+		case "break-end":
+			command = "休息結束"
+		case "confirm-rest":
+			command = "確認休息"
 		case "attendance-history":
 			command = "出勤紀錄"
 		default:
@@ -123,7 +129,7 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 		return lineReply{}, false, nil
 	}
 	history := command == "出勤紀錄" || strings.HasPrefix(command, "出勤紀錄 ")
-	if command != "打卡" && command != "上班" && command != "下班" && !history {
+	if command != "打卡" && command != "上班" && command != "下班" && command != "休息開始" && command != "休息結束" && command != "確認休息" && !history {
 		return lineReply{}, false, nil
 	}
 	respond := func(text string) (lineReply, bool, error) {
@@ -214,8 +220,15 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 		return respond("事件缺少識別碼，未執行打卡。")
 	}
 	action := "clock-in"
-	if command == "下班" {
+	switch command {
+	case "下班":
 		action = "clock-out"
+	case "休息開始":
+		action = "break-start"
+	case "休息結束":
+		action = "break-end"
+	case "確認休息":
+		action = "confirm-rest"
 	}
 	if store, ok := b.store.(attendance.LocatedStore); ok {
 		if b.appURL == "" {

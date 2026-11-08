@@ -10,6 +10,7 @@ import (
 
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/attendance"
+	"github.com/963sup/line-mini-app-bot/internal/worktime"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -73,6 +74,9 @@ func (s *Attendance) punch(ctx context.Context, group, user, event, action strin
 		}
 		if eventTime < active.LastEventTime {
 			result.Code = "stale_event"
+			if err := tx.Create(u.Collection("attendanceRawEvents").Doc(documentKey(group, event, action)), map[string]any{"eventID": event, "action": action, "occurredAt": now, "eventTime": eventTime, "groupID": group, "source": "server", "resultCode": result.Code}); err != nil {
+				return err
+			}
 			return tx.Create(receipt, result)
 		}
 		var record attendance.Record
@@ -90,45 +94,70 @@ func (s *Attendance) punch(ctx context.Context, group, user, event, action strin
 				return fmt.Errorf("invalid attendance state")
 			}
 		}
-		switch action {
-		case "clock-in":
-			if active.RecordID != "" {
-				result = attendance.Result{Code: "already_in", Record: record}
-				break
+		machine := worktime.State{}
+		if active.RecordID != "" {
+			machine.Active = &worktime.Session{ID: active.RecordID, Start: record.ClockInAt, End: record.ClockOutAt, Breaks: record.Breaks, RestConfirmed: record.RestConfirmed, EventIDs: record.SourceEventIDs}
+			machine.RestStartedAt = record.BreakStartedAt
+			machine.LastAt = record.LastAppliedAt
+			if machine.LastAt.IsZero() {
+				machine.LastAt = record.ClockInAt
 			}
-			record = attendance.Record{SchemaVersion: 1, GroupID: group, ClockInAt: now}
-			if position != nil {
-				record.SchemaVersion = 2
-				record.ClockInPosition = position
+			for _, rest := range record.Breaks {
+				if rest.End.After(machine.LastAt) {
+					machine.LastAt = rest.End
+				}
 			}
-			id := documentKey(group, event)
-			if err := tx.Create(u.Collection("attendance").Doc(id), record); err != nil {
-				return err
+			if record.BreakStartedAt.After(machine.LastAt) {
+				machine.LastAt = record.BreakStartedAt
 			}
-			active.RecordID = id
-			result = attendance.Result{Code: "clocked_in", Record: record}
-		case "clock-out":
-			if active.RecordID == "" {
-				result.Code = "not_in"
-				break
+		}
+		next, outcome := worktime.ApplyEvent(machine, worktime.Event{ID: event, Kind: action, At: now})
+		result.Code = outcome.Code
+		if outcome.Accepted {
+			if action == "clock-in" {
+				record = attendance.Record{SchemaVersion: 3, GroupID: group, RecordID: documentKey(group, event), ClockInPosition: position}
+				ref = u.Collection("attendance").Doc(record.RecordID)
 			}
-			if now.Before(record.ClockInAt) {
-				return fmt.Errorf("server clock precedes clock-in")
+			record.ClockInAt = outcome.Session.Start
+			record.ClockOutAt = outcome.Session.End
+			record.Breaks = outcome.Session.Breaks
+			record.RestConfirmed = outcome.Session.RestConfirmed
+			record.BreakStartedAt = next.RestStartedAt
+			record.EventSequence++
+			record.LastAppliedAt = now
+			record.SourceEventIDs = outcome.Session.EventIDs
+			if action == "clock-out" {
+				record.ClockOutPosition = position
 			}
-			record.ClockOutAt = now
-			record.ClockOutPosition = position
-			if position != nil {
-				record.SchemaVersion = 2
-			}
-			if err := tx.Set(ref, record); err != nil {
-				return err
+			if action == "clock-in" {
+				if err := tx.Create(ref, record); err != nil {
+					return err
+				}
+			} else {
+				if err := tx.Set(ref, record); err != nil {
+					return err
+				}
 			}
 			active.RecordID = ""
-			result = attendance.Result{Code: "clocked_out", Record: record}
-		default:
-			return fmt.Errorf("invalid attendance action")
+			if next.Active != nil {
+				active.RecordID = record.RecordID
+			}
 		}
+		result.Record = record
+
 		if err := tx.Set(state, map[string]any{"recordID": active.RecordID, "lastEventTime": eventTime}); err != nil {
+			return err
+		}
+		// A separate immutable event retains the attempted action and its outcome.
+		raw := map[string]any{"eventID": event, "action": action, "occurredAt": now, "source": "server", "eventTime": eventTime, "groupID": group, "recordID": active.RecordID, "resultCode": result.Code, "sequence": record.EventSequence, "contractVersion": 1}
+		if position != nil {
+			raw["position"] = position
+			raw["source"] = "located-web"
+		}
+		if result.Record.RecordID != "" {
+			raw["recordID"] = result.Record.RecordID
+		}
+		if err := tx.Create(u.Collection("attendanceRawEvents").Doc(documentKey(group, event, action)), raw); err != nil {
 			return err
 		}
 		return tx.Create(receipt, result)
@@ -196,16 +225,89 @@ func (s *Attendance) RecentGroup(ctx context.Context, user, group string) ([]att
 	return records, err
 }
 
-// MonthGroup assigns overnight shifts to the month of clock-in in Taiwan time.
+// MonthGroup includes every shift overlapping the reporting period, including open shifts.
 func (s *Attendance) MonthGroup(ctx context.Context, user, group string, start time.Time) ([]attendance.Record, error) {
 	records, err := s.groupRecords(ctx, user, group)
 	if err != nil {
 		return nil, err
 	}
+	// Read complete streams only for records that can affect this month.
+	relevant := make([]attendance.Record, 0)
+	for _, r := range records {
+		if r.ClockInAt.Before(start.AddDate(0, 1, 0)) && (r.ClockOutAt.IsZero() || r.ClockOutAt.After(start)) {
+			relevant = append(relevant, r)
+		}
+	}
+	records = relevant
+	rawDocs := []*db.DocumentSnapshot{}
+	for _, r := range records {
+		if r.SchemaVersion < 3 || r.Revision > 0 {
+			continue
+		}
+		docs, e := s.user(user).Collection("attendanceRawEvents").Where("recordID", "==", r.RecordID).Documents(ctx).GetAll()
+		if e != nil {
+			return nil, e
+		}
+		rawDocs = append(rawDocs, docs...)
+	}
+	eventsByRecord := map[string][]worktime.Event{}
+	for _, doc := range rawDocs {
+		var raw struct {
+			EventID         string    `firestore:"eventID"`
+			Action          string    `firestore:"action"`
+			OccurredAt      time.Time `firestore:"occurredAt"`
+			RecordID        string    `firestore:"recordID"`
+			ResultCode      string    `firestore:"resultCode"`
+			Sequence        int64     `firestore:"sequence"`
+			Source          string    `firestore:"source"`
+			ContractVersion int       `firestore:"contractVersion"`
+			GroupID         string    `firestore:"groupID"`
+		}
+		if err := doc.DataTo(&raw); err != nil {
+			return nil, err
+		}
+		if !worktime.AcceptedCode(raw.ResultCode) {
+			continue
+		}
+		eventsByRecord[raw.RecordID] = append(eventsByRecord[raw.RecordID], worktime.Event{ID: raw.EventID, Kind: raw.Action, At: raw.OccurredAt, Sequence: raw.Sequence, ResultCode: raw.ResultCode, Source: raw.Source, ContractVersion: raw.ContractVersion, RecordID: raw.RecordID, GroupID: raw.GroupID})
+	}
+	for i := range records {
+		record := &records[i]
+		if record.Revision > 0 || record.CorrectionID != "" {
+			valid, err := s.verifyCorrection(ctx, user, *record)
+			if err != nil {
+				return nil, err
+			}
+			if !valid {
+				record.RestConfirmed = false
+				record.RebuildIssues = []string{"invalid_correction_evidence"}
+			}
+			continue
+		}
+		if record.SchemaVersion < 3 {
+			continue
+		} // Legacy records have no complete raw-event history.
+		validation := worktime.ValidateEventStream(eventsByRecord[record.RecordID], record.RecordID, group, record.EventSequence)
+		sessions, issues := worktime.BuildIntervals(eventsByRecord[record.RecordID])
+		issues = append(issues, validation...)
+		if len(sessions) != 1 || len(issues) > 0 || int64(len(eventsByRecord[record.RecordID])) != record.EventSequence {
+			record.RestConfirmed = false
+			record.RebuildIssues = []string{"incomplete_event_history"}
+			for _, issue := range issues {
+				record.RebuildIssues = append(record.RebuildIssues, issue.Code)
+			}
+			continue
+		}
+		rebuilt := sessions[0]
+		record.ClockInAt, record.ClockOutAt = rebuilt.Start, rebuilt.End
+		record.Breaks, record.RestConfirmed = rebuilt.Breaks, rebuilt.RestConfirmed
+		record.SourceEventIDs = rebuilt.EventIDs
+		record.BreakStartedAt = time.Time{}
+	}
 	end := start.AddDate(0, 1, 0)
 	result := make([]attendance.Record, 0)
 	for _, r := range records {
-		if !r.ClockInAt.Before(start) && r.ClockInAt.Before(end) {
+		if r.ClockInAt.Before(end) && (r.ClockOutAt.IsZero() || r.ClockOutAt.After(start)) {
 			result = append(result, r)
 		}
 	}
@@ -223,6 +325,9 @@ func (s *Attendance) groupRecords(ctx context.Context, user, group string) ([]at
 		var record attendance.Record
 		if err := doc.DataTo(&record); err != nil {
 			return nil, err
+		}
+		if record.RecordID == "" {
+			record.RecordID = doc.Ref.ID
 		}
 		records = append(records, record)
 	}
@@ -245,6 +350,9 @@ func (s *Attendance) Recent(ctx context.Context, user string) ([]attendance.Reco
 		var record attendance.Record
 		if err := doc.DataTo(&record); err != nil {
 			return nil, err
+		}
+		if record.RecordID == "" {
+			record.RecordID = doc.Ref.ID
 		}
 		records = append(records, record)
 	}

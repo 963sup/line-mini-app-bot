@@ -15,6 +15,7 @@ import (
 
 func registerAttendanceAPI(mux *http.ServeMux, bot *attendanceBot) {
 	app := &miniApp{channelID: os.Getenv("LINE_MINI_APP_CHANNEL_ID"), client: &http.Client{Timeout: 5 * time.Second}}
+	registerAttendanceCorrections(mux, bot, app)
 	mux.Handle("POST /api/v1/attendance/punches", http.NewCrossOriginProtection().Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if bot == nil {
 			writeAPIError(w, 503, "not_configured", "出勤尚未啟用。")
@@ -75,6 +76,18 @@ func registerAttendanceAPI(mux *http.ServeMux, bot *attendanceBot) {
 			message = "已於 " + bot.format(result.Record.ClockInAt) + " 上班，無須重複打卡。"
 		case "clocked_out":
 			message = "下班打卡成功，" + bot.format(result.Record.ClockOutAt)
+		case "break_started":
+			message = "已記錄休息開始。"
+		case "break_ended":
+			message = "已記錄休息結束；請在下班前確認本班休息紀錄。"
+		case "rest_confirmed":
+			message = "已確認本班休息紀錄（未記錄休息時代表確認沒有可扣除的休息區間）。"
+		case "already_resting":
+			message = "休息已開始，無須重複操作。"
+		case "not_resting":
+			message = "沒有休息開始紀錄，未新增休息結束。"
+		case "break_incomplete":
+			message = "休息尚未結束，無法確認。"
 		case "stale_event":
 			message = "較早的打卡請求未變更出勤，請回群組重新操作。"
 		}

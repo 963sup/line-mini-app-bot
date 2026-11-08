@@ -96,6 +96,9 @@ func TestAttendancePostback(t *testing.T) {
 	}{
 		{"action=clock-in", "clock-in", true},
 		{"action=clock-out", "clock-out", true},
+		{"action=break-start", "break-start", true},
+		{"action=break-end", "break-end", true},
+		{"action=confirm-rest", "confirm-rest", true},
 		{"action=clock-in&userId=other", "", false},
 		{"action=clock-in&action=clock-out", "", false},
 		{"action=help", "", false},

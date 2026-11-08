@@ -4,6 +4,7 @@ package attendance
 import (
 	"context"
 	"errors"
+	"github.com/963sup/line-mini-app-bot/internal/worktime"
 	"time"
 )
 
@@ -34,12 +35,22 @@ type LocatedStore interface {
 }
 
 type Record struct {
-	SchemaVersion    int       `firestore:"schemaVersion"`
-	GroupID          string    `firestore:"groupID"`
-	ClockInAt        time.Time `firestore:"clockInAt"`
-	ClockOutAt       time.Time `firestore:"clockOutAt,omitempty"`
-	ClockInPosition  *Position `firestore:"clockInPosition,omitempty"`
-	ClockOutPosition *Position `firestore:"clockOutPosition,omitempty"`
+	Revision         int64               `firestore:"revision"`
+	CorrectionID     string              `firestore:"correctionID,omitempty"`
+	RebuildIssues    []string            `firestore:"-"`
+	LastAppliedAt    time.Time           `firestore:"lastAppliedAt"`
+	SourceEventIDs   []string            `firestore:"sourceEventIDs,omitempty"`
+	EventSequence    int64               `firestore:"eventSequence"`
+	RecordID         string              `firestore:"recordID,omitempty"`
+	Breaks           []worktime.Interval `firestore:"breaks,omitempty"`
+	BreakStartedAt   time.Time           `firestore:"breakStartedAt,omitempty"`
+	RestConfirmed    bool                `firestore:"restConfirmed"`
+	SchemaVersion    int                 `firestore:"schemaVersion"`
+	GroupID          string              `firestore:"groupID"`
+	ClockInAt        time.Time           `firestore:"clockInAt"`
+	ClockOutAt       time.Time           `firestore:"clockOutAt,omitempty"`
+	ClockInPosition  *Position           `firestore:"clockInPosition,omitempty"`
+	ClockOutPosition *Position           `firestore:"clockOutPosition,omitempty"`
 }
 
 type Result struct {

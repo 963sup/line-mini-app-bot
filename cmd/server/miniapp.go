@@ -23,6 +23,9 @@ var miniAppScript []byte
 //go:embed web/attendance.js
 var attendanceScript []byte
 
+//go:embed web/worktime.js
+var worktimeScript []byte
+
 type miniApp struct {
 	channelID string
 	liffID    string
@@ -40,6 +43,7 @@ func registerMiniApp(mux *http.ServeMux) (string, error) {
 	}
 	mux.HandleFunc("GET /miniapp", serveMiniApp)
 	mux.HandleFunc("GET /assets/miniapp.js", staticAssetHandler(miniAppScript, "text/javascript; charset=utf-8"))
+	mux.HandleFunc("GET /assets/worktime.js", staticAssetHandler(worktimeScript, "text/javascript; charset=utf-8"))
 	mux.HandleFunc("GET /assets/attendance.js", staticAssetHandler(attendanceScript, "text/javascript; charset=utf-8"))
 	mux.HandleFunc("GET /api/v1/miniapp/config", app.handleConfig)
 	mux.HandleFunc("GET /api/v1/me", app.handleMe)

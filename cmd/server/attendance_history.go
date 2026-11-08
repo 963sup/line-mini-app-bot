@@ -78,31 +78,25 @@ func (b *attendanceBot) historyResult(ctx context.Context, group string, records
 	if end > len(records) {
 		end = len(records)
 	}
-	complete, open := 0, 0
-	var total time.Duration
-	for _, r := range records {
-		if r.ClockOutAt.IsZero() {
-			open++
-		} else {
-			complete++
-			if !r.ClockOutAt.Before(r.ClockInAt) {
-				total += r.ClockOutAt.Sub(r.ClockInAt)
-			}
-		}
-	}
+	calculated := attendance.CalculateMonthlyAttendance(records, start).Calculation
 	var text strings.Builder
-	fmt.Fprintf(&text, "%s｜臺灣時間\n共 %d 筆・已下班 %d 筆・未下班 %d 筆\n已完成打卡區間合計 %d小時%d分（未扣休息）\n第 %d/%d 頁\n", start.Format("2006年01月"), len(records), complete, open, int(total.Hours()), int(total.Minutes())%60, page+1, pages)
+	fmt.Fprintf(&text, "%s｜臺灣時間\n本月已確認工作 %d小時%d分\n待確認 %d 筆・異常 %d 項\n正常／加班分類待認定\n第 %d/%d 頁\n", start.Format("2006年01月"), calculated.Minutes/60, calculated.Minutes%60, calculated.Pending, len(calculated.Issues), page+1, pages)
 	for _, r := range records[page*size : end] {
 		out := "尚未下班"
 		if !r.ClockOutAt.IsZero() {
 			out = r.ClockOutAt.In(zone).Format("01/02 15:04")
 		}
 		fmt.Fprintf(&text, "\n%s 上班 %s\n下班 %s\n", r.ClockInAt.In(zone).Format("01/02"), r.ClockInAt.In(zone).Format("15:04"), out)
+		if !r.BreakStartedAt.IsZero() {
+			text.WriteString("休息未結束・待確認\n")
+		} else if !r.RestConfirmed {
+			text.WriteString("休息未確認・未納入工時\n")
+		}
 	}
 	if len(records) == 0 {
 		text.WriteString("\n本月沒有出勤紀錄。")
 	}
-	text.WriteString("\n跨日班次依上班日期歸屬月份。")
+	text.WriteString("\n跨月班次只計本月區間；休息未確認與漏卡不納入已確認工時。")
 	action := func(month time.Time, p int) string {
 		return url.Values{"action": {"attendance-history"}, "group": {group}, "month": {month.Format("2006-01")}, "page": {fmt.Sprint(p)}}.Encode()
 	}
