@@ -51,6 +51,8 @@ jobs:
         run: sudo install -d -m 0755 -o "$(id -u)" -g "$(id -g)" /workspace/tooling
       - name: Install pinned Go development environment
         if: steps.module.outputs.present == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: bash scripts/bootstrap.sh core
       - name: Verify Go application
         if: steps.module.outputs.present == 'true'

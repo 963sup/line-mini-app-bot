@@ -15,10 +15,25 @@ if [[ ! -x /workspace/tooling/bin/mise ]] || [[ "$(/workspace/tooling/bin/mise -
   # checksum verification below authoritative before installing anything.
   download_options=(--fail --silent --show-error --location --retry 5
     --retry-max-time 180 --connect-timeout 15 --max-time 60)
+  download_release_asset() {
+    local name="$1" http_status asset_id
+    if http_status="$(curl "${download_options[@]}" --write-out '%{http_code}' "$base/$name" -o "$stage/$name")"; then
+      return
+    fi
+    # A persistent release-page gateway failure can be isolated from the API
+    # route. Both routes serve the same pinned upstream asset, never a mirror.
+    if [[ ! "$http_status" =~ ^(408|429|5[0-9][0-9])$ ]] || ! command -v gh >/dev/null 2>&1; then
+      return 1
+    fi
+    echo "Release download returned HTTP $http_status; using the GitHub asset API for $name"
+    asset_id="$(gh api "repos/jdx/mise/releases/tags/v$version" --jq ".assets[] | select(.name == \"$name\") | .id")" || return
+    [[ "$asset_id" =~ ^[0-9]+$ ]] || return 1
+    gh api -H 'Accept: application/octet-stream' "repos/jdx/mise/releases/assets/$asset_id" > "$stage/$name"
+  }
   echo "Downloading pinned mise $version ($arch) and checksums"
-  curl "${download_options[@]}" "$base/$artifact" -o "$stage/$artifact"
-  curl "${download_options[@]}" "$base/SHASUMS256.txt" -o "$stage/SHASUMS256.txt"
-  (cd "$stage"; awk -v file="$artifact" '$2 == file || $2 == "*"file { print }' SHASUMS256.txt > selected.sha256; test -s selected.sha256; sha256sum -c selected.sha256)
+  download_release_asset "$artifact"
+  download_release_asset SHASUMS256.txt
+  (cd "$stage"; awk -v file="$artifact" '{ name = $2; sub(/^\*/, "", name); sub(/^\.\//, "", name); if (name == file) print }' SHASUMS256.txt > selected.sha256; test -s selected.sha256; sha256sum -c selected.sha256)
   tar -xzf "$stage/$artifact" -C "$stage"
   mkdir -p /workspace/tooling/bin
   install -m 0755 "$stage/mise/bin/mise" /workspace/tooling/bin/mise
