@@ -32,6 +32,7 @@ PYTHONPYCACHEPREFIX = "/workspace/tooling/cache/python"
 PLAYWRIGHT_BROWSERS_PATH = "/workspace/tooling/cache/ms-playwright"
 HISTFILE = "/workspace/tooling/state/bash_history"
 CLOUDSDK_CONFIG = "{{ env.CLOUDSDK_CONFIG | default(value=\"/workspace/tooling/config/gcloud\") }}"
+GOOGLE_APPLICATION_CREDENTIALS = "{{ env.GOOGLE_APPLICATION_CREDENTIALS | default(value=\"/workspace/tooling/config/gcloud/application_default_credentials.json\") }}"
 DOCKER_CONFIG = "{{ env.DOCKER_CONFIG | default(value=\"/workspace/tooling/config/docker\") }}"
 
 [tools]

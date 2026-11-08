@@ -116,12 +116,36 @@ startup_timeout_sec = 30
 tool_timeout_sec = 60
 
 [mcp_servers.gcloud]
+# Official server: https://github.com/googleapis/gcloud-mcp
 command = "bash"
-args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "gcloud-mcp"]
-env_vars = ["CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "SSL_CERT_FILE", "NODE_EXTRA_CA_CERTS"]
+args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "npx", "-y", "@google-cloud/gcloud-mcp"]
+env_vars = ["CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "CLOUDSDK_CORE_PROJECT", "CLOUDSDK_CORE_ACCOUNT", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
 enabled_tools = ["run_gcloud_command"]
 default_tools_approval_mode = "prompt"
 enabled = true
 required = false
 startup_timeout_sec = 60
+tool_timeout_sec = 120
+
+[mcp_servers.cloud-run]
+# Official local stdio server: https://github.com/GoogleCloudPlatform/cloud-run-mcp
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "npx", "-y", "@google-cloud/cloud-run-mcp"]
+env_vars = ["CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_REGION", "DEFAULT_SERVICE_NAME", "SKIP_IAM_CHECK", "RUN_INGRESS_POLICY", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
+default_tools_approval_mode = "prompt"
+enabled = true
+required = false
+startup_timeout_sec = 60
+tool_timeout_sec = 120
+
+[mcp_servers.gke]
+# Official Go stdio server: https://github.com/GoogleCloudPlatform/gke-mcp
+# Upstream reads DK_API_KEY; reuse the host's Developer Knowledge key at launch.
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tool-exec.sh", "bash", "-c", 'export DK_API_KEY="${DEVELOPERKNOWLEDGE_API_KEY:-}"; exec gke-mcp']
+env_vars = ["DEVELOPERKNOWLEDGE_API_KEY", "CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "CLOUDSDK_CORE_PROJECT", "CLOUDSDK_CORE_ACCOUNT", "CLOUDSDK_COMPUTE_REGION", "CLOUDSDK_COMPUTE_ZONE", "KUBECONFIG", "GKE_MCP_PROVIDER", "GKE_MCP_MODEL", "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_LOCATION", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
+default_tools_approval_mode = "prompt"
+enabled = true
+required = false
+startup_timeout_sec = 120
 tool_timeout_sec = 120
