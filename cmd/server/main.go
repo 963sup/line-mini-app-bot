@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	storage "github.com/963sup/line-mini-app-bot/internal/adapters/firestore"
 	"log/slog"
 	"net"
 	"net/http"
@@ -46,12 +45,7 @@ func run() (resultErr error) {
 		return err
 	}
 	defer func() { resultErr = errors.Join(resultErr, closeSummaries()) }()
-	var polls *pollBot
-	if attendance != nil {
-		backing := attendance.store.(*storage.Attendance)
-		polls = &pollBot{store: &storage.PollStore{Client: backing.Client, ChannelID: backing.ChannelID}}
-	}
-	if err := registerLINEWebhook(mux, appURL, attendance, summaries, polls); err != nil {
+	if err := registerLINEWebhook(mux, appURL, attendance, summaries); err != nil {
 		return err
 	}
 	server := &http.Server{
