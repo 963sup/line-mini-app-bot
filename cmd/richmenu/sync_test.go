@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 )
 
 type cleanupTransport func(*http.Request) (*http.Response, error)

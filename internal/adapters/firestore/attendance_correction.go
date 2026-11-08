@@ -1,12 +1,13 @@
 package firestore
 
 import (
-	db "cloud.google.com/go/firestore"
 	"context"
+	"time"
+
+	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/attendance"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"time"
 )
 
 // ProposeCorrection is always scoped to the authenticated employee.

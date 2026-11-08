@@ -2,9 +2,10 @@ package attendance
 
 import (
 	"errors"
-	"github.com/963sup/line-mini-app-bot/internal/worktime"
 	"strings"
 	"time"
+
+	"github.com/963sup/line-mini-app-bot/internal/worktime"
 )
 
 var ErrCorrection = errors.New("invalid, stale or unauthorized attendance correction")

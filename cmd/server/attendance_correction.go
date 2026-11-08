@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/963sup/line-mini-app-bot/internal/attendance"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"io"
 	"mime"
 	"net/http"
 	"regexp"
 	"time"
+
+	"github.com/963sup/line-mini-app-bot/internal/attendance"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type correctionStore interface {

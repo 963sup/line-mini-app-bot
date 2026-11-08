@@ -1,9 +1,10 @@
 package attendance
 
 import (
-	"github.com/963sup/line-mini-app-bot/internal/worktime"
 	"testing"
 	"time"
+
+	"github.com/963sup/line-mini-app-bot/internal/worktime"
 )
 
 func TestCorrectionIsVersionedAndDoesNotMutateOriginal(t *testing.T) {

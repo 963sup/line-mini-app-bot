@@ -39,3 +39,9 @@ pattern = "repomix-output.*"
 reason = "Generated source bundle"
 impact = "Bundle coverage is verified separately during audit"
 owner = "tooling"
+
+[[exclude]]
+pattern = "assets/richmenu/*.jpg"
+reason = "Binary LINE rich menu images cannot be represented in text source bundles"
+impact = "Menu definitions and upload code remain managed; image appearance requires visual verification"
+owner = "application"

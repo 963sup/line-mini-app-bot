@@ -12,6 +12,7 @@ func at(s string) time.Time {
 	}
 	return t
 }
+
 func TestCalculateBreaksOverlapAndMonth(t *testing.T) {
 	from := at("2026-11-01T00:00:00+08:00")
 	to := from.AddDate(0, 1, 0)
@@ -31,6 +32,7 @@ func TestCalculateBreaksOverlapAndMonth(t *testing.T) {
 		t.Fatalf("overlap: %+v", result)
 	}
 }
+
 func TestIncompleteAndLegacyAreNotGuessed(t *testing.T) {
 	start := at("2026-11-01T09:00:00+08:00")
 	end := start.Add(8 * time.Hour)
@@ -41,6 +43,7 @@ func TestIncompleteAndLegacyAreNotGuessed(t *testing.T) {
 		}
 	}
 }
+
 func TestBuildMultipleShiftsAndDuplicates(t *testing.T) {
 	start := at("2026-11-01T09:00:00+08:00")
 	events := []Event{{ID: "in", Kind: "clock-in", At: start}, {ID: "out", Kind: "clock-out", At: start.Add(4 * time.Hour)}, {ID: "confirm", Kind: "confirm-rest", At: start.Add(3 * time.Hour)}, {ID: "in2", Kind: "clock-in", At: start.Add(5 * time.Hour)}, {ID: "rest", Kind: "break-start", At: start.Add(6 * time.Hour)}, {ID: "rest-end", Kind: "break-end", At: start.Add(7 * time.Hour)}, {ID: "confirm2", Kind: "confirm-rest", At: start.Add(8 * time.Hour)}, {ID: "out2", Kind: "clock-out", At: start.Add(9 * time.Hour)}}
@@ -57,6 +60,7 @@ func TestBuildMultipleShiftsAndDuplicates(t *testing.T) {
 		t.Fatal("conflicting event was silently counted")
 	}
 }
+
 func TestAccumulateSecondsBeforeConvertingMinutes(t *testing.T) {
 	start := at("2026-11-01T09:00:00+08:00")
 	r := Calculate([]Session{{Start: start, End: start.Add(40 * time.Second), RestConfirmed: true}, {Start: start.Add(time.Minute), End: start.Add(100 * time.Second), RestConfirmed: true}}, start, start.Add(time.Hour))
@@ -97,6 +101,7 @@ func TestApplyAndReplayAgreeAfterRestChanges(t *testing.T) {
 		t.Fatal("rest mismatch")
 	}
 }
+
 func TestRejectedEventsDoNotPoisonReplay(t *testing.T) {
 	start := at("2026-11-01T09:00:00+08:00")
 	events := []Event{{ID: "in", Kind: "clock-in", At: start, ResultCode: "clocked_in", Sequence: 1}, {ID: "reject", Kind: "clock-out", At: start, ResultCode: "stale_event", Sequence: 1}, {ID: "confirm", Kind: "confirm-rest", At: start.Add(time.Hour), ResultCode: "rest_confirmed", Sequence: 2}, {ID: "out", Kind: "clock-out", At: start.Add(8 * time.Hour), ResultCode: "clocked_out", Sequence: 3}}

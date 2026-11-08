@@ -18,24 +18,29 @@ type Event struct {
 	Sequence          int64
 	ResultCode        string
 }
-type Interval struct{ Start, End time.Time }
-type Session struct {
-	ID            string
-	Start, End    time.Time
-	Breaks        []Interval
-	RestConfirmed bool
-	EventIDs      []string
-}
-type Issue struct{ SessionID, Code string }
-type Result struct {
-	EventIDs  []string
-	Version   string
-	Duration  time.Duration
-	Minutes   int64
-	Pending   int
-	Issues    []Issue
-	Intervals []Interval
-}
+type (
+	Interval struct{ Start, End time.Time }
+	Session  struct {
+		ID            string
+		Start, End    time.Time
+		Breaks        []Interval
+		RestConfirmed bool
+		EventIDs      []string
+	}
+)
+
+type (
+	Issue  struct{ SessionID, Code string }
+	Result struct {
+		EventIDs  []string
+		Version   string
+		Duration  time.Duration
+		Minutes   int64
+		Pending   int
+		Issues    []Issue
+		Intervals []Interval
+	}
+)
 
 // BuildIntervals preserves input, deduplicates event IDs and reports ambiguous sequences.
 func BuildIntervals(events []Event) ([]Session, []Issue) {
@@ -189,6 +194,7 @@ func Calculate(sessions []Session, from, to time.Time) Result {
 	r.Minutes = int64(r.Duration / time.Minute)
 	return r
 }
+
 func union(items []Interval) []Interval {
 	sort.Slice(items, func(i, j int) bool { return items[i].Start.Before(items[j].Start) })
 	out := []Interval{}

@@ -4,8 +4,9 @@ package attendance
 import (
 	"context"
 	"errors"
-	"github.com/963sup/line-mini-app-bot/internal/worktime"
 	"time"
+
+	"github.com/963sup/line-mini-app-bot/internal/worktime"
 )
 
 var ErrInvalidRequest = errors.New("invalid or expired attendance request")

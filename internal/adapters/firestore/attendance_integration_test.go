@@ -1,13 +1,14 @@
 package firestore
 
 import (
-	db "cloud.google.com/go/firestore"
 	"context"
 	"fmt"
-	"github.com/963sup/line-mini-app-bot/internal/attendance"
 	"os"
 	"testing"
 	"time"
+
+	db "cloud.google.com/go/firestore"
+	"github.com/963sup/line-mini-app-bot/internal/attendance"
 )
 
 // Never runs against a production Firestore project.
@@ -21,7 +22,11 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Errorf("close Firestore client: %v", err)
+		}
+	}()
 	s := &Attendance{Client: client, ChannelID: fmt.Sprintf("closure-%d", time.Now().UnixNano())}
 	zone := time.FixedZone("Taipei", 28800)
 	start := time.Date(2026, 11, 2, 9, 0, 0, 0, zone)

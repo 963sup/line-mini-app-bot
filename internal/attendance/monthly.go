@@ -1,8 +1,9 @@
 package attendance
 
 import (
-	"github.com/963sup/line-mini-app-bot/internal/worktime"
 	"time"
+
+	"github.com/963sup/line-mini-app-bot/internal/worktime"
 )
 
 type MonthlyReport struct {
