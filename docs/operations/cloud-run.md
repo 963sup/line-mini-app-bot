@@ -67,6 +67,7 @@ Cloud Run 透過執行帳戶提供 ADC，不上傳 Google service-account key fi
 | `gemini-api-key` | `GEMINI_API_KEY` | `latest` | 已引用；群聊摘要使用。 |
 | `line-bot-openai-api-key` | 無 | 未引用 | 目前程式與部署檔均未引用。 |
 | `line-messaging-api-channel-access-token` | `LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN` | `1` | 已引用；LINE Messaging API 使用。 |
+| `line_mini_app_channel_secret` | `LINE_MINI_APP_CHANNEL_SECRET` | `1` | 預留綁定；目前程式未讀取。 |
 | `line-messaging-api-channel-secret` | `LINE_MESSAGING_API_CHANNEL_SECRET` | `1` | 已引用；LINE Webhook 驗簽使用。 |
 | `openai-api-key` | `OPENAI_API_KEY` | `1` | 已引用；OpenAI 群聊摘要使用。 |
 
