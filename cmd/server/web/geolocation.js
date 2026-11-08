@@ -1,4 +1,5 @@
 "use strict";
+(() => {
 
 const locate = document.querySelector("#locate");
 const status = document.querySelector("#status");
@@ -101,3 +102,4 @@ async function submitPosition(id, position) {
 
 locate.addEventListener("click", requestCurrentPosition);
 window.addEventListener("pagehide", () => stopRequest("已停止定位。"));
+})();

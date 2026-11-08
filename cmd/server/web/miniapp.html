@@ -65,7 +65,21 @@
       <button id="approve-correction" type="button" disabled>核准已讀取的申請</button></div>
     </section>
     <script src="/assets/worktime.js" defer></script>
-    <footer class="app-footer"><p><a href="/location">開啟定位示範 ↗</a></p>
+    <section class="panel" aria-labelledby="location-demo-heading">
+      <div class="section-heading"><span class="step">04</span><div><p class="section-kicker">定位工具</p><h2 id="location-demo-heading">取得目前位置</h2></div></div>
+      <p>按下按鈕並允許定位後，會將位置傳送至本站驗證格式與時間。此示範不會保存資料，也不會完成打卡。</p>
+      <div class="actions"><button id="locate" type="button">取得位置並驗證</button></div>
+      <p id="status" role="status" aria-live="polite">尚未要求定位。</p>
+      <dl id="result" hidden>
+        <div><dt>緯度</dt><dd id="latitude"></dd></div>
+        <div><dt>經度</dt><dd id="longitude"></dd></div>
+        <div><dt>估計精度</dt><dd id="accuracy"></dd></div>
+        <div><dt>採樣時間</dt><dd id="captured"></dd></div>
+        <div><dt>伺服器驗證</dt><dd id="validation">尚未驗證</dd></div>
+      </dl>
+    </section>
+    <script src="/assets/geolocation.js" defer></script>
+    <footer class="app-footer">
     <p class="note">從群組開啟連結完成定位打卡；私訊 Bot 輸入「出勤紀錄」選群組查詢。</p>
     </footer>
     <script src="/assets/attendance.js" defer></script>
