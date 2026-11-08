@@ -60,6 +60,7 @@ func (s *Chat) Edit(ctx context.Context, g, id, text string, timestamp int64) er
 func (s *Chat) group(g string) *db.DocumentRef {
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("summaryGroups").Doc(key(g))
 }
+
 func state(tx *db.Transaction, r *db.DocumentRef) (chatState, error) {
 	var st chatState
 	d, e := tx.Get(r)
@@ -71,6 +72,7 @@ func state(tx *db.Transaction, r *db.DocumentRef) (chatState, error) {
 	}
 	return st, d.DataTo(&st)
 }
+
 func (s *Chat) Collect(ctx context.Context, g string, m summary.Message) error {
 	now := time.Now()
 	if m.ID == "" || m.UserID == "" || m.OccurredAt.Before(now.Add(-24*time.Hour)) || m.OccurredAt.After(now.Add(time.Minute)) {
@@ -101,6 +103,7 @@ func (s *Chat) Collect(ctx context.Context, g string, m summary.Message) error {
 		return tx.Create(ref, m)
 	})
 }
+
 func (s *Chat) Unsend(ctx context.Context, g, id string) error {
 	if id == "" {
 		return nil
@@ -218,6 +221,7 @@ func (s *Chat) Claim(ctx context.Context, g, id string) (summary.Job, bool, erro
 	})
 	return j, claimed, err
 }
+
 func (s *Chat) Messages(ctx context.Context, j summary.Job) ([]summary.Message, error) {
 	// One range/order field: no composite index required. Filter epochs and TTL in code.
 	docs, e := s.group(j.GroupID).Collection("summaryMessages").Where("OccurredAt", ">=", j.Cutoff.Add(-24*time.Hour)).Where("OccurredAt", "<=", j.Cutoff).OrderBy("OccurredAt", db.Desc).Limit(100).Documents(ctx).GetAll()
@@ -237,6 +241,7 @@ func (s *Chat) Messages(ctx context.Context, j summary.Job) ([]summary.Message, 
 	}
 	return result, nil
 }
+
 func (s *Chat) mutate(ctx context.Context, j summary.Job, update func(*summary.Job)) error {
 	ref := s.group(j.GroupID).Collection("summaryJobs").Doc(j.ID)
 	return s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
@@ -265,12 +270,15 @@ func (s *Chat) mutate(ctx context.Context, j summary.Job, update func(*summary.J
 		return tx.Set(ref, current)
 	})
 }
+
 func (s *Chat) SaveResult(ctx context.Context, j summary.Job, text string, sources []string) error {
 	return s.mutate(ctx, j, func(v *summary.Job) { v.Result = text; v.Sources = sources; v.ExpireAt = j.ExpireAt })
 }
+
 func (s *Chat) Done(ctx context.Context, j summary.Job) error {
 	return s.mutate(ctx, j, func(v *summary.Job) { v.Status = "done"; v.LeaseUntil = time.Time{}; v.Result = "" })
 }
+
 func (s *Chat) Current(ctx context.Context, j summary.Job) (bool, error) {
 	d, e := s.group(j.GroupID).Get(ctx)
 	if e != nil {
@@ -282,6 +290,7 @@ func (s *Chat) Current(ctx context.Context, j summary.Job) (bool, error) {
 	}
 	return !st.Disabled && st.Epoch == j.Epoch && st.Revision == j.Revision && j.ExpireAt.After(time.Now()), nil
 }
+
 func (s *Chat) Purge(ctx context.Context, j summary.Job) error {
 	root := s.group(j.GroupID)
 	for _, collection := range []string{"summaryMessages", "summaryJobs"} {

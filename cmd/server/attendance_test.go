@@ -30,13 +30,16 @@ func (s *attendanceStub) CreateRequest(_ context.Context, request attendance.Req
 	s.group, s.user, s.event, s.action = request.GroupID, request.UserID, request.EventID, request.Action
 	return strings.Repeat("a", 64), s.err
 }
+
 func (s *attendanceStub) Submit(context.Context, string, string, attendance.Position, time.Time) (attendance.Result, error) {
 	return attendance.Result{}, s.err
 }
+
 func (s *attendanceStub) Groups(_ context.Context, user string) ([]string, error) {
 	s.queriedUser = user
 	return s.groups, s.err
 }
+
 func (s *attendanceStub) RecentGroup(_ context.Context, user, group string) ([]attendance.Record, error) {
 	s.queriedUser = user
 	s.queriedGroup = group
@@ -50,6 +53,7 @@ func (s *attendanceStub) Punch(_ context.Context, group, user, event, action str
 	s.action = action
 	return attendance.Result{Code: "clocked_in", Record: attendance.Record{ClockInAt: now}}, s.err
 }
+
 func (s *attendanceStub) Recent(_ context.Context, user string) ([]attendance.Record, error) {
 	s.queriedUser = user
 	return nil, s.err

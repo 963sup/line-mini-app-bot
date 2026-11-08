@@ -3,6 +3,12 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 source scripts/dev-env.sh
 mise exec -- go version
+for tool in gopls deadcode callgraph stringer golangci-lint gofumpt govulncheck; do
+  mise exec -- sh -c 'command -v "$1" >/dev/null' -- "$tool" || {
+    echo "FAIL: missing $tool; run mise run install-core"; exit 1;
+  }
+done
+echo 'PASS: core Go development tools on PATH'
 for name in GOPATH GOCACHE GOMODCACHE GOENV GOTMPDIR; do
   value="$(mise exec -- go env "$name")"
   case "$value" in /workspace/*) ;; *) echo "FAIL: $name outside workspace: $value"; exit 1;; esac

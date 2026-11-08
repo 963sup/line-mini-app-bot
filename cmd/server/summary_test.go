@@ -65,6 +65,7 @@ func (s *chatStub) Collect(_ context.Context, g string, m summary.Message) error
 	s.collected = append(s.collected, m)
 	return nil
 }
+
 func (s *chatStub) Command(_ context.Context, g, _, _ string, _ int64) (summary.Job, error) {
 	s.group = g
 	s.commands++
@@ -93,6 +94,7 @@ func TestSummaryCollectsGroupTextSilentlyWithActor(t *testing.T) {
 		t.Fatal("direct messages and attendance commands must not be collected")
 	}
 }
+
 func TestSummaryEnqueuesWithoutCallingModel(t *testing.T) {
 	s := &chatStub{job: summary.Job{Status: "pending"}}
 	q := &queueStub{}

@@ -1,5 +1,33 @@
 # mise ownership
 
+## Go development loop
+
+Run `bash scripts/bootstrap.sh core` to install the pinned core tools. In a new
+shell use `bash scripts/tool-exec.sh mise run <task>`; installation alone does
+not activate the shell PATH. Use `install-debug` separately for Delve.
+
+After Go changes run `fmt-check`, `lint`, `check` and `build`. `fmt` rewrites
+formatting; `fmt-check` reports differences without writing. Run `vuln` after
+dependency changes and before delivery; it requires access to the vulnerability
+database. CI uses these same task definitions.
+
+Use `deadcode` as review input, not an automatic deletion rule. Supply callgraph
+arguments with `mise run callgraph -- -algo=static ./cmd/server`; supply Delve
+arguments with `mise run debug -- ./cmd/server`. Debugging may require ptrace
+support from the host; installing Delve does not establish that permission.
+Use stringer through package-specific `go:generate` directives when needed.
+
+`coverage` writes `.artifacts/go/coverage.out`; inspect it with
+`go tool cover -func=.artifacts/go/coverage.out`. `bench` runs existing benchmarks.
+`profile ./path/to/package` accepts one package and writes a test binary, CPU
+and memory profiles under `.artifacts/go/`. Inspect with
+`go tool pprof .artifacts/go/profile.test .artifacts/go/cpu.pprof`.
+These tasks do not create test cases or benchmarks. No Firestore Emulator is used.
+
+Versions are verified against the Go module proxy; mise Go backend/exec behavior
+was checked using Context7's upstream mise documentation, and coverage/benchmark
+commands against Go version-matched documentation. Pins live only in mise.toml.
+
 Use `bash scripts/tool-exec.sh mise run <task>` from the repository root.
 Tool versions, non-secret paths and tasks are defined in `mise.toml`.
 The wrapper loads bootstrap-compatible environment before invoking mise.

@@ -11,6 +11,7 @@ graphify-out/
 repomix-output.*
 bin/
 coverage.out
+.artifacts/
 *.test
 __pycache__/
 .venv/

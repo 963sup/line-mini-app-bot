@@ -44,19 +44,14 @@ jobs:
           if not exists:
               print("Application checks NOT RUN: no go.mod exists yet.")
           PY
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+      - name: Install pinned Go development environment
         if: steps.module.outputs.present == 'true'
-        with:
-          go-version: ${{ steps.module.outputs.version }}
-          cache: ${{ hashFiles('go.sum') != '' }}
+        run: bash scripts/bootstrap.sh core
       - name: Verify Go application
         if: steps.module.outputs.present == 'true'
-        env:
-          GOTOOLCHAIN: local
-          GOFLAGS: -mod=readonly
         run: |
-          go mod download
-          go mod verify
-          go vet ./...
-          go test -race ./...
-          go build ./...
+          bash scripts/tool-exec.sh mise run fmt-check
+          bash scripts/tool-exec.sh mise run lint
+          bash scripts/tool-exec.sh mise run check
+          bash scripts/tool-exec.sh mise run build
+          bash scripts/tool-exec.sh mise run vuln

@@ -1,5 +1,11 @@
 # Go delivery workflow
 
+For Go changes use the pinned environment through `bash scripts/tool-exec.sh`.
+Run mise tasks `fmt-check`, `lint`, `check` and `build`; run `vuln` for dependency
+changes and before delivery. Use `deadcode` and `callgraph` for focused analysis,
+and `debug`, `coverage`, `bench`, `profile` only when relevant. See
+[mise tooling](../tooling/mise.md) for installation and artifact paths.
+
 Eight roles are available; they are not eight mandatory execution stages.
 The orchestrator can complete small work directly. Use implementer, tester and
 reviewer for substantial changes; add architect/researcher/explorer only for a

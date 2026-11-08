@@ -21,6 +21,7 @@ func (s *memoryStore) Unsend(context.Context, string, string) error   { return n
 func (s *memoryStore) Command(context.Context, string, string, string, int64) (Job, error) {
 	return s.job, nil
 }
+
 func (s *memoryStore) Claim(context.Context, string, string) (Job, bool, error) {
 	return s.job, s.claimed, nil
 }
@@ -75,6 +76,7 @@ func TestRunReusesSavedResultAfterPushFailure(t *testing.T) {
 		t.Fatal("retry must reuse result and retry key")
 	}
 }
+
 func TestRunCancelsIfDisabledDuringGeneration(t *testing.T) {
 	now := time.Now()
 	store := &memoryStore{claimed: true, current: true, job: Job{ExpireAt: now.Add(time.Hour)}, messages: []Message{{ID: "m", UserID: "u", Text: "text", ExpireAt: now.Add(time.Hour)}}}
@@ -85,6 +87,7 @@ func TestRunCancelsIfDisabledDuringGeneration(t *testing.T) {
 		t.Fatal("changed generation must never send")
 	}
 }
+
 func TestRunDuplicateAndCancelledJobsDoNotCallModel(t *testing.T) {
 	for _, claimed := range []bool{false, true} {
 		store := &memoryStore{claimed: claimed}
@@ -96,6 +99,7 @@ func TestRunDuplicateAndCancelledJobsDoNotCallModel(t *testing.T) {
 		}
 	}
 }
+
 func TestInputPreservesActorAndSourcesWithoutRawIDs(t *testing.T) {
 	text, ids := Input([]Message{{ID: "m1", UserID: "secret-user", Text: "一"}, {ID: "m2", UserID: "other-user", Text: "二"}, {ID: "m3", UserID: "secret-user", Text: "三"}, {ID: "m4", Text: "撤回", Deleted: true}})
 	if len(ids) != 3 || ids[2] != "m3" || strings.Contains(text, "secret-user") || strings.Count(text, "成員1") != 2 || !strings.Contains(text, "S3") || strings.Contains(text, "撤回") {
