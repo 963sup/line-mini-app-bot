@@ -1,11 +1,6 @@
 schema = 1
 # Universe: git ls-files, plus these explicit files before their first commit.
-additional = [
-  "cmd/server/http_helpers.go",
-  "analysis-scope.toml", "scripts/analysis-scope.py", "docs/tooling/analysis-scope.md",
-  "cmd/server/summary_http.go", "internal/summary/model_test.go",
-  "cmd/server/request_validation_test.go",
-]
+additional = []
 managed_suffixes = [".go", ".mod", ".sum", ".sh", ".py", ".toml", ".md", ".json", ".yaml", ".yml", ".js", ".css", ".html", ".txt"]
 managed_names = ["Dockerfile", "LICENSE", "GOOGLE-SKILLS-LICENSE", ".editorconfig", ".gcloudignore", ".gitattributes", ".gitignore", ".dockerignore", ".graphifyignore", ".repomixignore", ".env.example"]
 

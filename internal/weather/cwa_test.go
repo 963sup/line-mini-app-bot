@@ -1,11 +1,39 @@
 package weather
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"math"
 	"testing"
 	"time"
 )
+
+func TestLookupRejectsInvalidCoordinates(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		lat, lon float64
+	}{
+		{"latitude NaN", math.NaN(), 121},
+		{"longitude NaN", 25, math.NaN()},
+		{"latitude positive infinity", math.Inf(1), 121},
+		{"latitude negative infinity", math.Inf(-1), 121},
+		{"longitude positive infinity", 25, math.Inf(1)},
+		{"longitude negative infinity", 25, math.Inf(-1)},
+		{"latitude below minimum", -91, 121},
+		{"latitude above maximum", 91, 121},
+		{"longitude below minimum", 25, -181},
+		{"longitude above maximum", 25, 181},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			// No HTTP client: invalid coordinates must return before attempting I/O.
+			client := Client{}
+			if _, err := client.Lookup(context.Background(), tc.lat, tc.lon, ""); !errors.Is(err, ErrOutsideCoverage) {
+				t.Fatalf("expected coverage error, got %v", err)
+			}
+		})
+	}
+}
 
 const fixture = `{"success":"true","records":{"Locations":[{"Location":[{"LocationName":"臺北市","Latitude":"25.03","Longitude":"121.56","WeatherElement":[{"ElementName":"天氣預報綜合描述","Time":[{"StartTime":"2026-11-08T06:00:00+08:00","EndTime":"2026-11-08T18:00:00+08:00","ElementValue":[{"WeatherDescription":"多雲。降雨機率20%。溫度攝氏22至26度。"}]}]}]},{"LocationName":"臺中市","Latitude":"24.14","Longitude":"120.68","WeatherElement":[{"ElementName":"天氣預報綜合描述","Time":[{"StartTime":"2026-11-08T06:00:00+08:00","EndTime":"2026-11-08T18:00:00+08:00","ElementValue":[{"WeatherDescription":"晴。"}]}]}]}]}]}}`
 

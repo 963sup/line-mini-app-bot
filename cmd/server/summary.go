@@ -21,6 +21,7 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/idtoken"
 )
 
 type summaryBot struct {
@@ -65,8 +66,7 @@ func registerSummary(ctx context.Context, mux *http.ServeMux) (*summaryBot, func
 		return nil, nil, errors.Join(errors.New("cannot initialize summary queue credentials"), db.Close())
 	}
 	auth.Timeout = 4 * time.Second
-	noRedirect := func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
-	auth.CheckRedirect = noRedirect
+	auth.CheckRedirect = modelClient.CheckRedirect
 	line, e := messaging_api.NewMessagingApiAPI(os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN"), messaging_api.WithHTTPClient(&http.Client{Timeout: 10 * time.Second}))
 	if e != nil {
 		return nil, nil, errors.Join(e, db.Close())
@@ -201,4 +201,38 @@ func (q *summaryTasks) Enqueue(ctx context.Context, j summary.Job) error {
 		return errors.New("summary queue rejected task")
 	}
 	return nil
+}
+
+func summaryWorker(service *summary.Service, target, email string) http.HandlerFunc {
+	groupIDPattern := regexp.MustCompile(`^C[0-9a-f]{32}$`)
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx, cancel := context.WithTimeout(r.Context(), 80*time.Second)
+		defer cancel()
+		parts := strings.Fields(r.Header.Get("Authorization"))
+		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		claims, e := idtoken.Validate(ctx, parts[1], target)
+		if e != nil || claims.Claims["email"] != email || claims.Claims["email_verified"] != true {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		var input struct{ Group, ID string }
+		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 2048))
+		decoder.DisallowUnknownFields()
+		if e := decoder.Decode(&input); e != nil || !groupIDPattern.MatchString(input.Group) || !requestIDPattern.MatchString(input.ID) {
+			http.Error(w, "invalid job", http.StatusBadRequest)
+			return
+		}
+		if decoder.Decode(new(any)) != io.EOF {
+			http.Error(w, "invalid job", http.StatusBadRequest)
+			return
+		}
+		if e := service.Run(ctx, input.Group, input.ID); e != nil {
+			http.Error(w, "summary temporarily unavailable", http.StatusServiceUnavailable)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}
 }

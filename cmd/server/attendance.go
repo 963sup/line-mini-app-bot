@@ -85,7 +85,8 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 	default:
 		return lineReply{}, false, nil
 	}
-	if command != "打卡" && command != "上班" && command != "下班" && command != "出勤紀錄" && !strings.HasPrefix(command, "出勤紀錄 ") {
+	history := command == "出勤紀錄" || strings.HasPrefix(command, "出勤紀錄 ")
+	if command != "打卡" && command != "上班" && command != "下班" && !history {
 		return lineReply{}, false, nil
 	}
 	respond := func(text string) (lineReply, bool, error) {
@@ -95,7 +96,7 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 		return respond("出勤尚未啟用。")
 	}
 	if user, ok := source.(webhook.UserSource); ok {
-		if command != "出勤紀錄" && !strings.HasPrefix(command, "出勤紀錄 ") {
+		if !history {
 			return respond("請在群組輸入「打卡」，點選上班或下班。")
 		}
 		if user.UserId == "" {
@@ -136,7 +137,7 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 	if !ok {
 		return respond("請在群組打卡，或私訊查詢本人紀錄。")
 	}
-	if command == "出勤紀錄" || strings.HasPrefix(command, "出勤紀錄 ") {
+	if history {
 		return respond("請私訊輸入「出勤紀錄」，查看本人紀錄。")
 	}
 	if group.UserId == "" || group.GroupId == "" {

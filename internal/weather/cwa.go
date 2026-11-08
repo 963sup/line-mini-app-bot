@@ -46,7 +46,7 @@ type response struct {
 }
 
 func (c *Client) Lookup(ctx context.Context, lat, lon float64, address string) (Forecast, error) {
-	if math.IsNaN(lat) || math.IsInf(lat, 0) || math.IsNaN(lon) || math.IsInf(lon, 0) || lat < -90 || lat > 90 || lon < -180 || lon > 180 {
+	if !(lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
 		return Forecast{}, ErrOutsideCoverage
 	}
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
@@ -81,7 +81,8 @@ func selectForecast(data response, lat, lon float64, address string, now time.Ti
 	var nearest, matched *location
 	best := math.Inf(1)
 	for _, area := range data.Records.Locations {
-		for _, loc := range area.Location {
+		for i := range area.Location {
+			loc := &area.Location[i]
 			x, e1 := strconv.ParseFloat(loc.Latitude, 64)
 			y, e2 := strconv.ParseFloat(loc.Longitude, 64)
 			if e1 != nil || e2 != nil || math.IsNaN(x) || math.IsNaN(y) || math.Abs(x) > 90 || math.Abs(y) > 180 {
@@ -89,13 +90,11 @@ func selectForecast(data response, lat, lon float64, address string, now time.Ti
 			}
 			d := distance(lat, lon, x, y)
 			if d < best {
-				copy := loc
-				nearest = &copy
+				nearest = loc
 				best = d
 			}
 			if loc.LocationName != "" && strings.Contains(address, strings.ReplaceAll(loc.LocationName, "台", "臺")) && d <= 100 {
-				copy := loc
-				matched = &copy
+				matched = loc
 			}
 		}
 	}
