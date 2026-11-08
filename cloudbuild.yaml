@@ -87,7 +87,7 @@ substitutions:
   # Reserved runtime binding; the current MINI App flow does not read this secret.
   _MINI_APP_CHANNEL_SECRET_VERSION: '1'
   _CHANNEL_SECRET_NAME: line-messaging-api-channel-secret
-  _CHANNEL_SECRET_VERSION: '1'
+  _CHANNEL_SECRET_VERSION: '2'
   _CHANNEL_ACCESS_TOKEN_NAME: line-messaging-api-channel-access-token
   _CHANNEL_ACCESS_TOKEN_VERSION: '1'
   # Configure the provider, matching model and all three task settings together.
