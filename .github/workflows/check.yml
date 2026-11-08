@@ -35,12 +35,10 @@ jobs:
         id: module
         run: |
           python3 - <<'PY'
-          import os, pathlib, tomllib
-          config = tomllib.loads(pathlib.Path("mise.toml").read_text())
+          import os, pathlib
           exists = pathlib.Path("go.mod").is_file()
           with open(os.environ["GITHUB_OUTPUT"], "a") as output:
               print("present=" + str(exists).lower(), file=output)
-              print("mise_version=" + config["min_version"], file=output)
           if not exists:
               print("Application checks NOT RUN: no go.mod exists yet.")
           PY
@@ -51,9 +49,11 @@ jobs:
         run: sudo install -d -m 0755 -o "$(id -u)" -g "$(id -g)" /workspace/tooling
       - name: Set up mise
         if: steps.module.outputs.present == 'true'
-        uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5
+        uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
         with:
-          version: ${{ steps.module.outputs.mise_version }}
+          # Latest official CDN build; mise.toml enforces the minimum version.
+          minimum_release_age: 0s
+          fetch_from_github: false
           mise_dir: /workspace/tooling/mise-data
           install: false
           env: false
@@ -61,7 +61,8 @@ jobs:
       - name: Install pinned Go development environment
         if: steps.module.outputs.present == 'true'
         run: |
-          bash scripts/tool-exec.sh mise trust mise.toml
+          source scripts/dev-env.sh
+          mise trust mise.toml
           bash scripts/tool-exec.sh mise run install-core
           bash scripts/tool-exec.sh mise run doctor
       - name: Verify Go application
