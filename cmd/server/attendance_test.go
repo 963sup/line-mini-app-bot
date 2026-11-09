@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -24,12 +23,6 @@ type attendanceStub struct {
 	groups             []string
 	records            []attendance.Record
 	punchCalls         int
-}
-
-func (s *attendanceStub) CreateRequest(_ context.Context, request attendance.Request) (string, error) {
-	s.calls++
-	s.group, s.user, s.event, s.action = request.GroupID, request.UserID, request.EventID, request.Action
-	return strings.Repeat("a", 64), s.err
 }
 
 func (s *attendanceStub) Submit(context.Context, string, string, attendance.Position, time.Time) (attendance.Result, error) {
@@ -88,42 +81,14 @@ func TestAttendanceLegacyHistory(t *testing.T) {
 	}
 }
 
-func TestAttendancePostback(t *testing.T) {
-	zone, _ := time.LoadLocation("Asia/Taipei")
-	for _, tc := range []struct {
-		data, action string
-		handled      bool
-	}{
-		{"action=clock-in", "clock-in", true},
-		{"action=clock-out", "clock-out", true},
-		{"action=break-start", "break-start", true},
-		{"action=break-end", "break-end", true},
-		{"action=confirm-rest", "confirm-rest", true},
-		{"action=clock-in&userId=other", "", false},
-		{"action=clock-in&action=clock-out", "", false},
-		{"action=help", "", false},
-		{"action=%zz", "", false},
-	} {
-		t.Run(tc.data, func(t *testing.T) {
-			s := &attendanceStub{}
-			b := &attendanceBot{store: s, zone: zone, appURL: "https://liff.line.me/test"}
-			e := webhook.PostbackEvent{Mode: "active", ReplyToken: "reply", WebhookEventId: "event", Source: webhook.GroupSource{GroupId: "group", UserId: "actor"}, Postback: &webhook.PostbackContent{Data: tc.data}, DeliveryContext: &webhook.DeliveryContext{IsRedelivery: true}}
-			reply, handled, err := b.reply(context.Background(), e)
-			if err != nil || handled != tc.handled || s.action != tc.action {
-				t.Fatalf("handled=%v action=%s err=%v", handled, s.action, err)
-			}
-			if handled && (s.calls != 1 || s.user != "actor" || s.group != "group" || s.event != "event") {
-				t.Fatal("must use signed event identity and scope")
-			}
-			if s.punchCalls != 0 {
-				t.Fatal("group click must not punch without position")
-			}
-			if handled {
-				if _, ok := reply.message.(*messaging_api.TemplateMessage); !ok {
-					t.Fatal("must provide location link")
-				}
-			}
-		})
+func TestOldActionPostbacksAreIgnored(t *testing.T) {
+	b := &attendanceBot{store: &attendanceStub{}, appURL: "https://liff.line.me/test"}
+	for _, action := range []string{"clock-in", "clock-out", "break-start", "break-end", "confirm-rest"} {
+		e := webhook.PostbackEvent{Mode: "active", ReplyToken: "reply", Source: webhook.GroupSource{GroupId: "group", UserId: "actor"}, Postback: &webhook.PostbackContent{Data: "action=" + action}}
+		reply, handled, err := b.reply(context.Background(), e)
+		if err != nil || handled || reply.message != nil {
+			t.Fatalf("old postback %s must be ignored", action)
+		}
 	}
 }
 
@@ -139,59 +104,6 @@ func TestAttendanceHistoryUsesDirectActor(t *testing.T) {
 	_, handled, err = b.reply(context.Background(), e)
 	if err != nil || !handled || s.queriedGroup != "" || s.queriedUser != "actor" || s.calls != 0 {
 		t.Fatal("history must stay in selected group and direct actor")
-	}
-}
-
-func TestAttendanceMenuIsFlexWithoutWrite(t *testing.T) {
-	s := &attendanceStub{}
-	b := &attendanceBot{store: s}
-	e := webhook.MessageEvent{Mode: "active", ReplyToken: "reply", Source: webhook.GroupSource{GroupId: "group", UserId: "actor"}, Message: webhook.TextMessageContent{Text: "打卡"}}
-	reply, handled, err := b.reply(context.Background(), e)
-	if _, ok := reply.message.(*messaging_api.FlexMessage); !ok || !handled || err != nil || s.calls != 0 {
-		t.Fatal("menu must return a Flex card without punching")
-	}
-}
-
-func TestAttendanceIdentityAndRedelivery(t *testing.T) {
-	zone, _ := time.LoadLocation("Asia/Taipei")
-	for _, tc := range []struct {
-		name, group, user, event, command string
-		redelivery                        bool
-		calls                             int
-	}{
-		{"group member", "g", "u", "event", "上班", false, 1},
-		{"redelivery reaches deduplicating store", "g", "u", "event", "上班", true, 1},
-		{"another group needs no approval", "other", "u", "event", "上班", false, 1},
-		{"another member needs no approval", "g", "other", "event", "上班", false, 1},
-		{"missing group", "", "u", "event", "上班", false, 0},
-		{"menu does not punch", "g", "u", "event", "打卡", false, 0},
-		{"missing actor", "g", "", "event", "上班", false, 0},
-		{"missing event", "g", "u", "", "上班", false, 0},
-		{"history stays private", "g", "u", "event", "出勤紀錄", false, 0},
-		{"ordinary conversation", "g", "u", "event", "你好", false, 0},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			s := &attendanceStub{}
-			b := &attendanceBot{store: s, zone: zone, appURL: "https://liff.line.me/test"}
-			e := webhook.MessageEvent{Mode: "active", ReplyToken: "token", WebhookEventId: tc.event, Source: webhook.GroupSource{GroupId: tc.group, UserId: tc.user}, Message: webhook.TextMessageContent{Text: tc.command}, DeliveryContext: &webhook.DeliveryContext{IsRedelivery: tc.redelivery}}
-			_, _, err := b.reply(context.Background(), e)
-			if err != nil || s.calls != tc.calls {
-				t.Fatalf("calls=%d error=%v", s.calls, err)
-			}
-			if s.calls > 0 && (s.group != tc.group || s.user != tc.user || s.event != tc.event) {
-				t.Fatal("actor or scope changed")
-			}
-		})
-	}
-}
-
-func TestAttendanceFailureDoesNotReplySuccess(t *testing.T) {
-	s := &attendanceStub{err: errors.New("unavailable")}
-	b := &attendanceBot{store: s, appURL: "https://liff.line.me/test"}
-	e := webhook.MessageEvent{Mode: "active", ReplyToken: "token", WebhookEventId: "event", Source: webhook.GroupSource{GroupId: "g", UserId: "u"}, Message: webhook.TextMessageContent{Text: "上班"}}
-	reply, handled, err := b.reply(context.Background(), e)
-	if !handled || err == nil || reply.message != nil {
-		t.Fatal("must not acknowledge an unsuccessful write")
 	}
 }
 

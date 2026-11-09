@@ -55,6 +55,7 @@ async function verifyIdentity() {
     identity.hidden = false;
     logoutButton.hidden = false;
     miniStatus.textContent = "本人身分驗證成功，資料未保存。";
+    window.dispatchEvent(new Event("miniapp:identity-ready"));
   } catch (error) {
     if (id !== generation) return;
     miniStatus.textContent = error.name === "AbortError" ? "驗證已中止或逾時，請重試。" :

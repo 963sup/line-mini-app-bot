@@ -56,7 +56,6 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 	var command, token, eventID, selectedGroup string
 	page := 0
 	month := ""
-	var timestamp int64
 	switch e := event.(type) {
 	case webhook.MessageEvent:
 		if e.Mode != "active" || e.ReplyToken == "" {
@@ -67,7 +66,7 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 			return lineReply{}, false, nil
 		}
 		command = strings.TrimSpace(m.Text)
-		source, token, eventID, timestamp = e.Source, e.ReplyToken, e.WebhookEventId, e.Timestamp
+		source, token, eventID = e.Source, e.ReplyToken, e.WebhookEventId
 	case webhook.PostbackEvent:
 		if e.Mode != "active" || e.ReplyToken == "" || e.Postback == nil {
 			return lineReply{}, false, nil
@@ -108,23 +107,11 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 		} else if len(values) != 1 {
 			return lineReply{}, false, nil
 		}
-		switch action {
-		case "clock-in":
-			command = "上班"
-		case "clock-out":
-			command = "下班"
-		case "break-start":
-			command = "休息開始"
-		case "break-end":
-			command = "休息結束"
-		case "confirm-rest":
-			command = "確認休息"
-		case "attendance-history":
-			command = "出勤紀錄"
-		default:
+		if action != "attendance-history" {
 			return lineReply{}, false, nil
 		}
-		source, token, eventID, timestamp = e.Source, e.ReplyToken, e.WebhookEventId, e.Timestamp
+		command = "出勤紀錄"
+		source, token, eventID = e.Source, e.ReplyToken, e.WebhookEventId
 	default:
 		return lineReply{}, false, nil
 	}
@@ -213,35 +200,23 @@ func (b *attendanceBot) reply(ctx context.Context, event webhook.EventInterface)
 	if group.UserId == "" || group.GroupId == "" {
 		return respond("無法確認群組或操作人員，未執行打卡。")
 	}
-	if command == "打卡" {
-		return lineReply{token: token, message: lineui.AttendanceMenu()}, true, nil
+	if command != "打卡" {
+		return respond("請重新輸入「打卡」取得最新操作選單。")
 	}
-	if eventID == "" {
-		return respond("事件缺少識別碼，未執行打卡。")
+	store, ok := b.store.(attendance.LaunchStore)
+	if !ok || b.appURL == "" || eventID == "" {
+		return respond("定位打卡頁尚未設定，未執行打卡。")
 	}
-	action := "clock-in"
-	switch command {
-	case "下班":
-		action = "clock-out"
-	case "休息開始":
-		action = "break-start"
-	case "休息結束":
-		action = "break-end"
-	case "確認休息":
-		action = "confirm-rest"
-	}
-	if store, ok := b.store.(attendance.LocatedStore); ok {
-		if b.appURL == "" {
-			return respond("定位打卡頁尚未設定，未執行打卡。")
-		}
-		requestID, err := store.CreateRequest(ctx, attendance.Request{GroupID: group.GroupId, UserID: group.UserId, EventID: eventID, Action: action, EventTime: timestamp, ExpiresAt: time.Now().UTC().Add(10 * time.Minute)})
+	actions := []string{"clock-in", "clock-out", "break-start", "break-end", "confirm-rest"}
+	links := make([]string, 0, len(actions))
+	for _, action := range actions {
+		launch, err := store.CreateLaunch(ctx, group.GroupId, action)
 		if err != nil {
 			return lineReply{}, true, err
 		}
-		link := b.appURL + "?request=" + url.QueryEscape(requestID)
-		return lineReply{token: token, message: &messaging_api.TemplateMessage{AltText: "開啟定位打卡頁，取得位置後完成打卡", Template: &messaging_api.ButtonsTemplate{Text: "請本人開啟定位打卡頁，取得位置後確認送出；連結有效十分鐘。", Actions: []messaging_api.ActionInterface{&messaging_api.UriAction{Label: "開啟定位打卡", Uri: link}}}}}, true, nil
+		links = append(links, b.appURL+"?launch="+url.QueryEscape(launch))
 	}
-	return respond("定位打卡尚未啟用，未執行打卡。")
+	return lineReply{token: token, message: lineui.AttendanceMenu(links)}, true, nil
 }
 
 func (b *attendanceBot) recordsText(records []attendance.Record) string {

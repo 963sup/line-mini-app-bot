@@ -16,6 +16,7 @@ import (
 func registerAttendanceAPI(mux *http.ServeMux, bot *attendanceBot) {
 	app := &miniApp{channelID: os.Getenv("LINE_MINI_APP_CHANNEL_ID"), client: &http.Client{Timeout: 5 * time.Second}}
 	registerAttendanceCorrections(mux, bot, app)
+	registerAttendanceLaunch(mux, bot, app)
 	mux.Handle("POST /api/v1/attendance/punches", http.NewCrossOriginProtection().Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if bot == nil {
 			writeAPIError(w, 503, "not_configured", "出勤尚未啟用。")

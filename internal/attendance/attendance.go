@@ -29,10 +29,15 @@ type Request struct {
 
 // LocatedStore binds a browser submission to its original signed group event.
 type LocatedStore interface {
-	CreateRequest(context.Context, Request) (string, error)
 	Submit(context.Context, string, string, Position, time.Time) (Result, error)
 	Groups(context.Context, string) ([]string, error)
 	RecentGroup(context.Context, string, string) ([]Record, error)
+}
+
+type LaunchStore interface {
+	CreateLaunch(context.Context, string, string) (string, error)
+	LaunchGroup(context.Context, string) (string, error)
+	ExchangeLaunch(context.Context, string, string) (string, error)
 }
 
 type Record struct {

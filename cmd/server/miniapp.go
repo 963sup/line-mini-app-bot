@@ -20,6 +20,9 @@ var miniAppPage []byte
 //go:embed web/miniapp.js
 var miniAppScript []byte
 
+//go:embed web/miniapp.css
+var miniAppStyle []byte
+
 //go:embed web/attendance.js
 var attendanceScript []byte
 
@@ -42,6 +45,7 @@ func registerMiniApp(mux *http.ServeMux) (string, error) {
 		return "", err
 	}
 	mux.HandleFunc("GET /miniapp", serveMiniApp)
+	mux.HandleFunc("GET /assets/miniapp.css", staticAssetHandler(miniAppStyle, "text/css; charset=utf-8"))
 	mux.HandleFunc("GET /assets/miniapp.js", staticAssetHandler(miniAppScript, "text/javascript; charset=utf-8"))
 	mux.HandleFunc("GET /assets/worktime.js", staticAssetHandler(worktimeScript, "text/javascript; charset=utf-8"))
 	mux.HandleFunc("GET /assets/attendance.js", staticAssetHandler(attendanceScript, "text/javascript; charset=utf-8"))

@@ -169,16 +169,6 @@ func (s *Attendance) requests() *db.CollectionRef {
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("punchRequests")
 }
 
-func (s *Attendance) CreateRequest(ctx context.Context, request attendance.Request) (string, error) {
-	id := documentKey(request.GroupID, request.UserID, request.EventID, request.Action)
-	request.UserID = documentKey(request.UserID)
-	_, err := s.requests().Doc(id).Create(ctx, request)
-	if status.Code(err) == codes.AlreadyExists {
-		err = nil
-	}
-	return id, err
-}
-
 func (s *Attendance) Submit(ctx context.Context, id, user string, position attendance.Position, now time.Time) (attendance.Result, error) {
 	snapshot, err := s.requests().Doc(id).Get(ctx)
 	if status.Code(err) == codes.NotFound {

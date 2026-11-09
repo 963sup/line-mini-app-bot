@@ -92,3 +92,48 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 		t.Fatalf("corrupt approval counted: %+v", report)
 	}
 }
+
+func TestLaunchExchangeIsStableAndScoped(t *testing.T) {
+	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
+		t.Skip("requires Firestore emulator")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	client, err := db.NewClient(ctx, "attendance-local-test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+	s := &Attendance{Client: client, ChannelID: fmt.Sprintf("launch-%d", time.Now().UnixNano())}
+	token, err := s.CreateLaunch(ctx, "group", "clock-in")
+	if err != nil {
+		t.Fatal(err)
+	}
+	group, err := s.LaunchGroup(ctx, token)
+	if err != nil || group != "group" {
+		t.Fatal("launch must stay group bound")
+	}
+	first, err := s.ExchangeLaunch(ctx, token, "user-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := s.ExchangeLaunch(ctx, token, "user-a")
+	if err != nil || second != first {
+		t.Fatal("same user/card must reuse request")
+	}
+	other, err := s.ExchangeLaunch(ctx, token, "user-b")
+	if err != nil || other == first {
+		t.Fatal("each member needs separate request")
+	}
+	snap, err := s.requests().Doc(first).Get(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var request attendance.Request
+	if err = snap.DataTo(&request); err != nil {
+		t.Fatal(err)
+	}
+	if request.GroupID != "group" || request.Action != "clock-in" || request.UserID != documentKey("user-a") {
+		t.Fatal("request binding changed")
+	}
+}
