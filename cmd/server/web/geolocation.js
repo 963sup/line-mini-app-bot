@@ -10,8 +10,15 @@
   let timer;
   let controller;
   let lastCapturedAt;
+  let watchId;
+
+  function stopWatching() {
+    if (watchId !== undefined) navigator.geolocation.clearWatch(watchId);
+    watchId = undefined;
+  }
 
   function clearPending() {
+    stopWatching();
     clearTimeout(timer);
     timer = undefined;
     controller?.abort();
@@ -52,9 +59,10 @@
     // The browser's timeout may exclude a pending permission prompt.
     timer = setTimeout(() => finish(id, "定位等待逾時，請檢查權限後重試。"), 15000);
     try {
-      navigator.geolocation.getCurrentPosition(
-        position => { void submitPosition(id, position); },
+      watchId = navigator.geolocation.watchPosition(
+        position => { stopWatching(); void submitPosition(id, position); },
         error => {
+          stopWatching();
           const messages = {
             1: "未取得定位權限。請檢查瀏覽器、LINE 與系統的定位設定。",
             2: "目前無法取得位置，請確認裝置定位與網路狀態後再試。",

@@ -17,7 +17,7 @@ const context = {
   window: { location: { search: `?request=${"a".repeat(64)}`, origin: "https://example.test" },
     isSecureContext: true, liff: { isLoggedIn: () => true },
     addEventListener(name, fn) { events[name] = fn; } },
-  navigator: { geolocation: { getCurrentPosition(ok, error, options) { callbacks.push({ ok, error, options }); } } },
+  navigator: { geolocation: { watchPosition(ok, error, options) { callbacks.push({ ok, error, options }); return callbacks.length; }, clearWatch(id) { callbacks[id-1].cleared = true; } } },
   liff: { getIDToken: () => "token", isInClient: () => false },
   URLSearchParams, URL, AbortController, Date, Number, Math, JSON,
   setTimeout(fn) { timers.set(++nextTimer, fn); return nextTimer; },
@@ -44,6 +44,7 @@ const position = { coords: { latitude: 25, longitude: 121, accuracy: 5 }, timest
   assert.equal(callbacks[0].options.timeout, 10000);
   for (const fn of [...timers.values()]) fn();
   assert.equal(nodes.punch.disabled, false);
+  assert.equal(callbacks[0].cleared, true); // Timed-out observation must not block the next one.
   callbacks[0].ok(position);
   await flush();
   assert.equal(requests.length, 1);
@@ -53,6 +54,7 @@ const position = { coords: { latitude: 25, longitude: 121, accuracy: 5 }, timest
   assert.equal(requests.length, 1); // Stable exchange result reused.
   callbacks[1].ok(position);
   await flush();
+  assert.equal(callbacks[1].cleared, true);
   assert.equal(requests.length, 2);
   assert.equal(JSON.parse(requests[1].options.body).requestId, "a".repeat(64));
   for (const fn of [...timers.values()]) fn();
@@ -66,6 +68,7 @@ const position = { coords: { latitude: 25, longitude: 121, accuracy: 5 }, timest
   assert.equal(callbacks.length, 3);
   events.pagehide();
   assert.equal(nodes.punch.disabled, false);
+  assert.equal(callbacks[2].cleared, true);
   assert.match(nodes["punch-status"].textContent, /頁面切換/);
   callbacks[2].ok(position);
   await flush();

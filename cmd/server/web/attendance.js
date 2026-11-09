@@ -10,8 +10,15 @@ let exchanging;
 let exchangeController;
 let exchangeGeneration = 0;
 let windowClosed = false;
+let punchWatchId;
+
+function stopPunchWatch() {
+  if (punchWatchId !== undefined) navigator.geolocation.clearWatch(punchWatchId);
+  punchWatchId = undefined;
+}
 
 function resetPunch(message) {
+  stopPunchWatch();
   punchGeneration += 1;
   exchangeController?.abort();
   exchangeController = undefined;
@@ -75,6 +82,7 @@ const unknownResult = "打卡結果尚未確認；請先私訊查詢本人紀錄
 
 function finishPunch(id, message) {
   if (id !== punchGeneration) return;
+  stopPunchWatch();
   if (punchPhase === "exchanging") {
     exchangeGeneration += 1;
     exchangeController?.abort();
@@ -113,8 +121,9 @@ async function startPunch() {
   // The browser timeout can exclude permission and visibility waits.
   punchTimer = setTimeout(() => finishPunch(id, "定位等待逾時，請檢查權限後重試。"), 15000);
   try {
-    navigator.geolocation.getCurrentPosition(async (position) => {
+    punchWatchId = navigator.geolocation.watchPosition(async (position) => {
       if (id !== punchGeneration || punchPhase !== "locating") return;
+      stopPunchWatch();
       clearTimeout(punchTimer);
       try {
         const { latitude, longitude, accuracy } = position.coords;
@@ -150,6 +159,7 @@ async function startPunch() {
         finishPunch(id, punchPhase === "submitting" && (error.name === "AbortError" || error instanceof TypeError) ? unknownResult : error.message || "打卡失敗，請重試。");
       }
     }, (error) => {
+      stopPunchWatch();
       const messages = { 1: "未取得定位權限，請調整 LINE、瀏覽器與系統設定後重試。", 2: "目前無法取得位置，請稍後重試。", 3: "定位逾時，請重試。" };
       finishPunch(id, messages[error.code] || "定位失敗，請重試。");
     }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 });
