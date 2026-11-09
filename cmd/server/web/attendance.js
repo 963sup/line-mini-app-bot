@@ -163,6 +163,10 @@ window.addEventListener("miniapp:identity-ready", () => {
   startPunch();
 });
 
-window.addEventListener("pagehide", () => resetPunch());
+window.addEventListener("pagehide", () => {
+  const message = punchPhase === "submitting" ? unknownResult :
+    punchPhase !== "idle" ? "頁面切換使定位中斷；返回後請按打卡按鈕重試。" : "";
+  resetPunch(message);
+});
 document.querySelector("#logout").addEventListener("click", () => resetPunch("已清除本頁打卡狀態。"));
 showAttendance();
