@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/963sup/line-mini-app-bot/internal/lineui"
@@ -27,6 +28,14 @@ func replyForEvent(event webhook.EventInterface, appURL string) lineReply {
 	case webhook.MessageEvent:
 		if !canReply(e.Mode, e.ReplyToken, e.DeliveryContext) {
 			return lineReply{}
+		}
+		if sticker, ok := e.Message.(webhook.StickerMessageContent); ok {
+			g, group := e.Source.(webhook.GroupSource)
+			if !group || g.GroupId == "" || sticker.PackageId == "" || sticker.StickerId == "" ||
+				sticker.PackageId != os.Getenv("LINE_MENU_STICKER_PACKAGE_ID") || sticker.StickerId != os.Getenv("LINE_MENU_STICKER_ID") {
+				return lineReply{}
+			}
+			return lineReply{token: e.ReplyToken, message: lineui.QuickMenu(true, appURL)}
 		}
 		text, ok := e.Message.(webhook.TextMessageContent)
 		if !ok {

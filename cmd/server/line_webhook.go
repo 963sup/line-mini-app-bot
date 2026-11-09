@@ -87,6 +87,13 @@ func lineWebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, appUR
 		client := *bot
 		client.WithContext(ctx)
 		for _, event := range callback.Events {
+			if e, ok := event.(webhook.MessageEvent); ok && e.Mode == "active" {
+				if g, ok := e.Source.(webhook.GroupSource); ok && g.GroupId != "" {
+					if sticker, ok := e.Message.(webhook.StickerMessageContent); ok {
+						slog.Info("LINE group sticker received", "packageId", sticker.PackageId, "stickerId", sticker.StickerId, "resourceType", string(sticker.StickerResourceType))
+					}
+				}
+			}
 			summaryReply, summaryHandled, summaryErr := summaries.observe(ctx, event)
 			if summaryErr != nil {
 				http.Error(w, "summary temporarily unavailable", http.StatusServiceUnavailable)
