@@ -112,7 +112,7 @@ func (b *summaryBot) observe(ctx context.Context, event webhook.EventInterface) 
 		return lineReply{}, false, nil
 	}
 	command := strings.TrimSpace(m.Text)
-	if command == "摘要" || command == "關閉摘要" || command == "開啟摘要" {
+	if command == "摘要" {
 		if time.Since(time.UnixMilli(e.Timestamp)) > 24*time.Hour || time.UnixMilli(e.Timestamp).After(time.Now().Add(time.Minute)) {
 			return lineReply{}, true, nil
 		}
@@ -126,20 +126,10 @@ func (b *summaryBot) observe(ctx context.Context, event webhook.EventInterface) 
 		if j.Status == "done" {
 			return lineReply{}, true, nil
 		}
+		if err := b.queue.Enqueue(ctx, j); err != nil {
+			return lineReply{}, true, err
+		}
 		text := "正在整理最近24小時的群聊（最多100則）。"
-		if j.Status == "disabled" {
-			text = "摘要已關閉，輸入「開啟摘要」可恢復。"
-		} else {
-			if err := b.queue.Enqueue(ctx, j); err != nil {
-				return lineReply{}, true, err
-			}
-		}
-		if command == "關閉摘要" {
-			text = "摘要已關閉，既有資料已停止使用並排程清除。"
-		}
-		if command == "開啟摘要" {
-			text = "摘要已開啟。"
-		}
 		return lineReply{token: e.ReplyToken, message: &messaging_api.TextMessage{Text: text}}, true, nil
 	}
 	if skipSummaryText(command) {
@@ -153,7 +143,7 @@ func skipSummaryText(text string) bool {
 		return true
 	}
 	switch text {
-	case "上班", "下班", "打卡", "出勤紀錄", "選單", "功能", "":
+	case "上班", "下班", "打卡", "出勤紀錄", "選單", "功能", "關閉摘要", "開啟摘要", "":
 		return true
 	}
 	return false

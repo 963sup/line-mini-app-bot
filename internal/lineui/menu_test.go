@@ -1,6 +1,7 @@
 package lineui
 
 import (
+	"bytes"
 	"encoding/json"
 	"testing"
 )
@@ -11,7 +12,7 @@ func TestQuickMenuPayload(t *testing.T) {
 		commands []string
 	}{
 		{false, []string{"出勤紀錄", "/status"}},
-		{true, []string{"打卡", "摘要", "關閉摘要", "開啟摘要", "/status"}},
+		{true, []string{"打卡", "摘要", "/status"}},
 	} {
 		data, err := json.Marshal(QuickMenu(tc.group, "https://liff.line.me/example"))
 		if err != nil {
@@ -32,6 +33,9 @@ func TestQuickMenuPayload(t *testing.T) {
 		}
 		if err := json.Unmarshal(data, &payload); err != nil {
 			t.Fatal(err)
+		}
+		if bytes.Contains(data, []byte("關閉摘要")) || bytes.Contains(data, []byte("開啟摘要")) {
+			t.Fatal("legacy switches must not appear")
 		}
 		if payload.Type != "text" || len(payload.QuickReply.Items) != len(tc.commands)+1 {
 			t.Fatalf("invalid quick reply: %s", data)

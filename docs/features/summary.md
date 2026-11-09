@@ -1,6 +1,6 @@
 # 基礎群聊摘要
 
-實作範圍：群組文字收集、按需摘要與開關；沒有排程摘要、私訊群聊、查姓名、向量搜尋或管理後台。
+實作範圍：群組文字收集與按需摘要；沒有排程摘要、私訊群聊、查姓名、向量搜尋或管理後台。
 這是程式交付說明，不代表 OpenAI、Gemini、Cloud Tasks、Firestore 或 LINE 已完成真實整合驗收。
 
 ## 使用
@@ -10,10 +10,8 @@
 | 指令 | 行為 |
 | --- | --- |
 | 摘要 | 整理最近24小時、最多最近100則文字，結果 Push 回原群組。 |
-| 關閉摘要 | 立即停止收集／使用舊資料，背景分批刪除舊訊息與摘要工作。 |
-| 開啟摘要 | 恢復收集，開啟新的資料版本，不恢復舊資料。 |
 
-各群組成員皆可操作，不需人工核准。開關指令會回覆操作結果；不是主動公告。
+各群組成員皆可輸入「摘要」，不需人工核准。舊「關閉摘要／開啟摘要」指令已停用，不再改變收集狀態。
 每則記錄 message ID、event ID、發言 user ID、文字與事件時間。不查 profile、不保存真實姓名；傳給模型時使用成員代號。
 不收集私訊、位置、圖片、貼圖、出勤與其他既有指令；沒有 Bot 加入前的歷史訊息。
 摘要輸出討論重點、決定與待辦、未確認說法；摘要不是事實查證。引用 [S1] 對應工作內 Sources 第一個訊息 ID。
@@ -51,7 +49,7 @@ runtime service account 在該 queue 具有 enqueue 權限。`gemini-api-key` �
 
 資料以 channels/{channelID}/summaryGroups/{hash(groupID)} 隔離：
 
-- 群組文件：Disabled、Epoch、Revision、LastControl；缺少文件表示預設開啟。
+- 群組文件：保留既有 Disabled、Epoch、Revision、LastControl 欄位以相容舊資料；Disabled 不再阻止新文字收集或摘要。
 - summaryMessages/{hash(messageID)}：Message 欄位。OccurredAt／ExpireAt 為 UTC timestamp，內容可讀期24小時。
 - summaryJobs/{hash(eventID)}：Job 欄位。Sources 僅存訊息 ID，不複製原文；Result 僅暫存以供 Push 重試，工作結束清空 Result。
 

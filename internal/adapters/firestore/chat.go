@@ -31,7 +31,7 @@ func (s *Chat) Edit(ctx context.Context, g, id, text string, timestamp int64) er
 	ref := root.Collection("summaryMessages").Doc(documentKey(id))
 	return s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		st, err := state(tx, root)
-		if err != nil || st.Disabled {
+		if err != nil {
 			return err
 		}
 		doc, err := tx.Get(ref)
@@ -85,9 +85,7 @@ func (s *Chat) Collect(ctx context.Context, g string, m summary.Message) error {
 		if e != nil {
 			return e
 		}
-		if st.Disabled {
-			return nil
-		}
+
 		_, e = tx.Get(ref)
 		if e == nil {
 			return nil
@@ -169,19 +167,6 @@ func (s *Chat) Command(ctx context.Context, g, event, command string, timestamp 
 			return e
 		}
 		job = summary.Job{ID: id, GroupID: g, Kind: "summary", Status: "pending", Cutoff: now, ExpireAt: now.Add(24 * time.Hour), RetryKey: retry}
-		if command != "摘要" {
-			job.Kind = "purge"
-			if timestamp < st.LastControl {
-				job.Status = "done"
-			} else {
-				st.LastControl = timestamp
-				st.Epoch++
-				st.Revision++
-				st.Disabled = command == "關閉摘要"
-			}
-		} else if st.Disabled {
-			job.Status = "disabled"
-		}
 		job.Epoch, job.Revision = st.Epoch, st.Revision
 		if e := tx.Set(root, st); e != nil {
 			return e
@@ -265,7 +250,7 @@ func (s *Chat) mutate(ctx context.Context, j summary.Job, update func(*summary.J
 		if current.Lease != j.Lease {
 			return fmt.Errorf("summary lease changed")
 		}
-		if current.Kind == "summary" && (st.Disabled || st.Epoch != current.Epoch || st.Revision != current.Revision) {
+		if current.Kind == "summary" && (st.Epoch != current.Epoch || st.Revision != current.Revision) {
 			current.Status = "done"
 			current.Result = ""
 			current.Sources = nil
@@ -293,7 +278,7 @@ func (s *Chat) Current(ctx context.Context, j summary.Job) (bool, error) {
 	if e = d.DataTo(&st); e != nil {
 		return false, e
 	}
-	return !st.Disabled && st.Epoch == j.Epoch && st.Revision == j.Revision && j.ExpireAt.After(time.Now()), nil
+	return st.Epoch == j.Epoch && st.Revision == j.Revision && j.ExpireAt.After(time.Now()), nil
 }
 
 func (s *Chat) Purge(ctx context.Context, j summary.Job) error {

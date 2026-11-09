@@ -110,3 +110,15 @@ func TestSummaryEnqueuesWithoutCallingModel(t *testing.T) {
 		t.Fatal("completed job must not be requeued")
 	}
 }
+
+func TestLegacySummarySwitchCommandsDoNothing(t *testing.T) {
+	s := &chatStub{}
+	b := &summaryBot{store: s}
+	for _, command := range []string{"關閉摘要", "開啟摘要"} {
+		e := webhook.MessageEvent{Mode: "active", Timestamp: time.Now().UnixMilli(), ReplyToken: "reply", WebhookEventId: "event", Source: webhook.GroupSource{GroupId: "g", UserId: "u"}, Message: webhook.TextMessageContent{Id: "m", Text: command}}
+		reply, handled, err := b.observe(context.Background(), e)
+		if err != nil || handled || reply.message != nil || s.commands != 0 || len(s.collected) != 0 {
+			t.Fatalf("legacy command %q must be inert", command)
+		}
+	}
+}
