@@ -56,6 +56,27 @@ func Help(group bool, appURL string) messaging_api.MessageInterface {
 	}
 }
 
+// QuickMenu puts each supported command in a separate reply chip.
+func QuickMenu(group bool, appURL string) messaging_api.MessageInterface {
+	items := []messaging_api.QuickReplyItem{}
+	add := func(label, command string) {
+		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.MessageAction{Label: label, Text: command}})
+	}
+	if group {
+		add("打卡", "打卡")
+		add("摘要", "摘要")
+		add("關閉摘要", "關閉摘要")
+		add("開啟摘要", "開啟摘要")
+	} else {
+		add("出勤紀錄", "出勤紀錄")
+	}
+	add("連線狀態", "/status")
+	if appURL != "" {
+		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.UriAction{Label: "開啟 MINI App", Uri: appURL}})
+	}
+	return &messaging_api.TextMessage{Text: "請選擇功能：", QuickReply: &messaging_api.QuickReply{Items: items}}
+}
+
 // AttendanceMenu uses silent postbacks so a click doesn't send an extra text message.
 func AttendanceMenu() messaging_api.MessageInterface {
 	return &messaging_api.FlexMessage{AltText: "出勤打卡：上班／下班", Contents: &messaging_api.FlexBubble{

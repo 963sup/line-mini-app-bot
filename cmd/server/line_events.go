@@ -71,7 +71,9 @@ func replyForEvent(event webhook.EventInterface, appURL string) lineReply {
 	}
 
 	switch command {
-	case "/help", "/menu", "選單", "功能":
+	case "/menu", "選單", "功能":
+		return lineReply{token: token, message: lineui.QuickMenu(group, appURL)}
+	case "/help":
 		return lineReply{token: token, message: lineui.Help(group, appURL)}
 	case "/status":
 		text := "一對一連線已接通；輸入「出勤紀錄」查詢本人紀錄。"
