@@ -26,6 +26,9 @@ var miniAppStyle []byte
 //go:embed web/attendance.js
 var attendanceScript []byte
 
+//go:embed web/attendance.html
+var attendancePage []byte
+
 //go:embed web/worktime.js
 var worktimeScript []byte
 
@@ -90,7 +93,11 @@ func serveMiniApp(w http.ResponseWriter, r *http.Request) {
 		"default-src 'none'; script-src 'self' https://static.line-scdn.net; style-src 'self'; "+
 			"connect-src 'self' https://api.line.me https://access.line.me https://liff.line.me https://liff.line-scdn.net; "+
 			"frame-src https://access.line.me; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
-	_, _ = w.Write(miniAppPage)
+	page := miniAppPage
+	if r.URL.Query().Has("launch") || r.URL.Query().Has("liff.state") {
+		page = attendancePage
+	}
+	_, _ = w.Write(page)
 }
 
 func (app *miniApp) handleMe(w http.ResponseWriter, r *http.Request) {
