@@ -1,0 +1,35 @@
+package httpadapter
+
+import (
+	"net/http/httptest"
+	"strings"
+	"testing"
+)
+
+func TestMiniAppAttendanceGetsDedicatedPage(t *testing.T) {
+	for _, tc := range []struct {
+		url        string
+		attendance bool
+		content    string
+	}{
+		{"/miniapp", false, "選擇要完成的事"},
+		{"/miniapp?launch=token", true, "取得位置並完成打卡"},
+		{"/miniapp?liff.state=%3Flaunch%3Dtoken", true, "取得位置並完成打卡"},
+		{"/miniapp/history?group=g&month=2026-11", false, `id="record-list"`},
+		{"/miniapp/correction?group=g&record=r", false, `id="correction-form"`},
+		{"/miniapp/review", false, `id="review-details"`},
+	} {
+		recorder := httptest.NewRecorder()
+		serveMiniApp(recorder, httptest.NewRequest("GET", tc.url, nil))
+		body := recorder.Body.String()
+		if strings.Contains(body, `id="punch"`) != tc.attendance {
+			t.Errorf("%s attendance page = %v, want %v", tc.url, strings.Contains(body, `id="punch"`), tc.attendance)
+		}
+		if !strings.Contains(body, tc.content) {
+			t.Errorf("%s missing workflow content %s", tc.url, tc.content)
+		}
+		if tc.attendance && strings.Contains(body, `id="worktime"`) {
+			t.Errorf("%s includes worktime UI", tc.url)
+		}
+	}
+}

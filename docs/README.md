@@ -1,14 +1,18 @@
 # Project documentation
 
-These documents describe the development workflow and intended application.
-Application design is a target, not evidence that Go code or deployment exists.
-Read relevant pages on demand; Codex does not automatically load all docs.
+本索引先列目前程式能力；本機實作不代表正式環境已部署或完成渠道驗收。
 
-目前階段：先穩定基礎設定與應用骨架；部署使用 Cloud Run。
-首版僅做 [基礎出勤](features/attendance.md)：上班、下班、本人紀錄。
-先完成 [基礎設施與分階段落地](development/foundation.md)，再接入 LINE／Firestore，最後開發出勤功能。
-架構依 [已接受的基線](architecture/decisions/0002-baseline.md)；目前不新增測試方案、
-測試案例或測試工具。既有測試文件留待後續階段參考，不列為本輪補文件工作。
+| 目前能力 | 文件入口 |
+| --- | --- |
+| 群組發起定位打卡、本人紀錄 | [出勤總覽](features/attendance.md) |
+| 月摘要、明細分頁、更正與審核 | [查詢與更正](features/attendance-queries.md) |
+| 事件重建、休息與工時計算 | [工時計算](features/worktime.md) |
+| 可選位置天氣與群聊摘要 | [天氣](features/weather.md)、[摘要](features/summary.md) |
+| 原始碼目錄與模組邊界 | [目前檔案樹](architecture/layout.md)、[依賴規則](architecture/dependencies.md) |
+
+部署目標為 Cloud Run；環境與上線條件見 [部署說明](operations/cloud-run.md)。
+完整 direct/group/jobs 等 [未來平台規劃](architecture/future-platform.md) 是參考，按實際需求建立。
+開發規範仍依 [基線決策](architecture/decisions/0002-baseline.md)；保留既有檢查，不新增測試工程。
 
 ## Codex 首次接手
 

@@ -1,7 +1,4 @@
 # 安全政策
 
-請勿在公開 Issue 或 Pull Request 中揭露漏洞細節、token 或憑證。
-
-請使用儲存庫 Security 分頁中的「Report a vulnerability」（若已啟用）。若未提供私人通報入口，請先向維護者索取私人聯絡方式，再提供敏感細節。
-
-回報請包含受影響版本、重現步驟與影響範圍，並遮蔽所有個人資料與機密。目前尚未承諾支援版本或修復時限。
+完整政策與私人通報方式以 [根目錄 SECURITY.md](../SECURITY.md) 為準。
+請勿在公開 Issue 或 Pull Request 揭露漏洞細節、token、憑證或個人資料。

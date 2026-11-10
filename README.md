@@ -22,6 +22,9 @@ runtime 環境變數與 Secret reference 儲存在 Cloud Run service configurati
 開發順序為 [執行／部署基礎 → 資料與 LINE 接入 → 基礎出勤](docs/development/foundation.md)，
 不在基礎設施尚未確認可用時直接堆疊業務功能；具體出勤規則集中在功能規格確認。
 
+原始碼入口：`cmd/server/main.go` → `internal/server`；HTTP／LINE、Firestore、模型與佇列位於 `internal/adapters`，頁面位於 `internal/web`。
+完整檔案樹見 [目前目錄](docs/architecture/layout.md)，功能入口見 [文件索引](docs/README.md)。
+
 ## 開始開發
 
 ```bash

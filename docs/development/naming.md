@@ -23,6 +23,18 @@
 不要為所有操作取名 Execute/Process/Manager，除非 receiver 已明確表達該使用案例。
 不要為每個 struct 強制建立 interface。小 package 可用 `ports.go`，介面多時按能力拆檔。
 
+## 目前檔案命名
+
+Go 檔使用 snake_case；文件與 Shell／Python 腳本使用 kebab-case；Web JS／CSS 使用 kebab-case。
+不要求不同語言共用同一分隔符，也不依檔案行數強制拆分。
+
+- attendance/types.go：出勤資料型別；ports.go：使用端的儲存能力契約。
+- worktime/event_stream.go：班次事件序列驗證。
+- adapters/firestore/attendance_launch.go：打卡啟動憑證；summary.go：摘要工作持久化。
+- adapters/summarizer/client.go、gemini.go、openai.go：模型選擇與供應商整合。
+- web/pages/layout.html：共同版型；static/js/session.js、api.js、time.js：身分、請求與時間呈現。
+- cmd 的 attendancemigrate、firestorecheck、richmenu 保留既有命令名，避免無必要改變使用方式。
+
 ## 責任對照：規劃檔案，不是已存在 API
 
 | 路徑 | 主要符號／責任 |

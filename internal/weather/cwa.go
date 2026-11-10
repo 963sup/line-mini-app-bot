@@ -14,14 +14,6 @@ import (
 	"time"
 )
 
-var ErrOutsideCoverage = errors.New("location outside forecast coverage")
-
-type Forecast struct {
-	Region, Description string
-	Start, End          time.Time
-	Nearby              bool
-}
-
 type Client struct {
 	APIKey string
 	HTTP   *http.Client

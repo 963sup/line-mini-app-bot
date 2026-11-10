@@ -1,91 +1,47 @@
-# Go 目錄規劃
+# 目前目錄與責任
 
-> 狀態：規劃。以下是完整責任配置，非現有檔案清單；按交付階段建立，避免空目錄與空介面。
-> 路徑從 repository root 起算；每個 Go 子目錄是獨立 package，不假設父目錄自動包含子目錄。
-
-本頁是後續平台參考配置，不是首版必建目錄。依 [ADR 0002](decisions/0002-baseline.md)
-及 [分階段落地](../development/foundation.md) 先穩定基礎，再新增出勤需要的套件。
-Worker、Garr、管理後台與通用模板系統目前不實作，也不新增測試工程。
-已提供的接入能力位於 cmd/server、cmd/richmenu、cmd/firestorecheck 與 internal/lineui；
-Rich Menu 僅提供明確執行的 CLI，不預建管理後台或完整四層模組。
-
-## 第二層與第三層目錄
+本頁描述目前原始碼配置；產品能力仍須區分本機實作與正式環境驗收。
+未來的 direct/group/jobs/Garr 等完整配置移至 [未來平台規劃](future-platform.md)，有實際需求才建立。
 
 ```text
 cmd/
-  server/
-    main.go                 # HTTP 組裝與啟停
-  worker/
-    main.go                 # 常駐工作處理入口
+  server/main.go          # 執行 HTTP 服務，回報致命錯誤
+  attendancemigrate/      # 出勤查詢索引回填工具
+  firestorecheck/         # 唯讀連線檢查
+  richmenu/               # 選單管理 CLI
 internal/
-  direct/
-    domain/                 # User、DirectConversation、個人值型別與規則
-    application/            # 個人 Use Cases；ports.go 定義所需介面
-  group/
-    domain/                 # Group、Role、群組狀態與規則
-    application/            # 群組 Use Cases；ports.go 定義所需介面
-  identity/
-    domain/                 # Actor、Session、channel 身分
-    application/            # 登入、session、驗證需求介面
-  templates/
-    domain/                 # 模板、版本、發布狀態
-    application/            # 驗證、發布、回復、讀取已發布內容
-  richmenu/
-    domain/                 # Menu、Alias、指派目標
-    application/            # 建立、上傳、發布、指派、回復
-  jobs/
-    domain/                 # Inbox、Outbox、UserTarget、GroupTarget、Lease
-    application/            # 領取、續租、重試、完成；ports.go
+  server/                 # 服務生命週期、設定、資料庫與 adapter 組裝
+  attendance/             # 出勤資料型別、儲存能力契約、更正規則與月報
+  worktime/               # 純計算、事件套用與事件序列驗證
+  summary/                # 摘要資料、介面與工作流程
+  weather/                # 預報契約與目前唯一的 CWA 查詢實作
+  lineui/                 # Flex、選單、群組名稱等 LINE／Web 共用呈現
   adapters/
-    http/                   # 第三層：入站 HTTP adapter 群組
-    line/                   # 第三層：LINE SDK、token 驗證與訊息呈現
-    firestore/              # 第三層：repository、交易、租約與 DTO 轉換
-    garr/                   # 第三層：pool、backoff、breaker 包裝
+    http/                 # MINI App、出勤 API、定位診斷與內部摘要 worker
+    line/                 # LINE webhook、事件轉換、出勤／摘要／天氣回應與發送
+    firestore/            # 出勤、啟動憑證、摘要工作持久化與查詢
+    cloudtasks/           # 摘要工作入列
+    summarizer/           # Gemini／OpenAI 模型與回應檢核
   web/
-    templates/              # Go html/template：MINI App 與 admin 頁面
-    static/                 # CSS、LIFF JS glue；使用 embed 管理
-  bootstrap/
-    server/                 # HTTP clients、routes、依賴與 shutdown 組裝
-    worker/                 # clients、dispatch、pool 與 shutdown 組裝
-  config/
-    config.go               # 非機密設定解析與必要值驗證
+    embed.go              # 僅嵌入 runtime 頁面與資源
+    pages/                # layout、home、history、correction、review、punch、geolocation
+    static/js/            # session、api、time 與頁面控制
+    static/css/           # app、geolocation
+    tests/                # 既有瀏覽器腳本檢查；不嵌入執行檔
+assets/richmenu/           # CLI 管理的圖片
+scripts/                  # mise 任務實作、設定與分析工具
+docs/                     # 功能、架構、開發、整合、維運及工具索引
 ```
 
-## Adapter 的下一層拆分
+## 歸屬規則
 
-adapters 本身已是第二層，以下明列第四層，避免把所有 adapter 塞進巨大 package。
+- `cmd/server` 只啟動 `server.Run`；`internal/server` 組裝外部實作與生命週期。
+- HTTP 與 LINE 事件分屬 adapter，核心契約不 import adapter 或外部 SDK。
+- 出勤與工時計算保留不同套件：出勤處理範圍與更正，worktime 處理時間與事件規則。
+- 外部模型與佇列依賴由組裝點注入 summary 的 Model／Queue／Sender 介面。
+- 小型 weather 暫留 CWA 實作，不為單一供應商增加空層。
+- Web 檔名表達責任；pages 與 static 由 web 套件管理，HTTP adapter 提供路由。
+- 公開頁面與 API 路徑維持原契約。舊 miniapp.js、attendance.js、app-api.js、miniapp.css 資源網址保留 alias；新頁使用 session.js、punch.js、api.js、app.css。
+- 上游技能保留原位置與來源；產品檔案樹不重複展開技能內容。
 
-```text
-internal/adapters/http/
-  webhook/                  # 原始 body 驗簽、事件轉換、Inbox 接收
-  miniapi/                  # MINI App 個人／群組 API
-  admin/                    # 管理頁面、發布操作
-  middleware/               # session、CSRF、request ID、body limit
-  health/                   # liveness/readiness
-internal/adapters/line/
-  messaging/                # Reply、個人 Push、群組 Push
-  rendering/                # 業務結果 → Flex/Text/Quick Reply；不放授權
-  identity/                 # LINE token 驗證 HTTP client
-  richmenu/                 # Rich Menu API client
-internal/adapters/firestore/
-  direct/                   # 個人資料 repository
-  group/                    # 群組資料 repository
-  identity/                 # session 與身分關聯
-  templates/                # 模板與發布版本
-  richmenu/                 # 選單狀態與發布紀錄
-  jobs/                     # Inbox、Outbox、租約與原子提交
-internal/adapters/garr/
-  execution/                # 程序內併發、退避、斷路器
-```
-
-MINI App Service Message adapter 在資格與需求確立後新增，不預建空實作。
-每個 package 內以 `model.go`、`service.go`、`ports.go`、`*_test.go` 等責任命名；不要求每包都有同名檔案。
-
-## 擴充規則
-
-- direct 與 group 不互相 import；兩者相同的業務能力只有在實際成立後才抽成獨立模組。
-- 不建立 shared/utils/common 雜物包；共用型別須有清楚責任，例如 jobs/domain 的發送工作目標。
-- application 不能 import adapters；SDK 與 Firestore 型別留在 adapter。
-- 機密由部署環境注入，config 不保存 token；工具設定仍由 mise.toml 管理。
-
-依賴允許表見 [dependencies.md](dependencies.md)，實作順序見 [delivery.md](delivery.md)。
+命名見 [命名規則](../development/naming.md)，依賴見 [依賴規則](dependencies.md)。

@@ -1,22 +1,7 @@
 schema = 1
-# Universe: git ls-files, plus these explicit files before their first commit.
-additional = [
-  "cmd/attendancemigrate/main.go",
-  "cmd/server/attendance_query.go",
-  "cmd/server/web/app-api.js",
-  "cmd/server/web/correction.html",
-  "cmd/server/web/correction.js",
-  "cmd/server/web/history.html",
-  "cmd/server/web/history.js",
-  "cmd/server/web/home.html",
-  "cmd/server/web/review.html",
-  "cmd/server/web/review.js",
-  "docs/features/attendance-queries.md",
-  "firestore.indexes.json",
-  "internal/adapters/firestore/attendance_migration.go",
-  "internal/adapters/firestore/attendance_query.go",
-  "internal/attendance/query.go",
-]
+# Universe: git ls-files, plus explicit first-commit additions below.
+# Remove an addition once its path is tracked; working-tree deletions are omitted.
+additional = []
 managed_suffixes = [".go", ".mod", ".sum", ".sh", ".py", ".toml", ".md", ".json", ".yaml", ".yml", ".js", ".cjs", ".css", ".html", ".txt"]
 managed_names = ["Dockerfile", "LICENSE", "GOOGLE-SKILLS-LICENSE", ".editorconfig", ".gcloudignore", ".gitattributes", ".gitignore", ".dockerignore", ".graphifyignore", ".repomixignore", ".env.example"]
 

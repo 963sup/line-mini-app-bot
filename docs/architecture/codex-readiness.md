@@ -1,6 +1,6 @@
 # Codex 接手索引與完整度
 
-> 狀態：文件導覽；不是所有產品決策已完成。最後核對：2026-11-07。
+> 狀態：文件導覽；不是所有產品決策已完成。最後核對：2026-11-10。
 
 先讀 [ADR 0002](decisions/0002-baseline.md) 與 [分階段落地](../development/foundation.md)。
 首版僅做 [基礎出勤](../features/attendance.md)，其餘平台與測試材料留作後續參考，不新增測試工程。
@@ -25,7 +25,7 @@ flowchart TD
 | 文件 | 唯一責任 |
 | --- | --- |
 | overview | 系統邊界、模組與來源依據 |
-| layout | 目標目錄與 ownership |
+| layout | 目前目錄與 ownership |
 | development/naming | package、檔案、函數、DTO 命名 |
 | dependencies | compile-time 允許依賴 |
 | implementation-contract | ready/blocked、產品決策、任務範本 |
@@ -37,8 +37,9 @@ flowchart TD
 
 ## 現況與設計分開
 
-目前程式：cmd/server 提供可選 LINE 接入與正常關閉，internal/lineui 共用選單呈現；
-沒有健康檢查路由或 cmd/worker。
+目前程式：cmd/server 啟動 internal/server；HTTP 與 LINE adapter 分別位於 internal/adapters/http、line，
+internal/web 管理頁面與資源，internal/lineui 共用訊息呈現；出勤、月查詢、更正與可選摘要已有實作。
+目前沒有健康檢查路由或 cmd/worker。
 Dockerfile 已複製 go.mod、go.sum、cmd 與 internal；頁面資產透過 go:embed 建入 server。
 Messaging API／MINI App 與 Rich Menu CLI 已有接入程式；真實渠道與雲端連線仍待驗收。
 Cloud Run 已確定為唯一部署目標（ADR 0003）。已有 cloudbuild.yaml 與上傳範圍設定；
