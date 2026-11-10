@@ -1,0 +1,25 @@
+import React from "react";
+export function View() {
+  return (
+    <>
+      <section className="panel">
+        <h2>選擇要完成的事</h2>
+        <div className="service-links">
+          <a href="/miniapp/history">
+            <strong>本人月紀錄</strong>
+            <span>查看整月工時與班次明細，選擇班次提出更正。</span>
+          </a>
+          <a href="/miniapp/correction">
+            <strong>更正與申請結果</strong>
+            <span>從月紀錄選擇班次，或輸入編號查看已送出的申請。</span>
+          </a>
+          <a href="/miniapp/review">
+            <strong>授權審核</strong>
+            <span>授權審核者依申請編號查看內容並核准。</span>
+          </a>
+        </div>
+        <p className="hint">打卡請使用原群組的上班、下班或休息按鈕。</p>
+      </section>
+    </>
+  );
+}

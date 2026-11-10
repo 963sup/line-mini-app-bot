@@ -2,6 +2,8 @@
 
 依 [ADR 0003](../architecture/decisions/0003-cloud-run-primary.md)，只部署一個 Go HTTP 服務。
 
+Monorepo 候選驗收、裝置清單、無流量發布與具名 revision 回復見 [整合與發布驗收](release-acceptance.md)。
+
 目前有兩條不同的部署路徑，不能混為一談：
 
 1. 現行 GitHub managed trigger 監聽 `main`，使用 Google 管理的 inline build 與根目錄
@@ -124,7 +126,7 @@ Service Message token、MCP API key、使用者 ID token 與 ADC 憑證不屬於
 bash scripts/tool-exec.sh gcloud meta list-files-for-upload --quiet
 ```
 
-`.gcloudignore` 只允許 Dockerfile、.dockerignore、cloudbuild.yaml、Go module、cmd/ 與 internal/。
+`.gcloudignore` 允許 Dockerfile、.dockerignore、cloudbuild.yaml、根工作區 manifest／lock、backend/、frontend/、api/、前端資產準備腳本與 richmenu 資產；排除依賴目錄及建置產物。
 不會上傳 .env、.codex、憑證、工具快取、分析輸出或文件。
 
 確認雲端前置條件與部署授權後，替換下列 project、bucket、Channel ID 及 secret 版本：

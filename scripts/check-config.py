@@ -50,6 +50,18 @@ def check():
                 raise ValueError(f"Broken documentation link in {path.relative_to(ROOT)}: {target}")
     if not isinstance(mise.get("tools", {}).get("go"), str):
         raise ValueError("mise.toml must pin Go")
+    package = json.loads((ROOT / "package.json").read_text())
+    if package.get("packageManager") != "pnpm@" + mise["tools"]["npm:pnpm"]:
+        raise ValueError("packageManager must match the pnpm version in mise.toml")
+    if package.get("private") is not True:
+        raise ValueError("The repository workspace must be private")
+    module = (ROOT / "backend/go.mod").read_text()
+    if not re.search(r"^go " + re.escape(mise["tools"]["go"]) + r"$", module, re.M):
+        raise ValueError("backend/go.mod must match the pinned Go toolchain")
+    for name in ("backend", "frontend/miniapp", "api/client"):
+        manifest = json.loads((ROOT / name / "package.json").read_text())
+        if manifest.get("private") is not True:
+            raise ValueError(f"Workspace package must be private: {name}")
     # Reuse the same constrained parser as bootstrap rather than silently accepting
     # env constructs that would work in mise but fail before mise is installed.
     from importlib.util import module_from_spec, spec_from_file_location

@@ -24,7 +24,7 @@ printf 'package check\nfunc Sum(a,b int) int { return a+b }\n' > "$checkdir/chec
 printf 'package check\nimport "testing"\nfunc TestSum(t *testing.T) { if Sum(2,3)!=5 { t.Fatal("sum") } }\n' > "$checkdir/check_test.go"
 mise exec -- bash -c 'set -e; cd "$1"; go test -race ./...; go vet ./...; go build -buildvcs=false ./...' -- "$checkdir"
 echo "PASS: Go compiler, race detector, vet and writable directories"
-if [[ -f go.mod ]]; then
+if [[ -f backend/go.mod ]]; then
   echo "Application module exists; run mise run check separately"
 else
   echo "NOT RUN: application checks (no go.mod)"

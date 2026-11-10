@@ -1,6 +1,6 @@
 # Web Geolocation API 整合契約
 
-範圍：保留 Go + Vanilla JS 的獨立定位示範，另由 MINI App 接入 [基礎出勤](../features/attendance.md)。
+範圍：保留 Go + Next.js／React 的獨立定位示範，另由 MINI App 接入 [基礎出勤](../features/attendance.md)。
 出勤使用單次定位，驗證 LINE 身分與原群組打卡請求後保存位置、精度及採樣時間；不做工作半徑判斷或持續追蹤。以下示範 API 仍不寫入資料，出勤契約以功能頁為準。
 
 > 狀態：示範已實作，尚待 LINE／手機實機確認。透過 Context7 `/mdn/content` 核對
@@ -13,8 +13,7 @@ bash scripts/tool-exec.sh mise run dev
 ```
 
 開啟 `http://localhost:8080/location`。正式環境使用 Cloud Run HTTPS 網址加 `/location`。
-頁面由 Go 提供，HTML／CSS／JS 透過 `go:embed` 放入執行檔，不需要 Node.js 服務、
-前端建置、Google Maps key 或 LINE 憑證；現有 Dockerfile 會一併建入這些資產。
+先以 `pnpm build` 建置 Next.js 靜態輸出，再由 Go 透過 FRONTEND_DIR 供應；runtime 不需要 Node.js 服務、Google Maps key 或 LINE 憑證。Dockerfile 包含前端建置。
 
 按下「取得位置並驗證」後才請求瀏覽器權限。成功時顯示座標、精度與採樣時間，
 並傳送 `POST /api/location/validate`；取消、離開頁面或伺服器逾時後忽略遲到 callback，
@@ -45,7 +44,7 @@ bash scripts/tool-exec.sh mise run dev
 無效欄位／JSON 為 400、body 過大為 413、不支援的 Content-Type 為 415。
 跨來源拒絕由 Go middleware 回應 403 純文字，錯誤 method 為 405。
 
-實作位於 `internal/adapters/http/geolocation.go` 與 `internal/web/pages/geolocation.html、internal/web/static/{js,css}/geolocation.*`。
+實作位於 `backend/internal/diagnostics/geolocation/geolocation.go` 與 `internal/web/pages/geolocation.html、internal/web/static/{js,css}/geolocation.*`。
 以下為加入定位業務時的完整邊界；不是示範已完成登入或出勤的宣告。
 
 ## 邊界
@@ -89,11 +88,11 @@ Go 另產生 receivedAt，不信任客戶端時間；必填數值用 pointer／�
 
 ## 現有出勤整合檔案與責任
 
-- `internal/adapters/http/attendance_http.go`：註冊 `POST /api/v1/attendance/punches`，驗證 LINE 身分、請求內容與原群組打卡請求。
+- `backend/internal/attendance/http/attendance_http.go`：註冊 `POST /api/v1/attendance/punches`，驗證 LINE 身分、請求內容與原群組打卡請求。
 - `internal/web/static/js/punch.js`：由 MINI App 取得單次定位並提交；只負責採樣、UI 與請求，不決定授權。
-- `internal/adapters/http/identity.go`：提供可共用的 LINE 身分驗證；後端不信任前端自行傳入的 user ID。
-- `internal/adapters/firestore/attendance.go`：在交易中驗證短效打卡請求，隔離群組狀態並保存單次定位。
-- `internal/adapters/http/geolocation.go` 與 `internal/web/pages/geolocation.html、internal/web/static/{js,css}/geolocation.*`：保留獨立定位示範，不寫入出勤資料。
+- `backend/internal/identity/http/identity.go`：提供可共用的 LINE 身分驗證；後端不信任前端自行傳入的 user ID。
+- `backend/internal/attendance/firestore/attendance.go`：在交易中驗證短效打卡請求，隔離群組狀態並保存單次定位。
+- `backend/internal/diagnostics/geolocation/geolocation.go` 與 `internal/web/pages/geolocation.html、internal/web/static/{js,css}/geolocation.*`：保留獨立定位示範，不寫入出勤資料。
 
 ```mermaid
 sequenceDiagram

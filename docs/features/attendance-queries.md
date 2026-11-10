@@ -1,6 +1,6 @@
 # 出勤查詢與更正
 
-本頁記錄現有出勤功能的資料讀取、Web 工作流程與更正重試契約。維持 Go + Vanilla JS；不增加角色系統或通知。定位打卡仍沿用 [基礎出勤](attendance.md) 的本人／群組／launch 授權。
+本頁記錄現有出勤功能的資料讀取、Web 工作流程與更正重試契約。維持 Go + Next.js／React；不增加角色系統或通知。定位打卡仍沿用 [基礎出勤](attendance.md) 的本人／群組／launch 授權。
 
 ## Web 工作流程
 
@@ -31,7 +31,7 @@ pageSize 預設20、範圍1–100；cursor 必須與本人、channel、群組／
 
 索引模式以已下班的時間重疊條件與未下班集合查候選班次；完整月摘要仍須讀取相關班次原始事件與更正audit證據，不能為減少讀取而省略。資料依批次讀取不等於月摘要成本固定，多range索引仍需以官方Query Explain確認實際掃描量。
 
-部署順序：先上新雙寫程式，建立專案索引並等待ready，再執行離線回填／核對，最後啟用query marker。回填工具預設只檢查；`-apply -checkpoint /absolute/path/checkpoint.json` 僅回填，完成後另以相同命令加 `-activate` 明確確認索引ready與全部writer已升級，再切換。不能在一般HTTP請求中回填。回填可重跑、分批且以交易讀取最新班次，不能覆寫併發打卡或更正。命令細節以 `cmd/attendancemigrate` 的 `--help` 為準。本次程式實作不代表遠端索引或回填已執行。
+部署順序：先上新雙寫程式，建立專案索引並等待ready，再執行離線回填／核對，最後啟用query marker。回填工具預設只檢查；`-apply -checkpoint /absolute/path/checkpoint.json` 僅回填，完成後另以相同命令加 `-activate` 明確確認索引ready與全部writer已升級，再切換。不能在一般HTTP請求中回填。回填可重跑、分批且以交易讀取最新班次，不能覆寫併發打卡或更正。命令細節以 `backend/cmd/attendancemigrate` 的 `--help` 為準。本次程式實作不代表遠端索引或回填已執行。
 
 ## 更正提交重試
 

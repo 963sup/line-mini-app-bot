@@ -25,3 +25,11 @@ __pycache__/
 .npm-cache/
 node_modules/
 vendor/
+
+# Monorepo and frontend build artifacts
+.turbo/
+.next/
+dist/
+out/
+/frontend/miniapp/public/assets/
+*.tsbuildinfo

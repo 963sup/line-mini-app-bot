@@ -56,7 +56,7 @@ internal/
 adapters 本身已是第二層，以下明列第四層，避免把所有 adapter 塞進巨大 package。
 
 ```text
-internal/adapters/http/
+backend/internal/httpapi/
   webhook/                  # 原始 body 驗簽、事件轉換、Inbox 接收
   miniapi/                  # MINI App 個人／群組 API
   admin/                    # 管理頁面、發布操作

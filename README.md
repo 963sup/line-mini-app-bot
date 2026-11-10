@@ -7,7 +7,7 @@
 
 出勤分工：群組發起上下班，從連結開啟 MINI App、取得位置後送出；1:1 私訊「出勤紀錄」選擇群組，再輸入「出勤紀錄 編號」查本人最近五筆。各群組狀態獨立，定位只記錄位置，不判斷工作半徑。
 
-另有 [Go + Vanilla JS 定位示範](docs/integrations/web-geolocation.md)：啟動後開啟
+另有 [Go + Next.js／React 定位示範](docs/integrations/web-geolocation.md)：啟動後開啟
 `http://localhost:8080/location`，點擊按鈕取得位置並傳送至 Go 驗證，不保存位置。
 
 首版功能方向為「基礎出勤」，應用部署至 Google Cloud Run，機密透過
@@ -22,7 +22,9 @@ runtime 環境變數與 Secret reference 儲存在 Cloud Run service configurati
 開發順序為 [執行／部署基礎 → 資料與 LINE 接入 → 基礎出勤](docs/development/foundation.md)，
 不在基礎設施尚未確認可用時直接堆疊業務功能；具體出勤規則集中在功能規格確認。
 
-原始碼入口：`cmd/server/main.go` → `internal/server`；HTTP／LINE、Firestore、模型與佇列位於 `internal/adapters`，頁面位於 `internal/web`。
+原始碼分為 `backend/`（Go）、`frontend/miniapp/`（Next.js）與 `api/`（OpenAPI 與 TS client）。後端入口為 `backend/cmd/server/main.go`，功能整合依出勤、摘要與天氣歸位。
+首次建置後可在開發時開啟 `http://localhost:3000/miniapp`；正式靜態輸出由 Go 提供。遷移範圍與尚未完成項目見 [Monorepo 決策](docs/architecture/decisions/0004-monorepo.md)。
+API 契約、產生碼與相容性流程見 [API 工作流程](api/README.md)。
 完整檔案樹見 [目前目錄](docs/architecture/layout.md)，功能入口見 [文件索引](docs/README.md)。
 
 ## 開始開發
@@ -30,6 +32,12 @@ runtime 環境變數與 Secret reference 儲存在 Cloud Run service configurati
 ```bash
 bash scripts/bootstrap.sh core
 bash scripts/tool-exec.sh mise run doctor
+bash scripts/tool-exec.sh mise run install-web
+bash scripts/tool-exec.sh pnpm install --frozen-lockfile
+bash scripts/tool-exec.sh pnpm build
+bash scripts/tool-exec.sh pnpm check
+bash scripts/tool-exec.sh pnpm test
+bash scripts/tool-exec.sh pnpm dev
 ```
 
 完整 Cloud／MCP 安裝與限制請見 [Codex Cloud 設定](docs/development/codex-cloud.md)。

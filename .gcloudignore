@@ -1,19 +1,25 @@
-# Allow only container inputs and the build definition in manual source uploads.
 **
-!.dockerignore
 !Dockerfile
-!cloudbuild.yaml
-!go.mod
-!go.sum
-!cmd/
-!cmd/**
-!internal/
-!internal/**
-
-# Always exclude agent material, including future allowlist changes.
-/.agents/**
-
-# Local files under allowed source directories are not build inputs.
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!backend/
+!backend/**
+!frontend/
+!frontend/**
+!api/
+!api/**
+!scripts/
+!scripts/prepare-miniapp-assets.mjs
+!assets/
+!assets/richmenu/
+!assets/richmenu/**
+**/node_modules/**
+**/.next/**
+**/out/**
+**/.turbo/**
+**/bin/**
+**/public/assets/**
 **/.env
 **/.env.*
 **/*.pem
@@ -21,13 +27,10 @@
 **/*credentials*.json
 **/*service-account*.json
 **/*service_account*.json
-**/node_modules/**
 **/vendor/**
 **/__pycache__/**
 **/.venv/**
 **/.artifacts/**
-
-# Agent metadata and local installation copies
-skills-lock.json
-/.claude/
-/agent/
+**/*.tsbuildinfo
+!.dockerignore
+!cloudbuild.yaml

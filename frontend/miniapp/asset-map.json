@@ -1,0 +1,4 @@
+{
+  "app.css": "src/shell/app.css",
+  "geolocation.css": "src/diagnostics/geolocation/style.css"
+}

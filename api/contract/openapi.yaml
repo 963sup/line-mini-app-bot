@@ -1,0 +1,182 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "LINE MINI App API",
+    "version": "1.0.0",
+    "description": "HTTP contract for MINI App identity and attendance. Preserve existing field casing, nullable arrays, legacy routes, complete monthly totals and idempotent correction semantics."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/api/v1/miniapp/config": {
+      "get": {
+        "operationId": "getMiniAppConfig",
+        "summary": "MiniAppConfig",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MiniAppConfig"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me": {
+      "get": {
+        "operationId": "getCurrentUser",
+        "summary": "CurrentUser",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUser"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attendance/groups": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1groups"
+    },
+    "/api/v1/attendance/groups/page": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1groups~1page"
+    },
+    "/api/v1/attendance/records": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1records"
+    },
+    "/api/v1/attendance/records/{id}": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1records~1{id}"
+    },
+    "/api/v1/attendance/monthly": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1monthly"
+    },
+    "/api/v1/attendance/monthly/summary": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1monthly~1summary"
+    },
+    "/api/v1/attendance/launch": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1launch"
+    },
+    "/api/v1/attendance/punches": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1punches"
+    },
+    "/api/v1/attendance/corrections": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1corrections"
+    },
+    "/api/v1/attendance/corrections/{id}": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}"
+    },
+    "/api/v1/attendance/corrections/{id}/review": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1review"
+    },
+    "/api/v1/attendance/corrections/{id}/approve": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1approve"
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "APIError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "MiniAppConfig": {
+        "type": "object",
+        "required": [
+          "liffId"
+        ],
+        "properties": {
+          "liffId": {
+            "type": "string"
+          }
+        }
+      },
+      "CurrentUser": {
+        "type": "object",
+        "required": [
+          "userId",
+          "displayName"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -2,9 +2,11 @@
 
 ## 目前實作
 
-`cmd/server → internal/server → 功能與 adapters`。HTTP 與 LINE adapters 使用 attendance、summary、worktime 等契約；Firestore、模型與佇列實作功能端介面。adapters 不反向依賴 server，功能契約不依賴 adapters。
+`backend/cmd/server → internal/server → 各功能入口與整合實作`。
+核心只依賴標準庫與明確的純核心子套件。HTTP 使用生成 DTO 與所需能力介面，Firestore 使用獨立 document structs 並轉譯技術錯誤；HTTP 不依賴儲存 SDK。
+共用傳輸不 import 功能，OpenAPI 接線只依賴生成型別與 http.Handler。LINE 與 HTTP 共用由 server 注入的出勤 store／時區／群組名稱能力，HTTP 不再從 LINE handler 取得依賴。
 
-`internal/web` 僅管理嵌入資源；`lineui` 管理呈現；`weather` 目前保留小型 CWA 整合。Go 的隱式介面以編譯與既有檢查驗證，不能只看 Graphify 推估邊。
+規則與驗證見 [後端功能邊界](backend-boundaries.md)。Go 的隱式介面與直接依賴由編譯及架構檢查約束，Graphify 用於輔助探索而非動態正確性證明。
 
 以下完整分層表與圖保留為未來平台規劃，並非目前檔案樹。
 

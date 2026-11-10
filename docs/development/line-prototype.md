@@ -36,16 +36,16 @@ body 上限 1 MiB；過大回 413、錯誤簽章回 401、無效輸入回 400。
 整批發送共用 5 秒期限；失敗僅記錄固定警告，不重試，也不改用 Push，Webhook 回 200。
 200 不代表訊息送達；跳過 redelivery 不等於可靠接收或完整冪等性。
 
-## MINI App：Go + Vanilla JS
+## MINI App：Go + Next.js／React
 
 注入配對的 LINE_MINI_APP_CHANNEL_ID 與 LINE_MINI_APP_LIFF_ID，Channel 必須啟用
 openid scope；要顯示名稱時再啟用 profile。設定 MINI App Endpoint URL 為
 `https://<service-host>/miniapp`，與部署環境的 Developing／Review／Published 對應。
 已設定的 MINI App 永久連結為 `https://miniapp.line.me/<LIFF ID>`。
 
-1. Go 提供 /miniapp HTML 與 Vanilla JS，載入 LINE 官方 LIFF v2 SDK。
+1. Go 提供 Next.js 靜態輸出的 /miniapp 頁面與 React 程式，載入 LINE 官方 LIFF v2 SDK。
 2. 前端以 /api/v1/miniapp/config 取得公開 LIFF ID，執行 liff.init。
-3. 外部瀏覽器由使用者點擊登入，redirectUri 固定為本站 /miniapp。
+3. 外部瀏覽器由使用者點擊登入，redirectUri 保留本站目前頁面與查詢參數。
 4. 點擊身分驗證後，前端取得 liff.getIDToken()，以 Bearer header 呼叫 GET /api/v1/me。
 5. Go 將 ID token 與預期 Channel ID POST 至 LINE /oauth2/v2.1/verify，
    並檢查回應 issuer、audience、非空 subject 與到期時間。

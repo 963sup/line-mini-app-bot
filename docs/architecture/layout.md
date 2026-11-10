@@ -1,47 +1,49 @@
 # 目前目錄與責任
 
-本頁描述目前原始碼配置；產品能力仍須區分本機實作與正式環境驗收。
-未來的 direct/group/jobs/Garr 等完整配置移至 [未來平台規劃](future-platform.md)，有實際需求才建立。
+本頁描述第四階段完成後的配置；邊界規則見 [後端功能邊界](backend-boundaries.md)。
 
 ```text
-cmd/
-  server/main.go          # 執行 HTTP 服務，回報致命錯誤
-  attendancemigrate/      # 出勤查詢索引回填工具
-  firestorecheck/         # 唯讀連線檢查
-  richmenu/               # 選單管理 CLI
-internal/
-  server/                 # 服務生命週期、設定、資料庫與 adapter 組裝
-  attendance/             # 出勤資料型別、儲存能力契約、更正規則與月報
-  worktime/               # 純計算、事件套用與事件序列驗證
-  summary/                # 摘要資料、介面與工作流程
-  weather/                # 預報契約與目前唯一的 CWA 查詢實作
-  lineui/                 # Flex、選單、群組名稱等 LINE／Web 共用呈現
-  adapters/
-    http/                 # MINI App、出勤 API、定位診斷與內部摘要 worker
-    line/                 # LINE webhook、事件轉換、出勤／摘要／天氣回應與發送
-    firestore/            # 出勤、啟動憑證、摘要工作持久化與查詢
-    cloudtasks/           # 摘要工作入列
-    summarizer/           # Gemini／OpenAI 模型與回應檢核
-  web/
-    embed.go              # 僅嵌入 runtime 頁面與資源
-    pages/                # layout、home、history、correction、review、punch、geolocation
-    static/js/            # session、api、time 與頁面控制
-    static/css/           # app、geolocation
-    tests/                # 既有瀏覽器腳本檢查；不嵌入執行檔
-assets/richmenu/           # CLI 管理的圖片
-scripts/                  # mise 任務實作、設定與分析工具
-docs/                     # 功能、架構、開發、整合、維運及工具索引
+backend/
+  go.mod、go.sum
+  cmd/server/、attendancemigrate/、firestorecheck/、richmenu/
+  internal/
+    attendance/                # 純領域模型、規則與能力契約
+      worktime/                # 時間與事件計算
+      http/                    # 出勤 API、DTO、契約驗證
+      firestore/               # 文件格式、交易、查詢、回填與錯誤轉譯
+      line/                    # 聊天指令與出勤卡片
+      presentation/            # 不依賴 LINE SDK 的共用呈現
+    summary/                   # 摘要契約與用例
+      http/、firestore/、line/、cloudtasks/、summarizer/
+    weather/                   # 預報契約
+      cwa/、line/
+    identity/                  # 身分與驗證契約
+      http/、line/、google/
+    httpapi/                   # OpenAPI 路由接線
+      generated/               # 生成路由、DTO、embedded spec
+    browser/                   # Next.js 靜態頁、CSP、資源供應
+    diagnostics/geolocation/   # 獨立定位示範
+    navigation/line/、lineui/   # 導覽與選單
+    transport/http/、line/     # 共用傳輸與格式
+    persistence/firestorekey/  # 共用且相容的文件 ID 編碼
+    architecture/              # 依賴方向與核心純度檢查
+    server/                    # 設定、client、組裝、啟停
+frontend/miniapp/
+  src/pages/                   # Next.js Pages Router；靜態輸出
+  src/navigation/home/
+  src/features/attendance/     # 打卡、紀錄、更正、審核
+  src/identity/、platform/line/、shared/、shell/
+  src/diagnostics/geolocation/
+  tests/                       # React Strict Mode 與非同步行為檢查
+  public/assets/、out/          # 產物，不提交
+api/
+  contract/                    # 唯一入口與出勤契約，共 14 個 operations
+  client/                     # TS 生成型別與 openapi-fetch factory
+  codegen/、compatibility/
+assets/richmenu/
+docs/、scripts/、.github/、.agents/、.codex/
 ```
 
-## 歸屬規則
+pnpm 管理 JS 工作區，Go module 位於 backend；Turborepo 協調產物與檢查。公開 URL 與既有資源 aliases 保留。Go binary 透過 FRONTEND_DIR 讀取獨立的 Next.js 靜態輸出；正式容器不需要 Next SSR 服務。
 
-- `cmd/server` 只啟動 `server.Run`；`internal/server` 組裝外部實作與生命週期。
-- HTTP 與 LINE 事件分屬 adapter，核心契約不 import adapter 或外部 SDK。
-- 出勤與工時計算保留不同套件：出勤處理範圍與更正，worktime 處理時間與事件規則。
-- 外部模型與佇列依賴由組裝點注入 summary 的 Model／Queue／Sender 介面。
-- 小型 weather 暫留 CWA 實作，不為單一供應商增加空層。
-- Web 檔名表達責任；pages 與 static 由 web 套件管理，HTTP adapter 提供路由。
-- 公開頁面與 API 路徑維持原契約。舊 miniapp.js、attendance.js、app-api.js、miniapp.css 資源網址保留 alias；新頁使用 session.js、punch.js、api.js、app.css。
-- 上游技能保留原位置與來源；產品檔案樹不重複展開技能內容。
-
-命名見 [命名規則](../development/naming.md)，依賴見 [依賴規則](dependencies.md)。
+前端已使用 React hooks/state、身分 Context 與具取消／世代檢查的請求；Strict Mode 已恢復，舊控制器及事件橋接已移除。舊 JS 資源 URL 僅回傳無操作的相容內容，不被新頁面載入。功能生命週期見 [React 前端](react-frontend.md)。客戶端導覽尚未導入。上游技能保留原位置，不重複加入產品功能樹。

@@ -8,3 +8,5 @@ Include status, problem/context, options, decision, consequences and validation.
 Reference affected modules and official sources. Mark replaced decisions as
 superseded rather than silently rewriting history. Do not invent completed
 implementation or deployment evidence.
+
+- [ADR 0004：前後端與 API 契約分離的 Monorepo](0004-monorepo.md)

@@ -29,7 +29,7 @@
 | --- | --- |
 | 穩定基礎、確認開發先後順序 | [基礎設施與分階段落地](development/foundation.md) |
 | 接入 Messaging API／MINI App／Rich Menu | [LINE 接入能力與操作](development/line-prototype.md)；[呈現方式選型](integrations/line-presentation-options.md) |
-| 使用 Go + Vanilla JS 取得位置 | [Web Geolocation 示範與契約](integrations/web-geolocation.md) |
+| 使用 Go + Next.js／React 取得位置 | [Web Geolocation 示範與契約](integrations/web-geolocation.md) |
 | 確認首版出勤範圍與待定規則 | [基礎出勤](features/attendance.md) |
 | 理解 LINE／MINI App／Go／Firestore 如何協作 | [應用架構](architecture/overview.md) |
 | 決定模組、介面與業務規則放哪裡 | [開發原則與決策](architecture/principles.md) |
