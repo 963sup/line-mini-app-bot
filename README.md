@@ -46,7 +46,7 @@ MCP 握手與聊天主機實際可用性須分別驗收，不因快取存在而�
 工具與非機密環境以 `mise.toml` 為準；日常命令使用 `scripts/tooling/tool-exec.sh`。
 
 
-- [文件索引](docs/README.md)
+- [文件索引與 Backend／API／Frontend／Scripts／Deploy 閱讀入口](docs/README.md#按模組閱讀)
 - [架構與流程](docs/architecture/overview.md)
 - [Go 開發](docs/development/go.md)
 - [貢獻方式](CONTRIBUTING.md)
@@ -100,6 +100,7 @@ MINI App 頁面為 `/miniapp`；Channel 未設定時頁面顯示設定提示。
 | `backend/` | [Go 後端](backend/README.md) | [AGENTS.md](backend/AGENTS.md) |
 | `deploy/` | [部署設定與 Firestore 索引](deploy/README.md) | [AGENTS.md](deploy/AGENTS.md) |
 | `docs/` | [專案文件](docs/README.md) | [AGENTS.md](docs/AGENTS.md) |
+| `scripts/` | [腳本工具](scripts/README.md) | [AGENTS.md](scripts/AGENTS.md) |
 | `frontend/` | [MINI App 前端](frontend/README.md) | [AGENTS.md](frontend/AGENTS.md) |
 
 進入 `frontend/miniapp/` 另讀其 [Next.js 指引](frontend/miniapp/AGENTS.md)。分析結果與涵蓋限制見 [交叉比對](docs/tooling/graphify-repomix-crosscheck.md)。

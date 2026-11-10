@@ -9,3 +9,12 @@ cmd/ 保存 server、richmenu、firestorecheck 與 attendancemigrate 入口；in
 使用根目錄 scripts/tooling/tool-exec.sh；Go 修改依 ../docs/agents/acceptance.md 執行 fmt-check、lint、check、build 與相關既有測試。純文件修改不冒稱應用測試已執行。
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
+
+## 相關文件
+
+- [文件索引：Backend](../docs/README.md#按模組閱讀)
+- [後端功能邊界](../docs/architecture/backend-boundaries.md)
+- [依賴規則](../docs/architecture/dependencies.md)
+- [Go 開發慣例](../docs/development/go.md)
+- [可靠性與資料](../docs/architecture/reliability.md)
+- [API 契約工作流程](../api/README.md)

@@ -9,3 +9,11 @@ cloudbuild.yaml 為手動提交或自訂 trigger 的建置部署流程；firesto
 部署工作先讀 ../docs/operations/cloud-run.md 與部署 ADR；本次只核對本機檔案，不執行 deploy、IAM 或索引寫入。
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
+
+## 相關文件
+
+- [文件索引：Deploy](../docs/README.md#按模組閱讀)
+- [Cloud Run 部署流程](../docs/operations/cloud-run.md)
+- [發布驗收](../docs/operations/release-acceptance.md)
+- [故障排查](../docs/operations/troubleshooting.md)
+- [Cloud Run 決策](../docs/architecture/decisions/0003-cloud-run-primary.md)

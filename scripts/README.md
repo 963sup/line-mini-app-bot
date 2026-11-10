@@ -24,3 +24,12 @@ through root `package.json`. Release scripts do not grant deployment permission.
 
 See [the path migration](../docs/development/path-reorganization.md) for changed
 entry points and verification boundaries.
+
+## 相關文件
+
+- [文件索引：Scripts](../docs/README.md#按模組閱讀)
+- [mise 任務與工具](../docs/tooling/mise.md)
+- [分析範圍與稽核](../docs/tooling/analysis-scope.md)
+- [路徑整理](../docs/development/path-reorganization.md)
+
+[本目錄指引](AGENTS.md) · [根目錄說明](../README.md)

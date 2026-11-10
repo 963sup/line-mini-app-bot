@@ -49,3 +49,10 @@ contract/openapi.yaml 為入口，contract/attendance.yaml 定義出勤；client
 從根目錄執行 bash scripts/tooling/tool-exec.sh pnpm api:check。歷史比較依 README.md 指定 base revision；缺少 base 不宣稱通過。
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
+
+## 相關文件
+
+- [文件索引：API](../docs/README.md#按模組閱讀)
+- [HTTP 契約設計](../docs/architecture/http-contracts.md)
+- [資料契約](../docs/architecture/data-contracts.md)
+- [出勤查詢與更正](../docs/features/attendance-queries.md)

@@ -1,6 +1,51 @@
 # Graphify／Repomix 交叉比對與巢狀指引
 
-日期：2026-11-11（Asia/Taipei）。分析基準提交：`cc82d1ef8c3d8baa58216a5e029bc65904a3b661`，包含本次尚未提交的巢狀文件。已 fetch 並核對 origin/work 與 origin/main。Git 發布結果以實際推送後的遠端查核為準。
+日期：2026-11-11（Asia/Taipei）。最新文件導覽整理基準提交：`b417885b39d1ac89484a56e0494b13f92126e5c1`，包含本次文件修改。下方「本次文件導覽整理」為最新結果；其後保留先前巢狀指引建立時的執行紀錄。
+
+## 巢狀分類補齊（2026-11-11）
+
+在五個模組閱讀入口之外，補齊 docs 七個主題目錄的 README.md／AGENTS.md：architecture、features、development、integrations、operations、tooling、agents。
+各層 README 列出該層全部直接文件與既有下層索引；AGENTS.md 說明分類邊界、父層規則、連結同步與驗證要求。
+更新 backend、api、frontend、deploy 的巢狀指引，新增 scripts/AGENTS.md，並由根 README 與 docs 總索引連入。
+既有 decisions、tooling/mcp 索引及 frontend/miniapp 上游指引保留。
+
+本次輸出目錄：`/workspace/tooling/reports/docs-nested-review-20261111/`。
+
+```bash
+bash scripts/tooling/tool-exec.sh graphify extract . --code-only --out /workspace/tooling/reports/docs-nested-review-20261111
+bash scripts/tooling/tool-exec.sh repomix --style xml --parsable-style --output /workspace/tooling/reports/docs-nested-review-20261111/repomix-final.xml
+python3 scripts/analysis/docs-graph.py --out /workspace/tooling/reports/docs-nested-review-20261111/docs-graph
+```
+
+乾淨 AST 圖譜、最終打包、涵蓋差異與結構完整性以同目錄 crosscheck-final.json、repomix-final.log 為準。
+直接檢查每個主題的文件索引覆蓋與本機連結／標題錨點，補足 Graphify AST 不解析 Markdown 的限制。
+本次僅整理本機文件，未更動程式、雲端設定或上游技能；其他工作中的 Dockerfile、部署文件與根指引修改均保留。
+後續章節為前次整理的快照，token 數不代表本次最終打包。
+
+## 本次文件導覽整理
+
+保留 docs 的 architecture、features、development、integrations、operations、tooling、agents 主題分類，
+在 [文件索引](../README.md#按模組閱讀) 建立 Backend／API／Frontend／Scripts／Deploy 閱讀入口。
+根 README 導向此入口，各模組 README 加入相關文件及返回索引的連結；docs/AGENTS.md 同步規範文件歸屬。
+跨模組功能與契約維持單一來源，未搬移既有文件。
+
+重新執行 Graphify 0.9.103、Repomix 1.18.1：
+
+```bash
+bash scripts/tooling/tool-exec.sh graphify extract . --code-only --out /workspace/tooling/reports/docs-routing-20261111
+bash scripts/tooling/tool-exec.sh repomix --style xml --parsable-style --output /workspace/tooling/reports/docs-routing-20261111/repomix-before.xml
+bash scripts/tooling/tool-exec.sh repomix --style xml --parsable-style --output /workspace/tooling/reports/docs-routing-20261111/repomix-final.xml
+```
+
+- 乾淨 Graphify：1,226 節點、3,513 關係、165 個來源檔。
+- 修改前 Repomix：282 檔案、302,730 tokens；修改後數值見本機 `repomix-final.log`，避免將報告自身更新造成的 token 變化混為同一快照。
+- 165 個 Graphify 來源全數收錄，重複 ID、缺失關係端點及不存在來源均為 0。
+- AST 不涵蓋 docs Markdown；另以既有 `scripts/analysis/docs-graph.py` 建立標題與連結圖，並直接驗證本次修改文件的本機路徑與標題錨點。
+- `.agents`、`.vscode` 未被一般打包收錄，本次未修改這兩處；未把工具排除視為空目錄。
+- 本次為文件導覽修改，依本機文件、原始碼目錄與 CLI 結果判斷，未變更套件或外部 API 行為，無新增外部技術選型。
+- 驗證包含文件連結、設定檢查、分析範圍分類與 whitespace；未執行應用測試或雲端驗收。
+
+完整本機產物位於 `/workspace/tooling/reports/docs-routing-20261111/`，不納入 Git。
 
 ## 執行方式與結果
 
