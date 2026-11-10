@@ -20,16 +20,18 @@ WORKDIR /src/backend
 COPY backend/go.mod backend/go.sum ./
 COPY backend/cmd/ ./cmd/
 COPY backend/internal/ ./internal/
+COPY --chmod=755 assets/line/richmenu/*.jpg /assets/line/richmenu/
 RUN --mount=type=secret,id=build-ca \
     if [ -f /run/secrets/build-ca ]; then export SSL_CERT_FILE=/run/secrets/build-ca; fi; \
     CGO_ENABLED=0 go build -trimpath -o /server ./cmd/server && \
-    CGO_ENABLED=0 go build -trimpath -o /richmenu ./cmd/richmenu
+    CGO_ENABLED=0 go build -trimpath -o /richmenu ./cmd/richmenu && \
+    chmod 644 /assets/line/richmenu/*.jpg
 
 FROM gcr.io/distroless/static-debian12:nonroot
 COPY --from=build /server /server
 COPY --from=build /richmenu /richmenu
 COPY --from=frontend /src/frontend/miniapp/out/ /app/frontend/
-COPY --chmod=u=rwX,go=rX assets/line/richmenu/ /assets/line/richmenu/
+COPY --from=build /assets/ /assets/
 ENV PORT=8080 FRONTEND_DIR=/app/frontend
 EXPOSE 8080
 USER nonroot:nonroot

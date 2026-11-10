@@ -31,6 +31,10 @@ inline `SyncRichMenus` 以本次建置映像執行 `/richmenu`，必須傳入
 2026-11-11 的 `cc82d1e` build 已部署 Ready revision，卻因 trigger 仍傳舊路徑
 而在後續 `SyncRichMenus` 報 `attendance-in: provide a readable -image file`。
 同日已將實際 trigger 的 `-images` 改為 `/assets/line/richmenu`，讀回核對其餘欄位不變。
+後續 `b417885` build 使用正確路徑仍失敗；下載實際映像的資產 layer 後確認，
+兩張 JPEG 的權限為 `0000`，目錄為 `0755`，nonroot 無法讀取。
+Dockerfile 改在 build stage 以數字 `COPY --chmod=755` 建立可穿越目錄，再將 JPEG
+設為 `0644`；runtime stage 複製已整理權限的 `/assets/`，避免符號權限處理結果。
 Build 失敗不代表前面的部署已回滾；修正 trigger 後仍須以新 build 的同步步驟結果驗收。
 
 ## Repository `deploy/cloudbuild.yaml` 預設配置
