@@ -6,6 +6,7 @@
 
 - [出勤查詢與更正](attendance-queries.md)
 - [基礎出勤](attendance.md)
+- [群組出勤看板與本人漏下班檢查](attendance-board.md)
 - [群組請假登記](leave.md)
 - [基礎群聊摘要](summary.md)
 - [群組位置天氣](weather.md)

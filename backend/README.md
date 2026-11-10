@@ -21,3 +21,5 @@ cmd/ 保存 server、richmenu、firestorecheck 與 attendancemigrate 入口；in
 - [API 契約工作流程](../api/README.md)
 
 - [群組請假登記](../docs/features/leave.md)
+
+- [群組出勤看板與本人漏下班檢查](../docs/features/attendance-board.md)

@@ -88,7 +88,7 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 		return transport.Reply{}, false, nil
 	}
 	history := command == "出勤紀錄" || strings.HasPrefix(command, "出勤紀錄 ")
-	if command != "請假" && command != "打卡" && command != "上班" && command != "下班" && command != "休息開始" && command != "休息結束" && command != "確認休息" && !history {
+	if command != "出勤" && command != "漏下班" && command != "下班提醒" && command != "請假" && command != "打卡" && command != "上班" && command != "下班" && command != "休息開始" && command != "休息結束" && command != "確認休息" && !history {
 		return transport.Reply{}, false, nil
 	}
 	respond := func(text string) (transport.Reply, bool, error) {
@@ -99,6 +99,9 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 	}
 	if user, ok := source.(webhook.UserSource); ok {
 		if !history {
+			if command == "出勤" || command == "漏下班" || command == "下班提醒" {
+				return respond("請回原群組輸入「出勤」或「漏下班」。")
+			}
 			return respond("請在群組輸入「打卡」或「請假」，取得操作入口。")
 		}
 		if user.UserId == "" {
@@ -171,6 +174,9 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 	}
 	if group.UserId == "" || group.GroupId == "" {
 		return respond("無法確認群組或操作人員，未執行打卡。")
+	}
+	if command == "出勤" || command == "漏下班" || command == "下班提醒" {
+		return b.replyGroupStatus(ctx, group.GroupId, group.UserId, command, token)
 	}
 	if command == "請假" {
 		store, ok := b.Store.(attendance.LeaveStore)
