@@ -84,3 +84,22 @@ MINI App 頁面為 `/miniapp`；Channel 未設定時頁面顯示設定提示。
 操作與驗證限制見 [LINE 接入說明](docs/development/line-prototype.md)。
 
 授權尚未選定，目前依 `LICENSE` 保留所有權利。
+
+## 巢狀目錄導覽
+
+各目錄 README 說明用途，AGENTS.md 規範該子樹的修改與驗證；根目錄指引持續適用。
+
+| 目錄 | 說明 | 工作指引 |
+| --- | --- | --- |
+| `.agents/` | [共用 Agent Skills](.agents/README.md) | [AGENTS.md](.agents/AGENTS.md) |
+| `.codex/` | [Codex 專案配置](.codex/README.md) | [AGENTS.md](.codex/AGENTS.md) |
+| `.github/` | [GitHub 協作與 CI](.github/README.md) | [AGENTS.md](.github/AGENTS.md) |
+| `.vscode/` | [VS Code 工作區設定](.vscode/README.md) | [AGENTS.md](.vscode/AGENTS.md) |
+| `api/` | [HTTP API 契約](api/README.md) | [AGENTS.md](api/AGENTS.md) |
+| `assets/` | [應用素材](assets/README.md) | [AGENTS.md](assets/AGENTS.md) |
+| `backend/` | [Go 後端](backend/README.md) | [AGENTS.md](backend/AGENTS.md) |
+| `deploy/` | [部署設定與 Firestore 索引](deploy/README.md) | [AGENTS.md](deploy/AGENTS.md) |
+| `docs/` | [專案文件](docs/README.md) | [AGENTS.md](docs/AGENTS.md) |
+| `frontend/` | [MINI App 前端](frontend/README.md) | [AGENTS.md](frontend/AGENTS.md) |
+
+進入 `frontend/miniapp/` 另讀其 [Next.js 指引](frontend/miniapp/AGENTS.md)。分析結果與涵蓋限制見 [交叉比對](docs/tooling/graphify-repomix-crosscheck.md)。

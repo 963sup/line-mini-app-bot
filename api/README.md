@@ -39,3 +39,13 @@ OpenAPI 驗證不取代班次版本、群組成員、審核權限、位置時效
 生成碼與通用接線保留於 backend/internal/httpapi；出勤 handlers／DTO 映射與 runtime 驗證位於 attendance/http，身分入口位於 identity/http。核心型別不含 JSON／Firestore tags，資料層負責文件編碼與錯誤轉譯。
 
 Redocly lint／bundle 設定位於 `api/redocly.yaml`；根目錄的生成腳本明確帶入 `--config`，不依賴工作目錄自動尋找。
+
+## 目錄導覽與維護
+
+contract/openapi.yaml 為入口，contract/attendance.yaml 定義出勤；client/ 保存 TypeScript client，compatibility/baseline/ 保存相容性基準。
+
+先修改契約，再由根目錄 pnpm api:generate 更新 Go/TS 產生碼；不手改 generated 檔或任意刷新 baseline。業務核心不依賴 HTTP DTO。
+
+從根目錄執行 bash scripts/tooling/tool-exec.sh pnpm api:check。歷史比較依 README.md 指定 base revision；缺少 base 不宣稱通過。
+
+[本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)

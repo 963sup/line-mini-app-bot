@@ -18,6 +18,7 @@ __pycache__/
 
 # Agent workspace and local tooling (tracked files are unaffected).
 /.agents/**
+!/.agents/AGENTS.md
 /.claude/
 /agent/
 /server

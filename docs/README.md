@@ -75,3 +75,15 @@ LINE 問題先查 [官方文件來源庫](https://github.com/line/line-developer
 不可用記憶代替查證；來源不可用或不足時明確回報，受影響決策保持待確認。完整規則見根目錄 AGENTS.md。
 
 專案技能清單與來源：[Skills](tooling/skills.md)。
+
+## 目錄導覽與維護
+
+README.md 是文件索引；architecture/、development/、features/、integrations/、operations/、tooling/、agents/ 各自保存決策、開發、功能、整合、營運、工具與代理流程。
+
+以已接受 ADR 與實際來源為準，區分已實作、待驗收與未來規劃。新增文件需連回索引；不在多處複製版本、連線設定、機密或完整政策。
+
+驗證本機連結與來源路徑；工具圖譜不證明語意正確。純文件變更執行 git diff --check，相關設定變更再執行設定檢查。
+
+[本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
+
+- [Graphify／Repomix 交叉比對與巢狀指引依據](tooling/graphify-repomix-crosscheck.md)

@@ -117,3 +117,9 @@ For location tasks read docs/integrations/web-geolocation.md: browser JavaScript
 Go validates untrusted coordinates and authorization. No location history or presence verification
 without the product contract. Read docs/architecture/codex-readiness.md and
 docs/development/naming.md for implementation handoffs. Preserve generated upstream skills.
+
+## Nested directory instructions
+
+Root instructions apply throughout the repository. Before changing a subtree, read its AGENTS.md and README.md; more specific instructions supplement root policy within their scope, subject to user and host instructions. Directory entry points are listed in [README.md](README.md#巢狀目錄導覽).
+
+Scoped pairs exist in `.agents`, `.codex`, `.github`, `.vscode`, `api`, `assets`, `backend`, `deploy`, `docs` and `frontend`. Within `frontend/miniapp`, also follow its existing generated Next.js guidance. Preserve upstream skill files and existing local changes. A nested guide never grants additional push, publication, deployment or external-write authorization.
