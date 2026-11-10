@@ -26,6 +26,10 @@ config_file = "agents/explorer.toml"
 description = "Implementation, refactoring, bug fixes and scoped environment repairs."
 config_file = "agents/implementer.toml"
 
+[agents.debugger]
+description = "Reproduce bugs, identify root causes, implement minimal fixes, and verify regressions."
+config_file = "agents/debugger.toml"
+
 [agents.tester]
 description = "Test design, execution and issue verification."
 config_file = "agents/tester.toml"

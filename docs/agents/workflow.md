@@ -6,12 +6,16 @@ changes and before delivery. Use `deadcode` and `callgraph` for focused analysis
 and `debug`, `coverage`, `bench`, `profile` only when relevant. See
 [mise tooling](../tooling/mise.md) for installation and artifact paths.
 
-Eight roles are available; they are not eight mandatory execution stages.
+Nine roles are available; they are not nine mandatory execution stages.
 The orchestrator can complete small work directly. Use implementer, tester and
 reviewer for substantial changes; add architect/researcher/explorer only for a
 specific unresolved question. Use integrator when separate patches require it.
 Start with two or three independent workers, within host limits. One writer owns
 each file; test fixtures must have explicit ownership too.
+
+For errors, logs and unexplained test failures, use debugger under the
+[systematic debugging contract](debugging.md); orchestrator keeps coordination
+and acceptance ownership.
 
 ## Assignment contract
 

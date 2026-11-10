@@ -28,8 +28,8 @@ This routing rule does not require extra user confirmation.
 - Specialists receiving an assigned subtask execute that subtask and report to
   their orchestrator; they must not restart this routing rule or delegate further.
 - Orchestrator may use architect, researcher, explorer, implementer, tester,
-  reviewer and integrator when useful.
-  Small tasks can be completed by orchestrator directly; do not run all eight
+  reviewer, debugger and integrator when useful.
+  Small tasks can be completed by orchestrator directly; do not run all nine
   roles automatically. Roles are capabilities, not a required parallel fan-out.
 - Assign one writer per file scope; parallelize only independent tasks. Respect
   the host's actual concurrency and depth limits (configured depth is 2).
@@ -53,6 +53,7 @@ This routing rule does not require extra user confirmation.
 | Researcher | Technical research, official documentation and option comparisons |
 | Explorer | Code exploration, dependency analysis and change impact |
 | Implementer | Implementation, refactoring, bug fixes and scoped environment repairs |
+| Debugger | Reproduction, root cause diagnosis, minimal complete fixes and regression evidence |
 | Tester | Test design, execution and issue verification |
 | Reviewer | Code quality, security and architectural compliance review |
 | Integrator | Change integration, conflict resolution and final acceptance |

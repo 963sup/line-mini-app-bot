@@ -12,7 +12,7 @@ import tomllib
 ROOT = Path(__file__).resolve().parent.parent
 ROLES = {
     "orchestrator", "architect", "researcher", "explorer",
-    "implementer", "tester", "reviewer", "integrator",
+    "implementer", "debugger", "tester", "reviewer", "integrator",
 }
 
 
@@ -24,7 +24,7 @@ def check():
         raise ValueError("Codex multi_agent must be enabled")
     roles = {name: role for name, role in config["agents"].items() if isinstance(role, dict)}
     if set(roles) != ROLES:
-        raise ValueError("Codex role registry must contain the eight documented roles")
+        raise ValueError("Codex role registry must contain the documented roles")
     for name, role in roles.items():
         path = (codex_dir / role["config_file"]).resolve()
         if not path.is_relative_to(codex_dir.resolve()):
@@ -76,7 +76,7 @@ def check():
     scripts = sorted((ROOT / "scripts").glob("*.sh"))
     for path in scripts:
         subprocess.run(["bash", "-n", str(path)], check=True)
-    print(f"PASS: eight agents, mise env/tool config, {len(json_paths)} JSON files and {len(scripts)} shell scripts")
+    print(f"PASS: {len(roles)} agents, mise env/tool config, {len(json_paths)} JSON files and {len(scripts)} shell scripts")
 
 
 if __name__ == "__main__":

@@ -51,7 +51,7 @@
 ## 文件索引
 
 - [出勤查詢、Web 分頁與更正重試](features/attendance-queries.md)
-- [Agent workflow](agents/workflow.md) and [acceptance](agents/acceptance.md)
+- [Agent workflow](agents/workflow.md) and [acceptance](agents/acceptance.md) and [systematic debugging](agents/debugging.md)
 - [mise](tooling/mise.md) and [MCP services](tooling/mcp/README.md)
 - [Cloud development environment](development/cloud-environment.md)
 - [Environment setup](development/setup.md), [Go conventions](development/go.md), [tests](development/testing.md)
