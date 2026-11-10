@@ -17,6 +17,22 @@ configuration 為準；image-only update 會沿用當時的 service template。G
 repository 的 `backend/.env.example` 或 `deploy/cloudbuild.yaml` 設定同步到 Cloud Run。機密只由
 Cloud Run 引用 Secret Manager，不進入 Dockerfile、映像或 Git。
 
+### Managed trigger 的 Rich Menu 圖片路徑
+
+現行 managed trigger 的權威設定在 Cloud Build（global trigger
+`4276bf03-26ee-4b4b-a206-0d7fc74a9862`）的 inline build；repository
+`deploy/cloudbuild.yaml` 沒有 `SyncRichMenus` 步驟，不會覆寫該設定。
+inline `SyncRichMenus` 以本次建置映像執行 `/richmenu`，必須傳入
+`sync -images /assets/line/richmenu -app-url <MINI App URL> -apply`。
+此絕對路徑對應 Dockerfile 的 runtime COPY 目的地；Go CLI 預設的相對路徑
+只適合從 repository 根目錄執行，不能用來推定映像內位置。
+
+搬移圖片時須同步檢查 Dockerfile、CLI 預設及實際 trigger 的 `-images` 參數。
+2026-11-11 的 `cc82d1e` build 已部署 Ready revision，卻因 trigger 仍傳舊路徑
+而在後續 `SyncRichMenus` 報 `attendance-in: provide a readable -image file`。
+同日已將實際 trigger 的 `-images` 改為 `/assets/line/richmenu`，讀回核對其餘欄位不變。
+Build 失敗不代表前面的部署已回滾；修正 trigger 後仍須以新 build 的同步步驟結果驗收。
+
 ## Repository `deploy/cloudbuild.yaml` 預設配置
 
 下表描述 repository 配置，不代表現行 managed trigger 或 serving revision 已套用相同值。
