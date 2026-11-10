@@ -341,6 +341,18 @@ export interface components {
             BreakStartedAt: string;
             RestConfirmed: boolean;
             RebuildIssues: string[] | null;
+            /**
+             * Format: int64
+             * @description Gross full-shift attendance, not clipped to the requested month.
+             */
+            AttendanceMinutes?: number;
+            /**
+             * Format: int64
+             * @description Full-shift work estimate; confirmed shifts deduct confirmed rests.
+             */
+            EstimatedMinutes?: number;
+            /** @description confirmed, estimated (rest unconfirmed), or invalid (cannot calculate). */
+            WorktimeStatus?: string;
         };
         RecordPage: {
             items: components["schemas"]["AttendanceRecord"][];
@@ -396,12 +408,35 @@ export interface components {
              * @description Nanoseconds; Go time.Duration JSON representation.
              */
             Duration: number;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description Confirmed net working minutes; excludes rest-unconfirmed shifts.
+             */
             Minutes: number;
             /** Format: int64 */
             Pending: number;
             Issues: components["schemas"]["CalculationIssue"][] | null;
             Intervals: components["schemas"]["Interval"][] | null;
+            /**
+             * Format: int64
+             * @description Gross attendance minutes, before rest deductions; valid clock times and evidence only.
+             */
+            AttendanceMinutes?: number;
+            /**
+             * Format: int64
+             * @description Provisional total INCLUDING confirmed net work and rest-unconfirmed gross work. Do not add Minutes to this value.
+             */
+            EstimatedMinutes?: number;
+            /**
+             * Format: int64
+             * @description Complete valid shifts awaiting rest confirmation, included in EstimatedMinutes.
+             */
+            Unconfirmed?: number;
+            /**
+             * Format: int64
+             * @description Shifts excluded from work totals because times, breaks or evidence are invalid.
+             */
+            Uncalculable?: number;
         };
         MonthlyReport: {
             /** Format: date-time */

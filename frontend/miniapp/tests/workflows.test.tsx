@@ -331,9 +331,15 @@ test("geolocation abort, permission failure, invalid coordinates and synchronous
   );
 });
 test("month reads are cancelled on reload and private records clear on logout", async () => {
-  const f = await fixture(<History />, "?group=g1&month=2026-11");
+  const f = await fixture(<History />, "?group=g1&month=2026-11", async (r, next) => {
+    const response = await next(r);
+    if (r.url.includes("/records?")) return Response.json({ items: [{ ...record, RestConfirmed: false, AttendanceMinutes: 60, EstimatedMinutes: 60, WorktimeStatus: "estimated" }], nextCursor: "" });
+    if (r.url.includes("/summary?")) return Response.json({ Calculation: { Minutes: 0, Pending: 1, EstimatedMinutes: 60, AttendanceMinutes: 60, Unconfirmed: 1, Uncalculable: 0 }, count: 1 });
+    return response;
+  });
   try {
-    assert.match(f.node("month-summary").textContent!, /60/);
+    assert.match(f.node("month-summary").textContent!, /暫估合計 60 分鐘（含已確認 0 分鐘）/);
+    assert.match(f.node("record-list").textContent!, /暫估工時 60 分鐘（休息待確認）/);
     let resolve!: (value: Response) => void;
     const old = f.setHandler(async (r) =>
       r.url.includes("/records?")

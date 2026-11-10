@@ -26,7 +26,7 @@ func calculationView(source worktime.Result) generated.Calculation {
 			issues[i] = generated.CalculationIssue{SessionID: v.SessionID, Code: v.Code}
 		}
 	}
-	return generated.Calculation{Duration: int64(source.Duration), EventIDs: &source.EventIDs, Intervals: &intervals, Issues: &issues, Minutes: source.Minutes, Pending: int64(source.Pending), Version: source.Version}
+	return generated.Calculation{AttendanceMinutes: &source.AttendanceMinutes, EstimatedMinutes: &source.EstimatedMinutes, Unconfirmed: pointerInt64(source.Unconfirmed), Uncalculable: pointerInt64(source.Uncalculable), Duration: int64(source.Duration), EventIDs: &source.EventIDs, Intervals: &intervals, Issues: &issues, Minutes: source.Minutes, Pending: int64(source.Pending), Version: source.Version}
 }
 
 func optionalValue[T any](p *T) T {
@@ -75,3 +75,5 @@ func monthlyView(source attendance.MonthlyReport) generated.MonthlyReport {
 	}
 	return generated.MonthlyReport{Start: source.Start, Records: &records, Calculation: calculationView(source.Calculation), CorrectionIDs: &source.CorrectionIDs}
 }
+
+func pointerInt64(value int) *int64 { converted := int64(value); return &converted }

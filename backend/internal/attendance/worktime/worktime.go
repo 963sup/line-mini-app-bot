@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const Version = "worktime-v2"
+const Version = "worktime-v3"
 
 type Event struct {
 	ContractVersion   int
@@ -25,6 +25,7 @@ type (
 		Start, End    time.Time
 		Breaks        []Interval
 		RestConfirmed bool
+		Invalid       bool
 		EventIDs      []string
 	}
 )
@@ -32,13 +33,15 @@ type (
 type (
 	Issue  struct{ SessionID, Code string }
 	Result struct {
-		EventIDs  []string
-		Version   string
-		Duration  time.Duration
-		Minutes   int64
-		Pending   int
-		Issues    []Issue
-		Intervals []Interval
+		EventIDs                            []string
+		Version                             string
+		Duration                            time.Duration
+		Minutes                             int64
+		AttendanceMinutes, EstimatedMinutes int64
+		Unconfirmed, Uncalculable           int
+		Pending                             int
+		Issues                              []Issue
+		Intervals                           []Interval
 	}
 )
 
@@ -101,13 +104,14 @@ func BuildIntervals(events []Event) ([]Session, []Issue) {
 	if conflict {
 		for i := range sessions {
 			sessions[i].RestConfirmed = false
+			sessions[i].Invalid = true
 		}
 	}
 	return sessions, issues
 }
 
-// Calculate clips complete confirmed sessions to [from,to), unions overlaps and
-// keeps sub-minute precision until the final total. Invalid sessions never accrue time.
+// Calculate clips complete sessions to [from,to), separates confirmed and estimated totals, and
+// keeps sub-minute precision until the final total. Invalid sessions never accrue work time.
 func Calculate(sessions []Session, from, to time.Time) Result {
 	r := Result{Version: Version}
 	if !to.After(from) {
@@ -115,12 +119,13 @@ func Calculate(sessions []Session, from, to time.Time) Result {
 		return r
 	}
 	all := []Interval{}
+	estimated, attendance := []Interval{}, []Interval{}
 	evidence := map[string]bool{}
 	for _, s := range sessions {
 		if !s.Start.IsZero() && !s.Start.Before(to) {
 			continue
 		}
-		if !s.End.IsZero() && !s.End.After(from) && !s.End.Before(s.Start) {
+		if !s.End.IsZero() && s.End.After(s.Start) && !s.End.After(from) {
 			continue
 		}
 		for _, id := range s.EventIDs {
@@ -137,8 +142,11 @@ func Calculate(sessions []Session, from, to time.Time) Result {
 			code = "missing_clock_out"
 		case !s.End.After(s.Start):
 			code = "invalid_order"
-		case !s.RestConfirmed:
-			code = "rest_unconfirmed"
+		case s.Invalid:
+			code = "invalid_evidence"
+		}
+		if code == "" {
+			attendance = append(attendance, clipped([]Interval{{s.Start, s.End}}, from, to)...)
 		}
 		breaks := append([]Interval(nil), s.Breaks...)
 		for _, b := range breaks {
@@ -148,7 +156,15 @@ func Calculate(sessions []Session, from, to time.Time) Result {
 		}
 		if code != "" {
 			r.Pending++
+			r.Uncalculable++
 			r.Issues = append(r.Issues, Issue{s.ID, code})
+			continue
+		}
+		if !s.RestConfirmed {
+			r.Pending++
+			r.Unconfirmed++
+			r.Issues = append(r.Issues, Issue{s.ID, "rest_unconfirmed"})
+			estimated = append(estimated, clipped([]Interval{{s.Start, s.End}}, from, to)...)
 			continue
 		}
 		breaks = union(breaks)
@@ -163,20 +179,12 @@ func Calculate(sessions []Session, from, to time.Time) Result {
 		if cursor.Before(s.End) {
 			pieces = append(pieces, Interval{cursor, s.End})
 		}
-		for _, p := range pieces {
-			if p.Start.Before(from) {
-				p.Start = from
-			}
-			if p.End.After(to) {
-				p.End = to
-			}
-			if p.End.After(p.Start) {
-				all = append(all, p)
-			}
-		}
+		pieces = clipped(pieces, from, to)
+		all = append(all, pieces...)
+		estimated = append(estimated, pieces...)
 	}
 	// Overlap is retained as an anomaly and counted once, never double paid.
-	sorted := append([]Interval(nil), all...)
+	sorted := append([]Interval(nil), estimated...)
 	sort.Slice(sorted, func(i, j int) bool { return sorted[i].Start.Before(sorted[j].Start) })
 	var last time.Time
 	for _, p := range sorted {
@@ -192,7 +200,33 @@ func Calculate(sessions []Session, from, to time.Time) Result {
 		r.Duration += p.End.Sub(p.Start)
 	}
 	r.Minutes = int64(r.Duration / time.Minute)
+	r.EstimatedMinutes = totalMinutes(estimated)
+	r.AttendanceMinutes = totalMinutes(attendance)
 	return r
+}
+
+func clipped(items []Interval, from, to time.Time) []Interval {
+	result := []Interval{}
+	for _, p := range items {
+		if p.Start.Before(from) {
+			p.Start = from
+		}
+		if p.End.After(to) {
+			p.End = to
+		}
+		if p.End.After(p.Start) {
+			result = append(result, p)
+		}
+	}
+	return result
+}
+
+func totalMinutes(items []Interval) int64 {
+	var duration time.Duration
+	for _, p := range union(items) {
+		duration += p.End.Sub(p.Start)
+	}
+	return int64(duration / time.Minute)
 }
 
 func union(items []Interval) []Interval {

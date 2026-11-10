@@ -19,6 +19,7 @@ api:check 同時檢查產生碼同步與 oasdiff 破壞性變更。compatibility
 
 ## 保持的資料語意
 
+- 工時新增出勤、暫估合計與確認狀態；既有 Minutes 仍為已確認淨工時。EstimatedMinutes 已含 Minutes，不可重複相加，見 [工時計算](../docs/features/worktime.md)。
 - 原有大小寫保留：班次回應為 RecordID/ClockInAt 等；更正輸入為 recordId/start 等。
 - null 與空陣列分開描述並保留。時間為 RFC3339；月份依 Asia/Taipei 解讀，跨月計算與完整摘要仍由出勤核心決定。
 - 座標使用 double，避免 Go 生成 float32 導致精度改變。工時 Duration 保留既有奈秒整數格式，Minutes 是已計算分鐘。

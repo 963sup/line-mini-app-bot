@@ -220,7 +220,7 @@ export function View() {
       </p>
       <pre id="month-summary" className="summary">
         {summary &&
-          `全月已確認工作 ${summary.Calculation.Minutes} 分鐘；待確認 ${summary.Calculation.Pending} 筆；共 ${summary.count} 個班次。\n正常／加班分類待認定。`}
+          `全月暫估合計 ${summary.Calculation.EstimatedMinutes ?? summary.Calculation.Minutes} 分鐘（含已確認 ${summary.Calculation.Minutes} 分鐘）。\n出勤時數 ${summary.Calculation.AttendanceMinutes ?? "—"} 分鐘（未扣休息）；休息待確認 ${summary.Calculation.Unconfirmed ?? "—"} 筆；無法計算 ${summary.Calculation.Uncalculable ?? "—"} 筆；共 ${summary.count} 個班次；其他異常／提醒 ${summary.Calculation.Issues?.filter((issue) => issue.Code !== "rest_unconfirmed").length ?? 0} 項。\n合計裁切本月區間；明細為完整班次。暫估非薪資結算，正常／加班分類待認定。`}
       </pre>
       <ol id="record-list" className="record-list">
         {records.map((record) => (
@@ -228,7 +228,10 @@ export function View() {
             <h3>{displayTime(record.ClockInAt)}</h3>
             <p>
               下班：{displayTime(record.ClockOutAt)}
-              {!record.RestConfirmed && "；休息未確認"}
+              {record.WorktimeStatus === "invalid" ? `；${(record.AttendanceMinutes ?? 0) > 0 ? `出勤 ${record.AttendanceMinutes} 分鐘；` : ""}資料未完整或有異常，暫無法計算工時` :
+               record.WorktimeStatus === "estimated" ? `；出勤 ${record.AttendanceMinutes} 分鐘；暫估工時 ${record.EstimatedMinutes} 分鐘（休息待確認）` :
+               record.WorktimeStatus === "confirmed" ? `；出勤 ${record.AttendanceMinutes} 分鐘；已確認工時 ${record.EstimatedMinutes} 分鐘` :
+               !record.RestConfirmed ? "；休息待確認" : ""}
             </p>
             <a
               href={

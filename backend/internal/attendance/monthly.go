@@ -18,11 +18,7 @@ func CalculateMonthlyAttendance(records []Record, start time.Time) MonthlyReport
 	report := MonthlyReport{Start: start, Records: append([]Record(nil), records...)}
 	sessions := make([]worktime.Session, 0, len(records))
 	for _, r := range records {
-		breaks := append([]worktime.Interval(nil), r.Breaks...)
-		if !r.BreakStartedAt.IsZero() {
-			breaks = append(breaks, worktime.Interval{Start: r.BreakStartedAt})
-		}
-		sessions = append(sessions, worktime.Session{ID: r.RecordID, Start: r.ClockInAt, End: r.ClockOutAt, Breaks: breaks, RestConfirmed: r.RestConfirmed, EventIDs: r.SourceEventIDs})
+		sessions = append(sessions, recordSession(r))
 		if r.CorrectionID != "" {
 			report.CorrectionIDs = append(report.CorrectionIDs, r.CorrectionID)
 		}
@@ -34,4 +30,25 @@ func CalculateMonthlyAttendance(records []Record, start time.Time) MonthlyReport
 		}
 	}
 	return report
+}
+
+func recordSession(r Record) worktime.Session {
+	breaks := append([]worktime.Interval(nil), r.Breaks...)
+	if !r.BreakStartedAt.IsZero() {
+		breaks = append(breaks, worktime.Interval{Start: r.BreakStartedAt})
+	}
+	return worktime.Session{
+		ID: r.RecordID, Start: r.ClockInAt, End: r.ClockOutAt, Breaks: breaks, RestConfirmed: r.RestConfirmed,
+		EventIDs: r.SourceEventIDs, Invalid: len(r.RebuildIssues) > 0,
+	}
+}
+
+// CalculateRecordAttendance uses the same rules as monthly totals over the full shift.
+func CalculateRecordAttendance(r Record) worktime.Result {
+	end := r.ClockOutAt
+	if !end.After(r.ClockInAt) {
+		// Keep a nonempty calculation window so invalid clock times are reported.
+		end = r.ClockInAt.Add(time.Nanosecond)
+	}
+	return worktime.Calculate([]worktime.Session{recordSession(r)}, r.ClockInAt, end)
 }

@@ -1599,6 +1599,20 @@
               "type": "string"
             },
             "nullable": true
+          },
+          "AttendanceMinutes": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Gross full-shift attendance, not clipped to the requested month."
+          },
+          "EstimatedMinutes": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Full-shift work estimate; confirmed shifts deduct confirmed rests."
+          },
+          "WorktimeStatus": {
+            "type": "string",
+            "description": "confirmed, estimated (rest unconfirmed), or invalid (cannot calculate)."
           }
         },
         "required": [
@@ -1808,7 +1822,8 @@
           },
           "Minutes": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Confirmed net working minutes; excludes rest-unconfirmed shifts."
           },
           "Pending": {
             "type": "integer",
@@ -1827,6 +1842,30 @@
               "$ref": "#/components/schemas/Interval"
             },
             "nullable": true
+          },
+          "AttendanceMinutes": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Gross attendance minutes, before rest deductions; valid clock times and evidence only."
+          },
+          "EstimatedMinutes": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Provisional total INCLUDING confirmed net work and rest-unconfirmed gross work. Do not add Minutes to this value."
+          },
+          "Unconfirmed": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Complete valid shifts awaiting rest confirmation, included in EstimatedMinutes."
+          },
+          "Uncalculable": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Shifts excluded from work totals because times, breaks or evidence are invalid."
           }
         },
         "required": [

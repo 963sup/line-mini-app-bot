@@ -36,11 +36,19 @@ func TestCalculateBreaksOverlapAndMonth(t *testing.T) {
 func TestIncompleteAndLegacyAreNotGuessed(t *testing.T) {
 	start := at("2026-11-01T09:00:00+08:00")
 	end := start.Add(8 * time.Hour)
-	for _, s := range []Session{{Start: start, RestConfirmed: true}, {Start: start, End: end}, {Start: start, End: start.Add(-time.Minute), RestConfirmed: true}, {Start: start, End: end, RestConfirmed: true, Breaks: []Interval{{Start: start.Add(time.Hour)}}}} {
+	for i, s := range []Session{{Start: start, RestConfirmed: true}, {Start: start, End: end}, {Start: start, End: start.Add(-time.Minute), RestConfirmed: true}, {Start: start, End: end, RestConfirmed: true, Breaks: []Interval{{Start: start.Add(time.Hour)}}}} {
 		r := Calculate([]Session{s}, start.Add(-24*time.Hour), end.Add(24*time.Hour))
 		if r.Minutes != 0 || r.Pending != 1 || len(r.Issues) != 1 {
 			t.Fatalf("%+v", r)
 		}
+		if i == 1 {
+			if r.EstimatedMinutes != 480 || r.AttendanceMinutes != 480 || r.Unconfirmed != 1 || r.Uncalculable != 0 {
+				t.Fatalf("complete unconfirmed shift lost estimate: %+v", r)
+			}
+		} else if r.EstimatedMinutes != 0 || r.Uncalculable != 1 {
+			t.Fatalf("invalid shift estimated: %+v", r)
+		}
+
 	}
 }
 
@@ -56,7 +64,7 @@ func TestBuildMultipleShiftsAndDuplicates(t *testing.T) {
 	events = append(events, Event{ID: "in", Kind: "clock-in", At: start.Add(time.Minute)})
 	sessions, issues = BuildIntervals(events)
 	r = Calculate(sessions, start, start.Add(24*time.Hour))
-	if len(issues) == 0 || r.Minutes != 0 {
+	if len(issues) == 0 || r.Minutes != 0 || r.EstimatedMinutes != 0 {
 		t.Fatal("conflicting event was silently counted")
 	}
 }
@@ -64,7 +72,7 @@ func TestBuildMultipleShiftsAndDuplicates(t *testing.T) {
 func TestAccumulateSecondsBeforeConvertingMinutes(t *testing.T) {
 	start := at("2026-11-01T09:00:00+08:00")
 	r := Calculate([]Session{{Start: start, End: start.Add(40 * time.Second), RestConfirmed: true}, {Start: start.Add(time.Minute), End: start.Add(100 * time.Second), RestConfirmed: true}}, start, start.Add(time.Hour))
-	if r.Duration != 80*time.Second || r.Minutes != 1 {
+	if r.Duration != 80*time.Second || r.Minutes != 1 || r.EstimatedMinutes != 1 || r.AttendanceMinutes != 1 {
 		t.Fatalf("%+v", r)
 	}
 }

@@ -261,6 +261,15 @@ func TestContractDTOPreservesLegacyWireValues(t *testing.T) {
 		if err := json.Unmarshal(converted, &after); err != nil {
 			t.Fatal(err)
 		}
+		beforeCalc := before.(map[string]any)["Calculation"].(map[string]any)
+		afterCalc := after.(map[string]any)["Calculation"].(map[string]any)
+		for _, key := range []string{"AttendanceMinutes", "EstimatedMinutes", "Unconfirmed", "Uncalculable"} {
+			if _, exists := afterCalc[key]; !exists {
+				t.Fatalf("missing additive metric %s", key)
+			}
+			delete(afterCalc, key)
+		}
+		beforeCalc["Version"] = worktime.Version
 		if !reflect.DeepEqual(before, after) {
 			t.Fatalf("DTO changed legacy JSON or location precision:\n%s\n%s", original, converted)
 		}
