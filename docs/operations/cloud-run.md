@@ -162,6 +162,21 @@ repository `cloudbuild.yaml` 預設的 `line-mini-app-runtime` 不同。兩者�
 traffic 與該 revision 的 env／Secret reference。Build 綠燈不等於 LINE 驗簽、Firestore、
 Cloud Tasks、模型或訊息送達已通過端到端測試。
 
+## Docker BuildKit 建置契約
+
+Dockerfile 使用 `RUN --mount=type=secret,id=build-ca`，因此 builder 必須支援並啟用 BuildKit。
+目前 managed trigger 的 inline `Build` step 與 repository `cloudbuild.yaml` 的 `build` step
+都明確設定 `DOCKER_BUILDKIT=1`；Dockerfile 頂端的 syntax directive 不會自行啟用 BuildKit。
+本機 Docker 預設啟用不代表 Cloud Build 也啟用。若更新 Docker builder，確認其 BuildKit／Buildx
+支援，並用實際 builder 測試 secret mount；不能移除 TLS 驗證或將 CA／憑證寫入映像代替。
+
+若日誌顯示 `the --mount option requires BuildKit`，失敗發生在建置階段，尚未推送／部署新版。
+先核對實際 Trigger 的 inline Build env；只修改 repository YAML 不會更新 managed trigger。
+修改 trigger 前保存 metadata，變更後比對僅預期的 Build env 有差異，不改部署、選單或機密設定。
+
+參考：[Docker BuildKit](https://docs.docker.com/build/buildkit/)、
+[Docker build secrets](https://docs.docker.com/build/building/secrets/)。
+
 ## 改用 repository `cloudbuild.yaml` 的自訂 Trigger
 
 在 Cloud Build Console 連接本 repository、建立 push Trigger，選定一個部署分支，
