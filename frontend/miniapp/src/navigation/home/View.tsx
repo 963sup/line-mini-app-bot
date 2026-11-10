@@ -13,6 +13,10 @@ export function View() {
             <strong>更正與申請結果</strong>
             <span>從月紀錄選擇班次，或輸入編號查看已送出的申請。</span>
           </a>
+          <a href="/miniapp/leave">
+            <strong>本人請假紀錄</strong>
+            <span>查詢請假登記；新增申請請從群組輸入「請假」。</span>
+          </a>
           <a href="/miniapp/review">
             <strong>授權審核</strong>
             <span>授權審核者依申請編號查看內容並核准。</span>

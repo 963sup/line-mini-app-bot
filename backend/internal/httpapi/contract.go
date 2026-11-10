@@ -80,3 +80,11 @@ func (s contractServer) DeleteSession(w http.ResponseWriter, r *http.Request, _ 
 func (s contractServer) RefreshSession(w http.ResponseWriter, r *http.Request, _ generated.RefreshSessionParams) {
 	s.identity.ServeHTTP(w, r)
 }
+
+func (s contractServer) ListOwnLeaveRequests(w http.ResponseWriter, r *http.Request) {
+	s.attendance.ServeHTTP(w, r)
+}
+
+func (s contractServer) SubmitLeaveRequest(w http.ResponseWriter, r *http.Request, _ generated.SubmitLeaveRequestParams) {
+	s.attendance.ServeHTTP(w, r)
+}

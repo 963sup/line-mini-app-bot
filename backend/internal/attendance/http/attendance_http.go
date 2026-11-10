@@ -24,6 +24,7 @@ func registerAttendanceAPIWithIdentity(public *http.ServeMux, bot *Attendance, a
 	registerAttendanceQueries(mux, bot, app)
 	registerAttendanceCorrections(mux, bot, app)
 	registerAttendanceLaunch(mux, bot, app)
+	registerLeave(mux, bot, app)
 	mux.Handle("POST /api/v1/attendance/punches", http.NewCrossOriginProtection().Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if bot == nil {
 			transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")

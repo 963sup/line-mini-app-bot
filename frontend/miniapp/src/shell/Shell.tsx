@@ -32,12 +32,15 @@ function Content({
 }) {
   const { epoch, ready } = useSession();
   useEffect(() => {
-    if (
-      ready &&
-      workflow === "home" &&
-      (new URLSearchParams(location.search).has("launch") ||
-        new URLSearchParams(location.search).has("liff.state"))
-    )
+    if (!ready || workflow !== "home") return;
+    const params = new URLSearchParams(location.search);
+    let leave = params.has("leave");
+    try {
+      const nested = params.get("liff.state");
+      if (nested) leave ||= new URL(nested, location.origin).searchParams.has("leave");
+    } catch {}
+    if (leave) location.replace("/miniapp/leave" + location.search);
+    else if (params.has("launch") || params.has("liff.state"))
       location.replace("/miniapp/punch" + location.search);
   }, [workflow, ready]);
   return (
@@ -55,6 +58,7 @@ function Content({
           <nav className="page-nav" aria-label="出勤服務">
             <a href="/miniapp">首頁</a>
             <a href="/miniapp/history">本人月紀錄</a>
+            <a href="/miniapp/leave">本人請假紀錄</a>
             <a href="/miniapp/correction">更正與申請結果</a>
             <a href="/miniapp/review">授權審核</a>
           </nav>

@@ -18,6 +18,7 @@
 
 | 需求 | 文件 |
 | --- | --- |
+| 群組請假入口與本人登記紀錄 | [群組請假登記](features/leave.md) |
 | 群組定位打卡、本人紀錄 | [出勤總覽](features/attendance.md) |
 | 月摘要、明細分頁、更正與審核 | [查詢與更正](features/attendance-queries.md) |
 | 事件重建、休息與工時計算 | [工時計算](features/worktime.md) |

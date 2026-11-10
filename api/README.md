@@ -15,7 +15,7 @@ Go 使用生成路由與 HTTP DTO，業務核心不 import 生成套件。TS 端
 
 api:check 同時檢查產生碼同步與 oasdiff 破壞性變更。compatibility/baseline 保存初次完整契約，避免尚未提交的初次遷移漏掉既有路徑；後續不應隨意更新它。CI 另外使用 pull request base SHA 或 push before SHA，從該提交讀取契約及參照檔再比較，不依賴可被本次修改的 baseline 取代歷史。缺少指定 base revision 時明確失敗；base 尚無 OpenAPI 時仍檢查初次 baseline。
 
-目前 17 個 HTTP operations：5 個設定／身分操作、12 個出勤操作。範圍是自家 MINI App HTTP API；LINE webhook、內部摘要工作與獨立定位示範不屬於此公開契約，不複製 LINE 官方 API。
+目前 19 個 HTTP operations：5 個設定／身分操作、14 個出勤操作（含2個請假登記操作）。範圍是自家 MINI App HTTP API；LINE webhook、內部摘要工作與獨立定位示範不屬於此公開契約，不複製 LINE 官方 API。
 
 ## 保持的資料語意
 
@@ -58,3 +58,5 @@ contract/openapi.yaml 為入口，contract/attendance.yaml 定義出勤；client
 - [HTTP 契約設計](../docs/architecture/http-contracts.md)
 - [資料契約](../docs/architecture/data-contracts.md)
 - [出勤查詢與更正](../docs/features/attendance-queries.md)
+
+- [群組請假登記](../docs/features/leave.md)

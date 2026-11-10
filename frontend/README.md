@@ -18,3 +18,5 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，features/atte
 - [瀏覽器定位整合](../docs/integrations/web-geolocation.md)
 - [出勤查詢與更正](../docs/features/attendance-queries.md)
 - [API 契約工作流程](../api/README.md)
+
+- [群組請假登記](../docs/features/leave.md)

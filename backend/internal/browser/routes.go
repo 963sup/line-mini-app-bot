@@ -2,6 +2,7 @@ package browser
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -10,10 +11,15 @@ func serveMiniApp(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/miniapp":
 		page = "miniapp.html"
-		if r.URL.Query().Has("launch") || r.URL.Query().Has("liff.state") {
+		query := r.URL.Query()
+		nested, _ := url.Parse(query.Get("liff.state"))
+		leave := query.Has("leave") || (nested != nil && nested.Query().Has("leave"))
+		if leave {
+			page = "miniapp/leave.html"
+		} else if query.Has("launch") || query.Has("liff.state") {
 			page = "miniapp/punch.html"
 		}
-	case "/miniapp/history", "/miniapp/correction", "/miniapp/review", "/miniapp/punch":
+	case "/miniapp/history", "/miniapp/correction", "/miniapp/review", "/miniapp/punch", "/miniapp/leave":
 		page = strings.TrimPrefix(r.URL.Path, "/") + ".html"
 	default:
 		http.NotFound(w, r)
@@ -37,7 +43,7 @@ func Register(mux *http.ServeMux) error {
 	if err := Validate(); err != nil {
 		return err
 	}
-	for _, route := range []string{"/miniapp", "/miniapp/history", "/miniapp/correction", "/miniapp/review", "/miniapp/punch"} {
+	for _, route := range []string{"/miniapp", "/miniapp/history", "/miniapp/correction", "/miniapp/review", "/miniapp/punch", "/miniapp/leave"} {
 		mux.HandleFunc("GET "+route, serveMiniApp)
 	}
 	mux.Handle("GET /assets/", Assets())

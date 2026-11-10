@@ -18,7 +18,7 @@ func translateError(err, missing error) error {
 	if err == nil {
 		return nil
 	}
-	for _, known := range []error{attendance.ErrCorrection, attendance.ErrIdempotencyConflict, attendance.ErrInvalidRequest, attendance.ErrExpiredLaunch, attendance.ErrInvalidCursor, attendance.ErrRecordNotFound, attendance.ErrUnavailable} {
+	for _, known := range []error{attendance.ErrInvalidLeave, attendance.ErrLeaveConflict, attendance.ErrCorrection, attendance.ErrIdempotencyConflict, attendance.ErrInvalidRequest, attendance.ErrExpiredLaunch, attendance.ErrInvalidCursor, attendance.ErrRecordNotFound, attendance.ErrUnavailable} {
 		if errors.Is(err, known) {
 			return err
 		}

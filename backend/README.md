@@ -19,3 +19,5 @@ cmd/ 保存 server、richmenu、firestorecheck 與 attendancemigrate 入口；in
 - [Go 開發慣例](../docs/development/go.md)
 - [可靠性與資料](../docs/architecture/reliability.md)
 - [API 契約工作流程](../api/README.md)
+
+- [群組請假登記](../docs/features/leave.md)

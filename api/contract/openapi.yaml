@@ -404,6 +404,9 @@
           }
         }
       }
+    },
+    "/api/v1/attendance/leaves": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1leaves"
     }
   },
   "components": {
