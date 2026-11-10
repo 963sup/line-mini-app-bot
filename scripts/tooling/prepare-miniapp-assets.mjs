@@ -8,7 +8,7 @@ import {
 } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-const root = fileURLToPath(new URL("../frontend/miniapp/", import.meta.url));
+const root = fileURLToPath(new URL("../../frontend/miniapp/", import.meta.url));
 const assets = JSON.parse(
   await readFile(path.join(root, "asset-map.json"), "utf8"),
 );

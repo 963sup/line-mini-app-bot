@@ -3,7 +3,7 @@
 Run the environment setup command from the repository checkout:
 
 ```bash
-bash scripts/bootstrap.sh all
+bash scripts/tooling/bootstrap.sh all
 ```
 
 The script verifies/installs mise 2026.11.3, installs pinned Go and MCP tools,
@@ -16,13 +16,13 @@ and a C compiler for Go race testing.
 Other entry points:
 
 ```bash
-bash scripts/bootstrap.sh core
-bash scripts/bootstrap.sh mcp
-bash scripts/tool-exec.sh mise run doctor-mcp
+bash scripts/tooling/bootstrap.sh core
+bash scripts/tooling/bootstrap.sh mcp
+bash scripts/tooling/tool-exec.sh mise run doctor-mcp
 ```
 
 Browser MCPs and Google Cloud CLI remain separate optional installations.
-All local MCP commands use scripts/tool-exec.sh to load writable tool paths in
+All local MCP commands use scripts/tooling/tool-exec.sh to load writable tool paths in
 /workspace/tooling without changing HOME or CODEX_HOME. Existing explicit
 CLOUDSDK_CONFIG and DOCKER_CONFIG values are preserved. This does not control
 writes performed by the platform itself or arbitrary third-party code.
@@ -57,7 +57,7 @@ not enable agent-phase MCP traffic.
    check, but does not prove the separate chat host loaded the same configuration.
 3. Perform task-relevant calls through the host. The doctor verifies initialize,
    paginated tools/list and enabled_tools names; it does not execute every tool.
-4. Rebuild Graphify with `bash scripts/tool-exec.sh mise run graphify-update`
+4. Rebuild Graphify with `bash scripts/tooling/tool-exec.sh mise run graphify-update`
    when source changes. Go workspace analysis requires an application go.mod.
 
 Verified in the current container: Go doctor and all seven MCP transport probes pass.

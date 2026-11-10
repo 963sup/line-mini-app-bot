@@ -6,8 +6,8 @@
 [已接受的基線](../architecture/decisions/0002-baseline.md)：目前先穩定基礎，
 不新增測試方案、案例或工具，保留現有 CI。
 
-Source scripts/dev-env.sh in every shell, or use scripts/tool-exec.sh.
-Run bash scripts/bootstrap.sh for Go setup, then mise run doctor.
+Source scripts/tooling/dev-env.sh in every shell, or use scripts/tooling/tool-exec.sh.
+Run bash scripts/tooling/bootstrap.sh for Go setup, then mise run doctor.
 Install optional tooling using mise run install-cloud or install-mcp.
 
 SDK dependencies are managed in the existing application's go.mod/go.sum:
@@ -39,8 +39,8 @@ expected channel. Avoid logging tokens, secret values or whole webhook payloads.
 The base image must provide Bash, curl, tar, checksum utilities and Python 3.11+
 before mise starts. Python parses the single-source environment table in
 mise.toml. The managed Python pin cannot satisfy this earlier bootstrap step.
-Run bash scripts/bootstrap.sh core (also the default). Remote MCP dependencies
-and credentials are optional: run bash scripts/bootstrap.sh all explicitly.
+Run bash scripts/tooling/bootstrap.sh core (also the default). Remote MCP dependencies
+and credentials are optional: run bash scripts/tooling/bootstrap.sh all explicitly.
 Use mise run check-config for offline repository configuration validation.
 
 VS Code recommends golang.go. Its Go and gopls paths use repository wrappers so

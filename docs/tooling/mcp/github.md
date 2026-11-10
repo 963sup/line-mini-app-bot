@@ -19,7 +19,7 @@ Use exposed read tools for the target repository; perform writes or pushes only 
 ## Verification and failures
 
 ```bash
-bash scripts/tool-exec.sh python3 scripts/mcp-doctor.py --server github
+bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server github
 ```
 
 This checks initialize, tools/list and configured allowlists. Verify a representative

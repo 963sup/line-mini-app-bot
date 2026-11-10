@@ -9,7 +9,7 @@ if sys.version_info < (3, 11):
     raise SystemExit("Configuration checks require Python 3.11+.")
 import tomllib
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 ROLES = {
     "orchestrator", "architect", "researcher", "explorer",
     "implementer", "debugger", "tester", "reviewer", "integrator",
@@ -65,7 +65,7 @@ def check():
     # Reuse the same constrained parser as bootstrap rather than silently accepting
     # env constructs that would work in mise but fail before mise is installed.
     from importlib.util import module_from_spec, spec_from_file_location
-    spec = spec_from_file_location("render_env", ROOT / "scripts/render-env.py")
+    spec = spec_from_file_location("render_env", ROOT / "scripts/tooling/render-env.py")
     module = module_from_spec(spec)
     spec.loader.exec_module(module)
     module.render_exports(mise["env"], {})
@@ -73,7 +73,7 @@ def check():
     json_paths += list(codex_dir.glob("*.json")) + list(ROOT.glob("*.config.json"))
     for path in json_paths:
         json.loads(path.read_text())
-    scripts = sorted((ROOT / "scripts").glob("*.sh"))
+    scripts = sorted((ROOT / "scripts").rglob("*.sh"))
     for path in scripts:
         subprocess.run(["bash", "-n", str(path)], check=True)
     print(f"PASS: {len(roles)} agents, mise env/tool config, {len(json_paths)} JSON files and {len(scripts)} shell scripts")

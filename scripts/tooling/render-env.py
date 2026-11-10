@@ -35,7 +35,7 @@ def render_exports(settings, environment):
 
 
 def main():
-    root = Path(__file__).resolve().parent.parent
+    root = Path(__file__).resolve().parents[2]
     try:
         settings = tomllib.loads((root / "mise.toml").read_text())["env"]
         exports = render_exports(settings, os.environ)

@@ -9,7 +9,7 @@
 ## 執行示範
 
 ```bash
-bash scripts/tool-exec.sh mise run dev
+bash scripts/tooling/tool-exec.sh mise run dev
 ```
 
 開啟 `http://localhost:8080/location`。正式環境使用 Cloud Run HTTPS 網址加 `/location`。

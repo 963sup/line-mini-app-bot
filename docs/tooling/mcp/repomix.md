@@ -19,7 +19,7 @@ Run `mise run repomix`, then read the generated XML; host MCP exposes pack_codeb
 ## Verification and failures
 
 ```bash
-bash scripts/tool-exec.sh python3 scripts/mcp-doctor.py --server repomix
+bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server repomix
 ```
 
 This checks initialize, tools/list and configured allowlists. Verify a representative

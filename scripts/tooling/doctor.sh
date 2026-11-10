@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd "$(dirname "${BASH_SOURCE[0]}")/.."
-source scripts/dev-env.sh
+cd "$(dirname "${BASH_SOURCE[0]}")/../.."
+source scripts/tooling/dev-env.sh
 mise exec -- go version
 for tool in gopls deadcode callgraph stringer golangci-lint gofumpt govulncheck; do
   mise exec -- sh -c 'command -v "$1" >/dev/null' -- "$tool" || {

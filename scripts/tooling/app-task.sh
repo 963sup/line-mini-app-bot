@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd "$(dirname "${BASH_SOURCE[0]}")/.."
-source scripts/dev-env.sh
+cd "$(dirname "${BASH_SOURCE[0]}")/../.."
+source scripts/tooling/dev-env.sh
 case "${1:?task required}" in
   dev)
     [[ -f backend/go.mod && -d backend/cmd/server ]] || { echo "Application not created: requires go.mod and cmd/server" >&2; exit 2; }

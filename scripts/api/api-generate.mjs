@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-const root = fileURLToPath(new URL('../', import.meta.url));
+const root = fileURLToPath(new URL('../../', import.meta.url));
 const temporary = mkdtempSync(join(tmpdir(), 'line-api-generate-'));
 const check = process.argv.includes('--check');
 function run(command, args, cwd = root) {

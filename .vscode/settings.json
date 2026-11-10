@@ -1,7 +1,7 @@
 {
   "go.alternateTools": {
-    "go": "${workspaceFolder}/scripts/go-tool.sh",
-    "gopls": "${workspaceFolder}/scripts/gopls-tool.sh"
+    "go": "${workspaceFolder}/scripts/tooling/go-tool.sh",
+    "gopls": "${workspaceFolder}/scripts/tooling/gopls-tool.sh"
   },
   "go.toolsManagement.autoUpdate": false,
   "[go]": {

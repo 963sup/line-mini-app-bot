@@ -11,7 +11,7 @@ import tempfile
 import tomllib
 import xml.etree.ElementTree as ET
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def git(*args):
@@ -60,7 +60,7 @@ def run_audit(manifest):
         shutil.copyfile(ROOT / name, target)
     # An isolated source tree makes the contract authoritative. No project ignores
     # or tool config can silently remove files; security scanning remains enabled.
-    wrapper = ["bash", str(ROOT / "scripts/tool-exec.sh")]
+    wrapper = ["bash", str(ROOT / "scripts/tooling/tool-exec.sh")]
     repomix = subprocess.check_output(wrapper + ["which", "repomix"], cwd=ROOT, text=True).strip()
     config = out / "repomix.json"
     config.write_text(json.dumps({"ignore": {"useGitignore": False, "useDefaultPatterns": False,

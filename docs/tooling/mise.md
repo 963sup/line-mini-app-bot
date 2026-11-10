@@ -2,8 +2,8 @@
 
 ## Go development loop
 
-Run `bash scripts/bootstrap.sh core` to install the pinned core tools. In a new
-shell use `bash scripts/tool-exec.sh mise run <task>`; installation alone does
+Run `bash scripts/tooling/bootstrap.sh core` to install the pinned core tools. In a new
+shell use `bash scripts/tooling/tool-exec.sh mise run <task>`; installation alone does
 not activate the shell PATH. Use `install-debug` separately for Delve.
 
 After Go changes run `fmt-check`, `lint`, `check` and `build`. `fmt` rewrites
@@ -28,7 +28,7 @@ Versions are verified against the Go module proxy; mise Go backend/exec behavior
 was checked using Context7's upstream mise documentation, and coverage/benchmark
 commands against Go version-matched documentation. Pins live only in mise.toml.
 
-Use `bash scripts/tool-exec.sh mise run <task>` from the repository root.
+Use `bash scripts/tooling/tool-exec.sh mise run <task>` from the repository root.
 Tool versions, non-secret paths and tasks are defined in `mise.toml`.
 The wrapper loads bootstrap-compatible environment before invoking mise.
 Do not change platform HOME/CODEX_HOME or copy authentication files.

@@ -45,8 +45,13 @@ api/
   contract/                    # 唯一入口與出勤契約，共 14 個 operations
   client/                     # TS 生成型別與 openapi-fetch factory
   codegen/、compatibility/
-assets/richmenu/
-docs/、scripts/、.github/、.agents/、.codex/
+assets/line/richmenu/           # LINE 選單素材
+scripts/
+  tooling/                     # 環境、檢查、編輯器與前端資產工具
+  analysis/                    # 圖譜與來源範圍稽核
+  api/                         # 契約生成與相容性檢查
+  release/                     # 發布驗證與狀態檢視
+docs/、.github/、.vscode/、.agents/、.codex/
 ```
 
 pnpm 管理 JS 工作區，Go module 位於 backend；Turborepo 協調產物與檢查。公開 URL 與既有資源 aliases 保留。Go binary 透過 FRONTEND_DIR 讀取獨立的 Next.js 靜態輸出；正式容器不需要 Next SSR 服務。

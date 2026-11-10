@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "go run ./cmd/server",
     "build": "go build -o bin/server ./cmd/server && go build -o bin/richmenu ./cmd/richmenu",
-    "check": "bash ../scripts/tool-exec.sh mise run fmt-check && bash ../scripts/tool-exec.sh mise run lint && go vet ./...",
+    "check": "bash ../scripts/tooling/tool-exec.sh mise run fmt-check && bash ../scripts/tooling/tool-exec.sh mise run lint && go vet ./...",
     "test": "go test -race ./..."
   },
   "devDependencies": {

@@ -22,8 +22,8 @@ The existing graphify-update task indexes code only; it does not extract documen
 For a separate, credential-free Markdown navigation graph:
 
 ```bash
-bash scripts/tool-exec.sh mise run graphify-docs
-bash scripts/tool-exec.sh graphify query "Firestore" --graph /workspace/tooling/cache/graphify-docs/graph.json
+bash scripts/tooling/tool-exec.sh mise run graphify-docs
+bash scripts/tooling/tool-exec.sh graphify query "Firestore" --graph /workspace/tooling/cache/graphify-docs/graph.json
 ```
 
 This graph contains ATX headings and explicit inline local links from every Markdown
@@ -46,7 +46,7 @@ navigation graph; never store credentials in repository configuration.
 ## Verification and failures
 
 ```bash
-bash scripts/tool-exec.sh python3 scripts/mcp-doctor.py --server graphify
+bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server graphify
 ```
 
 This checks initialize, tools/list and configured allowlists. Verify a representative

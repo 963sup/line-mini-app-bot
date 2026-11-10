@@ -19,7 +19,7 @@ Use `search_openai_docs` then `fetch_openai_doc`. Direct client examples appear 
 ## Verification and failures
 
 ```bash
-bash scripts/tool-exec.sh python3 scripts/mcp-doctor.py --server openaiDeveloperDocs
+bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server openaiDeveloperDocs
 ```
 
 This checks initialize, tools/list and configured allowlists. Verify a representative
@@ -29,8 +29,8 @@ workspace prerequisites and host loading; see [troubleshooting](../../operations
 ## Direct documentation client
 
 ```bash
-bash scripts/tool-exec.sh python3 scripts/mcp-doctor.py --server openaiDeveloperDocs --call search_openai_docs --arguments '{"query":"Codex MCP config.toml"}'
-bash scripts/tool-exec.sh python3 scripts/mcp-doctor.py --server openaiDeveloperDocs --call fetch_openai_doc --arguments '{"url":"https://developers.openai.com/codex/mcp"}'
+bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server openaiDeveloperDocs --call search_openai_docs --arguments '{"query":"Codex MCP config.toml"}'
+bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server openaiDeveloperDocs --call fetch_openai_doc --arguments '{"url":"https://developers.openai.com/codex/mcp"}'
 ```
 
 Prefer exposed host tools. The direct client is a fallback and does not register

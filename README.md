@@ -30,20 +30,20 @@ API 契約、產生碼與相容性流程見 [API 工作流程](api/README.md)。
 ## 開始開發
 
 ```bash
-bash scripts/bootstrap.sh core
-bash scripts/tool-exec.sh mise run doctor
-bash scripts/tool-exec.sh mise run install-web
-bash scripts/tool-exec.sh pnpm install --frozen-lockfile
-bash scripts/tool-exec.sh pnpm build
-bash scripts/tool-exec.sh pnpm check
-bash scripts/tool-exec.sh pnpm test
-bash scripts/tool-exec.sh pnpm dev
+bash scripts/tooling/bootstrap.sh core
+bash scripts/tooling/tool-exec.sh mise run doctor
+bash scripts/tooling/tool-exec.sh mise run install-web
+bash scripts/tooling/tool-exec.sh pnpm install --frozen-lockfile
+bash scripts/tooling/tool-exec.sh pnpm build
+bash scripts/tooling/tool-exec.sh pnpm check
+bash scripts/tooling/tool-exec.sh pnpm test
+bash scripts/tooling/tool-exec.sh pnpm dev
 ```
 
 完整 Cloud／MCP 安裝與限制請見 [Codex Cloud 設定](docs/development/codex-cloud.md)。
-需要 Graphify／Repomix 與 MCP 時使用 `bash scripts/bootstrap.sh all`；工具安裝、
+需要 Graphify／Repomix 與 MCP 時使用 `bash scripts/tooling/bootstrap.sh all`；工具安裝、
 MCP 握手與聊天主機實際可用性須分別驗收，不因快取存在而視為全新環境已驗證。
-工具與非機密環境以 `mise.toml` 為準；日常命令使用 `scripts/tool-exec.sh`。
+工具與非機密環境以 `mise.toml` 為準；日常命令使用 `scripts/tooling/tool-exec.sh`。
 
 
 - [文件索引](docs/README.md)
@@ -59,9 +59,9 @@ MCP 握手與聊天主機實際可用性須分別驗收，不因快取存在而�
 在儲存庫根目錄執行既有 CLI 任務：
 
 ```bash
-bash scripts/tool-exec.sh mise run graphify-update
-bash scripts/tool-exec.sh graphify query "registerLINEWebhook"
-bash scripts/tool-exec.sh mise run repomix
+bash scripts/tooling/tool-exec.sh mise run graphify-update
+bash scripts/tooling/tool-exec.sh graphify query "registerLINEWebhook"
+bash scripts/tooling/tool-exec.sh mise run repomix
 ```
 
 Graphify 輸出 `graphify-out/graph.json`，目前任務只做 AST 抽取；文件、TOML、
@@ -74,7 +74,7 @@ HTML/CSS 與鎖檔不保證被解析。使用 Repomix 的 `repomix-output.xml` �
 ## 執行服務
 
 ```bash
-bash scripts/tool-exec.sh mise run dev
+bash scripts/tooling/tool-exec.sh mise run dev
 # LINE 憑證未注入時不註冊 Webhook；連線方式見接入試作文件。
 ```
 

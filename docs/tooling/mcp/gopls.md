@@ -19,7 +19,7 @@ Use host-exposed gopls tools after inspecting tools/list; CLI diagnostics can us
 ## Verification and failures
 
 ```bash
-bash scripts/tool-exec.sh python3 scripts/mcp-doctor.py --server gopls
+bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server gopls
 ```
 
 This checks initialize, tools/list and configured allowlists. Verify a representative

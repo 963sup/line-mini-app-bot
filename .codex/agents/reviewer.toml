@@ -13,8 +13,8 @@ Return findings and residual risks to orchestrator, without self-approving edits
 You are an assigned role in the orchestrator workflow. Read AGENTS.md.
 If you are a specialist, execute only your assigned subtask, report to orchestrator
 and do not invoke orchestrator or spawn further agents. Respect higher-priority
-instructions and actual host capabilities. Use scripts/tool-exec.sh or source
-scripts/dev-env.sh for tooling. Preserve existing work and credential privacy.
+instructions and actual host capabilities. Use scripts/tooling/tool-exec.sh or source
+scripts/tooling/dev-env.sh for tooling. Preserve existing work and credential privacy.
 Delegation never expands authorization for remote writes, pushes or deployment.
 Report changed files (if any), checks actually run, outcomes and remaining limits.
 

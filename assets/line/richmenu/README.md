@@ -3,8 +3,8 @@
 ## 自動同步指令
 
 ```sh
-mise exec -- go run ./cmd/richmenu sync -app-url https://miniapp.line.me/2012412007-0xCIzCmZ
-mise exec -- go run ./cmd/richmenu sync -app-url https://miniapp.line.me/2012412007-0xCIzCmZ -apply
+bash scripts/tooling/go-tool.sh run ./cmd/richmenu sync -images ../assets/line/richmenu -app-url https://miniapp.line.me/2012412007-0xCIzCmZ
+bash scripts/tooling/go-tool.sh run ./cmd/richmenu sync -images ../assets/line/richmenu -app-url https://miniapp.line.me/2012412007-0xCIzCmZ -apply
 ```
 
 預覽只驗證素材並顯示雜湊，不連 LINE。正式同步會比對 LINE 上以圖片和
@@ -18,8 +18,8 @@ LINE 回報遷移成功才刪除舊版。只清理完整符合 managed-attendanc
 alias 更新不是原子交易；中途失敗可重跑收斂，短暫期間可能混用新舊頁。
 舊名稱不符合上述規則的選單需另行盤點，不會自動刪除。
 
-容器包含 `/richmenu` 與 `/assets/richmenu`，可由獨立部署工作執行：
-`/richmenu sync -images /assets/richmenu -app-url HTTPS_URL -apply`。
+容器包含 `/richmenu` 與 `/assets/line/richmenu`，可由獨立部署工作執行：
+`/richmenu sync -images /assets/line/richmenu -app-url HTTPS_URL -apply`。
 token 由部署工作的 Secret Manager 綁定注入，不放入映像或 build argument。
 
 **目前 GitHub managed trigger 尚未接入此指令。** 只換圖片並推送會將圖片
@@ -34,9 +34,9 @@ attendance-out：功能說明／切換至出勤頁／MINI App。
 先預覽，再依序發布兩張圖片；第二張發布時設定預設選單。
 
 ```sh
-mise exec -- go run ./cmd/richmenu -app-url https://miniapp.line.me/2012412007-0xCIzCmZ -attendance-preview
-mise exec -- go run ./cmd/richmenu -app-url https://miniapp.line.me/2012412007-0xCIzCmZ -alias attendance-in -image assets/richmenu/attendance-in.jpg -apply
-mise exec -- go run ./cmd/richmenu -app-url https://miniapp.line.me/2012412007-0xCIzCmZ -alias attendance-out -image assets/richmenu/attendance-out.jpg -apply -set-default
+bash scripts/tooling/go-tool.sh run ./cmd/richmenu -app-url https://miniapp.line.me/2012412007-0xCIzCmZ -attendance-preview
+bash scripts/tooling/go-tool.sh run ./cmd/richmenu -app-url https://miniapp.line.me/2012412007-0xCIzCmZ -alias attendance-in -image ../assets/line/richmenu/attendance-in.jpg -apply
+bash scripts/tooling/go-tool.sh run ./cmd/richmenu -app-url https://miniapp.line.me/2012412007-0xCIzCmZ -alias attendance-out -image ../assets/line/richmenu/attendance-out.jpg -apply -set-default
 ```
 
 發布需要環境變數 LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN。失敗後使用印出的

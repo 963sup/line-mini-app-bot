@@ -6,7 +6,7 @@
       "type": "process",
       "command": "bash",
       "args": [
-        "scripts/bootstrap.sh",
+        "scripts/tooling/bootstrap.sh",
         "core"
       ],
       "options": {
@@ -19,7 +19,7 @@
       "type": "process",
       "command": "bash",
       "args": [
-        "scripts/tool-exec.sh",
+        "scripts/tooling/tool-exec.sh",
         "mise",
         "run",
         "doctor"
@@ -34,7 +34,7 @@
       "type": "process",
       "command": "bash",
       "args": [
-        "scripts/tool-exec.sh",
+        "scripts/tooling/tool-exec.sh",
         "mise",
         "run",
         "check"
@@ -52,7 +52,7 @@
       "type": "process",
       "command": "python3",
       "args": [
-        "scripts/check-config.py"
+        "scripts/tooling/check-config.py"
       ],
       "options": {
         "cwd": "${workspaceFolder}"

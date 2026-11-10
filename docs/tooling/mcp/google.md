@@ -16,7 +16,7 @@ Google Cloud project using the [official quickstart](https://developers.google.c
 Supply the key through the host's secret/environment settings before launching Codex.
 Restart or reload Codex after configuration or environment changes.
 
-Verify with `bash scripts/tool-exec.sh mise run doctor-google-knowledge`.
+Verify with `bash scripts/tooling/tool-exec.sh mise run doctor-google-knowledge`.
 Missing credentials and HTTP authentication errors are failures, not successful verification.
 Once loaded, use the server's actual exposed search/retrieval tools; names may vary by release.
 
@@ -24,8 +24,8 @@ Once loaded, use the server's actual exposed search/retrieval tools; names may v
 
 Use the [Google-maintained local server](https://github.com/googleapis/gcloud-mcp/tree/main/packages/gcloud-mcp)
 with the existing Google Cloud CLI. Both versions are pinned in `mise.toml`.
-Install with `bash scripts/tool-exec.sh mise run install-cloud`, then verify discovery
-with `bash scripts/tool-exec.sh mise run doctor-gcloud`.
+Install with `bash scripts/tooling/tool-exec.sh mise run install-cloud`, then verify discovery
+with `bash scripts/tooling/tool-exec.sh mise run doctor-gcloud`.
 
 The local server uses the authenticated gcloud account and the `CLOUDSDK_CONFIG`
 directory supplied by the runtime. It exposes `run_gcloud_command`; approval mode
@@ -48,7 +48,7 @@ and constrain list output. Configuration does not authorize deploying resources 
    `$GOOGLE_CLOUD_PROJECT`，不會自動展開，可能讓成功登入或憑證檢查仍回傳專案錯誤。
    在執行以下 auth 命令前，先確認 `GOOGLE_CLOUD_PROJECT` 是本環境原先選定的具體
    project ID；確認後可用
-   `bash scripts/tool-exec.sh env CLOUDSDK_CORE_PROJECT="$GOOGLE_CLOUD_PROJECT" gcloud ...`
+   `bash scripts/tooling/tool-exec.sh env CLOUDSDK_CORE_PROJECT="$GOOGLE_CLOUD_PROJECT" gcloud ...`
    作命令層覆寫（放在 wrapper 後，避免啟動環境再覆寫）。永久修正應在 Cloud
    environment settings 填具體 ID，不在登入任務擅自改專案或 repository 設定。
 
@@ -56,7 +56,7 @@ and constrain list output. Configuration does not authorize deploying resources 
    `gcloud auth print-access-token --help`，再透過專案 wrapper 查帳號 metadata：
 
    ```bash
-   bash scripts/tool-exec.sh gcloud auth list --format='json(account,status)'
+   bash scripts/tooling/tool-exec.sh gcloud auth list --format='json(account,status)'
    ```
 
    有第 1 步誤值時，以下命令均套用該覆寫。設定了 `core/account` 不代表已有憑證；
@@ -70,7 +70,7 @@ and constrain list output. Configuration does not authorize deploying resources 
 3. **需要登入時立即給網址。** 先讀 `gcloud auth login --help`，使用預期帳號：
 
    ```bash
-   bash scripts/tool-exec.sh gcloud auth login "<預期帳號>" --no-launch-browser
+   bash scripts/tooling/tool-exec.sh gcloud auth login "<預期帳號>" --no-launch-browser
    ```
 
    若有第 1 步的誤值，套用該命令層覆寫。立刻把產生的 Google OAuth 網址以可點擊連結

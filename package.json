@@ -7,12 +7,12 @@
   },
   "scripts": {
     "dev": "turbo run build --filter @repo/miniapp && turbo run dev",
-    "api:generate": "node scripts/api-generate.mjs",
-    "api:check": "node scripts/api-generate.mjs --check && pnpm api:compat",
-    "check": "pnpm api:check && python3 scripts/check-config.py && turbo run check",
+    "api:generate": "node scripts/api/api-generate.mjs",
+    "api:check": "node scripts/api/api-generate.mjs --check && pnpm api:compat",
+    "check": "pnpm api:check && python3 scripts/tooling/check-config.py && turbo run check",
     "test": "turbo run test",
     "build": "turbo run build",
-    "api:compat": "node scripts/api-compat.mjs"
+    "api:compat": "node scripts/api/api-compat.mjs"
   },
   "devDependencies": {
     "turbo": "2.11.10",

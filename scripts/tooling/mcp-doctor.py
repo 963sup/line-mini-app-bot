@@ -10,7 +10,7 @@ import threading
 import tomllib
 import urllib.request
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 CONFIG = tomllib.loads((ROOT / '.codex/config.toml').read_text())['mcp_servers']
 
 def check_servers(configs, server=None, call=None, arguments=None):

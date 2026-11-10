@@ -24,7 +24,7 @@ import (
 func syncMenus(args []string) error {
 	f := flag.NewFlagSet("sync", flag.ContinueOnError)
 	app := f.String("app-url", "", "HTTPS MINI App URL")
-	dir := f.String("images", "assets/richmenu", "directory containing the two JPEG images")
+	dir := f.String("images", "assets/line/richmenu", "directory containing the two JPEG images")
 	apply := f.Bool("apply", false, "publish changes on LINE")
 	if err := f.Parse(args); err != nil {
 		return err

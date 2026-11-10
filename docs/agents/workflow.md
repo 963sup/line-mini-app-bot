@@ -1,6 +1,6 @@
 # Go delivery workflow
 
-For Go changes use the pinned environment through `bash scripts/tool-exec.sh`.
+For Go changes use the pinned environment through `bash scripts/tooling/tool-exec.sh`.
 Run mise tasks `fmt-check`, `lint`, `check` and `build`; run `vuln` for dependency
 changes and before delivery. Use `deadcode` and `callgraph` for focused analysis,
 and `debug`, `coverage`, `bench`, `profile` only when relevant. See

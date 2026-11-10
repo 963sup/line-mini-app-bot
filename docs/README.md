@@ -50,6 +50,8 @@
 
 ## 文件索引
 
+- [素材與腳本路徑整理](development/path-reorganization.md)
+
 - [出勤查詢、Web 分頁與更正重試](features/attendance-queries.md)
 - [Agent workflow](agents/workflow.md) and [acceptance](agents/acceptance.md) and [systematic debugging](agents/debugging.md)
 - [mise](tooling/mise.md) and [MCP services](tooling/mcp/README.md)

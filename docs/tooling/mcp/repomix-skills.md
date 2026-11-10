@@ -19,7 +19,7 @@ Inspect generate_skill inputSchema, assign a destination owned by the task, then
 ## Verification and failures
 
 ```bash
-bash scripts/tool-exec.sh python3 scripts/mcp-doctor.py --server repomix_skills
+bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server repomix_skills
 ```
 
 This checks initialize, tools/list and configured allowlists. Verify a representative

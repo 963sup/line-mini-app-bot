@@ -7,11 +7,11 @@ evidence and completion criteria before implementing [attendance](../features/at
 From the repository root:
 
 ```bash
-bash scripts/bootstrap.sh core
-bash scripts/tool-exec.sh mise run check-config
-bash scripts/tool-exec.sh mise run doctor
+bash scripts/tooling/bootstrap.sh core
+bash scripts/tooling/tool-exec.sh mise run check-config
+bash scripts/tooling/tool-exec.sh mise run doctor
 # Optional tools, separate from core Go development:
-bash scripts/bootstrap.sh mcp
+bash scripts/tooling/bootstrap.sh mcp
 ```
 
 See [mise prerequisites](../tooling/mise.md). GitHub MCP requires the runtime

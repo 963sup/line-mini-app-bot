@@ -12,12 +12,12 @@
 
 ```bash
 # 讀取服務與涉及的 revision metadata；不讀取 Secret payload。
-bash scripts/tool-exec.sh python3 scripts/cloud-run-snapshot.py \
+bash scripts/tooling/tool-exec.sh python3 scripts/release/cloud-run-snapshot.py \
   --project=YOUR_PROJECT --region=asia-east1 --service=line-mini-app-bot \
   > /tmp/release-before.json
 
 # HTTP 無登入 smoke：不送 token、不建立出勤或申請。
-python3 scripts/release-smoke.py --base-url=https://YOUR_SERVICE_URL \
+python3 scripts/release/release-smoke.py --base-url=https://YOUR_SERVICE_URL \
   > /tmp/release-http-before.json
 ```
 
@@ -33,7 +33,7 @@ snapshot 需先成功才進行發布；輸出不含 env 明文值，但仍應以
 
 ```bash
 # 會變更雲端；不是 dry run。替換所有 YOUR_*，取得本次發布授權後執行。
-bash scripts/tool-exec.sh gcloud run deploy line-mini-app-bot \
+bash scripts/tooling/tool-exec.sh gcloud run deploy line-mini-app-bot \
   --project=YOUR_PROJECT --region=asia-east1 \
   --image=YOUR_REGISTRY_IMAGE@sha256:YOUR_DIGEST \
   --revision-suffix=YOUR_UNIQUE_SUFFIX --tag=acceptance --no-traffic
@@ -68,15 +68,15 @@ bash scripts/tool-exec.sh gcloud run deploy line-mini-app-bot \
 
 ```bash
 # 會變更正式流量；完成候選驗收及發布授權後執行。
-bash scripts/tool-exec.sh gcloud run services update-traffic line-mini-app-bot \
+bash scripts/tooling/tool-exec.sh gcloud run services update-traffic line-mini-app-bot \
   --project=YOUR_PROJECT --region=asia-east1 --to-revisions=YOUR_ACCEPTED_REVISION=100
 
 # 讀取狀態，執行 HTTP smoke、裝置工作流程並觀察錯誤／延遲／未授權結果。
-bash scripts/tool-exec.sh python3 scripts/cloud-run-snapshot.py \
+bash scripts/tooling/tool-exec.sh python3 scripts/release/cloud-run-snapshot.py \
   --project=YOUR_PROJECT --region=asia-east1 --service=line-mini-app-bot > /tmp/release-after.json
 
 # 回復：適用原本 100% 在單一 revision 的基線；若原本分流，還原原分配圖。
-bash scripts/tool-exec.sh gcloud run services update-traffic line-mini-app-bot \
+bash scripts/tooling/tool-exec.sh gcloud run services update-traffic line-mini-app-bot \
   --project=YOUR_PROJECT --region=asia-east1 --to-revisions=YOUR_PREVIOUS_ACCEPTED_REVISION=100
 ```
 

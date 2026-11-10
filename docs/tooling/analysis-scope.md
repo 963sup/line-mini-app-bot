@@ -7,7 +7,7 @@ Every file must match a managed type/name or a documented exclusion. Unknown
 types and missing sources fail classification. Exclusions record reason, impact
 and owner. Paths use Python fnmatch semantics (`*` can span `/`).
 
-Run `bash scripts/tool-exec.sh python3 scripts/analysis-scope.py` for the offline
+Run `bash scripts/tooling/tool-exec.sh python3 scripts/analysis/analysis-scope.py` for the offline
 CI classification check. Run with `--audit` for Graphify and Repomix CLI analysis
 of an isolated copy of the same managed sources. Reports and raw CLI logs go to
 a unique temporary directory printed by the command. The audit requires exact
@@ -21,7 +21,7 @@ reports are evidence for their recorded sources only; compare source hashes
 before reusing them. This process does not validate every inferred relationship,
 MCP host exposure, or clean Cloud initialization.
 
-Use `python3 scripts/analysis-scope.py --verify /absolute/path/report.json` to
+Use `python3 scripts/analysis/analysis-scope.py --verify /absolute/path/report.json` to
 reject stale sources, changed contracts or altered raw analysis artifacts.
 
 Tool versions remain in mise.toml and the existing installation task. No tool

@@ -11,7 +11,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=Path("/workspace/tooling/cache/graphify-docs"))
     args = parser.parse_args()
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     # Include maintained guides outside docs/ so entry points cannot silently drift.
     files = sorted(set((root / "docs").rglob("*.md"))
                    | set(root.glob("*.md"))

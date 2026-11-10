@@ -12,23 +12,23 @@
 
 ## Cloud 開發與驗證
 
-先執行 `bash scripts/bootstrap.sh core`；分析／MCP 工具使用 `all`。
-日常命令透過 `scripts/tool-exec.sh` 載入 `mise.toml` 的版本與環境，不另改 HOME。
+先執行 `bash scripts/tooling/bootstrap.sh core`；分析／MCP 工具使用 `all`。
+日常命令透過 `scripts/tooling/tool-exec.sh` 載入 `mise.toml` 的版本與環境，不另改 HOME。
 
 ```bash
-bash scripts/tool-exec.sh python3 scripts/check-config.py
-bash scripts/tool-exec.sh mise run analysis-scope
-bash -c 'for script in scripts/*.sh; do bash -n "$script" || exit; done'
+bash scripts/tooling/tool-exec.sh python3 scripts/tooling/check-config.py
+bash scripts/tooling/tool-exec.sh mise run analysis-scope
+find scripts -type f -name '*.sh' -exec bash -n {} +
 git diff --check
 ```
 
 Go 修改依 [驗收規則](docs/agents/acceptance.md) 執行 focused checks，並完成既有 CI 的
 `fmt-check`、`lint`、`check`、`build` 與 `vuln` 任務；不新增測試框架，也不跳過既有檢查。
-例如：`bash scripts/tool-exec.sh mise run check`。格式修改先取得檔案所有權，勿順手重排其他檔案。
+例如：`bash scripts/tooling/tool-exec.sh mise run check`。格式修改先取得檔案所有權，勿順手重排其他檔案。
 
 ## 分析與提交
 
-修改來源後跑 `mise run graphify-update`、`mise run repomix`，同樣透過 `scripts/tool-exec.sh`。
+修改來源後跑 `mise run graphify-update`、`mise run repomix`，同樣透過 `scripts/tooling/tool-exec.sh`。
 用圖譜定位程式關係，再查原始碼與 Repomix 原文；AST 不支援的格式須明確列出。
 `.graphifyignore`／`.repomixignore` 排除 `.agents`、`.claude`、`agent` 與 `skills-lock.json`；
 不得為補覆蓋率而繞過這些排除。`.dockerignore`／`.gcloudignore` 只保留實際建置輸入，

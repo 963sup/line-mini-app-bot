@@ -10,10 +10,12 @@
 !api/
 !api/**
 !scripts/
-!scripts/prepare-miniapp-assets.mjs
+!scripts/tooling/
+!scripts/tooling/prepare-miniapp-assets.mjs
 !assets/
-!assets/richmenu/
-!assets/richmenu/**
+!assets/line/
+!assets/line/richmenu/
+!assets/line/richmenu/**
 **/node_modules/**
 **/.next/**
 **/out/**

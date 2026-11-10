@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd "$(dirname "${BASH_SOURCE[0]}")/.."
-source scripts/dev-env.sh
+cd "$(dirname "${BASH_SOURCE[0]}")/../.."
+source scripts/tooling/dev-env.sh
 mode="${1:-core}"
 case "$mode" in core|mcp|all) ;; *) echo "Usage: $0 [core|mcp|all]" >&2; exit 2;; esac
 version=2026.11.3

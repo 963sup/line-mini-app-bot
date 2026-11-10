@@ -33,13 +33,13 @@ pnpm workspace 管理 JS 相依，Turborepo 管理任務圖。鎖定 pnpm 與套
 ## 開發與交付
 
 ```bash
-bash scripts/bootstrap.sh core
-bash scripts/tool-exec.sh mise run install-web
-bash scripts/tool-exec.sh pnpm install --frozen-lockfile
-bash scripts/tool-exec.sh pnpm build
-bash scripts/tool-exec.sh pnpm check
-bash scripts/tool-exec.sh pnpm test
-bash scripts/tool-exec.sh pnpm dev
+bash scripts/tooling/bootstrap.sh core
+bash scripts/tooling/tool-exec.sh mise run install-web
+bash scripts/tooling/tool-exec.sh pnpm install --frozen-lockfile
+bash scripts/tooling/tool-exec.sh pnpm build
+bash scripts/tooling/tool-exec.sh pnpm check
+bash scripts/tooling/tool-exec.sh pnpm test
+bash scripts/tooling/tool-exec.sh pnpm dev
 ```
 
 dev 會先準備前端建置產物，再同時啟動 Go :8080 與 Next :3000，開啟 :3000/miniapp；Next dev 將 /api 代理至 Go。正式容器只執行 Go，提供靜態輸出。來源憑證與瀏覽器可公開設定不能混用，不使用 NEXT_PUBLIC_* 放置機密。

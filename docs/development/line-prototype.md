@@ -6,7 +6,7 @@
 ## 啟動
 
 ```bash
-bash scripts/tool-exec.sh mise run dev
+bash scripts/tooling/tool-exec.sh mise run dev
 ```
 
 PORT 預設 8080，不自動讀 .env。保留 /location 定位示範，沒有健康檢查路由。
@@ -71,13 +71,13 @@ Rich Menu 用於官方帳號的一對一聊天；群組使用 Flex 指令選單�
 只預覽 JSON，不發送外部請求：
 
 ```bash
-bash scripts/tool-exec.sh go run ./cmd/richmenu -app-url https://miniapp.line.me/LIFF_ID
+bash scripts/tooling/tool-exec.sh go run ./cmd/richmenu -app-url https://miniapp.line.me/LIFF_ID
 ```
 
 已確認選單圖片、目標官方帳號與替換影響後，由操作者執行：
 
 ```bash
-bash scripts/tool-exec.sh go run ./cmd/richmenu -app-url https://miniapp.line.me/LIFF_ID -image /absolute/path/menu.png -apply
+bash scripts/tooling/tool-exec.sh go run ./cmd/richmenu -app-url https://miniapp.line.me/LIFF_ID -image /absolute/path/menu.png -apply
 ```
 
 需要 LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN。此命令建立選單並上傳圖片，
@@ -94,7 +94,7 @@ bash scripts/tool-exec.sh go run ./cmd/richmenu -app-url https://miniapp.line.me
 Cloud Run 使用執行服務帳戶，本機使用自己的 ADC。指定一份允許讀取的既有文件：
 
 ```bash
-bash scripts/tool-exec.sh go run ./cmd/firestorecheck -document COLLECTION/DOCUMENT
+bash scripts/tooling/tool-exec.sh go run ./cmd/firestorecheck -document COLLECTION/DOCUMENT
 ```
 
 成功只表示該文件的讀取權限與連線可用，不顯示內容、不建立資料。

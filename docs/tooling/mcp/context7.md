@@ -19,7 +19,7 @@ Call resolve-library-id first, then query-docs with its exact library ID and a f
 ## Verification and failures
 
 ```bash
-bash scripts/tool-exec.sh python3 scripts/mcp-doctor.py --server context7
+bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server context7
 ```
 
 This checks initialize, tools/list and configured allowlists. Verify a representative

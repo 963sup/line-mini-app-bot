@@ -3,10 +3,10 @@
 `contract/openapi.yaml` 是唯一入口，出勤路徑與資料格式位於 `contract/attendance.yaml`。兩端產生器先使用 Redocly bundle 解析外部參照，再由同一份 bundle 產生 Go 與 TypeScript；不手改產生檔。
 
 ```bash
-bash scripts/tool-exec.sh mise run install-web
-bash scripts/tool-exec.sh pnpm api:generate
-bash scripts/tool-exec.sh pnpm api:check
-bash scripts/tool-exec.sh pnpm api:compat --base origin/main
+bash scripts/tooling/tool-exec.sh mise run install-web
+bash scripts/tooling/tool-exec.sh pnpm api:generate
+bash scripts/tooling/tool-exec.sh pnpm api:check
+bash scripts/tooling/tool-exec.sh pnpm api:compat --base origin/main
 ```
 
 Go 使用生成路由與 HTTP DTO，業務核心不 import 生成套件。TS 端以 api/client 的 createAPIClient 呼叫，paths/components/operations 型別都來自契約。瀏覽器查詢與互動控制器的 React 遷移是後續階段。

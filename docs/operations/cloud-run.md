@@ -123,7 +123,7 @@ Service Message token、MCP API key、使用者 ID token 與 ADC 憑證不屬於
 先檢查上傳範圍；此命令只列本機檔案：
 
 ```bash
-bash scripts/tool-exec.sh gcloud meta list-files-for-upload --quiet
+bash scripts/tooling/tool-exec.sh gcloud meta list-files-for-upload --quiet
 ```
 
 `.gcloudignore` 允許 Dockerfile、.dockerignore、deploy/cloudbuild.yaml、根工作區 manifest／lock、backend/、frontend/、api/、前端資產準備腳本與 richmenu 資產；排除依賴目錄及建置產物。
@@ -132,7 +132,7 @@ bash scripts/tool-exec.sh gcloud meta list-files-for-upload --quiet
 確認雲端前置條件與部署授權後，替換下列 project、bucket、Channel ID 及 secret 版本：
 
 ```bash
-bash scripts/tool-exec.sh gcloud builds submit . \
+bash scripts/tooling/tool-exec.sh gcloud builds submit . \
   --project=YOUR_PROJECT_ID \
   --region=asia-east1 \
   --gcs-source-staging-dir=gs://YOUR_SOURCE_BUCKET/source \

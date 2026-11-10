@@ -9,7 +9,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY backend/package.json ./backend/package.json
 COPY api/ ./api/
 COPY frontend/ ./frontend/
-COPY scripts/prepare-miniapp-assets.mjs ./scripts/prepare-miniapp-assets.mjs
+COPY scripts/tooling/prepare-miniapp-assets.mjs ./scripts/tooling/prepare-miniapp-assets.mjs
 RUN --mount=type=secret,id=build-ca \
     if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
     pnpm install --frozen-lockfile
@@ -29,7 +29,7 @@ FROM gcr.io/distroless/static-debian12:nonroot
 COPY --from=build /server /server
 COPY --from=build /richmenu /richmenu
 COPY --from=frontend /src/frontend/miniapp/out/ /app/frontend/
-COPY --chmod=644 assets/richmenu/* /assets/richmenu/
+COPY --chmod=u=rwX,go=rX assets/line/richmenu/ /assets/line/richmenu/
 ENV PORT=8080 FRONTEND_DIR=/app/frontend
 EXPOSE 8080
 USER nonroot:nonroot
