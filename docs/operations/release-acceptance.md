@@ -39,7 +39,7 @@ bash scripts/tool-exec.sh gcloud run deploy line-mini-app-bot \
   --revision-suffix=YOUR_UNIQUE_SUFFIX --tag=acceptance --no-traffic
 ```
 
-這條 image-only 命令沿用服務設定，不適用尚未完成設定的首次部署。不要加入 `--set-env-vars`／`--set-secrets` 重建未核對的集合。現有 cloudbuild.yaml 的 deploy step 會直接更新服務，並非無流量驗收流程；若採該檔發布，先調整策略再送出，不能假設它有上述保護。
+這條 image-only 命令沿用服務設定，不適用尚未完成設定的首次部署。不要加入 `--set-env-vars`／`--set-secrets` 重建未核對的集合。現有 deploy/cloudbuild.yaml 的 deploy step 會直接更新服務，並非無流量驗收流程；若採該檔發布，先調整策略再送出，不能假設它有上述保護。
 
 候選 tag URL 仍有原服務 IAM／ingress 限制。LIFF 必須在已設定 Endpoint URL 或其下層初始化；不能把正式 LIFF 任意指向 tag hostname。真實裝置驗收使用已核准且已配置 LIFF 的測試環境，或依既定變更時段切換正式流量驗收；不得以 mock SDK 當作真實 LINE。此取捨須由環境擁有者確定，避免為測試任意改正式 Endpoint。
 

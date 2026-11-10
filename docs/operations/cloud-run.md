@@ -8,16 +8,16 @@ Monorepo 候選驗收、裝置清單、無流量發布與具名 revision 回復�
 
 1. 現行 GitHub managed trigger 監聽 `main`，使用 Google 管理的 inline build 與根目錄
    `Dockerfile` 建置映像，再以 image-only update 更新 Cloud Run。它不讀取 repository
-   `cloudbuild.yaml`，也不會把該檔的 substitutions、環境變數或服務帳戶套入服務。
-2. 根目錄 `cloudbuild.yaml` 是手動 `gcloud builds submit --config=cloudbuild.yaml`
+   `deploy/cloudbuild.yaml`，也不會把該檔的 substitutions、環境變數或服務帳戶套入服務。
+2. `deploy/cloudbuild.yaml` 是手動 `gcloud builds submit --config=deploy/cloudbuild.yaml`
    或未來自訂 Trigger 的完整 build → push → deploy 配置。
 
 現行 managed trigger 的 runtime 環境變數與 Secret reference 以 Cloud Run service
 configuration 為準；image-only update 會沿用當時的 service template。Git push 不會把
-repository 的 `.env.example` 或 `cloudbuild.yaml` 設定同步到 Cloud Run。機密只由
+repository 的 `backend/.env.example` 或 `deploy/cloudbuild.yaml` 設定同步到 Cloud Run。機密只由
 Cloud Run 引用 Secret Manager，不進入 Dockerfile、映像或 Git。
 
-## Repository `cloudbuild.yaml` 預設配置
+## Repository `deploy/cloudbuild.yaml` 預設配置
 
 下表描述 repository 配置，不代表現行 managed trigger 或 serving revision 已套用相同值。
 
@@ -74,7 +74,7 @@ Cloud Run 透過執行帳戶提供 ADC，不上傳 Google service-account key fi
 
 ### Secret Manager 與環境變數
 
-Secret Manager 與兩條部署路徑的關係如下。`cloudbuild.yaml` 的「部署檔參照」只在手動或
+Secret Manager 與兩條部署路徑的關係如下。`deploy/cloudbuild.yaml` 的「部署檔參照」只在手動或
 自訂 Trigger 真正執行該檔時生效；「現行服務」記錄 2026-11-08 revision
 `line-mini-app-bot-00027-695` 的 metadata，不包含 Secret payload：
 
@@ -91,7 +91,7 @@ Secret 名稱存在不代表已有 enabled version。新增或輪替 version 後
 reference 並建立 Ready revision；不得用文件或 Secret 名稱推定 payload 正確。
 
 `_SUMMARY_PROVIDER=openai` 與 `_SUMMARY_MODEL=gpt-4.1-mini` 只在執行
-`cloudbuild.yaml` 時透過 `--set-env-vars` 成為 runtime 設定。摘要還需要
+`deploy/cloudbuild.yaml` 時透過 `--set-env-vars` 成為 runtime 設定。摘要還需要
 `SUMMARY_TASK_QUEUE`、`SUMMARY_TASK_URL`、`SUMMARY_TASK_SERVICE_ACCOUNT`。現行服務已由
 Cloud Run service configuration 成套設定 OpenAI provider；queue 層級也已授予 runtime
 service account `roles/cloudtasks.enqueuer`，但仍須以真實任務驗收 OIDC、模型與 LINE Push。
@@ -115,7 +115,7 @@ GOOGLE_CLOUD_PROJECT 自動設為此次 Build 的 project。MINI App 兩個 ID �
 Service Message token、MCP API key、使用者 ID token 與 ADC 憑證不屬於本部署的 substitutions。
 應用設定命名仍依 [LINE 契約](../integrations/line-environment.md)。
 
-`cloudbuild.yaml` 使用 set-env-vars／set-secrets 宣告完整集合，會移除未列出的手動 env／secret 綁定；
+`deploy/cloudbuild.yaml` 使用 set-env-vars／set-secrets 宣告完整集合，會移除未列出的手動 env／secret 綁定；
 新增功能時先更新檔案，不能只在 Console 臨時補值。這些值都在執行期注入，沒有 bake 進映像。
 
 ## 首次手動部署
@@ -126,7 +126,7 @@ Service Message token、MCP API key、使用者 ID token 與 ADC 憑證不屬於
 bash scripts/tool-exec.sh gcloud meta list-files-for-upload --quiet
 ```
 
-`.gcloudignore` 允許 Dockerfile、.dockerignore、cloudbuild.yaml、根工作區 manifest／lock、backend/、frontend/、api/、前端資產準備腳本與 richmenu 資產；排除依賴目錄及建置產物。
+`.gcloudignore` 允許 Dockerfile、.dockerignore、deploy/cloudbuild.yaml、根工作區 manifest／lock、backend/、frontend/、api/、前端資產準備腳本與 richmenu 資產；排除依賴目錄及建置產物。
 不會上傳 .env、.codex、憑證、工具快取、分析輸出或文件。
 
 確認雲端前置條件與部署授權後，替換下列 project、bucket、Channel ID 及 secret 版本：
@@ -136,7 +136,7 @@ bash scripts/tool-exec.sh gcloud builds submit . \
   --project=YOUR_PROJECT_ID \
   --region=asia-east1 \
   --gcs-source-staging-dir=gs://YOUR_SOURCE_BUCKET/source \
-  --config=cloudbuild.yaml \
+  --config=deploy/cloudbuild.yaml \
   --substitutions=_MESSAGING_API_CHANNEL_ID=YOUR_CHANNEL_ID,_CHANNEL_SECRET_VERSION=3,_CHANNEL_ACCESS_TOKEN_VERSION=2 \
   --quiet
 ```
@@ -150,12 +150,12 @@ bash scripts/tool-exec.sh gcloud builds submit . \
 目前 Cloud Build Trigger `rmgpgab-line-mini-app-bot-asia-east1-963sup-line-mini-app-boohl`
 只監聽 `^main$`，Build configuration 是 Google 管理的 inline build。Build step 使用
 `Dockerfile`；Deploy step 只更新 image，因此沿用 Cloud Run service template 的 runtime
-設定。修改 repository `cloudbuild.yaml` 或只 push 相同 commit 都不會改變 runtime 設定；
+設定。修改 repository `deploy/cloudbuild.yaml` 或只 push 相同 commit 都不會改變 runtime 設定；
 環境變數或 Secret reference 變更必須在 Cloud Run 建立新 revision。
 
 截至 2026-11-08，現行服務使用
 `185354881750-compute@developer.gserviceaccount.com` 作為 runtime service account；這與
-repository `cloudbuild.yaml` 預設的 `line-mini-app-runtime` 不同。兩者的 IAM 不會自動同步，
+repository `deploy/cloudbuild.yaml` 預設的 `line-mini-app-runtime` 不同。兩者的 IAM 不會自動同步，
 切換部署路徑前必須重新核對 Secret、Firestore、Cloud Tasks 與 service account impersonation。
 
 每次 `main` push 後要同時驗證 Build 的 source SHA、Deploy step、latest Ready revision、
@@ -165,7 +165,7 @@ Cloud Tasks、模型或訊息送達已通過端到端測試。
 ## Docker BuildKit 建置契約
 
 Dockerfile 使用 `RUN --mount=type=secret,id=build-ca`，因此 builder 必須支援並啟用 BuildKit。
-目前 managed trigger 的 inline `Build` step 與 repository `cloudbuild.yaml` 的 `build` step
+目前 managed trigger 的 inline `Build` step 與 repository `deploy/cloudbuild.yaml` 的 `build` step
 都明確設定 `DOCKER_BUILDKIT=1`；Dockerfile 頂端的 syntax directive 不會自行啟用 BuildKit。
 本機 Docker 預設啟用不代表 Cloud Build 也啟用。若更新 Docker builder，確認其 BuildKit／Buildx
 支援，並用實際 builder 測試 secret mount；不能移除 TLS 驗證或將 CA／憑證寫入映像代替。
@@ -177,10 +177,10 @@ Dockerfile 使用 `RUN --mount=type=secret,id=build-ca`，因此 builder 必須�
 參考：[Docker BuildKit](https://docs.docker.com/build/buildkit/)、
 [Docker build secrets](https://docs.docker.com/build/building/secrets/)。
 
-## 改用 repository `cloudbuild.yaml` 的自訂 Trigger
+## 改用 repository `deploy/cloudbuild.yaml` 的自訂 Trigger
 
 在 Cloud Build Console 連接本 repository、建立 push Trigger，選定一個部署分支，
-設定 Build configuration 為根目錄 cloudbuild.yaml，填入相同的非機密 substitutions。
+設定 Build configuration 為 `deploy/cloudbuild.yaml`，填入相同的非機密 substitutions。
 建議使用受保護分支，合併前要求既有 Repository checks 通過；不要設定 PR 自動正式部署。
 
 **Trigger 的 Service account 必須明確選擇 cloud-build-deployer 的完整 email。**

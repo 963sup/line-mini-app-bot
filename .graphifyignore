@@ -20,7 +20,7 @@
 # Secrets and credentials
 .env
 .env.*
-!.env.example
+!backend/.env.example
 **/*.pem
 **/*.key
 **/credentials*.json

@@ -37,3 +37,5 @@ OpenAPI 驗證不取代班次版本、群組成員、審核權限、位置時效
 ## 後端實作位置
 
 生成碼與通用接線保留於 backend/internal/httpapi；出勤 handlers／DTO 映射與 runtime 驗證位於 attendance/http，身分入口位於 identity/http。核心型別不含 JSON／Firestore tags，資料層負責文件編碼與錯誤轉譯。
+
+Redocly lint／bundle 設定位於 `api/redocly.yaml`；根目錄的生成腳本明確帶入 `--config`，不依賴工作目錄自動尋找。

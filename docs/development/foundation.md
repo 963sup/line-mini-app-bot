@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | 本機工具 | 有 mise 設定與 bootstrap／doctor 指令 | 乾淨環境是否可完整重建 |
 | HTTP 骨架 | 有 cmd/server、可選 LINE 接入與正常關閉，沒有健康檢查路由 | 目標環境實際啟動狀態 |
-| 容器與部署 | 有 Dockerfile、cloudbuild.yaml 與來源上傳範圍設定 | Cloud Run／Artifact Registry、IAM、secrets、Trigger 與實際部署尚未驗收 |
+| 容器與部署 | 有 Dockerfile、deploy/cloudbuild.yaml 與來源上傳範圍設定 | Cloud Run／Artifact Registry、IAM、secrets、Trigger 與實際部署尚未驗收 |
 | 設定 | 已讀 PORT、Messaging API、MINI App 設定，不自動讀 .env | 真實渠道與環境對應尚未確認 |
 | Firestore | 已有 cmd/firestorecheck 唯讀連線工具，以及出勤和群聊摘要的 Firestore adapter | 目標環境的資料庫、身分、IAM 與讀寫驗收 |
 | LINE | 已有 Webhook、1:1／群組、Flex／Postback、MINI App 驗證及 Rich Menu CLI | 真實收發、登入、選單設定與 MINI App 發布尚未確認 |

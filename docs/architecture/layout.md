@@ -4,6 +4,7 @@
 
 ```text
 backend/
+  .env.example                 # 後端執行期設定範本
   go.mod、go.sum
   cmd/server/、attendancemigrate/、firestorecheck/、richmenu/
   internal/
@@ -36,7 +37,11 @@ frontend/miniapp/
   src/diagnostics/geolocation/
   tests/                       # React Strict Mode 與非同步行為檢查
   public/assets/、out/          # 產物，不提交
+deploy/
+  cloudbuild.yaml              # 手動／自訂 Trigger 建置與部署
+  firestore/indexes.json       # Firestore 索引宣告
 api/
+  redocly.yaml                 # 契約 lint／bundle 規則
   contract/                    # 唯一入口與出勤契約，共 14 個 operations
   client/                     # TS 生成型別與 openapi-fetch factory
   codegen/、compatibility/

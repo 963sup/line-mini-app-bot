@@ -53,8 +53,8 @@ MINI App 的 Developing／Review／Published 有不同內部 Channel；每個部
 
 - `mise.toml` 管理工具與非機密共用預設；真實 Channel／LIFF ID 由部署環境提供，避免提交某個環境的固定值。
 - Cloud Run 正式環境機密由 Secret Manager 綁定。現行 GitHub managed trigger 只更新
-  image 並沿用 service template；它不從 Dockerfile、`.env.example` 或 repository
-  `cloudbuild.yaml` 匯入 runtime 變數。變更設定必須建立新的 Cloud Run revision。
+  image 並沿用 service template；它不從 Dockerfile、`backend/.env.example` 或 repository
+  `deploy/cloudbuild.yaml` 匯入 runtime 變數。變更設定必須建立新的 Cloud Run revision。
   本機由執行環境安全注入，不提交至 mise、範例檔或版本庫。
 - 前端只公開必要的 LIFF ID 等非機密資訊；所有 Channel token／secret 限後端使用。
 - 啟動時依啟用功能檢查必填值，錯誤只列變數名稱，不輸出值；不讀取舊 `LINE_CHANNEL_*` 別名。

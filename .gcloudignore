@@ -33,4 +33,7 @@
 **/.artifacts/**
 **/*.tsbuildinfo
 !.dockerignore
-!cloudbuild.yaml
+!deploy/
+!deploy/cloudbuild.yaml
+!deploy/firestore/
+!deploy/firestore/indexes.json
