@@ -49,6 +49,6 @@ Context7 `/websites/cloud_google_firestore_native` 查核[單欄索引與範圍�
 
 ## 群組選單入口
 
-群組輸入「選單」「功能」或 `/menu`，以及已設定的選單貼圖，都會顯示「打卡」「出勤看板」「請假」「漏下班」快捷按鈕；`/help` 及入群功能說明也提供對應按鈕。按鈕發送既有文字指令，不直接寫入出勤或核准請假。舊訊息的選單不會自動更新，部署新版後需重新叫出選單。
+群組輸入「選單」「功能」或 `/menu`，以及已設定的選單貼圖，都會顯示「打卡」「出勤」「請假」「漏下班」快捷按鈕；`/help` 及入群功能說明也提供對應按鈕。按鈕發送既有文字指令，不直接寫入出勤或核准請假。舊訊息的選單不會自動更新，部署新版後需重新叫出選單。
 
-選單依LINE官方Quick Reply規格支援群聊，最多13個按鈕；本版含MINI App連結為7個。查證沿用官方來源revision `dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54` 的 [Quick Reply文件](https://developers.line.biz/en/docs/messaging-api/using-quick-reply/)。
+選單依LINE官方Quick Reply規格支援群聊，最多13個按鈕；本版含MINI App連結為6個。查證沿用官方來源revision `dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54` 的 [Quick Reply文件](https://developers.line.biz/en/docs/messaging-api/using-quick-reply/)。

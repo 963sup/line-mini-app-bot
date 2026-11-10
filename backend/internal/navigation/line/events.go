@@ -8,7 +8,6 @@ import (
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 
 	"github.com/963sup/line-mini-app-bot/internal/navigation/lineui"
-	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
@@ -48,14 +47,10 @@ func ReplyForEvent(event webhook.EventInterface, appURL string) transport.Reply 
 		if err != nil || len(values) != 1 || len(values["action"]) != 1 {
 			return transport.Reply{}
 		}
-		switch values.Get("action") {
-		case "help":
-			command = "/help"
-		case "status":
-			command = "/status"
-		default:
+		if values.Get("action") != "help" {
 			return transport.Reply{}
 		}
+		command = "/help"
 		source, token = e.Source, e.ReplyToken
 	default:
 		return transport.Reply{}
@@ -81,12 +76,6 @@ func ReplyForEvent(event webhook.EventInterface, appURL string) transport.Reply 
 		return transport.Reply{Token: token, Message: lineui.QuickMenu(group, appURL)}
 	case "/help":
 		return transport.Reply{Token: token, Message: lineui.Help(group, appURL)}
-	case "/status":
-		text := "一對一連線已接通；輸入「出勤紀錄」查詢本人紀錄。"
-		if group {
-			text = "群組連線已接通；輸入「選單」查看打卡、出勤看板、請假與漏下班檢查。"
-		}
-		return transport.Reply{Token: token, Message: &messaging_api.TextMessage{Text: text}}
 	default:
 		// Ordinary group conversation must not trigger the bot or expose personal data.
 		if group {

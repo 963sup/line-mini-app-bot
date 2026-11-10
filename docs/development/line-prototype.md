@@ -21,10 +21,10 @@ Webhook URL 為 `<service-url>/webhooks/line/<channelID>`。
 
 | 操作 | 一對一 | 群組 |
 | --- | --- | --- |
-| /help、/menu、選單、功能 | Flex 功能選單 | 公開 Flex 功能選單 |
-| /status | 一對一連線狀態 | 公開群組連線狀態 |
+| /help | Flex 功能選單 | 公開 Flex 功能選單 |
+| /menu、選單、功能 | 快捷選單 | 打卡、出勤、請假、漏下班、摘要快捷選單 |
 | 其他文字 | 顯示選單 | 忽略，避免干擾群組對話 |
-| Postback action=help／action=status | 依實際事件來源回覆 | 依實際事件來源回覆 |
+| Postback action=help | 依實際事件來源回覆 | 依實際事件來源回覆 |
 
 在 LINE Developers 開啟 Webhook；群組使用還需允許官方帳號加入群組。
 一般文字不會被記錄或回顯。群組不查個人資料，不依據 Postback 的 userId／groupId
@@ -65,7 +65,7 @@ userId／displayName，設定 no-store，不寫入資料庫或一般日誌。
 ## Rich Menu：Go CLI
 
 Rich Menu 用於官方帳號的一對一聊天；群組使用 Flex 指令選單。
-範本為 2500 x 843，左至右依序為「功能說明」、「連線狀態」、「開啟 MINI App」。
+範本為 2500 x 843，左至右依序為「功能說明」、「出勤紀錄」、「開啟 MINI App」。
 先準備相同尺寸、對應三個區塊的 PNG／JPEG，檔案不超過 1 MiB。
 
 只預覽 JSON，不發送外部請求：

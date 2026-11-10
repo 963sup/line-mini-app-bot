@@ -16,7 +16,7 @@ func (b *Attendance) groupStatus(ctx context.Context, group, user, command strin
 	text := func(value string) messaging_api.MessageInterface { return &messaging_api.TextMessage{Text: value} }
 	store, ok := b.Store.(attendance.BoardStore)
 	if !ok {
-		return text("出勤看板與漏下班檢查尚未啟用。"), nil
+		return text("出勤查詢與漏下班檢查尚未啟用。"), nil
 	}
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -35,7 +35,7 @@ func (b *Attendance) groupStatus(ctx context.Context, group, user, command strin
 		if err != nil {
 			return nil, err
 		}
-		return text(fmt.Sprintf("本群出勤看板（%s）\n上班中：%d 人\n休息中：%d 人\n今日已下班：%d 人\n更新：%s\n依打卡紀錄計算；跨日未結束班次仍算上班／休息中。未打卡不代表缺勤。\n輸入「漏下班」檢查本人未結束班次。", day.Format("2006-01-02"), board.Working, board.Resting, board.Finished, board.AsOf.In(zone).Format("2006-01-02 15:04:05"))), nil
+		return text(fmt.Sprintf("本群出勤（%s）\n上班中：%d 人\n休息中：%d 人\n今日已下班：%d 人\n更新：%s\n依打卡紀錄計算；跨日未結束班次仍算上班／休息中。未打卡不代表缺勤。\n輸入「漏下班」檢查本人未結束班次。", day.Format("2006-01-02"), board.Working, board.Resting, board.Finished, board.AsOf.In(zone).Format("2006-01-02 15:04:05"))), nil
 	}
 	active, err := store.CurrentShift(ctx, group, user)
 	if err != nil {

@@ -1,4 +1,4 @@
-// Package lineui renders the public connectivity menu shared by the bot and CLI.
+// Package lineui renders the public feature menu shared by the bot and CLI.
 package lineui
 
 import "github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
@@ -22,24 +22,19 @@ func AttendanceRichMenus(appURL string) map[string]*messaging_api.RichMenuReques
 
 func Help(group bool, appURL string) messaging_api.MessageInterface {
 	title := "LINE 功能選單"
-	description := "一對一連線已接通。輸入「出勤紀錄」查詢本人紀錄，或開啟網頁服務。"
+	description := "輸入「出勤紀錄」查詢本人紀錄，或開啟網頁服務。"
 	if group {
 		title = "群組功能選單"
-		description = "點選下方按鈕：打卡、出勤看板、請假登記或本人漏下班檢查。請假送出不代表核准；歷史出勤請私訊查詢。分享位置可查天氣，輸入「摘要」整理群聊。"
+		description = "點選下方按鈕：打卡、出勤、請假登記或本人漏下班檢查。請假送出不代表核准；歷史出勤請私訊查詢。分享位置可查天氣，輸入「摘要」整理群聊。"
 	}
-	buttons := []messaging_api.FlexComponentInterface{
-		&messaging_api.FlexButton{
-			Action: &messaging_api.PostbackAction{Label: "連線狀態", Data: "action=status"},
-		},
-	}
+	buttons := []messaging_api.FlexComponentInterface{}
 	if group {
 		for _, entry := range []struct{ label, command string }{
-			{"打卡", "打卡"}, {"出勤看板", "出勤"}, {"請假登記", "請假"}, {"漏下班檢查", "漏下班"},
+			{"打卡", "打卡"}, {"出勤", "出勤"}, {"請假登記", "請假"}, {"漏下班檢查", "漏下班"},
 		} {
 			buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.MessageAction{Label: entry.label, Text: entry.command}})
 		}
-	}
-	if !group {
+	} else {
 		buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.PostbackAction{Label: "出勤紀錄", Data: "action=attendance-history"}})
 	}
 	if appURL != "" {
@@ -71,14 +66,13 @@ func QuickMenu(group bool, appURL string) messaging_api.MessageInterface {
 	}
 	if group {
 		add("打卡", "打卡")
-		add("出勤看板", "出勤")
+		add("出勤", "出勤")
 		add("請假", "請假")
 		add("漏下班", "漏下班")
 		add("摘要", "摘要")
 	} else {
 		add("出勤紀錄", "出勤紀錄")
 	}
-	add("連線狀態", "/status")
 	if appURL != "" {
 		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.UriAction{Label: "開啟 MINI App", Uri: appURL}})
 	}
@@ -97,7 +91,7 @@ func RichMenu(appURL string) *messaging_api.RichMenuRequest {
 			},
 			{
 				Bounds: &messaging_api.RichMenuBounds{X: 833, Y: 0, Width: 833, Height: 843},
-				Action: &messaging_api.PostbackAction{Label: "連線狀態", Data: "action=status"},
+				Action: &messaging_api.PostbackAction{Label: "出勤紀錄", Data: "action=attendance-history"},
 			},
 			{
 				Bounds: &messaging_api.RichMenuBounds{X: 1666, Y: 0, Width: 834, Height: 843},

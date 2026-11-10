@@ -11,8 +11,8 @@ func TestQuickMenuPayload(t *testing.T) {
 		group    bool
 		commands []string
 	}{
-		{false, []string{"出勤紀錄", "/status"}},
-		{true, []string{"打卡", "出勤", "請假", "漏下班", "摘要", "/status"}},
+		{false, []string{"出勤紀錄"}},
+		{true, []string{"打卡", "出勤", "請假", "漏下班", "摘要"}},
 	} {
 		data, err := json.Marshal(QuickMenu(tc.group, "https://liff.line.me/example"))
 		if err != nil {
@@ -24,9 +24,10 @@ func TestQuickMenuPayload(t *testing.T) {
 				Items []struct {
 					Type   string `json:"type"`
 					Action struct {
-						Type string `json:"type"`
-						Text string `json:"text"`
-						Uri  string `json:"uri"`
+						Type  string `json:"type"`
+						Text  string `json:"text"`
+						Label string `json:"label"`
+						Uri   string `json:"uri"`
 					} `json:"action"`
 				} `json:"items"`
 			} `json:"quickReply"`
@@ -42,7 +43,7 @@ func TestQuickMenuPayload(t *testing.T) {
 		}
 		for i, command := range tc.commands {
 			item := payload.QuickReply.Items[i]
-			if item.Type != "action" || item.Action.Type != "message" || item.Action.Text != command {
+			if item.Type != "action" || item.Action.Type != "message" || item.Action.Text != command || item.Action.Label != command {
 				t.Fatalf("invalid command %q: %s", command, data)
 			}
 		}
