@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	_ "embed"
+	"embed"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"net/url"
@@ -14,23 +15,18 @@ import (
 	"time"
 )
 
-//go:embed web/miniapp.html
-var miniAppPage []byte
+//go:embed web/*.html web/*.js web/miniapp.css
+var miniAppFiles embed.FS
 
-//go:embed web/miniapp.js
-var miniAppScript []byte
+var miniAppTemplates = template.Must(template.ParseFS(miniAppFiles,
+	"web/miniapp.html", "web/home.html", "web/history.html", "web/correction.html", "web/review.html"))
 
-//go:embed web/miniapp.css
-var miniAppStyle []byte
-
-//go:embed web/attendance.js
-var attendanceScript []byte
-
-//go:embed web/attendance.html
-var attendancePage []byte
-
-//go:embed web/worktime.js
-var worktimeScript []byte
+var miniAppRoutes = map[string]struct{ Page, Title string }{
+	"/miniapp":            {"home", "出勤服務"},
+	"/miniapp/history":    {"history", "本人月紀錄"},
+	"/miniapp/correction": {"correction", "更正與申請結果"},
+	"/miniapp/review":     {"review", "授權審核"},
+}
 
 type miniApp struct {
 	channelID string
@@ -47,11 +43,20 @@ func registerMiniApp(mux *http.ServeMux) (string, error) {
 	if err := app.validateConfig(); err != nil {
 		return "", err
 	}
-	mux.HandleFunc("GET /miniapp", serveMiniApp)
-	mux.HandleFunc("GET /assets/miniapp.css", staticAssetHandler(miniAppStyle, "text/css; charset=utf-8"))
-	mux.HandleFunc("GET /assets/miniapp.js", staticAssetHandler(miniAppScript, "text/javascript; charset=utf-8"))
-	mux.HandleFunc("GET /assets/worktime.js", staticAssetHandler(worktimeScript, "text/javascript; charset=utf-8"))
-	mux.HandleFunc("GET /assets/attendance.js", staticAssetHandler(attendanceScript, "text/javascript; charset=utf-8"))
+	for route := range miniAppRoutes {
+		mux.HandleFunc("GET "+route, serveMiniApp)
+	}
+	for _, file := range []string{"miniapp.js", "attendance.js", "app-api.js", "history.js", "correction.js", "review.js", "miniapp.css"} {
+		contents, err := miniAppFiles.ReadFile("web/" + file)
+		if err != nil {
+			return "", err
+		}
+		contentType := "text/javascript; charset=utf-8"
+		if strings.HasSuffix(file, ".css") {
+			contentType = "text/css; charset=utf-8"
+		}
+		mux.HandleFunc("GET /assets/"+file, staticAssetHandler(contents, contentType))
+	}
 	mux.HandleFunc("GET /api/v1/miniapp/config", app.handleConfig)
 	mux.HandleFunc("GET /api/v1/me", app.handleMe)
 	if app.liffID == "" {
@@ -93,11 +98,23 @@ func serveMiniApp(w http.ResponseWriter, r *http.Request) {
 		"default-src 'none'; script-src 'self' https://static.line-scdn.net; style-src 'self'; "+
 			"connect-src 'self' https://api.line.me https://access.line.me https://liff.line.me https://liff.line-scdn.net; "+
 			"frame-src https://access.line.me; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
-	page := miniAppPage
-	if r.URL.Query().Has("launch") || r.URL.Query().Has("liff.state") {
-		page = attendancePage
+	page, ok := miniAppRoutes[r.URL.Path]
+	if !ok {
+		http.NotFound(w, r)
+		return
 	}
-	_, _ = w.Write(page)
+	if r.URL.Path == "/miniapp" && (r.URL.Query().Has("launch") || r.URL.Query().Has("liff.state")) {
+		contents, err := miniAppFiles.ReadFile("web/attendance.html")
+		if err != nil {
+			http.Error(w, "無法載入打卡頁面。", http.StatusInternalServerError)
+			return
+		}
+		_, _ = w.Write(contents)
+		return
+	}
+	if err := miniAppTemplates.ExecuteTemplate(w, "miniapp", page); err != nil {
+		return
+	}
 }
 
 func (app *miniApp) handleMe(w http.ResponseWriter, r *http.Request) {

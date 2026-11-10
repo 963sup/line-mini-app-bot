@@ -52,7 +52,7 @@ LINE Developers Console 需開啟 Allow bot to join group chats，再邀請 Bot 
 `channels/{channelID}/punchRequests/{requestID}` 保存原 groupID、userKey（雜湊）、eventID、action、eventTime、expiresAt；相同事件重送不延長原請求期限。同一請求重試讀取原交易結果，不能新增第二次打卡。未完成請求逾時不接受新的寫入。
 
 複合 ID 使用 JSON array 編碼後雜湊。事件結果、出勤紀錄與狀態在同一交易提交；回覆在交易外發送。
-1:1 查詢固定本人路徑，以 groupID 等值條件取資料，在 Go 排序後只回最近五筆，不需新增複合索引。群組列表從本人紀錄取得，兼容舊資料；基礎雛形尚未加入分頁，因此讀取成本會隨紀錄數增加，正式擴量前需改為群組索引與有界查詢。
+查詢固定本人路徑。索引切換前沿用舊紀錄讀取與 Go 排序，仍有全歷史讀取成本；切換後使用群組投影、月份範圍查詢與游標分頁。切換、回填與新 API 契約見 [出勤查詢與更正](attendance-queries.md)。LINE 訊息已有畫面分頁，不能視為資料庫已分頁。
 不儲存 reply token、完整事件或姓名；位置只隨打卡與去重結果保存，不建立持續定位歷史、不寫一般日誌。資料保存期尚待營運決策；去重結果不能先於可能重送期間刪除。punchRequests 可另設 expiresAt TTL；TTL 並非即時到期機制，程式仍自行檢查到期時間。
 
 官方契約核對：LINE 文件來源 `line/line-developers-docs-source`，main revision `090500a12f9777995006d9fb5cafab8d83a792b2`；[LIFF 開啟與 query 傳遞](https://developers.line.biz/en/docs/liff/opening-liff-app/)、[伺服器驗證身分](https://developers.line.biz/en/docs/liff/using-user-profile/)、[同 Provider 的使用者 ID](https://developers.line.biz/en/docs/messaging-api/getting-user-ids/)。手機定位、Channel Provider 設定及真實 Firestore 交易仍需實機驗收。

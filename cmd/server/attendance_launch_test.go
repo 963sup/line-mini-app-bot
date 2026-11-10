@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
 type memberTransport func(*http.Request) (*http.Response, error)

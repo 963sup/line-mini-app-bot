@@ -46,6 +46,7 @@ Read relevant pages on demand; Codex does not automatically load all docs.
 
 ## 文件索引
 
+- [出勤查詢、Web 分頁與更正重試](features/attendance-queries.md)
 - [Agent workflow](agents/workflow.md) and [acceptance](agents/acceptance.md)
 - [mise](tooling/mise.md) and [MCP services](tooling/mcp/README.md)
 - [Cloud development environment](development/cloud-environment.md)

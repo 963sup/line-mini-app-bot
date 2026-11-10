@@ -63,3 +63,21 @@
   .app-page .check-row input { flex: none; }
   .app-page pre { box-sizing: border-box; max-width: 100%; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
 }
+
+/* Shared foundations for each independently addressable workflow. */
+body.app-page { margin: 0; font-family: system-ui, -apple-system, "Noto Sans TC", sans-serif; line-height: 1.6; }
+.app-page *, .app-page *::before, .app-page *::after { box-sizing: border-box; }
+.app-page [hidden] { display: none !important; }
+.app-page a { color: #126e51; text-underline-offset: .2em; overflow-wrap: anywhere; }
+.app-page button { border: 1px solid transparent; padding: .75rem 1rem; color: #fff; font: inherit; cursor: pointer; }
+.app-page button:disabled { opacity: .55; cursor: default; }
+.app-page button:focus-visible, .app-page a:focus-visible { outline: 3px solid #a2d8bd; outline-offset: 3px; }
+.app-page fieldset:disabled { opacity: .65; }
+.page-nav { display: flex; flex-wrap: wrap; gap: 12px 20px; padding: 0 4px 24px; }
+.service-links { display: grid; gap: 14px; margin: 20px 0; }
+.service-links a { display: grid; gap: 6px; padding: 18px; border: 1px solid #d7e7de; border-radius: 14px; text-decoration: none; }
+.service-links span { color: #59706d; }
+.record-list { margin: 18px 0; padding-left: 24px; }
+.record-list li { padding: 12px 4px 18px; border-bottom: 1px solid #e8eeeb; }
+.record-list h3 { margin: 0; font-size: 1rem; }
+.record-list p { margin: 6px 0 12px; }

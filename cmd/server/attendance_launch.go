@@ -98,6 +98,7 @@ func checkGroupMember(ctx context.Context, client *http.Client, baseURL, token, 
 	if err != nil {
 		return 0
 	}
-	defer resp.Body.Close()
+	// Closing this read-only response cannot commit application state.
+	defer func() { _ = resp.Body.Close() }()
 	return resp.StatusCode
 }

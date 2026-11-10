@@ -1,9 +1,10 @@
 package main
 
 import (
+	"testing"
+
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
-	"testing"
 )
 
 func TestStickerMenuExactMatch(t *testing.T) {

@@ -20,6 +20,10 @@ type correctionStore interface {
 	ApproveCorrection(context.Context, string, string, time.Time) error
 }
 
+type idempotentCorrectionStore interface {
+	ProposeCorrectionOnce(context.Context, string, string, attendance.Correction, time.Time) (string, error)
+}
+
 var correctionIDPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{1,128}$`)
 
 func registerAttendanceCorrections(mux *http.ServeMux, bot *attendanceBot, app *miniApp) {
@@ -63,11 +67,30 @@ func registerAttendanceCorrections(mux *http.ServeMux, bot *attendanceBot, app *
 					return
 				}
 				var id string
-				id, err = store.ProposeCorrection(ctx, user, c, time.Now().UTC())
+				key := r.Header.Get("Idempotency-Key")
+				if len(r.Header.Values("Idempotency-Key")) == 0 {
+					// Existing clients remain compatible; they have no cross-request retry guarantee.
+					id, err = store.ProposeCorrection(ctx, user, c, time.Now().UTC())
+				} else {
+					if len(r.Header.Values("Idempotency-Key")) != 1 || !attendance.ValidCorrectionKey(key) {
+						writeAPIError(w, 400, "invalid_idempotency_key", "重試識別碼無效。")
+						return
+					}
+					once, ok := bot.store.(idempotentCorrectionStore)
+					if !ok {
+						writeAPIError(w, 503, "not_configured", "安全重試尚未啟用。")
+						return
+					}
+					id, err = once.ProposeCorrectionOnce(ctx, user, key, c, time.Now().UTC())
+				}
 				if err == nil {
-					writeJSON(w, 202, map[string]string{"id": id, "status": "pending"})
+					writeJSON(w, 202, map[string]string{"id": id, "status": "accepted"})
 					return
 				}
+			}
+			if errors.Is(err, attendance.ErrIdempotencyConflict) {
+				writeAPIError(w, 409, "idempotency_conflict", "此重試識別碼已用於不同內容，請確認原申請後重新送出。")
+				return
 			}
 			if errors.Is(err, attendance.ErrCorrection) || status.Code(err) == codes.NotFound {
 				writeAPIError(w, 403, "invalid_correction", "無權限、資料版本已變動或更正內容無效。")

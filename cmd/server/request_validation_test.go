@@ -1,10 +1,19 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 	"math"
+	"net/http"
+	"net/http/httptest"
 	"regexp"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/963sup/line-mini-app-bot/internal/attendance"
 )
 
 func TestLocationNumberInRange(t *testing.T) {
@@ -70,4 +79,77 @@ func BenchmarkRequestIDValidation(b *testing.B) {
 			}
 		}
 	})
+}
+
+// queryStoreStub exercises HTTP contracts without contacting LINE or Firestore.
+type queryStoreStub struct{ attendanceStub }
+
+func (s *queryStoreStub) GroupsPage(_ context.Context, user, _ string, _ int) (attendance.GroupPage, error) {
+	s.queriedUser = user
+	return attendance.GroupPage{Items: []string{"group"}, QueryMode: "legacy"}, s.err
+}
+
+func (s *queryStoreStub) RecordsPage(_ context.Context, user, group string, _ time.Time, _ string, _ int) (attendance.RecordPage, error) {
+	s.queriedUser = user
+	s.queriedGroup = group
+	return attendance.RecordPage{Items: s.records, QueryMode: "legacy"}, s.err
+}
+
+func (s *queryStoreStub) Record(_ context.Context, user, group, _ string) (attendance.Record, error) {
+	s.queriedUser = user
+	s.queriedGroup = group
+	if len(s.records) == 0 {
+		return attendance.Record{}, attendance.ErrRecordNotFound
+	}
+	return s.records[0], s.err
+}
+
+func TestAttendanceQueryContracts(t *testing.T) {
+	store := &queryStoreStub{attendanceStub: attendanceStub{records: []attendance.Record{{RecordID: "record", GroupID: "group", ClockInAt: time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC), ClockInPosition: &attendance.Position{Latitude: 25, Longitude: 121}}}}}
+	app := &miniApp{channelID: "123", client: &http.Client{Transport: memberTransport(func(r *http.Request) (*http.Response, error) {
+		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(fmt.Sprintf(`{"iss":"https://access.line.me","sub":"actor","aud":"123","exp":%d}`, time.Now().Add(time.Hour).Unix())))}, nil
+	})}}
+	mux := http.NewServeMux()
+	registerAttendanceQueries(mux, &attendanceBot{store: store}, app)
+	for _, tc := range []struct {
+		path   string
+		status int
+		auth   bool
+		err    error
+	}{
+		{"/api/v1/attendance/groups/page", 401, false, nil},
+		{"/api/v1/attendance/groups/page?pageSize=101", 400, true, nil},
+		{"/api/v1/attendance/records?group=group&month=bad", 400, true, nil},
+		{"/api/v1/attendance/records?group=group&month=2026-11&cursor=invalid", 400, true, attendance.ErrInvalidCursor},
+		{"/api/v1/attendance/records?group=group&month=2026-11", 200, true, nil},
+		{"/api/v1/attendance/records/record?group=group", 200, true, nil},
+		{"/api/v1/attendance/monthly/summary?group=group&month=2026-11", 200, true, nil},
+	} {
+		t.Run(tc.path, func(t *testing.T) {
+			store.err = tc.err
+			request := httptest.NewRequest("GET", tc.path, nil)
+			if tc.auth {
+				request.Header.Set("Authorization", "Bearer token")
+			}
+			w := httptest.NewRecorder()
+			mux.ServeHTTP(w, request)
+			if w.Code != tc.status {
+				t.Fatalf("status %d want %d: %s", w.Code, tc.status, w.Body.String())
+			}
+			if !json.Valid(w.Body.Bytes()) {
+				t.Fatal("invalid JSON")
+			}
+			if tc.status == 200 {
+				if store.queriedUser != "actor" {
+					t.Fatal("query did not use verified actor")
+				}
+				if strings.Contains(w.Body.String(), "ClockInPosition") || strings.Contains(w.Body.String(), "Latitude") {
+					t.Fatal("query exposed precise position")
+				}
+				if strings.Contains(tc.path, "/summary") && strings.Contains(w.Body.String(), `"Records"`) {
+					t.Fatal("summary included raw records")
+				}
+			}
+		})
+	}
 }

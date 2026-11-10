@@ -41,6 +41,7 @@ type LaunchStore interface {
 }
 
 type Record struct {
+	IsOpen           bool                `firestore:"isOpen" json:"-"`
 	Revision         int64               `firestore:"revision"`
 	CorrectionID     string              `firestore:"correctionID,omitempty"`
 	RebuildIssues    []string            `firestore:"-"`

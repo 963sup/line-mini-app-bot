@@ -2,21 +2,95 @@ package firestore
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"time"
 
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/attendance"
+	"github.com/963sup/line-mini-app-bot/internal/worktime"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// ProposeCorrection is always scoped to the authenticated employee.
+// ProposeCorrection preserves the existing internal caller contract. New Web
+// submissions use ProposeCorrectionOnce so a lost response can be retried safely.
 func (s *Attendance) ProposeCorrection(ctx context.Context, user string, c attendance.Correction, now time.Time) (string, error) {
-	c.UserKey = documentKey(user)
-	c.CreatedAt = now
-	ref := s.Client.Collection("channels").Doc(s.ChannelID).Collection("attendanceCorrectionRequests").NewDoc()
+	return s.proposeCorrection(ctx, user, "", c, now)
+}
+
+func (s *Attendance) ProposeCorrectionOnce(ctx context.Context, user, key string, c attendance.Correction, now time.Time) (string, error) {
+	if !attendance.ValidCorrectionKey(key) {
+		return "", attendance.ErrCorrection
+	}
+	return s.proposeCorrection(ctx, user, key, c, now)
+}
+
+type correctionReceipt struct {
+	Version      int    `firestore:"version"`
+	PayloadHash  string `firestore:"payloadHash"`
+	CorrectionID string `firestore:"correctionID"`
+}
+
+// correctionPayloadHash excludes server-owned fields and normalizes equivalent
+// timestamp offsets and empty break lists before encoding the versioned payload.
+func correctionPayloadHash(c attendance.Correction) (string, error) {
+	c.ID, c.UserKey, c.CreatedAt = "", "", time.Time{}
+	c.Start, c.End = c.Start.UTC(), c.End.UTC()
+	c.Breaks = append([]worktime.Interval{}, c.Breaks...)
+	for i := range c.Breaks {
+		c.Breaks[i].Start, c.Breaks[i].End = c.Breaks[i].Start.UTC(), c.Breaks[i].End.UTC()
+	}
+	body, err := json.Marshal(struct {
+		Version int
+		Payload attendance.Correction
+	}{1, c})
+	if err != nil {
+		return "", attendance.ErrCorrection
+	}
+	sum := sha256.Sum256(body)
+	return hex.EncodeToString(sum[:]), nil
+}
+
+func (s *Attendance) proposeCorrection(ctx context.Context, user, key string, c attendance.Correction, now time.Time) (string, error) {
+	hash, err := correctionPayloadHash(c)
+	if err != nil {
+		return "", err
+	}
+	c.UserKey, c.CreatedAt = documentKey(user), now
+	proposals := s.Client.Collection("channels").Doc(s.ChannelID).Collection("attendanceCorrectionRequests")
+	ref := proposals.NewDoc()
+	var receipt *db.DocumentRef
+	if key != "" {
+		// Both paths are scoped by the authenticated user and channel. Never accept
+		// a caller-provided actor or proposal ID as the source of this scope.
+		receipt = s.user(user).Collection("attendanceCorrectionReceipts").Doc(documentKey(key))
+		ref = proposals.Doc(documentKey("correction", user, key))
+	}
 	c.ID = ref.ID
-	err := s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
+	err = s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
+		if receipt != nil {
+			prior, err := tx.Get(receipt)
+			if err == nil {
+				var stored correctionReceipt
+				if err := prior.DataTo(&stored); err != nil {
+					return err
+				}
+				if stored.Version != 1 || stored.PayloadHash != hash {
+					return attendance.ErrIdempotencyConflict
+				}
+				if stored.CorrectionID != ref.ID {
+					return attendance.ErrCorrection
+				}
+				// A committed receipt remains replayable after the record is revised or
+				// approved. It acknowledges the submission, not its current approval status.
+				return nil
+			}
+			if !isMissingCorrection(err) {
+				return err
+			}
+		}
 		snapshot, err := tx.Get(s.user(user).Collection("attendance").Doc(c.RecordID))
 		if err != nil {
 			return err
@@ -32,9 +106,18 @@ func (s *Attendance) ProposeCorrection(ctx context.Context, user string, c atten
 		if _, err := attendance.ApplyCorrection(before, c); err != nil {
 			return err
 		}
-		return tx.Create(ref, c)
+		if err := tx.Create(ref, c); err != nil {
+			return err
+		}
+		if receipt != nil {
+			return tx.Create(receipt, correctionReceipt{Version: 1, PayloadHash: hash, CorrectionID: c.ID})
+		}
+		return nil
 	})
-	return c.ID, err
+	if err != nil {
+		return "", err
+	}
+	return c.ID, nil
 }
 
 // ApproveCorrection requires a trusted, pre-provisioned group reviewer and

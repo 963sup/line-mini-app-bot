@@ -120,6 +120,7 @@ func (s *Attendance) punch(ctx context.Context, group, user, event, action strin
 			}
 			record.ClockInAt = outcome.Session.Start
 			record.ClockOutAt = outcome.Session.End
+			record.IsOpen = record.ClockOutAt.IsZero()
 			record.Breaks = outcome.Session.Breaks
 			record.RestConfirmed = outcome.Session.RestConfirmed
 			record.BreakStartedAt = next.RestStartedAt
@@ -137,6 +138,9 @@ func (s *Attendance) punch(ctx context.Context, group, user, event, action strin
 				if err := tx.Set(ref, record); err != nil {
 					return err
 				}
+			}
+			if err := tx.Set(u.Collection("attendanceGroups").Doc(documentKey(group)), map[string]any{"groupID": group}); err != nil {
+				return err
 			}
 			active.RecordID = ""
 			if next.Active != nil {
@@ -187,8 +191,32 @@ func (s *Attendance) Submit(ctx context.Context, id, user string, position atten
 	return s.punch(ctx, request.GroupID, user, request.EventID, request.Action, now, request.EventTime, &position, id)
 }
 
-// Select only group IDs, including legacy records, so no migration is needed.
+// Groups retains legacy reads until the offline query migration completes.
 func (s *Attendance) Groups(ctx context.Context, user string) ([]string, error) {
+	mode, err := s.QueryMode(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if mode == "legacy" {
+		return s.legacyGroups(ctx, user)
+	}
+	groups := []string{}
+	cursor := ""
+	for {
+		page, err := s.GroupsPage(ctx, user, cursor, 100)
+		if err != nil {
+			return nil, err
+		}
+		groups = append(groups, page.Items...)
+		if page.NextCursor == "" {
+			return groups, nil
+		}
+		cursor = page.NextCursor
+	}
+}
+
+// legacyGroups is the explicitly temporary compatibility path, with historical read cost.
+func (s *Attendance) legacyGroups(ctx context.Context, user string) ([]string, error) {
 	docs, err := s.user(user).Collection("attendance").Select("groupID").Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
@@ -208,7 +236,18 @@ func (s *Attendance) Groups(ctx context.Context, user string) ([]string, error) 
 }
 
 func (s *Attendance) RecentGroup(ctx context.Context, user, group string) ([]attendance.Record, error) {
-	records, err := s.groupRecords(ctx, user, group)
+	mode, err := s.QueryMode(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if mode == "indexed" {
+		docs, err := s.user(user).Collection("attendance").Where("groupID", "==", group).OrderBy("clockInAt", db.Desc).OrderBy(db.DocumentID, db.Desc).Limit(5).Documents(ctx).GetAll()
+		if err != nil {
+			return nil, err
+		}
+		return decodeAttendance(docs)
+	}
+	records, err := s.legacyGroupRecords(ctx, user, group)
 	if len(records) > 5 {
 		records = records[:5]
 	}
@@ -217,24 +256,50 @@ func (s *Attendance) RecentGroup(ctx context.Context, user, group string) ([]att
 
 // MonthGroup includes every shift overlapping the reporting period, including open shifts.
 func (s *Attendance) MonthGroup(ctx context.Context, user, group string, start time.Time) ([]attendance.Record, error) {
-	records, err := s.groupRecords(ctx, user, group)
+	mode, err := s.QueryMode(ctx)
 	if err != nil {
 		return nil, err
 	}
-	// Read complete streams only for records that can affect this month.
-	relevant := make([]attendance.Record, 0)
-	for _, r := range records {
-		if r.ClockInAt.Before(start.AddDate(0, 1, 0)) && (r.ClockOutAt.IsZero() || r.ClockOutAt.After(start)) {
-			relevant = append(relevant, r)
+	var records []attendance.Record
+	if mode == "legacy" {
+		records, err = s.legacyGroupRecords(ctx, user, group)
+		if err != nil {
+			return nil, err
+		}
+		relevant := []attendance.Record{}
+		for _, r := range records {
+			if overlapsMonth(r, start) {
+				relevant = append(relevant, r)
+			}
+		}
+		records = relevant
+	} else {
+		records, err = s.monthCandidates(ctx, user, group, start)
+		if err != nil {
+			return nil, err
 		}
 	}
-	records = relevant
+	records, err = s.hydrateRecords(ctx, user, group, records)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]attendance.Record, 0, len(records))
+	for _, r := range records {
+		if overlapsMonth(r, start) {
+			result = append(result, r)
+		}
+	}
+	return result, nil
+}
+
+// hydrateRecords preserves raw-event and correction evidence checks for every read shape.
+func (s *Attendance) hydrateRecords(ctx context.Context, user, group string, records []attendance.Record) ([]attendance.Record, error) {
 	rawDocs := []*db.DocumentSnapshot{}
 	for _, r := range records {
 		if r.SchemaVersion < 3 || r.Revision > 0 {
 			continue
 		}
-		docs, e := s.user(user).Collection("attendanceRawEvents").Where("recordID", "==", r.RecordID).Documents(ctx).GetAll()
+		docs, e := readQuery(ctx, s.user(user).Collection("attendanceRawEvents").Where("recordID", "==", r.RecordID).OrderBy(db.DocumentID, db.Asc))
 		if e != nil {
 			return nil, e
 		}
@@ -289,24 +354,22 @@ func (s *Attendance) MonthGroup(ctx context.Context, user, group string, start t
 			continue
 		}
 		rebuilt := sessions[0]
+		if !record.ClockInAt.Equal(rebuilt.Start) || !record.ClockOutAt.Equal(rebuilt.End) {
+			record.RestConfirmed = false
+			record.RebuildIssues = []string{"projection_time_mismatch"}
+			continue
+		}
 		record.ClockInAt, record.ClockOutAt = rebuilt.Start, rebuilt.End
 		record.Breaks, record.RestConfirmed = rebuilt.Breaks, rebuilt.RestConfirmed
 		record.SourceEventIDs = rebuilt.EventIDs
 		record.BreakStartedAt = time.Time{}
 	}
-	end := start.AddDate(0, 1, 0)
-	result := make([]attendance.Record, 0)
-	for _, r := range records {
-		if r.ClockInAt.Before(end) && (r.ClockOutAt.IsZero() || r.ClockOutAt.After(start)) {
-			result = append(result, r)
-		}
-	}
-	return result, nil
+	return records, nil
 }
 
-func (s *Attendance) groupRecords(ctx context.Context, user, group string) ([]attendance.Record, error) {
+func (s *Attendance) legacyGroupRecords(ctx context.Context, user, group string) ([]attendance.Record, error) {
 	// Equality-only query preserves existing data without a new composite index.
-	docs, err := s.user(user).Collection("attendance").Where("groupID", "==", group).Documents(ctx).GetAll()
+	docs, err := readQuery(ctx, s.user(user).Collection("attendance").Where("groupID", "==", group).OrderBy(db.DocumentID, db.Asc))
 	if err != nil {
 		return nil, err
 	}

@@ -88,3 +88,6 @@ crash.log
 
 # Agent metadata and local installation copies
 skills-lock.json
+
+# Generated Graphify installation copy; source is tracked by skill provenance.
+/.codex/skills/

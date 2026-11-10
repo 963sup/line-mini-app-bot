@@ -1,0 +1,5 @@
+{{define "review"}}<section class="panel">
+  <h2>授權審核者</h2><p class="hint">取得員工提供的申請編號後，先讀取內容再核准。權限由伺服器確認，不能審核自己的申請。</p>
+  <fieldset id="review-controls" disabled><label>申請編號<input id="correction-id" type="text" maxlength="128" autocomplete="off"></label><button id="review-correction" type="button">讀取審核內容</button><pre id="review-details" class="summary"></pre><button id="approve-correction" type="button" disabled>核准已讀取的申請</button></fieldset>
+  <p id="review-status" role="status" aria-live="polite">請先完成身分驗證。</p>
+</section><script type="module" src="/assets/review.js"></script>{{end}}
