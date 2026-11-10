@@ -95,6 +95,14 @@ environment belong in mise.toml. docs describe usage and design without copying
 secrets or version pins. Generated upstream skill files remain under .agents/skills
 and .codex/skills and must not become duplicate project policy.
 
+## Repository publication default
+
+For future user-requested repository changes, successful task verification includes committing only task-owned changes, pushing `work`, and fast-forwarding `main` to the same verified commit without asking again. Follow [the publication workflow](docs/agents/workflow.md#repository-publication). User instructions such as no push, analysis/plan only, or local only override this default. Unrelated changes and manual cloud deployment are outside this authorization; never force or bypass protected branches.
+
+## gcloud sign-in routing
+
+For gcloud login, follow [the short sign-in workflow](docs/tooling/mcp/google.md#gcloud-sign-in). Keep one orchestrator executor for the whole OAuth process; the top-level agent relays the clickable URL and user code to that same executor. Reuse valid credentials first; otherwise provide the headless login URL immediately. Do not start browser/desktop discovery or additional specialists unless the user asks. Keep CLI login separate from ADC and resource changes.
+
 ## Deployment and browser location routing
 
 Current scope follows docs/architecture/decisions/0002-baseline.md and
