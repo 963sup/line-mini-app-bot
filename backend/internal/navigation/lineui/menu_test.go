@@ -12,7 +12,7 @@ func TestQuickMenuPayload(t *testing.T) {
 		commands []string
 	}{
 		{false, []string{"出勤紀錄", "/status"}},
-		{true, []string{"打卡", "摘要", "/status"}},
+		{true, []string{"打卡", "出勤", "請假", "漏下班", "摘要", "/status"}},
 	} {
 		data, err := json.Marshal(QuickMenu(tc.group, "https://liff.line.me/example"))
 		if err != nil {

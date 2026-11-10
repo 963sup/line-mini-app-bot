@@ -84,7 +84,7 @@ func ReplyForEvent(event webhook.EventInterface, appURL string) transport.Reply 
 	case "/status":
 		text := "一對一連線已接通；輸入「出勤紀錄」查詢本人紀錄。"
 		if group {
-			text = "群組連線已接通；輸入「打卡」叫出上下班按鈕。"
+			text = "群組連線已接通；輸入「選單」查看打卡、出勤看板、請假與漏下班檢查。"
 		}
 		return transport.Reply{Token: token, Message: &messaging_api.TextMessage{Text: text}}
 	default:
