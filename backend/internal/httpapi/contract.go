@@ -29,7 +29,7 @@ func (s contractServer) GetAttendanceCorrectionStatus(w http.ResponseWriter, r *
 	s.attendance.ServeHTTP(w, r)
 }
 
-func (s contractServer) ApproveAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string) {
+func (s contractServer) ApproveAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, _ generated.ApproveAttendanceCorrectionParams) {
 	s.attendance.ServeHTTP(w, r)
 }
 
@@ -45,7 +45,7 @@ func (s contractServer) ListAttendanceGroupPage(w http.ResponseWriter, r *http.R
 	s.attendance.ServeHTTP(w, r)
 }
 
-func (s contractServer) ExchangeAttendanceLaunch(w http.ResponseWriter, r *http.Request) {
+func (s contractServer) ExchangeAttendanceLaunch(w http.ResponseWriter, r *http.Request, _ generated.ExchangeAttendanceLaunchParams) {
 	s.attendance.ServeHTTP(w, r)
 }
 
@@ -57,7 +57,7 @@ func (s contractServer) GetAttendanceMonthlySummary(w http.ResponseWriter, r *ht
 	s.attendance.ServeHTTP(w, r)
 }
 
-func (s contractServer) SubmitAttendancePunch(w http.ResponseWriter, r *http.Request) {
+func (s contractServer) SubmitAttendancePunch(w http.ResponseWriter, r *http.Request, _ generated.SubmitAttendancePunchParams) {
 	s.attendance.ServeHTTP(w, r)
 }
 
@@ -67,4 +67,16 @@ func (s contractServer) ListAttendanceRecords(w http.ResponseWriter, r *http.Req
 
 func (s contractServer) GetAttendanceRecord(w http.ResponseWriter, r *http.Request, id string, params generated.GetAttendanceRecordParams) {
 	s.attendance.ServeHTTP(w, r)
+}
+
+func (s contractServer) CreateSession(w http.ResponseWriter, r *http.Request, _ generated.CreateSessionParams) {
+	s.identity.ServeHTTP(w, r)
+}
+
+func (s contractServer) DeleteSession(w http.ResponseWriter, r *http.Request, _ generated.DeleteSessionParams) {
+	s.identity.ServeHTTP(w, r)
+}
+
+func (s contractServer) RefreshSession(w http.ResponseWriter, r *http.Request, _ generated.RefreshSessionParams) {
+	s.identity.ServeHTTP(w, r)
 }

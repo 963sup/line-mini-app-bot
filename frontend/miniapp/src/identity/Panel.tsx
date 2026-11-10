@@ -24,8 +24,8 @@ export function IdentityPanel() {
         >
           重新驗證身分
         </button>
-        <button id="logout" hidden={!s.user} onClick={s.logout}>
-          登出此頁
+        <button id="logout" hidden={!s.canLogout} disabled={s.busy} onClick={s.logout}>
+          登出
         </button>
         {!s.ready && !s.busy && <button onClick={s.verify}>重試初始化</button>}
       </div>

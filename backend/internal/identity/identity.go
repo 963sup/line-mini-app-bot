@@ -3,10 +3,14 @@ package identity
 import (
 	"context"
 	"errors"
+	"time"
 )
 
 type (
-	User     struct{ ID, Name string }
+	User struct {
+		ID, Name  string
+		ExpiresAt time.Time
+	}
 	Verifier interface {
 		Verify(context.Context, string) (User, error)
 	}

@@ -83,8 +83,11 @@ async function fixture(
   let handler: (r: Request) => Promise<Response> = async (r) => {
     const path = new URL(r.url).pathname;
     if (path.endsWith("/config")) return Response.json({ liffId: "test" });
-    if (path.endsWith("/me"))
-      return Response.json({ userId: "u1", displayName: "Tester" });
+    if (path.endsWith("/session/refresh")) return Response.json({ user: { userId: "u1", displayName: "Tester" }, csrfToken: "c".repeat(43), expiresAt: new Date(Date.now() + 1800000).toISOString() });
+    if (path.endsWith("/session")) {
+      if (r.method === "DELETE") return new Response(null, { status: 204 });
+      return Response.json({ user: { userId: "u1", displayName: "Tester" }, csrfToken: "c".repeat(43), expiresAt: new Date(Date.now() + 1800000).toISOString() });
+    }
     if (path.endsWith("/launch"))
       return Response.json({ requestId: requestID });
     if (path.endsWith("/punches"))
@@ -194,9 +197,17 @@ const position = {
   timestamp: Date.now(),
 } as GeolocationPosition;
 test("Strict Mode initializes SDK once, auto punches once, ignores duplicate callbacks and clears state on logout", async () => {
-  const f = await fixture(<Punch />, "?launch=" + launch);
+  const f = await fixture(<Punch />, "?launch=" + launch, async (r, next) => {
+    const response = await next(r);
+    if (r.url.endsWith("/session") && r.method === "POST") {
+      const value = await response.json();
+      return Response.json({ ...value, expiresAt: new Date(Date.now() + 300000).toISOString() });
+    }
+    return response;
+  });
   try {
     assert.equal(f.init, 1);
+    assert.equal(f.requests.filter((r) => r.url.endsWith("/session/refresh")).length, 1);
     assert.equal(f.watchers.length, 1);
     assert.equal(f.requests.filter((r) => r.url.endsWith("/launch")).length, 1);
     await act(async () => {
@@ -209,6 +220,10 @@ test("Strict Mode initializes SDK once, auto punches once, ignores duplicate cal
       f.requests.filter((r) => r.url.endsWith("/punches")).length,
       1,
     );
+    const punchRequest = f.requests.find((r) => r.url.endsWith("/punches"))!;
+    assert.equal(punchRequest.credentials, "same-origin");
+    assert.equal(punchRequest.headers.get("Authorization"), null);
+    assert.equal(punchRequest.headers.get("X-CSRF-Token"), "c".repeat(43));
     assert.equal(f.watchers[0].cleared, true);
     assert.equal(f.node("punch-status").textContent, "success");
     await f.click("verify");
@@ -565,7 +580,7 @@ test("failed server verification cannot enable a workflow; retry and external lo
     <History />,
     "",
     async (r, next) =>
-      denied && r.url.endsWith("/me")
+      denied && (r.url.endsWith("/session") && r.method === "POST")
         ? Response.json(
             { error: { code: "unauthorized", message: "invalid token" } },
             { status: 401 },
@@ -592,7 +607,7 @@ test("failed server verification cannot enable a workflow; retry and external lo
     );
     assert.equal(
       f.requests
-        .find((r) => r.url.endsWith("/me"))!
+        .find((r) => (r.url.endsWith("/session") && r.method === "POST"))!
         .headers.get("Authorization"),
       "Bearer token",
     );
@@ -608,7 +623,7 @@ test("pagehide rejects late identity responses; BFCache restoration verifies aga
   try {
     let resolve!: (response: Response) => void;
     const previous = f.setHandler((r) =>
-      r.url.endsWith("/me")
+      (r.url.endsWith("/session") && r.method === "POST")
         ? new Promise<Response>((done) => (resolve = done))
         : previous(r),
     );
@@ -616,7 +631,7 @@ test("pagehide rejects late identity responses; BFCache restoration verifies aga
     await act(async () => {
       window.dispatchEvent(new Event("pagehide"));
       await flush();
-      resolve(Response.json({ userId: "obsolete", displayName: "Old" }));
+      resolve(Response.json({ user: { userId: "obsolete", displayName: "Old" }, csrfToken: "c".repeat(43), expiresAt: new Date(Date.now() + 1800000).toISOString() }));
       await flush();
     });
     assert.equal(f.node<HTMLElement>("identity").hidden, true);

@@ -30,5 +30,17 @@
       ]
     }
   ],
-  "fieldOverrides": []
+  "fieldOverrides": [
+    {
+      "collectionGroup": "sessions",
+      "fieldPath": "expiresAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "sessions",
+      "fieldPath": "*",
+      "indexes": []
+    }
+  ]
 }

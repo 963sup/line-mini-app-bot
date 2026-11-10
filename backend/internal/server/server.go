@@ -33,6 +33,12 @@ func Run() (resultErr error) {
 	}
 	auth := &identityhttp.Authenticator{ChannelID: os.Getenv("LINE_MINI_APP_CHANNEL_ID"), LIFFID: os.Getenv("LINE_MINI_APP_LIFF_ID")}
 	auth.Verifier = &identityline.Verifier{ChannelID: auth.ChannelID, Client: &http.Client{Timeout: 5 * time.Second}}
+	sessions, closeSessions, err := newSessions(context.Background(), auth.ChannelID)
+	if err != nil {
+		return err
+	}
+	defer func() { resultErr = errors.Join(resultErr, closeSessions()) }()
+	auth.Sessions = sessions
 	appURL, err := auth.Register(mux)
 	if err != nil {
 		return err

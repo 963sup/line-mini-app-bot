@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/963sup/line-mini-app-bot/internal/identity/session"
+
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/identity"
@@ -16,24 +18,35 @@ import (
 type Authenticator struct {
 	ChannelID, LIFFID string
 	Verifier          identity.Verifier
+	Sessions          *session.Service
 }
 
 func (a *Authenticator) Authenticate(w http.ResponseWriter, r *http.Request) (string, string, bool) {
+	w.Header().Set("Cache-Control", "no-store")
 	if user, ok := identity.FromContext(r.Context()); ok {
 		return user.ID, user.Name, true
 	}
+	if _, err := r.Cookie(sessionCookie); err == nil || len(r.CookiesNamed(sessionCookie)) > 0 {
+		value, ok := a.authenticateSession(w, r)
+		return value.User.ID, value.User.Name, ok
+	}
+	user, ok := a.verifyBearer(w, r)
+	return user.ID, user.Name, ok
+}
+
+func (a *Authenticator) verifyBearer(w http.ResponseWriter, r *http.Request) (identity.User, bool) {
 	if a.ChannelID == "" {
 		transport.WriteAPIError(w, 503, "not_configured", "MINI App 尚未設定。")
-		return "", "", false
+		return identity.User{}, false
 	}
 	fields := strings.Fields(r.Header.Get("Authorization"))
 	if len(fields) != 2 || !strings.EqualFold(fields[0], "Bearer") {
 		transport.WriteAPIError(w, 401, "unauthenticated", "請先登入 LINE。")
-		return "", "", false
+		return identity.User{}, false
 	}
 	if len(fields[1]) > 16384 {
 		transport.WriteAPIError(w, 401, "unauthenticated", "無效的 LINE token。")
-		return "", "", false
+		return identity.User{}, false
 	}
 	user, err := a.Verifier.Verify(r.Context(), fields[1])
 	if err != nil {
@@ -47,9 +60,9 @@ func (a *Authenticator) Authenticate(w http.ResponseWriter, r *http.Request) (st
 			message = "LINE 驗證回應無效。"
 		}
 		transport.WriteAPIError(w, status, code, message)
-		return "", "", false
+		return identity.User{}, false
 	}
-	return user.ID, user.Name, true
+	return user, true
 }
 
 func (a *Authenticator) Register(mux *http.ServeMux) (string, error) {
@@ -75,6 +88,9 @@ func (a *Authenticator) Register(mux *http.ServeMux) (string, error) {
 			transport.WriteJSON(w, 200, generated.CurrentUser{UserId: user, DisplayName: name})
 		}
 	})
+	routes.HandleFunc("POST /api/v1/session", a.createSession)
+	routes.HandleFunc("POST /api/v1/session/refresh", a.refreshSession)
+	routes.HandleFunc("DELETE /api/v1/session", a.deleteSession)
 	httpapi.RegisterIdentity(mux, routes)
 	if a.LIFFID == "" {
 		return "", nil

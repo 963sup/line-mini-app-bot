@@ -33,6 +33,9 @@ func RegisterIdentity(public *http.ServeMux, handler http.Handler) {
 	routes := routeHandler(contractServer{identity: handler})
 	public.Handle("GET /api/v1/miniapp/config", routes)
 	public.Handle("GET /api/v1/me", routes)
+	public.Handle("POST /api/v1/session", routes)
+	public.Handle("POST /api/v1/session/refresh", routes)
+	public.Handle("DELETE /api/v1/session", routes)
 }
 
 func RegisterAttendance(public *http.ServeMux, handler http.Handler, wrap func(http.Handler) http.Handler) {

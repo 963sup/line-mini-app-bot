@@ -12,8 +12,9 @@ appropriate IAM; do not assume credentials are provided by the deployment host.
 
 The repository provides a read-only `cmd/firestorecheck` command for an explicitly
 selected existing document. See [connection instructions](../development/line-prototype.md#firestore-唯讀連線).
-It prints no document contents and writes no data. Application attendance persistence
-and transaction boundaries remain unimplemented.
+It prints no document contents and writes no data. Application attendance persistence and transactional writes are implemented in
+backend/internal/attendance/firestore. Browser Session persistence is implemented
+separately; see [Session and renewal design](../architecture/browser-session.md).
 
 ## 索引宣告
 

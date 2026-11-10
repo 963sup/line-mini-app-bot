@@ -34,6 +34,7 @@
 
 - 環境：[設定](development/setup.md)、[Cloud 開發環境](development/cloud-environment.md)、[Codex Cloud](development/codex-cloud.md)。
 - LINE：[接入試作](development/line-prototype.md)、[能力矩陣](integrations/line.md)、[呈現選型](integrations/line-presentation-options.md)、[環境變數](integrations/line-environment.md)。
+- 身分登入：[Go browser Session 與滑動續期](architecture/browser-session.md)。
 - 資料整合：[Firestore](integrations/firestore.md)。
 - 工作流程：[代理協作](agents/workflow.md)、[驗收](agents/acceptance.md)、[系統化除錯](agents/debugging.md)、[測試階段說明](development/testing.md)。
 - 工具：[MCP 索引](tooling/mcp/README.md)、[Skills](tooling/skills.md)、[Graphify／Repomix 交叉比對](tooling/graphify-repomix-crosscheck.md)。

@@ -58,5 +58,5 @@ func (v *Verifier) Verify(ctx context.Context, token string) (identity.User, err
 	if !validChannel || !validUser {
 		return identity.User{}, identity.ErrInvalidClaims
 	}
-	return identity.User{ID: claims.Subject, Name: claims.Name}, nil
+	return identity.User{ID: claims.Subject, Name: claims.Name, ExpiresAt: time.Unix(claims.Expires, 0)}, nil
 }

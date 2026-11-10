@@ -11,6 +11,7 @@
 - [套件依賴與圖譜](dependencies.md)
 - [未來平台目錄規劃](future-platform.md)
 - [HTTP 與身分契約](http-contracts.md)
+- [Go browser Session 與滑動續期](browser-session.md)
 - [實作契約與待決策清單](implementation-contract.md)
 - [目前目錄與責任](layout.md)
 - [LINE 平台架構總覽](overview.md)

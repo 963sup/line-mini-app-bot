@@ -13,6 +13,7 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，features/atte
 ## 相關文件
 
 - [文件索引：Frontend](../docs/README.md#按模組閱讀)
+- [Go browser Session 與滑動續期](../docs/architecture/browser-session.md)
 - [React 架構與生命週期](../docs/architecture/react-frontend.md)
 - [瀏覽器定位整合](../docs/integrations/web-geolocation.md)
 - [出勤查詢與更正](../docs/features/attendance-queries.md)

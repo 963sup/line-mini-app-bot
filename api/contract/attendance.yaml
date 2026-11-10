@@ -15,6 +15,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "parameters": [],
@@ -117,6 +120,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "parameters": [
@@ -236,6 +242,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "parameters": [
@@ -375,6 +384,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "parameters": [
@@ -492,6 +504,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "parameters": [
@@ -612,6 +627,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "parameters": [
@@ -730,9 +748,21 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "description": "Required when authenticating with the session cookie.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Success",
@@ -843,9 +873,21 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "description": "Required when authenticating with the session cookie.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Success",
@@ -956,6 +998,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "parameters": [
@@ -968,6 +1013,14 @@
               "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
             },
             "description": "Optional for existing clients. Same user/key/payload replays the original acceptance; different payload returns 409. Preserve this key across ambiguous failures."
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "description": "Required when authenticating with the session cookie.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1080,6 +1133,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "parameters": [
@@ -1187,6 +1243,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "parameters": [
@@ -1294,6 +1353,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "parameters": [
@@ -1304,6 +1366,14 @@
             "schema": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "description": "Required when authenticating with the session cookie.",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -1403,6 +1473,12 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer"
+      },
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-session",
+        "description": "Unsafe cookie-authenticated requests require Origin and X-CSRF-Token."
       }
     },
     "schemas": {

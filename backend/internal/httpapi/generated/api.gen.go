@@ -231,6 +231,13 @@ type RecordPage struct {
 	QueryMode  string             `json:"queryMode"`
 }
 
+// SessionResponse defines model for SessionResponse.
+type SessionResponse struct {
+	CsrfToken string      `json:"csrfToken"`
+	ExpiresAt time.Time   `json:"expiresAt"`
+	User      CurrentUser `json:"user"`
+}
+
 // StoredRecord defines model for StoredRecord.
 type StoredRecord struct {
 	BreakStartedAt   time.Time         `json:"BreakStartedAt"`
@@ -255,6 +262,15 @@ type StoredRecord struct {
 type ProposeAttendanceCorrectionParams struct {
 	// IdempotencyKey Optional for existing clients. Same user/key/payload replays the original acceptance; different payload returns 409. Preserve this key across ambiguous failures.
 	IdempotencyKey *string `json:"Idempotency-Key,omitempty"`
+
+	// XCSRFToken Required when authenticating with the session cookie.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// ApproveAttendanceCorrectionParams defines parameters for ApproveAttendanceCorrection.
+type ApproveAttendanceCorrectionParams struct {
+	// XCSRFToken Required when authenticating with the session cookie.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
 }
 
 // ListAttendanceGroupPageParams defines parameters for ListAttendanceGroupPage.
@@ -263,6 +279,12 @@ type ListAttendanceGroupPageParams struct {
 
 	// Cursor Opaque cursor; keep the same filters. Empty/missing starts the first page.
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// ExchangeAttendanceLaunchParams defines parameters for ExchangeAttendanceLaunch.
+type ExchangeAttendanceLaunchParams struct {
+	// XCSRFToken Required when authenticating with the session cookie.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
 }
 
 // GetAttendanceMonthlyReportParams defines parameters for GetAttendanceMonthlyReport.
@@ -279,6 +301,12 @@ type GetAttendanceMonthlySummaryParams struct {
 
 	// Month Calendar month in Asia/Taipei; cross-month shifts are clipped by business rules.
 	Month string `form:"month" json:"month"`
+}
+
+// SubmitAttendancePunchParams defines parameters for SubmitAttendancePunch.
+type SubmitAttendancePunchParams struct {
+	// XCSRFToken Required when authenticating with the session cookie.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
 }
 
 // ListAttendanceRecordsParams defines parameters for ListAttendanceRecords.
@@ -298,6 +326,29 @@ type GetAttendanceRecordParams struct {
 	Group string `form:"group" json:"group"`
 }
 
+// DeleteSessionParams defines parameters for DeleteSession.
+type DeleteSessionParams struct {
+	Origin     string  `json:"Origin"`
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// CreateSessionJSONBody defines parameters for CreateSession.
+type CreateSessionJSONBody = map[string]interface{}
+
+// CreateSessionParams defines parameters for CreateSession.
+type CreateSessionParams struct {
+	Origin string `json:"Origin"`
+}
+
+// RefreshSessionJSONBody defines parameters for RefreshSession.
+type RefreshSessionJSONBody = map[string]interface{}
+
+// RefreshSessionParams defines parameters for RefreshSession.
+type RefreshSessionParams struct {
+	Origin     string `json:"Origin"`
+	XCSRFToken string `json:"X-CSRF-Token"`
+}
+
 // ProposeAttendanceCorrectionJSONRequestBody defines body for ProposeAttendanceCorrection for application/json ContentType.
 type ProposeAttendanceCorrectionJSONRequestBody = CorrectionSubmission
 
@@ -306,6 +357,12 @@ type ExchangeAttendanceLaunchJSONRequestBody = LaunchRequest
 
 // SubmitAttendancePunchJSONRequestBody defines body for SubmitAttendancePunch for application/json ContentType.
 type SubmitAttendancePunchJSONRequestBody = PunchRequest
+
+// CreateSessionJSONRequestBody defines body for CreateSession for application/json ContentType.
+type CreateSessionJSONRequestBody = CreateSessionJSONBody
+
+// RefreshSessionJSONRequestBody defines body for RefreshSession for application/json ContentType.
+type RefreshSessionJSONRequestBody = RefreshSessionJSONBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -317,7 +374,7 @@ type ServerInterface interface {
 	GetAttendanceCorrectionStatus(w http.ResponseWriter, r *http.Request, id string)
 	// ApproveAttendanceCorrection approveAttendanceCorrection
 	// (POST /api/v1/attendance/corrections/{id}/approve)
-	ApproveAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string)
+	ApproveAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, params ApproveAttendanceCorrectionParams)
 	// GetAttendanceCorrectionReview getAttendanceCorrectionReview
 	// (GET /api/v1/attendance/corrections/{id}/review)
 	GetAttendanceCorrectionReview(w http.ResponseWriter, r *http.Request, id string)
@@ -331,7 +388,7 @@ type ServerInterface interface {
 	ListAttendanceGroupPage(w http.ResponseWriter, r *http.Request, params ListAttendanceGroupPageParams)
 	// ExchangeAttendanceLaunch exchangeAttendanceLaunch
 	// (POST /api/v1/attendance/launch)
-	ExchangeAttendanceLaunch(w http.ResponseWriter, r *http.Request)
+	ExchangeAttendanceLaunch(w http.ResponseWriter, r *http.Request, params ExchangeAttendanceLaunchParams)
 	// GetAttendanceMonthlyReport getAttendanceMonthlyReport
 	// (GET /api/v1/attendance/monthly)
 	//
@@ -342,7 +399,7 @@ type ServerInterface interface {
 	GetAttendanceMonthlySummary(w http.ResponseWriter, r *http.Request, params GetAttendanceMonthlySummaryParams)
 	// SubmitAttendancePunch submitAttendancePunch
 	// (POST /api/v1/attendance/punches)
-	SubmitAttendancePunch(w http.ResponseWriter, r *http.Request)
+	SubmitAttendancePunch(w http.ResponseWriter, r *http.Request, params SubmitAttendancePunchParams)
 	// ListAttendanceRecords listAttendanceRecords
 	// (GET /api/v1/attendance/records)
 	ListAttendanceRecords(w http.ResponseWriter, r *http.Request, params ListAttendanceRecordsParams)
@@ -355,6 +412,15 @@ type ServerInterface interface {
 	// GetMiniAppConfig MiniAppConfig
 	// (GET /api/v1/miniapp/config)
 	GetMiniAppConfig(w http.ResponseWriter, r *http.Request)
+	// DeleteSession Revoke browser session before clearing its cookie
+	// (DELETE /api/v1/session)
+	DeleteSession(w http.ResponseWriter, r *http.Request, params DeleteSessionParams)
+	// CreateSession Exchange a verified LINE ID token for a browser session
+	// (POST /api/v1/session)
+	CreateSession(w http.ResponseWriter, r *http.Request, params CreateSessionParams)
+	// RefreshSession Renew a valid browser session within its absolute lifetime
+	// (POST /api/v1/session/refresh)
+	RefreshSession(w http.ResponseWriter, r *http.Request, params RefreshSessionParams)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -393,6 +459,25 @@ func (siw *ServerInterfaceWrapper) ProposeAttendanceCorrection(w http.ResponseWr
 		}
 
 		params.IdempotencyKey = &IdempotencyKey
+
+	}
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
 
 	}
 
@@ -448,8 +533,32 @@ func (siw *ServerInterfaceWrapper) ApproveAttendanceCorrection(w http.ResponseWr
 		return
 	}
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ApproveAttendanceCorrectionParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ApproveAttendanceCorrection(w, r, id)
+		siw.Handler.ApproveAttendanceCorrection(w, r, id, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -548,8 +657,35 @@ func (siw *ServerInterfaceWrapper) ListAttendanceGroupPage(w http.ResponseWriter
 // ExchangeAttendanceLaunch operation middleware
 func (siw *ServerInterfaceWrapper) ExchangeAttendanceLaunch(w http.ResponseWriter, r *http.Request) {
 
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ExchangeAttendanceLaunchParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ExchangeAttendanceLaunch(w, r)
+		siw.Handler.ExchangeAttendanceLaunch(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -654,8 +790,35 @@ func (siw *ServerInterfaceWrapper) GetAttendanceMonthlySummary(w http.ResponseWr
 // SubmitAttendancePunch operation middleware
 func (siw *ServerInterfaceWrapper) SubmitAttendancePunch(w http.ResponseWriter, r *http.Request) {
 
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params SubmitAttendancePunchParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.SubmitAttendancePunch(w, r)
+		siw.Handler.SubmitAttendancePunch(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -807,6 +970,183 @@ func (siw *ServerInterfaceWrapper) GetMiniAppConfig(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r)
 }
 
+// DeleteSession operation middleware
+func (siw *ServerInterfaceWrapper) DeleteSession(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DeleteSessionParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Origin" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Origin")]; found {
+		var Origin string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Origin", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Origin", valueList[0], &Origin, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Origin", Err: err})
+			return
+		}
+
+		params.Origin = Origin
+
+	} else {
+		err := fmt.Errorf("Header parameter Origin is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Origin", Err: err})
+		return
+	}
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteSession(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateSession operation middleware
+func (siw *ServerInterfaceWrapper) CreateSession(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateSessionParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Origin" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Origin")]; found {
+		var Origin string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Origin", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Origin", valueList[0], &Origin, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Origin", Err: err})
+			return
+		}
+
+		params.Origin = Origin
+
+	} else {
+		err := fmt.Errorf("Header parameter Origin is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Origin", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateSession(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RefreshSession operation middleware
+func (siw *ServerInterfaceWrapper) RefreshSession(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RefreshSessionParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Origin" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Origin")]; found {
+		var Origin string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Origin", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Origin", valueList[0], &Origin, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Origin", Err: err})
+			return
+		}
+
+		params.Origin = Origin
+
+	} else {
+		err := fmt.Errorf("Header parameter Origin is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Origin", Err: err})
+		return
+	}
+
+	// ------------- Required header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = XCSRFToken
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CSRF-Token is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CSRF-Token", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RefreshSession(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -941,6 +1281,9 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/attendance/corrections/{id}", wrapper.GetAttendanceCorrectionStatus)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/attendance/corrections/{id}/review", wrapper.GetAttendanceCorrectionReview)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/attendance/corrections/{id}/approve", wrapper.ApproveAttendanceCorrection)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/session", wrapper.DeleteSession)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/session", wrapper.CreateSession)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/session/refresh", wrapper.RefreshSession)
 
 	return m
 }
@@ -950,51 +1293,59 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"IR7iHl5drf4cAA==",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

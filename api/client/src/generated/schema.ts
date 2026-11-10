@@ -250,6 +250,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exchange a verified LINE ID token for a browser session */
+        post: operations["createSession"];
+        /** Revoke browser session before clearing its cookie */
+        delete: operations["deleteSession"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/session/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Renew a valid browser session within its absolute lifetime */
+        post: operations["refreshSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -266,6 +301,12 @@ export interface components {
         CurrentUser: {
             userId: string;
             displayName: string;
+        };
+        SessionResponse: {
+            user: components["schemas"]["CurrentUser"];
+            csrfToken: string;
+            /** Format: date-time */
+            expiresAt: string;
         };
         GroupItem: {
             id: string;
@@ -1044,7 +1085,10 @@ export interface operations {
     exchangeAttendanceLaunch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Required when authenticating with the session cookie. */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1133,7 +1177,10 @@ export interface operations {
     submitAttendancePunch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Required when authenticating with the session cookie. */
+                "X-CSRF-Token"?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1225,6 +1272,8 @@ export interface operations {
             header?: {
                 /** @description Optional for existing clients. Same user/key/payload replays the original acceptance; different payload returns 409. Preserve this key across ambiguous failures. */
                 "Idempotency-Key"?: string;
+                /** @description Required when authenticating with the session cookie. */
+                "X-CSRF-Token"?: string;
             };
             path?: never;
             cookie?: never;
@@ -1484,7 +1533,10 @@ export interface operations {
     approveAttendanceCorrection: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Required when authenticating with the session cookie. */
+                "X-CSRF-Token"?: string;
+            };
             path: {
                 id: string;
             };
@@ -1541,6 +1593,210 @@ export interface operations {
             };
             /** @description Request failed */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    createSession: {
+        parameters: {
+            query?: never;
+            header: {
+                Origin: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Session created; response is not cacheable */
+            200: {
+                headers: {
+                    /** @description Secure HttpOnly __Host-session cookie */
+                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponse"];
+                };
+            };
+            /** @description Request failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    deleteSession: {
+        parameters: {
+            query?: never;
+            header: {
+                Origin: string;
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Session revoked or already absent */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Request failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    refreshSession: {
+        parameters: {
+            query?: never;
+            header: {
+                Origin: string;
+                "X-CSRF-Token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Current session expiry, extended when eligible; ID and CSRF remain unchanged */
+            200: {
+                headers: {
+                    /** @description Secure HttpOnly __Host-session cookie */
+                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponse"];
+                };
+            };
+            /** @description Request failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

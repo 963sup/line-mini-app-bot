@@ -5,11 +5,11 @@
 與 [基礎出勤](../features/attendance.md) 先完成基礎，再建立出勤所需的 API／資料／套件。
 不預建 Worker、Garr、群組角色、管理後台或模板；不新增測試工程。
 
-> 狀態：本專案技術基線；尚未實作。產品路由必須經功能契約補足，不預設完整 CRUD。
+> 狀態：本頁包含已實作的身分入口與未來平台參考；各段依功能契約標示，不預設完整 CRUD。
 
 目前已實作的連線入口見 [LINE 接入能力](../development/line-prototype.md)：
-Webhook、MINI App 公開設定與每次驗證 ID token 的本人 API。
-目前沒有 session／業務 CRUD／持久 Inbox；下列持久接收回應仍屬目標契約。
+Webhook、MINI App 公開設定、本人 API 與 Session 交換／撤銷。
+已實作含滑動續期的 Cookie Session 與出勤持久化，見 [Session 契約與滑動續期](browser-session.md)。持久 Inbox 仍屬目標契約。
 
 ## 基礎入口
 
@@ -28,7 +28,7 @@ standby 事件不得觸發回覆或 Push。對事件內容進行 action allowlis
 invalid_argument=400、unauthenticated=401、forbidden=403、not_found=404、conflict=409、rate_limited=429、unavailable=503。
 資源是否存在會洩漏資料時統一 not_found；LINE 上游錯誤不直接透傳給用戶。逾時與取消需依是否已提交保存結果，不假設請求中斷會回滾。
 Session cookie：Secure、HttpOnly、Path=/、SameSite=Lax 作基線；跨站嵌入與實機登入驗證後再決策。修改操作檢查 CSRF token 與 Origin。
-管理登入、session 建立／撤銷 endpoint 與 TTL 待 P03／P04，不以臨時密碼或任意 LINE user ID 代替。
+Session 建立／撤銷／續期與 TTL 見 [Session 實作](browser-session.md)；管理登入仍待產品契約。
 
 ## MINI App 信任流程
 
@@ -41,7 +41,7 @@ sequenceDiagram
   B->>H: LINE token（非 profile）
   H->>L: 驗證 token、預期 channel 與有效性
   L-->>H: 已驗證身分或拒絕
-  H-->>B: 安全 session（具體登入契約待確認）
+  H-->>B: Cookie Session + CSRF token
   B->>H: 資源操作 + session + CSRF
   H->>U: 可信 actor + 不可信資源輸入
   U->>U: 個人擁有權或群組角色檢查
