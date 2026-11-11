@@ -17,7 +17,7 @@
 - 沿用既有 Cookie Session／Bearer 認證、CSRF 與 OpenAPI 請求驗證。後端以 LINE API 確認原群組成員，只有200才允許送出；非成員拒絕，API故障不寫入。
 - 同一本人的 requestKey 在相同內容重試時回原登記；不同內容回409。前端在結果未知時鎖住草稿並重試原內容；成功後才可明確建立另一筆。
 - 回應逾時不代表失敗，先重新載入本人紀錄。頁面重開、連結過期後，應先確認最近紀錄再重新填寫；第一版不保存跨頁草稿，也不提供語意重複／時段重疊的自動拒絕。
-- Firestore：`channels/{channel}/leaveLaunches/{tokenHash}` 保存群組與到期；`channels/{channel}/users/{userHash}/leaveRequests/{requestKeyHash}` 保存群組、token雜湊、假別、UTC起訖、理由及建立時間。原始 token 不寫入假單文件；交易再次確認連結有效，重試不建立第二筆。
+- Firestore：`channels/{channel}/leaveLaunches/{tokenHash}` 保存群組與到期；`channels/{channel}/users/{userHash}/leaveRequests/{requestKeyHash}` 保存伺服器以 `google/uuid` 產生的 UUID v4 申請編號、群組、token雜湊、假別、UTC起訖、理由及建立時間。原始 token 不寫入假單文件；交易再次確認連結有效，重試不建立第二筆。
 - 最近紀錄僅在本人子集合以單欄 createdAt 排序並限制20筆，不需要新增複合索引、回填或新環境變數。保存期與清除政策尚未設定；不擅自替請假理由或去重紀錄加TTL。
 
 MINI App 與 Messaging API 仍需同一 Provider，且 Bot 在群組中。沿用現有 LINE_MINI_APP_LIFF_ID、身分／Session 與出勤資料庫設定。主頁的 `?leave=` 及 LIFF `liff.state` 會導向請假頁，打卡連結維持原流程。
@@ -40,3 +40,5 @@ MINI App 與 Messaging API 仍需同一 Provider，且 Bot 在群組中。沿用
 啟動未設定雲端的本機服務，確認 `/miniapp/leave`、主頁 `?leave=`、`liff.state` 請假連結均回200並呈現請假頁，原打卡連結仍呈現打卡頁；未設定時請假 API 回503。Graphify 已更新。
 
 沿用既有測試，未新增測試工程或案例。Firestore emulator 未設定，既有整合測試明確 skip；新增請假交易與真實 LINE 成員檢查仍須外部驗收，不把既有測試通過視為新流程整合已通過。
+
+新申請的 API `id` 為 UUID v4；文件路徑保留 requestKeyHash 以維持原子防重複。舊資料沒有 `id` 時仍回傳原文件編號，不改寫歷史資料。UUID 產生失敗時交易不寫入。

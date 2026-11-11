@@ -90,6 +90,8 @@ async function fixture(
     }
     if (path.endsWith("/launch"))
       return Response.json({ requestId: requestID });
+    if (path.endsWith("/punches/preflight"))
+      return Response.json({ code: "needs_position", message: "需要位置" });
     if (path.endsWith("/punches"))
       return Response.json({ code: "clocked_in", message: "success" });
     if (path.endsWith("/groups/page"))
@@ -226,6 +228,28 @@ test("Strict Mode initializes SDK once, auto punches once, ignores duplicate cal
     assert.equal(punchRequest.headers.get("X-CSRF-Token"), "c".repeat(43));
     assert.equal(f.watchers[0].cleared, true);
     assert.equal(f.node("punch-status").textContent, "success");
+    const paths = f.requests.map((r) => new URL(r.url).pathname);
+    assert.ok(paths.indexOf("/api/v1/attendance/punches/preflight") < paths.indexOf("/api/v1/attendance/punches"));
+    // A completed submission is recovered before any new location request.
+    const previous = f.setHandler(async (r) =>
+      r.url.endsWith("/punches/preflight")
+        ? Response.json({ code: "clocked_in", message: "saved result" })
+        : previous(r),
+    );
+    await f.click("punch");
+    assert.equal(f.watchers.length, 1);
+    assert.equal(f.node("punch-status").textContent, "saved result");
+    assert.equal(f.close, 1);
+    f.setHandler(async (r) =>
+      r.url.endsWith("/punches/preflight")
+        ? Response.json({ code: "already_in", message: "already clocked in" })
+        : previous(r),
+    );
+    await f.click("punch");
+    assert.equal(f.watchers.length, 1);
+    assert.equal(f.requests.filter((r) => r.url.endsWith("/punches")).length, 1);
+    assert.equal(f.node("punch-status").textContent, "already clocked in");
+    assert.equal(f.close, 1);
     await f.click("verify");
     assert.equal(f.watchers.length, 1);
     await f.click("logout");

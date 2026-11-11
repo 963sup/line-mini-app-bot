@@ -107,7 +107,7 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 		if user.UserId == "" {
 			return respond("無法確認本人身分。")
 		}
-		if store, ok := b.Store.(attendance.LocatedStore); ok {
+		if store, ok := b.Store.(attendance.GroupHistoryReader); ok {
 			groups, err := store.Groups(ctx, user.UserId)
 			if err != nil {
 				return transport.Reply{}, true, err
@@ -148,12 +148,12 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 				return transport.Reply{Token: token, Message: b.historyMonths(ctx, selectedGroup, page)}, true, nil
 			}
 			monthly, ok := b.Store.(interface {
-				MonthGroup(context.Context, string, string, time.Time) ([]attendance.Record, error)
+				RecordsOverlappingMonth(context.Context, string, string, time.Time) ([]attendance.Record, error)
 			})
 			if !ok {
 				return respond("月度出勤查詢尚未啟用。")
 			}
-			records, err := monthly.MonthGroup(ctx, user.UserId, selectedGroup, start)
+			records, err := monthly.RecordsOverlappingMonth(ctx, user.UserId, selectedGroup, start)
 			if err != nil {
 				return transport.Reply{}, true, err
 			}

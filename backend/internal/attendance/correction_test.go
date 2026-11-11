@@ -19,7 +19,7 @@ func TestCorrectionIsVersionedAndDoesNotMutateOriginal(t *testing.T) {
 		t.Fatal("stale correction accepted")
 	}
 	report := CalculateMonthlyAttendance([]Record{after}, time.Date(2026, 11, 1, 0, 0, 0, 0, start.Location()))
-	if report.Calculation.Minutes != 480 || len(report.CorrectionIDs) != 1 {
+	if report.Calculation.ConfirmedNetMinutes != 480 || len(report.CorrectionIDs) != 1 {
 		t.Fatalf("%+v", report)
 	}
 	changed := before

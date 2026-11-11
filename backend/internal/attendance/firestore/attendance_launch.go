@@ -24,20 +24,22 @@ func (s *Attendance) launches() *db.CollectionRef {
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("attendanceLaunches")
 }
 
-func (s *Attendance) createLaunchOperation(ctx context.Context, group, action string) (string, error) {
+func (s *Attendance) CreateLaunch(ctx context.Context, group, action string) (_ string, err error) {
+	defer func() { err = translateError(err, nil) }()
 	var raw [32]byte
 	if _, err := rand.Read(raw[:]); err != nil {
 		return "", err
 	}
 	token := hex.EncodeToString(raw[:])
-	_, err := s.launches().Doc(documentKey(token)).Create(ctx, launch{GroupID: group, Action: action, ExpiresAt: time.Now().UTC().Add(10 * time.Minute)})
+	_, err = s.launches().Doc(documentKey(token)).Create(ctx, launch{GroupID: group, Action: action, ExpiresAt: time.Now().UTC().Add(10 * time.Minute)})
 	return token, err
 }
 
 // ExchangeLaunch creates a stable request for this card, action and user.
-func (s *Attendance) exchangeLaunchOperation(ctx context.Context, token, user string) (string, error) {
+func (s *Attendance) ExchangeLaunch(ctx context.Context, token, user string) (_ string, err error) {
+	defer func() { err = translateError(err, nil) }()
 	id := documentKey(token, user)
-	err := s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
+	err = s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		snap, err := tx.Get(s.launches().Doc(documentKey(token)))
 		if status.Code(err) == codes.NotFound {
 			return ErrExpiredLaunch
@@ -65,7 +67,8 @@ func (s *Attendance) exchangeLaunchOperation(ctx context.Context, token, user st
 	return id, err
 }
 
-func (s *Attendance) launchGroupOperation(ctx context.Context, token string) (string, error) {
+func (s *Attendance) LaunchGroup(ctx context.Context, token string) (_ string, err error) {
+	defer func() { err = translateError(err, nil) }()
 	snap, err := s.launches().Doc(documentKey(token)).Get(ctx)
 	if status.Code(err) == codes.NotFound {
 		return "", ErrExpiredLaunch

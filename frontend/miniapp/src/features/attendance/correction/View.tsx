@@ -9,7 +9,7 @@ export function View() {
   const { user, request } = useSession(),
     recordRead = useLatestRequest(),
     statusRead = useLatestRequest(),
-    submitRead = useLatestRequest();
+    submissionRequest = useLatestRequest();
   const [selected, setSelected] = useState<S["AttendanceRecord"] | null>(null),
     [start, setStart] = useState(""),
     [end, setEnd] = useState(""),
@@ -63,7 +63,7 @@ export function View() {
     );
     return recordRead.cancel;
   }, [user, request]);
-  function submit(event: FormEvent) {
+  function submitCorrection(event: FormEvent) {
     event.preventDefault();
     if (lock.current || !selected || !user) return;
     try {
@@ -88,7 +88,7 @@ export function View() {
       lock.current = true;
       setBusy(true);
       setStatus("正在送出申請……");
-      void submitRead.run(
+      void submissionRequest.run(
         (signal) =>
           request(
             (c, s) =>
@@ -121,7 +121,7 @@ export function View() {
       setStatus(errorMessage(error));
     }
   }
-  function check() {
+  function checkCorrectionStatus() {
     const correctionID = id.trim();
     if (!validID(correctionID)) {
       setApplication("請輸入有效的申請編號。");
@@ -166,7 +166,7 @@ export function View() {
             ? `原班次：${displayTime(selected.ClockInAt)} → ${displayTime(selected.ClockOutAt)}。核准前工時不變。`
             : "請先從月紀錄選擇要更正的班次。"}
         </p>
-        <form id="correction-form" onSubmit={submit}>
+        <form id="correction-form" onSubmit={submitCorrection}>
           <fieldset
             id="correction-fields"
             disabled={!user || !selected || busy}
@@ -288,7 +288,7 @@ export function View() {
               }}
             />
           </label>
-          <button id="check-correction" onClick={check}>
+          <button id="check-correction" onClick={checkCorrectionStatus}>
             查詢本人申請
           </button>
         </fieldset>

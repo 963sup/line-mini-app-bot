@@ -23,6 +23,10 @@
 不要為所有操作取名 Execute/Process/Manager，除非 receiver 已明確表達該使用案例。
 不要為每個 struct 強制建立 interface。小 package 可用 `ports.go`，介面多時按能力拆檔。
 
+出勤內部命名以實際行為為準：`ResolvePunchAttempt` 可能保存拒絕收據，`SubmitPunch` 提交定位操作；`verifyAndRebuildRecords` 驗證證據並重建回傳資料，`RebuildSessions` 重播事件產生班次，`RecordsOverlappingMonth` 明確包含跨月重疊。HTTP 路徑和既有資料欄位不隨內部重新命名而變更。
+複雜交易用一個具名命令表達身分、時間單位與模式；短方法不強制包成命令。資料層直接在公開方法轉譯技術錯誤，不為每個方法另外建立同名 `Operation` 轉呼叫。
+
+
 ## 目前檔案命名
 
 Go 檔使用 snake_case；文件與 Shell／Python 腳本使用 kebab-case；Web JS／CSS 使用 kebab-case。

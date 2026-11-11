@@ -63,12 +63,8 @@ func (s *Attendance) CurrentShift(ctx context.Context, group, user string) (*att
 	return result, translateError(err, nil)
 }
 
-func (s *Attendance) GroupBoard(ctx context.Context, group string, start, now time.Time) (attendance.Board, error) {
-	result, err := s.groupBoardOperation(ctx, group, start, now)
-	return result, translateError(err, nil)
-}
-
-func (s *Attendance) groupBoardOperation(ctx context.Context, group string, start, now time.Time) (attendance.Board, error) {
+func (s *Attendance) GroupBoard(ctx context.Context, group string, start, now time.Time) (_ attendance.Board, err error) {
+	defer func() { err = translateError(err, nil) }()
 	// Historical user parents may not exist: DocumentRefs includes these parents.
 	refs := s.Client.Collection("channels").Doc(s.ChannelID).Collection("users").DocumentRefs(ctx)
 	employees := make([]*db.DocumentRef, 0)
@@ -86,7 +82,7 @@ func (s *Attendance) groupBoardOperation(ctx context.Context, group string, star
 		employees = append(employees, ref)
 	}
 	var result attendance.Board
-	err := s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = attendance.Board{}
 		for _, employee := range employees {
 			active, err := currentShift(tx, employee, group)

@@ -31,7 +31,7 @@ export function View() {
       }
     } catch {}
   }, []);
-  function load() {
+  function loadLeaveHistory() {
     if (!user) return;
     setListStatus("正在讀取本人最近20筆請假登記……");
     void read.run(
@@ -40,8 +40,8 @@ export function View() {
       (error) => setListStatus(errorMessage(error)),
     );
   }
-  useEffect(() => { load(); return read.cancel; }, [user, request]);
-  function submit(event: FormEvent) {
+  useEffect(() => { loadLeaveHistory(); return read.cancel; }, [user, request]);
+  function submitLeave(event: FormEvent) {
     event.preventDefault();
     if (!user || !launch || lock.current || sent) return;
     try {
@@ -62,7 +62,7 @@ export function View() {
         (data) => {
           lock.current = false; setBusy(false); setSent(true); setUncertain(false);
           setStatus(`已登記，尚未核准。申請編號：${data.id}。請另行聯絡主管確認；理由未發送到群組。`);
-          load();
+          loadLeaveHistory();
         },
         (error) => {
           lock.current = false; setBusy(false);
@@ -73,7 +73,7 @@ export function View() {
       );
     } catch (error) { setStatus(errorMessage(error)); }
   }
-  function another() {
+  function startAnotherLeave() {
     attempt.current = null; setSent(false); setUncertain(false); setReason("");
     setStatus("請填寫另一筆請假；送出不代表核准。");
   }
@@ -82,7 +82,7 @@ export function View() {
       <h2>群組請假登記</h2>
       <p>填寫原群組的請假資料，時間均為臺灣時間。第一版僅登記，不會自動核准、扣假或變更打卡紀錄。</p>
       {!launch && <p>請回群組輸入「請假」，點選「填寫請假」。下方仍可查詢本人紀錄。</p>}
-      <form onSubmit={submit}>
+      <form onSubmit={submitLeave}>
         <fieldset disabled={!user || !launch || busy || sent || uncertain}>
           <label>假別<select value={kind} onChange={(e) => setKind(e.target.value as S["LeaveSubmission"]["kind"])}>
             {Object.entries(kinds).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -93,12 +93,12 @@ export function View() {
         </fieldset>
         <button type="submit" disabled={!user || !launch || busy || sent}>{uncertain ? "重試原申請" : "送出請假登記"}</button>
       </form>
-      {sent && <button onClick={another}>填寫另一筆</button>}
+      {sent && <button onClick={startAnotherLeave}>填寫另一筆</button>}
       <p role="status">{user ? status : "請先完成 LINE 身分驗證。"}</p>
     </section>
     <section className="panel">
       <h2>本人請假紀錄</h2>
-      <button disabled={!user} onClick={load}>重新載入本人紀錄</button>
+      <button disabled={!user} onClick={loadLeaveHistory}>重新載入本人紀錄</button>
       <p role="status">{listStatus}</p>
       <ul>{records.map((l) => <li key={l.id}>
         <strong>{kinds[l.kind]}：已登記、未核准</strong><br />

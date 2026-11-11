@@ -119,7 +119,7 @@ func registerAttendanceCorrections(mux *http.ServeMux, bot *Attendance, app Auth
 			return
 		}
 		store, ok := bot.store.(interface {
-			MonthGroup(context.Context, string, string, time.Time) ([]attendance.Record, error)
+			RecordsOverlappingMonth(context.Context, string, string, time.Time) ([]attendance.Record, error)
 		})
 		if !ok {
 			transport.WriteAPIError(w, 503, "not_configured", "月查詢尚未啟用。")
@@ -137,7 +137,7 @@ func registerAttendanceCorrections(mux *http.ServeMux, bot *Attendance, app Auth
 		}
 		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 		defer cancel()
-		records, err := store.MonthGroup(ctx, user, group, month)
+		records, err := store.RecordsOverlappingMonth(ctx, user, group, month)
 		if err != nil {
 			transport.WriteAPIError(w, 503, "unavailable", "暫時無法讀取紀錄。")
 			return
@@ -190,7 +190,7 @@ func registerAttendanceCorrections(mux *http.ServeMux, bot *Attendance, app Auth
 		if !ok {
 			return
 		}
-		store, ok := bot.store.(attendance.LocatedStore)
+		store, ok := bot.store.(attendance.GroupHistoryReader)
 		if !ok {
 			transport.WriteAPIError(w, 503, "not_configured", "查詢尚未啟用。")
 			return

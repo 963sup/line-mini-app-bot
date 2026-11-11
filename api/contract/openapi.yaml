@@ -407,6 +407,9 @@
     },
     "/api/v1/attendance/leaves": {
       "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1leaves"
+    },
+    "/api/v1/attendance/punches/preflight": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1punches~1preflight"
     }
   },
   "components": {

@@ -26,7 +26,7 @@ func calculationView(source worktime.Result) generated.Calculation {
 			issues[i] = generated.CalculationIssue{SessionID: v.SessionID, Code: v.Code}
 		}
 	}
-	return generated.Calculation{AttendanceMinutes: &source.AttendanceMinutes, EstimatedMinutes: &source.EstimatedMinutes, Unconfirmed: pointerInt64(source.Unconfirmed), Uncalculable: pointerInt64(source.Uncalculable), Duration: int64(source.Duration), EventIDs: &source.EventIDs, Intervals: &intervals, Issues: &issues, Minutes: source.Minutes, Pending: int64(source.Pending), Version: source.Version}
+	return generated.Calculation{AttendanceMinutes: &source.AttendanceMinutes, EstimatedMinutes: &source.EstimatedTotalMinutes, Unconfirmed: pointerInt64(source.Unconfirmed), Uncalculable: pointerInt64(source.Uncalculable), Duration: int64(source.Duration), EventIDs: &source.EventIDs, Intervals: &intervals, Issues: &issues, Minutes: source.ConfirmedNetMinutes, Pending: int64(source.Pending), Version: source.Version}
 }
 
 func optionalValue[T any](p *T) T {

@@ -33,20 +33,20 @@ type (
 type (
 	Issue  struct{ SessionID, Code string }
 	Result struct {
-		EventIDs                            []string
-		Version                             string
-		Duration                            time.Duration
-		Minutes                             int64
-		AttendanceMinutes, EstimatedMinutes int64
-		Unconfirmed, Uncalculable           int
-		Pending                             int
-		Issues                              []Issue
-		Intervals                           []Interval
+		EventIDs                                 []string
+		Version                                  string
+		Duration                                 time.Duration
+		ConfirmedNetMinutes                      int64
+		AttendanceMinutes, EstimatedTotalMinutes int64
+		Unconfirmed, Uncalculable                int
+		Pending                                  int
+		Issues                                   []Issue
+		Intervals                                []Interval
 	}
 )
 
-// BuildIntervals preserves input, deduplicates event IDs and reports ambiguous sequences.
-func BuildIntervals(events []Event) ([]Session, []Issue) {
+// RebuildSessions preserves input, deduplicates event IDs and reports ambiguous sequences.
+func RebuildSessions(events []Event) ([]Session, []Issue) {
 	seen := map[string]Event{}
 	ordered := []Event{}
 	issues := []Issue{}
@@ -199,8 +199,8 @@ func Calculate(sessions []Session, from, to time.Time) Result {
 	for _, p := range r.Intervals {
 		r.Duration += p.End.Sub(p.Start)
 	}
-	r.Minutes = int64(r.Duration / time.Minute)
-	r.EstimatedMinutes = totalMinutes(estimated)
+	r.ConfirmedNetMinutes = int64(r.Duration / time.Minute)
+	r.EstimatedTotalMinutes = totalMinutes(estimated)
 	r.AttendanceMinutes = totalMinutes(attendance)
 	return r
 }

@@ -10,17 +10,20 @@ import (
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/attendance"
 	"github.com/963sup/line-mini-app-bot/internal/attendance/worktime"
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 // ProposeCorrection preserves the existing internal caller contract. New Web
 // submissions use ProposeCorrectionOnce so a lost response can be retried safely.
-func (s *Attendance) proposeCorrectionOperation(ctx context.Context, user string, c attendance.Correction, now time.Time) (string, error) {
+func (s *Attendance) ProposeCorrection(ctx context.Context, user string, c attendance.Correction, now time.Time) (_ string, err error) {
+	defer func() { err = translateError(err, attendance.ErrCorrection) }()
 	return s.proposeCorrection(ctx, user, "", c, now)
 }
 
-func (s *Attendance) proposeCorrectionOnceOperation(ctx context.Context, user, key string, c attendance.Correction, now time.Time) (string, error) {
+func (s *Attendance) ProposeCorrectionOnce(ctx context.Context, user, key string, c attendance.Correction, now time.Time) (_ string, err error) {
+	defer func() { err = translateError(err, attendance.ErrCorrection) }()
 	if !attendance.ValidCorrectionKey(key) {
 		return "", attendance.ErrCorrection
 	}
@@ -60,15 +63,13 @@ func (s *Attendance) proposeCorrection(ctx context.Context, user, key string, c 
 	}
 	c.UserKey, c.CreatedAt = documentKey(user), now
 	proposals := s.Client.Collection("channels").Doc(s.ChannelID).Collection("attendanceCorrectionRequests")
-	ref := proposals.NewDoc()
+	var ref *db.DocumentRef
 	var receipt *db.DocumentRef
 	if key != "" {
 		// Both paths are scoped by the authenticated user and channel. Never accept
 		// a caller-provided actor or proposal ID as the source of this scope.
 		receipt = s.user(user).Collection("attendanceCorrectionReceipts").Doc(documentKey(key))
-		ref = proposals.Doc(documentKey("correction", user, key))
 	}
-	c.ID = ref.ID
 	err = s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		if receipt != nil {
 			prior, err := tx.Get(receipt)
@@ -80,9 +81,10 @@ func (s *Attendance) proposeCorrection(ctx context.Context, user, key string, c 
 				if stored.Version != 1 || stored.PayloadHash != hash {
 					return attendance.ErrIdempotencyConflict
 				}
-				if stored.CorrectionID != ref.ID {
+				if stored.CorrectionID == "" {
 					return attendance.ErrCorrection
 				}
+				c.ID = stored.CorrectionID
 				// A committed receipt remains replayable after the record is revised or
 				// approved. It acknowledges the submission, not its current approval status.
 				return nil
@@ -91,6 +93,14 @@ func (s *Attendance) proposeCorrection(ctx context.Context, user, key string, c 
 				return err
 			}
 		}
+		if ref == nil {
+			id, err := uuid.NewRandom()
+			if err != nil {
+				return err
+			}
+			ref = proposals.Doc(id.String())
+		}
+		c.ID = ref.ID
 		snapshot, err := tx.Get(s.user(user).Collection("attendance").Doc(c.RecordID))
 		if err != nil {
 			return err
@@ -122,7 +132,8 @@ func (s *Attendance) proposeCorrection(ctx context.Context, user, key string, c 
 
 // ApproveCorrection requires a trusted, pre-provisioned group reviewer and
 // writes an immutable before/after audit document alongside the new projection.
-func (s *Attendance) approveCorrectionOperation(ctx context.Context, reviewer, id string, now time.Time) error {
+func (s *Attendance) ApproveCorrection(ctx context.Context, reviewer, id string, now time.Time) (err error) {
+	defer func() { err = translateError(err, attendance.ErrCorrection) }()
 	channel := s.Client.Collection("channels").Doc(s.ChannelID)
 	return s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		role, err := tx.Get(channel.Collection("attendanceReviewers").Doc(documentKey(reviewer)))
@@ -201,10 +212,11 @@ func (s *Attendance) approveCorrectionOperation(ctx context.Context, reviewer, i
 
 func isMissingCorrection(err error) bool { return status.Code(err) == codes.NotFound }
 
-func (s *Attendance) correctionStatusOperation(ctx context.Context, user, id string) (string, error) {
+func (s *Attendance) CorrectionStatus(ctx context.Context, user, id string) (_ string, err error) {
+	defer func() { err = translateError(err, attendance.ErrCorrection) }()
 	channel := s.Client.Collection("channels").Doc(s.ChannelID)
 	result := "pending"
-	err := s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
+	err = s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		result = "pending"
 		snapshot, err := tx.Get(channel.Collection("attendanceCorrectionRequests").Doc(id))
 		if err != nil {
@@ -298,7 +310,8 @@ func decodeCorrectionAudit(snapshot *db.DocumentSnapshot, user, id string) (corr
 }
 
 // CorrectionReview exposes proposal details only to a group-authorized reviewer.
-func (s *Attendance) correctionReviewOperation(ctx context.Context, reviewer, id string) (attendance.Correction, error) {
+func (s *Attendance) CorrectionReview(ctx context.Context, reviewer, id string) (_ attendance.Correction, err error) {
+	defer func() { err = translateError(err, attendance.ErrCorrection) }()
 	channel := s.Client.Collection("channels").Doc(s.ChannelID)
 	var c attendance.Correction
 	role, err := channel.Collection("attendanceReviewers").Doc(documentKey(reviewer)).Get(ctx)

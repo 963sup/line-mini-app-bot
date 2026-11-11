@@ -1,6 +1,6 @@
 # 基礎出勤
 
-首版處理群組定位上下班，以及 1:1 分群查詢本人紀錄。群組指令／Postback 建立短效請求，MINI App 取得位置並提交後才寫入出勤；部署與真實 LINE／Firestore 驗收需另外執行。
+首版處理群組定位上下班，以及 1:1 分群查詢本人紀錄。群組指令／Postback 建立短效請求，MINI App 先確認操作結果，需要新增時才取得位置並提交後寫入出勤；部署與真實 LINE／Firestore 驗收需另外執行。
 目前已有打卡、月紀錄、分頁與更正流程的程式實作；雲端設定、索引／回填與渠道驗收須另外確認。
 [查詢、Web 分頁與更正重試](attendance-queries.md) 說明操作與啟用方式；[工時計算與更正證據](worktime.md) 說明計算規則。
 [基礎設施與接入](../development/foundation.md) 保留建置順序與環境限制，不代表功能尚未開始。
@@ -83,3 +83,77 @@ reply token 有效期與一次使用限制仍適用，去重保證不重複打�
 群組輸入「打卡」後，上班／下班／休息開始／休息結束／確認休息按鈕可直接開啟 LIFF。卡片各帶一個十分鐘的隨機 launch token，伺服器保存群組與動作；token 不含或信任使用者 ID。LIFF 驗證本人後，伺服器以 Messaging API 群組成員查詢確認身分，成功才將同一卡片、同一人交換為固定 request ID。重開不延長有效期。舊式 `?request=` 連結與舊 postback 卡片已停用，需在群組重新輸入「打卡」取得新卡片。定位與提交沿用原本的授權、五分鐘位置新鮮度、出勤狀態機與交易回執。
 
 上線前須確認 MINI App／LINE Login channel 與 Messaging API channel 在同一 provider，否則 user ID 不能對齊；需以真實群組測試 200／非成員／Bot 離群及 API 故障。共享卡片可被轉傳，但非原群組成員應拒絕。只有打卡 API 確認成功後，LIFF 內才嘗試關閉；權限或網路失敗保留頁面重試。視窗關閉不會自動向群組發送成功訊息。
+
+## 定位前預檢、狀態與時序
+
+狀態機由後端 `worktime.ApplyEvent` 統一判斷；前端不以快取的上班狀態決定授權。
+`POST /api/v1/attendance/punches/preflight` 只接收本人綁定的 requestId，沿用身分、CSRF、請求期限與交易驗證。
+它是結果解析操作：可保存拒絕結果的收據，但不會建立成功打卡或保存位置。
+
+| 目前狀態 | 要求動作 | 預檢結果 |
+| --- | --- | --- |
+| 同一請求已有交易收據 | 任一 | 回原結果，即使目前狀態已改變；不定位 |
+| 沒有未結束班次 | 上班 | `needs_position` |
+| 上班中或休息中 | 上班 | `already_in` 與原上班時間；不定位 |
+| 沒有未結束班次 | 下班／休息／確認 | `not_in`；不定位 |
+| 上班中 | 下班／休息開始／確認休息 | `needs_position` |
+| 上班中，沒有休息開始 | 休息結束 | `not_resting`；不定位 |
+| 休息中 | 休息開始／確認休息 | `already_resting`／`break_incomplete`；不定位 |
+| 休息中 | 下班／休息結束 | `needs_position`（仍須通過時間順序檢查） |
+| 請求比最後套用事件早 | 任一尚無收據的操作 | `stale_event`；不定位 |
+| 請求到期且沒有收據，或不屬於本人 | 任一 | 403；不定位、不新增打卡 |
+| 無法確認後端狀態 | 任一 | 顯示錯誤，可重試；不定位 |
+
+預檢與提交共用同一交易及狀態機。`needs_position` 不保留名額、不建立事件、收據或班次，也不保證稍後提交必定成功。
+拒絕結果一旦寫入收據，同一 requestId 永遠重播該結果；若之後狀態改變，要回群組取得新操作卡。
+所有成功的操作沿用既有定位要求（包含休息與確認休息），本次不變更位置證據政策。
+
+```mermaid
+sequenceDiagram
+  participant U as 使用者
+  participant W as MINI App
+  participant A as 後端
+  participant D as Firestore
+  participant G as 瀏覽器定位
+  U->>W: 開啟群組操作連結
+  W->>A: 驗證本人、成員資格，交換固定 requestId
+  W->>A: preflight(requestId)
+  A->>D: 交易讀取請求、收據、群組狀態與班次
+  alt 已有收據或操作被拒絕
+    D-->>A: 原結果，或保存本次拒絕結果
+    A-->>W: 顯示確定結果，不定位
+  else 需要狀態變更
+    A-->>W: needs_position（沒有成功寫入）
+    W->>G: 取得本次位置
+    G-->>W: 位置或錯誤
+    W->>A: 定位成功才提交相同 requestId 與位置
+    A->>D: 交易重新驗證請求、收據、期限與最新狀態
+    D-->>A: 原結果、拒絕結果或原子寫入成功
+    A-->>W: 顯示最終結果
+  end
+```
+
+前端依序為 `idle → exchanging → checking → locating → submitting → idle`；
+預檢有確定結果時直接從 checking 返回 idle；任一步驟失敗也返回 idle 並保留訊息。
+定位只有收到 `needs_position` 後才能啟動；拒絕、斷線或無效預檢回應不能繼續。
+定位期間若另一裝置完成操作，最終提交會依最新狀態拒絕或回傳原收據，不會依預檢快照新增重複紀錄。
+
+- 定位失敗：不送出打卡；重試同一 requestId 時先重新預檢。
+- 提交斷線／逾時：結果未知，不宣稱失敗或成功；重試先讀取收據。已有成功結果時直接顯示，不再定位。
+- 離頁／登出：中止等待並以 generation 忽略遲到的 HTTP 或定位回應；已送出的交易無法撤回。
+- 同頁操作失敗重試：保留同一 requestId 並先預檢；離頁、Session 重設或完整重新開頁則清除本頁快取並重新驗證 launch 有效期與群組資格，有效的同一卡片仍交換為相同 requestId。
+- 超過期限：已有收據的本人 requestId 可重播；未完成請求禁止新增寫入。定位期間不會延長期限。
+- 預檢與提交各有 5 秒後端期限、10 秒前端期限；群組連結交換為後端 8 秒、前端 10 秒。定位沿用 10 秒裝置 timeout 與 15 秒前端保護，不以延長等待掩蓋流程問題。
+
+本次核對 LINE 官方來源 main `dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54` 的
+[伺服器使用使用者資料](https://developers.line.biz/en/docs/liff/using-user-profile/)，保留伺服器驗證本人。
+React 19.3.1 的非同步結果處理參照 Context7 `/reactjs/react.dev` 官方 useEffect cleanup 文件；Next.js 16.4.5 參照安裝包內 use-client 指引。
+Graphify／Repomix 輔助核對呼叫與來源覆蓋，不證明手機定位或資料庫整合已驗收。
+
+## 程式入口與命名
+
+定位前的 HTTP `/punches/preflight` 由 `PunchResolver.ResolvePunchAttempt` 處理：它會讀取既有收據，或保存本次拒絕結果，因此不是純查詢。`PunchSubmitter.SubmitPunch` 接收定位後的提交；兩者共用 `executePunch` 的同一套交易與 `ApplyEvent`，不複製狀態機。
+
+交易以私有 `punchCommand` 明列使用者、群組、事件、`ReceivedAt`（伺服器接收時間）、`EventTimeMillis`（排序用毫秒時間）、位置與請求 ID，並以 `Mode` 明確區分 `resolvePunch`／`recordPunch`，不以缺少位置推測模式。
+`GroupHistoryReader` 單獨提供本人歷史讀取，查詢不再要求同時具備定位提交能力。
+`RecordsOverlappingMonth` 包含跨月及未結束班次；`verifyAndRebuildRecords` 會驗證事件／更正證據並重建回傳班次，不寫回資料庫。事件重播函數為 `worktime.RebuildSessions`。

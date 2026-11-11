@@ -51,3 +51,9 @@ pageSize 預設20、範圍1–100；cursor 必須與本人、channel、群組／
 沿用既有檢查，不新增測試基建。Firestore emulator缺席時整合測試skip必須明列；本機編譯或純函數通過不代表遠端索引、回填、LINE裝置或正式部署已驗收。
 
 依據：Google官方 [多range與索引](https://firebase.google.com/docs/firestore/query-data/multiple-range-fields)、[游標](https://firebase.google.com/docs/firestore/query-data/query-cursors)、[交易](https://firebase.google.com/docs/firestore/manage-data/transactions)；使用官方Developer Knowledge查得，2026-11-10核對。瀏覽器取消語意以Context7 `/mdn/content` 查證的 [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController/abort) 為準；generation guard另負責拒收已完成的舊回應。
+
+## 申請編號
+
+新更正申請以 `github.com/google/uuid` 產生 UUID v4 作為文件與查詢／審核編號；重試從既有收據回傳已保存的編號，保留原 payload hash 衝突檢查。舊申請、收據與稽核編號不改寫，仍可查詢與審核。UUID 產生錯誤會返回失敗，不使用會 panic 的 NewString。
+
+UUID API 已對照 [官方 v1.6.0 原始碼](https://github.com/google/uuid/blob/v1.6.0/version4.go)。Context7 團隊篩選拒絕此套件文件，因此未取得 Context7 查證；版本沿用既有 v1.6.0。

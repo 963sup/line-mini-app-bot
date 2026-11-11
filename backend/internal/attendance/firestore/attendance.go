@@ -22,29 +22,41 @@ func (s *Attendance) user(user string) *db.DocumentRef {
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("users").Doc(documentKey(user))
 }
 
-// Punch atomically records an event result, the shift and its active pointer.
-// No external calls belong inside this retryable transaction.
-func (s *Attendance) punchOperation(ctx context.Context, group, user, event, action string, now time.Time, eventTime int64) (attendance.Result, error) {
-	return s.punch(ctx, group, user, event, action, now, eventTime, nil, "")
+type punchMode uint8
+
+const (
+	recordPunch punchMode = iota
+	resolvePunch
+)
+
+type punchCommand struct {
+	GroupID, UserID, EventID, Action string
+	ReceivedAt                       time.Time
+	EventTimeMillis                  int64
+	Position                         *attendance.Position
+	RequestID                        string
+	Mode                             punchMode
 }
 
-func (s *Attendance) punch(ctx context.Context, group, user, event, action string, now time.Time, eventTime int64, position *attendance.Position, requestID string) (attendance.Result, error) {
-	u := s.user(user)
-	state := u.Collection("attendanceStates").Doc(documentKey(group))
-	receipt := u.Collection("attendanceEvents").Doc(documentKey(group, event, action))
+// executePunch atomically resolves the receipt, transition and persistence.
+// Mode is explicit: a missing position must never implicitly select preflight.
+func (s *Attendance) executePunch(ctx context.Context, command punchCommand) (attendance.Result, error) {
+	u := s.user(command.UserID)
+	state := u.Collection("attendanceStates").Doc(documentKey(command.GroupID))
+	receipt := u.Collection("attendanceEvents").Doc(documentKey(command.GroupID, command.EventID, command.Action))
 	var result attendance.Result
 	err := s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		result = attendance.Result{}
 		var request requestDocument
-		if requestID != "" {
-			snap, err := tx.Get(s.requests().Doc(requestID))
+		if command.RequestID != "" {
+			snap, err := tx.Get(s.requests().Doc(command.RequestID))
 			if err != nil {
 				return err
 			}
 			if err := snap.DataTo(&request); err != nil {
 				return err
 			}
-			if request.UserID != documentKey(user) || request.GroupID != group || request.EventID != event || request.Action != action {
+			if request.UserID != documentKey(command.UserID) || request.GroupID != command.GroupID || request.EventID != command.EventID || request.Action != command.Action {
 				return attendance.ErrInvalidRequest
 			}
 		}
@@ -55,7 +67,7 @@ func (s *Attendance) punch(ctx context.Context, group, user, event, action strin
 		if status.Code(err) != codes.NotFound {
 			return err
 		}
-		if requestID != "" && !now.Before(request.ExpiresAt) {
+		if command.RequestID != "" && !command.ReceivedAt.Before(request.ExpiresAt) {
 			return attendance.ErrInvalidRequest
 		}
 		var active struct {
@@ -70,9 +82,9 @@ func (s *Attendance) punch(ctx context.Context, group, user, event, action strin
 		} else if status.Code(err) != codes.NotFound {
 			return err
 		}
-		if eventTime < active.LastEventTime {
+		if command.EventTimeMillis < active.LastEventTime {
 			result.Code = "stale_event"
-			if err := tx.Create(u.Collection("attendanceRawEvents").Doc(documentKey(group, event, action)), map[string]any{"eventID": event, "action": action, "occurredAt": now, "eventTime": eventTime, "groupID": group, "source": "server", "resultCode": result.Code}); err != nil {
+			if err := tx.Create(u.Collection("attendanceRawEvents").Doc(documentKey(command.GroupID, command.EventID, command.Action)), map[string]any{"eventID": command.EventID, "action": command.Action, "occurredAt": command.ReceivedAt, "eventTime": command.EventTimeMillis, "groupID": command.GroupID, "source": "server", "resultCode": result.Code}); err != nil {
 				return err
 			}
 			return tx.Create(receipt, resultDocumentFrom(result))
@@ -88,7 +100,7 @@ func (s *Attendance) punch(ctx context.Context, group, user, event, action strin
 			if err := decodeRecord(snapshot, &record); err != nil {
 				return err
 			}
-			if record.GroupID != group || !record.ClockOutAt.IsZero() {
+			if record.GroupID != command.GroupID || !record.ClockOutAt.IsZero() {
 				return fmt.Errorf("invalid attendance state")
 			}
 		}
@@ -109,11 +121,18 @@ func (s *Attendance) punch(ctx context.Context, group, user, event, action strin
 				machine.LastAt = record.BreakStartedAt
 			}
 		}
-		next, outcome := worktime.ApplyEvent(machine, worktime.Event{ID: event, Kind: action, At: now})
+		next, outcome := worktime.ApplyEvent(machine, worktime.Event{ID: command.EventID, Kind: command.Action, At: command.ReceivedAt})
 		result.Code = outcome.Code
+		// A preflight shares the authoritative transition and transaction reads.
+		// It can seal a rejected outcome, but must never accept a located event
+		// or consume its receipt before a position has been submitted.
+		if outcome.Accepted && command.Mode == resolvePunch {
+			result.Code = "needs_position"
+			return nil
+		}
 		if outcome.Accepted {
-			if action == "clock-in" {
-				record = attendance.Record{SchemaVersion: 3, GroupID: group, RecordID: documentKey(group, event), ClockInPosition: position}
+			if command.Action == "clock-in" {
+				record = attendance.Record{SchemaVersion: 3, GroupID: command.GroupID, RecordID: documentKey(command.GroupID, command.EventID), ClockInPosition: command.Position}
 				ref = u.Collection("attendance").Doc(record.RecordID)
 			}
 			record.ClockInAt = outcome.Session.Start
@@ -123,12 +142,12 @@ func (s *Attendance) punch(ctx context.Context, group, user, event, action strin
 			record.RestConfirmed = outcome.Session.RestConfirmed
 			record.BreakStartedAt = next.RestStartedAt
 			record.EventSequence++
-			record.LastAppliedAt = now
+			record.LastAppliedAt = command.ReceivedAt
 			record.SourceEventIDs = outcome.Session.EventIDs
-			if action == "clock-out" {
-				record.ClockOutPosition = position
+			if command.Action == "clock-out" {
+				record.ClockOutPosition = command.Position
 			}
-			if action == "clock-in" {
+			if command.Action == "clock-in" {
 				if err := tx.Create(ref, recordDocumentFrom(record)); err != nil {
 					return err
 				}
@@ -137,7 +156,7 @@ func (s *Attendance) punch(ctx context.Context, group, user, event, action strin
 					return err
 				}
 			}
-			if err := tx.Set(u.Collection("attendanceGroups").Doc(documentKey(group)), map[string]any{"groupID": group}); err != nil {
+			if err := tx.Set(u.Collection("attendanceGroups").Doc(documentKey(command.GroupID)), map[string]any{"groupID": command.GroupID}); err != nil {
 				return err
 			}
 			active.RecordID = ""
@@ -147,19 +166,19 @@ func (s *Attendance) punch(ctx context.Context, group, user, event, action strin
 		}
 		result.Record = record
 
-		if err := tx.Set(state, map[string]any{"recordID": active.RecordID, "lastEventTime": eventTime}); err != nil {
+		if err := tx.Set(state, map[string]any{"recordID": active.RecordID, "lastEventTime": command.EventTimeMillis}); err != nil {
 			return err
 		}
 		// A separate immutable event retains the attempted action and its outcome.
-		raw := map[string]any{"eventID": event, "action": action, "occurredAt": now, "source": "server", "eventTime": eventTime, "groupID": group, "recordID": active.RecordID, "resultCode": result.Code, "sequence": record.EventSequence, "contractVersion": 1}
-		if position != nil {
-			raw["position"] = positionDocumentFrom(position)
+		raw := map[string]any{"eventID": command.EventID, "action": command.Action, "occurredAt": command.ReceivedAt, "source": "server", "eventTime": command.EventTimeMillis, "groupID": command.GroupID, "recordID": active.RecordID, "resultCode": result.Code, "sequence": record.EventSequence, "contractVersion": 1}
+		if command.Position != nil {
+			raw["position"] = positionDocumentFrom(command.Position)
 			raw["source"] = "located-web"
 		}
 		if result.Record.RecordID != "" {
 			raw["recordID"] = result.Record.RecordID
 		}
-		if err := tx.Create(u.Collection("attendanceRawEvents").Doc(documentKey(group, event, action)), raw); err != nil {
+		if err := tx.Create(u.Collection("attendanceRawEvents").Doc(documentKey(command.GroupID, command.EventID, command.Action)), raw); err != nil {
 			return err
 		}
 		return tx.Create(receipt, resultDocumentFrom(result))
@@ -171,8 +190,8 @@ func (s *Attendance) requests() *db.CollectionRef {
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("punchRequests")
 }
 
-func (s *Attendance) submitOperation(ctx context.Context, id, user string, position attendance.Position, now time.Time) (attendance.Result, error) {
-	snapshot, err := s.requests().Doc(id).Get(ctx)
+func (s *Attendance) executePunchRequest(ctx context.Context, command punchCommand) (attendance.Result, error) {
+	snapshot, err := s.requests().Doc(command.RequestID).Get(ctx)
 	if status.Code(err) == codes.NotFound {
 		return attendance.Result{}, attendance.ErrInvalidRequest
 	}
@@ -183,14 +202,17 @@ func (s *Attendance) submitOperation(ctx context.Context, id, user string, posit
 	if err := snapshot.DataTo(&request); err != nil {
 		return attendance.Result{}, err
 	}
-	if request.UserID != documentKey(user) {
+	if request.UserID != documentKey(command.UserID) {
 		return attendance.Result{}, attendance.ErrInvalidRequest
 	}
-	return s.punch(ctx, request.GroupID, user, request.EventID, request.Action, now, request.EventTime, &position, id)
+	command.GroupID, command.EventID, command.Action = request.GroupID, request.EventID, request.Action
+	command.EventTimeMillis = request.EventTime
+	return s.executePunch(ctx, command)
 }
 
 // Groups retains legacy reads until the offline query migration completes.
-func (s *Attendance) groupsOperation(ctx context.Context, user string) ([]string, error) {
+func (s *Attendance) Groups(ctx context.Context, user string) (_ []string, err error) {
+	defer func() { err = translateError(err, nil) }()
 	mode, err := s.QueryMode(ctx)
 	if err != nil {
 		return nil, err
@@ -233,7 +255,8 @@ func (s *Attendance) legacyGroups(ctx context.Context, user string) ([]string, e
 	return groups, nil
 }
 
-func (s *Attendance) recentGroupOperation(ctx context.Context, user, group string) ([]attendance.Record, error) {
+func (s *Attendance) RecentGroup(ctx context.Context, user, group string) (_ []attendance.Record, err error) {
+	defer func() { err = translateError(err, nil) }()
 	mode, err := s.QueryMode(ctx)
 	if err != nil {
 		return nil, err
@@ -252,8 +275,9 @@ func (s *Attendance) recentGroupOperation(ctx context.Context, user, group strin
 	return records, err
 }
 
-// MonthGroup includes every shift overlapping the reporting period, including open shifts.
-func (s *Attendance) monthGroupOperation(ctx context.Context, user, group string, start time.Time) ([]attendance.Record, error) {
+// RecordsOverlappingMonth includes every shift overlapping the reporting period, including open shifts.
+func (s *Attendance) RecordsOverlappingMonth(ctx context.Context, user, group string, start time.Time) (_ []attendance.Record, err error) {
+	defer func() { err = translateError(err, nil) }()
 	mode, err := s.QueryMode(ctx)
 	if err != nil {
 		return nil, err
@@ -277,7 +301,7 @@ func (s *Attendance) monthGroupOperation(ctx context.Context, user, group string
 			return nil, err
 		}
 	}
-	records, err = s.hydrateRecords(ctx, user, group, records)
+	records, err = s.verifyAndRebuildRecords(ctx, user, group, records)
 	if err != nil {
 		return nil, err
 	}
@@ -290,8 +314,8 @@ func (s *Attendance) monthGroupOperation(ctx context.Context, user, group string
 	return result, nil
 }
 
-// hydrateRecords preserves raw-event and correction evidence checks for every read shape.
-func (s *Attendance) hydrateRecords(ctx context.Context, user, group string, records []attendance.Record) ([]attendance.Record, error) {
+// verifyAndRebuildRecords preserves raw-event and correction evidence checks for every read shape.
+func (s *Attendance) verifyAndRebuildRecords(ctx context.Context, user, group string, records []attendance.Record) ([]attendance.Record, error) {
 	rawDocs := []*db.DocumentSnapshot{}
 	for _, r := range records {
 		if r.SchemaVersion < 3 || r.Revision > 0 {
@@ -341,7 +365,7 @@ func (s *Attendance) hydrateRecords(ctx context.Context, user, group string, rec
 			continue
 		} // Legacy records have no complete raw-event history.
 		validation := worktime.ValidateEventStream(eventsByRecord[record.RecordID], record.RecordID, group, record.EventSequence)
-		sessions, issues := worktime.BuildIntervals(eventsByRecord[record.RecordID])
+		sessions, issues := worktime.RebuildSessions(eventsByRecord[record.RecordID])
 		issues = append(issues, validation...)
 		if len(sessions) != 1 || len(issues) > 0 || int64(len(eventsByRecord[record.RecordID])) != record.EventSequence {
 			record.RestConfirmed = false
@@ -386,7 +410,8 @@ func (s *Attendance) legacyGroupRecords(ctx context.Context, user, group string)
 	return records, nil
 }
 
-func (s *Attendance) recentOperation(ctx context.Context, user string) ([]attendance.Record, error) {
+func (s *Attendance) Recent(ctx context.Context, user string) (_ []attendance.Record, err error) {
+	defer func() { err = translateError(err, nil) }()
 	docs, err := s.user(user).Collection("attendance").OrderBy("clockInAt", db.Desc).Limit(5).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err

@@ -36,7 +36,7 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 		t.Fatal(err)
 	}
 	month := time.Date(2026, 11, 1, 0, 0, 0, 0, zone)
-	records, err := s.MonthGroup(ctx, "employee", "group", month)
+	records, err := s.RecordsOverlappingMonth(ctx, "employee", "group", month)
 	if err != nil || len(records) != 1 {
 		t.Fatalf("records=%v err=%v", records, err)
 	}
@@ -102,12 +102,12 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if state, err := s.CorrectionStatus(ctx, "employee", id); err != nil || state != "approved" {
 		t.Fatalf("%s %v", state, err)
 	}
-	records, err = s.MonthGroup(ctx, "employee", "group", month)
+	records, err = s.RecordsOverlappingMonth(ctx, "employee", "group", month)
 	if err != nil {
 		t.Fatal(err)
 	}
 	report := attendance.CalculateMonthlyAttendance(records, month)
-	if report.Calculation.Minutes != 480 || report.Calculation.Pending != 0 || records[0].Revision != 1 {
+	if report.Calculation.ConfirmedNetMinutes != 480 || report.Calculation.Pending != 0 || records[0].Revision != 1 {
 		t.Fatalf("%+v", report)
 	}
 	// A corrupt approval must fail in both status and the monthly report.
@@ -118,11 +118,11 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if state, err := s.CorrectionStatus(ctx, "employee", id); err != nil || state != "invalid" {
 		t.Fatalf("corrupt status=%s %v", state, err)
 	}
-	records, err = s.MonthGroup(ctx, "employee", "group", month)
+	records, err = s.RecordsOverlappingMonth(ctx, "employee", "group", month)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if report := attendance.CalculateMonthlyAttendance(records, month); report.Calculation.Minutes != 0 || report.Calculation.Pending != 1 {
+	if report := attendance.CalculateMonthlyAttendance(records, month); report.Calculation.ConfirmedNetMinutes != 0 || report.Calculation.Pending != 1 {
 		t.Fatalf("corrupt approval counted: %+v", report)
 	}
 	// Extend the existing round trip through the staged legacy-to-indexed rollout.
@@ -218,7 +218,7 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if fmt.Sprint(legacyIDs) != fmt.Sprint(indexedIDs) {
 		t.Fatalf("legacy/indexed order mismatch: %v / %v", legacyIDs, indexedIDs)
 	}
-	indexed, err := s.MonthGroup(ctx, "employee", "group", month)
+	indexed, err := s.RecordsOverlappingMonth(ctx, "employee", "group", month)
 	if err != nil || len(indexed) != len(seen) {
 		t.Fatalf("indexed month differs from pages: %d %v", len(indexed), err)
 	}

@@ -27,10 +27,6 @@ type attendanceStub struct {
 	punchCalls         int
 }
 
-func (s *attendanceStub) Submit(context.Context, string, string, attendance.Position, time.Time) (attendance.Result, error) {
-	return attendance.Result{}, s.err
-}
-
 func (s *attendanceStub) Groups(_ context.Context, user string) ([]string, error) {
 	s.queriedUser = user
 	return s.groups, s.err
@@ -71,7 +67,7 @@ func TestAttendanceLegacyHistory(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			s := &attendanceStub{records: tc.records}
-			// Expose the legacy Store contract without the optional LocatedStore methods.
+			// Expose the legacy Store contract without the optional GroupHistoryReader methods.
 			b := &Attendance{Store: struct{ attendance.Store }{s}, Zone: zone}
 			e := webhook.MessageEvent{Mode: "active", ReplyToken: "reply", Source: webhook.UserSource{UserId: "actor"}, Message: webhook.TextMessageContent{Text: "出勤紀錄"}}
 			reply, handled, err := b.Reply(context.Background(), e)
@@ -147,7 +143,7 @@ func TestHistorySingleGroupAndPostbackAuthorization(t *testing.T) {
 	}
 }
 
-func (s *attendanceStub) MonthGroup(_ context.Context, user, group string, _ time.Time) ([]attendance.Record, error) {
+func (s *attendanceStub) RecordsOverlappingMonth(_ context.Context, user, group string, _ time.Time) ([]attendance.Record, error) {
 	s.queriedUser = user
 	s.queriedGroup = group
 	return s.records, s.err

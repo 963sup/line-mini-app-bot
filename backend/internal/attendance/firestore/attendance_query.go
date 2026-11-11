@@ -167,7 +167,8 @@ func (s *Attendance) monthCandidates(ctx context.Context, user, group string, st
 	return records, nil
 }
 
-func (s *Attendance) groupsPageOperation(ctx context.Context, user, cursor string, size int) (attendance.GroupPage, error) {
+func (s *Attendance) GroupsPage(ctx context.Context, user, cursor string, size int) (_ attendance.GroupPage, err error) {
+	defer func() { err = translateError(err, nil) }()
 	page := attendance.GroupPage{Items: []string{}}
 	if !validPageSize(size) {
 		return page, attendance.ErrInvalidCursor
@@ -220,7 +221,8 @@ func (s *Attendance) groupsPageOperation(ctx context.Context, user, cursor strin
 	return page, nil
 }
 
-func (s *Attendance) recordsPageOperation(ctx context.Context, user, group string, start time.Time, cursor string, size int) (attendance.RecordPage, error) {
+func (s *Attendance) RecordsPage(ctx context.Context, user, group string, start time.Time, cursor string, size int) (_ attendance.RecordPage, err error) {
+	defer func() { err = translateError(err, nil) }()
 	page := attendance.RecordPage{Items: []attendance.Record{}}
 	if !validPageSize(size) {
 		return page, attendance.ErrInvalidCursor
@@ -274,11 +276,12 @@ func (s *Attendance) recordsPageOperation(ctx context.Context, user, group strin
 		page.NextCursor = encodeRecordCursor(scope, last.ClockInAt, last.ClockOutAt, last.RecordID)
 		records = records[:size]
 	}
-	page.Items, err = s.hydrateRecords(ctx, user, group, records)
+	page.Items, err = s.verifyAndRebuildRecords(ctx, user, group, records)
 	return page, err
 }
 
-func (s *Attendance) recordOperation(ctx context.Context, user, group, id string) (attendance.Record, error) {
+func (s *Attendance) Record(ctx context.Context, user, group, id string) (_ attendance.Record, err error) {
+	defer func() { err = translateError(err, nil) }()
 	if !validSegment(id) {
 		return attendance.Record{}, attendance.ErrRecordNotFound
 	}
@@ -296,7 +299,7 @@ func (s *Attendance) recordOperation(ctx context.Context, user, group, id string
 	if records[0].GroupID != group {
 		return attendance.Record{}, attendance.ErrRecordNotFound
 	}
-	records, err = s.hydrateRecords(ctx, user, group, records)
+	records, err = s.verifyAndRebuildRecords(ctx, user, group, records)
 	if err != nil {
 		return attendance.Record{}, err
 	}

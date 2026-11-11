@@ -17,6 +17,6 @@ type Board struct {
 }
 
 type BoardStore interface {
-	GroupBoard(context.Context, string, time.Time, time.Time) (Board, error)
-	CurrentShift(context.Context, string, string) (*Record, error)
+	GroupBoard(ctx context.Context, groupID string, start, now time.Time) (Board, error)
+	CurrentShift(ctx context.Context, groupID, userID string) (*Record, error)
 }

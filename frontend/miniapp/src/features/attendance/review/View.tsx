@@ -7,7 +7,7 @@ import { displayTime } from "../../../shared/time/time";
 export function View() {
   const { user, request } = useSession(),
     read = useLatestRequest(),
-    approveRead = useLatestRequest(),
+    approvalRequest = useLatestRequest(),
     lock = useRef(false);
   const [id, setID] = useState(""),
     [proposal, setProposal] = useState<
@@ -16,13 +16,13 @@ export function View() {
     [reviewed, setReviewed] = useState(""),
     [busy, setBusy] = useState(false),
     [status, setStatus] = useState("請輸入員工提供的申請編號。");
-  function clear() {
+  function clearReview() {
     read.cancel();
     setProposal(null);
     setReviewed("");
   }
-  function load() {
-    clear();
+  function loadCorrection() {
+    clearReview();
     const correctionID = id.trim();
     if (!/^[A-Za-z0-9_-]{1,128}$/.test(correctionID)) {
       setStatus("請輸入有效的申請編號。");
@@ -47,12 +47,12 @@ export function View() {
       (error) => setStatus(errorMessage(error)),
     );
   }
-  function approve() {
+  function approveCorrection() {
     if (lock.current || !user || !reviewed || reviewed !== id.trim()) return;
     lock.current = true;
     setBusy(true);
     setStatus("正在核准申請……");
-    void approveRead.run(
+    void approvalRequest.run(
       (signal) =>
         request(
           (c, s) =>
@@ -63,7 +63,7 @@ export function View() {
           { signal },
         ),
       () => {
-        clear();
+        clearReview();
         lock.current = false;
         setBusy(false);
         setStatus("已核准。員工可查詢申請結果並重新載入月紀錄。");
@@ -90,13 +90,13 @@ export function View() {
             autoComplete="off"
             value={id}
             onChange={(e) => {
-              clear();
+              clearReview();
               setID(e.target.value);
               setStatus("請讀取目前申請的內容。");
             }}
           />
         </label>
-        <button id="review-correction" onClick={load}>
+        <button id="review-correction" onClick={loadCorrection}>
           讀取審核內容
         </button>
         <pre id="review-details" className="summary">
@@ -106,7 +106,7 @@ export function View() {
         <button
           id="approve-correction"
           disabled={!reviewed || reviewed !== id.trim()}
-          onClick={approve}
+          onClick={approveCorrection}
         >
           核准已讀取的申請
         </button>

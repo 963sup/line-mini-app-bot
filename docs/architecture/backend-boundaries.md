@@ -21,6 +21,10 @@
 
 HTTP adapter 不建立 Firestore／LINE／Google client，也不讀 gRPC 狀態碼。出勤、摘要的資料層在 output port 邊界將技術錯誤轉成所屬 ErrUnavailable 或既有業務錯誤；context cancellation 保留 Go 標準錯誤語意。技術原因保存在 adapter 的私有錯誤值，Unwrap 只公開領域類別，不讓上層依賴 SDK 錯誤。
 
+出勤 Firestore 公開方法在回傳邊界轉譯錯誤；需統一處理多個提早回傳時，以具名 error 回傳搭配 defer 完成，不保留僅轉呼叫的 `xxxOperation` 方法。私有共用交易只供 adapter 內部使用，保留技術錯誤供公開邊界轉譯。
+`PunchSubmitter`、`PunchResolver` 與 `GroupHistoryReader` 分別表達定位提交、可能寫入拒絕收據的操作解析，以及本人歷史查詢；讀取分支不因缺少定位提交能力而切換。
+
+
 身分驗證與契約驗證仍依既有順序。已驗證身分只在同次 request context 共用；它不是跨請求登入快取。摘要 HTTP 依賴 WorkerVerifier 最小介面，由 server 注入 Google verifier。
 
 ## 格式與資料相容

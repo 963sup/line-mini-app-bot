@@ -35,7 +35,7 @@ type attendanceStub struct {
 	punchCalls         int
 }
 
-func (s *attendanceStub) Submit(context.Context, string, string, attendance.Position, time.Time) (attendance.Result, error) {
+func (s *attendanceStub) SubmitPunch(context.Context, string, string, attendance.Position, time.Time) (attendance.Result, error) {
 	return attendance.Result{}, s.err
 }
 
@@ -63,7 +63,7 @@ func (s *attendanceStub) Recent(_ context.Context, user string) ([]attendance.Re
 	return s.records, s.err
 }
 
-func (s *attendanceStub) MonthGroup(_ context.Context, user, group string, _ time.Time) ([]attendance.Record, error) {
+func (s *attendanceStub) RecordsOverlappingMonth(_ context.Context, user, group string, _ time.Time) ([]attendance.Record, error) {
 	s.queriedUser = user
 	s.queriedGroup = group
 	return s.records, s.err

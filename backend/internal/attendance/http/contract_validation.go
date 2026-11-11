@@ -76,7 +76,7 @@ func validateAttendanceContract(spec *openapi3.T, next http.Handler, bot *Attend
 				return
 			}
 			limit := int64(16384)
-			if strings.HasSuffix(r.URL.Path, "/launch") {
+			if strings.HasSuffix(r.URL.Path, "/launch") || strings.HasSuffix(r.URL.Path, "/preflight") {
 				limit = 512
 			}
 			if strings.HasSuffix(r.URL.Path, "/punches") {

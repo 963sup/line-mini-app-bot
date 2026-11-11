@@ -64,9 +64,9 @@ LINE 訊息的 location／位置 action 與 Web Geolocation 是不同輸入，�
 
 ## 取得位置
 
-預設單次 `getCurrentPosition`；獨立示範使用 `enableHighAccuracy:false, timeout:10000, maximumAge:0`；出勤打卡不傳定位選項，使用瀏覽器預設的 `maximumAge:0` 與無限定位 timeout；每次要求新的位置，不使用瀏覽器快取。前端只檢查時間格式，後端驗證座標、精度與採樣時間。這些設定不是官方保證或產品精度門檻。
+預設單次 `getCurrentPosition`；獨立示範使用 `enableHighAccuracy:false, timeout:10000, maximumAge:0`；出勤打卡使用 `enableHighAccuracy:false, timeout:10000, maximumAge:0`，前端另有 15 秒等待保護；每次要求新的位置，不使用瀏覽器快取。前端只檢查時間格式，後端驗證座標、精度與採樣時間。這些設定不是官方保證或產品精度門檻。
 定位示範頁也在等待權限時保留取消按鈕，不因頁面暫時隱藏而取消（系統權限介面可能使頁面隱藏）。伺服器送出階段另設逾時。
-出勤頁使用單次 `getCurrentPosition`，不提供取消按鈕，也不設前端逾時；離頁或登出後忽略遲到的定位 callback，已送出的請求仍須查詢紀錄確認結果。
+出勤頁先做[後端預檢](../features/attendance.md#定位前預檢狀態與時序)，僅需要新增操作時才使用 `watchPosition`，取得第一筆合法位置後立即 `clearWatch`，並有 15 秒前端逾時；離頁或登出後忽略遲到的定位 callback，已送出的請求仍須查詢紀錄確認結果。
 高精度可能耗電／變慢，也不保證 GPS。只有明確連續定位需求才用 watchPosition；離開、取消、隱藏／登出時依生命週期 clearWatch。
 getCurrentPosition 沒有 AbortSignal 取消介面；取消頁面操作後忽略遲到 callback，不再送 API。
 錯誤碼 1=PERMISSION_DENIED、2=POSITION_UNAVAILABLE、3=TIMEOUT；分別顯示可理解的拒絕／不可用／重試提示，不顯示原始敏感錯誤。

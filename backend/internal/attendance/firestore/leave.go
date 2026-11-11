@@ -8,11 +8,13 @@ import (
 
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/attendance"
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type leaveDocument struct {
+	ID        string    `firestore:"id,omitempty"`
 	GroupID   string    `firestore:"groupID"`
 	LaunchKey string    `firestore:"launchKey"`
 	Kind      string    `firestore:"kind"`
@@ -23,6 +25,9 @@ type leaveDocument struct {
 }
 
 func (d leaveDocument) domain(id string) attendance.Leave {
+	if d.ID != "" {
+		id = d.ID
+	}
 	return attendance.Leave{ID: id, GroupID: d.GroupID, Kind: d.Kind, Start: d.Start, End: d.End, Reason: d.Reason, CreatedAt: d.CreatedAt}
 }
 
@@ -30,17 +35,19 @@ func (s *Attendance) leaveLaunches() *db.CollectionRef {
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("leaveLaunches")
 }
 
-func (s *Attendance) createLeaveLaunchOperation(ctx context.Context, group string) (string, error) {
+func (s *Attendance) CreateLeaveLaunch(ctx context.Context, group string) (_ string, err error) {
+	defer func() { err = translateError(err, nil) }()
 	var raw [32]byte
 	if _, err := rand.Read(raw[:]); err != nil {
 		return "", err
 	}
 	token := hex.EncodeToString(raw[:])
-	_, err := s.leaveLaunches().Doc(documentKey(token)).Create(ctx, launch{GroupID: group, ExpiresAt: time.Now().UTC().Add(30 * time.Minute)})
+	_, err = s.leaveLaunches().Doc(documentKey(token)).Create(ctx, launch{GroupID: group, ExpiresAt: time.Now().UTC().Add(30 * time.Minute)})
 	return token, err
 }
 
-func (s *Attendance) leaveGroupOperation(ctx context.Context, token string) (string, error) {
+func (s *Attendance) LeaveGroup(ctx context.Context, token string) (_ string, err error) {
+	defer func() { err = translateError(err, nil) }()
 	snap, err := s.leaveLaunches().Doc(documentKey(token)).Get(ctx)
 	if status.Code(err) == codes.NotFound {
 		return "", attendance.ErrExpiredLaunch
@@ -58,11 +65,12 @@ func (s *Attendance) leaveGroupOperation(ctx context.Context, token string) (str
 	return l.GroupID, nil
 }
 
-func (s *Attendance) submitLeaveOperation(ctx context.Context, token, user, key string, proposal attendance.Leave) (attendance.Leave, error) {
+func (s *Attendance) SubmitLeave(ctx context.Context, token, user, key string, proposal attendance.Leave) (_ attendance.Leave, err error) {
+	defer func() { err = translateError(err, nil) }()
 	if !attendance.ValidLeaveKey(key) || user == "" || proposal.GroupID == "" {
 		return attendance.Leave{}, attendance.ErrInvalidLeave
 	}
-	proposal, err := attendance.NormalizeLeave(proposal)
+	proposal, err = attendance.NormalizeLeave(proposal)
 	if err != nil {
 		return attendance.Leave{}, err
 	}
@@ -98,14 +106,19 @@ func (s *Attendance) submitLeaveOperation(ctx context.Context, token, user, key 
 		if !time.Now().Before(l.ExpiresAt) || l.GroupID != proposal.GroupID {
 			return attendance.ErrExpiredLaunch
 		}
-		d := leaveDocument{GroupID: l.GroupID, LaunchKey: documentKey(token), Kind: proposal.Kind, Start: proposal.Start, End: proposal.End, Reason: proposal.Reason, CreatedAt: time.Now().UTC()}
+		id, err := uuid.NewRandom()
+		if err != nil {
+			return err
+		}
+		d := leaveDocument{ID: id.String(), GroupID: l.GroupID, LaunchKey: documentKey(token), Kind: proposal.Kind, Start: proposal.Start, End: proposal.End, Reason: proposal.Reason, CreatedAt: time.Now().UTC()}
 		result = d.domain(ref.ID)
 		return tx.Create(ref, d)
 	})
 	return result, err
 }
 
-func (s *Attendance) recentLeavesOperation(ctx context.Context, user string) ([]attendance.Leave, error) {
+func (s *Attendance) RecentLeaves(ctx context.Context, user string) (_ []attendance.Leave, err error) {
+	defer func() { err = translateError(err, nil) }()
 	snaps, err := s.user(user).Collection("leaveRequests").OrderBy("createdAt", db.Desc).Limit(20).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
@@ -122,23 +135,3 @@ func (s *Attendance) recentLeavesOperation(ctx context.Context, user string) ([]
 }
 
 var _ attendance.LeaveStore = (*Attendance)(nil)
-
-func (s *Attendance) CreateLeaveLaunch(ctx context.Context, group string) (string, error) {
-	value, err := s.createLeaveLaunchOperation(ctx, group)
-	return value, translateError(err, nil)
-}
-
-func (s *Attendance) LeaveGroup(ctx context.Context, token string) (string, error) {
-	value, err := s.leaveGroupOperation(ctx, token)
-	return value, translateError(err, nil)
-}
-
-func (s *Attendance) SubmitLeave(ctx context.Context, token, user, key string, proposal attendance.Leave) (attendance.Leave, error) {
-	value, err := s.submitLeaveOperation(ctx, token, user, key, proposal)
-	return value, translateError(err, nil)
-}
-
-func (s *Attendance) RecentLeaves(ctx context.Context, user string) ([]attendance.Leave, error) {
-	value, err := s.recentLeavesOperation(ctx, user)
-	return value, translateError(err, nil)
-}

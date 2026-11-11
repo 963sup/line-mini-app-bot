@@ -5,6 +5,7 @@ go 1.27.3
 require (
 	cloud.google.com/go/firestore v1.29.2
 	github.com/getkin/kin-openapi v0.152.0
+	github.com/google/uuid v1.6.0
 	github.com/line/line-bot-sdk-go/v8 v8.23.0
 	github.com/oapi-codegen/nethttp-middleware v1.3.1
 	github.com/oapi-codegen/runtime v1.8.0
@@ -27,7 +28,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v1.0.0 // indirect
 	github.com/google/s2a-go v0.1.11 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.23 // indirect
 	github.com/googleapis/gax-go/v2 v2.27.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect

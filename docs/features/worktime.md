@@ -2,7 +2,7 @@
 
 `backend/internal/attendance/worktime` 是不依賴 LINE、Firestore 或薪資規則的純函數模組。
 
-- BuildIntervals：依時間排序事件、按事件 ID 去重、配對上下班與休息事件。
+- RebuildSessions：依事件順序與時間重播、按事件 ID 去重，回傳班次 Session 與異常；不是單純建立 Interval。
   衝突事件及不合法順序會列出異常，相關輸入不作已確認或暫估工時計算。
 - Calculate：接受班次與查詢起訖，分開計算出勤時數、已確認淨工時與含已確認的暫估合計；扣除經確認休息，合併重疊區間，
   只計算報表範圍內的時間。保留 duration 精度，總計最後才換算整分鐘。
@@ -36,7 +36,7 @@ Firestore 交易仍須使用 emulator／真實測試環境驗證；單元測試�
 
 ## 共用狀態規則與事件重建
 
-ApplyEvent(State, Event) 是即時交易與 BuildIntervals 的共同規則，
+ApplyEvent(State, Event) 是即時交易與 RebuildSessions 的共同規則，
 包含結果代碼、是否接受、班次與休息狀態。開始或結束新休息會取消先前確認。
 拒絕操作保留原始事件，但不參與班次重建。每個已接受事件有班次內序號，
 避免同時間事件因查詢順序不同而產生不一致；同一事件 ID 不可有不同內容。
@@ -99,6 +99,8 @@ Firestore 閉環測試：設定僅供本地測試的 FIRESTORE_EMULATOR_HOST 後
 例如 09:00～18:00，先顯示出勤 540 分鐘、暫估工時 540 分鐘（休息待確認）；
 確認休息 60 分鐘後，已確認工時與暫估合計改為 480 分鐘，出勤仍為 540 分鐘。
 即使已有休息區間，未確認完整性前也不作最終扣除；暫估不是薪資結算依據。
+
+Go 核心以 `ConfirmedNetMinutes` 表達已確認淨工時，以 `EstimatedTotalMinutes` 表達含已確認部分的暫估總計；兩者不可相加。HTTP adapter 明確映射到既有 `Minutes`／`EstimatedMinutes`，不改 API 欄位、Firestore 文件或工時計算規則。
 
 API Calculation 的舊 Minutes／Duration／Intervals 維持已確認淨工時的意義，新增：
 

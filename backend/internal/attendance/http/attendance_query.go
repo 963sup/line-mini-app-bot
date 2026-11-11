@@ -14,10 +14,10 @@ import (
 )
 
 type attendanceQueryStore interface {
-	GroupsPage(context.Context, string, string, int) (attendance.GroupPage, error)
-	RecordsPage(context.Context, string, string, time.Time, string, int) (attendance.RecordPage, error)
-	Record(context.Context, string, string, string) (attendance.Record, error)
-	MonthGroup(context.Context, string, string, time.Time) ([]attendance.Record, error)
+	GroupsPage(ctx context.Context, userID, cursor string, pageSize int) (attendance.GroupPage, error)
+	RecordsPage(ctx context.Context, userID, groupID string, month time.Time, cursor string, pageSize int) (attendance.RecordPage, error)
+	Record(ctx context.Context, userID, groupID, recordID string) (attendance.Record, error)
+	RecordsOverlappingMonth(ctx context.Context, userID, groupID string, month time.Time) ([]attendance.Record, error)
 }
 
 // List and correction-detail responses omit the persisted location and event evidence.
@@ -32,7 +32,7 @@ func recordView(r attendance.Record) attendanceRecordView {
 	} else if work.Unconfirmed > 0 {
 		status = "estimated"
 	}
-	return generated.AttendanceRecord{AttendanceMinutes: &work.AttendanceMinutes, EstimatedMinutes: &work.EstimatedMinutes, WorktimeStatus: &status, RecordID: r.RecordID, GroupID: r.GroupID, ClockInAt: r.ClockInAt, ClockOutAt: r.ClockOutAt, Revision: r.Revision, EventSequence: r.EventSequence, Breaks: &breaks, BreakStartedAt: r.BreakStartedAt, RestConfirmed: r.RestConfirmed, RebuildIssues: &r.RebuildIssues}
+	return generated.AttendanceRecord{AttendanceMinutes: &work.AttendanceMinutes, EstimatedMinutes: &work.EstimatedTotalMinutes, WorktimeStatus: &status, RecordID: r.RecordID, GroupID: r.GroupID, ClockInAt: r.ClockInAt, ClockOutAt: r.ClockOutAt, Revision: r.Revision, EventSequence: r.EventSequence, Breaks: &breaks, BreakStartedAt: r.BreakStartedAt, RestConfirmed: r.RestConfirmed, RebuildIssues: &r.RebuildIssues}
 }
 
 func registerAttendanceQueries(mux *http.ServeMux, bot *Attendance, app Authenticator) {
@@ -95,7 +95,7 @@ func registerAttendanceQueries(mux *http.ServeMux, bot *Attendance, app Authenti
 		if !ok {
 			return
 		}
-		records, err := store.MonthGroup(ctx, user, group, month)
+		records, err := store.RecordsOverlappingMonth(ctx, user, group, month)
 		if attendanceQueryError(w, err) {
 			return
 		}

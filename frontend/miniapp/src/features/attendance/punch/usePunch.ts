@@ -2,6 +2,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "../../../identity/Session";
 import { errorMessage } from "../../../shared/http/lifecycle";
 import { locate } from "../../../shared/location/position";
+type PunchPhase = "idle" | "exchanging" | "checking" | "locating" | "submitting";
+const completedCodes = [
+  "clocked_in",
+  "clocked_out",
+  "break_started",
+  "break_ended",
+  "rest_confirmed",
+];
 export const unknownResult =
   "打卡結果尚未確認；請先私訊查詢本人紀錄。重試仍使用同一打卡連結。";
 export function launchToken(search: string, origin: string) {
@@ -19,12 +27,12 @@ export function launchToken(search: string, origin: string) {
 export function usePunch() {
   const { user, request, close, autoPunch, punchNotice } = useSession(),
     [launch, setLaunch] = useState(""),
-    [phase, setPhase] = useState("idle"),
+    [phase, setPhase] = useState<PunchPhase>("idle"),
     [status, setStatus] = useState(punchNotice.current);
   const active = useRef<AbortController | null>(null),
     generation = useRef(0),
     cached = useRef(""),
-    currentPhase = useRef("idle");
+    currentPhase = useRef<PunchPhase>("idle");
   const cancel = useCallback(() => {
     generation.current++;
     active.current?.abort();
@@ -40,7 +48,7 @@ export function usePunch() {
     const c = new AbortController(),
       id = ++generation.current;
     active.current = c;
-    const change = (value: string, message: string) => {
+    const change = (value: PunchPhase, message: string) => {
       currentPhase.current = value;
       setPhase(value);
       setStatus(message);
@@ -58,9 +66,32 @@ export function usePunch() {
         );
         if (!/^[a-f0-9]{64}$/.test(data.requestId))
           throw new Error("打卡連結回應無效。");
+        if (id !== generation.current) return;
         cached.current = data.requestId;
       }
       if (id !== generation.current) return;
+      change("checking", "正在確認這次操作是否需要打卡……");
+      const preflight = await request(
+        (client, signal) =>
+          client.POST("/api/v1/attendance/punches/preflight", {
+            signal,
+            body: { requestId: cached.current },
+          }),
+        { signal: c.signal, timeoutMs: 10000 },
+      );
+      if (id !== generation.current) return;
+      if (
+        typeof preflight.code !== "string" ||
+        !preflight.code ||
+        typeof preflight.message !== "string" ||
+        !preflight.message
+      )
+        throw new Error("打卡狀態回應無效，請重試。");
+      if (preflight.code !== "needs_position") {
+        setStatus(preflight.message);
+        if (completedCodes.includes(preflight.code)) close();
+        return;
+      }
       change("locating", "正在取得目前位置；若瀏覽器詢問權限，請允許定位。");
       const position = await locate(c.signal);
       if (id !== generation.current) return;
@@ -81,16 +112,7 @@ export function usePunch() {
       )
         throw new Error(unknownResult);
       setStatus(data.message);
-      if (
-        [
-          "clocked_in",
-          "clocked_out",
-          "break_started",
-          "break_ended",
-          "rest_confirmed",
-        ].includes(data.code)
-      )
-        close();
+      if (completedCodes.includes(data.code)) close();
     } catch (error) {
       if (id === generation.current)
         setStatus(
@@ -117,7 +139,7 @@ export function usePunch() {
         currentPhase.current === "submitting"
           ? unknownResult
           : currentPhase.current !== "idle"
-            ? "頁面切換使定位中斷；返回後請按打卡按鈕重試。"
+            ? "頁面切換使操作中斷；返回後請按打卡按鈕重新確認。"
             : "";
       punchNotice.current = message;
       cancel();

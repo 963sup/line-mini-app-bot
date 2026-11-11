@@ -25,10 +25,10 @@ type Leave struct {
 }
 
 type LeaveStore interface {
-	CreateLeaveLaunch(context.Context, string) (string, error)
-	LeaveGroup(context.Context, string) (string, error)
-	SubmitLeave(context.Context, string, string, string, Leave) (Leave, error)
-	RecentLeaves(context.Context, string) ([]Leave, error)
+	CreateLeaveLaunch(ctx context.Context, groupID string) (string, error)
+	LeaveGroup(ctx context.Context, token string) (string, error)
+	SubmitLeave(ctx context.Context, token, userID, retryKey string, proposal Leave) (Leave, error)
+	RecentLeaves(ctx context.Context, userID string) ([]Leave, error)
 }
 
 func NormalizeLeave(l Leave) (Leave, error) {

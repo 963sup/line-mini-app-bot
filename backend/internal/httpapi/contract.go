@@ -88,3 +88,7 @@ func (s contractServer) ListOwnLeaveRequests(w http.ResponseWriter, r *http.Requ
 func (s contractServer) SubmitLeaveRequest(w http.ResponseWriter, r *http.Request, _ generated.SubmitLeaveRequestParams) {
 	s.attendance.ServeHTTP(w, r)
 }
+
+func (s contractServer) PreflightAttendancePunch(w http.ResponseWriter, r *http.Request, _ generated.PreflightAttendancePunchParams) {
+	s.attendance.ServeHTTP(w, r)
+}
