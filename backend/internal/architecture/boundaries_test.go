@@ -62,6 +62,9 @@ func TestDependencyBoundaries(t *testing.T) {
 					t.Errorf("core %s imports non-core implementation %s", rel, dependency)
 				}
 			}
+			if strings.HasPrefix(dir, "business/summary/messagecollection") && strings.HasPrefix(dependency, module+"business/summary/summarization") {
+				t.Errorf("message collection %s depends on summarization %s", rel, dependency)
+			}
 			if strings.HasSuffix(dir, "/http") && dir != "transport/http" {
 				for _, outgoing := range []string{"/firestore", "/cloudtasks", "/summarizer", "/cwa", "/identity/line", "/identity/google"} {
 					if strings.HasPrefix(dependency, module) && strings.Contains(dependency, outgoing) {

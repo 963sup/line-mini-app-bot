@@ -11,7 +11,8 @@ import (
 )
 
 type chatStub struct {
-	summarization.Store
+	messagecollection.Store
+	summarization.CommandStore
 	collected           []messagecollection.Message
 	group               string
 	commands, withdrawn int

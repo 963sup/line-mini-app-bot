@@ -7,7 +7,7 @@ import (
 	"time"
 
 	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/line"
-	summary "github.com/963sup/line-mini-app-bot/internal/business/summary/messagecollection/line"
+	summary "github.com/963sup/line-mini-app-bot/internal/business/summary/line"
 	"github.com/963sup/line-mini-app-bot/internal/business/weather/forecast/cwa"
 	weather "github.com/963sup/line-mini-app-bot/internal/business/weather/forecast/line"
 	navigation "github.com/963sup/line-mini-app-bot/internal/navigation/line"

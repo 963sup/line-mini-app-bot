@@ -25,3 +25,9 @@ cmd/ 保存 server、richmenu、firestorecheck 與 attendancemigrate 入口；in
 - [群組出勤看板與本人漏下班檢查](../docs/features/attendance-board.md)
 
 - [Business 模組重構](../docs/development/business-refactor.md)
+
+Summary 的共用 LINE 組合入口在 business/summary/line；訊息收集位於
+messagecollection/line，摘要指令與排程位於 summarization/line。
+收集、指令、worker 使用各自需要的 Store 介面，共用 Firestore 交易保留在 summary/firestore。
+Weather 既有實作集中在 business/weather/forecast/{cwa,line}。
+入口契約見 [Summary](../api/contract/summary/README.md) 與 [Weather](../api/contract/weather/README.md)。

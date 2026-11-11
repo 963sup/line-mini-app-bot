@@ -62,3 +62,11 @@ contract/openapi.yaml 為入口，contract/attendance/ 下依業務拆分的契�
 - [群組請假登記](../docs/features/leave.md)
 
 - [Business 模組與契約對照](../docs/development/business-refactor.md)
+
+## Business 入口分類
+
+- Attendance：公開 [OpenAPI](contract/openapi.yaml) 及 attendance/ 參照檔。
+- Summary：既有 [訊息收集、摘要指令與內部工作契約](contract/summary/README.md)。
+- Weather：既有 [Forecast 群組位置入口契約](contract/weather/README.md)。
+
+後兩者是既有非公開入口的說明，不加入公開 codegen，也不新增 HTTP 端點。

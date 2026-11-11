@@ -6,19 +6,16 @@ import (
 	"time"
 
 	"github.com/963sup/line-mini-app-bot/internal/business/summary/messagecollection"
-	"github.com/963sup/line-mini-app-bot/internal/business/summary/summarization"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
-	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
-type Summary struct {
-	Store summarization.Store
-	Queue summarization.Queue
+type Collection struct {
+	Store messagecollection.Store
 }
 
-// observe is independent of command replies: ordinary text remains silent.
-func (b *Summary) Observe(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
+// Observe is independent of command replies: ordinary text remains silent.
+func (b *Collection) Observe(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
 	if b == nil {
 		return transport.Reply{}, false, nil
 	}
@@ -52,26 +49,6 @@ func (b *Summary) Observe(ctx context.Context, event webhook.EventInterface) (tr
 		return transport.Reply{}, false, nil
 	}
 	command := strings.TrimSpace(m.Text)
-	if command == "摘要" {
-		if time.Since(time.UnixMilli(e.Timestamp)) > 24*time.Hour || time.UnixMilli(e.Timestamp).After(time.Now().Add(time.Minute)) {
-			return transport.Reply{}, true, nil
-		}
-		if g.UserId == "" || e.WebhookEventId == "" || e.ReplyToken == "" {
-			return transport.Reply{}, true, nil
-		}
-		j, err := b.Store.Command(ctx, g.GroupId, e.WebhookEventId, command, e.Timestamp)
-		if err != nil {
-			return transport.Reply{}, true, err
-		}
-		if j.Status == "done" {
-			return transport.Reply{}, true, nil
-		}
-		if err := b.Queue.Enqueue(ctx, j); err != nil {
-			return transport.Reply{}, true, err
-		}
-		text := "正在整理最近24小時的群聊（最多100則）。"
-		return transport.Reply{Token: e.ReplyToken, Message: &messaging_api.TextMessage{Text: text}}, true, nil
-	}
 	if skipSummaryText(command) {
 		return transport.Reply{}, false, nil
 	}
@@ -83,7 +60,7 @@ func skipSummaryText(text string) bool {
 		return true
 	}
 	switch text {
-	case "上班", "下班", "打卡", "出勤紀錄", "選單", "功能", "關閉摘要", "開啟摘要", "":
+	case "摘要", "上班", "下班", "打卡", "出勤紀錄", "選單", "功能", "關閉摘要", "開啟摘要", "":
 		return true
 	}
 	return false

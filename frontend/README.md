@@ -22,3 +22,13 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 - [群組請假登記](../docs/features/leave.md)
 
 - [Business 模組重構](../docs/development/business-refactor.md)
+
+## Business 畫面範圍
+
+| 業務 | 既有前端實作 | 其他入口 |
+| --- | --- | --- |
+| Attendance | src/business/attendance/{punch,records,corrections,approvals,leave} | Worktime 由紀錄畫面呈現；Board 透過 LINE |
+| Summary | 沒有既有 MINI App 畫面 | [訊息收集、摘要指令與內部工作](../api/contract/summary/README.md) |
+| Weather / Forecast | 沒有既有 MINI App 畫面 | [LINE 群組位置查詢](../api/contract/weather/README.md) |
+
+不建立空畫面或讓瀏覽器呼叫內部摘要 worker。新增摘要／天氣網頁及公開 API 必須另定操作契約。

@@ -55,7 +55,7 @@ business/
 │   │   └── line/
 │   ├── summarization/         → messagecollection 的訊息模型
 │   │   └── http/、line/、cloudtasks/、summarizer/
-│   └── firestore/
+│   └── firestore/、line/（跨功能組合入口）
 └── weather/
     └── forecast/
         └── cwa/、line/
@@ -93,3 +93,26 @@ Corrections 與 Approvals 為同層套件；審核資格與證據驗證在 appro
 本機驗證與產物記錄位於 `/tmp/business-refactor-20261111/`，不納入 Git。
 測試通過與外部整合驗收分開記錄：未設定 Firestore emulator 的案例會跳過，
 本次不宣稱真實 LINE、模型、CWA 或正式 Cloud Run 已驗收，也不執行部署。
+
+## Summary／Weather 拆分補齊（2026-11-11）
+
+後續核對發現 MessageCollection 的 LINE adapter 仍處理摘要指令及佇列排程，
+且依賴包含收集與生成的 Store。本次將既有指令處理移入 summarization/line/commands.go，
+messagecollection/line 只負責收集、編輯與收回；summary/line 為兩者的組合入口。
+收集使用 messagecollection.Store，指令使用 summarization.CommandStore，worker 使用 summarization.Store。
+共用 Firestore 儲存仍實作這些小介面，保留原本交易與版本一致性。
+既有 LINE 測試移至組合入口，既有架構檢查增加收集不得依賴生成的限制。
+
+API 分類補上 [Summary 入口契約](../../api/contract/summary/README.md) 與
+[Weather 入口契約](../../api/contract/weather/README.md)。公開 OpenAPI、產生碼、
+HTTP 路徑、LINE 回覆與前端 URL 均未更動。前端範圍見 [MINI App 說明](../../frontend/README.md#business-畫面範圍)。
+Weather 原有 Forecast、CWA、LINE 責任已分離，本次核對其既有測試，不做無必要搬移。
+
+查證：Context7 Go go1.27.3 語言規格的介面嵌入與方法集合；本機 Go 為 go.mod 的 1.27.4。
+LINE 官方文件來源 main HEAD 仍為 dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54；只拆分既有事件邏輯，不改 SDK 或事件語意。
+
+本次 Go fmt-check、lint、module verify、vet、完整 race suite、build 通過；
+API 產生碼同步與相容性、前端型別、設定檢查通過。govulncheck 無可達弱點，
+另回報 required modules 中三項未呼叫弱點；不把此結果描述為所有相依模組無弱點。
+未執行真實 LINE、Firestore、Cloud Tasks、模型或 CWA 整合驗收。
+本機圖譜、打包與驗證紀錄保存在 /tmp/business-followup-20261111/，不納入 Git。

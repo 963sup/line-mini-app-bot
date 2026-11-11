@@ -12,7 +12,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	storage "github.com/963sup/line-mini-app-bot/internal/business/summary/firestore"
-	lineadapter "github.com/963sup/line-mini-app-bot/internal/business/summary/messagecollection/line"
+	lineadapter "github.com/963sup/line-mini-app-bot/internal/business/summary/line"
 	"github.com/963sup/line-mini-app-bot/internal/business/summary/summarization"
 	"github.com/963sup/line-mini-app-bot/internal/business/summary/summarization/cloudtasks"
 	httpadapter "github.com/963sup/line-mini-app-bot/internal/business/summary/summarization/http"

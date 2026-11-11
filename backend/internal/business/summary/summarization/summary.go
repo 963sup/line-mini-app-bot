@@ -22,10 +22,11 @@ type Job struct {
 	Sources []string
 }
 
-type Store interface {
-	Collect(context.Context, string, messagecollection.Message) error
-	Unsend(context.Context, string, string) error
+type CommandStore interface {
 	Command(context.Context, string, string, string, int64) (Job, error)
+}
+
+type Store interface {
 	Claim(context.Context, string, string) (Job, bool, error)
 	Messages(context.Context, Job) ([]messagecollection.Message, error)
 	SaveResult(context.Context, Job, string, []string) error
