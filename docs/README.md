@@ -41,6 +41,7 @@
 - 資料整合：[Firestore](integrations/firestore.md)。
 - 工作流程：[代理協作](agents/workflow.md)、[驗收](agents/acceptance.md)、[系統化除錯](agents/debugging.md)、[測試階段說明](development/testing.md)。
 - 工具：[MCP 索引](tooling/mcp/README.md)、[Skills](tooling/skills.md)、[Graphify／Repomix 交叉比對](tooling/graphify-repomix-crosscheck.md)。
+- 前端 UI：[shadcn UI 與 MCP 的路徑、生成及 CSS 編譯](tooling/mcp/shadcn.md)。
 
 ## 強制查證規則（全儲存庫、所有角色）
 

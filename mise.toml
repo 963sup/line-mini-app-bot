@@ -56,6 +56,7 @@ node = "24.22.1"
 uv = "0.13.7"
 python = "3.12.14"
 "npm:repomix" = "1.18.1"
+"npm:shadcn" = "4.23.0"
 "npm:skills" = "1.7.6"
 gcloud = "592.0.0"
 "npm:@google-cloud/gcloud-mcp" = "0.5.3"
@@ -134,7 +135,7 @@ run = "bash ../scripts/tooling/go-profile.sh"
 
 [tasks.install-mcp]
 description = "Install optional local MCP tools separately from Go"
-run = ["mise install node python uv npm:repomix", "mise run install-graphify"]
+run = ["mise install node python uv npm:repomix npm:shadcn", "mise run install-graphify"]
 
 [tasks.install-cloud]
 description = "Install pinned Google Cloud CLI and local MCP (no authentication or deployment)"

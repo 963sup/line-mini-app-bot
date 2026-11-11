@@ -6,6 +6,8 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 進入 miniapp/ 先讀其 AGENTS.md 與安裝版本的 Next.js 指引。HTTP 呼叫透過 @repo/api-client；位置由瀏覽器取得，後端驗證。不手改建置輸出。
 
+共用 UI primitives 位於 `miniapp/src/shared/ui/`，樣式工具位於 `shared/utils.ts`；業務畫面留在 `business/`。`components.json` 與 `tsconfig.json` 管理生成路徑及別名。Tailwind global CSS 由 Pages Router `_app.tsx` 經 PostCSS 載入，既有 asset-map CSS 保留；不要將 Tailwind 指令放入直接複製的 CSS。
+
 從根目錄透過 tool-exec.sh 執行 pnpm --filter @repo/miniapp check 與相關既有 test；需要靜態輸出時執行 build。API 變更另走 ../api/README.md。
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
@@ -15,6 +17,7 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 - [文件索引：Frontend](../docs/README.md#按模組閱讀)
 - [Go browser Session 與滑動續期](../docs/architecture/browser-session.md)
 - [React 架構與生命週期](../docs/architecture/react-frontend.md)
+- [shadcn UI 與 MCP：元件位置、CSS 與工具驗證](../docs/tooling/mcp/shadcn.md)
 - [瀏覽器定位整合](../docs/integrations/web-geolocation.md)
 - [出勤查詢與更正](../docs/features/attendance-queries.md)
 - [API 契約工作流程](../api/README.md)

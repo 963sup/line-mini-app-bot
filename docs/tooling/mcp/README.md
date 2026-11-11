@@ -5,6 +5,7 @@
 | [graphify](graphify.md) | Explorer, Architect |
 | [openaiDeveloperDocs](openai-docs.md) | Researcher, Implementer |
 | [context7](context7.md) | Researcher, Implementer, Tester |
+| [shadcn](shadcn.md) | Implementer, Reviewer；MINI App 元件 registry 與生成輔助 |
 | [repomix](repomix.md) | Explorer, Reviewer |
 | [repomix_skills](repomix-skills.md) | Researcher, Implementer |
 | [gopls](gopls.md) | Explorer, Implementer, Tester, Reviewer |

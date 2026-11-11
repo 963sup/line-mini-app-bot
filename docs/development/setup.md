@@ -17,6 +17,8 @@ bash scripts/tooling/bootstrap.sh mcp
 See [mise prerequisites](../tooling/mise.md). GitHub MCP requires the runtime
 credential named in `.codex/config.toml`; never put its value in tracked files.
 MCP installation and transport success do not register tools in the chat host.
+
+MINI App 的 shadcn CLI 由 mise 固定版本管理；前端依賴仍透過既有 pnpm workspace 安裝流程。元件生成路徑、Tailwind 編譯入口及 MCP workspace 設定見 [shadcn UI 與 MCP](../tooling/mcp/shadcn.md)。更新 MCP 設定後需重新載入 host，並分別驗證本機 transport 與 host 工具。
 Application commands require go.mod and application source; do not create them
 merely to make environment checks pass.
 

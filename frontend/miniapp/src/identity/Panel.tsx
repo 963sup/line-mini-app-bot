@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@/shared/ui/button";
 import { useSession } from "./Session";
 export function IdentityPanel() {
   const s = useSession();
@@ -7,7 +8,7 @@ export function IdentityPanel() {
       <div className="panel-heading">
         <h2 id="identity-heading">身分</h2>
         <div className="actions identity-actions">
-          <button
+          <Button
             id="login"
             hidden={!s.ready || !!s.user || s.inClient || s.busy}
             onClick={s.login}
@@ -15,8 +16,8 @@ export function IdentityPanel() {
             aria-label="使用 LINE 登入"
           >
             登入
-          </button>
-          <button
+          </Button>
+          <Button
             id="verify"
             hidden={!s.ready && !s.busy}
             disabled={s.busy}
@@ -25,11 +26,11 @@ export function IdentityPanel() {
             aria-label="重新驗證身分"
           >
             驗證
-          </button>
-          <button id="logout" hidden={!s.canLogout} disabled={s.busy} onClick={s.logout}>
+          </Button>
+          <Button id="logout" hidden={!s.canLogout} disabled={s.busy} onClick={s.logout}>
             登出
-          </button>
-          {!s.ready && !s.busy && <button onClick={s.verify} title="重試初始化" aria-label="重試初始化">重試</button>}
+          </Button>
+          {!s.ready && !s.busy && <Button onClick={s.verify} title="重試初始化" aria-label="重試初始化">重試</Button>}
         </div>
       </div>
       <p id="mini-status" role="status" aria-live="polite">

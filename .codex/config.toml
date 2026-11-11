@@ -165,3 +165,13 @@ enabled = true
 required = false
 startup_timeout_sec = 120
 tool_timeout_sec = 120
+
+[mcp_servers.shadcn]
+# Forward runtime network settings by name; values remain host-owned.
+env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "bash", "-c", "cd /workspace/line-mini-app-bot/frontend/miniapp && exec shadcn mcp"]
+enabled = true
+required = false
+startup_timeout_sec = 45
+tool_timeout_sec = 60

@@ -1,0 +1,53 @@
+/* Compile utilities through Next/PostCSS; preserve existing app.css browser defaults.
+ * Preflight and global shadcn base rules are intentionally not enabled.
+ */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source("../");
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: #fff;
+  --foreground: #183e35;
+  --card: #fff;
+  --card-foreground: #183e35;
+  --popover: #fff;
+  --popover-foreground: #183e35;
+  --primary: #126e51;
+  --primary-foreground: #fff;
+  --secondary: #eaf6f0;
+  --secondary-foreground: #183e35;
+  --muted: #f4f7f5;
+  --muted-foreground: #59706d;
+  --accent: #d0e9dc;
+  --accent-foreground: #183e35;
+  --destructive: #b42318;
+  --border: #d7e7de;
+  --input: #d7e7de;
+  --ring: #16845f;
+}

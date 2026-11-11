@@ -7,6 +7,9 @@ Next.js Pages Router 靜態輸出，React Strict Mode 啟用。功能入口位�
 - `shared/http/lifecycle.ts`：AbortController、獨立 deadline、世代檢查。即使底層忽略 abort，也不套用過期回應。
 - `shared/location/position.ts`：單次定位，成功、錯誤、逾時、取消一律 clearWatch；拒收無效座標及遲到 callback。權限等待另有 15 秒期限。
 - `shell/Shell.tsx`：身分世代變更時重建功能子樹，清除舊使用者資料、表單與重試狀態。`pagehide` 取消請求；BFCache `pageshow.persisted` 重新驗證。
+- `shared/ui/` 與 `shared/utils.ts`：shadcn primitives 與樣式工具，由 shell／identity／business 組合使用；不擁有業務 API、授權判定或領域狀態。生成設定在 workspace `components.json`，`@/*` 對應 `src/*`。
+
+Tailwind 由 PostCSS 編譯 `styles/globals.css`，透過 Pages Router `_app.tsx` 載入；不啟用 preflight，以保留既有 compact 版面。`shell/app.css` 仍由 asset-map 原樣複製，不承載未編譯 Tailwind 指令。UI 元件採漸進接入，工具與 MCP 流程見 [shadcn UI 與 MCP](../tooling/mcp/shadcn.md)。
 
 月摘要與明細分開請求，cursor 翻頁只讀明細；條件變更立即清空原畫面並取消舊讀取。更正申請同一份序列化草稿沿用同一 Idempotency-Key，內容變更才換碼；同步 ref 防止連點。審核必須先讀取目前編號，變更編號即作廢舊內容。
 
