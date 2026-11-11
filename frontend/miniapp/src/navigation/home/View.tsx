@@ -5,6 +5,10 @@ export function View() {
       <section className="panel">
         <h2>選擇要完成的事</h2>
         <div className="service-links">
+          <a href="/miniapp/repositories">
+            <strong>空間</strong>
+            <span>查看群組儲存庫與本人出勤入口。</span>
+          </a>
           <a href="/miniapp/journal">
             <strong>日誌</strong>
             <span>填寫 Google 表單。</span>

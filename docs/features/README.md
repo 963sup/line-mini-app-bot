@@ -21,3 +21,5 @@
 [本目錄指引](AGENTS.md) · [父層指引](../AGENTS.md) · [文件總索引](../README.md)
 
 新增或修改業務操作時，依 [操作契約範本](../architecture/business-operation.md#功能操作契約範本) 在對應功能文件補齊六個問題與證據；未知規則明列待確認。
+
+- [群組 Repository](repository.md)

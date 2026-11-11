@@ -70,3 +70,5 @@ contract/openapi.yaml 為入口，contract/attendance/ 下依業務拆分的契�
 - Weather：既有 [Forecast 群組位置入口契約](contract/weather/README.md)。
 
 後兩者是既有非公開入口的說明，不加入公開 codegen，也不新增 HTTP 端點。
+
+- [群組 Repository](../docs/features/repository.md)

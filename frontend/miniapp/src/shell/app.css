@@ -99,3 +99,8 @@ body.app-page { margin: 0; font-family: system-ui, -apple-system, "Noto Sans TC"
 .record-list li { padding: 12px 4px 18px; border-bottom: 1px solid #e8eeeb; }
 .record-list h3 { margin: 0; font-size: 1rem; }
 .record-list p { margin: 6px 0 12px; }
+
+.repository-details dd {
+  margin-inline-start: 0;
+  overflow-wrap: anywhere;
+}

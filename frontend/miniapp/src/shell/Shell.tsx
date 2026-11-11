@@ -40,7 +40,8 @@ function Content({
 }) {
   const { epoch, ready } = useSession();
   const journal = workflow === "journal";
-  const currentPage = navigationItems.find((item) => item.workflow === workflow);
+  const currentPage = navigationItems.find((item) => item.workflow === workflow) ||
+    (workflow === "repositories" ? { label: "空間" } : undefined);
   const navigation = (
     <nav className={`page-nav${currentPage ? " compact-nav" : ""}`} aria-label="服務導覽">
       {navigationItems.map((item) => (
@@ -62,17 +63,22 @@ function Content({
     const params = new URLSearchParams(location.search);
     let leave = params.has("leave"),
       correction = params.get("correction"),
-      journal = params.has("journal");
+      journal = params.has("journal"),
+      repositories = params.has("repositories"),
+      repository = params.get("repository") || "";
     try {
       const nested = params.get("liff.state");
       if (nested) {
         const query = new URL(nested, location.origin).searchParams;
+        repositories ||= query.has("repositories");
+        repository ||= query.get("repository") || "";
         journal ||= query.has("journal");
         leave ||= query.has("leave");
         correction ||= query.get("correction");
       }
     } catch {}
-    if (journal) location.replace("/miniapp/journal");
+    if (repositories) location.replace("/miniapp/repositories" + (repository ? "?" + new URLSearchParams({ id: repository }) : ""));
+    else if (journal) location.replace("/miniapp/journal");
     else if (correction)
       location.replace(
         "/miniapp/correction?" + new URLSearchParams({ group: correction }),

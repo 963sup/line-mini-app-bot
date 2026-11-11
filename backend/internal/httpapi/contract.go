@@ -7,11 +7,20 @@ import (
 )
 
 type contractServer struct {
-	identity   http.Handler
-	attendance http.Handler
+	identity     http.Handler
+	attendance   http.Handler
+	repositories http.Handler
 }
 
 var _ generated.ServerInterface = contractServer{}
+
+func (s contractServer) ListRepositories(w http.ResponseWriter, r *http.Request, _ generated.ListRepositoriesParams) {
+	s.repositories.ServeHTTP(w, r)
+}
+
+func (s contractServer) GetRepository(w http.ResponseWriter, r *http.Request, id string) {
+	s.repositories.ServeHTTP(w, r)
+}
 
 func (s contractServer) GetMiniAppConfig(w http.ResponseWriter, r *http.Request) {
 	s.identity.ServeHTTP(w, r)

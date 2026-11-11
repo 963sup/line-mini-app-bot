@@ -15,6 +15,8 @@ import (
 	attendancehttp "github.com/963sup/line-mini-app-bot/internal/business/attendance/http"
 	attendanceline "github.com/963sup/line-mini-app-bot/internal/business/attendance/line"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/presentation"
+	repositoryhttp "github.com/963sup/line-mini-app-bot/internal/business/repository/http"
+	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/line"
 	"github.com/963sup/line-mini-app-bot/internal/diagnostics/geolocation"
 	identityhttp "github.com/963sup/line-mini-app-bot/internal/identity/http"
 	identityline "github.com/963sup/line-mini-app-bot/internal/identity/line"
@@ -73,7 +75,17 @@ func Run() (resultErr error) {
 		return err
 	}
 	defer func() { resultErr = errors.Join(resultErr, closeSummaries()) }()
-	groupLookup, err = registerLINE(mux, appURL, punches, summaries)
+	repositories, closeRepositories, err := newRepositories(context.Background())
+	if err != nil {
+		return err
+	}
+	defer func() { resultErr = errors.Join(resultErr, closeRepositories()) }()
+	repositoryhttp.Register(mux, repositories, auth)
+	var repositoryObserver *repositoryline.Observer
+	if repositories != nil {
+		repositoryObserver = &repositoryline.Observer{Store: repositories.Store}
+	}
+	groupLookup, err = registerLINE(mux, appURL, punches, summaries, repositoryObserver)
 	if err != nil {
 		return err
 	}

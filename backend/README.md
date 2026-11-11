@@ -33,3 +33,5 @@ messagecollection/line，摘要指令與排程位於 summarization/line。
 收集、指令、worker 使用各自需要的 Store 介面，共用 Firestore 交易保留在 summary/firestore。
 Weather 既有實作集中在 business/weather/forecast/{cwa,line}。
 入口契約見 [Summary](../api/contract/summary/README.md) 與 [Weather](../api/contract/weather/README.md)。
+
+- [群組 Repository](../docs/features/repository.md)

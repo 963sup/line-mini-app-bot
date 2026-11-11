@@ -38,6 +38,12 @@ func RegisterIdentity(public *http.ServeMux, handler http.Handler) {
 	public.Handle("DELETE /api/v1/session", routes)
 }
 
+func RegisterRepositories(public *http.ServeMux, handler http.Handler) {
+	routes := routeHandler(contractServer{repositories: handler})
+	public.Handle("GET /api/v1/repositories", routes)
+	public.Handle("GET /api/v1/repositories/{id}", routes)
+}
+
 func RegisterAttendance(public *http.ServeMux, handler http.Handler, wrap func(http.Handler) http.Handler) {
 	spec, err := Spec()
 	if err != nil {

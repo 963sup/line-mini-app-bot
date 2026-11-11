@@ -11,7 +11,7 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
-func ReplyForEvent(event webhook.EventInterface, appURL string) transport.Reply {
+func ReplyForEvent(event webhook.EventInterface, appURL string, repositoryIDs ...string) transport.Reply {
 	var source webhook.SourceInterface
 	var command, token string
 	switch e := event.(type) {
@@ -20,7 +20,7 @@ func ReplyForEvent(event webhook.EventInterface, appURL string) transport.Reply 
 		if !ok || g.GroupId == "" || !transport.CanReply(e.Mode, e.ReplyToken, e.DeliveryContext) {
 			return transport.Reply{}
 		}
-		return transport.Reply{Token: e.ReplyToken, Message: lineui.Help(true, appURL)}
+		return transport.Reply{Token: e.ReplyToken, Message: lineui.Help(true, appURL, repositoryIDs...)}
 	case webhook.MessageEvent:
 		if !transport.CanReply(e.Mode, e.ReplyToken, e.DeliveryContext) {
 			return transport.Reply{}
@@ -31,7 +31,7 @@ func ReplyForEvent(event webhook.EventInterface, appURL string) transport.Reply 
 				sticker.PackageId != os.Getenv("LINE_MENU_STICKER_PACKAGE_ID") || sticker.StickerId != os.Getenv("LINE_MENU_STICKER_ID") {
 				return transport.Reply{}
 			}
-			return transport.Reply{Token: e.ReplyToken, Message: lineui.QuickMenu(true, appURL)}
+			return transport.Reply{Token: e.ReplyToken, Message: lineui.QuickMenu(true, appURL, repositoryIDs...)}
 		}
 		text, ok := e.Message.(webhook.TextMessageContent)
 		if !ok {
@@ -73,9 +73,9 @@ func ReplyForEvent(event webhook.EventInterface, appURL string) transport.Reply 
 
 	switch command {
 	case "/menu", "選單", "功能":
-		return transport.Reply{Token: token, Message: lineui.QuickMenu(group, appURL)}
+		return transport.Reply{Token: token, Message: lineui.QuickMenu(group, appURL, repositoryIDs...)}
 	case "/help":
-		return transport.Reply{Token: token, Message: lineui.Help(group, appURL)}
+		return transport.Reply{Token: token, Message: lineui.Help(group, appURL, repositoryIDs...)}
 	default:
 		// Ordinary group conversation must not trigger the bot or expose personal data.
 		if group {

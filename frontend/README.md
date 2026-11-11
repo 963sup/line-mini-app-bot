@@ -33,3 +33,5 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 | Weather / Forecast | 沒有既有 MINI App 畫面 | [LINE 群組位置查詢](../api/contract/weather/README.md) |
 
 不建立空畫面或讓瀏覽器呼叫內部摘要 worker。新增摘要／天氣網頁及公開 API 必須另定操作契約。
+
+- [群組 Repository](../docs/features/repository.md)

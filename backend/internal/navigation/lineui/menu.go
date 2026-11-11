@@ -3,6 +3,7 @@ package lineui
 
 import (
 	"net/url"
+	"regexp"
 
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 )
@@ -17,6 +18,26 @@ func journalURL(appURL string) string {
 	}
 	q := u.Query()
 	q.Set("journal", "1")
+	u.RawQuery = q.Encode()
+	return u.String()
+}
+
+func repositoryURL(appURL string, group bool, ids ...string) string {
+	if group && (len(ids) != 1 || !regexp.MustCompile(`^[a-f0-9]{32}$`).MatchString(ids[0])) {
+		return ""
+	}
+	if appURL == "" {
+		return ""
+	}
+	u, err := url.Parse(appURL)
+	if err != nil || u.Scheme != "https" || u.Host == "" {
+		return ""
+	}
+	q := u.Query()
+	q.Set("repositories", "1")
+	if group {
+		q.Set("repository", ids[0])
+	}
 	u.RawQuery = q.Encode()
 	return u.String()
 }
@@ -38,7 +59,7 @@ func AttendanceRichMenus(appURL string) map[string]*messaging_api.RichMenuReques
 	return menus
 }
 
-func Help(group bool, appURL string) messaging_api.MessageInterface {
+func Help(group bool, appURL string, repositoryIDs ...string) messaging_api.MessageInterface {
 	title := "LINE 功能選單"
 	description := "輸入「出勤紀錄」查詢本人紀錄，或開啟網頁服務。"
 	if group {
@@ -57,6 +78,9 @@ func Help(group bool, appURL string) messaging_api.MessageInterface {
 		}
 	} else {
 		buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.PostbackAction{Label: "出勤紀錄", Data: "action=attendance-history"}})
+	}
+	if link := repositoryURL(appURL, group, repositoryIDs...); link != "" {
+		buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.UriAction{Label: "空間", Uri: link}})
 	}
 	if appURL != "" {
 		buttons = append(buttons, &messaging_api.FlexButton{
@@ -80,7 +104,7 @@ func Help(group bool, appURL string) messaging_api.MessageInterface {
 }
 
 // QuickMenu puts each supported command in a separate reply chip.
-func QuickMenu(group bool, appURL string) messaging_api.MessageInterface {
+func QuickMenu(group bool, appURL string, repositoryIDs ...string) messaging_api.MessageInterface {
 	items := []messaging_api.QuickReplyItem{}
 	add := func(label, command string) {
 		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.MessageAction{Label: label, Text: command}})
@@ -96,6 +120,9 @@ func QuickMenu(group bool, appURL string) messaging_api.MessageInterface {
 		add("摘要", "摘要")
 	} else {
 		add("出勤紀錄", "出勤紀錄")
+	}
+	if link := repositoryURL(appURL, group, repositoryIDs...); link != "" {
+		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.UriAction{Label: "空間", Uri: link}})
 	}
 	if appURL != "" {
 		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.UriAction{Label: "開啟 MINI App", Uri: appURL}})
