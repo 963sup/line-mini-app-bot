@@ -44,7 +44,7 @@ bash scripts/tooling/tool-exec.sh mise run dev
 無效欄位／JSON 為 400、body 過大為 413、不支援的 Content-Type 為 415。
 跨來源拒絕由 Go middleware 回應 403 純文字，錯誤 method 為 405。
 
-實作位於 `backend/internal/diagnostics/geolocation/geolocation.go` 與 `internal/web/pages/geolocation.html、internal/web/static/{js,css}/geolocation.*`。
+實作位於 `backend/internal/diagnostics/geolocation/geolocation.go` 與 `frontend/miniapp/src/diagnostics/geolocation/{View.tsx,style.css}`。
 以下為加入定位業務時的完整邊界；不是示範已完成登入或出勤的宣告。
 
 ## 邊界
@@ -88,11 +88,11 @@ Go 另產生 receivedAt，不信任客戶端時間；必填數值用 pointer／�
 
 ## 現有出勤整合檔案與責任
 
-- `backend/internal/business/attendance/http/attendance_http.go`：註冊 `POST /api/v1/attendance/punches`，驗證 LINE 身分、請求內容與原群組打卡請求。
-- `internal/web/static/js/punch.js`：由 MINI App 取得單次定位並提交；只負責採樣、UI 與請求，不決定授權。
+- `backend/internal/business/attendance/http/punch.go`：註冊 `POST /api/v1/attendance/punches`，驗證 LINE 身分、請求內容與原群組打卡請求。
+- `frontend/miniapp/src/business/attendance/punch/usePunch.ts` 與 `View.tsx`：由 MINI App 取得單次定位並提交；只負責採樣、UI 與請求，不決定授權。
 - `backend/internal/identity/http/identity.go`：提供可共用的 LINE 身分驗證；後端不信任前端自行傳入的 user ID。
 - `backend/internal/business/attendance/firestore/attendance.go`：在交易中驗證短效打卡請求，隔離群組狀態並保存單次定位。
-- `backend/internal/diagnostics/geolocation/geolocation.go` 與 `internal/web/pages/geolocation.html、internal/web/static/{js,css}/geolocation.*`：保留獨立定位示範，不寫入出勤資料。
+- `backend/internal/diagnostics/geolocation/geolocation.go` 與 `frontend/miniapp/src/diagnostics/geolocation/{View.tsx,style.css}`：保留獨立定位示範，不寫入出勤資料。
 
 ```mermaid
 sequenceDiagram

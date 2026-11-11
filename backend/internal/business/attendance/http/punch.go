@@ -16,17 +16,7 @@ import (
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 )
 
-func RegisterAttendanceAPI(public *http.ServeMux, bot *Attendance, app Authenticator) {
-	registerAttendanceAPIWithIdentity(public, bot, app)
-}
-
-func registerAttendanceAPIWithIdentity(public *http.ServeMux, bot *Attendance, app Authenticator) {
-	mux := http.NewServeMux()
-	registerAttendanceQueries(mux, bot, app)
-	registerAttendanceCorrections(mux, bot, app)
-	registerAttendanceLaunch(mux, bot, app)
-	registerPunchPreflight(mux, bot, app)
-	registerLeave(mux, bot, app)
+func registerPunch(mux *http.ServeMux, bot *Attendance, app Authenticator) {
 	mux.Handle("POST /api/v1/attendance/punches", http.NewCrossOriginProtection().Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if bot == nil {
 			transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")
@@ -78,7 +68,6 @@ func registerAttendanceAPIWithIdentity(public *http.ServeMux, bot *Attendance, a
 		}
 		transport.WriteJSON(w, 200, bot.punchResponse(result))
 	})))
-	registerContractAttendance(public, mux, bot, app)
 }
 
 func validAttendanceLocation(input locationInput, now time.Time) bool {

@@ -16,6 +16,7 @@ backend/
         messagecollection/、messagecollection/line/
         summarization/         # 摘要用例與工作契約
           http/、line/、cloudtasks/、summarizer/
+        line/                  # 收集與摘要指令的組合入口
         firestore/             # 訊息與工作共用版本／交易
       weather/forecast/
         cwa/、line/
@@ -33,7 +34,7 @@ backend/
 frontend/miniapp/
   src/pages/                   # Next.js Pages Router；靜態輸出
   src/navigation/home/
-  src/business/attendance/     # 打卡、紀錄、更正、審核
+  src/business/attendance/     # 打卡、紀錄、更正、審核、請假
   src/identity/、platform/line/、shared/、shell/
   src/diagnostics/geolocation/
   tests/                       # React Strict Mode 與非同步行為檢查

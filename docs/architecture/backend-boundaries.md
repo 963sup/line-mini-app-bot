@@ -8,8 +8,12 @@
 | business/attendance/http | 出勤 HTTP、生成 DTO 轉換、認證後的契約驗證；依賴消費端 Authenticator 介面 |
 | business/attendance/firestore | 文件 DTO、查詢／交易、錯誤轉譯、固定版本防重編碼 |
 | business/attendance/line、business/attendance/presentation | 聊天流程、出勤卡片與不依賴 SDK 的共用呈現 |
+| business/summary/messagecollection、business/summary/messagecollection/line | 訊息模型與收集契約；LINE 文字收集、編輯與收回，不依賴摘要生成 |
+| business/summary/line | 收集與摘要指令的組合入口，先處理指令，再靜默收集一般文字 |
 | business/summary/summarization | 摘要用例與能力契約；不依賴 SDK |
-| business/summary/summarization/http、business/summary/firestore | 工作 HTTP 與資料存取，各自歸屬摘要 |
+| business/summary/summarization/line、business/summary/summarization/cloudtasks | 摘要指令、佇列排程與結果傳送 |
+| business/summary/summarization/http | 摘要工作 HTTP，透過 WorkerVerifier 驗證工作身分 |
+| business/summary/firestore | 收集與摘要共用的文件、版本狀態與交易 |
 | business/weather/forecast/cwa、business/weather/forecast/line | 預報來源與聊天呈現；組裝由 server 負責 |
 | identity | 身分資料、Verifier 契約及 request context；不依賴 HTTP／SDK |
 | identity/http | Bearer 輸入、身分回應、HTTP 錯誤與 MINI App 設定入口 |
