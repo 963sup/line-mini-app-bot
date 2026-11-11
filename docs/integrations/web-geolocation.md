@@ -88,10 +88,10 @@ Go 另產生 receivedAt，不信任客戶端時間；必填數值用 pointer／�
 
 ## 現有出勤整合檔案與責任
 
-- `backend/internal/attendance/http/attendance_http.go`：註冊 `POST /api/v1/attendance/punches`，驗證 LINE 身分、請求內容與原群組打卡請求。
+- `backend/internal/business/attendance/http/attendance_http.go`：註冊 `POST /api/v1/attendance/punches`，驗證 LINE 身分、請求內容與原群組打卡請求。
 - `internal/web/static/js/punch.js`：由 MINI App 取得單次定位並提交；只負責採樣、UI 與請求，不決定授權。
 - `backend/internal/identity/http/identity.go`：提供可共用的 LINE 身分驗證；後端不信任前端自行傳入的 user ID。
-- `backend/internal/attendance/firestore/attendance.go`：在交易中驗證短效打卡請求，隔離群組狀態並保存單次定位。
+- `backend/internal/business/attendance/firestore/attendance.go`：在交易中驗證短效打卡請求，隔離群組狀態並保存單次定位。
 - `backend/internal/diagnostics/geolocation/geolocation.go` 與 `internal/web/pages/geolocation.html、internal/web/static/{js,css}/geolocation.*`：保留獨立定位示範，不寫入出勤資料。
 
 ```mermaid

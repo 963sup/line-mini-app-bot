@@ -87,40 +87,40 @@
       }
     },
     "/api/v1/attendance/groups": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1groups"
+      "$ref": "./attendance/records.yaml#/paths/~1api~1v1~1attendance~1groups"
     },
     "/api/v1/attendance/groups/page": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1groups~1page"
+      "$ref": "./attendance/records.yaml#/paths/~1api~1v1~1attendance~1groups~1page"
     },
     "/api/v1/attendance/records": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1records"
+      "$ref": "./attendance/records.yaml#/paths/~1api~1v1~1attendance~1records"
     },
     "/api/v1/attendance/records/{id}": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1records~1{id}"
+      "$ref": "./attendance/records.yaml#/paths/~1api~1v1~1attendance~1records~1{id}"
     },
     "/api/v1/attendance/monthly": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1monthly"
+      "$ref": "./attendance/records.yaml#/paths/~1api~1v1~1attendance~1monthly"
     },
     "/api/v1/attendance/monthly/summary": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1monthly~1summary"
+      "$ref": "./attendance/records.yaml#/paths/~1api~1v1~1attendance~1monthly~1summary"
     },
     "/api/v1/attendance/launch": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1launch"
+      "$ref": "./attendance/punch.yaml#/paths/~1api~1v1~1attendance~1launch"
     },
     "/api/v1/attendance/punches": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1punches"
+      "$ref": "./attendance/punch.yaml#/paths/~1api~1v1~1attendance~1punches"
     },
     "/api/v1/attendance/corrections": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1corrections"
+      "$ref": "./attendance/corrections.yaml#/paths/~1api~1v1~1attendance~1corrections"
     },
     "/api/v1/attendance/corrections/{id}": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}"
+      "$ref": "./attendance/corrections.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}"
     },
     "/api/v1/attendance/corrections/{id}/review": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1review"
+      "$ref": "./attendance/approvals.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1review"
     },
     "/api/v1/attendance/corrections/{id}/approve": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1approve"
+      "$ref": "./attendance/approvals.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1approve"
     },
     "/api/v1/session": {
       "post": {
@@ -406,19 +406,19 @@
       }
     },
     "/api/v1/attendance/leaves": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1leaves"
+      "$ref": "./attendance/leave.yaml#/paths/~1api~1v1~1attendance~1leaves"
     },
     "/api/v1/attendance/punches/preflight": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1punches~1preflight"
+      "$ref": "./attendance/punch.yaml#/paths/~1api~1v1~1attendance~1punches~1preflight"
     },
     "/api/v1/attendance/corrections/{id}/reject": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1reject"
+      "$ref": "./attendance/approvals.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1reject"
     },
     "/api/v1/attendance/corrections/{id}/cancel": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1cancel"
+      "$ref": "./attendance/corrections.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1cancel"
     },
     "/api/v1/attendance/corrections/reviewer-groups": {
-      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1corrections~1reviewer-groups"
+      "$ref": "./attendance/approvals.yaml#/paths/~1api~1v1~1attendance~1corrections~1reviewer-groups"
     }
   },
   "components": {

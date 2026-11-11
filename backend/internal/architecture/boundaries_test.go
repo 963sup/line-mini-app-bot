@@ -16,7 +16,21 @@ func TestDependencyBoundaries(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	core := map[string]bool{"attendance": true, "attendance/worktime": true, "summary": true, "weather": true, "identity": true}
+	core := map[string][]string{
+		"business/attendance":                {"business/attendance/punch", "business/attendance/records"},
+		"business/attendance/punch":          {"business/attendance/records"},
+		"business/attendance/records":        {"business/attendance/worktime"},
+		"business/attendance/worktime":       {},
+		"business/attendance/corrections":    {"business/attendance/records", "business/attendance/worktime"},
+		"business/attendance/approvals":      {"business/attendance/corrections", "business/attendance/records"},
+		"business/attendance/leave":          {},
+		"business/attendance/board":          {"business/attendance/records"},
+		"business/summary":                   {},
+		"business/summary/messagecollection": {},
+		"business/summary/summarization":     {"business/summary/messagecollection"},
+		"business/weather/forecast":          {},
+		"identity":                           {},
+	}
 	const module = "github.com/963sup/line-mini-app-bot/internal/"
 	err = filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
@@ -36,8 +50,14 @@ func TestDependencyBoundaries(t *testing.T) {
 			if err != nil {
 				return err
 			}
-			if core[dir] {
-				allowed := dir == "attendance" && dependency == module+"attendance/worktime"
+			if allowedDependencies, isCore := core[dir]; isCore {
+				allowed := false
+				for _, target := range allowedDependencies {
+					if dependency == module+target {
+						allowed = true
+						break
+					}
+				}
 				if strings.Contains(strings.Split(dependency, "/")[0], ".") && !allowed {
 					t.Errorf("core %s imports non-core implementation %s", rel, dependency)
 				}
@@ -61,7 +81,7 @@ func TestDependencyBoundaries(t *testing.T) {
 				t.Errorf("transport depends on application feature: %s", dependency)
 			}
 		}
-		if core[dir] {
+		if _, isCore := core[dir]; isCore {
 			ast.Inspect(file, func(node ast.Node) bool {
 				field, ok := node.(*ast.Field)
 				if ok && field.Tag != nil {

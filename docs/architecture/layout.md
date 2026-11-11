@@ -8,16 +8,17 @@ backend/
   go.mod、go.sum
   cmd/server/、attendancemigrate/、firestorecheck/、richmenu/
   internal/
-    attendance/                # 純領域模型、規則與能力契約
-      worktime/                # 時間與事件計算
-      http/                    # 出勤 API、DTO、契約驗證
-      firestore/               # 文件格式、交易、查詢、回填與錯誤轉譯
-      line/                    # 聊天指令與出勤卡片
-      presentation/            # 不依賴 LINE SDK 的共用呈現
-    summary/                   # 摘要契約與用例
-      http/、firestore/、line/、cloudtasks/、summarizer/
-    weather/                   # 預報契約
-      cwa/、line/
+    business/
+      attendance/
+        punch/、records/、worktime/、corrections/、approvals/、leave/、board/
+        http/、firestore/、line/、presentation/  # 領域整合入口與交易
+      summary/
+        messagecollection/、messagecollection/line/
+        summarization/         # 摘要用例與工作契約
+          http/、line/、cloudtasks/、summarizer/
+        firestore/             # 訊息與工作共用版本／交易
+      weather/forecast/
+        cwa/、line/
     identity/                  # 身分與驗證契約
       http/、line/、google/
     httpapi/                   # OpenAPI 路由接線
@@ -32,7 +33,7 @@ backend/
 frontend/miniapp/
   src/pages/                   # Next.js Pages Router；靜態輸出
   src/navigation/home/
-  src/features/attendance/     # 打卡、紀錄、更正、審核
+  src/business/attendance/     # 打卡、紀錄、更正、審核
   src/identity/、platform/line/、shared/、shell/
   src/diagnostics/geolocation/
   tests/                       # React Strict Mode 與非同步行為檢查
@@ -42,7 +43,7 @@ deploy/
   firestore/indexes.json       # Firestore 索引宣告
 api/
   redocly.yaml                 # 契約 lint／bundle 規則
-  contract/                    # 唯一入口與出勤契約，共 14 個 operations
+  contract/                    # 唯一入口與依出勤子功能拆分的契約
   client/                     # TS 生成型別與 openapi-fetch factory
   codegen/、compatibility/
 assets/line/richmenu/           # LINE 選單素材
@@ -57,3 +58,5 @@ docs/、.github/、.vscode/、.agents/、.codex/
 pnpm 管理 JS 工作區，Go module 位於 backend；Turborepo 協調產物與檢查。公開 URL 與既有資源 aliases 保留。Go binary 透過 FRONTEND_DIR 讀取獨立的 Next.js 靜態輸出；正式容器不需要 Next SSR 服務。
 
 前端已使用 React hooks/state、身分 Context 與具取消／世代檢查的請求；Strict Mode 已恢復，舊控制器及事件橋接已移除。舊 JS 資源 URL 僅回傳無操作的相容內容，不被新頁面載入。功能生命週期見 [React 前端](react-frontend.md)。客戶端導覽尚未導入。上游技能保留原位置，不重複加入產品功能樹。
+
+業務拆分與相容性驗證見 [Business 重構](../development/business-refactor.md)。

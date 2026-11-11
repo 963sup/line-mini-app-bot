@@ -11,10 +11,10 @@ import (
 	"syscall"
 	"time"
 
-	attendancehttp "github.com/963sup/line-mini-app-bot/internal/attendance/http"
-	attendanceline "github.com/963sup/line-mini-app-bot/internal/attendance/line"
-	"github.com/963sup/line-mini-app-bot/internal/attendance/presentation"
 	"github.com/963sup/line-mini-app-bot/internal/browser"
+	attendancehttp "github.com/963sup/line-mini-app-bot/internal/business/attendance/http"
+	attendanceline "github.com/963sup/line-mini-app-bot/internal/business/attendance/line"
+	"github.com/963sup/line-mini-app-bot/internal/business/attendance/presentation"
 	"github.com/963sup/line-mini-app-bot/internal/diagnostics/geolocation"
 	identityhttp "github.com/963sup/line-mini-app-bot/internal/identity/http"
 	identityline "github.com/963sup/line-mini-app-bot/internal/identity/line"

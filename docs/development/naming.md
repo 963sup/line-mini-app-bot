@@ -32,11 +32,11 @@
 Go 檔使用 snake_case；文件與 Shell／Python 腳本使用 kebab-case；Web JS／CSS 使用 kebab-case。
 不要求不同語言共用同一分隔符，也不依檔案行數強制拆分。
 
-- attendance/types.go：出勤資料型別；ports.go：使用端的儲存能力契約。
+- business/attendance/records/types.go：出勤資料型別；ports.go：使用端的儲存能力契約。
 - worktime/event_stream.go：班次事件序列驗證。
-- backend/internal/attendance/firestore/attendance_launch.go：打卡啟動憑證；summary/firestore/：摘要工作持久化。
-- backend/internal/summary/summarizer/client.go、gemini.go、openai.go：模型選擇與供應商整合。
-- frontend/miniapp/src/shell/Shell.tsx：共同版型；identity/Session.tsx：身分生命週期；shared/http/lifecycle.ts：取消與過期回應；features/attendance/：功能畫面與 hooks。
+- backend/internal/business/attendance/firestore/attendance_launch.go：打卡啟動憑證；business/summary/firestore/：摘要工作持久化。
+- backend/internal/business/summary/summarization/summarizer/client.go、gemini.go、openai.go：模型選擇與供應商整合。
+- frontend/miniapp/src/shell/Shell.tsx：共同版型；identity/Session.tsx：身分生命週期；shared/http/lifecycle.ts：取消與過期回應；business/attendance/：功能畫面與 hooks。
 - cmd 的 attendancemigrate、firestorecheck、richmenu 保留既有命令名，避免無必要改變使用方式。
 
 ## 責任對照：規劃檔案，不是已存在 API

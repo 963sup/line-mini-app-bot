@@ -69,3 +69,5 @@ LINE 問題先查 [官方文件來源庫](https://github.com/line/line-developer
 圖譜與打包成功不證明語意正確或整合已驗收。
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
+
+- [Business 模組、契約與驗證對照](development/business-refactor.md)

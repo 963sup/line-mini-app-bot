@@ -4,7 +4,7 @@
 
 ## 職責與邊界
 
-contract/openapi.yaml 為入口，contract/attendance.yaml 定義出勤；client/ 保存 TypeScript client，compatibility/baseline/ 保存相容性基準。
+contract/openapi.yaml 為入口，contract/attendance/ 下依業務拆分的契約 定義出勤；client/ 保存 TypeScript client，compatibility/baseline/ 保存相容性基準。
 
 先修改契約，再由根目錄 pnpm api:generate 更新 Go/TS 產生碼；不手改 generated 檔或任意刷新 baseline。業務核心不依賴 HTTP DTO。
 

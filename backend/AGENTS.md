@@ -4,7 +4,7 @@
 
 ## 職責與邊界
 
-cmd/ 保存 server、richmenu、firestorecheck 與 attendancemigrate 入口；internal/ 按 attendance、identity、summary、weather 等能力分工。httpapi/ 保存契約接線與產生碼。
+cmd/ 保存 server、richmenu、firestorecheck 與 attendancemigrate 入口；internal/business/ 按 attendance、summary、weather 及其子功能分工；identity 等共用能力保留於 internal/。httpapi/ 保存契約接線與產生碼。
 
 業務核心、HTTP/LINE adapter 與 Firestore adapter 分層；共享組裝在 internal/server。修改 HTTP 格式先走 ../api 契約流程，不手改產生碼。憑證不得寫入 .env.example。
 

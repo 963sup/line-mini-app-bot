@@ -1,6 +1,6 @@
 # 工時計算第一階段
 
-`backend/internal/attendance/worktime` 是不依賴 LINE、Firestore 或薪資規則的純函數模組。
+`backend/internal/business/attendance/worktime` 是不依賴 LINE、Firestore 或薪資規則的純函數模組。
 
 - RebuildSessions：依事件順序與時間重播、按事件 ID 去重，回傳班次 Session 與異常；不是單純建立 Interval。
   衝突事件及不合法順序會列出異常，相關輸入不作已確認或暫估工時計算。
@@ -60,7 +60,7 @@ ApplyEvent(State, Event) 是即時交易與 RebuildSessions 的共同規則，
 - 首版用 groupID 等值掃描檢查重疊，單員工／群組最多1000筆，超過時拒絕處理，不回傳部分驗證結果；不宣稱固定讀取成本。後續需依資料規模改為時段索引。
 - 本人與審核清單使用作用域綁定游標、預設20筆、最多100筆，依文件ID穩定分頁，不保證時間排序。群組審核清單隱藏本人申請；無權審核者不能讀取。
 
-API 契約集中於 api/contract/attendance.yaml：GET corrections 為本人清單，scope=review 且指定 group 為授權群組清單；GET corrections/reviewer-groups 為可審核群組；POST corrections/{id}/reject 接收 reason；POST corrections/{id}/cancel 撤回本人申請。原有提交、狀態、審核明細及核准路徑保留。
+API 契約集中於 api/contract/attendance/{corrections,approvals}.yaml：GET corrections 為本人清單，scope=review 且指定 group 為授權群組清單；GET corrections/reviewer-groups 為可審核群組；POST corrections/{id}/reject 接收 reason；POST corrections/{id}/cancel 撤回本人申請。原有提交、狀態、審核明細及核准路徑保留。
 
 新增無班次補卡時，HTTP 層使用已驗證使用者向 LINE 查核原群組成員身分，不能只相信網址或前端群組值；查核失敗時不寫入申請。前端保留同草稿冪等鍵，結果不明時以同內容重試。
 
@@ -103,7 +103,7 @@ GET /api/v1/attendance/corrections/{id} 只允許提案本人查詢。
 尚無多級簽核或通知；詳見 [操作與重試契約](attendance-queries.md)。
 
 Firestore 閉環測試：設定僅供本地測試的 FIRESTORE_EMULATOR_HOST 後，
-執行 go test ./internal/attendance/firestore -run TestAttendanceCorrectionRoundTrip -v。
+執行 go test ./internal/business/attendance/firestore -run TestAttendanceCorrectionRoundTrip -v。
 測試建立獨立 channel，覆蓋提案、他人查詢拒絕、自審拒絕、重複核准、
 月報更新與損壞證據拒絕。未設定 emulator 時明確跳過，不能作為整合已通過的證據。
 

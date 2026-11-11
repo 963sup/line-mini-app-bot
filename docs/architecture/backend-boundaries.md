@@ -4,13 +4,13 @@
 
 | 目錄 | 責任與允許依賴 |
 | --- | --- |
-| backend/internal/attendance | 出勤模型、計算、更正規則與 ports；只依賴標準庫及 worktime |
-| attendance/http | 出勤 HTTP、生成 DTO 轉換、認證後的契約驗證；依賴消費端 Authenticator 介面 |
-| attendance/firestore | 文件 DTO、查詢／交易、錯誤轉譯、固定版本防重編碼 |
-| attendance/line、attendance/presentation | 聊天流程、出勤卡片與不依賴 SDK 的共用呈現 |
-| summary | 摘要用例與能力契約；不依賴 SDK |
-| summary/http、summary/firestore | 工作 HTTP 與資料存取，各自歸屬摘要 |
-| weather/cwa、weather/line | 預報來源與聊天呈現；組裝由 server 負責 |
+| business/attendance/{punch,records,worktime,corrections,approvals,leave,board} | 各子功能的模型、規則與能力契約；依賴方向見 [重構對照](../development/business-refactor.md) |
+| business/attendance/http | 出勤 HTTP、生成 DTO 轉換、認證後的契約驗證；依賴消費端 Authenticator 介面 |
+| business/attendance/firestore | 文件 DTO、查詢／交易、錯誤轉譯、固定版本防重編碼 |
+| business/attendance/line、business/attendance/presentation | 聊天流程、出勤卡片與不依賴 SDK 的共用呈現 |
+| business/summary/summarization | 摘要用例與能力契約；不依賴 SDK |
+| business/summary/summarization/http、business/summary/firestore | 工作 HTTP 與資料存取，各自歸屬摘要 |
+| business/weather/forecast/cwa、business/weather/forecast/line | 預報來源與聊天呈現；組裝由 server 負責 |
 | identity | 身分資料、Verifier 契約及 request context；不依賴 HTTP／SDK |
 | identity/http | Bearer 輸入、身分回應、HTTP 錯誤與 MINI App 設定入口 |
 | identity/line、identity/google | LINE 本人身分與 Google 工作身分驗證的外部整合 |
@@ -39,4 +39,4 @@ HTTP 舊月報以遷移前捕捉的 JSON fixture 驗證。Firestore 相容測試
 
 既有 Go suite 包含 architecture/TestDependencyBoundaries，阻擋：核心引入外部實作、核心帶序列化 tags、HTTP 直接引入 SDK 或 outgoing adapter、共用傳輸反向依賴功能，以及 OpenAPI 接線依賴功能實作。此檢查驗證直接依賴與結構，不取代行為或整合驗證。
 
-剩餘工作是前端 React hooks/state 遷移與真實 LINE／正式環境整合驗收；此階段不新增框架、部署或變更資料庫索引。
+前端已完成 React hooks/state；剩餘真實 LINE／正式環境整合驗收；此階段不新增框架、部署或變更資料庫索引。

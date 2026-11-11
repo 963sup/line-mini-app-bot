@@ -1,0 +1,115 @@
+{
+  "paths": {},
+  "components": {
+    "schemas": {
+      "Interval": {
+        "type": "object",
+        "properties": {
+          "Start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "End": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "Start",
+          "End"
+        ]
+      },
+      "CalculationIssue": {
+        "type": "object",
+        "properties": {
+          "SessionID": {
+            "type": "string"
+          },
+          "Code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "SessionID",
+          "Code"
+        ]
+      },
+      "Calculation": {
+        "type": "object",
+        "properties": {
+          "EventIDs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "Version": {
+            "type": "string"
+          },
+          "Duration": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Nanoseconds; Go time.Duration JSON representation."
+          },
+          "Minutes": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Confirmed net working minutes; excludes rest-unconfirmed shifts."
+          },
+          "Pending": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "Issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalculationIssue"
+            },
+            "nullable": true
+          },
+          "Intervals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Interval"
+            },
+            "nullable": true
+          },
+          "AttendanceMinutes": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Gross attendance minutes, before rest deductions; valid clock times and evidence only."
+          },
+          "EstimatedMinutes": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Provisional total INCLUDING confirmed net work and rest-unconfirmed gross work. Do not add Minutes to this value."
+          },
+          "Unconfirmed": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Complete valid shifts awaiting rest confirmation, included in EstimatedMinutes."
+          },
+          "Uncalculable": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Shifts excluded from work totals because times, breaks or evidence are invalid."
+          }
+        },
+        "required": [
+          "EventIDs",
+          "Version",
+          "Duration",
+          "Minutes",
+          "Pending",
+          "Issues",
+          "Intervals"
+        ]
+      }
+    }
+  }
+}

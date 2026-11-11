@@ -5,12 +5,12 @@ import { act, StrictMode, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { SessionProvider, useSession } from "../src/identity/Session";
 import { IdentityPanel } from "../src/identity/Panel";
-import { View as Punch } from "../src/features/attendance/punch/View";
-import { View as History } from "../src/features/attendance/history/View";
-import { View as Correction } from "../src/features/attendance/correction/View";
+import { View as Punch } from "../src/business/attendance/punch/View";
+import { View as History } from "../src/business/attendance/records/View";
+import { View as Correction } from "../src/business/attendance/corrections/View";
 import { View as Geo } from "../src/diagnostics/geolocation/View";
-import { View as Review } from "../src/features/attendance/review/View";
-import { launchToken } from "../src/features/attendance/punch/usePunch";
+import { View as Review } from "../src/business/attendance/approvals/View";
+import { launchToken } from "../src/business/attendance/punch/usePunch";
 import { locate } from "../src/shared/location/position";
 const launch = "b".repeat(64),
   requestID = "a".repeat(64);

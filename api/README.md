@@ -1,6 +1,6 @@
 # HTTP API 契約
 
-`contract/openapi.yaml` 是唯一入口，出勤路徑與資料格式位於 `contract/attendance.yaml`。兩端產生器先使用 Redocly bundle 解析外部參照，再由同一份 bundle 產生 Go 與 TypeScript；不手改產生檔。
+`contract/openapi.yaml` 是唯一入口，出勤路徑與資料格式位於 `contract/attendance/` 下依業務拆分的契約。兩端產生器先使用 Redocly bundle 解析外部參照，再由同一份 bundle 產生 Go 與 TypeScript；不手改產生檔。
 
 ```bash
 bash scripts/tooling/tool-exec.sh mise run install-web
@@ -37,13 +37,13 @@ OpenAPI 驗證不取代班次版本、群組成員、審核權限、位置時效
 
 ## 後端實作位置
 
-生成碼與通用接線保留於 backend/internal/httpapi；出勤 handlers／DTO 映射與 runtime 驗證位於 attendance/http，身分入口位於 identity/http。核心型別不含 JSON／Firestore tags，資料層負責文件編碼與錯誤轉譯。
+生成碼與通用接線保留於 backend/internal/httpapi；出勤 handlers／DTO 映射與 runtime 驗證位於 business/attendance/http，身分入口位於 identity/http。核心型別不含 JSON／Firestore tags，資料層負責文件編碼與錯誤轉譯。
 
 Redocly lint／bundle 設定位於 `api/redocly.yaml`；根目錄的生成腳本明確帶入 `--config`，不依賴工作目錄自動尋找。
 
 ## 目錄導覽與維護
 
-contract/openapi.yaml 為入口，contract/attendance.yaml 定義出勤；client/ 保存 TypeScript client，compatibility/baseline/ 保存相容性基準。
+contract/openapi.yaml 為入口，contract/attendance/ 下依業務拆分的契約 定義出勤；client/ 保存 TypeScript client，compatibility/baseline/ 保存相容性基準。
 
 先修改契約，再由根目錄 pnpm api:generate 更新 Go/TS 產生碼；不手改 generated 檔或任意刷新 baseline。業務核心不依賴 HTTP DTO。
 
@@ -60,3 +60,5 @@ contract/openapi.yaml 為入口，contract/attendance.yaml 定義出勤；client
 - [出勤查詢與更正](../docs/features/attendance-queries.md)
 
 - [群組請假登記](../docs/features/leave.md)
+
+- [Business 模組與契約對照](../docs/development/business-refactor.md)

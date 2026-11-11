@@ -6,13 +6,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/weather/cwa"
-
-	attendance "github.com/963sup/line-mini-app-bot/internal/attendance/line"
+	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/line"
+	summary "github.com/963sup/line-mini-app-bot/internal/business/summary/messagecollection/line"
+	"github.com/963sup/line-mini-app-bot/internal/business/weather/forecast/cwa"
+	weather "github.com/963sup/line-mini-app-bot/internal/business/weather/forecast/line"
 	navigation "github.com/963sup/line-mini-app-bot/internal/navigation/line"
-	summary "github.com/963sup/line-mini-app-bot/internal/summary/line"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
-	weather "github.com/963sup/line-mini-app-bot/internal/weather/line"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 

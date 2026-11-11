@@ -14,7 +14,7 @@ import (
 	"syscall"
 
 	db "cloud.google.com/go/firestore"
-	storage "github.com/963sup/line-mini-app-bot/internal/attendance/firestore"
+	storage "github.com/963sup/line-mini-app-bot/internal/business/attendance/firestore"
 )
 
 type checkpoint struct {
