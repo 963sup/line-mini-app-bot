@@ -26,7 +26,8 @@ try {
   const sha = revision.stdout.trim();
   const tree = command('git', ['ls-tree', '-r', '--name-only', sha, '--', 'api/contract/']);
   if (tree.status !== 0) throw new Error('Could not inspect API base revision');
-  const paths = tree.stdout.trim().split('\n').filter(Boolean);
+  // Documentation can live beside contracts; only materialize supported spec sources.
+  const paths = tree.stdout.trim().split('\n').filter(path => /\.(yaml|yml|json)$/.test(path));
   if (paths.includes('api/contract/openapi.yaml')) {
    for (const path of paths) {
     if (!path.startsWith('api/contract/') || path.includes('..') || !/\.(yaml|yml|json)$/.test(path)) throw new Error('Unsupported API contract source path');
