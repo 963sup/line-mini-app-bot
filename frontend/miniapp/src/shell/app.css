@@ -82,9 +82,9 @@ body.app-page { margin: 0; font-family: system-ui, -apple-system, "Noto Sans TC"
 .journal-nav { display: grid; grid-template-columns: repeat(3, minmax(44px, 1fr)); flex: 1; min-width: 0; max-width: 360px; gap: 4px 8px; padding: 0; }
 .journal-nav a { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 4px 6px; border-radius: 8px; background: #eaf6f0; font-size: .9rem; text-decoration: none; white-space: nowrap; }
 .journal-nav a[aria-current="page"] { background: #d0e9dc; font-weight: 700; }
-.journal-panel h2 { margin: 0 0 .5rem; }
-.journal-panel p { margin: .5rem 0; }
-.journal-panel a { white-space: nowrap; }
+.journal-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.journal-panel-heading h2 { margin: 0; }
+.journal-panel-heading a { display: inline-flex; align-items: center; min-height: 44px; white-space: nowrap; }
 .service-links { display: grid; gap: 14px; margin: 20px 0; }
 .service-links a { display: grid; gap: 6px; padding: 18px; border: 1px solid #d7e7de; border-radius: 14px; text-decoration: none; }
 .service-links span { color: #59706d; }
