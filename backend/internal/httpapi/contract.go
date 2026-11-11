@@ -92,3 +92,19 @@ func (s contractServer) SubmitLeaveRequest(w http.ResponseWriter, r *http.Reques
 func (s contractServer) PreflightAttendancePunch(w http.ResponseWriter, r *http.Request, _ generated.PreflightAttendancePunchParams) {
 	s.attendance.ServeHTTP(w, r)
 }
+
+func (s contractServer) RejectAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, _ generated.RejectAttendanceCorrectionParams) {
+	s.attendance.ServeHTTP(w, r)
+}
+
+func (s contractServer) CancelAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, _ generated.CancelAttendanceCorrectionParams) {
+	s.attendance.ServeHTTP(w, r)
+}
+
+func (s contractServer) ListAttendanceCorrections(w http.ResponseWriter, r *http.Request, _ generated.ListAttendanceCorrectionsParams) {
+	s.attendance.ServeHTTP(w, r)
+}
+
+func (s contractServer) ListAttendanceReviewerGroups(w http.ResponseWriter, r *http.Request) {
+	s.attendance.ServeHTTP(w, r)
+}

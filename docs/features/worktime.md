@@ -47,6 +47,23 @@ ApplyEvent(State, Event) 是即時交易與 RebuildSessions 的共同規則，
 計算結果與班次包含來源事件 ID；規則版本為 worktime-v3。
 原始資料目前以查詢時計算；更正透過下列提案與核准流程處理，尚未新增持久化報表快照。
 
+## 補卡與人工審核
+
+補卡處理漏上班、漏下班或整班皆漏；已有資料但時間不正確則為時間更正，共用同一申請與審核核心。漏下班通常已有上班紀錄，仍屬補卡，不以「有沒有整筆紀錄」分類。沒有打卡資料不能自動認定缺勤或實際出勤。
+
+- 員工送出時只建立申請；待審、駁回或撤回均不改有效工時。所有補卡及更正一律須人工核准。
+- 完整角色管理延後；沿用伺服器管理的 attendanceReviewers 群組白名單，禁止自審。未配置審核者時維持待審，不自動核准。
+- 核准同交易保存有效投影、before／proposal／after 稽核與決定；新補登班次無原始打卡事件或GPS，不偽造定位打卡。既有班次保留原始事件與版本檢查。
+- 駁回保存理由、審核人及時間；撤回僅本人可操作。終態不能互換；相同決定重送不重複生效。撤回／駁回後要修改內容，另建申請。
+- pending／approved／rejected／cancelled 為流程狀態；stale 為原紀錄已變動，須重送或撤回；invalid 為核准證據異常，不能當作正常工時。
+- 核准時重查同員工、同群組的班次重疊；以既有 attendanceStates 群組文件協調正常打卡與核准交易。端點相接不算重疊，跨日／跨月不自動拒絕。
+- 首版用 groupID 等值掃描檢查重疊，單員工／群組最多1000筆，超過時拒絕處理，不回傳部分驗證結果；不宣稱固定讀取成本。後續需依資料規模改為時段索引。
+- 本人與審核清單使用作用域綁定游標、預設20筆、最多100筆，依文件ID穩定分頁，不保證時間排序。群組審核清單隱藏本人申請；無權審核者不能讀取。
+
+API 契約集中於 api/contract/attendance.yaml：GET corrections 為本人清單，scope=review 且指定 group 為授權群組清單；GET corrections/reviewer-groups 為可審核群組；POST corrections/{id}/reject 接收 reason；POST corrections/{id}/cancel 撤回本人申請。原有提交、狀態、審核明細及核准路徑保留。
+
+新增無班次補卡時，HTTP 層使用已驗證使用者向 LINE 查核原群組成員身分，不能只相信網址或前端群組值；查核失敗時不寫入申請。前端保留同草稿冪等鍵，結果不明時以同內容重試。
+
 ## 事件驗證、更正與共用月報
 
 ValidateEventStream 在重建前檢查契約版本、群組／班次身分、事件 ID 唯一性、
@@ -58,7 +75,7 @@ CalculateMonthlyAttendance 統一回傳紀錄、計算、事件與更正 ID，�
 新增 API 均使用現有 LINE ID token 認證：
 
 - GET /api/v1/attendance/monthly?group=群組ID&month=YYYY-MM：只讀登入者本人的月報，包含班次 ID、revision 與 eventSequence。
-- POST /api/v1/attendance/corrections：JSON 提交 groupId、recordId、expectedRevision、expectedEventSequence、reason、start、end、breaks、restConfirmed。時間使用帶時區的 RFC3339；休息區間使用 Start／End。只能對本人已有班次提案，不直接更動紀錄。
+- POST /api/v1/attendance/corrections：JSON 提交 groupId、recordId、expectedRevision、expectedEventSequence、reason、start、end、breaks、restConfirmed。時間使用帶時區的 RFC3339；休息區間使用 Start／End。指定 recordId 時對本人既有班次提案；省略 recordId 時申請新增缺失班次。兩者都不直接更動有效紀錄。
 - POST /api/v1/attendance/corrections/{id}/approve：核准提案，僅授權審核者可用且不可自審。
 
 審核權限由受信任管理者預先配置 channels/{channel}/attendanceReviewers/{員工雜湊鍵}
@@ -67,12 +84,12 @@ CalculateMonthlyAttendance 統一回傳紀錄、計算、事件與更正 ID，�
 核准後保存不可變的提案、修改前後內容、審核者與時間；不覆寫原始事件。
 如果補齊尚未下班的班次，交易同時清除該班次的活動指標。
 已核准更正的投影用於月報，來源包含 correction ID；重送核准不會再新增版本。
-已提供基礎更正表單與按申請編號審核的操作頁；尚無審核列表或新增完全缺失班次的功能。
+已提供補卡／時間更正表單、本人申請清單、授權群組申請清單與核准／駁回操作。無原班次可申請新增；目前僅受理已結束班次的完整實際上下班與休息區間，仍在工作且漏上班者須於班次結束後申報，不能填寫假的下班時間。
 
 ## 最小結果閉環
 
 GET /api/v1/attendance/corrections/{id} 只允許提案本人查詢。
-回傳 pending（待審）、approved（已核准）、stale（原紀錄已變動，需重新提案）。
+狀態及生效規則以[補卡與人工審核](#補卡與人工審核)為準。
 已核准申請即使之後有其他更正，仍保留已核准的歷史狀態；目前紀錄以月報為準。
 
 月報讀取最新核准的 before／proposal／after 稽核內容，重算本次更正並比對目前紀錄。
@@ -81,9 +98,9 @@ GET /api/v1/attendance/corrections/{id} 只允許提案本人查詢。
 
 ## 基礎操作頁
 
-開啟 `/miniapp/history` 查本人月紀錄，由班次連結進入 `/miniapp/correction` 提出更正並查詢結果；
-授權審核者在 `/miniapp/review` 依申請編號讀取並核准。時間以臺灣時間解讀。
-沒有多級簽核、通知或待審列表；詳見 [操作與重試契約](attendance-queries.md)。
+開啟 `/miniapp/history` 查本人月紀錄，由班次連結進入 `/miniapp/correction` 提出更正並查詢結果；沒有班次時使用補卡入口，首次無群組紀錄者從原 LINE 群組輸入「補卡」進入。
+授權審核者在 `/miniapp/review` 選擇群組查看申請，或依申請編號讀取，核准或填寫理由駁回。時間以臺灣時間解讀。
+尚無多級簽核或通知；詳見 [操作與重試契約](attendance-queries.md)。
 
 Firestore 閉環測試：設定僅供本地測試的 FIRESTORE_EMULATOR_HOST 後，
 執行 go test ./internal/attendance/firestore -run TestAttendanceCorrectionRoundTrip -v。

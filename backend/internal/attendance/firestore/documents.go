@@ -46,6 +46,8 @@ type resultDocument struct {
 	Record recordDocument `firestore:"record"`
 }
 type correctionDocument struct {
+	ApplicantName         string              `firestore:"applicantName,omitempty" json:"-"`
+	NewRecord             bool                `firestore:"newRecord,omitempty" json:"newRecord,omitempty"`
 	ID                    string              `firestore:"id" json:"id"`
 	UserKey               string              `firestore:"userKey" json:"-"`
 	GroupID               string              `firestore:"groupID" json:"groupId"`
@@ -109,11 +111,11 @@ func decodeResult(snapshot *db.DocumentSnapshot, target *attendance.Result) erro
 }
 
 func correctionDocumentFrom(v attendance.Correction) correctionDocument {
-	return correctionDocument{ID: v.ID, UserKey: v.UserKey, GroupID: v.GroupID, RecordID: v.RecordID, ExpectedEventSequence: v.ExpectedEventSequence, ExpectedRevision: v.ExpectedRevision, Reason: v.Reason, Start: v.Start, End: v.End, Breaks: v.Breaks, RestConfirmed: v.RestConfirmed, CreatedAt: v.CreatedAt}
+	return correctionDocument{ApplicantName: v.ApplicantName, NewRecord: v.NewRecord, ID: v.ID, UserKey: v.UserKey, GroupID: v.GroupID, RecordID: v.RecordID, ExpectedEventSequence: v.ExpectedEventSequence, ExpectedRevision: v.ExpectedRevision, Reason: v.Reason, Start: v.Start, End: v.End, Breaks: v.Breaks, RestConfirmed: v.RestConfirmed, CreatedAt: v.CreatedAt}
 }
 
 func (v correctionDocument) domain() attendance.Correction {
-	return attendance.Correction{ID: v.ID, UserKey: v.UserKey, GroupID: v.GroupID, RecordID: v.RecordID, ExpectedEventSequence: v.ExpectedEventSequence, ExpectedRevision: v.ExpectedRevision, Reason: v.Reason, Start: v.Start, End: v.End, Breaks: v.Breaks, RestConfirmed: v.RestConfirmed, CreatedAt: v.CreatedAt}
+	return attendance.Correction{ApplicantName: v.ApplicantName, NewRecord: v.NewRecord, ID: v.ID, UserKey: v.UserKey, GroupID: v.GroupID, RecordID: v.RecordID, ExpectedEventSequence: v.ExpectedEventSequence, ExpectedRevision: v.ExpectedRevision, Reason: v.Reason, Start: v.Start, End: v.End, Breaks: v.Breaks, RestConfirmed: v.RestConfirmed, CreatedAt: v.CreatedAt}
 }
 
 func decodeCorrection(snapshot *db.DocumentSnapshot, target *attendance.Correction) error {

@@ -10,8 +10,8 @@ export function View() {
             <span>查看整月工時與班次明細，選擇班次提出更正。</span>
           </a>
           <a href="/miniapp/correction">
-            <strong>更正與申請結果</strong>
-            <span>從月紀錄選擇班次，或輸入編號查看已送出的申請。</span>
+            <strong>補卡／時間更正</strong>
+            <span>申請補卡或更正時間，查詢人工審核結果。</span>
           </a>
           <a href="/miniapp/leave">
             <strong>本人請假紀錄</strong>
@@ -19,7 +19,7 @@ export function View() {
           </a>
           <a href="/miniapp/review">
             <strong>授權審核</strong>
-            <span>授權審核者依申請編號查看內容並核准。</span>
+            <span>授權審核者查看群組申請，核准或填寫理由駁回。</span>
           </a>
         </div>
         <p className="hint">打卡請使用原群組的上班、下班或休息按鈕。</p>

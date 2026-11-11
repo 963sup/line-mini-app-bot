@@ -114,6 +114,24 @@ func (e LeaveSubmissionKind) Valid() bool {
 	}
 }
 
+// Defines values for ListAttendanceCorrectionsParamsScope.
+const (
+	Own    ListAttendanceCorrectionsParamsScope = "own"
+	Review ListAttendanceCorrectionsParamsScope = "review"
+)
+
+// Valid indicates whether the value is a known member of the ListAttendanceCorrectionsParamsScope enum.
+func (e ListAttendanceCorrectionsParamsScope) Valid() bool {
+	switch e {
+	case Own:
+		return true
+	case Review:
+		return true
+	default:
+		return false
+	}
+}
+
 // APIError defines model for APIError.
 type APIError struct {
 	Error struct {
@@ -193,29 +211,57 @@ type CorrectionApproved struct {
 // CorrectionApprovedStatus defines model for CorrectionApproved.Status.
 type CorrectionApprovedStatus string
 
+// CorrectionDecision defines model for CorrectionDecision.
+type CorrectionDecision struct {
+	Reason string `json:"reason"`
+}
+
+// CorrectionDecisionResult defines model for CorrectionDecisionResult.
+type CorrectionDecisionResult struct {
+	Status string `json:"status"`
+}
+
+// CorrectionPage defines model for CorrectionPage.
+type CorrectionPage struct {
+	Items      []CorrectionReview `json:"items"`
+	NextCursor string             `json:"nextCursor"`
+}
+
 // CorrectionReview defines model for CorrectionReview.
 type CorrectionReview struct {
-	Breaks                *[]Interval `json:"breaks"`
-	End                   time.Time   `json:"end"`
-	ExpectedEventSequence int64       `json:"expectedEventSequence"`
-	ExpectedRevision      int64       `json:"expectedRevision"`
-	GroupId               string      `json:"groupId"`
-	Id                    string      `json:"id"`
-	Reason                string      `json:"reason"`
-	RecordId              string      `json:"recordId"`
-	RestConfirmed         bool        `json:"restConfirmed"`
-	Start                 time.Time   `json:"start"`
+	// ApplicantName Verified session display name captured at submission; older requests may omit it.
+	ApplicantName         *string           `json:"applicantName,omitempty"`
+	Before                *AttendanceRecord `json:"before,omitempty"`
+	Breaks                *[]Interval       `json:"breaks"`
+	CreatedAt             *time.Time        `json:"createdAt,omitempty"`
+	DecisionReason        *string           `json:"decisionReason,omitempty"`
+	End                   time.Time         `json:"end"`
+	ExpectedEventSequence int64             `json:"expectedEventSequence"`
+	ExpectedRevision      int64             `json:"expectedRevision"`
+	GroupId               string            `json:"groupId"`
+	Id                    string            `json:"id"`
+	NewRecord             *bool             `json:"newRecord,omitempty"`
+	Reason                string            `json:"reason"`
+	RecordId              string            `json:"recordId"`
+	RestConfirmed         bool              `json:"restConfirmed"`
+	ReviewedAt            *time.Time        `json:"reviewedAt,omitempty"`
+	Start                 time.Time         `json:"start"`
+
+	// Status pending, approved, rejected, cancelled, stale or invalid
+	Status *string `json:"status,omitempty"`
 }
 
 // CorrectionStatus defines model for CorrectionStatus.
 type CorrectionStatus struct {
-	Id string `json:"id"`
+	DecisionReason *string    `json:"decisionReason,omitempty"`
+	Id             string     `json:"id"`
+	ReviewedAt     *time.Time `json:"reviewedAt,omitempty"`
 
-	// Status Known values: pending, approved, stale, invalid; clients must tolerate additional states.
+	// Status pending, approved, rejected, cancelled, stale or invalid
 	Status string `json:"status"`
 }
 
-// CorrectionSubmission Existing optional fields remain optional. Business validation, revision checks and review authorization are enforced by Go. Server ignores supplied id. Times are RFC3339; business calculations use Asia/Taipei.
+// CorrectionSubmission Omit recordId to request a missing completed shift; otherwise correct an existing shift. All requests require independent human approval. Server allocates IDs. Revision and event sequence apply to existing records.
 type CorrectionSubmission struct {
 	Breaks                *[]Interval `json:"breaks,omitempty"`
 	End                   *time.Time  `json:"end,omitempty"`
@@ -224,7 +270,7 @@ type CorrectionSubmission struct {
 	GroupId               string      `json:"groupId"`
 	Id                    *string     `json:"id,omitempty"`
 	Reason                *string     `json:"reason,omitempty"`
-	RecordId              string      `json:"recordId"`
+	RecordId              *string     `json:"recordId,omitempty"`
 	RestConfirmed         *bool       `json:"restConfirmed,omitempty"`
 	Start                 *time.Time  `json:"start,omitempty"`
 }
@@ -379,6 +425,20 @@ type StoredRecord struct {
 	SourceEventIDs   *[]string         `json:"SourceEventIDs"`
 }
 
+// CorrectionError defines model for CorrectionError.
+type CorrectionError = APIError
+
+// ListAttendanceCorrectionsParams defines parameters for ListAttendanceCorrections.
+type ListAttendanceCorrectionsParams struct {
+	Scope    *ListAttendanceCorrectionsParamsScope `form:"scope,omitempty" json:"scope,omitempty"`
+	Group    *string                               `form:"group,omitempty" json:"group,omitempty"`
+	Cursor   *string                               `form:"cursor,omitempty" json:"cursor,omitempty"`
+	PageSize *int                                  `form:"pageSize,omitempty" json:"pageSize,omitempty"`
+}
+
+// ListAttendanceCorrectionsParamsScope defines parameters for ListAttendanceCorrections.
+type ListAttendanceCorrectionsParamsScope string
+
 // ProposeAttendanceCorrectionParams defines parameters for ProposeAttendanceCorrection.
 type ProposeAttendanceCorrectionParams struct {
 	// IdempotencyKey Optional for existing clients. Same user/key/payload replays the original acceptance; different payload returns 409. Preserve this key across ambiguous failures.
@@ -390,6 +450,18 @@ type ProposeAttendanceCorrectionParams struct {
 
 // ApproveAttendanceCorrectionParams defines parameters for ApproveAttendanceCorrection.
 type ApproveAttendanceCorrectionParams struct {
+	// XCSRFToken Required when authenticating with the session cookie.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// CancelAttendanceCorrectionParams defines parameters for CancelAttendanceCorrection.
+type CancelAttendanceCorrectionParams struct {
+	// XCSRFToken Required when authenticating with the session cookie.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// RejectAttendanceCorrectionParams defines parameters for RejectAttendanceCorrection.
+type RejectAttendanceCorrectionParams struct {
 	// XCSRFToken Required when authenticating with the session cookie.
 	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
 }
@@ -484,6 +556,9 @@ type RefreshSessionParams struct {
 // ProposeAttendanceCorrectionJSONRequestBody defines body for ProposeAttendanceCorrection for application/json ContentType.
 type ProposeAttendanceCorrectionJSONRequestBody = CorrectionSubmission
 
+// RejectAttendanceCorrectionJSONRequestBody defines body for RejectAttendanceCorrection for application/json ContentType.
+type RejectAttendanceCorrectionJSONRequestBody = CorrectionDecision
+
 // ExchangeAttendanceLaunchJSONRequestBody defines body for ExchangeAttendanceLaunch for application/json ContentType.
 type ExchangeAttendanceLaunchJSONRequestBody = LaunchRequest
 
@@ -504,15 +579,27 @@ type RefreshSessionJSONRequestBody = RefreshSessionJSONBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// ListAttendanceCorrections List own requests, or group requests for an authorized reviewer
+	// (GET /api/v1/attendance/corrections)
+	ListAttendanceCorrections(w http.ResponseWriter, r *http.Request, params ListAttendanceCorrectionsParams)
 	// ProposeAttendanceCorrection proposeAttendanceCorrection
 	// (POST /api/v1/attendance/corrections)
 	ProposeAttendanceCorrection(w http.ResponseWriter, r *http.Request, params ProposeAttendanceCorrectionParams)
+	// ListAttendanceReviewerGroups List server-provisioned reviewer groups
+	// (GET /api/v1/attendance/corrections/reviewer-groups)
+	ListAttendanceReviewerGroups(w http.ResponseWriter, r *http.Request)
 	// GetAttendanceCorrectionStatus getAttendanceCorrectionStatus
 	// (GET /api/v1/attendance/corrections/{id})
 	GetAttendanceCorrectionStatus(w http.ResponseWriter, r *http.Request, id string)
 	// ApproveAttendanceCorrection approveAttendanceCorrection
 	// (POST /api/v1/attendance/corrections/{id}/approve)
 	ApproveAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, params ApproveAttendanceCorrectionParams)
+	// CancelAttendanceCorrection Withdraw own pending request
+	// (POST /api/v1/attendance/corrections/{id}/cancel)
+	CancelAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, params CancelAttendanceCorrectionParams)
+	// RejectAttendanceCorrection Reject with a reason, authorized independent reviewer only
+	// (POST /api/v1/attendance/corrections/{id}/reject)
+	RejectAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, params RejectAttendanceCorrectionParams)
 	// GetAttendanceCorrectionReview getAttendanceCorrectionReview
 	// (GET /api/v1/attendance/corrections/{id}/review)
 	GetAttendanceCorrectionReview(w http.ResponseWriter, r *http.Request, id string)
@@ -579,6 +666,78 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
+// ListAttendanceCorrections operation middleware
+func (siw *ServerInterfaceWrapper) ListAttendanceCorrections(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListAttendanceCorrectionsParams
+
+	// ------------- Optional query parameter "scope" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "scope", r.URL.Query(), &params.Scope, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "scope"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "scope", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "group" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "group", r.URL.Query(), &params.Group, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "group"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "group", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "pageSize" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "pageSize", r.URL.Query(), &params.PageSize, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "pageSize"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pageSize", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListAttendanceCorrections(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ProposeAttendanceCorrection operation middleware
 func (siw *ServerInterfaceWrapper) ProposeAttendanceCorrection(w http.ResponseWriter, r *http.Request) {
 
@@ -630,6 +789,20 @@ func (siw *ServerInterfaceWrapper) ProposeAttendanceCorrection(w http.ResponseWr
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ProposeAttendanceCorrection(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListAttendanceReviewerGroups operation middleware
+func (siw *ServerInterfaceWrapper) ListAttendanceReviewerGroups(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListAttendanceReviewerGroups(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -706,6 +879,106 @@ func (siw *ServerInterfaceWrapper) ApproveAttendanceCorrection(w http.ResponseWr
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ApproveAttendanceCorrection(w, r, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CancelAttendanceCorrection operation middleware
+func (siw *ServerInterfaceWrapper) CancelAttendanceCorrection(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CancelAttendanceCorrectionParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CancelAttendanceCorrection(w, r, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RejectAttendanceCorrection operation middleware
+func (siw *ServerInterfaceWrapper) RejectAttendanceCorrection(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RejectAttendanceCorrectionParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RejectAttendanceCorrection(w, r, id, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1520,6 +1793,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/attendance/monthly/summary", wrapper.GetAttendanceMonthlySummary)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/attendance/launch", wrapper.ExchangeAttendanceLaunch)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/attendance/punches", wrapper.SubmitAttendancePunch)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/attendance/corrections", wrapper.ListAttendanceCorrections)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/attendance/corrections", wrapper.ProposeAttendanceCorrection)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/attendance/corrections/{id}", wrapper.GetAttendanceCorrectionStatus)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/attendance/corrections/{id}/review", wrapper.GetAttendanceCorrectionReview)
@@ -1530,6 +1804,9 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/attendance/leaves", wrapper.ListOwnLeaveRequests)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/attendance/leaves", wrapper.SubmitLeaveRequest)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/attendance/punches/preflight", wrapper.PreflightAttendancePunch)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/attendance/corrections/{id}/reject", wrapper.RejectAttendanceCorrection)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/attendance/corrections/{id}/cancel", wrapper.CancelAttendanceCorrection)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/attendance/corrections/reviewer-groups", wrapper.ListAttendanceReviewerGroups)
 
 	return m
 }
@@ -1539,71 +1816,77 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"AA==",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

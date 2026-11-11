@@ -44,6 +44,8 @@ pageSize 預設20、範圍1–100；cursor 必須與本人、channel、群組／
 - 空白、無效或重複header：400 invalid_idempotency_key。
 - 無header：保留舊呼叫契約，但沒有跨請求去重保證；新Web一律帶header。
 
+省略 recordId 可提交無原班次的補卡，核准前不建立有效紀錄；其餘流程與限制見 [補卡與人工審核](worktime.md#補卡與人工審核)。
+
 提交回應 status=accepted 只表示申請已接收，不宣稱仍待審；目前狀態使用既有狀態查詢取得。申請本人與審核權限仍由後端決定，禁止自己核准；核准保留 expectedRevision／expectedEventSequence 與不可變audit驗證。回執不保存token，未確定保存政策前不擅自設定TTL。
 
 ## 驗證邊界

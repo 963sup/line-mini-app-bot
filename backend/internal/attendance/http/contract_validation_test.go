@@ -64,14 +64,9 @@ func (s *contractStore) ApproveCorrection(context.Context, string, string, time.
 	return nil
 }
 
-func (s *contractStore) CorrectionStatus(context.Context, string, string) (string, error) {
+func (s *contractStore) CorrectionDetails(_ context.Context, _ string, _ string, review bool) (attendance.CorrectionDetails, error) {
 	s.reads++
-	return "pending", nil
-}
-
-func (s *contractStore) CorrectionReview(context.Context, string, string) (attendance.Correction, error) {
-	s.reads++
-	return attendance.Correction{ID: "c1", RecordID: "r1", GroupID: "g"}, nil
+	return attendance.CorrectionDetails{Correction: attendance.Correction{ID: "c1", RecordID: "r1", GroupID: "g"}, Status: "pending"}, nil
 }
 
 func (s *contractStore) CreateLaunch(context.Context, string, string) (string, error) { return "", nil }

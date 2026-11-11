@@ -88,7 +88,7 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 		return transport.Reply{}, false, nil
 	}
 	history := command == "出勤紀錄" || strings.HasPrefix(command, "出勤紀錄 ")
-	if command != "出勤" && command != "漏下班" && command != "下班提醒" && command != "請假" && command != "打卡" && command != "上班" && command != "下班" && command != "休息開始" && command != "休息結束" && command != "確認休息" && !history {
+	if command != "補卡" && command != "出勤" && command != "漏下班" && command != "下班提醒" && command != "請假" && command != "打卡" && command != "上班" && command != "下班" && command != "休息開始" && command != "休息結束" && command != "確認休息" && !history {
 		return transport.Reply{}, false, nil
 	}
 	respond := func(text string) (transport.Reply, bool, error) {
@@ -99,6 +99,9 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 	}
 	if user, ok := source.(webhook.UserSource); ok {
 		if !history {
+			if command == "補卡" {
+				return respond("請回原群組輸入「補卡」取得申請入口。")
+			}
 			if command == "出勤" || command == "漏下班" || command == "下班提醒" {
 				return respond("請回原群組輸入「出勤」或「漏下班」。")
 			}
@@ -175,6 +178,20 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 	if group.UserId == "" || group.GroupId == "" {
 		return respond("無法確認群組或操作人員，未執行打卡。")
 	}
+	if command == "補卡" {
+		if b.AppURL == "" {
+			return respond("補卡申請尚未啟用。")
+		}
+		target, err := url.Parse(b.AppURL)
+		if err != nil {
+			return transport.Reply{}, true, err
+		}
+		query := target.Query()
+		query.Set("correction", group.GroupId)
+		target.RawQuery = query.Encode()
+		return transport.Reply{Token: token, Message: &messaging_api.TemplateMessage{AltText: "補卡／時間更正申請：一律須人工審核。", Template: &messaging_api.ButtonsTemplate{Text: "漏上班、漏下班或整班皆漏，請申報已結束班次的實際時間。核准前有效紀錄不變。", Actions: []messaging_api.ActionInterface{&messaging_api.UriAction{Label: "補卡／時間更正", Uri: target.String()}}}}}, true, nil
+	}
+
 	if command == "出勤" || command == "漏下班" || command == "下班提醒" {
 		return b.replyGroupStatus(ctx, group.GroupId, group.UserId, command, token)
 	}

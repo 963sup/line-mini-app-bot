@@ -69,7 +69,7 @@ func validateAttendanceContract(spec *openapi3.T, next http.Handler, bot *Attend
 			r.URL.RawQuery = query.Encode()
 		}
 		// Preserve existing media and payload limits before the validator reads the body.
-		if r.Method == http.MethodPost && !strings.HasSuffix(r.URL.Path, "/approve") {
+		if r.Method == http.MethodPost && !strings.HasSuffix(r.URL.Path, "/approve") && !strings.HasSuffix(r.URL.Path, "/cancel") {
 			media, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 			if err != nil || media != "application/json" {
 				transport.WriteAPIError(w, http.StatusUnsupportedMediaType, "invalid_content_type", "請使用 JSON。")

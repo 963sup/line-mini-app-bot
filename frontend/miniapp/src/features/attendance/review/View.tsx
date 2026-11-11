@@ -4,6 +4,7 @@ import type { components } from "@repo/api-client";
 import { useSession } from "../../../identity/Session";
 import { useLatestRequest, errorMessage } from "../../../shared/http/lifecycle";
 import { displayTime } from "../../../shared/time/time";
+import { Requests, correctionStatus } from "../correction/Requests";
 export function View() {
   const { user, request } = useSession(),
     read = useLatestRequest(),
@@ -14,12 +15,14 @@ export function View() {
       components["schemas"]["CorrectionReview"] | null
     >(null),
     [reviewed, setReviewed] = useState(""),
+    [reason, setReason] = useState(""),
     [busy, setBusy] = useState(false),
     [status, setStatus] = useState("請輸入員工提供的申請編號。");
   function clearReview() {
     read.cancel();
     setProposal(null);
     setReviewed("");
+    setReason("");
   }
   function loadCorrection() {
     clearReview();
@@ -35,7 +38,7 @@ export function View() {
           (c, s) =>
             c.GET("/api/v1/attendance/corrections/{id}/review", {
               signal: s,
-              params: { path: { id } },
+              params: { path: { id: correctionID } },
             }),
           { signal },
         ),
@@ -47,26 +50,40 @@ export function View() {
       (error) => setStatus(errorMessage(error)),
     );
   }
-  function approveCorrection() {
+  function approveCorrection(reject = false) {
     if (lock.current || !user || !reviewed || reviewed !== id.trim()) return;
+    if (reject && !reason.trim()) {
+      setStatus("請填寫駁回理由。");
+      return;
+    }
     lock.current = true;
     setBusy(true);
-    setStatus("正在核准申請……");
+    setStatus(reject ? "正在駁回申請……" : "正在核准申請……");
     void approvalRequest.run(
       (signal) =>
         request(
           (c, s) =>
-            c.POST("/api/v1/attendance/corrections/{id}/approve", {
-              signal: s,
-              params: { path: { id: reviewed } },
-            }),
+            reject
+              ? c.POST("/api/v1/attendance/corrections/{id}/reject", {
+                  signal: s,
+                  params: { path: { id: reviewed } },
+                  body: { reason },
+                })
+              : c.POST("/api/v1/attendance/corrections/{id}/approve", {
+                  signal: s,
+                  params: { path: { id: reviewed } },
+                }),
           { signal },
         ),
       () => {
         clearReview();
         lock.current = false;
         setBusy(false);
-        setStatus("已核准。員工可查詢申請結果並重新載入月紀錄。");
+        setStatus(
+          reject
+            ? "已駁回，原紀錄不變。"
+            : "已核准。員工可查詢申請結果並重新載入月紀錄。",
+        );
       },
       (error) => {
         lock.current = false;
@@ -76,44 +93,83 @@ export function View() {
     );
   }
   return (
-    <section className="panel">
-      <h2>授權審核者</h2>
-      <p>
-        取得員工提供的申請編號後，先讀取內容再核准。權限由伺服器確認，不能審核自己的申請。
-      </p>
-      <fieldset id="review-controls" disabled={!user || busy}>
-        <label>
-          申請編號
-          <input
-            id="correction-id"
-            maxLength={128}
-            autoComplete="off"
-            value={id}
-            onChange={(e) => {
-              clearReview();
-              setID(e.target.value);
-              setStatus("請讀取目前申請的內容。");
-            }}
-          />
-        </label>
-        <button id="review-correction" onClick={loadCorrection}>
-          讀取審核內容
-        </button>
-        <pre id="review-details" className="summary">
-          {proposal &&
-            `申請 ${reviewed}\n原因：${proposal.reason}\n上班：${displayTime(proposal.start)}\n下班：${displayTime(proposal.end)}\n休息：${(proposal.breaks || []).map((b) => `${displayTime(b.Start)} ～ ${displayTime(b.End)}`).join("；") || "無"}\n休息完整確認：${proposal.restConfirmed ? "是" : "否"}`}
-        </pre>
-        <button
-          id="approve-correction"
-          disabled={!reviewed || reviewed !== id.trim()}
-          onClick={approveCorrection}
-        >
-          核准已讀取的申請
-        </button>
-      </fieldset>
-      <p id="review-status" role="status">
-        {user ? status : "請先完成身分驗證。"}
-      </p>
-    </section>
+    <>
+      <Requests
+        review
+        disabled={busy}
+        onSelect={(item) => {
+          clearReview();
+          setID(item.id);
+          setProposal(item);
+          setReviewed(item.id);
+          setStatus("請確認原資料與申報內容。");
+        }}
+      />
+      <section className="panel">
+        <h2>授權審核者</h2>
+        <p>
+          取得員工提供的申請編號後，先讀取內容再核准。權限由伺服器確認，不能審核自己的申請。
+        </p>
+        <fieldset id="review-controls" disabled={!user || busy}>
+          <label>
+            申請編號
+            <input
+              id="correction-id"
+              maxLength={128}
+              autoComplete="off"
+              value={id}
+              onChange={(e) => {
+                clearReview();
+                setID(e.target.value);
+                setStatus("請讀取目前申請的內容。");
+              }}
+            />
+          </label>
+          <button id="review-correction" onClick={loadCorrection}>
+            讀取審核內容
+          </button>
+          <pre id="review-details" className="summary">
+            {proposal &&
+              `申請 ${reviewed}\n申請人：${proposal.applicantName || "姓名未留存，請依申請編號核對"}\n狀態：${correctionStatus(proposal.status || "pending")}\n原紀錄：${proposal.before ? `${displayTime(proposal.before.ClockInAt)} ～ ${displayTime(proposal.before.ClockOutAt)}` : proposal.newRecord ? "無，申請新增補卡班次" : "請核對原班次"}\n審核理由：${proposal.decisionReason || "—"}\n原因：${proposal.reason}\n上班：${displayTime(proposal.start)}\n下班：${displayTime(proposal.end)}\n休息：${(proposal.breaks || []).map((b) => `${displayTime(b.Start)} ～ ${displayTime(b.End)}`).join("；") || "無"}\n休息完整確認：${proposal.restConfirmed ? "是" : "否"}`}
+          </pre>
+          <button
+            id="approve-correction"
+            disabled={
+              !reviewed ||
+              reviewed !== id.trim() ||
+              (!!proposal?.status && proposal.status !== "pending")
+            }
+            onClick={() => approveCorrection()}
+          >
+            核准已讀取的申請
+          </button>
+          <label>
+            駁回理由
+            <textarea
+              id="rejection-reason"
+              maxLength={500}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+          </label>
+          <button
+            id="reject-correction"
+            disabled={
+              !reviewed ||
+              reviewed !== id.trim() ||
+              !reason.trim() ||
+              (!!proposal?.status &&
+                !["pending", "stale"].includes(proposal.status))
+            }
+            onClick={() => approveCorrection(true)}
+          >
+            駁回已讀取的申請
+          </button>
+        </fieldset>
+        <p id="review-status" role="status">
+          {user ? status : "請先完成身分驗證。"}
+        </p>
+      </section>
+    </>
   );
 }

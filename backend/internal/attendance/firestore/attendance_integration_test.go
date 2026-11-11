@@ -229,6 +229,114 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if _, err := s.Record(ctx, "employee", "group-b", "legacy-a"); err != attendance.ErrRecordNotFound {
 		t.Fatalf("cross-group detail accepted: %v", err)
 	}
+
+	// Continue the same round trip with a user who has no original shift or events.
+	missing := attendance.Correction{GroupID: "group", Reason: "漏上班與下班，整班補登", Start: start.Add(48 * time.Hour), End: start.Add(56 * time.Hour), RestConfirmed: true}
+	submittedAt := start.Add(120 * time.Hour)
+	missingKey := "4d683b22-0bee-4f5d-9477-37edbe3b8c7e"
+	missingID, err := s.ProposeCorrectionOnce(ctx, "missing-employee", missingKey, missing, submittedAt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if again, err := s.ProposeCorrectionOnce(ctx, "missing-employee", missingKey, missing, submittedAt); err != nil || again != missingID {
+		t.Fatalf("missing replay: %s %v", again, err)
+	}
+	if records, err := s.RecordsOverlappingMonth(ctx, "missing-employee", "group", month); err != nil || len(records) != 0 {
+		t.Fatalf("pending request became effective: %v %v", records, err)
+	}
+	if err := s.ApproveCorrection(ctx, "stranger", missingID, submittedAt); err == nil {
+		t.Fatal("unauthorized approval")
+	}
+	if err := s.ApproveCorrection(ctx, "reviewer", missingID, submittedAt); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.ApproveCorrection(ctx, "reviewer", missingID, submittedAt); err != nil {
+		t.Fatal("approval replay", err)
+	}
+	if err := s.RejectCorrection(ctx, "reviewer", missingID, "changed mind", submittedAt); err == nil {
+		t.Fatal("approved request rejected")
+	}
+	effective, err := s.RecordsOverlappingMonth(ctx, "missing-employee", "group", month)
+	if err != nil || len(effective) != 1 || effective[0].Revision != 1 || effective[0].CorrectionID != missingID || len(effective[0].SourceEventIDs) != 0 || len(effective[0].RebuildIssues) != 0 {
+		t.Fatalf("missing record evidence: %v %v", effective, err)
+	}
+	if got := attendance.CalculateMonthlyAttendance(effective, month); got.Calculation.ConfirmedNetMinutes != 480 {
+		t.Fatalf("missing month: %+v", got)
+	}
+	raw, err := s.user("missing-employee").Collection("attendanceRawEvents").Documents(ctx).GetAll()
+	if err != nil || len(raw) != 0 {
+		t.Fatal("supplement forged raw punch", err)
+	}
+	missing.Start, missing.End = start.Add(72*time.Hour), start.Add(80*time.Hour)
+	rejectID, err := s.ProposeCorrection(ctx, "missing-employee", missing, submittedAt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := s.RejectCorrection(ctx, "reviewer", rejectID, "未提供出勤佐證", submittedAt); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.RejectCorrection(ctx, "reviewer", rejectID, "未提供出勤佐證", submittedAt); err != nil {
+		t.Fatal("rejection replay", err)
+	}
+	if err := s.ApproveCorrection(ctx, "reviewer", rejectID, submittedAt); err == nil {
+		t.Fatal("rejected request approved")
+	}
+	details, err := s.CorrectionDetails(ctx, "missing-employee", rejectID, false)
+	if err != nil || details.Status != "rejected" || details.DecisionReason != "未提供出勤佐證" || details.ReviewedAt.IsZero() {
+		t.Fatalf("rejection evidence: %+v %v", details, err)
+	}
+	cancelID, err := s.ProposeCorrection(ctx, "missing-employee", missing, submittedAt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := s.CancelCorrection(ctx, "stranger", cancelID, submittedAt); err == nil {
+		t.Fatal("other user withdrew request")
+	}
+	if err := s.CancelCorrection(ctx, "missing-employee", cancelID, submittedAt); err != nil {
+		t.Fatal(err)
+	}
+	if state, err := s.CorrectionStatus(ctx, "missing-employee", cancelID); err != nil || state != "cancelled" {
+		t.Fatalf("cancel: %s %v", state, err)
+	}
+	missing.Start, missing.End = start.Add(96*time.Hour), start.Add(104*time.Hour)
+	firstID, err := s.ProposeCorrection(ctx, "missing-employee", missing, submittedAt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	secondID, err := s.ProposeCorrection(ctx, "missing-employee", missing, submittedAt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	outcomes := make(chan error, 2)
+	for _, id := range []string{firstID, secondID} {
+		go func() { outcomes <- s.ApproveCorrection(ctx, "reviewer", id, submittedAt) }()
+	}
+	successes := 0
+	for range 2 {
+		err := <-outcomes
+		if err == nil {
+			successes++
+		} else if !errors.Is(err, attendance.ErrCorrection) {
+			t.Fatal(err)
+		}
+	}
+	if successes != 1 {
+		t.Fatalf("overlapping approvals succeeded %d times", successes)
+	}
+	ownPage, err := s.CorrectionsPage(ctx, "missing-employee", "", "", false, 2)
+	if err != nil || len(ownPage.Items) != 2 || ownPage.NextCursor == "" {
+		t.Fatalf("own requests: %+v %v", ownPage, err)
+	}
+	if _, err := s.CorrectionsPage(ctx, "stranger", "", ownPage.NextCursor, false, 2); !errors.Is(err, attendance.ErrInvalidCursor) {
+		t.Fatal("cross-actor request cursor", err)
+	}
+	reviewPage, err := s.CorrectionsPage(ctx, "reviewer", "group", "", true, 100)
+	if err != nil || len(reviewPage.Items) == 0 {
+		t.Fatalf("review requests: %+v %v", reviewPage, err)
+	}
+	if _, err := s.CorrectionsPage(ctx, "stranger", "group", "", true, 20); !errors.Is(err, attendance.ErrCorrection) {
+		t.Fatal("unauthorized request list", err)
+	}
 }
 
 func TestLaunchExchangeIsStableAndScoped(t *testing.T) {

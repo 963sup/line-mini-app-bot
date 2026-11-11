@@ -25,12 +25,12 @@ func Help(group bool, appURL string) messaging_api.MessageInterface {
 	description := "輸入「出勤紀錄」查詢本人紀錄，或開啟網頁服務。"
 	if group {
 		title = "群組功能選單"
-		description = "點選下方按鈕：打卡、出勤、請假登記或本人漏下班檢查。請假送出不代表核准；歷史出勤請私訊查詢。分享位置可查天氣，輸入「摘要」整理群聊。"
+		description = "點選下方按鈕：打卡、出勤、請假登記或補卡申請。請假送出不代表核准；歷史出勤請私訊查詢。分享位置可查天氣，輸入「摘要」整理群聊。"
 	}
 	buttons := []messaging_api.FlexComponentInterface{}
 	if group {
 		for _, entry := range []struct{ label, command string }{
-			{"打卡", "打卡"}, {"出勤", "出勤"}, {"請假登記", "請假"}, {"漏下班檢查", "漏下班"},
+			{"打卡", "打卡"}, {"出勤", "出勤"}, {"請假登記", "請假"}, {"補卡申請", "補卡"},
 		} {
 			buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.MessageAction{Label: entry.label, Text: entry.command}})
 		}
@@ -68,7 +68,7 @@ func QuickMenu(group bool, appURL string) messaging_api.MessageInterface {
 		add("打卡", "打卡")
 		add("出勤", "出勤")
 		add("請假", "請假")
-		add("漏下班", "漏下班")
+		add("補卡", "補卡")
 		add("摘要", "摘要")
 	} else {
 		add("出勤紀錄", "出勤紀錄")

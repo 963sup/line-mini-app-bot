@@ -45,7 +45,7 @@ func correctionInput(source generated.CorrectionSubmission) attendance.Correctio
 			breaks[i] = worktime.Interval{Start: v.Start, End: v.End}
 		}
 	}
-	return attendance.Correction{ID: optionalValue(source.Id), GroupID: source.GroupId, RecordID: source.RecordId, ExpectedEventSequence: optionalValue(source.ExpectedEventSequence), ExpectedRevision: optionalValue(source.ExpectedRevision), Reason: optionalValue(source.Reason), Start: optionalValue(source.Start), End: optionalValue(source.End), Breaks: breaks, RestConfirmed: optionalValue(source.RestConfirmed)}
+	return attendance.Correction{ID: optionalValue(source.Id), GroupID: source.GroupId, RecordID: optionalValue(source.RecordId), ExpectedEventSequence: optionalValue(source.ExpectedEventSequence), ExpectedRevision: optionalValue(source.ExpectedRevision), Reason: optionalValue(source.Reason), Start: optionalValue(source.Start), End: optionalValue(source.End), Breaks: breaks, RestConfirmed: optionalValue(source.RestConfirmed)}
 }
 
 func correctionView(source attendance.Correction) generated.CorrectionReview {
@@ -77,3 +77,20 @@ func monthlyView(source attendance.MonthlyReport) generated.MonthlyReport {
 }
 
 func pointerInt64(value int) *int64 { converted := int64(value); return &converted }
+
+func correctionDetailsView(source attendance.CorrectionDetails) generated.CorrectionReview {
+	view := correctionView(source.Correction)
+	view.ApplicantName = &source.ApplicantName
+	view.Status, view.DecisionReason, view.NewRecord = &source.Status, &source.DecisionReason, &source.NewRecord
+	if !source.CreatedAt.IsZero() {
+		view.CreatedAt = &source.CreatedAt
+	}
+	if !source.ReviewedAt.IsZero() {
+		view.ReviewedAt = &source.ReviewedAt
+	}
+	if source.Before != nil {
+		before := recordView(*source.Before)
+		view.Before = &before
+	}
+	return view
+}

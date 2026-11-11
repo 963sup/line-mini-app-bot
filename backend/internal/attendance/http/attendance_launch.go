@@ -59,14 +59,7 @@ func registerAttendanceLaunch(mux *http.ServeMux, bot *Attendance, app Authentic
 			transport.WriteAPIError(w, 503, "unavailable", "暫時無法確認打卡連結。")
 			return
 		}
-		client := &http.Client{Timeout: 5 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
-		memberStatus := checkGroupMember(ctx, client, "https://api.line.me", os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN"), group, user)
-		if memberStatus == 400 || memberStatus == 404 {
-			transport.WriteAPIError(w, 403, "not_member", "無法確認你是此群組成員。")
-			return
-		}
-		if memberStatus != 200 {
-			transport.WriteAPIError(w, 503, "unavailable", "暫時無法確認群組身分。")
+		if !requireGroupMember(w, ctx, group, user) {
 			return
 		}
 		id, err := store.ExchangeLaunch(ctx, input.Launch, user)
@@ -99,4 +92,19 @@ func checkGroupMember(ctx context.Context, client *http.Client, baseURL, token, 
 	// Closing this read-only response cannot commit application state.
 	defer func() { _ = resp.Body.Close() }()
 	return resp.StatusCode
+}
+
+// Membership proof is shared by launch, leave and missing-shift submissions.
+func requireGroupMember(w http.ResponseWriter, ctx context.Context, group, user string) bool {
+	client := &http.Client{Timeout: 5 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	member := checkGroupMember(ctx, client, "https://api.line.me", os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN"), group, user)
+	if member == 200 {
+		return true
+	}
+	if member == 400 || member == 404 {
+		transport.WriteAPIError(w, 403, "not_member", "無法確認你是此群組成員。")
+	} else {
+		transport.WriteAPIError(w, 503, "unavailable", "暫時無法確認群組身分，未送出申請。")
+	}
+	return false
 }

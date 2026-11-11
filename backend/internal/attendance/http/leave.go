@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/963sup/line-mini-app-bot/internal/attendance"
@@ -70,14 +69,7 @@ func registerLeave(mux *http.ServeMux, bot *Attendance, app Authenticator) {
 			transport.WriteAPIError(w, 503, "unavailable", "暫時無法確認請假連結。")
 			return
 		}
-		client := &http.Client{Timeout: 5 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
-		member := checkGroupMember(ctx, client, "https://api.line.me", os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN"), group, user)
-		if member == 400 || member == 404 {
-			transport.WriteAPIError(w, 403, "not_member", "無法確認你是此群組成員。")
-			return
-		}
-		if member != 200 {
-			transport.WriteAPIError(w, 503, "unavailable", "暫時無法確認群組身分，未送出請假。")
+		if !requireGroupMember(w, ctx, group, user) {
 			return
 		}
 		proposal.GroupID = group

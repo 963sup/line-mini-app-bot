@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"slices"
+	"strings"
 	"time"
 
 	db "cloud.google.com/go/firestore"
@@ -61,6 +63,10 @@ func (s *Attendance) proposeCorrection(ctx context.Context, user, key string, c 
 	if err != nil {
 		return "", err
 	}
+	if user == "" || !validSegment(c.GroupID) || len(c.GroupID) > 128 {
+		return "", attendance.ErrCorrection
+	}
+	c.NewRecord = c.RecordID == ""
 	c.UserKey, c.CreatedAt = documentKey(user), now
 	proposals := s.Client.Collection("channels").Doc(s.ChannelID).Collection("attendanceCorrectionRequests")
 	var ref *db.DocumentRef
@@ -101,19 +107,21 @@ func (s *Attendance) proposeCorrection(ctx context.Context, user, key string, c 
 			ref = proposals.Doc(id.String())
 		}
 		c.ID = ref.ID
-		snapshot, err := tx.Get(s.user(user).Collection("attendance").Doc(c.RecordID))
+		if c.NewRecord {
+			c.RecordID = "correction-" + c.ID
+		}
+		before, err := correctionBefore(tx, s.user(user), c)
 		if err != nil {
 			return err
 		}
-		var before attendance.Record
-		if err := decodeRecord(snapshot, &before); err != nil {
-			return err
-		}
-		before.RecordID = c.RecordID
+
 		if c.End.After(now) {
 			return attendance.ErrCorrection
 		}
 		if _, err := attendance.ApplyCorrection(before, c); err != nil {
+			return err
+		}
+		if err := correctionOverlap(tx, s.user(user), c); err != nil {
 			return err
 		}
 		if err := tx.Create(ref, correctionDocumentFrom(c)); err != nil {
@@ -130,23 +138,104 @@ func (s *Attendance) proposeCorrection(ctx context.Context, user, key string, c 
 	return c.ID, nil
 }
 
-// ApproveCorrection requires a trusted, pre-provisioned group reviewer and
-// writes an immutable before/after audit document alongside the new projection.
-func (s *Attendance) ApproveCorrection(ctx context.Context, reviewer, id string, now time.Time) (err error) {
-	defer func() { err = translateError(err, attendance.ErrCorrection) }()
-	channel := s.Client.Collection("channels").Doc(s.ChannelID)
-	return s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
-		role, err := tx.Get(channel.Collection("attendanceReviewers").Doc(documentKey(reviewer)))
-		if err != nil {
-			return attendance.ErrCorrection
+// ApproveCorrection and RejectCorrection share one atomic, terminal decision.
+func (s *Attendance) ApproveCorrection(ctx context.Context, reviewer, id string, now time.Time) error {
+	return s.decideCorrection(ctx, reviewer, id, "approved", "", now)
+}
+
+func (s *Attendance) RejectCorrection(ctx context.Context, reviewer, id, reason string, now time.Time) error {
+	reason = strings.TrimSpace(reason)
+	if reason == "" || len([]rune(reason)) > 500 {
+		return attendance.ErrCorrection
+	}
+	return s.decideCorrection(ctx, reviewer, id, "rejected", reason, now)
+}
+
+func (s *Attendance) CancelCorrection(ctx context.Context, user, id string, now time.Time) error {
+	return s.decideCorrection(ctx, user, id, "cancelled", "", now)
+}
+
+type correctionDecision struct {
+	Status      string    `firestore:"status"`
+	Reason      string    `firestore:"decisionReason"`
+	ReviewerKey string    `firestore:"reviewerKey"`
+	ReviewedAt  time.Time `firestore:"reviewedAt"`
+}
+
+func correctionBefore(tx *db.Transaction, employee *db.DocumentRef, c attendance.Correction) (attendance.Record, error) {
+	snapshot, err := tx.Get(employee.Collection("attendance").Doc(c.RecordID))
+	if c.NewRecord {
+		if isMissingCorrection(err) {
+			return attendance.Record{}, nil
 		}
-		var access struct {
-			Groups []string `firestore:"groups"`
+		if err == nil {
+			return attendance.Record{}, attendance.ErrCorrection
 		}
-		if err := role.DataTo(&access); err != nil {
+		return attendance.Record{}, err
+	}
+	if err != nil {
+		return attendance.Record{}, err
+	}
+	var before attendance.Record
+	if err := decodeRecord(snapshot, &before); err != nil {
+		return before, err
+	}
+	before.RecordID = c.RecordID
+	return before, nil
+}
+
+// Bound the equality-only scan and fail closed. The shared group state document
+// serializes approvals with each other and with live punches, including inserts.
+func correctionOverlap(tx *db.Transaction, employee *db.DocumentRef, c attendance.Correction) error {
+	docs, err := tx.Documents(employee.Collection("attendance").Where("groupID", "==", c.GroupID).Limit(1001)).GetAll()
+	if err != nil {
+		return err
+	}
+	if len(docs) > 1000 {
+		return attendance.ErrCorrection
+	}
+	for _, doc := range docs {
+		if doc.Ref.ID == c.RecordID {
+			continue
+		}
+		var other attendance.Record
+		if err := decodeRecord(doc, &other); err != nil {
 			return err
 		}
-		proposal, err := tx.Get(channel.Collection("attendanceCorrectionRequests").Doc(id))
+		if other.ClockInAt.IsZero() || (other.ClockInAt.Before(c.End) && (other.ClockOutAt.IsZero() || other.ClockOutAt.After(c.Start))) {
+			return attendance.ErrCorrection
+		}
+	}
+	return nil
+}
+
+func (s *Attendance) reviewerGroups(tx *db.Transaction, reviewer string) ([]string, error) {
+	channel := s.Client.Collection("channels").Doc(s.ChannelID)
+	role, err := tx.Get(channel.Collection("attendanceReviewers").Doc(documentKey(reviewer)))
+	if isMissingCorrection(err) {
+		return nil, attendance.ErrCorrection
+	}
+	if err != nil {
+		return nil, err
+	}
+	var access struct {
+		Groups []string `firestore:"groups"`
+	}
+	if err := role.DataTo(&access); err != nil {
+		return nil, err
+	}
+	return access.Groups, nil
+}
+
+func (s *Attendance) decideCorrection(ctx context.Context, actor, id, decision, reason string, now time.Time) (err error) {
+	defer func() { err = translateError(err, attendance.ErrCorrection) }()
+	if actor == "" || !validSegment(id) {
+		return attendance.ErrCorrection
+	}
+	channel := s.Client.Collection("channels").Doc(s.ChannelID)
+	return s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+		proposalRef := channel.Collection("attendanceCorrectionRequests").Doc(id)
+		proposal, err := tx.Get(proposalRef)
 		if err != nil {
 			return err
 		}
@@ -154,110 +243,239 @@ func (s *Attendance) ApproveCorrection(ctx context.Context, reviewer, id string,
 		if err := decodeCorrection(proposal, &c); err != nil {
 			return err
 		}
-		allowed := false
-		for _, g := range access.Groups {
-			if g == c.GroupID {
-				allowed = true
+		if decision == "cancelled" {
+			if c.UserKey != documentKey(actor) {
+				return attendance.ErrCorrection
+			}
+		} else {
+			groups, err := s.reviewerGroups(tx, actor)
+			if err != nil {
+				return err
+			}
+			if c.UserKey == documentKey(actor) || !slices.Contains(groups, c.GroupID) {
+				return attendance.ErrCorrection
 			}
 		}
-		if !allowed || c.UserKey == documentKey(reviewer) {
-			return attendance.ErrCorrection
+		var prior correctionDecision
+		if err := proposal.DataTo(&prior); err != nil {
+			return err
 		}
 		audit := channel.Collection("attendanceCorrections").Doc(id)
-		prior, err := tx.Get(audit)
-		if err == nil && prior.Exists() {
-			return nil
+		approved, err := tx.Get(audit)
+		if err == nil && approved.Exists() {
+			if decision == "approved" {
+				return nil
+			}
+			return attendance.ErrCorrection
 		}
 		if err != nil && !isMissingCorrection(err) {
 			return err
 		}
-		employee := channel.Collection("users").Doc(c.UserKey)
-		ref := employee.Collection("attendance").Doc(c.RecordID)
-		snapshot, err := tx.Get(ref)
-		if err != nil {
-			return err
+		if prior.Status != "" {
+			if prior.Status == decision && prior.Reason == reason {
+				return nil
+			}
+			return attendance.ErrCorrection
 		}
-		var before attendance.Record
-		if err := decodeRecord(snapshot, &before); err != nil {
-			return err
-		}
-		before.RecordID = c.RecordID
-		after, err := attendance.ApplyCorrection(before, c)
-		if err != nil {
-			return err
-		}
-		state := employee.Collection("attendanceStates").Doc(documentKey(c.GroupID))
-		activeSnapshot, err := tx.Get(state)
-		var active struct {
-			RecordID string `firestore:"recordID"`
-		}
-		if err == nil {
-			if err := activeSnapshot.DataTo(&active); err != nil {
+		if decision == "approved" {
+			employee := channel.Collection("users").Doc(c.UserKey)
+			before, err := correctionBefore(tx, employee, c)
+			if err != nil {
 				return err
 			}
-		} else if !isMissingCorrection(err) {
-			return err
-		}
-		if active.RecordID == c.RecordID {
-			if err := tx.Update(state, []db.Update{{Path: "recordID", Value: ""}}); err != nil {
+			if c.End.After(now) {
+				return attendance.ErrCorrection
+			}
+			after, err := attendance.ApplyCorrection(before, c)
+			if err != nil {
+				return err
+			}
+			state := employee.Collection("attendanceStates").Doc(documentKey(c.GroupID))
+			stateSnapshot, err := tx.Get(state)
+			var active struct {
+				RecordID string `firestore:"recordID"`
+			}
+			if err == nil {
+				if err := stateSnapshot.DataTo(&active); err != nil {
+					return err
+				}
+			} else if !isMissingCorrection(err) {
+				return err
+			}
+			if err := correctionOverlap(tx, employee, c); err != nil {
+				return err
+			}
+			update := map[string]any{"correctionUpdatedAt": now}
+			if active.RecordID == c.RecordID {
+				update["recordID"] = ""
+			}
+			if err := tx.Set(state, update, db.MergeAll); err != nil {
+				return err
+			}
+			ref := employee.Collection("attendance").Doc(c.RecordID)
+			if c.NewRecord {
+				err = tx.Create(ref, recordDocumentFrom(after))
+			} else {
+				err = tx.Set(ref, recordDocumentFrom(after))
+			}
+			if err != nil {
+				return err
+			}
+			if err := tx.Set(employee.Collection("attendanceGroups").Doc(documentKey(c.GroupID)), map[string]any{"groupID": c.GroupID}); err != nil {
+				return err
+			}
+			if err := tx.Create(audit, map[string]any{"proposal": correctionDocumentFrom(c), "before": recordDocumentFrom(before), "after": recordDocumentFrom(after), "reviewerKey": documentKey(actor), "approvedAt": now}); err != nil {
 				return err
 			}
 		}
-		if err := tx.Set(ref, recordDocumentFrom(after)); err != nil {
-			return err
-		}
-		return tx.Create(audit, map[string]any{"proposal": correctionDocumentFrom(c), "before": recordDocumentFrom(before), "after": recordDocumentFrom(after), "reviewerKey": documentKey(reviewer), "approvedAt": now})
+		return tx.Update(proposalRef, []db.Update{{Path: "status", Value: decision}, {Path: "decisionReason", Value: reason}, {Path: "reviewerKey", Value: documentKey(actor)}, {Path: "reviewedAt", Value: now}})
 	})
 }
 
 func isMissingCorrection(err error) bool { return status.Code(err) == codes.NotFound }
 
-func (s *Attendance) CorrectionStatus(ctx context.Context, user, id string) (_ string, err error) {
-	defer func() { err = translateError(err, attendance.ErrCorrection) }()
+func (s *Attendance) CorrectionStatus(ctx context.Context, user, id string) (string, error) {
+	details, err := s.CorrectionDetails(ctx, user, id, false)
+	return details.Status, err
+}
+
+func (s *Attendance) correctionDetails(tx *db.Transaction, proposal *db.DocumentSnapshot, c attendance.Correction) (attendance.CorrectionDetails, error) {
+	result := attendance.CorrectionDetails{Correction: c, Status: "pending"}
+	var decision correctionDecision
+	if err := proposal.DataTo(&decision); err != nil {
+		return result, err
+	}
+	result.DecisionReason, result.ReviewedAt = decision.Reason, decision.ReviewedAt
 	channel := s.Client.Collection("channels").Doc(s.ChannelID)
-	result := "pending"
-	err = s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
-		result = "pending"
-		snapshot, err := tx.Get(channel.Collection("attendanceCorrectionRequests").Doc(id))
+	audit, err := tx.Get(channel.Collection("attendanceCorrections").Doc(c.ID))
+	if err == nil {
+		evidence, err := decodeCorrectionAudit(audit, c.UserKey, c.ID)
+		if err != nil {
+			if err == attendance.ErrCorrection {
+				result.Status = "invalid"
+				return result, nil
+			}
+			return result, err
+		}
+		result.Before, result.ReviewedAt, result.Status = &evidence.Before, evidence.ApprovedAt, "approved"
+		if !attendance.VerifyCorrection(evidence.Before, evidence.Proposal, evidence.After, evidence.After) {
+			result.Status = "invalid"
+		}
+		return result, nil
+	}
+	if !isMissingCorrection(err) {
+		return result, err
+	}
+	if decision.Status == "rejected" || decision.Status == "cancelled" {
+		result.Status = decision.Status
+		return result, nil
+	}
+	if decision.Status != "" {
+		result.Status = "invalid"
+		return result, nil
+	}
+	employee := channel.Collection("users").Doc(c.UserKey)
+	before, err := correctionBefore(tx, employee, c)
+	if err != nil {
+		if err == attendance.ErrCorrection || isMissingCorrection(err) {
+			result.Status = "stale"
+			return result, nil
+		}
+		return result, err
+	}
+	if !c.NewRecord {
+		result.Before = &before
+	}
+	if _, err := attendance.ApplyCorrection(before, c); err != nil {
+		result.Status = "stale"
+	}
+	return result, nil
+}
+
+func (s *Attendance) CorrectionDetails(ctx context.Context, actor, id string, review bool) (_ attendance.CorrectionDetails, err error) {
+	defer func() { err = translateError(err, attendance.ErrCorrection) }()
+	var result attendance.CorrectionDetails
+	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+		proposal, err := tx.Get(s.Client.Collection("channels").Doc(s.ChannelID).Collection("attendanceCorrectionRequests").Doc(id))
 		if err != nil {
 			return err
 		}
 		var c attendance.Correction
-		if err := decodeCorrection(snapshot, &c); err != nil {
+		if err := decodeCorrection(proposal, &c); err != nil {
 			return err
 		}
-		if c.UserKey != documentKey(user) {
+		if review {
+			groups, err := s.reviewerGroups(tx, actor)
+			if err != nil {
+				return err
+			}
+			if c.UserKey == documentKey(actor) || !slices.Contains(groups, c.GroupID) {
+				return attendance.ErrCorrection
+			}
+		} else if c.UserKey != documentKey(actor) {
 			return attendance.ErrCorrection
 		}
-		auditSnapshot, auditErr := tx.Get(channel.Collection("attendanceCorrections").Doc(id))
-		err = auditErr
-		if err == nil {
-			audit, decodeErr := decodeCorrectionAudit(auditSnapshot, user, id)
-			if decodeErr != nil {
-				return decodeErr
+		result, err = s.correctionDetails(tx, proposal, c)
+		return err
+	}, db.ReadOnly)
+	return result, err
+}
+
+func (s *Attendance) CorrectionsPage(ctx context.Context, actor, group, cursor string, review bool, size int) (_ attendance.CorrectionPage, err error) {
+	defer func() { err = translateError(err, attendance.ErrCorrection) }()
+	result := attendance.CorrectionPage{Items: []attendance.CorrectionDetails{}}
+	if !validPageSize(size) || (review && !validSegment(group)) {
+		return result, attendance.ErrInvalidCursor
+	}
+	scope := s.cursorScope("corrections-own", actor, "", time.Time{})
+	if review {
+		scope = s.cursorScope("corrections-review", actor, group, time.Time{})
+	}
+	c, err := decodeCursor(cursor, scope)
+	if err != nil {
+		return result, err
+	}
+	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+		result = attendance.CorrectionPage{Items: []attendance.CorrectionDetails{}}
+		q := s.Client.Collection("channels").Doc(s.ChannelID).Collection("attendanceCorrectionRequests").Where("userKey", "==", documentKey(actor))
+		if review {
+			groups, err := s.reviewerGroups(tx, actor)
+			if err != nil {
+				return err
 			}
-			result = "approved"
-			if !attendance.VerifyCorrection(audit.Before, audit.Proposal, audit.After, audit.After) {
-				result = "invalid"
+			if !slices.Contains(groups, group) {
+				return attendance.ErrCorrection
 			}
-			return nil
+			q = s.Client.Collection("channels").Doc(s.ChannelID).Collection("attendanceCorrectionRequests").Where("groupID", "==", group)
 		}
-		if !isMissingCorrection(err) {
-			return err
+		q = q.OrderBy(db.DocumentID, db.Desc)
+		if c.ID != "" {
+			q = q.StartAfter(c.ID)
 		}
-		record, err := tx.Get(s.user(user).Collection("attendance").Doc(c.RecordID))
+		docs, err := tx.Documents(q.Limit(size + 1)).GetAll()
 		if err != nil {
 			return err
 		}
-		var current attendance.Record
-		if err := decodeRecord(record, &current); err != nil {
-			return err
+		if len(docs) > size {
+			result.NextCursor = encodeCursor(scope, time.Time{}, docs[size-1].Ref.ID)
+			docs = docs[:size]
 		}
-		if current.Revision != c.ExpectedRevision || current.EventSequence != c.ExpectedEventSequence {
-			result = "stale"
+		for _, doc := range docs {
+			var proposal attendance.Correction
+			if err := decodeCorrection(doc, &proposal); err != nil {
+				return err
+			}
+			if review && proposal.UserKey == documentKey(actor) {
+				continue
+			}
+			details, err := s.correctionDetails(tx, doc, proposal)
+			if err != nil {
+				return err
+			}
+			result.Items = append(result.Items, details)
 		}
 		return nil
-	})
+	}, db.ReadOnly)
 	return result, err
 }
 
@@ -272,7 +490,7 @@ func (s *Attendance) verifyCorrection(ctx context.Context, user string, current 
 	if err != nil {
 		return false, err
 	}
-	audit, err := decodeCorrectionAudit(snapshot, user, current.CorrectionID)
+	audit, err := decodeCorrectionAudit(snapshot, documentKey(user), current.CorrectionID)
 	if err != nil {
 		if err == attendance.ErrCorrection {
 			return false, nil
@@ -290,7 +508,7 @@ type correctionAudit struct {
 	ApprovedAt  time.Time             `firestore:"approvedAt"`
 }
 
-func decodeCorrectionAudit(snapshot *db.DocumentSnapshot, user, id string) (correctionAudit, error) {
+func decodeCorrectionAudit(snapshot *db.DocumentSnapshot, userKey, id string) (correctionAudit, error) {
 	var audit correctionAudit
 	var stored struct {
 		Proposal    correctionDocument `firestore:"proposal"`
@@ -303,42 +521,19 @@ func decodeCorrectionAudit(snapshot *db.DocumentSnapshot, user, id string) (corr
 		return audit, err
 	}
 	audit = correctionAudit{Proposal: stored.Proposal.domain(), Before: stored.Before.domain(), After: stored.After.domain(), ReviewerKey: stored.ReviewerKey, ApprovedAt: stored.ApprovedAt}
-	if audit.Proposal.UserKey != documentKey(user) || audit.Proposal.ID != id || audit.ReviewerKey == "" || audit.ReviewerKey == audit.Proposal.UserKey || audit.ApprovedAt.IsZero() {
+	if audit.Proposal.UserKey != userKey || audit.Proposal.ID != id || audit.ReviewerKey == "" || audit.ReviewerKey == audit.Proposal.UserKey || audit.ApprovedAt.IsZero() {
 		return audit, attendance.ErrCorrection
 	}
 	return audit, nil
 }
 
-// CorrectionReview exposes proposal details only to a group-authorized reviewer.
-func (s *Attendance) CorrectionReview(ctx context.Context, reviewer, id string) (_ attendance.Correction, err error) {
+func (s *Attendance) ReviewerGroups(ctx context.Context, actor string) (_ []string, err error) {
 	defer func() { err = translateError(err, attendance.ErrCorrection) }()
-	channel := s.Client.Collection("channels").Doc(s.ChannelID)
-	var c attendance.Correction
-	role, err := channel.Collection("attendanceReviewers").Doc(documentKey(reviewer)).Get(ctx)
-	if err != nil {
-		return c, attendance.ErrCorrection
-	}
-	var access struct {
-		Groups []string `firestore:"groups"`
-	}
-	if err := role.DataTo(&access); err != nil {
-		return c, err
-	}
-	snapshot, err := channel.Collection("attendanceCorrectionRequests").Doc(id).Get(ctx)
-	if err != nil {
-		return c, err
-	}
-	if err := decodeCorrection(snapshot, &c); err != nil {
-		return c, err
-	}
-	allowed := false
-	for _, g := range access.Groups {
-		if g == c.GroupID {
-			allowed = true
-		}
-	}
-	if !allowed || c.UserKey == documentKey(reviewer) {
-		return attendance.Correction{}, attendance.ErrCorrection
-	}
-	return c, nil
+	var groups []string
+	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+		var err error
+		groups, err = s.reviewerGroups(tx, actor)
+		return err
+	}, db.ReadOnly)
+	return groups, err
 }

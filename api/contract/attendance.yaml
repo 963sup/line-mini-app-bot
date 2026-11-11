@@ -1121,6 +1121,102 @@
             }
           }
         }
+      },
+      "get": {
+        "operationId": "listAttendanceCorrections",
+        "summary": "List own requests, or group requests for an authorized reviewer",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "scope",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "own",
+                "review"
+              ],
+              "default": "own"
+            }
+          },
+          {
+            "in": "query",
+            "name": "group",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "401": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "409": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "415": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CorrectionError"
+          }
+        }
       }
     },
     "/api/v1/attendance/corrections/{id}": {
@@ -1810,6 +1906,241 @@
           }
         }
       }
+    },
+    "/api/v1/attendance/corrections/{id}/reject": {
+      "post": {
+        "operationId": "rejectAttendanceCorrection",
+        "summary": "Reject with a reason, authorized independent reviewer only",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "description": "Required when authenticating with the session cookie.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionDecisionResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "401": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "cross-origin request blocked"
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "409": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "415": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CorrectionError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectionDecision"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attendance/corrections/{id}/cancel": {
+      "post": {
+        "operationId": "cancelAttendanceCorrection",
+        "summary": "Withdraw own pending request",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "description": "Required when authenticating with the session cookie.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionDecisionResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "401": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "cross-origin request blocked"
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "409": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "415": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CorrectionError"
+          }
+        }
+      }
+    },
+    "/api/v1/attendance/corrections/reviewer-groups": {
+      "get": {
+        "operationId": "listAttendanceReviewerGroups",
+        "summary": "List server-provisioned reviewer groups",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GroupItem"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "401": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "409": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "415": {
+            "$ref": "#/components/responses/CorrectionError"
+          },
+          "503": {
+            "$ref": "#/components/responses/CorrectionError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2322,11 +2653,10 @@
           }
         },
         "required": [
-          "groupId",
-          "recordId"
+          "groupId"
         ],
         "additionalProperties": false,
-        "description": "Existing optional fields remain optional. Business validation, revision checks and review authorization are enforced by Go. Server ignores supplied id. Times are RFC3339; business calculations use Asia/Taipei."
+        "description": "Omit recordId to request a missing completed shift; otherwise correct an existing shift. All requests require independent human approval. Server allocates IDs. Revision and event sequence apply to existing records."
       },
       "CorrectionReview": {
         "type": "object",
@@ -2372,6 +2702,31 @@
           },
           "restConfirmed": {
             "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "description": "pending, approved, rejected, cancelled, stale or invalid"
+          },
+          "decisionReason": {
+            "type": "string"
+          },
+          "reviewedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "newRecord": {
+            "type": "boolean"
+          },
+          "before": {
+            "$ref": "#/components/schemas/AttendanceRecord"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "applicantName": {
+            "type": "string",
+            "description": "Verified session display name captured at submission; older requests may omit it."
           }
         },
         "required": [
@@ -2413,7 +2768,14 @@
           },
           "status": {
             "type": "string",
-            "description": "Known values: pending, approved, stale, invalid; clients must tolerate additional states."
+            "description": "pending, approved, rejected, cancelled, stale or invalid"
+          },
+          "decisionReason": {
+            "type": "string"
+          },
+          "reviewedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
@@ -2651,6 +3013,61 @@
           "requestId": {
             "type": "string",
             "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      },
+      "CorrectionPage": {
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CorrectionReview"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        }
+      },
+      "CorrectionDecision": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        }
+      },
+      "CorrectionDecisionResult": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "responses": {
+      "CorrectionError": {
+        "description": "Request rejected or service unavailable",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/APIError"
+            }
           }
         }
       }

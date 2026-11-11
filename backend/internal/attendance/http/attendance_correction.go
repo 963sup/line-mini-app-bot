@@ -39,7 +39,7 @@ func registerAttendanceCorrections(mux *http.ServeMux, bot *Attendance, app Auth
 				transport.WriteAPIError(w, 503, "not_configured", "更正尚未啟用。")
 				return
 			}
-			user, _, ok := app.Authenticate(w, r)
+			user, name, ok := app.Authenticate(w, r)
 			if !ok {
 				return
 			}
@@ -68,8 +68,12 @@ func registerAttendanceCorrections(mux *http.ServeMux, bot *Attendance, app Auth
 					return
 				}
 				c := correctionInput(body)
-				if decoder.Decode(new(any)) != io.EOF || !correctionIDPattern.MatchString(c.RecordID) || c.GroupID == "" || len(c.GroupID) > 128 || len(c.Breaks) > 100 {
+				c.ApplicantName = name
+				if decoder.Decode(new(any)) != io.EOF || (c.RecordID != "" && !correctionIDPattern.MatchString(c.RecordID)) || c.GroupID == "" || len(c.GroupID) > 128 || len(c.Breaks) > 100 {
 					transport.WriteAPIError(w, 400, "invalid_input", "更正內容無效。")
+					return
+				}
+				if c.RecordID == "" && !requireGroupMember(w, ctx, c.GroupID, user) {
 					return
 				}
 				var id string
@@ -98,12 +102,7 @@ func registerAttendanceCorrections(mux *http.ServeMux, bot *Attendance, app Auth
 				transport.WriteAPIError(w, 409, "idempotency_conflict", "此重試識別碼已用於不同內容，請確認原申請後重新送出。")
 				return
 			}
-			if errors.Is(err, attendance.ErrCorrection) {
-				transport.WriteAPIError(w, 403, "invalid_correction", "無權限、資料版本已變動或更正內容無效。")
-				return
-			}
-			if err != nil {
-				transport.WriteAPIError(w, 503, "unavailable", "暫時無法處理更正，請稍後重試。")
+			if correctionHTTPError(w, err) {
 				return
 			}
 			transport.WriteJSON(w, 200, generated.CorrectionApproved{Status: generated.Approved})
@@ -146,41 +145,6 @@ func registerAttendanceCorrections(mux *http.ServeMux, bot *Attendance, app Auth
 		transport.WriteJSON(w, 200, monthlyView(attendance.CalculateMonthlyAttendance(records, month)))
 	})
 
-	mux.HandleFunc("GET /api/v1/attendance/corrections/{id}", func(w http.ResponseWriter, r *http.Request) {
-		if bot == nil {
-			transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")
-			return
-		}
-		user, _, ok := app.Authenticate(w, r)
-		if !ok {
-			return
-		}
-		store, ok := bot.store.(interface {
-			CorrectionStatus(context.Context, string, string) (string, error)
-		})
-		if !ok {
-			transport.WriteAPIError(w, 503, "not_configured", "更正查詢尚未啟用。")
-			return
-		}
-		id := r.PathValue("id")
-		if !correctionIDPattern.MatchString(id) {
-			transport.WriteAPIError(w, 400, "invalid_input", "申請編號無效。")
-			return
-		}
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-		defer cancel()
-		state, err := store.CorrectionStatus(ctx, user, id)
-		if errors.Is(err, attendance.ErrCorrection) {
-			transport.WriteAPIError(w, 403, "invalid_correction", "無法查詢此申請。")
-			return
-		}
-		if err != nil {
-			transport.WriteAPIError(w, 503, "unavailable", "暫時無法查詢。")
-			return
-		}
-		w.Header().Set("Cache-Control", "no-store")
-		transport.WriteJSON(w, 200, generated.CorrectionStatus{Id: id, Status: state})
-	})
 	mux.HandleFunc("GET /api/v1/attendance/groups", func(w http.ResponseWriter, r *http.Request) {
 		if bot == nil {
 			transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")
@@ -209,42 +173,158 @@ func registerAttendanceCorrections(mux *http.ServeMux, bot *Attendance, app Auth
 		w.Header().Set("Cache-Control", "no-store")
 		transport.WriteJSON(w, 200, items)
 	})
-	mux.HandleFunc("GET /api/v1/attendance/corrections/{id}/review", func(w http.ResponseWriter, r *http.Request) {
-		if bot == nil {
-			transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")
-			return
+
+	registerCorrectionRequests(mux, bot, app)
+	mux.Handle("POST /api/v1/attendance/corrections", handler(false))
+	mux.Handle("POST /api/v1/attendance/corrections/{id}/approve", handler(true))
+}
+
+func correctionHTTPError(w http.ResponseWriter, err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, attendance.ErrCorrection) {
+		transport.WriteAPIError(w, 403, "invalid_correction", "無權限、申請已結案、時段重疊或紀錄已變動。")
+	} else if errors.Is(err, attendance.ErrInvalidCursor) {
+		transport.WriteAPIError(w, 400, "invalid_cursor", "分頁已失效，請重新查詢。")
+	} else {
+		transport.WriteAPIError(w, 503, "unavailable", "暫時無法處理申請，請稍後重試。")
+	}
+	return true
+}
+
+func registerCorrectionRequests(mux *http.ServeMux, bot *Attendance, app Authenticator) {
+	register := func(pattern string, serve func(http.ResponseWriter, *http.Request, context.Context, string)) {
+		mux.Handle(pattern, http.NewCrossOriginProtection().Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if bot == nil {
+				transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")
+				return
+			}
+			user, _, ok := app.Authenticate(w, r)
+			if !ok {
+				return
+			}
+			if id := r.PathValue("id"); id != "" && !correctionIDPattern.MatchString(id) {
+				transport.WriteAPIError(w, 400, "invalid_input", "申請編號無效。")
+				return
+			}
+			ctx, cancel := context.WithTimeout(r.Context(), 8*time.Second)
+			defer cancel()
+			w.Header().Set("Cache-Control", "no-store")
+			serve(w, r, ctx, user)
+		})))
+	}
+	for _, review := range []bool{false, true} {
+		pattern := "GET /api/v1/attendance/corrections/{id}"
+		if review {
+			pattern += "/review"
 		}
-		user, _, ok := app.Authenticate(w, r)
-		if !ok {
-			return
-		}
+		register(pattern, func(w http.ResponseWriter, r *http.Request, ctx context.Context, user string) {
+			store, ok := bot.store.(interface {
+				CorrectionDetails(context.Context, string, string, bool) (attendance.CorrectionDetails, error)
+			})
+			if !ok {
+				transport.WriteAPIError(w, 503, "not_configured", "申請查詢尚未啟用。")
+				return
+			}
+			details, err := store.CorrectionDetails(ctx, user, r.PathValue("id"), review)
+			if correctionHTTPError(w, err) {
+				return
+			}
+			if review {
+				transport.WriteJSON(w, 200, correctionDetailsView(details))
+				return
+			}
+			view := generated.CorrectionStatus{Id: details.ID, Status: details.Status, DecisionReason: &details.DecisionReason}
+			if !details.ReviewedAt.IsZero() {
+				view.ReviewedAt = &details.ReviewedAt
+			}
+			transport.WriteJSON(w, 200, view)
+		})
+	}
+	register("GET /api/v1/attendance/corrections/reviewer-groups", func(w http.ResponseWriter, r *http.Request, ctx context.Context, user string) {
 		store, ok := bot.store.(interface {
-			CorrectionReview(context.Context, string, string) (attendance.Correction, error)
+			ReviewerGroups(context.Context, string) ([]string, error)
 		})
 		if !ok {
 			transport.WriteAPIError(w, 503, "not_configured", "審核尚未啟用。")
 			return
 		}
-		id := r.PathValue("id")
-		if !correctionIDPattern.MatchString(id) {
-			transport.WriteAPIError(w, 400, "invalid_input", "申請編號無效。")
+		groups, err := store.ReviewerGroups(ctx, user)
+		if correctionHTTPError(w, err) {
 			return
 		}
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-		defer cancel()
-		c, err := store.CorrectionReview(ctx, user, id)
-		if errors.Is(err, attendance.ErrCorrection) {
-			transport.WriteAPIError(w, 403, "forbidden", "無權審核此申請。")
-			return
+		items := make([]generated.GroupItem, 0, len(groups))
+		for _, group := range groups {
+			items = append(items, generated.GroupItem{Id: group, Name: bot.historyGroupName(ctx, group)})
 		}
-		if err != nil {
-			transport.WriteAPIError(w, 503, "unavailable", "暫時無法讀取申請。")
-			return
-		}
-		w.Header().Set("Cache-Control", "no-store")
-		transport.WriteJSON(w, 200, correctionView(c))
+		transport.WriteJSON(w, 200, items)
 	})
-
-	mux.Handle("POST /api/v1/attendance/corrections", handler(false))
-	mux.Handle("POST /api/v1/attendance/corrections/{id}/approve", handler(true))
+	register("GET /api/v1/attendance/corrections", func(w http.ResponseWriter, r *http.Request, ctx context.Context, user string) {
+		store, ok := bot.store.(interface {
+			CorrectionsPage(context.Context, string, string, string, bool, int) (attendance.CorrectionPage, error)
+		})
+		if !ok {
+			transport.WriteAPIError(w, 503, "not_configured", "申請查詢尚未啟用。")
+			return
+		}
+		size, cursor, ok := attendancePageInput(w, r)
+		if !ok {
+			return
+		}
+		review := r.URL.Query().Get("scope") == "review"
+		group := r.URL.Query().Get("group")
+		if review && !validAttendanceGroup(group) {
+			transport.WriteAPIError(w, 400, "invalid_input", "請選擇審核群組。")
+			return
+		}
+		page, err := store.CorrectionsPage(ctx, user, group, cursor, review, size)
+		if correctionHTTPError(w, err) {
+			return
+		}
+		items := make([]generated.CorrectionReview, 0, len(page.Items))
+		for _, item := range page.Items {
+			items = append(items, correctionDetailsView(item))
+		}
+		transport.WriteJSON(w, 200, generated.CorrectionPage{Items: items, NextCursor: page.NextCursor})
+	})
+	for _, action := range []string{"reject", "cancel"} {
+		register("POST /api/v1/attendance/corrections/{id}/"+action, func(w http.ResponseWriter, r *http.Request, ctx context.Context, user string) {
+			var err error
+			if action == "reject" {
+				store, ok := bot.store.(interface {
+					RejectCorrection(context.Context, string, string, string, time.Time) error
+				})
+				if !ok {
+					transport.WriteAPIError(w, 503, "not_configured", "駁回尚未啟用。")
+					return
+				}
+				dec := json.NewDecoder(http.MaxBytesReader(w, r.Body, 16384))
+				dec.DisallowUnknownFields()
+				var input generated.CorrectionDecision
+				if dec.Decode(&input) != nil || dec.Decode(new(any)) != io.EOF {
+					transport.WriteAPIError(w, 400, "invalid_input", "請填寫駁回理由。")
+					return
+				}
+				err = store.RejectCorrection(ctx, user, r.PathValue("id"), input.Reason, time.Now().UTC())
+			} else {
+				store, ok := bot.store.(interface {
+					CancelCorrection(context.Context, string, string, time.Time) error
+				})
+				if !ok {
+					transport.WriteAPIError(w, 503, "not_configured", "撤回尚未啟用。")
+					return
+				}
+				err = store.CancelCorrection(ctx, user, r.PathValue("id"), time.Now().UTC())
+			}
+			if correctionHTTPError(w, err) {
+				return
+			}
+			status := "rejected"
+			if action == "cancel" {
+				status = "cancelled"
+			}
+			transport.WriteJSON(w, 200, generated.CorrectionDecisionResult{Status: status})
+		})
+	}
 }

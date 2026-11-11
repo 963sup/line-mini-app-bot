@@ -410,6 +410,15 @@
     },
     "/api/v1/attendance/punches/preflight": {
       "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1punches~1preflight"
+    },
+    "/api/v1/attendance/corrections/{id}/reject": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1reject"
+    },
+    "/api/v1/attendance/corrections/{id}/cancel": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1cancel"
+    },
+    "/api/v1/attendance/corrections/reviewer-groups": {
+      "$ref": "./attendance.yaml#/paths/~1api~1v1~1attendance~1corrections~1reviewer-groups"
     }
   },
   "components": {

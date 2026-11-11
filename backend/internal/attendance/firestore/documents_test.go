@@ -28,7 +28,7 @@ func legacyHash(c attendance.Correction) string {
 	body, _ := json.Marshal(struct {
 		Version int
 		Payload legacyCorrection
-	}{1, legacyCorrection(c)})
+	}{1, legacyCorrectionFrom(c)})
 	return fmt.Sprintf("%x", sha256.Sum256(body))
 }
 
@@ -94,7 +94,7 @@ func TestFirestoreDocumentsRemainCompatible(t *testing.T) {
 		{"record", oldRecord, recordDocumentFrom(record)},
 		{"result", legacyResult{Code: "clocked_in", Record: oldRecord}, resultDocumentFrom(attendance.Result{Code: "clocked_in", Record: record})},
 		{"request", legacyRequest(request), request},
-		{"correction", legacyCorrection(correction), correctionDocumentFrom(correction)},
+		{"correction", legacyCorrectionFrom(correction), correctionDocumentFrom(correction)},
 	}
 	root := client.Collection("codecBoundary").Doc(fmt.Sprint(time.Now().UnixNano())).Collection("documents")
 	for _, tc := range cases {
@@ -151,4 +151,8 @@ func TestFirestoreDocumentsRemainCompatible(t *testing.T) {
 	if err != nil || id != expected {
 		t.Fatalf("old receipt no longer replays: %s %v", id, err)
 	}
+}
+
+func legacyCorrectionFrom(c attendance.Correction) legacyCorrection {
+	return legacyCorrection{ID: c.ID, UserKey: c.UserKey, GroupID: c.GroupID, RecordID: c.RecordID, ExpectedEventSequence: c.ExpectedEventSequence, ExpectedRevision: c.ExpectedRevision, Reason: c.Reason, Start: c.Start, End: c.End, Breaks: c.Breaks, RestConfirmed: c.RestConfirmed, CreatedAt: c.CreatedAt}
 }

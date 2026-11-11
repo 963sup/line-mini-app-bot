@@ -149,6 +149,7 @@ export function View() {
   return (
     <section className="panel" id="history">
       <h2>本人月紀錄</h2>
+      <p><a href={"/miniapp/correction?" + new URLSearchParams(group ? {group} : {})}>補卡申請（漏上班、漏下班或整班皆漏）</a></p>
       <p className="hint">
         整月摘要與下方分頁明細分開計算。資料可能更新；更正後請重新查詢。
       </p>

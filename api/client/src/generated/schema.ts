@@ -189,7 +189,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** List own requests, or group requests for an authorized reviewer */
+        get: operations["listAttendanceCorrections"];
         put?: never;
         /** proposeAttendanceCorrection */
         post: operations["proposeAttendanceCorrection"];
@@ -314,6 +315,57 @@ export interface paths {
         put?: never;
         /** Resolve an existing outcome or require a fresh position without recording a successful punch */
         post: operations["preflightAttendancePunch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendance/corrections/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject with a reason, authorized independent reviewer only */
+        post: operations["rejectAttendanceCorrection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendance/corrections/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw own pending request */
+        post: operations["cancelAttendanceCorrection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendance/corrections/reviewer-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List server-provisioned reviewer groups */
+        get: operations["listAttendanceReviewerGroups"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -508,11 +560,42 @@ export interface components {
             code: string;
             message: string;
         };
-        /** @description Existing optional fields remain optional. Business validation, revision checks and review authorization are enforced by Go. Server ignores supplied id. Times are RFC3339; business calculations use Asia/Taipei. */
+        CorrectionReview: {
+            id: string;
+            groupId: string;
+            recordId: string;
+            /** Format: int64 */
+            expectedEventSequence: number;
+            /** Format: int64 */
+            expectedRevision: number;
+            reason: string;
+            /** Format: date-time */
+            start: string;
+            /** Format: date-time */
+            end: string;
+            breaks: components["schemas"]["Interval"][] | null;
+            restConfirmed: boolean;
+            /** @description pending, approved, rejected, cancelled, stale or invalid */
+            status?: string;
+            decisionReason?: string;
+            /** Format: date-time */
+            reviewedAt?: string;
+            newRecord?: boolean;
+            before?: components["schemas"]["AttendanceRecord"];
+            /** Format: date-time */
+            createdAt?: string;
+            /** @description Verified session display name captured at submission; older requests may omit it. */
+            applicantName?: string;
+        };
+        CorrectionPage: {
+            items: components["schemas"]["CorrectionReview"][];
+            nextCursor: string;
+        };
+        /** @description Omit recordId to request a missing completed shift; otherwise correct an existing shift. All requests require independent human approval. Server allocates IDs. Revision and event sequence apply to existing records. */
         CorrectionSubmission: {
             id?: string;
             groupId: string;
-            recordId: string;
+            recordId?: string;
             /** Format: int64 */
             expectedEventSequence?: number;
             /** Format: int64 */
@@ -532,24 +615,11 @@ export interface components {
         };
         CorrectionStatus: {
             id: string;
-            /** @description Known values: pending, approved, stale, invalid; clients must tolerate additional states. */
+            /** @description pending, approved, rejected, cancelled, stale or invalid */
             status: string;
-        };
-        CorrectionReview: {
-            id: string;
-            groupId: string;
-            recordId: string;
-            /** Format: int64 */
-            expectedEventSequence: number;
-            /** Format: int64 */
-            expectedRevision: number;
-            reason: string;
+            decisionReason?: string;
             /** Format: date-time */
-            start: string;
-            /** Format: date-time */
-            end: string;
-            breaks: components["schemas"]["Interval"][] | null;
-            restConfirmed: boolean;
+            reviewedAt?: string;
         };
         CorrectionApproved: {
             /** @enum {string} */
@@ -584,8 +654,24 @@ export interface components {
         PunchPreflightRequest: {
             requestId: string;
         };
+        CorrectionDecision: {
+            reason: string;
+        };
+        CorrectionDecisionResult: {
+            status: string;
+        };
     };
-    responses: never;
+    responses: {
+        /** @description Request rejected or service unavailable */
+        CorrectionError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+            };
+        };
+    };
     parameters: never;
     requestBodies: never;
     headers: never;
@@ -1363,6 +1449,46 @@ export interface operations {
                     "application/json": components["schemas"]["APIError"];
                 };
             };
+        };
+    };
+    listAttendanceCorrections: {
+        parameters: {
+            query?: {
+                scope?: "own" | "review";
+                group?: string;
+                cursor?: string;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorrectionPage"];
+                };
+            };
+            400: components["responses"]["CorrectionError"];
+            401: components["responses"]["CorrectionError"];
+            /** @description Request failed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            404: components["responses"]["CorrectionError"];
+            409: components["responses"]["CorrectionError"];
+            415: components["responses"]["CorrectionError"];
+            503: components["responses"]["CorrectionError"];
         };
     };
     proposeAttendanceCorrection: {
@@ -2185,6 +2311,129 @@ export interface operations {
                     "application/json": components["schemas"]["APIError"];
                 };
             };
+        };
+    };
+    rejectAttendanceCorrection: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required when authenticating with the session cookie. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CorrectionDecision"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorrectionDecisionResult"];
+                };
+            };
+            400: components["responses"]["CorrectionError"];
+            401: components["responses"]["CorrectionError"];
+            /** @description Request failed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                    /** @example cross-origin request blocked */
+                    "text/plain": string;
+                };
+            };
+            404: components["responses"]["CorrectionError"];
+            409: components["responses"]["CorrectionError"];
+            415: components["responses"]["CorrectionError"];
+            503: components["responses"]["CorrectionError"];
+        };
+    };
+    cancelAttendanceCorrection: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required when authenticating with the session cookie. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorrectionDecisionResult"];
+                };
+            };
+            400: components["responses"]["CorrectionError"];
+            401: components["responses"]["CorrectionError"];
+            /** @description Request failed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                    /** @example cross-origin request blocked */
+                    "text/plain": string;
+                };
+            };
+            404: components["responses"]["CorrectionError"];
+            409: components["responses"]["CorrectionError"];
+            415: components["responses"]["CorrectionError"];
+            503: components["responses"]["CorrectionError"];
+        };
+    };
+    listAttendanceReviewerGroups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupItem"][];
+                };
+            };
+            400: components["responses"]["CorrectionError"];
+            401: components["responses"]["CorrectionError"];
+            /** @description Request failed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            404: components["responses"]["CorrectionError"];
+            409: components["responses"]["CorrectionError"];
+            415: components["responses"]["CorrectionError"];
+            503: components["responses"]["CorrectionError"];
         };
     };
 }

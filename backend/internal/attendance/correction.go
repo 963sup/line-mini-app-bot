@@ -20,6 +20,8 @@ var correctionKeyPattern = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]
 func ValidCorrectionKey(key string) bool { return correctionKeyPattern.MatchString(key) }
 
 type Correction struct {
+	ApplicantName         string
+	NewRecord             bool
 	ID                    string
 	UserKey               string
 	GroupID               string
@@ -34,9 +36,29 @@ type Correction struct {
 	CreatedAt             time.Time
 }
 
+// CorrectionDetails describes a request and its human decision, never an effective shift.
+type CorrectionDetails struct {
+	Correction
+	Status         string
+	DecisionReason string
+	ReviewedAt     time.Time
+	Before         *Record
+}
+
+type CorrectionPage struct {
+	Items      []CorrectionDetails
+	NextCursor string
+}
+
 // ApplyCorrection creates a new projection; original events remain unchanged.
 func ApplyCorrection(before Record, c Correction) (Record, error) {
-	if c.ID == "" || c.RecordID != before.RecordID || c.GroupID != before.GroupID || c.ExpectedRevision != before.Revision || c.ExpectedEventSequence != before.EventSequence || strings.TrimSpace(c.Reason) == "" || len(c.Reason) > 2000 || !c.RestConfirmed {
+	if c.NewRecord {
+		if before.RecordID != "" || !before.ClockInAt.IsZero() || before.Revision != 0 || c.ExpectedRevision != 0 || c.ExpectedEventSequence != 0 {
+			return Record{}, ErrCorrection
+		}
+		before = Record{RecordID: c.RecordID, GroupID: c.GroupID, SchemaVersion: 3}
+	}
+	if c.RecordID == "" || c.GroupID == "" || c.ExpectedRevision < 0 || c.ExpectedEventSequence < 0 || len(c.Breaks) > 100 || c.ID == "" || c.RecordID != before.RecordID || c.GroupID != before.GroupID || c.ExpectedRevision != before.Revision || c.ExpectedEventSequence != before.EventSequence || strings.TrimSpace(c.Reason) == "" || len(c.Reason) > 2000 || !c.RestConfirmed {
 		return Record{}, ErrCorrection
 	}
 	session := worktime.Session{ID: c.RecordID, Start: c.Start, End: c.End, Breaks: c.Breaks, RestConfirmed: c.RestConfirmed}
@@ -52,6 +74,7 @@ func ApplyCorrection(before Record, c Correction) (Record, error) {
 	after.RestConfirmed = true
 	after.Revision++
 	after.CorrectionID = c.ID
+	after.LastAppliedAt = c.End
 	after.RebuildIssues = nil
 	return after, nil
 }

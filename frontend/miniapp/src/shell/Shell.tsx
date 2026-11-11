@@ -34,12 +34,21 @@ function Content({
   useEffect(() => {
     if (!ready || workflow !== "home") return;
     const params = new URLSearchParams(location.search);
-    let leave = params.has("leave");
+    let leave = params.has("leave"),
+      correction = params.get("correction");
     try {
       const nested = params.get("liff.state");
-      if (nested) leave ||= new URL(nested, location.origin).searchParams.has("leave");
+      if (nested) {
+        const query = new URL(nested, location.origin).searchParams;
+        leave ||= query.has("leave");
+        correction ||= query.get("correction");
+      }
     } catch {}
-    if (leave) location.replace("/miniapp/leave" + location.search);
+    if (correction)
+      location.replace(
+        "/miniapp/correction?" + new URLSearchParams({ group: correction }),
+      );
+    else if (leave) location.replace("/miniapp/leave" + location.search);
     else if (params.has("launch") || params.has("liff.state"))
       location.replace("/miniapp/punch" + location.search);
   }, [workflow, ready]);
@@ -59,7 +68,7 @@ function Content({
             <a href="/miniapp">首頁</a>
             <a href="/miniapp/history">本人月紀錄</a>
             <a href="/miniapp/leave">本人請假紀錄</a>
-            <a href="/miniapp/correction">更正與申請結果</a>
+            <a href="/miniapp/correction">補卡／時間更正</a>
             <a href="/miniapp/review">授權審核</a>
           </nav>
         )}

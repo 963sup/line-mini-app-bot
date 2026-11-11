@@ -4,13 +4,19 @@ import type { components } from "@repo/api-client";
 import { useSession } from "../../../identity/Session";
 import { useLatestRequest, errorMessage } from "../../../shared/http/lifecycle";
 import { taiwan, displayTime, timestamp } from "../../../shared/time/time";
+import { Requests, correctionStatus } from "./Requests";
 type S = components["schemas"];
 export function View() {
   const { user, request } = useSession(),
     recordRead = useLatestRequest(),
     statusRead = useLatestRequest(),
-    submissionRequest = useLatestRequest();
+    submissionRequest = useLatestRequest(),
+    groupsRead = useLatestRequest();
   const [selected, setSelected] = useState<S["AttendanceRecord"] | null>(null),
+    [group, setGroup] = useState(""),
+    [newShift, setNewShift] = useState(false),
+    [groups, setGroups] = useState<S["GroupItem"][]>([]),
+    [groupCursor, setGroupCursor] = useState(""),
     [start, setStart] = useState(""),
     [end, setEnd] = useState(""),
     [breaks, setBreaks] = useState<{ Start: string; End: string }[]>([]),
@@ -31,7 +37,13 @@ export function View() {
     if (group) query.set("group", group);
     if (params.get("month")) query.set("month", params.get("month")!);
     setBack("/miniapp/history?" + query);
+    setGroup(group);
+    setNewShift(!record);
     if (!user) return;
+    if (!record) {
+      setStatus("補卡請填寫已結束班次的實際上下班與休息時間；一律須人工審核。");
+      return;
+    }
     if (!group || !validID(record)) {
       setStatus("請從本人月紀錄選擇班次；也可在下方查詢已送出的申請。");
       return;
@@ -65,13 +77,17 @@ export function View() {
   }, [user, request]);
   function submitCorrection(event: FormEvent) {
     event.preventDefault();
-    if (lock.current || !selected || !user) return;
+    if (lock.current || !user || (!selected && !newShift) || !group) return;
     try {
       const body: S["CorrectionSubmission"] = {
-        groupId: selected.GroupID,
-        recordId: selected.RecordID,
-        expectedRevision: selected.Revision,
-        expectedEventSequence: selected.EventSequence,
+        groupId: selected?.GroupID || group,
+        ...(selected
+          ? {
+              recordId: selected.RecordID,
+              expectedRevision: selected.Revision,
+              expectedEventSequence: selected.EventSequence,
+            }
+          : {}),
         reason,
         start: timestamp(start),
         end: timestamp(end),
@@ -134,42 +150,94 @@ export function View() {
           (c, s) =>
             c.GET("/api/v1/attendance/corrections/{id}", {
               signal: s,
-              params: { path: { id } },
+              params: { path: { id: correctionID } },
             }),
           { signal },
         ),
       (data) =>
         setApplication(
-          (
-            {
-              pending: "待審核",
-              approved: "已核准，請重新查詢月紀錄。",
-              stale: "原紀錄已變動，請重新載入班次再提出申請。",
-              invalid: "核准證據異常，請聯絡管理者。",
-            } as Record<string, string>
-          )[data.status] || "申請狀態無法確認。",
+          correctionStatus(data.status) +
+            (data.decisionReason ? `：${data.decisionReason}` : "") +
+            (data.status === "approved" ? "，請重新查詢月紀錄。" : ""),
         ),
       (error) => setApplication(errorMessage(error)),
+    );
+  }
+  function loadGroups(append = false) {
+    void groupsRead.run(
+      (signal) =>
+        request(
+          (c, s) =>
+            c.GET("/api/v1/attendance/groups/page", {
+              signal: s,
+              params: {
+                query: { pageSize: 20, cursor: append ? groupCursor : "" },
+              },
+            }),
+          { signal },
+        ),
+      (data) => {
+        setGroups((previous) =>
+          append ? [...previous, ...data.items] : data.items,
+        );
+        setGroupCursor(data.nextCursor);
+      },
+      (error) => setStatus(errorMessage(error)),
     );
   }
   return (
     <>
       <section className="panel">
-        <h2>提出更正</h2>
+        <h2>補卡／時間更正申請</h2>
+        <p>
+          已結束班次可申請漏上班、漏下班、整班補卡或時間更正；核准前有效紀錄不變。仍在工作且漏上班者，請於班次結束後申報完整時段。
+        </p>
         <p>
           <a id="back-history" href={back}>
             回本人月紀錄選擇班次
           </a>
         </p>
+        {newShift && (
+          <fieldset disabled={!user || busy}>
+            <p>
+              沒有可選班次時，可直接申請補卡。首次使用請回原 LINE
+              群組輸入「補卡」開啟表單。
+            </p>
+            <button onClick={() => loadGroups()}>載入本人群組</button>
+            <label>
+              群組
+              <select
+                id="correction-group"
+                value={group}
+                onChange={(e) => setGroup(e.target.value)}
+              >
+                <option value="">請選擇群組</option>
+                {group && !groups.some((g) => g.id === group) && (
+                  <option value={group}>目前群組</option>
+                )}
+                {groups.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {groupCursor && (
+              <button onClick={() => loadGroups(true)}>載入更多群組</button>
+            )}
+          </fieldset>
+        )}
         <p id="record-description">
           {selected
             ? `原班次：${displayTime(selected.ClockInAt)} → ${displayTime(selected.ClockOutAt)}。核准前工時不變。`
-            : "請先從月紀錄選擇要更正的班次。"}
+            : newShift
+              ? "申請新增缺失班次；請勿重複申報已有的班次。"
+              : "請先從月紀錄選擇要更正的班次。"}
         </p>
         <form id="correction-form" onSubmit={submitCorrection}>
           <fieldset
             id="correction-fields"
-            disabled={!user || !selected || busy}
+            disabled={!user || (!selected && !newShift) || !group || busy}
           >
             <div className="field-grid">
               <label>
@@ -242,7 +310,7 @@ export function View() {
               </button>
             </fieldset>
             <label>
-              更正原因
+              申請原因
               <textarea
                 id="correction-reason"
                 required
@@ -262,7 +330,7 @@ export function View() {
               已確認實際工作與休息時間；沒有休息區間代表本班無可扣除的休息。
             </label>
             <button id="submit-correction" type="submit">
-              送出更正申請
+              送出申請
             </button>
           </fieldset>
         </form>
@@ -270,6 +338,7 @@ export function View() {
           {status}
         </p>
       </section>
+      <Requests />
       <section className="panel">
         <h2>查看申請結果</h2>
         <p>輸入送出申請時取得的編號；核准前工時不變。</p>

@@ -505,6 +505,29 @@ test("correction double submit and ambiguous retry reuse a key; edited draft rot
   } finally {
     await f.dispose();
   }
+  // Exercise the same submission flow without an original shift.
+  const missing = await fixture(<Correction />, "?group=g1", async (r,next) => {
+    if (new URL(r.url).pathname.endsWith("/corrections")) {
+      if (r.method === "POST") return Response.json({id:"missing1",status:"accepted"});
+      return Response.json({items:[{id:"missing1",groupId:"g1",recordId:"correction-missing1",start:record.ClockInAt,end:record.ClockOutAt,reason:"整班漏卡",status:"rejected",decisionReason:"請提供出勤佐證"}],nextCursor:""});
+    }
+    return next(r);
+  });
+  try {
+    await missing.input("correction-start","2026-11-01T09:00");
+    await missing.input("correction-end","2026-11-01T18:00");
+    await missing.input("correction-reason","整班漏卡");
+    await missing.click("correction-confirm");
+    await act(async()=>{missing.node("correction-form").dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));await flush();});
+    const post=missing.requests.find(r=>r.method==="POST" && new URL(r.url).pathname.endsWith("/corrections"));
+    assert.ok(post);
+    const body=await post.clone().json();
+    assert.equal(body.groupId,"g1");
+    assert.equal("recordId" in body,false);
+    await missing.click("requests-load");
+    assert.match(missing.node("requests-list").textContent!,/已駁回/);
+    assert.match(missing.node("requests-list").textContent!,/請提供出勤佐證/);
+  } finally { await missing.dispose(); }
 });
 test("editing review ID rejects a late proposal and prevents approval of another ID", async () => {
   let resolve!: (response: Response) => void;
@@ -530,6 +553,16 @@ test("editing review ID rejects a late proposal and prevents approval of another
       f.requests.filter((r) => r.url.endsWith("/approve")).length,
       0,
     );
+    await f.click("review-correction");
+    await act(async()=>{resolve(Response.json({id:"c2",reason:"漏下班",start:record.ClockInAt,end:record.ClockOutAt,breaks:[],restConfirmed:true,status:"pending"}));await flush();});
+    await f.input("rejection-reason","請提供出勤佐證");
+    const original=f.setHandler(async r=>r.url.endsWith("/reject") ? Response.json({status:"rejected"}) : original(r));
+    await f.click("reject-correction");
+    const rejected=f.requests.find(r=>r.url.endsWith("/c2/reject"));
+    assert.ok(rejected);
+    assert.equal((await rejected.clone().json()).reason,"請提供出勤佐證");
+    assert.match(f.node("review-status").textContent!,/已駁回/);
+
   } finally {
     await f.dispose();
   }
