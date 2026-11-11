@@ -6,7 +6,7 @@
 .app-hero h1 { max-width: 12em; margin: 10px 0; font-size: clamp(2.3rem, 8vw, 4rem); letter-spacing: -.045em; line-height: 1.15; }
 .hero-copy { margin: 0; color: #59706d; }
 .app-page .eyebrow, .section-kicker { color: #17866b; font-size: .75rem; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
-.panel { margin: 0 0 18px; padding: clamp(22px, 5vw, 36px); background: #fff; border: 1px solid #e3eae7; border-radius: 24px; box-shadow: 0 14px 40px rgba(30, 65, 56, .045); }
+.panel { margin: 0 0 12px; padding: clamp(16px, 3vw, 24px); background: #fff; border: 1px solid #e3eae7; border-radius: 24px; box-shadow: 0 14px 40px rgba(30, 65, 56, .045); }
 .accent-panel { background: #eaf6f0; border-color: #d0e9dc; }
 .section-heading { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
 .section-heading h2 { margin: 0; font-size: 1.45rem; line-height: 1.25; }
@@ -48,7 +48,7 @@
   .app-shell { padding: 16px 12px 48px; }
   .app-hero { padding: 14px 6px 24px; }
   .app-hero h1 { font-size: clamp(2rem, 9vw, 2.8rem); }
-  .panel { padding: 22px 18px; border-radius: 18px; }
+  .panel { padding: 16px 14px; border-radius: 18px; }
   .section-heading { align-items: flex-start; }
   .section-heading > div { min-width: 0; }
   .section-heading h2 { font-size: 1.35rem; }
@@ -75,19 +75,26 @@ body.app-page { margin: 0; font-family: system-ui, -apple-system, "Noto Sans TC"
 .app-page button:focus-visible, .app-page a:focus-visible { outline: 3px solid #a2d8bd; outline-offset: 3px; }
 .app-page fieldset:disabled { opacity: .65; }
 .page-nav { display: flex; flex-wrap: wrap; gap: 12px 20px; padding: 0 4px 24px; }
-.journal-hero { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.journal-title { flex: none; }
-.journal-title .eyebrow { margin: 0; letter-spacing: .08em; }
-.journal-title h1 { margin: 4px 0; font-size: clamp(2rem, 5vw, 2.5rem); }
-.journal-nav { display: grid; grid-template-columns: repeat(3, minmax(44px, 1fr)); flex: 1; min-width: 0; max-width: 360px; gap: 4px 8px; padding: 0; }
-.journal-nav a { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 4px 6px; border-radius: 8px; background: #eaf6f0; font-size: .9rem; text-decoration: none; white-space: nowrap; }
-.journal-nav a[aria-current="page"] { background: #d0e9dc; font-weight: 700; }
-.journal-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.journal-panel-heading h2 { margin: 0; }
-.journal-panel-heading a { display: inline-flex; align-items: center; min-height: 44px; white-space: nowrap; }
-.service-links { display: grid; gap: 14px; margin: 20px 0; }
-.service-links a { display: grid; gap: 6px; padding: 18px; border: 1px solid #d7e7de; border-radius: 14px; text-decoration: none; }
-.service-links span { color: #59706d; }
+.compact-hero { padding: 8px 6px 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.compact-title { flex: none; }
+.compact-title .eyebrow { margin: 0; letter-spacing: .08em; }
+.compact-title h1 { margin: 4px 0; font-size: clamp(2rem, 5vw, 2.5rem); }
+.compact-nav { display: grid; grid-template-columns: repeat(3, minmax(44px, 1fr)); flex: 1; min-width: 0; max-width: 360px; gap: 4px 8px; padding: 0; }
+.compact-nav a { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 4px 6px; border-radius: 8px; background: #eaf6f0; font-size: .9rem; text-decoration: none; white-space: nowrap; }
+.compact-nav a[aria-current="page"] { background: #d0e9dc; font-weight: 700; }
+.panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.panel > h2, .panel-heading h2 { margin: 0 0 .5rem; font-size: 1.25rem; line-height: 1.35; }
+.panel-heading h2 { margin: 0; }
+.panel > p { margin: .5rem 0; }
+.app-page .identity-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin: 0; }
+.app-page .identity-actions button { width: auto; margin: 0; padding: .4rem .6rem; min-height: 44px; }
+.identity-panel dl { margin: 8px 0 0; font-size: .875rem; }
+.identity-panel dl > div { display: grid; grid-template-columns: 5.5em minmax(0, 1fr); gap: 8px; }
+.identity-panel dd { margin: 0; overflow-wrap: anywhere; }
+.panel-heading a { display: inline-flex; align-items: center; min-height: 44px; white-space: nowrap; }
+.service-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.service-links a { display: grid; min-width: 0; gap: 4px; padding: 12px; border: 1px solid #d7e7de; border-radius: 14px; text-decoration: none; }
+.service-links span { color: #59706d; font-size: .85rem; line-height: 1.5; }
 .record-list { margin: 18px 0; padding-left: 24px; }
 .record-list li { padding: 12px 4px 18px; border-bottom: 1px solid #e8eeeb; }
 .record-list h3 { margin: 0; font-size: 1rem; }

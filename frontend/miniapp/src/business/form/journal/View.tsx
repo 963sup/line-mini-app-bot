@@ -5,7 +5,7 @@ const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfK-_AVb1e-ZMgd9ITCQV_
 export function View() {
   return (
     <section className="panel journal-panel">
-      <div className="journal-panel-heading">
+      <div className="panel-heading">
         <h2>填寫</h2>
         <a href={formURL} target="_blank" rel="noopener noreferrer">開啟表單</a>
       </div>

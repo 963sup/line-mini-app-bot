@@ -4,6 +4,14 @@ import type { ReactNode } from "react";
 import { IdentityPanel } from "../identity/Panel";
 import { SessionProvider, useSession } from "../identity/Session";
 import { useEffect } from "react";
+const navigationItems = [
+  { workflow: "home", href: "/miniapp", label: "首頁", full: "首頁" },
+  { workflow: "journal", href: "/miniapp/journal", label: "日誌", full: "日誌" },
+  { workflow: "history", href: "/miniapp/history", label: "出勤", full: "本人月紀錄" },
+  { workflow: "leave", href: "/miniapp/leave", label: "請假", full: "本人請假紀錄" },
+  { workflow: "correction", href: "/miniapp/correction", label: "補登", full: "補卡／時間更正" },
+  { workflow: "review", href: "/miniapp/review", label: "審核", full: "授權審核" },
+];
 export function Shell({
   title,
   workflow,
@@ -32,19 +40,22 @@ function Content({
 }) {
   const { epoch, ready } = useSession();
   const journal = workflow === "journal";
+  const currentPage = navigationItems.find((item) => item.workflow === workflow);
   const navigation = (
-    <nav className={`page-nav${journal ? " journal-nav" : ""}`} aria-label="服務導覽">
-      <a href="/miniapp">首頁</a>
-      <a href="/miniapp/journal" aria-current={journal ? "page" : undefined}>日誌</a>
-      <a href="/miniapp/history" title={journal ? "本人月紀錄" : undefined} aria-label={journal ? "出勤：本人月紀錄" : undefined}>{journal ? "出勤" : "本人月紀錄"}</a>
-      <a href="/miniapp/leave" title={journal ? "本人請假紀錄" : undefined} aria-label={journal ? "本人請假紀錄" : undefined}>{journal ? "請假" : "本人請假紀錄"}</a>
-      <a href="/miniapp/correction" title={journal ? "補卡／時間更正" : undefined} aria-label={journal ? "補登：補卡／時間更正" : undefined}>{journal ? "補登" : "補卡／時間更正"}</a>
-      <a href="/miniapp/review" title={journal ? "授權審核" : undefined} aria-label={journal ? "授權審核" : undefined}>{journal ? "審核" : "授權審核"}</a>
+    <nav className={`page-nav${currentPage ? " compact-nav" : ""}`} aria-label="服務導覽">
+      {navigationItems.map((item) => (
+        <a key={item.workflow} href={item.href}
+          aria-current={item.workflow === workflow ? "page" : undefined}
+          title={item.full}
+          aria-label={item.label !== item.full ? `${item.label}：${item.full}` : undefined}>
+          {currentPage ? item.label : item.full}
+        </a>
+      ))}
     </nav>
   );
   const heading = <>
     <p className="eyebrow">{journal ? "LINE 日誌服務" : "LINE 出勤服務"}</p>
-    <h1>{title}</h1>
+    <h1 title={title}>{currentPage?.label || title}</h1>
   </>;
   useEffect(() => {
     if (!ready || workflow !== "home") return;
@@ -77,11 +88,11 @@ function Content({
         <link rel="stylesheet" href="/assets/app.css" />
       </Head>
       <main className="app-shell">
-        <header className={`app-hero${journal ? " journal-hero" : ""}`}>
-          {journal ? <div className="journal-title">{heading}</div> : heading}
-          {journal && navigation}
+        <header className={`app-hero${currentPage ? " compact-hero" : ""}`}>
+          {currentPage ? <div className="compact-title">{heading}</div> : heading}
+          {currentPage && navigation}
         </header>
-        {!journal && workflow !== "punch" && navigation}
+        {!currentPage && workflow !== "punch" && navigation}
         {workflow !== "journal" && <IdentityPanel />}
         <div key={workflow === "journal" ? "journal" : epoch}>{children}</div>
         <footer className="app-footer">

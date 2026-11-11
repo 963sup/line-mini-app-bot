@@ -7,26 +7,26 @@ export function View() {
         <div className="service-links">
           <a href="/miniapp/journal">
             <strong>日誌</strong>
-            <span>開啟 Google 表單填寫日誌。</span>
+            <span>填寫 Google 表單。</span>
           </a>
           <a href="/miniapp/history">
-            <strong>本人月紀錄</strong>
-            <span>查看整月工時與班次明細，選擇班次提出更正。</span>
+            <strong>出勤</strong>
+            <span>查月工時與班次，選擇班次更正。</span>
           </a>
           <a href="/miniapp/correction">
-            <strong>補卡／時間更正</strong>
-            <span>申請補卡或更正時間，查詢人工審核結果。</span>
+            <strong>補登</strong>
+            <span>申請補卡、時間更正及查結果。</span>
           </a>
           <a href="/miniapp/leave">
-            <strong>本人請假紀錄</strong>
-            <span>查詢請假登記；新增申請請從群組輸入「請假」。</span>
+            <strong>請假</strong>
+            <span>查看登記；新增請在群組輸入「請假」。</span>
           </a>
           <a href="/miniapp/review">
-            <strong>授權審核</strong>
-            <span>授權審核者查看群組申請，核准或填寫理由駁回。</span>
+            <strong>審核</strong>
+            <span>授權人員核准或附理由駁回。</span>
           </a>
         </div>
-        <p className="hint">打卡請使用原群組的上班、下班或休息按鈕。</p>
+        <p className="hint">上／下班及休息請用原群組按鈕。</p>
       </section>
     </>
   );
