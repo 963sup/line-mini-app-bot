@@ -31,6 +31,21 @@ function Content({
   children: ReactNode;
 }) {
   const { epoch, ready } = useSession();
+  const journal = workflow === "journal";
+  const navigation = (
+    <nav className={`page-nav${journal ? " journal-nav" : ""}`} aria-label="服務導覽">
+      <a href="/miniapp">首頁</a>
+      <a href="/miniapp/journal" aria-current={journal ? "page" : undefined}>日誌</a>
+      <a href="/miniapp/history" title={journal ? "本人月紀錄" : undefined} aria-label={journal ? "出勤：本人月紀錄" : undefined}>{journal ? "出勤" : "本人月紀錄"}</a>
+      <a href="/miniapp/leave" title={journal ? "本人請假紀錄" : undefined} aria-label={journal ? "本人請假紀錄" : undefined}>{journal ? "請假" : "本人請假紀錄"}</a>
+      <a href="/miniapp/correction" title={journal ? "補卡／時間更正" : undefined} aria-label={journal ? "補登：補卡／時間更正" : undefined}>{journal ? "補登" : "補卡／時間更正"}</a>
+      <a href="/miniapp/review" title={journal ? "授權審核" : undefined} aria-label={journal ? "授權審核" : undefined}>{journal ? "審核" : "授權審核"}</a>
+    </nav>
+  );
+  const heading = <>
+    <p className="eyebrow">{journal ? "LINE 日誌服務" : "LINE 出勤服務"}</p>
+    <h1>{title}</h1>
+  </>;
   useEffect(() => {
     if (!ready || workflow !== "home") return;
     const params = new URLSearchParams(location.search);
@@ -62,20 +77,11 @@ function Content({
         <link rel="stylesheet" href="/assets/app.css" />
       </Head>
       <main className="app-shell">
-        <header className="app-hero">
-          <p className="eyebrow">{workflow === "journal" ? "LINE 日誌服務" : "LINE 出勤服務"}</p>
-          <h1>{title}</h1>
+        <header className={`app-hero${journal ? " journal-hero" : ""}`}>
+          {journal ? <div className="journal-title">{heading}</div> : heading}
+          {journal && navigation}
         </header>
-        {workflow !== "punch" && (
-          <nav className="page-nav" aria-label="服務導覽">
-            <a href="/miniapp">首頁</a>
-            <a href="/miniapp/journal">日誌</a>
-            <a href="/miniapp/history">本人月紀錄</a>
-            <a href="/miniapp/leave">本人請假紀錄</a>
-            <a href="/miniapp/correction">補卡／時間更正</a>
-            <a href="/miniapp/review">授權審核</a>
-          </nav>
-        )}
+        {!journal && workflow !== "punch" && navigation}
         {workflow !== "journal" && <IdentityPanel />}
         <div key={workflow === "journal" ? "journal" : epoch}>{children}</div>
         <footer className="app-footer">
