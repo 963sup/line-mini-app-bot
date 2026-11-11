@@ -104,3 +104,10 @@ MINI App 頁面為 `/miniapp`；Channel 未設定時頁面顯示設定提示。
 | `frontend/` | [MINI App 前端](frontend/README.md) | [AGENTS.md](frontend/AGENTS.md) |
 
 進入 `frontend/miniapp/` 另讀其 [Next.js 指引](frontend/miniapp/AGENTS.md)。分析結果與涵蓋限制見 [交叉比對](docs/tooling/graphify-repomix-crosscheck.md)。
+
+## 業務操作開發原則
+
+採用 [資源導向的通用業務操作模型](docs/architecture/business-operation.md)：Actor、Resource、Action、Context、Authority、Policy、Decision 與 Result。
+開發前定義操作契約，交付時對照實作與證據；讀取不強制建立事件，採納提案時才使用 Merge。
+發現不符合時依 [Graphify／Repomix／Context7 符合性流程](docs/agents/workflow.md#business-operation-compliance) 在任務範圍內修正。
+統一操作模型，隔離業務規則；共用必要機制，避免不必要的抽象。

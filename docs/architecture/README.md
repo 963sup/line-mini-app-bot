@@ -27,3 +27,5 @@
 新增或搬移文件時更新本索引及 [總索引](../README.md)，並同步相關模組 README。
 
 [本目錄指引](AGENTS.md) · [父層指引](../AGENTS.md) · [文件總索引](../README.md)
+
+- [Business Operation 模型與操作契約](business-operation.md)

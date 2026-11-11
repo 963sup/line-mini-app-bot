@@ -119,3 +119,14 @@ docs/development/naming.md for implementation handoffs. Preserve generated upstr
 Root instructions apply throughout the repository. Before changing a subtree, read its AGENTS.md and README.md; more specific instructions supplement root policy within their scope, subject to user and host instructions. Directory entry points are listed in [README.md](README.md#巢狀目錄導覽).
 
 Scoped pairs exist in `.agents`, `.codex`, `.github`, `.vscode`, `api`, `assets`, `backend`, `deploy`, `docs` and `frontend`. Within `frontend/miniapp`, also follow its existing generated Next.js guidance. Preserve upstream skill files and existing local changes. A nested guide never grants additional push, publication, deployment or external-write authorization.
+
+## Business Operation 開發與持續符合性
+
+新增、修改或審查業務操作前，必須閱讀 [操作模型](docs/architecture/business-operation.md) 與 [符合性流程](docs/agents/workflow.md#business-operation-compliance)。
+在對應功能文件回答六個問題：誰操作、操作什麼、做什麼、有沒有權限、符合哪些業務規則、成功後改變或回傳什麼；補充 Context、Authority、Decision 與依風險需要的 Event／Audit。
+區分系統允許／拒絕與業務核准／駁回；Merge 僅於採納提案時使用。
+後端執行授權與業務規則，各領域保留獨立狀態模型，共用必要機制，避免不必要抽象。
+
+任務範圍內發現不符合時，以 Graphify 定位關係、Repomix 核對內容、Context7 查證相關技術，再最小修正並依 acceptance 驗證。工具無法使用、圖譜過期或打包遺漏時明確列出限制，不猜測通過。
+範圍外發現列出證據與後續工作，不自行全庫重構、改產品規則或部署。純文件及設定調整不要求無關應用測試；修改行為須執行相應檢查。
+交付對照規格、實作位置、實際驗證結果及剩餘限制；角色指引與本規則一致，不因委派增加授權。

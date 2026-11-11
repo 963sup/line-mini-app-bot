@@ -50,3 +50,8 @@
 實作細節見 [Go 慣例](../development/go.md)；驗證方式見 [測試](../development/testing.md)。
 
 目標套件配置見 [目錄規劃](layout.md)，依賴方向見 [依賴規則](dependencies.md)。
+
+## 資源導向業務操作
+
+新增或修改功能須依 [Business Operation 模型與操作契約](business-operation.md) 定義身分、資源、行為、授權、領域規則與結果。
+完整定義集中於該頁；本頁既有模組邊界、簡單優先與漸進演進原則繼續適用。

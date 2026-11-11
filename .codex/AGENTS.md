@@ -13,3 +13,9 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 從根目錄執行 bash scripts/tooling/tool-exec.sh python3 scripts/tooling/check-config.py；MCP transport 與聊天主機曝光需分別驗證。
 
 命令除另有標示外均在儲存庫根目錄執行。閱讀 [本目錄 README](README.md) 與 [文件索引](../docs/README.md)；回報實際執行結果與限制。
+
+## Business Operation
+
+開始相關任務前，必須閱讀 [操作模型](../docs/architecture/business-operation.md) 與 [符合性流程](../docs/agents/workflow.md#business-operation-compliance)。
+
+角色調整必須同步引用操作模型與符合性流程，以角色責任補充，不複製完整政策；不藉由此流程增加角色或權限。

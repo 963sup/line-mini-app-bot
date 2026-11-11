@@ -49,13 +49,13 @@ func (b *Collection) Observe(ctx context.Context, event webhook.EventInterface) 
 		return transport.Reply{}, false, nil
 	}
 	command := strings.TrimSpace(m.Text)
-	if skipSummaryText(command) {
+	if skipCollectionText(command) {
 		return transport.Reply{}, false, nil
 	}
 	return transport.Reply{}, false, b.Store.Collect(ctx, g.GroupId, messagecollection.Message{ID: m.Id, EventID: e.WebhookEventId, UserID: g.UserId, Text: m.Text, OccurredAt: time.UnixMilli(e.Timestamp).UTC()})
 }
 
-func skipSummaryText(text string) bool {
+func skipCollectionText(text string) bool {
 	if strings.HasPrefix(text, "/") {
 		return true
 	}

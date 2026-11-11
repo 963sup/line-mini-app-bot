@@ -19,3 +19,5 @@ README.md 是文件索引；architecture/、development/、features/、integrati
 ## 主題子目錄
 
 各主題目錄 README 列出完整文件入口，AGENTS.md 補充歸屬與維護規則；入口見 [文件歸屬](README.md#文件歸屬與維護)。新增文件需同步該層索引與總索引，模組相關內容另更新模組 README。
+
+業務操作模型維持於 [單一來源](architecture/business-operation.md)，功能文件保存具體操作契約；引用模型不代表既有功能已通過驗收。

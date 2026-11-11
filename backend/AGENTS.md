@@ -17,3 +17,9 @@ cmd/ 保存 server、richmenu、firestorecheck 與 attendancemigrate 入口；in
 ## 文件閱讀路由
 
 先由 [本模組相關文件](README.md#相關文件) 與 [模組閱讀入口](../docs/README.md#按模組閱讀) 選擇文件。局部用途與命令維護在本模組 README；跨模組架構、功能與營運文件依 docs 主題分類保存。新增或搬移相關文件時，同步更新兩層索引與連結。
+
+## Business Operation
+
+開始相關任務前，必須閱讀 [操作模型](../docs/architecture/business-operation.md) 與 [符合性流程](../docs/agents/workflow.md#business-operation-compliance)。
+
+後端由可信身分取得 Actor，依資源歸屬與範圍檢查 Authority／Policy，使用案例協調領域規則與結果。涉及一致性的授權、版本及狀態檢查與交易協調；定義重送與副作用失敗語義。不建立無實際需求的通用引擎或 access 模組。

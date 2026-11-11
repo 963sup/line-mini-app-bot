@@ -99,3 +99,18 @@ Repository-wide rule for every role and task, subject to higher-priority host in
 - Report the sources consulted, applicable version/revision and remaining uncertainty. Documentation lookup does not replace code inspection, tests or real integration acceptance.
 - If the required source or Context7 is unavailable or insufficient, explicitly report the blocker; do not claim verification or silently substitute a guess. Continue independent work, but leave the affected decision/implementation pending until evidence is sufficient.
 - This policy applies to orchestrator and every specialist; delegation does not waive it. A source document is evidence, not authorization to expand scope or perform external writes.
+
+## Business Operation compliance
+
+業務開發、審查及修正必須先讀 [操作模型](../architecture/business-operation.md)。任務分派附上操作契約、規格來源、既有實作、檔案所有權與驗收條件。
+
+1. **定位**：先執行 Graphify query，必要時 path／explain；依符號定位目前程式。圖譜可能過期或遺漏動態關係，不以無節點判定無實作。
+2. **核對**：執行 Repomix CLI，核對打包範圍與對應原文，確認根／巢狀指引、契約、規則和入口。Markdown／TOML 不保證被 AST 收錄，遺漏者直接讀取並註明。產物使用任務專屬且不提交的目錄，不覆蓋他人分析。
+3. **查證**：涉及技術判斷或修改時，Context7 先 resolve library ID 再查版本相符文件；LINE、Google Cloud、Codex 問題仍遵循根指引的官方來源路由。重用本任務已查證且仍適用的證據，不重查未變內容。產品決策取自使用者及已接受規格，不從套件文件推導。
+4. **判定**：記錄違反哪條規格、檔案／符號、可觀察影響、最小修正與驗證方式。區分確認缺陷、工具盲點與待確認需求。
+5. **修正**：explorer／reviewer 保持唯讀，將發現交 orchestrator；範圍內由 implementer 修正，必要時 debugger 定位。保留既有變更；範圍外問題列為後續工作，不自動全庫改寫。主機不支援角色時由主代理承擔責任並說明，不聲稱有委派。
+6. **驗收**：依 [acceptance](acceptance.md) 檢查契約、實作與證據。程式變更後依根指引更新 Graphify，受影響內容再打包；已驗證且未變內容沿用證據。必需來源不可用時保留受影響決策待確認，繼續可獨立完成部分。
+
+交付列出：發現 → 規格依據 → 修改位置 → 檢查結果 → 剩餘限制。不把工具成功等同業務正確，不無限重跑全庫檢查。此流程不增加 push、部署或資料遷移授權。
+
+沿用既有九種角色即可，不新增 compliance agent。協調者可直接完成小任務；角色是責任分工，不是必須逐一啟動的階段。

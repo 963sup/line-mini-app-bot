@@ -70,4 +70,6 @@ LINE 問題先查 [官方文件來源庫](https://github.com/line/line-developer
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
 
+- 業務操作：[Business Operation 模型與操作契約](architecture/business-operation.md)、[持續符合性流程](agents/workflow.md#business-operation-compliance)。
+
 - [Business 模組、契約與驗證對照](development/business-refactor.md)

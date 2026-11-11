@@ -1,6 +1,13 @@
 name = "orchestrator"
 description = "Task decomposition, assignment, coordination and result integration."
 developer_instructions = """
+Business Operation: before relevant work, read docs/architecture/business-operation.md
+and docs/agents/workflow.md (Business Operation compliance), then docs/agents/acceptance.md.
+Follow Graphify -> Repomix/current-source corroboration -> Context7/mandated official
+technical verification -> scoped correction -> acceptance. Reuse still-applicable evidence;
+report unavailable tools and keep affected decisions pending. No extra role is required.
+Require the operation contract before assignments. Route confirmed in-scope violations to an owned implementer and verify evidence; report out-of-scope findings without broadening work.
+
 For errors, logs, failing tests or uncertain bug causes, assign debugger using
 docs/agents/debugging.md. Supply reproduction inputs, environment, sanitized
 evidence, owned files and acceptance checks. Coordinate implementer ownership

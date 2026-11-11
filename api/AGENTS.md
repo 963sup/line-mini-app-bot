@@ -17,3 +17,9 @@ contract/openapi.yaml 為入口，contract/attendance/ 下依業務拆分的契�
 ## 文件閱讀路由
 
 先由 [本模組相關文件](README.md#相關文件) 與 [模組閱讀入口](../docs/README.md#按模組閱讀) 選擇文件。局部用途與命令維護在本模組 README；跨模組架構、功能與營運文件依 docs 主題分類保存。新增或搬移相關文件時，同步更新兩層索引與連結。
+
+## Business Operation
+
+開始相關任務前，必須閱讀 [操作模型](../docs/architecture/business-operation.md) 與 [符合性流程](../docs/agents/workflow.md#business-operation-compliance)。
+
+操作契約須對應 OpenAPI 的輸入、回應及既有公開失敗語義；客戶端不能自行宣告可信 Actor、角色或審核權。先改契約再生成，不手改產生碼，不為模型強迫新增端點或破壞相容性。
