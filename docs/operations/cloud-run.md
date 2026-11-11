@@ -69,7 +69,11 @@ Cloud Run 明確使用 8080 的 startup TCP probe 檢查容器啟動；本專案
 2. 建立同 region 的 Docker repository `applications`。
 3. 建立 `cloud-build-deployer` 與 `line-mini-app-runtime` 兩個服務帳戶。
    名稱可透過 substitutions 調整，值為帳戶 ID，不是完整 email。
-4. 在 Secret Manager 建立下表兩個 secrets，加入實際 Channel 憑證，記下各自的數字版本。
+4. 核對下表六個 Secret references。現有 repository YAML 固定綁定全部六項，
+   即使應用不使用其中一項，執行該 YAML 前仍須能解析每個 reference。
+   LINE Messaging 需要 Channel secret 與 access token；摘要依 provider 使用 OpenAI 或 Gemini key，
+   天氣使用 CWA key，MINI App Channel secret 目前僅預留。不要為湊齊部署綁定建立假憑證；
+   若要省略未使用綁定，先另行調整部署設定並驗證。記下實際使用的數字版本。
    不把實際值輸入 Cloud Build substitutions、YAML、Docker build args 或 Git。
 5. 若使用手動 source upload，準備專用的來源 GCS bucket，授予建置帳戶讀取權限。
    送出者需具備建立 Build、使用建置服務帳戶及上傳來源的權限。
@@ -95,10 +99,12 @@ Cloud Run 透過執行帳戶提供 ADC，不上傳 Google service-account key fi
 ### Secret Manager 與環境變數
 
 Secret Manager 與兩條部署路徑的關係如下。`deploy/cloudbuild.yaml` 的「部署檔參照」只在手動或
-自訂 Trigger 真正執行該檔時生效；「現行服務」記錄 2026-11-08 revision
-`line-mini-app-bot-00027-695` 的 metadata，不包含 Secret payload：
+自訂 Trigger 真正執行該檔時生效；「歷史快照」記錄 2026-11-08 revision
+`line-mini-app-bot-00027-695` 的 metadata，不包含 Secret payload。此表不是現行服務宣告；
+部署前使用[發布 snapshot](release-acceptance.md#發布證據與前置條件)重新讀取 serving revision、
+流量、執行帳戶及 Secret references，另核對必要非機密 env 值：
 
-| Secret Manager 名稱 | 容器環境變數 | 部署檔參照 | 現行服務／用途 |
+| Secret Manager 名稱 | 容器環境變數 | 部署檔參照 | 2026-11-08 歷史快照／用途 |
 | --- | --- | --- | --- |
 | `cwa-api-key` | `CWA_API_KEY` | `1` | 綁定 `1`；天氣功能使用。 |
 | `gemini-api-key` | `GEMINI_API_KEY` | `latest` | 未綁定；Secret 尚無 version，不能解析 `latest`。OpenAI provider 不使用它。 |
@@ -127,7 +133,9 @@ service account `roles/cloudtasks.enqueuer`，但仍須以真實任務驗收 OID
 | _CHANNEL_ACCESS_TOKEN_VERSION | 上述 secret 的版本 | 2 |
 
 使用版本 1 前須確認已存在且 enabled；若實際版本不同，明確覆寫。
-preflight 拒絕 `latest`，避免輪替後同一 revision 的新 instance 取得未記錄的新機密版本。
+目前 preflight 僅對 Messaging Channel secret／access token 檢查正整數版本；
+它沒有檢查其他四個 Secret references，且 YAML 的 Gemini 預設仍是 `latest`。
+手動發布前須核對所有綁定並使用明確數字版本；不能把 preflight 通過視為全部機密已就緒。
 輪替時新增 secret version，再帶新的數字版本部署；保留舊版本供回滾使用。
 
 GOOGLE_CLOUD_PROJECT 自動設為此次 Build 的 project。MINI App 兩個 ID 全空時停用身分功能；
@@ -214,11 +222,12 @@ Trigger 啟動時會忽略 YAML 的 serviceAccount 欄位，只採用 Trigger �
 2. 開啟 `<service-url>/location` 與 `/miniapp`，確認頁面和功能設定狀態。
 3. 在 LINE Developers 將 Webhook 設為 `<service-url>/webhooks/line/<Messaging API Channel ID>`，
    驗證後確認一對一／群組公開指令；MINI App Endpoint 設為 `<service-url>/miniapp`。
-4. 公開 HTTP 不代表免除應用驗證；Webhook 仍驗簽，/api/v1/me 仍驗 LINE ID token。
+4. 公開 HTTP 不代表免除應用驗證；Webhook 仍驗簽，/api/v1/me 仍須已驗證身分；瀏覽器使用 Cookie Session，既有無 Cookie Bearer 路徑仍驗 LINE ID token。
 5. 出勤與 Firestore 持久化已有程式實作；需實測 LINE 事件、資料庫讀寫與本人紀錄，不能把 revision Ready 當作完成出勤驗收。
 
 回滾時在 Cloud Run Console 的 Revisions 選取前一個已驗收 revision，將流量切回 100%，
 再確認 LINE 收訊與頁面。不要刪除其映像或 secret versions，直到回滾保留期結束。
+舊版本與映像的保留、清理清單及中止條件見[發布驗收的清理規則](release-acceptance.md#舊版本與映像清理)。
 修改環境與 secret 版本後要重新驗收。避免同時執行多次部署，以免較舊 Build 最後完成而覆蓋新版。
 
 ## 配置驗證狀態與來源

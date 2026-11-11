@@ -1,7 +1,10 @@
 # Go LINE 接入能力
 
-以 kkdai 的 Go 範例為參考，沿用官方 Go SDK v8.23.0。此階段提供連線能力，
-尚無出勤寫入、持久去重、群組角色管理、Service Message 或背景工作。
+以 kkdai 的 Go 範例為參考，使用官方 Go SDK；依賴版本以 backend/go.mod 為準。
+目前已接入 LINE Webhook、MINI App Session、Firestore 出勤與請假登記，以及 Cloud Tasks 摘要工作。
+功能規則分別見[出勤](../features/attendance.md)、[請假](../features/leave.md)、
+[看板與漏下班](../features/attendance-board.md)及[摘要](../features/summary.md)。
+群組角色管理、Service Message 與常駐 Worker 不屬於目前實作。
 
 ## 啟動
 
@@ -27,14 +30,15 @@ Webhook URL 為 `<service-url>/webhooks/line/<channelID>`。
 | Postback action=help | 依實際事件來源回覆 | 依實際事件來源回覆 |
 
 在 LINE Developers 開啟 Webhook；群組使用還需允許官方帳號加入群組。
-一般文字不會被記錄或回顯。群組不查個人資料，不依據 Postback 的 userId／groupId
-授權，也不把成員身分視為群組管理員。未知 action／額外 Postback 欄位直接忽略。
+摘要啟用時會依[摘要收集規則](../features/summary.md)保存群組一般文字，不能將忽略回覆理解為未保存。
+不依據前端或 Postback 自行提供的 userId／groupId 授權，也不把成員身分視為群組管理員。
+未知 action／額外 Postback 欄位直接忽略。
 MINI App 完成設定後，Flex 選單會加入開啟 MINI App 的按鈕。
 
 body 上限 1 MiB；過大回 413、錯誤簽章回 401、無效輸入回 400。
-空事件回 200，standby、redelivery、非文字、room 及不支援事件忽略。
-整批發送共用 5 秒期限；失敗僅記錄固定警告，不重試，也不改用 Push，Webhook 回 200。
-200 不代表訊息送達；跳過 redelivery 不等於可靠接收或完整冪等性。
+不同模組對事件保存、重送及失敗的處理不同；以[出勤](../features/attendance.md)與
+[摘要](../features/summary.md)契約為準，不再套用早期連線試作的「全部忽略 redelivery」說明。
+HTTP 200、revision Ready 與訊息送達須分別驗證。
 
 ## MINI App：Go + Next.js／React
 
@@ -46,18 +50,18 @@ openid scope；要顯示名稱時再啟用 profile。設定 MINI App Endpoint UR
 1. Go 提供 Next.js 靜態輸出的 /miniapp 頁面與 React 程式，載入 LINE 官方 LIFF v2 SDK。
 2. 前端以 /api/v1/miniapp/config 取得公開 LIFF ID，執行 liff.init。
 3. 外部瀏覽器由使用者點擊登入，redirectUri 保留本站目前頁面與查詢參數。
-4. 點擊身分驗證後，前端取得 liff.getIDToken()，以 Bearer header 呼叫 GET /api/v1/me。
-5. Go 將 ID token 與預期 Channel ID POST 至 LINE /oauth2/v2.1/verify，
-   並檢查回應 issuer、audience、非空 subject 與到期時間。
+4. 前端取得 liff.getIDToken()，以 Bearer header 呼叫 POST /api/v1/session，body 為空物件。
+5. Go 向 LINE 驗證 token 與預期 Channel，成功後建立 Firestore Session，回傳安全 Cookie、本人資料、CSRF token 與有效期限。
+6. 後續本人與出勤 API 透過 SessionProvider.request 使用 Cookie／CSRF；需要近期活動且接近到期才續期。
 
-不接受前端 profile、decoded token 或任意 userId 作身分。成功只回傳本人
-userId／displayName，設定 no-store，不寫入資料庫或一般日誌。
-每次請求都驗證 token，不建立 session cookie、localStorage token 或群組權限。
-此身分驗證不自動授予出勤資格；跨 Channel 的 user ID 對應也不能自行假設。
+不接受前端 profile、decoded token 或任意 userId 作身分。Session ID 透過 HttpOnly Cookie
+傳遞，CSRF token 僅保留於記憶體；原始 Session ID、CSRF 與 LINE token 不存入資料庫或日誌。
+Session 並不授予任意群組或他人資料的存取權。
 
-/api/v1/me 未設定回 503；未登入／過期／錯 Channel 回 401；
-上游逾時／無效回應回 503。錯誤為 `{"error":{"code":"...","message":"..."}}`。
-登出清除本頁狀態，LIFF 瀏覽器可能再次自動登入；這不等於撤銷 LINE 帳號授權。
+登出呼叫 DELETE /api/v1/session 撤銷伺服器狀態並清除 Cookie；失敗時保留重試入口，
+不能只清畫面就宣稱已登出。撤銷應用 Session 不等於撤銷 LINE 帳號授權。
+期限、續期、Cookie 優先順序、既有 Bearer 相容性及錯誤處理以
+[Session 契約](../architecture/browser-session.md)為單一來源；路徑與請求格式見 [API 契約](../../api/README.md)。
 
 程式接入不代表 MINI App 已完成 Channel 建立、資格確認或發布審查。
 本機可看頁面與未設定提示；真實登入需要正確的 HTTPS Endpoint 與 Channel 設定。
@@ -71,13 +75,13 @@ Rich Menu 用於官方帳號的一對一聊天；群組使用 Flex 指令選單�
 只預覽 JSON，不發送外部請求：
 
 ```bash
-bash scripts/tooling/tool-exec.sh go run ./cmd/richmenu -app-url https://miniapp.line.me/LIFF_ID
+bash scripts/tooling/tool-exec.sh go -C backend run ./cmd/richmenu -app-url https://miniapp.line.me/LIFF_ID
 ```
 
 已確認選單圖片、目標官方帳號與替換影響後，由操作者執行：
 
 ```bash
-bash scripts/tooling/tool-exec.sh go run ./cmd/richmenu -app-url https://miniapp.line.me/LIFF_ID -image /absolute/path/menu.png -apply
+bash scripts/tooling/tool-exec.sh go -C backend run ./cmd/richmenu -app-url https://miniapp.line.me/LIFF_ID -image /absolute/path/menu.png -apply
 ```
 
 需要 LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN。此命令建立選單並上傳圖片，
@@ -94,12 +98,12 @@ bash scripts/tooling/tool-exec.sh go run ./cmd/richmenu -app-url https://miniapp
 Cloud Run 使用執行服務帳戶，本機使用自己的 ADC。指定一份允許讀取的既有文件：
 
 ```bash
-bash scripts/tooling/tool-exec.sh go run ./cmd/firestorecheck -document COLLECTION/DOCUMENT
+bash scripts/tooling/tool-exec.sh go -C backend run ./cmd/firestorecheck -document COLLECTION/DOCUMENT
 ```
 
 成功只表示該文件的讀取權限與連線可用，不顯示內容、不建立資料。
 NotFound 不當作通過，需確認 database 與文件存在；此檢查不證明寫入／transaction 權限。
-HTTP 服務仍未接入出勤持久化，不能把工具通過當作業務功能完成。
+HTTP 服務已有出勤持久化；此工具只測指定文件讀取，不能證明出勤交易或 Session 寫入可用。
 
 ## 查核來源與限制
 
@@ -107,8 +111,9 @@ HTTP 服務仍未接入出勤持久化，不能把工具通過當作業務功能
 - [kkdai/line-card-assistant](https://github.com/kkdai/line-card-assistant/tree/main/internal/linebot)
 - [kkdai/liff-template-go](https://github.com/kkdai/liff-template-go)
 - [kkdai/linebot-garbage-helper](https://github.com/kkdai/linebot-garbage-helper)
-- [LINE 官方來源](https://github.com/line/line-developers-docs-source/tree/090500a12f9777995006d9fb5cafab8d83a792b2)，
-  核對 LIFF 後端 token 驗證、Rich Menu 建立／圖片／預設綁定與 MINI App 永久連結。
+- [LINE 官方來源](https://github.com/line/line-developers-docs-source/tree/dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54)，
+  2026-11-11 重新確認 default branch main 為此 revision，並讀取 LIFF 使用者資料頁核對後端 token 驗證。
+  Rich Menu 與永久連結沿用先前查證，本次未重新執行外部發布。
 - Context7 /line/line-bot-sdk-go/v8.23.0 與相同版本本機 SDK 核對 client、Context、Rich Menu 方法與型別。
 
 真實 LINE 收發、手機 LIFF、Rich Menu 套用與 Firestore 連線仍須渠道與憑證驗收；

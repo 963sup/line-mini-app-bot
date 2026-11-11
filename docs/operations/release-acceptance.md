@@ -84,6 +84,29 @@ bash scripts/tooling/tool-exec.sh gcloud run services update-traffic line-mini-a
 
 流量回復不撤回已寫入的 Firestore 資料、不撤銷 LINE 訊息，也不復原外部 Channel 設定。此次遷移未執行 schema 回填或最佳化讀取切換；若另行切換，須另備相容／回復計畫。相容 JS alias 是空操作，舊瀏覽器頁面需重新整理。
 
+## 舊版本與映像清理
+
+本節定義清理前需保留的集合與驗證步驟，不代表已啟用自動清理或已執行刪除。
+保留天數尚未訂定；未確認回滾窗口前不依文件日期或映像數量推定可刪除。
+
+| 保留對象 | 條件 |
+| --- | --- |
+| Cloud Run revisions | 保留所有承接流量的版本、具名且已驗收的回滾版本，以及仍供候選驗收使用的版本。最近建立的版本不一定已驗收。 |
+| 映像與附件 | 保留上述版本的不可變 digest、必要 manifest／平台映像、來源證明與相關附件；同一 digest 可能被多個 revision 或服務引用，需一併核對。 |
+| Secret versions | 保留 serving 與回滾版本引用的數字版本，另核對共用服務及輪替要求；映像清理不連帶授權刪除 Secret。 |
+| 發布證據 | 保留來源 SHA、build ID、前後 snapshot、驗收結果與清理清單；建置歷史／日誌依其獨立保存政策管理。 |
+
+1. 協調暫停並行部署，重新取得 serving、traffic、候選與回滾版本清單，建立 revision → digest → Secret versions 對照。
+2. 列出 Artifact Registry 實際 manifests、tags 與附件關係；保留集合以 digest 識別，不只看 tag 或建立時間。
+3. 產生具體待刪清單並記錄保留理由。確認本次清理範圍已獲授權，再移除不在保留集合的舊 revisions 及其無其他引用的映像；不要把範例數量當作固定清理目標。
+4. 分批檢查刪除結果。CLI／批次 API 成功訊息不能代替重新列舉；區分指定刪除與連帶消失的附件，避免重複計數。
+5. 最後核對流量、Ready 狀態、HTTP smoke、回滾版本與映像／Secret references。遇到新部署、保留集合變動或結果不明即停止，重新建立清單。
+
+Cloud Run 流量回復不還原已刪映像、Secret、Firestore 寫入或 LINE 選單。
+實際清理另行依當時官方文件與 CLI help 操作；本頁不提供可直接批次刪除正式資源的命令。
+參考：[Cloud Run 回滾](https://docs.cloud.google.com/run/docs/rollouts-rollbacks-traffic-migration)、
+[Artifact Registry 映像管理](https://docs.cloud.google.com/artifact-registry/docs/docker/manage-images)。
+
 ## 查證與限制
 
 gcloud 592.0.0 的 run deploy／services describe／revisions describe／services update-traffic leaf help 已查。Google Developer Knowledge MCP 在本會話未提供，改查官方 Cloud Run [發布與回復](https://docs.cloud.google.com/run/docs/rollouts-rollbacks-traffic-migration)、[部署](https://docs.cloud.google.com/run/docs/deploying)；本機 cloud-run skill 僅用於 CLI 發現。LINE 官方來源 main 為 `dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54`，參照 [LIFF 初始化與 URL 注意事項](https://developers.line.biz/en/docs/liff/developing-liff-apps/#initializing-liff-app)。這些來源與 CLI help 不證明目標 IAM、裝置或部署驗收已通過。

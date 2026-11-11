@@ -55,6 +55,8 @@ Node 路徑解析已透過 Context7 核對 Node.js 24 官方
 
 Docker 的 `COPY --chmod` 已透過 Context7 核對
 [官方 Dockerfile reference](https://docs.docker.com/reference/dockerfile/#copy---chmod)：
-採用 `u=rwX,go=rX`，確保目錄可穿越而普通素材可讀，避免 `644` 套到目錄後
-造成非 root runtime 無法讀取。符號權限需 Dockerfile frontend 1.14 以上；
-本專案使用 `docker/dockerfile:1`。
+目前 Dockerfile 在 build stage 使用 `COPY --chmod=755` 複製 JPEG，再以
+`chmod 644 /assets/line/richmenu/*.jpg` 設定圖片權限，runtime stage 複製整理後的
+`/assets/`。目錄須可穿越、圖片須可由 nonroot 讀取；不再使用先前的符號權限方案。
+2026-11-11 透過 Context7 `/docker/docs` 重新核對 octal `COPY --chmod`，並對照目前 Dockerfile。
+後續部署與圖片權限故障紀錄見 [Cloud Run 部署](../operations/cloud-run.md#managed-trigger-的-rich-menu-圖片路徑)。

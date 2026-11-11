@@ -80,7 +80,7 @@ schemaVersion=1 缺少原始 LINE exp，只允許原固定期限內使用；refr
 
 | 範圍 | 驗證方式 |
 | --- | --- |
-| MINI App 本人 API、全部 12 個出勤操作 | Cookie Session；既有無 Cookie Bearer 仍相容 |
+| MINI App 本人 API、出勤操作（含請假登記） | Cookie Session；既有無 Cookie Bearer 仍相容 |
 | 前端打卡、歷史、申請更正、審核 | 共用 SessionProvider.request，帶 Cookie／CSRF；LINE token 僅用於登入交換 |
 | Session refresh／delete | Cookie、Origin、CSRF，不以 Bearer 代替 |
 | Session create | 向 LINE 驗證 Bearer ID token，建立應用 Session |
