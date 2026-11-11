@@ -34,7 +34,8 @@
 
 身分／Session 公開契約保留在 openapi.yaml。摘要、天氣不因分類而新增公開 HTTP API。
 請假仍是登記，不新增核准、駁回、扣假或工時連動。
-Actor、Resource、Authority、Policy 與結果依各既有功能規格及 [操作模型](../architecture/business-operation.md)；本次不另定產品規則。
+操作者身分、資源範圍、授權、業務規則與結果依上表各既有功能規格，並沿用
+[既有架構原則](../architecture/principles.md#3-每次功能交付順序) 的使用案例與邊界檢查；本次不另定產品規則。
 
 ## 依賴與交易邊界
 

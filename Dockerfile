@@ -15,7 +15,7 @@ RUN --mount=type=secret,id=build-ca \
     pnpm install --frozen-lockfile
 RUN pnpm --filter @repo/miniapp build && chmod -R a+rX frontend/miniapp/out
 
-FROM golang:1.27.3 AS build
+FROM golang:1.27.4 AS build
 WORKDIR /src/backend
 COPY backend/go.mod backend/go.sum ./
 COPY backend/cmd/ ./cmd/

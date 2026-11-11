@@ -38,7 +38,7 @@ GOOGLE_APPLICATION_CREDENTIALS = "{{ env.GOOGLE_APPLICATION_CREDENTIALS | defaul
 DOCKER_CONFIG = "{{ env.DOCKER_CONFIG | default(value=\"/workspace/tooling/config/docker\") }}"
 
 [tools]
-go = "1.27.3"
+go = "1.27.4"
 # Node includes npm and npx.
 node = "24.22.1"
 "npm:pnpm" = "12.18.0"
