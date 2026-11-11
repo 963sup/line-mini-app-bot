@@ -68,10 +68,6 @@ depth remains two; schedule specialists within the host's actual limits.
 
 ## graphify
 
-For repository-wide analysis use `mise run analysis-audit`; the scope contract
-and coverage acceptance are documented in docs/tooling/analysis-scope.md.
-Graphify query success alone does not establish source coverage or freshness.
-
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
 
 When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
