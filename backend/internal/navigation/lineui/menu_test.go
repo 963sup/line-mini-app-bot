@@ -38,13 +38,23 @@ func TestQuickMenuPayload(t *testing.T) {
 		if bytes.Contains(data, []byte("關閉摘要")) || bytes.Contains(data, []byte("開啟摘要")) {
 			t.Fatal("legacy switches must not appear")
 		}
-		if payload.Type != "text" || len(payload.QuickReply.Items) != len(tc.commands)+1 {
+		if payload.Type != "text" || len(payload.QuickReply.Items) != len(tc.commands)+1+map[bool]int{true: 1}[tc.group] {
 			t.Fatalf("invalid quick reply: %s", data)
 		}
 		for i, command := range tc.commands {
-			item := payload.QuickReply.Items[i]
+			index := i
+			if tc.group && i > 0 {
+				index++
+			}
+			item := payload.QuickReply.Items[index]
 			if item.Type != "action" || item.Action.Type != "message" || item.Action.Text != command || item.Action.Label != command {
 				t.Fatalf("invalid command %q: %s", command, data)
+			}
+		}
+		if tc.group {
+			journal := payload.QuickReply.Items[1].Action
+			if journal.Type != "uri" || journal.Label != "日誌" || journal.Uri != "https://liff.line.me/example?journal=1" {
+				t.Fatalf("invalid journal link: %s", data)
 			}
 		}
 		last := payload.QuickReply.Items[len(payload.QuickReply.Items)-1]

@@ -1,7 +1,25 @@
 // Package lineui renders the public feature menu shared by the bot and CLI.
 package lineui
 
-import "github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
+import (
+	"net/url"
+
+	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
+)
+
+func journalURL(appURL string) string {
+	if appURL == "" {
+		return ""
+	}
+	u, err := url.Parse(appURL)
+	if err != nil || u.Scheme != "https" || u.Host == "" {
+		return ""
+	}
+	q := u.Query()
+	q.Set("journal", "1")
+	u.RawQuery = q.Encode()
+	return u.String()
+}
 
 // AttendanceRichMenus previews two tabs. Aliases must be bound to uploaded menu
 // IDs before publishing. Switching tabs never records attendance.
@@ -33,6 +51,9 @@ func Help(group bool, appURL string) messaging_api.MessageInterface {
 			{"打卡", "打卡"}, {"出勤", "出勤"}, {"請假登記", "請假"}, {"補卡申請", "補卡"},
 		} {
 			buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.MessageAction{Label: entry.label, Text: entry.command}})
+			if entry.command == "打卡" && journalURL(appURL) != "" {
+				buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.UriAction{Label: "日誌", Uri: journalURL(appURL)}})
+			}
 		}
 	} else {
 		buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.PostbackAction{Label: "出勤紀錄", Data: "action=attendance-history"}})
@@ -66,6 +87,9 @@ func QuickMenu(group bool, appURL string) messaging_api.MessageInterface {
 	}
 	if group {
 		add("打卡", "打卡")
+		if link := journalURL(appURL); link != "" {
+			items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.UriAction{Label: "日誌", Uri: link}})
+		}
 		add("出勤", "出勤")
 		add("請假", "請假")
 		add("補卡", "補卡")

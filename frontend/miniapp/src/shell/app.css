@@ -27,6 +27,7 @@
 .app-page button.secondary { color: #146e51; background: #e7f4ec; }
 .app-page button.secondary:hover:not(:disabled) { background: #d8ecdf; }
 .app-page button[aria-busy="true"]::after { content: ""; display: inline-block; width: .8em; height: .8em; margin-left: .65em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; vertical-align: -.1em; animation: punch-spin .7s linear infinite; }
+.journal-form { display: block; width: 100%; height: 80vh; min-height: 600px; border: 0; margin-top: 1rem; }
 @keyframes punch-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .app-page button[aria-busy="true"]::after { animation: none; } }
 .app-page .actions { margin: 16px 0 0; }

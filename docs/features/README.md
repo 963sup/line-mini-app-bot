@@ -8,6 +8,7 @@
 - [基礎出勤](attendance.md)
 - [群組出勤看板與本人漏下班檢查](attendance-board.md)
 - [群組請假登記](leave.md)
+- [日誌表單](journal.md)
 - [基礎群聊摘要](summary.md)
 - [群組位置天氣](weather.md)
 - [工時計算第一階段](worktime.md)

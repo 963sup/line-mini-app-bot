@@ -5,6 +5,10 @@ export function View() {
       <section className="panel">
         <h2>選擇要完成的事</h2>
         <div className="service-links">
+          <a href="/miniapp/journal">
+            <strong>日誌</strong>
+            <span>開啟 Google 表單填寫日誌。</span>
+          </a>
           <a href="/miniapp/history">
             <strong>本人月紀錄</strong>
             <span>查看整月工時與班次明細，選擇班次提出更正。</span>

@@ -35,16 +35,19 @@ function Content({
     if (!ready || workflow !== "home") return;
     const params = new URLSearchParams(location.search);
     let leave = params.has("leave"),
-      correction = params.get("correction");
+      correction = params.get("correction"),
+      journal = params.has("journal");
     try {
       const nested = params.get("liff.state");
       if (nested) {
         const query = new URL(nested, location.origin).searchParams;
+        journal ||= query.has("journal");
         leave ||= query.has("leave");
         correction ||= query.get("correction");
       }
     } catch {}
-    if (correction)
+    if (journal) location.replace("/miniapp/journal");
+    else if (correction)
       location.replace(
         "/miniapp/correction?" + new URLSearchParams({ group: correction }),
       );
@@ -55,32 +58,34 @@ function Content({
   return (
     <>
       <Head>
-        <title>{title}｜LINE 出勤</title>
+        <title>{title}｜{workflow === "journal" ? "LINE 日誌" : "LINE 出勤"}</title>
         <link rel="stylesheet" href="/assets/app.css" />
       </Head>
       <main className="app-shell">
         <header className="app-hero">
-          <p className="eyebrow">LINE 出勤服務</p>
+          <p className="eyebrow">{workflow === "journal" ? "LINE 日誌服務" : "LINE 出勤服務"}</p>
           <h1>{title}</h1>
         </header>
         {workflow !== "punch" && (
-          <nav className="page-nav" aria-label="出勤服務">
+          <nav className="page-nav" aria-label="服務導覽">
             <a href="/miniapp">首頁</a>
+            <a href="/miniapp/journal">日誌</a>
             <a href="/miniapp/history">本人月紀錄</a>
             <a href="/miniapp/leave">本人請假紀錄</a>
             <a href="/miniapp/correction">補卡／時間更正</a>
             <a href="/miniapp/review">授權審核</a>
           </nav>
         )}
-        <IdentityPanel />
-        <div key={epoch}>{children}</div>
+        {workflow !== "journal" && <IdentityPanel />}
+        <div key={workflow === "journal" ? "journal" : epoch}>{children}</div>
         <footer className="app-footer">
           <p>
-            時間均為臺灣時間。從群組打卡連結完成定位打卡；私訊 Bot
-            輸入「出勤紀錄」也可查詢。
+            {workflow === "journal"
+              ? "日誌由 Google 表單處理，送出結果請以表單顯示為準。"
+              : "時間均為臺灣時間。從群組打卡連結完成定位打卡；私訊 Bot 輸入「出勤紀錄」也可查詢。"}
           </p>
         </footer>
-        <noscript>請啟用 JavaScript，以使用 LINE 登入及出勤服務。</noscript>
+        <noscript>請啟用 JavaScript，以使用 LINE 服務。</noscript>
       </main>
     </>
   );
