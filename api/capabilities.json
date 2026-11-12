@@ -72,6 +72,78 @@
       "document": "docs/features/attendance-board.md",
       "core": "backend/internal/business/attendance/board/board.go",
       "specification": "docs/features/attendance-board.md"
+    },
+    "repository.labels": {
+      "kind": "scaffold",
+      "contract": "repository/labels.yaml",
+      "specification": "docs/architecture/domain-model.md",
+      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+    },
+    "repository.milestones": {
+      "kind": "scaffold",
+      "contract": "repository/milestones.yaml",
+      "specification": "docs/architecture/domain-model.md",
+      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+    },
+    "issue": {
+      "kind": "scaffold",
+      "contract": "issue/issues.yaml",
+      "specification": "docs/architecture/domain-model.md",
+      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+    },
+    "issue.types": {
+      "kind": "scaffold",
+      "contract": "issue/types.yaml",
+      "specification": "docs/architecture/domain-model.md",
+      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+    },
+    "issue.comments": {
+      "kind": "scaffold",
+      "contract": "issue/comments.yaml",
+      "specification": "docs/architecture/domain-model.md",
+      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+    },
+    "discussion": {
+      "kind": "scaffold",
+      "contract": "discussion/discussions.yaml",
+      "specification": "docs/architecture/domain-model.md",
+      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+    },
+    "discussion.categories": {
+      "kind": "scaffold",
+      "contract": "discussion/categories.yaml",
+      "specification": "docs/architecture/domain-model.md",
+      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+    },
+    "discussion.comments": {
+      "kind": "scaffold",
+      "contract": "discussion/comments.yaml",
+      "specification": "docs/architecture/domain-model.md",
+      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+    },
+    "project": {
+      "kind": "scaffold",
+      "contract": "project/projects.yaml",
+      "specification": "docs/architecture/domain-model.md",
+      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+    },
+    "project.items": {
+      "kind": "scaffold",
+      "contract": "project/items.yaml",
+      "specification": "docs/architecture/domain-model.md",
+      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+    },
+    "project.fields": {
+      "kind": "scaffold",
+      "contract": "project/fields.yaml",
+      "specification": "docs/architecture/domain-model.md",
+      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+    },
+    "project.views": {
+      "kind": "scaffold",
+      "contract": "project/views.yaml",
+      "specification": "docs/architecture/domain-model.md",
+      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
     }
   },
   "operations": [

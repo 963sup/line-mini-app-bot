@@ -51,6 +51,14 @@ contract/ 依能力維護來源契約，openapi.yaml 組合公開 HTTP API；cli
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
 
+## 巢狀指引
+
+- [契約來源](contract/AGENTS.md)：能力巢狀指引見 [契約索引](contract/README.md#巢狀指引)。
+- [共用客戶端](client/AGENTS.md)。
+- [生成設定](codegen/AGENTS.md)。
+
+Issue、Discussion、Project 及 Repository 子資源已建立契約雛形與工作指引，不代表已有可用 API 或實作；既有 compatibility/ 及 baseline 保留。
+
 ## 相關文件
 
 - [文件索引：API](../docs/README.md#按模組閱讀)

@@ -1,0 +1,9 @@
+{
+  "x-status": "scaffold",
+  "x-owner": "issue.types",
+  "x-description": "Issue types; not a shared DTO collection. Structure only; no operations or schemas defined. Complete the feature specification before adding a public contract.",
+  "paths": {},
+  "components": {
+    "schemas": {}
+  }
+}

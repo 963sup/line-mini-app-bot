@@ -2,6 +2,10 @@
 
 適用於本目錄及其子目錄；先遵循 [根目錄 AGENTS.md](../AGENTS.md)，再套用較近的子目錄補充。使用者及主機指令優先；本檔不增加外部寫入授權。
 
+## 巢狀指引
+
+進入子目錄前讀取對應指引：[contract](contract/AGENTS.md)、[client](client/AGENTS.md)、[codegen](codegen/AGENTS.md)。contract 下的能力目錄再繼承 contract/AGENTS.md；各層只補充自己的責任，不複製上層規則。完整入口見 [目錄導覽](README.md#巢狀指引)。既有 compatibility/ 繼續遵循本指引，不刪除或任意刷新 baseline。
+
 ## 職責與邊界
 
 操作契約前必讀 [業務實體、集合與 API 命名](../docs/development/naming.md#業務實體集合與-api-命名)。模型型別、集合、查詢與路徑按其語意命名；保留既有單例及公開契約相容例外，不手改生成名稱。

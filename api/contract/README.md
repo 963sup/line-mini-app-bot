@@ -16,6 +16,22 @@
 | Summary | [summary/README.md](summary/README.md) | MessageCollection、Summarization 與內部 worker，未加入公開 OpenAPI |
 | Weather | [weather/README.md](weather/README.md) | Forecast 的既有 LINE 事件入口，未加入公開 OpenAPI |
 
+## 巢狀指引
+
+本目錄遵循 [contract 指引](AGENTS.md)，繼承 [API 指引](../AGENTS.md)；各能力補充如下：
+
+| 範圍 | 指引 | 狀態 |
+| --- | --- | --- |
+| Common | [AGENTS.md](common/AGENTS.md) | 共用傳輸契約 |
+| Identity | [AGENTS.md](identity/AGENTS.md) | 既有公開契約 |
+| Repository | [AGENTS.md](repository/AGENTS.md) | Bot 管理的群組空間 |
+| Issue | [AGENTS.md](issue/AGENTS.md) | YAML 雛形，未新增 API |
+| Discussion | [AGENTS.md](discussion/AGENTS.md) | YAML 雛形，未新增 API |
+| Project | [AGENTS.md](project/AGENTS.md) | YAML 雛形，未新增 API |
+| Attendance | [AGENTS.md](attendance/AGENTS.md) | 既有出勤契約 |
+| Summary | [AGENTS.md](summary/AGENTS.md) | 事件與內部工作契約 |
+| Weather | [AGENTS.md](weather/AGENTS.md) | 既有事件入口契約 |
+
 ## 歸屬與依賴
 
 命名遵循 [業務實體、集合與 API 命名](../../docs/development/naming.md#業務實體集合與-api-命名)：單一實體型別用單數，資源集合及 REST 集合路徑用複數。既有單例及公開契約相容例外按該規範處理；能力名稱不以英文單複數機械判定。
@@ -28,6 +44,17 @@
 - 單一能力檔可包含相關 paths 與 schemas，不要求每個 endpoint 一個檔案，也不為沒有公開入口的能力建立空 HTTP 契約。
 
 ## 修改與驗證
+
+### 最小契約雛形
+
+以下檔案目前以 `x-status: scaffold` 標記，只有空的 `paths` 與 `components.schemas`，尚未定義端點或資料欄位，也不由公開／內部組合入口引用。能力清單登記其擁有者，不表示功能已實作。
+
+- Repository：[labels.yaml](repository/labels.yaml)、[milestones.yaml](repository/milestones.yaml)。
+- Issue：[issues.yaml](issue/issues.yaml)、[types.yaml](issue/types.yaml)（IssueType）、[comments.yaml](issue/comments.yaml)。
+- Discussion：[discussions.yaml](discussion/discussions.yaml)、[categories.yaml](discussion/categories.yaml)、[comments.yaml](discussion/comments.yaml)。
+- Project：[projects.yaml](project/projects.yaml)、[items.yaml](project/items.yaml)、[fields.yaml](project/fields.yaml)、[views.yaml](project/views.yaml)。
+
+以上是能力契約片段，不是可獨立啟動或呼叫的完整 OpenAPI 文件。實作時先補功能操作規格，再填入對應 paths／schemas、接入組合入口、更新能力清單與生成碼，並驗證相容性；既有 Repository 仍由 Bot 建立。
 
 先改來源契約，再依 [API 工作流程](../README.md) 生成共用 Go／TypeScript 產物。Redocly 從根入口 bundle，不需每個能力各建 client 或生成器；相容性 baseline 不隨搬移刷新。
 

@@ -1,0 +1,9 @@
+{
+  "x-status": "scaffold",
+  "x-owner": "issue.comments",
+  "x-description": "Issue comments. Structure only; no operations or schemas defined. Complete the feature specification before adding a public contract.",
+  "paths": {},
+  "components": {
+    "schemas": {}
+  }
+}

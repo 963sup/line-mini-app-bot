@@ -1,0 +1,9 @@
+{
+  "x-status": "scaffold",
+  "x-owner": "repository.labels",
+  "x-description": "Repository labels. Structure only; no operations or schemas defined. Complete the feature specification before adding a public contract.",
+  "paths": {},
+  "components": {
+    "schemas": {}
+  }
+}

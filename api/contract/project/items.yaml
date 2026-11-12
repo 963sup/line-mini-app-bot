@@ -1,0 +1,9 @@
+{
+  "x-status": "scaffold",
+  "x-owner": "project.items",
+  "x-description": "Project items; item identity differs from source identity. Structure only; no operations or schemas defined. Complete the feature specification before adding a public contract.",
+  "paths": {},
+  "components": {
+    "schemas": {}
+  }
+}
