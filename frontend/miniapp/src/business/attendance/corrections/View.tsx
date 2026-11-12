@@ -1,6 +1,7 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
+import { FormField } from "@/shared/FormField";
+import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
-import { FieldLabel, Field, FieldGroup } from "@/shared/ui/field";
+import { FieldGroup } from "@/shared/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
@@ -194,216 +195,201 @@ export function View() {
   }
   return (
     <>
-      <Card className="mb-3 gap-4 rounded-2xl p-4 sm:p-6">
-        <CardHeader className="px-0">
-          <CardTitle role="heading" aria-level={2}>
-            補卡／時間更正申請
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-0">
-          <p>
-            已結束班次可申請漏上班、漏下班、整班補卡或時間更正；核准前有效紀錄不變。仍在工作且漏上班者，請於班次結束後申報完整時段。
-          </p>
-          <p>
-            <a className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring" id="back-history" href={back}>
-              回本人月紀錄選擇班次
-            </a>
-          </p>
-          {newShift && (
-            <fieldset className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60" disabled={!user || busy}>
-              <p>
-                沒有可選班次時，可直接申請補卡。首次使用請回原 LINE
-                群組輸入「補卡」開啟表單。
-              </p>
-              <Button onClick={() => loadGroups()}>載入本人群組</Button>
-              <Field>
-                <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal">
-                  群組
-                  <NativeSelect
-                    id="correction-group"
-                    value={group}
-                    onChange={(e) => setGroup(e.target.value)}
-                  >
-                    <NativeSelectOption value="">請選擇群組</NativeSelectOption>
-                    {group && !groups.some((g) => g.id === group) && (
-                      <NativeSelectOption value={group}>
-                        目前群組
-                      </NativeSelectOption>
-                    )}
-                    {groups.map((g) => (
-                      <NativeSelectOption key={g.id} value={g.id}>
-                        {g.name}
-                      </NativeSelectOption>
-                    ))}
-                  </NativeSelect>
-                </FieldLabel>
-              </Field>
-              {groupCursor && (
-                <Button onClick={() => loadGroups(true)}>載入更多群組</Button>
-              )}
-            </fieldset>
-          )}
-          <p id="record-description">
-            {selected
-              ? `原班次：${displayTime(selected.ClockInAt)} → ${displayTime(selected.ClockOutAt)}。核准前工時不變。`
-              : newShift
-                ? "申請新增缺失班次；請勿重複申報已有的班次。"
-                : "請先從月紀錄選擇要更正的班次。"}
-          </p>
-          <form id="correction-form" onSubmit={submitCorrection}>
-            <FieldGroup>
-              <fieldset className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
-                id="correction-fields"
-                disabled={!user || (!selected && !newShift) || !group || busy}
+      <PagePanel heading="補卡／時間更正申請">
+        <p>
+          已結束班次可申請漏上班、漏下班、整班補卡或時間更正；核准前有效紀錄不變。仍在工作且漏上班者，請於班次結束後申報完整時段。
+        </p>
+        <p>
+          <a
+            className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
+            id="back-history"
+            href={back}
+          >
+            回本人月紀錄選擇班次
+          </a>
+        </p>
+        {newShift && (
+          <fieldset
+            className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
+            disabled={!user || busy}
+          >
+            <p>
+              沒有可選班次時，可直接申請補卡。首次使用請回原 LINE
+              群組輸入「補卡」開啟表單。
+            </p>
+            <Button onClick={() => loadGroups()}>載入本人群組</Button>
+            <FormField>
+              群組
+              <NativeSelect
+                id="correction-group"
+                value={group}
+                onChange={(e) => setGroup(e.target.value)}
               >
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <Field>
-                    <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal">
-                      上班時間
-                      <Input
-                        id="correction-start"
-                        type="datetime-local"
-                        step="1"
-                        required
-                        value={start}
-                        onChange={(e) => setStart(e.target.value)}
-                      />
-                    </FieldLabel>
-                  </Field>
-                  <Field>
-                    <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal">
-                      下班時間
-                      <Input
-                        id="correction-end"
-                        type="datetime-local"
-                        step="1"
-                        required
-                        value={end}
-                        onChange={(e) => setEnd(e.target.value)}
-                      />
-                    </FieldLabel>
-                  </Field>
+                <NativeSelectOption value="">請選擇群組</NativeSelectOption>
+                {group && !groups.some((g) => g.id === group) && (
+                  <NativeSelectOption value={group}>
+                    目前群組
+                  </NativeSelectOption>
+                )}
+                {groups.map((g) => (
+                  <NativeSelectOption key={g.id} value={g.id}>
+                    {g.name}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </FormField>
+            {groupCursor && (
+              <Button onClick={() => loadGroups(true)}>載入更多群組</Button>
+            )}
+          </fieldset>
+        )}
+        <p id="record-description">
+          {selected
+            ? `原班次：${displayTime(selected.ClockInAt)} → ${displayTime(selected.ClockOutAt)}。核准前工時不變。`
+            : newShift
+              ? "申請新增缺失班次；請勿重複申報已有的班次。"
+              : "請先從月紀錄選擇要更正的班次。"}
+        </p>
+        <form id="correction-form" onSubmit={submitCorrection}>
+          <FieldGroup>
+            <fieldset
+              className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
+              id="correction-fields"
+              disabled={!user || (!selected && !newShift) || !group || busy}
+            >
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField>
+                  上班時間
+                  <Input
+                    id="correction-start"
+                    type="datetime-local"
+                    step="1"
+                    required
+                    value={start}
+                    onChange={(e) => setStart(e.target.value)}
+                  />
+                </FormField>
+                <FormField>
+                  下班時間
+                  <Input
+                    id="correction-end"
+                    type="datetime-local"
+                    step="1"
+                    required
+                    value={end}
+                    onChange={(e) => setEnd(e.target.value)}
+                  />
+                </FormField>
+              </div>
+              <fieldset className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60">
+                <legend className="px-1 text-sm font-semibold">
+                  實際休息區間
+                </legend>
+                <div id="correction-breaks">
+                  {breaks.map((b, index) => (
+                    <div key={index}>
+                      {(["Start", "End"] as const).map((field) => (
+                        <FormField key={field}>
+                          {field === "Start" ? "休息開始" : "休息結束"}
+                          <Input
+                            type="datetime-local"
+                            step="1"
+                            required
+                            value={b[field]}
+                            onChange={(e) =>
+                              setBreaks((old) =>
+                                old.map((v, i) =>
+                                  i === index
+                                    ? { ...v, [field]: e.target.value }
+                                    : v,
+                                ),
+                              )
+                            }
+                          />
+                        </FormField>
+                      ))}
+                      <Button
+                        type="button"
+                        onClick={() =>
+                          setBreaks((old) => old.filter((_, i) => i !== index))
+                        }
+                      >
+                        移除
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-                <fieldset className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60">
-                  <legend className="px-1 text-sm font-semibold">實際休息區間</legend>
-                  <div id="correction-breaks">
-                    {breaks.map((b, index) => (
-                      <div key={index}>
-                        {(["Start", "End"] as const).map((field) => (
-                          <Field>
-                            <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal" key={field}>
-                              {field === "Start" ? "休息開始" : "休息結束"}
-                              <Input
-                                type="datetime-local"
-                                step="1"
-                                required
-                                value={b[field]}
-                                onChange={(e) =>
-                                  setBreaks((old) =>
-                                    old.map((v, i) =>
-                                      i === index
-                                        ? { ...v, [field]: e.target.value }
-                                        : v,
-                                    ),
-                                  )
-                                }
-                              />
-                            </FieldLabel>
-                          </Field>
-                        ))}
-                        <Button
-                          type="button"
-                          onClick={() =>
-                            setBreaks((old) =>
-                              old.filter((_, i) => i !== index),
-                            )
-                          }
-                        >
-                          移除
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  <Button
-                    id="add-break"
-                    type="button"
-                    onClick={() =>
-                      setBreaks((old) => [...old, { Start: "", End: "" }])
-                    }
-                  >
-                    新增休息區間
-                  </Button>
-                </fieldset>
-                <Field>
-                  <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal">
-                    申請原因
-                    <Textarea
-                      id="correction-reason"
-                      required
-                      maxLength={500}
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                    />
-                  </FieldLabel>
-                </Field>
-                <Field>
-                  <FieldLabel className="w-full flex-row items-start gap-2 whitespace-normal">
-                    <input className="mt-1 size-4 shrink-0 accent-primary"
-                      id="correction-confirm"
-                      type="checkbox"
-                      required
-                      checked={confirmed}
-                      onChange={(e) => setConfirmed(e.target.checked)}
-                    />
-                    已確認實際工作與休息時間；沒有休息區間代表本班無可扣除的休息。
-                  </FieldLabel>
-                </Field>
-                <Button id="submit-correction" type="submit">
-                  送出申請
+                <Button
+                  id="add-break"
+                  type="button"
+                  onClick={() =>
+                    setBreaks((old) => [...old, { Start: "", End: "" }])
+                  }
+                >
+                  新增休息區間
                 </Button>
               </fieldset>
-            </FieldGroup>
-          </form>
-          <Status id="correction-status" role="status">
-            {status}
-          </Status>
-        </CardContent>
-      </Card>
-      <Requests />
-      <Card className="mb-3 gap-4 rounded-2xl p-4 sm:p-6">
-        <CardHeader className="px-0">
-          <CardTitle role="heading" aria-level={2}>
-            查看申請結果
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-0">
-          <p>輸入送出申請時取得的編號；核准前工時不變。</p>
-          <fieldset className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60" id="status-controls" disabled={!user}>
-            <Field>
-              <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal">
-                申請編號
-                <Input
-                  id="correction-id"
-                  maxLength={128}
-                  autoComplete="off"
-                  value={id}
-                  onChange={(e) => {
-                    statusRead.cancel();
-                    setApplication("");
-                    setID(e.target.value);
-                  }}
+              <FormField>
+                申請原因
+                <Textarea
+                  id="correction-reason"
+                  required
+                  maxLength={500}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
                 />
-              </FieldLabel>
-            </Field>
-            <Button id="check-correction" onClick={checkCorrectionStatus}>
-              查詢本人申請
-            </Button>
-          </fieldset>
-          <Status id="application-status" role="status">
-            {application}
-          </Status>
-        </CardContent>
-      </Card>
+              </FormField>
+              <FormField labelClassName="w-full flex-row items-start gap-2 whitespace-normal">
+                <input
+                  className="mt-1 size-4 shrink-0 accent-primary"
+                  id="correction-confirm"
+                  type="checkbox"
+                  required
+                  checked={confirmed}
+                  onChange={(e) => setConfirmed(e.target.checked)}
+                />
+                已確認實際工作與休息時間；沒有休息區間代表本班無可扣除的休息。
+              </FormField>
+              <Button id="submit-correction" type="submit">
+                送出申請
+              </Button>
+            </fieldset>
+          </FieldGroup>
+        </form>
+        <Status id="correction-status" role="status">
+          {status}
+        </Status>
+      </PagePanel>
+      <Requests />
+      <PagePanel heading="查看申請結果">
+        <p>輸入送出申請時取得的編號；核准前工時不變。</p>
+        <fieldset
+          className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
+          id="status-controls"
+          disabled={!user}
+        >
+          <FormField>
+            申請編號
+            <Input
+              id="correction-id"
+              maxLength={128}
+              autoComplete="off"
+              value={id}
+              onChange={(e) => {
+                statusRead.cancel();
+                setApplication("");
+                setID(e.target.value);
+              }}
+            />
+          </FormField>
+          <Button id="check-correction" onClick={checkCorrectionStatus}>
+            查詢本人申請
+          </Button>
+        </fieldset>
+        <Status id="application-status" role="status">
+          {application}
+        </Status>
+      </PagePanel>
     </>
   );
 }

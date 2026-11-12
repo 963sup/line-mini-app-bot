@@ -1,6 +1,6 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
+import { FormField } from "@/shared/FormField";
+import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
-import { FieldLabel, Field } from "@/shared/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Input } from "@/shared/ui/input";
 import { Status } from "@/shared/Status";
@@ -153,152 +153,152 @@ export function View() {
     };
   }, [user, request]);
   return (
-    <Card className="mb-3 gap-4 rounded-2xl p-4 sm:p-6" id="history">
-      <CardHeader className="px-0">
-        <CardTitle role="heading" aria-level={2}>
-          本人月紀錄
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="px-0">
-        <p>
-          <a className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
-            href={
-              "/miniapp/correction?" +
-              new URLSearchParams(group ? { group } : {})
-            }
-          >
-            補卡申請（漏上班、漏下班或整班皆漏）
-          </a>
-        </p>
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          整月摘要與下方分頁明細分開計算。資料可能更新；更正後請重新查詢。
-        </p>
-        <fieldset className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60" id="history-controls" disabled={!user}>
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-            <Button
-              id="load-groups"
-              disabled={groupsBusy}
-              onClick={() => loadGroups()}
-            >
-              載入本人群組
-            </Button>
-            <Button
-              id="more-groups"
-              hidden={!groupCursor}
-              disabled={groupsBusy}
-              onClick={() => loadGroups(true)}
-            >
-              載入更多群組
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field>
-              <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal">
-                群組
-                <NativeSelect
-                  id="history-group"
-                  value={group}
-                  onChange={(e) => {
-                    clear();
-                    setGroup(e.target.value);
-                    setStatus("條件已變更，請重新查詢。");
-                  }}
-                >
-                  <NativeSelectOption value="">請選擇群組</NativeSelectOption>
-                  {groups.map((g) => (
-                    <NativeSelectOption key={g.id} value={g.id}>
-                      {g.name}
-                    </NativeSelectOption>
-                  ))}
-                </NativeSelect>
-              </FieldLabel>
-            </Field>
-            <Field>
-              <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal">
-                月份
-                <Input
-                  id="history-month"
-                  type="month"
-                  required
-                  value={month}
-                  onChange={(e) => {
-                    clear();
-                    setMonth(e.target.value);
-                    setStatus("條件已變更，請重新查詢。");
-                  }}
-                />
-              </FieldLabel>
-            </Field>
-          </div>
-          <Button
-            id="load-month"
-            onClick={() => {
-              clear();
-              loadPage(0, true, group, month, "");
-            }}
-          >
-            查詢月紀錄
-          </Button>
-        </fieldset>
-        <Status id="history-status" role="status">
-          {status}
-        </Status>
-        <pre id="month-summary" className="my-4 max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-xl border bg-muted p-4 font-sans text-sm empty:hidden">
-          {summary &&
-            `全月暫估合計 ${summary.Calculation.EstimatedMinutes ?? summary.Calculation.Minutes} 分鐘（含已確認 ${summary.Calculation.Minutes} 分鐘）。\n出勤時數 ${summary.Calculation.AttendanceMinutes ?? "—"} 分鐘（未扣休息）；休息待確認 ${summary.Calculation.Unconfirmed ?? "—"} 筆；無法計算 ${summary.Calculation.Uncalculable ?? "—"} 筆；共 ${summary.count} 個班次；其他異常／提醒 ${summary.Calculation.Issues?.filter((issue) => issue.Code !== "rest_unconfirmed").length ?? 0} 項。\n合計裁切本月區間；明細為完整班次。暫估非薪資結算，正常／加班分類待認定。`}
-        </pre>
-        <ol id="record-list" className="my-4 flex flex-col gap-4 [&>li]:border-b [&>li]:pb-4 [&_h3]:font-semibold [&_p]:my-2">
-          {records.map((record) => (
-            <li key={record.RecordID}>
-              <h3 className="font-semibold">{displayTime(record.ClockInAt)}</h3>
-              <p>
-                下班：{displayTime(record.ClockOutAt)}
-                {record.WorktimeStatus === "invalid"
-                  ? `；${(record.AttendanceMinutes ?? 0) > 0 ? `出勤 ${record.AttendanceMinutes} 分鐘；` : ""}資料未完整或有異常，暫無法計算工時`
-                  : record.WorktimeStatus === "estimated"
-                    ? `；出勤 ${record.AttendanceMinutes} 分鐘；暫估工時 ${record.EstimatedMinutes} 分鐘（休息待確認）`
-                    : record.WorktimeStatus === "confirmed"
-                      ? `；出勤 ${record.AttendanceMinutes} 分鐘；已確認工時 ${record.EstimatedMinutes} 分鐘`
-                      : !record.RestConfirmed
-                        ? "；休息待確認"
-                        : ""}
-              </p>
-              <a className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
-                href={
-                  "/miniapp/correction?" +
-                  new URLSearchParams({ group, month, record: record.RecordID })
-                }
-              >
-                查看班次並提出更正
-              </a>
-            </li>
-          ))}
-        </ol>
+    <PagePanel id="history" heading="本人月紀錄">
+      <p>
+        <a
+          className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
+          href={
+            "/miniapp/correction?" + new URLSearchParams(group ? { group } : {})
+          }
+        >
+          補卡申請（漏上班、漏下班或整班皆漏）
+        </a>
+      </p>
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        整月摘要與下方分頁明細分開計算。資料可能更新；更正後請重新查詢。
+      </p>
+      <fieldset
+        className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
+        id="history-controls"
+        disabled={!user}
+      >
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           <Button
-            id="previous-records"
-            disabled={!user || busy || page === 0}
-            onClick={() => loadPage(page - 1)}
+            id="load-groups"
+            disabled={groupsBusy}
+            onClick={() => loadGroups()}
           >
-            上一頁
+            載入本人群組
           </Button>
-          <span id="record-page">{loaded && `第 ${page + 1} 頁`}</span>
           <Button
-            id="next-records"
-            disabled={!user || busy || !next}
-            onClick={() => {
-              setCursors((old) => {
-                const a = [...old];
-                a[page + 1] = next;
-                return a;
-              });
-              loadPage(page + 1, false, group, month, next);
-            }}
+            id="more-groups"
+            hidden={!groupCursor}
+            disabled={groupsBusy}
+            onClick={() => loadGroups(true)}
           >
-            下一頁
+            載入更多群組
           </Button>
         </div>
-      </CardContent>
-    </Card>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <FormField>
+            群組
+            <NativeSelect
+              id="history-group"
+              value={group}
+              onChange={(e) => {
+                clear();
+                setGroup(e.target.value);
+                setStatus("條件已變更，請重新查詢。");
+              }}
+            >
+              <NativeSelectOption value="">請選擇群組</NativeSelectOption>
+              {groups.map((g) => (
+                <NativeSelectOption key={g.id} value={g.id}>
+                  {g.name}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </FormField>
+          <FormField>
+            月份
+            <Input
+              id="history-month"
+              type="month"
+              required
+              value={month}
+              onChange={(e) => {
+                clear();
+                setMonth(e.target.value);
+                setStatus("條件已變更，請重新查詢。");
+              }}
+            />
+          </FormField>
+        </div>
+        <Button
+          id="load-month"
+          onClick={() => {
+            clear();
+            loadPage(0, true, group, month, "");
+          }}
+        >
+          查詢月紀錄
+        </Button>
+      </fieldset>
+      <Status id="history-status" role="status">
+        {status}
+      </Status>
+      <pre
+        id="month-summary"
+        className="my-4 max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-xl border bg-muted p-4 font-sans text-sm empty:hidden"
+      >
+        {summary &&
+          `全月暫估合計 ${summary.Calculation.EstimatedMinutes ?? summary.Calculation.Minutes} 分鐘（含已確認 ${summary.Calculation.Minutes} 分鐘）。\n出勤時數 ${summary.Calculation.AttendanceMinutes ?? "—"} 分鐘（未扣休息）；休息待確認 ${summary.Calculation.Unconfirmed ?? "—"} 筆；無法計算 ${summary.Calculation.Uncalculable ?? "—"} 筆；共 ${summary.count} 個班次；其他異常／提醒 ${summary.Calculation.Issues?.filter((issue) => issue.Code !== "rest_unconfirmed").length ?? 0} 項。\n合計裁切本月區間；明細為完整班次。暫估非薪資結算，正常／加班分類待認定。`}
+      </pre>
+      <ol
+        id="record-list"
+        className="my-4 flex flex-col gap-4 [&>li]:border-b [&>li]:pb-4 [&_h3]:font-semibold [&_p]:my-2"
+      >
+        {records.map((record) => (
+          <li key={record.RecordID}>
+            <h3 className="font-semibold">{displayTime(record.ClockInAt)}</h3>
+            <p>
+              下班：{displayTime(record.ClockOutAt)}
+              {record.WorktimeStatus === "invalid"
+                ? `；${(record.AttendanceMinutes ?? 0) > 0 ? `出勤 ${record.AttendanceMinutes} 分鐘；` : ""}資料未完整或有異常，暫無法計算工時`
+                : record.WorktimeStatus === "estimated"
+                  ? `；出勤 ${record.AttendanceMinutes} 分鐘；暫估工時 ${record.EstimatedMinutes} 分鐘（休息待確認）`
+                  : record.WorktimeStatus === "confirmed"
+                    ? `；出勤 ${record.AttendanceMinutes} 分鐘；已確認工時 ${record.EstimatedMinutes} 分鐘`
+                    : !record.RestConfirmed
+                      ? "；休息待確認"
+                      : ""}
+            </p>
+            <a
+              className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
+              href={
+                "/miniapp/correction?" +
+                new URLSearchParams({ group, month, record: record.RecordID })
+              }
+            >
+              查看班次並提出更正
+            </a>
+          </li>
+        ))}
+      </ol>
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <Button
+          id="previous-records"
+          disabled={!user || busy || page === 0}
+          onClick={() => loadPage(page - 1)}
+        >
+          上一頁
+        </Button>
+        <span id="record-page">{loaded && `第 ${page + 1} 頁`}</span>
+        <Button
+          id="next-records"
+          disabled={!user || busy || !next}
+          onClick={() => {
+            setCursors((old) => {
+              const a = [...old];
+              a[page + 1] = next;
+              return a;
+            });
+            loadPage(page + 1, false, group, month, next);
+          }}
+        >
+          下一頁
+        </Button>
+      </div>
+    </PagePanel>
   );
 }

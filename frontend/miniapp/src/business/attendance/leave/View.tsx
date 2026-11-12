@@ -1,6 +1,6 @@
-import { FieldLabel } from "@/shared/ui/field";
-import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
-import { FieldGroup, Field } from "@/shared/ui/field";
+import { FormField } from "@/shared/FormField";
+import { PagePanel } from "@/shared/PagePanel";
+import { FieldGroup } from "@/shared/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
@@ -138,116 +138,93 @@ export function View() {
   }
   return (
     <>
-      <Card className="mb-3 gap-4 rounded-2xl p-4 sm:p-6">
-        <CardHeader className="px-0">
-          <CardTitle role="heading" aria-level={2}>
-            群組請假登記
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-0">
-          <p>
-            填寫原群組的請假資料，時間均為臺灣時間。第一版僅登記，不會自動核准、扣假或變更打卡紀錄。
-          </p>
-          {!launch && (
-            <p>
-              請回群組輸入「請假」，點選「填寫請假」。下方仍可查詢本人紀錄。
-            </p>
-          )}
-          <form onSubmit={submitLeave}>
-            <FieldGroup>
-              <fieldset className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
-                disabled={!user || !launch || busy || sent || uncertain}
-              >
-                <Field>
-                  <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal">
-                    假別
-                    <NativeSelect
-                      value={kind}
-                      onChange={(e) =>
-                        setKind(e.target.value as S["LeaveSubmission"]["kind"])
-                      }
-                    >
-                      {Object.entries(kinds).map(([value, label]) => (
-                        <NativeSelectOption key={value} value={value}>
-                          {label}
-                        </NativeSelectOption>
-                      ))}
-                    </NativeSelect>
-                  </FieldLabel>
-                </Field>
-                <Field>
-                  <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal">
-                    開始時間
-                    <Input
-                      type="datetime-local"
-                      required
-                      value={start}
-                      onChange={(e) => setStart(e.target.value)}
-                    />
-                  </FieldLabel>
-                </Field>
-                <Field>
-                  <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal">
-                    結束時間
-                    <Input
-                      type="datetime-local"
-                      required
-                      value={end}
-                      onChange={(e) => setEnd(e.target.value)}
-                    />
-                  </FieldLabel>
-                </Field>
-                <Field>
-                  <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal">
-                    請假理由（不發送群組，最多500字）
-                    <Textarea
-                      required
-                      maxLength={500}
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                    />
-                  </FieldLabel>
-                </Field>
-              </fieldset>
-              <Button type="submit" disabled={!user || !launch || busy || sent}>
-                {uncertain ? "重試原申請" : "送出請假登記"}
-              </Button>
-            </FieldGroup>
-          </form>
-          {sent && <Button onClick={startAnotherLeave}>填寫另一筆</Button>}
-          <Status role="status">
-            {user ? status : "請先完成 LINE 身分驗證。"}
-          </Status>
-        </CardContent>
-      </Card>
-      <Card className="mb-3 gap-4 rounded-2xl p-4 sm:p-6">
-        <CardHeader className="px-0">
-          <CardTitle role="heading" aria-level={2}>
-            本人請假紀錄
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-0">
-          <Button disabled={!user} onClick={loadLeaveHistory}>
-            重新載入本人紀錄
-          </Button>
-          <Status role="status">{listStatus}</Status>
-          <ul>
-            {records.map((l) => (
-              <li key={l.id}>
-                <strong>{kinds[l.kind]}：已登記、未核准</strong>
-                <br />
-                {displayTime(l.start)} ～ {displayTime(l.end)}
-                <br />
-                理由：{l.reason}
-                <br />
-                群組：{l.groupId}
-                <br />
-                申請編號：{l.id}
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+      <PagePanel heading="群組請假登記">
+        <p>
+          填寫原群組的請假資料，時間均為臺灣時間。第一版僅登記，不會自動核准、扣假或變更打卡紀錄。
+        </p>
+        {!launch && (
+          <p>請回群組輸入「請假」，點選「填寫請假」。下方仍可查詢本人紀錄。</p>
+        )}
+        <form onSubmit={submitLeave}>
+          <FieldGroup>
+            <fieldset
+              className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
+              disabled={!user || !launch || busy || sent || uncertain}
+            >
+              <FormField>
+                假別
+                <NativeSelect
+                  value={kind}
+                  onChange={(e) =>
+                    setKind(e.target.value as S["LeaveSubmission"]["kind"])
+                  }
+                >
+                  {Object.entries(kinds).map(([value, label]) => (
+                    <NativeSelectOption key={value} value={value}>
+                      {label}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </FormField>
+              <FormField>
+                開始時間
+                <Input
+                  type="datetime-local"
+                  required
+                  value={start}
+                  onChange={(e) => setStart(e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                結束時間
+                <Input
+                  type="datetime-local"
+                  required
+                  value={end}
+                  onChange={(e) => setEnd(e.target.value)}
+                />
+              </FormField>
+              <FormField>
+                請假理由（不發送群組，最多500字）
+                <Textarea
+                  required
+                  maxLength={500}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                />
+              </FormField>
+            </fieldset>
+            <Button type="submit" disabled={!user || !launch || busy || sent}>
+              {uncertain ? "重試原申請" : "送出請假登記"}
+            </Button>
+          </FieldGroup>
+        </form>
+        {sent && <Button onClick={startAnotherLeave}>填寫另一筆</Button>}
+        <Status role="status">
+          {user ? status : "請先完成 LINE 身分驗證。"}
+        </Status>
+      </PagePanel>
+      <PagePanel heading="本人請假紀錄">
+        <Button disabled={!user} onClick={loadLeaveHistory}>
+          重新載入本人紀錄
+        </Button>
+        <Status role="status">{listStatus}</Status>
+        <ul>
+          {records.map((l) => (
+            <li key={l.id}>
+              <strong>{kinds[l.kind]}：已登記、未核准</strong>
+              <br />
+              {displayTime(l.start)} ～ {displayTime(l.end)}
+              <br />
+              理由：{l.reason}
+              <br />
+              群組：{l.groupId}
+              <br />
+              申請編號：{l.id}
+            </li>
+          ))}
+        </ul>
+      </PagePanel>
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
+import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
 import { Status } from "@/shared/Status";
 import React, { useEffect, useState } from "react";
@@ -101,69 +101,70 @@ export function View() {
   }, [user, request]);
 
   return (
-    <Card className="mb-3 gap-4 rounded-2xl p-4 sm:p-6">
-      <CardHeader className="px-0">
-        <CardTitle role="heading" aria-level={2}>
-          空間
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="px-0">
-        <a className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring" href="/miniapp/workspace-preview">預覽新版空間 UI（示範資料）</a>
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          {scopeId
-            ? "此連結僅開啟原群組空間，需具備該群組的存取資格。"
-            : "每個群組一個空間，由 Bot 管理。僅顯示已互動且目前仍有存取資格的群組。"}
-        </p>
-        <Button
-          disabled={!user || busy}
-          onClick={() => (scopeId ? detail(scopeId) : load())}
-        >
-          重新載入
+    <PagePanel heading="空間">
+      <a
+        className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
+        href="/miniapp/workspace-preview"
+      >
+        預覽新版空間 UI（示範資料）
+      </a>
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        {scopeId
+          ? "此連結僅開啟原群組空間，需具備該群組的存取資格。"
+          : "每個群組一個空間，由 Bot 管理。僅顯示已互動且目前仍有存取資格的群組。"}
+      </p>
+      <Button
+        disabled={!user || busy}
+        onClick={() => (scopeId ? detail(scopeId) : load())}
+      >
+        重新載入
+      </Button>
+      <Status role="status">{status}</Status>
+      <ul className="my-4 flex flex-col gap-4 [&>li]:border-b [&>li]:pb-4 [&_h3]:font-semibold [&_p]:my-2">
+        {items.map((item) => (
+          <li key={item.id}>
+            <Button disabled={busy} onClick={() => detail(item.id)}>
+              {item.name || "群組空間"}
+            </Button>
+          </li>
+        ))}
+      </ul>
+      {cursor && (
+        <Button disabled={!user || busy} onClick={() => load(cursor)}>
+          下一頁
         </Button>
-        <Status role="status">{status}</Status>
-        <ul className="my-4 flex flex-col gap-4 [&>li]:border-b [&>li]:pb-4 [&_h3]:font-semibold [&_p]:my-2">
-          {items.map((item) => (
-            <li key={item.id}>
-              <Button disabled={busy} onClick={() => detail(item.id)}>
-                {item.name || "群組空間"}
-              </Button>
-            </li>
-          ))}
-        </ul>
-        {cursor && (
-          <Button disabled={!user || busy} onClick={() => load(cursor)}>
-            下一頁
-          </Button>
-        )}
-        {selected && (
-          <article>
-            <h3 className="font-semibold">{selected.name || "群組空間"}</h3>
-            <dl className="grid gap-2 text-sm [&>dt]:font-medium [&>dd]:break-all [&>dd]:text-muted-foreground">
-              <dt>儲存庫 ID</dt>
-              <dd>{selected.id}</dd>
-              <dt>群組 ID</dt>
-              <dd>{selected.groupId}</dd>
-              <dt>狀態</dt>
-              <dd>{selected.status === "ACTIVE" ? "啟用" : "停用"}</dd>
-              <dt>版本</dt>
-              <dd>{selected.version}</dd>
-              <dt>建立時間</dt>
-              <dd>{displayTime(selected.createdAt)}</dd>
-              <dt>更新時間</dt>
-              <dd>{displayTime(selected.updatedAt)}</dd>
-            </dl>
-            <a className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
-              href={
-                "/miniapp/history?" +
-                new URLSearchParams({ group: selected.groupId })
-              }
-            >
-              查看本人出勤
-            </a>
-            <p className="text-sm leading-relaxed text-muted-foreground">摘要請回原群組操作。</p>
-          </article>
-        )}
-      </CardContent>
-    </Card>
+      )}
+      {selected && (
+        <article>
+          <h3 className="font-semibold">{selected.name || "群組空間"}</h3>
+          <dl className="grid gap-2 text-sm [&>dt]:font-medium [&>dd]:break-all [&>dd]:text-muted-foreground">
+            <dt>儲存庫 ID</dt>
+            <dd>{selected.id}</dd>
+            <dt>群組 ID</dt>
+            <dd>{selected.groupId}</dd>
+            <dt>狀態</dt>
+            <dd>{selected.status === "ACTIVE" ? "啟用" : "停用"}</dd>
+            <dt>版本</dt>
+            <dd>{selected.version}</dd>
+            <dt>建立時間</dt>
+            <dd>{displayTime(selected.createdAt)}</dd>
+            <dt>更新時間</dt>
+            <dd>{displayTime(selected.updatedAt)}</dd>
+          </dl>
+          <a
+            className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
+            href={
+              "/miniapp/history?" +
+              new URLSearchParams({ group: selected.groupId })
+            }
+          >
+            查看本人出勤
+          </a>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            摘要請回原群組操作。
+          </p>
+        </article>
+      )}
+    </PagePanel>
   );
 }
