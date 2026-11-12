@@ -101,13 +101,6 @@ function Content({
         {!currentPage && workflow !== "punch" && navigation}
         {workflow !== "journal" && <IdentityPanel />}
         <div key={workflow === "journal" ? "journal" : epoch}>{children}</div>
-        <footer className="app-footer">
-          <p>
-            {workflow === "journal"
-              ? "日誌由 Google 表單處理，送出結果請以表單顯示為準。"
-              : "時間均為臺灣時間。從群組打卡連結完成定位打卡；私訊 Bot 輸入「出勤紀錄」也可查詢。"}
-          </p>
-        </footer>
         <noscript>請啟用 JavaScript，以使用 LINE 服務。</noscript>
       </main>
     </>

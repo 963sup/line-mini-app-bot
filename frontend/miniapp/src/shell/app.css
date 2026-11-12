@@ -40,9 +40,6 @@
 #correction-breaks > div { padding: 10px 0; border-bottom: 1px solid #e8eeeb; }
 .app-page .check-row { display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
 .app-page .check-row input { margin-top: 4px; accent-color: #16845f; }
-.app-footer { padding: 8px 4px; color: #6a7c76; font-size: .84rem; }
-.app-footer a { color: #126e51; font-weight: 700; text-decoration: none; }
-.app-footer a:hover { text-decoration: underline; }
 @media (max-width: 600px) {
   .field-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .app-shell { padding: 16px 12px 48px; }
