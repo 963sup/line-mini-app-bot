@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "turbo run build --filter @repo/miniapp && turbo run dev",
     "api:generate": "node scripts/api/api-generate.mjs",
-    "api:check": "python3 scripts/api/check-capabilities.py && node scripts/api/api-generate.mjs --check && pnpm api:compat",
+    "api:check": "python3 -m unittest discover -s scripts/api -p 'test_*.py' && python3 scripts/api/check-capabilities.py && node scripts/api/api-generate.mjs --check && pnpm api:compat",
     "check": "pnpm api:check && python3 scripts/tooling/check-config.py && turbo run check",
     "test": "turbo run test",
     "build": "turbo run build",

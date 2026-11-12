@@ -33,3 +33,9 @@ entry points and verification boundaries.
 - [路徑整理](../docs/development/path-reorganization.md)
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md)
+
+API capability checks use a limited, comment-aware Go token reader to validate
+embedded interface methods, generated signatures, adapter ownership and route
+composition. Unsupported composition forms fail closed; full Go type checking
+remains in the generated interface assertion and Go checks. `pnpm api:check`
+runs dispatch regression tests before validating contracts and generated output.

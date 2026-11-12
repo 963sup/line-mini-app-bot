@@ -7,6 +7,7 @@ proves structural coverage, not runtime authorization or business correctness.
 import json
 import re
 from pathlib import Path
+from check_dispatch import check_dispatch
 
 ROOT = Path(__file__).resolve().parents[2]
 CONTRACT = ROOT / "api/contract"
@@ -108,10 +109,7 @@ def main():
             consumer_text = source(consumer)
             if operation["audience"] == "public":
                 require('"' + operation["path"] + '"' in consumer_text, f"Stale consumer: {oid}: {consumer}")
-        if operation["audience"] == "public":
-            method = operation["handler"]
-            require(f".{method}(w, r" in source("backend/internal/httpapi/contract.go"),
-                    f"Missing generated-to-capability dispatch: {oid}")
+    check_dispatch(source, inventory["operations"])
     require(registered == set(operations), f"Unowned operations: {set(operations) ^ registered}")
     owned_files = {(CONTRACT / cap["contract"]).resolve() for cap in inventory["capabilities"].values() if "contract" in cap}
     require(set(docs) == set(roots) | owned_files | {(CONTRACT / "common/transport.yaml").resolve()},
