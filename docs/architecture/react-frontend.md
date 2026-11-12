@@ -6,7 +6,7 @@ Next.js Pages Router 靜態輸出，React Strict Mode 啟用。功能入口位�
 - `platform/line/sdk.ts`：官方 SDK script loader 與初始化共用 Promise。全域僅有官方 `window.liff`，沒有自訂 client、DOM dataset 或身分事件橋接。
 - `shared/http/lifecycle.ts`：AbortController、獨立 deadline、世代檢查。即使底層忽略 abort，也不套用過期回應。
 - `shared/location/position.ts`：單次定位，成功、錯誤、逾時、取消一律 clearWatch；拒收無效座標及遲到 callback。權限等待另有 15 秒期限。
-- `shell/AppFrame.tsx`：所有應用頁共用的側欄、頁首與手機抽屜；服務入口只在此維護。空間預覽將局部選單傳入相同側欄，不建立第二個 Provider 或版型。定位診斷亦使用此純呈現外框，不要求 LINE 登入。
+- `shell/AppFrame.tsx`：所有應用頁共用官方 sidebar-07 的外框、Breadcrumb 與收合開關；`shell/sidebar-07/` 保留 AppSidebar、NavMain、NavProjects、NavUser、TeamSwitcher 及 SidebarRail 結構。正式入口與預覽共用同一個 SidebarProvider；預覽只傳入局部選單。身分操作由 Shell 注入 NavUser，頁面不再重複顯示身分卡。定位診斷及預覽不要求 LINE 登入。
 - `shell/Shell.tsx`：身分世代變更時重建功能子樹，清除舊使用者資料、表單與重試狀態。`pagehide` 取消請求；BFCache `pageshow.persisted` 重新驗證。
 - `shared/ui/` 與 `shared/utils.ts`：shadcn primitives 與樣式工具，由 shell／identity／business 組合使用；不擁有業務 API、授權判定或領域狀態。生成設定在 workspace `components.json`，`@/*` 對應 `src/*`。
 

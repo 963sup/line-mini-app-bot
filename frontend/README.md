@@ -8,7 +8,7 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 共用 UI primitives 位於 `miniapp/src/shared/ui/`，樣式工具位於 `shared/utils.ts`；業務畫面留在 `business/`。`components.json` 與 `tsconfig.json` 管理生成路徑及別名。Tailwind 由 Pages Router `_app.tsx` 經 PostCSS 編譯 `styles/globals.css`，包含 Preflight。頁面排版使用 utilities，元件外觀由 shadcn variants 與主題變數控制；不再複製或載入獨立的舊 CSS。
 
-`shell/AppFrame.tsx` 統一側欄、頁首與手機開關；`Shell.tsx` 負責正式業務頁的身分及入口生命週期。空間預覽與定位頁重用 AppFrame；頁面不再各自維護導覽。
+`shell/AppFrame.tsx` 套用官方 [sidebar-07 整合](miniapp/src/shell/sidebar-07/README.md)，統一側欄、頁首與手機開關；`Shell.tsx` 負責正式業務頁的身分及入口生命週期。空間預覽與定位頁重用 AppFrame；頁面不再各自維護導覽。
 
 從根目錄透過 tool-exec.sh 執行 pnpm --filter @repo/miniapp check 與相關既有 test；需要靜態輸出時執行 build。API 變更另走 ../api/README.md。
 

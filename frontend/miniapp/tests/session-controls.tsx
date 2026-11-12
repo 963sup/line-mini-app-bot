@@ -1,9 +1,10 @@
+// Isolated controls for Session lifecycle tests; production uses sidebar-07 NavUser.
 import { Card } from "@/shared/ui/card";
 import { Status } from "@/shared/Status";
 import React from "react";
 import { Button } from "@/shared/ui/button";
-import { useSession } from "./Session";
-export function IdentityPanel() {
+import { useSession } from "../src/identity/Session";
+export function SessionControls() {
   const s = useSession();
   return (
     <Card

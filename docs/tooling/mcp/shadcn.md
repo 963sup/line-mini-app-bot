@@ -42,6 +42,12 @@ Tailwind 4 的 `components.json` 不指定舊式 Tailwind config 檔案。
 正式頁、定位頁及空間預覽以 utilities 排版，外觀由 shadcn 元件 variants 與主題變數控制。
 已移除原有頁面 CSS、asset-map 與 CSS 複製流程；不再使用獨立 stylesheet 連結或全域選擇器覆蓋元件。
 
+## sidebar-07 應用外框
+
+官方 `@shadcn/sidebar-07` 已透過固定版本 CLI 的 `add` 安裝，依既有功能調整資料與路由。
+[整合來源與責任](../../../frontend/miniapp/src/shell/sidebar-07/README.md) 記錄 AppSidebar、NavMain、NavProjects、NavUser、TeamSwitcher、SidebarRail 與 Breadcrumb 頁首的歸屬。
+既有 primitives 不覆寫，只補裝 Breadcrumb 與 Collapsible；不保留示例 dashboard、假帳號或尚未實作的操作。
+
 ## MCP 設定與驗證
 
 唯一連線設定在根目錄 `.codex/config.toml`，版本在 `mise.toml`；不在 feature 或瀏覽器設定 MCP，也不在文件複製 credentials。

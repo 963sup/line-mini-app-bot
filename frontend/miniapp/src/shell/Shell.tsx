@@ -1,6 +1,5 @@
 import React from "react";
 import type { ReactNode } from "react";
-import { IdentityPanel } from "../identity/Panel";
 import { SessionProvider, useSession } from "../identity/Session";
 import { useEffect } from "react";
 import { AppFrame } from "./AppFrame";
@@ -30,7 +29,8 @@ function Content({
   workflow: string;
   children: ReactNode;
 }) {
-  const { epoch, ready } = useSession();
+  const session = useSession();
+  const { epoch, ready } = session;
   useEffect(() => {
     if (!ready || workflow !== "home") return;
     const params = new URLSearchParams(location.search);
@@ -65,8 +65,46 @@ function Content({
       location.replace("/miniapp/punch" + location.search);
   }, [workflow, ready]);
   return (
-    <AppFrame title={title} workflow={workflow}>
-      {workflow !== "journal" && <IdentityPanel />}
+    <AppFrame
+      title={title}
+      workflow={workflow}
+      account={{
+        name: session.user?.displayName || "LINE 身分",
+        detail: session.user?.userId,
+        status: session.status,
+        actions: [
+          ...(session.ready &&
+          !session.user &&
+          !session.inClient &&
+          !session.busy
+            ? [
+                {
+                  id: "login",
+                  label: "使用 LINE 登入",
+                  onSelect: session.login,
+                },
+              ]
+            : []),
+          {
+            id: "verify",
+            label:
+              session.ready || session.busy ? "重新驗證身分" : "重試初始化",
+            onSelect: () => void session.verify(),
+            disabled: session.busy,
+          },
+          ...(session.canLogout
+            ? [
+                {
+                  id: "logout",
+                  label: "登出",
+                  onSelect: () => void session.logout(),
+                  disabled: session.busy,
+                },
+              ]
+            : []),
+        ],
+      }}
+    >
       <div
         className="flex flex-col gap-3"
         key={workflow === "journal" ? "journal" : epoch}

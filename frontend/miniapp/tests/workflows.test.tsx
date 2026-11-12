@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { act, StrictMode, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { SessionProvider, useSession } from "../src/identity/Session";
-import { IdentityPanel } from "../src/identity/Panel";
+import { SessionControls } from "./session-controls";
 import { View as Punch } from "../src/business/attendance/punch/View";
 import { View as History } from "../src/business/attendance/records/View";
 import { View as Correction } from "../src/business/attendance/corrections/View";
@@ -138,7 +138,7 @@ async function fixture(
     root.render(
       <StrictMode>
         <SessionProvider sdkLoader={loader}>
-          <IdentityPanel />
+          <SessionControls />
           <Epoch>{view}</Epoch>
         </SessionProvider>
       </StrictMode>,
