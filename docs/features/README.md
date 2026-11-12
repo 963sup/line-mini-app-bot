@@ -23,5 +23,6 @@
 新增或修改業務操作時，依 [操作契約範本](../architecture/business-operation.md#功能操作契約範本) 在對應功能文件補齊六個問題與證據；未知規則明列待確認。
 
 - [群組 Repository](repository.md)
+- [Repository 共用資源編號基礎](repository-numbering.md)
 
 後續業務規劃：[Repository、Issue 與 Discussion 業務模型](../architecture/domain-model.md)；Issue／Discussion 尚未由此文件啟用。

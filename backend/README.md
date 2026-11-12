@@ -35,3 +35,4 @@ Weather 既有實作集中在 business/weather/forecast/{cwa,line}。
 入口契約見 [Summary](../api/contract/summary/README.md) 與 [Weather](../api/contract/weather/README.md)。
 
 - [群組 Repository](../docs/features/repository.md)
+- [Repository 共用資源編號基礎](../docs/features/repository-numbering.md)：內部交易介面，尚未接入業務建立或公開 API。

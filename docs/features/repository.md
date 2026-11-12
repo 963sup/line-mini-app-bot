@@ -63,4 +63,6 @@ LINE「選單 → 請選擇功能」與功能說明提供「空間」URI 入口�
 
 ## 後續模型設計
 
+內部共用編號基礎見 [Repository 共用資源編號](repository-numbering.md)。目前沒有接入業務建立入口，不改變本頁 Bot 管理、公開查詢或成員核驗規則。
+
 Repository 的實體、查詢、集合與 Connection 分頁命名，以及 Issue／Discussion 的歸屬規劃，見 [業務模型設計](../architecture/domain-model.md)。該頁為後續開發參考，不變更本頁既有 REST、成員核驗與 Bot 管理模式。

@@ -18,6 +18,7 @@
 
 | 需求 | 文件 |
 | --- | --- |
+| 群組空間共用流水編號基礎 | [Repository 共用資源編號](features/repository-numbering.md) |
 | 群組請假入口與本人登記紀錄 | [群組請假登記](features/leave.md) |
 | 日誌表單入口 | [日誌表單](features/journal.md) |
 | 群組人數看板、本人漏下班檢查 | [出勤看板與漏下班](features/attendance-board.md) |
