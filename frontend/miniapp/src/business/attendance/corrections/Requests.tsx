@@ -3,7 +3,7 @@ import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Status } from "@/shared/Status";
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "../../../identity/Session";
 import { useLatestRequest, errorMessage } from "../../../shared/http/lifecycle";
@@ -25,15 +25,17 @@ export function correctionStatus(status: string) {
 }
 export function Requests({
   review = false,
+  refreshVersion = 0,
   disabled = false,
   onSelect,
 }: {
   review?: boolean;
+  refreshVersion?: number;
   disabled?: boolean;
   onSelect?: (item: S["CorrectionReview"]) => void;
 }) {
   const { user, request } = useSession(),
-    read = useLatestRequest(),
+    { run: runRead, cancel: cancelRead } = useLatestRequest(),
     groupsRead = useLatestRequest(),
     mutation = useLatestRequest();
   const [items, setItems] = useState<S["CorrectionReview"][]>([]),
@@ -42,14 +44,14 @@ export function Requests({
     [next, setNext] = useState(""),
     [status, setStatus] = useState(""),
     [busy, setBusy] = useState(false);
-  function load(cursor = "") {
+  const load = useCallback((cursor = "") => {
     if (review && !group) {
       setStatus("請先載入並選擇審核群組。");
       return;
     }
     setBusy(true);
     setStatus("正在查詢……");
-    void read.run(
+    void runRead(
       (signal) =>
         request(
           (c, s) =>
@@ -83,7 +85,13 @@ export function Requests({
         setStatus(errorMessage(error));
       },
     );
-  }
+  }, [review, group, request, runRead]);
+  useEffect(() => {
+    if (!refreshVersion) return;
+    setItems([]);
+    setNext("");
+    if (!review || group) load();
+  }, [refreshVersion, review, group, load]);
   function loadGroups() {
     void groupsRead.run(
       (signal) =>
@@ -135,7 +143,7 @@ export function Requests({
               <NativeSelect
                 value={group}
                 onChange={(e) => {
-                  read.cancel();
+                  cancelRead();
                   setGroup(e.target.value);
                   setItems([]);
                   setNext("");

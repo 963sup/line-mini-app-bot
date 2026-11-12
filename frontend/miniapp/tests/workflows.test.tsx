@@ -531,13 +531,31 @@ test("correction double submit and ambiguous retry reuse a key; edited draft rot
   } finally { await missing.dispose(); }
 });
 test("editing review ID rejects a late proposal and prevents approval of another ID", async () => {
+  let decision = "pending";
   let resolve!: (response: Response) => void;
   const f = await fixture(<Review />, "", async (r, next) =>
-    r.url.endsWith("/review")
+    r.url.endsWith("/reviewer-groups")
+      ? Response.json([{ id: "g1", name: "Group" }])
+      : new URL(r.url).pathname.endsWith("/corrections")
+      ? Response.json({ items: [{ id: "c2", status: decision, reason: "漏下班", start: record.ClockInAt, end: record.ClockOutAt }], nextCursor: "" })
+      : r.url.endsWith("/review")
       ? new Promise<Response>((done) => (resolve = done))
       : next(r),
   );
   try {
+    await act(async () => {
+      const button = [...document.querySelectorAll("button")].find((node) => node.textContent === "載入審核群組")!;
+      button.click();
+      await flush();
+    });
+    await act(async () => {
+      const select = document.querySelector("select")!;
+      select.value = "g1";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      await flush();
+    });
+    await f.click("requests-load");
+    assert.match(f.node("requests-list").textContent!, /待審核/);
     await f.input("correction-id", "c1");
     await f.click("review-correction");
     await f.input("correction-id", "c2");
@@ -557,12 +575,15 @@ test("editing review ID rejects a late proposal and prevents approval of another
     await f.click("review-correction");
     await act(async()=>{resolve(Response.json({id:"c2",reason:"漏下班",start:record.ClockInAt,end:record.ClockOutAt,breaks:[],restConfirmed:true,status:"pending"}));await flush();});
     await f.input("rejection-reason","請提供出勤佐證");
-    const original=f.setHandler(async r=>r.url.endsWith("/reject") ? Response.json({status:"rejected"}) : original(r));
+    const original=f.setHandler(async r=>r.url.endsWith("/reject") ? (decision = "rejected", Response.json({status:"rejected"})) : original(r));
     await f.click("reject-correction");
     const rejected=f.requests.find(r=>r.url.endsWith("/c2/reject"));
     assert.ok(rejected);
     assert.equal((await rejected.clone().json()).reason,"請提供出勤佐證");
     assert.match(f.node("review-status").textContent!,/已駁回/);
+    assert.match(f.node("requests-list").textContent!, /已駁回/);
+    assert.doesNotMatch(f.node("requests-list").textContent!, /待審核/);
+    assert.equal(f.requests.filter((r) => new URL(r.url).pathname.endsWith("/corrections")).length, 2);
 
   } finally {
     await f.dispose();

@@ -16,6 +16,7 @@ export function View() {
     read = useLatestRequest(),
     approvalRequest = useLatestRequest(),
     lock = useRef(false);
+  const [refreshVersion, setRefreshVersion] = useState(0);
   const [id, setID] = useState(""),
     [proposal, setProposal] = useState<
       components["schemas"]["CorrectionReview"] | null
@@ -82,6 +83,7 @@ export function View() {
           { signal },
         ),
       () => {
+        setRefreshVersion((value) => value + 1);
         clearReview();
         lock.current = false;
         setBusy(false);
@@ -102,6 +104,7 @@ export function View() {
     <>
       <Requests
         review
+        refreshVersion={refreshVersion}
         disabled={busy}
         onSelect={(item) => {
           clearReview();

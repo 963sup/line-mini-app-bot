@@ -40,3 +40,7 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 不建立空畫面或讓瀏覽器呼叫內部摘要 worker。新增摘要／天氣網頁及公開 API 必須另定操作契約。
 
 - [群組 Repository](../docs/features/repository.md)
+
+## shadcn 頁內組合
+
+補卡確認使用 Checkbox；空間預覽的清單與看板動作使用 Button、狀態篩選使用單選 ToggleGroup。PagePanel 沿用 Card 預設圓角與內距。Checkbox、Toggle、ToggleGroup 透過固定版 CLI 的 registry 輸出安裝，只修正專案 alias，沿用既有 radix-ui 依賴。sidebar-07 的 asChild 原生 button 保留，屬於官方元件組合。審核清單同步行為見 [出勤查詢與更正](../docs/features/attendance-queries.md#審核畫面狀態同步)。

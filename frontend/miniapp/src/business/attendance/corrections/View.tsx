@@ -1,7 +1,8 @@
 import { FormField } from "@/shared/FormField";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
-import { FieldGroup } from "@/shared/ui/field";
+import { Checkbox } from "@/shared/ui/checkbox";
+import { Field, FieldLabel, FieldGroup } from "@/shared/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
@@ -339,17 +340,17 @@ export function View() {
                   onChange={(e) => setReason(e.target.value)}
                 />
               </FormField>
-              <FormField labelClassName="w-full flex-row items-start gap-2 whitespace-normal">
-                <input
-                  className="mt-1 size-4 shrink-0 accent-primary"
+              <Field orientation="horizontal">
+                <Checkbox
                   id="correction-confirm"
-                  type="checkbox"
                   required
                   checked={confirmed}
-                  onChange={(e) => setConfirmed(e.target.checked)}
+                  onCheckedChange={(checked) => setConfirmed(checked === true)}
                 />
-                已確認實際工作與休息時間；沒有休息區間代表本班無可扣除的休息。
-              </FormField>
+                <FieldLabel htmlFor="correction-confirm">
+                  已確認實際工作與休息時間；沒有休息區間代表本班無可扣除的休息。
+                </FieldLabel>
+              </Field>
               <Button id="submit-correction" type="submit">
                 送出申請
               </Button>

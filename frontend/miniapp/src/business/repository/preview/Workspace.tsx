@@ -1,3 +1,4 @@
+import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { Progress } from "@/shared/ui/progress";
 import React, { useState } from "react";
 import { AppFrame } from "@/shell/AppFrame";
@@ -121,8 +122,10 @@ export default function Workspace() {
   const rows = (data: Item[]) => (
     <div className="flex flex-col">
       {data.map((item) => (
-        <button
-          className="flex w-full flex-wrap items-center gap-3 border-b py-5 text-left hover:text-primary [&>div]:min-w-0 [&>div]:flex-1 [&>div]:basis-[55%] sm:[&>div]:basis-auto [&_strong]:text-sm"
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-auto w-full justify-start whitespace-normal flex-wrap gap-3 border-b py-5 text-left [&>div]:min-w-0 [&>div]:flex-1 [&>div]:basis-[55%] sm:[&>div]:basis-auto [&_strong]:text-sm"
           key={item.number}
           onClick={() => {
             setSelected(item);
@@ -140,7 +143,7 @@ export default function Workspace() {
             {item.state}
           </Badge>
           <ChevronRight size={16} aria-hidden="true" />
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -238,8 +241,10 @@ export default function Workspace() {
               </CardHeader>
               <CardContent>
                 {topics.slice(0, 3).map((t, index) => (
-                  <button
-                    className="flex w-full items-center gap-3 border-b py-4 text-left text-sm hover:text-primary [&>span]:flex-1 [&_small]:mt-1 [&_small]:block"
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-auto w-full justify-start whitespace-normal gap-3 border-b py-4 text-left [&>span]:flex-1 [&_small]:mt-1 [&_small]:block"
                     key={t + index}
                     onClick={() => {
                       setTopic(t);
@@ -249,7 +254,7 @@ export default function Workspace() {
                     <MessagesSquare size={18} />
                     <span>{t}</span>
                     <ChevronRight size={15} />
-                  </button>
+                  </Button>
                 ))}
               </CardContent>
             </Card>
@@ -268,19 +273,19 @@ export default function Workspace() {
                 onChange={(e) => setQuery(e.target.value)}
               />
             </div>
-            <div className="flex flex-wrap gap-2">
-              {["全部", "待處理", "進行中", "已完成"].map((s) => (
-                <Button
-                  key={s}
-                  size="sm"
-                  variant={filter === s ? "secondary" : "ghost"}
-                  aria-pressed={filter === s}
-                  onClick={() => setFilter(s)}
-                >
-                  {s}
-                </Button>
+            <ToggleGroup
+              type="single"
+              value={filter}
+              onValueChange={(value) => { if (value) setFilter(value); }}
+              aria-label="篩選事項狀態"
+              className="flex-wrap justify-start"
+            >
+              {["全部", "待處理", "進行中", "已完成"].map((state) => (
+                <ToggleGroupItem key={state} value={state} aria-label={state}>
+                  {state}
+                </ToggleGroupItem>
               ))}
-            </div>
+            </ToggleGroup>
           </CardHeader>
           <CardContent>
             {visible.length ? (
@@ -306,8 +311,10 @@ export default function Workspace() {
           </CardHeader>
           <CardContent>
             {topics.map((t, index) => (
-              <button
-                className="flex w-full items-center gap-3 border-b py-4 text-left text-sm hover:text-primary [&>span]:flex-1 [&_small]:mt-1 [&_small]:block"
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-auto w-full justify-start whitespace-normal gap-3 border-b py-4 text-left [&>span]:flex-1 [&_small]:mt-1 [&_small]:block"
                 key={t + index}
                 onClick={() => {
                   setTopic(t);
@@ -322,7 +329,7 @@ export default function Workspace() {
                   </small>
                 </span>
                 <ChevronRight size={16} />
-              </button>
+              </Button>
             ))}
           </CardContent>
         </Card>
@@ -379,13 +386,15 @@ export default function Workspace() {
                   {items
                     .filter((i) => i.state === s)
                     .map((i) => (
-                      <button
-                        className="w-full rounded-lg border bg-card p-4 text-left text-card-foreground hover:bg-accent"
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-auto w-full justify-start whitespace-normal p-4 text-left"
                         key={i.number}
                         onClick={() => setSelected(i)}
                       >
                         #{i.number} {i.title}
-                      </button>
+                      </Button>
                     ))}
                 </section>
               ))}
