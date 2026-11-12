@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/963sup/line-mini-app-bot/internal/business/summary/summarization"
+	"github.com/963sup/line-mini-app-bot/internal/httpapi/generatedinternal"
 )
 
 type Queue struct {
@@ -18,7 +19,7 @@ type Queue struct {
 }
 
 func (q *Queue) Enqueue(ctx context.Context, j summarization.Job) error {
-	payload, _ := json.Marshal(map[string]string{"group": j.GroupID, "id": j.ID})
+	payload, _ := json.Marshal(generatedinternal.SummaryJob{Group: j.GroupID, Id: j.ID})
 	body, _ := json.Marshal(map[string]any{"task": map[string]any{
 		"name": q.Name + "/tasks/" + j.ID, "dispatchDeadline": "120s",
 		"httpRequest": map[string]any{"url": q.URL, "httpMethod": "POST", "headers": map[string]string{"Content-Type": "application/json"}, "body": base64.StdEncoding.EncodeToString(payload), "oidcToken": map[string]string{"serviceAccountEmail": q.ServiceAccount, "audience": q.URL}},

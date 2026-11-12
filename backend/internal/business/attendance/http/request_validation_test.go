@@ -110,7 +110,7 @@ func TestAttendanceQueryContracts(t *testing.T) {
 		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(fmt.Sprintf(`{"iss":"https://access.line.me","sub":"actor","aud":"123","exp":%d}`, time.Now().Add(time.Hour).Unix())))}, nil
 	})})
 	mux := http.NewServeMux()
-	registerAttendanceQueries(mux, &Attendance{store: store}, app)
+	RegisterAttendanceAPI(mux, &Attendance{store: store}, app)
 	for _, tc := range []struct {
 		path   string
 		status int

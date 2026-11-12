@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/963sup/line-mini-app-bot/internal/business/summary/summarization"
+	"github.com/963sup/line-mini-app-bot/internal/httpapi/generatedinternal"
 )
 
 var requestIDPattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
@@ -32,10 +33,10 @@ func SummaryWorker(service *summarization.Service, verifier WorkerVerifier) http
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
-		var input struct{ Group, ID string }
+		var input generatedinternal.SummaryJob
 		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 2048))
 		decoder.DisallowUnknownFields()
-		if e := decoder.Decode(&input); e != nil || !groupIDPattern.MatchString(input.Group) || !requestIDPattern.MatchString(input.ID) {
+		if e := decoder.Decode(&input); e != nil || !groupIDPattern.MatchString(input.Group) || !requestIDPattern.MatchString(input.Id) {
 			http.Error(w, "invalid job", http.StatusBadRequest)
 			return
 		}
@@ -43,7 +44,7 @@ func SummaryWorker(service *summarization.Service, verifier WorkerVerifier) http
 			http.Error(w, "invalid job", http.StatusBadRequest)
 			return
 		}
-		if e := service.Run(ctx, input.Group, input.ID); e != nil {
+		if e := service.Run(ctx, input.Group, input.Id); e != nil {
 			http.Error(w, "summary temporarily unavailable", http.StatusServiceUnavailable)
 			return
 		}

@@ -60,3 +60,7 @@ LINE「選單 → 請選擇功能」與功能說明提供「空間」URI 入口�
 群組空間入口由可信 groupId 查得 Repository ID，連結帶 `repositories=1&repository=<id>`。一般 query 與 liff.state 均保留目標 ID；專用入口只查詳情，重新載入仍查同一 ID，失敗不退回列表。私訊入口維持本人列表。後端仍依目標容器 groupId 即時核驗成員；連結不是授權憑證，修改 ID 不授予其他群組權限。
 
 群組專用入口本機驗證：以實際 Go 靜態頁路由、受控 LINE SDK／API 回應檢查一般 query、liff.state 與 404 情境；三者均只請求指定 Repository 詳情，重新載入不切換到列表，390px 無水平溢出。這不取代 LINE 裝置驗收。
+
+## 後續模型設計
+
+Repository 的實體、查詢、集合與 Connection 分頁命名，以及 Issue／Discussion 的歸屬規劃，見 [業務模型設計](../architecture/domain-model.md)。該頁為後續開發參考，不變更本頁既有 REST、成員核驗與 Bot 管理模式。

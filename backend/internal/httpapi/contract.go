@@ -7,113 +7,151 @@ import (
 )
 
 type contractServer struct {
-	identity     http.Handler
-	attendance   http.Handler
-	repositories http.Handler
+	identity     IdentityServer
+	attendance   AttendanceServer
+	repositories RepositoryServer
 }
 
 var _ generated.ServerInterface = contractServer{}
 
-func (s contractServer) ListRepositories(w http.ResponseWriter, r *http.Request, _ generated.ListRepositoriesParams) {
-	s.repositories.ServeHTTP(w, r)
+func (s contractServer) ListRepositories(w http.ResponseWriter, r *http.Request, params generated.ListRepositoriesParams) {
+	s.repositories.ListRepositories(w, r, params)
 }
 
 func (s contractServer) GetRepository(w http.ResponseWriter, r *http.Request, id string) {
-	s.repositories.ServeHTTP(w, r)
+	s.repositories.GetRepository(w, r, id)
 }
 
 func (s contractServer) GetMiniAppConfig(w http.ResponseWriter, r *http.Request) {
-	s.identity.ServeHTTP(w, r)
+	s.identity.GetMiniAppConfig(w, r)
 }
 
 func (s contractServer) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
-	s.identity.ServeHTTP(w, r)
+	s.identity.GetCurrentUser(w, r)
 }
 
 func (s contractServer) ProposeAttendanceCorrection(w http.ResponseWriter, r *http.Request, params generated.ProposeAttendanceCorrectionParams) {
-	s.attendance.ServeHTTP(w, r)
+	s.attendance.ProposeAttendanceCorrection(w, r, params)
 }
 
 func (s contractServer) GetAttendanceCorrectionStatus(w http.ResponseWriter, r *http.Request, id string) {
-	s.attendance.ServeHTTP(w, r)
+	s.attendance.GetAttendanceCorrectionStatus(w, r, id)
 }
 
-func (s contractServer) ApproveAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, _ generated.ApproveAttendanceCorrectionParams) {
-	s.attendance.ServeHTTP(w, r)
+func (s contractServer) ApproveAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, params generated.ApproveAttendanceCorrectionParams) {
+	s.attendance.ApproveAttendanceCorrection(w, r, id, params)
 }
 
 func (s contractServer) GetAttendanceCorrectionReview(w http.ResponseWriter, r *http.Request, id string) {
-	s.attendance.ServeHTTP(w, r)
+	s.attendance.GetAttendanceCorrectionReview(w, r, id)
 }
 
 func (s contractServer) ListAttendanceGroups(w http.ResponseWriter, r *http.Request) {
-	s.attendance.ServeHTTP(w, r)
+	s.attendance.ListAttendanceGroups(w, r)
 }
 
 func (s contractServer) ListAttendanceGroupPage(w http.ResponseWriter, r *http.Request, params generated.ListAttendanceGroupPageParams) {
-	s.attendance.ServeHTTP(w, r)
+	s.attendance.ListAttendanceGroupPage(w, r, params)
 }
 
-func (s contractServer) ExchangeAttendanceLaunch(w http.ResponseWriter, r *http.Request, _ generated.ExchangeAttendanceLaunchParams) {
-	s.attendance.ServeHTTP(w, r)
+func (s contractServer) ExchangeAttendanceLaunch(w http.ResponseWriter, r *http.Request, params generated.ExchangeAttendanceLaunchParams) {
+	s.attendance.ExchangeAttendanceLaunch(w, r, params)
 }
 
 func (s contractServer) GetAttendanceMonthlyReport(w http.ResponseWriter, r *http.Request, params generated.GetAttendanceMonthlyReportParams) {
-	s.attendance.ServeHTTP(w, r)
+	s.attendance.GetAttendanceMonthlyReport(w, r, params)
 }
 
 func (s contractServer) GetAttendanceMonthlySummary(w http.ResponseWriter, r *http.Request, params generated.GetAttendanceMonthlySummaryParams) {
-	s.attendance.ServeHTTP(w, r)
+	s.attendance.GetAttendanceMonthlySummary(w, r, params)
 }
 
-func (s contractServer) SubmitAttendancePunch(w http.ResponseWriter, r *http.Request, _ generated.SubmitAttendancePunchParams) {
-	s.attendance.ServeHTTP(w, r)
+func (s contractServer) SubmitAttendancePunch(w http.ResponseWriter, r *http.Request, params generated.SubmitAttendancePunchParams) {
+	s.attendance.SubmitAttendancePunch(w, r, params)
 }
 
 func (s contractServer) ListAttendanceRecords(w http.ResponseWriter, r *http.Request, params generated.ListAttendanceRecordsParams) {
-	s.attendance.ServeHTTP(w, r)
+	s.attendance.ListAttendanceRecords(w, r, params)
 }
 
 func (s contractServer) GetAttendanceRecord(w http.ResponseWriter, r *http.Request, id string, params generated.GetAttendanceRecordParams) {
-	s.attendance.ServeHTTP(w, r)
+	s.attendance.GetAttendanceRecord(w, r, id, params)
 }
 
-func (s contractServer) CreateSession(w http.ResponseWriter, r *http.Request, _ generated.CreateSessionParams) {
-	s.identity.ServeHTTP(w, r)
+func (s contractServer) CreateSession(w http.ResponseWriter, r *http.Request, params generated.CreateSessionParams) {
+	s.identity.CreateSession(w, r, params)
 }
 
-func (s contractServer) DeleteSession(w http.ResponseWriter, r *http.Request, _ generated.DeleteSessionParams) {
-	s.identity.ServeHTTP(w, r)
+func (s contractServer) DeleteSession(w http.ResponseWriter, r *http.Request, params generated.DeleteSessionParams) {
+	s.identity.DeleteSession(w, r, params)
 }
 
-func (s contractServer) RefreshSession(w http.ResponseWriter, r *http.Request, _ generated.RefreshSessionParams) {
-	s.identity.ServeHTTP(w, r)
+func (s contractServer) RefreshSession(w http.ResponseWriter, r *http.Request, params generated.RefreshSessionParams) {
+	s.identity.RefreshSession(w, r, params)
 }
 
 func (s contractServer) ListOwnLeaveRequests(w http.ResponseWriter, r *http.Request) {
-	s.attendance.ServeHTTP(w, r)
+	s.attendance.ListOwnLeaveRequests(w, r)
 }
 
-func (s contractServer) SubmitLeaveRequest(w http.ResponseWriter, r *http.Request, _ generated.SubmitLeaveRequestParams) {
-	s.attendance.ServeHTTP(w, r)
+func (s contractServer) SubmitLeaveRequest(w http.ResponseWriter, r *http.Request, params generated.SubmitLeaveRequestParams) {
+	s.attendance.SubmitLeaveRequest(w, r, params)
 }
 
-func (s contractServer) PreflightAttendancePunch(w http.ResponseWriter, r *http.Request, _ generated.PreflightAttendancePunchParams) {
-	s.attendance.ServeHTTP(w, r)
+func (s contractServer) PreflightAttendancePunch(w http.ResponseWriter, r *http.Request, params generated.PreflightAttendancePunchParams) {
+	s.attendance.PreflightAttendancePunch(w, r, params)
 }
 
-func (s contractServer) RejectAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, _ generated.RejectAttendanceCorrectionParams) {
-	s.attendance.ServeHTTP(w, r)
+func (s contractServer) RejectAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, params generated.RejectAttendanceCorrectionParams) {
+	s.attendance.RejectAttendanceCorrection(w, r, id, params)
 }
 
-func (s contractServer) CancelAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, _ generated.CancelAttendanceCorrectionParams) {
-	s.attendance.ServeHTTP(w, r)
+func (s contractServer) CancelAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, params generated.CancelAttendanceCorrectionParams) {
+	s.attendance.CancelAttendanceCorrection(w, r, id, params)
 }
 
-func (s contractServer) ListAttendanceCorrections(w http.ResponseWriter, r *http.Request, _ generated.ListAttendanceCorrectionsParams) {
-	s.attendance.ServeHTTP(w, r)
+func (s contractServer) ListAttendanceCorrections(w http.ResponseWriter, r *http.Request, params generated.ListAttendanceCorrectionsParams) {
+	s.attendance.ListAttendanceCorrections(w, r, params)
 }
 
 func (s contractServer) ListAttendanceReviewerGroups(w http.ResponseWriter, r *http.Request) {
-	s.attendance.ServeHTTP(w, r)
+	s.attendance.ListAttendanceReviewerGroups(w, r)
+}
+
+// IdentityServer is the generated operation subset owned by this capability.
+type IdentityServer interface {
+	GetMiniAppConfig(w http.ResponseWriter, r *http.Request)
+	GetCurrentUser(w http.ResponseWriter, r *http.Request)
+	CreateSession(w http.ResponseWriter, r *http.Request, params generated.CreateSessionParams)
+	DeleteSession(w http.ResponseWriter, r *http.Request, params generated.DeleteSessionParams)
+	RefreshSession(w http.ResponseWriter, r *http.Request, params generated.RefreshSessionParams)
+}
+
+// RepositoryServer is the generated operation subset owned by this capability.
+type RepositoryServer interface {
+	ListRepositories(w http.ResponseWriter, r *http.Request, params generated.ListRepositoriesParams)
+	GetRepository(w http.ResponseWriter, r *http.Request, id string)
+}
+
+// AttendanceServer is the generated operation subset owned by this capability.
+type AttendanceServer interface {
+	ProposeAttendanceCorrection(w http.ResponseWriter, r *http.Request, params generated.ProposeAttendanceCorrectionParams)
+	GetAttendanceCorrectionStatus(w http.ResponseWriter, r *http.Request, id string)
+	ApproveAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, params generated.ApproveAttendanceCorrectionParams)
+	GetAttendanceCorrectionReview(w http.ResponseWriter, r *http.Request, id string)
+	ListAttendanceGroups(w http.ResponseWriter, r *http.Request)
+	ListAttendanceGroupPage(w http.ResponseWriter, r *http.Request, params generated.ListAttendanceGroupPageParams)
+	ExchangeAttendanceLaunch(w http.ResponseWriter, r *http.Request, params generated.ExchangeAttendanceLaunchParams)
+	GetAttendanceMonthlyReport(w http.ResponseWriter, r *http.Request, params generated.GetAttendanceMonthlyReportParams)
+	GetAttendanceMonthlySummary(w http.ResponseWriter, r *http.Request, params generated.GetAttendanceMonthlySummaryParams)
+	SubmitAttendancePunch(w http.ResponseWriter, r *http.Request, params generated.SubmitAttendancePunchParams)
+	ListAttendanceRecords(w http.ResponseWriter, r *http.Request, params generated.ListAttendanceRecordsParams)
+	GetAttendanceRecord(w http.ResponseWriter, r *http.Request, id string, params generated.GetAttendanceRecordParams)
+	ListOwnLeaveRequests(w http.ResponseWriter, r *http.Request)
+	SubmitLeaveRequest(w http.ResponseWriter, r *http.Request, params generated.SubmitLeaveRequestParams)
+	PreflightAttendancePunch(w http.ResponseWriter, r *http.Request, params generated.PreflightAttendancePunchParams)
+	RejectAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, params generated.RejectAttendanceCorrectionParams)
+	CancelAttendanceCorrection(w http.ResponseWriter, r *http.Request, id string, params generated.CancelAttendanceCorrectionParams)
+	ListAttendanceCorrections(w http.ResponseWriter, r *http.Request, params generated.ListAttendanceCorrectionsParams)
+	ListAttendanceReviewerGroups(w http.ResponseWriter, r *http.Request)
 }

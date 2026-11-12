@@ -16,58 +16,58 @@ import (
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 )
 
-func registerPunch(mux *http.ServeMux, bot *Attendance, app Authenticator) {
-	mux.Handle("POST /api/v1/attendance/punches", http.NewCrossOriginProtection().Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if bot == nil {
-			transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")
-			return
-		}
-		store, ok := bot.store.(punch.PunchSubmitter)
-		if !ok {
-			transport.WriteAPIError(w, 503, "not_configured", "定位打卡尚未啟用。")
-			return
-		}
-		user, _, ok := app.Authenticate(w, r)
-		if !ok {
-			return
-		}
-		media, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
-		if err != nil || media != "application/json" {
-			transport.WriteAPIError(w, 415, "invalid_content_type", "請使用 JSON。")
-			return
-		}
-		r.Body = http.MaxBytesReader(w, r.Body, 2048)
-		decoder := json.NewDecoder(r.Body)
-		decoder.DisallowUnknownFields()
-		var input generated.PunchRequest
-		if err := decoder.Decode(&input); err != nil {
-			transport.WriteAPIError(w, 400, "invalid_input", "打卡資料無效。")
-			return
-		}
-		var extra any
-		if decoder.Decode(&extra) != io.EOF {
-			transport.WriteAPIError(w, 400, "invalid_input", "打卡資料無效。")
-			return
-		}
-		now := time.Now().UTC()
-		if !requestIDPattern.MatchString(input.RequestId) || !validAttendanceLocation(locationInput{Latitude: &input.Latitude, Longitude: &input.Longitude, AccuracyMeters: &input.AccuracyMeters, CapturedAt: &input.CapturedAt}, now) {
-			transport.WriteAPIError(w, 400, "invalid_position", "位置資料無效或過期，請重新取得位置。")
-			return
-		}
-		position := recordmodel.Position{Latitude: input.Latitude, Longitude: input.Longitude, AccuracyMeters: input.AccuracyMeters, CapturedAt: input.CapturedAt}
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-		defer cancel()
-		result, err := store.SubmitPunch(ctx, input.RequestId, user, position, now)
-		if errors.Is(err, attendance.ErrInvalidRequest) {
-			transport.WriteAPIError(w, 403, "invalid_request", "此打卡連結已過期或不屬於本人，請回原群組重新操作。")
-			return
-		}
-		if err != nil {
-			transport.WriteAPIError(w, 503, "unavailable", "暫時無法確認打卡結果，請重試或私訊查詢本人紀錄。")
-			return
-		}
-		transport.WriteJSON(w, 200, bot.punchResponse(result))
-	})))
+func (s *attendanceServer) SubmitAttendancePunch(w http.ResponseWriter, r *http.Request, _ generated.SubmitAttendancePunchParams) {
+	bot, app := s.bot, s.app
+
+	if bot == nil {
+		transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")
+		return
+	}
+	store, ok := bot.store.(punch.PunchSubmitter)
+	if !ok {
+		transport.WriteAPIError(w, 503, "not_configured", "定位打卡尚未啟用。")
+		return
+	}
+	user, _, ok := app.Authenticate(w, r)
+	if !ok {
+		return
+	}
+	media, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil || media != "application/json" {
+		transport.WriteAPIError(w, 415, "invalid_content_type", "請使用 JSON。")
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, 2048)
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	var input generated.PunchRequest
+	if err := decoder.Decode(&input); err != nil {
+		transport.WriteAPIError(w, 400, "invalid_input", "打卡資料無效。")
+		return
+	}
+	var extra any
+	if decoder.Decode(&extra) != io.EOF {
+		transport.WriteAPIError(w, 400, "invalid_input", "打卡資料無效。")
+		return
+	}
+	now := time.Now().UTC()
+	if !requestIDPattern.MatchString(input.RequestId) || !validAttendanceLocation(locationInput{Latitude: &input.Latitude, Longitude: &input.Longitude, AccuracyMeters: &input.AccuracyMeters, CapturedAt: &input.CapturedAt}, now) {
+		transport.WriteAPIError(w, 400, "invalid_position", "位置資料無效或過期，請重新取得位置。")
+		return
+	}
+	position := recordmodel.Position{Latitude: input.Latitude, Longitude: input.Longitude, AccuracyMeters: input.AccuracyMeters, CapturedAt: input.CapturedAt}
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+	result, err := store.SubmitPunch(ctx, input.RequestId, user, position, now)
+	if errors.Is(err, attendance.ErrInvalidRequest) {
+		transport.WriteAPIError(w, 403, "invalid_request", "此打卡連結已過期或不屬於本人，請回原群組重新操作。")
+		return
+	}
+	if err != nil {
+		transport.WriteAPIError(w, 503, "unavailable", "暫時無法確認打卡結果，請重試或私訊查詢本人紀錄。")
+		return
+	}
+	transport.WriteJSON(w, 200, bot.punchResponse(result))
 }
 
 func validAttendanceLocation(input locationInput, now time.Time) bool {

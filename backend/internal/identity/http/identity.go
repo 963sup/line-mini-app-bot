@@ -74,26 +74,36 @@ func (a *Authenticator) Register(mux *http.ServeMux) (string, error) {
 			return "", fmt.Errorf("missing or invalid configuration: LINE_MINI_APP_LIFF_ID")
 		}
 	}
-	routes := http.NewServeMux()
-	routes.HandleFunc("GET /api/v1/miniapp/config", func(w http.ResponseWriter, r *http.Request) {
-		if a.LIFFID == "" {
-			transport.WriteAPIError(w, 503, "not_configured", "MINI App 尚未設定。")
-			return
-		}
-		transport.WriteJSON(w, 200, generated.MiniAppConfig{LiffId: a.LIFFID})
-	})
-	routes.HandleFunc("GET /api/v1/me", func(w http.ResponseWriter, r *http.Request) {
-		user, name, ok := a.Authenticate(w, r)
-		if ok {
-			transport.WriteJSON(w, 200, generated.CurrentUser{UserId: user, DisplayName: name})
-		}
-	})
-	routes.HandleFunc("POST /api/v1/session", a.createSession)
-	routes.HandleFunc("POST /api/v1/session/refresh", a.refreshSession)
-	routes.HandleFunc("DELETE /api/v1/session", a.deleteSession)
-	httpapi.RegisterIdentity(mux, routes)
+	httpapi.RegisterIdentity(mux, a)
 	if a.LIFFID == "" {
 		return "", nil
 	}
 	return "https://miniapp.line.me/" + a.LIFFID, nil
+}
+
+func (a *Authenticator) GetMiniAppConfig(w http.ResponseWriter, r *http.Request) {
+	if a.LIFFID == "" {
+		transport.WriteAPIError(w, 503, "not_configured", "MINI App 尚未設定。")
+		return
+	}
+	transport.WriteJSON(w, 200, generated.MiniAppConfig{LiffId: a.LIFFID})
+}
+
+func (a *Authenticator) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
+	user, name, ok := a.Authenticate(w, r)
+	if ok {
+		transport.WriteJSON(w, 200, generated.CurrentUser{UserId: user, DisplayName: name})
+	}
+}
+
+func (a *Authenticator) CreateSession(w http.ResponseWriter, r *http.Request, _ generated.CreateSessionParams) {
+	a.createSession(w, r)
+}
+
+func (a *Authenticator) RefreshSession(w http.ResponseWriter, r *http.Request, _ generated.RefreshSessionParams) {
+	a.refreshSession(w, r)
+}
+
+func (a *Authenticator) DeleteSession(w http.ResponseWriter, r *http.Request, _ generated.DeleteSessionParams) {
+	a.deleteSession(w, r)
 }

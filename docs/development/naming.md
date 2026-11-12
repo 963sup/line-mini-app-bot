@@ -2,6 +2,28 @@
 
 > 狀態：本專案技術規範；不是所有規則都由 Go 官方強制。新增程式依此命名，既有程式按修改範圍調整。
 
+## 業務實體、集合與 API 命名
+
+此節為專案規範，適用所有 Codex 角色。新增或修改業務模型、契約、資料集合、查詢欄位與資源路徑前必讀；先判斷名稱代表一個實體、集合、操作，還是能力，再命名。
+
+| 對象 | 規則 | 範例 |
+| --- | --- | --- |
+| Domain Entity／資料模型／GraphQL Type | 單數，型別依語言使用 PascalCase／MixedCaps | `Issue`、`Discussion`、`Repository` |
+| 資源集合／集合變數 | 複數，大小寫依所在語言或儲存契約 | `issues`、`discussions`、`repositories` |
+| GraphQL 單一資源查詢欄位 | 單數 lowerCamelCase | `issue`、`discussion`、`repository` |
+| GraphQL 集合查詢欄位 | 複數 lowerCamelCase | `issues`、`discussions`、`repositories` |
+| REST 資源集合路徑 | 複數小寫；多字使用 kebab-case | `/issues`、`/discussions`、`/repositories` |
+| REST 單一資源路徑 | 複數集合路徑加資源識別碼，不改成單數集合名 | `/issues/{id}`、`/repositories/{id}` |
+| 操作名稱／operationId | 動詞表達行為，受詞依回傳單筆或集合決定 | `getRepository`、`listRepositories`、`approveCorrection` |
+
+`RepositoryPage`、`CorrectionSubmission` 等分頁／命令／結果 DTO 依其責任命名，不為集合內容把 DTO 型別取成 `Repositories`。GraphQL 範例只定義命名，並非引入 GraphQL 的實作要求。
+
+能力與 package／目錄名稱不能只憑字尾強制單複數：`identity`、`attendance`、`worktime`、`summarization` 表達能力或過程，不是實體集合；契約檔案按能力或集合責任命名即可。不得為符合英文單複數而機械式重命名整個專案。
+
+新資源集合遵守上述規則。既有公開路徑（例如單例 `/api/v1/session`）、operationId、生成型別及已保存 collection／欄位維持相容；調整須先提出遷移與相容性驗證，不可直接改名。第三方 payload 保留官方名稱；不規則複數按英文語意處理。
+
+驗收須核對實體／集合角色、operationId 與路徑是否一致，並記錄既有相容例外。文字規範及 Codex 讀取規則不能取代契約生成、相容性檢查與實際入口驗證。
+
 ## Go 命名
 
 | 對象 | 規則 | 範例 |

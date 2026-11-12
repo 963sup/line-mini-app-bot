@@ -1,0 +1,101 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Internal worker API",
+    "version": "1.0.0",
+    "description": "Existing internal work only; never exposed through the MINI App client."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/internal/summary": {
+      "post": {
+        "operationId": "runSummary",
+        "summary": "Run an existing summary job",
+        "security": [
+          {
+            "workerIdentity": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SummaryJob"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Job completed or already handled"
+          },
+          "400": {
+            "description": "invalid job",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "summary temporarily unavailable",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "workerIdentity": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Verified Google work identity with configured audience and email; not a browser session."
+      }
+    },
+    "schemas": {
+      "SummaryJob": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "group",
+          "id"
+        ],
+        "properties": {
+          "group": {
+            "type": "string",
+            "pattern": "^C[0-9a-f]{32}$"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "description": "Existing queue payload. Limit 2048 bytes and exactly one JSON value. Legacy Go decoder also accepts case-insensitive field names; preserve that compatibility."
+      }
+    }
+  }
+}

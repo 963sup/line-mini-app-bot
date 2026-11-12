@@ -15,14 +15,21 @@ import (
 	middleware "github.com/oapi-codegen/nethttp-middleware"
 )
 
-func registerContractAttendance(public, legacy *http.ServeMux, bot *Attendance, app Authenticator) {
+func registerContractAttendance(public *http.ServeMux, server httpapi.AttendanceServer, bot *Attendance, app Authenticator) {
 	spec, err := httpapi.Spec()
 	if err != nil {
 		panic(err)
 	}
-	httpapi.RegisterAttendance(public, legacy, func(next http.Handler) http.Handler {
+	httpapi.RegisterAttendance(public, server, func(next http.Handler) http.Handler {
 		if bot == nil {
-			return legacy
+			// Disabled capabilities return 503 before generated required-parameter binding.
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				message := "出勤尚未啟用。"
+				if strings.HasSuffix(r.URL.Path, "/leaves") {
+					message = "請假尚未啟用。"
+				}
+				transport.WriteAPIError(w, 503, "not_configured", message)
+			})
 		}
 		return validateAttendanceContract(spec, next, bot, app)
 	})

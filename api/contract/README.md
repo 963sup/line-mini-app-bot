@@ -18,6 +18,8 @@
 
 ## 歸屬與依賴
 
+命名遵循 [業務實體、集合與 API 命名](../../docs/development/naming.md#業務實體集合與-api-命名)：單一實體型別用單數，資源集合及 REST 集合路徑用複數。既有單例及公開契約相容例外按該規範處理；能力名稱不以英文單複數機械判定。
+
 - 根入口只組合來源，不內嵌能力的 path、schema 或 security scheme 定義。路徑與原有 component 名稱仍保留在入口索引，維持公開介面。
 - 能力來源不得引用 `openapi.yaml`；共用錯誤與認證定義由 common 擁有。security requirement 名稱由根入口的 securitySchemes 組合解析，能力檔不是獨立完整 OpenAPI 文件。
 - 能力擁有自己的操作、輸入及結果；真正跨能力共用的業務資料引用其擁有者，不能全部搬到 common。

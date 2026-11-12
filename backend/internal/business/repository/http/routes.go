@@ -20,53 +20,70 @@ func view(r repository.Repository) generated.Repository {
 	return generated.Repository{Id: r.ID, GroupId: r.GroupID, Name: r.Name, Status: generated.RepositoryStatus(r.Status), Version: r.Version, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
 }
 
+type repositoryServer struct {
+	service *repository.Service
+	auth    Authenticator
+}
+
+var _ httpapi.RepositoryServer = (*repositoryServer)(nil)
+
 func Register(mux *http.ServeMux, service *repository.Service, auth Authenticator) {
-	routes := http.NewServeMux()
-	register := func(pattern string, detail bool) {
-		routes.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Cache-Control", "no-store")
-			user, _, ok := auth.Authenticate(w, r)
-			if !ok {
-				return
-			}
-			if service == nil {
-				transport.WriteAPIError(w, 503, "not_configured", "空間尚未啟用。")
-				return
-			}
-			ctx, cancel := context.WithTimeout(r.Context(), 12*time.Second)
-			defer cancel()
-			if detail {
-				id := r.PathValue("id")
-				if !repository.ValidID(id) {
-					writeError(w, repository.ErrNotFound)
-					return
-				}
-				value, err := service.Get(ctx, user, id)
-				if writeError(w, err) {
-					return
-				}
-				transport.WriteJSON(w, 200, view(value))
-				return
-			}
-			values := r.URL.Query()["cursor"]
-			if len(values) > 1 || len(r.URL.Query().Get("cursor")) > 1024 {
-				writeError(w, repository.ErrCursor)
-				return
-			}
-			page, err := service.List(ctx, user, r.URL.Query().Get("cursor"))
-			if writeError(w, err) {
-				return
-			}
-			items := make([]generated.Repository, 0, len(page.Items))
-			for _, item := range page.Items {
-				items = append(items, view(item))
-			}
-			transport.WriteJSON(w, 200, generated.RepositoryPage{Items: items, NextCursor: page.NextCursor})
-		})
+	httpapi.RegisterRepositories(mux, &repositoryServer{service: service, auth: auth})
+}
+
+func (s *repositoryServer) ListRepositories(w http.ResponseWriter, r *http.Request, params generated.ListRepositoriesParams) {
+	cursor := ""
+	if params.Cursor != nil {
+		cursor = *params.Cursor
 	}
-	register("GET /api/v1/repositories", false)
-	register("GET /api/v1/repositories/{id}", true)
-	httpapi.RegisterRepositories(mux, routes)
+	s.read(w, r, "", cursor, false)
+}
+
+func (s *repositoryServer) GetRepository(w http.ResponseWriter, r *http.Request, id string) {
+	s.read(w, r, id, "", true)
+}
+
+func (s *repositoryServer) read(w http.ResponseWriter, r *http.Request, id, cursor string, detail bool) {
+	service, auth := s.service, s.auth
+
+	w.Header().Set("Cache-Control", "no-store")
+	user, _, ok := auth.Authenticate(w, r)
+	if !ok {
+		return
+	}
+	if service == nil {
+		transport.WriteAPIError(w, 503, "not_configured", "空間尚未啟用。")
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 12*time.Second)
+	defer cancel()
+	if detail {
+
+		if !repository.ValidID(id) {
+			writeError(w, repository.ErrNotFound)
+			return
+		}
+		value, err := service.Get(ctx, user, id)
+		if writeError(w, err) {
+			return
+		}
+		transport.WriteJSON(w, 200, view(value))
+		return
+	}
+	values := r.URL.Query()["cursor"]
+	if len(values) > 1 || len(cursor) > 1024 {
+		writeError(w, repository.ErrCursor)
+		return
+	}
+	page, err := service.List(ctx, user, cursor)
+	if writeError(w, err) {
+		return
+	}
+	items := make([]generated.Repository, 0, len(page.Items))
+	for _, item := range page.Items {
+		items = append(items, view(item))
+	}
+	transport.WriteJSON(w, 200, generated.RepositoryPage{Items: items, NextCursor: page.NextCursor})
 }
 
 func writeError(w http.ResponseWriter, err error) bool {

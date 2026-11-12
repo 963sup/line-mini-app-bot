@@ -68,3 +68,5 @@ contract/ 依能力維護來源契約，openapi.yaml 組合公開 HTTP API；cli
 公開 HTTP 能力為 Identity、Repository、Attendance；Summary、Weather 描述既有事件／內部工作入口，不加入公開 codegen，也不新增 HTTP 端點。各能力來源與依賴見 [契約能力索引](contract/README.md)。
 
 - [群組 Repository](../docs/features/repository.md)
+
+- [Repository、Issue 與 Discussion 模型及 Connection 分頁規劃](../docs/architecture/domain-model.md)：未來設計參考，現行 OpenAPI 契約維持原狀。

@@ -29,7 +29,7 @@ func routeHandler(server contractServer) http.Handler {
 	}})
 }
 
-func RegisterIdentity(public *http.ServeMux, handler http.Handler) {
+func RegisterIdentity(public *http.ServeMux, handler IdentityServer) {
 	routes := routeHandler(contractServer{identity: handler})
 	public.Handle("GET /api/v1/miniapp/config", routes)
 	public.Handle("GET /api/v1/me", routes)
@@ -38,13 +38,13 @@ func RegisterIdentity(public *http.ServeMux, handler http.Handler) {
 	public.Handle("DELETE /api/v1/session", routes)
 }
 
-func RegisterRepositories(public *http.ServeMux, handler http.Handler) {
+func RegisterRepositories(public *http.ServeMux, handler RepositoryServer) {
 	routes := routeHandler(contractServer{repositories: handler})
 	public.Handle("GET /api/v1/repositories", routes)
 	public.Handle("GET /api/v1/repositories/{id}", routes)
 }
 
-func RegisterAttendance(public *http.ServeMux, handler http.Handler, wrap func(http.Handler) http.Handler) {
+func RegisterAttendance(public *http.ServeMux, handler AttendanceServer, wrap func(http.Handler) http.Handler) {
 	spec, err := Spec()
 	if err != nil {
 		panic(fmt.Errorf("invalid generated API contract: %w", err))

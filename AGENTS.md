@@ -82,6 +82,8 @@ Rules:
 
 ## Documentation routing
 
+新增、修改或審查業務模型、API 契約、資源路徑、collection 或查詢欄位前，所有角色必讀 [命名規範](docs/development/naming.md#業務實體集合與-api-命名)，遵守單一業務實體用單數、集合與 REST 資源路徑用複數的規則及既有相容例外。完整規範只維護於該文件；不得直接重新命名既有公開契約或保存資料。
+
 Read docs/README.md for the document index. Follow docs/agents/workflow.md and
 docs/agents/acceptance.md for assignments and acceptance. Roles reference scoped
 documents in their developer_instructions; read relevant pages on demand, not all

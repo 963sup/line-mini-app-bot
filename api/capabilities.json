@@ -1,0 +1,565 @@
+{
+  "schemaVersion": 1,
+  "capabilities": {
+    "identity": {
+      "contract": "identity/identity.yaml",
+      "adapter": "backend/internal/identity/http/identity.go",
+      "core": "backend/internal/identity/session/session.go",
+      "specification": "docs/architecture/browser-session.md"
+    },
+    "repository": {
+      "contract": "repository/repositories.yaml",
+      "adapter": "backend/internal/business/repository/http/routes.go",
+      "core": "backend/internal/business/repository/repository.go",
+      "specification": "docs/features/repository.md"
+    },
+    "attendance.punch": {
+      "contract": "attendance/punch.yaml",
+      "adapter": "backend/internal/business/attendance/http/attendance_launch.go",
+      "core": "backend/internal/business/attendance/punch/ports.go",
+      "specification": "docs/features/attendance.md"
+    },
+    "attendance.records": {
+      "contract": "attendance/records.yaml",
+      "adapter": "backend/internal/business/attendance/http/records.go",
+      "core": "backend/internal/business/attendance/records/ports.go",
+      "specification": "docs/features/attendance-queries.md"
+    },
+    "attendance.corrections": {
+      "contract": "attendance/corrections.yaml",
+      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "core": "backend/internal/business/attendance/corrections/correction.go",
+      "specification": "docs/features/attendance-queries.md"
+    },
+    "attendance.approvals": {
+      "contract": "attendance/approvals.yaml",
+      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "core": "backend/internal/business/attendance/approvals/approval.go",
+      "specification": "docs/features/attendance-queries.md"
+    },
+    "attendance.leave": {
+      "contract": "attendance/leave.yaml",
+      "adapter": "backend/internal/business/attendance/http/leave.go",
+      "core": "backend/internal/business/attendance/leave/leave.go",
+      "specification": "docs/features/leave.md"
+    },
+    "attendance.worktime": {
+      "contract": "attendance/worktime.yaml",
+      "adapter": "backend/internal/business/attendance/http/records.go",
+      "core": "backend/internal/business/attendance/worktime/worktime.go",
+      "specification": "docs/features/worktime.md"
+    },
+    "summary.summarization": {
+      "contract": "summary/worker.yaml",
+      "adapter": "backend/internal/business/summary/summarization/http/summary.go",
+      "core": "backend/internal/business/summary/summarization/summary.go",
+      "specification": "docs/features/summary.md"
+    },
+    "summary.messagecollection": {
+      "kind": "event",
+      "document": "api/contract/summary/README.md",
+      "core": "backend/internal/business/summary/messagecollection/message.go",
+      "specification": "docs/features/summary.md"
+    },
+    "weather.forecast": {
+      "kind": "event",
+      "document": "api/contract/weather/README.md",
+      "core": "backend/internal/business/weather/forecast/forecast.go",
+      "specification": "docs/features/weather.md"
+    },
+    "attendance.board": {
+      "kind": "event",
+      "document": "docs/features/attendance-board.md",
+      "core": "backend/internal/business/attendance/board/board.go",
+      "specification": "docs/features/attendance-board.md"
+    }
+  },
+  "operations": [
+    {
+      "operationId": "getMiniAppConfig",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/miniapp/config",
+      "owner": "identity",
+      "adapter": "backend/internal/identity/http/identity.go",
+      "handler": "GetMiniAppConfig",
+      "core": "backend/internal/identity/session/session.go",
+      "specification": "docs/architecture/browser-session.md",
+      "consumers": [
+        "frontend/miniapp/src/identity/Session.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "getCurrentUser",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/me",
+      "owner": "identity",
+      "adapter": "backend/internal/identity/http/identity.go",
+      "handler": "GetCurrentUser",
+      "core": "backend/internal/identity/session/session.go",
+      "specification": "docs/architecture/browser-session.md",
+      "consumers": [],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "createSession",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/session",
+      "owner": "identity",
+      "adapter": "backend/internal/identity/http/identity.go",
+      "handler": "CreateSession",
+      "core": "backend/internal/identity/session/session.go",
+      "specification": "docs/architecture/browser-session.md",
+      "consumers": [
+        "frontend/miniapp/src/identity/Session.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "deleteSession",
+      "audience": "public",
+      "method": "DELETE",
+      "path": "/api/v1/session",
+      "owner": "identity",
+      "adapter": "backend/internal/identity/http/identity.go",
+      "handler": "DeleteSession",
+      "core": "backend/internal/identity/session/session.go",
+      "specification": "docs/architecture/browser-session.md",
+      "consumers": [
+        "frontend/miniapp/src/identity/Session.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "refreshSession",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/session/refresh",
+      "owner": "identity",
+      "adapter": "backend/internal/identity/http/identity.go",
+      "handler": "RefreshSession",
+      "core": "backend/internal/identity/session/session.go",
+      "specification": "docs/architecture/browser-session.md",
+      "consumers": [
+        "frontend/miniapp/src/identity/Session.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "listRepositories",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories",
+      "owner": "repository",
+      "adapter": "backend/internal/business/repository/http/routes.go",
+      "handler": "ListRepositories",
+      "core": "backend/internal/business/repository/repository.go",
+      "specification": "docs/features/repository.md",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/View.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "getRepository",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{id}",
+      "owner": "repository",
+      "adapter": "backend/internal/business/repository/http/routes.go",
+      "handler": "GetRepository",
+      "core": "backend/internal/business/repository/repository.go",
+      "specification": "docs/features/repository.md",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/View.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "exchangeAttendanceLaunch",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/attendance/launch",
+      "owner": "attendance.punch",
+      "adapter": "backend/internal/business/attendance/http/attendance_launch.go",
+      "handler": "ExchangeAttendanceLaunch",
+      "core": "backend/internal/business/attendance/punch/ports.go",
+      "specification": "docs/features/attendance.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/punch/usePunch.ts"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "submitAttendancePunch",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/attendance/punches",
+      "owner": "attendance.punch",
+      "adapter": "backend/internal/business/attendance/http/punch.go",
+      "handler": "SubmitAttendancePunch",
+      "core": "backend/internal/business/attendance/punch/ports.go",
+      "specification": "docs/features/attendance.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/punch/usePunch.ts"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "preflightAttendancePunch",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/attendance/punches/preflight",
+      "owner": "attendance.punch",
+      "adapter": "backend/internal/business/attendance/http/attendance_preflight.go",
+      "handler": "PreflightAttendancePunch",
+      "core": "backend/internal/business/attendance/punch/ports.go",
+      "specification": "docs/features/attendance.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/punch/usePunch.ts"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "listAttendanceGroups",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/attendance/groups",
+      "owner": "attendance.records",
+      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "handler": "ListAttendanceGroups",
+      "core": "backend/internal/business/attendance/records/ports.go",
+      "specification": "docs/features/attendance-queries.md",
+      "consumers": [],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "listAttendanceGroupPage",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/attendance/groups/page",
+      "owner": "attendance.records",
+      "adapter": "backend/internal/business/attendance/http/records.go",
+      "handler": "ListAttendanceGroupPage",
+      "core": "backend/internal/business/attendance/records/ports.go",
+      "specification": "docs/features/attendance-queries.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/corrections/View.tsx",
+        "frontend/miniapp/src/business/attendance/records/View.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "listAttendanceRecords",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/attendance/records",
+      "owner": "attendance.records",
+      "adapter": "backend/internal/business/attendance/http/records.go",
+      "handler": "ListAttendanceRecords",
+      "core": "backend/internal/business/attendance/records/ports.go",
+      "specification": "docs/features/attendance-queries.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/records/View.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "getAttendanceRecord",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/attendance/records/{id}",
+      "owner": "attendance.records",
+      "adapter": "backend/internal/business/attendance/http/records.go",
+      "handler": "GetAttendanceRecord",
+      "core": "backend/internal/business/attendance/records/ports.go",
+      "specification": "docs/features/attendance-queries.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/corrections/View.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "getAttendanceMonthlyReport",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/attendance/monthly",
+      "owner": "attendance.records",
+      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "handler": "GetAttendanceMonthlyReport",
+      "core": "backend/internal/business/attendance/records/ports.go",
+      "specification": "docs/features/attendance-queries.md",
+      "consumers": [],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "getAttendanceMonthlySummary",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/attendance/monthly/summary",
+      "owner": "attendance.records",
+      "adapter": "backend/internal/business/attendance/http/records.go",
+      "handler": "GetAttendanceMonthlySummary",
+      "core": "backend/internal/business/attendance/records/ports.go",
+      "specification": "docs/features/attendance-queries.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/records/View.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "proposeAttendanceCorrection",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/attendance/corrections",
+      "owner": "attendance.corrections",
+      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "handler": "ProposeAttendanceCorrection",
+      "core": "backend/internal/business/attendance/corrections/correction.go",
+      "specification": "docs/features/attendance-queries.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/corrections/Requests.tsx",
+        "frontend/miniapp/src/business/attendance/corrections/View.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "listAttendanceCorrections",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/attendance/corrections",
+      "owner": "attendance.corrections",
+      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "handler": "ListAttendanceCorrections",
+      "core": "backend/internal/business/attendance/corrections/correction.go",
+      "specification": "docs/features/attendance-queries.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/corrections/Requests.tsx",
+        "frontend/miniapp/src/business/attendance/corrections/View.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "getAttendanceCorrectionStatus",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/attendance/corrections/{id}",
+      "owner": "attendance.corrections",
+      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "handler": "GetAttendanceCorrectionStatus",
+      "core": "backend/internal/business/attendance/corrections/correction.go",
+      "specification": "docs/features/attendance-queries.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/corrections/View.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "cancelAttendanceCorrection",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/attendance/corrections/{id}/cancel",
+      "owner": "attendance.corrections",
+      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "handler": "CancelAttendanceCorrection",
+      "core": "backend/internal/business/attendance/corrections/correction.go",
+      "specification": "docs/features/attendance-queries.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/corrections/Requests.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "getAttendanceCorrectionReview",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/attendance/corrections/{id}/review",
+      "owner": "attendance.approvals",
+      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "handler": "GetAttendanceCorrectionReview",
+      "core": "backend/internal/business/attendance/approvals/approval.go",
+      "specification": "docs/features/attendance-queries.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/approvals/View.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "approveAttendanceCorrection",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/attendance/corrections/{id}/approve",
+      "owner": "attendance.approvals",
+      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "handler": "ApproveAttendanceCorrection",
+      "core": "backend/internal/business/attendance/approvals/approval.go",
+      "specification": "docs/features/attendance-queries.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/approvals/View.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "rejectAttendanceCorrection",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/attendance/corrections/{id}/reject",
+      "owner": "attendance.approvals",
+      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "handler": "RejectAttendanceCorrection",
+      "core": "backend/internal/business/attendance/approvals/approval.go",
+      "specification": "docs/features/attendance-queries.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/approvals/View.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "listAttendanceReviewerGroups",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/attendance/corrections/reviewer-groups",
+      "owner": "attendance.approvals",
+      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "handler": "ListAttendanceReviewerGroups",
+      "core": "backend/internal/business/attendance/approvals/approval.go",
+      "specification": "docs/features/attendance-queries.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/corrections/Requests.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "listOwnLeaveRequests",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/attendance/leaves",
+      "owner": "attendance.leave",
+      "adapter": "backend/internal/business/attendance/http/leave.go",
+      "handler": "ListOwnLeaveRequests",
+      "core": "backend/internal/business/attendance/leave/leave.go",
+      "specification": "docs/features/leave.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/leave/View.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "submitLeaveRequest",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/attendance/leaves",
+      "owner": "attendance.leave",
+      "adapter": "backend/internal/business/attendance/http/leave.go",
+      "handler": "SubmitLeaveRequest",
+      "core": "backend/internal/business/attendance/leave/leave.go",
+      "specification": "docs/features/leave.md",
+      "consumers": [
+        "frontend/miniapp/src/business/attendance/leave/View.tsx"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "runSummary",
+      "audience": "internal",
+      "method": "POST",
+      "path": "/internal/summary",
+      "owner": "summary.summarization",
+      "adapter": "backend/internal/business/summary/summarization/http/summary.go",
+      "handler": "SummaryWorker",
+      "core": "backend/internal/business/summary/summarization/summary.go",
+      "specification": "docs/features/summary.md",
+      "consumers": [
+        "backend/internal/business/summary/summarization/cloudtasks/queue.go"
+      ],
+      "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    }
+  ],
+  "events": [
+    {
+      "owner": "repository",
+      "action": "Observe",
+      "contract": "docs/features/repository.md",
+      "adapter": "backend/internal/business/repository/line/observer.go",
+      "handler": "Observe",
+      "note": "Verified webhook drives the container lifecycle; no public create/update API."
+    },
+    {
+      "owner": "summary.messagecollection",
+      "action": "Collect/Edit/Recall",
+      "contract": "api/contract/summary/README.md",
+      "adapter": "backend/internal/business/summary/messagecollection/line/collection.go",
+      "handler": "Observe",
+      "note": "LINE event contract, not a browser HTTP operation."
+    },
+    {
+      "owner": "summary.summarization",
+      "action": "Request summary",
+      "contract": "api/contract/summary/README.md",
+      "adapter": "backend/internal/business/summary/summarization/line/commands.go",
+      "handler": "Reply",
+      "note": "LINE command schedules the internal HTTP operation."
+    },
+    {
+      "owner": "weather.forecast",
+      "action": "Forecast",
+      "contract": "api/contract/weather/README.md",
+      "adapter": "backend/internal/business/weather/forecast/line/forecast.go",
+      "handler": "ReplyForEvent",
+      "note": "LINE location event; no public HTTP operation."
+    },
+    {
+      "owner": "attendance.board",
+      "action": "Board",
+      "contract": "docs/features/attendance-board.md",
+      "adapter": "backend/internal/business/attendance/line/board.go",
+      "handler": "replyGroupStatus",
+      "note": "Existing LINE-only query; no public HTTP operation."
+    }
+  ],
+  "resources": [
+    {
+      "entity": "Repository",
+      "collection": "repositories",
+      "path": "/api/v1/repositories"
+    },
+    {
+      "entity": "AttendanceRecord",
+      "collection": "records",
+      "path": "/api/v1/attendance/records"
+    },
+    {
+      "entity": "LeaveRecord",
+      "collection": "leaves",
+      "path": "/api/v1/attendance/leaves"
+    },
+    {
+      "entity": "GroupItem",
+      "collection": "groups",
+      "path": "/api/v1/attendance/groups"
+    },
+    {
+      "entity": "PunchResponse",
+      "collection": "punches",
+      "path": "/api/v1/attendance/punches"
+    },
+    {
+      "entity": "CorrectionReview",
+      "collection": "corrections",
+      "path": "/api/v1/attendance/corrections"
+    }
+  ],
+  "namingExceptions": {
+    "/api/v1/miniapp/config": "Existing public configuration singleton.",
+    "/api/v1/me": "Existing current-actor singleton.",
+    "/api/v1/session": "Existing session singleton; keep public compatibility.",
+    "/api/v1/session/refresh": "Existing session action.",
+    "/api/v1/attendance/launch": "Existing launch exchange, not a resource collection.",
+    "/api/v1/attendance/monthly": "Existing deprecated monthly query.",
+    "/api/v1/attendance/monthly/summary": "Existing monthly summary query.",
+    "/internal/summary": "Existing internal worker action; do not rename task URL."
+  }
+}

@@ -13,13 +13,14 @@ const args = process.argv.slice(2);
 if (args.length && (args.length !== 2 || args[0] !== '--base')) throw new Error('Usage: pnpm api:compat [--base git-ref]');
 const requested = args[1] || process.env.API_BASE_REF;
 const temp = mkdtempSync(join(tmpdir(), 'line-api-compat-'));
-function compare(base) {
- const result = command('oasdiff', ['breaking', '--fail-on', 'ERR', base, 'api/contract/openapi.yaml'], { stdio: 'inherit' });
+function compare(base, current = 'api/contract/openapi.yaml') {
+ const result = command('oasdiff', ['breaking', '--fail-on', 'ERR', base, current], { stdio: 'inherit' });
  if (result.status !== 0) throw new Error('API breaking change detected or comparison failed');
 }
 try {
  // Frozen first complete contract also protects the initial migration before it is committed.
  compare('api/compatibility/baseline/openapi.yaml');
+ compare('api/compatibility/baseline/internal-openapi.yaml', 'api/contract/internal-openapi.yaml');
  if (requested && !/^0+$/.test(requested)) {
   const revision = command('git', ['rev-parse', '--verify', `${requested}^{commit}`]);
   if (revision.status !== 0) throw new Error('API base revision is unavailable; fetch the base before checking');
@@ -37,6 +38,8 @@ try {
     mkdirSync(dirname(target), { recursive: true }); writeFileSync(target, file.stdout);
    }
    compare(join(temp, 'openapi.yaml'));
+   if (paths.includes('api/contract/internal-openapi.yaml')) compare(join(temp, 'internal-openapi.yaml'), 'api/contract/internal-openapi.yaml');
+   else console.log('Base predates internal OpenAPI; frozen initial internal contract checked.');
   } else console.log('Base predates OpenAPI; frozen initial contract checked.');
  }
  console.log('PASS: API backward compatibility');
