@@ -8,15 +8,13 @@
 
 | 對象 | 規則 | 範例 |
 | --- | --- | --- |
-| Domain Entity／資料模型／GraphQL Type | 單數，型別依語言使用 PascalCase／MixedCaps | `Issue`、`Discussion`、`Repository` |
+| Domain Entity／資料模型 | 單數，型別依語言使用 PascalCase／MixedCaps | `Issue`、`Discussion`、`Repository` |
 | 資源集合／集合變數 | 複數，大小寫依所在語言或儲存契約 | `issues`、`discussions`、`repositories` |
-| GraphQL 單一資源查詢欄位 | 單數 lowerCamelCase | `issue`、`discussion`、`repository` |
-| GraphQL 集合查詢欄位 | 複數 lowerCamelCase | `issues`、`discussions`、`repositories` |
 | REST 資源集合路徑 | 複數小寫；多字使用 kebab-case | `/issues`、`/discussions`、`/repositories` |
 | REST 單一資源路徑 | 複數集合路徑加資源識別碼，不改成單數集合名 | `/issues/{id}`、`/repositories/{id}` |
 | 操作名稱／operationId | 動詞表達行為，受詞依回傳單筆或集合決定 | `getRepository`、`listRepositories`、`approveCorrection` |
 
-`RepositoryPage`、`CorrectionSubmission` 等分頁／命令／結果 DTO 依其責任命名，不為集合內容把 DTO 型別取成 `Repositories`。GraphQL 範例只定義命名，並非引入 GraphQL 的實作要求。
+`RepositoryPage`、`CorrectionSubmission` 等分頁／命令／結果 DTO 依其責任命名，不為集合內容把 DTO 型別取成 `Repositories`。API 使用 REST／OpenAPI；GitHub 資源文件僅作業務設計參考。
 
 能力與 package／目錄名稱不能只憑字尾強制單複數：`identity`、`attendance`、`worktime`、`summarization` 表達能力或過程，不是實體集合；契約檔案按能力或集合責任命名即可。不得為符合英文單複數而機械式重命名整個專案。
 

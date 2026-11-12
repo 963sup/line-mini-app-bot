@@ -78,4 +78,4 @@ LINE 問題先查 [官方文件來源庫](https://github.com/line/line-developer
 
 - [群組 Repository](features/repository.md)
 
-- [Repository、Issue 與 Discussion 業務模型與分頁設計（後續開發）](architecture/domain-model.md)
+- [Repository、Issue 與 Discussion 業務模型設計（後續開發）](architecture/domain-model.md)
