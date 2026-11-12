@@ -26,11 +26,13 @@ export function AppSidebar({
   workflow,
   contextItems,
   account,
+  repositoryItem,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   workflow: string;
   contextItems?: NavItem[];
   account: AccountMenu;
+  repositoryItem?: NavItem;
 }) {
   const attendance = [
     { title: "出勤", url: "/miniapp/history", workflow: "history" },
@@ -45,12 +47,9 @@ export function AppSidebar({
       icon: Home,
       isActive: workflow === "home",
     },
-    {
-      title: "空間",
-      url: "/miniapp/repositories",
-      icon: FolderOpen,
-      isActive: workflow === "repositories",
-    },
+    { ...(repositoryItem || {
+      title: "空間", url: "/miniapp/repositories", isActive: workflow === "repositories",
+    }), icon: FolderOpen },
     {
       title: "出勤服務",
       icon: ClipboardList,
@@ -99,6 +98,7 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={items} />
+        <noscript><a href={repositoryItem?.url || "/miniapp/repositories"}>空間（請啟用 JavaScript 載入清單）</a></noscript>
         <NavProjects
           projects={[
             {

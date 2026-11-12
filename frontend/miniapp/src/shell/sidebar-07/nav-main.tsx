@@ -25,6 +25,10 @@ export type NavItem = {
   icon?: LucideIcon;
   isActive?: boolean;
   onSelect?: () => void;
+  onExpand?: () => void;
+  disabled?: boolean;
+  keepOpen?: boolean;
+  status?: boolean;
   items?: Omit<NavItem, "items">[];
 };
 
@@ -33,7 +37,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   function select(item: NavItem) {
     item.onSelect?.();
-    setOpenMobile(false);
+    if (!item.keepOpen) setOpenMobile(false);
   }
   return (
     <nav aria-label="服務導覽">
@@ -41,17 +45,15 @@ export function NavMain({ items }: { items: NavItem[] }) {
         <SidebarGroupLabel>服務</SidebarGroupLabel>
         <SidebarMenu>
           {items.map((item) =>
-            item.items?.length ? (
+            item.items ? (
               <Collapsible
                 key={item.title}
                 asChild
                 open={openGroups[item.title] ?? !!item.isActive}
-                onOpenChange={(open) =>
-                  setOpenGroups((previous) => ({
-                    ...previous,
-                    [item.title]: open,
-                  }))
-                }
+                onOpenChange={(open) => {
+                  setOpenGroups((previous) => ({ ...previous, [item.title]: open }));
+                  if (open) item.onExpand?.();
+                }}
                 className="group/collapsible"
               >
                 <SidebarMenuItem>
@@ -63,6 +65,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
                         if (!isMobile && state === "collapsed") {
                           event.preventDefault();
                           setOpen(true);
+                          item.onExpand?.();
                           setOpenGroups((previous) => ({
                             ...previous,
                             [item.title]: true,
@@ -81,8 +84,8 @@ export function NavMain({ items }: { items: NavItem[] }) {
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       {item.items.map((subItem) => (
-                        <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton
+                        <SidebarMenuSubItem key={subItem.url || subItem.title}>
+                          {subItem.status ? <p role="status" className="px-2 py-1 text-xs text-muted-foreground">{subItem.title}</p> : <SidebarMenuSubButton
                             asChild
                             isActive={subItem.isActive}
                             aria-current={subItem.isActive ? "page" : undefined}
@@ -93,9 +96,9 @@ export function NavMain({ items }: { items: NavItem[] }) {
                                 <span>{subItem.title}</span>
                               </a>
                             ) : (
-                              <button type="button">{subItem.title}</button>
+                              <button type="button" disabled={subItem.disabled}>{subItem.title}</button>
                             )}
-                          </SidebarMenuSubButton>
+                          </SidebarMenuSubButton>}
                         </SidebarMenuSubItem>
                       ))}
                     </SidebarMenuSub>

@@ -231,7 +231,7 @@
       "core": "backend/internal/business/repository/repository.go",
       "specification": "docs/features/repository.md",
       "consumers": [
-        "frontend/miniapp/src/business/repository/View.tsx"
+        "frontend/miniapp/src/business/repository/RepositoryContext.tsx"
       ],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
@@ -246,7 +246,7 @@
       "core": "backend/internal/business/repository/repository.go",
       "specification": "docs/features/repository.md",
       "consumers": [
-        "frontend/miniapp/src/business/repository/View.tsx"
+        "frontend/miniapp/src/business/repository/RepositoryContext.tsx"
       ],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },

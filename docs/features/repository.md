@@ -35,7 +35,11 @@ ACTIVE / INACTIVE 表示 Bot 群組入口狀態。離開保留資料，再加入
 - `GET /api/v1/repositories?cursor=...`：一次讀取本人最多十筆互動候選，再核驗目前資格；可能回傳空頁及 nextCursor，需繼續下一頁。
 - `GET /api/v1/repositories/{id}`：即時核驗群組成員；格式錯誤／不存在／無權均不揭露資料。
 - API 契約：[Repository](../../api/contract/repository/repositories.yaml)，由 [OpenAPI 入口](../../api/contract/openapi.yaml) 組合；生成 Go/TS DTO，不手改產生碼。
-- UI：`/miniapp/repositories`，首頁「空間」入口；列表與詳情共頁，可使用 `?id=...` 直接開啟詳情。
+- UI：側欄「空間」可展開已驗證使用者可開啟的空間，選取後在 `/miniapp/repositories?selected=...` 顯示既有詳情。原頁不再重複顯示另一份列表；既有 `?id=...` 及 `repository`／`liff.state` 群組入口仍相容。
+- `business/repository/RepositoryContext.tsx` 共用列表、分頁與詳情載入：一般功能頁首次展開側欄才讀列表，空間頁自動載入；列表回空但有 nextCursor 時保留「載入更多空間」。錯誤清空舊項目並提供重試，不將候選或停用空間當作可開啟。
+- 側欄一般選取使用乾淨 `selected` 參數，不沿用打卡 launch／其他表單 query；既有 `id`／`repository` 群組專用入口只讀指定詳情，不讀一般列表、不於失敗後退回其他群組。這些參數只在空間頁解析，不把其他功能的 `id` 當空間 ID。
+- 列表與詳情各自取消舊請求，並以 Session epoch、本人及作用域隔離可見狀態；登出／重新驗證立即隱藏舊資料，即使 transport 忽略取消也不得跨身分顯示。點選空間仍重新呼叫詳情 API 核驗，不以列表快取授權。
+- 手機選取空間後關閉抽屜；預覽與定位頁保留正式空間頁連結，不建立虛假的本人空間資料。無 JavaScript 時提供原路由連結及啟用提示。
 - 出勤連結只帶既有 group 查詢條件，不新增授權；摘要仍回原群組操作。
 - 從成員加入、本人群組訊息或 postback 建立列表候選。未互動的既有群組成員需先互動；這不是完整群組成員清單。
 

@@ -1,5 +1,6 @@
 import React from "react";
 import Head from "next/head";
+import type { NavItem } from "./sidebar-07/nav-main";
 import type { LucideIcon } from "lucide-react";
 import { AppSidebar } from "./sidebar-07/app-sidebar";
 import type { AccountMenu } from "./sidebar-07/nav-user";
@@ -30,6 +31,7 @@ type FrameProps = {
     active: boolean;
   }[];
   account?: AccountMenu;
+  repositoryItem?: NavItem;
   wide?: boolean;
 };
 
@@ -39,6 +41,7 @@ export function AppFrame({
   children,
   contextItems,
   account,
+  repositoryItem,
   wide = false,
 }: FrameProps) {
   const guest = {
@@ -55,6 +58,7 @@ export function AppFrame({
       <AppSidebar
         workflow={workflow}
         account={account || guest}
+        repositoryItem={repositoryItem}
         contextItems={contextItems?.map((item) => ({
           title: item.label,
           icon: item.icon,

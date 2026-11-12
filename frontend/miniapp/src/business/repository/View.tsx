@@ -1,146 +1,20 @@
-import { Item, ItemGroup, ItemContent, ItemTitle, ItemActions } from "@/shared/ui/item";
-import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
-import { Spinner } from "@/shared/ui/spinner";
+import React from "react";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
 import { Status } from "@/shared/Status";
-import React, { useEffect, useState } from "react";
-import type { components } from "@repo/api-client";
-import { useSession } from "../../identity/Session";
-import { errorMessage, useLatestRequest } from "../../shared/http/lifecycle";
+import { useRepositories } from "./RepositoryContext";
 import { displayTime } from "../../shared/time/time";
 
-type Repository = components["schemas"]["Repository"];
-
 export function View() {
-  const { user, request } = useSession();
-  const read = useLatestRequest();
-  const [items, setItems] = useState<Repository[]>([]);
-  const [selected, setSelected] = useState<Repository | null>(null);
-  const [scopeId, setScopeId] = useState("");
-  const [cursor, setCursor] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const [status, setStatus] = useState("請先完成身分驗證。");
-
-  function load(next = "") {
-    setBusy(true);
-    setLoaded(false);
-    setSelected(null);
-    setStatus("正在讀取空間……");
-    void read.run(
-      (signal) =>
-        request(
-          (client, s) =>
-            client.GET("/api/v1/repositories", {
-              signal: s,
-              params: { query: { cursor: next } },
-            }),
-          { signal },
-        ),
-      (page) => {
-        setItems(page.items);
-        setLoaded(true);
-        setCursor(page.nextCursor);
-        setBusy(false);
-        setStatus(
-          page.items.length
-            ? "選擇空間查看資料。"
-            : page.nextCursor
-              ? "本頁沒有可存取的空間，可繼續下一頁。"
-              : "沒有可顯示的空間；請先在 Bot 所在的群組互動後重新載入。",
-        );
-      },
-      (error) => {
-        setItems([]);
-        setCursor("");
-        setBusy(false);
-        setStatus(errorMessage(error));
-      },
-    );
-  }
-
-  function detail(id: string) {
-    setBusy(true);
-    setLoaded(false);
-    setSelected(null);
-    setStatus("正在核驗空間存取資格……");
-    void read.run(
-      (signal) =>
-        request(
-          (client, s) =>
-            client.GET("/api/v1/repositories/{id}", {
-              signal: s,
-              params: { path: { id } },
-            }),
-          { signal },
-        ),
-      (value) => {
-        setSelected(value);
-        setBusy(false);
-        setStatus("已載入空間。");
-      },
-      (error) => {
-        setItems([]);
-        setCursor("");
-        setBusy(false);
-        setStatus(errorMessage(error));
-      },
-    );
-  }
-
-  useEffect(() => {
-    if (user) {
-      const params = new URLSearchParams(location.search);
-      let id = params.get("id") || params.get("repository") || "";
-      try {
-        const nested = params.get("liff.state");
-        if (nested) {
-          const query = new URL(nested, location.origin).searchParams;
-          id ||= query.get("id") || query.get("repository") || "";
-        }
-      } catch {}
-      setScopeId(id);
-      if (id) detail(id);
-      else load();
-    }
-    return read.cancel;
-  }, [user, request]);
-
+  const { selected, selectedID, scope, detailBusy, detailStatus, reloadDetail, canLoad } = useRepositories();
   return (
     <PagePanel heading="空間">
-      <p className="text-sm leading-relaxed text-muted-foreground">
-        {scopeId
-          ? "此連結僅開啟原群組空間，需具備該群組的存取資格。"
-          : "每個群組一個空間，由 Bot 管理。僅顯示已互動且目前仍有存取資格的群組。"}
-      </p>
-      <Button
-        disabled={!user || busy}
-        onClick={() => (scopeId ? detail(scopeId) : load())}
-      >
-        重新載入
-      </Button>
-      <Status role="status">{status}</Status>
-      {busy && <p role="status" className="flex items-center gap-2"><Spinner aria-hidden="true" />正在讀取空間</p>}
-      <ItemGroup className="my-4 gap-3" aria-busy={busy}>
-        {items.map((item) => (
-          <Item key={item.id} role="listitem" variant="outline">
-            <ItemContent className="min-w-0"><ItemTitle>{item.name || "群組空間"}</ItemTitle></ItemContent>
-            <ItemActions><Button disabled={busy} variant="outline" onClick={() => detail(item.id)}>查看空間</Button></ItemActions>
-          </Item>
-        ))}
-      </ItemGroup>
-      {loaded && !busy && !items.length && (
-        <Empty><EmptyHeader>
-          <EmptyTitle>本頁沒有可顯示的空間</EmptyTitle>
-          <EmptyDescription>{cursor ? "可繼續下一頁查詢。" : "請先在 Bot 所在的群組互動後重新載入。"}</EmptyDescription>
-        </EmptyHeader></Empty>
-      )}
-      {cursor && (
-        <Button disabled={!user || busy} onClick={() => load(cursor)}>
-          下一頁
-        </Button>
-      )}
+      {scope && <p className="text-sm text-muted-foreground">此連結僅開啟原群組空間，需具備該群組的存取資格。</p>}
+      {selectedID ? <>
+        <Button disabled={!canLoad || detailBusy} onClick={reloadDetail}>重新載入空間</Button>
+        <Status role="status">{detailStatus}</Status>
+      </> : <p>展開側邊欄「空間」，選擇可開啟的群組空間。</p>}
+      <noscript>請啟用 JavaScript 並完成 LINE 身分驗證，以載入側邊欄空間及內容。</noscript>
       {selected && (
         <article>
           <h3 className="font-semibold">{selected.name || "群組空間"}</h3>
