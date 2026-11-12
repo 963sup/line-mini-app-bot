@@ -125,7 +125,7 @@ func QuickMenu(group bool, appURL string, repositoryIDs ...string) messaging_api
 		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.UriAction{Label: "空間", Uri: link}})
 	}
 	if appURL != "" {
-		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.UriAction{Label: "開啟 MINI App", Uri: appURL}})
+		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.UriAction{Label: "MINI App", Uri: appURL}})
 	}
 	return &messaging_api.TextMessage{Text: "請選擇功能：", QuickReply: &messaging_api.QuickReply{Items: items}}
 }
