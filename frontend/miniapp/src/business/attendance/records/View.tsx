@@ -1,3 +1,6 @@
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableCaption } from "@/shared/ui/table";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
+import { Spinner } from "@/shared/ui/spinner";
 import { FormField } from "@/shared/FormField";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
@@ -244,15 +247,23 @@ export function View() {
         {summary &&
           `全月暫估合計 ${summary.Calculation.EstimatedMinutes ?? summary.Calculation.Minutes} 分鐘（含已確認 ${summary.Calculation.Minutes} 分鐘）。\n出勤時數 ${summary.Calculation.AttendanceMinutes ?? "—"} 分鐘（未扣休息）；休息待確認 ${summary.Calculation.Unconfirmed ?? "—"} 筆；無法計算 ${summary.Calculation.Uncalculable ?? "—"} 筆；共 ${summary.count} 個班次；其他異常／提醒 ${summary.Calculation.Issues?.filter((issue) => issue.Code !== "rest_unconfirmed").length ?? 0} 項。\n合計裁切本月區間；明細為完整班次。暫估非薪資結算，正常／加班分類待認定。`}
       </pre>
-      <ol
-        id="record-list"
-        className="my-4 flex flex-col gap-4 [&>li]:border-b [&>li]:pb-4 [&_h3]:font-semibold [&_p]:my-2"
-      >
-        {records.map((record) => (
-          <li key={record.RecordID}>
-            <h3 className="font-semibold">{displayTime(record.ClockInAt)}</h3>
-            <p>
-              下班：{displayTime(record.ClockOutAt)}
+      {busy && <p role="status" className="flex items-center gap-2"><Spinner aria-hidden="true" />正在讀取出勤明細</p>}
+      <Table aria-busy={busy}>
+        <TableCaption>本人班次明細；工時單位為分鐘</TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead>上班</TableHead>
+            <TableHead>下班</TableHead>
+            <TableHead>工時與狀態</TableHead>
+            <TableHead>操作</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody id="record-list">
+          {records.map((record) => (
+            <TableRow key={record.RecordID}>
+              <TableCell>{displayTime(record.ClockInAt)}</TableCell>
+              <TableCell>{displayTime(record.ClockOutAt)}</TableCell>
+              <TableCell className="whitespace-normal min-w-48">
               {record.WorktimeStatus === "invalid"
                 ? `；${(record.AttendanceMinutes ?? 0) > 0 ? `出勤 ${record.AttendanceMinutes} 分鐘；` : ""}資料未完整或有異常，暫無法計算工時`
                 : record.WorktimeStatus === "estimated"
@@ -262,19 +273,26 @@ export function View() {
                     : !record.RestConfirmed
                       ? "；休息待確認"
                       : ""}
-            </p>
-            <a
-              className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
-              href={
-                "/miniapp/correction?" +
-                new URLSearchParams({ group, month, record: record.RecordID })
-              }
-            >
-              查看班次並提出更正
-            </a>
-          </li>
-        ))}
-      </ol>
+              </TableCell>
+              <TableCell>
+                <Button asChild variant="link">
+                  <a href={"/miniapp/correction?" + new URLSearchParams({ group, month, record: record.RecordID })}>
+                    查看班次並提出更正
+                  </a>
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      {loaded && !busy && !records.length && (
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>本頁沒有班次</EmptyTitle>
+            <EmptyDescription>可調整群組或月份後重新查詢。</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      )}
       <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         <Button
           id="previous-records"

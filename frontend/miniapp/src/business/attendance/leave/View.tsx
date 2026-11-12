@@ -1,3 +1,6 @@
+import { Item, ItemGroup, ItemContent, ItemTitle, ItemDescription } from "@/shared/ui/item";
+import { Badge } from "@/shared/ui/badge";
+import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
 import { FormField } from "@/shared/FormField";
 import { PagePanel } from "@/shared/PagePanel";
 import { FieldGroup } from "@/shared/ui/field";
@@ -30,6 +33,7 @@ export function View() {
   const [status, setStatus] = useState("請從原群組輸入「請假」取得表單連結。");
   const [records, setRecords] = useState<S["LeaveRecord"][]>([]);
   const [listStatus, setListStatus] = useState("");
+  const [historyLoaded, setHistoryLoaded] = useState(false);
   const lock = useRef(false),
     attempt = useRef<S["LeaveSubmission"] | null>(null);
   useEffect(() => {
@@ -49,6 +53,7 @@ export function View() {
   }, []);
   function loadLeaveHistory() {
     if (!user) return;
+    setHistoryLoaded(false);
     setListStatus("正在讀取本人最近20筆請假登記……");
     void read.run(
       (signal) =>
@@ -57,6 +62,7 @@ export function View() {
         }),
       (data) => {
         setRecords(data);
+        setHistoryLoaded(true);
         setListStatus(
           data.length
             ? "本人最近20筆請假登記（跨群組）。"
@@ -209,21 +215,20 @@ export function View() {
           重新載入本人紀錄
         </Button>
         <Status role="status">{listStatus}</Status>
-        <ul>
-          {records.map((l) => (
-            <li key={l.id}>
-              <strong>{kinds[l.kind]}：已登記、未核准</strong>
-              <br />
-              {displayTime(l.start)} ～ {displayTime(l.end)}
-              <br />
-              理由：{l.reason}
-              <br />
-              群組：{l.groupId}
-              <br />
-              申請編號：{l.id}
-            </li>
+        <ItemGroup className="gap-3">
+          {records.map((leave) => (
+            <Item key={leave.id} role="listitem" variant="outline">
+              <ItemContent className="min-w-0">
+                <ItemTitle>{kinds[leave.kind]}<Badge variant="outline">已登記、未核准</Badge></ItemTitle>
+                <ItemDescription className="line-clamp-none break-words">{displayTime(leave.start)} ～ {displayTime(leave.end)}</ItemDescription>
+                <ItemDescription className="line-clamp-none break-words">理由：{leave.reason}</ItemDescription>
+                <ItemDescription className="line-clamp-none break-all">群組：{leave.groupId}</ItemDescription>
+                <ItemDescription className="line-clamp-none break-all">申請編號：{leave.id}</ItemDescription>
+              </ItemContent>
+            </Item>
           ))}
-        </ul>
+        </ItemGroup>
+        {historyLoaded && !records.length && <Empty><EmptyHeader><EmptyTitle>目前沒有請假登記</EmptyTitle></EmptyHeader></Empty>}
       </PagePanel>
     </>
   );

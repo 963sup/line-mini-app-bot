@@ -1,3 +1,6 @@
+import { Item, ItemGroup, ItemContent, ItemTitle, ItemActions } from "@/shared/ui/item";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
+import { Spinner } from "@/shared/ui/spinner";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
 import { Status } from "@/shared/Status";
@@ -17,10 +20,12 @@ export function View() {
   const [scopeId, setScopeId] = useState("");
   const [cursor, setCursor] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [status, setStatus] = useState("請先完成身分驗證。");
 
   function load(next = "") {
     setBusy(true);
+    setLoaded(false);
     setSelected(null);
     setStatus("正在讀取空間……");
     void read.run(
@@ -35,6 +40,7 @@ export function View() {
         ),
       (page) => {
         setItems(page.items);
+        setLoaded(true);
         setCursor(page.nextCursor);
         setBusy(false);
         setStatus(
@@ -56,6 +62,7 @@ export function View() {
 
   function detail(id: string) {
     setBusy(true);
+    setLoaded(false);
     setSelected(null);
     setStatus("正在核驗空間存取資格……");
     void read.run(
@@ -114,15 +121,21 @@ export function View() {
         重新載入
       </Button>
       <Status role="status">{status}</Status>
-      <ul className="my-4 flex flex-col gap-4 [&>li]:border-b [&>li]:pb-4 [&_h3]:font-semibold [&_p]:my-2">
+      {busy && <p role="status" className="flex items-center gap-2"><Spinner aria-hidden="true" />正在讀取空間</p>}
+      <ItemGroup className="my-4 gap-3" aria-busy={busy}>
         {items.map((item) => (
-          <li key={item.id}>
-            <Button disabled={busy} onClick={() => detail(item.id)}>
-              {item.name || "群組空間"}
-            </Button>
-          </li>
+          <Item key={item.id} role="listitem" variant="outline">
+            <ItemContent className="min-w-0"><ItemTitle>{item.name || "群組空間"}</ItemTitle></ItemContent>
+            <ItemActions><Button disabled={busy} variant="outline" onClick={() => detail(item.id)}>查看空間</Button></ItemActions>
+          </Item>
         ))}
-      </ul>
+      </ItemGroup>
+      {loaded && !busy && !items.length && (
+        <Empty><EmptyHeader>
+          <EmptyTitle>本頁沒有可顯示的空間</EmptyTitle>
+          <EmptyDescription>{cursor ? "可繼續下一頁查詢。" : "請先在 Bot 所在的群組互動後重新載入。"}</EmptyDescription>
+        </EmptyHeader></Empty>
+      )}
       {cursor && (
         <Button disabled={!user || busy} onClick={() => load(cursor)}>
           下一頁

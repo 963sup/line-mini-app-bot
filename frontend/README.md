@@ -44,3 +44,5 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 ## shadcn 頁內組合
 
 補卡確認使用 Checkbox；空間預覽的清單與看板動作使用 Button、狀態篩選使用單選 ToggleGroup。PagePanel 沿用 Card 預設圓角與內距。Checkbox、Toggle、ToggleGroup 透過固定版 CLI 的 registry 輸出安裝，只修正專案 alias，沿用既有 radix-ui 依賴。sidebar-07 的 asChild 原生 button 保留，屬於官方元件組合。審核清單同步行為見 [出勤查詢與更正](../docs/features/attendance-queries.md#審核畫面狀態同步)。
+
+出勤明細使用 Table；補卡／審核申請、請假紀錄與空間清單使用 Item；空間預覽搜尋使用 InputGroup。空白清單在成功查詢後以 Empty 呈現，載入與查詢失敗維持獨立狀態。安裝來源及用途見 [shadcn 指引](../docs/tooling/mcp/shadcn.md#頁面元件應用)。

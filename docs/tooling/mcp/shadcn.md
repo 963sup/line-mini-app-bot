@@ -71,7 +71,7 @@ MCP 可提供 registry 資訊及新增命令；若回傳命令使用浮動版本
 
 | 能力 | 官方入口／操作 | 本專案狀態與邊界 |
 | --- | --- | --- |
-| Components | [完整元件目錄](https://ui.shadcn.com/docs/components)；CLI `docs`、`view`、`search` | 僅已安裝 Button、Card、Input；其餘按需求新增，先核對 API、依賴與適用 base |
+| Components | [完整元件目錄](https://ui.shadcn.com/docs/components)；CLI `docs`、`view`、`search` | 已依頁面需求安裝基礎控制項、Sidebar、Table、Item、InputGroup 等；實際清單用 CLI `info --json` 取得，先核對 API、依賴與適用 base |
 | AI Elements | [官方入口](https://ui.shadcn.com/docs/ai-elements) | agentic UI 的元件組合模式，如 Chat、Reasoning、Tool、Plan；以原始碼納入，沒有必裝的獨立套件。本專案尚未安裝這些模式，也未新增聊天／模型服務 |
 | Skill | [官方說明](https://ui.shadcn.com/docs/skills)、[本機 SKILL.md](../../../.agents/skills/shadcn/SKILL.md) | 相關任務先讀；提供專案 context、元件用法、組合、樣式、CLI／registry／MCP 指引；不取代 Context7 查證 |
 | CLI | `info`、`docs`、`view`、`search`；`add`、`init`、`apply`、`migrate`、`build`、`preset`、`registry` | 前四項用於查詢；變更命令依任務範圍使用，逐項查 `--help`，不表示所有命令已端到端驗收。舊 `diff` 命令已 deprecated，改用 `add --diff` |
@@ -115,3 +115,17 @@ bash scripts/tooling/tool-exec.sh shadcn add @shadcn/button --dry-run --cwd fron
 - 無前端元件、依賴或執行行為變更，未執行應用測試、AI 功能或實機 LINE 驗收；本機 transport 成功仍不證明聊天 host 自動載入。
 
 安裝的官方 skill 為本次 upstream revision，可能描述比本專案固定 CLI 更新的命令或元件；不保證其中每個例子都可在固定 CLI 使用，先以 `info` 與相關命令的 `--help` 核對，再決定操作。官方文件為查詢當下內容，不與固定 CLI 保證完全同版；使用未實測功能前仍須查該版本 help 與官方 API。Graphify 在 Context7 無可解析的 library，本次僅驗證既有本機 CLI，未宣稱完成其最新上游文件查證。
+
+## 頁面元件應用
+
+已核對官方 Components 目錄，專案維持 Radix base；CLI 的 `docs` 輸出若指向 Base UI，改讀相對應的官方 Radix 文件，避免混用 API。Table、Item、InputGroup 透過固定版 CLI 的 `add --view` 取得官方輸出，修正 `cn` alias 後以 local registry 安裝新增檔案，沒有覆寫既有 primitives 或增加 `cn` 套件。
+
+| 元件 | 應用位置 |
+| --- | --- |
+| Table | 本人月紀錄的上班、下班、工時狀態與更正入口；窄螢幕可在表格內橫向捲動 |
+| Item / ItemGroup | 補卡／審核申請、本人請假紀錄與群組空間清單；理由全文保留 |
+| InputGroup | 空間預覽的搜尋圖示與輸入框 |
+| Empty（沿用） | 成功查詢後沒有班次、申請、請假或空間時顯示，未查詢與查詢失敗不冒充空結果 |
+| Spinner / Badge（沿用） | 清單處理中及申請狀態 |
+
+官方來源：[Table](https://ui.shadcn.com/docs/components/radix/table)、[Item](https://ui.shadcn.com/docs/components/radix/item)、[InputGroup](https://ui.shadcn.com/docs/components/radix/input-group)，並以 Context7 `/shadcn-ui/ui` 交叉核對。尚無圖表、輪播或聊天需求，因此不額外安裝。LINE 手機實機與視覺驗收仍需獨立確認。

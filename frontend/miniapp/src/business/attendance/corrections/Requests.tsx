@@ -1,3 +1,7 @@
+import { Item, ItemGroup, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/shared/ui/item";
+import { Badge } from "@/shared/ui/badge";
+import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
+import { Spinner } from "@/shared/ui/spinner";
 import { FormField } from "@/shared/FormField";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
@@ -43,13 +47,15 @@ export function Requests({
     [group, setGroup] = useState(""),
     [next, setNext] = useState(""),
     [status, setStatus] = useState(""),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [loaded, setLoaded] = useState(false);
   const load = useCallback((cursor = "") => {
     if (review && !group) {
       setStatus("請先載入並選擇審核群組。");
       return;
     }
     setBusy(true);
+    setLoaded(false);
     setStatus("正在查詢……");
     void runRead(
       (signal) =>
@@ -72,6 +78,7 @@ export function Requests({
         setItems((previous) =>
           cursor ? [...previous, ...data.items] : data.items,
         );
+        setLoaded(true);
         setNext(data.nextCursor);
         setBusy(false);
         setStatus(
@@ -89,6 +96,7 @@ export function Requests({
   useEffect(() => {
     if (!refreshVersion) return;
     setItems([]);
+    setLoaded(false);
     setNext("");
     if (!review || group) load();
   }, [refreshVersion, review, group, load]);
@@ -145,6 +153,7 @@ export function Requests({
                 onChange={(e) => {
                   cancelRead();
                   setGroup(e.target.value);
+                  setLoaded(false);
                   setItems([]);
                   setNext("");
                   setStatus("");
@@ -163,27 +172,30 @@ export function Requests({
         <Button id="requests-load" onClick={() => load()}>
           查詢{review ? "群組" : "本人"}申請
         </Button>
-        <ol id="requests-list">
+        {busy && <p role="status" className="flex items-center gap-2"><Spinner aria-hidden="true" />正在處理申請清單</p>}
+        <ItemGroup id="requests-list" className="gap-3" aria-busy={busy}>
           {items.map((item) => (
-            <li key={item.id}>
-              <p>
-                {review &&
-                  `${item.applicantName || "姓名未留存，請依申請編號核對"}；`}
-                {displayTime(item.start)} ～ {displayTime(item.end)}；
-                {correctionStatus(item.status || "pending")}
-              </p>
-              <p>{item.reason}</p>
-              {item.decisionReason && <p>審核理由：{item.decisionReason}</p>}
-              {review ? (
-                <Button onClick={() => onSelect?.(item)}>查看申請與審核</Button>
-              ) : (
-                (item.status === "pending" || item.status === "stale") && (
-                  <Button onClick={() => cancel(item.id)}>撤回申請</Button>
-                )
-              )}
-            </li>
+            <Item key={item.id} role="listitem" variant="outline">
+              <ItemContent className="min-w-0">
+                <ItemTitle>{review ? item.applicantName || "姓名未留存，請依申請編號核對" : "補卡／時間更正"}</ItemTitle>
+                <ItemDescription className="line-clamp-none break-words">{displayTime(item.start)} ～ {displayTime(item.end)}</ItemDescription>
+                <Badge variant={item.status === "approved" ? "secondary" : "outline"}>{correctionStatus(item.status || "pending")}</Badge>
+                <ItemDescription className="line-clamp-none break-words">{item.reason}</ItemDescription>
+                {item.decisionReason && <ItemDescription className="line-clamp-none break-words">審核理由：{item.decisionReason}</ItemDescription>}
+              </ItemContent>
+              <ItemActions>
+                {review ? (
+                  <Button onClick={() => onSelect?.(item)}>查看申請與審核</Button>
+                ) : (
+                  (item.status === "pending" || item.status === "stale") && (
+                    <Button variant="outline" onClick={() => cancel(item.id)}>撤回申請</Button>
+                  )
+                )}
+              </ItemActions>
+            </Item>
           ))}
-        </ol>
+        </ItemGroup>
+        {loaded && !busy && !items.length && <Empty><EmptyHeader><EmptyTitle>本頁沒有申請</EmptyTitle></EmptyHeader></Empty>}
         {next && <Button onClick={() => load(next)}>載入更多申請</Button>}
       </fieldset>
       <Status role="status">{status}</Status>

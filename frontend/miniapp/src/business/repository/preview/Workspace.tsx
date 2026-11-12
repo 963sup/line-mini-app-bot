@@ -1,3 +1,4 @@
+import { InputGroup, InputGroupInput, InputGroupAddon } from "@/shared/ui/input-group";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { Progress } from "@/shared/ui/progress";
 import React, { useState } from "react";
@@ -264,15 +265,15 @@ export default function Workspace() {
       {page === "事項" && (
         <Card>
           <CardHeader>
-            <div className="flex max-w-[460px] items-center gap-3">
-              <Search size={18} />
-              <Input
+            <InputGroup className="max-w-[460px]">
+              <InputGroupInput
                 aria-label="搜尋事項"
                 placeholder="搜尋事項名稱…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
-            </div>
+              <InputGroupAddon><Search aria-hidden="true" /></InputGroupAddon>
+            </InputGroup>
             <ToggleGroup
               type="single"
               value={filter}
