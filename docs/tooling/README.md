@@ -9,7 +9,7 @@ mise、Skills、MCP 與 Graphify／Repomix 分析範圍及報告。
 - [mise ownership](mise.md)
 - [專案 Skills](skills.md)
 - [MCP 工具索引](mcp/README.md)
-- [shadcn UI 與 MCP](mcp/shadcn.md)
+- [shadcn UI、官方 Skill、CLI 與 MCP](mcp/shadcn.md)
 
 ## 歸屬與維護
 

@@ -12,6 +12,7 @@
 | context7-mcp | upstash/context7（官方） | 版本相符文件查詢 |
 | repomix-explorer | yamadashy/repomix（官方） | CLI 打包、搜尋、分析 |
 | openai-docs | openai/skills（官方） | OpenAI／Codex 官方文件 |
+| shadcn | shadcn/ui（官方；CLI lock 見 skills-lock.json） | 元件、registry、preset、MCP 工作流程；[專案規則](../../AGENTS.md#shadcn-任務入口) |
 | graphify | 既有 Graphify CLI 安裝 | 程式關係圖查詢 |
 
 ## MCP 對應與搜尋範圍
@@ -59,3 +60,13 @@ codex plugin add ponytail@ponytail
 
 本次觀測 python-development 為 1.2.4、ponytail 為 5.3.3；這是安裝紀錄，不是重建版本鎖定。
 安裝不授權 plugin 自動進行對外操作，不取代專案八角色與文件查證規則。
+
+## shadcn 官方 skill
+
+依 [官方安裝文件](https://ui.shadcn.com/docs/skills) 使用本專案固定 skills CLI：
+
+```bash
+bash scripts/tooling/tool-exec.sh skills add shadcn/ui --skill shadcn --agent codex --yes
+```
+
+單一安裝位置為 `.agents/skills/shadcn/`，保留完整 rules、references、assets 與 scripts，不另複製到 `.codex/skills`。來源與內容 hash 由 `skills-lock.json` 保存；來源 revision／檔案核對見 [shadcn 驗證紀錄](mcp/shadcn.md#驗證紀錄)。安裝不代表當前聊天已自動載入；根目錄 AGENTS.md 明確要求相關任務先讀 SKILL.md。上游浮動版本範例須依專案規則換成 mise 固定 CLI，完整功能與狀態見同一工具指南。
