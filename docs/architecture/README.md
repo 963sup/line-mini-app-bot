@@ -29,3 +29,5 @@
 [本目錄指引](AGENTS.md) · [父層指引](../AGENTS.md) · [文件總索引](../README.md)
 
 - [Business Operation 模型與操作契約](business-operation.md)
+
+- [Repository、Issue 與 Discussion 業務模型設計](domain-model.md)

@@ -77,3 +77,5 @@ LINE 問題先查 [官方文件來源庫](https://github.com/line/line-developer
 - [Business 模組、契約與驗證對照](development/business-refactor.md)
 
 - [群組 Repository](features/repository.md)
+
+- [Repository、Issue 與 Discussion 業務模型與分頁設計（後續開發）](architecture/domain-model.md)
