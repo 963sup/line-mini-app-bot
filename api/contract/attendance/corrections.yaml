@@ -51,7 +51,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -61,7 +61,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -71,7 +71,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               },
               "text/plain": {
@@ -87,7 +87,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -97,7 +97,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -107,7 +107,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -117,7 +117,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -211,7 +211,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -273,7 +273,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -283,7 +283,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -293,7 +293,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -303,7 +303,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -313,7 +313,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -323,7 +323,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -333,7 +333,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -381,7 +381,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./approvals.yaml#/components/schemas/CorrectionDecisionResult"
+                  "$ref": "#/components/schemas/CorrectionDecisionResult"
                 }
               }
             }
@@ -397,7 +397,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               },
               "text/plain": {
@@ -529,10 +529,105 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "./approvals.yaml#/components/schemas/CorrectionReview"
+              "$ref": "#/components/schemas/CorrectionReview"
             }
           },
           "nextCursor": {
+            "type": "string"
+          }
+        }
+      },
+      "CorrectionReview": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "groupId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "recordId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "expectedEventSequence": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "breaks": {
+            "type": "array",
+            "items": {
+              "$ref": "./worktime.yaml#/components/schemas/Interval"
+            },
+            "nullable": true,
+            "maxItems": 100
+          },
+          "restConfirmed": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "description": "pending, approved, rejected, cancelled, stale or invalid"
+          },
+          "decisionReason": {
+            "type": "string"
+          },
+          "reviewedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "newRecord": {
+            "type": "boolean"
+          },
+          "before": {
+            "$ref": "./records.yaml#/components/schemas/AttendanceRecord"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "applicantName": {
+            "type": "string",
+            "description": "Verified session display name captured at submission; older requests may omit it."
+          }
+        },
+        "required": [
+          "id",
+          "groupId",
+          "recordId",
+          "expectedEventSequence",
+          "expectedRevision",
+          "reason",
+          "start",
+          "end",
+          "breaks",
+          "restConfirmed"
+        ]
+      },
+      "CorrectionDecisionResult": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
             "type": "string"
           }
         }
@@ -544,7 +639,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "./../openapi.yaml#/components/schemas/APIError"
+              "$ref": "./../common/transport.yaml#/components/schemas/APIError"
             }
           }
         }

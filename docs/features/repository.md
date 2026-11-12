@@ -34,7 +34,7 @@ ACTIVE / INACTIVE 表示 Bot 群組入口狀態。離開保留資料，再加入
 
 - `GET /api/v1/repositories?cursor=...`：一次讀取本人最多十筆互動候選，再核驗目前資格；可能回傳空頁及 nextCursor，需繼續下一頁。
 - `GET /api/v1/repositories/{id}`：即時核驗群組成員；格式錯誤／不存在／無權均不揭露資料。
-- API 契約：[OpenAPI](../../api/contract/openapi.yaml)；生成 Go/TS DTO，不手改產生碼。
+- API 契約：[Repository](../../api/contract/repository/repositories.yaml)，由 [OpenAPI 入口](../../api/contract/openapi.yaml) 組合；生成 Go/TS DTO，不手改產生碼。
 - UI：`/miniapp/repositories`，首頁「空間」入口；列表與詳情共頁，可使用 `?id=...` 直接開啟詳情。
 - 出勤連結只帶既有 group 查詢條件，不新增授權；摘要仍回原群組操作。
 - 從成員加入、本人群組訊息或 postback 建立列表候選。未互動的既有群組成員需先互動；這不是完整群組成員清單。

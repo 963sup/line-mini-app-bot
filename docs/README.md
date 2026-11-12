@@ -9,7 +9,7 @@
 | 工作模組 | 目錄入口 | 相關文件 |
 | --- | --- | --- |
 | Backend | [Go 後端](../backend/README.md) | [功能邊界](architecture/backend-boundaries.md)、[依賴規則](architecture/dependencies.md)、[Go 慣例](development/go.md)、[可靠性與資料](architecture/reliability.md) |
-| API | [HTTP API 契約與生成流程](../api/README.md) | [HTTP 契約](architecture/http-contracts.md)、[資料契約](architecture/data-contracts.md)、[查詢與更正](features/attendance-queries.md) |
+| API | [HTTP API 契約與生成流程](../api/README.md)、[契約能力索引](../api/contract/README.md) | [HTTP 契約](architecture/http-contracts.md)、[資料契約](architecture/data-contracts.md)、[查詢與更正](features/attendance-queries.md) |
 | Frontend | [MINI App 前端](../frontend/README.md) | [React 架構與生命週期](architecture/react-frontend.md)、[Web Geolocation](integrations/web-geolocation.md)、[查詢與更正](features/attendance-queries.md) |
 | Scripts | [腳本分類與命令](../scripts/README.md) | [mise](tooling/mise.md)、[分析範圍](tooling/analysis-scope.md)、[路徑整理](development/path-reorganization.md) |
 | Deploy | [部署設定與索引](../deploy/README.md) | [Cloud Run](operations/cloud-run.md)、[發布驗收](operations/release-acceptance.md)、[故障排查](operations/troubleshooting.md) |

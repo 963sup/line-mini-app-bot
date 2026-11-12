@@ -35,7 +35,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -45,7 +45,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -55,7 +55,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -65,7 +65,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -75,7 +75,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -85,7 +85,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -95,7 +95,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -159,7 +159,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -169,7 +169,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -179,7 +179,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -189,7 +189,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -199,7 +199,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -209,7 +209,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -219,7 +219,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -301,7 +301,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -311,7 +311,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -321,7 +321,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -331,7 +331,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -341,7 +341,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -351,7 +351,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -361,7 +361,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -421,7 +421,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -431,7 +431,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -441,7 +441,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -451,7 +451,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -461,7 +461,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -471,7 +471,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -481,7 +481,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -542,7 +542,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -552,7 +552,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -562,7 +562,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -572,7 +572,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -582,7 +582,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -592,7 +592,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -602,7 +602,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -665,7 +665,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -675,7 +675,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -685,7 +685,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -695,7 +695,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -705,7 +705,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -715,7 +715,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }
@@ -725,7 +725,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "./../openapi.yaml#/components/schemas/APIError"
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
                 }
               }
             }

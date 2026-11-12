@@ -1,6 +1,6 @@
 # HTTP API 契約
 
-`contract/openapi.yaml` 是唯一入口，出勤路徑與資料格式位於 `contract/attendance/` 下依業務拆分的契約。兩端產生器先使用 Redocly bundle 解析外部參照，再由同一份 bundle 產生 Go 與 TypeScript；不手改產生檔。
+`contract/openapi.yaml` 是公開 HTTP 契約的唯一組合入口。Identity、Repository 與 Attendance 各自擁有操作、參數與資料格式；共用錯誤與認證方式位於 `contract/common/`。完整歸屬與引用規則見 [契約能力索引](contract/README.md)。兩端產生器先使用 Redocly bundle 解析外部參照，再由同一份 bundle 產生 Go 與 TypeScript；不手改產生檔。
 
 ```bash
 bash scripts/tooling/tool-exec.sh mise run install-web
@@ -15,7 +15,7 @@ Go 使用生成路由與 HTTP DTO，業務核心不 import 生成套件。TS 端
 
 api:check 同時檢查產生碼同步與 oasdiff 破壞性變更。compatibility/baseline 保存初次完整契約，避免尚未提交的初次遷移漏掉既有路徑；後續不應隨意更新它。CI 另外使用 pull request base SHA 或 push before SHA，從該提交讀取契約及參照檔再比較，不依賴可被本次修改的 baseline 取代歷史。缺少指定 base revision 時明確失敗；base 尚無 OpenAPI 時仍檢查初次 baseline。
 
-設定／身分、Session 與出勤操作（含請假登記）以 `contract/openapi.yaml` 及其參照檔為準，不在本頁重複維護數量。範圍是自家 MINI App HTTP API；LINE webhook、內部摘要工作與獨立定位示範不屬於此公開契約，不複製 LINE 官方 API。
+設定／身分、Session、Repository 與出勤操作（含請假登記）以 `contract/openapi.yaml` 及其參照檔為準，不在本頁重複維護數量。範圍是自家 MINI App HTTP API；LINE webhook、內部摘要工作與獨立定位示範不屬於此公開契約，不複製 LINE 官方 API。
 
 ## 保持的資料語意
 
@@ -43,7 +43,7 @@ Redocly lint／bundle 設定位於 `api/redocly.yaml`；根目錄的生成腳本
 
 ## 目錄導覽與維護
 
-contract/openapi.yaml 為入口，contract/attendance/ 下依業務拆分的契約 定義出勤；client/ 保存 TypeScript client，compatibility/baseline/ 保存相容性基準。
+contract/ 依能力維護來源契約，openapi.yaml 組合公開 HTTP API；client/、codegen/、compatibility/ 分別保存共用客戶端、生成設定及相容性基準，不按業務複製這些工具。
 
 先修改契約，再由根目錄 pnpm api:generate 更新 Go/TS 產生碼；不手改 generated 檔或任意刷新 baseline。業務核心不依賴 HTTP DTO。
 
@@ -65,10 +65,6 @@ contract/openapi.yaml 為入口，contract/attendance/ 下依業務拆分的契�
 
 ## Business 入口分類
 
-- Attendance：公開 [OpenAPI](contract/openapi.yaml) 及 attendance/ 參照檔。
-- Summary：既有 [訊息收集、摘要指令與內部工作契約](contract/summary/README.md)。
-- Weather：既有 [Forecast 群組位置入口契約](contract/weather/README.md)。
-
-後兩者是既有非公開入口的說明，不加入公開 codegen，也不新增 HTTP 端點。
+公開 HTTP 能力為 Identity、Repository、Attendance；Summary、Weather 描述既有事件／內部工作入口，不加入公開 codegen，也不新增 HTTP 端點。各能力來源與依賴見 [契約能力索引](contract/README.md)。
 
 - [群組 Repository](../docs/features/repository.md)
