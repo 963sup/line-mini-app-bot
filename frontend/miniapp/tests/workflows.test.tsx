@@ -58,6 +58,7 @@ async function fixture(
     },
     isLoggedIn: () => true,
     isInClient: () => client,
+    getProfile: async () => ({ userId: "u1", pictureUrl: "https://profile.line-scdn.net/test-avatar" }),
     getIDToken: () => "token",
     login: () => {},
     logout: () => {

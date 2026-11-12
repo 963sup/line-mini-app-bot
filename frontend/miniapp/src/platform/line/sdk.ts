@@ -3,6 +3,7 @@ export interface Liff {
   isLoggedIn(): boolean;
   isInClient(): boolean;
   getIDToken(): string | null;
+  getProfile(): Promise<{ userId: string; pictureUrl?: string }>;
   login(options: { redirectUri: string }): void;
   logout(): void;
   closeWindow(): void;

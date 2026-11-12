@@ -19,8 +19,8 @@ window.matchMedia = (query) => ({ matches: false, media: query, onchange: null,
   addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent() { return false; } });
 
 function PrivateContent() {
-  const { user } = useSession();
-  return <p id="private-content">{user ? "私人內容" : "尚未驗證"}</p>;
+  const { user, pictureUrl } = useSession();
+  return <p id="private-content" data-avatar={pictureUrl}>{user ? "私人內容" : "尚未驗證"}</p>;
 }
 const flush = async () => {
   for (let i = 0; i < 12; i++) await new Promise<void>((resolve) => setImmediate(resolve));
@@ -36,6 +36,7 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
     init: async () => { if (++initialization === 1) throw new Error("初始化暫時失敗"); },
     isLoggedIn: () => loggedIn,
     isInClient: () => false,
+    getProfile: async () => ({ userId: "u1", pictureUrl: "https://profile.line-scdn.net/test-avatar" }),
     getIDToken: () => "test-token",
     login: () => { login++; },
     logout: () => { logout++; loggedIn = false; },
@@ -84,11 +85,13 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
     await openMenu();
     await click("verify");
     assert.equal(document.getElementById("private-content")!.textContent, "私人內容");
+    assert.equal(document.getElementById("private-content")!.getAttribute("data-avatar"), "https://profile.line-scdn.net/test-avatar");
     await openMenu();
     assert.equal(document.getElementById("login"), null);
     assert.ok(document.getElementById("logout"));
     await click("logout");
     assert.equal(document.getElementById("private-content")!.textContent, "尚未驗證");
+    assert.equal(document.getElementById("private-content")!.getAttribute("data-avatar"), null);
     assert.equal(logout, 0, "SDK logout must wait for server revocation");
     await openMenu();
     assert.ok(document.getElementById("logout"), "failed server revocation must remain retryable");

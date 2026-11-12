@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronsUpDown, UserRound } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,7 @@ import {
 
 export type AccountMenu = {
   name: string;
+  avatar?: string;
   detail?: string;
   status: string;
   actions: {
@@ -43,6 +44,7 @@ export function NavUser({ user }: { user: AccountMenu }) {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="size-8 rounded-lg">
+                <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">
                   <UserRound className="size-4" />
                 </AvatarFallback>
@@ -62,19 +64,24 @@ export function NavUser({ user }: { user: AccountMenu }) {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 max-w-[calc(100vw-2rem)] rounded-lg"
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
           >
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="font-normal">
-                <div className="grid gap-1">
-                  <span className="font-medium">{user.name}</span>
-                  <span className="break-all text-xs">{user.detail}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {user.status}
-                  </span>
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                  <Avatar className="size-8 rounded-lg">
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarFallback className="rounded-lg">
+                      <UserRound className="size-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{user.name}</span>
+                    <span className="truncate text-xs">{user.detail || user.status}</span>
+                  </div>
                 </div>
               </DropdownMenuLabel>
             </DropdownMenuGroup>

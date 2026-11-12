@@ -20,6 +20,7 @@ export type Request = <T>(
 ) => Promise<T>;
 interface Session {
   user: components["schemas"]["CurrentUser"] | null;
+  pictureUrl: string | undefined;
   canLogout: boolean;
   epoch: number;
   status: string;
@@ -53,6 +54,7 @@ export function SessionProvider({
   children: ReactNode;
   sdkLoader?: () => Promise<Liff>;
 }) {
+  const [pictureUrl, setPictureUrl] = useState<string>();
   const [user, setUser] = useState<Session["user"]>(null),
     [epoch, setEpoch] = useState(0),
     [status, setStatus] = useState("正在準備登入……"),
@@ -84,6 +86,7 @@ export function SessionProvider({
   const reset = useCallback(() => {
     invalidate();
     setUser(null);
+    setPictureUrl(undefined);
     setEpoch((value) => value + 1);
   }, [invalidate]);
   const verify = useCallback(async () => {
@@ -137,6 +140,14 @@ export function SessionProvider({
       actor.current = data;
       setUser(data);
       setStatus("本人身分驗證成功。");
+      // Profile is display-only; authorization continues to use the server session.
+      void untilAbort(liff.getProfile(), AbortSignal.timeout(5000)).then((profile) => {
+        if (current !== generation.current || profile.userId !== data.userId || !profile.pictureUrl) return;
+        const picture = new URL(profile.pictureUrl);
+        if (picture.protocol === "https:" && picture.hostname === "profile.line-scdn.net") {
+          setPictureUrl(picture.href);
+        }
+      }).catch(() => { /* Missing profile permission must not block login. */ });
     } catch (error) {
       if (current === generation.current) setStatus(errorMessage(error));
     } finally {
@@ -287,6 +298,7 @@ export function SessionProvider({
   const value = useMemo(
     () => ({
       user,
+      pictureUrl,
       canLogout: !!user || !!csrf.current,
       epoch,
       status,
@@ -305,6 +317,7 @@ export function SessionProvider({
     }),
     [
       user,
+      pictureUrl,
       epoch,
       status,
       busy,

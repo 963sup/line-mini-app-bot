@@ -45,7 +45,7 @@ func serveMiniApp(w http.ResponseWriter, r *http.Request) {
 	if page == "miniapp/journal.html" {
 		frames += " https://docs.google.com"
 	}
-	w.Header().Set("Content-Security-Policy", "default-src 'none'; script-src "+ScriptPolicy(contents)+"; style-src 'self'; connect-src 'self' https://api.line.me https://access.line.me https://liff.line.me https://liff.line-scdn.net; frame-src "+frames+"; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
+	w.Header().Set("Content-Security-Policy", "default-src 'none'; script-src "+ScriptPolicy(contents)+"; style-src 'self'; connect-src 'self' https://api.line.me https://access.line.me https://liff.line.me https://liff.line-scdn.net; frame-src "+frames+"; img-src 'self' data: https://profile.line-scdn.net; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
 	_, _ = w.Write(contents)
 }
 

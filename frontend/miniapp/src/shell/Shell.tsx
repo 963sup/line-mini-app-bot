@@ -71,6 +71,7 @@ function Content({
       account={{
         name: session.user?.displayName || "LINE 身分",
         detail: session.user?.userId,
+        avatar: session.pictureUrl,
         status: session.status,
         actions: [
           ...(session.ready &&

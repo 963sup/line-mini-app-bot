@@ -7,3 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## shadcn 與 sidebar-07 保護
+
+遵循根目錄 AGENTS.md 的「shadcn 元件保護」。Codex 預設不得改寫 shared/ui 與 shell/sidebar-07 的樣式、結構或互動；新增需求在應用層組合，只有使用者當次明確授權才能修改官方元件。
