@@ -1,3 +1,6 @@
+import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Status } from "@/shared/Status";
 import React, { useEffect, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "../../identity/Session";
@@ -21,18 +24,33 @@ export function View() {
     setSelected(null);
     setStatus("正在讀取空間……");
     void read.run(
-      (signal) => request((client, s) => client.GET("/api/v1/repositories", {
-        signal: s, params: { query: { cursor: next } },
-      }), { signal }),
+      (signal) =>
+        request(
+          (client, s) =>
+            client.GET("/api/v1/repositories", {
+              signal: s,
+              params: { query: { cursor: next } },
+            }),
+          { signal },
+        ),
       (page) => {
         setItems(page.items);
         setCursor(page.nextCursor);
         setBusy(false);
-        setStatus(page.items.length ? "選擇空間查看資料。" :
-          page.nextCursor ? "本頁沒有可存取的空間，可繼續下一頁。" :
-          "沒有可顯示的空間；請先在 Bot 所在的群組互動後重新載入。");
+        setStatus(
+          page.items.length
+            ? "選擇空間查看資料。"
+            : page.nextCursor
+              ? "本頁沒有可存取的空間，可繼續下一頁。"
+              : "沒有可顯示的空間；請先在 Bot 所在的群組互動後重新載入。",
+        );
       },
-      (error) => { setItems([]); setCursor(""); setBusy(false); setStatus(errorMessage(error)); },
+      (error) => {
+        setItems([]);
+        setCursor("");
+        setBusy(false);
+        setStatus(errorMessage(error));
+      },
     );
   }
 
@@ -41,11 +59,26 @@ export function View() {
     setSelected(null);
     setStatus("正在核驗空間存取資格……");
     void read.run(
-      (signal) => request((client, s) => client.GET("/api/v1/repositories/{id}", {
-        signal: s, params: { path: { id } },
-      }), { signal }),
-      (value) => { setSelected(value); setBusy(false); setStatus("已載入空間。"); },
-      (error) => { setItems([]); setCursor(""); setBusy(false); setStatus(errorMessage(error)); },
+      (signal) =>
+        request(
+          (client, s) =>
+            client.GET("/api/v1/repositories/{id}", {
+              signal: s,
+              params: { path: { id } },
+            }),
+          { signal },
+        ),
+      (value) => {
+        setSelected(value);
+        setBusy(false);
+        setStatus("已載入空間。");
+      },
+      (error) => {
+        setItems([]);
+        setCursor("");
+        setBusy(false);
+        setStatus(errorMessage(error));
+      },
     );
   }
 
@@ -61,34 +94,76 @@ export function View() {
         }
       } catch {}
       setScopeId(id);
-      if (id) detail(id); else load();
+      if (id) detail(id);
+      else load();
     }
     return read.cancel;
   }, [user, request]);
 
-  return <section className="panel">
-    <h2>空間</h2>
-    <p className="hint">{scopeId ? "此連結僅開啟原群組空間，需具備該群組的存取資格。" : "每個群組一個空間，由 Bot 管理。僅顯示已互動且目前仍有存取資格的群組。"}</p>
-    <button disabled={!user || busy} onClick={() => scopeId ? detail(scopeId) : load()}>重新載入</button>
-    <p role="status">{status}</p>
-    <ul className="record-list">
-      {items.map((item) => <li key={item.id}>
-        <button disabled={busy} onClick={() => detail(item.id)}>{item.name || "群組空間"}</button>
-      </li>)}
-    </ul>
-    {cursor && <button disabled={!user || busy} onClick={() => load(cursor)}>下一頁</button>}
-    {selected && <article>
-      <h3>{selected.name || "群組空間"}</h3>
-      <dl className="repository-details">
-        <dt>儲存庫 ID</dt><dd>{selected.id}</dd>
-        <dt>群組 ID</dt><dd>{selected.groupId}</dd>
-        <dt>狀態</dt><dd>{selected.status === "ACTIVE" ? "啟用" : "停用"}</dd>
-        <dt>版本</dt><dd>{selected.version}</dd>
-        <dt>建立時間</dt><dd>{displayTime(selected.createdAt)}</dd>
-        <dt>更新時間</dt><dd>{displayTime(selected.updatedAt)}</dd>
-      </dl>
-      <a href={"/miniapp/history?" + new URLSearchParams({ group: selected.groupId })}>查看本人出勤</a>
-      <p className="hint">摘要請回原群組操作。</p>
-    </article>}
-  </section>;
+  return (
+    <Card className="mb-3 gap-4 rounded-2xl p-4 sm:p-6">
+      <CardHeader className="px-0">
+        <CardTitle role="heading" aria-level={2}>
+          空間
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-0">
+        <a className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring" href="/miniapp/workspace-preview">預覽新版空間 UI（示範資料）</a>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {scopeId
+            ? "此連結僅開啟原群組空間，需具備該群組的存取資格。"
+            : "每個群組一個空間，由 Bot 管理。僅顯示已互動且目前仍有存取資格的群組。"}
+        </p>
+        <Button
+          disabled={!user || busy}
+          onClick={() => (scopeId ? detail(scopeId) : load())}
+        >
+          重新載入
+        </Button>
+        <Status role="status">{status}</Status>
+        <ul className="my-4 flex flex-col gap-4 [&>li]:border-b [&>li]:pb-4 [&_h3]:font-semibold [&_p]:my-2">
+          {items.map((item) => (
+            <li key={item.id}>
+              <Button disabled={busy} onClick={() => detail(item.id)}>
+                {item.name || "群組空間"}
+              </Button>
+            </li>
+          ))}
+        </ul>
+        {cursor && (
+          <Button disabled={!user || busy} onClick={() => load(cursor)}>
+            下一頁
+          </Button>
+        )}
+        {selected && (
+          <article>
+            <h3 className="font-semibold">{selected.name || "群組空間"}</h3>
+            <dl className="grid gap-2 text-sm [&>dt]:font-medium [&>dd]:break-all [&>dd]:text-muted-foreground">
+              <dt>儲存庫 ID</dt>
+              <dd>{selected.id}</dd>
+              <dt>群組 ID</dt>
+              <dd>{selected.groupId}</dd>
+              <dt>狀態</dt>
+              <dd>{selected.status === "ACTIVE" ? "啟用" : "停用"}</dd>
+              <dt>版本</dt>
+              <dd>{selected.version}</dd>
+              <dt>建立時間</dt>
+              <dd>{displayTime(selected.createdAt)}</dd>
+              <dt>更新時間</dt>
+              <dd>{displayTime(selected.updatedAt)}</dd>
+            </dl>
+            <a className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
+              href={
+                "/miniapp/history?" +
+                new URLSearchParams({ group: selected.groupId })
+              }
+            >
+              查看本人出勤
+            </a>
+            <p className="text-sm leading-relaxed text-muted-foreground">摘要請回原群組操作。</p>
+          </article>
+        )}
+      </CardContent>
+    </Card>
+  );
 }

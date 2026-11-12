@@ -9,7 +9,7 @@ Next.js Pages Router 靜態輸出，React Strict Mode 啟用。功能入口位�
 - `shell/Shell.tsx`：身分世代變更時重建功能子樹，清除舊使用者資料、表單與重試狀態。`pagehide` 取消請求；BFCache `pageshow.persisted` 重新驗證。
 - `shared/ui/` 與 `shared/utils.ts`：shadcn primitives 與樣式工具，由 shell／identity／business 組合使用；不擁有業務 API、授權判定或領域狀態。生成設定在 workspace `components.json`，`@/*` 對應 `src/*`。
 
-Tailwind 由 PostCSS 編譯 `styles/globals.css`，透過 Pages Router `_app.tsx` 載入；不啟用 preflight，以保留既有 compact 版面。`shell/app.css` 仍由 asset-map 原樣複製，不承載未編譯 Tailwind 指令。UI 元件採漸進接入，工具與 MCP 流程見 [shadcn UI 與 MCP](../tooling/mcp/shadcn.md)。
+Tailwind 由 PostCSS 編譯 `styles/globals.css`，透過 Pages Router `_app.tsx` 載入，包含 Preflight、主題與 utilities。正式頁、定位頁及空間預覽均使用 Tailwind utilities 與 shadcn 元件；已移除獨立頁面 CSS、asset-map 及 CSS 複製流程。樣式入口只保留主題變數與必要的 base layer，不以廣泛選擇器覆寫元件。工具與 MCP 流程見 [shadcn UI 與 MCP](../tooling/mcp/shadcn.md)。
 
 月摘要與明細分開請求，cursor 翻頁只讀明細；條件變更立即清空原畫面並取消舊讀取。更正申請同一份序列化草稿沿用同一 Idempotency-Key，內容變更才換碼；同步 ref 防止連點。審核必須先讀取目前編號，變更編號即作廢舊內容。
 

@@ -35,14 +35,12 @@ bash scripts/tooling/tool-exec.sh shadcn add button --cwd frontend/miniapp
 
 CLI 固定版本以 mise 為唯一來源。Registry 網路已在下方驗證紀錄重測成功；既有元件保持原樣。更新時先看固定 CLI 的 `add --dry-run`／`--diff`，檢查依賴與 import 後再合併，避免無條件覆寫。
 
-## CSS 編譯與既有版面
+## CSS 編譯與版面
 
-Tailwind CSS 由 `postcss.config.mjs` 編譯 `src/styles/globals.css`，並由 Pages Router 的 `src/pages/_app.tsx` 載入。
+Tailwind 由 `postcss.config.mjs` 編譯 `src/styles/globals.css`，包含 Preflight，並由 Pages Router 的 `src/pages/_app.tsx` 載入。
 Tailwind 4 的 `components.json` 不指定舊式 Tailwind config 檔案。
-本次整合不啟用 preflight，避免重設既有表單、按鈕與六頁 compact 版面的瀏覽器樣式。
-
-既有 `src/shell/app.css` 仍由 asset-map 複製到 `/assets/app.css`；該流程不執行 PostCSS。
-不可把未編譯的 Tailwind import／指令放進這份直接複製的 CSS。後續遷移應逐個元件進行，保留既有頁面行為並檢查 CSS 優先序。
+正式頁、定位頁及空間預覽以 utilities 排版，外觀由 shadcn 元件 variants 與主題變數控制。
+已移除原有頁面 CSS、asset-map 與 CSS 複製流程；不再使用獨立 stylesheet 連結或全域選擇器覆蓋元件。
 
 ## MCP 設定與驗證
 

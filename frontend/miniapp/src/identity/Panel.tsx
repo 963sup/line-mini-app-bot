@@ -1,13 +1,20 @@
+import { Card } from "@/shared/ui/card";
+import { Status } from "@/shared/Status";
 import React from "react";
 import { Button } from "@/shared/ui/button";
 import { useSession } from "./Session";
 export function IdentityPanel() {
   const s = useSession();
   return (
-    <section className="panel identity-panel" aria-labelledby="identity-heading">
-      <div className="panel-heading">
-        <h2 id="identity-heading">身分</h2>
-        <div className="actions identity-actions">
+    <Card
+      className="mb-3 gap-4 rounded-2xl p-4 sm:p-6"
+      aria-labelledby="identity-heading"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-xl font-semibold" id="identity-heading">
+          身分
+        </h2>
+        <div className="flex flex-wrap justify-end gap-2">
           <Button
             id="login"
             hidden={!s.ready || !!s.user || s.inClient || s.busy}
@@ -27,16 +34,33 @@ export function IdentityPanel() {
           >
             驗證
           </Button>
-          <Button id="logout" hidden={!s.canLogout} disabled={s.busy} onClick={s.logout}>
+          <Button
+            id="logout"
+            hidden={!s.canLogout}
+            disabled={s.busy}
+            onClick={s.logout}
+          >
             登出
           </Button>
-          {!s.ready && !s.busy && <Button onClick={s.verify} title="重試初始化" aria-label="重試初始化">重試</Button>}
+          {!s.ready && !s.busy && (
+            <Button
+              onClick={s.verify}
+              title="重試初始化"
+              aria-label="重試初始化"
+            >
+              重試
+            </Button>
+          )}
         </div>
       </div>
-      <p id="mini-status" role="status" aria-live="polite">
+      <Status id="mini-status" role="status" aria-live="polite">
         {s.status}
-      </p>
-      <dl id="identity" hidden={!s.user}>
+      </Status>
+      <dl
+        className="grid gap-2 text-sm [&>div]:grid [&>div]:grid-cols-[5.5em_minmax(0,1fr)] [&>div]:gap-2 [&_dd]:break-all [&_dd]:text-muted-foreground"
+        id="identity"
+        hidden={!s.user}
+      >
         <div>
           <dt>LINE 名稱</dt>
           <dd id="display-name">{s.user?.displayName || "未提供名稱"}</dd>
@@ -46,6 +70,6 @@ export function IdentityPanel() {
           <dd id="user-id">{s.user?.userId}</dd>
         </div>
       </dl>
-    </section>
+    </Card>
   );
 }

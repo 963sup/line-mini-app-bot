@@ -1,3 +1,8 @@
+import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { FieldLabel, Field } from "@/shared/ui/field";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { Status } from "@/shared/Status";
 import React, { useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "../../../identity/Session";
@@ -117,61 +122,71 @@ export function Requests({
     );
   }
   return (
-    <section className="panel">
-      <h2>{review ? "群組申請清單" : "本人申請清單"}</h2>
-      <fieldset disabled={!user || busy || disabled}>
-        {review && (
-          <>
-            <button onClick={loadGroups}>載入審核群組</button>
-            <label>
-              審核群組
-              <select
-                value={group}
-                onChange={(e) => {
-                  read.cancel();
-                  setGroup(e.target.value);
-                  setItems([]);
-                  setNext("");
-                  setStatus("");
-                }}
-              >
-                <option value="">請選擇</option>
-                {groups.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </>
-        )}
-        <button id="requests-load" onClick={() => load()}>
-          查詢{review ? "群組" : "本人"}申請
-        </button>
-        <ol id="requests-list">
-          {items.map((item) => (
-            <li key={item.id}>
-              <p>
-                {review &&
-                  `${item.applicantName || "姓名未留存，請依申請編號核對"}；`}
-                {displayTime(item.start)} ～ {displayTime(item.end)}；
-                {correctionStatus(item.status || "pending")}
-              </p>
-              <p>{item.reason}</p>
-              {item.decisionReason && <p>審核理由：{item.decisionReason}</p>}
-              {review ? (
-                <button onClick={() => onSelect?.(item)}>查看申請與審核</button>
-              ) : (
-                (item.status === "pending" || item.status === "stale") && (
-                  <button onClick={() => cancel(item.id)}>撤回申請</button>
-                )
-              )}
-            </li>
-          ))}
-        </ol>
-        {next && <button onClick={() => load(next)}>載入更多申請</button>}
-      </fieldset>
-      <p role="status">{status}</p>
-    </section>
+    <Card className="mb-3 gap-4 rounded-2xl p-4 sm:p-6">
+      <CardHeader className="px-0">
+        <CardTitle role="heading" aria-level={2}>
+          {review ? "群組申請清單" : "本人申請清單"}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-0">
+        <fieldset className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60" disabled={!user || busy || disabled}>
+          {review && (
+            <>
+              <Button onClick={loadGroups}>載入審核群組</Button>
+              <Field>
+                <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal">
+                  審核群組
+                  <NativeSelect
+                    value={group}
+                    onChange={(e) => {
+                      read.cancel();
+                      setGroup(e.target.value);
+                      setItems([]);
+                      setNext("");
+                      setStatus("");
+                    }}
+                  >
+                    <NativeSelectOption value="">請選擇</NativeSelectOption>
+                    {groups.map((g) => (
+                      <NativeSelectOption key={g.id} value={g.id}>
+                        {g.name}
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelect>
+                </FieldLabel>
+              </Field>
+            </>
+          )}
+          <Button id="requests-load" onClick={() => load()}>
+            查詢{review ? "群組" : "本人"}申請
+          </Button>
+          <ol id="requests-list">
+            {items.map((item) => (
+              <li key={item.id}>
+                <p>
+                  {review &&
+                    `${item.applicantName || "姓名未留存，請依申請編號核對"}；`}
+                  {displayTime(item.start)} ～ {displayTime(item.end)}；
+                  {correctionStatus(item.status || "pending")}
+                </p>
+                <p>{item.reason}</p>
+                {item.decisionReason && <p>審核理由：{item.decisionReason}</p>}
+                {review ? (
+                  <Button onClick={() => onSelect?.(item)}>
+                    查看申請與審核
+                  </Button>
+                ) : (
+                  (item.status === "pending" || item.status === "stale") && (
+                    <Button onClick={() => cancel(item.id)}>撤回申請</Button>
+                  )
+                )}
+              </li>
+            ))}
+          </ol>
+          {next && <Button onClick={() => load(next)}>載入更多申請</Button>}
+        </fieldset>
+        <Status role="status">{status}</Status>
+      </CardContent>
+    </Card>
   );
 }

@@ -81,7 +81,7 @@ def main():
         assets.update(parsed.paths)
     for path in sorted(assets):
         probe(path, 200)
-    for path in ['/location', '/assets/miniapp.js', '/assets/attendance.js', '/assets/app-api.js', '/assets/miniapp.css']:
+    for path in ['/location', '/assets/miniapp.js', '/assets/attendance.js', '/assets/app-api.js']:
         probe(path, 200)
     probe('/api/v1/me', 401)
     probe('/api/v1/attendance/groups/page', (401, 503) if args.allow_disabled_attendance else 401)

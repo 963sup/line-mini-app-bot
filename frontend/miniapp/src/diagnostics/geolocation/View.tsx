@@ -1,3 +1,6 @@
+import { Spinner } from "@/shared/ui/spinner";
+import { Button } from "@/shared/ui/button";
+import { Status } from "@/shared/Status";
 import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { locate, type Position } from "../../shared/location/position";
@@ -68,15 +71,16 @@ export function View() {
   }
   return (
     <>
-      <div className="actions">
-        <button id="locate" disabled={busy} onClick={() => void start()}>
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <Button id="locate" disabled={busy} onClick={() => void start()}>
+          {busy && <Spinner aria-label="處理中" />}
           取得位置並驗證
-        </button>
+        </Button>
       </div>
-      <p id="status" role="status">
+      <Status id="status" role="status">
         {status}
-      </p>
-      <dl id="result" hidden={!position}>
+      </Status>
+      <dl className="grid gap-2 text-sm [&_dd]:break-all [&_dd]:text-muted-foreground" id="result" hidden={!position}>
         <div>
           <dt>緯度</dt>
           <dd id="latitude">{position?.latitude}</dd>
