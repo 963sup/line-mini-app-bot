@@ -102,12 +102,6 @@ export function View() {
 
   return (
     <PagePanel heading="空間">
-      <a
-        className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
-        href="/miniapp/workspace-preview"
-      >
-        預覽新版空間 UI（示範資料）
-      </a>
       <p className="text-sm leading-relaxed text-muted-foreground">
         {scopeId
           ? "此連結僅開啟原群組空間，需具備該群組的存取資格。"

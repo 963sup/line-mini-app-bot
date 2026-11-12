@@ -12,7 +12,8 @@ func TestMiniAppAttendanceGetsDedicatedPage(t *testing.T) {
 		attendance bool
 		content    string
 	}{
-		{"/miniapp", false, "選擇要完成的事"},
+		{"/miniapp", false, "開始使用"},
+		{"/miniapp/workspace-preview", false, "空間 UI 預覽"},
 		{"/miniapp/journal", false, "日誌 Google 表單"},
 		{"/miniapp?journal=1", false, "日誌 Google 表單"},
 		{"/miniapp?liff.state=%3Fjournal%3D1", false, "日誌 Google 表單"},

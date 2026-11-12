@@ -1,6 +1,6 @@
 import { Progress } from "@/shared/ui/progress";
 import React, { useState } from "react";
-import Head from "next/head";
+import { AppFrame } from "@/shell/AppFrame";
 import {
   LayoutDashboard,
   CircleDot,
@@ -12,7 +12,6 @@ import {
   Plus,
   ArrowUpRight,
   Search,
-  Building2,
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
@@ -25,7 +24,6 @@ import {
 } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
 import { Input } from "@/shared/ui/input";
-import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Textarea } from "@/shared/ui/textarea";
 import {
@@ -42,21 +40,6 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from "@/shared/ui/empty";
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarInset,
-  SidebarTrigger,
-  useSidebar,
-} from "@/shared/ui/sidebar";
 
 const navigation = [
   { title: "總覽", icon: LayoutDashboard },
@@ -108,20 +91,6 @@ const discussions = [
 ];
 
 export default function Workspace() {
-  return (
-    <>
-      <Head>
-        <title>群組空間 · UI 預覽</title>
-      </Head>
-      <div className="min-h-svh">
-        <SidebarProvider>
-          <WorkspaceContent />
-        </SidebarProvider>
-      </div>
-    </>
-  );
-}
-function WorkspaceContent() {
   const [page, setPage] = useState("總覽");
   const [items, setItems] = useState(seed);
   const [query, setQuery] = useState("");
@@ -136,12 +105,10 @@ function WorkspaceContent() {
   const [notice, setNotice] = useState("");
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState<Record<string, string[]>>({});
-  const { setOpenMobile } = useSidebar();
   function navigate(value: string) {
     setPage(value);
     setQuery("");
     setFilter("全部");
-    setOpenMobile(false);
   }
   const visible = items.filter(
     (item) =>
@@ -178,223 +145,99 @@ function WorkspaceContent() {
     </div>
   );
   return (
-    <>
-      <Sidebar>
-        <SidebarHeader>
-          <div className="flex items-center gap-3 px-3 pt-4 pb-6 text-primary [&_small]:block [&_small]:text-[11px] [&_small]:tracking-wider [&_small]:text-muted-foreground">
-            <Building2 size={28} />
-            <div>
-              <strong>群組空間</strong>
-              <small>TEAM WORKSPACE</small>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-xl border bg-background p-3 text-sm [&_small]:block [&_small]:text-xs [&_small]:text-muted-foreground">
-            <Avatar>
-              <AvatarFallback>工</AvatarFallback>
-            </Avatar>
-            <div>
-              <strong>工程 A · 示範空間</strong>
-              <small>協作與工作追蹤</small>
-            </div>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>工作空間</SidebarGroupLabel>
-            <SidebarMenu>
-              {navigation.map(({ title, icon: Icon }) => (
-                <SidebarMenuItem key={title}>
-                  <SidebarMenuButton
-                    isActive={page === title}
-                    onClick={() => navigate(title)}
-                  >
-                    <Icon />
-                    <span>{title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroup>
-        </SidebarContent>
-        <SidebarFooter>
-          <Badge variant="outline">UI 雛形 · 示範資料</Badge>
+    <AppFrame
+      title="空間 UI 預覽"
+      workflow="preview"
+      wide
+      contextItems={navigation.map(({ title, icon }) => ({
+        label: title,
+        icon,
+        active: page === title,
+        onSelect: () => navigate(title),
+      }))}
+    >
+      <div className="mb-4 flex items-start justify-between gap-3 sm:items-center [&_h2]:mb-2 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:tracking-tight sm:[&_h2]:text-[34px]">
+        <div>
+          <p className="mb-2.5 text-[11px] font-bold tracking-widest text-primary">
+            WORKSPACE / {page === "總覽" ? "OVERVIEW" : "COLLABORATION"}
+          </p>
+          <h2>{page === "總覽" ? "讓每件工作，都有進展。" : page}</h2>
           <p className="text-sm text-muted-foreground">
-            操作僅保留於本次頁面，不會寫入正式資料。
+            {page === "總覽"
+              ? "在同一個空間掌握事項、交流想法與追蹤目標。"
+              : "工程 A 的共同工作紀錄"}
           </p>
-          <Button variant="outline" asChild>
-            <a className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring" href="/miniapp/repositories">返回正式空間</a>
+        </div>
+        {["事項", "討論"].includes(page) && (
+          <Button
+            onClick={() => {
+              setTitle("");
+              setDescription("");
+              setCreating(true);
+            }}
+          >
+            <Plus size={16} />
+            {page === "事項" ? "新增事項" : "發起討論"}
           </Button>
-        </SidebarFooter>
-      </Sidebar>
-      <SidebarInset>
-        <header className="flex h-15 items-center justify-between gap-3 border-b px-4 text-sm sm:h-18 sm:px-8">
-          <div className="flex items-center gap-3">
-            <SidebarTrigger />
-            <span>工程 A</span>
-            <ChevronRight size={14} />
-            <strong>{page}</strong>
+        )}
+      </div>
+      <p className="mb-6 text-xs text-muted-foreground">
+        目前為介面預覽，所有內容皆為示範資料。
+      </p>
+      <div role="status" aria-live="polite">
+        {notice}
+      </div>
+      {page === "總覽" && (
+        <>
+          <div className="mb-6 grid grid-cols-3 gap-2 sm:gap-4 [&_[data-slot=card-header]]:px-3 sm:[&_[data-slot=card-header]]:px-6 [&_[data-slot=card-content]]:hidden sm:[&_[data-slot=card-content]]:flex [&_[data-slot=card-description]]:text-xs">
+            {[
+              [
+                "未完成事項",
+                items.filter((i) => i.state !== "已完成").length,
+                "讓待辦持續往前",
+              ],
+              ["討論主題", topics.length, "交流與共同決定"],
+              ["階段里程碑", 2, "分階段完成目標"],
+            ].map(([name, count, hint]) => (
+              <Card key={name}>
+                <CardHeader>
+                  <CardDescription>{name}</CardDescription>
+                  <CardTitle className="text-[28px] tabular-nums sm:text-[38px]">
+                    {count}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <span className="text-sm text-muted-foreground">{hint}</span>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-          <Avatar>
-            <AvatarFallback>預</AvatarFallback>
-          </Avatar>
-        </header>
-        <main className="mx-auto w-full max-w-[1360px] px-4 py-6 sm:p-9">
-          <div className="mb-4 flex items-start justify-between gap-3 sm:items-center [&_h1]:mb-2 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:tracking-tight sm:[&_h1]:text-[34px]">
-            <div>
-              <p className="mb-2.5 text-[11px] font-bold tracking-widest text-primary">
-                WORKSPACE / {page === "總覽" ? "OVERVIEW" : "COLLABORATION"}
-              </p>
-              <h1>{page === "總覽" ? "讓每件工作，都有進展。" : page}</h1>
-              <p className="text-sm text-muted-foreground">
-                {page === "總覽"
-                  ? "在同一個空間掌握事項、交流想法與追蹤目標。"
-                  : "工程 A 的共同工作紀錄"}
-              </p>
-            </div>
-            {["事項", "討論"].includes(page) && (
-              <Button
-                onClick={() => {
-                  setTitle("");
-                  setDescription("");
-                  setCreating(true);
-                }}
-              >
-                <Plus size={16} />
-                {page === "事項" ? "新增事項" : "發起討論"}
-              </Button>
-            )}
-          </div>
-          <p className="mb-6 text-xs text-muted-foreground">
-            目前為介面預覽，所有內容皆為示範資料。
-          </p>
-          <div role="status" aria-live="polite">
-            {notice}
-          </div>
-          {page === "總覽" && (
-            <>
-              <div className="mb-6 grid grid-cols-3 gap-2 sm:gap-4 [&_[data-slot=card-header]]:px-3 sm:[&_[data-slot=card-header]]:px-6 [&_[data-slot=card-content]]:hidden sm:[&_[data-slot=card-content]]:flex [&_[data-slot=card-description]]:text-xs">
-                {[
-                  [
-                    "未完成事項",
-                    items.filter((i) => i.state !== "已完成").length,
-                    "讓待辦持續往前",
-                  ],
-                  ["討論主題", topics.length, "交流與共同決定"],
-                  ["階段里程碑", 2, "分階段完成目標"],
-                ].map(([name, count, hint]) => (
-                  <Card key={name}>
-                    <CardHeader>
-                      <CardDescription>{name}</CardDescription>
-                      <CardTitle className="text-[28px] tabular-nums sm:text-[38px]">
-                        {count}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <span className="text-sm text-muted-foreground">{hint}</span>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-              <div className="grid grid-cols-1 gap-5 min-[900px]:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-                <Card>
-                  <CardHeader>
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <CardTitle>接下來要做的事</CardTitle>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate("事項")}
-                      >
-                        全部事項 <ArrowUpRight size={14} />
-                      </Button>
-                    </div>
-                    <CardDescription>
-                      保持焦點，從下一件事開始。
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {rows(items.filter((i) => i.state !== "已完成"))}
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>近期討論</CardTitle>
-                    <CardDescription>
-                      讓資訊留在團隊的共同空間。
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {topics.slice(0, 3).map((t, index) => (
-                      <button
-                        className="flex w-full items-center gap-3 border-b py-4 text-left text-sm hover:text-primary [&>span]:flex-1 [&_small]:mt-1 [&_small]:block"
-                        key={t + index}
-                        onClick={() => {
-                          setTopic(t);
-                          setComment("");
-                        }}
-                      >
-                        <MessagesSquare size={18} />
-                        <span>{t}</span>
-                        <ChevronRight size={15} />
-                      </button>
-                    ))}
-                  </CardContent>
-                </Card>
-              </div>
-            </>
-          )}
-          {page === "事項" && (
+          <div className="grid grid-cols-1 gap-5 min-[900px]:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
             <Card>
               <CardHeader>
-                <div className="flex max-w-[460px] items-center gap-3">
-                  <Search size={18} />
-                  <Input
-                    aria-label="搜尋事項"
-                    placeholder="搜尋事項名稱…"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                  />
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <CardTitle>接下來要做的事</CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate("事項")}
+                  >
+                    全部事項 <ArrowUpRight size={14} />
+                  </Button>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {["全部", "待處理", "進行中", "已完成"].map((s) => (
-                    <Button
-                      key={s}
-                      size="sm"
-                      variant={filter === s ? "secondary" : "ghost"}
-                      aria-pressed={filter === s}
-                      onClick={() => setFilter(s)}
-                    >
-                      {s}
-                    </Button>
-                  ))}
-                </div>
+                <CardDescription>保持焦點，從下一件事開始。</CardDescription>
               </CardHeader>
               <CardContent>
-                {visible.length ? (
-                  rows(visible)
-                ) : (
-                  <Empty>
-                    <EmptyHeader>
-                      <EmptyTitle>沒有符合的事項</EmptyTitle>
-                      <EmptyDescription>
-                        試試其他關鍵字或狀態。
-                      </EmptyDescription>
-                    </EmptyHeader>
-                  </Empty>
-                )}
+                {rows(items.filter((i) => i.state !== "已完成"))}
               </CardContent>
             </Card>
-          )}
-          {page === "討論" && (
             <Card>
               <CardHeader>
-                <CardTitle>團隊正在聊什麼</CardTitle>
-                <CardDescription>
-                  提案、問答與經驗，都可以從這裡開始。
-                </CardDescription>
+                <CardTitle>近期討論</CardTitle>
+                <CardDescription>讓資訊留在團隊的共同空間。</CardDescription>
               </CardHeader>
               <CardContent>
-                {topics.map((t, index) => (
+                {topics.slice(0, 3).map((t, index) => (
                   <button
                     className="flex w-full items-center gap-3 border-b py-4 text-left text-sm hover:text-primary [&>span]:flex-1 [&_small]:mt-1 [&_small]:block"
                     key={t + index}
@@ -403,118 +246,180 @@ function WorkspaceContent() {
                       setComment("");
                     }}
                   >
-                    <MessagesSquare size={20} />
-                    <span>
-                      <strong>{t}</strong>
-                      <small className="text-sm text-muted-foreground">
-                        {index === 1 ? "問答" : "一般討論"} · 示範主題
-                      </small>
-                    </span>
-                    <ChevronRight size={16} />
+                    <MessagesSquare size={18} />
+                    <span>{t}</span>
+                    <ChevronRight size={15} />
                   </button>
                 ))}
               </CardContent>
             </Card>
-          )}
-          {page === "標籤" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>共用標籤</CardTitle>
-                <CardDescription>
-                  事項與討論使用同一套空間分類。
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {["採購", "設計", "現場", "待確認", "安全"].map((t) => (
-                    <Badge variant="secondary" key={t}>
-                      {t}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-          {page === "里程碑" && (
-            <div className="grid grid-cols-1 gap-5 min-[900px]:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-              {["第一階段 · 現場準備", "第二階段 · 施工協調"].map((t, i) => (
-                <Card key={t}>
-                  <CardHeader>
-                    <Flag size={22} />
-                    <CardTitle>{t}</CardTitle>
-                    <CardDescription>
-                      {i
-                        ? "確認施工圖說及各工種介面"
-                        : "完成進場、點收與安全檢查"}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p>示範完成度 {i ? "25" : "75"}%</p>
-                    <Progress value={i ? 25 : 75} aria-label={t + "完成度"} />
-                  </CardContent>
-                </Card>
+          </div>
+        </>
+      )}
+      {page === "事項" && (
+        <Card>
+          <CardHeader>
+            <div className="flex max-w-[460px] items-center gap-3">
+              <Search size={18} />
+              <Input
+                aria-label="搜尋事項"
+                placeholder="搜尋事項名稱…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {["全部", "待處理", "進行中", "已完成"].map((s) => (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant={filter === s ? "secondary" : "ghost"}
+                  aria-pressed={filter === s}
+                  onClick={() => setFilter(s)}
+                >
+                  {s}
+                </Button>
               ))}
             </div>
-          )}
-          {page === "專案" && (
-            <Card>
+          </CardHeader>
+          <CardContent>
+            {visible.length ? (
+              rows(visible)
+            ) : (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyTitle>沒有符合的事項</EmptyTitle>
+                  <EmptyDescription>試試其他關鍵字或狀態。</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            )}
+          </CardContent>
+        </Card>
+      )}
+      {page === "討論" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>團隊正在聊什麼</CardTitle>
+            <CardDescription>
+              提案、問答與經驗，都可以從這裡開始。
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {topics.map((t, index) => (
+              <button
+                className="flex w-full items-center gap-3 border-b py-4 text-left text-sm hover:text-primary [&>span]:flex-1 [&_small]:mt-1 [&_small]:block"
+                key={t + index}
+                onClick={() => {
+                  setTopic(t);
+                  setComment("");
+                }}
+              >
+                <MessagesSquare size={20} />
+                <span>
+                  <strong>{t}</strong>
+                  <small className="text-sm text-muted-foreground">
+                    {index === 1 ? "問答" : "一般討論"} · 示範主題
+                  </small>
+                </span>
+                <ChevronRight size={16} />
+              </button>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+      {page === "標籤" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>共用標籤</CardTitle>
+            <CardDescription>事項與討論使用同一套空間分類。</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {["採購", "設計", "現場", "待確認", "安全"].map((t) => (
+                <Badge variant="secondary" key={t}>
+                  {t}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {page === "里程碑" && (
+        <div className="grid grid-cols-1 gap-5 min-[900px]:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          {["第一階段 · 現場準備", "第二階段 · 施工協調"].map((t, i) => (
+            <Card key={t}>
               <CardHeader>
-                <CardTitle>施工工作看板</CardTitle>
+                <Flag size={22} />
+                <CardTitle>{t}</CardTitle>
                 <CardDescription>
-                  同一批事項的不同視圖；本頁僅預覽狀態分欄。
+                  {i ? "確認施工圖說及各工種介面" : "完成進場、點收與安全檢查"}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 [&>section]:rounded-xl [&>section]:bg-muted [&>section]:p-4 [&_h3]:mb-3 [&_h3]:text-sm [&_h3]:font-semibold">
-                  {["待處理", "進行中", "已完成"].map((s) => (
-                    <section key={s}>
-                      <h3 className="font-semibold">{s}</h3>
-                      {items
-                        .filter((i) => i.state === s)
-                        .map((i) => (
-                          <button
-                            className="w-full rounded-lg border bg-card p-4 text-left text-card-foreground hover:bg-accent"
-                            key={i.number}
-                            onClick={() => setSelected(i)}
-                          >
-                            #{i.number} {i.title}
-                          </button>
-                        ))}
-                    </section>
-                  ))}
+                <p>示範完成度 {i ? "25" : "75"}%</p>
+                <Progress value={i ? 25 : 75} aria-label={t + "完成度"} />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+      {page === "專案" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>施工工作看板</CardTitle>
+            <CardDescription>
+              同一批事項的不同視圖；本頁僅預覽狀態分欄。
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 [&>section]:rounded-xl [&>section]:bg-muted [&>section]:p-4 [&_h3]:mb-3 [&_h3]:text-sm [&_h3]:font-semibold">
+              {["待處理", "進行中", "已完成"].map((s) => (
+                <section key={s}>
+                  <h3 className="font-semibold">{s}</h3>
+                  {items
+                    .filter((i) => i.state === s)
+                    .map((i) => (
+                      <button
+                        className="w-full rounded-lg border bg-card p-4 text-left text-card-foreground hover:bg-accent"
+                        key={i.number}
+                        onClick={() => setSelected(i)}
+                      >
+                        #{i.number} {i.title}
+                      </button>
+                    ))}
+                </section>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {page === "稽核紀錄" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>重要操作紀錄</CardTitle>
+            <CardDescription>
+              以下為示範紀錄，並非正式稽核證據。
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {[
+              "林先生將事項 #12 更新為進行中",
+              "陳小姐建立事項 #10",
+              "王先生完成事項 #8",
+            ].map((t, i) => (
+              <div className="flex items-start gap-3 py-4" key={t}>
+                <History size={18} />
+                <div>
+                  <strong>{t}</strong>
+                  <p className="text-sm text-muted-foreground">
+                    示範時間 · {i + 1} 小時前
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-          {page === "稽核紀錄" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>重要操作紀錄</CardTitle>
-                <CardDescription>
-                  以下為示範紀錄，並非正式稽核證據。
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {[
-                  "林先生將事項 #12 更新為進行中",
-                  "陳小姐建立事項 #10",
-                  "王先生完成事項 #8",
-                ].map((t, i) => (
-                  <div className="flex items-start gap-3 py-4" key={t}>
-                    <History size={18} />
-                    <div>
-                      <strong>{t}</strong>
-                      <p className="text-sm text-muted-foreground">
-                        示範時間 · {i + 1} 小時前
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-        </main>
-      </SidebarInset>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
       <Dialog open={creating} onOpenChange={setCreating}>
         <DialogContent>
           <DialogHeader>
@@ -553,7 +458,12 @@ function WorkspaceContent() {
           >
             <FieldGroup>
               <Field>
-                <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal" htmlFor="preview-title">標題</FieldLabel>
+                <FieldLabel
+                  className="w-full flex-col items-stretch gap-2 whitespace-normal"
+                  htmlFor="preview-title"
+                >
+                  標題
+                </FieldLabel>
                 <Input
                   id="preview-title"
                   required
@@ -563,7 +473,12 @@ function WorkspaceContent() {
                 />
               </Field>
               <Field>
-                <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal" htmlFor="preview-description">內容</FieldLabel>
+                <FieldLabel
+                  className="w-full flex-col items-stretch gap-2 whitespace-normal"
+                  htmlFor="preview-description"
+                >
+                  內容
+                </FieldLabel>
                 <Textarea
                   id="preview-description"
                   value={description}
@@ -638,7 +553,12 @@ function WorkspaceContent() {
           >
             <FieldGroup>
               <Field>
-                <FieldLabel className="w-full flex-col items-stretch gap-2 whitespace-normal" htmlFor="preview-comment">新增留言</FieldLabel>
+                <FieldLabel
+                  className="w-full flex-col items-stretch gap-2 whitespace-normal"
+                  htmlFor="preview-comment"
+                >
+                  新增留言
+                </FieldLabel>
                 <Textarea
                   id="preview-comment"
                   required
@@ -653,6 +573,6 @@ function WorkspaceContent() {
           </form>
         </DialogContent>
       </Dialog>
-    </>
+    </AppFrame>
   );
 }

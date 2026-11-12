@@ -83,3 +83,12 @@
     @apply bg-muted font-sans leading-relaxed text-foreground antialiased;
   }
 }
+
+/* Keep sidebar sizing available under the server's style-src 'self' policy. */
+[data-slot="sidebar-wrapper"] {
+  --sidebar-width: 16rem;
+  --sidebar-width-icon: 3rem;
+}
+[data-slot="sidebar"][data-mobile="true"] {
+  --sidebar-width: 18rem;
+}
