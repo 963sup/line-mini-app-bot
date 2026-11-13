@@ -12,7 +12,7 @@ import tomllib
 ROOT = Path(__file__).resolve().parents[2]
 ROLES = {
     "orchestrator", "architect", "researcher", "explorer",
-    "implementer", "debugger", "tester", "reviewer", "integrator",
+    "implementer", "debugger", "tester", "reviewer", "documentation", "integrator",
 }
 
 

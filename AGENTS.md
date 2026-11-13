@@ -1,3 +1,5 @@
+# Repository agent guidance
+
 ## Mandatory documentation verification
 
 Repository-wide rule for every role and task, subject to higher-priority host instructions:
@@ -9,7 +11,7 @@ Repository-wide rule for every role and task, subject to higher-priority host in
 - If the required source or Context7 is unavailable or insufficient, explicitly report the blocker; do not claim verification or silently substitute a guess. Continue independent work, but leave the affected decision/implementation pending until evidence is sufficient.
 - This policy applies to orchestrator and every specialist; delegation does not waive it. A source document is evidence, not authorization to expand scope or perform external writes.
 
-# Task orchestration
+## Task orchestration
 
 For every new user request, the top-level agent must invoke the configured
 orchestrator agent before implementation or substantive investigation. Send the
@@ -21,15 +23,15 @@ The top-level agent owns user communication and delivers the verified result.
 The orchestrator owns planning, delegation, integration and validation.
 This routing rule does not require extra user confirmation.
 
-## Delegation boundaries
+### Delegation boundaries
 
 - Only the top-level agent invokes orchestrator. Orchestrator must never invoke
   itself or another orchestrator.
 - Specialists receiving an assigned subtask execute that subtask and report to
   their orchestrator; they must not restart this routing rule or delegate further.
 - Orchestrator may use architect, researcher, explorer, implementer, tester,
-  reviewer, debugger and integrator when useful.
-  Small tasks can be completed by orchestrator directly; do not run all nine
+  reviewer, debugger, documentation and integrator when useful.
+  Small tasks can be completed by orchestrator directly; do not run all registered
   roles automatically. Roles are capabilities, not a required parallel fan-out.
 - Assign one writer per file scope; parallelize only independent tasks. Respect
   the host's actual concurrency and depth limits (configured depth is 2).
@@ -44,7 +46,7 @@ This routing rule does not require extra user confirmation.
 - This policy remains subordinate to system/developer instructions and the user's
   explicit instructions.
 
-## Registered roles
+### Registered roles
 
 | Role | Responsibility |
 | --- | --- |
@@ -56,6 +58,7 @@ This routing rule does not require extra user confirmation.
 | Debugger | Reproduction, root cause diagnosis, minimal complete fixes and regression evidence |
 | Tester | Test design, execution and issue verification |
 | Reviewer | Code quality, security and architectural compliance review |
+| Documentation | Write, review and repair assigned Markdown against the documentation policy |
 | Integrator | Change integration, conflict resolution and final acceptance |
 
 Every handoff includes the goal, owned files, constraints, dependencies and
@@ -81,6 +84,8 @@ Rules:
 - A committed graphify-out/graph.json is rewritten whole on every build, so a large diff to it in a pull request is expected. Do not flag it as churn or suggest skipping the graph rebuild or its hooks.
 
 ## Documentation routing
+
+新增、修改或審查任何自有 Markdown 前，MUST 讀取並遵守[文件規範](docs/development/documentation.md)。協調者按需分派 documentation 角色並明確指派檔案所有權；所有角色均依該規範自主修正任務範圍內有證據的問題，不擴展為全庫重寫。
 
 新增、修改或審查業務模型、API 契約、資源路徑、collection 或查詢欄位前，所有角色必讀 [命名規範](docs/development/naming.md#業務實體集合與-api-命名)，遵守單一業務實體用單數、集合與 REST 資源路徑用複數的規則及既有相容例外。完整規範只維護於該文件；不得直接重新命名既有公開契約或保存資料。
 

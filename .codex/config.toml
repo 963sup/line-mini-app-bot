@@ -51,6 +51,10 @@ config_file = "agents/tester.toml"
 description = "Code quality, security and architectural compliance review."
 config_file = "agents/reviewer.toml"
 
+[agents.documentation]
+description = "Write, review and repair assigned Markdown while preserving meaning and verified sources."
+config_file = "agents/documentation.toml"
+
 [agents.integrator]
 description = "Change integration, conflict resolution and final acceptance."
 config_file = "agents/integrator.toml"

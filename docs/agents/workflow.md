@@ -6,7 +6,7 @@ changes and before delivery. Use `deadcode` and `callgraph` for focused analysis
 and `debug`, `coverage`, `bench`, `profile` only when relevant. See
 [mise tooling](../tooling/mise.md) for installation and artifact paths.
 
-Nine roles are available; they are not nine mandatory execution stages.
+Registered roles are capabilities, not mandatory execution stages.
 The orchestrator can complete small work directly. Use implementer, tester and
 reviewer for substantial changes; add architect/researcher/explorer only for a
 specific unresolved question. Use integrator when separate patches require it.
@@ -18,6 +18,11 @@ For errors, logs and unexplained test failures, use debugger under the
 and acceptance ownership.
 
 ## Assignment contract
+
+For Markdown work, apply the [documentation policy](../development/documentation.md).
+Assign documentation explicit files/hunks and necessary direct-reference updates;
+it may edit that scope directly. Keep one writer per file and return code/tooling
+changes to their assigned owner. Small edits may stay with the current owner.
 
 Provide the goal, owned files, dependencies, behavior to preserve and acceptance
 commands. Return changed paths, actual commands/results, skips and open issues.
@@ -113,4 +118,4 @@ Repository-wide rule for every role and task, subject to higher-priority host in
 
 交付列出：發現 → 規格依據 → 修改位置 → 檢查結果 → 剩餘限制。不把工具成功等同業務正確，不無限重跑全庫檢查。此流程不增加 push、部署或資料遷移授權。
 
-沿用既有九種角色即可，不新增 compliance agent。協調者可直接完成小任務；角色是責任分工，不是必須逐一啟動的階段。
+沿用已註冊角色即可，不新增 compliance agent。協調者可直接完成小任務；角色是責任分工，不是必須逐一啟動的階段。
