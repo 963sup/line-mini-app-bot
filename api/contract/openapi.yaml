@@ -121,6 +121,24 @@
     },
     "/api/v1/repositories/{repositoryId}/statistics": {
       "$ref": "./repository/statistics.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1statistics"
+    },
+    "/api/v1/spaces": {
+      "$ref": "./space/spaces.yaml#/paths/~1api~1v1~1spaces"
+    },
+    "/api/v1/spaces/{id}": {
+      "$ref": "./space/spaces.yaml#/paths/~1api~1v1~1spaces~1{id}"
+    },
+    "/api/v1/spaces/{spaceId}/projects": {
+      "$ref": "./project/space-projects.yaml#/paths/~1api~1v1~1spaces~1{spaceId}~1projects"
+    },
+    "/api/v1/spaces/{spaceId}/projects/{id}": {
+      "$ref": "./project/space-projects.yaml#/paths/~1api~1v1~1spaces~1{spaceId}~1projects~1{id}"
+    },
+    "/api/v1/spaces/{spaceId}/projects/{id}/items": {
+      "$ref": "./project/space-projects.yaml#/paths/~1api~1v1~1spaces~1{spaceId}~1projects~1{id}~1items"
+    },
+    "/api/v1/spaces/{spaceId}/projects/{id}/items/{itemId}": {
+      "$ref": "./project/space-projects.yaml#/paths/~1api~1v1~1spaces~1{spaceId}~1projects~1{id}~1items~1{itemId}"
     }
   },
   "components": {
@@ -223,6 +241,15 @@
       },
       "RepositoryStatistics": {
         "$ref": "./repository/statistics.yaml#/components/schemas/RepositoryStatistics"
+      },
+      "Space": {
+        "$ref": "./space/spaces.yaml#/components/schemas/Space"
+      },
+      "SpacePage": {
+        "$ref": "./space/spaces.yaml#/components/schemas/SpacePage"
+      },
+      "SpaceProjectCreation": {
+        "$ref": "./project/space-projects.yaml#/components/schemas/SpaceProjectCreation"
       }
     },
     "securitySchemes": {

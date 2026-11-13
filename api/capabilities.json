@@ -150,6 +150,18 @@
       "adapter": "backend/internal/business/repository/statistics/http/routes.go",
       "core": "backend/internal/business/repository/statistics/statistics.go",
       "specification": "docs/features/planning.md"
+    },
+    "space": {
+      "contract": "space/spaces.yaml",
+      "adapter": "backend/internal/business/space/http/routes.go",
+      "core": "backend/internal/business/space/space.go",
+      "specification": "docs/features/projects.md"
+    },
+    "project.space": {
+      "contract": "project/space-projects.yaml",
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/projects.md"
     }
   },
   "operations": [
@@ -806,9 +818,7 @@
       "handler": "ListProjects",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/planning.md",
-      "consumers": [
-        "frontend/miniapp/src/business/project/View.tsx"
-      ]
+      "consumers": []
     },
     {
       "operationId": "createProject",
@@ -820,9 +830,7 @@
       "handler": "CreateProject",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/planning.md",
-      "consumers": [
-        "frontend/miniapp/src/business/project/View.tsx"
-      ]
+      "consumers": []
     },
     {
       "operationId": "getProject",
@@ -834,9 +842,7 @@
       "handler": "GetProject",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/planning.md",
-      "consumers": [
-        "frontend/miniapp/src/business/project/View.tsx"
-      ]
+      "consumers": []
     },
     {
       "operationId": "updateProject",
@@ -848,9 +854,7 @@
       "handler": "UpdateProject",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/planning.md",
-      "consumers": [
-        "frontend/miniapp/src/business/project/View.tsx"
-      ]
+      "consumers": []
     },
     {
       "operationId": "listProjectItems",
@@ -862,9 +866,7 @@
       "handler": "ListProjectItems",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/planning.md",
-      "consumers": [
-        "frontend/miniapp/src/business/project/Items.tsx"
-      ]
+      "consumers": []
     },
     {
       "operationId": "addProjectItem",
@@ -876,9 +878,7 @@
       "handler": "AddProjectItem",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/planning.md",
-      "consumers": [
-        "frontend/miniapp/src/business/project/Items.tsx"
-      ]
+      "consumers": []
     },
     {
       "operationId": "removeProjectItem",
@@ -890,9 +890,7 @@
       "handler": "RemoveProjectItem",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/planning.md",
-      "consumers": [
-        "frontend/miniapp/src/business/project/Items.tsx"
-      ]
+      "consumers": []
     },
     {
       "operationId": "getRepositoryStatistics",
@@ -906,6 +904,132 @@
       "specification": "docs/features/planning.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/statistics/View.tsx"
+      ]
+    },
+    {
+      "operationId": "listSpaces",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/spaces",
+      "owner": "space",
+      "adapter": "backend/internal/business/space/http/routes.go",
+      "handler": "ListSpaces",
+      "core": "backend/internal/business/space/space.go",
+      "specification": "docs/features/projects.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/Workspace.tsx"
+      ]
+    },
+    {
+      "operationId": "getSpace",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/spaces/{id}",
+      "owner": "space",
+      "adapter": "backend/internal/business/space/http/routes.go",
+      "handler": "GetSpace",
+      "core": "backend/internal/business/space/space.go",
+      "specification": "docs/features/projects.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/Workspace.tsx"
+      ]
+    },
+    {
+      "operationId": "listSpaceProjects",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/spaces/{spaceId}/projects",
+      "owner": "project.space",
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "handler": "ListSpaceProjects",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/projects.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/View.tsx"
+      ]
+    },
+    {
+      "operationId": "createSpaceProject",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/spaces/{spaceId}/projects",
+      "owner": "project.space",
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "handler": "CreateSpaceProject",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/projects.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/View.tsx"
+      ]
+    },
+    {
+      "operationId": "getSpaceProject",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/spaces/{spaceId}/projects/{id}",
+      "owner": "project.space",
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "handler": "GetSpaceProject",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/projects.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/View.tsx"
+      ]
+    },
+    {
+      "operationId": "updateSpaceProject",
+      "audience": "public",
+      "method": "PATCH",
+      "path": "/api/v1/spaces/{spaceId}/projects/{id}",
+      "owner": "project.space",
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "handler": "UpdateSpaceProject",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/projects.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/View.tsx"
+      ]
+    },
+    {
+      "operationId": "listSpaceProjectItems",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/spaces/{spaceId}/projects/{id}/items",
+      "owner": "project.space",
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "handler": "ListSpaceProjectItems",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/projects.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/Items.tsx"
+      ]
+    },
+    {
+      "operationId": "addSpaceProjectItem",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/spaces/{spaceId}/projects/{id}/items",
+      "owner": "project.space",
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "handler": "AddSpaceProjectItem",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/projects.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/Items.tsx"
+      ]
+    },
+    {
+      "operationId": "removeSpaceProjectItem",
+      "audience": "public",
+      "method": "DELETE",
+      "path": "/api/v1/spaces/{spaceId}/projects/{id}/items/{itemId}",
+      "owner": "project.space",
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "handler": "RemoveSpaceProjectItem",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/projects.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/Items.tsx"
       ]
     }
   ],
@@ -1016,6 +1140,16 @@
       "entity": "ProjectItem",
       "collection": "items",
       "path": "/api/v1/repositories/{repositoryId}/projects/{id}/items"
+    },
+    {
+      "entity": "Space",
+      "collection": "spaces",
+      "path": "/api/v1/spaces"
+    },
+    {
+      "entity": "Project",
+      "collection": "projects",
+      "path": "/api/v1/spaces/{spaceId}/projects"
     }
   ],
   "namingExceptions": {

@@ -1,5 +1,7 @@
 # MINI App 前端
 
+獨立專案頁為 `/miniapp/projects`，側欄專案與儲存庫同層，Space／Project選取與身份生命週期不依賴RepositoryProvider。來源選擇是唯讀資格選擇，非新增事項寫權；頁面、來源及legacy轉接規則見 [獨立Project](../docs/features/projects.md)。
+
 ## 目錄導覽與維護
 
 miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/attendance/ 提供出勤畫面，business/form/journal/ 提供日誌表單，identity/、platform/line/、shared/、shell/ 分別處理身分、平台、共用與外框。

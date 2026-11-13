@@ -8,6 +8,9 @@
 | 共用傳輸契約 | [common/transport.yaml](common/transport.yaml) | APIError、Bearer 與 Cookie security schemes；不承載業務模型 |
 | Identity | [identity/identity.yaml](identity/identity.yaml) | MINI App 公開設定、本人、Session 建立／續期／撤銷及其 DTO |
 | Repository | [repository/repositories.yaml](repository/repositories.yaml) | 容器列表、詳情、分頁及容器 DTO；不提供手動建立或管理 API |
+| Space | [space/spaces.yaml](space/spaces.yaml) | 獨立群組空間列表／詳情與當下成員核驗；不依Repository服務授權 |
+| Project | [project/space-projects.yaml](project/space-projects.yaml) | Space擁有的專案與items，來源唯讀；[Project規格](../../docs/features/projects.md) |
+| Project legacy | [project/projects.yaml](project/projects.yaml)、[items.yaml](project/items.yaml) | 原Repository-scoped路由與DTO相容轉接；同一用例，不構成新擁有權 |
 | Repository / Labels | [repository/labels.yaml](repository/labels.yaml) | 標籤目錄列出與建立，規格見 [標籤](../../docs/features/labels.md) |
 | Issue | [issue/issues.yaml](issue/issues.yaml) | 空間事項列表、詳情、建立及建立者修改；操作規格見 [事項](../../docs/features/issues.md) |
 | Discussion | [discussion/discussions.yaml](discussion/discussions.yaml)、[comments.yaml](discussion/comments.yaml) | 主題讀寫及單層留言；作者編輯，規格見 [討論](../../docs/features/discussions.md) |

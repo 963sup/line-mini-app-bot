@@ -12,8 +12,6 @@ import (
 	discussiondb "github.com/963sup/line-mini-app-bot/internal/business/discussion/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/issue"
 	issuedb "github.com/963sup/line-mini-app-bot/internal/business/issue/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/project"
-	projectdb "github.com/963sup/line-mini-app-bot/internal/business/project/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	repositorydb "github.com/963sup/line-mini-app-bot/internal/business/repository/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository/labels"
@@ -80,17 +78,6 @@ func newMilestones(r *repository.Service) *milestones.Service {
 		return nil
 	}
 	return &milestones.Service{Repositories: r, Store: store}
-}
-
-func newProjects(r *repository.Service) *project.Service {
-	if r == nil {
-		return nil
-	}
-	store, ok := r.Store.(*repositorydb.Store)
-	if !ok {
-		return nil
-	}
-	return &project.Service{Repositories: r, Store: &projectdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
 }
 
 func newStatistics(r *repository.Service) *statistics.Service {

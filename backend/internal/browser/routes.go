@@ -25,7 +25,7 @@ func serveMiniApp(w http.ResponseWriter, r *http.Request) {
 		} else if query.Has("launch") || query.Has("liff.state") {
 			page = "miniapp/punch.html"
 		}
-	case "/miniapp/history", "/miniapp/correction", "/miniapp/review", "/miniapp/punch", "/miniapp/leave", "/miniapp/journal", "/miniapp/repositories", "/miniapp/workspace-preview":
+	case "/miniapp/history", "/miniapp/correction", "/miniapp/review", "/miniapp/punch", "/miniapp/leave", "/miniapp/journal", "/miniapp/repositories", "/miniapp/projects", "/miniapp/workspace-preview":
 		page = strings.TrimPrefix(r.URL.Path, "/") + ".html"
 	default:
 		http.NotFound(w, r)
@@ -53,7 +53,7 @@ func Register(mux *http.ServeMux) error {
 	if err := Validate(); err != nil {
 		return err
 	}
-	for _, route := range []string{"/miniapp", "/miniapp/history", "/miniapp/correction", "/miniapp/review", "/miniapp/punch", "/miniapp/leave", "/miniapp/journal", "/miniapp/repositories", "/miniapp/workspace-preview"} {
+	for _, route := range []string{"/miniapp", "/miniapp/history", "/miniapp/correction", "/miniapp/review", "/miniapp/punch", "/miniapp/leave", "/miniapp/journal", "/miniapp/repositories", "/miniapp/projects", "/miniapp/workspace-preview"} {
 		mux.HandleFunc("GET "+route, serveMiniApp)
 	}
 	mux.Handle("GET /assets/", Assets())

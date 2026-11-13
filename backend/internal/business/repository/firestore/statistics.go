@@ -9,6 +9,8 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository/milestones"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository/statistics"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type statisticsFailure struct{ cause error }
@@ -34,7 +36,43 @@ func (s *Store) Statistics(ctx context.Context, r repository.Repository) (result
 		}
 		parent := s.planningParent(r.ID)
 		for _, kind := range []string{"issues", "discussions", "milestones", "projects"} {
-			snaps, e := tx.Documents(parent.Collection(kind)).GetAll()
+			query := parent.Collection(kind).Query
+			if kind == "projects" {
+				marker, e := tx.Get(s.Client.Collection("channels").Doc(s.ChannelID).Collection("projectStorage").Doc(r.ID))
+				if e == nil {
+					var route struct {
+						SpaceID  string `firestore:"spaceId"`
+						Location string `firestore:"location"`
+						Locked   bool   `firestore:"locked"`
+					}
+					if e = marker.DataTo(&route); e != nil {
+						return e
+					}
+					if route.Locked || route.SpaceID != r.GroupID {
+						return statistics.ErrUnavailable
+					}
+					if route.Location == "space" {
+						owner := s.Client.Collection("channels").Doc(s.ChannelID).Collection("spaces").Doc(route.SpaceID)
+						root, e := tx.Get(owner)
+						if e != nil {
+							return e
+						}
+						var value struct{ ID, GroupID, Status string }
+						if e = root.DataTo(&value); e != nil {
+							return e
+						}
+						if value.ID != route.SpaceID || value.GroupID != route.SpaceID || value.Status != "ACTIVE" {
+							return statistics.ErrUnavailable
+						}
+						query = owner.Collection("projects").Where("sourceRepositoryId", "==", r.ID)
+					} else if route.Location != "legacy" {
+						return statistics.ErrUnavailable
+					}
+				} else if status.Code(e) != codes.NotFound {
+					return e
+				}
+			}
+			snaps, e := tx.Documents(query).GetAll()
 			if e != nil {
 				return e
 			}

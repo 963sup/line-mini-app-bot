@@ -655,6 +655,111 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/spaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Independent Space membership and lifecycle, not Repository ownership */
+        get: operations["listSpaces"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/spaces/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Independent Space membership and lifecycle, not Repository ownership */
+        get: operations["getSpace"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/spaces/{spaceId}/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Space-owned Project; source Repository only supplies authorized read references */
+        get: operations["listSpaceProjects"];
+        put?: never;
+        /** Space-owned Project; source Repository only supplies authorized read references */
+        post: operations["createSpaceProject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/spaces/{spaceId}/projects/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Space-owned Project; source Repository only supplies authorized read references */
+        get: operations["getSpaceProject"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Space-owned Project; source Repository only supplies authorized read references */
+        patch: operations["updateSpaceProject"];
+        trace?: never;
+    };
+    "/api/v1/spaces/{spaceId}/projects/{id}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Space-owned Project; source Repository only supplies authorized read references */
+        get: operations["listSpaceProjectItems"];
+        put?: never;
+        /** Space-owned Project; source Repository only supplies authorized read references */
+        post: operations["addSpaceProjectItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/spaces/{spaceId}/projects/{id}/items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Space-owned Project; source Repository only supplies authorized read references */
+        delete: operations["removeSpaceProjectItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -869,6 +974,10 @@ export interface components {
             issueCount: number;
             /** Format: int64 */
             completedIssueCount: number;
+            spaceId?: string;
+            sourceRepositoryId?: string;
+            /** @description False means source counts/details are unavailable; numeric count fields must not be shown as observed zero. */
+            sourceAvailable?: boolean;
         };
         ProjectCreation: {
             title: string;
@@ -916,6 +1025,29 @@ export interface components {
             projects: number;
             /** Format: date-time */
             observedAt: string;
+        };
+        Space: {
+            id: string;
+            groupId: string;
+            name: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "INACTIVE";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int64 */
+            version: number;
+        };
+        SpacePage: {
+            items: components["schemas"]["Space"][];
+            /** @description Empty when finished. Pages may be empty after current-membership filtering. */
+            nextCursor: string;
+        };
+        SpaceProjectCreation: {
+            title: string;
+            body: string;
+            sourceRepositoryId: string;
         };
         GroupItem: {
             id: string;
@@ -4021,6 +4153,361 @@ export interface operations {
             409: components["responses"]["IssueError"];
             415: components["responses"]["IssueError"];
             503: components["responses"]["IssueError"];
+        };
+    };
+    listSpaces: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized repository data; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpacePage"];
+                };
+            };
+            /** @description Request failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    getSpace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized repository data; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Space"];
+                };
+            };
+            /** @description Request failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    listSpaceProjects: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                spaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectPage"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
+        };
+    };
+    createSpaceProject: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Reuse the same key and normalized content after an ambiguous result. Scoped to the verified actor and repository across resource types. */
+                "Idempotency-Key": string;
+                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                spaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SpaceProjectCreation"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Project"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
+        };
+    };
+    getSpaceProject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Project"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
+        };
+    };
+    updateSpaceProject: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                spaceId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectUpdate"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Project"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
+        };
+    };
+    listSpaceProjectItems: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                spaceId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectItemPage"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
+        };
+    };
+    addSpaceProjectItem: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                spaceId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectItemAddition"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Project"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
+        };
+    };
+    removeSpaceProjectItem: {
+        parameters: {
+            query: {
+                expectedVersion: number;
+            };
+            header?: {
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                spaceId: string;
+                id: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Project"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
         };
     };
 }

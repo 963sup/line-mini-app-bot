@@ -6,7 +6,7 @@ import (
 
 	db "cloud.google.com/go/firestore"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/project"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -20,8 +20,19 @@ type itemDocument struct {
 	CreatedAt     time.Time `firestore:"createdAt"`
 }
 
-func (s *Store) sourceIssue(tx *db.Transaction, r repository.Repository, id string) (feature.Item, error) {
-	snap, e := tx.Get(s.planningParent(r.ID).Collection("issues").Doc(id))
+func (s *Store) sourceIssue(tx *db.Transaction, r feature.Scope, id string) (feature.Item, error) {
+	source, e := tx.Get(s.legacyParent(r.SourceRepositoryID))
+	if e != nil {
+		return feature.Item{}, e
+	}
+	var container struct{ ID, GroupID, Status string }
+	if e = source.DataTo(&container); e != nil {
+		return feature.Item{}, e
+	}
+	if container.ID != r.SourceRepositoryID || container.GroupID != r.SpaceID || container.Status != "ACTIVE" {
+		return feature.Item{}, feature.ErrNotFound
+	}
+	snap, e := tx.Get(s.legacyParent(r.SourceRepositoryID).Collection("issues").Doc(id))
 	if status.Code(e) == codes.NotFound {
 		return feature.Item{}, feature.ErrInput
 	}
@@ -38,18 +49,18 @@ func (s *Store) sourceIssue(tx *db.Transaction, r repository.Repository, id stri
 	if e := snap.DataTo(&d); e != nil {
 		return feature.Item{}, e
 	}
-	if d.SchemaVersion != 1 || d.ID != id || d.RepositoryID != r.ID || d.Title == "" || (d.State != "open" && d.State != "in_progress" && d.State != "completed") {
+	if d.SchemaVersion != 1 || d.ID != id || d.RepositoryID != r.SourceRepositoryID || d.Title == "" || (d.State != "open" && d.State != "in_progress" && d.State != "completed") {
 		return feature.Item{}, feature.ErrUnavailable
 	}
 	return feature.Item{IssueID: id, Title: d.Title, State: d.State}, nil
 }
 
-func (s *Store) readItem(tx *db.Transaction, r repository.Repository, pid string, snap *db.DocumentSnapshot) (feature.Item, error) {
+func (s *Store) readItem(tx *db.Transaction, r feature.Scope, pid string, snap *db.DocumentSnapshot) (feature.Item, error) {
 	var d itemDocument
 	if e := snap.DataTo(&d); e != nil {
 		return feature.Item{}, e
 	}
-	if d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !repository.ValidID(d.ID) || d.ProjectID != pid || !repository.ValidID(d.IssueID) || d.CreatedBy == "" || d.CreatedAt.IsZero() || d.ID != planningHash([]string{"project-item", pid, d.IssueID})[:32] {
+	if d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !feature.ValidID(d.ID) || d.ProjectID != pid || !feature.ValidID(d.IssueID) || d.CreatedBy == "" || d.CreatedAt.IsZero() || d.ID != planningHash([]string{"project-item", pid, d.IssueID})[:32] {
 		return feature.Item{}, feature.ErrUnavailable
 	}
 	i, e := s.sourceIssue(tx, r, d.IssueID)
@@ -60,11 +71,20 @@ func (s *Store) readItem(tx *db.Transaction, r repository.Repository, pid string
 	return i, nil
 }
 
-func (s *Store) planningProgress(ctx context.Context, r repository.Repository, result *feature.Project) error {
+func (s *Store) Progress(ctx context.Context, r feature.Scope, result *feature.Project) (err error) {
+	defer func() { err = planningError(err) }()
+	r.SourceRepositoryID = result.SourceRepositoryID
+	parent, e := s.readParent(ctx, r)
+	if e != nil {
+		return e
+	}
 	return s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+		if e := s.planningContainer(tx, r, parent); e != nil {
+			return e
+		}
 		result.IssueCount = 0
 		result.CompletedIssueCount = 0
-		snaps, e := tx.Documents(s.planningParent(r.ID).Collection("projects").Doc(result.ID).Collection("items")).GetAll()
+		snaps, e := tx.Documents(parent.Collection("projects").Doc(result.ID).Collection("items")).GetAll()
 		if e != nil {
 			return e
 		}
@@ -82,25 +102,32 @@ func (s *Store) planningProgress(ctx context.Context, r repository.Repository, r
 	}, db.ReadOnly)
 }
 
-func (s *Store) ListItems(ctx context.Context, r repository.Repository, actor, pid, token string) (result feature.ItemPage, err error) {
+func (s *Store) ListItems(ctx context.Context, r feature.Scope, actor, pid, token string) (result feature.ItemPage, err error) {
 	defer func() { err = planningError(err) }()
 	result.Items = []feature.Item{}
 	if !s.planningReady() {
 		return result, feature.ErrUnavailable
 	}
-	scope := []string{s.ChannelID, r.ID, actor, pid}
-	parent := s.planningParent(r.ID).Collection("projects").Doc(pid)
+	scope := []string{s.ChannelID, r.SpaceID, actor, pid}
+	if r.Legacy {
+		scope[1] = r.SourceRepositoryID
+	}
+	root, e := s.readParent(ctx, r)
+	if e != nil {
+		return result, e
+	}
+	parent := root.Collection("projects").Doc(pid)
 	q, e := planningPage(parent.Collection("items").OrderBy(db.DocumentID, db.Asc), token, scope)
 	if e != nil {
 		return result, e
 	}
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = feature.ItemPage{Items: []feature.Item{}}
-		if e := s.planningContainer(tx, r); e != nil {
+		if e := s.planningContainer(tx, r, root); e != nil {
 			return e
 		}
 		snap, e := tx.Get(parent)
-		if _, e := planningDecode(snap, e, r.ID); e != nil {
+		if _, e := planningDecode(snap, e, r); e != nil {
 			return e
 		}
 		snaps, e := tx.Documents(q).GetAll()
@@ -129,12 +156,16 @@ func (s *Store) ListItems(ctx context.Context, r repository.Repository, actor, p
 	return result, nil
 }
 
-func (s *Store) ChangeItem(ctx context.Context, r repository.Repository, actor, pid, target string, add bool, version int64) (result feature.Project, err error) {
+func (s *Store) ChangeItem(ctx context.Context, r feature.Scope, actor, pid, target string, add bool, version int64) (result feature.Project, err error) {
 	defer func() { err = planningError(err) }()
 	if !s.planningReady() {
 		return result, feature.ErrUnavailable
 	}
-	parent := s.planningParent(r.ID).Collection("projects").Doc(pid)
+	root, e := s.readParent(ctx, r)
+	if e != nil {
+		return result, e
+	}
+	parent := root.Collection("projects").Doc(pid)
 	itemID := target
 	if add {
 		itemID = planningHash([]string{"project-item", pid, target})[:32]
@@ -142,11 +173,11 @@ func (s *Store) ChangeItem(ctx context.Context, r repository.Repository, actor, 
 	ref := parent.Collection("items").Doc(itemID)
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		if e := s.planningContainer(tx, r); e != nil {
+		if e := s.planningContainer(tx, r, root); e != nil {
 			return e
 		}
 		snap, e := tx.Get(parent)
-		current, e := planningDecode(snap, e, r.ID)
+		current, e := planningDecode(snap, e, r)
 		if e != nil {
 			return e
 		}
@@ -171,7 +202,7 @@ func (s *Store) ChangeItem(ctx context.Context, r repository.Repository, actor, 
 		if exists == add {
 			return nil
 		}
-		if current.Version >= repository.MaxResourceNumber {
+		if current.Version >= feature.MaxVersion {
 			return feature.ErrConflict
 		}
 		updated := current

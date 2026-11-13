@@ -60,7 +60,7 @@ test("spaces lazy-load authorized entries, retain empty-page continuation and us
   });
   try {
     assert.equal(repositoryRequests(f.requests).length, 0);
-    await f.clickText("空間");
+    await f.clickText("儲存庫");
     assert.match(document.body.textContent!, /本頁沒有可開啟的空間，可繼續載入/);
     await f.clickText("載入更多空間");
     const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('a[href*="selected="]'));

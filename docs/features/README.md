@@ -4,6 +4,7 @@
 
 ## 文件索引
 
+- [Space 擁有的獨立 Project](projects.md)：獨立業務、側欄與頁面，來源儲存庫唯讀，包含legacy相容與資料遷移界線。
 - [出勤查詢與更正](attendance-queries.md)
 - [基礎出勤](attendance.md)
 - [群組出勤看板與本人漏下班檢查](attendance-board.md)

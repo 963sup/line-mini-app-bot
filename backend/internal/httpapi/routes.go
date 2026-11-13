@@ -129,3 +129,23 @@ func RegisterStatistics(public *http.ServeMux, handler StatisticsServer, wrap fu
 	}
 	public.Handle("GET /api/v1/repositories/{repositoryId}/statistics", routes)
 }
+
+func RegisterSpaces(public *http.ServeMux, handler SpaceServer) {
+	routes := routeHandler(contractServer{SpaceServer: handler})
+	public.Handle("GET /api/v1/spaces", routes)
+	public.Handle("GET /api/v1/spaces/{id}", routes)
+}
+
+func RegisterSpaceProjects(public *http.ServeMux, handler SpaceProjectServer, wrap func(http.Handler) http.Handler) {
+	routes := routeHandler(contractServer{SpaceProjectServer: handler})
+	if wrap != nil {
+		routes = wrap(routes)
+	}
+	public.Handle("GET /api/v1/spaces/{spaceId}/projects", routes)
+	public.Handle("POST /api/v1/spaces/{spaceId}/projects", routes)
+	public.Handle("GET /api/v1/spaces/{spaceId}/projects/{id}", routes)
+	public.Handle("PATCH /api/v1/spaces/{spaceId}/projects/{id}", routes)
+	public.Handle("GET /api/v1/spaces/{spaceId}/projects/{id}/items", routes)
+	public.Handle("POST /api/v1/spaces/{spaceId}/projects/{id}/items", routes)
+	public.Handle("DELETE /api/v1/spaces/{spaceId}/projects/{id}/items/{itemId}", routes)
+}

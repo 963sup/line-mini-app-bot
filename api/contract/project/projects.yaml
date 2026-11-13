@@ -365,6 +365,18 @@
             "format": "int64",
             "minimum": 0,
             "maximum": 9007199254740991
+          },
+          "spaceId": {
+            "type": "string",
+            "pattern": "^C[a-f0-9]{32}$"
+          },
+          "sourceRepositoryId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "sourceAvailable": {
+            "type": "boolean",
+            "description": "False means source counts/details are unavailable; numeric count fields must not be shown as observed zero."
           }
         }
       },

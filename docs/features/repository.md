@@ -1,5 +1,7 @@
 # 群組 Repository
 
+Space 與 Project 的新邊界見 [獨立 Project](projects.md)：Space 使用 channel 內可信群組ID，Project由Space擁有，Repository只作事項來源。下方既有Repository身份與群組綁定保持相容；歷史「空間」用語不代表Project仍由Repository聚合擁有。
+
 ## 範圍與資料
 
 每個 LINE 群組一個 Bot 管理的空間，具有獨立 `id` 與唯一 `groupId`。
@@ -46,7 +48,7 @@ ACTIVE / INACTIVE 表示 Bot 群組入口狀態。離開保留資料，再加入
 ## 正式空間 UI 基礎雛形
 
 正式空間沿用上述 List / Get 操作契約與身分隔離，以寬版卡片呈現已授權空間的基本資料與本人出勤入口。
-頁內導覽與獨立預覽共用 `frontend/miniapp/src/business/repository/navigation.ts`；總覽、事項、討論、標籤、里程碑、專案與稽核紀錄在正式空間內切換。
+頁內導覽與獨立預覽共用 `frontend/miniapp/src/business/repository/navigation.ts`；Repository內容維持原有事項、討論、標籤及里程碑。專案改走獨立側欄／`/miniapp/projects`，舊入口僅導向帶明確Space／來源識別的新頁，不再在Repository View掛載Project業務。
 總覽使用真實空間資料，事項已接入 [事項第一階段](issues.md)，討論已接入 [討論與留言](discussions.md)，標籤目錄已接入 [標籤規格](labels.md)；里程碑、專案及總覽統計依 [基礎追蹤規格](planning.md) 接入；公開稽核仍明示尚未開放，不回填示範資料。載入、核驗失敗、登出時不呈現空間內容。
 既有 API、Bot 管理、成員核驗及共用編號規則不變。事項與討論／留言依各自獨立規格接入；標籤已接入事項／討論作者的分類操作；完成界線依 [基礎雛形](repository-prototype.md)，里程碑、專案及統計依本次授權另完成最小切片，不自動展開其他管理功能。
 總覽為讀取畫面基礎整合；事項驗證另依功能規格，不代表其他協作業務或真實 LINE 裝置已驗收。

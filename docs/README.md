@@ -18,6 +18,7 @@
 
 | 需求 | 文件 |
 | --- | --- |
+| Space 擁有的獨立專案與遷移 | [獨立 Project](features/projects.md) |
 | 群組空間共用流水編號基礎 | [Repository 共用資源編號](features/repository-numbering.md) |
 | 空間事項讀寫與建立者生命週期 | [事項第一階段](features/issues.md) |
 | 空間討論與單層留言 | [討論與留言](features/discussions.md) |

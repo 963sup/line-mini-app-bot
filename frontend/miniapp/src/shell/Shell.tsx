@@ -4,6 +4,7 @@ import { SessionProvider, useSession } from "../identity/Session";
 import { useEffect } from "react";
 import { RepositoryProvider, useRepositories } from "../business/repository/RepositoryContext";
 import { AppFrame } from "./AppFrame";
+import type { NavItem } from "./sidebar-07/nav-main";
 export function Shell({
   title,
   workflow,
@@ -15,23 +16,39 @@ export function Shell({
 }) {
   return (
     <SessionProvider>
-      <RepositoryProvider workflow={workflow}>
-        <Content title={title} workflow={workflow}>{children}</Content>
-      </RepositoryProvider>
+      {workflow === "projects" ? <Content title={title} workflow={workflow}>{children}</Content> :
+        <RepositoryProvider workflow={workflow}>
+          <RepositoryContent title={title} workflow={workflow}>{children}</RepositoryContent>
+        </RepositoryProvider>}
+
     </SessionProvider>
   );
+}
+function RepositoryContent(props: { title: string; workflow: string; children: ReactNode }) {
+  const spaces = useRepositories();
+  const { workflow } = props;
+  return <Content {...props} repositoryItem={{
+        title: "儲存庫", url: spaces.scope ? spaces.href(spaces.scope) : "/miniapp/repositories", isActive: workflow === "repositories", onExpand: spaces.ensure,
+        items: [
+          ...spaces.items.map((item) => ({ title: item.name || "群組空間", url: spaces.href(item.id), isActive: item.id === spaces.selectedID })),
+          { title: spaces.status, status: true },
+          ...(spaces.cursor ? [{ title: "載入更多空間", onSelect: spaces.loadMore, disabled: spaces.busy, keepOpen: true }] : []),
+          { title: spaces.items.length ? "重新載入空間清單" : "載入空間", onSelect: spaces.reload, disabled: !spaces.canLoad || spaces.busy, keepOpen: true },
+        ],
+      }} />;
 }
 function Content({
   title,
   workflow,
   children,
+  repositoryItem,
 }: {
   title: string;
   workflow: string;
   children: ReactNode;
+  repositoryItem?: NavItem;
 }) {
   const session = useSession();
-  const spaces = useRepositories();
   const { epoch, ready } = session;
   useEffect(() => {
     if (!ready || workflow !== "home") return;
@@ -70,16 +87,8 @@ function Content({
     <AppFrame
       title={title}
       workflow={workflow}
-      wide={workflow === "repositories"}
-      repositoryItem={{
-        title: "空間", url: spaces.scope ? spaces.href(spaces.scope) : "/miniapp/repositories", isActive: workflow === "repositories", onExpand: spaces.ensure,
-        items: [
-          ...spaces.items.map((item) => ({ title: item.name || "群組空間", url: spaces.href(item.id), isActive: item.id === spaces.selectedID })),
-          { title: spaces.status, status: true },
-          ...(spaces.cursor ? [{ title: "載入更多空間", onSelect: spaces.loadMore, disabled: spaces.busy, keepOpen: true }] : []),
-          { title: spaces.items.length ? "重新載入空間清單" : "載入空間", onSelect: spaces.reload, disabled: !spaces.canLoad || spaces.busy, keepOpen: true },
-        ],
-      }}
+      wide={workflow === "repositories" || workflow === "projects"}
+      repositoryItem={repositoryItem}
       account={{
         name: session.user?.displayName || "LINE 身分",
         detail: session.user?.userId,

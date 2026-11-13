@@ -32,7 +32,7 @@ func Register(mux *http.ServeMux, service *feature.Service, auth Authenticator) 
 	if err != nil {
 		panic(err)
 	}
-	httpapi.RegisterProjects(mux, &projectServer{service}, func(next http.Handler) http.Handler {
+	wrap := func(next http.Handler) http.Handler {
 		document := *spec
 		validate := middleware.OapiRequestValidatorWithOptions(&document, &middleware.Options{
 			DoNotValidateServers: true,
@@ -82,11 +82,13 @@ func Register(mux *http.ServeMux, service *feature.Service, auth Authenticator) 
 			defer cancel()
 			validate.ServeHTTP(w, r.WithContext(identity.WithUser(ctx, identity.User{ID: user, Name: name})))
 		}))
-	})
+	}
+	httpapi.RegisterProjects(mux, &projectServer{service}, wrap)
+	httpapi.RegisterSpaceProjects(mux, &projectServer{service}, wrap)
 }
 
 func view(i feature.Project) generated.Project {
-	return generated.Project{Id: i.ID, RepositoryId: i.RepositoryID, Title: i.Title, Body: i.Body, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, IssueCount: i.IssueCount, CompletedIssueCount: i.CompletedIssueCount}
+	return generated.Project{Id: i.ID, RepositoryId: i.SourceRepositoryID, Title: i.Title, Body: i.Body, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, IssueCount: i.IssueCount, CompletedIssueCount: i.CompletedIssueCount, SpaceId: &i.SpaceID, SourceRepositoryId: &i.SourceRepositoryID, SourceAvailable: &i.SourceAvailable}
 }
 func actor(r *http.Request) string { u, _ := identity.FromContext(r.Context()); return u.ID }
 func body(w http.ResponseWriter, r *http.Request, target any) bool {
@@ -197,4 +199,39 @@ func (s *projectServer) RemoveProjectItem(w http.ResponseWriter, r *http.Request
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}
+}
+
+func (s *projectServer) ListSpaceProjects(w http.ResponseWriter, r *http.Request, spaceId string, p generated.ListSpaceProjectsParams) {
+	s.ListProjects(w, r, spaceId, generated.ListProjectsParams(p))
+}
+
+func (s *projectServer) GetSpaceProject(w http.ResponseWriter, r *http.Request, spaceId, id string) {
+	s.GetProject(w, r, spaceId, id)
+}
+
+func (s *projectServer) CreateSpaceProject(w http.ResponseWriter, r *http.Request, spaceId string, p generated.CreateSpaceProjectParams) {
+	var input generated.SpaceProjectCreation
+	if !body(w, r, &input) {
+		return
+	}
+	value, e := s.service.Create(r.Context(), actor(r), spaceId, p.IdempotencyKey, feature.Content{Title: input.Title, Body: input.Body, SourceRepositoryID: input.SourceRepositoryId})
+	if !writeError(w, e) {
+		transport.WriteJSON(w, 200, view(value))
+	}
+}
+
+func (s *projectServer) UpdateSpaceProject(w http.ResponseWriter, r *http.Request, spaceId, id string, _ generated.UpdateSpaceProjectParams) {
+	s.UpdateProject(w, r, spaceId, id, generated.UpdateProjectParams{})
+}
+
+func (s *projectServer) ListSpaceProjectItems(w http.ResponseWriter, r *http.Request, spaceId, id string, p generated.ListSpaceProjectItemsParams) {
+	s.ListProjectItems(w, r, spaceId, id, generated.ListProjectItemsParams(p))
+}
+
+func (s *projectServer) AddSpaceProjectItem(w http.ResponseWriter, r *http.Request, spaceId, id string, _ generated.AddSpaceProjectItemParams) {
+	s.AddProjectItem(w, r, spaceId, id, generated.AddProjectItemParams{})
+}
+
+func (s *projectServer) RemoveSpaceProjectItem(w http.ResponseWriter, r *http.Request, spaceId, id, itemId string, p generated.RemoveSpaceProjectItemParams) {
+	s.RemoveProjectItem(w, r, spaceId, id, itemId, generated.RemoveProjectItemParams{ExpectedVersion: p.ExpectedVersion})
 }

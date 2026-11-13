@@ -1,4 +1,4 @@
-// Package project owns the minimal repository-scoped project workflow.
+// Package project owns Space projects and their source references.
 package project
 
 import (
@@ -9,7 +9,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
+	"github.com/963sup/line-mini-app-bot/internal/business/space"
 )
 
 var (
@@ -24,12 +24,13 @@ var (
 
 type (
 	Project struct {
-		ID, RepositoryID, Title, Body, CreatorID string
-		Version                                  int64
-		CreatedAt, UpdatedAt                     time.Time
-		IssueCount, CompletedIssueCount          int64
+		ID, SourceRepositoryID, SpaceID, Title, Body, CreatorID string
+		SourceAvailable                                         bool
+		Version                                                 int64
+		CreatedAt, UpdatedAt                                    time.Time
+		IssueCount, CompletedIssueCount                         int64
 	}
-	Content struct{ Title, Body string }
+	Content struct{ Title, Body, SourceRepositoryID string }
 	Update  struct {
 		Content
 		ExpectedVersion int64
@@ -73,7 +74,7 @@ func ApplyUpdate(current Project, actor string, input Update) (Project, error) {
 	if c.Title == current.Title && c.Body == current.Body {
 		return current, nil
 	}
-	if current.Version >= repository.MaxResourceNumber {
+	if current.Version >= MaxVersion {
 		return Project{}, ErrConflict
 	}
 	current.Title = c.Title
@@ -83,33 +84,81 @@ func ApplyUpdate(current Project, actor string, input Update) (Project, error) {
 }
 
 type (
-	Repositories interface {
-		Get(context.Context, string, string) (repository.Repository, error)
+	Spaces interface {
+		Get(context.Context, string, string) (space.Space, error)
+		LegacyGet(context.Context, string, string) (space.Space, error)
+	}
+	Sources interface {
+		Authorize(context.Context, string, string, string) (Source, error)
 	}
 	Store interface {
-		List(context.Context, repository.Repository, string, string) (Page, error)
-		Get(context.Context, repository.Repository, string) (Project, error)
-		Create(context.Context, repository.Repository, string, string, Content) (Project, error)
-		Update(context.Context, repository.Repository, string, string, Update) (Project, error)
-		ListItems(context.Context, repository.Repository, string, string, string) (ItemPage, error)
-		ChangeItem(context.Context, repository.Repository, string, string, string, bool, int64) (Project, error)
+		List(context.Context, Scope, string, string) (Page, error)
+		Get(context.Context, Scope, string) (Project, error)
+		Create(context.Context, Scope, string, string, Content) (Project, error)
+		Update(context.Context, Scope, string, string, Update) (Project, error)
+		ListItems(context.Context, Scope, string, string, string) (ItemPage, error)
+		ChangeItem(context.Context, Scope, string, string, string, bool, int64) (Project, error)
+		Progress(context.Context, Scope, *Project) error
 	}
 )
 
 type Service struct {
-	Repositories Repositories
-	Store        Store
+	Spaces  Spaces
+	Sources Sources
+	Store   Store
 }
 
-func (s *Service) scope(ctx context.Context, actor, id string) (repository.Repository, error) {
-	if s == nil || s.Repositories == nil || s.Store == nil {
-		return repository.Repository{}, ErrUnavailable
+// Source is a read-only reference, never a Project authorization grant.
+type (
+	Source struct{ ID, SpaceID string }
+	Scope  struct {
+		SpaceID, SourceRepositoryID, Actor string
+		Legacy                             bool
 	}
-	r, e := s.Repositories.Get(ctx, actor, id)
-	if errors.Is(e, repository.ErrNotFound) {
-		return repository.Repository{}, ErrNotFound
+)
+
+const MaxVersion int64 = 1<<53 - 1
+
+var idPattern = regexp.MustCompile(`^[a-f0-9]{32}$`)
+
+func ValidID(id string) bool { return idPattern.MatchString(id) }
+func (s *Service) scope(ctx context.Context, actor, id string) (Scope, error) {
+	if s == nil || s.Spaces == nil || s.Sources == nil || s.Store == nil {
+		return Scope{}, ErrUnavailable
 	}
-	return r, e
+	if space.ValidID(id) {
+		value, err := s.Spaces.Get(ctx, actor, id)
+		if errors.Is(err, space.ErrNotFound) {
+			return Scope{}, ErrNotFound
+		}
+		return Scope{SpaceID: value.ID, Actor: actor}, err
+	}
+	// A legacy route's read-only source resolver is the sole compatibility bridge.
+	source, err := s.Sources.Authorize(ctx, actor, id, "")
+	if err != nil {
+		return Scope{}, err
+	}
+	value, err := s.Spaces.LegacyGet(ctx, actor, source.SpaceID)
+	if errors.Is(err, space.ErrNotFound) {
+		return Scope{}, ErrNotFound
+	}
+	if err != nil {
+		return Scope{}, err
+	}
+	return Scope{SpaceID: value.ID, SourceRepositoryID: source.ID, Actor: actor, Legacy: true}, nil
+}
+
+func (s *Service) progress(ctx context.Context, r Scope, p *Project) error {
+	_, err := s.Sources.Authorize(ctx, r.Actor, p.SourceRepositoryID, r.SpaceID)
+	if err != nil {
+		if r.Legacy {
+			return err
+		}
+		p.SourceAvailable = false
+		return nil
+	}
+	p.SourceAvailable = true
+	return s.Store.Progress(ctx, r, p)
 }
 
 func (s *Service) List(ctx context.Context, actor, rid, cursor string) (Page, error) {
@@ -120,7 +169,16 @@ func (s *Service) List(ctx context.Context, actor, rid, cursor string) (Page, er
 	if len(cursor) > 1024 {
 		return Page{}, ErrInput
 	}
-	return s.Store.List(ctx, r, actor, cursor)
+	page, err := s.Store.List(ctx, r, actor, cursor)
+	if err != nil {
+		return Page{}, err
+	}
+	for i := range page.Items {
+		if err = s.progress(ctx, r, &page.Items[i]); err != nil {
+			return Page{}, err
+		}
+	}
+	return page, nil
 }
 
 func (s *Service) Get(ctx context.Context, actor, rid, id string) (Project, error) {
@@ -128,10 +186,14 @@ func (s *Service) Get(ctx context.Context, actor, rid, id string) (Project, erro
 	if e != nil {
 		return Project{}, e
 	}
-	if !repository.ValidID(id) {
+	if !ValidID(id) {
 		return Project{}, ErrNotFound
 	}
-	return s.Store.Get(ctx, r, id)
+	result, err := s.Store.Get(ctx, r, id)
+	if err == nil {
+		err = s.progress(ctx, r, &result)
+	}
+	return result, err
 }
 
 func (s *Service) Create(ctx context.Context, actor, rid, key string, c Content) (Project, error) {
@@ -139,11 +201,25 @@ func (s *Service) Create(ctx context.Context, actor, rid, key string, c Content)
 	if e != nil {
 		return Project{}, e
 	}
+	if r.Legacy {
+		c.SourceRepositoryID = r.SourceRepositoryID
+	}
+	if !ValidID(c.SourceRepositoryID) {
+		return Project{}, ErrInput
+	}
+	if _, e = s.Sources.Authorize(ctx, actor, c.SourceRepositoryID, r.SpaceID); e != nil {
+		return Project{}, e
+	}
+	r.SourceRepositoryID = c.SourceRepositoryID
 	c, e = Normalize(c)
 	if e != nil || !creationKey.MatchString(key) {
 		return Project{}, ErrInput
 	}
-	return s.Store.Create(ctx, r, actor, key, c)
+	value, e := s.Store.Create(ctx, r, actor, key, c)
+	if e == nil {
+		e = s.progress(ctx, r, &value)
+	}
+	return value, e
 }
 
 func (s *Service) Update(ctx context.Context, actor, rid, id string, input Update) (Project, error) {
@@ -151,10 +227,14 @@ func (s *Service) Update(ctx context.Context, actor, rid, id string, input Updat
 	if e != nil {
 		return Project{}, e
 	}
-	if !repository.ValidID(id) {
+	if !ValidID(id) {
 		return Project{}, ErrNotFound
 	}
-	return s.Store.Update(ctx, r, actor, id, input)
+	value, e := s.Store.Update(ctx, r, actor, id, input)
+	if e == nil {
+		e = s.progress(ctx, r, &value)
+	}
+	return value, e
 }
 
 type (
@@ -170,9 +250,17 @@ func (s *Service) ListItems(ctx context.Context, actor, rid, id, cursor string) 
 	if e != nil {
 		return ItemPage{}, e
 	}
-	if !repository.ValidID(id) || len(cursor) > 1024 {
+	if !ValidID(id) || len(cursor) > 1024 {
 		return ItemPage{}, ErrInput
 	}
+	value, e := s.Store.Get(ctx, r, id)
+	if e != nil {
+		return ItemPage{}, e
+	}
+	if _, e = s.Sources.Authorize(ctx, actor, value.SourceRepositoryID, r.SpaceID); e != nil {
+		return ItemPage{}, e
+	}
+	r.SourceRepositoryID = value.SourceRepositoryID
 	return s.Store.ListItems(ctx, r, actor, id, cursor)
 }
 
@@ -181,8 +269,20 @@ func (s *Service) ChangeItem(ctx context.Context, actor, rid, id, target string,
 	if e != nil {
 		return Project{}, e
 	}
-	if !repository.ValidID(id) || !repository.ValidID(target) || version < 1 {
+	if !ValidID(id) || !ValidID(target) || version < 1 {
 		return Project{}, ErrInput
 	}
-	return s.Store.ChangeItem(ctx, r, actor, id, target, add, version)
+	value, e := s.Store.Get(ctx, r, id)
+	if e != nil {
+		return Project{}, e
+	}
+	if _, e = s.Sources.Authorize(ctx, actor, value.SourceRepositoryID, r.SpaceID); e != nil {
+		return Project{}, e
+	}
+	r.SourceRepositoryID = value.SourceRepositoryID
+	result, e := s.Store.ChangeItem(ctx, r, actor, id, target, add, version)
+	if e == nil {
+		e = s.progress(ctx, r, &result)
+	}
+	return result, e
 }

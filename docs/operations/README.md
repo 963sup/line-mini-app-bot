@@ -4,6 +4,7 @@ Cloud Run 部署、發布驗收與故障排查。
 
 ## 文件索引
 
+- [Project 的 Space 保存遷移](project-migration.md)：明確namespace、dry-run、writer鎖、驗證與安全回復界線。
 - [Cloud Run 部署](cloud-run.md)
 - [Monorepo 整合、發布與回復](release-acceptance.md)
 - [Troubleshooting](troubleshooting.md)

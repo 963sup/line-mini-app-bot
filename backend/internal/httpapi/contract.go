@@ -16,6 +16,8 @@ type contractServer struct {
 	MilestoneServer
 	ProjectServer
 	StatisticsServer
+	SpaceServer
+	SpaceProjectServer
 }
 
 var _ generated.ServerInterface = contractServer{}
@@ -97,4 +99,18 @@ type ProjectServer interface {
 }
 type StatisticsServer interface {
 	GetRepositoryStatistics(w http.ResponseWriter, r *http.Request, repositoryId string)
+}
+
+type SpaceServer interface {
+	ListSpaces(w http.ResponseWriter, r *http.Request, params generated.ListSpacesParams)
+	GetSpace(w http.ResponseWriter, r *http.Request, id string)
+}
+type SpaceProjectServer interface {
+	ListSpaceProjects(w http.ResponseWriter, r *http.Request, spaceId string, params generated.ListSpaceProjectsParams)
+	CreateSpaceProject(w http.ResponseWriter, r *http.Request, spaceId string, params generated.CreateSpaceProjectParams)
+	GetSpaceProject(w http.ResponseWriter, r *http.Request, spaceId string, id string)
+	UpdateSpaceProject(w http.ResponseWriter, r *http.Request, spaceId string, id string, params generated.UpdateSpaceProjectParams)
+	ListSpaceProjectItems(w http.ResponseWriter, r *http.Request, spaceId string, id string, params generated.ListSpaceProjectItemsParams)
+	AddSpaceProjectItem(w http.ResponseWriter, r *http.Request, spaceId string, id string, params generated.AddSpaceProjectItemParams)
+	RemoveSpaceProjectItem(w http.ResponseWriter, r *http.Request, spaceId string, id string, itemId string, params generated.RemoveSpaceProjectItemParams)
 }

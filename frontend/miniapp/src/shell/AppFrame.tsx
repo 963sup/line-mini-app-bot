@@ -2,7 +2,7 @@ import React from "react";
 import Head from "next/head";
 import type { NavItem } from "./sidebar-07/nav-main";
 import type { LucideIcon } from "lucide-react";
-import { AppSidebar } from "./sidebar-07/app-sidebar";
+import { ServiceSidebar } from "./ServiceSidebar";
 import type { AccountMenu } from "./sidebar-07/nav-user";
 import {
   Breadcrumb,
@@ -55,7 +55,7 @@ export function AppFrame({
       <Head>
         <title>{title}｜LINE MINI App</title>
       </Head>
-      <AppSidebar
+      <ServiceSidebar
         workflow={workflow}
         account={account || guest}
         repositoryItem={repositoryItem}

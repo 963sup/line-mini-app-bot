@@ -10,7 +10,6 @@ import { displayTime } from "../../shared/time/time";
 import { View as Issues } from "../issue/View";
 import { View as Discussions } from "../discussion/View";
 import { View as Milestones } from "./milestones/View";
-import { View as Projects } from "../project/View";
 import { View as Statistics } from "./statistics/View";
 import { View as Labels } from "./labels/View";
 
@@ -67,7 +66,7 @@ export function View() {
                 <p className="text-sm leading-relaxed text-muted-foreground">摘要請回原群組操作。</p>
               </PagePanel>
             </div>
-          ) : page === "事項" ? <Issues key={selected.id} repositoryId={selected.id} /> : page === "討論" ? <Discussions key={selected.id} repositoryId={selected.id} /> : page === "里程碑" ? <Milestones key={selected.id} repositoryId={selected.id} /> : page === "專案" ? <Projects key={selected.id} repositoryId={selected.id} /> : page === "標籤" ? <Labels key={selected.id} repositoryId={selected.id} /> : (
+          ) : page === "事項" ? <Issues key={selected.id} repositoryId={selected.id} /> : page === "討論" ? <Discussions key={selected.id} repositoryId={selected.id} /> : page === "里程碑" ? <Milestones key={selected.id} repositoryId={selected.id} /> : page === "專案" ? <PagePanel heading="專案"><a className="text-primary underline underline-offset-4" href={"/miniapp/projects?" + new URLSearchParams({space: selected.groupId, source: selected.id})}>前往獨立專案頁</a><p>專案由空間管理，儲存庫只提供可讀取的來源事項。</p></PagePanel> : page === "標籤" ? <Labels key={selected.id} repositoryId={selected.id} /> : (
             <PagePanel heading={page}>
               <Empty>
                 <EmptyHeader>

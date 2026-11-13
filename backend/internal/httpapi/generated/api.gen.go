@@ -215,16 +215,34 @@ func (e ProjectItemState) Valid() bool {
 
 // Defines values for RepositoryStatus.
 const (
-	ACTIVE   RepositoryStatus = "ACTIVE"
-	INACTIVE RepositoryStatus = "INACTIVE"
+	RepositoryStatusACTIVE   RepositoryStatus = "ACTIVE"
+	RepositoryStatusINACTIVE RepositoryStatus = "INACTIVE"
 )
 
 // Valid indicates whether the value is a known member of the RepositoryStatus enum.
 func (e RepositoryStatus) Valid() bool {
 	switch e {
-	case ACTIVE:
+	case RepositoryStatusACTIVE:
 		return true
-	case INACTIVE:
+	case RepositoryStatusINACTIVE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SpaceStatus.
+const (
+	SpaceStatusACTIVE   SpaceStatus = "ACTIVE"
+	SpaceStatusINACTIVE SpaceStatus = "INACTIVE"
+)
+
+// Valid indicates whether the value is a known member of the SpaceStatus enum.
+func (e SpaceStatus) Valid() bool {
+	switch e {
+	case SpaceStatusACTIVE:
+		return true
+	case SpaceStatusINACTIVE:
 		return true
 	default:
 		return false
@@ -711,9 +729,14 @@ type Project struct {
 	Id                  string    `json:"id"`
 	IssueCount          int64     `json:"issueCount"`
 	RepositoryId        string    `json:"repositoryId"`
-	Title               string    `json:"title"`
-	UpdatedAt           time.Time `json:"updatedAt"`
-	Version             int64     `json:"version"`
+
+	// SourceAvailable False means source counts/details are unavailable; numeric count fields must not be shown as observed zero.
+	SourceAvailable    *bool     `json:"sourceAvailable,omitempty"`
+	SourceRepositoryId *string   `json:"sourceRepositoryId,omitempty"`
+	SpaceId            *string   `json:"spaceId,omitempty"`
+	Title              string    `json:"title"`
+	UpdatedAt          time.Time `json:"updatedAt"`
+	Version            int64     `json:"version"`
 }
 
 // ProjectCreation defines model for ProjectCreation.
@@ -826,6 +849,35 @@ type SessionResponse struct {
 	CsrfToken string      `json:"csrfToken"`
 	ExpiresAt time.Time   `json:"expiresAt"`
 	User      CurrentUser `json:"user"`
+}
+
+// Space defines model for Space.
+type Space struct {
+	CreatedAt time.Time   `json:"createdAt"`
+	GroupId   string      `json:"groupId"`
+	Id        string      `json:"id"`
+	Name      string      `json:"name"`
+	Status    SpaceStatus `json:"status"`
+	UpdatedAt time.Time   `json:"updatedAt"`
+	Version   int64       `json:"version"`
+}
+
+// SpaceStatus defines model for Space.Status.
+type SpaceStatus string
+
+// SpacePage defines model for SpacePage.
+type SpacePage struct {
+	Items []Space `json:"items"`
+
+	// NextCursor Empty when finished. Pages may be empty after current-membership filtering.
+	NextCursor string `json:"nextCursor"`
+}
+
+// SpaceProjectCreation defines model for SpaceProjectCreation.
+type SpaceProjectCreation struct {
+	Body               string `json:"body"`
+	SourceRepositoryId string `json:"sourceRepositoryId"`
+	Title              string `json:"title"`
 }
 
 // StoredRecord defines model for StoredRecord.
@@ -1144,6 +1196,47 @@ type RefreshSessionParams struct {
 	XCSRFToken string `json:"X-CSRF-Token"`
 }
 
+// ListSpacesParams defines parameters for ListSpaces.
+type ListSpacesParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// ListSpaceProjectsParams defines parameters for ListSpaceProjects.
+type ListSpaceProjectsParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// CreateSpaceProjectParams defines parameters for CreateSpaceProject.
+type CreateSpaceProjectParams struct {
+	// IdempotencyKey Reuse the same key and normalized content after an ambiguous result. Scoped to the verified actor and repository across resource types.
+	IdempotencyKey string `json:"Idempotency-Key"`
+
+	// XCSRFToken Required for Cookie Session writes; validated by the existing session authenticator.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// UpdateSpaceProjectParams defines parameters for UpdateSpaceProject.
+type UpdateSpaceProjectParams struct {
+	// XCSRFToken Required for Cookie Session writes; validated by the existing session authenticator.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// ListSpaceProjectItemsParams defines parameters for ListSpaceProjectItems.
+type ListSpaceProjectItemsParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// AddSpaceProjectItemParams defines parameters for AddSpaceProjectItem.
+type AddSpaceProjectItemParams struct {
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// RemoveSpaceProjectItemParams defines parameters for RemoveSpaceProjectItem.
+type RemoveSpaceProjectItemParams struct {
+	ExpectedVersion int64   `form:"expectedVersion" json:"expectedVersion"`
+	XCSRFToken      *string `json:"X-CSRF-Token,omitempty"`
+}
+
 // ProposeAttendanceCorrectionJSONRequestBody defines body for ProposeAttendanceCorrection for application/json ContentType.
 type ProposeAttendanceCorrectionJSONRequestBody = CorrectionSubmission
 
@@ -1203,6 +1296,15 @@ type CreateSessionJSONRequestBody = CreateSessionJSONBody
 
 // RefreshSessionJSONRequestBody defines body for RefreshSession for application/json ContentType.
 type RefreshSessionJSONRequestBody = RefreshSessionJSONBody
+
+// CreateSpaceProjectJSONRequestBody defines body for CreateSpaceProject for application/json ContentType.
+type CreateSpaceProjectJSONRequestBody = SpaceProjectCreation
+
+// UpdateSpaceProjectJSONRequestBody defines body for UpdateSpaceProject for application/json ContentType.
+type UpdateSpaceProjectJSONRequestBody = ProjectUpdate
+
+// AddSpaceProjectItemJSONRequestBody defines body for AddSpaceProjectItem for application/json ContentType.
+type AddSpaceProjectItemJSONRequestBody = ProjectItemAddition
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -1363,6 +1465,33 @@ type ServerInterface interface {
 	// RefreshSession Renew a valid browser session within its absolute lifetime
 	// (POST /api/v1/session/refresh)
 	RefreshSession(w http.ResponseWriter, r *http.Request, params RefreshSessionParams)
+	// ListSpaces Independent Space membership and lifecycle, not Repository ownership
+	// (GET /api/v1/spaces)
+	ListSpaces(w http.ResponseWriter, r *http.Request, params ListSpacesParams)
+	// GetSpace Independent Space membership and lifecycle, not Repository ownership
+	// (GET /api/v1/spaces/{id})
+	GetSpace(w http.ResponseWriter, r *http.Request, id string)
+	// ListSpaceProjects Space-owned Project; source Repository only supplies authorized read references
+	// (GET /api/v1/spaces/{spaceId}/projects)
+	ListSpaceProjects(w http.ResponseWriter, r *http.Request, spaceId string, params ListSpaceProjectsParams)
+	// CreateSpaceProject Space-owned Project; source Repository only supplies authorized read references
+	// (POST /api/v1/spaces/{spaceId}/projects)
+	CreateSpaceProject(w http.ResponseWriter, r *http.Request, spaceId string, params CreateSpaceProjectParams)
+	// GetSpaceProject Space-owned Project; source Repository only supplies authorized read references
+	// (GET /api/v1/spaces/{spaceId}/projects/{id})
+	GetSpaceProject(w http.ResponseWriter, r *http.Request, spaceId string, id string)
+	// UpdateSpaceProject Space-owned Project; source Repository only supplies authorized read references
+	// (PATCH /api/v1/spaces/{spaceId}/projects/{id})
+	UpdateSpaceProject(w http.ResponseWriter, r *http.Request, spaceId string, id string, params UpdateSpaceProjectParams)
+	// ListSpaceProjectItems Space-owned Project; source Repository only supplies authorized read references
+	// (GET /api/v1/spaces/{spaceId}/projects/{id}/items)
+	ListSpaceProjectItems(w http.ResponseWriter, r *http.Request, spaceId string, id string, params ListSpaceProjectItemsParams)
+	// AddSpaceProjectItem Space-owned Project; source Repository only supplies authorized read references
+	// (POST /api/v1/spaces/{spaceId}/projects/{id}/items)
+	AddSpaceProjectItem(w http.ResponseWriter, r *http.Request, spaceId string, id string, params AddSpaceProjectItemParams)
+	// RemoveSpaceProjectItem Space-owned Project; source Repository only supplies authorized read references
+	// (DELETE /api/v1/spaces/{spaceId}/projects/{id}/items/{itemId})
+	RemoveSpaceProjectItem(w http.ResponseWriter, r *http.Request, spaceId string, id string, itemId string, params RemoveSpaceProjectItemParams)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -3838,6 +3967,465 @@ func (siw *ServerInterfaceWrapper) RefreshSession(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r)
 }
 
+// ListSpaces operation middleware
+func (siw *ServerInterfaceWrapper) ListSpaces(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListSpacesParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListSpaces(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetSpace operation middleware
+func (siw *ServerInterfaceWrapper) GetSpace(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSpace(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListSpaceProjects operation middleware
+func (siw *ServerInterfaceWrapper) ListSpaceProjects(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "spaceId" -------------
+	var spaceId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListSpaceProjectsParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListSpaceProjects(w, r, spaceId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateSpaceProject operation middleware
+func (siw *ServerInterfaceWrapper) CreateSpaceProject(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "spaceId" -------------
+	var spaceId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateSpaceProjectParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateSpaceProject(w, r, spaceId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetSpaceProject operation middleware
+func (siw *ServerInterfaceWrapper) GetSpaceProject(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "spaceId" -------------
+	var spaceId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSpaceProject(w, r, spaceId, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateSpaceProject operation middleware
+func (siw *ServerInterfaceWrapper) UpdateSpaceProject(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "spaceId" -------------
+	var spaceId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateSpaceProjectParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateSpaceProject(w, r, spaceId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListSpaceProjectItems operation middleware
+func (siw *ServerInterfaceWrapper) ListSpaceProjectItems(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "spaceId" -------------
+	var spaceId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListSpaceProjectItemsParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListSpaceProjectItems(w, r, spaceId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AddSpaceProjectItem operation middleware
+func (siw *ServerInterfaceWrapper) AddSpaceProjectItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "spaceId" -------------
+	var spaceId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AddSpaceProjectItemParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AddSpaceProjectItem(w, r, spaceId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RemoveSpaceProjectItem operation middleware
+func (siw *ServerInterfaceWrapper) RemoveSpaceProjectItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "spaceId" -------------
+	var spaceId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RemoveSpaceProjectItemParams
+
+	// ------------- Required query parameter "expectedVersion" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "expectedVersion", r.URL.Query(), &params.ExpectedVersion, runtime.BindQueryParameterOptions{Type: "integer", Format: "int64"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "expectedVersion"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "expectedVersion", Err: err})
+		}
+		return
+	}
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RemoveSpaceProjectItem(w, r, spaceId, id, itemId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -4009,6 +4597,15 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/projects/{id}/items", wrapper.AddProjectItem)
 	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/projects/{id}/items/{itemId}", wrapper.RemoveProjectItem)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/statistics", wrapper.GetRepositoryStatistics)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/spaces", wrapper.ListSpaces)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/spaces/{id}", wrapper.GetSpace)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects", wrapper.ListSpaceProjects)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects", wrapper.CreateSpaceProject)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}", wrapper.GetSpaceProject)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}", wrapper.UpdateSpaceProject)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}/items", wrapper.ListSpaceProjectItems)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}/items", wrapper.AddSpaceProjectItem)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}/items/{itemId}", wrapper.RemoveSpaceProjectItem)
 
 	return m
 }
@@ -4019,124 +4616,130 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
 	"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",
-	"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",
-	"vwEA",
+	"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",
+	"LtM5MHzxYKinxO9SgEp46J15h97j7eP/DQA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

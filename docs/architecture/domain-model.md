@@ -1,5 +1,7 @@
 # Repository、Issue 與 Discussion 業務模型設計
 
+已確認的新邊界：Project由Space擁有，與Repository平行；v1單一來源、來源唯讀及相容／遷移規則見 [獨立Project](../features/projects.md)。本頁後方GitHub Projects素材與未定完整產品功能仍是參考，不能覆蓋已接受的Space身份、當下成員核驗與作者管理規則。
+
 狀態：後續開發設計參考，尚未核定完整產品規則；不構成現在實作、部署或資料遷移的要求。
 整理日期：2026-11-12。
 

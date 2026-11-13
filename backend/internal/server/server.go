@@ -23,6 +23,8 @@ import (
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/line"
 	milestonehttp "github.com/963sup/line-mini-app-bot/internal/business/repository/milestones/http"
 	statisticshttp "github.com/963sup/line-mini-app-bot/internal/business/repository/statistics/http"
+	spacehttp "github.com/963sup/line-mini-app-bot/internal/business/space/http"
+	spaceline "github.com/963sup/line-mini-app-bot/internal/business/space/line"
 	"github.com/963sup/line-mini-app-bot/internal/diagnostics/geolocation"
 	identityhttp "github.com/963sup/line-mini-app-bot/internal/identity/http"
 	identityline "github.com/963sup/line-mini-app-bot/internal/identity/line"
@@ -86,10 +88,16 @@ func Run() (resultErr error) {
 		return err
 	}
 	defer func() { resultErr = errors.Join(resultErr, closeRepositories()) }()
+	spaces, closeSpaces, err := newSpaces(context.Background())
+	if err != nil {
+		return err
+	}
+	defer func() { resultErr = errors.Join(resultErr, closeSpaces()) }()
+	spacehttp.Register(mux, spaces, auth)
 	repositoryhttp.Register(mux, repositories, auth)
 	labelhttp.Register(mux, newLabels(repositories), auth)
 	milestonehttp.Register(mux, newMilestones(repositories), auth)
-	projecthttp.Register(mux, newProjects(repositories), auth)
+	projecthttp.Register(mux, newProjects(spaces, repositories), auth)
 	statisticshttp.Register(mux, newStatistics(repositories), auth)
 	issuehttp.Register(mux, newIssues(repositories), auth)
 	discussionhttp.Register(mux, newDiscussions(repositories), auth)
@@ -97,7 +105,11 @@ func Run() (resultErr error) {
 	if repositories != nil {
 		repositoryObserver = &repositoryline.Observer{Store: repositories.Store}
 	}
-	groupLookup, err = registerLINE(mux, appURL, punches, summaries, repositoryObserver)
+	var spaceObserver *spaceline.Observer
+	if spaces != nil {
+		spaceObserver = &spaceline.Observer{Store: spaces.Store}
+	}
+	groupLookup, err = registerLINE(mux, appURL, punches, summaries, repositoryObserver, spaceObserver)
 	if err != nil {
 		return err
 	}

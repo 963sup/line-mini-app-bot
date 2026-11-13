@@ -1,5 +1,7 @@
 # HTTP API 契約
 
+Space／Project新增獨立入口；既有Repository-scoped Project路由由相容adapter呼叫同一用例，來源識別不再代表專案擁有權。資料與授權／相容界線見 [獨立Project](../docs/features/projects.md)，契約及生成碼仍遵循本頁流程，不手改generated檔。
+
 `contract/openapi.yaml` 是公開 HTTP 契約的唯一組合入口。Identity、Repository、Issue、Discussion 與 Attendance 各自擁有操作、參數與資料格式；共用錯誤與認證方式位於 `contract/common/`。完整歸屬與引用規則見 [契約能力索引](contract/README.md)。兩端產生器先使用 Redocly bundle 解析外部參照，再由同一份 bundle 產生 Go 與 TypeScript；不手改產生檔。
 
 ```bash

@@ -37,7 +37,7 @@ func Root() string {
 func ReadFile(name string) ([]byte, error) { return fs.ReadFile(os.DirFS(Root()), name) }
 
 func Validate() error {
-	for _, name := range []string{"miniapp.html", "miniapp/history.html", "miniapp/correction.html", "miniapp/review.html", "miniapp/punch.html", "miniapp/leave.html", "miniapp/journal.html", "miniapp/repositories.html", "miniapp/workspace-preview.html", "location.html"} {
+	for _, name := range []string{"miniapp.html", "miniapp/history.html", "miniapp/correction.html", "miniapp/review.html", "miniapp/punch.html", "miniapp/leave.html", "miniapp/journal.html", "miniapp/repositories.html", "miniapp/projects.html", "miniapp/workspace-preview.html", "location.html"} {
 		if _, err := ReadFile(name); err != nil {
 			return fmt.Errorf("frontend artifact %s: %w (run pnpm build)", name, err)
 		}
