@@ -3,7 +3,6 @@ package line
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/963sup/line-mini-app-bot/internal/business/space"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
@@ -20,53 +19,24 @@ func (o *Observer) Observe(ctx context.Context, event webhook.EventInterface) (t
 	if o == nil || o.Store == nil {
 		return transport.Reply{}, false, nil
 	}
-	var source webhook.SourceInterface
-	var at int64
-	var id string
-	var mode webhook.EventMode
-	state := "ACTIVE"
-	var users []string
-	join := false
-	switch e := event.(type) {
-	case webhook.JoinEvent:
-		source, at, id, mode = e.Source, e.Timestamp, e.WebhookEventId, e.Mode
-		join = true
-	case webhook.LeaveEvent:
-		source, at, id, mode = e.Source, e.Timestamp, e.WebhookEventId, e.Mode
-		state = "INACTIVE"
-	case webhook.MessageEvent:
-		source, at, id, mode = e.Source, e.Timestamp, e.WebhookEventId, e.Mode
-	case webhook.PostbackEvent:
-		source, at, id, mode = e.Source, e.Timestamp, e.WebhookEventId, e.Mode
-	case webhook.MemberJoinedEvent:
-		source, at, id, mode = e.Source, e.Timestamp, e.WebhookEventId, e.Mode
-		if e.Joined != nil {
-			for _, member := range e.Joined.Members {
-				users = append(users, member.UserId)
-			}
-		}
-	default:
+	group, ok := transport.DecodeGroupEvent(event)
+	if !ok {
 		return transport.Reply{}, false, nil
 	}
-	g, ok := source.(webhook.GroupSource)
-	if !ok || mode != "active" || at <= 0 || id == "" || !space.ValidGroup(g.GroupId) {
-		return transport.Reply{}, false, nil
-	}
-	users = append(users, g.UserId)
 	name := ""
-	if state == "ACTIVE" && o.GroupName != nil {
-		lookupName := join
+	if group.Status == "ACTIVE" && o.GroupName != nil {
+		lookupName := group.Joined
 		if !lookupName {
-			current, err := o.Store.GetByGroupID(ctx, g.GroupId)
+			current, err := o.Store.GetByGroupID(ctx, group.GroupID)
 			if err != nil && !errors.Is(err, space.ErrNotFound) {
 				return transport.Reply{}, false, err
 			}
 			lookupName = errors.Is(err, space.ErrNotFound) || current.Name == ""
 		}
 		if lookupName {
-			name = o.GroupName(ctx, g.GroupId)
+			name = o.GroupName(ctx, group.GroupID)
 		}
 	}
-	err := o.Store.Observe(ctx, space.Observation{GroupID: g.GroupId, Name: name, Status: state, EventID: id, At: time.UnixMilli(at).UTC(), Users: users})
+	err := o.Store.Observe(ctx, space.Observation{GroupID: group.GroupID, Name: name, Status: group.Status, EventID: group.EventID, At: group.At, Users: group.Users})
 	return transport.Reply{}, false, err
 }

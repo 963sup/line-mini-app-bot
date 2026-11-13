@@ -12,9 +12,9 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/project"
 	projectdb "github.com/963sup/line-mini-app-bot/internal/business/project/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
-	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/line"
 	"github.com/963sup/line-mini-app-bot/internal/business/space"
 	spacedb "github.com/963sup/line-mini-app-bot/internal/business/space/firestore"
+	linetransport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 )
 
 func newSpaces(ctx context.Context) (*space.Service, func() error, error) {
@@ -30,7 +30,7 @@ func newSpaces(ctx context.Context) (*space.Service, func() error, error) {
 	if e != nil {
 		return nil, nil, fmt.Errorf("cannot initialize space database")
 	}
-	return &space.Service{Store: &spacedb.Store{Client: client, ChannelID: channel}, Membership: &repositoryline.Membership{Token: token, Client: &http.Client{Timeout: time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}}, client.Close, nil
+	return &space.Service{Store: &spacedb.Store{Client: client, ChannelID: channel}, Membership: &linetransport.Membership{Token: token, Client: &http.Client{Timeout: time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}}, client.Close, nil
 }
 
 type projectSources struct{ repositories *repository.Service }

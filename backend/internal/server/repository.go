@@ -15,9 +15,9 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	repositorydb "github.com/963sup/line-mini-app-bot/internal/business/repository/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository/labels"
-	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/line"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository/milestones"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository/statistics"
+	linetransport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 )
 
 func newIssues(repositories *repository.Service) *issue.Service {
@@ -66,7 +66,7 @@ func newRepositories(ctx context.Context) (*repository.Service, func() error, er
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot initialize repository database")
 	}
-	return &repository.Service{Store: &repositorydb.Store{Client: client, ChannelID: channel}, Membership: &repositoryline.Membership{Token: token, Client: &http.Client{Timeout: time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}}, client.Close, nil
+	return &repository.Service{Store: &repositorydb.Store{Client: client, ChannelID: channel}, Membership: &linetransport.Membership{Token: token, Client: &http.Client{Timeout: time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}}, client.Close, nil
 }
 
 func newMilestones(r *repository.Service) *milestones.Service {
