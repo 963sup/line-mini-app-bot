@@ -78,3 +78,7 @@ Issue、Discussion、Project 及 Repository 子資源已建立契約雛形與工
 - [群組 Repository](../docs/features/repository.md)
 
 - [Repository、Issue 與 Discussion 模型及 Connection 分頁規劃](../docs/architecture/domain-model.md)：未來設計參考，現行 OpenAPI 契約維持原狀。
+
+## 協作能力分佈與交付狀態
+
+Issue、Discussion／留言、Labels、Milestones、Project／items 與 Repository statistics 的本機契約及跨層對照見 [能力分佈](../docs/development/business-refactor.md#協作能力的本機分佈2026-11-13)。其中包含尚未提交來源；Project fields／views 仍為 scaffold。API 生成同步、相容性與正式環境驗收須有各自證據，不能由契約或本文件存在推論。

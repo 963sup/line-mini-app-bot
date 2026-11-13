@@ -21,4 +21,4 @@
 
 [本目錄指引](AGENTS.md) · [父層指引](../AGENTS.md) · [文件總索引](../README.md)
 
-- [Business 程式碼重構](business-refactor.md)
+- [Business 模組、契約與實作分佈](business-refactor.md)：協作能力的 API／後端／正式畫面對照、驗證狀態與歷史重構紀錄。

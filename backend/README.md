@@ -36,3 +36,7 @@ Weather 既有實作集中在 business/weather/forecast/{cwa,line}。
 
 - [群組 Repository](../docs/features/repository.md)
 - [Repository 共用資源編號基礎](../docs/features/repository-numbering.md)：內部交易介面，尚未接入業務建立或公開 API。
+
+## 協作能力分佈與交付狀態
+
+本機新增的 Issue、Discussion、Project 及 Repository labels／milestones／statistics 分工、HTTP／server 接線與資料 adapter 位置見 [能力分佈](../docs/development/business-refactor.md#協作能力的本機分佈2026-11-13)。該表區分原碼接線、尚未提交檔案、既有驗證紀錄與待確認的正式驗收；本次文件更新不代表新增模組已發布或重新通過 Go 檢查。

@@ -1,4 +1,32 @@
-# Business 程式碼重構
+# Business 模組、契約與實作分佈
+
+## 協作能力的本機分佈（2026-11-13）
+
+依未提交差異重新核對 API、後端、文件與前端的對應。觀察基準為 `work` 的 HEAD `01631be9de257e9b9c32e86736a9f4a8d22a0914` 加當時工作樹；下表包含尚未提交的新檔，描述本機接線，不表示這些功能已隨本文件發布。功能擁有者提交或程式接線改變後，須同步核對本表。
+
+API 路徑相對於 `api/contract/`，後端相對於 `backend/internal/business/`，前端相對於 `frontend/miniapp/src/business/`。來源契約仍由 `api/contract/openapi.yaml` 組合，能力歸屬以 `api/capabilities.json` 為準；本表只提供跨層導覽，不複製操作規則。
+
+| 能力 | API 來源 | 後端核心／HTTP／資料 adapter | 正式畫面／功能規格 |
+| --- | --- | --- | --- |
+| Issue | `issue/issues.yaml` | `issue/issue.go`、`issue/http/routes.go`、`issue/firestore/store.go` | `issue/View.tsx`；功能規格 `docs/features/issues.md` |
+| Discussion／單層留言 | `discussion/{discussions,comments}.yaml` | `discussion/discussion.go`、`discussion/http/routes.go`、`discussion/firestore/{store,comments}.go` | `discussion/{View,Comments}.tsx`；`docs/features/discussions.md` |
+| Labels | `repository/labels.yaml` | `repository/labels/{labels.go,http/routes.go}`、`repository/firestore/labels.go` | `repository/labels/{View,Picker}.tsx`；`docs/features/labels.md` |
+| Milestones | `repository/milestones.yaml` | `repository/milestones/{milestone.go,http/routes.go}`、`repository/firestore/milestones.go` | `repository/milestones/{View,Picker}.tsx`；`docs/features/planning.md` |
+| Project／items | `project/{projects,items}.yaml` | `project/project.go`、`project/http/routes.go`、`project/firestore/{store,items}.go` | `project/{View,Items}.tsx`；`docs/features/planning.md` |
+| Repository statistics | `repository/statistics.yaml` | `repository/statistics/{statistics.go,http/routes.go}`、`repository/firestore/statistics.go` | `repository/statistics/View.tsx`，放在正式空間總覽；`docs/features/planning.md` |
+
+### 接線與完成狀態
+
+- **本輪靜態核對完成**：上述能力的 core／adapter 路徑存在；`backend/internal/httpapi/contract.go`、`routes.go` 有相應能力介面與路由，`backend/internal/server/server.go` 註冊各 adapter，`server/repository.go` 組裝服務。`frontend/miniapp/src/business/repository/View.tsx` 在正式空間依頁籤組合上述畫面，非僅存在獨立示範檔。
+- **仍為雛形**：`project/fields.yaml`、`project/views.yaml` 在能力清單中為 scaffold；不能由 Project／items 已接線推論自訂欄位與視圖已實作。Labels 僅有 list/create，statistics 僅有 GET；不因此補造改名、刪除或統計寫入能力。
+- **文件中的既有驗證**：各功能文件可能記載其任務執行過的 API／Go／前端／emulator 檢查。這次文件整理沒有重跑，不能把文件敘述當作本輪測試通過；程式有變更時由功能擁有者依實際差異補檢查及證據。
+- **Git 與正式驗收另列**：這批能力含未提交程式與功能文件。本次僅提交文件導覽；它們是否已納入可交付提交、推送、CI、Cloud Run、真實 LINE／Firestore 與手機驗收，須逐項以實際紀錄確認，不由本表推論。
+
+原有 `repository/preview/Workspace.tsx` 保留為示範，正式入口為 `repository/View.tsx`；共用 `shell/Shell.tsx` 與身分生命週期不因分佈整理而改寫。既有出勤、摘要與天氣維持原來入口；後續功能仍依產品契約及 [分階段落地](foundation.md) 決定，不由目錄數量擴張範圍。
+
+本輪先用 Graphify 定位能力及接線，再以 Repomix 限定包核對87個檔案（197,849 tokens），逐一檢查能力清單、HTTP／server 接線與正式畫面組合。包為問題範圍證據，不宣稱全庫涵蓋；不新增外部技術判斷、產品規則或應用測試。下方保留先前重構的日期、基準及驗證，不能當作這批新增功能的驗證結果。
+
+## 2026-11-11 既有重構紀錄
 
 日期：2026-11-11。基準提交：`fbe7ed30e4fa94b9aa06687902cc478fddbbe9a8`。
 本次只重組既有功能，不新增端點、產品規則、資料遷移、套件依賴或雲端資源。

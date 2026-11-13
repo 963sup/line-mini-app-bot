@@ -81,3 +81,7 @@ LINE 問題先查 [官方文件來源庫](https://github.com/line/line-developer
 - [群組 Repository](features/repository.md)
 
 - [Repository、Issue 與 Discussion 業務模型設計（後續開發）](architecture/domain-model.md)
+
+## 協作能力分佈與交付狀態
+
+[Business 模組、契約與實作分佈](development/business-refactor.md#協作能力的本機分佈2026-11-13) 集中列出 Issue、Discussion、Labels、Milestones、Project／items 與 statistics 的本機 API／後端／正式畫面位置。先核對其中未提交、scaffold 與驗收狀態，再沿功能文件查操作規則；不把文件推送等同功能發布。
