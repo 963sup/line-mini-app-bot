@@ -1,9 +1,374 @@
 {
-  "x-status": "scaffold",
-  "x-owner": "discussion.comments",
-  "x-description": "Discussion comments. Structure only; no operations or schemas defined. Complete the feature specification before adding a public contract.",
-  "paths": {},
+  "paths": {
+    "/api/v1/repositories/{repositoryId}/discussions/{id}/comments": {
+      "get": {
+        "operationId": "listDiscussionComments",
+        "summary": "List flat comments in ascending creation-time and ID order",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscussionCommentPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          },
+          "401": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          },
+          "403": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionForbidden"
+          },
+          "404": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          },
+          "409": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          },
+          "415": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          },
+          "503": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createDiscussionComment",
+        "summary": "Add a flat comment as a current member; no repository number allocated",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; existing session validation applies."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscussionComment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          },
+          "401": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          },
+          "403": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionForbidden"
+          },
+          "404": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          },
+          "409": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          },
+          "415": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          },
+          "503": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiscussionCommentCreation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/repositories/{repositoryId}/discussions/{id}/comments/{commentId}": {
+      "patch": {
+        "operationId": "updateDiscussionComment",
+        "summary": "Only this comment author may edit, using expected version",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "commentId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; existing session validation applies."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscussionComment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          },
+          "401": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          },
+          "403": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionForbidden"
+          },
+          "404": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          },
+          "409": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          },
+          "415": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          },
+          "503": {
+            "$ref": "./discussions.yaml#/components/responses/DiscussionError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiscussionCommentUpdate"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "components": {
-    "schemas": {}
+    "schemas": {
+      "DiscussionComment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "repositoryId",
+          "discussionId",
+          "body",
+          "authorId",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "repositoryId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "discussionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "authorId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DiscussionCommentCreation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "body"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          }
+        }
+      },
+      "DiscussionCommentUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "body",
+          "expectedVersion"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        }
+      },
+      "DiscussionCommentPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiscussionComment"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        }
+      }
+    }
   }
 }

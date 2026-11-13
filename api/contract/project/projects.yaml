@@ -1,9 +1,465 @@
 {
-  "x-status": "scaffold",
-  "x-owner": "project",
-  "x-description": "Projects; ownership rules pending. Structure only; no operations or schemas defined. Complete the feature specification before adding a public contract.",
-  "paths": {},
+  "paths": {
+    "/api/v1/repositories/{repositoryId}/projects": {
+      "get": {
+        "operationId": "listProjects",
+        "summary": "listProjects: current repository members read/create; creator-only versioned updates",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ProjectError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createProject",
+        "summary": "createProject: current repository members read/create; creator-only versioned updates",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "description": "Reuse the same key and normalized content after an ambiguous result. Scoped to the verified actor and repository across resource types."
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; validated by the existing session authenticator."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ProjectError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectCreation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/repositories/{repositoryId}/projects/{id}": {
+      "get": {
+        "operationId": "getProject",
+        "summary": "getProject: current repository members read/create; creator-only versioned updates",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ProjectError"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateProject",
+        "summary": "updateProject: current repository members read/create; creator-only versioned updates",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; validated by the existing session authenticator."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ProjectError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUpdate"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "components": {
-    "schemas": {}
+    "schemas": {
+      "Project": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "repositoryId",
+          "title",
+          "body",
+          "creatorId",
+          "version",
+          "createdAt",
+          "updatedAt",
+          "issueCount",
+          "completedIssueCount"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "repositoryId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "creatorId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "issueCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "completedIssueCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        }
+      },
+      "ProjectCreation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "body"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 8000
+          }
+        }
+      },
+      "ProjectUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "body",
+          "expectedVersion"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        }
+      },
+      "ProjectPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Project"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "description": "Empty when finished. Pages inspect at most twenty candidates and may be empty after filtering; continue while nextCursor is nonempty."
+          }
+        }
+      }
+    },
+    "responses": {
+      "ProjectError": {
+        "description": "Request rejected or unavailable; errors never expose hidden resources.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../common/transport.yaml#/components/schemas/APIError"
+            }
+          }
+        }
+      },
+      "ProjectForbidden": {
+        "description": "Creator permission or CSRF denied. Standard cross-origin protection may return text/plain.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../common/transport.yaml#/components/schemas/APIError"
+            }
+          },
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
   }
 }

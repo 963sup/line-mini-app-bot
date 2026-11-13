@@ -406,6 +406,255 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/repositories/{repositoryId}/issues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List issues for a current repository member in descending shared-number order */
+        get: operations["listIssues"];
+        put?: never;
+        /** Create an open issue as a current member; shared repository number and idempotent creation */
+        post: operations["createIssue"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/issues/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read an issue as a current repository member */
+        get: operations["getIssue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Creator-only content and state update; expected version required; open to in_progress to completed to open */
+        patch: operations["updateIssue"];
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/discussions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List member-visible discussions in descending shared-number order */
+        get: operations["listDiscussions"];
+        put?: never;
+        /** Create a discussion as a current member using the shared repository number */
+        post: operations["createDiscussion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/discussions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a discussion as a current repository member */
+        get: operations["getDiscussion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Author-only topic content update with expected version */
+        patch: operations["updateDiscussion"];
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/discussions/{id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List flat comments in ascending creation-time and ID order */
+        get: operations["listDiscussionComments"];
+        put?: never;
+        /** Add a flat comment as a current member; no repository number allocated */
+        post: operations["createDiscussionComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/discussions/{id}/comments/{commentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Only this comment author may edit, using expected version */
+        patch: operations["updateDiscussionComment"];
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/labels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the current member-visible label catalog */
+        get: operations["listLabels"];
+        put?: never;
+        /** Create an immutable, unique-name repository label without allocating a shared number */
+        post: operations["createLabel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/milestones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** listMilestones: current repository members read/create; creator-only versioned updates */
+        get: operations["listMilestones"];
+        put?: never;
+        /** createMilestone: current repository members read/create; creator-only versioned updates */
+        post: operations["createMilestone"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/milestones/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** getMilestone: current repository members read/create; creator-only versioned updates */
+        get: operations["getMilestone"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** updateMilestone: current repository members read/create; creator-only versioned updates */
+        patch: operations["updateMilestone"];
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** listProjects: current repository members read/create; creator-only versioned updates */
+        get: operations["listProjects"];
+        put?: never;
+        /** createProject: current repository members read/create; creator-only versioned updates */
+        post: operations["createProject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/projects/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** getProject: current repository members read/create; creator-only versioned updates */
+        get: operations["getProject"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** updateProject: current repository members read/create; creator-only versioned updates */
+        patch: operations["updateProject"];
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/projects/{id}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** listProjectItems */
+        get: operations["listProjectItems"];
+        put?: never;
+        /** addProjectItem */
+        post: operations["addProjectItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/projects/{id}/items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** removeProjectItem */
+        delete: operations["removeProjectItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/statistics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Current complete repository counts; no cached or page-derived totals */
+        get: operations["getRepositoryStatistics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -446,6 +695,227 @@ export interface components {
             items: components["schemas"]["Repository"][];
             /** @description Empty when finished. Pages may be empty after current-membership filtering. */
             nextCursor: string;
+        };
+        Issue: {
+            id: string;
+            repositoryId: string;
+            /** Format: int64 */
+            number: number;
+            title: string;
+            body: string;
+            /** @enum {string} */
+            state: "open" | "in_progress" | "completed";
+            creatorId: string;
+            /** Format: int64 */
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description Same-repository label IDs. Update omission preserves existing references; [] clears them. Requires the existing resource author and expectedVersion. */
+            labelIds?: string[];
+            /** @description Same repository milestone; omitted on update preserves, null clears */
+            milestoneId?: string | null;
+        };
+        IssueCreation: {
+            title: string;
+            body: string;
+        };
+        IssueUpdate: {
+            title: string;
+            body: string;
+            /** @enum {string} */
+            state: "open" | "in_progress" | "completed";
+            /** Format: int64 */
+            expectedVersion: number;
+            /** @description Same-repository label IDs. Update omission preserves existing references; [] clears them. Requires the existing resource author and expectedVersion. */
+            labelIds?: string[];
+            /** @description Same repository milestone; omitted on update preserves, null clears */
+            milestoneId?: string | null;
+        };
+        IssuePage: {
+            items: components["schemas"]["Issue"][];
+            /** @description Empty when finished. Pages inspect at most twenty candidates and may be empty after filtering; continue while nextCursor is nonempty. */
+            nextCursor: string;
+        };
+        Discussion: {
+            id: string;
+            repositoryId: string;
+            /** Format: int64 */
+            number: number;
+            title: string;
+            body: string;
+            authorId: string;
+            /** Format: int64 */
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description Same-repository label IDs. Update omission preserves existing references; [] clears them. Requires the existing resource author and expectedVersion. */
+            labelIds?: string[];
+        };
+        DiscussionCreation: {
+            title: string;
+            body: string;
+        };
+        DiscussionUpdate: {
+            title: string;
+            body: string;
+            /** Format: int64 */
+            expectedVersion: number;
+            /** @description Same-repository label IDs. Update omission preserves existing references; [] clears them. Requires the existing resource author and expectedVersion. */
+            labelIds?: string[];
+        };
+        DiscussionPage: {
+            items: components["schemas"]["Discussion"][];
+            /** @description Empty when finished; filtered pages may be empty while nextCursor is nonempty. */
+            nextCursor: string;
+        };
+        DiscussionComment: {
+            id: string;
+            repositoryId: string;
+            discussionId: string;
+            body: string;
+            authorId: string;
+            /** Format: int64 */
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        DiscussionCommentCreation: {
+            body: string;
+        };
+        DiscussionCommentUpdate: {
+            body: string;
+            /** Format: int64 */
+            expectedVersion: number;
+        };
+        DiscussionCommentPage: {
+            items: components["schemas"]["DiscussionComment"][];
+            nextCursor: string;
+        };
+        Label: {
+            id: string;
+            repositoryId: string;
+            name: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        LabelCreation: {
+            name: string;
+        };
+        LabelPage: {
+            items: components["schemas"]["Label"][];
+            nextCursor: string;
+        };
+        Milestone: {
+            id: string;
+            repositoryId: string;
+            title: string;
+            body: string;
+            creatorId: string;
+            /** Format: int64 */
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description Calendar date YYYY-MM-DD or empty; no timezone conversion */
+            dueDate: string;
+            /** @enum {string} */
+            state: "open" | "completed";
+            /** Format: int64 */
+            issueCount: number;
+            /** Format: int64 */
+            completedIssueCount: number;
+        };
+        MilestoneCreation: {
+            title: string;
+            body: string;
+            /** @description Calendar date YYYY-MM-DD or empty; no timezone conversion */
+            dueDate: string;
+        };
+        MilestoneUpdate: {
+            title: string;
+            body: string;
+            /** Format: int64 */
+            expectedVersion: number;
+            /** @description Calendar date YYYY-MM-DD or empty; no timezone conversion */
+            dueDate: string;
+            /** @enum {string} */
+            state: "open" | "completed";
+        };
+        MilestonePage: {
+            items: components["schemas"]["Milestone"][];
+            /** @description Empty when finished. Pages inspect at most twenty candidates and may be empty after filtering; continue while nextCursor is nonempty. */
+            nextCursor: string;
+        };
+        Project: {
+            id: string;
+            repositoryId: string;
+            title: string;
+            body: string;
+            creatorId: string;
+            /** Format: int64 */
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: int64 */
+            issueCount: number;
+            /** Format: int64 */
+            completedIssueCount: number;
+        };
+        ProjectCreation: {
+            title: string;
+            body: string;
+        };
+        ProjectUpdate: {
+            title: string;
+            body: string;
+            /** Format: int64 */
+            expectedVersion: number;
+        };
+        ProjectPage: {
+            items: components["schemas"]["Project"][];
+            /** @description Empty when finished. Pages inspect at most twenty candidates and may be empty after filtering; continue while nextCursor is nonempty. */
+            nextCursor: string;
+        };
+        ProjectItemAddition: {
+            issueId: string;
+            /** Format: int64 */
+            expectedVersion: number;
+        };
+        ProjectItem: {
+            id: string;
+            issueId: string;
+            title: string;
+            /** @enum {string} */
+            state: "open" | "in_progress" | "completed";
+        };
+        ProjectItemPage: {
+            items: components["schemas"]["ProjectItem"][];
+            nextCursor: string;
+        };
+        RepositoryStatistics: {
+            /** Format: int64 */
+            openIssues: number;
+            /** Format: int64 */
+            inProgressIssues: number;
+            /** Format: int64 */
+            completedIssues: number;
+            /** Format: int64 */
+            discussions: number;
+            /** Format: int64 */
+            milestones: number;
+            /** Format: int64 */
+            projects: number;
+            /** Format: date-time */
+            observedAt: string;
         };
         GroupItem: {
             id: string;
@@ -721,6 +1191,101 @@ export interface components {
             };
             content: {
                 "application/json": components["schemas"]["APIError"];
+            };
+        };
+        /** @description Request rejected or unavailable; errors never expose hidden resources. */
+        IssueError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+            };
+        };
+        /** @description Creator permission or CSRF denied. Standard cross-origin protection may return text/plain. */
+        IssueForbidden: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+                "text/plain": string;
+            };
+        };
+        /** @description Rejected or unavailable without exposing private resources or implementation details. */
+        DiscussionError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+            };
+        };
+        /** @description Rejected or unavailable without exposing private resources or implementation details. */
+        DiscussionForbidden: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+                "text/plain": string;
+            };
+        };
+        /** @description Rejected or unavailable without exposing private data. */
+        LabelError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+            };
+        };
+        /** @description Rejected or unavailable without exposing private data. */
+        LabelForbidden: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+                "text/plain": string;
+            };
+        };
+        /** @description Request rejected or unavailable; errors never expose hidden resources. */
+        MilestoneError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+            };
+        };
+        /** @description Creator permission or CSRF denied. Standard cross-origin protection may return text/plain. */
+        MilestoneForbidden: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+                "text/plain": string;
+            };
+        };
+        /** @description Request rejected or unavailable; errors never expose hidden resources. */
+        ProjectError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+            };
+        };
+        /** @description Creator permission or CSRF denied. Standard cross-origin protection may return text/plain. */
+        ProjectForbidden: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+                "text/plain": string;
             };
         };
     };
@@ -2602,6 +3167,860 @@ export interface operations {
                     "application/json": components["schemas"]["APIError"];
                 };
             };
+        };
+    };
+    listIssues: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                state?: "open" | "in_progress" | "completed";
+                query?: string;
+            };
+            header?: never;
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssuePage"];
+                };
+            };
+            400: components["responses"]["IssueError"];
+            401: components["responses"]["IssueError"];
+            403: components["responses"]["IssueForbidden"];
+            404: components["responses"]["IssueError"];
+            409: components["responses"]["IssueError"];
+            415: components["responses"]["IssueError"];
+            503: components["responses"]["IssueError"];
+        };
+    };
+    createIssue: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Reuse the same key and normalized content after an ambiguous result. Scoped to the verified actor and repository across resource types. */
+                "Idempotency-Key": string;
+                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IssueCreation"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Issue"];
+                };
+            };
+            400: components["responses"]["IssueError"];
+            401: components["responses"]["IssueError"];
+            403: components["responses"]["IssueForbidden"];
+            404: components["responses"]["IssueError"];
+            409: components["responses"]["IssueError"];
+            415: components["responses"]["IssueError"];
+            503: components["responses"]["IssueError"];
+        };
+    };
+    getIssue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Issue"];
+                };
+            };
+            400: components["responses"]["IssueError"];
+            401: components["responses"]["IssueError"];
+            403: components["responses"]["IssueForbidden"];
+            404: components["responses"]["IssueError"];
+            409: components["responses"]["IssueError"];
+            415: components["responses"]["IssueError"];
+            503: components["responses"]["IssueError"];
+        };
+    };
+    updateIssue: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IssueUpdate"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Issue"];
+                };
+            };
+            400: components["responses"]["IssueError"];
+            401: components["responses"]["IssueError"];
+            403: components["responses"]["IssueForbidden"];
+            404: components["responses"]["IssueError"];
+            409: components["responses"]["IssueError"];
+            415: components["responses"]["IssueError"];
+            503: components["responses"]["IssueError"];
+        };
+    };
+    listDiscussions: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                query?: string;
+            };
+            header?: never;
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized data; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscussionPage"];
+                };
+            };
+            400: components["responses"]["DiscussionError"];
+            401: components["responses"]["DiscussionError"];
+            403: components["responses"]["DiscussionForbidden"];
+            404: components["responses"]["DiscussionError"];
+            409: components["responses"]["DiscussionError"];
+            415: components["responses"]["DiscussionError"];
+            503: components["responses"]["DiscussionError"];
+        };
+    };
+    createDiscussion: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+                /** @description Required for Cookie Session writes; existing session validation applies. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiscussionCreation"];
+            };
+        };
+        responses: {
+            /** @description Authorized data; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Discussion"];
+                };
+            };
+            400: components["responses"]["DiscussionError"];
+            401: components["responses"]["DiscussionError"];
+            403: components["responses"]["DiscussionForbidden"];
+            404: components["responses"]["DiscussionError"];
+            409: components["responses"]["DiscussionError"];
+            415: components["responses"]["DiscussionError"];
+            503: components["responses"]["DiscussionError"];
+        };
+    };
+    getDiscussion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized data; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Discussion"];
+                };
+            };
+            400: components["responses"]["DiscussionError"];
+            401: components["responses"]["DiscussionError"];
+            403: components["responses"]["DiscussionForbidden"];
+            404: components["responses"]["DiscussionError"];
+            409: components["responses"]["DiscussionError"];
+            415: components["responses"]["DiscussionError"];
+            503: components["responses"]["DiscussionError"];
+        };
+    };
+    updateDiscussion: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for Cookie Session writes; existing session validation applies. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiscussionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Authorized data; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Discussion"];
+                };
+            };
+            400: components["responses"]["DiscussionError"];
+            401: components["responses"]["DiscussionError"];
+            403: components["responses"]["DiscussionForbidden"];
+            404: components["responses"]["DiscussionError"];
+            409: components["responses"]["DiscussionError"];
+            415: components["responses"]["DiscussionError"];
+            503: components["responses"]["DiscussionError"];
+        };
+    };
+    listDiscussionComments: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized data; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscussionCommentPage"];
+                };
+            };
+            400: components["responses"]["DiscussionError"];
+            401: components["responses"]["DiscussionError"];
+            403: components["responses"]["DiscussionForbidden"];
+            404: components["responses"]["DiscussionError"];
+            409: components["responses"]["DiscussionError"];
+            415: components["responses"]["DiscussionError"];
+            503: components["responses"]["DiscussionError"];
+        };
+    };
+    createDiscussionComment: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+                /** @description Required for Cookie Session writes; existing session validation applies. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiscussionCommentCreation"];
+            };
+        };
+        responses: {
+            /** @description Authorized data; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscussionComment"];
+                };
+            };
+            400: components["responses"]["DiscussionError"];
+            401: components["responses"]["DiscussionError"];
+            403: components["responses"]["DiscussionForbidden"];
+            404: components["responses"]["DiscussionError"];
+            409: components["responses"]["DiscussionError"];
+            415: components["responses"]["DiscussionError"];
+            503: components["responses"]["DiscussionError"];
+        };
+    };
+    updateDiscussionComment: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for Cookie Session writes; existing session validation applies. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+                id: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiscussionCommentUpdate"];
+            };
+        };
+        responses: {
+            /** @description Authorized data; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscussionComment"];
+                };
+            };
+            400: components["responses"]["DiscussionError"];
+            401: components["responses"]["DiscussionError"];
+            403: components["responses"]["DiscussionForbidden"];
+            404: components["responses"]["DiscussionError"];
+            409: components["responses"]["DiscussionError"];
+            415: components["responses"]["DiscussionError"];
+            503: components["responses"]["DiscussionError"];
+        };
+    };
+    listLabels: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LabelPage"];
+                };
+            };
+            400: components["responses"]["LabelError"];
+            401: components["responses"]["LabelError"];
+            403: components["responses"]["LabelForbidden"];
+            404: components["responses"]["LabelError"];
+            409: components["responses"]["LabelError"];
+            415: components["responses"]["LabelError"];
+            503: components["responses"]["LabelError"];
+        };
+    };
+    createLabel: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+                /** @description Required for Cookie Session writes by existing session validation. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LabelCreation"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Label"];
+                };
+            };
+            400: components["responses"]["LabelError"];
+            401: components["responses"]["LabelError"];
+            403: components["responses"]["LabelForbidden"];
+            404: components["responses"]["LabelError"];
+            409: components["responses"]["LabelError"];
+            415: components["responses"]["LabelError"];
+            503: components["responses"]["LabelError"];
+        };
+    };
+    listMilestones: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MilestonePage"];
+                };
+            };
+            400: components["responses"]["MilestoneError"];
+            401: components["responses"]["MilestoneError"];
+            403: components["responses"]["MilestoneForbidden"];
+            404: components["responses"]["MilestoneError"];
+            409: components["responses"]["MilestoneError"];
+            415: components["responses"]["MilestoneError"];
+            503: components["responses"]["MilestoneError"];
+        };
+    };
+    createMilestone: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Reuse the same key and normalized content after an ambiguous result. Scoped to the verified actor and repository across resource types. */
+                "Idempotency-Key": string;
+                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneCreation"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Milestone"];
+                };
+            };
+            400: components["responses"]["MilestoneError"];
+            401: components["responses"]["MilestoneError"];
+            403: components["responses"]["MilestoneForbidden"];
+            404: components["responses"]["MilestoneError"];
+            409: components["responses"]["MilestoneError"];
+            415: components["responses"]["MilestoneError"];
+            503: components["responses"]["MilestoneError"];
+        };
+    };
+    getMilestone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Milestone"];
+                };
+            };
+            400: components["responses"]["MilestoneError"];
+            401: components["responses"]["MilestoneError"];
+            403: components["responses"]["MilestoneForbidden"];
+            404: components["responses"]["MilestoneError"];
+            409: components["responses"]["MilestoneError"];
+            415: components["responses"]["MilestoneError"];
+            503: components["responses"]["MilestoneError"];
+        };
+    };
+    updateMilestone: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneUpdate"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Milestone"];
+                };
+            };
+            400: components["responses"]["MilestoneError"];
+            401: components["responses"]["MilestoneError"];
+            403: components["responses"]["MilestoneForbidden"];
+            404: components["responses"]["MilestoneError"];
+            409: components["responses"]["MilestoneError"];
+            415: components["responses"]["MilestoneError"];
+            503: components["responses"]["MilestoneError"];
+        };
+    };
+    listProjects: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectPage"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
+        };
+    };
+    createProject: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Reuse the same key and normalized content after an ambiguous result. Scoped to the verified actor and repository across resource types. */
+                "Idempotency-Key": string;
+                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectCreation"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Project"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
+        };
+    };
+    getProject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Project"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
+        };
+    };
+    updateProject: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectUpdate"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Project"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
+        };
+    };
+    listProjectItems: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectItemPage"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
+        };
+    };
+    addProjectItem: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectItemAddition"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Project"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
+        };
+    };
+    removeProjectItem: {
+        parameters: {
+            query: {
+                expectedVersion: number;
+            };
+            header?: {
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+                id: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Project"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
+        };
+    };
+    getRepositoryStatistics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RepositoryStatistics"];
+                };
+            };
+            400: components["responses"]["IssueError"];
+            401: components["responses"]["IssueError"];
+            403: components["responses"]["IssueForbidden"];
+            404: components["responses"]["IssueError"];
+            409: components["responses"]["IssueError"];
+            415: components["responses"]["IssueError"];
+            503: components["responses"]["IssueError"];
         };
     };
 }

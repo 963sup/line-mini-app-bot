@@ -1,9 +1,356 @@
 {
-  "x-status": "scaffold",
-  "x-owner": "project.items",
-  "x-description": "Project items; item identity differs from source identity. Structure only; no operations or schemas defined. Complete the feature specification before adding a public contract.",
-  "paths": {},
+  "paths": {
+    "/api/v1/repositories/{repositoryId}/projects/{id}/items": {
+      "get": {
+        "operationId": "listProjectItems",
+        "summary": "listProjectItems",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectItemPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ProjectError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "addProjectItem",
+        "summary": "addProjectItem",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./projects.yaml#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ProjectError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectItemAddition"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/repositories/{repositoryId}/projects/{id}/items/{itemId}": {
+      "delete": {
+        "operationId": "removeProjectItem",
+        "summary": "removeProjectItem",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "itemId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expectedVersion",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./projects.yaml#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ProjectError"
+          }
+        }
+      }
+    }
+  },
   "components": {
-    "schemas": {}
+    "schemas": {
+      "ProjectItemAddition": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "issueId",
+          "expectedVersion"
+        ],
+        "properties": {
+          "issueId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        }
+      },
+      "ProjectItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "issueId",
+          "title",
+          "state"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "issueId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "open",
+              "in_progress",
+              "completed"
+            ]
+          }
+        }
+      },
+      "ProjectItemPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectItem"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "responses": {
+      "ProjectError": {
+        "description": "Request rejected or unavailable; errors never expose hidden resources.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../common/transport.yaml#/components/schemas/APIError"
+            }
+          }
+        }
+      },
+      "ProjectForbidden": {
+        "description": "Creator permission or CSRF denied. Standard cross-origin protection may return text/plain.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../common/transport.yaml#/components/schemas/APIError"
+            }
+          },
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
   }
 }

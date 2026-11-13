@@ -17,6 +17,12 @@ func TestDependencyBoundaries(t *testing.T) {
 		t.Fatal(err)
 	}
 	core := map[string][]string{
+		"business/repository/milestones":     {"business/repository"},
+		"business/repository/statistics":     {"business/repository"},
+		"business/project":                   {"business/repository"},
+		"business/repository/labels":         {"business/repository"},
+		"business/discussion":                {"business/repository", "business/repository/labels"},
+		"business/issue":                     {"business/repository", "business/repository/labels"},
 		"business/attendance":                {"business/attendance/punch", "business/attendance/records"},
 		"business/attendance/punch":          {"business/attendance/records"},
 		"business/attendance/records":        {"business/attendance/worktime"},

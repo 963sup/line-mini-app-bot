@@ -79,6 +79,48 @@
     },
     "/api/v1/repositories/{id}": {
       "$ref": "./repository/repositories.yaml#/paths/~1api~1v1~1repositories~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/issues": {
+      "$ref": "./issue/issues.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1issues"
+    },
+    "/api/v1/repositories/{repositoryId}/issues/{id}": {
+      "$ref": "./issue/issues.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1issues~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/discussions": {
+      "$ref": "./discussion/discussions.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1discussions"
+    },
+    "/api/v1/repositories/{repositoryId}/discussions/{id}": {
+      "$ref": "./discussion/discussions.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1discussions~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/discussions/{id}/comments": {
+      "$ref": "./discussion/comments.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1discussions~1{id}~1comments"
+    },
+    "/api/v1/repositories/{repositoryId}/discussions/{id}/comments/{commentId}": {
+      "$ref": "./discussion/comments.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1discussions~1{id}~1comments~1{commentId}"
+    },
+    "/api/v1/repositories/{repositoryId}/labels": {
+      "$ref": "./repository/labels.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1labels"
+    },
+    "/api/v1/repositories/{repositoryId}/milestones": {
+      "$ref": "./repository/milestones.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1milestones"
+    },
+    "/api/v1/repositories/{repositoryId}/milestones/{id}": {
+      "$ref": "./repository/milestones.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1milestones~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/projects": {
+      "$ref": "./project/projects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1projects"
+    },
+    "/api/v1/repositories/{repositoryId}/projects/{id}": {
+      "$ref": "./project/projects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1projects~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/projects/{id}/items": {
+      "$ref": "./project/items.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1projects~1{id}~1items"
+    },
+    "/api/v1/repositories/{repositoryId}/projects/{id}/items/{itemId}": {
+      "$ref": "./project/items.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1projects~1{id}~1items~1{itemId}"
+    },
+    "/api/v1/repositories/{repositoryId}/statistics": {
+      "$ref": "./repository/statistics.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1statistics"
     }
   },
   "components": {
@@ -100,6 +142,87 @@
       },
       "RepositoryPage": {
         "$ref": "./repository/repositories.yaml#/components/schemas/RepositoryPage"
+      },
+      "Issue": {
+        "$ref": "./issue/issues.yaml#/components/schemas/Issue"
+      },
+      "IssueCreation": {
+        "$ref": "./issue/issues.yaml#/components/schemas/IssueCreation"
+      },
+      "IssueUpdate": {
+        "$ref": "./issue/issues.yaml#/components/schemas/IssueUpdate"
+      },
+      "IssuePage": {
+        "$ref": "./issue/issues.yaml#/components/schemas/IssuePage"
+      },
+      "Discussion": {
+        "$ref": "./discussion/discussions.yaml#/components/schemas/Discussion"
+      },
+      "DiscussionCreation": {
+        "$ref": "./discussion/discussions.yaml#/components/schemas/DiscussionCreation"
+      },
+      "DiscussionUpdate": {
+        "$ref": "./discussion/discussions.yaml#/components/schemas/DiscussionUpdate"
+      },
+      "DiscussionPage": {
+        "$ref": "./discussion/discussions.yaml#/components/schemas/DiscussionPage"
+      },
+      "DiscussionComment": {
+        "$ref": "./discussion/comments.yaml#/components/schemas/DiscussionComment"
+      },
+      "DiscussionCommentCreation": {
+        "$ref": "./discussion/comments.yaml#/components/schemas/DiscussionCommentCreation"
+      },
+      "DiscussionCommentUpdate": {
+        "$ref": "./discussion/comments.yaml#/components/schemas/DiscussionCommentUpdate"
+      },
+      "DiscussionCommentPage": {
+        "$ref": "./discussion/comments.yaml#/components/schemas/DiscussionCommentPage"
+      },
+      "Label": {
+        "$ref": "./repository/labels.yaml#/components/schemas/Label"
+      },
+      "LabelCreation": {
+        "$ref": "./repository/labels.yaml#/components/schemas/LabelCreation"
+      },
+      "LabelPage": {
+        "$ref": "./repository/labels.yaml#/components/schemas/LabelPage"
+      },
+      "Milestone": {
+        "$ref": "./repository/milestones.yaml#/components/schemas/Milestone"
+      },
+      "MilestoneCreation": {
+        "$ref": "./repository/milestones.yaml#/components/schemas/MilestoneCreation"
+      },
+      "MilestoneUpdate": {
+        "$ref": "./repository/milestones.yaml#/components/schemas/MilestoneUpdate"
+      },
+      "MilestonePage": {
+        "$ref": "./repository/milestones.yaml#/components/schemas/MilestonePage"
+      },
+      "Project": {
+        "$ref": "./project/projects.yaml#/components/schemas/Project"
+      },
+      "ProjectCreation": {
+        "$ref": "./project/projects.yaml#/components/schemas/ProjectCreation"
+      },
+      "ProjectUpdate": {
+        "$ref": "./project/projects.yaml#/components/schemas/ProjectUpdate"
+      },
+      "ProjectPage": {
+        "$ref": "./project/projects.yaml#/components/schemas/ProjectPage"
+      },
+      "ProjectItemAddition": {
+        "$ref": "./project/items.yaml#/components/schemas/ProjectItemAddition"
+      },
+      "ProjectItem": {
+        "$ref": "./project/items.yaml#/components/schemas/ProjectItem"
+      },
+      "ProjectItemPage": {
+        "$ref": "./project/items.yaml#/components/schemas/ProjectItemPage"
+      },
+      "RepositoryStatistics": {
+        "$ref": "./repository/statistics.yaml#/components/schemas/RepositoryStatistics"
       }
     },
     "securitySchemes": {

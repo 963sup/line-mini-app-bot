@@ -70,6 +70,7 @@ function Content({
     <AppFrame
       title={title}
       workflow={workflow}
+      wide={workflow === "repositories"}
       repositoryItem={{
         title: "空間", url: spaces.scope ? spaces.href(spaces.scope) : "/miniapp/repositories", isActive: workflow === "repositories", onExpand: spaces.ensure,
         items: [

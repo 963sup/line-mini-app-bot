@@ -10,7 +10,7 @@
 
 - 命名政策只有一份：[命名規範](../development/naming.md#業務實體集合與-api-命名)。本頁保存三個主要業務的應用對照及後續資源模型參考。
 - Repository 既有功能、授權及 REST 入口見 [群組 Repository](../features/repository.md)。本頁不取代其已實作規格。
-- Issue 與 Discussion 是本次預留的業務設計；本頁未完成它們的實作盤點，不宣稱已有可用功能。
+- Issue 基礎操作已依 [事項規格](../features/issues.md) 接入；Discussion 基礎主題與單層留言依 [討論規格](../features/discussions.md) 接入，其他擴充仍為後續設計。
 - 本專案使用 REST／OpenAPI。GitHub 文件僅作業務資源、關係與功能分類的設計參考；不將其介面技術、查詢形式或型別結構列為本專案規劃。HTTP 來源見 [OpenAPI 契約](../../api/README.md)。
 
 ## 實體、集合與 REST 資源命名
@@ -34,8 +34,8 @@
 | 業務 | 設計責任 | 必須保留的邊界 |
 | --- | --- | --- |
 | Repository | 容器識別、群組綁定、可見性與入口狀態 | 既有 Bot 管理模式維持；取得容器資格不自動授予所有子業務操作權 |
-| Issue | 可追蹤事項及其生命週期 | 不直接套用出勤審核狀態；欄位、指派與完成規則待確認 |
-| Discussion | 討論主題及其互動規則 | 分類、回覆、解答、鎖定與轉換 Issue 等能力待確認 |
+| Issue | 可追蹤事項及其生命週期 | 基礎欄位、建立者權限與生命週期依 [事項規格](../features/issues.md)；指派等擴充待確認，不套用出勤審核權 |
+| Discussion | 討論主題及其互動規則 | 基礎主題、作者編輯與單層留言依 [討論規格](../features/discussions.md)；分類、解答、鎖定與轉換另定 |
 
 Issue 與 Discussion 各自擁有狀態與操作；若未來需要互相連結或轉換，另訂識別、授權、原子性及追溯規則。
 Repository 停用時子資源如何讀寫、保存多久、能否移轉或刪除，均須明確設計，不能推定連帶刪除。
@@ -182,4 +182,4 @@ Iteration 是規劃區間，不等同實際出勤、工時結算或施工完成�
 
 - [GitHub 資源設計參考目錄](https://github.com/github/docs/tree/main/src/graphql/data/fpt)：使用者指定的設計參考，借鏡資源名稱、關係、描述與分類；網址中的技術目錄名稱不代表本專案採用該技術。先前資源名稱核對使用 revision `528435f1d245ebc2a1c2a8d1c0254a5d4ad17b21`，不宣稱是最新版本。
 - [GitHub Projects 文件](https://docs.github.com/en/issues/planning-and-tracking-with-projects)：先前於 2026-11-12 經 Context7 `/github/docs` 查閱 iteration、視圖、篩選及項目欄位責任，來源為 main，未固定 revision。僅作功能設計參考；未查證所有 Workflows、Insights、Permissions、Templates 的方案限制或 API 覆蓋，採用時仍須核對。
-- 本專案介面沿用 REST／OpenAPI；目前只完成文件設計與本機文件檢查，未新增 Issue／Discussion／專案管理 API、資料 collection 或遷移。
+- 本專案介面沿用 REST／OpenAPI；Issue 基礎操作與資料保存依 [事項規格](../features/issues.md)；Discussion 基礎操作依 [討論規格](../features/discussions.md)；本參考頁未啟用其他分類／專案管理 API 或遷移。

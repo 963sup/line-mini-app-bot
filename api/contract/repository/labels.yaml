@@ -1,9 +1,246 @@
 {
-  "x-status": "scaffold",
-  "x-owner": "repository.labels",
-  "x-description": "Repository labels. Structure only; no operations or schemas defined. Complete the feature specification before adding a public contract.",
-  "paths": {},
+  "paths": {
+    "/api/v1/repositories/{repositoryId}/labels": {
+      "get": {
+        "operationId": "listLabels",
+        "summary": "List the current member-visible label catalog",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabelPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LabelError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LabelError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LabelForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/LabelError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LabelError"
+          },
+          "415": {
+            "$ref": "#/components/responses/LabelError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LabelError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createLabel",
+        "summary": "Create an immutable, unique-name repository label without allocating a shared number",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes by existing session validation."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Label"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LabelError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LabelError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LabelForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/LabelError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LabelError"
+          },
+          "415": {
+            "$ref": "#/components/responses/LabelError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LabelError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelCreation"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "components": {
-    "schemas": {}
+    "schemas": {
+      "Label": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "repositoryId",
+          "name",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "repositoryId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LabelCreation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          }
+        }
+      },
+      "LabelPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Label"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "responses": {
+      "LabelError": {
+        "description": "Rejected or unavailable without exposing private data.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../common/transport.yaml#/components/schemas/APIError"
+            }
+          }
+        }
+      },
+      "LabelForbidden": {
+        "description": "Rejected or unavailable without exposing private data.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../common/transport.yaml#/components/schemas/APIError"
+            }
+          },
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
   }
 }

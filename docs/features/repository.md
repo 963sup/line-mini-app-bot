@@ -43,11 +43,19 @@ ACTIVE / INACTIVE 表示 Bot 群組入口狀態。離開保留資料，再加入
 - 出勤連結只帶既有 group 查詢條件，不新增授權；摘要仍回原群組操作。
 - 從成員加入、本人群組訊息或 postback 建立列表候選。未互動的既有群組成員需先互動；這不是完整群組成員清單。
 
+## 正式空間 UI 基礎雛形
+
+正式空間沿用上述 List / Get 操作契約與身分隔離，以寬版卡片呈現已授權空間的基本資料與本人出勤入口。
+頁內導覽與獨立預覽共用 `frontend/miniapp/src/business/repository/navigation.ts`；總覽、事項、討論、標籤、里程碑、專案與稽核紀錄在正式空間內切換。
+總覽使用真實空間資料，事項已接入 [事項第一階段](issues.md)，討論已接入 [討論與留言](discussions.md)，標籤目錄已接入 [標籤規格](labels.md)；里程碑、專案及總覽統計依 [基礎追蹤規格](planning.md) 接入；公開稽核仍明示尚未開放，不回填示範資料。載入、核驗失敗、登出時不呈現空間內容。
+既有 API、Bot 管理、成員核驗及共用編號規則不變。事項與討論／留言依各自獨立規格接入；標籤已接入事項／討論作者的分類操作；完成界線依 [基礎雛形](repository-prototype.md)，里程碑、專案及統計依本次授權另完成最小切片，不自動展開其他管理功能。
+總覽為讀取畫面基礎整合；事項驗證另依功能規格，不代表其他協作業務或真實 LINE 裝置已驗收。
+
 ## 啟用與遷移限制
 
 沿用 GOOGLE_CLOUD_PROJECT、FIRESTORE_DATABASE_ID、Messaging API 設定；缺少設定時查詢回 503。
 MINI App 與 Messaging API 使用者識別須在相同 LINE provider 下對應；無法匹配時不能通過成員核驗。
-既有群組收到下一筆支援的可信事件時建立，不執行正式資料掃描或批次遷移。Summary / Attendance 歷史資料仍以 groupId 保存；本階段只建立容器、解析介面與讀取 UI，後續領域寫入接入另行實作。
+既有群組收到下一筆支援的可信事件時建立，不執行正式資料掃描或批次遷移。Summary / Attendance 歷史資料仍以 groupId 保存；容器原始切片只建立容器、解析介面與讀取 UI；事項、討論及標籤各依功能規格寫入，不搬遷既有出勤或摘要資料。
 
 ## 查證與驗收
 
@@ -67,6 +75,6 @@ LINE「選單 → 請選擇功能」與功能說明提供「空間」URI 入口�
 
 ## 後續模型設計
 
-內部共用編號基礎見 [Repository 共用資源編號](repository-numbering.md)。目前沒有接入業務建立入口，不改變本頁 Bot 管理、公開查詢或成員核驗規則。
+內部共用編號基礎見 [Repository 共用資源編號](repository-numbering.md)。事項與討論建立已接入，留言不占編號；本頁 Bot 管理、公開查詢及成員核驗規則保持原樣。
 
 Repository 的實體、查詢、集合與 Connection 分頁命名，以及 Issue／Discussion 的歸屬規劃，見 [業務模型設計](../architecture/domain-model.md)。該頁為後續開發參考，不變更本頁既有 REST、成員核驗與 Bot 管理模式。

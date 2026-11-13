@@ -8,6 +8,9 @@
 | 共用傳輸契約 | [common/transport.yaml](common/transport.yaml) | APIError、Bearer 與 Cookie security schemes；不承載業務模型 |
 | Identity | [identity/identity.yaml](identity/identity.yaml) | MINI App 公開設定、本人、Session 建立／續期／撤銷及其 DTO |
 | Repository | [repository/repositories.yaml](repository/repositories.yaml) | 容器列表、詳情、分頁及容器 DTO；不提供手動建立或管理 API |
+| Repository / Labels | [repository/labels.yaml](repository/labels.yaml) | 標籤目錄列出與建立，規格見 [標籤](../../docs/features/labels.md) |
+| Issue | [issue/issues.yaml](issue/issues.yaml) | 空間事項列表、詳情、建立及建立者修改；操作規格見 [事項](../../docs/features/issues.md) |
+| Discussion | [discussion/discussions.yaml](discussion/discussions.yaml)、[comments.yaml](discussion/comments.yaml) | 主題讀寫及單層留言；作者編輯，規格見 [討論](../../docs/features/discussions.md) |
 | Attendance / Punch | [attendance/punch.yaml](attendance/punch.yaml) | launch、打卡與 preflight |
 | Attendance / Records | [attendance/records.yaml](attendance/records.yaml) | 群組、出勤紀錄、月摘要及分頁 |
 | Attendance / Worktime | [attendance/worktime.yaml](attendance/worktime.yaml) | 工時計算與時間區間型別，沒有獨立 HTTP 操作 |
@@ -25,9 +28,9 @@
 | Common | [AGENTS.md](common/AGENTS.md) | 共用傳輸契約 |
 | Identity | [AGENTS.md](identity/AGENTS.md) | 既有公開契約 |
 | Repository | [AGENTS.md](repository/AGENTS.md) | Bot 管理的群組空間 |
-| Issue | [AGENTS.md](issue/AGENTS.md) | YAML 雛形，未新增 API |
-| Discussion | [AGENTS.md](discussion/AGENTS.md) | YAML 雛形，未新增 API |
-| Project | [AGENTS.md](project/AGENTS.md) | YAML 雛形，未新增 API |
+| Issue | [AGENTS.md](issue/AGENTS.md) | 基礎事項 API；types／comments 仍為雛形 |
+| Discussion | [AGENTS.md](discussion/AGENTS.md) | 主題／單層留言已接入；categories 仍為雛形 |
+| Project | [AGENTS.md](project/AGENTS.md) | Project／items 已接入；fields／views 為雛形 |
 | Attendance | [AGENTS.md](attendance/AGENTS.md) | 既有出勤契約 |
 | Summary | [AGENTS.md](summary/AGENTS.md) | 事件與內部工作契約 |
 | Weather | [AGENTS.md](weather/AGENTS.md) | 既有事件入口契約 |
@@ -47,12 +50,11 @@
 
 ### 最小契約雛形
 
-以下檔案目前以 `x-status: scaffold` 標記，只有空的 `paths` 與 `components.schemas`，尚未定義端點或資料欄位，也不由公開／內部組合入口引用。能力清單登記其擁有者，不表示功能已實作。
+Repository milestones／statistics 與 Project／items 已依 [基礎追蹤規格](../../docs/features/planning.md) 接入。以下檔案目前以 `x-status: scaffold` 標記，只有空的 `paths` 與 `components.schemas`，尚未定義端點或資料欄位，也不由公開／內部組合入口引用。能力清單登記其擁有者，不表示功能已實作。
 
-- Repository：[labels.yaml](repository/labels.yaml)、[milestones.yaml](repository/milestones.yaml)。
-- Issue：[issues.yaml](issue/issues.yaml)、[types.yaml](issue/types.yaml)（IssueType）、[comments.yaml](issue/comments.yaml)。
-- Discussion：[discussions.yaml](discussion/discussions.yaml)、[categories.yaml](discussion/categories.yaml)、[comments.yaml](discussion/comments.yaml)。
-- Project：[projects.yaml](project/projects.yaml)、[items.yaml](project/items.yaml)、[fields.yaml](project/fields.yaml)、[views.yaml](project/views.yaml)。
+- Issue：[types.yaml](issue/types.yaml)（IssueType）、[comments.yaml](issue/comments.yaml)。
+- Discussion：[categories.yaml](discussion/categories.yaml)。
+- Project：[fields.yaml](project/fields.yaml)、[views.yaml](project/views.yaml)；projects／items 已接入。
 
 以上是能力契約片段，不是可獨立啟動或呼叫的完整 OpenAPI 文件。實作時先補功能操作規格，再填入對應 paths／schemas、接入組合入口、更新能力清單與生成碼，並驗證相容性；既有 Repository 仍由 Bot 建立。
 

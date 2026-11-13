@@ -1,6 +1,6 @@
 # HTTP API 契約
 
-`contract/openapi.yaml` 是公開 HTTP 契約的唯一組合入口。Identity、Repository 與 Attendance 各自擁有操作、參數與資料格式；共用錯誤與認證方式位於 `contract/common/`。完整歸屬與引用規則見 [契約能力索引](contract/README.md)。兩端產生器先使用 Redocly bundle 解析外部參照，再由同一份 bundle 產生 Go 與 TypeScript；不手改產生檔。
+`contract/openapi.yaml` 是公開 HTTP 契約的唯一組合入口。Identity、Repository、Issue、Discussion 與 Attendance 各自擁有操作、參數與資料格式；共用錯誤與認證方式位於 `contract/common/`。完整歸屬與引用規則見 [契約能力索引](contract/README.md)。兩端產生器先使用 Redocly bundle 解析外部參照，再由同一份 bundle 產生 Go 與 TypeScript；不手改產生檔。
 
 ```bash
 bash scripts/tooling/tool-exec.sh mise run install-web
@@ -57,7 +57,7 @@ contract/ 依能力維護來源契約，openapi.yaml 組合公開 HTTP API；cli
 - [共用客戶端](client/AGENTS.md)。
 - [生成設定](codegen/AGENTS.md)。
 
-Issue、Discussion、Project 及 Repository 子資源已建立契約雛形與工作指引，不代表已有可用 API 或實作；既有 compatibility/ 及 baseline 保留。
+Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄已接入；Project／items 與 Repository milestones／statistics 已依基礎規格接入；Project fields／views 仍為雛形；既有 compatibility/ 及 baseline 保留。
 
 ## 相關文件
 
@@ -73,11 +73,16 @@ Issue、Discussion、Project 及 Repository 子資源已建立契約雛形與工
 
 ## Business 入口分類
 
-公開 HTTP 能力為 Identity、Repository、Attendance；Summary、Weather 描述既有事件／內部工作入口，不加入公開 codegen，也不新增 HTTP 端點。各能力來源與依賴見 [契約能力索引](contract/README.md)。
+公開 HTTP 能力為 Identity、Repository、Issue、Discussion、Attendance；Summary、Weather 描述既有事件／內部工作入口，不加入公開 codegen，也不新增 HTTP 端點。各能力來源與依賴見 [契約能力索引](contract/README.md)。
 
 - [群組 Repository](../docs/features/repository.md)
+- [空間標籤目錄](../docs/features/labels.md)：目錄列出／建立，分類沿用 Issue／Discussion 更新；不含改名或刪除。
+- [空間事項第一階段](../docs/features/issues.md)：已接入公開 Issue 契約與生成型別；正式環境待驗收。
+- [空間討論與留言](../docs/features/discussions.md)：主題及單層留言契約，作者編輯。
 
 - [Repository、Issue 與 Discussion 模型及 Connection 分頁規劃](../docs/architecture/domain-model.md)：未來設計參考，現行 OpenAPI 契約維持原狀。
+
+- [里程碑、專案與統計](../docs/features/planning.md)：正式契約與三層接線。
 
 ## 協作能力分佈與交付狀態
 

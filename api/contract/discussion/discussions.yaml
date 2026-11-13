@@ -1,9 +1,485 @@
 {
-  "x-status": "scaffold",
-  "x-owner": "discussion",
-  "x-description": "Discussions belonging to an existing Repository. Structure only; no operations or schemas defined. Complete the feature specification before adding a public contract.",
-  "paths": {},
+  "paths": {
+    "/api/v1/repositories/{repositoryId}/discussions": {
+      "get": {
+        "operationId": "listDiscussions",
+        "summary": "List member-visible discussions in descending shared-number order",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          },
+          {
+            "in": "query",
+            "name": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscussionPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "401": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "403": {
+            "$ref": "#/components/responses/DiscussionForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "409": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "415": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DiscussionError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createDiscussion",
+        "summary": "Create a discussion as a current member using the shared repository number",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; existing session validation applies."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Discussion"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "401": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "403": {
+            "$ref": "#/components/responses/DiscussionForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "409": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "415": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DiscussionError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiscussionCreation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/repositories/{repositoryId}/discussions/{id}": {
+      "get": {
+        "operationId": "getDiscussion",
+        "summary": "Read a discussion as a current repository member",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Discussion"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "401": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "403": {
+            "$ref": "#/components/responses/DiscussionForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "409": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "415": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DiscussionError"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateDiscussion",
+        "summary": "Author-only topic content update with expected version",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; existing session validation applies."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized data; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Discussion"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "401": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "403": {
+            "$ref": "#/components/responses/DiscussionForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "409": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "415": {
+            "$ref": "#/components/responses/DiscussionError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DiscussionError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiscussionUpdate"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "components": {
-    "schemas": {}
+    "schemas": {
+      "Discussion": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "repositoryId",
+          "number",
+          "title",
+          "body",
+          "authorId",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "repositoryId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "authorId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "labelIds": {
+            "type": "array",
+            "maxItems": 10,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Same-repository label IDs. Update omission preserves existing references; [] clears them. Requires the existing resource author and expectedVersion."
+          }
+        }
+      },
+      "DiscussionCreation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "body"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 8000
+          }
+        }
+      },
+      "DiscussionUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "body",
+          "expectedVersion"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "labelIds": {
+            "type": "array",
+            "maxItems": 10,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "description": "Same-repository label IDs. Update omission preserves existing references; [] clears them. Requires the existing resource author and expectedVersion."
+          }
+        }
+      },
+      "DiscussionPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Discussion"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "description": "Empty when finished; filtered pages may be empty while nextCursor is nonempty."
+          }
+        }
+      }
+    },
+    "responses": {
+      "DiscussionError": {
+        "description": "Rejected or unavailable without exposing private resources or implementation details.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../common/transport.yaml#/components/schemas/APIError"
+            }
+          }
+        }
+      },
+      "DiscussionForbidden": {
+        "description": "Rejected or unavailable without exposing private resources or implementation details.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../common/transport.yaml#/components/schemas/APIError"
+            }
+          },
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
   }
 }

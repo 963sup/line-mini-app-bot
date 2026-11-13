@@ -3,14 +3,12 @@ import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { Progress } from "@/shared/ui/progress";
 import React, { useState } from "react";
 import { AppFrame } from "@/shell/AppFrame";
+import { navigation } from "../navigation";
 import {
-  LayoutDashboard,
   CircleDot,
   MessagesSquare,
-  Tags,
   Flag,
   History,
-  Layers,
   Plus,
   ArrowUpRight,
   Search,
@@ -43,15 +41,6 @@ import {
   EmptyDescription,
 } from "@/shared/ui/empty";
 
-const navigation = [
-  { title: "總覽", icon: LayoutDashboard },
-  { title: "事項", icon: CircleDot },
-  { title: "討論", icon: MessagesSquare },
-  { title: "標籤", icon: Tags },
-  { title: "里程碑", icon: Flag },
-  { title: "專案", icon: Layers },
-  { title: "稽核紀錄", icon: History },
-];
 type Item = {
   number: number;
   title: string;

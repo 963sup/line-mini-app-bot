@@ -19,6 +19,10 @@
 | 需求 | 文件 |
 | --- | --- |
 | 群組空間共用流水編號基礎 | [Repository 共用資源編號](features/repository-numbering.md) |
+| 空間事項讀寫與建立者生命週期 | [事項第一階段](features/issues.md) |
+| 空間討論與單層留言 | [討論與留言](features/discussions.md) |
+| 空間標籤目錄與分類 | [標籤](features/labels.md) |
+| 基礎雛形完成界線與後續評估 | [空間雛形](features/repository-prototype.md) |
 | 群組請假入口與本人登記紀錄 | [群組請假登記](features/leave.md) |
 | 日誌表單入口 | [日誌表單](features/journal.md) |
 | 群組人數看板、本人漏下班檢查 | [出勤看板與漏下班](features/attendance-board.md) |
@@ -81,6 +85,8 @@ LINE 問題先查 [官方文件來源庫](https://github.com/line/line-developer
 - [群組 Repository](features/repository.md)
 
 - [Repository、Issue 與 Discussion 業務模型設計（後續開發）](architecture/domain-model.md)
+
+- [里程碑、專案與總覽統計](features/planning.md)：操作、權限、資料與驗證。
 
 ## 協作能力分佈與交付狀態
 

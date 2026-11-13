@@ -35,7 +35,13 @@ Weather 既有實作集中在 business/weather/forecast/{cwa,line}。
 入口契約見 [Summary](../api/contract/summary/README.md) 與 [Weather](../api/contract/weather/README.md)。
 
 - [群組 Repository](../docs/features/repository.md)
-- [Repository 共用資源編號基礎](../docs/features/repository-numbering.md)：內部交易介面，尚未接入業務建立或公開 API。
+- [基礎雛形與停止擴充界線](../docs/features/repository-prototype.md)
+- [空間標籤目錄](../docs/features/labels.md)：沿用 Repository client，建立名稱綁定及防重收據，不占共用編號。
+- [空間討論與留言](../docs/features/discussions.md)：獨立核心及 HTTP／Firestore adapters，重用既有 client 與編號。
+- [空間事項第一階段](../docs/features/issues.md)：核心、HTTP 與 Firestore 分層實作；正式環境待驗收。
+- [Repository 共用資源編號基礎](../docs/features/repository-numbering.md)：內部交易介面，已由事項建立使用，不提供獨立公開分配 API。
+
+- [里程碑、專案與統計](../docs/features/planning.md)
 
 ## 協作能力分佈與交付狀態
 

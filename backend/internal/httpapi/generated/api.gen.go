@@ -51,6 +51,48 @@ func (e CorrectionApprovedStatus) Valid() bool {
 	}
 }
 
+// Defines values for IssueState.
+const (
+	IssueStateCompleted  IssueState = "completed"
+	IssueStateInProgress IssueState = "in_progress"
+	IssueStateOpen       IssueState = "open"
+)
+
+// Valid indicates whether the value is a known member of the IssueState enum.
+func (e IssueState) Valid() bool {
+	switch e {
+	case IssueStateCompleted:
+		return true
+	case IssueStateInProgress:
+		return true
+	case IssueStateOpen:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for IssueUpdateState.
+const (
+	IssueUpdateStateCompleted  IssueUpdateState = "completed"
+	IssueUpdateStateInProgress IssueUpdateState = "in_progress"
+	IssueUpdateStateOpen       IssueUpdateState = "open"
+)
+
+// Valid indicates whether the value is a known member of the IssueUpdateState enum.
+func (e IssueUpdateState) Valid() bool {
+	switch e {
+	case IssueUpdateStateCompleted:
+		return true
+	case IssueUpdateStateInProgress:
+		return true
+	case IssueUpdateStateOpen:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for LeaveRecordKind.
 const (
 	LeaveRecordKindAnnual   LeaveRecordKind = "annual"
@@ -114,6 +156,63 @@ func (e LeaveSubmissionKind) Valid() bool {
 	}
 }
 
+// Defines values for MilestoneState.
+const (
+	MilestoneStateCompleted MilestoneState = "completed"
+	MilestoneStateOpen      MilestoneState = "open"
+)
+
+// Valid indicates whether the value is a known member of the MilestoneState enum.
+func (e MilestoneState) Valid() bool {
+	switch e {
+	case MilestoneStateCompleted:
+		return true
+	case MilestoneStateOpen:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MilestoneUpdateState.
+const (
+	MilestoneUpdateStateCompleted MilestoneUpdateState = "completed"
+	MilestoneUpdateStateOpen      MilestoneUpdateState = "open"
+)
+
+// Valid indicates whether the value is a known member of the MilestoneUpdateState enum.
+func (e MilestoneUpdateState) Valid() bool {
+	switch e {
+	case MilestoneUpdateStateCompleted:
+		return true
+	case MilestoneUpdateStateOpen:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ProjectItemState.
+const (
+	ProjectItemStateCompleted  ProjectItemState = "completed"
+	ProjectItemStateInProgress ProjectItemState = "in_progress"
+	ProjectItemStateOpen       ProjectItemState = "open"
+)
+
+// Valid indicates whether the value is a known member of the ProjectItemState enum.
+func (e ProjectItemState) Valid() bool {
+	switch e {
+	case ProjectItemStateCompleted:
+		return true
+	case ProjectItemStateInProgress:
+		return true
+	case ProjectItemStateOpen:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for RepositoryStatus.
 const (
 	ACTIVE   RepositoryStatus = "ACTIVE"
@@ -144,6 +243,27 @@ func (e ListAttendanceCorrectionsParamsScope) Valid() bool {
 	case Own:
 		return true
 	case Review:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListIssuesParamsState.
+const (
+	ListIssuesParamsStateCompleted  ListIssuesParamsState = "completed"
+	ListIssuesParamsStateInProgress ListIssuesParamsState = "in_progress"
+	ListIssuesParamsStateOpen       ListIssuesParamsState = "open"
+)
+
+// Valid indicates whether the value is a known member of the ListIssuesParamsState enum.
+func (e ListIssuesParamsState) Valid() bool {
+	switch e {
+	case ListIssuesParamsStateCompleted:
+		return true
+	case ListIssuesParamsStateInProgress:
+		return true
+	case ListIssuesParamsStateOpen:
 		return true
 	default:
 		return false
@@ -299,6 +419,75 @@ type CurrentUser struct {
 	UserId      string `json:"userId"`
 }
 
+// Discussion defines model for Discussion.
+type Discussion struct {
+	AuthorId  string    `json:"authorId"`
+	Body      string    `json:"body"`
+	CreatedAt time.Time `json:"createdAt"`
+	Id        string    `json:"id"`
+
+	// LabelIds Same-repository label IDs. Update omission preserves existing references; [] clears them. Requires the existing resource author and expectedVersion.
+	LabelIds     *[]string `json:"labelIds,omitempty"`
+	Number       int64     `json:"number"`
+	RepositoryId string    `json:"repositoryId"`
+	Title        string    `json:"title"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+	Version      int64     `json:"version"`
+}
+
+// DiscussionComment defines model for DiscussionComment.
+type DiscussionComment struct {
+	AuthorId     string    `json:"authorId"`
+	Body         string    `json:"body"`
+	CreatedAt    time.Time `json:"createdAt"`
+	DiscussionId string    `json:"discussionId"`
+	Id           string    `json:"id"`
+	RepositoryId string    `json:"repositoryId"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+	Version      int64     `json:"version"`
+}
+
+// DiscussionCommentCreation defines model for DiscussionCommentCreation.
+type DiscussionCommentCreation struct {
+	Body string `json:"body"`
+}
+
+// DiscussionCommentPage defines model for DiscussionCommentPage.
+type DiscussionCommentPage struct {
+	Items      []DiscussionComment `json:"items"`
+	NextCursor string              `json:"nextCursor"`
+}
+
+// DiscussionCommentUpdate defines model for DiscussionCommentUpdate.
+type DiscussionCommentUpdate struct {
+	Body            string `json:"body"`
+	ExpectedVersion int64  `json:"expectedVersion"`
+}
+
+// DiscussionCreation defines model for DiscussionCreation.
+type DiscussionCreation struct {
+	Body  string `json:"body"`
+	Title string `json:"title"`
+}
+
+// DiscussionPage defines model for DiscussionPage.
+type DiscussionPage struct {
+	Items []Discussion `json:"items"`
+
+	// NextCursor Empty when finished; filtered pages may be empty while nextCursor is nonempty.
+	NextCursor string `json:"nextCursor"`
+}
+
+// DiscussionUpdate defines model for DiscussionUpdate.
+type DiscussionUpdate struct {
+	Body            string `json:"body"`
+	ExpectedVersion int64  `json:"expectedVersion"`
+
+	// LabelIds Same-repository label IDs. Update omission preserves existing references; [] clears them. Requires the existing resource author and expectedVersion.
+	LabelIds *[]string `json:"labelIds,omitempty"`
+	Title    string    `json:"title"`
+}
+
 // GroupItem defines model for GroupItem.
 type GroupItem struct {
 	Id   string `json:"id"`
@@ -317,6 +506,79 @@ type GroupPage struct {
 type Interval struct {
 	End   time.Time `json:"End"`
 	Start time.Time `json:"Start"`
+}
+
+// Issue defines model for Issue.
+type Issue struct {
+	Body      string    `json:"body"`
+	CreatedAt time.Time `json:"createdAt"`
+	CreatorId string    `json:"creatorId"`
+	Id        string    `json:"id"`
+
+	// LabelIds Same-repository label IDs. Update omission preserves existing references; [] clears them. Requires the existing resource author and expectedVersion.
+	LabelIds *[]string `json:"labelIds,omitempty"`
+
+	// MilestoneId Same repository milestone; omitted on update preserves, null clears
+	MilestoneId  *string    `json:"milestoneId,omitempty"`
+	Number       int64      `json:"number"`
+	RepositoryId string     `json:"repositoryId"`
+	State        IssueState `json:"state"`
+	Title        string     `json:"title"`
+	UpdatedAt    time.Time  `json:"updatedAt"`
+	Version      int64      `json:"version"`
+}
+
+// IssueState defines model for Issue.State.
+type IssueState string
+
+// IssueCreation defines model for IssueCreation.
+type IssueCreation struct {
+	Body  string `json:"body"`
+	Title string `json:"title"`
+}
+
+// IssuePage defines model for IssuePage.
+type IssuePage struct {
+	Items []Issue `json:"items"`
+
+	// NextCursor Empty when finished. Pages inspect at most twenty candidates and may be empty after filtering; continue while nextCursor is nonempty.
+	NextCursor string `json:"nextCursor"`
+}
+
+// IssueUpdate defines model for IssueUpdate.
+type IssueUpdate struct {
+	Body            string `json:"body"`
+	ExpectedVersion int64  `json:"expectedVersion"`
+
+	// LabelIds Same-repository label IDs. Update omission preserves existing references; [] clears them. Requires the existing resource author and expectedVersion.
+	LabelIds *[]string `json:"labelIds,omitempty"`
+
+	// MilestoneId Same repository milestone; omitted on update preserves, null clears
+	MilestoneId *string          `json:"milestoneId,omitempty"`
+	State       IssueUpdateState `json:"state"`
+	Title       string           `json:"title"`
+}
+
+// IssueUpdateState defines model for IssueUpdate.State.
+type IssueUpdateState string
+
+// Label defines model for Label.
+type Label struct {
+	CreatedAt    time.Time `json:"createdAt"`
+	Id           string    `json:"id"`
+	Name         string    `json:"name"`
+	RepositoryId string    `json:"repositoryId"`
+}
+
+// LabelCreation defines model for LabelCreation.
+type LabelCreation struct {
+	Name string `json:"name"`
+}
+
+// LabelPage defines model for LabelPage.
+type LabelPage struct {
+	Items      []Label `json:"items"`
+	NextCursor string  `json:"nextCursor"`
 }
 
 // LaunchRequest defines model for LaunchRequest.
@@ -360,6 +622,58 @@ type LeaveSubmission struct {
 // LeaveSubmissionKind defines model for LeaveSubmission.Kind.
 type LeaveSubmissionKind string
 
+// Milestone defines model for Milestone.
+type Milestone struct {
+	Body                string    `json:"body"`
+	CompletedIssueCount int64     `json:"completedIssueCount"`
+	CreatedAt           time.Time `json:"createdAt"`
+	CreatorId           string    `json:"creatorId"`
+
+	// DueDate Calendar date YYYY-MM-DD or empty; no timezone conversion
+	DueDate      string         `json:"dueDate"`
+	Id           string         `json:"id"`
+	IssueCount   int64          `json:"issueCount"`
+	RepositoryId string         `json:"repositoryId"`
+	State        MilestoneState `json:"state"`
+	Title        string         `json:"title"`
+	UpdatedAt    time.Time      `json:"updatedAt"`
+	Version      int64          `json:"version"`
+}
+
+// MilestoneState defines model for Milestone.State.
+type MilestoneState string
+
+// MilestoneCreation defines model for MilestoneCreation.
+type MilestoneCreation struct {
+	Body string `json:"body"`
+
+	// DueDate Calendar date YYYY-MM-DD or empty; no timezone conversion
+	DueDate string `json:"dueDate"`
+	Title   string `json:"title"`
+}
+
+// MilestonePage defines model for MilestonePage.
+type MilestonePage struct {
+	Items []Milestone `json:"items"`
+
+	// NextCursor Empty when finished. Pages inspect at most twenty candidates and may be empty after filtering; continue while nextCursor is nonempty.
+	NextCursor string `json:"nextCursor"`
+}
+
+// MilestoneUpdate defines model for MilestoneUpdate.
+type MilestoneUpdate struct {
+	Body string `json:"body"`
+
+	// DueDate Calendar date YYYY-MM-DD or empty; no timezone conversion
+	DueDate         string               `json:"dueDate"`
+	ExpectedVersion int64                `json:"expectedVersion"`
+	State           MilestoneUpdateState `json:"state"`
+	Title           string               `json:"title"`
+}
+
+// MilestoneUpdateState defines model for MilestoneUpdate.State.
+type MilestoneUpdateState string
+
 // MiniAppConfig defines model for MiniAppConfig.
 type MiniAppConfig struct {
 	LiffId string `json:"liffId"`
@@ -386,6 +700,64 @@ type NullablePosition struct {
 	CapturedAt     time.Time `json:"capturedAt"`
 	Latitude       float64   `json:"latitude"`
 	Longitude      float64   `json:"longitude"`
+}
+
+// Project defines model for Project.
+type Project struct {
+	Body                string    `json:"body"`
+	CompletedIssueCount int64     `json:"completedIssueCount"`
+	CreatedAt           time.Time `json:"createdAt"`
+	CreatorId           string    `json:"creatorId"`
+	Id                  string    `json:"id"`
+	IssueCount          int64     `json:"issueCount"`
+	RepositoryId        string    `json:"repositoryId"`
+	Title               string    `json:"title"`
+	UpdatedAt           time.Time `json:"updatedAt"`
+	Version             int64     `json:"version"`
+}
+
+// ProjectCreation defines model for ProjectCreation.
+type ProjectCreation struct {
+	Body  string `json:"body"`
+	Title string `json:"title"`
+}
+
+// ProjectItem defines model for ProjectItem.
+type ProjectItem struct {
+	Id      string           `json:"id"`
+	IssueId string           `json:"issueId"`
+	State   ProjectItemState `json:"state"`
+	Title   string           `json:"title"`
+}
+
+// ProjectItemState defines model for ProjectItem.State.
+type ProjectItemState string
+
+// ProjectItemAddition defines model for ProjectItemAddition.
+type ProjectItemAddition struct {
+	ExpectedVersion int64  `json:"expectedVersion"`
+	IssueId         string `json:"issueId"`
+}
+
+// ProjectItemPage defines model for ProjectItemPage.
+type ProjectItemPage struct {
+	Items      []ProjectItem `json:"items"`
+	NextCursor string        `json:"nextCursor"`
+}
+
+// ProjectPage defines model for ProjectPage.
+type ProjectPage struct {
+	Items []Project `json:"items"`
+
+	// NextCursor Empty when finished. Pages inspect at most twenty candidates and may be empty after filtering; continue while nextCursor is nonempty.
+	NextCursor string `json:"nextCursor"`
+}
+
+// ProjectUpdate defines model for ProjectUpdate.
+type ProjectUpdate struct {
+	Body            string `json:"body"`
+	ExpectedVersion int64  `json:"expectedVersion"`
+	Title           string `json:"title"`
 }
 
 // PunchPreflightRequest defines model for PunchPreflightRequest.
@@ -438,6 +810,17 @@ type RepositoryPage struct {
 	NextCursor string `json:"nextCursor"`
 }
 
+// RepositoryStatistics defines model for RepositoryStatistics.
+type RepositoryStatistics struct {
+	CompletedIssues  int64     `json:"completedIssues"`
+	Discussions      int64     `json:"discussions"`
+	InProgressIssues int64     `json:"inProgressIssues"`
+	Milestones       int64     `json:"milestones"`
+	ObservedAt       time.Time `json:"observedAt"`
+	OpenIssues       int64     `json:"openIssues"`
+	Projects         int64     `json:"projects"`
+}
+
 // SessionResponse defines model for SessionResponse.
 type SessionResponse struct {
 	CsrfToken string      `json:"csrfToken"`
@@ -467,6 +850,36 @@ type StoredRecord struct {
 
 // CorrectionError defines model for CorrectionError.
 type CorrectionError = APIError
+
+// DiscussionError defines model for DiscussionError.
+type DiscussionError = APIError
+
+// DiscussionForbidden defines model for DiscussionForbidden.
+type DiscussionForbidden = APIError
+
+// IssueError defines model for IssueError.
+type IssueError = APIError
+
+// IssueForbidden defines model for IssueForbidden.
+type IssueForbidden = APIError
+
+// LabelError defines model for LabelError.
+type LabelError = APIError
+
+// LabelForbidden defines model for LabelForbidden.
+type LabelForbidden = APIError
+
+// MilestoneError defines model for MilestoneError.
+type MilestoneError = APIError
+
+// MilestoneForbidden defines model for MilestoneForbidden.
+type MilestoneForbidden = APIError
+
+// ProjectError defines model for ProjectError.
+type ProjectError = APIError
+
+// ProjectForbidden defines model for ProjectForbidden.
+type ProjectForbidden = APIError
 
 // ListAttendanceCorrectionsParams defines parameters for ListAttendanceCorrections.
 type ListAttendanceCorrectionsParams struct {
@@ -575,6 +988,139 @@ type ListRepositoriesParams struct {
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 }
 
+// ListDiscussionsParams defines parameters for ListDiscussions.
+type ListDiscussionsParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Query  *string `form:"query,omitempty" json:"query,omitempty"`
+}
+
+// CreateDiscussionParams defines parameters for CreateDiscussion.
+type CreateDiscussionParams struct {
+	IdempotencyKey string `json:"Idempotency-Key"`
+
+	// XCSRFToken Required for Cookie Session writes; existing session validation applies.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// UpdateDiscussionParams defines parameters for UpdateDiscussion.
+type UpdateDiscussionParams struct {
+	// XCSRFToken Required for Cookie Session writes; existing session validation applies.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// ListDiscussionCommentsParams defines parameters for ListDiscussionComments.
+type ListDiscussionCommentsParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// CreateDiscussionCommentParams defines parameters for CreateDiscussionComment.
+type CreateDiscussionCommentParams struct {
+	IdempotencyKey string `json:"Idempotency-Key"`
+
+	// XCSRFToken Required for Cookie Session writes; existing session validation applies.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// UpdateDiscussionCommentParams defines parameters for UpdateDiscussionComment.
+type UpdateDiscussionCommentParams struct {
+	// XCSRFToken Required for Cookie Session writes; existing session validation applies.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// ListIssuesParams defines parameters for ListIssues.
+type ListIssuesParams struct {
+	Cursor *string                `form:"cursor,omitempty" json:"cursor,omitempty"`
+	State  *ListIssuesParamsState `form:"state,omitempty" json:"state,omitempty"`
+	Query  *string                `form:"query,omitempty" json:"query,omitempty"`
+}
+
+// ListIssuesParamsState defines parameters for ListIssues.
+type ListIssuesParamsState string
+
+// CreateIssueParams defines parameters for CreateIssue.
+type CreateIssueParams struct {
+	// IdempotencyKey Reuse the same key and normalized content after an ambiguous result. Scoped to the verified actor and repository across resource types.
+	IdempotencyKey string `json:"Idempotency-Key"`
+
+	// XCSRFToken Required for Cookie Session writes; validated by the existing session authenticator.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// UpdateIssueParams defines parameters for UpdateIssue.
+type UpdateIssueParams struct {
+	// XCSRFToken Required for Cookie Session writes; validated by the existing session authenticator.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// ListLabelsParams defines parameters for ListLabels.
+type ListLabelsParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// CreateLabelParams defines parameters for CreateLabel.
+type CreateLabelParams struct {
+	IdempotencyKey string `json:"Idempotency-Key"`
+
+	// XCSRFToken Required for Cookie Session writes by existing session validation.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// ListMilestonesParams defines parameters for ListMilestones.
+type ListMilestonesParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// CreateMilestoneParams defines parameters for CreateMilestone.
+type CreateMilestoneParams struct {
+	// IdempotencyKey Reuse the same key and normalized content after an ambiguous result. Scoped to the verified actor and repository across resource types.
+	IdempotencyKey string `json:"Idempotency-Key"`
+
+	// XCSRFToken Required for Cookie Session writes; validated by the existing session authenticator.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// UpdateMilestoneParams defines parameters for UpdateMilestone.
+type UpdateMilestoneParams struct {
+	// XCSRFToken Required for Cookie Session writes; validated by the existing session authenticator.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// ListProjectsParams defines parameters for ListProjects.
+type ListProjectsParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// CreateProjectParams defines parameters for CreateProject.
+type CreateProjectParams struct {
+	// IdempotencyKey Reuse the same key and normalized content after an ambiguous result. Scoped to the verified actor and repository across resource types.
+	IdempotencyKey string `json:"Idempotency-Key"`
+
+	// XCSRFToken Required for Cookie Session writes; validated by the existing session authenticator.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// UpdateProjectParams defines parameters for UpdateProject.
+type UpdateProjectParams struct {
+	// XCSRFToken Required for Cookie Session writes; validated by the existing session authenticator.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// ListProjectItemsParams defines parameters for ListProjectItems.
+type ListProjectItemsParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// AddProjectItemParams defines parameters for AddProjectItem.
+type AddProjectItemParams struct {
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// RemoveProjectItemParams defines parameters for RemoveProjectItem.
+type RemoveProjectItemParams struct {
+	ExpectedVersion int64   `form:"expectedVersion" json:"expectedVersion"`
+	XCSRFToken      *string `json:"X-CSRF-Token,omitempty"`
+}
+
 // DeleteSessionParams defines parameters for DeleteSession.
 type DeleteSessionParams struct {
 	Origin     string  `json:"Origin"`
@@ -615,6 +1161,42 @@ type SubmitAttendancePunchJSONRequestBody = PunchRequest
 
 // PreflightAttendancePunchJSONRequestBody defines body for PreflightAttendancePunch for application/json ContentType.
 type PreflightAttendancePunchJSONRequestBody = PunchPreflightRequest
+
+// CreateDiscussionJSONRequestBody defines body for CreateDiscussion for application/json ContentType.
+type CreateDiscussionJSONRequestBody = DiscussionCreation
+
+// UpdateDiscussionJSONRequestBody defines body for UpdateDiscussion for application/json ContentType.
+type UpdateDiscussionJSONRequestBody = DiscussionUpdate
+
+// CreateDiscussionCommentJSONRequestBody defines body for CreateDiscussionComment for application/json ContentType.
+type CreateDiscussionCommentJSONRequestBody = DiscussionCommentCreation
+
+// UpdateDiscussionCommentJSONRequestBody defines body for UpdateDiscussionComment for application/json ContentType.
+type UpdateDiscussionCommentJSONRequestBody = DiscussionCommentUpdate
+
+// CreateIssueJSONRequestBody defines body for CreateIssue for application/json ContentType.
+type CreateIssueJSONRequestBody = IssueCreation
+
+// UpdateIssueJSONRequestBody defines body for UpdateIssue for application/json ContentType.
+type UpdateIssueJSONRequestBody = IssueUpdate
+
+// CreateLabelJSONRequestBody defines body for CreateLabel for application/json ContentType.
+type CreateLabelJSONRequestBody = LabelCreation
+
+// CreateMilestoneJSONRequestBody defines body for CreateMilestone for application/json ContentType.
+type CreateMilestoneJSONRequestBody = MilestoneCreation
+
+// UpdateMilestoneJSONRequestBody defines body for UpdateMilestone for application/json ContentType.
+type UpdateMilestoneJSONRequestBody = MilestoneUpdate
+
+// CreateProjectJSONRequestBody defines body for CreateProject for application/json ContentType.
+type CreateProjectJSONRequestBody = ProjectCreation
+
+// UpdateProjectJSONRequestBody defines body for UpdateProject for application/json ContentType.
+type UpdateProjectJSONRequestBody = ProjectUpdate
+
+// AddProjectItemJSONRequestBody defines body for AddProjectItem for application/json ContentType.
+type AddProjectItemJSONRequestBody = ProjectItemAddition
 
 // CreateSessionJSONRequestBody defines body for CreateSession for application/json ContentType.
 type CreateSessionJSONRequestBody = CreateSessionJSONBody
@@ -697,6 +1279,81 @@ type ServerInterface interface {
 	// GetRepository Read a repository as a current group member
 	// (GET /api/v1/repositories/{id})
 	GetRepository(w http.ResponseWriter, r *http.Request, id string)
+	// ListDiscussions List member-visible discussions in descending shared-number order
+	// (GET /api/v1/repositories/{repositoryId}/discussions)
+	ListDiscussions(w http.ResponseWriter, r *http.Request, repositoryId string, params ListDiscussionsParams)
+	// CreateDiscussion Create a discussion as a current member using the shared repository number
+	// (POST /api/v1/repositories/{repositoryId}/discussions)
+	CreateDiscussion(w http.ResponseWriter, r *http.Request, repositoryId string, params CreateDiscussionParams)
+	// GetDiscussion Read a discussion as a current repository member
+	// (GET /api/v1/repositories/{repositoryId}/discussions/{id})
+	GetDiscussion(w http.ResponseWriter, r *http.Request, repositoryId string, id string)
+	// UpdateDiscussion Author-only topic content update with expected version
+	// (PATCH /api/v1/repositories/{repositoryId}/discussions/{id})
+	UpdateDiscussion(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params UpdateDiscussionParams)
+	// ListDiscussionComments List flat comments in ascending creation-time and ID order
+	// (GET /api/v1/repositories/{repositoryId}/discussions/{id}/comments)
+	ListDiscussionComments(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params ListDiscussionCommentsParams)
+	// CreateDiscussionComment Add a flat comment as a current member; no repository number allocated
+	// (POST /api/v1/repositories/{repositoryId}/discussions/{id}/comments)
+	CreateDiscussionComment(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params CreateDiscussionCommentParams)
+	// UpdateDiscussionComment Only this comment author may edit, using expected version
+	// (PATCH /api/v1/repositories/{repositoryId}/discussions/{id}/comments/{commentId})
+	UpdateDiscussionComment(w http.ResponseWriter, r *http.Request, repositoryId string, id string, commentId string, params UpdateDiscussionCommentParams)
+	// ListIssues List issues for a current repository member in descending shared-number order
+	// (GET /api/v1/repositories/{repositoryId}/issues)
+	ListIssues(w http.ResponseWriter, r *http.Request, repositoryId string, params ListIssuesParams)
+	// CreateIssue Create an open issue as a current member; shared repository number and idempotent creation
+	// (POST /api/v1/repositories/{repositoryId}/issues)
+	CreateIssue(w http.ResponseWriter, r *http.Request, repositoryId string, params CreateIssueParams)
+	// GetIssue Read an issue as a current repository member
+	// (GET /api/v1/repositories/{repositoryId}/issues/{id})
+	GetIssue(w http.ResponseWriter, r *http.Request, repositoryId string, id string)
+	// UpdateIssue Creator-only content and state update; expected version required; open to in_progress to completed to open
+	// (PATCH /api/v1/repositories/{repositoryId}/issues/{id})
+	UpdateIssue(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params UpdateIssueParams)
+	// ListLabels List the current member-visible label catalog
+	// (GET /api/v1/repositories/{repositoryId}/labels)
+	ListLabels(w http.ResponseWriter, r *http.Request, repositoryId string, params ListLabelsParams)
+	// CreateLabel Create an immutable, unique-name repository label without allocating a shared number
+	// (POST /api/v1/repositories/{repositoryId}/labels)
+	CreateLabel(w http.ResponseWriter, r *http.Request, repositoryId string, params CreateLabelParams)
+	// ListMilestones listMilestones: current repository members read/create; creator-only versioned updates
+	// (GET /api/v1/repositories/{repositoryId}/milestones)
+	ListMilestones(w http.ResponseWriter, r *http.Request, repositoryId string, params ListMilestonesParams)
+	// CreateMilestone createMilestone: current repository members read/create; creator-only versioned updates
+	// (POST /api/v1/repositories/{repositoryId}/milestones)
+	CreateMilestone(w http.ResponseWriter, r *http.Request, repositoryId string, params CreateMilestoneParams)
+	// GetMilestone getMilestone: current repository members read/create; creator-only versioned updates
+	// (GET /api/v1/repositories/{repositoryId}/milestones/{id})
+	GetMilestone(w http.ResponseWriter, r *http.Request, repositoryId string, id string)
+	// UpdateMilestone updateMilestone: current repository members read/create; creator-only versioned updates
+	// (PATCH /api/v1/repositories/{repositoryId}/milestones/{id})
+	UpdateMilestone(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params UpdateMilestoneParams)
+	// ListProjects listProjects: current repository members read/create; creator-only versioned updates
+	// (GET /api/v1/repositories/{repositoryId}/projects)
+	ListProjects(w http.ResponseWriter, r *http.Request, repositoryId string, params ListProjectsParams)
+	// CreateProject createProject: current repository members read/create; creator-only versioned updates
+	// (POST /api/v1/repositories/{repositoryId}/projects)
+	CreateProject(w http.ResponseWriter, r *http.Request, repositoryId string, params CreateProjectParams)
+	// GetProject getProject: current repository members read/create; creator-only versioned updates
+	// (GET /api/v1/repositories/{repositoryId}/projects/{id})
+	GetProject(w http.ResponseWriter, r *http.Request, repositoryId string, id string)
+	// UpdateProject updateProject: current repository members read/create; creator-only versioned updates
+	// (PATCH /api/v1/repositories/{repositoryId}/projects/{id})
+	UpdateProject(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params UpdateProjectParams)
+	// ListProjectItems listProjectItems
+	// (GET /api/v1/repositories/{repositoryId}/projects/{id}/items)
+	ListProjectItems(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params ListProjectItemsParams)
+	// AddProjectItem addProjectItem
+	// (POST /api/v1/repositories/{repositoryId}/projects/{id}/items)
+	AddProjectItem(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params AddProjectItemParams)
+	// RemoveProjectItem removeProjectItem
+	// (DELETE /api/v1/repositories/{repositoryId}/projects/{id}/items/{itemId})
+	RemoveProjectItem(w http.ResponseWriter, r *http.Request, repositoryId string, id string, itemId string, params RemoveProjectItemParams)
+	// GetRepositoryStatistics Current complete repository counts; no cached or page-derived totals
+	// (GET /api/v1/repositories/{repositoryId}/statistics)
+	GetRepositoryStatistics(w http.ResponseWriter, r *http.Request, repositoryId string)
 	// DeleteSession Revoke browser session before clearing its cookie
 	// (DELETE /api/v1/session)
 	DeleteSession(w http.ResponseWriter, r *http.Request, params DeleteSessionParams)
@@ -1596,6 +2253,1414 @@ func (siw *ServerInterfaceWrapper) GetRepository(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
+// ListDiscussions operation middleware
+func (siw *ServerInterfaceWrapper) ListDiscussions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListDiscussionsParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "query" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "query", r.URL.Query(), &params.Query, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "query"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "query", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListDiscussions(w, r, repositoryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateDiscussion operation middleware
+func (siw *ServerInterfaceWrapper) CreateDiscussion(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateDiscussionParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateDiscussion(w, r, repositoryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetDiscussion operation middleware
+func (siw *ServerInterfaceWrapper) GetDiscussion(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetDiscussion(w, r, repositoryId, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateDiscussion operation middleware
+func (siw *ServerInterfaceWrapper) UpdateDiscussion(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateDiscussionParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateDiscussion(w, r, repositoryId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListDiscussionComments operation middleware
+func (siw *ServerInterfaceWrapper) ListDiscussionComments(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListDiscussionCommentsParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListDiscussionComments(w, r, repositoryId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateDiscussionComment operation middleware
+func (siw *ServerInterfaceWrapper) CreateDiscussionComment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateDiscussionCommentParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateDiscussionComment(w, r, repositoryId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateDiscussionComment operation middleware
+func (siw *ServerInterfaceWrapper) UpdateDiscussionComment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "commentId" -------------
+	var commentId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "commentId", r.PathValue("commentId"), &commentId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "commentId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateDiscussionCommentParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateDiscussionComment(w, r, repositoryId, id, commentId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListIssues operation middleware
+func (siw *ServerInterfaceWrapper) ListIssues(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListIssuesParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "state" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "state", r.URL.Query(), &params.State, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "state"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "state", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "query" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "query", r.URL.Query(), &params.Query, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "query"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "query", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListIssues(w, r, repositoryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateIssue operation middleware
+func (siw *ServerInterfaceWrapper) CreateIssue(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateIssueParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateIssue(w, r, repositoryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetIssue operation middleware
+func (siw *ServerInterfaceWrapper) GetIssue(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetIssue(w, r, repositoryId, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateIssue operation middleware
+func (siw *ServerInterfaceWrapper) UpdateIssue(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateIssueParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateIssue(w, r, repositoryId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListLabels operation middleware
+func (siw *ServerInterfaceWrapper) ListLabels(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListLabelsParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListLabels(w, r, repositoryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateLabel operation middleware
+func (siw *ServerInterfaceWrapper) CreateLabel(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateLabelParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateLabel(w, r, repositoryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListMilestones operation middleware
+func (siw *ServerInterfaceWrapper) ListMilestones(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListMilestonesParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListMilestones(w, r, repositoryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateMilestone operation middleware
+func (siw *ServerInterfaceWrapper) CreateMilestone(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateMilestoneParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateMilestone(w, r, repositoryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetMilestone operation middleware
+func (siw *ServerInterfaceWrapper) GetMilestone(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetMilestone(w, r, repositoryId, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateMilestone operation middleware
+func (siw *ServerInterfaceWrapper) UpdateMilestone(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateMilestoneParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateMilestone(w, r, repositoryId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListProjects operation middleware
+func (siw *ServerInterfaceWrapper) ListProjects(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListProjectsParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListProjects(w, r, repositoryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateProject operation middleware
+func (siw *ServerInterfaceWrapper) CreateProject(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateProjectParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateProject(w, r, repositoryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetProject operation middleware
+func (siw *ServerInterfaceWrapper) GetProject(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetProject(w, r, repositoryId, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateProject operation middleware
+func (siw *ServerInterfaceWrapper) UpdateProject(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateProjectParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateProject(w, r, repositoryId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListProjectItems operation middleware
+func (siw *ServerInterfaceWrapper) ListProjectItems(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListProjectItemsParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListProjectItems(w, r, repositoryId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AddProjectItem operation middleware
+func (siw *ServerInterfaceWrapper) AddProjectItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AddProjectItemParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AddProjectItem(w, r, repositoryId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RemoveProjectItem operation middleware
+func (siw *ServerInterfaceWrapper) RemoveProjectItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RemoveProjectItemParams
+
+	// ------------- Required query parameter "expectedVersion" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "expectedVersion", r.URL.Query(), &params.ExpectedVersion, runtime.BindQueryParameterOptions{Type: "integer", Format: "int64"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "expectedVersion"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "expectedVersion", Err: err})
+		}
+		return
+	}
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RemoveProjectItem(w, r, repositoryId, id, itemId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetRepositoryStatistics operation middleware
+func (siw *ServerInterfaceWrapper) GetRepositoryStatistics(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetRepositoryStatistics(w, r, repositoryId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // DeleteSession operation middleware
 func (siw *ServerInterfaceWrapper) DeleteSession(w http.ResponseWriter, r *http.Request) {
 
@@ -1919,6 +3984,31 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/attendance/corrections/reviewer-groups", wrapper.ListAttendanceReviewerGroups)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories", wrapper.ListRepositories)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{id}", wrapper.GetRepository)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/issues", wrapper.ListIssues)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/issues", wrapper.CreateIssue)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/issues/{id}", wrapper.GetIssue)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/issues/{id}", wrapper.UpdateIssue)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/discussions", wrapper.ListDiscussions)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/discussions", wrapper.CreateDiscussion)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/discussions/{id}", wrapper.GetDiscussion)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/discussions/{id}", wrapper.UpdateDiscussion)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/discussions/{id}/comments", wrapper.ListDiscussionComments)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/discussions/{id}/comments", wrapper.CreateDiscussionComment)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/discussions/{id}/comments/{commentId}", wrapper.UpdateDiscussionComment)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/labels", wrapper.ListLabels)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/labels", wrapper.CreateLabel)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/milestones", wrapper.ListMilestones)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/milestones", wrapper.CreateMilestone)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/milestones/{id}", wrapper.GetMilestone)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/milestones/{id}", wrapper.UpdateMilestone)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/projects", wrapper.ListProjects)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/projects", wrapper.CreateProject)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/projects/{id}", wrapper.GetProject)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/projects/{id}", wrapper.UpdateProject)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/projects/{id}/items", wrapper.ListProjectItems)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/projects/{id}/items", wrapper.AddProjectItem)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/projects/{id}/items/{itemId}", wrapper.RemoveProjectItem)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/statistics", wrapper.GetRepositoryStatistics)
 
 	return m
 }
@@ -1928,82 +4018,125 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"vwEA",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

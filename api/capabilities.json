@@ -74,22 +74,22 @@
       "specification": "docs/features/attendance-board.md"
     },
     "repository.labels": {
-      "kind": "scaffold",
       "contract": "repository/labels.yaml",
-      "specification": "docs/architecture/domain-model.md",
-      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+      "adapter": "backend/internal/business/repository/labels/http/routes.go",
+      "core": "backend/internal/business/repository/labels/labels.go",
+      "specification": "docs/features/labels.md"
     },
     "repository.milestones": {
-      "kind": "scaffold",
       "contract": "repository/milestones.yaml",
-      "specification": "docs/architecture/domain-model.md",
-      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+      "adapter": "backend/internal/business/repository/milestones/http/routes.go",
+      "core": "backend/internal/business/repository/milestones/milestone.go",
+      "specification": "docs/features/planning.md"
     },
     "issue": {
-      "kind": "scaffold",
       "contract": "issue/issues.yaml",
-      "specification": "docs/architecture/domain-model.md",
-      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+      "adapter": "backend/internal/business/issue/http/routes.go",
+      "core": "backend/internal/business/issue/issue.go",
+      "specification": "docs/features/issues.md"
     },
     "issue.types": {
       "kind": "scaffold",
@@ -104,10 +104,10 @@
       "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
     },
     "discussion": {
-      "kind": "scaffold",
       "contract": "discussion/discussions.yaml",
-      "specification": "docs/architecture/domain-model.md",
-      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "core": "backend/internal/business/discussion/discussion.go",
+      "specification": "docs/features/discussions.md"
     },
     "discussion.categories": {
       "kind": "scaffold",
@@ -116,22 +116,22 @@
       "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
     },
     "discussion.comments": {
-      "kind": "scaffold",
       "contract": "discussion/comments.yaml",
-      "specification": "docs/architecture/domain-model.md",
-      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "core": "backend/internal/business/discussion/discussion.go",
+      "specification": "docs/features/discussions.md"
     },
     "project": {
-      "kind": "scaffold",
       "contract": "project/projects.yaml",
-      "specification": "docs/architecture/domain-model.md",
-      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/planning.md"
     },
     "project.items": {
-      "kind": "scaffold",
       "contract": "project/items.yaml",
-      "specification": "docs/architecture/domain-model.md",
-      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/planning.md"
     },
     "project.fields": {
       "kind": "scaffold",
@@ -144,6 +144,12 @@
       "contract": "project/views.yaml",
       "specification": "docs/architecture/domain-model.md",
       "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+    },
+    "repository.statistics": {
+      "contract": "repository/statistics.yaml",
+      "adapter": "backend/internal/business/repository/statistics/http/routes.go",
+      "core": "backend/internal/business/repository/statistics/statistics.go",
+      "specification": "docs/features/planning.md"
     }
   },
   "operations": [
@@ -548,6 +554,359 @@
         "backend/internal/business/summary/summarization/cloudtasks/queue.go"
       ],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
+    },
+    {
+      "operationId": "listIssues",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/issues",
+      "owner": "issue",
+      "adapter": "backend/internal/business/issue/http/routes.go",
+      "handler": "ListIssues",
+      "core": "backend/internal/business/issue/issue.go",
+      "specification": "docs/features/issues.md",
+      "consumers": [
+        "frontend/miniapp/src/business/issue/View.tsx",
+        "frontend/miniapp/src/business/project/Items.tsx"
+      ]
+    },
+    {
+      "operationId": "createIssue",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/issues",
+      "owner": "issue",
+      "adapter": "backend/internal/business/issue/http/routes.go",
+      "handler": "CreateIssue",
+      "core": "backend/internal/business/issue/issue.go",
+      "specification": "docs/features/issues.md",
+      "consumers": [
+        "frontend/miniapp/src/business/issue/View.tsx"
+      ]
+    },
+    {
+      "operationId": "getIssue",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/issues/{id}",
+      "owner": "issue",
+      "adapter": "backend/internal/business/issue/http/routes.go",
+      "handler": "GetIssue",
+      "core": "backend/internal/business/issue/issue.go",
+      "specification": "docs/features/issues.md",
+      "consumers": [
+        "frontend/miniapp/src/business/issue/View.tsx"
+      ]
+    },
+    {
+      "operationId": "updateIssue",
+      "audience": "public",
+      "method": "PATCH",
+      "path": "/api/v1/repositories/{repositoryId}/issues/{id}",
+      "owner": "issue",
+      "adapter": "backend/internal/business/issue/http/routes.go",
+      "handler": "UpdateIssue",
+      "core": "backend/internal/business/issue/issue.go",
+      "specification": "docs/features/issues.md",
+      "consumers": [
+        "frontend/miniapp/src/business/issue/View.tsx"
+      ]
+    },
+    {
+      "operationId": "listDiscussions",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/discussions",
+      "owner": "discussion",
+      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "handler": "ListDiscussions",
+      "core": "backend/internal/business/discussion/discussion.go",
+      "specification": "docs/features/discussions.md",
+      "consumers": [
+        "frontend/miniapp/src/business/discussion/View.tsx"
+      ]
+    },
+    {
+      "operationId": "createDiscussion",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/discussions",
+      "owner": "discussion",
+      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "handler": "CreateDiscussion",
+      "core": "backend/internal/business/discussion/discussion.go",
+      "specification": "docs/features/discussions.md",
+      "consumers": [
+        "frontend/miniapp/src/business/discussion/View.tsx"
+      ]
+    },
+    {
+      "operationId": "getDiscussion",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/discussions/{id}",
+      "owner": "discussion",
+      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "handler": "GetDiscussion",
+      "core": "backend/internal/business/discussion/discussion.go",
+      "specification": "docs/features/discussions.md",
+      "consumers": [
+        "frontend/miniapp/src/business/discussion/View.tsx"
+      ]
+    },
+    {
+      "operationId": "updateDiscussion",
+      "audience": "public",
+      "method": "PATCH",
+      "path": "/api/v1/repositories/{repositoryId}/discussions/{id}",
+      "owner": "discussion",
+      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "handler": "UpdateDiscussion",
+      "core": "backend/internal/business/discussion/discussion.go",
+      "specification": "docs/features/discussions.md",
+      "consumers": [
+        "frontend/miniapp/src/business/discussion/View.tsx"
+      ]
+    },
+    {
+      "operationId": "listDiscussionComments",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/discussions/{id}/comments",
+      "owner": "discussion.comments",
+      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "handler": "ListDiscussionComments",
+      "core": "backend/internal/business/discussion/discussion.go",
+      "specification": "docs/features/discussions.md",
+      "consumers": [
+        "frontend/miniapp/src/business/discussion/Comments.tsx"
+      ]
+    },
+    {
+      "operationId": "createDiscussionComment",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/discussions/{id}/comments",
+      "owner": "discussion.comments",
+      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "handler": "CreateDiscussionComment",
+      "core": "backend/internal/business/discussion/discussion.go",
+      "specification": "docs/features/discussions.md",
+      "consumers": [
+        "frontend/miniapp/src/business/discussion/Comments.tsx"
+      ]
+    },
+    {
+      "operationId": "updateDiscussionComment",
+      "audience": "public",
+      "method": "PATCH",
+      "path": "/api/v1/repositories/{repositoryId}/discussions/{id}/comments/{commentId}",
+      "owner": "discussion.comments",
+      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "handler": "UpdateDiscussionComment",
+      "core": "backend/internal/business/discussion/discussion.go",
+      "specification": "docs/features/discussions.md",
+      "consumers": [
+        "frontend/miniapp/src/business/discussion/Comments.tsx"
+      ]
+    },
+    {
+      "operationId": "listLabels",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/labels",
+      "owner": "repository.labels",
+      "adapter": "backend/internal/business/repository/labels/http/routes.go",
+      "handler": "ListLabels",
+      "core": "backend/internal/business/repository/labels/labels.go",
+      "specification": "docs/features/labels.md",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/labels/View.tsx",
+        "frontend/miniapp/src/business/repository/labels/Picker.tsx"
+      ]
+    },
+    {
+      "operationId": "createLabel",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/labels",
+      "owner": "repository.labels",
+      "adapter": "backend/internal/business/repository/labels/http/routes.go",
+      "handler": "CreateLabel",
+      "core": "backend/internal/business/repository/labels/labels.go",
+      "specification": "docs/features/labels.md",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/labels/View.tsx"
+      ]
+    },
+    {
+      "operationId": "listMilestones",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/milestones",
+      "owner": "repository.milestones",
+      "adapter": "backend/internal/business/repository/milestones/http/routes.go",
+      "handler": "ListMilestones",
+      "core": "backend/internal/business/repository/milestones/milestone.go",
+      "specification": "docs/features/planning.md",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/milestones/View.tsx",
+        "frontend/miniapp/src/business/repository/milestones/Picker.tsx"
+      ]
+    },
+    {
+      "operationId": "createMilestone",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/milestones",
+      "owner": "repository.milestones",
+      "adapter": "backend/internal/business/repository/milestones/http/routes.go",
+      "handler": "CreateMilestone",
+      "core": "backend/internal/business/repository/milestones/milestone.go",
+      "specification": "docs/features/planning.md",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/milestones/View.tsx"
+      ]
+    },
+    {
+      "operationId": "getMilestone",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/milestones/{id}",
+      "owner": "repository.milestones",
+      "adapter": "backend/internal/business/repository/milestones/http/routes.go",
+      "handler": "GetMilestone",
+      "core": "backend/internal/business/repository/milestones/milestone.go",
+      "specification": "docs/features/planning.md",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/milestones/View.tsx"
+      ]
+    },
+    {
+      "operationId": "updateMilestone",
+      "audience": "public",
+      "method": "PATCH",
+      "path": "/api/v1/repositories/{repositoryId}/milestones/{id}",
+      "owner": "repository.milestones",
+      "adapter": "backend/internal/business/repository/milestones/http/routes.go",
+      "handler": "UpdateMilestone",
+      "core": "backend/internal/business/repository/milestones/milestone.go",
+      "specification": "docs/features/planning.md",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/milestones/View.tsx"
+      ]
+    },
+    {
+      "operationId": "listProjects",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/projects",
+      "owner": "project",
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "handler": "ListProjects",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/planning.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/View.tsx"
+      ]
+    },
+    {
+      "operationId": "createProject",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/projects",
+      "owner": "project",
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "handler": "CreateProject",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/planning.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/View.tsx"
+      ]
+    },
+    {
+      "operationId": "getProject",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/projects/{id}",
+      "owner": "project",
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "handler": "GetProject",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/planning.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/View.tsx"
+      ]
+    },
+    {
+      "operationId": "updateProject",
+      "audience": "public",
+      "method": "PATCH",
+      "path": "/api/v1/repositories/{repositoryId}/projects/{id}",
+      "owner": "project",
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "handler": "UpdateProject",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/planning.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/View.tsx"
+      ]
+    },
+    {
+      "operationId": "listProjectItems",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/projects/{id}/items",
+      "owner": "project.items",
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "handler": "ListProjectItems",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/planning.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/Items.tsx"
+      ]
+    },
+    {
+      "operationId": "addProjectItem",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/projects/{id}/items",
+      "owner": "project.items",
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "handler": "AddProjectItem",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/planning.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/Items.tsx"
+      ]
+    },
+    {
+      "operationId": "removeProjectItem",
+      "audience": "public",
+      "method": "DELETE",
+      "path": "/api/v1/repositories/{repositoryId}/projects/{id}/items/{itemId}",
+      "owner": "project.items",
+      "adapter": "backend/internal/business/project/http/routes.go",
+      "handler": "RemoveProjectItem",
+      "core": "backend/internal/business/project/project.go",
+      "specification": "docs/features/planning.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/Items.tsx"
+      ]
+    },
+    {
+      "operationId": "getRepositoryStatistics",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/statistics",
+      "owner": "repository.statistics",
+      "adapter": "backend/internal/business/repository/statistics/http/routes.go",
+      "handler": "GetRepositoryStatistics",
+      "core": "backend/internal/business/repository/statistics/statistics.go",
+      "specification": "docs/features/planning.md",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/statistics/View.tsx"
+      ]
     }
   ],
   "events": [
@@ -622,6 +981,41 @@
       "entity": "CorrectionReview",
       "collection": "corrections",
       "path": "/api/v1/attendance/corrections"
+    },
+    {
+      "entity": "Issue",
+      "collection": "issues",
+      "path": "/api/v1/repositories/{repositoryId}/issues"
+    },
+    {
+      "entity": "Discussion",
+      "collection": "discussions",
+      "path": "/api/v1/repositories/{repositoryId}/discussions"
+    },
+    {
+      "entity": "DiscussionComment",
+      "collection": "comments",
+      "path": "/api/v1/repositories/{repositoryId}/discussions/{id}/comments"
+    },
+    {
+      "entity": "Label",
+      "collection": "labels",
+      "path": "/api/v1/repositories/{repositoryId}/labels"
+    },
+    {
+      "entity": "Milestone",
+      "collection": "milestones",
+      "path": "/api/v1/repositories/{repositoryId}/milestones"
+    },
+    {
+      "entity": "Project",
+      "collection": "projects",
+      "path": "/api/v1/repositories/{repositoryId}/projects"
+    },
+    {
+      "entity": "ProjectItem",
+      "collection": "items",
+      "path": "/api/v1/repositories/{repositoryId}/projects/{id}/items"
     }
   ],
   "namingExceptions": {

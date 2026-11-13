@@ -15,8 +15,14 @@ import (
 	attendancehttp "github.com/963sup/line-mini-app-bot/internal/business/attendance/http"
 	attendanceline "github.com/963sup/line-mini-app-bot/internal/business/attendance/line"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/presentation"
+	discussionhttp "github.com/963sup/line-mini-app-bot/internal/business/discussion/http"
+	issuehttp "github.com/963sup/line-mini-app-bot/internal/business/issue/http"
+	projecthttp "github.com/963sup/line-mini-app-bot/internal/business/project/http"
 	repositoryhttp "github.com/963sup/line-mini-app-bot/internal/business/repository/http"
+	labelhttp "github.com/963sup/line-mini-app-bot/internal/business/repository/labels/http"
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/line"
+	milestonehttp "github.com/963sup/line-mini-app-bot/internal/business/repository/milestones/http"
+	statisticshttp "github.com/963sup/line-mini-app-bot/internal/business/repository/statistics/http"
 	"github.com/963sup/line-mini-app-bot/internal/diagnostics/geolocation"
 	identityhttp "github.com/963sup/line-mini-app-bot/internal/identity/http"
 	identityline "github.com/963sup/line-mini-app-bot/internal/identity/line"
@@ -81,6 +87,12 @@ func Run() (resultErr error) {
 	}
 	defer func() { resultErr = errors.Join(resultErr, closeRepositories()) }()
 	repositoryhttp.Register(mux, repositories, auth)
+	labelhttp.Register(mux, newLabels(repositories), auth)
+	milestonehttp.Register(mux, newMilestones(repositories), auth)
+	projecthttp.Register(mux, newProjects(repositories), auth)
+	statisticshttp.Register(mux, newStatistics(repositories), auth)
+	issuehttp.Register(mux, newIssues(repositories), auth)
+	discussionhttp.Register(mux, newDiscussions(repositories), auth)
 	var repositoryObserver *repositoryline.Observer
 	if repositories != nil {
 		repositoryObserver = &repositoryline.Observer{Store: repositories.Store}

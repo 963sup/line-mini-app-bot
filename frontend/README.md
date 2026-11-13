@@ -42,12 +42,18 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 不建立空畫面或讓瀏覽器呼叫內部摘要 worker。新增摘要／天氣網頁及公開 API 必須另定操作契約。
 
 - [群組 Repository](../docs/features/repository.md)
+- [基礎雛形與完成界線](../docs/features/repository-prototype.md)
+- [空間標籤目錄](../docs/features/labels.md)：正式空間「標籤」入口提供列出及建立。
+- [空間討論與留言](../docs/features/discussions.md)：正式空間主題、作者編輯及單層留言。
+- [空間事項第一階段](../docs/features/issues.md)：正式空間已接入事項讀寫及建立者操作。
 
 ## shadcn 頁內組合
 
 補卡確認使用 Checkbox；空間預覽的清單與看板動作使用 Button、狀態篩選使用單選 ToggleGroup。PagePanel 沿用 Card 預設圓角與內距。Checkbox、Toggle、ToggleGroup 透過固定版 CLI 的 registry 輸出安裝，只修正專案 alias，沿用既有 radix-ui 依賴。sidebar-07 的 asChild 原生 button 保留，屬於官方元件組合。審核清單同步行為見 [出勤查詢與更正](../docs/features/attendance-queries.md#審核畫面狀態同步)。
 
 出勤明細使用 Table；補卡／審核申請、請假紀錄與空間清單使用 Item；空間預覽搜尋使用 InputGroup。空白清單在成功查詢後以 Empty 呈現，載入與查詢失敗維持獨立狀態。安裝來源及用途見 [shadcn 指引](../docs/tooling/mcp/shadcn.md#頁面元件應用)。
+
+- [里程碑、專案與統計](../docs/features/planning.md)
 
 ## 協作能力分佈與交付狀態
 
