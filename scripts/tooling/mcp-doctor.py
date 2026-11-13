@@ -7,6 +7,7 @@ import queue
 import signal
 import subprocess
 import threading
+import time
 import tomllib
 import urllib.request
 
@@ -71,8 +72,12 @@ def probe_server(name, config, call=None, arguments=None):
             process.stdin.flush()
             if wanted is None:
                 return None
+            deadline = time.monotonic() + config.get('startup_timeout_sec', 45)
             while True:
-                item = inbox.get(timeout=config.get('startup_timeout_sec', 45))
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise queue.Empty
+                item = inbox.get(timeout=remaining)
                 if item is None:
                     raise RuntimeError('server exited before reply')
                 if item.get('id') == wanted:

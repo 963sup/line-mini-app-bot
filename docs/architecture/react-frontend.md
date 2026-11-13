@@ -6,12 +6,12 @@ Next.js Pages Router 靜態輸出，React Strict Mode 啟用。功能入口位�
 - `platform/line/sdk.ts`：官方 SDK script loader 與初始化共用 Promise。全域僅有官方 `window.liff`，沒有自訂 client、DOM dataset 或身分事件橋接。
 - `shared/http/lifecycle.ts`：AbortController、獨立 deadline、世代檢查。即使底層忽略 abort，也不套用過期回應。
 - `shared/location/position.ts`：單次定位，成功、錯誤、逾時、取消一律 clearWatch；拒收無效座標及遲到 callback。權限等待另有 15 秒期限。
-- `shell/AppFrame.tsx`：所有應用頁共用官方 sidebar-07 的外框、Breadcrumb 與收合開關；`shell/sidebar-07/` 保留 AppSidebar、NavMain、NavProjects、NavUser、TeamSwitcher 及 SidebarRail 結構。正式入口與預覽共用同一個 SidebarProvider；預覽只傳入局部選單。身分操作由 Shell 注入 NavUser，頁面不再重複顯示身分卡。定位診斷及預覽不要求 LINE 登入。
+- `shell/AppFrame.tsx`：所有應用頁共用官方 sidebar-07 的外框、Breadcrumb 與收合開關；`shell/sidebar-07/` 保留 AppSidebar、NavMain、NavProjects、NavUser、TeamSwitcher 及 SidebarRail 結構。身分操作由 Shell 注入 NavUser，頁面不再重複顯示身分卡。定位診斷不要求 LINE 登入；空間 UI 預覽及專用導覽已移除。
 - `business/repository/RepositoryContext.tsx`：在正式 Shell 的 SessionProvider 之下共用側欄空間清單與詳情；列表首次展開才載入，空間頁直接進入時自動載入。以本人、epoch 與空間作用域隔離資料並取消晚回應；群組專用入口不退回一般列表。詳細契約見 [群組 Repository](../features/repository.md)。
 - `shell/Shell.tsx`：身分世代變更時重建功能子樹，清除舊使用者資料、表單與重試狀態。`pagehide` 取消請求；BFCache `pageshow.persisted` 重新驗證。
 - `shared/ui/` 與 `shared/utils.ts`：shadcn primitives 與樣式工具，由 shell／identity／business 組合使用；不擁有業務 API、授權判定或領域狀態。生成設定在 workspace `components.json`，`@/*` 對應 `src/*`。
 
-Tailwind 由 PostCSS 編譯 `styles/globals.css`，透過 Pages Router `_app.tsx` 載入，包含 Preflight、主題與 utilities。正式頁、定位頁及空間預覽均使用 Tailwind utilities 與 shadcn 元件；已移除獨立頁面 CSS、asset-map 及 CSS 複製流程。樣式入口只保留主題變數與必要的 base layer，不以廣泛選擇器覆寫元件。工具與 MCP 流程見 [shadcn UI 與 MCP](../tooling/mcp/shadcn.md)。
+Tailwind 由 PostCSS 編譯 `styles/globals.css`，透過 Pages Router `_app.tsx` 載入，包含 Preflight、主題與 utilities。正式頁與定位頁均使用 Tailwind utilities 與 shadcn 元件；已移除獨立頁面 CSS、asset-map 及 CSS 複製流程。樣式入口只保留主題變數與必要的 base layer，不以廣泛選擇器覆寫元件。工具與 MCP 流程見 [shadcn UI 與 MCP](../tooling/mcp/shadcn.md)。
 
 月摘要與明細分開請求，cursor 翻頁只讀明細；條件變更立即清空原畫面並取消舊讀取。更正申請同一份序列化草稿沿用同一 Idempotency-Key，內容變更才換碼；同步 ref 防止連點。審核必須先讀取目前編號，變更編號即作廢舊內容。
 

@@ -25,13 +25,11 @@ import {
 
 export function ServiceSidebar({
   workflow,
-  contextItems,
   account,
   repositoryItem,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   workflow: string;
-  contextItems?: NavItem[];
   account: AccountMenu;
   repositoryItem?: NavItem;
 }) {
@@ -65,16 +63,6 @@ export function ServiceSidebar({
       icon: NotebookPen,
       isActive: workflow === "journal",
     },
-    ...(contextItems
-      ? [
-          {
-            title: "示範空間",
-            icon: Layers,
-            isActive: true,
-            items: contextItems,
-          },
-        ]
-      : []),
   ];
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -86,14 +74,7 @@ export function ServiceSidebar({
               logo: Building2,
               plan: "正式服務",
               url: "/miniapp",
-              isActive: workflow !== "preview",
-            },
-            {
-              name: "空間 UI 預覽",
-              logo: Layers,
-              plan: "示範資料",
-              url: "/miniapp/workspace-preview",
-              isActive: workflow === "preview",
+              isActive: true,
             },
           ]}
         />

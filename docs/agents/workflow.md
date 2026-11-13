@@ -144,12 +144,30 @@ commit 本次變更 → 推送 work → 將 main 快轉到同一提交，不再�
   多個agent同時修改index、commit或推送分支。純文件修改沿用適用的文件／設定檢查；
   已驗證且內容未變的程式沿用既有證據，不為發布重跑無關完整測試。
 
+### GitHub MCP 與 Git CLI 分工
+
+遠端讀取、分支 ref、PR 與 CI 操作優先使用當前主機已曝光且能力足夠的 GitHub MCP；
+先核對實際工具 schema，沿用同任務仍有效的 inventory。Git CLI 處理本機 diff、stage、
+commit、fetch 與祖先檢查；只有 MCP 缺少所需能力或不能保留已驗證提交時，才補上
+對應遠端 CLI 操作，並在交付中說明缺口。操作指南見 [GitHub](../tooling/mcp/github.md)。
+
+發布對象是已驗證的完整 commit SHA。若 MCP 支援精確 ref 更新，優先指定該 SHA、
+`force=false`，並在工具支援時提供剛讀取的 `expected_sha`。若目標 commit 尚未在遠端，
+而 MCP 無法上傳原始 Git objects 或保留其 SHA，可用普通 CLI push 上傳該確切提交；
+之後仍優先用 MCP 讀取或快轉已有 commit 的 ref。不得透過逐檔寫入或重建 commit
+產生不同 SHA，卻宣稱與本機驗證提交相同。
+
+MCP／CLI 都受相同授權、分支保護與審核限制。任一路徑被安全審核拒絕時，不得換
+transport 或間接呼叫繞過；先回報具體動作、原因及已完成部分，依新的明確授權或
+可證明安全的證據再處理。工具選擇不增加遠端寫入、部署或資料操作授權。
+
 ### 執行順序
 
 1. 核對 repository、origin URL、當前branch、HEAD、完整status與diff，確認發布對象
    是本儲存庫的work/main。檢查本次來源、機密及產物的納入規則，保留無關變更；
    不能因目錄名或已安裝工具就認定應提交。
-2. 明確fetch兩個分支（本環境的預設refspec可能只追蹤HEAD）：
+2. 優先透過 GitHub MCP 讀取 `work`／`main` 的實際 head，記錄 SHA；再明確 fetch
+   兩個分支供本機祖先檢查（本環境的預設refspec可能只追蹤HEAD）：
 
    ```bash
    git fetch origin refs/heads/work:refs/remotes/origin/work refs/heads/main:refs/remotes/origin/main
@@ -160,12 +178,14 @@ commit 本次變更 → 推送 work → 將 main 快轉到同一提交，不再�
    不自動重寫已發布提交；無法安全整合就回報阻礙。
 3. 明確stage本任務paths或hunks，檢查cached diff與whitespace，確認無關檔案仍未stage，
    再建立描述最終行為的commit。記錄該提交完整SHA；既有AGENTS等本機差異不自動納入。
-4. 再確認遠端work與main均可前進至該SHA，先以普通push推送該**確切SHA**到
-   `refs/heads/work`。成功後重新fetch main，再以 `git merge-base --is-ancestor`
-   檢查main仍是該SHA的祖先；成立才普通push同一SHA到 `refs/heads/main`。
+4. 再確認遠端work與main均可前進至該SHA，依上述能力分工先發布該**確切SHA**到
+   `refs/heads/work`。成功後重新讀取並 fetch main，再以 `git merge-base --is-ancestor`
+   檢查main仍是該SHA的祖先；成立才以非force操作將 `refs/heads/main` 快轉到同一SHA。
+   MCP ref 更新若因 `expected_sha` 不符而拒絕，先重讀與檢查，不沿用舊值重試。
    不需要切換main或動到其他未提交檔案。
-5. 用 `git ls-remote origin refs/heads/work refs/heads/main` 核對兩個遠端SHA均等於
-   已驗證提交，並核對本機status。若發布期間有其他寫入者前進分支，重新讀取並回報
+5. 優先用 GitHub MCP 核對兩個遠端SHA均等於已驗證提交；需要CLI補核對時使用
+   `git ls-remote origin refs/heads/work refs/heads/main`。同時核對本機status，並記錄實際
+   使用的MCP操作與CLI補充。若發布期間有其他寫入者前進分支，重新讀取並回報
    實際狀態，不能聲稱兩分支仍一致。最終回覆提供commit連結、兩分支結果與保留的本機差異。
 
 全程不用force／force-with-lease、reset、merge commit或branch protection繞過來代替ff。

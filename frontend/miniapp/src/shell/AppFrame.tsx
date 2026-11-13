@@ -1,7 +1,6 @@
 import React from "react";
 import Head from "next/head";
 import type { NavItem } from "./sidebar-07/nav-main";
-import type { LucideIcon } from "lucide-react";
 import { ServiceSidebar } from "./ServiceSidebar";
 import type { AccountMenu } from "./sidebar-07/nav-user";
 import {
@@ -24,12 +23,6 @@ type FrameProps = {
   title: string;
   workflow: string;
   children: React.ReactNode;
-  contextItems?: {
-    label: string;
-    icon: LucideIcon;
-    onSelect?: () => void;
-    active: boolean;
-  }[];
   account?: AccountMenu;
   repositoryItem?: NavItem;
   wide?: boolean;
@@ -39,15 +32,13 @@ export function AppFrame({
   title,
   workflow,
   children,
-  contextItems,
   account,
   repositoryItem,
   wide = false,
 }: FrameProps) {
   const guest = {
-    name: workflow === "preview" ? "預覽模式" : "定位診斷",
-    status:
-      workflow === "preview" ? "示範資料，不寫入正式系統" : "不需 LINE 登入",
+    name: "定位診斷",
+    status: "不需 LINE 登入",
     actions: [{ label: "返回正式服務", url: "/miniapp" }],
   };
   return (
@@ -59,12 +50,6 @@ export function AppFrame({
         workflow={workflow}
         account={account || guest}
         repositoryItem={repositoryItem}
-        contextItems={contextItems?.map((item) => ({
-          title: item.label,
-          icon: item.icon,
-          isActive: item.active,
-          onSelect: item.onSelect,
-        }))}
       />
       <SidebarInset className="min-w-0">
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">

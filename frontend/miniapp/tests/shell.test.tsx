@@ -62,6 +62,16 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
   try {
     await act(async () => { root.render(<Shell title="授權審核" workflow="review"><PrivateContent /></Shell>); await flush(); });
     await showSidebar();
+    await act(async () => {
+      document.querySelector<HTMLElement>('[aria-label="切換工作區"]')!.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+      await flush();
+    });
+    assert.equal(!!document.querySelector('a[href="/miniapp/workspace-preview"]'), false, "retired preview must not remain in workspace navigation");
+    assert.ok(document.querySelector('[role="menu"] a[href="/miniapp"]'), "formal service must remain available");
+    await act(async () => {
+      document.querySelector<HTMLElement>('[role="menu"]')!.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+      await flush();
+    });
     assert.match(document.getElementById("mini-status")!.textContent!, /初始化暫時失敗/);
     await openMenu();
     assert.equal(document.getElementById("verify")!.textContent, "重試初始化");

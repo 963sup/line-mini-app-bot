@@ -122,7 +122,7 @@ Codex 預設不得直接修改 `frontend/miniapp/src/shared/ui/*.tsx`、`shared/
 
 ## Repository publication default
 
-For future user-requested repository changes, successful task verification includes committing only task-owned changes, pushing `work`, and fast-forwarding `main` to the same verified commit without asking again. Follow [the publication workflow](docs/agents/workflow.md#repository-publication). User instructions such as no push, analysis/plan only, or local only override this default. Unrelated changes and manual cloud deployment are outside this authorization; never force or bypass protected branches.
+For future user-requested repository changes, successful task verification includes committing only task-owned changes, publishing `work`, and fast-forwarding `main` to the same verified commit without asking again. Use GitHub MCP first for supported remote operations and Git CLI for local Git work or a documented capability gap; follow [the publication workflow](docs/agents/workflow.md#repository-publication). User instructions such as no push, analysis/plan only, or local only override this default. Unrelated changes and manual cloud deployment are outside this authorization; never force or bypass protected branches or approval rejections.
 
 ## gcloud sign-in routing
 

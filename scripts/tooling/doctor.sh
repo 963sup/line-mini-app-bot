@@ -38,8 +38,8 @@ for tool in gopls docker java; do
 done
 
 # Query installation metadata only; do not install or authenticate during doctor.
-if cloud_sdk_dir="$(mise where gcloud@592.0.0 2>/dev/null)" && [[ -x "$cloud_sdk_dir/bin/gcloud" ]]; then
-  echo "INSTALLED: gcloud@592.0.0 (invoke with mise exec gcloud@592.0.0 -- gcloud; authentication not checked)"
+if cloud_sdk_dir="$(mise where gcloud 2>/dev/null)" && [[ -x "$cloud_sdk_dir/bin/gcloud" ]]; then
+  echo "INSTALLED: project-configured gcloud (invoke with mise exec -- gcloud; authentication not checked)"
 else
-  echo "OPTIONAL/MISSING: gcloud@592.0.0 (install with mise run install-cloud)"
+  echo "OPTIONAL/MISSING: project-configured gcloud (install with mise run install-cloud)"
 fi

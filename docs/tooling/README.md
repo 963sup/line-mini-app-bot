@@ -4,6 +4,8 @@ mise、Skills、MCP 與 Graphify／Repomix 分析範圍及報告。
 
 ## 文件索引
 
+- [移除空間預覽、補回歸與 MCP 優先發布](preview-removal-optimization-20261113.md)：本輪範圍、量化、完整驗證與停止理由。
+- [架構延續：固定診斷期限與完整取消責任](architecture-continuation-20261113.md)：tooling／shared helper 的兩輪收斂與驗證。
 - [架構迭代：來源錯誤邊界與留言生命週期](architecture-iteration-20261113.md)：逐輪排序、最小變更、量測與停止條件。
 - [架構收斂第二輪：Project來源故障隔離](architecture-convergence-pass2-20261113.md)：新基準、精確故障邊界及前後證據。
 - [架構收斂基準與前後對照（2026-11-13）](architecture-convergence-20261113.md)：有向依賴／呼叫、重複協定與實際最小修正。

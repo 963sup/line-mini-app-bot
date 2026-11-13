@@ -153,7 +153,7 @@ Graphify 將 Workspace、RepositoryProvider、AppFrame 與 UI primitives 連起�
 
 - [正式 View](../../frontend/miniapp/src/business/repository/View.tsx) 快照 L35–68 顯示真實空間基本資料、本人出勤入口及尚未開放的功能。
 - [RepositoryContext](../../frontend/miniapp/src/business/repository/RepositoryContext.tsx) L42–68 透過 typed client 呼叫正式 list/get API；L74–83 取消舊請求並清空前一 owner 的資料。
-- [預覽 Workspace](../../frontend/miniapp/src/business/repository/preview/Workspace.tsx) 共577行，L52 seed、L85–98 useState、L178 示範資料提示、L429 重整還原提示與 L443 setItems 都表明本地預覽。沒有證據支持「假成功冒充持久寫入」的缺陷判定。
+- 歷史快照中的 `frontend/miniapp/src/business/repository/preview/Workspace.tsx` 共577行，L52 seed、L85–98 useState、L178 示範資料提示、L429 重整還原提示與 L443 setItems 都表明本地預覽。當時沒有證據支持「假成功冒充持久寫入」的缺陷判定；該預覽後續已依使用者要求移除，這段不代表目前仍有此功能。
 - 正式 View L8 import `./navigation`；該檔當時未追蹤，不在主 audit，但已透過 supplement XML 核對是共用導覽資料。初始工作樹圖比隔離圖多2個節點、4條關係，source 差異正是此檔，不能將這種差異稱為 stale graph 或刪檔。
 
 結論：這是功能就緒度與分析範圍的管理事項；沒有理由把預覽資料直接接成正式操作，更不改寫官方 shadcn primitives。

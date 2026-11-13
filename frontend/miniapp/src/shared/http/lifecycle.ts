@@ -10,9 +10,9 @@ export function untilAbort<T>(
     const stop = () => reject(aborted());
     if (signal.aborted) {
       stop();
-      return;
+    } else {
+      signal.addEventListener("abort", stop, { once: true });
     }
-    signal.addEventListener("abort", stop, { once: true });
     promise.then(
       (value) => {
         signal.removeEventListener("abort", stop);

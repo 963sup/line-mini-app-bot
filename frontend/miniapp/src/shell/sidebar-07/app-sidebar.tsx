@@ -84,14 +84,7 @@ export function AppSidebar({
               logo: Building2,
               plan: "正式服務",
               url: "/miniapp",
-              isActive: workflow !== "preview",
-            },
-            {
-              name: "空間 UI 預覽",
-              logo: Layers,
-              plan: "示範資料",
-              url: "/miniapp/workspace-preview",
-              isActive: workflow === "preview",
+              isActive: true,
             },
           ]}
         />

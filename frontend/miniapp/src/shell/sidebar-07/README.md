@@ -5,10 +5,10 @@
 
 保留 AppSidebar、NavMain、NavProjects、NavUser、TeamSwitcher、SidebarRail 與官方頁首的結構及互動；AppFrame 是唯一使用此結構的應用外框。
 
-- NavMain：既有服務入口與可收合的出勤／示範空間子選單。
+- NavMain：既有服務入口與可收合的出勤／正式空間子選單。
 - NavProjects：改用實際工具入口與新分頁動作，不提供虛構的專案刪除或分享功能。
-- TeamSwitcher：切換正式服務與示範預覽，不宣稱切換群組成員資格或授權。
-- NavUser：接收 Shell 傳入的真實身分狀態、登入／驗證／登出動作；預覽與定位診斷不建立 LINE Session。
+- TeamSwitcher：呈現正式服務入口，不宣稱切換群組成員資格或授權；定位診斷入口由 NavProjects 提供。
+- NavUser：接收 Shell 傳入的真實身分狀態、登入／驗證／登出動作；定位診斷不建立 LINE Session。
 
 移除上游示例帳號、公司、訂閱、帳單及空白 dashboard；業務內容沿用既有路由。
 既有 shared/ui primitives 不覆寫；只新增本 block 需要的 Breadcrumb、Collapsible。

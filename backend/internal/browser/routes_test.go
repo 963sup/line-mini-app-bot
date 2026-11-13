@@ -1,10 +1,30 @@
 package browser
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 )
+
+func TestRemovedWorkspacePreviewIsNotServed(t *testing.T) {
+	mux := http.NewServeMux()
+	if err := Register(mux); err != nil {
+		t.Fatal(err)
+	}
+	for name, handler := range map[string]http.Handler{
+		"registered routes": mux,
+		"page dispatcher":   http.HandlerFunc(serveMiniApp),
+	} {
+		t.Run(name, func(t *testing.T) {
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, httptest.NewRequest("GET", "/miniapp/workspace-preview", nil))
+			if recorder.Code != http.StatusNotFound {
+				t.Fatalf("removed preview returned HTTP %d, want 404", recorder.Code)
+			}
+		})
+	}
+}
 
 func TestMiniAppAttendanceGetsDedicatedPage(t *testing.T) {
 	for _, tc := range []struct {
@@ -13,7 +33,6 @@ func TestMiniAppAttendanceGetsDedicatedPage(t *testing.T) {
 		content    string
 	}{
 		{"/miniapp", false, "開始使用"},
-		{"/miniapp/workspace-preview", false, "空間 UI 預覽"},
 		{"/miniapp/journal", false, "日誌 Google 表單"},
 		{"/miniapp?journal=1", false, "日誌 Google 表單"},
 		{"/miniapp?liff.state=%3Fjournal%3D1", false, "日誌 Google 表單"},

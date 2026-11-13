@@ -40,7 +40,7 @@ CLI 固定版本以 mise 為唯一來源。Registry 網路已在下方驗證紀�
 
 Tailwind 由 `postcss.config.mjs` 編譯 `src/styles/globals.css`，包含 Preflight，並由 Pages Router 的 `src/pages/_app.tsx` 載入。
 Tailwind 4 的 `components.json` 不指定舊式 Tailwind config 檔案。
-正式頁、定位頁及空間預覽以 utilities 排版，外觀由 shadcn 元件 variants 與主題變數控制。
+正式頁與定位頁以 utilities 排版，外觀由 shadcn 元件 variants 與主題變數控制。
 已移除原有頁面 CSS、asset-map 與 CSS 複製流程；不再使用獨立 stylesheet 連結或全域選擇器覆蓋元件。
 
 ## sidebar-07 應用外框
@@ -129,7 +129,6 @@ bash scripts/tooling/tool-exec.sh shadcn add @shadcn/button --dry-run --cwd fron
 | --- | --- |
 | Table | 本人月紀錄的上班、下班、工時狀態與更正入口；窄螢幕可在表格內橫向捲動 |
 | Item / ItemGroup | 補卡／審核申請、本人請假紀錄與群組空間清單；理由全文保留 |
-| InputGroup | 空間預覽的搜尋圖示與輸入框 |
 | Empty（沿用） | 成功查詢後沒有班次、申請、請假或空間時顯示，未查詢與查詢失敗不冒充空結果 |
 | Spinner / Badge（沿用） | 清單處理中及申請狀態 |
 
