@@ -4,6 +4,7 @@ mise、Skills、MCP 與 Graphify／Repomix 分析範圍及報告。
 
 ## 文件索引
 
+- [Graphify／Repomix 儲存庫分析與五項優先方案（2026-11-13）](graphify-repomix-report-20261113.md)
 - [Analysis scope and evidence](analysis-scope.md)
 - [Graphify／Repomix 交叉比對與巢狀指引](graphify-repomix-crosscheck.md)
 - [mise ownership](mise.md)

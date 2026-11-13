@@ -42,6 +42,7 @@
 - 資料整合：[Firestore](integrations/firestore.md)。
 - 工作流程：[代理協作](agents/workflow.md)、[驗收](agents/acceptance.md)、[系統化除錯](agents/debugging.md)、[測試階段說明](development/testing.md)。
 - 工具：[MCP 索引](tooling/mcp/README.md)、[Skills](tooling/skills.md)、[Graphify／Repomix 交叉比對](tooling/graphify-repomix-crosscheck.md)。
+- 分析報告：[Graphify／Repomix 儲存庫分析與五項優先方案（2026-11-13）](tooling/graphify-repomix-report-20261113.md)。
 - 前端 UI：[shadcn 官方 Skill、Components／AI Elements、CLI／MCP 能力與驗證](tooling/mcp/shadcn.md)。
 
 ## 強制查證規則（全儲存庫、所有角色）
