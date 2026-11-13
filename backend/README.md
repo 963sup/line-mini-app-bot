@@ -2,6 +2,8 @@
 
 Space及Project各自保存核心、用例與adapters。Project不依賴Repository核心模型作父容器，只透過使用端定義的來源讀取port查事項；Space成員及來源資格分開核驗。現行邊界與遷移見 [獨立Project](../docs/features/projects.md)。
 
+來源Issue hydration故障與Project自有資料錯誤的隔離、回歸及架構度量見[第二輪收斂證據](../docs/tooling/architecture-convergence-pass2-20261113.md)。
+
 `cmd/projectmigrate` 是明確namespace的dry-run／apply／受限rollback工具，旗標與writer部署前提見 [遷移指南](../docs/operations/project-migration.md)；不由server啟動時自動搬正式資料。
 
 ## 目錄導覽與維護

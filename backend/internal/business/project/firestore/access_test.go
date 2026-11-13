@@ -67,6 +67,87 @@ func (auth) Authenticate(w http.ResponseWriter, r *http.Request) (string, string
 	return a, "", true
 }
 
+func TestSourceHydrationFailureDoesNotHideSpaceMetadata(t *testing.T) {
+	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
+		t.Skip("requires an isolated FIRESTORE_EMULATOR_HOST")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	defer cancel()
+	client, err := db.NewClient(ctx, "project-decouple-local")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := client.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
+	channel := "hydration-test-" + strconv.FormatInt(time.Now().UnixNano(), 10)
+	root := client.Collection("channels").Doc(channel)
+	gid, rid, iid := "C"+strings.Repeat("a", 32), strings.Repeat("b", 32), strings.Repeat("c", 32)
+	spaces := &spaceDB.Store{Client: client, ChannelID: channel}
+	if err = spaces.Observe(ctx, sp.Observation{GroupID: gid, Status: "ACTIVE", EventID: "join", At: time.Now().UTC(), Users: []string{"owner"}}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = root.Collection("repositories").Doc(rid).Set(ctx, map[string]any{"id": rid, "groupId": gid, "status": "ACTIVE", "version": int64(1)}); err != nil {
+		t.Fatal(err)
+	}
+	issue := root.Collection("repositories").Doc(rid).Collection("issues").Doc(iid)
+	issueData := map[string]any{"schemaVersion": int64(1), "id": iid, "repositoryId": rid, "title": "source", "state": "open"}
+	if _, err = issue.Set(ctx, issueData); err != nil {
+		t.Fatal(err)
+	}
+	store := &projectDB.Store{Client: client, ChannelID: channel}
+	svc := &p.Service{Spaces: &sp.Service{Store: spaces, Membership: membership{}}, Sources: &sourceAccess{root: root}, Store: store}
+	created, err := svc.Create(ctx, "owner", gid, "source-failure-key-001", p.Content{Title: "owned metadata", SourceRepositoryID: rid})
+	if err != nil {
+		t.Fatal(err)
+	}
+	added, err := svc.ChangeItem(ctx, "owner", gid, created.ID, iid, true, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = issue.Delete(ctx); err != nil {
+		t.Fatal(err)
+	}
+	got, err := svc.Get(ctx, "owner", gid, created.ID)
+	if err != nil || got.Title != created.Title || got.SourceAvailable || got.IssueCount != 0 || got.CompletedIssueCount != 0 {
+		t.Fatalf("source read failure must preserve metadata without partial counts: %+v %v", got, err)
+	}
+	page, err := svc.List(ctx, "owner", gid, "")
+	if err != nil || len(page.Items) != 1 || page.Items[0].SourceAvailable {
+		t.Fatalf("source failure hid Space list: %+v %v", page, err)
+	}
+	updated, err := svc.Update(ctx, "owner", gid, created.ID, p.Update{Content: p.Content{Title: "updated metadata"}, ExpectedVersion: added.Version})
+	if err != nil || updated.Version != added.Version+1 || updated.SourceAvailable {
+		t.Fatalf("committed own metadata update failed hydration: %+v %v", updated, err)
+	}
+	if _, err = svc.Get(ctx, "owner", rid, created.ID); !errors.Is(err, p.ErrInput) {
+		t.Fatalf("legacy source error changed: %v", err)
+	}
+	if _, err = svc.ListItems(ctx, "owner", gid, created.ID, ""); !errors.Is(err, p.ErrInput) {
+		t.Fatalf("source item read must still fail: %v", err)
+	}
+	value := updated
+	err = store.Progress(ctx, p.Scope{SpaceID: gid, Actor: "owner"}, &value)
+	if !errors.Is(err, p.ErrSourceUnavailable) || !errors.Is(err, p.ErrUnavailable) || errors.Is(err, p.ErrInput) {
+		t.Fatalf("source classification must expose only its domain categories: %v", err)
+	}
+	if _, err = issue.Set(ctx, issueData); err != nil {
+		t.Fatal(err)
+	}
+	items, err := root.Collection("spaces").Doc(gid).Collection("projects").Doc(created.ID).Collection("items").Documents(ctx).GetAll()
+	if err != nil || len(items) != 1 {
+		t.Fatalf("items fixture: %v %v", items, err)
+	}
+	if _, err = items[0].Ref.Update(ctx, []db.Update{{Path: "schemaVersion", Value: int64(0)}}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = svc.Get(ctx, "owner", gid, created.ID); !errors.Is(err, p.ErrUnavailable) || errors.Is(err, p.ErrSourceUnavailable) {
+		t.Fatalf("own item corruption must fail closed: %v", err)
+	}
+}
+
 func TestSpaceProjectStorageRightsAndLegacyAlias(t *testing.T) {
 	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
 		t.Skip("requires an isolated FIRESTORE_EMULATOR_HOST")

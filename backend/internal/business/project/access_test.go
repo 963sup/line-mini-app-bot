@@ -108,3 +108,66 @@ func TestSpaceOwnedMetadataIndependentSource(t *testing.T) {
 		t.Fatalf("legacy cannot bypass Space revoke using source auth: %v", e)
 	}
 }
+
+type progressFailureStore struct {
+	store
+	failure error
+}
+
+func (s *progressFailureStore) Progress(_ context.Context, _ p.Scope, v *p.Project) error {
+	v.IssueCount, v.CompletedIssueCount = 7, 2
+	return s.failure
+}
+
+func TestSourceHydrationFailurePreservesCanonicalMetadata(t *testing.T) {
+	ctx := context.Background()
+	gid, rid, pid := "C"+strings.Repeat("1", 32), strings.Repeat("3", 32), strings.Repeat("2", 32)
+	hydration := errors.Join(p.ErrSourceUnavailable, p.ErrUnavailable)
+	for _, operation := range []string{"get", "list", "update"} {
+		t.Run(operation, func(t *testing.T) {
+			st := &progressFailureStore{store: store{item: p.Project{ID: pid, SpaceID: gid, SourceRepositoryID: rid, CreatorID: "owner", Title: "owned metadata", Version: 1}}, failure: hydration}
+			svc := &p.Service{Spaces: &spaces{}, Sources: &sources{space: gid}, Store: st}
+			var got p.Project
+			var err error
+			switch operation {
+			case "get":
+				got, err = svc.Get(ctx, "owner", gid, pid)
+			case "list":
+				var page p.Page
+				page, err = svc.List(ctx, "owner", gid, "")
+				if len(page.Items) != 1 {
+					t.Fatalf("own Project disappeared: %+v %v", page, err)
+				}
+				got = page.Items[0]
+			case "update":
+				got, err = svc.Update(ctx, "owner", gid, pid, p.Update{Content: p.Content{Title: "owned metadata"}, ExpectedVersion: 1})
+			}
+			if err != nil || got.ID != pid || got.Title != "owned metadata" || got.SourceAvailable || got.IssueCount != 0 || got.CompletedIssueCount != 0 {
+				t.Fatalf("source hydration must not hide metadata or expose partial counts: %+v %v", got, err)
+			}
+		})
+	}
+	st := &progressFailureStore{store: store{item: p.Project{ID: pid, SpaceID: gid, SourceRepositoryID: rid, CreatorID: "owner", Title: "before", Version: 1}}, failure: hydration}
+	svc := &p.Service{Spaces: &spaces{}, Sources: &sources{space: gid}, Store: st}
+	updated, err := svc.Update(ctx, "owner", gid, pid, p.Update{Content: p.Content{Title: "after"}, ExpectedVersion: 1})
+	if err != nil || updated.Version != 2 || st.item.Title != "after" || updated.SourceAvailable {
+		t.Fatalf("committed own metadata update reported failure: %+v %v", updated, err)
+	}
+}
+
+func TestOwnStorageCancellationAndLegacyHydrationStillFail(t *testing.T) {
+	gid, rid, pid := "C"+strings.Repeat("1", 32), strings.Repeat("3", 32), strings.Repeat("2", 32)
+	for _, failure := range []error{p.ErrUnavailable, p.ErrNotFound, context.Canceled, context.DeadlineExceeded, errors.Join(p.ErrSourceUnavailable, context.Canceled), errors.Join(p.ErrSourceUnavailable, context.DeadlineExceeded)} {
+		st := &progressFailureStore{store: store{item: p.Project{ID: pid, SpaceID: gid, SourceRepositoryID: rid, Title: "own", Version: 1}}, failure: failure}
+		svc := &p.Service{Spaces: &spaces{}, Sources: &sources{space: gid}, Store: st}
+		if _, err := svc.Get(context.Background(), "owner", gid, pid); !errors.Is(err, failure) {
+			t.Fatalf("own storage or cancellation error swallowed: %v => %v", failure, err)
+		}
+	}
+	failure := errors.Join(p.ErrSourceUnavailable, p.ErrUnavailable)
+	st := &progressFailureStore{store: store{item: p.Project{ID: pid, SpaceID: gid, SourceRepositoryID: rid, Title: "legacy", Version: 1}}, failure: failure}
+	svc := &p.Service{Spaces: &spaces{}, Sources: &sources{space: gid}, Store: st}
+	if _, err := svc.Get(context.Background(), "owner", rid, pid); !errors.Is(err, failure) {
+		t.Fatalf("legacy source failure swallowed: %v", err)
+	}
+}

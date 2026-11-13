@@ -2,6 +2,7 @@ package firestore
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	db "cloud.google.com/go/firestore"
@@ -55,13 +56,21 @@ func (s *Store) sourceIssue(tx *db.Transaction, r feature.Scope, id string) (fea
 	return feature.Item{IssueID: id, Title: d.Title, State: d.State}, nil
 }
 
-func (s *Store) readItem(tx *db.Transaction, r feature.Scope, pid string, snap *db.DocumentSnapshot) (feature.Item, error) {
+func decodeItem(snap *db.DocumentSnapshot, pid string) (itemDocument, error) {
 	var d itemDocument
 	if e := snap.DataTo(&d); e != nil {
-		return feature.Item{}, e
+		return itemDocument{}, e
 	}
 	if d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !feature.ValidID(d.ID) || d.ProjectID != pid || !feature.ValidID(d.IssueID) || d.CreatedBy == "" || d.CreatedAt.IsZero() || d.ID != planningHash([]string{"project-item", pid, d.IssueID})[:32] {
-		return feature.Item{}, feature.ErrUnavailable
+		return itemDocument{}, feature.ErrUnavailable
+	}
+	return d, nil
+}
+
+func (s *Store) readItem(tx *db.Transaction, r feature.Scope, pid string, snap *db.DocumentSnapshot) (feature.Item, error) {
+	d, e := decodeItem(snap, pid)
+	if e != nil {
+		return feature.Item{}, e
 	}
 	i, e := s.sourceIssue(tx, r, d.IssueID)
 	if e != nil {
@@ -69,6 +78,13 @@ func (s *Store) readItem(tx *db.Transaction, r feature.Scope, pid string, snap *
 	}
 	i.ID = d.ID
 	return i, nil
+}
+
+type sourceReadFailure struct{ cause error }
+
+func (*sourceReadFailure) Error() string { return "project source unavailable" }
+func (e *sourceReadFailure) Unwrap() []error {
+	return []error{feature.ErrSourceUnavailable, feature.ErrUnavailable}
 }
 
 func (s *Store) Progress(ctx context.Context, r feature.Scope, result *feature.Project) (err error) {
@@ -89,9 +105,16 @@ func (s *Store) Progress(ctx context.Context, r feature.Scope, result *feature.P
 			return e
 		}
 		for _, snap := range snaps {
-			i, e := s.readItem(tx, r, result.ID, snap)
+			d, e := decodeItem(snap, result.ID)
 			if e != nil {
 				return e
+			}
+			i, e := s.sourceIssue(tx, r, d.IssueID)
+			if e != nil {
+				if r.Legacy || errors.Is(e, context.Canceled) || errors.Is(e, context.DeadlineExceeded) || status.Code(e) == codes.Canceled || status.Code(e) == codes.DeadlineExceeded {
+					return e
+				}
+				return &sourceReadFailure{cause: e}
 			}
 			result.IssueCount++
 			if i.State == "completed" {

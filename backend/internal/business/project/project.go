@@ -13,13 +13,14 @@ import (
 )
 
 var (
-	ErrInput            = errors.New("invalid project input")
-	ErrNotFound         = errors.New("project not found")
-	ErrForbidden        = errors.New("only creator may edit")
-	ErrConflict         = errors.New("version conflict")
-	ErrCreationConflict = errors.New("creation key conflict")
-	ErrUnavailable      = errors.New("project unavailable")
-	creationKey         = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
+	ErrInput             = errors.New("invalid project input")
+	ErrNotFound          = errors.New("project not found")
+	ErrForbidden         = errors.New("only creator may edit")
+	ErrConflict          = errors.New("version conflict")
+	ErrCreationConflict  = errors.New("creation key conflict")
+	ErrUnavailable       = errors.New("project unavailable")
+	ErrSourceUnavailable = errors.New("project source unavailable")
+	creationKey          = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
 )
 
 type (
@@ -155,10 +156,17 @@ func (s *Service) progress(ctx context.Context, r Scope, p *Project) error {
 			return err
 		}
 		p.SourceAvailable = false
+		p.IssueCount, p.CompletedIssueCount = 0, 0
 		return nil
 	}
 	p.SourceAvailable = true
-	return s.Store.Progress(ctx, r, p)
+	err = s.Store.Progress(ctx, r, p)
+	if !r.Legacy && errors.Is(err, ErrSourceUnavailable) && !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
+		p.SourceAvailable = false
+		p.IssueCount, p.CompletedIssueCount = 0, 0
+		return nil
+	}
+	return err
 }
 
 func (s *Service) List(ctx context.Context, actor, rid, cursor string) (Page, error) {

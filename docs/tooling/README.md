@@ -4,6 +4,7 @@ mise、Skills、MCP 與 Graphify／Repomix 分析範圍及報告。
 
 ## 文件索引
 
+- [架構收斂第二輪：Project來源故障隔離](architecture-convergence-pass2-20261113.md)：新基準、精確故障邊界及前後證據。
 - [架構收斂基準與前後對照（2026-11-13）](architecture-convergence-20261113.md)：有向依賴／呼叫、重複協定與實際最小修正。
 - [Graphify／Repomix 儲存庫分析與五項優先方案（2026-11-13）](graphify-repomix-report-20261113.md)
 - [Analysis scope and evidence](analysis-scope.md)

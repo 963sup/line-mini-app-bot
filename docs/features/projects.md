@@ -22,6 +22,8 @@ Repository 的既有 ID、groupId 綁定、事項與討論保存位置不變。�
 
 Project 自有資料的授權不得再要求 Repository 作為父容器。來源成員資格被撤銷或來源不可用時，來源 Issue 的內容、狀態及衍生進度不能由 Project 權限繞過；不得把未知統計回傳成零或以舊來源資料冒充成功。前端隱藏按鈕不能代替後端檢查。
 
+Canonical來源hydration失敗時，已授權的Project自有metadata仍可讀取／管理，回應以`sourceAvailable=false`標明進度不可用；來源項目內容不因此開放。Project自有container、migration marker、item結構錯誤以及取消／逾時仍回錯誤，不當成來源降級；legacy路徑維持原失敗語義。[第二輪收斂證據](../tooling/architecture-convergence-pass2-20261113.md)記錄此故障邊界與實際驗證。
+
 ## API、頁面與側欄
 
 - Space 提供獨立 List／Get；Project 新入口為 `/api/v1/spaces/{spaceId}/projects` 及其專案／items 子資源。Create 明確指定 `sourceRepositoryId`，URL 的 Space 或 Project ID 不是授權憑證。
