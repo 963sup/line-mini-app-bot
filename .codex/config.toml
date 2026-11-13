@@ -1,6 +1,19 @@
 [features]
 multi_agent = true
 
+[skills]
+include_instructions = true
+# Keep the large repository skill catalog visible within Codex's 10,000-token cap.
+max_context_tokens = 10000
+
+[skills.bundled]
+enabled = true
+
+[[skills.config]]
+# Match the installed skill without tying the selector to a checkout location.
+name = "openai-docs"
+enabled = true
+
 [agents]
 # Spawned threads exclude the primary; actual host limits take precedence.
 max_concurrent_threads_per_session = 6
