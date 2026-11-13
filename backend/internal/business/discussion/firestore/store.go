@@ -92,7 +92,7 @@ func translate(err error) error {
 	}
 	for _, known := range []error{discussion.ErrInput, discussion.ErrNotFound, discussion.ErrForbidden, discussion.ErrConflict, discussion.ErrCreationConflict, discussion.ErrUnavailable, context.Canceled, context.DeadlineExceeded} {
 		if errors.Is(err, known) {
-			return known
+			return err
 		}
 	}
 	switch {

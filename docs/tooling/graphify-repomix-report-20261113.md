@@ -1,5 +1,30 @@
 # Graphify／Repomix 儲存庫分析與方案
 
+## 已發布基礎與最小收斂（2026-11-13）
+
+先依使用者要求將原先83個待提交檔案驗證後發布：`d26f350b64096cc35f807dbb29ca6371ab8071c7`，work／main均核對一致。包括Issue、Discussion、Labels、Milestones、Project／items與statistics；僅清理兩個TSX檔尾端空白，未把分析／重構混入該提交。因此下方兩輪的「未提交／Discussion缺adapter」是歷史快照，不能當作發布後現況。
+
+再對此乾淨基礎做完整CLI分析：920個分類檔案、494 managed全部由Repomix收錄，774,852 tokens；Graphify 4,378節點、11,029關係、309個source_file來源，missing／extra、重複ID、懸空端點均0，`--verify`成功。固定來源及manifest／hash位於 `/workspace/tooling/tmp/analysis-audit-chayas4s/`。使用Graphify定位、完整XML與原碼交叉核對，分別做後端及前端唯讀檢查；沒有以高度數或重複外觀直接判定缺陷。
+
+### 已確認根因與實際修正
+
+| 優先 | 事實／根因 | 最小修正與證據 |
+| --- | --- | --- |
+| P1 | Issue與Discussion的Firestore adapter對已轉譯錯誤再次呼叫translate時，`errors.Is`命中後回傳sentinel，丟棄原storageFailure及其私有cause。Create→Get的巢狀邊界會觸發，與[錯誤邊界規範](../architecture/backend-boundaries.md)不符 | 兩處改為回傳原err。隔離in-package overlay原先兩包皆失敗，修後race smoke通過；並檢查公開領域分類仍可匹配、原SDK cause不經Unwrap公開 |
+| P1 | Repository根核心未列入既有core map，守門忽略其禁止實作依賴與serialization tags的規則 | 只補 `business/repository: {}`。隔離副本注入httpapi依賴與JSON tag，修前既有檢查誤通過，修後正確拒絕兩項；正式原碼沒有注入檔，完整既有suite通過 |
+
+修正只涉及 [Issue轉譯](../../backend/internal/business/issue/firestore/store.go)、[Discussion轉譯](../../backend/internal/business/discussion/firestore/store.go) 與 [架構守門](../../backend/internal/architecture/boundaries_test.go)。沒有改公開API、授權、交易、狀態、資料格式、依賴或官方UI元件；不建立共用workflow引擎或為消除兩段相似程式新增抽象。正式程式為兩行等量替換，既有測試守門增一行；報告文字另計。
+
+### 查證、驗證與剩餘限制
+
+Context7先resolve Go，再查 `/golang/go/go1.27.3` 的AST／error tree；本機Go1.27.4 `go doc errors.Is`、`errors.As`核對已安裝版行為。後端review另查 `/googleapis/google-cloud-go` 官方transaction語意；Google Developer Knowledge／Google skills無可用入口，未做Google資源操作，也未改Firestore交易。版本及外部查證不代替實際重現。
+
+發布基礎實跑：Go格式、lint、module verify、vet、完整既有race suite、build、vuln；API能力／生成同步／相容性、設定、前端型別、23個既有前端測試及Next靜態build均通過。收斂後重跑Go格式／lint／完整check（含race）／build／vuln及兩包overlay race；API／前端未變，沿用基礎驗證。govulncheck無應用可達漏洞，仍有3筆未被應用呼叫的required-module項目，不稱所有依賴安全。
+
+臨時負向注入及overlay保留在 `/workspace/tooling/tmp/convergence-boundary-probe/` 與 `/workspace/tooling/tmp/backend-review-translation-l4lzfw9t/`，未新增正式測試平台、重現檔或產物至Git。程式修後再執行既有Graphify更新與全量audit，最終CLI輸出／hash另保留於該次新audit目錄，不覆寫前述基準。
+
+前端review重現：留言POST尚未完成時，父層重新讀取討論會卸載留言畫面並丟失該畫面的防重鍵；[討論規格](../features/discussions.md)已明列切題／離頁前須先確認結果。本輪作為殘餘限制，未升格為授權／狀態漏洞或加入新的跨頁持久化。API／HTTP adapter及領域scope有相似程式，但目前責任與錯誤分類不同，沒有足夠證據支持為減行數抽取通用層；補卡分檔亦繼續延後。這是一次有界收斂，不是全庫無缺陷證明，真實LINE／Firestore／手機與部署驗收仍未執行。
+
 ## 第二輪：最新快照與前後差異
 
 2026-11-13（Asia/Taipei）重新實際執行兩個 CLI。下列結果優先於後方第一輪的歷史觀察；只更新報告，不實施方案。基準為 HEAD `d3803b68359b46ab50adddf0cdd2224e4c18623a` 的 dirty working tree，並非該提交的乾淨內容。
