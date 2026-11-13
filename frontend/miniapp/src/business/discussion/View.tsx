@@ -34,6 +34,16 @@ export function View({ repositoryId }: { repositoryId: string }) {
   const [uncertain, setUncertain] = useState(false), [needsRefresh, setNeedsRefresh] = useState(false);
   const [status, setStatus] = useState("");
   const lock = useRef(false);
+  const commentLock = useRef(false);
+  const navigating = useRef(false);
+  const [commentsBlocked, setCommentsBlocked] = useState(false);
+  const onCommentWriteStateChange = useCallback((blocked: boolean) => {
+    // Guard same-batch events before React commits the disabled buttons.
+    if (blocked && navigating.current) return false;
+    commentLock.current = blocked;
+    setCommentsBlocked(blocked);
+    return true;
+  }, []);
   const attempt = useRef<{ key: string; body: Creation } | null>(null);
   const mine = !!selected && selected.authorId === user?.userId;
 
@@ -57,20 +67,23 @@ export function View({ repositoryId }: { repositoryId: string }) {
   useEffect(() => { load(); return cancelRead; }, [load, cancelRead]);
 
   function show(item: Discussion) {
+    navigating.current = false;
     setSelected(item); setTitle(item.title); setBody(item.body); setLabelIDs(item.labelIds || []); setMode("detail");
     setNeedsRefresh(false); setUncertain(false); attempt.current = null;
   }
   function open(id: string) {
-    if (!user || lock.current) return;
+    if (!user || lock.current || commentLock.current) return;
+    navigating.current = true;
     setSelected(null); setMode("detail"); setDetailBusy(true); setStatus("正在核驗並讀取討論……");
     void detailRequest.run(
       (signal) => request((client, s) => client.GET("/api/v1/repositories/{repositoryId}/discussions/{id}", { signal: s, params: { path: { repositoryId, id } } }), { signal }),
       (item) => { show(item); setDetailBusy(false); setStatus("已讀取討論。"); },
-      (error) => { setDetailBusy(false); setStatus(errorMessage(error)); },
+      (error) => { navigating.current = false; setDetailBusy(false); setStatus(errorMessage(error)); },
     );
   }
   function create() {
-    if (lock.current) return;
+    if (lock.current || commentLock.current) return;
+    navigating.current = true;
     detailRequest.cancel(); setDetailBusy(false); setSelected(null); setMode("create");
     setTitle(""); setBody(""); setUncertain(false); setNeedsRefresh(false); setStatus(""); attempt.current = null;
   }
@@ -111,7 +124,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
     <PagePanel heading="討論">
       <p className="mb-4 text-sm text-muted-foreground">空間成員可發起討論與留言；主題及留言各由自己的作者編輯。</p>
       <div className="mb-4 flex flex-wrap gap-2">
-        <Button disabled={!user || busy || uncertain} onClick={create}>發起討論</Button>
+        <Button disabled={!user || busy || uncertain || commentsBlocked} onClick={create}>發起討論</Button>
         <Button variant="outline" disabled={!user || listBusy || busy} onClick={() => load()}>重新載入討論</Button>
       </div>
       <form onSubmit={(event) => { event.preventDefault(); setFilter({ query: query.trim() }); }}>
@@ -124,7 +137,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
       <ItemGroup className="gap-3">
         {items.map((item) => <Item key={item.id} variant="outline" role="listitem">
           <ItemContent>
-            <ItemTitle><Button variant="link" className="h-auto whitespace-normal text-left" disabled={busy || detailBusy || uncertain} onClick={() => open(item.id)}>#{item.number} {item.title}</Button></ItemTitle>
+            <ItemTitle><Button variant="link" className="h-auto whitespace-normal text-left" disabled={busy || detailBusy || uncertain || commentsBlocked} onClick={() => open(item.id)}>#{item.number} {item.title}</Button></ItemTitle>
           </ItemContent>
         </Item>)}
       </ItemGroup>
@@ -134,7 +147,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
     {mode && <PagePanel heading={mode === "create" ? "發起討論" : selected ? `#${selected.number} ${selected.title}` : "討論詳情"}>
       <Status role="status">{status}</Status>
       {selected && <div className="mb-4 flex flex-wrap items-center gap-2">
-        <Button variant="outline" disabled={busy || detailBusy} onClick={() => open(selected.id)}>重新讀取討論</Button>
+        <Button variant="outline" disabled={busy || detailBusy || commentsBlocked} onClick={() => open(selected.id)}>重新讀取討論</Button>
       </div>}
       {(mode === "create" || selected) && <form onSubmit={submit}>
         <FieldGroup>
@@ -149,6 +162,6 @@ export function View({ repositoryId }: { repositoryId: string }) {
         </FieldGroup>
       </form>}
     </PagePanel>}
-    {selected && <Comments key={selected.id} repositoryId={repositoryId} discussionId={selected.id} />}
+    {selected && <Comments key={selected.id} repositoryId={repositoryId} discussionId={selected.id} onWriteStateChange={onCommentWriteStateChange} />}
   </>;
 }

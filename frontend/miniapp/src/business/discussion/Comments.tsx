@@ -13,7 +13,7 @@ import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
 import { Item, ItemGroup, ItemContent, ItemTitle } from "@/shared/ui/item";
 
 type Comment = components["schemas"]["DiscussionComment"];
-export function Comments({repositoryId,discussionId}:{repositoryId:string;discussionId:string}) {
+export function Comments({repositoryId,discussionId,onWriteStateChange}:{repositoryId:string;discussionId:string;onWriteStateChange:(blocked:boolean)=>boolean}) {
   const {user,request}=useSession();
   const {run:readRun,cancel:cancelRead}=useLatestRequest(),write=useLatestRequest();
   const [items,setItems]=useState<Comment[]>([]),[cursor,setCursor]=useState("");
@@ -37,20 +37,22 @@ export function Comments({repositoryId,discussionId}:{repositoryId:string;discus
   function submit(event:FormEvent){
     event.preventDefault();if(!user||lock.current||needsRefresh)return;
     if(!uncertain||!attempt.current){const text=body.trim();if(!text){setStatus("請填寫留言。");return;}attempt.current={key:crypto.randomUUID(),body:text};}
+    if(!onWriteStateChange(true))return;
     const pending=attempt.current;lock.current=true;setBusy(true);setUncertain(true);setStatus("正在新增留言……");
     void write.run(
       signal=>request((client,s)=>client.POST("/api/v1/repositories/{repositoryId}/discussions/{id}/comments",{signal:s,params:{path:{repositoryId,id:discussionId},header:{"Idempotency-Key":pending.key}},body:{body:pending.body}}),{signal}),
-      ()=>{lock.current=false;setBusy(false);setUncertain(false);attempt.current=null;setBody("");setStatus("已新增留言；留言依建立時間顯示，可載入更多。");load();},
-      error=>{lock.current=false;setBusy(false);if(["invalid_input","forbidden","not_found","idempotency_conflict"].includes((error as {code?:string}).code||""))setUncertain(false);setStatus(errorMessage(error)+" 結果不明時請沿用原留言重試；確認前請勿切換主題或重新開頁。");},
+      ()=>{lock.current=false;onWriteStateChange(false);setBusy(false);setUncertain(false);attempt.current=null;setBody("");setStatus("已新增留言；留言依建立時間顯示，可載入更多。");load();},
+      error=>{lock.current=false;setBusy(false);if(["invalid_input","forbidden","not_found","idempotency_conflict"].includes((error as {code?:string}).code||"")){setUncertain(false);onWriteStateChange(false);}setStatus(errorMessage(error)+" 結果不明時請沿用原留言重試；確認前請勿切換主題或重新開頁。");},
     );
   }
   function save(event:FormEvent){
     event.preventDefault();if(!user||!editing||editing.authorId!==user.userId||lock.current||needsRefresh)return;
+    if(!onWriteStateChange(true))return;
     const item=editing;lock.current=true;setBusy(true);setStatus("正在更新留言……");
     void write.run(
       signal=>request((client,s)=>client.PATCH("/api/v1/repositories/{repositoryId}/discussions/{id}/comments/{commentId}",{signal:s,params:{path:{repositoryId,id:discussionId,commentId:item.id}},body:{body:editBody.trim(),expectedVersion:item.version}}),{signal}),
-      ()=>{lock.current=false;setBusy(false);setEditing(null);setStatus("已更新留言。");load();},
-      error=>{lock.current=false;setBusy(false);setNeedsRefresh(true);setStatus(errorMessage(error)+" 請重新載入留言後再編輯。");},
+      ()=>{lock.current=false;onWriteStateChange(false);setBusy(false);setEditing(null);setStatus("已更新留言。");load();},
+      error=>{lock.current=false;onWriteStateChange(false);setBusy(false);setNeedsRefresh(true);setStatus(errorMessage(error)+" 請重新載入留言後再編輯。");},
     );
   }
   return <PagePanel heading="留言">

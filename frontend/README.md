@@ -20,6 +20,7 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 ## 相關文件
 
+- [架構迭代：留言寫入與父層導覽的生命週期協調](../docs/tooling/architecture-iteration-20261113.md#第二輪保住-comments-的寫入狀態)
 - [文件索引：Frontend](../docs/README.md#按模組閱讀)
 - [Go browser Session 與滑動續期](../docs/architecture/browser-session.md)
 - [React 架構與生命週期](../docs/architecture/react-frontend.md)

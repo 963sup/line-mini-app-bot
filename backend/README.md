@@ -4,6 +4,8 @@ Space及Project各自保存核心、用例與adapters。Project不依賴Reposito
 
 來源Issue hydration故障與Project自有資料錯誤的隔離、回歸及架構度量見[第二輪收斂證據](../docs/tooling/architecture-convergence-pass2-20261113.md)。
 
+後續來源授權取消語義的最小修正與逐輪驗證見[架構迭代](../docs/tooling/architecture-iteration-20261113.md#第一輪統一-project-取消語義)。
+
 `cmd/projectmigrate` 是明確namespace的dry-run／apply／受限rollback工具，旗標與writer部署前提見 [遷移指南](../docs/operations/project-migration.md)；不由server啟動時自動搬正式資料。
 
 ## 目錄導覽與維護

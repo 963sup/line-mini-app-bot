@@ -152,7 +152,7 @@ func (s *Service) scope(ctx context.Context, actor, id string) (Scope, error) {
 func (s *Service) progress(ctx context.Context, r Scope, p *Project) error {
 	_, err := s.Sources.Authorize(ctx, r.Actor, p.SourceRepositoryID, r.SpaceID)
 	if err != nil {
-		if r.Legacy {
+		if r.Legacy || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			return err
 		}
 		p.SourceAvailable = false
