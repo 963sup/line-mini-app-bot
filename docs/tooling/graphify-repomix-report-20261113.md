@@ -1,5 +1,61 @@
 # Graphify／Repomix 儲存庫分析與方案
 
+## 第二輪：最新快照與前後差異
+
+2026-11-13（Asia/Taipei）重新實際執行兩個 CLI。下列結果優先於後方第一輪的歷史觀察；只更新報告，不實施方案。基準為 HEAD `d3803b68359b46ab50adddf0cdd2224e4c18623a` 的 dirty working tree，並非該提交的乾淨內容。
+
+### 本輪範圍與實測
+
+先執行既有 `analysis-scope.py --audit`：871個分類檔案，445 managed、426 excluded；tracked audit 的 Repomix 無缺檔／多檔，Graphify 3,317節點、7,866關係，完成時 stale=false。因為本輪已有多個新模組尚未追蹤，再明列10個來源加入**獨立分析快照**，不修改正式 scope contract、不 stage 他人的檔案：
+
+- `backend/internal/business/issue/{README.md,issue.go,http/routes.go,firestore/store.go}`
+- `backend/internal/business/discussion/discussion.go`
+- `frontend/miniapp/src/business/issue/{README.md,View.tsx}`
+- `frontend/miniapp/src/business/repository/navigation.ts`
+- `docs/features/{issues.md,discussions.md}`
+
+本輪產物於 `/workspace/tooling/tmp/analysis-audit-qofjl2jn/`。`current-source/` 是445 tracked＋10明列新檔的固定來源；`current-manifest.json` 記錄每檔hash，`current-repomix.xml` 及 `current-analysis/graphify-out/graph.json` 是針對同一455檔快照實際重跑的兩個CLI產物，`current-evidence-summary.json` 保存結果與artifact hashes。原始tracked audit保留於同目錄，數值不混用。
+
+| 指標 | 第一輪主分析 | 第二輪455檔快照 | 解讀 |
+| --- | --- | --- | --- |
+| Repomix檔案 | 444 | 455 | 增11，其中包含舊報告與10個新檔；不是11個新功能 |
+| Repomix tokens | 616,606 | 670,034 | 增53,428（約8.66%）；非執行效能指標 |
+| 字元 | 1,956,241 | 2,142,423 | XML保留完整來源，不是壓縮摘要 |
+| Graphify節點／關係 | 2,883／7,204 | 3,412／8,319 | 增529／1,115；範圍與程式均有改變 |
+| 有source_file的來源／communities | 277／206 | 283／209 | 代表可觀測圖譜覆蓋，不能證明動態路徑完整 |
+| EXTRACTED／INFERRED | 6,768／436 | 7,817／502 | 本輪約6.03%推測關係，仍需原碼核對 |
+| missing／extra、duplicate IDs、dangling endpoints | 全0 | 全0 | XML與455個明列來源精確相符，圖結構自洽 |
+
+工具仍為 Graphify `0.9.103`、Repomix `1.18.1`；Graphify code-only模型token為0 input／0 output。Repomix安全掃描回報No suspicious files detected，不能作無機密或安全性證明。本輪未重新執行應用、效能或渠道測試。
+
+### 已失效的舊結論與仍存在的事項
+
+1. **Issue已超出scaffold，舊說法失效。** [contract.go](../../backend/internal/httpapi/contract.go) 快照L13、L33–38已嵌入IssueServer與四個操作；[routes.go](../../backend/internal/httpapi/routes.go) L47–55註冊list/create/get/update；[server.go](../../backend/internal/server/server.go) L85接入Issue服務。[正式空間View](../../frontend/miniapp/src/business/repository/View.tsx) L10、L64引用正式Issue畫面。因此不再建議「從零開始Issue」或宣稱正式空間只有基本資料。這是本機未提交實作存在的證據，不能直接推論已發布或正式驗收。
+2. **Issue具備明確的核心與adapter分工。** [issue.go](../../backend/internal/business/issue/issue.go) L58–82處理建立者、版本及三狀態轉換，L102–110透過Repository服務取範圍；[store.go](../../backend/internal/business/issue/firestore/store.go) L168–184使用共用編號建立callback，L201–245於交易中讀取並套用更新／紀錄。[功能文件](../features/issues.md) 已記載先前本機及emulator驗證，但本輪僅核對文字與原碼，未將他人報告的測試結果當作本輪重跑結果。
+3. **Discussion處於進行中的跨檔不一致快照。** [capabilities.json](../../api/capabilities.json) 的discussion與discussion.comments已指向 `backend/internal/business/discussion/http/routes.go`，455檔快照沒有該檔；只有核心 [discussion.go](../../backend/internal/business/discussion/discussion.go) 與功能／契約文件，contractServer也尚未嵌入DiscussionServer。兩筆能力指向同一缺少adapter是已確認的快照差異；不是兩個獨立漏洞，也不代表後續工作樹仍缺檔。應先由該任務完成／核對接線，不能據此把Discussion列為完整已實作。
+4. **架構守門有進展，Repository缺口仍未補齊。** [boundaries_test.go](../../backend/internal/architecture/boundaries_test.go) 本輪L20新增 `business/issue → business/repository`；core map仍沒有 `business/repository`，也尚未包含新的discussion核心。原有一般HTTP／transport限制仍存在。這是覆蓋範圍問題，未因此發現既有非法import或序列化tag。
+
+本輪查詢已先經Graphify定位IssueServer、ApplyUpdate、Discussion及Numbering，再由XML／快照原文核對。圖中的 `cn()` degree170、react67仍是正常共用hub；Attendance52、Record50未變。未因新節點增加而要求拆微服務、改寫UI primitives或重構補卡交易。
+
+### 本輪建議的四個方案
+
+| 優先 | 方案與具體邊界 | 取捨 | 驗收證據 |
+| --- | --- | --- | --- |
+| P0 | **先收斂Discussion進行中接線**：由擁有者對照能力清單、契約入口、核心、adapter、server與正式UI；保留尚未實作的狀態。報告不替其實作 | 小至中；避免先擴充labels／projects等其他功能，期間須承認snapshot不完整 | 每個宣告的adapter／core路徑都存在且納入來源清單；適用能力／生成碼／接線檢查成功；缺項明列而非宣稱完成 |
+| P1 | **先封存Issue可交付證據與新檔**：沿用既有功能文件，讓該任務擁有者核對四API、正式UI、資格、重送鍵及版本衝突，再只提交其task-owned檔案 | 小；重用仍適用的既有驗證，變更後才補相應檢查，不盲目重跑所有測試 | 清楚區分程式存在、檢查實跑、Git發布與LINE／Firestore實機驗收；所有import的新檔納入已驗證提交，原碼hash可追溯 |
+| P1 | **補齊既有core map的領域覆蓋**：先確認目前Repository與Discussion所有同package檔，再按現行純核心規則維護既有map；保留已新增的Issue規則 | 小；不新增架構平台／萬用規則引擎，也不放寬SDK白名單 | Repository／Discussion與其他核心同受import及serialization tags規則檢查，適用既有架構檢查成功；未決依賴先說明，不直接例外放行 |
+| P2 | **將455檔基準與問題小包分工**：保留全量manifest／bundle，日常以Graphify定位後打包本次能力的契約、接線、核心、adapter、UI與文件 | 小；670k tokens不宜每次全讀，但小包不能自稱全庫完整 | 每次列出含入／排除／未追蹤來源與實際tokens；來源hash、XML路徑、圖端點檢查可重現，視覺化只寫副本 |
+
+建議下一步優先核對進行中Discussion的能力接線與Issue可交付證據，再處理核心守門；補卡分檔維持第一輪的條件式後續方案，沒有相關需求就不實作。
+
+### 本輪檢查與時效
+
+已核對455個來源hash、XML完整涵蓋及圖ID／端點；在報告撰寫前的來源重查，455個快照檔與現行來源hash沒有差異。這不鎖定其他任務後續新增的檔案；完成／發布時仍以凍結manifest為範圍。tracked audit的 `--verify` 可用於初始未變動產物，455檔擴充快照另以current manifest核對，不冒稱原script已自動涵蓋untracked。
+
+使用原始graph副本 `current-visualization/graphify-out/` 產生原生GRAPH_REPORT.md及graph.html，避免重寫原始artifact hash。文件本機連結與whitespace另檢查；不將本報告的提交視為Issue／Discussion的發布，也不提交XML、graph或其他任務程式碼。Context7／官方文件中未變的工具查證沿用第一輪，並以本輪實際CLI及原碼驗證差異，未新增外部技術選型。
+
+## 第一輪：歷史快照（保留原始證據）
+
 日期：2026-11-13（Asia/Taipei）。本次實際執行兩個 CLI，產出靜態結構、來源交叉核對與五個優先方案；不實作方案、不修改業務程式或官方 UI 元件，也不部署。
 
 ## 結論與建議順序
