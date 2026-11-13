@@ -6,7 +6,7 @@
 
 - [Acceptance and evidence](acceptance.md)
 - [Systematic debugging and root cause analysis](debugging.md)
-- [Go delivery workflow](workflow.md)
+- [Agent delivery workflow](workflow.md)
 
 ## 歸屬與維護
 

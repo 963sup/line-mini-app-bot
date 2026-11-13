@@ -16,8 +16,8 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 
 現有角色依 Business Operation 契約分工；角色開始相關任務時須讀取模型及符合性流程，文件路徑不是自動 include。
 
-## 文件代理
+## 角色配置與派工
 
-`documentation` 負責指派範圍內的 Markdown 編寫、審查與修正，依[文件規範](../docs/development/documentation.md)執行；協調者分派單一寫入者並整合結果。角色檔位於 `agents/documentation.toml`，由 `config.toml` 註冊，沿用父代理模型、權限與 MCP，不增加推送或部署授權。
+角色檔位於 `agents/`，由 `config.toml` 註冊；完整職責、派工順序、深度與單一寫入者規則見[代理工作流程](../docs/agents/workflow.md#delegation-depth-and-role-selection)。`graphify`、`repomix` 提供探索證據，`golang`、`typescript`、`nextjs`、`shadcn` 接受明確範圍的實作指派，`documentation` 維護 Markdown。工具操作依[MCP 指南](../docs/tooling/mcp/README.md)，不在角色檔重複連線設定。
 
-支援自訂代理的 Codex 可選用此角色；其他主機由協調者傳遞角色指引或自行承擔職責。配置存在不代表目前聊天主機已載入或可原生選用該角色，須分別核對主機工具能力及實際執行結果。
+支援自訂代理的 Codex 可選用已註冊角色；其他主機依工作流程採用明示的 fallback。配置存在不代表目前聊天主機已載入角色或 MCP。角色沿用父代理權限，不增加推送、發布或部署授權。

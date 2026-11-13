@@ -15,8 +15,10 @@ name = "openai-docs"
 enabled = true
 
 [agents]
-# Spawned threads exclude the primary; actual host limits take precedence.
+# Spawned threads include orchestrator and exclude the primary; host limits prevail.
 max_concurrent_threads_per_session = 6
+# V1: primary(0) -> orchestrator(1) -> specialist(2). V2 ignores max_depth.
+# Specialists do not spawn; see docs/agents/workflow.md for the shared policy.
 max_depth = 2
 
 [agents.orchestrator]
@@ -58,6 +60,30 @@ config_file = "agents/documentation.toml"
 [agents.integrator]
 description = "Change integration, conflict resolution and final acceptance."
 config_file = "agents/integrator.toml"
+
+[agents.graphify]
+description = "Read-only graph exploration with current-source corroboration and scoped graph maintenance when assigned."
+config_file = "agents/graphify.toml"
+
+[agents.repomix]
+description = "Produce scoped source bundles and cross-file evidence without editing source or generating skills."
+config_file = "agents/repomix.toml"
+
+[agents.shadcn]
+description = "Inspect shadcn registry evidence and implement assigned UI composition while protecting upstream components."
+config_file = "agents/shadcn.toml"
+
+[agents.golang]
+description = "Implement assigned Go changes using gopls evidence and the repository's Go verification workflow."
+config_file = "agents/golang.toml"
+
+[agents.typescript]
+description = "Implement assigned TypeScript language and client changes with version-matched documentation and type checks."
+config_file = "agents/typescript.toml"
+
+[agents.nextjs]
+description = "Implement assigned Next.js changes while preserving the installed router, static export and application boundaries."
+config_file = "agents/nextjs.toml"
 
 [mcp_servers.graphify]
 # Forward runtime network settings by name; never store credential values.

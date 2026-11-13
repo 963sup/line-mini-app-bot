@@ -29,12 +29,10 @@ This routing rule does not require extra user confirmation.
   itself or another orchestrator.
 - Specialists receiving an assigned subtask execute that subtask and report to
   their orchestrator; they must not restart this routing rule or delegate further.
-- Orchestrator may use architect, researcher, explorer, implementer, tester,
-  reviewer, debugger, documentation and integrator when useful.
-  Small tasks can be completed by orchestrator directly; do not run all registered
-  roles automatically. Roles are capabilities, not a required parallel fan-out.
+- Orchestrator selects registered roles using the [shared workflow](docs/agents/workflow.md#delegation-depth-and-role-selection).
+  Small tasks can be completed directly; roles are capabilities, not a required fan-out.
 - Assign one writer per file scope; parallelize only independent tasks. Respect
-  the host's actual concurrency and depth limits (configured depth is 2).
+  the configured bounds and host's actual concurrency and depth limits.
 - Preserve existing changes. Follow the user's scope and authorization; agent
   delegation does not authorize pushing, publishing, deploying or external writes.
 - Validate the result with relevant checks and distinguish installed/configured
@@ -60,14 +58,21 @@ This routing rule does not require extra user confirmation.
 | Reviewer | Code quality, security and architectural compliance review |
 | Documentation | Write, review and repair assigned Markdown against the documentation policy |
 | Integrator | Change integration, conflict resolution and final acceptance |
+| Graphify | Read-only graph navigation and current-source evidence; graph updates only when assigned |
+| Repomix | Scoped source bundles and cross-file corroboration without source edits |
+| Shadcn | Registry evidence and assigned UI composition under component protection rules |
+| Golang | Assigned Go implementation with gopls evidence and Go verification |
+| TypeScript | Assigned language, type and client changes with package checks |
+| Next.js | Assigned framework changes under the current router and static-export architecture |
 
 Every handoff includes the goal, owned files, constraints, dependencies and
 acceptance checks. Every result includes evidence, actual test outcomes and
 remaining limitations. Integrator receives exclusive file ownership before
 resolving conflicts and checks the combined result; orchestrator retains final
 coordination responsibility. Integration never grants permission to push, merge
-remote changes, deploy or publish. The configured thread limit remains six and
-depth remains two; schedule specialists within the host's actual limits.
+remote changes, deploy or publish. Depth and scheduling policy is maintained in
+the [shared workflow](docs/agents/workflow.md#delegation-depth-and-role-selection),
+with numeric bounds owned by `.codex/config.toml`.
 
 ## graphify
 

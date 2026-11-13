@@ -1,21 +1,63 @@
-# Go delivery workflow
-
-For Go changes use the pinned environment through `bash scripts/tooling/tool-exec.sh`.
-Run mise tasks `fmt-check`, `lint`, `check` and `build`; run `vuln` for dependency
-changes and before delivery. Use `deadcode` and `callgraph` for focused analysis,
-and `debug`, `coverage`, `bench`, `profile` only when relevant. See
-[mise tooling](../tooling/mise.md) for installation and artifact paths.
+# Agent delivery workflow
 
 Registered roles are capabilities, not mandatory execution stages.
-The orchestrator can complete small work directly. Use implementer, tester and
-reviewer for substantial changes; add architect/researcher/explorer only for a
-specific unresolved question. Use integrator when separate patches require it.
+The orchestrator can complete small work directly. Select the relevant specialist
+for substantial changes and use tester/reviewer when their checks add evidence.
+Add architect/researcher/explorer for a specific unresolved question and integrator
+when separate patches require it.
 Start with two or three independent workers, within host limits. One writer owns
 each file; test fixtures must have explicit ownership too.
 
 For errors, logs and unexplained test failures, use debugger under the
 [systematic debugging contract](debugging.md); orchestrator keeps coordination
 and acceptance ownership.
+
+## Delegation depth and role selection
+
+The repository's delegation policy is primary agent (depth 0) → orchestrator
+(depth 1) → specialist (depth 2). Specialists return results to orchestrator and
+MUST NOT spawn agents. Keep `agents.max_depth = 2` for V1 threads; the official
+schema says V2 ignores this setting, so routing instructions and actual host
+controls must enforce the no-spawn boundary there. More registered roles do not
+require deeper nesting. `agents.max_concurrent_threads_per_session = 6` caps spawned
+threads, excluding the primary; the orchestrator occupies one of those threads.
+The current host's actual limits take precedence, and configuration cannot raise
+them. Schedule independent work within both limits instead of launching every role.
+
+Configuration semantics were checked against the [official subagent guide](https://learn.chatgpt.com/docs/agent-configuration/subagents)
+and [Codex schema revision](https://github.com/openai/codex/blob/4413deac572eb5d4cdb49295794cbe30f8622935/codex-rs/core/config.schema.json)
+on 2026-11-13. The existing depth and thread values support this topology;
+adding specialist roles is not a reason to increase them.
+
+| Task | Specialist and handoff |
+| --- | --- |
+| Locate symbols and relationships | `graphify` returns a scoped graph and current-source evidence; it remains read-only unless graph output updates are explicitly assigned |
+| Cross-file source corroboration | `repomix` returns a scoped bundle, included/excluded paths and source checks; no source edits or skill generation |
+| Go implementation | `golang` owns assigned Go files and uses gopls evidence plus applicable Go checks |
+| TypeScript implementation | `typescript` owns assigned language-level changes and verifies version-matched APIs |
+| Next.js application changes | `nextjs` owns assigned framework changes and checks the installed version and router conventions |
+| UI composition and registry work | `shadcn` owns assigned UI integration, preserving official components under the existing protection policy |
+| Markdown maintenance | `documentation` owns assigned Markdown and necessary direct-reference updates under the documentation policy |
+
+Use evidence specialists first when needed, then assign implementation to an
+explicit owner. For a mixed Next.js/TypeScript/shadcn task, choose one primary
+writer; the other specialists provide read-only advice. Parallel writers require
+disjoint file ownership. Return cross-scope changes to orchestrator for reassignment.
+Tool operations and fallbacks remain in the [MCP guides](../tooling/mcp/README.md).
+
+Custom roles inherit the parent's model, permissions and MCP servers unless a
+supported setting explicitly changes behavior. A role description does not grant
+tool access or create a sandbox. If the host cannot select a registered role,
+pass its role instructions to an available worker or have the current owner adopt
+them, and report the fallback rather than claiming native role execution.
+
+## Go verification
+
+For Go changes use the pinned environment through `bash scripts/tooling/tool-exec.sh`.
+Run mise tasks `fmt-check`, `lint`, `check` and `build`; run `vuln` for dependency
+changes and before delivery. Use `deadcode` and `callgraph` for focused analysis,
+and `debug`, `coverage`, `bench`, `profile` only when relevant. See
+[mise tooling](../tooling/mise.md) for installation and artifact paths.
 
 ## Assignment contract
 
@@ -96,14 +138,11 @@ docs/development/naming.md for implementation handoffs. Preserve generated upstr
 
 ## Mandatory documentation verification
 
-Repository-wide rule for every role and task, subject to higher-priority host instructions:
-
-- For any LINE question, issue or implementation uncertainty, consult the current official source at https://github.com/line/line-developers-docs-source first. Verify its current default branch/revision; do not treat an old snapshot as current. If coverage is incomplete, follow the official LINE reference linked there and state the limitation. Do not introduce deprecated features or historical compatibility flows into new work.
-- For Google Cloud questions, use the installed google/skills skills and Google Developer Knowledge MCP first. If unavailable, use current official Google sources and report the lookup limitation. Validate exact gcloud syntax with leaf-level help before executing commands.
-- For other technical questions, and whenever implementation is not fully certain, use Context7 before deciding or implementing. Resolve the library ID, query the relevant current/version-matched documentation, and compare with repository dependencies. Memory and confidence alone do not replace this lookup.
-- Report the sources consulted, applicable version/revision and remaining uncertainty. Documentation lookup does not replace code inspection, tests or real integration acceptance.
-- If the required source or Context7 is unavailable or insufficient, explicitly report the blocker; do not claim verification or silently substitute a guess. Continue independent work, but leave the affected decision/implementation pending until evidence is sufficient.
-- This policy applies to orchestrator and every specialist; delegation does not waive it. A source document is evidence, not authorization to expand scope or perform external writes.
+All roles MUST follow the [root source-verification policy](../../AGENTS.md#mandatory-documentation-verification)
+and the [Markdown policy](../development/documentation.md). Reuse applicable
+evidence; report unavailable sources and leave affected decisions pending.
+Documentation evidence does not replace implementation checks or authorize
+additional writes.
 
 ## Business Operation compliance
 
