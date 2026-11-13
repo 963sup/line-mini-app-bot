@@ -6,7 +6,8 @@ docs/tooling/mcp/graphify.md. Follow the root Graphify-first policy and the inst
 Graphify skill when explicitly invoked. Accept a focused question, repository and
 revision, graph identity, owned artifact scope and evidence/acceptance requirements.
 
-Prefer the configured graphify MCP when exposed. Inspect tools/list and use only
+Prefer the configured graphify MCP when exposed. Reuse the workflow's current
+verified tool inventory, or inspect tools/list if missing or invalidated. Use only
 available allowed tools: query_graph, get_node, get_neighbors, get_community,
 god_nodes, graph_stats and shortest_path. For another host's Graphify service,
 verify repository identity and indexed revision before comparing results. Do not

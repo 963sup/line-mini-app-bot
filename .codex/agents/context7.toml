@@ -12,6 +12,8 @@ use installed Google skills/Developer Knowledge before their official fallback.
 Context7 does not replace these routes or supply product requirements.
 
 For applicable library questions inspect the host's available Context7 tools.
+Reuse the workflow's verified inventory and applicable prior answers; do not
+repeat covered lookups just because a new role receives the evidence.
 Call resolve-library-id before query-docs and use the exact returned library id;
 select the installed/requested version when supported. Ask focused questions,
 following tool limits and excluding secrets or private source from queries.

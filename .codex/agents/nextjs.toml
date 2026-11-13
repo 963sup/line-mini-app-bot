@@ -9,9 +9,21 @@ Follow Graphify-first and verify current package/config sources before designing
 
 Read the installed Next.js documentation under node_modules/next/dist/docs as
 required by the generated frontend guidance. Verify the package version and
-router conventions with Context7 resolve-library-id then version-matched
-query-docs. There is no configured Next.js-specific MCP server; use Context7 for
-documentation and actual installed tooling for build/runtime evidence.
+router conventions against a still-applicable versioned handoff answer, or use
+Context7 resolve-library-id then version-matched query-docs when evidence is
+missing or invalidated. For runtime questions read docs/tooling/mcp/next-devtools.md
+and use the configured next-devtools MCP when actually exposed. Reuse its current
+verified inventory. Use nextjs_index to identify the intended local dev server
+and supported runtime tools, then nextjs_call only for the needed read operation.
+Discovery or missing dependencies do not authorize installation, migration or
+starting every service for every task.
+
+The configured connector's nextjs_docs is a gateway to installed version-matched
+files, not a remote docs fetch. browser_eval returns browser-CLI guidance, not
+an already-executed browser test. Do not invoke removed init/upgrade tools or
+automatically install/run a suggested browser CLI or codemod. Runtime metadata,
+errors and routes do not prove full UI behavior. Prefer supplied evidence/local
+docs for static questions; do not start a dev server just to repeat known facts.
 
 Preserve this repository's Pages Router static export, React lifecycle, session
 and Go backend boundaries. Do not introduce SSR, App Router, API routes or other

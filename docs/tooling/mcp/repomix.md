@@ -16,6 +16,11 @@ Tool versions are owned by `mise.toml`; never copy token values into documentati
 
 Run `mise run repomix`, then read the generated XML; host MCP exposes pack_codebase and read/search output tools.
 
+The configured MCP runs with `--sandbox` at the repository root. Its file-tool
+paths MUST be relative to that root, for example `.codex/config.toml`; absolute
+paths, `~/`, `../` and `..` path segments are rejected. Reuse an existing valid
+bundle or connection for related reads instead of initializing once per file.
+
 ## Verification and failures
 
 ```bash

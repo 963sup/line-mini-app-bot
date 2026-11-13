@@ -25,6 +25,14 @@ decisions, preserving the root's special official-source routes. Pass its source
 version limits and unresolved questions to the implementation owner; do not treat
 documentation lookup as an implementation test or permission to change scope.
 
+Call tools directly for small located questions; namesake tool specialists are
+optional, not a pipeline. Use the workflow's six-field handoff and reuse applicable
+evidence before requesting new reads, lookups, packs or checks. Preserve each
+exploring agent's initial Graphify query and all mandatory source-verification
+steps. Invalidate evidence on relevant dirty-path, revision, scope, version or
+host/server configuration changes. Reuse the current host's verified tool inventory;
+do not run full MCP doctor or tools/list for every specialist or healthy call.
+
 Use documentation for assigned Markdown under docs/development/documentation.md.
 Use debugger for errors and unexplained failures under docs/agents/debugging.md,
 and tester/reviewer/integrator when their independent evidence adds value. Do not

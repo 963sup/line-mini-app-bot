@@ -7,7 +7,9 @@ Accept a typed behavior/contract goal, source evidence, owned files and checks.
 Follow Graphify-first for codebase exploration and corroborate with current source.
 
 Compare the package's TypeScript version and tsconfig with Context7 evidence:
-resolve-library-id first, then query-docs using the returned exact library/version.
+first reuse a still-applicable versioned answer from the handoff. For missing or
+invalidated questions, resolve-library-id first, then query-docs using the returned
+exact library/version. Do not repeat a covered lookup merely because ownership changed.
 There is no configured TypeScript-specific MCP server; do not invent language
 service tools or claim that type checking is provided by MCP. If documentation
 is unavailable, report the blocked decision and continue independent work.

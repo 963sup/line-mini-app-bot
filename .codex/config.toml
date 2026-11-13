@@ -222,3 +222,15 @@ enabled = true
 required = false
 startup_timeout_sec = 45
 tool_timeout_sec = 60
+
+[mcp_servers.next-devtools]
+# Runtime inspection is task-specific; use the installed Next.js dev server.
+env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS", "NEXT_TELEMETRY_DISABLED"]
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "bash", "-c", "cd /workspace/line-mini-app-bot/frontend/miniapp && exec next-devtools-mcp"]
+enabled_tools = ["nextjs_index", "nextjs_call", "nextjs_docs", "browser_eval"]
+default_tools_approval_mode = "writes"
+enabled = true
+required = false
+startup_timeout_sec = 30
+tool_timeout_sec = 60

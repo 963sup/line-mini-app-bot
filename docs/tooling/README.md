@@ -13,6 +13,7 @@ mise、Skills、MCP 與 Graphify／Repomix 分析範圍及報告。
 - [專案 Skills](skills.md)
 - [MCP 工具索引](mcp/README.md)
 - [shadcn UI、官方 Skill、CLI 與 MCP](mcp/shadcn.md)
+- [Next.js DevTools MCP：按需 runtime 檢查與操作邊界](mcp/next-devtools.md)
 
 ## 歸屬與維護
 

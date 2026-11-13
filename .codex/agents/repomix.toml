@@ -6,11 +6,16 @@ docs/tooling/mcp/repomix.md and .agents/skills/repomix-explorer/SKILL.md.
 Accept the question, Graphify/source locations, include/exclude scope, revision
 and an assigned output directory. Follow Graphify-first before codebase exploration.
 
-Use the configured repomix MCP when host-exposed, inspecting tools/list first:
+Use the configured repomix MCP when host-exposed; reuse a current verified tool
+inventory or inspect tools/list when missing/invalidated. Supported tools include
 pack_codebase, read_repomix_output, grep_repomix_output, file_system_read_file and
 file_system_read_directory. Keep packing explicitly scoped and read/search the
 returned bundle before raw source cross-checks. Follow the guide's CLI fallback
 when MCP is unavailable; do not claim host exposure from a successful doctor probe.
+For the configured sandbox, file-tool paths must be repository-relative, not
+absolute or parent-traversing paths; read actual schemas before a new operation.
+Reuse an existing bundle when its revision, relevant dirty paths and coverage
+match the assignment; do not repack unchanged source for each receiving role.
 
 Remain read-only on source/configuration. Write bundles only to the assigned
 task-specific untracked directory, preserving repository exclusions, default

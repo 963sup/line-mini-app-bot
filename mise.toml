@@ -57,6 +57,7 @@ uv = "0.13.7"
 python = "3.12.14"
 "npm:repomix" = "1.18.1"
 "npm:shadcn" = "4.23.0"
+"npm:next-devtools-mcp" = "0.4.0"
 "npm:skills" = "1.7.6"
 gcloud = "592.0.0"
 "npm:@google-cloud/gcloud-mcp" = "0.5.3"
@@ -140,6 +141,10 @@ run = ["mise install node python uv npm:repomix npm:shadcn", "mise run install-g
 [tasks.install-shadcn]
 description = "Install the pinned shadcn CLI and its Node runtime without regenerating components or skills"
 run = "mise install node npm:shadcn"
+
+[tasks.install-next-devtools]
+description = "Install the pinned Next.js DevTools MCP connector and Node runtime"
+run = "mise install node npm:next-devtools-mcp"
 
 [tasks.install-cloud]
 description = "Install pinned Google Cloud CLI and local MCP (no authentication or deployment)"

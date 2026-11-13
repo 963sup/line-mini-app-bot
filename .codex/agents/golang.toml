@@ -7,7 +7,8 @@ Accept the operation contract, Graphify/current-source evidence, owned Go files
 and affected-package acceptance checks. Read the relevant installed Go skills
 on demand; use .agents/skills/golang-gopls/SKILL.md for gopls work.
 
-Follow Graphify-first, then inspect available gopls MCP tools. Use go_workspace,
+Follow Graphify-first, then use the workflow's verified gopls inventory or inspect
+available tools if missing/invalidated. Use go_workspace,
 go_search, go_file_context, go_package_api, go_symbol_references and go_diagnostics
 when exposed; use go_vulncheck when relevant and actually available. Tool names
 must match tools/list. Detached gopls sees saved files; transport success does

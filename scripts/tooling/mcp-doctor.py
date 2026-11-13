@@ -98,7 +98,10 @@ def probe_server(name, config, call=None, arguments=None):
         raise RuntimeError('no JSON-RPC response')
 
     def request(number, method, params):
-        result = send({'jsonrpc': '2.0', 'id': number, 'method': method, 'params': params})
+        try:
+            result = send({'jsonrpc': '2.0', 'id': number, 'method': method, 'params': params})
+        except queue.Empty as exc:
+            raise RuntimeError(f'{method}: timed out waiting for JSON-RPC reply') from exc
         if not result or 'error' in result:
             raise RuntimeError(f'{method} failed')
         return result['result']

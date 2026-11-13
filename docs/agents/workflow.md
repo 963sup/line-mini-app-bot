@@ -5,8 +5,9 @@ The orchestrator can complete small work directly. Select the relevant specialis
 for substantial changes and use tester/reviewer when their checks add evidence.
 Add architect/researcher/explorer for a specific unresolved question and integrator
 when separate patches require it.
-Start with two or three independent workers, within host limits. One writer owns
-each file; test fixtures must have explicit ownership too.
+Delegate only when a bounded independent subproblem or context isolation justifies
+the handoff. When parallel work is useful, start with at most two or three workers
+within host limits. One writer owns each file, including test fixtures.
 
 For errors, logs and unexplained test failures, use debugger under the
 [systematic debugging contract](debugging.md); orchestrator keeps coordination
@@ -46,6 +47,12 @@ writer; the other specialists provide read-only advice. Parallel writers require
 disjoint file ownership. Return cross-scope changes to orchestrator for reassignment.
 Tool operations and fallbacks remain in the [MCP guides](../tooling/mcp/README.md).
 
+The orchestrator or current owner MAY call the relevant tools directly; a tool
+does not require its namesake specialist. Do not build a mandatory
+graphify → repomix → context7 → implementer chain. Select only the steps required
+by the question and root policies. The root Graphify-first and official-source
+requirements, and the Business Operation compliance steps, still apply.
+
 Custom roles inherit the parent's model, permissions and MCP servers unless a
 supported setting explicitly changes behavior. A role description does not grant
 tool access or create a sandbox. If the host cannot select a registered role,
@@ -70,6 +77,48 @@ changes to their assigned owner. Small edits may stay with the current owner.
 Provide the goal, owned files, dependencies, behavior to preserve and acceptance
 commands. Return changed paths, actual commands/results, skips and open issues.
 Do not repeat an investigation already answered unless new evidence conflicts.
+
+### Minimal handoff and evidence reuse
+
+Use six fields rather than forwarding the full conversation or raw logs:
+
+| Field | Required content |
+| --- | --- |
+| Goal | One bounded question or change and its completion condition |
+| Ownership | Repository, revision, relevant dirty paths, owned files/hunks and read-only boundaries |
+| Inputs | Located paths/symbols, applicable instructions and constraints; read required instructions if not already supplied and current |
+| Evidence | Only relevant source/query results with version, scope and artifact locations; include host/server/tool identity for MCP evidence |
+| Checks | Exact commands already run, actual results and required checks still pending |
+| Open issues | Missing evidence, conflicts, failures and cross-scope work needing reassignment |
+
+Reuse evidence only while its repository/revision, relevant dirty paths, query or
+bundle coverage, dependency versions and tool configuration remain applicable.
+An unchanged HEAD alone is insufficient when relevant working files changed.
+Refresh only invalidated evidence after source/version/scope/configuration changes
+or conflicting observations; do not repeat unchanged document reads, library
+lookups, bundles or whole check suites just because the owner changed.
+
+Every agent that actually explores the codebase MUST still perform its initial
+Graphify query under the root rule. Supply the previous focused query and located
+paths to avoid repeating broad exploration; reuse that agent's still-valid query
+for the same question. A worker consuming supplied evidence without new codebase
+exploration need not invent an additional exploration task. New questions or stale
+graphs require focused queries and current-source corroboration.
+
+For Context7 reuse a prior resolved library ID and versioned answer only for the
+same covered question; new or unsupported questions still require resolve/query
+and the root official-source route. Reuse a scoped Repomix bundle only while its
+source revision, dirty paths and inclusion/exclusion coverage match. Reviewers
+retain independent judgment and perform checks needed to challenge a conclusion.
+
+The [MCP operating guide](../tooling/mcp/README.md#task-scoped-tool-use) owns tool
+inventory and connection reuse. A service, role or source mismatch invalidates
+the relevant evidence; successful registration is never runtime acceptance.
+
+Cache a diagnosed tool failure with its host/environment, server configuration
+and failure stage. Use the documented fallback for the rest of that unchanged
+task; another role is not a reason to repeat the same timeout. Retry only after
+a relevant condition changes or a bounded diagnostic is explicitly assigned.
 
 
 ## Reading and handoff
