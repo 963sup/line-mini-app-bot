@@ -67,7 +67,7 @@ MCP 可提供 registry 資訊及新增命令；若回傳命令使用浮動版本
 
 ## 官方能力索引與適用範圍
 
-本頁維護功能入口、專案路徑及實測狀態；完整且持續更新的元件目錄以官方網站／registry 為準，不複製成一份容易過期的「全部已安裝」清單。
+本頁維護功能入口、專案路徑及實測狀態；[元件目錄 AGENTS.md](../../../frontend/miniapp/src/shared/ui/AGENTS.md) 保存禁止修改規則、完整官方元件快照及 Codex 主動使用 Skill／MCP 的流程。該目錄供探索與按需安裝，不代表全部已安裝；每次使用仍核對官方網站／registry，實際已安裝清單以 CLI `info --json` 為準。前端 UI 任務應先讀該指引，使用公開 props／variants 在應用層組合，避免直接修改官方元件。
 
 | 能力 | 官方入口／操作 | 本專案狀態與邊界 |
 | --- | --- | --- |
@@ -103,6 +103,8 @@ bash scripts/tooling/tool-exec.sh shadcn add @shadcn/button --dry-run --cwd fron
 `docs` 回傳連結後仍須讀取相關官方內容。Graphify CLI 用於程式關係定位，Repomix CLI 用於必要範圍的來源交叉核對；前者的 AST 圖不完整涵蓋工具設定／文件，後者不應每次整庫打包。兩者版本／任務由 `mise.toml` 管理，見 [Graphify](graphify.md)、[Repomix](repomix.md)。
 
 ## 驗證紀錄
+
+2026-11-13（Asia/Taipei）補充：直接讀取使用者指定的 [Components](https://ui.shadcn.com/docs/components)、[Registry MCP](https://ui.shadcn.com/docs/registry/mcp)、[Skills](https://ui.shadcn.com/docs/skills) 均為 HTTP 200；Components 的 66 項官方連結已列入元件目錄指引。Context7 `/shadcn-ui/ui` 交叉核對 CLI `info`、`docs`、`add --dry-run`／`--diff`；本機固定 CLI `4.23.0` 的 `info --json` 確認 Radix、new-york 及 30 個已安裝元件，`docs button --base radix --json` 與 `add`／`docs --help` 成功。官方線上內容與固定 CLI 不保證完全同版，新增功能先查 help／registry。此聊天 host 未曝光 shadcn MCP 工具；已設定 server 不等於已載入，依指引改用固定 CLI 查詢。本次只修改指引，未變更官方元件、依賴或應用行為，未重跑前端／LINE 實機驗收；mise 提示 Go 未安裝，不影響已成功執行的 shadcn 查詢。
 
 2026-11-12（Asia/Taipei），此紀錄是當次觀測，非版本配置的第二來源：
 

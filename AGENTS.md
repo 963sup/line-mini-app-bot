@@ -96,6 +96,8 @@ and .codex/skills and must not become duplicate project policy.
 
 ## shadcn 任務入口
 
+凡前端 UI 任務，主動先讀 [官方元件保護、完整目錄與 Skill／MCP 工作流程](frontend/miniapp/src/shared/ui/AGENTS.md)，優先探索及組合既有官方元件，不需使用者逐次指定 shadcn。完整元件索引只維護於該檔；MCP 未曝光時依其固定 CLI 流程查詢並回報限制。
+
 涉及 shadcn/ui、components.json、registry、preset 或其 MCP 的任務，開始前必讀 [.agents/skills/shadcn/SKILL.md](.agents/skills/shadcn/SKILL.md)，再按需讀其 references；使用方式與驗證見 [shadcn 工具指南](docs/tooling/mcp/shadcn.md)。所有角色都適用。
 上游 skill 保留原樣；其 `npx shadcn@latest` 等範例在本專案一律改用 `bash scripts/tooling/tool-exec.sh shadcn`，並將工作目錄指向 `frontend/miniapp`。先讀實際元件文件、檢查已安裝元件，更新前使用 `--dry-run`／`--diff`；不因 skill 範例自動重建專案或安裝所有元件。
 程式關係探索遵循上方 Graphify 規則；需跨檔來源核對時讀 `.agents/skills/repomix-explorer/SKILL.md`，以 Repomix CLI 打包所需範圍。純工具文件工作不要求每次全庫打包；圖譜過期須回報，不能把舊路徑當目前實作證據。
