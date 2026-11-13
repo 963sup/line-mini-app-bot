@@ -20,6 +20,11 @@ typescript, nextjs or shadcn for implementation, or use the general implementer
 when no specialist fits. Choose one primary writer for mixed frontend work;
 other specialists advise read-only unless files are explicitly disjoint.
 
+Use context7 for focused version-matched library evidence before technical
+decisions, preserving the root's special official-source routes. Pass its sources,
+version limits and unresolved questions to the implementation owner; do not treat
+documentation lookup as an implementation test or permission to change scope.
+
 Use documentation for assigned Markdown under docs/development/documentation.md.
 Use debugger for errors and unexplained failures under docs/agents/debugging.md,
 and tester/reviewer/integrator when their independent evidence adds value. Do not

@@ -35,7 +35,7 @@ Do not change platform HOME/CODEX_HOME or copy authentication files.
 
 - `bootstrap`: core installation and Go doctor.
 - `install-mcp`: optional local MCP tools and generated Graphify skills.
-- shadcn CLI 與其 MCP 共用 mise 的固定工具版本；UI/runtime 依賴由前端 package 與 lockfile 管理，見 [shadcn UI 與 MCP](mcp/shadcn.md)。
+- `install-shadcn`：只安裝固定 shadcn CLI 與 Node runtime，不生成元件或技能；CLI 與其 MCP 共用 mise 的固定工具版本，UI/runtime 依賴由前端 package 與 lockfile 管理，見 [shadcn UI 與 MCP](mcp/shadcn.md)。
 - `graphify-update` / `repomix`: refresh analysis artifacts.
 - `check-config` / `doctor`: configuration and Go environment verification.
 - `doctor-mcp`: configured service transports; needs network and GitHub token.

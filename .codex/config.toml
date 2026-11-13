@@ -85,6 +85,10 @@ config_file = "agents/typescript.toml"
 description = "Implement assigned Next.js changes while preserving the installed router, static export and application boundaries."
 config_file = "agents/nextjs.toml"
 
+[agents.context7]
+description = "Resolve version-matched library documentation and return traceable evidence without editing source or inventing unsupported claims."
+config_file = "agents/context7.toml"
+
 [mcp_servers.graphify]
 # Forward runtime network settings by name; never store credential values.
 env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]

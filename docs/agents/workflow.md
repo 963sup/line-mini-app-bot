@@ -33,6 +33,7 @@ adding specialist roles is not a reason to increase them.
 | --- | --- |
 | Locate symbols and relationships | `graphify` returns a scoped graph and current-source evidence; it remains read-only unless graph output updates are explicitly assigned |
 | Cross-file source corroboration | `repomix` returns a scoped bundle, included/excluded paths and source checks; no source edits or skill generation |
+| Version-matched library documentation | `context7` returns library IDs, versions, sources and applicability limits; root official-source routes take priority |
 | Go implementation | `golang` owns assigned Go files and uses gopls evidence plus applicable Go checks |
 | TypeScript implementation | `typescript` owns assigned language-level changes and verifies version-matched APIs |
 | Next.js application changes | `nextjs` owns assigned framework changes and checks the installed version and router conventions |

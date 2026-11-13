@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 ROLES = {
     "orchestrator", "architect", "researcher", "explorer",
     "implementer", "debugger", "tester", "reviewer", "documentation", "integrator",
-    "graphify", "repomix", "shadcn", "golang", "typescript", "nextjs",
+    "graphify", "repomix", "shadcn", "golang", "typescript", "nextjs", "context7",
 }
 
 

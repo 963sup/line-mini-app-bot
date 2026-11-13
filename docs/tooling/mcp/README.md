@@ -4,7 +4,7 @@
 | --- | --- |
 | [graphify](graphify.md) | Graphify；Explorer、Architect 亦可使用 |
 | [openaiDeveloperDocs](openai-docs.md) | Researcher, Implementer |
-| [context7](context7.md) | TypeScript、Next.js、Golang、Researcher；版本相符文件查證 |
+| [context7](context7.md) | Context7；TypeScript、Next.js、Golang、Researcher 亦可使用；版本相符文件查證 |
 | [shadcn](shadcn.md) | Shadcn；MINI App 元件 registry 與整合輔助 |
 | [repomix](repomix.md) | Repomix；Explorer、Reviewer 亦可使用 |
 | [repomix_skills](repomix-skills.md) | Researcher, Implementer |

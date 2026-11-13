@@ -21,6 +21,7 @@ CLI 固定版本與安裝任務由根目錄 `mise.toml` 管理；UI 與編譯依
 從儲存庫根目錄執行：
 
 ```bash
+bash scripts/tooling/tool-exec.sh mise run install-shadcn
 bash scripts/tooling/tool-exec.sh shadcn --help
 bash scripts/tooling/tool-exec.sh shadcn add button --cwd frontend/miniapp
 ```
@@ -103,6 +104,8 @@ bash scripts/tooling/tool-exec.sh shadcn add @shadcn/button --dry-run --cwd fron
 `docs` 回傳連結後仍須讀取相關官方內容。Graphify CLI 用於程式關係定位，Repomix CLI 用於必要範圍的來源交叉核對；前者的 AST 圖不完整涵蓋工具設定／文件，後者不應每次整庫打包。兩者版本／任務由 `mise.toml` 管理，見 [Graphify](graphify.md)、[Repomix](repomix.md)。
 
 ## 驗證紀錄
+
+2026-11-14（Asia/Taipei）：既有 mise CLI pin 已存在，本次以獨立 `install-shadcn` 任務補齊環境安裝，未新增第二份版本設定。CLI `--version`、`info --json` 及 registry `search` 成功；專案辨識為 Next.js Pages Router、Tailwind v4。依既有配置啟動 MCP，initialize／tools-list 通過 7 個工具；暫存唯讀 client 的 `get_project_registries` 與 `search_items_in_registries` 實際成功，後者在 `@shadcn` 搜尋 `button` 找到 33 項並回傳前 2 項。未執行元件新增、覆寫或 UI 修改；這些直接操作不代表聊天 host 已曝光 MCP 工具。
 
 2026-11-13（Asia/Taipei）補充：直接讀取使用者指定的 [Components](https://ui.shadcn.com/docs/components)、[Registry MCP](https://ui.shadcn.com/docs/registry/mcp)、[Skills](https://ui.shadcn.com/docs/skills) 均為 HTTP 200；Components 的 66 項官方連結已列入元件目錄指引。Context7 `/shadcn-ui/ui` 交叉核對 CLI `info`、`docs`、`add --dry-run`／`--diff`；本機固定 CLI `4.23.0` 的 `info --json` 確認 Radix、new-york 及 30 個已安裝元件，`docs button --base radix --json` 與 `add`／`docs --help` 成功。官方線上內容與固定 CLI 不保證完全同版，新增功能先查 help／registry。此聊天 host 未曝光 shadcn MCP 工具；已設定 server 不等於已載入，依指引改用固定 CLI 查詢。本次只修改指引，未變更官方元件、依賴或應用行為，未重跑前端／LINE 實機驗收；mise 提示 Go 未安裝，不影響已成功執行的 shadcn 查詢。
 

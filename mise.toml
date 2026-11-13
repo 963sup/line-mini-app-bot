@@ -137,6 +137,10 @@ run = "bash ../scripts/tooling/go-profile.sh"
 description = "Install optional local MCP tools separately from Go"
 run = ["mise install node python uv npm:repomix npm:shadcn", "mise run install-graphify"]
 
+[tasks.install-shadcn]
+description = "Install the pinned shadcn CLI and its Node runtime without regenerating components or skills"
+run = "mise install node npm:shadcn"
+
 [tasks.install-cloud]
 description = "Install pinned Google Cloud CLI and local MCP (no authentication or deployment)"
 run = "mise install gcloud npm:@google-cloud/gcloud-mcp"

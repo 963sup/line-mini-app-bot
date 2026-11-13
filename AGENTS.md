@@ -64,6 +64,7 @@ This routing rule does not require extra user confirmation.
 | Golang | Assigned Go implementation with gopls evidence and Go verification |
 | TypeScript | Assigned language, type and client changes with package checks |
 | Next.js | Assigned framework changes under the current router and static-export architecture |
+| Context7 | Read-only version-matched library evidence, applicability limits and unresolved questions |
 
 Every handoff includes the goal, owned files, constraints, dependencies and
 acceptance checks. Every result includes evidence, actual test outcomes and
