@@ -51,6 +51,7 @@
 - [架構迭代：來源錯誤邊界與留言生命週期](tooling/architecture-iteration-20261113.md)：本機逐輪量測與驗證。
 - [架構延續：診斷期限與取消責任](tooling/architecture-continuation-20261113.md)：後續 tooling／shared helper 的本機修正。
 - [移除空間預覽、補回歸與 MCP 優先發布](tooling/preview-removal-optimization-20261113.md)：最新整合結果與停止理由。
+- [HTTP 診斷期限與回歸驗證收斂](tooling/http-deadline-convergence-20261113.md)：後續本機期限修正與正式 CI 回歸。
 - Next.js runtime：[DevTools MCP](tooling/mcp/next-devtools.md)；按需讀取，不取代正式靜態輸出或應用驗收。
 - 架構收斂：[固定基準、前後指標與已驗證修正](tooling/architecture-convergence-20261113.md)、[第二輪Project來源故障隔離](tooling/architecture-convergence-pass2-20261113.md)。
 - 分析報告：[Graphify／Repomix 儲存庫分析與五項優先方案（2026-11-13）](tooling/graphify-repomix-report-20261113.md)。

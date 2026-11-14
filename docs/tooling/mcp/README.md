@@ -62,6 +62,12 @@ doctor for a diagnosed problem, not the full optional service suite for routine
 work. On failure identify binary, arguments, transport, network or source mismatch
 before retrying; do not repeatedly increase timeouts or launch unrelated servers.
 
+The doctor bounds stdio waits and isolates each HTTP exchange in a worker that
+is killed and reaped on timeout or interruption. Its existing server timeout
+configuration owns the budget; this is not a hard real-time guarantee for OS
+process creation. Offline regressions run in the configuration CI job; see the
+[deadline and cleanup evidence](../http-deadline-convergence-20261113.md).
+
 Local Codex sessions may disable an unrelated server without deleting its
 configuration using `-c 'mcp_servers.SERVER.enabled=false'`. `enabled_tools` and
 `disabled_tools` filter tools in the parent configuration; a custom role inherits

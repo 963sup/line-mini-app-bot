@@ -6,10 +6,10 @@ from pathlib import Path
 import queue
 import signal
 import subprocess
+import sys
 import threading
 import time
 import tomllib
-import urllib.request
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = tomllib.loads((ROOT / '.codex/config.toml').read_text())['mcp_servers']
@@ -87,20 +87,30 @@ def probe_server(name, config, call=None, arguments=None):
             request_headers['Mcp-Session-Id'] = session
         if message.get('method') != 'initialize':
             request_headers['MCP-Protocol-Version'] = protocol
-        req = urllib.request.Request(config['url'], data=json.dumps(message).encode(), headers=request_headers)
-        with urllib.request.urlopen(req, timeout=25) as response:
-            session = response.headers.get('Mcp-Session-Id', session)
-            if wanted is None:
-                return None
-            if 'text/event-stream' in response.headers.get('Content-Type', ''):
-                for line in response:
-                    if line.startswith(b'data:'):
-                        item = json.loads(line[5:])
-                        if item.get('id') == wanted:
-                            return item
-            else:
-                return json.load(response)
-        raise RuntimeError('no JSON-RPC response')
+        timeout = config.get('startup_timeout_sec', 25)
+        deadline = time.monotonic() + timeout
+        payload = json.dumps({'url': config['url'], 'headers': request_headers,
+                              'message': message, 'session': session, 'timeout': timeout})
+        with subprocess.Popen([sys.executable, str(Path(__file__).with_name('mcp-http.py'))],
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.DEVNULL, text=True, cwd=ROOT) as worker:
+            try:
+                output, _ = worker.communicate(payload, timeout=max(0, deadline - time.monotonic()))
+            except subprocess.TimeoutExpired as exc:
+                worker.kill()
+                worker.communicate()
+                raise RuntimeError(f"{message['method']}: timed out waiting for HTTP response") from exc
+            except BaseException:
+                worker.kill()
+                worker.communicate()
+                raise
+            if worker.returncode:
+                raise RuntimeError('HTTP worker failed')
+        result = json.loads(output)
+        if 'error' in result:
+            raise RuntimeError(result['error'])
+        session = result['session']
+        return result['reply']
 
     def request(number, method, params):
         try:

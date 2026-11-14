@@ -14,6 +14,7 @@ their own location; `tool-exec.sh` also switches to the repository root.
 bash scripts/tooling/bootstrap.sh core
 bash scripts/tooling/tool-exec.sh mise run doctor
 python3 scripts/tooling/check-config.py
+bash scripts/tooling/tool-exec.sh python3 -m unittest discover -s scripts/tooling -p 'test_*.py'
 bash scripts/tooling/tool-exec.sh pnpm api:check
 bash scripts/tooling/tool-exec.sh mise run analysis-audit
 ```
@@ -27,6 +28,7 @@ entry points and verification boundaries.
 
 ## 相關文件
 
+- [HTTP 診斷期限與正式 CI 回歸](../docs/tooling/http-deadline-convergence-20261113.md)
 - [doctor 版本來源與正式回歸驗證](../docs/tooling/preview-removal-optimization-20261113.md)
 - [架構延續：MCP doctor 固定 request 期限](../docs/tooling/architecture-continuation-20261113.md#第一輪診斷-request-只有一個期限)
 - [文件索引：Scripts](../docs/README.md#按模組閱讀)

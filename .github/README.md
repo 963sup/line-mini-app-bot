@@ -8,4 +8,6 @@ workflows/check.yml 管理設定、分析範圍、Shell、Go、前端與 API 檢
 
 核對 workflow 所引用腳本與任務存在；從根目錄執行設定檢查及 git diff --check。
 
+configuration job 同時執行本機 tooling unittest；只用標準庫與隔離 fake server，不呼叫外部 MCP 服務或要求雲端憑證。
+
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
