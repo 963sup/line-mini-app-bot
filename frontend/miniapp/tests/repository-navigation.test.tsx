@@ -28,7 +28,7 @@ async function fixture(path: string, handle: (request: Request, actor: string) =
     }
     return handle(request, actor);
   };
-  const workflow = path.startsWith("/miniapp/repositories") ? "repositories" : "review";
+  const workflow = path.split("?")[0] === "/miniapp" ? "home" : path.split("?")[0].split("/").pop()!;
   const root = createRoot(document.getElementById("root")!);
   await act(async () => { root.render(<Shell title="空間" workflow={workflow}>{workflow === "repositories" ? <RepositoryView /> : <p>審核內容</p>}</Shell>); await flush(); });
   const clickText = async (text: string) => {
@@ -163,5 +163,67 @@ test("denied detail for the next actor cannot be overwritten by a previous actor
     assert.ok(!document.body.textContent!.includes("A專用詳情"));
     assert.match(document.body.textContent!, /無權開啟/);
     assert.equal(document.querySelector(`a[href="/miniapp/repositories?selected=${a}"]`), null);
+  } finally { await f.dispose(); }
+});
+
+for (const width of [375, 1024]) {
+  test(`project sidebar expands the lazy repository catalog without gating project content (${width}px)`, async () => {
+    let attempt = 0;
+    const f = await fixture("/miniapp/projects", async () => ++attempt === 1
+      ? Response.json({ error: { message: "清單暫時失敗" } }, { status: 503 })
+      : Response.json({ items: [space(a, "專案側欄空間")], nextCursor: "" }), width);
+    try {
+      assert.match(document.body.textContent!, /審核內容/);
+      assert.equal(repositoryRequests(f.requests).length, 0, "project entry must not load repository data");
+      await f.openSidebar();
+      const trigger = Array.from(document.querySelectorAll("button")).find((node) => node.textContent === "儲存庫");
+      assert.ok(trigger, "repository must have an expandable trigger on projects");
+      assert.equal(trigger.getAttribute("aria-expanded"), "false");
+      await f.clickText("儲存庫");
+      assert.equal(trigger.getAttribute("aria-expanded"), "true");
+      assert.match(document.body.textContent!, /清單暫時失敗/);
+      assert.match(document.body.textContent!, /審核內容/);
+      await f.clickText("載入空間");
+      const link = document.querySelector<HTMLAnchorElement>(`a[href="/miniapp/repositories?selected=${a}"]`);
+      assert.ok(link);
+      if (width === 375) {
+        await act(async () => { link.addEventListener("click", (event) => event.preventDefault()); link.click(); await flush(); });
+        assert.equal(document.querySelector('[aria-label="身分選單"]'), null);
+      }
+    } finally { await f.dispose(); }
+  });
+}
+
+for (const path of ["/miniapp", "/miniapp/history?id=attendance-id", "/miniapp/journal?id=journal-id"]) {
+  test(`repository expansion remains lazy and independent of workflow query: ${path}`, async () => {
+    const f = await fixture(path, async (request) => {
+      assert.equal(new URL(request.url).pathname, "/api/v1/repositories");
+      return Response.json({ items: [space(a)], nextCursor: "" });
+    });
+    try {
+      assert.equal(repositoryRequests(f.requests).length, 0);
+      await act(async () => { document.querySelector<HTMLElement>('[aria-label="切換側欄"]')!.click(); await flush(); });
+      await f.clickText("儲存庫");
+      assert.equal(repositoryRequests(f.requests).length, 1);
+      assert.ok(document.querySelector(`a[href="/miniapp/repositories?selected=${a}"]`));
+    } finally { await f.dispose(); }
+  });
+}
+
+test("project navigation clears a logged-out catalog and can reload after verification while expanded", async () => {
+  const f = await fixture("/miniapp/projects", async (_request, actor) => Response.json({ items: [space(actor === "A" ? a : b, actor + "空間")], nextCursor: "" }));
+  try {
+    await f.clickText("儲存庫");
+    assert.match(document.body.textContent!, /A空間/);
+    await f.account("logout");
+    assert.ok(!document.body.textContent!.includes("A空間"));
+    assert.match(document.body.textContent!, /請先完成身分驗證/);
+    const load = Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find((button) => button.textContent === "載入空間")!;
+    assert.equal(load.disabled, true);
+    f.setActor("B");
+    await f.account("verify");
+    await f.clickText("載入空間");
+    assert.match(document.body.textContent!, /B空間/);
+    assert.ok(!document.body.textContent!.includes("A空間"));
   } finally { await f.dispose(); }
 });

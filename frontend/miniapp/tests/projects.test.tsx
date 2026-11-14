@@ -64,11 +64,11 @@ test("projects are a sidebar peer and open independently through Space APIs", as
   const f = await fixture("/miniapp/projects", normal);
   try {
     const projectLink = document.querySelector<HTMLAnchorElement>('a[href="/miniapp/projects"]')!;
-    const repoLink = document.querySelector<HTMLAnchorElement>('a[href="/miniapp/repositories"]')!;
+    const repoLink = Array.from(document.querySelectorAll<HTMLButtonElement>('button[aria-expanded]')).find((button) => button.textContent === "儲存庫")!;
     assert.ok(projectLink); assert.ok(repoLink);
     assert.equal(projectLink.closest('[data-sidebar="menu-item"]')?.parentElement, repoLink.closest('[data-sidebar="menu-item"]')?.parentElement);
     assert.equal(projectLink.getAttribute("aria-current"), "page");
-    assert.equal(f.requests.filter(request => new URL(request.url).pathname.startsWith("/api/v1/repositories")).length, 0, "Project landing must not require RepositoryProvider or repository listing");
+    assert.equal(f.requests.filter(request => new URL(request.url).pathname.startsWith("/api/v1/repositories")).length, 0, "Project landing must not require repository listing");
     await f.click("Space A");
     assert.ok(f.requests.some(request => new URL(request.url).pathname === `/api/v1/spaces/${sa}/projects`));
     assert.equal(f.requests.filter(request => new URL(request.url).pathname.startsWith("/api/v1/repositories")).length, 0);

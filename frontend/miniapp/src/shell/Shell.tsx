@@ -4,6 +4,7 @@ import { SessionProvider, useSession } from "../identity/Session";
 import { useEffect } from "react";
 import { RepositoryProvider, useRepositories } from "../business/repository/RepositoryContext";
 import { AppFrame } from "./AppFrame";
+import { repositoryNavigation } from "./repository-navigation";
 import type { NavItem } from "./sidebar-07/nav-main";
 export function Shell({
   title,
@@ -26,16 +27,7 @@ export function Shell({
 }
 function RepositoryContent(props: { title: string; workflow: string; children: ReactNode }) {
   const spaces = useRepositories();
-  const { workflow } = props;
-  return <Content {...props} repositoryItem={{
-        title: "儲存庫", url: spaces.scope ? spaces.href(spaces.scope) : "/miniapp/repositories", isActive: workflow === "repositories", onExpand: spaces.ensure,
-        items: [
-          ...spaces.items.map((item) => ({ title: item.name || "群組空間", url: spaces.href(item.id), isActive: item.id === spaces.selectedID })),
-          { title: spaces.status, status: true },
-          ...(spaces.cursor ? [{ title: "載入更多空間", onSelect: spaces.loadMore, disabled: spaces.busy, keepOpen: true }] : []),
-          { title: spaces.items.length ? "重新載入空間清單" : "載入空間", onSelect: spaces.reload, disabled: !spaces.canLoad || spaces.busy, keepOpen: true },
-        ],
-      }} />;
+  return <Content {...props} repositoryItem={repositoryNavigation(spaces, props.workflow)} />;
 }
 function Content({
   title,

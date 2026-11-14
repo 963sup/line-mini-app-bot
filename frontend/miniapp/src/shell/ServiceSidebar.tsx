@@ -11,6 +11,8 @@ import {
   MapPin,
   NotebookPen,
 } from "lucide-react";
+import { RepositoryProvider, useRepositories } from "../business/repository/RepositoryContext";
+import { repositoryNavigation } from "./repository-navigation";
 import { NavMain, type NavItem } from "./sidebar-07/nav-main";
 import { NavProjects } from "./sidebar-07/nav-projects";
 import { NavUser, type AccountMenu } from "./sidebar-07/nav-user";
@@ -23,16 +25,26 @@ import {
   SidebarRail,
 } from "@/shared/ui/sidebar";
 
-export function ServiceSidebar({
-  workflow,
-  account,
-  repositoryItem,
-  ...props
-}: React.ComponentProps<typeof Sidebar> & {
+type ServiceSidebarProps = React.ComponentProps<typeof Sidebar> & {
   workflow: string;
   account: AccountMenu;
   repositoryItem?: NavItem;
-}) {
+};
+
+export function ServiceSidebar(props: ServiceSidebarProps) {
+  // Projects remain independent of repository data; only their navigation owns a lazy catalog.
+  if (props.workflow === "projects" && !props.repositoryItem) {
+    return <RepositoryProvider workflow={props.workflow}><ProjectSidebar {...props} /></RepositoryProvider>;
+  }
+  return <NavigationSidebar {...props} />;
+}
+
+function ProjectSidebar(props: ServiceSidebarProps) {
+  const spaces = useRepositories();
+  return <NavigationSidebar {...props} repositoryItem={repositoryNavigation(spaces, props.workflow)} />;
+}
+
+function NavigationSidebar({ workflow, account, repositoryItem, ...props }: ServiceSidebarProps) {
   const attendance = [
     { title: "出勤", url: "/miniapp/history", workflow: "history" },
     { title: "請假", url: "/miniapp/leave", workflow: "leave" },
