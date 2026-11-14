@@ -149,3 +149,26 @@ func RegisterSpaceProjects(public *http.ServeMux, handler SpaceProjectServer, wr
 	public.Handle("POST /api/v1/spaces/{spaceId}/projects/{id}/items", routes)
 	public.Handle("DELETE /api/v1/spaces/{spaceId}/projects/{id}/items/{itemId}", routes)
 }
+
+func RegisterObjects(public *http.ServeMux, handler ObjectServer, wrap func(http.Handler) http.Handler) {
+	routes := routeHandler(contractServer{ObjectServer: handler})
+	if wrap != nil {
+		routes = wrap(routes)
+	}
+	public.Handle("GET /api/v1/repositories/{repositoryId}/objects", routes)
+	public.Handle("POST /api/v1/repositories/{repositoryId}/objects", routes)
+	public.Handle("GET /api/v1/repositories/{repositoryId}/objects/{id}", routes)
+	public.Handle("PATCH /api/v1/repositories/{repositoryId}/objects/{id}", routes)
+}
+
+func RegisterObjectImports(public *http.ServeMux, handler ObjectImportServer, wrap func(http.Handler) http.Handler) {
+	routes := routeHandler(contractServer{ObjectImportServer: handler})
+	if wrap != nil {
+		routes = wrap(routes)
+	}
+	public.Handle("POST /api/v1/repositories/{repositoryId}/object-imports", routes)
+	public.Handle("POST /api/v1/repositories/{repositoryId}/object-imports/parse", routes)
+	public.Handle("GET /api/v1/repositories/{repositoryId}/object-imports/{id}", routes)
+	public.Handle("POST /api/v1/repositories/{repositoryId}/object-imports/{id}/review", routes)
+	public.Handle("POST /api/v1/repositories/{repositoryId}/object-imports/{id}/confirm", routes)
+}

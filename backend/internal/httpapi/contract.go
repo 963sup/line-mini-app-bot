@@ -11,6 +11,8 @@ type contractServer struct {
 	AttendanceServer
 	RepositoryServer
 	IssueServer
+	ObjectServer
+	ObjectImportServer
 	DiscussionServer
 	LabelServer
 	MilestoneServer
@@ -113,4 +115,19 @@ type SpaceProjectServer interface {
 	ListSpaceProjectItems(w http.ResponseWriter, r *http.Request, spaceId string, id string, params generated.ListSpaceProjectItemsParams)
 	AddSpaceProjectItem(w http.ResponseWriter, r *http.Request, spaceId string, id string, params generated.AddSpaceProjectItemParams)
 	RemoveSpaceProjectItem(w http.ResponseWriter, r *http.Request, spaceId string, id string, itemId string, params generated.RemoveSpaceProjectItemParams)
+}
+
+type ObjectServer interface {
+	ListObjects(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ListObjectsParams)
+	CreateObject(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.CreateObjectParams)
+	GetObject(w http.ResponseWriter, r *http.Request, repositoryId string, id string)
+	UpdateObject(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params generated.UpdateObjectParams)
+}
+
+type ObjectImportServer interface {
+	ParseObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ParseObjectImportParams)
+	CreateObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.CreateObjectImportParams)
+	GetObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, id string)
+	ReviewObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params generated.ReviewObjectImportParams)
+	ConfirmObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params generated.ConfirmObjectImportParams)
 }

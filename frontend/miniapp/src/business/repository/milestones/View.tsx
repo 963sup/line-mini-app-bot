@@ -128,7 +128,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
     </PagePanel>
     {mode && <PagePanel heading={mode === "create" ? "新增里程碑" : selected ? selected.title : "里程碑詳情"}>
       <Status role="status">{status}</Status>
-      {selected && <p>{selected.issueCount ? `已完成 ${selected.completedIssueCount}/${selected.issueCount} 項（${Math.round(selected.completedIssueCount/selected.issueCount*100)}%）` : "尚無事項"}</p>}
+      {selected && <p>{selected.issueCount ? `已完成 ${selected.completedIssueCount}/${selected.issueCount} 項（${Math.round(selected.completedIssueCount/selected.issueCount*100)}%）` : "尚無問題"}</p>}
       {selected && <div className="mb-4 flex flex-wrap items-center gap-2">
         <Badge variant="outline">{states[selected.state]}</Badge>
         <Button variant="outline" disabled={busy || detailBusy} onClick={() => open(selected.id)}>重新讀取里程碑</Button>

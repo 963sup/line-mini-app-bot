@@ -119,7 +119,7 @@ export function View({ spaceId, projectId, initialSource, onSelect }: { spaceId:
   }
   return <>
     <PagePanel heading="專案">
-      <p className="mb-4 text-sm text-muted-foreground">空間成員可建立專案；只有建立者可以修改及管理收錄事項。</p>
+      <p className="mb-4 text-sm text-muted-foreground">空間成員可建立專案；只有建立者可以修改及管理收錄問題。</p>
       <div className="mb-4 flex flex-wrap gap-2">
         <Button disabled={!user || busy || uncertain} onClick={create}>新增專案</Button>
         <Button variant="outline" disabled={!user || listBusy || busy} onClick={() => load()}>重新載入專案</Button>
@@ -139,7 +139,7 @@ export function View({ spaceId, projectId, initialSource, onSelect }: { spaceId:
     </PagePanel>
     {mode && <PagePanel heading={mode === "create" ? "新增專案" : selected ? selected.title : "專案詳情"}>
       <Status role="status">{status}</Status>
-      {selected && <p>{selected.sourceAvailable === false ? "來源儲存庫目前不可讀取，暫不提供事項與進度。" : selected.issueCount ? `已完成 ${selected.completedIssueCount}/${selected.issueCount} 項（${Math.round(selected.completedIssueCount/selected.issueCount*100)}%）` : "尚無事項"}</p>}
+      {selected && <p>{selected.sourceAvailable === false ? "來源儲存庫目前不可讀取，暫不提供問題與進度。" : selected.issueCount ? `已完成 ${selected.completedIssueCount}/${selected.issueCount} 項（${Math.round(selected.completedIssueCount/selected.issueCount*100)}%）` : "尚無問題"}</p>}
       {selected && <div className="mb-4 flex flex-wrap items-center gap-2">
 
         <Button variant="outline" disabled={busy || detailBusy} onClick={() => open(selected.id)}>重新讀取專案</Button>

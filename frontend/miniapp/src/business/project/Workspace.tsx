@@ -81,7 +81,7 @@ function AuthenticatedWorkspace() {
   const selectProject = useCallback((id: string) => navigate(route.space, id, route.source), [navigate, route.space, route.source]);
   return <>
     <PagePanel heading="專案空間">
-      <p>專案由空間管理，來源儲存庫只提供可讀取的事項。</p>
+      <p>專案由空間管理，來源儲存庫只提供可讀取的問題。</p>
       <Button variant="outline" disabled={busy} onClick={() => load()}>重新載入專案空間</Button>
       <Status role="status">{status}</Status>
       <ItemGroup>

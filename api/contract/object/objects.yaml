@@ -1,0 +1,597 @@
+{
+  "paths": {
+    "/api/v1/repositories/{repositoryId}/objects": {
+      "get": {
+        "operationId": "listObjects",
+        "summary": "List objects for a current repository member in ascending document-ID order",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createObject",
+        "summary": "Create a not_started engineering line item with an idempotency key; no shared number",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "description": "Scoped to actor and repository within Object creation only. Reuse the original key after an unknown result; same key with different normalized content conflicts."
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; validated by the existing session authenticator."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObjectCreation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/repositories/{repositoryId}/objects/{id}": {
+      "get": {
+        "operationId": "getObject",
+        "summary": "Read an object as a current repository member",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectError"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateObject",
+        "summary": "Creator updates content and tracking status with expectedVersion; any defined status is allowed",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; validated by the existing session authenticator."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObjectUpdate"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Object": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "description",
+          "type",
+          "unit",
+          "sourceDocument",
+          "sourceRevision",
+          "sourceItemNo",
+          "sourcePages",
+          "materialCode",
+          "quantity",
+          "id",
+          "repositoryId",
+          "creatorId",
+          "version",
+          "createdAt",
+          "updatedAt",
+          "status"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1
+          },
+          "sourceDocument": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "sourceRevision": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "sourceItemNo": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "sourcePages": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "materialCode": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 25,
+            "pattern": "^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
+            "description": "Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion."
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "repositoryId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "creatorId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_started",
+              "in_progress",
+              "completed"
+            ]
+          }
+        }
+      },
+      "ObjectCreation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "description",
+          "type",
+          "quantity",
+          "unit"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1
+          },
+          "sourceDocument": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "sourceRevision": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "sourceItemNo": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "sourcePages": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "materialCode": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 25,
+            "pattern": "^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
+            "description": "Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion."
+          }
+        }
+      },
+      "ObjectUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "description",
+          "type",
+          "quantity",
+          "unit",
+          "status",
+          "expectedVersion"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1
+          },
+          "sourceDocument": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key."
+          },
+          "sourceRevision": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key."
+          },
+          "sourceItemNo": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key."
+          },
+          "sourcePages": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key."
+          },
+          "materialCode": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key."
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 25,
+            "pattern": "^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
+            "description": "Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_started",
+              "in_progress",
+              "completed"
+            ]
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "description": "Replace core content; omitted optional source fields preserve current values, explicit empty strings clear. No document revision automatically changes another object."
+      },
+      "ObjectPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Object"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "description": "Empty when finished; at most twenty objects per page in document-ID ascending order."
+          }
+        }
+      }
+    },
+    "responses": {
+      "ObjectError": {
+        "description": "Request rejected or unavailable; errors never expose hidden resources.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../common/transport.yaml#/components/schemas/APIError"
+            }
+          }
+        }
+      },
+      "ObjectForbidden": {
+        "description": "Creator permission or CSRF denied. Standard cross-origin protection may return text/plain.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../common/transport.yaml#/components/schemas/APIError"
+            }
+          },
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-owner": "object"
+}

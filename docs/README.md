@@ -20,7 +20,9 @@
 | --- | --- |
 | Space 擁有的獨立專案與遷移 | [獨立 Project](features/projects.md) |
 | 群組空間共用流水編號基礎 | [Repository 共用資源編號](features/repository-numbering.md) |
-| 空間事項讀寫與建立者生命週期 | [事項第一階段](features/issues.md) |
+| 工程項目匯入草稿 | [匯入草稿基礎](features/object-imports.md) |
+| 工程項目與數量狀態追蹤 | [Objects 最小切片](features/objects.md) |
+| 空間問題讀寫與建立者生命週期 | [問題第一階段](features/issues.md) |
 | 空間討論與單層留言 | [討論與留言](features/discussions.md) |
 | 空間標籤目錄與分類 | [標籤](features/labels.md) |
 | 基礎雛形完成界線與後續評估 | [空間雛形](features/repository-prototype.md) |

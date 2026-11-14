@@ -760,6 +760,127 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/repositories/{repositoryId}/objects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List objects for a current repository member in ascending document-ID order */
+        get: operations["listObjects"];
+        put?: never;
+        /** Create a not_started engineering line item with an idempotency key; no shared number */
+        post: operations["createObject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/objects/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read an object as a current repository member */
+        get: operations["getObject"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Creator updates content and tracking status with expectedVersion; any defined status is allowed */
+        patch: operations["updateObject"];
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/object-imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate untrusted candidates and save an idempotent owner-only draft; creates no Objects */
+        post: operations["createObjectImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/object-imports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read own import draft and per-row results after current repository authorization */
+        get: operations["getObjectImport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/object-imports/{id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Review complete candidate content with expectedVersion; source evidence remains immutable */
+        post: operations["reviewObjectImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/object-imports/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Freeze a reviewed version and confirm or resume deterministic per-row Object creation */
+        post: operations["confirmObjectImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/object-imports/parse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Use OpenAI to propose validated candidates from consented selected text; creates no draft or Object */
+        post: operations["parseObjectImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1048,6 +1169,165 @@ export interface components {
             title: string;
             body: string;
             sourceRepositoryId: string;
+        };
+        Object: {
+            name: string;
+            description: string;
+            type: string;
+            unit: string;
+            sourceDocument: string;
+            sourceRevision: string;
+            sourceItemNo: string;
+            sourcePages: string;
+            materialCode: string;
+            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
+            quantity: string;
+            id: string;
+            repositoryId: string;
+            creatorId: string;
+            /** Format: int64 */
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @enum {string} */
+            status: "not_started" | "in_progress" | "completed";
+        };
+        ObjectCreation: {
+            name: string;
+            description: string;
+            type: string;
+            unit: string;
+            sourceDocument?: string;
+            sourceRevision?: string;
+            sourceItemNo?: string;
+            sourcePages?: string;
+            materialCode?: string;
+            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
+            quantity: string;
+        };
+        /** @description Replace core content; omitted optional source fields preserve current values, explicit empty strings clear. No document revision automatically changes another object. */
+        ObjectUpdate: {
+            name: string;
+            description: string;
+            type: string;
+            unit: string;
+            /** @description Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key. */
+            sourceDocument?: string;
+            /** @description Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key. */
+            sourceRevision?: string;
+            /** @description Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key. */
+            sourceItemNo?: string;
+            /** @description Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key. */
+            sourcePages?: string;
+            /** @description Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key. */
+            materialCode?: string;
+            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
+            quantity: string;
+            /** @enum {string} */
+            status: "not_started" | "in_progress" | "completed";
+            /** Format: int64 */
+            expectedVersion: number;
+        };
+        ObjectPage: {
+            items: components["schemas"]["Object"][];
+            /** @description Empty when finished; at most twenty objects per page in document-ID ascending order. */
+            nextCursor: string;
+        };
+        ObjectImportEvidence: {
+            page: number;
+            quote: string;
+        };
+        ObjectImportCandidate: {
+            name: string;
+            description: string;
+            type: string;
+            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
+            quantity: string;
+            unit: string;
+            materialCode: string;
+            sourceItemNo: string;
+            evidence: components["schemas"]["ObjectImportEvidence"][];
+        };
+        ObjectImportRow: {
+            name: string;
+            description: string;
+            type: string;
+            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
+            quantity: string;
+            unit: string;
+            materialCode: string;
+            sourceItemNo: string;
+            evidence: components["schemas"]["ObjectImportEvidence"][];
+            id: string;
+            resultObjectId: string;
+        };
+        ObjectImportReviewedRow: {
+            name: string;
+            description: string;
+            type: string;
+            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
+            quantity: string;
+            unit: string;
+            materialCode: string;
+            id: string;
+        };
+        ObjectImportCreation: {
+            sourceDocument: string;
+            sourceRevision: string;
+            pages: {
+                number: number;
+                text: string;
+            }[];
+            rows: components["schemas"]["ObjectImportCandidate"][];
+        };
+        ObjectImportReview: {
+            /** Format: int64 */
+            expectedVersion: number;
+            rows: components["schemas"]["ObjectImportReviewedRow"][];
+        };
+        ObjectImportConfirmation: {
+            /** Format: int64 */
+            expectedVersion: number;
+        };
+        ObjectImport: {
+            id: string;
+            repositoryId: string;
+            creatorId: string;
+            /** @enum {string} */
+            status: "draft" | "reviewed" | "confirming" | "completed";
+            /** Format: int64 */
+            version: number;
+            /** Format: int64 */
+            confirmedFromReviewVersion: number;
+            sourceDocument: string;
+            sourceRevision: string;
+            sourceHash: string;
+            rows: components["schemas"]["ObjectImportRow"][];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            reviewedAt?: string;
+        };
+        ObjectImportParsing: {
+            sourceDocument: string;
+            sourceRevision: string;
+            pages: {
+                number: number;
+                text: string;
+            }[];
+            /**
+             * @description Explicit consent to send only these previewed/redacted selected page texts to OpenAI.
+             * @enum {boolean}
+             */
+            consent: true;
+        };
+        ObjectImportParsed: {
+            rows: components["schemas"]["ObjectImportCandidate"][];
+            sourceHash: string;
         };
         GroupItem: {
             id: string;
@@ -1412,6 +1692,35 @@ export interface components {
         };
         /** @description Creator permission or CSRF denied. Standard cross-origin protection may return text/plain. */
         ProjectForbidden: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+                "text/plain": string;
+            };
+        };
+        /** @description Request rejected or unavailable; errors never expose hidden resources. */
+        ObjectError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+            };
+        };
+        /** @description Creator permission or CSRF denied. Standard cross-origin protection may return text/plain. */
+        ObjectForbidden: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+                "text/plain": string;
+            };
+        };
+        /** @description Rejected or unavailable. A failed confirm can have partial results; GET the same job and retry the original review version. SDK/source/provider details are not exposed. Cross-origin protection may return text/plain. */
+        ObjectImportError: {
             headers: {
                 [name: string]: unknown;
             };
@@ -4508,6 +4817,320 @@ export interface operations {
             409: components["responses"]["ProjectError"];
             415: components["responses"]["ProjectError"];
             503: components["responses"]["ProjectError"];
+        };
+    };
+    listObjects: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectPage"];
+                };
+            };
+            400: components["responses"]["ObjectError"];
+            401: components["responses"]["ObjectError"];
+            403: components["responses"]["ObjectForbidden"];
+            404: components["responses"]["ObjectError"];
+            409: components["responses"]["ObjectError"];
+            415: components["responses"]["ObjectError"];
+            503: components["responses"]["ObjectError"];
+        };
+    };
+    createObject: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Scoped to actor and repository within Object creation only. Reuse the original key after an unknown result; same key with different normalized content conflicts. */
+                "Idempotency-Key": string;
+                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObjectCreation"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Object"];
+                };
+            };
+            400: components["responses"]["ObjectError"];
+            401: components["responses"]["ObjectError"];
+            403: components["responses"]["ObjectForbidden"];
+            404: components["responses"]["ObjectError"];
+            409: components["responses"]["ObjectError"];
+            415: components["responses"]["ObjectError"];
+            503: components["responses"]["ObjectError"];
+        };
+    };
+    getObject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Object"];
+                };
+            };
+            400: components["responses"]["ObjectError"];
+            401: components["responses"]["ObjectError"];
+            403: components["responses"]["ObjectForbidden"];
+            404: components["responses"]["ObjectError"];
+            409: components["responses"]["ObjectError"];
+            415: components["responses"]["ObjectError"];
+            503: components["responses"]["ObjectError"];
+        };
+    };
+    updateObject: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObjectUpdate"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Object"];
+                };
+            };
+            400: components["responses"]["ObjectError"];
+            401: components["responses"]["ObjectError"];
+            403: components["responses"]["ObjectForbidden"];
+            404: components["responses"]["ObjectError"];
+            409: components["responses"]["ObjectError"];
+            415: components["responses"]["ObjectError"];
+            503: components["responses"]["ObjectError"];
+        };
+    };
+    createObjectImport: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Required for Cookie Session writes; existing authenticator validates. */
+                "X-CSRF-Token"?: string;
+                /** @description Actor and repository scoped import creation key. Same normalized payload and source hash replays the same job; different payload conflicts. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObjectImportCreation"];
+            };
+        };
+        responses: {
+            /** @description Authorized current snapshot; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectImport"];
+                };
+            };
+            400: components["responses"]["ObjectImportError"];
+            401: components["responses"]["ObjectImportError"];
+            403: components["responses"]["ObjectImportError"];
+            404: components["responses"]["ObjectImportError"];
+            409: components["responses"]["ObjectImportError"];
+            415: components["responses"]["ObjectImportError"];
+            503: components["responses"]["ObjectImportError"];
+        };
+    };
+    getObjectImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized current snapshot; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectImport"];
+                };
+            };
+            400: components["responses"]["ObjectImportError"];
+            401: components["responses"]["ObjectImportError"];
+            403: components["responses"]["ObjectImportError"];
+            404: components["responses"]["ObjectImportError"];
+            409: components["responses"]["ObjectImportError"];
+            415: components["responses"]["ObjectImportError"];
+            503: components["responses"]["ObjectImportError"];
+        };
+    };
+    reviewObjectImport: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for Cookie Session writes; existing authenticator validates. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObjectImportReview"];
+            };
+        };
+        responses: {
+            /** @description Authorized current snapshot; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectImport"];
+                };
+            };
+            400: components["responses"]["ObjectImportError"];
+            401: components["responses"]["ObjectImportError"];
+            403: components["responses"]["ObjectImportError"];
+            404: components["responses"]["ObjectImportError"];
+            409: components["responses"]["ObjectImportError"];
+            415: components["responses"]["ObjectImportError"];
+            503: components["responses"]["ObjectImportError"];
+        };
+    };
+    confirmObjectImport: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for Cookie Session writes; existing authenticator validates. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObjectImportConfirmation"];
+            };
+        };
+        responses: {
+            /** @description Authorized current snapshot; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectImport"];
+                };
+            };
+            400: components["responses"]["ObjectImportError"];
+            401: components["responses"]["ObjectImportError"];
+            403: components["responses"]["ObjectImportError"];
+            404: components["responses"]["ObjectImportError"];
+            409: components["responses"]["ObjectImportError"];
+            415: components["responses"]["ObjectImportError"];
+            503: components["responses"]["ObjectImportError"];
+        };
+    };
+    parseObjectImport: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for Cookie Session writes; existing authenticator validates. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObjectImportParsing"];
+            };
+        };
+        responses: {
+            /** @description Authorized current snapshot; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectImportParsed"];
+                };
+            };
+            400: components["responses"]["ObjectImportError"];
+            401: components["responses"]["ObjectImportError"];
+            403: components["responses"]["ObjectImportError"];
+            404: components["responses"]["ObjectImportError"];
+            409: components["responses"]["ObjectImportError"];
+            415: components["responses"]["ObjectImportError"];
+            503: components["responses"]["ObjectImportError"];
         };
     };
 }

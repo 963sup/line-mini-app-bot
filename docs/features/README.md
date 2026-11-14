@@ -4,6 +4,10 @@
 
 ## 文件索引
 
+- [工程項目匯入草稿基礎](object-imports.md)：不可信候選驗證、人工審核及穩定鍵建立，不含 AI provider。
+
+- [儲存庫工程項目 Objects](objects.md)：手動清單項、精確數量與狀態追蹤，不含 AI／匯入。
+
 - [Space 擁有的獨立 Project](projects.md)：獨立業務、側欄與頁面，來源儲存庫唯讀，包含legacy相容與資料遷移界線。
 - [出勤查詢與更正](attendance-queries.md)
 - [基礎出勤](attendance.md)
@@ -25,9 +29,9 @@
 
 - [群組 Repository](repository.md)
 - [空間基礎雛形完成界線](repository-prototype.md)
-- [空間標籤目錄](labels.md)：最基本的列出、建立及事項／討論作者分類。
+- [空間標籤目錄](labels.md)：最基本的列出、建立及問題／討論作者分類。
 - [Repository 共用資源編號基礎](repository-numbering.md)
-- [空間事項第一階段](issues.md)：成員可讀取及建立，僅建立者可修改及變更狀態。
+- [空間問題第一階段](issues.md)：成員可讀取及建立，僅建立者可修改及變更狀態。
 - [空間討論與單層留言](discussions.md)：成員可發起及留言，各自作者可編輯。
 
 後續業務規劃：[Repository、Issue 與 Discussion 業務模型](../architecture/domain-model.md)；Issue 與 Discussion 已依各自功能規格接入；標籤分類與里程碑／專案基礎已接入，完整專案管理仍屬後續規劃。

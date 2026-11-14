@@ -47,7 +47,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
     if (!user) return;
     setListBusy(true); setLoaded(false); setCursor("");
     if (!nextCursor) setItems([]);
-    setListStatus("正在讀取事項……");
+    setListStatus("正在讀取問題……");
     void readRun(
       (signal) => request((client, s) => client.GET("/api/v1/repositories/{repositoryId}/issues", {
         signal: s, params: { path: { repositoryId }, query: { cursor: nextCursor || undefined, state: filter.state || undefined, query: filter.query || undefined } },
@@ -55,7 +55,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
       (page) => {
         setItems((previous) => [...new Map([...(nextCursor ? previous : []), ...page.items].map((item) => [item.id, item])).values()]);
         setCursor(page.nextCursor); setListBusy(false); setLoaded(true);
-        setListStatus(page.nextCursor ? "可繼續載入更多事項；篩選後可能出現空頁。" : "已讀取完畢。");
+        setListStatus(page.nextCursor ? "可繼續載入更多問題；篩選後可能出現空頁。" : "已讀取完畢。");
       },
       (error) => { setItems([]); setListBusy(false); setLoaded(false); setListStatus(errorMessage(error)); },
     );
@@ -68,10 +68,10 @@ export function View({ repositoryId }: { repositoryId: string }) {
   }
   function open(id: string) {
     if (!user || lock.current) return;
-    setSelected(null); setMode("detail"); setDetailBusy(true); setStatus("正在核驗並讀取事項……");
+    setSelected(null); setMode("detail"); setDetailBusy(true); setStatus("正在核驗並讀取問題……");
     void detailRequest.run(
       (signal) => request((client, s) => client.GET("/api/v1/repositories/{repositoryId}/issues/{id}", { signal: s, params: { path: { repositoryId, id } } }), { signal }),
-      (item) => { show(item); setDetailBusy(false); setStatus("已讀取事項。"); },
+      (item) => { show(item); setDetailBusy(false); setStatus("已讀取問題。"); },
       (error) => { setDetailBusy(false); setStatus(errorMessage(error)); },
     );
   }
@@ -85,40 +85,40 @@ export function View({ repositoryId }: { repositoryId: string }) {
     if (!user || lock.current || needsRefresh) return;
     if (mode === "detail") { if (selected) save(selected.state); return; }
     const content = { title: title.trim(), body: body.trim() };
-    if (!content.title) { setStatus("請填寫事項標題。"); return; }
+    if (!content.title) { setStatus("請填寫問題標題。"); return; }
     if (!uncertain || !attempt.current) attempt.current = { key: crypto.randomUUID(), body: content };
     const pending = attempt.current;
-    lock.current = true; setBusy(true); setUncertain(true); setStatus("正在建立事項……");
+    lock.current = true; setBusy(true); setUncertain(true); setStatus("正在建立問題……");
     void write.run(
       (signal) => request((client, s) => client.POST("/api/v1/repositories/{repositoryId}/issues", {
         signal: s, params: { path: { repositoryId }, header: { "Idempotency-Key": pending.key } }, body: pending.body,
       }), { signal }),
-      (item) => { lock.current = false; setBusy(false); show(item); setStatus("已建立事項。"); load(); },
+      (item) => { lock.current = false; setBusy(false); show(item); setStatus("已建立問題。"); load(); },
       (error) => {
         lock.current = false; setBusy(false);
         if (["invalid_input", "forbidden", "not_found", "idempotency_conflict"].includes((error as { code?: string }).code || "")) setUncertain(false);
-        setStatus(errorMessage(error) + " 結果未確認時請沿用原內容重試，或先查詢事項；重新開頁前請先確認紀錄。");
+        setStatus(errorMessage(error) + " 結果未確認時請沿用原內容重試，或先查詢問題；重新開頁前請先確認紀錄。");
       },
     );
   }
   function save(state: Issue["state"]) {
     if (!user || !selected || !mine || lock.current || needsRefresh) return;
     const id = selected.id;
-    lock.current = true; setBusy(true); setStatus("正在更新事項……");
+    lock.current = true; setBusy(true); setStatus("正在更新問題……");
     void write.run(
       (signal) => request((client, s) => client.PATCH("/api/v1/repositories/{repositoryId}/issues/{id}", {
         signal: s, params: { path: { repositoryId, id } }, body: { title: title.trim(), body: body.trim(), state, expectedVersion: selected.version, labelIds:labelIDs,milestoneId:milestoneID||null },
       }), { signal }),
-      (item) => { lock.current = false; setBusy(false); show(item); setStatus("已更新事項。"); load(); },
-      (error) => { lock.current = false; setBusy(false); setNeedsRefresh(true); setStatus(errorMessage(error) + " 請重新讀取事項後再修改。"); },
+      (item) => { lock.current = false; setBusy(false); show(item); setStatus("已更新問題。"); load(); },
+      (error) => { lock.current = false; setBusy(false); setNeedsRefresh(true); setStatus(errorMessage(error) + " 請重新讀取問題後再修改。"); },
     );
   }
   return <>
-    <PagePanel heading="事項">
-      <p className="mb-4 text-sm text-muted-foreground">空間成員可建立事項；只有建立者可以修改或變更狀態。</p>
+    <PagePanel heading="問題">
+      <p className="mb-4 text-sm text-muted-foreground">空間成員可建立問題；只有建立者可以修改或變更狀態。</p>
       <div className="mb-4 flex flex-wrap gap-2">
-        <Button disabled={!user || busy || uncertain} onClick={create}>新增事項</Button>
-        <Button variant="outline" disabled={!user || listBusy || busy} onClick={() => load()}>重新載入事項</Button>
+        <Button disabled={!user || busy || uncertain} onClick={create}>新增問題</Button>
+        <Button variant="outline" disabled={!user || listBusy || busy} onClick={() => load()}>重新載入問題</Button>
       </div>
       <form onSubmit={(event) => { event.preventDefault(); setFilter({ query: query.trim(), state }); }}>
         <FieldGroup className="mb-4">
@@ -139,14 +139,14 @@ export function View({ repositoryId }: { repositoryId: string }) {
           </ItemContent>
         </Item>)}
       </ItemGroup>
-      {loaded && !items.length && <Empty><EmptyHeader><EmptyTitle>{cursor ? "本頁沒有符合的事項" : "沒有符合的事項"}</EmptyTitle><EmptyDescription>{cursor ? "請繼續載入下一頁。" : "可調整篩選條件，或建立新的事項。"}</EmptyDescription></EmptyHeader></Empty>}
-      {cursor && <Button variant="outline" disabled={listBusy || busy} onClick={() => load(cursor)}>載入更多事項</Button>}
+      {loaded && !items.length && <Empty><EmptyHeader><EmptyTitle>{cursor ? "本頁沒有符合的問題" : "沒有符合的問題"}</EmptyTitle><EmptyDescription>{cursor ? "請繼續載入下一頁。" : "可調整篩選條件，或建立新的問題。"}</EmptyDescription></EmptyHeader></Empty>}
+      {cursor && <Button variant="outline" disabled={listBusy || busy} onClick={() => load(cursor)}>載入更多問題</Button>}
     </PagePanel>
-    {mode && <PagePanel heading={mode === "create" ? "新增事項" : selected ? `#${selected.number} ${selected.title}` : "事項詳情"}>
+    {mode && <PagePanel heading={mode === "create" ? "新增問題" : selected ? `#${selected.number} ${selected.title}` : "問題詳情"}>
       <Status role="status">{status}</Status>
       {selected && <div className="mb-4 flex flex-wrap items-center gap-2">
         <Badge variant="outline">{states[selected.state]}</Badge>
-        <Button variant="outline" disabled={busy || detailBusy} onClick={() => open(selected.id)}>重新讀取事項</Button>
+        <Button variant="outline" disabled={busy || detailBusy} onClick={() => open(selected.id)}>重新讀取問題</Button>
       </div>}
       {(mode === "create" || selected) && <form onSubmit={submit}>
         <FieldGroup>
@@ -157,7 +157,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
           {selected && <MilestonePicker repositoryId={repositoryId} value={milestoneID} onChange={setMilestoneID} disabled={busy || detailBusy || needsRefresh || !mine} />}
           {selected && <LabelPicker repositoryId={repositoryId} value={labelIDs} onChange={setLabelIDs} disabled={busy || detailBusy || needsRefresh || !mine} />}
           {(mode === "create" || mine) && <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={busy || needsRefresh}>{mode === "create" ? uncertain ? "重試原建立請求" : "建立事項" : "儲存內容"}</Button>
+            <Button type="submit" disabled={busy || needsRefresh}>{mode === "create" ? uncertain ? "重試原建立請求" : "建立問題" : "儲存內容"}</Button>
             {selected && <Button type="button" variant="outline" disabled={busy || needsRefresh} onClick={() => save(nextState[selected.state])}>{action[selected.state]}</Button>}
           </div>}
         </FieldGroup>

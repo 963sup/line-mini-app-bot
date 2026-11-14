@@ -43,7 +43,7 @@ func Register(mux *http.ServeMux, service *issue.Service, auth Authenticator) {
 				return nil
 			}},
 			ErrorHandlerWithOpts: func(_ context.Context, _ error, w http.ResponseWriter, _ *http.Request, _ middleware.ErrorHandlerOpts) {
-				transport.WriteAPIError(w, 400, "invalid_input", "請求資料不符合事項契約。")
+				transport.WriteAPIError(w, 400, "invalid_input", "請求資料不符合問題契約。")
 			},
 		})(next)
 		return http.NewCrossOriginProtection().Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +53,7 @@ func Register(mux *http.ServeMux, service *issue.Service, auth Authenticator) {
 				return
 			}
 			if service == nil {
-				transport.WriteAPIError(w, 503, "not_configured", "事項尚未啟用。")
+				transport.WriteAPIError(w, 503, "not_configured", "問題尚未啟用。")
 				return
 			}
 			if r.Method == http.MethodHead {
@@ -99,18 +99,18 @@ func writeError(w http.ResponseWriter, err error) bool {
 	if err == nil {
 		return false
 	}
-	code, status, message := "unavailable", 503, "事項結果尚未確認，請重新讀取；建立重試請沿用原識別碼。"
+	code, status, message := "unavailable", 503, "問題結果尚未確認，請重新讀取；建立重試請沿用原識別碼。"
 	switch {
 	case errors.Is(err, issue.ErrNotFound):
-		code, status, message = "not_found", 404, "找不到此空間或事項。"
+		code, status, message = "not_found", 404, "找不到此空間或問題。"
 	case errors.Is(err, issue.ErrForbidden):
-		code, status, message = "forbidden", 403, "只有建立者可以修改此事項。"
+		code, status, message = "forbidden", 403, "只有建立者可以修改此問題。"
 	case errors.Is(err, issue.ErrInput):
 		code, status, message = "invalid_input", 400, "請確認標題、內容、標籤與合法狀態轉換。"
 	case errors.Is(err, issue.ErrConflict):
-		code, status, message = "version_conflict", 409, "事項已更新，請重新讀取後再操作。"
+		code, status, message = "version_conflict", 409, "問題已更新，請重新讀取後再操作。"
 	case errors.Is(err, issue.ErrCreationConflict):
-		code, status, message = "idempotency_conflict", 409, "重試識別碼已用於不同內容，請先確認原事項。"
+		code, status, message = "idempotency_conflict", 409, "重試識別碼已用於不同內容，請先確認原問題。"
 	}
 	transport.WriteAPIError(w, status, code, message)
 	return true
@@ -120,7 +120,7 @@ func body(w http.ResponseWriter, r *http.Request, target any) bool {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	if decoder.Decode(target) != nil || decoder.Decode(new(any)) != io.EOF {
-		transport.WriteAPIError(w, 400, "invalid_input", "事項資料無效。")
+		transport.WriteAPIError(w, 400, "invalid_input", "問題資料無效。")
 		return false
 	}
 	return true

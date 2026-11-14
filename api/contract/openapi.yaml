@@ -139,6 +139,27 @@
     },
     "/api/v1/spaces/{spaceId}/projects/{id}/items/{itemId}": {
       "$ref": "./project/space-projects.yaml#/paths/~1api~1v1~1spaces~1{spaceId}~1projects~1{id}~1items~1{itemId}"
+    },
+    "/api/v1/repositories/{repositoryId}/objects": {
+      "$ref": "./object/objects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects"
+    },
+    "/api/v1/repositories/{repositoryId}/objects/{id}": {
+      "$ref": "./object/objects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/object-imports": {
+      "$ref": "./object-import/object-imports.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-imports"
+    },
+    "/api/v1/repositories/{repositoryId}/object-imports/{id}": {
+      "$ref": "./object-import/object-imports.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-imports~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/object-imports/{id}/review": {
+      "$ref": "./object-import/object-imports.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-imports~1{id}~1review"
+    },
+    "/api/v1/repositories/{repositoryId}/object-imports/{id}/confirm": {
+      "$ref": "./object-import/object-imports.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-imports~1{id}~1confirm"
+    },
+    "/api/v1/repositories/{repositoryId}/object-imports/parse": {
+      "$ref": "./object-import/object-imports.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-imports~1parse"
     }
   },
   "components": {
@@ -250,6 +271,48 @@
       },
       "SpaceProjectCreation": {
         "$ref": "./project/space-projects.yaml#/components/schemas/SpaceProjectCreation"
+      },
+      "Object": {
+        "$ref": "./object/objects.yaml#/components/schemas/Object"
+      },
+      "ObjectCreation": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectCreation"
+      },
+      "ObjectUpdate": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectUpdate"
+      },
+      "ObjectPage": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectPage"
+      },
+      "ObjectImportEvidence": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportEvidence"
+      },
+      "ObjectImportCandidate": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportCandidate"
+      },
+      "ObjectImportRow": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportRow"
+      },
+      "ObjectImportReviewedRow": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportReviewedRow"
+      },
+      "ObjectImportCreation": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportCreation"
+      },
+      "ObjectImportReview": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportReview"
+      },
+      "ObjectImportConfirmation": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportConfirmation"
+      },
+      "ObjectImport": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImport"
+      },
+      "ObjectImportParsing": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportParsing"
+      },
+      "ObjectImportParsed": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportParsed"
       }
     },
     "securitySchemes": {

@@ -1,0 +1,868 @@
+{
+  "x-owner": "objectimport",
+  "paths": {
+    "/api/v1/repositories/{repositoryId}/object-imports": {
+      "post": {
+        "operationId": "createObjectImport",
+        "summary": "Validate untrusted candidates and save an idempotent owner-only draft; creates no Objects",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; existing authenticator validates."
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "description": "Actor and repository scoped import creation key. Same normalized payload and source hash replays the same job; different payload conflicts."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized current snapshot; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectImport"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectImportError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObjectImportCreation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/repositories/{repositoryId}/object-imports/{id}": {
+      "get": {
+        "operationId": "getObjectImport",
+        "summary": "Read own import draft and per-row results after current repository authorization",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized current snapshot; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectImport"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectImportError"
+          }
+        }
+      }
+    },
+    "/api/v1/repositories/{repositoryId}/object-imports/{id}/review": {
+      "post": {
+        "operationId": "reviewObjectImport",
+        "summary": "Review complete candidate content with expectedVersion; source evidence remains immutable",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; existing authenticator validates."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized current snapshot; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectImport"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectImportError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObjectImportReview"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/repositories/{repositoryId}/object-imports/{id}/confirm": {
+      "post": {
+        "operationId": "confirmObjectImport",
+        "summary": "Freeze a reviewed version and confirm or resume deterministic per-row Object creation",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; existing authenticator validates."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized current snapshot; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectImport"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectImportError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObjectImportConfirmation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/repositories/{repositoryId}/object-imports/parse": {
+      "post": {
+        "operationId": "parseObjectImport",
+        "summary": "Use OpenAI to propose validated candidates from consented selected text; creates no draft or Object",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; existing authenticator validates."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized current snapshot; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectImportParsed"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectImportError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectImportError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObjectImportParsing"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ObjectImportEvidence": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "page",
+          "quote"
+        ],
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "quote": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        }
+      },
+      "ObjectImportCandidate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "description",
+          "type",
+          "quantity",
+          "unit",
+          "materialCode",
+          "sourceItemNo",
+          "evidence"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 25,
+            "pattern": "^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
+            "description": "Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion."
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1
+          },
+          "materialCode": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "sourceItemNo": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "items": {
+              "$ref": "#/components/schemas/ObjectImportEvidence"
+            }
+          }
+        }
+      },
+      "ObjectImportRow": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "description",
+          "type",
+          "quantity",
+          "unit",
+          "materialCode",
+          "sourceItemNo",
+          "evidence",
+          "id",
+          "resultObjectId"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 25,
+            "pattern": "^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
+            "description": "Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion."
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1
+          },
+          "materialCode": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "sourceItemNo": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "items": {
+              "$ref": "#/components/schemas/ObjectImportEvidence"
+            }
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "resultObjectId": {
+            "type": "string",
+            "pattern": "^([a-f0-9]{32})?$"
+          }
+        }
+      },
+      "ObjectImportReviewedRow": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "description",
+          "type",
+          "quantity",
+          "unit",
+          "materialCode",
+          "id"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 25,
+            "pattern": "^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
+            "description": "Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion."
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1
+          },
+          "materialCode": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          }
+        }
+      },
+      "ObjectImportCreation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sourceDocument",
+          "sourceRevision",
+          "pages",
+          "rows"
+        ],
+        "properties": {
+          "sourceDocument": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "sourceRevision": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "pages": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "number",
+                "text"
+              ],
+              "properties": {
+                "number": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 32768
+                }
+              }
+            }
+          },
+          "rows": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/ObjectImportCandidate"
+            }
+          }
+        }
+      },
+      "ObjectImportReview": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expectedVersion",
+          "rows"
+        ],
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "rows": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/ObjectImportReviewedRow"
+            }
+          }
+        }
+      },
+      "ObjectImportConfirmation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expectedVersion"
+        ],
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        }
+      },
+      "ObjectImport": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "repositoryId",
+          "creatorId",
+          "status",
+          "version",
+          "confirmedFromReviewVersion",
+          "sourceDocument",
+          "sourceRevision",
+          "sourceHash",
+          "rows",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "repositoryId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "creatorId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "reviewed",
+              "confirming",
+              "completed"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "confirmedFromReviewVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "sourceDocument": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "sourceRevision": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "sourceHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "rows": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/ObjectImportRow"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reviewedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ObjectImportParsing": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sourceDocument",
+          "sourceRevision",
+          "pages",
+          "consent"
+        ],
+        "properties": {
+          "sourceDocument": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "sourceRevision": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "pages": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "number",
+                "text"
+              ],
+              "properties": {
+                "number": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 32768
+                }
+              }
+            }
+          },
+          "consent": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "description": "Explicit consent to send only these previewed/redacted selected page texts to OpenAI."
+          }
+        }
+      },
+      "ObjectImportParsed": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rows",
+          "sourceHash"
+        ],
+        "properties": {
+          "rows": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/ObjectImportCandidate"
+            }
+          },
+          "sourceHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    },
+    "responses": {
+      "ObjectImportError": {
+        "description": "Rejected or unavailable. A failed confirm can have partial results; GET the same job and retry the original review version. SDK/source/provider details are not exposed. Cross-origin protection may return text/plain.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../common/transport.yaml#/components/schemas/APIError"
+            }
+          },
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -12,6 +12,12 @@ import (
 	discussiondb "github.com/963sup/line-mini-app-bot/internal/business/discussion/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/issue"
 	issuedb "github.com/963sup/line-mini-app-bot/internal/business/issue/firestore"
+	"github.com/963sup/line-mini-app-bot/internal/business/object"
+	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/firestore"
+	"github.com/963sup/line-mini-app-bot/internal/business/objectimport"
+	importdb "github.com/963sup/line-mini-app-bot/internal/business/objectimport/firestore"
+	"github.com/963sup/line-mini-app-bot/internal/business/objectimport/parsing"
+	parseropenai "github.com/963sup/line-mini-app-bot/internal/business/objectimport/parsing/openai"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	repositorydb "github.com/963sup/line-mini-app-bot/internal/business/repository/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository/labels"
@@ -89,4 +95,37 @@ func newStatistics(r *repository.Service) *statistics.Service {
 		return nil
 	}
 	return &statistics.Service{Repositories: r, Store: store}
+}
+
+func newObjects(r *repository.Service) *object.Service {
+	if r == nil {
+		return nil
+	}
+	store, ok := r.Store.(*repositorydb.Store)
+	if !ok {
+		return nil
+	}
+	return &object.Service{Repositories: r, Store: &objectdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
+}
+
+func newObjectImports(r *repository.Service) *objectimport.Service {
+	if r == nil {
+		return nil
+	}
+	store, ok := r.Store.(*repositorydb.Store)
+	if !ok {
+		return nil
+	}
+	return &objectimport.Service{Repositories: r, Objects: newObjects(r), Store: &importdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
+}
+
+func newObjectParser(r *repository.Service) *parsing.Service {
+	if r == nil {
+		return nil
+	}
+	var producer parsing.Producer
+	if key := os.Getenv("OPENAI_API_KEY"); key != "" {
+		producer = &parseropenai.Producer{Key: key, Model: os.Getenv("OBJECT_IMPORT_MODEL")}
+	}
+	return &parsing.Service{Repositories: r, Producer: producer}
 }

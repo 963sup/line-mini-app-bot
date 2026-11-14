@@ -17,6 +17,8 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/presentation"
 	discussionhttp "github.com/963sup/line-mini-app-bot/internal/business/discussion/http"
 	issuehttp "github.com/963sup/line-mini-app-bot/internal/business/issue/http"
+	objecthttp "github.com/963sup/line-mini-app-bot/internal/business/object/http"
+	objectimporthttp "github.com/963sup/line-mini-app-bot/internal/business/objectimport/http"
 	projecthttp "github.com/963sup/line-mini-app-bot/internal/business/project/http"
 	repositoryhttp "github.com/963sup/line-mini-app-bot/internal/business/repository/http"
 	labelhttp "github.com/963sup/line-mini-app-bot/internal/business/repository/labels/http"
@@ -100,6 +102,8 @@ func Run() (resultErr error) {
 	projecthttp.Register(mux, newProjects(spaces, repositories), auth)
 	statisticshttp.Register(mux, newStatistics(repositories), auth)
 	issuehttp.Register(mux, newIssues(repositories), auth)
+	objecthttp.Register(mux, newObjects(repositories), auth)
+	objectimporthttp.Register(mux, newObjectImports(repositories), auth, newObjectParser(repositories))
 	discussionhttp.Register(mux, newDiscussions(repositories), auth)
 	var repositoryObserver *repositoryline.Observer
 	if repositories != nil {

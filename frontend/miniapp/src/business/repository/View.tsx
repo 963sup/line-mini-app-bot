@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
 import { Status } from "@/shared/Status";
@@ -7,6 +7,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { useRepositories } from "./RepositoryContext";
 import { navigation } from "./navigation";
 import { displayTime } from "../../shared/time/time";
+import { View as Objects } from "../object/View";
 import { View as Issues } from "../issue/View";
 import { View as Discussions } from "../discussion/View";
 import { View as Milestones } from "./milestones/View";
@@ -16,11 +17,16 @@ import { View as Labels } from "./labels/View";
 export function View() {
   const { selected, selectedID, scope, detailBusy, detailStatus, reloadDetail, canLoad } = useRepositories();
   const [page, setPage] = useState("總覽");
+  const blocked = useRef(false), navigating = useRef(false);
+  useEffect(() => { if (!detailBusy) navigating.current = false; }, [page, detailBusy]);
+  const canObjectWrite = React.useCallback(() => !navigating.current, []);
+  const [objectBlocked, setObjectBlocked] = useState(false);
+  const onObjectBlocked = React.useCallback((value: boolean) => { blocked.current = value; setObjectBlocked(value); }, []);
   return (
     <section className="flex min-w-0 flex-col gap-4" aria-label="空間">
       {scope && <p className="text-sm text-muted-foreground">此連結僅開啟原群組空間，需具備該群組的存取資格。</p>}
       {selectedID ? <>
-        <Button disabled={!canLoad || detailBusy} onClick={reloadDetail}>重新載入空間</Button>
+        <Button disabled={!canLoad || detailBusy || objectBlocked} onClick={() => { if (blocked.current) return; navigating.current = true; reloadDetail(); }}>重新載入空間</Button>
         <Status role="status">{detailStatus}</Status>
       </> : <p>展開側邊欄「空間」，選擇可開啟的群組空間。</p>}
       <noscript>請啟用 JavaScript 並完成 LINE 身分驗證，以載入側邊欄空間及內容。</noscript>
@@ -30,9 +36,9 @@ export function View() {
             <h2 className="text-2xl font-semibold tracking-tight">{selected.name || "群組空間"}</h2>
             <p className="text-sm text-muted-foreground">在同一個空間掌握工作、交流想法與追蹤目標。</p>
           </div>
-          <ToggleGroup type="single" value={page} onValueChange={(value) => { if (value) setPage(value); }} aria-label="空間功能" className="max-w-full flex-wrap justify-start">
+          <ToggleGroup type="single" value={page} onValueChange={(value) => { if (value && !blocked.current) { navigating.current = true; setPage(value); } }} aria-label="空間功能" className="max-w-full flex-wrap justify-start">
             {navigation.map(({ title, icon: Icon }) => (
-              <ToggleGroupItem key={title} value={title} aria-label={title}>
+              <ToggleGroupItem key={title} value={title} aria-label={title} disabled={objectBlocked && title !== page}>
                 <Icon aria-hidden="true" />{title}
               </ToggleGroupItem>
             ))}
@@ -66,7 +72,7 @@ export function View() {
                 <p className="text-sm leading-relaxed text-muted-foreground">摘要請回原群組操作。</p>
               </PagePanel>
             </div>
-          ) : page === "事項" ? <Issues key={selected.id} repositoryId={selected.id} /> : page === "討論" ? <Discussions key={selected.id} repositoryId={selected.id} /> : page === "里程碑" ? <Milestones key={selected.id} repositoryId={selected.id} /> : page === "專案" ? <PagePanel heading="專案"><a className="text-primary underline underline-offset-4" href={"/miniapp/projects?" + new URLSearchParams({space: selected.groupId, source: selected.id})}>前往獨立專案頁</a><p>專案由空間管理，儲存庫只提供可讀取的來源事項。</p></PagePanel> : page === "標籤" ? <Labels key={selected.id} repositoryId={selected.id} /> : (
+          ) : page === "Objects／工程項目" ? <Objects key={selected.id} repositoryId={selected.id} onBlocked={onObjectBlocked} canWrite={canObjectWrite} /> : page === "問題" ? <Issues key={selected.id} repositoryId={selected.id} /> : page === "討論" ? <Discussions key={selected.id} repositoryId={selected.id} /> : page === "里程碑" ? <Milestones key={selected.id} repositoryId={selected.id} /> : page === "專案" ? <PagePanel heading="專案"><a className="text-primary underline underline-offset-4" href={"/miniapp/projects?" + new URLSearchParams({space: selected.groupId, source: selected.id})}>前往獨立專案頁</a><p>專案由空間管理，儲存庫只提供可讀取的來源問題。</p></PagePanel> : page === "標籤" ? <Labels key={selected.id} repositoryId={selected.id} /> : (
             <PagePanel heading={page}>
               <Empty>
                 <EmptyHeader>

@@ -162,6 +162,18 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/projects.md"
+    },
+    "object": {
+      "contract": "object/objects.yaml",
+      "adapter": "backend/internal/business/object/http/routes.go",
+      "core": "backend/internal/business/object/object.go",
+      "specification": "docs/features/objects.md"
+    },
+    "objectimport": {
+      "contract": "object-import/object-imports.yaml",
+      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "core": "backend/internal/business/objectimport/object_import.go",
+      "specification": "docs/features/object-imports.md"
     }
   },
   "operations": [
@@ -1031,6 +1043,124 @@
       "consumers": [
         "frontend/miniapp/src/business/project/Items.tsx"
       ]
+    },
+    {
+      "operationId": "listObjects",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/objects",
+      "owner": "object",
+      "adapter": "backend/internal/business/object/http/routes.go",
+      "handler": "ListObjects",
+      "core": "backend/internal/business/object/object.go",
+      "specification": "docs/features/objects.md",
+      "consumers": [
+        "frontend/miniapp/src/business/object/View.tsx"
+      ]
+    },
+    {
+      "operationId": "createObject",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/objects",
+      "owner": "object",
+      "adapter": "backend/internal/business/object/http/routes.go",
+      "handler": "CreateObject",
+      "core": "backend/internal/business/object/object.go",
+      "specification": "docs/features/objects.md",
+      "consumers": [
+        "frontend/miniapp/src/business/object/View.tsx"
+      ]
+    },
+    {
+      "operationId": "getObject",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/objects/{id}",
+      "owner": "object",
+      "adapter": "backend/internal/business/object/http/routes.go",
+      "handler": "GetObject",
+      "core": "backend/internal/business/object/object.go",
+      "specification": "docs/features/objects.md",
+      "consumers": [
+        "frontend/miniapp/src/business/object/View.tsx"
+      ]
+    },
+    {
+      "operationId": "updateObject",
+      "audience": "public",
+      "method": "PATCH",
+      "path": "/api/v1/repositories/{repositoryId}/objects/{id}",
+      "owner": "object",
+      "adapter": "backend/internal/business/object/http/routes.go",
+      "handler": "UpdateObject",
+      "core": "backend/internal/business/object/object.go",
+      "specification": "docs/features/objects.md",
+      "consumers": [
+        "frontend/miniapp/src/business/object/View.tsx"
+      ]
+    },
+    {
+      "operationId": "createObjectImport",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/object-imports",
+      "owner": "objectimport",
+      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "handler": "CreateObjectImport",
+      "core": "backend/internal/business/objectimport/object_import.go",
+      "specification": "docs/features/object-imports.md",
+      "consumers": []
+    },
+    {
+      "operationId": "getObjectImport",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/object-imports/{id}",
+      "owner": "objectimport",
+      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "handler": "GetObjectImport",
+      "core": "backend/internal/business/objectimport/object_import.go",
+      "specification": "docs/features/object-imports.md",
+      "consumers": []
+    },
+    {
+      "operationId": "reviewObjectImport",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/object-imports/{id}/review",
+      "owner": "objectimport",
+      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "handler": "ReviewObjectImport",
+      "core": "backend/internal/business/objectimport/object_import.go",
+      "specification": "docs/features/object-imports.md",
+      "consumers": []
+    },
+    {
+      "operationId": "confirmObjectImport",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/object-imports/{id}/confirm",
+      "owner": "objectimport",
+      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "handler": "ConfirmObjectImport",
+      "core": "backend/internal/business/objectimport/object_import.go",
+      "specification": "docs/features/object-imports.md",
+      "consumers": []
+    },
+    {
+      "operationId": "parseObjectImport",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/object-imports/parse",
+      "owner": "objectimport",
+      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "handler": "ParseObjectImport",
+      "core": "backend/internal/business/objectimport/parsing/parsing.go",
+      "specification": "docs/features/object-imports.md",
+      "consumers": [
+        "frontend/miniapp/src/business/object/Import.tsx"
+      ]
     }
   ],
   "events": [
@@ -1150,6 +1280,16 @@
       "entity": "Project",
       "collection": "projects",
       "path": "/api/v1/spaces/{spaceId}/projects"
+    },
+    {
+      "entity": "Object",
+      "collection": "objects",
+      "path": "/api/v1/repositories/{repositoryId}/objects"
+    },
+    {
+      "entity": "ObjectImport",
+      "collection": "object-imports",
+      "path": "/api/v1/repositories/{repositoryId}/object-imports"
     }
   ],
   "namingExceptions": {

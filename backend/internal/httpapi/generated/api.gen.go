@@ -192,6 +192,87 @@ func (e MilestoneUpdateState) Valid() bool {
 	}
 }
 
+// Defines values for ObjectStatus.
+const (
+	ObjectStatusCompleted  ObjectStatus = "completed"
+	ObjectStatusInProgress ObjectStatus = "in_progress"
+	ObjectStatusNotStarted ObjectStatus = "not_started"
+)
+
+// Valid indicates whether the value is a known member of the ObjectStatus enum.
+func (e ObjectStatus) Valid() bool {
+	switch e {
+	case ObjectStatusCompleted:
+		return true
+	case ObjectStatusInProgress:
+		return true
+	case ObjectStatusNotStarted:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ObjectImportStatus.
+const (
+	ObjectImportStatusCompleted  ObjectImportStatus = "completed"
+	ObjectImportStatusConfirming ObjectImportStatus = "confirming"
+	ObjectImportStatusDraft      ObjectImportStatus = "draft"
+	ObjectImportStatusReviewed   ObjectImportStatus = "reviewed"
+)
+
+// Valid indicates whether the value is a known member of the ObjectImportStatus enum.
+func (e ObjectImportStatus) Valid() bool {
+	switch e {
+	case ObjectImportStatusCompleted:
+		return true
+	case ObjectImportStatusConfirming:
+		return true
+	case ObjectImportStatusDraft:
+		return true
+	case ObjectImportStatusReviewed:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ObjectImportParsingConsent.
+const (
+	True ObjectImportParsingConsent = true
+)
+
+// Valid indicates whether the value is a known member of the ObjectImportParsingConsent enum.
+func (e ObjectImportParsingConsent) Valid() bool {
+	switch e {
+	case True:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ObjectUpdateStatus.
+const (
+	ObjectUpdateStatusCompleted  ObjectUpdateStatus = "completed"
+	ObjectUpdateStatusInProgress ObjectUpdateStatus = "in_progress"
+	ObjectUpdateStatusNotStarted ObjectUpdateStatus = "not_started"
+)
+
+// Valid indicates whether the value is a known member of the ObjectUpdateStatus enum.
+func (e ObjectUpdateStatus) Valid() bool {
+	switch e {
+	case ObjectUpdateStatusCompleted:
+		return true
+	case ObjectUpdateStatusInProgress:
+		return true
+	case ObjectUpdateStatusNotStarted:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ProjectItemState.
 const (
 	ProjectItemStateCompleted  ProjectItemState = "completed"
@@ -720,6 +801,199 @@ type NullablePosition struct {
 	Longitude      float64   `json:"longitude"`
 }
 
+// Object defines model for Object.
+type Object struct {
+	CreatedAt    time.Time `json:"createdAt"`
+	CreatorId    string    `json:"creatorId"`
+	Description  string    `json:"description"`
+	Id           string    `json:"id"`
+	MaterialCode string    `json:"materialCode"`
+	Name         string    `json:"name"`
+
+	// Quantity Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion.
+	Quantity       string       `json:"quantity"`
+	RepositoryId   string       `json:"repositoryId"`
+	SourceDocument string       `json:"sourceDocument"`
+	SourceItemNo   string       `json:"sourceItemNo"`
+	SourcePages    string       `json:"sourcePages"`
+	SourceRevision string       `json:"sourceRevision"`
+	Status         ObjectStatus `json:"status"`
+	Type           string       `json:"type"`
+	Unit           string       `json:"unit"`
+	UpdatedAt      time.Time    `json:"updatedAt"`
+	Version        int64        `json:"version"`
+}
+
+// ObjectStatus defines model for Object.Status.
+type ObjectStatus string
+
+// ObjectCreation defines model for ObjectCreation.
+type ObjectCreation struct {
+	Description  string  `json:"description"`
+	MaterialCode *string `json:"materialCode,omitempty"`
+	Name         string  `json:"name"`
+
+	// Quantity Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion.
+	Quantity       string  `json:"quantity"`
+	SourceDocument *string `json:"sourceDocument,omitempty"`
+	SourceItemNo   *string `json:"sourceItemNo,omitempty"`
+	SourcePages    *string `json:"sourcePages,omitempty"`
+	SourceRevision *string `json:"sourceRevision,omitempty"`
+	Type           string  `json:"type"`
+	Unit           string  `json:"unit"`
+}
+
+// ObjectImport defines model for ObjectImport.
+type ObjectImport struct {
+	ConfirmedFromReviewVersion int64              `json:"confirmedFromReviewVersion"`
+	CreatedAt                  time.Time          `json:"createdAt"`
+	CreatorId                  string             `json:"creatorId"`
+	Id                         string             `json:"id"`
+	RepositoryId               string             `json:"repositoryId"`
+	ReviewedAt                 *time.Time         `json:"reviewedAt,omitempty"`
+	Rows                       []ObjectImportRow  `json:"rows"`
+	SourceDocument             string             `json:"sourceDocument"`
+	SourceHash                 string             `json:"sourceHash"`
+	SourceRevision             string             `json:"sourceRevision"`
+	Status                     ObjectImportStatus `json:"status"`
+	UpdatedAt                  time.Time          `json:"updatedAt"`
+	Version                    int64              `json:"version"`
+}
+
+// ObjectImportStatus defines model for ObjectImport.Status.
+type ObjectImportStatus string
+
+// ObjectImportCandidate defines model for ObjectImportCandidate.
+type ObjectImportCandidate struct {
+	Description  string                 `json:"description"`
+	Evidence     []ObjectImportEvidence `json:"evidence"`
+	MaterialCode string                 `json:"materialCode"`
+	Name         string                 `json:"name"`
+
+	// Quantity Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion.
+	Quantity     string `json:"quantity"`
+	SourceItemNo string `json:"sourceItemNo"`
+	Type         string `json:"type"`
+	Unit         string `json:"unit"`
+}
+
+// ObjectImportConfirmation defines model for ObjectImportConfirmation.
+type ObjectImportConfirmation struct {
+	ExpectedVersion int64 `json:"expectedVersion"`
+}
+
+// ObjectImportCreation defines model for ObjectImportCreation.
+type ObjectImportCreation struct {
+	Pages []struct {
+		Number int    `json:"number"`
+		Text   string `json:"text"`
+	} `json:"pages"`
+	Rows           []ObjectImportCandidate `json:"rows"`
+	SourceDocument string                  `json:"sourceDocument"`
+	SourceRevision string                  `json:"sourceRevision"`
+}
+
+// ObjectImportEvidence defines model for ObjectImportEvidence.
+type ObjectImportEvidence struct {
+	Page  int    `json:"page"`
+	Quote string `json:"quote"`
+}
+
+// ObjectImportParsed defines model for ObjectImportParsed.
+type ObjectImportParsed struct {
+	Rows       []ObjectImportCandidate `json:"rows"`
+	SourceHash string                  `json:"sourceHash"`
+}
+
+// ObjectImportParsing defines model for ObjectImportParsing.
+type ObjectImportParsing struct {
+	// Consent Explicit consent to send only these previewed/redacted selected page texts to OpenAI.
+	Consent ObjectImportParsingConsent `json:"consent"`
+	Pages   []struct {
+		Number int    `json:"number"`
+		Text   string `json:"text"`
+	} `json:"pages"`
+	SourceDocument string `json:"sourceDocument"`
+	SourceRevision string `json:"sourceRevision"`
+}
+
+// ObjectImportParsingConsent Explicit consent to send only these previewed/redacted selected page texts to OpenAI.
+type ObjectImportParsingConsent bool
+
+// ObjectImportReview defines model for ObjectImportReview.
+type ObjectImportReview struct {
+	ExpectedVersion int64                     `json:"expectedVersion"`
+	Rows            []ObjectImportReviewedRow `json:"rows"`
+}
+
+// ObjectImportReviewedRow defines model for ObjectImportReviewedRow.
+type ObjectImportReviewedRow struct {
+	Description  string `json:"description"`
+	Id           string `json:"id"`
+	MaterialCode string `json:"materialCode"`
+	Name         string `json:"name"`
+
+	// Quantity Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion.
+	Quantity string `json:"quantity"`
+	Type     string `json:"type"`
+	Unit     string `json:"unit"`
+}
+
+// ObjectImportRow defines model for ObjectImportRow.
+type ObjectImportRow struct {
+	Description  string                 `json:"description"`
+	Evidence     []ObjectImportEvidence `json:"evidence"`
+	Id           string                 `json:"id"`
+	MaterialCode string                 `json:"materialCode"`
+	Name         string                 `json:"name"`
+
+	// Quantity Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion.
+	Quantity       string `json:"quantity"`
+	ResultObjectId string `json:"resultObjectId"`
+	SourceItemNo   string `json:"sourceItemNo"`
+	Type           string `json:"type"`
+	Unit           string `json:"unit"`
+}
+
+// ObjectPage defines model for ObjectPage.
+type ObjectPage struct {
+	Items []Object `json:"items"`
+
+	// NextCursor Empty when finished; at most twenty objects per page in document-ID ascending order.
+	NextCursor string `json:"nextCursor"`
+}
+
+// ObjectUpdate Replace core content; omitted optional source fields preserve current values, explicit empty strings clear. No document revision automatically changes another object.
+type ObjectUpdate struct {
+	Description     string `json:"description"`
+	ExpectedVersion int64  `json:"expectedVersion"`
+
+	// MaterialCode Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key.
+	MaterialCode *string `json:"materialCode,omitempty"`
+	Name         string  `json:"name"`
+
+	// Quantity Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion.
+	Quantity string `json:"quantity"`
+
+	// SourceDocument Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key.
+	SourceDocument *string `json:"sourceDocument,omitempty"`
+
+	// SourceItemNo Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key.
+	SourceItemNo *string `json:"sourceItemNo,omitempty"`
+
+	// SourcePages Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key.
+	SourcePages *string `json:"sourcePages,omitempty"`
+
+	// SourceRevision Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key.
+	SourceRevision *string            `json:"sourceRevision,omitempty"`
+	Status         ObjectUpdateStatus `json:"status"`
+	Type           string             `json:"type"`
+	Unit           string             `json:"unit"`
+}
+
+// ObjectUpdateStatus defines model for ObjectUpdate.Status.
+type ObjectUpdateStatus string
+
 // Project defines model for Project.
 type Project struct {
 	Body                string    `json:"body"`
@@ -926,6 +1200,15 @@ type MilestoneError = APIError
 
 // MilestoneForbidden defines model for MilestoneForbidden.
 type MilestoneForbidden = APIError
+
+// ObjectError defines model for ObjectError.
+type ObjectError = APIError
+
+// ObjectForbidden defines model for ObjectForbidden.
+type ObjectForbidden = APIError
+
+// ObjectImportError defines model for ObjectImportError.
+type ObjectImportError = APIError
 
 // ProjectError defines model for ProjectError.
 type ProjectError = APIError
@@ -1137,6 +1420,53 @@ type UpdateMilestoneParams struct {
 	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
 }
 
+// CreateObjectImportParams defines parameters for CreateObjectImport.
+type CreateObjectImportParams struct {
+	// XCSRFToken Required for Cookie Session writes; existing authenticator validates.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+
+	// IdempotencyKey Actor and repository scoped import creation key. Same normalized payload and source hash replays the same job; different payload conflicts.
+	IdempotencyKey string `json:"Idempotency-Key"`
+}
+
+// ParseObjectImportParams defines parameters for ParseObjectImport.
+type ParseObjectImportParams struct {
+	// XCSRFToken Required for Cookie Session writes; existing authenticator validates.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// ConfirmObjectImportParams defines parameters for ConfirmObjectImport.
+type ConfirmObjectImportParams struct {
+	// XCSRFToken Required for Cookie Session writes; existing authenticator validates.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// ReviewObjectImportParams defines parameters for ReviewObjectImport.
+type ReviewObjectImportParams struct {
+	// XCSRFToken Required for Cookie Session writes; existing authenticator validates.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// ListObjectsParams defines parameters for ListObjects.
+type ListObjectsParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// CreateObjectParams defines parameters for CreateObject.
+type CreateObjectParams struct {
+	// IdempotencyKey Scoped to actor and repository within Object creation only. Reuse the original key after an unknown result; same key with different normalized content conflicts.
+	IdempotencyKey string `json:"Idempotency-Key"`
+
+	// XCSRFToken Required for Cookie Session writes; validated by the existing session authenticator.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// UpdateObjectParams defines parameters for UpdateObject.
+type UpdateObjectParams struct {
+	// XCSRFToken Required for Cookie Session writes; validated by the existing session authenticator.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
 // ListProjectsParams defines parameters for ListProjects.
 type ListProjectsParams struct {
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
@@ -1281,6 +1611,24 @@ type CreateMilestoneJSONRequestBody = MilestoneCreation
 
 // UpdateMilestoneJSONRequestBody defines body for UpdateMilestone for application/json ContentType.
 type UpdateMilestoneJSONRequestBody = MilestoneUpdate
+
+// CreateObjectImportJSONRequestBody defines body for CreateObjectImport for application/json ContentType.
+type CreateObjectImportJSONRequestBody = ObjectImportCreation
+
+// ParseObjectImportJSONRequestBody defines body for ParseObjectImport for application/json ContentType.
+type ParseObjectImportJSONRequestBody = ObjectImportParsing
+
+// ConfirmObjectImportJSONRequestBody defines body for ConfirmObjectImport for application/json ContentType.
+type ConfirmObjectImportJSONRequestBody = ObjectImportConfirmation
+
+// ReviewObjectImportJSONRequestBody defines body for ReviewObjectImport for application/json ContentType.
+type ReviewObjectImportJSONRequestBody = ObjectImportReview
+
+// CreateObjectJSONRequestBody defines body for CreateObject for application/json ContentType.
+type CreateObjectJSONRequestBody = ObjectCreation
+
+// UpdateObjectJSONRequestBody defines body for UpdateObject for application/json ContentType.
+type UpdateObjectJSONRequestBody = ObjectUpdate
 
 // CreateProjectJSONRequestBody defines body for CreateProject for application/json ContentType.
 type CreateProjectJSONRequestBody = ProjectCreation
@@ -1432,6 +1780,33 @@ type ServerInterface interface {
 	// UpdateMilestone updateMilestone: current repository members read/create; creator-only versioned updates
 	// (PATCH /api/v1/repositories/{repositoryId}/milestones/{id})
 	UpdateMilestone(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params UpdateMilestoneParams)
+	// CreateObjectImport Validate untrusted candidates and save an idempotent owner-only draft; creates no Objects
+	// (POST /api/v1/repositories/{repositoryId}/object-imports)
+	CreateObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, params CreateObjectImportParams)
+	// ParseObjectImport Use OpenAI to propose validated candidates from consented selected text; creates no draft or Object
+	// (POST /api/v1/repositories/{repositoryId}/object-imports/parse)
+	ParseObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, params ParseObjectImportParams)
+	// GetObjectImport Read own import draft and per-row results after current repository authorization
+	// (GET /api/v1/repositories/{repositoryId}/object-imports/{id})
+	GetObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, id string)
+	// ConfirmObjectImport Freeze a reviewed version and confirm or resume deterministic per-row Object creation
+	// (POST /api/v1/repositories/{repositoryId}/object-imports/{id}/confirm)
+	ConfirmObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params ConfirmObjectImportParams)
+	// ReviewObjectImport Review complete candidate content with expectedVersion; source evidence remains immutable
+	// (POST /api/v1/repositories/{repositoryId}/object-imports/{id}/review)
+	ReviewObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params ReviewObjectImportParams)
+	// ListObjects List objects for a current repository member in ascending document-ID order
+	// (GET /api/v1/repositories/{repositoryId}/objects)
+	ListObjects(w http.ResponseWriter, r *http.Request, repositoryId string, params ListObjectsParams)
+	// CreateObject Create a not_started engineering line item with an idempotency key; no shared number
+	// (POST /api/v1/repositories/{repositoryId}/objects)
+	CreateObject(w http.ResponseWriter, r *http.Request, repositoryId string, params CreateObjectParams)
+	// GetObject Read an object as a current repository member
+	// (GET /api/v1/repositories/{repositoryId}/objects/{id})
+	GetObject(w http.ResponseWriter, r *http.Request, repositoryId string, id string)
+	// UpdateObject Creator updates content and tracking status with expectedVersion; any defined status is allowed
+	// (PATCH /api/v1/repositories/{repositoryId}/objects/{id})
+	UpdateObject(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params UpdateObjectParams)
 	// ListProjects listProjects: current repository members read/create; creator-only versioned updates
 	// (GET /api/v1/repositories/{repositoryId}/projects)
 	ListProjects(w http.ResponseWriter, r *http.Request, repositoryId string, params ListProjectsParams)
@@ -3364,6 +3739,491 @@ func (siw *ServerInterfaceWrapper) UpdateMilestone(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
+// CreateObjectImport operation middleware
+func (siw *ServerInterfaceWrapper) CreateObjectImport(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateObjectImportParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateObjectImport(w, r, repositoryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ParseObjectImport operation middleware
+func (siw *ServerInterfaceWrapper) ParseObjectImport(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ParseObjectImportParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ParseObjectImport(w, r, repositoryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetObjectImport operation middleware
+func (siw *ServerInterfaceWrapper) GetObjectImport(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetObjectImport(w, r, repositoryId, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ConfirmObjectImport operation middleware
+func (siw *ServerInterfaceWrapper) ConfirmObjectImport(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ConfirmObjectImportParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ConfirmObjectImport(w, r, repositoryId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ReviewObjectImport operation middleware
+func (siw *ServerInterfaceWrapper) ReviewObjectImport(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ReviewObjectImportParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ReviewObjectImport(w, r, repositoryId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListObjects operation middleware
+func (siw *ServerInterfaceWrapper) ListObjects(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListObjectsParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListObjects(w, r, repositoryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateObject operation middleware
+func (siw *ServerInterfaceWrapper) CreateObject(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateObjectParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateObject(w, r, repositoryId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetObject operation middleware
+func (siw *ServerInterfaceWrapper) GetObject(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetObject(w, r, repositoryId, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateObject operation middleware
+func (siw *ServerInterfaceWrapper) UpdateObject(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "repositoryId" -------------
+	var repositoryId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "repositoryId", r.PathValue("repositoryId"), &repositoryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "repositoryId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateObjectParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateObject(w, r, repositoryId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListProjects operation middleware
 func (siw *ServerInterfaceWrapper) ListProjects(w http.ResponseWriter, r *http.Request) {
 
@@ -4606,6 +5466,15 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}/items", wrapper.ListSpaceProjectItems)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}/items", wrapper.AddSpaceProjectItem)
 	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}/items/{itemId}", wrapper.RemoveSpaceProjectItem)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/objects", wrapper.ListObjects)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/objects", wrapper.CreateObject)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/objects/{id}", wrapper.GetObject)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/objects/{id}", wrapper.UpdateObject)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/object-imports", wrapper.CreateObjectImport)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/object-imports/{id}", wrapper.GetObjectImport)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/object-imports/{id}/review", wrapper.ReviewObjectImport)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/object-imports/{id}/confirm", wrapper.ConfirmObjectImport)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/object-imports/parse", wrapper.ParseObjectImport)
 
 	return m
 }
@@ -4615,131 +5484,163 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"LtM5MHzxYKinxO9SgEp46J15h97j7eP/DQA=",
+	"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",
+	"0zkwfPFgqKfE7xOAinnQOescdh5vH///AA==",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

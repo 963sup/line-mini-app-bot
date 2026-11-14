@@ -151,7 +151,7 @@ test("unreadable source preserves Project metadata without inventing progress or
   try {
     assert.ok(document.body.textContent!.includes("來源儲存庫目前不可讀取"));
     assert.ok(document.body.textContent!.includes("Project body"));
-    assert.ok(!document.body.textContent!.includes("尚無事項"));
+    assert.ok(!document.body.textContent!.includes("尚無問題"));
     assert.equal(document.querySelector<HTMLInputElement>('input[maxlength="120"]')!.disabled, false);
     assert.ok(!f.requests.some(request => /\/(items|issues)$/.test(new URL(request.url).pathname)));
   } finally { await f.dispose(); }

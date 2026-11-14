@@ -1,4 +1,4 @@
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 const root = fileURLToPath(new URL("../../frontend/miniapp/", import.meta.url));
@@ -23,3 +23,10 @@ for (const name of [
     "// Retired controller. Open the current page to load the React application.\n",
     { mode: 0o644 },
   );
+
+// Self-host the pinned browser PDF worker and its data; no CDN or document URL is used.
+const pdfjs = path.join(root, "node_modules/pdfjs-dist");
+const pdfAssets = path.join(root, "public/assets/pdfjs");
+await mkdir(pdfAssets, { recursive: true });
+await cp(path.join(pdfjs, "legacy/build/pdf.worker.min.mjs"), path.join(pdfAssets, "pdf.worker.min.mjs"));
+for (const directory of ["cmaps", "standard_fonts", "wasm"]) await cp(path.join(pdfjs, directory), path.join(pdfAssets, directory), { recursive: true });
