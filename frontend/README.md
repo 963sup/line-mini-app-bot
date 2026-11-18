@@ -49,4 +49,4 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 出勤明細使用 Table；補卡／審核申請、請假紀錄與空間清單使用 Item。空白清單在成功查詢後以 Empty 呈現，載入與查詢失敗維持獨立狀態。安裝來源及用途見 [shadcn 指引](../docs/tooling/mcp/shadcn.md#頁面元件應用)。
 
-[流程圖（Mermaid）](../docs/foundation/frontend/react-frontend.md#頁面與身分生命週期)
+[現行實作圖：頁面與身分生命週期](../docs/foundation/frontend/react-frontend.md#頁面與身分生命週期) · [未來設計圖](../docs/diagrams.md#未來設計)

@@ -2,4 +2,4 @@
 
 遵循[上層指引](../AGENTS.md)。修改套件行為時，檢查呼叫端與受影響的 Go 測試。 實作入口見[本目錄導覽](README.md)。
 
-[流程圖（Mermaid）](../../../../docs/foundation/architecture/backend-boundaries.md#格式與資料相容)
+[現行實作圖：現有出勤整合檔案與責任](../../../../docs/foundation/integrations/web-geolocation.md#現有出勤整合檔案與責任) · [未來設計圖](../../../../docs/diagrams.md#未來設計)

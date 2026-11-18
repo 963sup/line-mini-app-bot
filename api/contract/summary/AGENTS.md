@@ -9,4 +9,4 @@
 - 保留既有輸入、請求上限、大小寫相容、回應、重送、租約及失敗語義；不複製 LINE 官方事件 schema。
 - 只有新功能規格明確需要時才新增公開 Summary API。
 
-[流程圖（Mermaid）](../../../docs/features/summary/summary.md#資料與可靠性)
+[現行實作圖：資料與可靠性](../../../docs/features/summary/summary.md#資料與可靠性) · [未來設計圖](../../../docs/diagrams.md#未來設計)

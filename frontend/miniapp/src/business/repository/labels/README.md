@@ -4,4 +4,4 @@
 
 `Picker` 共用目錄查詢及選取 UI，只修改父層草稿；透過問題／討論既有更新 API 保存。
 
-[流程圖（Mermaid）](../../../../../../docs/features/repository/repository.md#空間載入時序)
+[現行實作圖：空間載入時序](../../../../../../docs/features/repository/repository.md#空間載入時序) · [未來設計圖](../../../../../../docs/diagrams.md#未來設計)

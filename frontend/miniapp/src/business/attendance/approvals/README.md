@@ -2,4 +2,4 @@
 
 從 [View.tsx](View.tsx) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
-[流程圖（Mermaid）](../../../../../../docs/features/attendance/attendance.md#定位前預檢狀態與時序)
+[現行實作圖：審核畫面狀態同步](../../../../../../docs/features/attendance/queries.md#審核畫面狀態同步) · [未來設計圖](../../../../../../docs/diagrams.md#未來設計)

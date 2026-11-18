@@ -13,3 +13,5 @@ skills/ 保存上游技能；skills-sources.json 記錄來源，go-workflow.md �
 閱讀 ../docs/tooling/skills.md；涉及工具設定時執行設定檢查。此目錄被兩個分析工具排除，須直接檢查。
 
 命令除另有標示外均在儲存庫根目錄執行。閱讀 [本目錄 README](README.md) 與 [文件索引](../docs/README.md)；回報實際執行結果與限制。
+
+[開發與維運指引圖索引](../docs/diagrams.md#開發與維運指引) · [未來設計圖](../docs/diagrams.md#未來設計)。

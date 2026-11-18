@@ -10,4 +10,4 @@
 - 明定可見範圍、編輯權、回覆層級、生命週期、重送與併發；留言、Reaction 或標記解答不等同正式核准。
 - 與 Issue 連結或轉換需另定授權、識別及追溯語義，不直接改寫或共用兩者狀態。
 
-[流程圖（Mermaid）](../../../docs/features/repository/discussions.md#最小實作邊界與驗證)
+[現行實作圖：最小實作邊界與驗證](../../../docs/features/repository/discussions.md#最小實作邊界與驗證) · [未來設計圖](../../../docs/diagrams.md#未來設計)

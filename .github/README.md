@@ -11,3 +11,5 @@ workflows/check.yml 管理設定、分析範圍、Shell、Go、前端與 API 檢
 configuration job 同時執行本機 tooling unittest；只用標準庫與隔離 fake server，不呼叫外部 MCP 服務或要求雲端憑證。
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
+
+[開發與維運指引圖索引](../docs/diagrams.md#開發與維運指引) · [未來設計圖](../docs/diagrams.md#未來設計)。

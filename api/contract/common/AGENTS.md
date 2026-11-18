@@ -8,4 +8,4 @@
 - 共用認證 scheme 只描述憑證形式，不代表取得群組、寫入或審核權限；各操作仍須定義自己的授權與失敗語義。
 - 修改共用定義須核對所有引用者及相容性，不依賴任何業務能力或組合入口。
 
-[流程圖（Mermaid）](../../../docs/foundation/api/http-contracts.md#基礎入口)
+[現行實作圖：基礎入口](../../../docs/foundation/api/http-contracts.md#基礎入口) · [未來設計圖](../../../docs/diagrams.md#未來設計)

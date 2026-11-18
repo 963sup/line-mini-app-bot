@@ -13,3 +13,5 @@ workflows/check.yml 管理設定、分析範圍、Shell、Go、前端與 API 檢
 核對 workflow 所引用腳本與任務存在；從根目錄執行設定檢查及 git diff --check。
 
 命令除另有標示外均在儲存庫根目錄執行。閱讀 [本目錄 README](README.md) 與 [文件索引](../docs/README.md)；回報實際執行結果與限制。
+
+[開發與維運指引圖索引](../docs/diagrams.md#開發與維運指引) · [未來設計圖](../docs/diagrams.md#未來設計)。

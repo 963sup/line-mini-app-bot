@@ -51,4 +51,4 @@ Weather 既有實作集中在 business/weather/forecast/{cwa,line}。
 
 業務模組位於 [internal/business](internal/business)，服務組裝見 [server](internal/server)，各功能行為見[功能索引](../docs/features/README.md)。
 
-[流程圖（Mermaid）](../docs/foundation/architecture/backend-boundaries.md#格式與資料相容)
+[現行實作圖：格式與資料相容](../docs/foundation/architecture/backend-boundaries.md#格式與資料相容) · [未來設計圖](../docs/diagrams.md#未來設計)

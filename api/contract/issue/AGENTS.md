@@ -10,4 +10,4 @@
 - Issue 的關閉不自動代表施工驗收或業務核准；不沿用出勤補卡的狀態或審核權。
 - IssueComment 與事項關聯歸本能力；Label、Milestone 等引用歸其擁有者，不在多個能力複製定義。未確認的操作不預建空端點。
 
-[流程圖（Mermaid）](../../../docs/foundation/api/http-contracts.md#基礎入口)
+[現行實作圖：基礎入口](../../../docs/foundation/api/http-contracts.md#基礎入口) · [未來設計圖](../../../docs/diagrams.md#未來設計)

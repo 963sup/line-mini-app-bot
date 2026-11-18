@@ -24,4 +24,4 @@ cmd/ 保存 server、richmenu、firestorecheck 與 attendancemigrate 入口；in
 
 後端由可信身分取得 Actor，依資源歸屬與範圍檢查 Authority／Policy，使用案例協調領域規則與結果。涉及一致性的授權、版本及狀態檢查與交易協調；定義重送與副作用失敗語義。不建立無實際需求的通用引擎或 access 模組。
 
-[流程圖（Mermaid）](../docs/foundation/architecture/backend-boundaries.md#格式與資料相容)
+[現行實作圖：格式與資料相容](../docs/foundation/architecture/backend-boundaries.md#格式與資料相容) · [未來設計圖](../docs/diagrams.md#未來設計)

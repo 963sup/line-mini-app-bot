@@ -9,4 +9,4 @@
 - 先修改來源契約及設定，再由根目錄執行生成；檢視生成差異，不手改產物或刷新相容性 baseline 掩蓋問題。
 - 變更生成設定或流程須執行 `bash scripts/tooling/tool-exec.sh pnpm api:check`，確認同步與相容性。
 
-[流程圖（Mermaid）](../../docs/foundation/api/http-contracts.md#基礎入口)
+[現行實作圖：基礎入口](../../docs/foundation/api/http-contracts.md#基礎入口) · [未來設計圖](../../docs/diagrams.md#未來設計)

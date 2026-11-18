@@ -145,3 +145,5 @@ MINI App 頁面為 `/miniapp`；Channel 未設定時頁面顯示設定提示。
 開發前定義操作契約，交付時對照實作與證據；讀取不強制建立事件，採納提案時才使用 Merge。
 發現不符合時依 [Graphify／Repomix／Context7 符合性流程](docs/agents/workflow.md#business-operation-compliance) 在任務範圍內修正。
 統一操作模型，隔離業務規則；共用必要機制，避免不必要的抽象。
+
+[現行實作圖索引](docs/diagrams.md#現行實作) · [未來設計圖](docs/diagrams.md#未來設計)。
