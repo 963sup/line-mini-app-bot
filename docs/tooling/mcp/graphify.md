@@ -14,7 +14,7 @@ Tool versions are owned by `mise.toml`; never copy token values into documentati
 
 ## Operation
 
-Refresh with `bash scripts/tooling/tool-exec.sh mise run graphify-update`; query with `graphify query "<question>"`.
+Refresh with `bash scripts/tooling/tool-exec.sh mise run graphify-update`; the task scans all code together so Go receivers in separate files resolve to their type declaration, then regenerates the report. Query with `graphify query "<question>"`.
 
 ### Docs-only graph
 
@@ -26,10 +26,11 @@ bash scripts/tooling/tool-exec.sh mise run graphify-docs
 bash scripts/tooling/tool-exec.sh graphify query "Firestore" --graph /workspace/tooling/cache/graphify-docs/graph.json
 ```
 
-This graph contains ATX headings and explicit inline local links from every Markdown
-file under docs/, root Markdown entry points, scripts/ guides, .agents/ top-level
-guides and .github/ Markdown. Generated skill directories are excluded. It records
-source locations and line coverage in coverage.json.
+The graph covers tracked and non-ignored project Markdown across the repository,
+including nested module guides. Linked `.mermaid` sources appear as file nodes.
+Upstream skill directories and the generated shadcn reference snapshot are
+excluded. ATX headings and inline local links retain their source locations.
+
 It does not infer semantic relationships, validate URL fragments, or automatically
 identify missing requirements. Review document content to assess gaps. Generated
 files stay outside the source tree and do not replace the code graph.

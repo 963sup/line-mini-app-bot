@@ -1,8 +1,10 @@
 schema = 1
-# Universe: git ls-files, plus explicit first-commit additions below.
+# Universe: tracked files, explicit additions and non-ignored documentation sources below.
 # Remove an addition once its path is tracked; working-tree deletions are omitted.
 additional = []
-managed_suffixes = [".go", ".mod", ".sum", ".sh", ".py", ".toml", ".md", ".json", ".yaml", ".yml", ".js", ".cjs", ".mjs", ".mts", ".ts", ".tsx", ".css", ".html", ".txt"]
+working_tree_docs = ["docs/**/*.md", "docs/**/*.mermaid", "docs/**/*.svg"]
+managed_agent_guides = [".agents/AGENTS.md", ".agents/README.md", ".agents/go-workflow.md"]
+managed_suffixes = [".go", ".mod", ".sum", ".sh", ".py", ".toml", ".md", ".json", ".yaml", ".yml", ".js", ".cjs", ".mjs", ".mts", ".ts", ".tsx", ".css", ".html", ".txt", ".mermaid", ".svg"]
 managed_names = ["Dockerfile", "LICENSE", "GOOGLE-SKILLS-LICENSE", ".editorconfig", ".gcloudignore", ".gitattributes", ".gitignore", ".dockerignore", ".graphifyignore", ".repomixignore", ".env.example"]
 
 [[exclude]]

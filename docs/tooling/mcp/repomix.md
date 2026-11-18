@@ -8,7 +8,7 @@ Bundle relevant source for review and impact analysis.
 
 ## Prerequisites and configuration
 
-Node and Repomix installed by install-mcp. .repomixignore owns project exclusions; the mise repomix task selects XML output and parsable style; explicitly scope MCP packing too. Security scanning is not a proof that no secrets exist.
+Node and Repomix installed by install-mcp. The mise task checks its XML against the [source manifest](../analysis-scope.md); .repomixignore also filters ad hoc CLI runs. Scope MCP packing explicitly. Security scanning is not a proof that no secrets exist.
 Connection, timeouts and enabled tool names are owned by `.codex/config.toml`.
 Tool versions are owned by `mise.toml`; never copy token values into documentation.
 

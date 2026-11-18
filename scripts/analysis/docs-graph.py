@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 import re
+import subprocess
 from urllib.parse import unquote, urlsplit
 
 
@@ -12,12 +13,14 @@ def main():
     parser.add_argument("--out", type=Path, default=Path("/workspace/tooling/cache/graphify-docs"))
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
-    # Include maintained guides outside docs/ so entry points cannot silently drift.
-    files = sorted(set((root / "docs").rglob("*.md"))
-                   | set(root.glob("*.md"))
-                   | set((root / "scripts").rglob("*.md"))
-                   | set((root / ".agents").glob("*.md"))
-                   | set((root / ".github").rglob("*.md")))
+    # Use Git's ignore rules so installed dependencies and build output stay out.
+    paths = subprocess.check_output(
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard",
+         "--", "*.md", "*.mermaid"], cwd=root,
+    ).decode().split("\0")
+    upstream = (".agents/skills/", ".codex/skills/", "docs/tooling/shadcn-reference/snapshot/")
+    files = sorted(root / name for name in set(paths)
+                   if name and not name.startswith(upstream) and (root / name).is_file())
     nodes, edges, coverage, unresolved = [], [], {}, []
     ids = {path.resolve(): path.relative_to(root).as_posix() for path in files}
     for path in files:
@@ -26,6 +29,8 @@ def main():
         coverage[source] = len(lines)
         nodes.append({"id": source, "label": source, "file_type": "document",
                       "source_file": source, "source_location": "document", "_origin": "structural_docs"})
+        if path.suffix == ".mermaid":
+            continue  # A diagram is a link target, not Markdown.
         in_fence = False
         for number, line in enumerate(lines, 1):
             if re.match(r"^\s*(`{3,}|~{3,})", line):

@@ -27,12 +27,16 @@ def build_manifest():
     paths = set(git("ls-files", "-z").decode().split("\0")) - {""}
     paths.difference_update(git("ls-files", "--deleted", "-z").decode().split("\0"))
     paths.update(config["additional"])
+    # Git pathspec globs include documents directly under docs/ as well as descendants.
+    doc_specs = [":(glob)" + pattern for pattern in config["working_tree_docs"]]
+    paths.update(filter(None, git("ls-files", "--others", "--exclude-standard", "-z",
+                                  "--", *doc_specs).decode().split("\0")))
     rows = []
     for name in sorted(paths):
         path = ROOT / name
         rule = next((r for r in config["exclude"] if fnmatch.fnmatchcase(name, r["pattern"])), None)
         row = {"path": name}
-        if rule:
+        if rule and name not in config["managed_agent_guides"]:
             if not all(rule.get(k) for k in ("reason", "impact", "owner")):
                 raise ValueError(f"Incomplete exclusion: {rule}")
             row.update(status="EXCLUDED", exclusion=rule)
@@ -47,6 +51,28 @@ def build_manifest():
     return {"schema": config["schema"], "contract_sha256": sha256_file(ROOT / "analysis-scope.toml"),
             "commit": git("rev-parse", "HEAD").decode().strip(),
             "dirty": bool(git("status", "--porcelain")), "files": rows}
+
+
+def pack_workspace(manifest):
+    """Only publish a bundle whose contents still match the manifest."""
+    managed = {r["path"] for r in manifest["files"] if r["status"] == "MANAGED"}
+    # The temporary output shares a filesystem with the destination for atomic replacement.
+    with tempfile.TemporaryDirectory(prefix="repomix-output.", dir=ROOT) as temporary:
+        bundle = Path(temporary) / "bundle.xml"
+        subprocess.run(["repomix", "--stdin", "--no-default-patterns", "--no-gitignore",
+                        "--style", "xml", "--parsable-style", "--output", str(bundle)],
+                       cwd=ROOT, input="\n".join(sorted(managed)) + "\n", text=True, check=True)
+        files = {e.attrib["path"]: e.text or "" for e in ET.parse(bundle).iter("file")}
+        if files.keys() != managed:
+            raise ValueError(f"Bundle coverage mismatch: missing={sorted(managed - files.keys())}, "
+                             f"extra={sorted(files.keys() - managed)}")
+        for name, content in files.items():
+            if content.strip() != (ROOT / name).read_text(encoding="utf-8").strip():
+                raise ValueError(f"Bundle content differs: {name}")
+        if build_manifest() != manifest:
+            raise ValueError("Sources changed during packaging")
+        bundle.replace(ROOT / "repomix-output.xml")
+        print(f"Verified and published {len(files)} files to repomix-output.xml")
 
 
 def run_audit(manifest):
@@ -105,6 +131,7 @@ def run_audit(manifest):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--pack", action="store_true")
     parser.add_argument("--audit", action="store_true")
     parser.add_argument("--verify", type=Path, help="Reject stale or altered saved report evidence")
     args = parser.parse_args()
@@ -120,6 +147,8 @@ def main():
         if report["repomix_missing"] or report["repomix_extra"] or report["dangling_edges"] or report["duplicate_ids"]:
             raise ValueError("Saved audit did not pass")
         print("Saved evidence matches current sources and artifacts")
+    if args.pack:
+        pack_workspace(manifest)
     if args.audit:
         run_audit(manifest)
 

@@ -76,7 +76,7 @@ run = "go build ./..."
 
 [tasks.graphify-update]
 description = "Build a local code graph without LLM calls"
-run = "graphify extract . --code-only --allow-dedup-shrink --out ."
+run = "graphify extract . --force --code-only --allow-dedup-shrink --out . && graphify cluster-only ."
 
 [tasks.graphify-docs]
 description = "Build a separate docs heading/link graph without API credentials"
@@ -211,7 +211,7 @@ run = "python3 scripts/tooling/check-config.py"
 
 [tasks.repomix]
 description = "Pack project sources with security checking and without generated skills"
-run = "repomix --style xml --parsable-style --output repomix-output.xml"
+run = "python3 scripts/analysis/analysis-scope.py --pack"
 
 [tasks.analysis-scope]
 description = "Validate classification of all versioned sources"
