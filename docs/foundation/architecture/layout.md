@@ -63,6 +63,6 @@ docs/、.github/、.vscode/、.agents/、.codex/
 
 pnpm 管理 JS 工作區，Go module 位於 backend；Turborepo 協調產物與檢查。公開 URL 與既有資源 aliases 保留。Go binary 透過 FRONTEND_DIR 讀取獨立的 Next.js 靜態輸出；正式容器不需要 Next SSR 服務。
 
-前端已使用 React hooks/state、身分 Context 與具取消／世代檢查的請求；Strict Mode 已恢復，舊控制器及事件橋接已移除。舊 JS 資源 URL 僅回傳無操作的相容內容，不被新頁面載入。功能生命週期見 [React 前端](../frontend/react-frontend.md)。客戶端導覽尚未導入。上游技能保留原位置，不重複加入產品功能樹。
+前端身分、請求取消、靜態資產與頁面生命週期見 [React 前端](../frontend/react-frontend.md)。
 
 業務拆分與相容性驗證見 [Business 重構](../../development/business-refactor.md)。

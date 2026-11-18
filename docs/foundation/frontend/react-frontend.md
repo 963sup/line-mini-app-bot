@@ -1,6 +1,6 @@
 # React 前端生命週期
 
-Next.js Pages Router 靜態輸出，React Strict Mode 啟用。功能入口位於 `frontend/miniapp/src/business/attendance/{records,corrections,approvals,punch,leave}`；定位示範位於 `diagnostics/geolocation`。頁面仍以完整文件導覽隔離工作流程，未加入 SSR、App Router 或額外狀態套件。
+Next.js Pages Router 靜態輸出，React Strict Mode 啟用。出勤功能入口位於 `frontend/miniapp/src/business/attendance/{records,corrections,approvals,punch,leave}`；定位示範位於 `diagnostics/geolocation`。頁面仍以完整文件導覽隔離工作流程，未加入 SSR、App Router 或額外狀態套件。
 
 - `identity/Session.tsx`：身分 Context、LINE 初始化、伺服器驗證、登入／登出、BFCache 恢復與型別化認證請求。LINE token 僅於交換後端 Session 時從 SDK 取得；後續 API 使用 Cookie 與記憶體中的 CSRF token。可見頁面有近期活動時，接近到期才以單一請求續期；閒置／背景不保活。登出會先撤銷後端 Session，失敗時保留重試入口。見 [Session 契約](../identity/browser-session.md)。SDK init single-flight；Strict Mode 清理會取消等待並拒收結果。
 - `platform/line/sdk.ts`：官方 SDK script loader 與初始化共用 Promise。全域僅有官方 `window.liff`，沒有自訂 client、DOM dataset 或身分事件橋接。
@@ -19,7 +19,7 @@ Tailwind 由 PostCSS 編譯 `styles/globals.css`，透過 Pages Router `_app.tsx
 
 診斷定位需手動啟動；驗證成功才更新座標結果，失敗／更新中保留上次成功結果並標示。診斷端點仍不保存位置。
 
-舊 `/assets/*.js` 控制器已移除。歷史資源 URL 回應無操作內容維持可取得性；頁面只執行 Next 編譯輸出。CSS alias 已移除。舊快取頁面需要重新整理取得新頁面。
+開發與建置前，`prepare-assets` 會重建 `public/assets/`。歷史控制器 URL 回傳空操作腳本，舊快取頁面需重新整理。PDF 匯入另外使用同源提供的 PDF.js worker、CMap、字型與 WASM；部署時須連同靜態匯出提供這些檔案。[資產準備腳本](../../../scripts/tooling/prepare-miniapp-assets.mts) · [PDF 匯入限制](../../features/repository/object-imports.md)
 
 執行 `pnpm test` 包含真實 React StrictMode 的 DOM 測試；`pnpm check` 包含應用與測試 TypeScript 檢查。測試替換原本依賴 DOM VM 的控制器檢查，涵蓋原打卡重試／取消案例及跨功能競態。裝置權限與 LINE 真實登入另做實機驗收。
 

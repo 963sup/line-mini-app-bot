@@ -1,6 +1,6 @@
 # MINI App 前端
 
-獨立專案頁為 `/miniapp/projects`，側欄專案與儲存庫同層，工程群組／Project選取與身份生命週期不依賴RepositoryProvider。來源選擇是唯讀資格選擇，非新增事項寫權；頁面、來源及legacy轉接規則見 [獨立Project](../docs/features/project/projects.md)。
+專案與儲存庫在側欄同層。專案頁自行管理工程群組與 Project 選取；來源選擇的讀取資格及舊入口轉接規則見 [Project 契約](../docs/features/project/projects.md)。
 
 ## 目錄導覽與維護
 
@@ -39,27 +39,15 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 | 業務 | 既有前端實作 | 其他入口 |
 | --- | --- | --- |
-| Form / Journal | src/business/form/journal | [日誌 Google 表單](../docs/features/journal/google-forms.md) |
-| Attendance | src/business/attendance/{punch,records,corrections,approvals,leave} | Worktime 由紀錄畫面呈現；Board 透過 LINE |
-| Summary | 沒有既有 MINI App 畫面 | [訊息收集、摘要指令與內部工作](../api/contract/summary/README.md) |
-| Weather / Forecast | 沒有既有 MINI App 畫面 | [LINE 群組位置查詢](../api/contract/weather/README.md) |
-
-不建立空畫面或讓瀏覽器呼叫內部摘要 worker。新增摘要／天氣網頁及公開 API 必須另定操作契約。
-
-- [群組 Repository](../docs/features/repository/repository.md)
-- [基礎雛形與完成界線](../docs/features/repository/foundation.md)
-- [空間標籤目錄](../docs/features/repository/labels.md)：正式空間「標籤」入口提供列出及建立。
-- [空間討論與留言](../docs/features/repository/discussions.md)：正式空間主題、作者編輯及單層留言。
-- [空間事項第一階段](../docs/features/repository/issues.md)：正式空間已接入事項讀寫及建立者操作。
+| 日誌表單 | `/miniapp/journal` 開啟 Google 表單 | [表單設定](../docs/features/journal/google-forms.md) |
+| 工程日誌 | `/miniapp/dashboard` 與 `/miniapp/feed` 共用 JournalWorkspace | [日誌設計](../docs/features/journal/design.md) |
+| 出勤 | 打卡、紀錄、更正、審核、請假；工時由紀錄頁呈現 | [出勤功能](../docs/features/attendance/attendance.md) |
+| Repository | `/miniapp/repositories` 提供庫內工區、物件與協作功能 | [儲存庫功能索引](../docs/features/repository/README.md) |
+| Project | `/miniapp/projects` 提供獨立的跨庫專案頁 | [Project 契約](../docs/features/project/projects.md) |
+| 摘要與天氣 | 使用 LINE 入口，摘要背景工作由內部端點處理 | [摘要](../api/contract/summary/README.md) · [天氣](../api/contract/weather/README.md) |
 
 ## shadcn 頁內組合
 
 補卡確認使用 Checkbox。PagePanel 沿用 Card 預設圓角與內距。既有 Checkbox、Toggle、ToggleGroup 透過固定版 CLI 的 registry 輸出安裝，只修正專案 alias，沿用既有 radix-ui 依賴。sidebar-07 的 asChild 原生 button 保留，屬於官方元件組合。審核清單同步行為見 [出勤查詢與更正](../docs/features/attendance/queries.md#審核畫面狀態同步)。
 
 出勤明細使用 Table；補卡／審核申請、請假紀錄與空間清單使用 Item。空白清單在成功查詢後以 Empty 呈現，載入與查詢失敗維持獨立狀態。安裝來源及用途見 [shadcn 指引](../docs/tooling/mcp/shadcn.md#頁面元件應用)。
-
-- [里程碑、專案與統計](../docs/reports/2026-11-13/planning.md)
-
-## 協作能力分佈與交付狀態
-
-工程畫面的使用方式與入口見[功能索引](../docs/features/README.md)，跨儲存庫操作見[專案](../docs/features/project/projects.md)。
