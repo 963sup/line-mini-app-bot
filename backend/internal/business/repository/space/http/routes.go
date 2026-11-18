@@ -60,20 +60,17 @@ func Register(mux *http.ServeMux, service *feature.Service, auth Authenticator) 
 				r = r.Clone(r.Context())
 				r.Method = http.MethodGet
 			}
-			for _, values := range r.URL.Query() {
-				if len(values) > 1 {
-					transport.WriteAPIError(w, 400, "invalid_input", "請勿重複查詢參數。")
-					return
-				}
+			if !transport.ValidateUniqueQuery(w, r) {
+				return
 			}
-			if r.Method == http.MethodPost || r.Method == http.MethodPatch {
+			if r.Method == http.MethodPost {
 				media, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 				if err != nil || media != "application/json" {
 					transport.WriteAPIError(w, 415, "invalid_content_type", "請使用 JSON。")
 					return
 				}
 				r.Body = http.MaxBytesReader(w, r.Body, 65536)
-				if r.Method == http.MethodPost && len(r.Header.Values("Idempotency-Key")) != 1 {
+				if len(r.Header.Values("Idempotency-Key")) != 1 {
 					transport.WriteAPIError(w, 400, "invalid_input", "請提供唯一的重試識別碼。")
 					return
 				}

@@ -22,3 +22,13 @@ func WriteAPIError(w http.ResponseWriter, status int, code, message string) {
 		Error detail `json:"error"`
 	}{Error: detail{Code: code, Message: message}})
 }
+
+func ValidateUniqueQuery(w http.ResponseWriter, r *http.Request) bool {
+	for _, values := range r.URL.Query() {
+		if len(values) > 1 {
+			WriteAPIError(w, http.StatusBadRequest, "invalid_input", "請勿重複查詢參數。")
+			return false
+		}
+	}
+	return true
+}
