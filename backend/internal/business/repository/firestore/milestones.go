@@ -90,13 +90,13 @@ func (s *Store) planningContainer(tx *db.Transaction, r repository.Repository) e
 	}
 	var d struct {
 		ID      string `firestore:"id"`
-		GroupID string `firestore:"groupId"`
+		OwnerID string `firestore:"ownerId"`
 		Status  string `firestore:"status"`
 	}
 	if e := snap.DataTo(&d); e != nil {
 		return e
 	}
-	if d.ID != r.ID || d.GroupID != r.GroupID || d.Status != "ACTIVE" {
+	if d.ID != r.ID || d.OwnerID != r.OwnerID || d.Status != "ACTIVE" {
 		return feature.ErrNotFound
 	}
 	return nil

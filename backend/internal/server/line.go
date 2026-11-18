@@ -6,8 +6,9 @@ import (
 	"os"
 	"time"
 
+	groupline "github.com/963sup/line-mini-app-bot/internal/business/group/line"
+	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/line"
-	spaceline "github.com/963sup/line-mini-app-bot/internal/business/space/line"
 
 	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/line"
 	summary "github.com/963sup/line-mini-app-bot/internal/business/summary/line"
@@ -18,13 +19,16 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
-func registerLINE(mux *http.ServeMux, appURL string, punches *attendance.Attendance, summaries *summary.Summary, repositories *repositoryline.Observer, spaces *spaceline.Observer) (func(context.Context, string) string, error) {
+func registerLINE(mux *http.ServeMux, appURL string, punches *attendance.Attendance, summaries *summary.Summary, repositories *repositoryline.Observer, groups *groupline.Observer, catalog *repository.Service) (func(context.Context, string) string, error) {
 	var client weather.ForecastLookup
 	if key := os.Getenv("CWA_API_KEY"); key != "" {
 		client = &cwa.Client{APIKey: key, HTTP: &http.Client{Timeout: 3 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}
 	}
 	lookup, err := transport.RegisterWebhook(mux, []transport.Handler{
-		{Handle: spaces.Observe, Failure: "space temporarily unavailable"},
+		{Handle: func(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
+			return myEngineering(ctx, event, appURL, catalog)
+		}, Failure: "repository temporarily unavailable"},
+		{Handle: groups.Observe, Failure: "space temporarily unavailable"},
 		{Handle: repositories.Observe, Failure: "repository temporarily unavailable"},
 		{Handle: summaries.Observe, Failure: "summary temporarily unavailable"},
 		{Handle: punches.Reply, Failure: "attendance unavailable; retry safely", RetryOnSendFailure: true},
@@ -59,8 +63,8 @@ func registerLINE(mux *http.ServeMux, appURL string, punches *attendance.Attenda
 	if repositories != nil {
 		repositories.GroupName = lookup
 	}
-	if spaces != nil {
-		spaces.GroupName = lookup
+	if groups != nil {
+		groups.GroupName = lookup
 	}
 	return lookup, err
 }

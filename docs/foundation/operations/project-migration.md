@@ -2,6 +2,8 @@
 
 本工具只處理一個明確 channel／來源 Repository 的舊 Project 資料，不部署、搬遷 Repository／Issue 或自動選擇正式環境。業務與授權依 [獨立 Project](../../features/project/projects.md)。本次實作及本機 emulator 驗證不包含正式資料apply。
 
+**現行版本依 ownerId 將專案保存於 groups/{groupId}/projects 或 users/{userId}/projects。此工具只處理已退役的舊版 Space 路徑，不能用來轉換至現行模型。以下為舊格式的離線維護指南。** 現行服務不讀取 projectStorage marker；執行 apply 或 rollback 前須停止所有 Project 讀寫服務。切換 marker 不會改變現行服務的保存位置。
+
 ## 上線前提
 
 1. 先發布或停止所有不認得 `projectStorage` lock 的舊Project writer；讀取亦須使用可辨別唯一保存位置的相容程式。不能只啟動新writer而留下舊版本同時寫入。

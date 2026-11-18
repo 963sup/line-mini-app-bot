@@ -27,7 +27,7 @@ func (s repos) Get(ctx context.Context, actor, id string) (repository.Repository
 	if s.denied {
 		return repository.Repository{}, repository.ErrNotFound
 	}
-	return repository.Repository{ID: id, GroupID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}, nil
+	return repository.Repository{ID: id, OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}, nil
 }
 
 type store struct {

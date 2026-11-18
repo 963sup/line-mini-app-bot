@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/space"
+	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
@@ -15,25 +15,21 @@ type observerStore struct {
 	name               string
 	lookupErr, saveErr error
 	lookups            int
-	saved              []space.Observation
+	saved              []groupdomain.Observation
 }
 
-func (s *observerStore) Observe(_ context.Context, o space.Observation) error {
+func (s *observerStore) Observe(_ context.Context, o groupdomain.Observation) error {
 	s.saved = append(s.saved, o)
 	return s.saveErr
 }
 
-func (s *observerStore) GetByGroupID(context.Context, string) (space.Space, error) {
+func (s *observerStore) GetByID(context.Context, string) (groupdomain.Group, error) {
 	s.lookups++
-	return space.Space{Name: s.name}, s.lookupErr
+	return groupdomain.Group{Name: s.name}, s.lookupErr
 }
 
-func (*observerStore) GetByID(context.Context, string) (space.Space, error) {
-	return space.Space{}, space.ErrNotFound
-}
-
-func (*observerStore) Candidates(context.Context, string, string) (space.Page, error) {
-	return space.Page{}, nil
+func (*observerStore) Candidates(context.Context, string, string) (groupdomain.Page, error) {
+	return groupdomain.Page{}, nil
 }
 
 func TestObserverPreservesDomainNameLifecycleAndFailures(t *testing.T) {
@@ -54,7 +50,7 @@ func TestObserverPreservesDomainNameLifecycleAndFailures(t *testing.T) {
 	}{
 		{"join refreshes name", join, "stored", nil, nil, 0, 1, 1, "ACTIVE", false},
 		{"message retains name", message, "stored", nil, nil, 1, 0, 1, "ACTIVE", false},
-		{"new group looks up name", message, "", space.ErrNotFound, nil, 1, 1, 1, "ACTIVE", false},
+		{"new group looks up name", message, "", groupdomain.ErrNotFound, nil, 1, 1, 1, "ACTIVE", false},
 		{"leave never looks up name", leave, "stored", nil, nil, 0, 0, 1, "INACTIVE", false},
 		{"lookup failure propagates", message, "", failure, nil, 1, 0, 0, "", true},
 		{"save failure propagates", message, "stored", nil, failure, 1, 0, 1, "ACTIVE", true},

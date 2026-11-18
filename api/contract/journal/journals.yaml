@@ -14,7 +14,7 @@
         ],
         "parameters": [
           {
-            "name": "spaceId",
+            "name": "groupId",
             "in": "query",
             "schema": {
               "type": "string",
@@ -414,14 +414,14 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "spaceId",
+          "groupId",
           "workDate",
           "personnel",
           "todayItems",
           "tomorrowItems"
         ],
         "properties": {
-          "spaceId": {
+          "groupId": {
             "type": "string",
             "pattern": "^C[a-f0-9]{32}$"
           },
@@ -455,7 +455,7 @@
           "id",
           "creatorId",
           "createdAt",
-          "spaceId",
+          "groupId",
           "workDate",
           "personnel",
           "todayItems",
@@ -473,7 +473,7 @@
             "type": "string",
             "format": "date-time"
           },
-          "spaceId": {
+          "groupId": {
             "type": "string",
             "pattern": "^C[a-f0-9]{32}$"
           },

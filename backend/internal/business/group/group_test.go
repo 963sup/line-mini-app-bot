@@ -1,4 +1,4 @@
-package space_test
+package group_test
 
 import (
 	"context"
@@ -6,28 +6,24 @@ import (
 	"strings"
 	"testing"
 
-	sp "github.com/963sup/line-mini-app-bot/internal/business/space"
+	sp "github.com/963sup/line-mini-app-bot/internal/business/group"
 )
 
 type store struct {
-	current sp.Space
+	current sp.Group
 	missing bool
 }
 
 func (s *store) Observe(context.Context, sp.Observation) error { return nil }
-func (s *store) GetByID(context.Context, string) (sp.Space, error) {
+func (s *store) GetByID(context.Context, string) (sp.Group, error) {
 	if s.missing {
-		return sp.Space{}, sp.ErrNotFound
+		return sp.Group{}, sp.ErrNotFound
 	}
 	return s.current, nil
 }
 
-func (s *store) GetByGroupID(ctx context.Context, id string) (sp.Space, error) {
-	return s.GetByID(ctx, id)
-}
-
 func (s *store) Candidates(context.Context, string, string) (sp.Page, error) {
-	return sp.Page{Items: []sp.Space{s.current}}, nil
+	return sp.Page{Items: []sp.Group{s.current}}, nil
 }
 
 type member struct {
@@ -40,14 +36,14 @@ func (m *member) IsMember(context.Context, string, string) (bool, error) {
 	return m.allowed, nil
 }
 
-func TestLegacyGetOnlyAllowsMissingRecordTransition(t *testing.T) {
+func TestGroupMustExistAndMemberMustBeCurrent(t *testing.T) {
 	ctx := context.Background()
 	id := "C" + strings.Repeat("1", 32)
 	cases := []struct {
 		name, status           string
 		missing, allowed, want bool
 	}{
-		{"missing member transition", "", true, true, true},
+		{"missing group", "", true, true, false},
 		{"missing outsider denied", "", true, false, false},
 		{"active member", "ACTIVE", false, true, true},
 		{"active outsider denied", "ACTIVE", false, false, false},
@@ -55,19 +51,19 @@ func TestLegacyGetOnlyAllowsMissingRecordTransition(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			s := &store{missing: tc.missing, current: sp.Space{ID: id, GroupID: id, Status: tc.status}}
+			s := &store{missing: tc.missing, current: sp.Group{ID: id, GroupID: id, Status: tc.status}}
 			m := &member{allowed: tc.allowed}
 			svc := &sp.Service{Store: s, Membership: m}
-			got, err := svc.LegacyGet(ctx, "actor", id)
+			got, err := svc.Get(ctx, "actor", id)
 			if tc.want {
 				if err != nil || got.ID != id {
-					t.Fatalf("expected member Space, got %+v %v", got, err)
+					t.Fatalf("expected member Group, got %+v %v", got, err)
 				}
 			} else if !errors.Is(err, sp.ErrNotFound) {
 				t.Fatalf("must deny rather than infer legacy permission: %+v %v", got, err)
 			}
 			if tc.status == "INACTIVE" && m.calls != 0 {
-				t.Fatal("inactive Space must fail before membership fallback")
+				t.Fatal("inactive Group must fail before membership fallback")
 			}
 		})
 	}
@@ -75,7 +71,7 @@ func TestLegacyGetOnlyAllowsMissingRecordTransition(t *testing.T) {
 
 func TestSpaceCandidatesAreNotAuthorization(t *testing.T) {
 	id := "C" + strings.Repeat("1", 32)
-	s := &store{current: sp.Space{ID: id, GroupID: id, Status: "ACTIVE"}}
+	s := &store{current: sp.Group{ID: id, GroupID: id, Status: "ACTIVE"}}
 	m := &member{allowed: false}
 	svc := &sp.Service{Store: s, Membership: m}
 	page, err := svc.List(context.Background(), "actor", "")
@@ -84,19 +80,16 @@ func TestSpaceCandidatesAreNotAuthorization(t *testing.T) {
 	}
 }
 
-func TestLegacyGroupContextDoesNotAcceptBusinessSpaceID(t *testing.T) {
+func TestLegacyGroupContextDoesNotAcceptBusinessGroupID(t *testing.T) {
 	groupID := "C" + strings.Repeat("1", 32)
-	businessSpaceID := strings.Repeat("2", 32)
-	if !sp.ValidID(groupID) || sp.ValidID(businessSpaceID) {
-		t.Fatal("legacy /spaces identifiers must remain LINE GroupIDs")
+	businessGroupID := strings.Repeat("2", 32)
+	if !sp.ValidID(groupID) || sp.ValidID(businessGroupID) {
+		t.Fatal("legacy /groups identifiers must remain LINE GroupIDs")
 	}
 	m := &member{allowed: true}
 	svc := &sp.Service{Store: &store{missing: true}, Membership: m}
-	if _, err := svc.Get(context.Background(), "actor", businessSpaceID); !errors.Is(err, sp.ErrNotFound) {
-		t.Fatalf("business SpaceID must not become a group authorization context: %v", err)
-	}
-	if _, err := svc.LegacyGet(context.Background(), "actor", businessSpaceID); !errors.Is(err, sp.ErrNotFound) {
-		t.Fatalf("legacy fallback must not interpret business SpaceID as GroupID: %v", err)
+	if _, err := svc.Get(context.Background(), "actor", businessGroupID); !errors.Is(err, sp.ErrNotFound) {
+		t.Fatalf("business GroupID must not become a group authorization context: %v", err)
 	}
 	if m.calls != 0 {
 		t.Fatal("invalid group context must not reach group membership")

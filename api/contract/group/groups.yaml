@@ -1,9 +1,9 @@
 {
   "paths": {
-    "/api/v1/spaces": {
+    "/api/v1/groups": {
       "get": {
-        "operationId": "listSpaces",
-        "summary": "Independent Space membership and lifecycle, not Repository ownership",
+        "operationId": "listGroups",
+        "summary": "Independent Group membership and lifecycle, not Repository ownership",
         "security": [
           {
             "bearerAuth": []
@@ -28,7 +28,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SpacePage"
+                  "$ref": "#/components/schemas/EngineeringGroupPage"
                 }
               }
             }
@@ -76,10 +76,10 @@
         }
       }
     },
-    "/api/v1/spaces/{id}": {
+    "/api/v1/groups/{id}": {
       "get": {
-        "operationId": "getSpace",
-        "summary": "Independent Space membership and lifecycle, not Repository ownership",
+        "operationId": "getGroup",
+        "summary": "Independent Group membership and lifecycle, not Repository ownership",
         "security": [
           {
             "bearerAuth": []
@@ -105,7 +105,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Space"
+                  "$ref": "#/components/schemas/Group"
                 }
               }
             }
@@ -156,7 +156,7 @@
   },
   "components": {
     "schemas": {
-      "Space": {
+      "Group": {
         "type": "object",
         "required": [
           "id",
@@ -200,7 +200,7 @@
           }
         }
       },
-      "SpacePage": {
+      "EngineeringGroupPage": {
         "type": "object",
         "required": [
           "items",
@@ -210,7 +210,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Space"
+              "$ref": "#/components/schemas/Group"
             }
           },
           "nextCursor": {

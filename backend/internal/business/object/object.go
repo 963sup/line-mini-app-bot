@@ -255,7 +255,7 @@ func (s *Service) scope(ctx context.Context, actor, id string) (repository.Repos
 		return repository.Repository{}, err
 	}
 	// Membership is checked by Repositories.Get; active identity/scope is still explicit here.
-	if r.ID != id || r.Status != "ACTIVE" || !repository.ValidGroup(r.GroupID) {
+	if r.ID != id || r.Status != "ACTIVE" || !repository.ValidOwner(r.OwnerID) {
 		return repository.Repository{}, ErrNotFound
 	}
 	return r, nil

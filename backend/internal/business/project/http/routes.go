@@ -71,7 +71,7 @@ func Register(mux *http.ServeMux, service *feature.Service, auth Authenticator) 
 					return
 				}
 				r.Body = http.MaxBytesReader(w, r.Body, 65536)
-				if r.Method == http.MethodPost && !strings.HasSuffix(r.URL.Path, "/items") && !strings.HasSuffix(r.URL.Path, "/references") && len(r.Header.Values("Idempotency-Key")) != 1 {
+				if r.Method == http.MethodPost && !strings.HasSuffix(r.URL.Path, "/items") && !strings.HasSuffix(r.URL.Path, "/references") && !strings.HasSuffix(r.URL.Path, "/inspection-submissions") && len(r.Header.Values("Idempotency-Key")) != 1 {
 					transport.WriteAPIError(w, 400, "invalid_input", "請提供唯一的重試識別碼。")
 					return
 				}
@@ -82,11 +82,14 @@ func Register(mux *http.ServeMux, service *feature.Service, auth Authenticator) 
 		}))
 	}
 	httpapi.RegisterProjects(mux, &projectServer{service}, wrap)
-	httpapi.RegisterSpaceProjects(mux, &projectServer{service}, wrap)
+	httpapi.RegisterOwnerProjects(mux, &projectServer{service}, wrap)
 }
 
 func view(i feature.Project) generated.Project {
-	return generated.Project{Id: i.ID, RepositoryId: i.SourceRepositoryID, Title: i.Title, Body: i.Body, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, IssueCount: i.IssueCount, CompletedIssueCount: i.CompletedIssueCount, SpaceId: &i.SpaceID, SourceRepositoryId: &i.SourceRepositoryID, SourceAvailable: &i.SourceAvailable}
+	if i.LinkedRepositoryIDs == nil {
+		i.LinkedRepositoryIDs = []string{}
+	}
+	return generated.Project{Id: i.ID, Title: i.Title, Body: i.Body, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, IssueCount: i.IssueCount, CompletedIssueCount: i.CompletedIssueCount, OwnerId: i.OwnerID, DefaultRepositoryId: i.DefaultRepositoryID, LinkedRepositoryIds: &i.LinkedRepositoryIDs, SourceAvailable: &i.SourceAvailable}
 }
 func actor(r *http.Request) string { u, _ := identity.FromContext(r.Context()); return u.ID }
 func body(w http.ResponseWriter, r *http.Request, target any) bool {
@@ -106,11 +109,15 @@ func writeError(w http.ResponseWriter, e error) bool {
 	code, status, message := "unavailable", 503, "結果尚未確認，請重新讀取；建立請沿用原鍵重試。"
 	switch {
 	case errors.Is(e, feature.ErrInput):
-		code, status, message = "invalid_input", 400, "輸入或同空間引用無效。"
+		code, status, message = "invalid_input", 400, "輸入或來源引用無效。"
 	case errors.Is(e, feature.ErrNotFound):
 		code, status, message = "not_found", 404, "找不到此資源。"
 	case errors.Is(e, feature.ErrForbidden):
 		code, status, message = "forbidden", 403, "只有建立者可以修改。"
+	case errors.Is(e, feature.ErrInspectionPending):
+		code, status, message = "conflict", 409, "已有待審送件，請查看驗收紀錄。"
+	case errors.Is(e, feature.ErrInspectionHistory):
+		code, status, message = "conflict", 409, "此引用有驗收紀錄，無法移除。"
 	case errors.Is(e, feature.ErrConflict):
 		code, status, message = "version_conflict", 409, "版本已更新，請重新讀取。"
 	case errors.Is(e, feature.ErrCreationConflict):
@@ -159,7 +166,14 @@ func (s *projectServer) UpdateProject(w http.ResponseWriter, r *http.Request, re
 	if !body(w, r, &input) {
 		return
 	}
-	i, e := s.service.Update(r.Context(), actor(r), repositoryId, id, feature.Update{Content: feature.Content{Title: input.Title, Body: input.Body}, ExpectedVersion: input.ExpectedVersion})
+	update := feature.Update{Content: feature.Content{Title: input.Title, Body: input.Body}, ExpectedVersion: input.ExpectedVersion}
+	if input.LinkRepositoryId != nil {
+		update.LinkRepositoryID = *input.LinkRepositoryId
+	}
+	if input.UnlinkRepositoryId != nil {
+		update.UnlinkRepositoryID = *input.UnlinkRepositoryId
+	}
+	i, e := s.service.Update(r.Context(), actor(r), repositoryId, id, update)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -199,37 +213,37 @@ func (s *projectServer) RemoveProjectItem(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (s *projectServer) ListSpaceProjects(w http.ResponseWriter, r *http.Request, spaceId string, p generated.ListSpaceProjectsParams) {
-	s.ListProjects(w, r, spaceId, generated.ListProjectsParams(p))
+func (s *projectServer) ListOwnerProjects(w http.ResponseWriter, r *http.Request, ownerId string, p generated.ListOwnerProjectsParams) {
+	s.ListProjects(w, r, ownerId, generated.ListProjectsParams(p))
 }
 
-func (s *projectServer) GetSpaceProject(w http.ResponseWriter, r *http.Request, spaceId, id string) {
-	s.GetProject(w, r, spaceId, id)
+func (s *projectServer) GetOwnerProject(w http.ResponseWriter, r *http.Request, ownerId, id string) {
+	s.GetProject(w, r, ownerId, id)
 }
 
-func (s *projectServer) CreateSpaceProject(w http.ResponseWriter, r *http.Request, spaceId string, p generated.CreateSpaceProjectParams) {
-	var input generated.SpaceProjectCreation
+func (s *projectServer) CreateOwnerProject(w http.ResponseWriter, r *http.Request, ownerId string, p generated.CreateOwnerProjectParams) {
+	var input generated.OwnerProjectCreation
 	if !body(w, r, &input) {
 		return
 	}
-	value, e := s.service.Create(r.Context(), actor(r), spaceId, p.IdempotencyKey, feature.Content{Title: input.Title, Body: input.Body, SourceRepositoryID: input.SourceRepositoryId})
+	value, e := s.service.Create(r.Context(), actor(r), ownerId, p.IdempotencyKey, feature.Content{Title: input.Title, Body: input.Body, SourceRepositoryID: input.DefaultRepositoryId})
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(value))
 	}
 }
 
-func (s *projectServer) UpdateSpaceProject(w http.ResponseWriter, r *http.Request, spaceId, id string, _ generated.UpdateSpaceProjectParams) {
-	s.UpdateProject(w, r, spaceId, id, generated.UpdateProjectParams{})
+func (s *projectServer) UpdateOwnerProject(w http.ResponseWriter, r *http.Request, ownerId, id string, _ generated.UpdateOwnerProjectParams) {
+	s.UpdateProject(w, r, ownerId, id, generated.UpdateProjectParams{})
 }
 
-func (s *projectServer) ListSpaceProjectItems(w http.ResponseWriter, r *http.Request, spaceId, id string, p generated.ListSpaceProjectItemsParams) {
-	s.ListProjectItems(w, r, spaceId, id, generated.ListProjectItemsParams(p))
+func (s *projectServer) ListOwnerProjectItems(w http.ResponseWriter, r *http.Request, ownerId, id string, p generated.ListOwnerProjectItemsParams) {
+	s.ListProjectItems(w, r, ownerId, id, generated.ListProjectItemsParams(p))
 }
 
-func (s *projectServer) AddSpaceProjectItem(w http.ResponseWriter, r *http.Request, spaceId, id string, _ generated.AddSpaceProjectItemParams) {
-	s.AddProjectItem(w, r, spaceId, id, generated.AddProjectItemParams{})
+func (s *projectServer) AddOwnerProjectItem(w http.ResponseWriter, r *http.Request, ownerId, id string, _ generated.AddOwnerProjectItemParams) {
+	s.AddProjectItem(w, r, ownerId, id, generated.AddProjectItemParams{})
 }
 
-func (s *projectServer) RemoveSpaceProjectItem(w http.ResponseWriter, r *http.Request, spaceId, id, itemId string, p generated.RemoveSpaceProjectItemParams) {
-	s.RemoveProjectItem(w, r, spaceId, id, itemId, generated.RemoveProjectItemParams{ExpectedVersion: p.ExpectedVersion})
+func (s *projectServer) RemoveOwnerProjectItem(w http.ResponseWriter, r *http.Request, ownerId, id, itemId string, p generated.RemoveOwnerProjectItemParams) {
+	s.RemoveProjectItem(w, r, ownerId, id, itemId, generated.RemoveProjectItemParams{ExpectedVersion: p.ExpectedVersion})
 }

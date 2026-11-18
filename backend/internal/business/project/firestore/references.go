@@ -14,41 +14,42 @@ import (
 )
 
 func itemReference(d itemDocument) feature.Reference {
-	if d.SchemaVersion == 1 {
-		return feature.Reference{ID: d.ID, SourceType: "issue", SourceID: d.IssueID}
-	}
-	return feature.Reference{ID: d.ID, SourceType: d.SourceType, SourceID: d.SourceID, ParentObjectID: d.ParentObjectID}
+	return feature.Reference{ID: d.ID, SourceRepositoryID: d.SourceRepositoryID, SourceType: d.SourceType, SourceID: d.SourceID, ParentObjectID: d.ParentObjectID}
 }
 
 func referenceID(pid string, r feature.Reference) string {
-	if r.SourceType == "issue" {
-		return planningHash([]string{"project-item", pid, r.SourceID})[:32]
-	}
-	return planningHash([]string{"project-reference-v1", pid, r.SourceType, r.ParentObjectID, r.SourceID})[:32]
+	return planningHash([]string{"project-repository-reference", pid, r.SourceRepositoryID, r.SourceType, r.ParentObjectID, r.SourceID})[:32]
 }
 
-func (s *Store) sourceReference(tx *db.Transaction, r feature.Scope, ref feature.Reference) (feature.Reference, error) {
-	repository, e := tx.Get(s.legacyParent(r.SourceRepositoryID))
+func (s *Store) checkSourceRepository(tx *db.Transaction, source feature.Source) error {
+	repository, e := tx.Get(s.repositoryRef(source.ID))
 	if e != nil {
-		return feature.Reference{}, e
+		return e
 	}
-	var repo struct{ ID, GroupID, Status string }
+	var repo struct{ ID, OwnerID, Status string }
 	if e = repository.DataTo(&repo); e != nil {
-		return feature.Reference{}, e
+		return e
 	}
-	if repo.ID != r.SourceRepositoryID || repo.GroupID != r.GroupID || repo.Status != "ACTIVE" {
-		return feature.Reference{}, feature.ErrNotFound
+	if repo.ID != source.ID || repo.OwnerID != source.OwnerID || repo.Status != "ACTIVE" {
+		return feature.ErrNotFound
 	}
-	ref.SourceRepositoryID = r.SourceRepositoryID
-	root := s.legacyParent(r.SourceRepositoryID)
+	return nil
+}
+
+func (s *Store) sourceReference(tx *db.Transaction, source feature.Source, ref feature.Reference) (feature.Reference, error) {
+	ref.SourceRepositoryID = source.ID
+	root := s.repositoryRef(source.ID)
 	if ref.SourceType == "issue" {
-		i, e := s.sourceIssue(tx, r, ref.SourceID)
+		i, e := s.sourceIssue(tx, source, ref.SourceID)
 		if e != nil {
 			return feature.Reference{}, e
 		}
 		ref.SourceTitle = i.Title
 		ref.SourceState = i.State
 		return ref, nil
+	}
+	if err := s.checkSourceRepository(tx, source); err != nil {
+		return feature.Reference{}, err
 	}
 	if ref.SourceType == "discussion" {
 		snap, e := tx.Get(root.Collection("discussions").Doc(ref.SourceID))
@@ -64,7 +65,7 @@ func (s *Store) sourceReference(tx *db.Transaction, r feature.Scope, ref feature
 		if e = snap.DataTo(&d); e != nil {
 			return feature.Reference{}, e
 		}
-		if d.SchemaVersion != 1 || d.ID != ref.SourceID || d.RepositoryID != r.SourceRepositoryID || d.Title == "" {
+		if d.SchemaVersion != 1 || d.ID != ref.SourceID || d.RepositoryID != source.ID || d.Title == "" {
 			return feature.Reference{}, feature.ErrSourceUnavailable
 		}
 		ref.SourceTitle = d.Title
@@ -84,7 +85,7 @@ func (s *Store) sourceReference(tx *db.Transaction, r feature.Scope, ref feature
 		if e = parent.DataTo(&p); e != nil {
 			return feature.Reference{}, e
 		}
-		if p.ID != ref.ParentObjectID || p.RepositoryID != r.SourceRepositoryID || p.SchemaVersion != 1 {
+		if p.ID != ref.ParentObjectID || p.RepositoryID != source.ID || p.SchemaVersion != 1 {
 			return feature.Reference{}, feature.ErrSourceUnavailable
 		}
 		collection = collection.Doc(ref.ParentObjectID).Collection("subobjects")
@@ -102,13 +103,14 @@ func (s *Store) sourceReference(tx *db.Transaction, r feature.Scope, ref feature
 		Type              string `firestore:"type"`
 		Quantity          string `firestore:"quantity"`
 		Unit              string `firestore:"unit"`
+		Version           int64  `firestore:"version"`
 		CompletedQuantity string `firestore:"completedQuantity"`
 		Status            string `firestore:"status"`
 	}
 	if e = snap.DataTo(&d); e != nil {
 		return feature.Reference{}, e
 	}
-	if d.SchemaVersion != 1 || d.ID != ref.SourceID || d.RepositoryID != r.SourceRepositoryID || d.Name == "" || d.Quantity == "" || d.Unit == "" || (ref.SourceType == "subobject" && d.ParentObjectID != ref.ParentObjectID) {
+	if d.SchemaVersion != 1 || d.ID != ref.SourceID || d.RepositoryID != source.ID || d.Name == "" || d.Quantity == "" || d.Unit == "" || (ref.SourceType == "subobject" && d.ParentObjectID != ref.ParentObjectID) {
 		return feature.Reference{}, feature.ErrSourceUnavailable
 	}
 
@@ -133,6 +135,7 @@ func (s *Store) sourceReference(tx *db.Transaction, r feature.Scope, ref feature
 			return feature.Reference{}, feature.ErrSourceUnavailable
 		}
 	}
+	ref.SourceVersion = d.Version
 	ref.SourceTitle = d.Name
 	ref.SourceState = d.Status
 	ref.Quantity = d.Quantity
@@ -147,16 +150,14 @@ func (s *Store) ListReferences(ctx context.Context, r feature.Scope, actor, pid,
 	if !s.planningReady() {
 		return result, feature.ErrUnavailable
 	}
-	root, e := s.readParent(ctx, r)
-	if e != nil {
-		return result, e
-	}
+	root := s.ownerDoc(r.OwnerID)
 	parent := root.Collection("projects").Doc(pid)
-	scope := []string{"project-references-v1", s.ChannelID, r.GroupID, actor, pid}
+	scope := []string{"project-references-v1", s.ChannelID, r.OwnerID, actor, pid}
 	q, e := planningPage(parent.Collection("items").OrderBy(db.DocumentID, db.Asc), token, scope)
 	if e != nil {
 		return result, e
 	}
+	authorized := make(map[string]feature.Source)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = feature.ReferencePage{Items: []feature.Reference{}}
 		if e := s.planningContainer(tx, r, root); e != nil {
@@ -180,10 +181,39 @@ func (s *Store) ListReferences(ctx context.Context, r feature.Scope, actor, pid,
 				return e
 			}
 			ref := itemReference(d)
-			ref.SourceRepositoryID = r.SourceRepositoryID
+			selected := feature.Source{ID: r.SourceRepositoryID, OwnerID: r.OwnerID}
+			allowed := hydrate
+			if ref.SourceRepositoryID != r.SourceRepositoryID {
+				allowed = false
+				source, checked := authorized[ref.SourceRepositoryID]
+				if !checked && r.Sources != nil {
+					var authErr error
+					source, authErr = r.Sources.Authorize(ctx, actor, ref.SourceRepositoryID, "")
+					if errors.Is(authErr, context.Canceled) || errors.Is(authErr, context.DeadlineExceeded) {
+						return authErr
+					}
+					if authErr != nil {
+						source = feature.Source{}
+					}
+					authorized[ref.SourceRepositoryID] = source
+				}
+				if source.ID == ref.SourceRepositoryID {
+					selected = source
+					allowed = true
+				}
+			} else {
+				ref.SourceRepositoryID = r.SourceRepositoryID
+			}
 			ref.SourceUnavailable = true
-			if hydrate {
-				current, e := s.sourceReference(tx, r, ref)
+			if allowed {
+				_, linkErr := tx.Get(parent.Collection("linkedRepositories").Doc(selected.ID))
+				if linkErr != nil && status.Code(linkErr) != codes.NotFound {
+					return linkErr
+				}
+				allowed = linkErr == nil
+			}
+			if allowed {
+				current, e := s.sourceReference(tx, selected, ref)
 				if e == nil {
 					ref = current
 					ref.SourceUnavailable = false
@@ -209,10 +239,7 @@ func (s *Store) ChangeReference(ctx context.Context, r feature.Scope, actor, pid
 	if !s.planningReady() {
 		return result, feature.ErrUnavailable
 	}
-	root, e := s.readParent(ctx, r)
-	if e != nil {
-		return result, e
-	}
+	root := s.ownerDoc(r.OwnerID)
 	parent := root.Collection("projects").Doc(pid)
 	itemID := ref.ID
 	if add {
@@ -247,7 +274,20 @@ func (s *Store) ChangeReference(ctx context.Context, r feature.Scope, actor, pid
 			}
 		}
 		if add {
-			if _, e = s.sourceReference(tx, r, ref); e != nil {
+			selected := feature.Source{ID: r.SourceRepositoryID, OwnerID: r.OwnerID}
+			if ref.SourceRepositoryID != r.SourceRepositoryID {
+				if r.SelectedSource.ID != ref.SourceRepositoryID {
+					return feature.ErrForbidden
+				}
+				selected = r.SelectedSource
+			}
+			if _, e = tx.Get(parent.Collection("linkedRepositories").Doc(selected.ID)); e != nil {
+				if status.Code(e) == codes.NotFound {
+					return feature.ErrForbidden
+				}
+				return e
+			}
+			if _, e = s.sourceReference(tx, selected, ref); e != nil {
 				if status.Code(e) == codes.NotFound {
 					return feature.ErrInput
 				}
@@ -269,17 +309,14 @@ func (s *Store) ChangeReference(ctx context.Context, r feature.Scope, actor, pid
 		action := "remove_reference"
 		if add {
 			action = "add_reference"
-			d := itemDocument{SchemaVersion: 2, ID: itemID, ProjectID: pid, SourceType: ref.SourceType, SourceID: ref.SourceID, ParentObjectID: ref.ParentObjectID, CreatedBy: actor, CreatedAt: now}
-			if ref.SourceType == "issue" {
-				d.SchemaVersion = 1
-				d.IssueID = ref.SourceID
-				d.SourceType = ""
-				d.SourceID = ""
-			}
+			d := itemDocument{SourceRepositoryID: ref.SourceRepositoryID, SchemaVersion: 2, ID: itemID, ProjectID: pid, SourceType: ref.SourceType, SourceID: ref.SourceID, ParentObjectID: ref.ParentObjectID, CreatedBy: actor, CreatedAt: now}
 			if e = tx.Create(item, d); e != nil {
 				return e
 			}
 		} else {
+			if _, exists := snap.Data()["latestInspectionId"]; exists {
+				return feature.ErrInspectionHistory
+			}
 			if e = tx.Delete(item); e != nil {
 				return e
 			}

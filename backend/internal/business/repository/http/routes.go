@@ -17,7 +17,7 @@ type Authenticator interface {
 }
 
 func view(r repository.Repository) generated.Repository {
-	return generated.Repository{Id: r.ID, GroupId: r.GroupID, Name: r.Name, Status: generated.RepositoryStatus(r.Status), Version: r.Version, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
+	return generated.Repository{Id: r.ID, OwnerId: r.OwnerID, Name: r.Name, Status: generated.RepositoryStatus(r.Status), Version: r.Version, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
 }
 
 type repositoryServer struct {

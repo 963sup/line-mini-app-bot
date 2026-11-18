@@ -123,7 +123,7 @@ func refView(r *feature.Reference) *generated.JournalReference {
 }
 func names(values []string) []string { return append([]string{}, values...) }
 func view(e feature.Entry) generated.Journal {
-	j := generated.Journal{Id: e.ID, CreatorId: e.CreatorID, CreatedAt: e.CreatedAt, SpaceId: e.SpaceID, WorkDate: types.Date{Time: e.WorkDate}, Personnel: generated.JournalPersonnel{Management: names(e.Personnel.Management), Control: names(e.Personnel.Control), Workers: names(e.Personnel.Workers)}, TodayItems: []generated.JournalTodayItem{}, TomorrowItems: []generated.JournalTomorrowItem{}}
+	j := generated.Journal{Id: e.ID, CreatorId: e.CreatorID, CreatedAt: e.CreatedAt, GroupId: e.GroupID, WorkDate: types.Date{Time: e.WorkDate}, Personnel: generated.JournalPersonnel{Management: names(e.Personnel.Management), Control: names(e.Personnel.Control), Workers: names(e.Personnel.Workers)}, TodayItems: []generated.JournalTodayItem{}, TomorrowItems: []generated.JournalTomorrowItem{}}
 	for _, i := range e.Today {
 		j.TodayItems = append(j.TodayItems, generated.JournalTodayItem{Name: i.Name, CompletionPercent: i.Percent, Reference: refView(i.Reference)})
 	}
@@ -144,7 +144,7 @@ func (s *journalServer) CreateJournal(w http.ResponseWriter, r *http.Request, p 
 	if !s.enabled(w) {
 		return
 	}
-	d := feature.Draft{SpaceID: b.SpaceId, WorkDate: b.WorkDate.Time, Personnel: feature.Personnel{Control: b.Personnel.Control, Management: b.Personnel.Management, Workers: b.Personnel.Workers}}
+	d := feature.Draft{GroupID: b.GroupId, WorkDate: b.WorkDate.Time, Personnel: feature.Personnel{Control: b.Personnel.Control, Management: b.Personnel.Management, Workers: b.Personnel.Workers}}
 	for _, i := range b.TodayItems {
 		d.Today = append(d.Today, feature.Work{Name: i.Name, Percent: i.CompletionPercent, Reference: source(i.Reference)})
 	}
@@ -172,8 +172,8 @@ func (s *journalServer) ListJournals(w http.ResponseWriter, r *http.Request, p g
 		return
 	}
 	var f feature.Filter
-	if p.SpaceId != nil {
-		f.SpaceID = *p.SpaceId
+	if p.GroupId != nil {
+		f.GroupID = *p.GroupId
 	}
 	if p.WorkDate != nil {
 		f.WorkDate = p.WorkDate.String()

@@ -15,6 +15,7 @@
 - [實作契約與待決策清單](implementation-contract.md)
 - [目前目錄與責任](layout.md)
 - [LINE 平台架構總覽](overview.md)
+- [LINE 工程管理平台目標架構（提案）](line-engineering-target.md)
 - [開發原則與決策](principles.md)
 - [React 前端生命週期](../frontend/react-frontend.md)
 - [事件、資料與可靠發送](../reliability/reliability.md)

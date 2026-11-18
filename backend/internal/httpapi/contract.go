@@ -21,8 +21,8 @@ type contractServer struct {
 	MilestoneServer
 	ProjectServer
 	StatisticsServer
-	SpaceServer
-	SpaceProjectServer
+	GroupServer
+	OwnerProjectServer
 }
 
 var _ generated.ServerInterface = contractServer{}
@@ -106,21 +106,23 @@ type StatisticsServer interface {
 	GetRepositoryStatistics(w http.ResponseWriter, r *http.Request, repositoryId string)
 }
 
-type SpaceServer interface {
-	ListSpaces(w http.ResponseWriter, r *http.Request, params generated.ListSpacesParams)
-	GetSpace(w http.ResponseWriter, r *http.Request, id string)
+type GroupServer interface {
+	ListGroups(w http.ResponseWriter, r *http.Request, params generated.ListGroupsParams)
+	GetGroup(w http.ResponseWriter, r *http.Request, id string)
 }
-type SpaceProjectServer interface {
-	ListProjectReferences(w http.ResponseWriter, r *http.Request, spaceId string, id string, params generated.ListProjectReferencesParams)
-	AddProjectReference(w http.ResponseWriter, r *http.Request, spaceId string, id string, params generated.AddProjectReferenceParams)
-	RemoveProjectReference(w http.ResponseWriter, r *http.Request, spaceId string, id string, itemId string, params generated.RemoveProjectReferenceParams)
-	ListSpaceProjects(w http.ResponseWriter, r *http.Request, spaceId string, params generated.ListSpaceProjectsParams)
-	CreateSpaceProject(w http.ResponseWriter, r *http.Request, spaceId string, params generated.CreateSpaceProjectParams)
-	GetSpaceProject(w http.ResponseWriter, r *http.Request, spaceId string, id string)
-	UpdateSpaceProject(w http.ResponseWriter, r *http.Request, spaceId string, id string, params generated.UpdateSpaceProjectParams)
-	ListSpaceProjectItems(w http.ResponseWriter, r *http.Request, spaceId string, id string, params generated.ListSpaceProjectItemsParams)
-	AddSpaceProjectItem(w http.ResponseWriter, r *http.Request, spaceId string, id string, params generated.AddSpaceProjectItemParams)
-	RemoveSpaceProjectItem(w http.ResponseWriter, r *http.Request, spaceId string, id string, itemId string, params generated.RemoveSpaceProjectItemParams)
+type OwnerProjectServer interface {
+	ListInspectionSubmissions(w http.ResponseWriter, r *http.Request, ownerId string, id string, itemId string)
+	SubmitInspection(w http.ResponseWriter, r *http.Request, ownerId string, id string, itemId string, params generated.SubmitInspectionParams)
+	ListProjectReferences(w http.ResponseWriter, r *http.Request, ownerId string, id string, params generated.ListProjectReferencesParams)
+	AddProjectReference(w http.ResponseWriter, r *http.Request, ownerId string, id string, params generated.AddProjectReferenceParams)
+	RemoveProjectReference(w http.ResponseWriter, r *http.Request, ownerId string, id string, itemId string, params generated.RemoveProjectReferenceParams)
+	ListOwnerProjects(w http.ResponseWriter, r *http.Request, ownerId string, params generated.ListOwnerProjectsParams)
+	CreateOwnerProject(w http.ResponseWriter, r *http.Request, ownerId string, params generated.CreateOwnerProjectParams)
+	GetOwnerProject(w http.ResponseWriter, r *http.Request, ownerId string, id string)
+	UpdateOwnerProject(w http.ResponseWriter, r *http.Request, ownerId string, id string, params generated.UpdateOwnerProjectParams)
+	ListOwnerProjectItems(w http.ResponseWriter, r *http.Request, ownerId string, id string, params generated.ListOwnerProjectItemsParams)
+	AddOwnerProjectItem(w http.ResponseWriter, r *http.Request, ownerId string, id string, params generated.AddOwnerProjectItemParams)
+	RemoveOwnerProjectItem(w http.ResponseWriter, r *http.Request, ownerId string, id string, itemId string, params generated.RemoveOwnerProjectItemParams)
 }
 
 type ObjectServer interface {
@@ -147,7 +149,7 @@ type ObjectImportServer interface {
 	ConfirmObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params generated.ConfirmObjectImportParams)
 }
 
-// RepositorySpaceServer owns real business spaces; SpaceServer remains the legacy LINE group context.
+// RepositorySpaceServer owns real business spaces; GroupServer handles Project-owning LINE groups.
 type RepositorySpaceServer interface {
 	ListRepositorySpaces(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ListRepositorySpacesParams)
 	CreateRepositorySpace(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.CreateRepositorySpaceParams)

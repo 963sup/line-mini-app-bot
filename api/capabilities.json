@@ -151,14 +151,14 @@
       "core": "backend/internal/business/repository/statistics/statistics.go",
       "specification": "docs/features/repository/statistics.md"
     },
-    "space": {
-      "contract": "space/spaces.yaml",
-      "adapter": "backend/internal/business/space/http/routes.go",
-      "core": "backend/internal/business/space/space.go",
+    "group": {
+      "contract": "group/groups.yaml",
+      "adapter": "backend/internal/business/group/http/routes.go",
+      "core": "backend/internal/business/group/group.go",
       "specification": "docs/features/project/projects.md"
     },
-    "project.space": {
-      "contract": "project/space-projects.yaml",
+    "project.group": {
+      "contract": "project/owner-projects.yaml",
       "adapter": "backend/internal/business/project/http/routes.go",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/project/projects.md"
@@ -198,6 +198,12 @@
       "adapter": "backend/internal/business/journal/http/routes.go",
       "core": "backend/internal/business/journal/service.go",
       "specification": "docs/features/journal/design.md"
+    },
+    "project.inspections": {
+      "contract": "project/inspection-submissions.yaml",
+      "adapter": "backend/internal/business/project/http/inspections.go",
+      "core": "backend/internal/business/project/inspections.go",
+      "specification": "docs/features/project/projects.md"
     }
   },
   "operations": [
@@ -943,41 +949,41 @@
       ]
     },
     {
-      "operationId": "listSpaces",
+      "operationId": "listGroups",
       "audience": "public",
       "method": "GET",
-      "path": "/api/v1/spaces",
-      "owner": "space",
-      "adapter": "backend/internal/business/space/http/routes.go",
-      "handler": "ListSpaces",
-      "core": "backend/internal/business/space/space.go",
+      "path": "/api/v1/groups",
+      "owner": "group",
+      "adapter": "backend/internal/business/group/http/routes.go",
+      "handler": "ListGroups",
+      "core": "backend/internal/business/group/group.go",
       "specification": "docs/features/project/projects.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Workspace.tsx"
       ]
     },
     {
-      "operationId": "getSpace",
+      "operationId": "getGroup",
       "audience": "public",
       "method": "GET",
-      "path": "/api/v1/spaces/{id}",
-      "owner": "space",
-      "adapter": "backend/internal/business/space/http/routes.go",
-      "handler": "GetSpace",
-      "core": "backend/internal/business/space/space.go",
+      "path": "/api/v1/groups/{id}",
+      "owner": "group",
+      "adapter": "backend/internal/business/group/http/routes.go",
+      "handler": "GetGroup",
+      "core": "backend/internal/business/group/group.go",
       "specification": "docs/features/project/projects.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Workspace.tsx"
       ]
     },
     {
-      "operationId": "listSpaceProjects",
+      "operationId": "listOwnerProjects",
       "audience": "public",
       "method": "GET",
-      "path": "/api/v1/spaces/{spaceId}/projects",
-      "owner": "project.space",
+      "path": "/api/v1/owners/{ownerId}/projects",
+      "owner": "project.group",
       "adapter": "backend/internal/business/project/http/routes.go",
-      "handler": "ListSpaceProjects",
+      "handler": "ListOwnerProjects",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/project/projects.md",
       "consumers": [
@@ -985,13 +991,13 @@
       ]
     },
     {
-      "operationId": "createSpaceProject",
+      "operationId": "createOwnerProject",
       "audience": "public",
       "method": "POST",
-      "path": "/api/v1/spaces/{spaceId}/projects",
-      "owner": "project.space",
+      "path": "/api/v1/owners/{ownerId}/projects",
+      "owner": "project.group",
       "adapter": "backend/internal/business/project/http/routes.go",
-      "handler": "CreateSpaceProject",
+      "handler": "CreateOwnerProject",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/project/projects.md",
       "consumers": [
@@ -999,13 +1005,13 @@
       ]
     },
     {
-      "operationId": "getSpaceProject",
+      "operationId": "getOwnerProject",
       "audience": "public",
       "method": "GET",
-      "path": "/api/v1/spaces/{spaceId}/projects/{id}",
-      "owner": "project.space",
+      "path": "/api/v1/owners/{ownerId}/projects/{id}",
+      "owner": "project.group",
       "adapter": "backend/internal/business/project/http/routes.go",
-      "handler": "GetSpaceProject",
+      "handler": "GetOwnerProject",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/project/projects.md",
       "consumers": [
@@ -1013,13 +1019,13 @@
       ]
     },
     {
-      "operationId": "updateSpaceProject",
+      "operationId": "updateOwnerProject",
       "audience": "public",
       "method": "PATCH",
-      "path": "/api/v1/spaces/{spaceId}/projects/{id}",
-      "owner": "project.space",
+      "path": "/api/v1/owners/{ownerId}/projects/{id}",
+      "owner": "project.group",
       "adapter": "backend/internal/business/project/http/routes.go",
-      "handler": "UpdateSpaceProject",
+      "handler": "UpdateOwnerProject",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/project/projects.md",
       "consumers": [
@@ -1027,37 +1033,37 @@
       ]
     },
     {
-      "operationId": "listSpaceProjectItems",
+      "operationId": "listOwnerProjectItems",
       "audience": "public",
       "method": "GET",
-      "path": "/api/v1/spaces/{spaceId}/projects/{id}/items",
-      "owner": "project.space",
+      "path": "/api/v1/owners/{ownerId}/projects/{id}/items",
+      "owner": "project.group",
       "adapter": "backend/internal/business/project/http/routes.go",
-      "handler": "ListSpaceProjectItems",
+      "handler": "ListOwnerProjectItems",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/project/projects.md",
       "consumers": []
     },
     {
-      "operationId": "addSpaceProjectItem",
+      "operationId": "addOwnerProjectItem",
       "audience": "public",
       "method": "POST",
-      "path": "/api/v1/spaces/{spaceId}/projects/{id}/items",
-      "owner": "project.space",
+      "path": "/api/v1/owners/{ownerId}/projects/{id}/items",
+      "owner": "project.group",
       "adapter": "backend/internal/business/project/http/routes.go",
-      "handler": "AddSpaceProjectItem",
+      "handler": "AddOwnerProjectItem",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/project/projects.md",
       "consumers": []
     },
     {
-      "operationId": "removeSpaceProjectItem",
+      "operationId": "removeOwnerProjectItem",
       "audience": "public",
       "method": "DELETE",
-      "path": "/api/v1/spaces/{spaceId}/projects/{id}/items/{itemId}",
-      "owner": "project.space",
+      "path": "/api/v1/owners/{ownerId}/projects/{id}/items/{itemId}",
+      "owner": "project.group",
       "adapter": "backend/internal/business/project/http/routes.go",
-      "handler": "RemoveSpaceProjectItem",
+      "handler": "RemoveOwnerProjectItem",
       "core": "backend/internal/business/project/project.go",
       "specification": "docs/features/project/projects.md",
       "consumers": []
@@ -1256,7 +1262,7 @@
       "operationId": "listProjectReferences",
       "audience": "public",
       "method": "GET",
-      "path": "/api/v1/spaces/{spaceId}/projects/{id}/references",
+      "path": "/api/v1/owners/{ownerId}/projects/{id}/references",
       "owner": "project.references",
       "adapter": "backend/internal/business/project/http/references.go",
       "handler": "ListProjectReferences",
@@ -1270,7 +1276,7 @@
       "operationId": "addProjectReference",
       "audience": "public",
       "method": "POST",
-      "path": "/api/v1/spaces/{spaceId}/projects/{id}/references",
+      "path": "/api/v1/owners/{ownerId}/projects/{id}/references",
       "owner": "project.references",
       "adapter": "backend/internal/business/project/http/references.go",
       "handler": "AddProjectReference",
@@ -1284,7 +1290,7 @@
       "operationId": "removeProjectReference",
       "audience": "public",
       "method": "DELETE",
-      "path": "/api/v1/spaces/{spaceId}/projects/{id}/references/{itemId}",
+      "path": "/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}",
       "owner": "project.references",
       "adapter": "backend/internal/business/project/http/references.go",
       "handler": "RemoveProjectReference",
@@ -1374,6 +1380,34 @@
       "specification": "docs/features/journal/design.md",
       "consumers": [
         "frontend/miniapp/src/business/journal/Workspace.tsx"
+      ]
+    },
+    {
+      "operationId": "listInspectionSubmissions",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions",
+      "owner": "project.inspections",
+      "adapter": "backend/internal/business/project/http/inspections.go",
+      "handler": "ListInspectionSubmissions",
+      "core": "backend/internal/business/project/inspections.go",
+      "specification": "docs/features/project/projects.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/Inspections.tsx"
+      ]
+    },
+    {
+      "operationId": "submitInspection",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions",
+      "owner": "project.inspections",
+      "adapter": "backend/internal/business/project/http/inspections.go",
+      "handler": "SubmitInspection",
+      "core": "backend/internal/business/project/inspections.go",
+      "specification": "docs/features/project/projects.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/Inspections.tsx"
       ]
     }
   ],
@@ -1486,14 +1520,14 @@
       "path": "/api/v1/repositories/{repositoryId}/projects/{id}/items"
     },
     {
-      "entity": "Space",
-      "collection": "spaces",
-      "path": "/api/v1/spaces"
+      "entity": "Group",
+      "collection": "groups",
+      "path": "/api/v1/groups"
     },
     {
       "entity": "Project",
       "collection": "projects",
-      "path": "/api/v1/spaces/{spaceId}/projects"
+      "path": "/api/v1/owners/{ownerId}/projects"
     },
     {
       "entity": "Object",

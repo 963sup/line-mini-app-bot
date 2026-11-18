@@ -115,7 +115,7 @@ func (s *stubStore) Update(_ context.Context, r repository.Repository, _, _ stri
 
 func TestServiceScopesEveryOperation(t *testing.T) {
 	id := strings.Repeat("a", 32)
-	r := repository.Repository{ID: id, GroupID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
+	r := repository.Repository{ID: id, OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
 	store := &stubStore{}
 	s := Service{Repositories: repositories{r: r}, Store: store}
 	ctx := context.Background()
@@ -125,7 +125,7 @@ func TestServiceScopesEveryOperation(t *testing.T) {
 	if store.scope != id || store.calls != 1 {
 		t.Fatal(store)
 	}
-	for _, rr := range []repositories{{r: r, e: repository.ErrNotFound}, {r: repository.Repository{ID: id, Status: "INACTIVE"}}, {r: repository.Repository{ID: strings.Repeat("b", 32), GroupID: r.GroupID, Status: "ACTIVE"}}} {
+	for _, rr := range []repositories{{r: r, e: repository.ErrNotFound}, {r: repository.Repository{ID: id, Status: "INACTIVE"}}, {r: repository.Repository{ID: strings.Repeat("b", 32), OwnerID: r.OwnerID, Status: "ACTIVE"}}} {
 		s.Repositories = rr
 		before := store.calls
 		_, e1 := s.List(ctx, "A", id, "")

@@ -75,7 +75,7 @@ func TestObserverPreservesDomainNameLifecycleAndFailures(t *testing.T) {
 			}
 			if tc.saves > 0 {
 				got := store.saved[0]
-				if got.GroupID != gid || got.Status != tc.state || !got.At.Equal(time.UnixMilli(message.Timestamp)) || len(got.Users) != 1 || got.Users[0] != "actor" {
+				if got.OwnerID != gid || got.Status != tc.state || !got.At.Equal(time.UnixMilli(message.Timestamp)) || len(got.Users) != 1 || got.Users[0] != "actor" {
 					t.Fatalf("domain observation changed: %+v", got)
 				}
 				if (got.Name == "current name") != (tc.names > 0) {
@@ -83,5 +83,20 @@ func TestObserverPreservesDomainNameLifecycleAndFailures(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestFollowCreatesPersonalRepositoryObservation(t *testing.T) {
+	owner := "U" + strings.Repeat("1", 32)
+	store := &observerStore{}
+	observer := Observer{Store: store}
+	event := webhook.FollowEvent{Source: webhook.UserSource{UserId: owner}, Mode: "active", Timestamp: 123, WebhookEventId: "follow"}
+	_, handled, err := observer.Observe(context.Background(), event)
+	if err != nil || handled || len(store.saved) != 1 {
+		t.Fatalf("follow: %v %v %v", store.saved, handled, err)
+	}
+	saved := store.saved[0]
+	if saved.OwnerID != owner || len(saved.Users) != 1 || saved.Users[0] != owner || store.lookups != 0 {
+		t.Fatal(saved)
 	}
 }

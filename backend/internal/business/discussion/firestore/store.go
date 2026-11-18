@@ -189,7 +189,7 @@ func (s *Store) Create(ctx context.Context, scope repository.Repository, actor, 
 	if err != nil {
 		return result, err
 	}
-	reference, err := s.Numbers.CreateNumberedResource(ctx, repository.NumberedCreation{RepositoryID: scope.ID, GroupID: scope.GroupID, ActorID: actor, ResourceType: "discussion", Key: key, PayloadHash: hash(payload)}, func(_ context.Context, tx *db.Transaction, ref repository.NumberedResource) error {
+	reference, err := s.Numbers.CreateNumberedResource(ctx, repository.NumberedCreation{RepositoryID: scope.ID, OwnerID: scope.OwnerID, ActorID: actor, ResourceType: "discussion", Key: key, PayloadHash: hash(payload)}, func(_ context.Context, tx *db.Transaction, ref repository.NumberedResource) error {
 		i := discussion.Discussion{ID: ref.ResourceID, RepositoryID: scope.ID, Number: ref.Number, Title: c.Title, Body: c.Body, AuthorID: actor, Version: 1, CreatedAt: ref.CreatedAt, UpdatedAt: ref.CreatedAt}
 		return tx.Create(s.parent(scope.ID).Collection("discussions").Doc(i.ID), encode(i))
 	})
@@ -225,13 +225,13 @@ func (s *Store) Update(ctx context.Context, scope repository.Repository, actor, 
 		}
 		var container struct {
 			ID      string `firestore:"id"`
-			GroupID string `firestore:"groupId"`
+			OwnerID string `firestore:"ownerId"`
 			Status  string `firestore:"status"`
 		}
 		if err := snap.DataTo(&container); err != nil {
 			return err
 		}
-		if container.ID != scope.ID || container.GroupID != scope.GroupID || container.Status != "ACTIVE" {
+		if container.ID != scope.ID || container.OwnerID != scope.OwnerID || container.Status != "ACTIVE" {
 			return discussion.ErrNotFound
 		}
 		currentSnap, err := tx.Get(ref)

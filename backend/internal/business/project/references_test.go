@@ -36,9 +36,9 @@ func TestReferenceIdentityAndIndependentAuthorization(t *testing.T) {
 		t.Fatal("child binding")
 	}
 	gid := "C" + id
-	st := &referenceStore{store: store{item: p.Project{ID: id, SpaceID: gid, SourceRepositoryID: id, CreatorID: "owner", Version: 1}}}
+	st := &referenceStore{store: store{item: p.Project{ID: id, OwnerID: gid, DefaultRepositoryID: id, CreatorID: "owner", Version: 1}}}
 	src := &sources{denied: true, space: gid}
-	svc := &p.Service{Spaces: &spaces{}, Sources: src, Store: st}
+	svc := &p.Service{Groups: &groups{}, Sources: src, Store: st}
 	page, e := svc.ListReferences(context.Background(), "owner", gid, id, "")
 	if e != nil || st.hydrate || !page.Items[0].SourceUnavailable {
 		t.Fatal(page, e)

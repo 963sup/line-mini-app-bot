@@ -15,13 +15,13 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
+	sp "github.com/963sup/line-mini-app-bot/internal/business/group"
+	spaceDB "github.com/963sup/line-mini-app-bot/internal/business/group/firestore"
 	p "github.com/963sup/line-mini-app-bot/internal/business/project"
 	projectDB "github.com/963sup/line-mini-app-bot/internal/business/project/firestore"
 	projectHTTP "github.com/963sup/line-mini-app-bot/internal/business/project/http"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	repoDB "github.com/963sup/line-mini-app-bot/internal/business/repository/firestore"
-	sp "github.com/963sup/line-mini-app-bot/internal/business/space"
-	spaceDB "github.com/963sup/line-mini-app-bot/internal/business/space/firestore"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -33,12 +33,13 @@ func (membership) IsMember(_ context.Context, _, actor string) (bool, error) {
 }
 
 type sourceAccess struct {
-	root   *db.DocumentRef
-	denied bool
+	root               *db.DocumentRef
+	denied             bool
+	deniedRepositoryID string
 }
 
-func (s *sourceAccess) Authorize(ctx context.Context, actor, id, spaceID string) (p.Source, error) {
-	if s.denied || actor == "outsider" {
+func (s *sourceAccess) Authorize(ctx context.Context, actor, id, expectedOwnerID string) (p.Source, error) {
+	if s.denied || id == s.deniedRepositoryID || actor == "outsider" {
 		return p.Source{}, p.ErrNotFound
 	}
 	snap, err := s.root.Collection("repositories").Doc(id).Get(ctx)
@@ -49,11 +50,11 @@ func (s *sourceAccess) Authorize(ctx context.Context, actor, id, spaceID string)
 		return p.Source{}, err
 	}
 	d := snap.Data()
-	group, _ := d["groupId"].(string)
-	if d["id"] != id || d["status"] != "ACTIVE" || spaceID != "" && spaceID != group {
+	owner, _ := d["ownerId"].(string)
+	if d["id"] != id || d["status"] != "ACTIVE" || expectedOwnerID != "" && expectedOwnerID != owner {
 		return p.Source{}, p.ErrNotFound
 	}
-	return p.Source{ID: id, GroupID: group}, nil
+	return p.Source{ID: id, OwnerID: owner}, nil
 }
 
 type auth struct{}
@@ -67,7 +68,7 @@ func (auth) Authenticate(w http.ResponseWriter, r *http.Request) (string, string
 	return a, "", true
 }
 
-func TestSourceHydrationFailureDoesNotHideSpaceMetadata(t *testing.T) {
+func TestSourceHydrationFailurePreservesProjectMetadata(t *testing.T) {
 	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
 		t.Skip("requires an isolated FIRESTORE_EMULATOR_HOST")
 	}
@@ -85,11 +86,11 @@ func TestSourceHydrationFailureDoesNotHideSpaceMetadata(t *testing.T) {
 	channel := "hydration-test-" + strconv.FormatInt(time.Now().UnixNano(), 10)
 	root := client.Collection("channels").Doc(channel)
 	gid, rid, iid := "C"+strings.Repeat("a", 32), strings.Repeat("b", 32), strings.Repeat("c", 32)
-	spaces := &spaceDB.Store{Client: client, ChannelID: channel}
-	if err = spaces.Observe(ctx, sp.Observation{GroupID: gid, Status: "ACTIVE", EventID: "join", At: time.Now().UTC(), Users: []string{"owner"}}); err != nil {
+	groups := &spaceDB.Store{Client: client, ChannelID: channel}
+	if err = groups.Observe(ctx, sp.Observation{GroupID: gid, Status: "ACTIVE", EventID: "join", At: time.Now().UTC(), Users: []string{"owner"}}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = root.Collection("repositories").Doc(rid).Set(ctx, map[string]any{"id": rid, "groupId": gid, "status": "ACTIVE", "version": int64(1)}); err != nil {
+	if _, err = root.Collection("repositories").Doc(rid).Set(ctx, map[string]any{"id": rid, "ownerId": gid, "status": "ACTIVE", "version": int64(1)}); err != nil {
 		t.Fatal(err)
 	}
 	issue := root.Collection("repositories").Doc(rid).Collection("issues").Doc(iid)
@@ -98,7 +99,7 @@ func TestSourceHydrationFailureDoesNotHideSpaceMetadata(t *testing.T) {
 		t.Fatal(err)
 	}
 	store := &projectDB.Store{Client: client, ChannelID: channel}
-	svc := &p.Service{Spaces: &sp.Service{Store: spaces, Membership: membership{}}, Sources: &sourceAccess{root: root}, Store: store}
+	svc := &p.Service{Groups: &sp.Service{Store: groups, Membership: membership{}}, Sources: &sourceAccess{root: root}, Store: store}
 	created, err := svc.Create(ctx, "owner", gid, "source-failure-key-001", p.Content{Title: "owned metadata", SourceRepositoryID: rid})
 	if err != nil {
 		t.Fatal(err)
@@ -116,7 +117,7 @@ func TestSourceHydrationFailureDoesNotHideSpaceMetadata(t *testing.T) {
 	}
 	page, err := svc.List(ctx, "owner", gid, "")
 	if err != nil || len(page.Items) != 1 || page.Items[0].SourceAvailable {
-		t.Fatalf("source failure hid Space list: %+v %v", page, err)
+		t.Fatalf("source failure hid Group list: %+v %v", page, err)
 	}
 	updated, err := svc.Update(ctx, "owner", gid, created.ID, p.Update{Content: p.Content{Title: "updated metadata"}, ExpectedVersion: added.Version})
 	if err != nil || updated.Version != added.Version+1 || updated.SourceAvailable {
@@ -129,14 +130,14 @@ func TestSourceHydrationFailureDoesNotHideSpaceMetadata(t *testing.T) {
 		t.Fatalf("source item read must still fail: %v", err)
 	}
 	value := updated
-	err = store.Progress(ctx, p.Scope{GroupID: gid, Actor: "owner"}, &value)
+	err = store.Progress(ctx, p.Scope{OwnerID: gid, Actor: "owner"}, &value)
 	if !errors.Is(err, p.ErrSourceUnavailable) || !errors.Is(err, p.ErrUnavailable) || errors.Is(err, p.ErrInput) {
 		t.Fatalf("source classification must expose only its domain categories: %v", err)
 	}
 	if _, err = issue.Set(ctx, issueData); err != nil {
 		t.Fatal(err)
 	}
-	items, err := root.Collection("spaces").Doc(gid).Collection("projects").Doc(created.ID).Collection("items").Documents(ctx).GetAll()
+	items, err := root.Collection("groups").Doc(gid).Collection("projects").Doc(created.ID).Collection("items").Documents(ctx).GetAll()
 	if err != nil || len(items) != 1 {
 		t.Fatalf("items fixture: %v %v", items, err)
 	}
@@ -148,7 +149,7 @@ func TestSourceHydrationFailureDoesNotHideSpaceMetadata(t *testing.T) {
 	}
 }
 
-func TestSpaceProjectStorageRightsAndLegacyAlias(t *testing.T) {
+func TestOwnerProjectStorageRightsAndLegacyAlias(t *testing.T) {
 	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
 		t.Skip("requires an isolated FIRESTORE_EMULATOR_HOST")
 	}
@@ -172,7 +173,7 @@ func TestSpaceProjectStorageRightsAndLegacyAlias(t *testing.T) {
 	if err = ss.Observe(ctx, sp.Observation{GroupID: gid, Status: "ACTIVE", EventID: "join", At: time.Now().UTC(), Users: []string{"owner", "member"}}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = root.Collection("repositories").Doc(rid).Set(ctx, map[string]any{"id": rid, "groupId": gid, "status": "ACTIVE", "version": int64(1)}); err != nil {
+	if _, err = root.Collection("repositories").Doc(rid).Set(ctx, map[string]any{"id": rid, "ownerId": gid, "status": "ACTIVE", "version": int64(1)}); err != nil {
 		t.Fatal(err)
 	}
 	issue := root.Collection("repositories").Doc(rid).Collection("issues").Doc(iid)
@@ -182,27 +183,27 @@ func TestSpaceProjectStorageRightsAndLegacyAlias(t *testing.T) {
 	}
 	source := &sourceAccess{root: root}
 	store := &projectDB.Store{Client: client, ChannelID: channel}
-	svc := &p.Service{Spaces: &sp.Service{Store: ss, Membership: membership{}}, Sources: source, Store: store}
-	content := p.Content{Title: "Space project", SourceRepositoryID: rid}
+	svc := &p.Service{Groups: &sp.Service{Store: ss, Membership: membership{}}, Sources: source, Store: store}
+	content := p.Content{Title: "Group project", SourceRepositoryID: rid}
 	key := "stable-create-key-0001"
 	if _, err = svc.Create(ctx, "outsider", gid, key, content); !errors.Is(err, p.ErrNotFound) {
-		t.Fatalf("Space outsider create: %v", err)
+		t.Fatalf("Group outsider create: %v", err)
 	}
 	created, err := svc.Create(ctx, "owner", gid, key, content)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if created.SpaceID != gid || created.SourceRepositoryID != rid || created.Version != 1 {
-		t.Fatalf("Project owner is Space; source is a reference: %+v", created)
+	if created.OwnerID != gid || created.DefaultRepositoryID != rid || created.Version != 1 {
+		t.Fatalf("Project owner is Group; source is a reference: %+v", created)
 	}
 	if _, err = root.Collection("repositories").Doc(rid).Collection("projects").Doc(created.ID).Get(ctx); status.Code(err) != codes.NotFound {
 		t.Fatalf("new Project must not write legacy container: %v", err)
 	}
-	if _, err = root.Collection("spaces").Doc(gid).Collection("projects").Doc(created.ID).Get(ctx); err != nil {
+	if _, err = root.Collection("groups").Doc(gid).Collection("projects").Doc(created.ID).Get(ctx); err != nil {
 		t.Fatal(err)
 	}
 	repoStore := &repoDB.Store{Client: client, ChannelID: channel}
-	counts, err := repoStore.Statistics(ctx, repository.Repository{ID: rid, GroupID: gid, Status: "ACTIVE"})
+	counts, err := repoStore.Statistics(ctx, repository.Repository{ID: rid, OwnerID: gid, Status: "ACTIVE"})
 	if err != nil || counts.Projects != 1 {
 		t.Fatalf("statistics must count new canonical project without legacy copy: %+v %v", counts, err)
 	}
@@ -277,7 +278,7 @@ func TestSpaceProjectStorageRightsAndLegacyAlias(t *testing.T) {
 		_ = json.Unmarshal(rec.Body.Bytes(), &result)
 		return rec.Code, result
 	}
-	canonicalPath := "/api/v1/spaces/" + gid + "/projects/" + created.ID
+	canonicalPath := "/api/v1/owners/" + gid + "/projects/" + created.ID
 	legacyPath := "/api/v1/repositories/" + rid + "/projects/" + created.ID
 	for _, path := range []string{canonicalPath, legacyPath} {
 		if code, body := call(http.MethodGet, path, "member", ""); code != 200 || body["id"] != created.ID || body["version"] != float64(2) || body["issueCount"] != float64(1) {
@@ -318,148 +319,101 @@ func TestSpaceProjectStorageRightsAndLegacyAlias(t *testing.T) {
 	if err != nil || !reflect.DeepEqual(snapshot.Data(), sourceData) {
 		t.Fatalf("Project operation mutated source Issue: %+v %v", snapshot, err)
 	}
-	marker := root.Collection("projectStorage").Doc(rid)
-	if _, err = marker.Update(ctx, []db.Update{{Path: "locked", Value: true}}); err != nil {
+	// Unrelated or obsolete routing metadata cannot redirect the canonical Group.
+	if _, err = root.Collection("projectStorage").Doc(rid).Set(ctx, map[string]any{"location": "legacy", "locked": true}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = svc.Get(ctx, "owner", gid, created.ID); !errors.Is(err, p.ErrUnavailable) {
-		t.Fatalf("canonical read cannot expose partial migration copies under lock: %v", err)
+	own, err := svc.Get(ctx, "owner", gid, created.ID)
+	if err != nil || own.Title != updated.Title {
+		t.Fatal(own, err)
 	}
-	if _, err = svc.List(ctx, "owner", gid, ""); !errors.Is(err, p.ErrUnavailable) {
-		t.Fatalf("canonical list cannot expose partial migration copies under lock: %v", err)
+	if _, err = root.Collection("groups").Doc(gid).Update(ctx, []db.Update{{Path: "status", Value: "INACTIVE"}}); err != nil {
+		t.Fatal(err)
 	}
-	if _, err = svc.Update(ctx, "owner", gid, created.ID, p.Update{Content: p.Content{Title: "blocked by migration"}, ExpectedVersion: 3}); !errors.Is(err, p.ErrUnavailable) {
-		t.Fatalf("migration lock must block canonical writers: %v", err)
+	if _, err = store.Update(ctx, p.Scope{OwnerID: gid, Actor: "owner"}, "owner", created.ID, p.Update{Content: p.Content{Title: "denied"}, ExpectedVersion: updated.Version}); !errors.Is(err, p.ErrNotFound) {
+		t.Fatal("inactive Group allowed write", err)
 	}
 }
 
-func TestLegacyWriteChecksCurrentSpaceAndStatisticsRouting(t *testing.T) {
+func TestPersonalRepositoryAndProject(t *testing.T) {
 	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
-		t.Skip("requires an isolated FIRESTORE_EMULATOR_HOST")
+		t.Skip("requires FIRESTORE_EMULATOR_HOST")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
-	defer cancel()
-	client, err := db.NewClient(ctx, "project-decouple-local")
+	ctx := t.Context()
+	client, err := db.NewClient(ctx, "personal-project-test")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() {
+	t.Cleanup(func() {
 		if err := client.Close(); err != nil {
 			t.Error(err)
 		}
-	}()
-	channel := "legacy-space-test-" + strconv.FormatInt(time.Now().UnixNano(), 10)
+	})
+	channel := "personal-" + strconv.FormatInt(time.Now().UnixNano(), 10)
 	root := client.Collection("channels").Doc(channel)
-	gid := "C" + strings.Repeat("d", 32)
-	rid := strings.Repeat("e", 32)
-	ss := &spaceDB.Store{Client: client, ChannelID: channel}
-	if err = ss.Observe(ctx, sp.Observation{GroupID: gid, Status: "ACTIVE", EventID: "join", At: time.Now().UTC()}); err != nil {
-		t.Fatal(err)
+	owner, other := "U"+strings.Repeat("a", 32), "U"+strings.Repeat("b", 32)
+	repos := &repoDB.Store{Client: client, ChannelID: channel}
+	seen := repository.Observation{OwnerID: owner, Name: "個人儲存庫", Status: "ACTIVE", EventID: "follow", At: time.Now(), Users: []string{owner}}
+	for range 2 {
+		if err := repos.Observe(ctx, seen); err != nil {
+			t.Fatal(err)
+		}
 	}
-	repoRef := root.Collection("repositories").Doc(rid)
-	if _, err = repoRef.Set(ctx, map[string]any{"id": rid, "groupId": gid, "status": "ACTIVE", "version": int64(1)}); err != nil {
-		t.Fatal(err)
+	catalog := repository.Service{Store: repos}
+	page, err := catalog.List(ctx, owner, "")
+	if err != nil || len(page.Items) != 1 || page.Items[0].OwnerID != owner {
+		t.Fatalf("personal list: %+v %v", page, err)
 	}
-	store := &projectDB.Store{Client: client, ChannelID: channel}
-	scope := p.Scope{GroupID: gid, SourceRepositoryID: rid, Actor: "owner", Legacy: true}
-	if _, err = root.Collection("projectStorage").Doc(rid).Set(ctx, map[string]any{"spaceId": gid, "location": "legacy", "locked": false}); err != nil {
-		t.Fatal(err)
+	rid := page.Items[0].ID
+	if _, err = catalog.Get(ctx, other, rid); !errors.Is(err, repository.ErrNotFound) {
+		t.Fatal("foreign repository read", err)
 	}
-	legacy, err := store.Create(ctx, scope, "owner", "legacy-create-key-0001", p.Content{Title: "Legacy", SourceRepositoryID: rid})
+	access := &sourceAccess{root: root}
+	svc := p.Service{Groups: &sp.Service{}, Sources: access, Store: &projectDB.Store{Client: client, ChannelID: channel}}
+	value, err := svc.Create(ctx, owner, owner, "personal-project-0001", p.Content{Title: "工程", SourceRepositoryID: rid})
 	if err != nil {
 		t.Fatal(err)
 	}
-	stats := &repoDB.Store{Client: client, ChannelID: channel}
-	r := repository.Repository{ID: rid, GroupID: gid, Status: "ACTIVE"}
-	before, err := stats.Statistics(ctx, r)
-	if err != nil || before.Projects != 1 {
-		t.Fatalf("legacy statistics count: %+v %v", before, err)
+	doc, err := root.Collection("users").Doc(owner).Collection("projects").Doc(value.ID).Get(ctx)
+	if err != nil || doc.Data()["ownerId"] != owner {
+		t.Fatal("personal project storage", err)
 	}
-	old, err := repoRef.Collection("projects").Doc(legacy.ID).Get(ctx)
+	if _, err = svc.Get(ctx, other, owner, value.ID); !errors.Is(err, p.ErrNotFound) {
+		t.Fatal("foreign project read", err)
+	}
+	group := "C" + strings.Repeat("c", 32)
+	groupRepo := strings.Repeat("d", 32)
+	groupDoc := root.Collection("repositories").Doc(groupRepo)
+	if _, err = groupDoc.Set(ctx, map[string]any{"id": groupRepo, "ownerId": group, "status": "ACTIVE"}); err != nil {
+		t.Fatal(err)
+	}
+	issue := strings.Repeat("e", 32)
+	if _, err = groupDoc.Collection("issues").Doc(issue).Set(ctx, map[string]any{"schemaVersion": 1, "id": issue, "repositoryId": groupRepo, "title": "Group issue", "state": "open"}); err != nil {
+		t.Fatal(err)
+	}
+	value, err = svc.Update(ctx, owner, owner, value.ID, p.Update{Content: p.Content{Title: value.Title}, ExpectedVersion: value.Version, LinkRepositoryID: groupRepo})
 	if err != nil {
 		t.Fatal(err)
 	}
-	data := old.Data()
-	data["spaceId"], data["sourceRepositoryId"] = gid, rid
-	if _, err = root.Collection("spaces").Doc(gid).Collection("projects").Doc(legacy.ID).Set(ctx, data); err != nil {
-		t.Fatal(err)
-	}
-	if _, err = root.Collection("projectStorage").Doc(rid).Set(ctx, map[string]any{"spaceId": gid, "location": "space", "locked": false}); err != nil {
-		t.Fatal(err)
-	}
-	after, err := stats.Statistics(ctx, r)
-	if err != nil || after.Projects != 1 {
-		t.Fatalf("migration marker must select canonical once, not double count: %+v %v", after, err)
-	}
-	// A clean rollback changes only the routing pointer; canonical APIs must stay useful.
-	marker := root.Collection("projectStorage").Doc(rid)
-	if _, err = marker.Update(ctx, []db.Update{{Path: "location", Value: "legacy"}}); err != nil {
-		t.Fatal(err)
-	}
-	source := &sourceAccess{root: root}
-	svc := &p.Service{Spaces: &sp.Service{Store: ss, Membership: membership{}}, Sources: source, Store: store}
-	visible, err := svc.List(ctx, "owner", gid, "")
-	if err != nil || len(visible.Items) != 1 || visible.Items[0].ID != legacy.ID {
-		t.Fatalf("canonical list must resolve retained legacy records after rollback: %+v %v", visible, err)
-	}
-	replay, err := svc.Create(ctx, "owner", rid, "legacy-create-key-0001", p.Content{Title: "Legacy"})
-	if err != nil || replay.ID != legacy.ID || replay.Version != legacy.Version {
-		t.Fatalf("rollback must retain original receipt identity/version: %+v %v", replay, err)
-	}
-	if _, err = repoRef.Update(ctx, []db.Update{{Path: "status", Value: "INACTIVE"}}); err != nil {
-		t.Fatal(err)
-	}
-	own, err := svc.Get(ctx, "owner", gid, legacy.ID)
-	if err != nil || own.ID != legacy.ID || own.SourceAvailable {
-		t.Fatalf("canonical metadata on legacy layout remains Space-authorized with revoked source: %+v %v", own, err)
-	}
-	if _, err = svc.ListItems(ctx, "owner", gid, legacy.ID, ""); !errors.Is(err, p.ErrNotFound) {
-		t.Fatalf("rollback must not expand revoked source read: %v", err)
-	}
-	edited, err := svc.Update(ctx, "owner", gid, legacy.ID, p.Update{Content: p.Content{Title: "Owner edit after rollback"}, ExpectedVersion: 1})
-	if err != nil || edited.Version != 2 {
-		t.Fatalf("canonical own metadata update cannot treat legacy Repository as authorization container: %+v %v", edited, err)
-	}
-	if _, err = svc.Get(ctx, "owner", rid, legacy.ID); !errors.Is(err, p.ErrNotFound) {
-		t.Fatalf("legacy endpoint preserves source rejection: %v", err)
-	}
-	// Simulate a new validated copy after the legacy write, then switch once again.
-	old, err = repoRef.Collection("projects").Doc(legacy.ID).Get(ctx)
+	value, err = svc.AddReference(ctx, owner, owner, value.ID, p.Reference{SourceRepositoryID: groupRepo, SourceType: "issue", SourceID: issue}, value.Version)
 	if err != nil {
 		t.Fatal(err)
 	}
-	data = old.Data()
-	data["spaceId"], data["sourceRepositoryId"] = gid, rid
-	if _, err = root.Collection("spaces").Doc(gid).Collection("projects").Doc(legacy.ID).Set(ctx, data); err != nil {
-		t.Fatal(err)
+	before, err := svc.ListReferences(ctx, owner, owner, value.ID, "")
+	if err != nil || len(before.Items) != 1 || before.Items[0].SourceTitle != "Group issue" {
+		t.Fatal(before, err)
 	}
-	if _, err = repoRef.Update(ctx, []db.Update{{Path: "status", Value: "ACTIVE"}}); err != nil {
-		t.Fatal(err)
+	access.deniedRepositoryID = groupRepo
+	after, err := svc.ListReferences(ctx, owner, owner, value.ID, "")
+	if err != nil || len(after.Items) != 1 || !after.Items[0].SourceUnavailable || after.Items[0].SourceTitle != "" {
+		t.Fatal(after, err)
 	}
-	if _, err = marker.Update(ctx, []db.Update{{Path: "location", Value: "space"}}); err != nil {
-		t.Fatal(err)
+	current, err := svc.Get(ctx, owner, owner, value.ID)
+	if err != nil || current.OwnerID != owner {
+		t.Fatal(current, err)
 	}
-	canonicalScope := scope
-	canonicalScope.Legacy = false
-	if _, err = store.Create(ctx, canonicalScope, "owner", "canonical-create-key-0001", p.Content{Title: "Canonical", SourceRepositoryID: rid}); err != nil {
-		t.Fatal(err)
-	}
-	after, err = stats.Statistics(ctx, r)
-	if err != nil || after.Projects != 2 {
-		t.Fatalf("canonical creates must remain in source-derived statistics: %+v %v", after, err)
-	}
-	// A request may have authorized before the owner Space deactivated.
-	if _, err = root.Collection("spaces").Doc(gid).Update(ctx, []db.Update{{Path: "status", Value: "INACTIVE"}}); err != nil {
-		t.Fatal(err)
-	}
-	if _, err = store.Update(ctx, scope, "owner", legacy.ID, p.Update{Content: p.Content{Title: "must not write"}, ExpectedVersion: 1}); !errors.Is(err, p.ErrNotFound) {
-		t.Fatalf("legacy writer must recheck owner Space in its transaction: %v", err)
-	}
-	// The absent-marker legacy parent needs the same owner check, not Repository status alone.
-	if _, err = root.Collection("projectStorage").Doc(rid).Delete(ctx); err != nil {
-		t.Fatal(err)
-	}
-	if _, err = store.Update(ctx, scope, "owner", legacy.ID, p.Update{Content: p.Content{Title: "must not write"}, ExpectedVersion: 1}); !errors.Is(err, p.ErrNotFound) {
-		t.Fatalf("legacy-layout writer must reject inactive Space despite active Repository: %v", err)
+	repo, err := groupDoc.Get(ctx)
+	if err != nil || repo.Data()["ownerId"] != group {
+		t.Fatal("group repository owner changed", err)
 	}
 }

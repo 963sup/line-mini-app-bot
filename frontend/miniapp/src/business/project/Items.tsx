@@ -10,6 +10,9 @@ import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Item, ItemGroup, ItemContent, ItemTitle } from "@/shared/ui/item";
 import { FieldGroup } from "@/shared/ui/field";
 
+import { Inspections } from "./Inspections";
+import { SourcePicker } from "./SourcePicker";
+
 type Project = components["schemas"]["Project"];
 type Reference = components["schemas"]["ProjectReference"];
 type Addition = components["schemas"]["ProjectReferenceAddition"];
@@ -17,8 +20,9 @@ type Kind = Addition["sourceType"];
 type Option = { id: string; title: string };
 const kinds: Record<Kind, string> = { object: "物件", subobject: "子物件", issue: "問題", discussion: "討論" };
 const states: Record<string, string> = { open: "待處理", in_progress: "進行中", completed: "已完成", not_started: "未開始", closed: "已結束" };
-type Props = { spaceId: string; sourceRepositoryId: string; project: Project; disabled: boolean; canWrite: () => boolean; onBlocked: (blocked: boolean) => void; onChange: (project: Project) => void; onRefresh: () => void };
-export function Items({ spaceId, sourceRepositoryId, project, disabled, canWrite, onBlocked, onChange, onRefresh }: Props) {
+type Props = { ownerId: string; sourceRepositoryId: string; project: Project; disabled: boolean; canWrite: () => boolean; onBlocked: (blocked: boolean) => void; onChange: (project: Project) => void; onRefresh: () => void };
+export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, project, disabled, canWrite, onBlocked, onChange, onRefresh }: Props) {
+  const [sourceRepositoryId, setSourceRepositoryId] = useState(initialRepositoryId);
   const { user, request } = useSession(), read = useLatestRequest(), catalog = useLatestRequest(), parents = useLatestRequest(), write = useLatestRequest();
   const [items, setItems] = useState<Reference[]>([]), [options, setOptions] = useState<Option[]>([]), [objects, setObjects] = useState<Option[]>([]);
   const [kind, setKind] = useState<Kind>("issue"), [parent, setParent] = useState(""), [choice, setChoice] = useState("");
@@ -27,7 +31,8 @@ export function Items({ spaceId, sourceRepositoryId, project, disabled, canWrite
   const [busy, setBusy] = useState(false), [uncertain, setUncertain] = useState(false), [readBusy, setReadBusy] = useState(false), [catalogBusy, setCatalogBusy] = useState(false), [parentBusy, setParentBusy] = useState(false), [loaded, setLoaded] = useState(false), [needsRefresh, setNeedsRefresh] = useState(false);
   const lock = useRef(false), unknown = useRef(false), selecting = useRef(false);
   const pending = useRef<{ body: Addition } | { itemId: string; version: number } | null>(null);
-  const mine = project.creatorId === user?.userId, sourceAvailable = project.sourceAvailable !== false;
+  const linked = (project.linkedRepositoryIds ?? [initialRepositoryId]).includes(sourceRepositoryId);
+  const mine = project.creatorId === user?.userId, sourceAvailable = linked && !!sourceRepositoryId && (sourceRepositoryId !== initialRepositoryId || project.sourceAvailable !== false);
   useEffect(() => { selecting.current = false; });
   useEffect(() => () => onBlocked(false), [onBlocked]);
   function block(value: boolean) { unknown.current = value; setUncertain(value); onBlocked(value); }
@@ -39,10 +44,10 @@ export function Items({ spaceId, sourceRepositoryId, project, disabled, canWrite
   const load = useCallback((next = "") => {
     if (!user || lock.current || unknown.current) return;
     setReadBusy(true); setLoaded(false); if (!next) setItems([]); setCursor(""); setStatus("正在讀取專案引用……");
-    void read.run(signal => request((client, s) => client.GET("/api/v1/spaces/{spaceId}/projects/{id}/references", { signal: s, params: { path: { spaceId, id: project.id }, query: { cursor: next || undefined } } }), { signal }), page => {
+    void read.run(signal => request((client, s) => client.GET("/api/v1/owners/{ownerId}/projects/{id}/references", { signal: s, params: { path: { ownerId, id: project.id }, query: { cursor: next || undefined } } }), { signal }), page => {
       setItems(previous => [...new Map([...(next ? previous : []), ...page.items].map(item => [item.id, item])).values()]); setCursor(page.nextCursor); setReadBusy(false); setLoaded(true); setStatus("");
     }, error => { setItems([]); setReadBusy(false); setStatus(errorMessage(error)); });
-  }, [user, request, read.run, spaceId, project.id]);
+  }, [user, request, read.run, ownerId, project.id]);
   const loadParents = useCallback((next = "") => {
     if (!user || !mine || !sourceAvailable || kind !== "subobject") return;
     setParentBusy(true); if (!next) {setObjects([]);setParent("");setChoice("");setOptions([]);catalog.cancel();} setParentCursor(""); setParentStatus("正在讀取父物件……");
@@ -78,17 +83,31 @@ export function Items({ spaceId, sourceRepositoryId, project, disabled, canWrite
     if (!user || !mine || lock.current || selecting.current || needsRefresh || !canWrite() || (disabled && !unknown.current)) return;
     if (!pending.current) {
       if (!itemId && (!choice || !sourceAvailable || (kind === "subobject" && !parent))) return;
-      pending.current = itemId ? {itemId,version:project.version} : {body:{sourceType:kind,sourceId:choice,...(kind === "subobject" ? {parentObjectId:parent} : {}),expectedVersion:project.version}};
+      pending.current = itemId ? {itemId,version:project.version} : {body:{sourceRepositoryId,sourceType:kind,sourceId:choice,...(kind === "subobject" ? {parentObjectId:parent} : {}),expectedVersion:project.version}};
     }
     const attempt=pending.current, wasUnknown=unknown.current;
     lock.current=true;setBusy(true);block(true);setStatus("正在更新專案引用……");
-    void write.run(signal=>request((client,s)=>"itemId" in attempt ? client.DELETE("/api/v1/spaces/{spaceId}/projects/{id}/references/{itemId}",{signal:s,params:{path:{spaceId,id:project.id,itemId:attempt.itemId},query:{expectedVersion:attempt.version}}}) : client.POST("/api/v1/spaces/{spaceId}/projects/{id}/references",{signal:s,params:{path:{spaceId,id:project.id}},body:attempt.body}),{signal}), value=>{
+    void write.run(signal=>request((client,s)=>"itemId" in attempt ? client.DELETE("/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}",{signal:s,params:{path:{ownerId,id:project.id,itemId:attempt.itemId},query:{expectedVersion:attempt.version}}}) : client.POST("/api/v1/owners/{ownerId}/projects/{id}/references",{signal:s,params:{path:{ownerId,id:project.id}},body:attempt.body}),{signal}), value=>{
       lock.current=false;setBusy(false);pending.current=null;block(false);onChange(value);
     },error=>{
       lock.current=false;setBusy(false);
       const rejected=["invalid_input","forbidden","not_found","version_conflict","conflict"].includes((error as {code?:string}).code || "");
       if(rejected && !wasUnknown){pending.current=null;block(false);setNeedsRefresh(true);setStatus(errorMessage(error)+" 請重新讀取專案後再管理引用。");}
       else setStatus(errorMessage(error)+" 結果尚未確認，請重試原引用操作；不要更換來源。");
+    });
+  }
+  function changeLink() {
+    if (!mine || !sourceRepositoryId || !canWrite() || disabled || lock.current || unknown.current) return;
+    lock.current = true; setBusy(true); onBlocked(true);
+    void write.run(signal => request((client, s) => client.PATCH("/api/v1/owners/{ownerId}/projects/{id}", {
+      signal: s, params: { path: { ownerId, id: project.id } },
+      body: { title: project.title, body: project.body, expectedVersion: project.version,
+        ...(linked ? { unlinkRepositoryId: sourceRepositoryId } : { linkRepositoryId: sourceRepositoryId }) },
+    }), {signal}), updated => {
+      lock.current = false; setBusy(false); onBlocked(false); onChange(updated);
+    }, error => {
+      lock.current = false; setBusy(false); onBlocked(false); setNeedsRefresh(true);
+      setStatus(errorMessage(error) + " 請重新讀取專案以確認連結狀態。");
     });
   }
   function verify() {
@@ -98,12 +117,12 @@ export function Items({ spaceId, sourceRepositoryId, project, disabled, canWrite
     read.cancel(); catalog.cancel(); parents.cancel(); setOptions([]); setObjects([]);
     setReadBusy(false); setCatalogBusy(false); setParentBusy(false);
     void write.run(async signal => {
-      const current = await request((client,s) => client.GET("/api/v1/spaces/{spaceId}/projects/{id}", {signal:s,params:{path:{spaceId,id:project.id}}}), {signal});
+      const current = await request((client,s) => client.GET("/api/v1/owners/{ownerId}/projects/{id}", {signal:s,params:{path:{ownerId,id:project.id}}}), {signal});
       const rows: Reference[] = [], seen = new Set<string>(); let next = "", found = false;
       for (let pageNumber = 0; pageNumber < 50; pageNumber++) {
-        const page = await request((client,s) => client.GET("/api/v1/spaces/{spaceId}/projects/{id}/references", {signal:s,params:{path:{spaceId,id:project.id},query:{cursor:next || undefined}}}), {signal});
+        const page = await request((client,s) => client.GET("/api/v1/owners/{ownerId}/projects/{id}/references", {signal:s,params:{path:{ownerId,id:project.id},query:{cursor:next || undefined}}}), {signal});
         rows.push(...page.items);
-        found = page.items.some(item => "itemId" in attempt ? item.id === attempt.itemId : item.sourceType === attempt.body.sourceType && item.sourceId === attempt.body.sourceId && (item.parentObjectId || "") === (attempt.body.parentObjectId || ""));
+        found = page.items.some(item => "itemId" in attempt ? item.id === attempt.itemId : item.sourceRepositoryId === attempt.body.sourceRepositoryId && item.sourceType === attempt.body.sourceType && item.sourceId === attempt.body.sourceId && (item.parentObjectId || "") === (attempt.body.parentObjectId || ""));
         next = page.nextCursor;
         if (found || !next) return {current, rows, next, confirmed:"itemId" in attempt ? !found : found};
         if (seen.has(next)) throw new Error("引用分頁無法完整核對，請稍後重試。");
@@ -121,7 +140,10 @@ export function Items({ spaceId, sourceRepositoryId, project, disabled, canWrite
     <Status role="status">{status}</Status>
     <Button type="button" variant="outline" disabled={busy||uncertain||disabled} onClick={onRefresh}>重新讀取專案與引用</Button>
     {uncertain && <><Button type="button" disabled={busy} onClick={()=>change()}>重試原引用操作</Button><Button type="button" variant="outline" disabled={busy} onClick={verify}>核對引用結果</Button></>}
-    <ItemGroup className="min-w-0">{items.map(item=>{
+    {(["工程對象","待處理問題","決策討論"] as const).map(group=>{
+      const entries=items.filter(item=>(item.sourceType==="issue"?"待處理問題":item.sourceType==="discussion"?"決策討論":"工程對象")===group);
+      if(!entries.length)return null;
+      return <section key={group}><h3>{group}</h3><ItemGroup className="min-w-0">{entries.map(item=>{
       const title=item.sourceUnavailable ? `不可讀取的${kinds[item.sourceType]}` : item.sourceTitle;
       return <Item key={item.id} variant="outline" className="min-w-0"><ItemContent className="min-w-0"><ItemTitle className="w-full min-w-0 whitespace-normal [overflow-wrap:anywhere]">{kinds[item.sourceType]}：{title}</ItemTitle>
         {item.sourceUnavailable ? <p>來源目前不可讀取；不顯示先前內容。</p> : <>
@@ -129,11 +151,14 @@ export function Items({ spaceId, sourceRepositoryId, project, disabled, canWrite
           {item.quantity !== undefined && <p className="whitespace-normal [overflow-wrap:anywhere]">數量：{item.quantity} {item.unit}</p>}
           {item.type === "non_work" ? <p>進度：不適用</p> : item.completedQuantity !== undefined && <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{item.completedQuantity}/{item.quantity} {item.unit}</p>}
         </>}
+        {(item.sourceType === "object" || item.sourceType === "subobject") && <Inspections key={String(item.sourceUnavailable)} canSubmit={!item.sourceUnavailable} ownerId={ownerId} projectId={project.id} itemId={item.id}/>}
         {mine&&<Button type="button" variant="outline" aria-label={`移出專案：${title}`} disabled={disabled||needsRefresh||busy||uncertain} onClick={()=>change(item.id)}>移出專案</Button>}
       </ItemContent></Item>;
-    })}</ItemGroup>
+    })}</ItemGroup></section>;})}
     {loaded&&!items.length&&<p>尚未收錄來源。</p>}
     {cursor&&<Button type="button" variant="outline" disabled={readBusy||busy||uncertain} onClick={()=>load(cursor)}>載入更多專案引用</Button>}
+    {mine && <SourcePicker ownerId="" initialSource="" value={sourceRepositoryId} disabled={disabled||needsRefresh||busy||uncertain} onChange={id => { catalog.cancel(); parents.cancel(); setChoice(""); setParent(""); setOptions([]); setObjects([]); setSourceRepositoryId(id); }} />}
+    {mine && sourceRepositoryId && <Button type="button" variant="outline" disabled={disabled||needsRefresh||busy||uncertain} onClick={changeLink}>{linked ? "解除儲存庫連結" : "連結此儲存庫"}</Button>}
     {mine && (sourceAvailable ? <FieldGroup>
       <FormField>來源種類<NativeSelect value={kind} disabled={disabled||needsRefresh||busy||uncertain} onChange={event=>{if(lock.current||unknown.current||event.target.value===kind)return;selecting.current=true;catalog.cancel();parents.cancel();setKind(event.target.value as Kind);setParent("");setChoice("");setOptions([]);setObjects([]);setCatalogCursor("");setParentCursor("");setCatalogStatus("");setParentStatus("");}}>{Object.entries(kinds).map(([value,label])=><NativeSelectOption key={value} value={value}>{label}</NativeSelectOption>)}</NativeSelect></FormField>
       {kind === "subobject" && <>
@@ -147,6 +172,6 @@ export function Items({ spaceId, sourceRepositoryId, project, disabled, canWrite
       <Button type="button" disabled={disabled||needsRefresh||busy||uncertain||catalogBusy||!choice} onClick={()=>change()}>加入專案</Button>
       <Button type="button" variant="outline" disabled={disabled||catalogBusy||busy||uncertain||(kind === "subobject"&&!parent)} onClick={()=>loadCatalog()}>重新讀取可收錄來源</Button>
       {catalogCursor&&<Button type="button" variant="outline" disabled={disabled||catalogBusy||busy||uncertain} onClick={()=>loadCatalog(catalogCursor)}>載入更多可收錄來源</Button>}
-    </FieldGroup> : <p>來源儲存庫目前不可讀取；仍可移除專案引用。</p>)}
+    </FieldGroup> : <p>{linked ? "來源儲存庫目前不可讀取。" : "請先連結儲存庫，再加入引用。"}</p>)}
   </PagePanel>;
 }

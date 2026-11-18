@@ -40,7 +40,7 @@ func (f *storeFake) Create(_ context.Context, _ repository.Repository, _, _, n s
 }
 
 func TestServiceAuthorityAndInput(t *testing.T) {
-	r := repository.Repository{ID: strings.Repeat("a", 32), GroupID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
+	r := repository.Repository{ID: strings.Repeat("a", 32), OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
 	for _, tc := range []struct {
 		name, actor, key, title string
 		repo                    repository.Repository
@@ -49,7 +49,7 @@ func TestServiceAuthorityAndInput(t *testing.T) {
 		{"valid", "actor", "creation-key-12345", "  一樓  ", r, nil, nil},
 		{"missing actor", "", "creation-key-12345", "name", r, nil, ErrNotFound},
 		{"not member", "actor", "creation-key-12345", "name", r, repository.ErrNotFound, ErrNotFound},
-		{"inactive", "actor", "creation-key-12345", "name", repository.Repository{ID: r.ID, GroupID: r.GroupID, Status: "INACTIVE"}, nil, ErrNotFound},
+		{"inactive", "actor", "creation-key-12345", "name", repository.Repository{ID: r.ID, OwnerID: r.OwnerID, Status: "INACTIVE"}, nil, ErrNotFound},
 		{"blank", "actor", "creation-key-12345", " ", r, nil, ErrInput},
 		{"long", "actor", "creation-key-12345", strings.Repeat("字", 121), r, nil, ErrInput},
 		{"key", "actor", "short", "name", r, nil, ErrInput},

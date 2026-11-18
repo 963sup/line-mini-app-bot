@@ -1,6 +1,6 @@
 # MINI App 前端
 
-獨立專案頁為 `/miniapp/projects`，側欄專案與儲存庫同層，Space／Project選取與身份生命週期不依賴RepositoryProvider。來源選擇是唯讀資格選擇，非新增事項寫權；頁面、來源及legacy轉接規則見 [獨立Project](../docs/features/project/projects.md)。
+獨立專案頁為 `/miniapp/projects`，側欄專案與儲存庫同層，工程群組／Project選取與身份生命週期不依賴RepositoryProvider。來源選擇是唯讀資格選擇，非新增事項寫權；頁面、來源及legacy轉接規則見 [獨立Project](../docs/features/project/projects.md)。
 
 ## 目錄導覽與維護
 

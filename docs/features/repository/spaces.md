@@ -11,7 +11,7 @@ Space 是 Repository 內的業務分類空間，具有獨立的 32 位小寫十�
 | RepositoryID | 伺服器管理的資料來源容器，與 LINE GroupID 分開。 |
 | SpaceID | 本功能的 repository-owned 業務空間 ID；同一空間不能掛到其他 repository 或 channel。 |
 
-舊 `/api/v1/spaces`、Project 的 `spaceId` 與舊 Firestore `spaces` 仍代表 LINE 群組上下文，保留公開契約與資料值；Project 內部 scope/source 改用 GroupID 明示責任。新業務空間不改變 Project 所有權、不搬移舊資料，也不取代群組授權。舊 `business/space` 與新 `business/repository/space` 不可互換。
+工程群組透過 `/api/v1/groups` 存取，Project 的 `ownerId` 指向該群組。庫內工區只使用 Repository 的 `spaces` 路徑及 `spaceId`，移動工區不會改變 Project 的歸屬。
 
 LINE 規則核對官方 [User IDs](https://developers.line.biz/en/docs/messaging-api/getting-user-ids/)，官方 source main revision `259d1fa7698d597f95a7f044f2592379a63defbe`，2026-11-18。不同 provider 的 User ID 不得僅憑同一真人自行合併。
 

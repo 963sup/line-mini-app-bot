@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/963sup/line-mini-app-bot/internal/identity"
+
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	"google.golang.org/grpc/codes"
@@ -22,7 +24,7 @@ type Store struct {
 
 type document struct {
 	ID        string    `firestore:"id"`
-	GroupID   string    `firestore:"groupId"`
+	OwnerID   string    `firestore:"ownerId"`
 	Name      string    `firestore:"name"`
 	Status    string    `firestore:"status"`
 	Version   int64     `firestore:"version"`
@@ -33,7 +35,7 @@ type document struct {
 }
 
 func (d document) model() repository.Repository {
-	return repository.Repository{ID: d.ID, GroupID: d.GroupID, Name: d.Name, Status: d.Status, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}
+	return repository.Repository{ID: d.ID, OwnerID: d.OwnerID, Name: d.Name, Status: d.Status, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}
 }
 
 func (s *Store) channel() *db.DocumentRef { return s.Client.Collection("channels").Doc(s.ChannelID) }
@@ -43,7 +45,7 @@ func key(value string) string { sum := sha256.Sum256([]byte(value)); return hex.
 // Observe commits the independent ID and unique group binding together. Event
 // ordering prevents old deliveries from reactivating a departed group.
 func (s *Store) Observe(ctx context.Context, o repository.Observation) error {
-	if !repository.ValidGroup(o.GroupID) || o.At.IsZero() || o.EventID == "" || (o.Status != "ACTIVE" && o.Status != "INACTIVE") {
+	if !identity.ValidOwner(o.OwnerID) || o.At.IsZero() || o.EventID == "" || (o.Status != "ACTIVE" && o.Status != "INACTIVE") {
 		return repository.ErrUnavailable
 	}
 	var random [16]byte
@@ -51,7 +53,7 @@ func (s *Store) Observe(ctx context.Context, o repository.Observation) error {
 		return err
 	}
 	newID, now := hex.EncodeToString(random[:]), time.Now().UTC()
-	binding := s.channel().Collection("repositoryGroupBindings").Doc(o.GroupID)
+	binding := s.channel().Collection("repositoryOwnerBindings").Doc(o.OwnerID)
 	return s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		id := newID
 		bound, err := tx.Get(binding)
@@ -70,7 +72,7 @@ func (s *Store) Observe(ctx context.Context, o repository.Observation) error {
 			return err
 		}
 		ref := s.channel().Collection("repositories").Doc(id)
-		d := document{ID: id, GroupID: o.GroupID, Status: o.Status, Name: o.Name, Version: 1, CreatedAt: now, UpdatedAt: now, EventAt: o.At, EventID: o.EventID}
+		d := document{ID: id, OwnerID: o.OwnerID, Status: o.Status, Name: o.Name, Version: 1, CreatedAt: now, UpdatedAt: now, EventAt: o.At, EventID: o.EventID}
 		writeRepository := true
 		if bound != nil && bound.Exists() {
 			snap, err := tx.Get(ref)
@@ -80,7 +82,7 @@ func (s *Store) Observe(ctx context.Context, o repository.Observation) error {
 			if err := snap.DataTo(&d); err != nil {
 				return err
 			}
-			if d.ID != id || d.GroupID != o.GroupID {
+			if d.ID != id || d.OwnerID != o.OwnerID {
 				return repository.ErrUnavailable
 			}
 			// Equal timestamps prefer INACTIVE; an exact replay never changes version.
@@ -133,7 +135,7 @@ func decode(snap *db.DocumentSnapshot, err error) (repository.Repository, error)
 	if err := snap.DataTo(&d); err != nil {
 		return repository.Repository{}, err
 	}
-	if !repository.ValidID(d.ID) || d.ID != snap.Ref.ID || !repository.ValidGroup(d.GroupID) || d.Version < 1 {
+	if !repository.ValidID(d.ID) || d.ID != snap.Ref.ID || !identity.ValidOwner(d.OwnerID) || d.Version < 1 {
 		return repository.Repository{}, repository.ErrUnavailable
 	}
 	return d.model(), nil
@@ -150,7 +152,7 @@ func (s *Store) GetByGroupID(ctx context.Context, group string) (repository.Repo
 	if !repository.ValidGroup(group) {
 		return repository.Repository{}, repository.ErrNotFound
 	}
-	snap, err := s.channel().Collection("repositoryGroupBindings").Doc(group).Get(ctx)
+	snap, err := s.channel().Collection("repositoryOwnerBindings").Doc(group).Get(ctx)
 	if status.Code(err) == codes.NotFound {
 		return repository.Repository{}, repository.ErrNotFound
 	}
@@ -164,7 +166,7 @@ func (s *Store) GetByGroupID(ctx context.Context, group string) (repository.Repo
 		return repository.Repository{}, err
 	}
 	r, err := s.GetByID(ctx, b.ID)
-	if err == nil && r.GroupID != group {
+	if err == nil && r.OwnerID != group {
 		return repository.Repository{}, repository.ErrUnavailable
 	}
 	return r, err

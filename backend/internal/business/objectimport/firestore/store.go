@@ -81,13 +81,13 @@ func container(tx *db.Transaction, parent *db.DocumentRef, r repository.Reposito
 	}
 	var c struct {
 		ID      string `firestore:"id"`
-		GroupID string `firestore:"groupId"`
+		OwnerID string `firestore:"ownerId"`
 		Status  string `firestore:"status"`
 	}
 	if e = snap.DataTo(&c); e != nil {
 		return e
 	}
-	if c.ID != r.ID || c.GroupID != r.GroupID || c.Status != "ACTIVE" {
+	if c.ID != r.ID || c.OwnerID != r.OwnerID || c.Status != "ACTIVE" {
 		return feature.ErrNotFound
 	}
 	return nil

@@ -1,4 +1,4 @@
-// Package project owns LINE-group-context projects and their source references.
+// Package project owns user- and group-owned projects and their source references.
 package project
 
 import (
@@ -9,7 +9,9 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/space"
+	"github.com/963sup/line-mini-app-bot/internal/identity"
+
+	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
 )
 
 var (
@@ -25,16 +27,18 @@ var (
 
 type (
 	Project struct {
-		ID, SourceRepositoryID, SpaceID, Title, Body, CreatorID string
-		SourceAvailable                                         bool
-		Version                                                 int64
-		CreatedAt, UpdatedAt                                    time.Time
-		IssueCount, CompletedIssueCount                         int64
+		ID, DefaultRepositoryID, OwnerID, Title, Body, CreatorID string
+		LinkedRepositoryIDs                                      []string
+		SourceAvailable                                          bool
+		Version                                                  int64
+		CreatedAt, UpdatedAt                                     time.Time
+		IssueCount, CompletedIssueCount                          int64
 	}
 	Content struct{ Title, Body, SourceRepositoryID string }
 	Update  struct {
 		Content
-		ExpectedVersion int64
+		ExpectedVersion                      int64
+		LinkRepositoryID, UnlinkRepositoryID string
 	}
 	Page struct {
 		Items      []Project
@@ -85,9 +89,8 @@ func ApplyUpdate(current Project, actor string, input Update) (Project, error) {
 }
 
 type (
-	Spaces interface {
-		Get(context.Context, string, string) (space.Space, error)
-		LegacyGet(context.Context, string, string) (space.Space, error)
+	Groups interface {
+		Get(context.Context, string, string) (groupdomain.Group, error)
 	}
 	Sources interface {
 		Authorize(context.Context, string, string, string) (Source, error)
@@ -100,25 +103,28 @@ type (
 		ListItems(context.Context, Scope, string, string, string) (ItemPage, error)
 		ChangeItem(context.Context, Scope, string, string, string, bool, int64) (Project, error)
 		Progress(context.Context, Scope, *Project) error
+		Inspections(context.Context, Scope, string, string, string) ([]InspectionSubmission, error)
 		ListReferences(context.Context, Scope, string, string, string, bool) (ReferencePage, error)
 		ChangeReference(context.Context, Scope, string, string, Reference, bool, int64) (Project, error)
 	}
 )
 
 type Service struct {
-	Spaces  Spaces
+	Groups  Groups
 	Sources Sources
 	Store   Store
 }
 
 // Source is a read-only reference, never a Project authorization grant.
-// Source.GroupID and Scope.GroupID are LINE authorization contexts.
-// Project.SpaceID remains the legacy public/persisted group-context alias.
+// OwnerID identifies the owning LINE user or group. DefaultRepositoryID selects an initial
+// source; each reference records its own SourceRepositoryID.
 type (
-	Source struct{ ID, GroupID string }
+	Source struct{ ID, OwnerID string }
 	Scope  struct {
-		GroupID, SourceRepositoryID, Actor string
+		OwnerID, SourceRepositoryID, Actor string
 		Legacy                             bool
+		Sources                            Sources
+		SelectedSource                     Source
 	}
 )
 
@@ -128,33 +134,40 @@ var idPattern = regexp.MustCompile(`^[a-f0-9]{32}$`)
 
 func ValidID(id string) bool { return idPattern.MatchString(id) }
 func (s *Service) scope(ctx context.Context, actor, id string) (Scope, error) {
-	if s == nil || s.Spaces == nil || s.Sources == nil || s.Store == nil {
+	if s == nil || s.Groups == nil || s.Sources == nil || s.Store == nil {
 		return Scope{}, ErrUnavailable
 	}
-	if space.ValidID(id) {
-		value, err := s.Spaces.Get(ctx, actor, id)
-		if errors.Is(err, space.ErrNotFound) {
+	scope := Scope{OwnerID: id, Actor: actor}
+	if !identity.ValidOwner(id) {
+		// Repository-scoped routes resolve and authorize their source first.
+		if !ValidID(id) {
 			return Scope{}, ErrNotFound
 		}
-		return Scope{GroupID: value.ID, Actor: actor}, err
+		source, err := s.Sources.Authorize(ctx, actor, id, "")
+		if err != nil {
+			return Scope{}, err
+		}
+		scope.OwnerID, scope.SourceRepositoryID, scope.Legacy = source.OwnerID, source.ID, true
 	}
-	// A legacy route's read-only source resolver is the sole compatibility bridge.
-	source, err := s.Sources.Authorize(ctx, actor, id, "")
-	if err != nil {
-		return Scope{}, err
+	if identity.IsUserOwnerID(scope.OwnerID) {
+		if actor != scope.OwnerID {
+			return Scope{}, ErrNotFound
+		}
+		return scope, nil
 	}
-	value, err := s.Spaces.LegacyGet(ctx, actor, source.GroupID)
-	if errors.Is(err, space.ErrNotFound) {
+	value, err := s.Groups.Get(ctx, actor, scope.OwnerID)
+	if errors.Is(err, groupdomain.ErrNotFound) {
 		return Scope{}, ErrNotFound
 	}
 	if err != nil {
 		return Scope{}, err
 	}
-	return Scope{GroupID: value.ID, SourceRepositoryID: source.ID, Actor: actor, Legacy: true}, nil
+	scope.OwnerID = value.ID
+	return scope, nil
 }
 
 func (s *Service) progress(ctx context.Context, r Scope, p *Project) error {
-	_, err := s.Sources.Authorize(ctx, r.Actor, p.SourceRepositoryID, r.GroupID)
+	_, err := s.Sources.Authorize(ctx, r.Actor, p.DefaultRepositoryID, r.OwnerID)
 	if err != nil {
 		if r.Legacy || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			return err
@@ -219,7 +232,7 @@ func (s *Service) Create(ctx context.Context, actor, rid, key string, c Content)
 	if !ValidID(c.SourceRepositoryID) {
 		return Project{}, ErrInput
 	}
-	if _, e = s.Sources.Authorize(ctx, actor, c.SourceRepositoryID, r.GroupID); e != nil {
+	if _, e = s.Sources.Authorize(ctx, actor, c.SourceRepositoryID, r.OwnerID); e != nil {
 		return Project{}, e
 	}
 	r.SourceRepositoryID = c.SourceRepositoryID
@@ -241,6 +254,22 @@ func (s *Service) Update(ctx context.Context, actor, rid, id string, input Updat
 	}
 	if !ValidID(id) {
 		return Project{}, ErrNotFound
+	}
+	if input.LinkRepositoryID != "" || input.UnlinkRepositoryID != "" {
+		if r.Legacy || (input.LinkRepositoryID != "" && input.UnlinkRepositoryID != "") {
+			return Project{}, ErrInput
+		}
+		if input.LinkRepositoryID != "" {
+			if !ValidID(input.LinkRepositoryID) {
+				return Project{}, ErrInput
+			}
+			r.SelectedSource, e = s.Sources.Authorize(ctx, actor, input.LinkRepositoryID, "")
+			if e != nil {
+				return Project{}, e
+			}
+		} else if !ValidID(input.UnlinkRepositoryID) {
+			return Project{}, ErrInput
+		}
 	}
 	value, e := s.Store.Update(ctx, r, actor, id, input)
 	if e == nil {
@@ -269,10 +298,10 @@ func (s *Service) ListItems(ctx context.Context, actor, rid, id, cursor string) 
 	if e != nil {
 		return ItemPage{}, e
 	}
-	if _, e = s.Sources.Authorize(ctx, actor, value.SourceRepositoryID, r.GroupID); e != nil {
+	if _, e = s.Sources.Authorize(ctx, actor, value.DefaultRepositoryID, r.OwnerID); e != nil {
 		return ItemPage{}, e
 	}
-	r.SourceRepositoryID = value.SourceRepositoryID
+	r.SourceRepositoryID = value.DefaultRepositoryID
 	return s.Store.ListItems(ctx, r, actor, id, cursor)
 }
 
@@ -288,10 +317,10 @@ func (s *Service) ChangeItem(ctx context.Context, actor, rid, id, target string,
 	if e != nil {
 		return Project{}, e
 	}
-	if _, e = s.Sources.Authorize(ctx, actor, value.SourceRepositoryID, r.GroupID); e != nil {
+	if _, e = s.Sources.Authorize(ctx, actor, value.DefaultRepositoryID, r.OwnerID); e != nil {
 		return Project{}, e
 	}
-	r.SourceRepositoryID = value.SourceRepositoryID
+	r.SourceRepositoryID = value.DefaultRepositoryID
 	result, e := s.Store.ChangeItem(ctx, r, actor, id, target, add, version)
 	if e == nil {
 		e = s.progress(ctx, r, &result)

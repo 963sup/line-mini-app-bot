@@ -1,0 +1,242 @@
+{
+  "paths": {
+    "/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions": {
+      "get": {
+        "operationId": "listInspectionSubmissions",
+        "summary": "查看引用的驗收紀錄",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ownerId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[UC][a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "itemId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InspectionSubmission"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "./projects.yaml#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "submitInspection",
+        "summary": "提交驗收",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ownerId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[UC][a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "itemId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InspectionSubmission"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "./projects.yaml#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InspectionInput"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InspectionSubmission": {
+        "type": "object",
+        "required": [
+          "id",
+          "submittedBy",
+          "sourceRepositoryId",
+          "sourceId",
+          "sourceType",
+          "note",
+          "status",
+          "submittedAt",
+          "sourceVersion"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "submittedBy": {
+            "type": "string"
+          },
+          "sourceRepositoryId": {
+            "type": "string"
+          },
+          "sourceId": {
+            "type": "string"
+          },
+          "sourceType": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending"
+            ]
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sourceVersion": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "InspectionInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "note"
+        ],
+        "properties": {
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      }
+    }
+  }
+}

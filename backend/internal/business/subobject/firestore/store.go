@@ -108,13 +108,13 @@ func (s *Store) scope(tx *db.Transaction, r repository.Repository, pid, actor st
 	}
 	var repo struct {
 		ID      string `firestore:"id"`
-		GroupID string `firestore:"groupId"`
+		OwnerID string `firestore:"ownerId"`
 		Status  string `firestore:"status"`
 	}
 	if e = snap.DataTo(&repo); e != nil {
 		return "", e
 	}
-	if repo.ID != r.ID || repo.GroupID != r.GroupID || repo.Status != "ACTIVE" {
+	if repo.ID != r.ID || repo.OwnerID != r.OwnerID || repo.Status != "ACTIVE" {
 		return "", feature.ErrNotFound
 	}
 	snap, e = tx.Get(s.parent(r.ID, pid))

@@ -308,7 +308,6 @@
         "additionalProperties": false,
         "required": [
           "id",
-          "repositoryId",
           "title",
           "body",
           "creatorId",
@@ -316,14 +315,12 @@
           "createdAt",
           "updatedAt",
           "issueCount",
-          "completedIssueCount"
+          "completedIssueCount",
+          "ownerId",
+          "defaultRepositoryId"
         ],
         "properties": {
           "id": {
-            "type": "string",
-            "pattern": "^[a-f0-9]{32}$"
-          },
-          "repositoryId": {
             "type": "string",
             "pattern": "^[a-f0-9]{32}$"
           },
@@ -366,17 +363,24 @@
             "minimum": 0,
             "maximum": 9007199254740991
           },
-          "spaceId": {
+          "ownerId": {
             "type": "string",
-            "pattern": "^C[a-f0-9]{32}$"
-          },
-          "sourceRepositoryId": {
-            "type": "string",
-            "pattern": "^[a-f0-9]{32}$"
+            "pattern": "^[UC][a-f0-9]{32}$"
           },
           "sourceAvailable": {
             "type": "boolean",
             "description": "False means source counts/details are unavailable; numeric count fields must not be shown as observed zero."
+          },
+          "linkedRepositoryIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          "defaultRepositoryId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
           }
         }
       },
@@ -422,6 +426,14 @@
             "format": "int64",
             "minimum": 1,
             "maximum": 9007199254740991
+          },
+          "linkRepositoryId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "unlinkRepositoryId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
           }
         }
       },

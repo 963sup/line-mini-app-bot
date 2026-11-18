@@ -55,7 +55,7 @@ Go最高package fan-in維持identity12、repository11、transport/http11；最�
 | 延後 | 五處HTTP Register約287行相似，但牽涉CSRF／認證順序、Project items例外及各能力訊息 | 本批不抽取；需要專門整合驗收，不能為DRY一次移走安全邊界 |
 | 不修改 | 前端mine／disabled／狀態標籤為呈現及防禦，後端仍執行資格、作者、版本與狀態規則 | 沒有確認越權或業務規則搬錯層；不引入大型共用控制器。A→B來源race候選違反目前單group唯一Repository模型，已撤回 |
 
-實際production檔案：[group.go](../../../backend/internal/transport/line/group.go)、[membership.go](../../../backend/internal/transport/line/membership.go)、[Repository observer](../../../backend/internal/business/repository/line/observer.go)、[Space observer](../../../backend/internal/business/space/line/observer.go)、[Repository組裝](../../../backend/internal/server/repository.go)、[Space組裝](../../../backend/internal/server/space.go)。舊Repository-owned membership.go已移除，沒有留下純轉呼叫alias。
+實際production檔案：[group.go](../../../backend/internal/transport/line/group.go)、[membership.go](../../../backend/internal/transport/line/membership.go)、[Repository observer](../../../backend/internal/business/repository/line/observer.go)、[Space observer](../../../backend/internal/business/group/line/observer.go)、[Repository組裝](../../../backend/internal/server/repository.go)、[Space組裝](../../../backend/internal/server/group.go)。舊Repository-owned membership.go已移除，沒有留下純轉呼叫alias。
 
 Membership的HTTP邏輯逐段對照基準：原本就要求200且profile.userId等於非空請求者，404＝deny且無error，403／429／無效profile／body／網路失敗＝Unavailable；本輪沒有新增接受條件。內部錯誤由Repository.ErrUnavailable改為平台ErrMembershipUnavailable，各Domain HTTP原本對此類失敗的503及訊息保持；token、1秒deadline與已配置的redirect拒絕策略不變。Group join／leave可合法沒有user；它不是空使用者通過membership核驗。
 
