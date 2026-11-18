@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/963sup/line-mini-app-bot/internal/identity"
+
 	feature "github.com/963sup/line-mini-app-bot/internal/business/objectimport"
 	"github.com/963sup/line-mini-app-bot/internal/business/objectimport/automatic"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
@@ -24,14 +26,14 @@ func (s *importServer) CreateObjectImportRun(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	var input generated.ObjectImportRunCreation
-	if !body(w, r, &input) {
+	if !transport.ReadJSON(w, r, &input, "草稿 JSON 無效。") {
 		return
 	}
 	source := feature.Source{SourceDocument: input.SourceDocument, SourceRevision: input.SourceRevision}
 	for _, p := range input.Pages {
 		source.Pages = append(source.Pages, feature.Page{Number: p.Number, Text: p.Text})
 	}
-	j, e := s.automatic.Create(r.Context(), actor(r), rid, p.IdempotencyKey, source, selectedType(input.Type))
+	j, e := s.automatic.Create(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, source, selectedType(input.Type))
 	if !writeAutomaticError(w, e) {
 		transport.WriteJSON(w, 200, automaticView(j))
 	}
@@ -42,7 +44,7 @@ func (s *importServer) GetObjectImportRun(w http.ResponseWriter, r *http.Request
 		transport.WriteAPIError(w, 503, "not_configured", "物件匯入尚未啟用。")
 		return
 	}
-	j, e := s.automatic.Get(r.Context(), actor(r), rid, id)
+	j, e := s.automatic.Get(r.Context(), identity.UserID(r.Context()), rid, id)
 	if !writeAutomaticError(w, e) {
 		transport.WriteJSON(w, 200, automaticView(j))
 	}
@@ -67,7 +69,7 @@ func writeAutomaticError(w http.ResponseWriter, e error) bool {
 	case errors.Is(e, feature.ErrConflict):
 		status, code, message = 409, "state_conflict", "匯入狀態不符，請重新讀取。"
 	}
-	transport.WriteAPIError(w, status, code, message)
+	transport.WriteServiceError(w, status, code, message, e)
 	return true
 }
 

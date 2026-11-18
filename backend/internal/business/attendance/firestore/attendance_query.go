@@ -10,6 +10,7 @@ import (
 
 	db "cloud.google.com/go/firestore"
 	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/records"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -45,7 +46,7 @@ type pageCursor struct {
 }
 
 func (s *Attendance) cursorScope(kind, user, group string, start time.Time) string {
-	return documentKey("attendance-query-v1-start-end-id-desc", s.ChannelID, user, kind, group, start.UTC().Format(time.RFC3339Nano))
+	return firestorekey.Encode("attendance-query-v1-start-end-id-desc", s.ChannelID, user, kind, group, start.UTC().Format(time.RFC3339Nano))
 }
 
 func decodeCursor(value, scope string) (pageCursor, error) {

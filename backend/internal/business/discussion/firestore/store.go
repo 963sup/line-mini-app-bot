@@ -2,9 +2,7 @@ package firestore
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"strconv"
@@ -15,6 +13,8 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/discussion"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository/labels"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -75,16 +75,12 @@ func decode(snap *db.DocumentSnapshot, err error, repositoryID string) (discussi
 	return discussion.Discussion{ID: d.ID, RepositoryID: d.RepositoryID, Number: d.Number, Title: d.Title, Body: d.Body, AuthorID: d.AuthorID, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt, LabelIDs: ids}, nil
 }
 
-func (s *Store) parent(id string) *db.DocumentRef {
+func (s *Store) repositoryRef(id string) *db.DocumentRef {
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("repositories").Doc(id)
 }
 func (s *Store) ready() bool { return s != nil && s.Client != nil && s.ChannelID != "" }
 
 // Translate at the adapter boundary; SDK status/cause never becomes a domain dependency.
-type storageFailure struct{ cause error }
-
-func (e *storageFailure) Error() string { return "discussion storage unavailable" }
-func (e *storageFailure) Unwrap() error { return discussion.ErrUnavailable }
 
 func translate(err error) error {
 	if err == nil {
@@ -100,12 +96,8 @@ func translate(err error) error {
 		return discussion.ErrNotFound
 	case errors.Is(err, repository.ErrCreationConflict):
 		return discussion.ErrCreationConflict
-	case status.Code(err) == codes.Canceled:
-		return context.Canceled
-	case status.Code(err) == codes.DeadlineExceeded:
-		return context.DeadlineExceeded
 	default:
-		return &storageFailure{cause: err}
+		return grpcstatus.NormalizeContextError(err)
 	}
 }
 
@@ -114,7 +106,7 @@ func (s *Store) Get(ctx context.Context, scope repository.Repository, id string)
 	if !s.ready() {
 		return result, discussion.ErrUnavailable
 	}
-	snap, err := s.parent(scope.ID).Collection("discussions").Doc(id).Get(ctx)
+	snap, err := s.repositoryRef(scope.ID).Collection("discussions").Doc(id).Get(ctx)
 	return decode(snap, err, scope.ID)
 }
 
@@ -122,8 +114,6 @@ type cursor struct {
 	Scope  string
 	Number int64
 }
-
-func hash(value []byte) string { sum := sha256.Sum256(value); return hex.EncodeToString(sum[:]) }
 
 func (s *Store) List(ctx context.Context, scope repository.Repository, actor string, f discussion.Filter) (result discussion.Page, err error) {
 	defer func() { err = translate(err) }()
@@ -135,7 +125,7 @@ func (s *Store) List(ctx context.Context, scope repository.Repository, actor str
 	if err != nil {
 		return result, err
 	}
-	scopeKey := hash(key)
+	scopeKey := firestorekey.Digest(key)
 	var c cursor
 	if f.Cursor != "" {
 		b, decodeErr := base64.RawURLEncoding.DecodeString(f.Cursor)
@@ -143,7 +133,7 @@ func (s *Store) List(ctx context.Context, scope repository.Repository, actor str
 			return result, discussion.ErrInput
 		}
 	}
-	q := s.parent(scope.ID).Collection("discussions").OrderBy("number", db.Desc)
+	q := s.repositoryRef(scope.ID).Collection("discussions").OrderBy("number", db.Desc)
 	if c.Number != 0 {
 		q = q.StartAfter(c.Number)
 	}
@@ -175,7 +165,7 @@ func (s *Store) List(ctx context.Context, scope repository.Repository, actor str
 	return result, nil
 }
 
-func (s *Store) Create(ctx context.Context, scope repository.Repository, actor, key string, c discussion.Content) (result discussion.Discussion, err error) {
+func (s *Store) Create(ctx context.Context, repo repository.Repository, actorID, idempotencyKey string, content discussion.Content) (result discussion.Discussion, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() || s.Numbers == nil {
 		return result, discussion.ErrUnavailable
@@ -185,19 +175,19 @@ func (s *Store) Create(ctx context.Context, scope repository.Repository, actor, 
 		Version int    `json:"version"`
 		Title   string `json:"title"`
 		Body    string `json:"body"`
-	}{1, c.Title, c.Body})
+	}{1, content.Title, content.Body})
 	if err != nil {
 		return result, err
 	}
-	reference, err := s.Numbers.CreateNumberedResource(ctx, repository.NumberedCreation{RepositoryID: scope.ID, OwnerID: scope.OwnerID, ActorID: actor, ResourceType: "discussion", Key: key, PayloadHash: hash(payload)}, func(_ context.Context, tx *db.Transaction, ref repository.NumberedResource) error {
-		i := discussion.Discussion{ID: ref.ResourceID, RepositoryID: scope.ID, Number: ref.Number, Title: c.Title, Body: c.Body, AuthorID: actor, Version: 1, CreatedAt: ref.CreatedAt, UpdatedAt: ref.CreatedAt}
-		return tx.Create(s.parent(scope.ID).Collection("discussions").Doc(i.ID), encode(i))
+	reference, err := s.Numbers.CreateNumberedResource(ctx, repository.NumberedCreation{RepositoryID: repo.ID, OwnerID: repo.OwnerID, ActorID: actorID, ResourceType: "discussion", IdempotencyKey: idempotencyKey, PayloadHash: firestorekey.Digest(payload)}, func(_ context.Context, tx *db.Transaction, ref repository.NumberedResource) error {
+		i := discussion.Discussion{ID: ref.ResourceID, RepositoryID: repo.ID, Number: ref.Number, Title: content.Title, Body: content.Body, AuthorID: actorID, Version: 1, CreatedAt: ref.CreatedAt, UpdatedAt: ref.CreatedAt}
+		return tx.Create(s.repositoryRef(repo.ID).Collection("discussions").Doc(i.ID), encode(i))
 	})
 	if err != nil {
 		return result, err
 	}
 	// Replays return the same identity/number and its current persisted snapshot.
-	return s.Get(ctx, scope, reference.ResourceID)
+	return s.Get(ctx, repo, reference.ResourceID)
 }
 
 type change struct {
@@ -211,7 +201,7 @@ func (s *Store) Update(ctx context.Context, scope repository.Repository, actor, 
 	if !s.ready() {
 		return result, discussion.ErrUnavailable
 	}
-	parent := s.parent(scope.ID)
+	parent := s.repositoryRef(scope.ID)
 	ref := parent.Collection("discussions").Doc(id)
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	err = s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {

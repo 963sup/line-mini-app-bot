@@ -2,10 +2,6 @@
 
 工程群組及Project各自保存核心、用例與adapters。Project不依賴Repository核心模型作父容器，只透過使用端定義的來源讀取port查事項；工程群組成員及來源資格分開核驗。現行邊界與遷移見 [獨立Project](../docs/features/project/projects.md)。
 
-來源Issue hydration故障與Project自有資料錯誤的隔離、回歸及架構度量見[第二輪收斂證據](../docs/reports/2026-11-13/architecture-convergence-pass2-20261113.md)。
-
-後續來源授權取消語義的最小修正與逐輪驗證見[架構迭代](../docs/reports/2026-11-13/architecture-iteration-20261113.md#第一輪統一-project-取消語義)。
-
 `cmd/projectmigrate` 是明確namespace的dry-run／apply／受限rollback工具，旗標與writer部署前提見 [遷移指南](cmd/projectmigrate/README.md)；不由server啟動時自動搬正式資料。
 
 ## 目錄導覽與維護
@@ -27,14 +23,14 @@ cmd/ 保存 server、richmenu、firestorecheck 與 attendancemigrate 入口；in
 - [後端功能邊界](../docs/foundation/architecture/backend-boundaries.md)
 - [依賴規則](../docs/foundation/architecture/dependencies.md)
 - [Go 開發慣例](../docs/development/go.md)
-- [可靠性與資料](../docs/foundation/reliability/reliability.md)
+- [可靠性與資料](../docs/foundation/reliability/state-machines.md)
 - [API 契約工作流程](../api/README.md)
 
 - [群組請假登記](../docs/features/attendance/leave.md)
 
 - [群組出勤看板與本人漏下班檢查](../docs/features/attendance/board.md)
 
-- [Business 模組重構](../docs/development/business-refactor.md)
+- [目前模組與責任](../docs/foundation/architecture/layout.md)
 
 Summary 的共用 LINE 組合入口在 business/summary/line；訊息收集位於
 messagecollection/line，摘要指令與排程位於 summarization/line。
@@ -49,7 +45,7 @@ Weather 既有實作集中在 business/weather/forecast/{cwa,line}。
 - [空間事項第一階段](../docs/features/repository/issues.md)：核心、HTTP 與 Firestore 分層實作；正式環境待驗收。
 - [Repository 共用資源編號基礎](../docs/features/repository/numbering.md)：內部交易介面，已由事項建立使用，不提供獨立公開分配 API。
 
-- [里程碑、專案與統計](../docs/reports/2026-11-13/planning.md)
+- [里程碑](../docs/features/repository/milestones.md)、[Project](../docs/features/project/projects.md)與[統計](../docs/features/repository/statistics.md)
 
 ## 協作能力分佈與交付狀態
 

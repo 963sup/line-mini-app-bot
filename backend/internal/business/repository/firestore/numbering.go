@@ -10,6 +10,7 @@ import (
 
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -57,7 +58,7 @@ func (s *Store) CreateNumberedResource(ctx context.Context, command repository.N
 	if !command.Valid() || create == nil {
 		return repository.NumberedResource{}, repository.ErrNumberedCreation
 	}
-	if s == nil || s.Client == nil || s.ChannelID == "" {
+	if !s.ready() {
 		return repository.NumberedResource{}, repository.ErrUnavailable
 	}
 	var random [16]byte
@@ -66,13 +67,13 @@ func (s *Store) CreateNumberedResource(ctx context.Context, command repository.N
 	}
 	// Allocate stable identity/time outside the retried callback, not a number.
 	resourceID, now := hex.EncodeToString(random[:]), time.Now().UTC().Truncate(time.Microsecond)
-	parent := s.channel().Collection("repositories").Doc(command.RepositoryID)
+	parent := s.repositoryRef(command.RepositoryID)
 	counter := parent.Collection("counters").Doc("resources")
-	scope, err := json.Marshal([]string{"numbered-resource-create", command.ActorID, command.Key})
+	scope, err := json.Marshal([]string{"numbered-resource-create", command.ActorID, command.IdempotencyKey})
 	if err != nil {
 		return repository.NumberedResource{}, err
 	}
-	receipt := parent.Collection("resourceCreationReceipts").Doc(key(string(scope)))
+	receipt := parent.Collection("resourceCreationReceipts").Doc(firestorekey.Digest(scope))
 	var result repository.NumberedResource
 	err = s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		result = repository.NumberedResource{}
@@ -167,10 +168,10 @@ func (s *Store) GetResourceNumber(ctx context.Context, repositoryID string, numb
 	if !repository.ValidID(repositoryID) || number < 1 || number > repository.MaxResourceNumber {
 		return repository.NumberedResource{}, repository.ErrNotFound
 	}
-	if s == nil || s.Client == nil || s.ChannelID == "" {
+	if !s.ready() {
 		return repository.NumberedResource{}, repository.ErrUnavailable
 	}
-	ref := s.channel().Collection("repositories").Doc(repositoryID).Collection("resourceNumbers").Doc(strconv.FormatInt(number, 10))
+	ref := s.repositoryRef(repositoryID).Collection("resourceNumbers").Doc(strconv.FormatInt(number, 10))
 	snap, err := ref.Get(ctx)
 	if status.Code(err) == codes.NotFound {
 		return repository.NumberedResource{}, repository.ErrNotFound

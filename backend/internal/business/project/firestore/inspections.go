@@ -5,6 +5,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
+
 	db "cloud.google.com/go/firestore"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/project"
 	"google.golang.org/grpc/codes"
@@ -26,7 +28,7 @@ type inspectionDocument struct {
 const submissions = "inspectionSubmissions"
 
 func (s *Store) Inspections(ctx context.Context, r feature.Scope, pid, itemID, note string) (result []feature.InspectionSubmission, err error) {
-	defer func() { err = planningError(err) }()
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	root := s.ownerDoc(r.OwnerID)
 	project := root.Collection("projects").Doc(pid)
 	item := project.Collection("items").Doc(itemID)
@@ -53,11 +55,11 @@ func (s *Store) Inspections(ctx context.Context, r feature.Scope, pid, itemID, n
 	now := time.Now().UTC()
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = []feature.InspectionSubmission{}
-		if err := s.planningContainer(tx, r, root); err != nil {
+		if err := s.checkProjectOwner(tx, r, root); err != nil {
 			return err
 		}
 		snap, err := tx.Get(project)
-		if _, err = planningDecode(snap, err, r); err != nil {
+		if _, err = decodeProject(snap, err, r); err != nil {
 			return err
 		}
 		snap, err = tx.Get(item)

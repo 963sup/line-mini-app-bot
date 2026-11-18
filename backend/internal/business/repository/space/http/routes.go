@@ -2,9 +2,7 @@ package spacehttp
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"io"
 	"mime"
 	"net/http"
 	"time"
@@ -86,7 +84,6 @@ func view(i feature.Space) generated.RepositorySpace {
 	return generated.RepositorySpace{Id: i.ID, RepositoryId: i.RepositoryID, Name: i.Name, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
 }
 
-func actor(r *http.Request) string { u, _ := identity.FromContext(r.Context()); return u.ID }
 func writeError(w http.ResponseWriter, e error) bool {
 	if e == nil {
 		return false
@@ -100,17 +97,7 @@ func writeError(w http.ResponseWriter, e error) bool {
 	case errors.Is(e, feature.ErrCreationConflict):
 		code, httpStatus, message = "idempotency_conflict", 409, "重試識別碼已用於不同內容，請先確認原業務空間。"
 	}
-	transport.WriteAPIError(w, httpStatus, code, message)
-	return true
-}
-
-func body(w http.ResponseWriter, r *http.Request, target any) bool {
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if d.Decode(target) != nil || d.Decode(new(any)) != io.EOF {
-		transport.WriteAPIError(w, 400, "invalid_input", "業務空間資料無效。")
-		return false
-	}
+	transport.WriteServiceError(w, httpStatus, code, message, e)
 	return true
 }
 
@@ -119,7 +106,7 @@ func (s *spaceServer) ListRepositorySpaces(w http.ResponseWriter, r *http.Reques
 	if p.Cursor != nil {
 		cursor = *p.Cursor
 	}
-	page, e := s.service.List(r.Context(), actor(r), rid, cursor)
+	page, e := s.service.List(r.Context(), identity.UserID(r.Context()), rid, cursor)
 	if writeError(w, e) {
 		return
 	}
@@ -131,7 +118,7 @@ func (s *spaceServer) ListRepositorySpaces(w http.ResponseWriter, r *http.Reques
 }
 
 func (s *spaceServer) GetRepositorySpace(w http.ResponseWriter, r *http.Request, rid, id string) {
-	i, e := s.service.Get(r.Context(), actor(r), rid, id)
+	i, e := s.service.Get(r.Context(), identity.UserID(r.Context()), rid, id)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -139,10 +126,10 @@ func (s *spaceServer) GetRepositorySpace(w http.ResponseWriter, r *http.Request,
 
 func (s *spaceServer) CreateRepositorySpace(w http.ResponseWriter, r *http.Request, rid string, p generated.CreateRepositorySpaceParams) {
 	var in generated.RepositorySpaceCreation
-	if !body(w, r, &in) {
+	if !transport.ReadJSON(w, r, &in, "業務空間資料無效。") {
 		return
 	}
-	item, err := s.service.Create(r.Context(), actor(r), rid, p.IdempotencyKey, in.Name)
+	item, err := s.service.Create(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, in.Name)
 	if !writeError(w, err) {
 		transport.WriteJSON(w, 200, view(item))
 	}

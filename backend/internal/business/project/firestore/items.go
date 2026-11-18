@@ -5,6 +5,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
+
 	db "cloud.google.com/go/firestore"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/project"
 
@@ -82,13 +85,6 @@ func (s *Store) readItem(tx *db.Transaction, r feature.Scope, pid string, snap *
 	return i, nil
 }
 
-type sourceReadFailure struct{ cause error }
-
-func (*sourceReadFailure) Error() string { return "project source unavailable" }
-func (e *sourceReadFailure) Unwrap() []error {
-	return []error{feature.ErrSourceUnavailable, feature.ErrUnavailable}
-}
-
 func requireProjectLink(tx *db.Transaction, project *db.DocumentRef, sourceID string) error {
 	_, err := tx.Get(project.Collection("linkedRepositories").Doc(sourceID))
 	if status.Code(err) == codes.NotFound {
@@ -98,11 +94,11 @@ func requireProjectLink(tx *db.Transaction, project *db.DocumentRef, sourceID st
 }
 
 func (s *Store) Progress(ctx context.Context, r feature.Scope, result *feature.Project) (err error) {
-	defer func() { err = planningError(err) }()
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	r.SourceRepositoryID = result.DefaultRepositoryID
 	parent := s.ownerDoc(r.OwnerID)
 	return s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		if e := s.planningContainer(tx, r, parent); e != nil {
+		if e := s.checkProjectOwner(tx, r, parent); e != nil {
 			return e
 		}
 		if e := requireProjectLink(tx, parent.Collection("projects").Doc(result.ID), r.SourceRepositoryID); e != nil {
@@ -127,7 +123,7 @@ func (s *Store) Progress(ctx context.Context, r feature.Scope, result *feature.P
 				if r.Legacy || errors.Is(e, context.Canceled) || errors.Is(e, context.DeadlineExceeded) || status.Code(e) == codes.Canceled || status.Code(e) == codes.DeadlineExceeded {
 					return e
 				}
-				return &sourceReadFailure{cause: e}
+				return feature.ErrSourceUnavailable
 			}
 			result.IssueCount++
 			if i.State == "completed" {
@@ -139,9 +135,9 @@ func (s *Store) Progress(ctx context.Context, r feature.Scope, result *feature.P
 }
 
 func (s *Store) ListItems(ctx context.Context, r feature.Scope, actor, pid, token string) (result feature.ItemPage, err error) {
-	defer func() { err = planningError(err) }()
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	result.Items = []feature.Item{}
-	if !s.planningReady() {
+	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
 	scope := []string{s.ChannelID, r.OwnerID, actor, pid}
@@ -150,17 +146,17 @@ func (s *Store) ListItems(ctx context.Context, r feature.Scope, actor, pid, toke
 	}
 	root := s.ownerDoc(r.OwnerID)
 	parent := root.Collection("projects").Doc(pid)
-	q, e := planningPage(parent.Collection("items").OrderBy(db.DocumentID, db.Asc), token, scope)
+	q, e := applyListCursor(parent.Collection("items").OrderBy(db.DocumentID, db.Asc), token, scope)
 	if e != nil {
 		return result, e
 	}
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = feature.ItemPage{Items: []feature.Item{}}
-		if e := s.planningContainer(tx, r, root); e != nil {
+		if e := s.checkProjectOwner(tx, r, root); e != nil {
 			return e
 		}
 		snap, e := tx.Get(parent)
-		if _, e := planningDecode(snap, e, r); e != nil {
+		if _, e := decodeProject(snap, e, r); e != nil {
 			return e
 		}
 		if e := requireProjectLink(tx, parent, r.SourceRepositoryID); e != nil {
@@ -189,7 +185,7 @@ func (s *Store) ListItems(ctx context.Context, r feature.Scope, actor, pid, toke
 			result.Items = append(result.Items, i)
 		}
 		if more {
-			result.NextCursor = planningNext(scope, snaps[len(snaps)-1].Ref.ID)
+			result.NextCursor = firestorekey.EncodeCursor(scope, snaps[len(snaps)-1].Ref.ID)
 		}
 		return nil
 	}, db.ReadOnly)
@@ -200,8 +196,8 @@ func (s *Store) ListItems(ctx context.Context, r feature.Scope, actor, pid, toke
 }
 
 func (s *Store) ChangeItem(ctx context.Context, r feature.Scope, actor, pid, target string, add bool, version int64) (result feature.Project, err error) {
-	defer func() { err = planningError(err) }()
-	if !s.planningReady() {
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
+	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
 	root := s.ownerDoc(r.OwnerID)
@@ -213,11 +209,11 @@ func (s *Store) ChangeItem(ctx context.Context, r feature.Scope, actor, pid, tar
 	ref := parent.Collection("items").Doc(itemID)
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		if e := s.planningContainer(tx, r, root); e != nil {
+		if e := s.checkProjectOwner(tx, r, root); e != nil {
 			return e
 		}
 		snap, e := tx.Get(parent)
-		current, e := planningDecode(snap, e, r)
+		current, e := decodeProject(snap, e, r)
 		if e != nil {
 			return e
 		}
@@ -263,7 +259,7 @@ func (s *Store) ChangeItem(ctx context.Context, r feature.Scope, actor, pid, tar
 		if add {
 			action = "add_item"
 		}
-		return s.planningWrite(tx, parent, current, updated, actor, action)
+		return writeProjectChange(tx, parent, current, updated, actor, action)
 	})
 	if err != nil {
 		return result, err

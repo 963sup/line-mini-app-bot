@@ -1,10 +1,6 @@
 # Codex Cloud: mise + MCP
 
-Run the environment setup command from the repository checkout:
-
-```bash
-bash scripts/tooling/bootstrap.sh all
-```
+Run the `all` mode from [Bootstrap](setup.md#bootstrap).
 
 The script verifies/installs mise 2026.11.3, installs pinned Go and MCP tools,
 checks Go compilation/vet/race, builds the Graphify index, then probes all seven
@@ -13,13 +9,7 @@ not publish an environment, deploy an application, change Codex trust, or copy
 credentials. Requires Linux x64/arm64, bash, curl, tar, sha256sum, Python 3.11+
 and a C compiler for Go race testing.
 
-Other entry points:
-
-```bash
-bash scripts/tooling/bootstrap.sh core
-bash scripts/tooling/bootstrap.sh mcp
-bash scripts/tooling/tool-exec.sh mise run doctor-mcp
-```
+For transport diagnostics, run `bash scripts/tooling/tool-exec.sh mise run doctor-mcp`.
 
 Browser MCPs and Google Cloud CLI remain separate optional installations.
 All local MCP commands use scripts/tooling/tool-exec.sh to load writable tool paths in
@@ -50,15 +40,17 @@ not enable agent-phase MCP traffic.
 
 ## Acceptance
 
-1. Run bootstrap all in a newly prepared environment. A missing credential or
-   failed transport produces a nonzero exit, with each MCP reported separately.
-2. Confirm the actual host lists all seven configured servers/tools on a new
-   conversation. Local `codex mcp list --json` is a useful local configuration
-   check, but does not prove the separate chat host loaded the same configuration.
-3. Perform task-relevant calls through the host. The doctor verifies initialize,
-   paginated tools/list and enabled_tools names; it does not execute every tool.
-4. Rebuild Graphify with `bash scripts/tooling/tool-exec.sh mise run graphify-update`
-   when source changes. Go workspace analysis requires an application go.mod.
+```mermaid
+flowchart LR
+  B["Run bootstrap all in a fresh environment"] --> T{"Credentials and MCP transports pass?"}
+  T -->|No| F["Nonzero exit with per-server results"]
+  T -->|Yes| H["Confirm all seven configured servers and tools in a new chat"]
+  H --> C["Perform task-relevant calls through that host"]
+```
+
+Local `codex mcp list --json` checks local configuration. Chat host loading and tool execution require the separate checks in the diagram. The doctor checks initialize, paginated tools/list and enabled_tools names.
+
+After source changes, rebuild Graphify with `bash scripts/tooling/tool-exec.sh mise run graphify-update`. Go workspace analysis requires an application go.mod.
 
 Verified in the current container: Go doctor and all seven MCP transport probes pass.
 GitHub uses GITHUB_MCP_TOKEN and returns 46 tools. The local Codex CLI previously

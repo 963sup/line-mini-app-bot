@@ -1,27 +1,24 @@
 # 工具與分析
 
-mise、Skills、MCP 與 Graphify／Repomix 分析範圍及報告。
+遇到具體工具需求再讀對應頁面；工具已安裝、已設定、可連線與操作成功是不同證據。
 
-## 文件索引
+## 日常工具入口
 
-- [HTTP 診斷期限與回歸驗證收斂](../reports/2026-11-13/http-deadline-convergence-20261113.md)：HTTP worker、期限與清理回歸、既有 CI 整合。
-- [移除空間預覽、補回歸與 MCP 優先發布](../reports/2026-11-13/preview-removal-optimization-20261113.md)：本輪範圍、量化、完整驗證與停止理由。
-- [架構延續：固定診斷期限與完整取消責任](../reports/2026-11-13/architecture-continuation-20261113.md)：tooling／shared helper 的兩輪收斂與驗證。
-- [架構迭代：來源錯誤邊界與留言生命週期](../reports/2026-11-13/architecture-iteration-20261113.md)：逐輪排序、最小變更、量測與停止條件。
-- [架構收斂第二輪：Project來源故障隔離](../reports/2026-11-13/architecture-convergence-pass2-20261113.md)：新基準、精確故障邊界及前後證據。
-- [架構收斂基準與前後對照（2026-11-13）](../reports/2026-11-13/architecture-convergence-20261113.md)：有向依賴／呼叫、重複協定與實際最小修正。
-- [Graphify／Repomix 儲存庫分析與五項優先方案（2026-11-13）](../reports/2026-11-13/graphify-repomix-report-20261113.md)
-- [Analysis scope and evidence](analysis-scope.md)
-- [mise ownership](mise.md)
-- [專案 Skills](skills.md)
-- [MCP 工具索引](mcp/README.md)
-- [shadcn UI、官方 Skill、CLI 與 MCP](mcp/shadcn.md)
-- [shadcn Components／AI Elements 本機參考庫、搜尋與更新](shadcn-reference/README.md)
-- [Next.js DevTools MCP：按需 runtime 檢查與操作邊界](mcp/next-devtools.md)
+| 需求 | 文件 |
+| --- | --- |
+| 工具版本、任務與環境 | [mise](mise.md)；版本與任務以 [mise.toml](../../mise.toml)為準 |
+| 選擇或診斷 MCP | [MCP 索引](mcp/README.md) |
+| 使用專案技能 | [Skills](skills.md) |
+| 理解分析涵蓋與限制 | [分析範圍](analysis-scope.md) |
+| 查詢程式關係 | [Graphify](mcp/graphify.md) |
+| 打包限定原始碼 | [Repomix](mcp/repomix.md) |
+| 查 UI 元件與整合流程 | [shadcn 指南](mcp/shadcn.md)、[本機參考庫入口](shadcn-reference/README.md) |
+| 檢查 Next.js 開發執行狀態 | [Next DevTools](mcp/next-devtools.md) |
 
-## 歸屬與維護
+## 上游參考資料
 
-區分安裝、設定、連線與實際操作驗證；工具涵蓋率不等於語意正確。版本與連線設定連回單一來源。
-新增或搬移文件時，依[文件維護指引](../AGENTS.md#主題子目錄)更新索引。
+`shadcn-reference/snapshot/` 是上游參考快照，按索引搜尋所需頁面；不作為專案政策，也不全量載入。[查詢與更新方式](shadcn-reference/README.md)
 
-[本目錄指引](AGENTS.md) · [父層指引](../AGENTS.md) · [文件總索引](../README.md)
+分析產物存放於任務暫存目錄，依[來源與證據規則](analysis-scope.md)核對版本及有效性；不在 docs 累積日期報告。
+
+[本目錄指引](AGENTS.md) · [父層指引](../AGENTS.md) · [文件總入口](../README.md)

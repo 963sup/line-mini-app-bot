@@ -9,6 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/subobject"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
@@ -137,6 +140,33 @@ func TestHTTPSubobjectContractAndIndependentScope(t *testing.T) {
 		}
 		if out.Code != expected {
 			t.Fatal("authentication/scope", out.Code)
+		}
+	}
+}
+
+type unavailableRepositories struct{ err error }
+
+func (r unavailableRepositories) Get(context.Context, string, string) (repository.Repository, error) {
+	return repository.Repository{}, r.err
+}
+
+func TestRepositoryFailureDetails(t *testing.T) {
+	failure := status.Error(codes.PermissionDenied, "repository read denied")
+	mux := http.NewServeMux()
+	Register(mux, &feature.Service{Repositories: unavailableRepositories{failure}, Store: &memory{}}, auth{})
+	path := "/api/v1/repositories/" + strings.Repeat("a", 32) + "/objects/" + strings.Repeat("b", 32) + "/subobjects"
+	for _, mode := range []string{"1", "0"} {
+		t.Setenv("DEV_ERROR_DETAILS", mode)
+		w := httptest.NewRecorder()
+		mux.ServeHTTP(w, httptest.NewRequest("GET", path, nil))
+		var result struct {
+			Error struct{ Code, Message string }
+		}
+		if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
+			t.Fatal(err)
+		}
+		if w.Code != 503 || result.Error.Code != "unavailable" || (mode == "1" && result.Error.Message != failure.Error()) || (mode == "0" && strings.Contains(result.Error.Message, "repository read denied")) {
+			t.Fatalf("mode %s: %d %s", mode, w.Code, w.Body.String())
 		}
 	}
 }

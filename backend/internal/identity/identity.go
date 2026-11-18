@@ -33,3 +33,9 @@ func FromContext(ctx context.Context) (User, bool) {
 	user, ok := ctx.Value(userKey{}).(User)
 	return user, ok && user.ID != ""
 }
+
+// UserID returns the authenticated user's ID, or an empty string if absent.
+func UserID(ctx context.Context) string {
+	user, _ := FromContext(ctx)
+	return user.ID
+}

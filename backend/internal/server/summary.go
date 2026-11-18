@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -53,17 +52,19 @@ func registerSummary(ctx context.Context, mux *http.ServeMux) (*lineadapter.Summ
 	}
 	db, e := firestore.NewClientWithDatabase(ctx, project, database)
 	if e != nil {
-		return nil, nil, errors.New("cannot initialize summary database")
+		return nil, nil, e
 	}
 	auth, e := google.DefaultClient(ctx, "https://www.googleapis.com/auth/cloud-platform")
 	if e != nil {
-		return nil, nil, errors.Join(errors.New("cannot initialize summary queue credentials"), db.Close())
+		_ = db.Close()
+		return nil, nil, e
 	}
 	auth.Timeout = 4 * time.Second
 	auth.CheckRedirect = modelClient.CheckRedirect
 	line, e := messaging_api.NewMessagingApiAPI(os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN"), messaging_api.WithHTTPClient(&http.Client{Timeout: 10 * time.Second}))
 	if e != nil {
-		return nil, nil, errors.Join(e, db.Close())
+		_ = db.Close()
+		return nil, nil, e
 	}
 	store := &storage.Summary{Client: db, ChannelID: channel}
 	service := &summarization.Service{Store: store, Model: modelAdapter, Sender: delivery.SummaryDelivery{Bot: line}}

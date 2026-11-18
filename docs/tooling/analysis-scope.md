@@ -16,10 +16,9 @@ observed, not assumed: absent source nodes do not prove absence of dependencies.
 Repomix coverage proves content inclusion, not semantic correctness.
 
 The report records the commit, dirty state, source SHA-256 and contract hash.
-Sources are checked again after analysis; changes invalidate the run. Saved
-reports are evidence for their recorded sources only; compare source hashes
-before reusing them. This process does not validate every inferred relationship,
-MCP host exposure, or clean Cloud initialization.
+The audit rechecks sources at the end and invalidates the run if they changed.
+For reuse, follow the [evidence decision flow](../agents/workflow.md#minimal-handoff-and-evidence-reuse).
+Inferred relationships, MCP host exposure and clean Cloud initialization require separate evidence.
 
 Use `python3 scripts/analysis/analysis-scope.py --verify /absolute/path/report.json` to
 reject stale sources, changed contracts or altered raw analysis artifacts.

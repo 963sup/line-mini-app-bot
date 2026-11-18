@@ -39,7 +39,7 @@ type storedJob struct {
 	ReviewedAt                 *time.Time  `json:"reviewedAt,omitempty"`
 }
 
-func toStored(j feature.Job) storedJob {
+func toStoredJob(j feature.Job) storedJob {
 	rows := make([]storedRow, 0, len(j.Rows))
 	for _, r := range j.Rows {
 		proof := make([]storedEvidence, 0, len(r.Evidence))
@@ -51,7 +51,7 @@ func toStored(j feature.Job) storedJob {
 	return storedJob{ID: j.ID, RepositoryID: j.RepositoryID, CreatorID: j.CreatorID, Status: j.Status, Version: j.Version, ConfirmedFromReviewVersion: j.ConfirmedFromReviewVersion, SourceDocument: j.SourceDocument, SourceRevision: j.SourceRevision, SourceHash: j.SourceHash, Rows: rows, CreatedAt: j.CreatedAt, UpdatedAt: j.UpdatedAt, ReviewedAt: j.ReviewedAt}
 }
 
-func fromStored(j storedJob) feature.Job {
+func fromStoredJob(j storedJob) feature.Job {
 	rows := make([]feature.Row, 0, len(j.Rows))
 	for _, r := range j.Rows {
 		proof := make([]feature.Evidence, 0, len(r.Evidence))

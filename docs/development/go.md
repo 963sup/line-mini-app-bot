@@ -9,9 +9,9 @@ Use the pinned mise toolchain and GOTOOLCHAIN=local. Normal verification uses
 readonly modules. Change dependencies deliberately and review go.mod/go.sum.
 Format modified Go files. Test development is deferred during the current foundation
 phase; keep existing CI. Follow the [accepted baseline](../foundation/architecture/decisions/0002-baseline.md)
-for current scope and [testing guidance](testing.md) when that phase resumes.
+for current scope and [acceptance requirements](../agents/acceptance.md#變更驗收矩陣).
 Do not globally disable CGO: the race detector needs a working C toolchain.
-See [tests](testing.md), [LINE](../foundation/integrations/line.md) and
+See [LINE](../foundation/integrations/line.md) and
 [Firestore](../foundation/persistence/firestore.md) for boundary-specific requirements.
 
 架構與抽象選擇依 [開發原則與決策](../foundation/architecture/principles.md)；層級責任見 [應用架構](../foundation/architecture/overview.md)。

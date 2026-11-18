@@ -2,6 +2,24 @@
 
 本頁描述目前的主要目錄；邊界規則見 [後端功能邊界](backend-boundaries.md)。
 
+## 從需求定位修改範圍
+
+先讀對應規格，再以 Graphify 定位當前符號並核對原始碼；下表是導航，不代表所列能力已完成環境驗收。命名依[命名規範](../../development/naming.md)，檢查依[驗收矩陣](../../agents/acceptance.md#變更驗收矩陣)。
+
+| 需求 | 規格與不可破壞的契約 | 主要修改入口 |
+| --- | --- | --- |
+| 公開 API 格式或操作 | [API 工作流程](../../../api/README.md)、[契約索引](../../../api/contract/README.md) | `api/contract/` → 生成 Go／TS → 對應 `business/*/http` 與前端呼叫端 |
+| 出勤、工時、更正與請假 | [出勤索引](../../features/attendance/README.md) | `backend/internal/business/attendance/`、`frontend/miniapp/src/business/attendance/` |
+| Project 所有權與跨來源存取 | [獨立 Project](../../features/project/projects.md) | `backend/internal/business/project/`、`group/` 與來源讀取 adapter；前端 `business/project/` |
+| Repository、物件、Issue、Discussion | [功能與資料規則](../../features/repository/README.md) | `backend/internal/business/` 對應功能、各自 HTTP／Firestore adapter；前端對應 `business/` |
+| Session、登入與請求認證 | [Session 契約](../identity/browser-session.md)、[HTTP 契約](../api/http-contracts.md) | `backend/internal/identity/`、`frontend/miniapp/src/identity/` |
+| LINE Webhook、導覽或訊息 | [LINE 接入](../../development/line-prototype.md) | `backend/internal/navigation/`、功能 `line/` adapter、`internal/server/` 組裝 |
+| 摘要／天氣 | [摘要入口](../../../api/contract/summary/README.md)、[天氣入口](../../../api/contract/weather/README.md) | `backend/internal/business/summary/`、`weather/forecast/`；不自動加入公開 HTTP 契約 |
+| Firestore 欄位、交易或遷移 | 所屬功能規格與[資料契約適用範圍](dependencies.md#契約與不變條件的維護位置) | 功能 `firestore/` adapter；索引 `deploy/firestore/`；既有遷移 `backend/cmd/` |
+| 部署、設定或前端資產供應 | [Cloud Run 操作](../operations/cloud-run.md)、[前端生命週期](../frontend/react-frontend.md) | `Dockerfile`、`deploy/`、`backend/internal/server/`、`browser/`、前端建置設定 |
+
+## 主要目錄
+
 ```text
 backend/
   .env.example                 # 後端執行期設定範本
@@ -65,4 +83,4 @@ pnpm 管理 JS 工作區，Go module 位於 backend；Turborepo 協調產物與�
 
 前端身分、請求取消、靜態資產與頁面生命週期見 [React 前端](../frontend/react-frontend.md)。
 
-業務拆分與相容性驗證見 [Business 重構](../../development/business-refactor.md)。
+業務拆分與相容性驗證見 [目前模組與責任](layout.md)。

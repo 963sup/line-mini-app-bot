@@ -114,7 +114,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
       );
     });
   }
-  function create(trigger: HTMLElement) {
+  function openCreateForm(trigger: HTMLElement) {
     if (lock.current || uncertain || recovery || !guard.canWrite()) return;
     discard.navigate(() => {
       opener.current = trigger; navigating.current = true; cancelRead(); setListBusy(false); clearEditor();
@@ -184,7 +184,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
     <PagePanel heading="里程碑">
       <p className="mb-4 text-sm text-muted-foreground">空間成員可建立里程碑；只有建立者可以編輯、完成或重新開啟。</p>
       <div className="mb-4 flex flex-wrap gap-2">
-        <Button disabled={!user || busy || uncertain || recovery} onClick={event => create(event.currentTarget)}>新增里程碑</Button>
+        <Button disabled={!user || busy || uncertain || recovery} onClick={event => openCreateForm(event.currentTarget)}>新增里程碑</Button>
         <Button variant="outline" disabled={!user || listBusy || busy || !!mode || uncertain || recovery} onClick={() => load()}>重新載入里程碑</Button>
       </div>
       <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取里程碑……" />

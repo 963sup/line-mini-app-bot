@@ -36,14 +36,20 @@ Firestore 交易仍須使用 emulator／真實測試環境驗證；單元測試�
 
 ## 共用狀態規則與事件重建
 
-ApplyEvent(State, Event) 是即時交易與 RebuildSessions 的共同規則，
-包含結果代碼、是否接受、班次與休息狀態。開始或結束新休息會取消先前確認。
-拒絕操作保留原始事件，但不參與班次重建。每個已接受事件有班次內序號，
-避免同時間事件因查詢順序不同而產生不一致；同一事件 ID 不可有不同內容。
+```mermaid
+flowchart TB
+  EVENT["ApplyEvent：即時交易與重建共用規則"] --> OK{"接受事件？"}
+  OK -->|否| AUDIT["保留原始事件，排除於重建"]
+  OK -->|是| ORDER["依班次內序號套用事件"]
+  READ{"月報讀取的班次版本"} -->|舊版| OLD["沿用舊版班次讀取"]
+  READ -->|schemaVersion 3| REBUILD["重建並核對投影序號與事件數"]
+  ORDER -.-> REBUILD
+  REBUILD -->|一致| REPORT["以重建結果計算月報"]
+  REBUILD -->|異常| PENDING["列為待確認，保留原因"]
+```
 
-新建 schemaVersion 3 班次以原始事件重建後供月報計算；舊版維持原有班次讀取，
-不虛構缺失歷史。新班次原始事件數量與投影序號不符或重建異常時，
-結果列為待確認，保留重建異常原因，不採用投影中的已確認旗標。
+ApplyEvent 產生結果代碼與班次、休息狀態。新休息開始或結束會取消先前確認。同一事件 ID 的內容須一致。舊版缺失的歷史維持缺失，重建異常時以待確認狀態取代投影的已確認旗標。
+
 計算結果與班次包含來源事件 ID；規則版本為 worktime-v3。
 原始資料目前以查詢時計算；更正透過下列提案與核准流程處理，尚未新增持久化報表快照。
 
@@ -55,7 +61,7 @@ ApplyEvent(State, Event) 是即時交易與 RebuildSessions 的共同規則，
 - 完整角色管理延後；沿用伺服器管理的 attendanceReviewers 群組白名單，禁止自審。未配置審核者時維持待審，不自動核准。
 - 核准同交易保存有效投影、before／proposal／after 稽核與決定；新補登班次無原始打卡事件或GPS，不偽造定位打卡。既有班次保留原始事件與版本檢查。
 - 駁回保存理由、審核人及時間；撤回僅本人可操作。終態不能互換；相同決定重送不重複生效。撤回／駁回後要修改內容，另建申請。
-- pending／approved／rejected／cancelled 為流程狀態；stale 為原紀錄已變動，須重送或撤回；invalid 為核准證據異常，不能當作正常工時。
+
 - 核准時重查同員工、同群組的班次重疊；以既有 attendanceStates 群組文件協調正常打卡與核准交易。端點相接不算重疊，跨日／跨月不自動拒絕。
 - 首版用 groupID 等值掃描檢查重疊，單員工／群組最多1000筆，超過時拒絕處理，不回傳部分驗證結果；不宣稱固定讀取成本。後續需依資料規模改為時段索引。
 - 本人與審核清單使用作用域綁定游標、預設20筆、最多100筆，依文件ID穩定分頁，不保證時間排序。群組審核清單隱藏本人申請；無權審核者不能讀取。
@@ -63,6 +69,16 @@ ApplyEvent(State, Event) 是即時交易與 RebuildSessions 的共同規則，
 API 契約集中於 api/contract/attendance/{corrections,approvals}.yaml：GET corrections 為本人清單，scope=review 且指定 group 為授權群組清單；GET corrections/reviewer-groups 為可審核群組；POST corrections/{id}/reject 接收 reason；POST corrections/{id}/cancel 撤回本人申請。原有提交、狀態、審核明細及核准路徑保留。
 
 新增無班次補卡時，HTTP 層使用已驗證使用者向 LINE 查核原群組成員身分，不能只相信網址或前端群組值；查核失敗時不寫入申請。前端保留同草稿冪等鍵，結果不明時以同內容重試。
+
+```mermaid
+stateDiagram-v2
+  [*] --> pending: 員工送出申請
+  pending --> approved: 人工核准
+  pending --> rejected: 人工駁回
+  pending --> cancelled: 本人撤回
+```
+
+`stale` 表示原紀錄已變動，須重送或撤回。`invalid` 表示核准證據異常，不能當作正常工時。兩者是檢查結果。
 
 ## 事件驗證、更正與共用月報
 
@@ -112,10 +128,15 @@ Firestore 閉環測試：設定僅供本地測試的 FIRESTORE_EMULATOR_HOST 後
 
 ## 休息未確認與暫估工時
 
-上下班完整、時間順序與事件證據有效時，不再因尚未確認休息而將整班隱藏於工時之外。
-例如 09:00～18:00，先顯示出勤 540 分鐘、暫估工時 540 分鐘（休息待確認）；
-確認休息 60 分鐘後，已確認工時與暫估合計改為 480 分鐘，出勤仍為 540 分鐘。
-即使已有休息區間，未確認完整性前也不作最終扣除；暫估不是薪資結算依據。
+```mermaid
+flowchart TB
+  A{"上下班完整且時間、休息區間與事件證據有效？"} -->|否| I["invalid：列入 Uncalculable"]
+  A -->|是| R{"休息已確認完整？"}
+  R -->|否| E["estimated：整段出勤計入暫估，列入 Unconfirmed"]
+  R -->|是| C["confirmed：出勤扣休息，計入已確認和暫估合計"]
+```
+
+09:00～18:00 的出勤為 540 分鐘。休息待確認時暫估 540 分鐘，即使已有休息區間也先保留整段。確認休息 60 分鐘後，已確認工時與暫估合計均為 480 分鐘，出勤仍為 540 分鐘。暫估僅供顯示，不得作為薪資結算依據。
 
 Go 核心以 `ConfirmedNetMinutes` 表達已確認淨工時，以 `EstimatedTotalMinutes` 表達含已確認部分的暫估總計；兩者不可相加。HTTP adapter 明確映射到既有 `Minutes`／`EstimatedMinutes`，不改 API 欄位、Firestore 文件或工時計算規則。
 

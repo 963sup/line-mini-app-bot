@@ -2,9 +2,7 @@ package labelhttp
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"io"
 	"mime"
 	"net/http"
 	"time"
@@ -101,7 +99,7 @@ func writeError(w http.ResponseWriter, err error) bool {
 	case errors.Is(err, labels.ErrCreationConflict):
 		code, status, message = "idempotency_conflict", 409, "重試識別碼已用於不同名稱，請先確認原標籤。"
 	}
-	transport.WriteAPIError(w, status, code, message)
+	transport.WriteServiceError(w, status, code, message, err)
 	return true
 }
 
@@ -110,7 +108,7 @@ func (s *labelServer) ListLabels(w http.ResponseWriter, r *http.Request, reposit
 	if params.Cursor != nil {
 		cursor = *params.Cursor
 	}
-	page, err := s.service.List(r.Context(), actor(r), repositoryId, cursor)
+	page, err := s.service.List(r.Context(), identity.UserID(r.Context()), repositoryId, cursor)
 	if writeError(w, err) {
 		return
 	}
@@ -123,15 +121,11 @@ func (s *labelServer) ListLabels(w http.ResponseWriter, r *http.Request, reposit
 
 func (s *labelServer) CreateLabel(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.CreateLabelParams) {
 	var input generated.LabelCreation
-	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
-	if decoder.Decode(&input) != nil || decoder.Decode(new(any)) != io.EOF {
-		transport.WriteAPIError(w, 400, "invalid_input", "標籤資料無效。")
+	if !transport.ReadJSON(w, r, &input, "標籤資料無效。") {
 		return
 	}
-	item, err := s.service.Create(r.Context(), actor(r), repositoryId, params.IdempotencyKey, input.Name)
+	item, err := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryId, params.IdempotencyKey, input.Name)
 	if !writeError(w, err) {
 		transport.WriteJSON(w, 200, view(item))
 	}
 }
-func actor(r *http.Request) string { user, _ := identity.FromContext(r.Context()); return user.ID }

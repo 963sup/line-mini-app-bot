@@ -12,6 +12,7 @@ import (
 	correctionsmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/corrections"
 	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/records"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/worktime"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 )
 
 // Never runs against a production Firestore project.
@@ -83,7 +84,7 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	}
 	roles := client.Collection("channels").Doc(s.ChannelID).Collection("attendanceReviewers")
 	for _, reviewer := range []string{"reviewer", "employee"} {
-		if _, err := roles.Doc(documentKey(reviewer)).Set(ctx, map[string]any{"groups": []string{"group"}}); err != nil {
+		if _, err := roles.Doc(firestorekey.Encode(reviewer)).Set(ctx, map[string]any{"groups": []string{"group"}}); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -384,7 +385,7 @@ func TestLaunchExchangeIsStableAndScoped(t *testing.T) {
 	if err = snap.DataTo(&request); err != nil {
 		t.Fatal(err)
 	}
-	if request.GroupID != "group" || request.Action != "clock-in" || request.UserID != documentKey("user-a") {
+	if request.GroupID != "group" || request.Action != "clock-in" || request.UserID != firestorekey.Encode("user-a") {
 		t.Fatal("request binding changed")
 	}
 }

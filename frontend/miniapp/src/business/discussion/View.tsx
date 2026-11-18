@@ -38,7 +38,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
   const [title, setTitle] = useState(""), [body, setBody] = useState("");
   const [labelIDs,setLabelIDs]=useState<string[]>([]);
   const [busy, setBusy] = useState(false), [detailBusy, setDetailBusy] = useState(false);
-  const [uncertain, setUncertain] = useState(false), [needsRefresh, setNeedsRefresh] = useState(false);
+  const [createOutcomeUnknown, setCreateOutcomeUnknown] = useState(false), [needsRefresh, setNeedsRefresh] = useState(false);
   const [status, setStatus] = useState("");
   const lock = useRef(false);
   const commentLock = useRef(false);
@@ -51,7 +51,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
     setCommentsBlocked(blocked);
     return true;
   }, []);
-  const attempt = useRef<{ key: string; body: Creation } | null>(null);
+  const createAttempt = useRef<{ idempotencyKey: string; body: Creation } | null>(null);
   const mine = !!selected && selected.authorId === user?.userId;
   const [activeId, setActiveId] = useState("");
   const baseline = useRef(JSON.stringify(["", "", []]));
@@ -61,7 +61,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
   const discard = useDiscardChanges(dirty, focusEditor);
   const guard = useRepositoryGuard(dirty, focusEditor);
   const [recovery, setRecovery] = useState(false);
-  useEffect(() => { guard.block(busy || uncertain || recovery); }, [busy, uncertain, recovery]);
+  useEffect(() => { guard.block(busy || createOutcomeUnknown || recovery); }, [busy, createOutcomeUnknown, recovery]);
   useEffect(() => { if (!detailBusy) navigating.current = false; }, [mode, detailBusy]);
 
   const load = useCallback((nextCursor = "") => {
@@ -87,10 +87,10 @@ function Content({ repositoryId }: { repositoryId: string }) {
     setActiveId(item.id); baseline.current = JSON.stringify([item.title, item.body, item.labelIds || []]); setRecovery(false); guard.block(false);
     navigating.current = false;
     setSelected(item); setTitle(item.title); setBody(item.body); setLabelIDs(item.labelIds || []); setMode("detail");
-    setNeedsRefresh(false); setUncertain(false); attempt.current = null;
+    setNeedsRefresh(false); setCreateOutcomeUnknown(false); createAttempt.current = null;
   }
   function open(id: string) {
-    if (!user || lock.current || commentLock.current || uncertain || (recovery && id !== activeId) || !guard.canWrite()) return;
+    if (!user || lock.current || commentLock.current || createOutcomeUnknown || (recovery && id !== activeId) || !guard.canWrite()) return;
     discard.navigate(() => {
       navigating.current = true;
       setActiveId(id); baseline.current = JSON.stringify(["", "", []]); setTitle(""); setBody(""); setLabelIDs([]);
@@ -102,13 +102,13 @@ function Content({ repositoryId }: { repositoryId: string }) {
       );
     });
   }
-  function create() {
-    if (lock.current || commentLock.current || uncertain || recovery || !guard.canWrite()) return;
+  function openCreateForm() {
+    if (lock.current || commentLock.current || createOutcomeUnknown || recovery || !guard.canWrite()) return;
     discard.navigate(() => {
       setActiveId(""); baseline.current = JSON.stringify(["", "", []]); setLabelIDs([]);
       navigating.current = true;
       detailRequest.cancel(); setDetailBusy(false); setSelected(null); setMode("create");
-      setTitle(""); setBody(""); setUncertain(false); setNeedsRefresh(false); setStatus(""); attempt.current = null;
+      setTitle(""); setBody(""); setCreateOutcomeUnknown(false); setNeedsRefresh(false); setStatus(""); createAttempt.current = null;
     });
   }
 
@@ -118,18 +118,18 @@ function Content({ repositoryId }: { repositoryId: string }) {
     if (mode === "detail") { if (selected) save(); return; }
     const content = { title: title.trim(), body: body.trim() };
     if (!content.title) { setStatus("請填寫討論標題。"); return; }
-    if (!uncertain || !attempt.current) attempt.current = { key: crypto.randomUUID(), body: content };
-    const pending = attempt.current;
-    const wasUnknown = uncertain; guard.block(true);
-    lock.current = true; setBusy(true); setUncertain(true); setStatus("正在建立討論……");
+    if (!createOutcomeUnknown || !createAttempt.current) createAttempt.current = { idempotencyKey: crypto.randomUUID(), body: content };
+    const pending = createAttempt.current;
+    const previousCreateOutcomeUnknown = createOutcomeUnknown; guard.block(true);
+    lock.current = true; setBusy(true); setCreateOutcomeUnknown(true); setStatus("正在建立討論……");
     void write.run(
       (signal) => request((client, s) => client.POST("/api/v1/repositories/{repositoryId}/discussions", {
-        signal: s, params: { path: { repositoryId }, header: { "Idempotency-Key": pending.key } }, body: pending.body,
+        signal: s, params: { path: { repositoryId }, header: { "Idempotency-Key": pending.idempotencyKey } }, body: pending.body,
       }), { signal }),
       (item) => { lock.current = false; setBusy(false); show(item); setStatus("已建立討論。"); load(); },
       (error) => {
         lock.current = false; setBusy(false);
-        if (!wasUnknown && ["invalid_input", "forbidden", "not_found", "idempotency_conflict"].includes((error as { code?: string }).code || "")) { setUncertain(false); guard.block(false); }
+        if (!previousCreateOutcomeUnknown && ["invalid_input", "forbidden", "not_found", "idempotency_conflict"].includes((error as { code?: string }).code || "")) { setCreateOutcomeUnknown(false); guard.block(false); }
         setStatus(errorMessage(error) + " 結果未確認時請沿用原內容重試，或先查詢討論；重新開頁前請先確認紀錄。");
       },
     );
@@ -150,10 +150,10 @@ function Content({ repositoryId }: { repositoryId: string }) {
     <PagePanel heading="討論">
       <p className="mb-4 text-sm text-muted-foreground">空間成員可發起討論與留言；主題及留言各由自己的作者編輯。</p>
       <div className="mb-4 flex flex-wrap gap-2">
-        <Button disabled={!user || busy || uncertain || recovery || commentsBlocked} onClick={create}>發起討論</Button>
+        <Button disabled={!user || busy || createOutcomeUnknown || recovery || commentsBlocked} onClick={openCreateForm}>發起討論</Button>
         <Button variant="outline" disabled={!user || listBusy || busy} onClick={() => load()}>重新載入討論</Button>
       </div>
-      <form onSubmit={(event) => { event.preventDefault(); if (!lock.current && !uncertain && !recovery && !commentLock.current) discard.navigate(() => { navigating.current = true; detailRequest.cancel(); setDetailBusy(false); setMode(null); setSelected(null); setStatus(""); setFilter({ query: query.trim() }); }); }}>
+      <form onSubmit={(event) => { event.preventDefault(); if (!lock.current && !createOutcomeUnknown && !recovery && !commentLock.current) discard.navigate(() => { navigating.current = true; detailRequest.cancel(); setDetailBusy(false); setMode(null); setSelected(null); setStatus(""); setFilter({ query: query.trim() }); }); }}>
         <FieldGroup className="mb-4">
           <FormField>搜尋標題<Input maxLength={120} value={query} onChange={(e) => setQuery(e.target.value)} /></FormField>
           <Button type="submit" disabled={!user || listBusy || busy}>套用篩選</Button>
@@ -163,7 +163,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
       <ItemGroup className="gap-3">
         {items.map((item) => <Item key={item.id} variant="outline" role="listitem">
           <ItemContent>
-            <ItemTitle><Button variant="link" className="h-auto whitespace-normal text-left" disabled={busy || detailBusy || uncertain || recovery || commentsBlocked} onClick={() => open(item.id)}>#{item.number} {item.title}</Button></ItemTitle>
+            <ItemTitle><Button variant="link" className="h-auto whitespace-normal text-left" disabled={busy || detailBusy || createOutcomeUnknown || recovery || commentsBlocked} onClick={() => open(item.id)}>#{item.number} {item.title}</Button></ItemTitle>
           </ItemContent>
         </Item>)}
       </ItemGroup>
@@ -177,17 +177,17 @@ function Content({ repositoryId }: { repositoryId: string }) {
       </div>}
       {(mode === "create" || selected) && <form onSubmit={submit}>
         <FieldGroup>
-          <fieldset className="grid min-w-0 gap-4" disabled={busy || detailBusy || uncertain || needsRefresh || (mode === "detail" && !mine)}>
+          <fieldset className="grid min-w-0 gap-4" disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh || (mode === "detail" && !mine)}>
             <FormField>標題<Input ref={titleInput} required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} /></FormField>
             <FormField>內容<Textarea maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} /></FormField>
           </fieldset>
-          {selected && <LabelPicker repositoryId={repositoryId} value={labelIDs} onChange={setLabelIDs} disabled={busy || detailBusy || uncertain || needsRefresh || !mine} />}
+          {selected && <LabelPicker repositoryId={repositoryId} value={labelIDs} onChange={setLabelIDs} disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh || !mine} />}
           {(mode === "create" || mine) && <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={busy || needsRefresh}>{mode === "create" ? uncertain ? "重試原建立請求" : "建立討論" : "儲存內容"}</Button>
+            <Button type="submit" disabled={busy || needsRefresh}>{mode === "create" ? createOutcomeUnknown ? "重試原建立請求" : "建立討論" : "儲存內容"}</Button>
           </div>}
         </FieldGroup>
       </form>}
-      <Button type="button" variant="outline" disabled={busy || uncertain || recovery || commentsBlocked} onClick={() => discard.navigate(() => { navigating.current = true; detailRequest.cancel(); setMode(null); setSelected(null); })}>關閉</Button>
+      <Button type="button" variant="outline" disabled={busy || createOutcomeUnknown || recovery || commentsBlocked} onClick={() => discard.navigate(() => { navigating.current = true; detailRequest.cancel(); setMode(null); setSelected(null); })}>關閉</Button>
     </PagePanel>}
     {selected && <Comments key={selected.id} repositoryId={repositoryId} discussionId={selected.id} onWriteStateChange={onCommentWriteStateChange} />}
     {discard.dialog}

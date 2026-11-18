@@ -43,7 +43,7 @@ func TestEmulatorSpaceReceiptsScopeAndPagination(t *testing.T) {
 	})
 	s := &Store{Client: c, ChannelID: "isolated-space-test"}
 	r := repository.Repository{ID: strings.Repeat("a", 32), OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
-	if _, e = s.parent(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": "ACTIVE"}); e != nil {
+	if _, e = s.repositoryRef(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": "ACTIVE"}); e != nil {
 		t.Fatal(e)
 	}
 	var wg sync.WaitGroup
@@ -84,7 +84,7 @@ func TestEmulatorSpaceReceiptsScopeAndPagination(t *testing.T) {
 	}
 	if e = c.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		for _, v := range fixtures {
-			if err := tx.Create(s.parent(r.ID).Collection("spaces").Doc(v.ID), encode(v)); err != nil {
+			if err := tx.Create(s.repositoryRef(r.ID).Collection("spaces").Doc(v.ID), encode(v)); err != nil {
 				return err
 			}
 		}
@@ -113,7 +113,7 @@ func TestEmulatorSpaceReceiptsScopeAndPagination(t *testing.T) {
 	if _, e = s.List(ctx, other, "actor", p.NextCursor); !errors.Is(e, feature.ErrInput) {
 		t.Fatalf("repo cursor=%v", e)
 	}
-	if _, e = s.parent(r.ID).Update(ctx, []db.Update{{Path: "status", Value: "INACTIVE"}}); e != nil {
+	if _, e = s.repositoryRef(r.ID).Update(ctx, []db.Update{{Path: "status", Value: "INACTIVE"}}); e != nil {
 		t.Fatal(e)
 	}
 	if _, e = s.Create(ctx, r, "actor", "same-space-key-12345", "一樓"); !errors.Is(e, feature.ErrNotFound) {

@@ -175,16 +175,16 @@ func (s *Service) Get(ctx context.Context, actor, repositoryID, id string) (Disc
 	return s.Store.Get(ctx, r, id)
 }
 
-func (s *Service) Create(ctx context.Context, actor, repositoryID, key string, c Content) (Discussion, error) {
-	r, err := s.scope(ctx, actor, repositoryID)
+func (s *Service) Create(ctx context.Context, actorID, repositoryID, idempotencyKey string, content Content) (Discussion, error) {
+	repo, err := s.scope(ctx, actorID, repositoryID)
 	if err != nil {
 		return Discussion{}, err
 	}
-	c, err = Normalize(c)
-	if err != nil || !creationKey.MatchString(key) {
+	content, err = Normalize(content)
+	if err != nil || !creationKey.MatchString(idempotencyKey) {
 		return Discussion{}, ErrInput
 	}
-	return s.Store.Create(ctx, r, actor, key, c)
+	return s.Store.Create(ctx, repo, actorID, idempotencyKey, content)
 }
 
 func (s *Service) Update(ctx context.Context, actor, repositoryID, id string, input Update) (Discussion, error) {

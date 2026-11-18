@@ -164,8 +164,16 @@ func miniAppAction(appURL, desktopURL string) *messaging_api.UriAction {
 }
 
 // MiniApp opens the same mobile MINI App through a Flex-supported desktop alternate.
-func MiniApp(appURL, desktopURL string) messaging_api.MessageInterface {
+func MiniApp(appURL, desktopURL string, repositoryIDs ...string) messaging_api.MessageInterface {
 	action := miniAppAction(appURL, desktopURL)
+	if link := RepositoryURL(appURL, true, repositoryIDs...); link != "" {
+		action.Uri = link
+		if action.AltUri != nil {
+			if desktop := RepositoryURL(action.AltUri.Desktop, true, repositoryIDs...); desktop != "" {
+				action.AltUri.Desktop = desktop
+			}
+		}
+	}
 	text := "手機開啟 LINE MINI App；電腦開啟網頁版，並依畫面登入 LINE。"
 	if action.AltUri == nil {
 		text = "此入口目前供手機 LINE 使用；電腦版入口尚未設定。"

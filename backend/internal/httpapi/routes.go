@@ -2,7 +2,6 @@ package httpapi
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -81,7 +80,7 @@ func RegisterDiscussions(public *http.ServeMux, handler DiscussionServer, wrap f
 func RegisterAttendance(public *http.ServeMux, handler AttendanceServer, wrap func(http.Handler) http.Handler) {
 	spec, err := Spec()
 	if err != nil {
-		panic(fmt.Errorf("invalid generated API contract: %w", err))
+		panic(err)
 	}
 	routes := routeHandler(contractServer{AttendanceServer: handler})
 	if wrap != nil {

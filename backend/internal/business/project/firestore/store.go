@@ -3,13 +3,11 @@ package firestore
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
-	"errors"
 	"strconv"
 	"time"
+
+	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
 
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 
@@ -18,6 +16,8 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 )
 
 type (
@@ -25,7 +25,7 @@ type (
 		Client    *db.Client
 		ChannelID string
 	}
-	planningDocument struct {
+	projectDocument struct {
 		SchemaVersion int64  `firestore:"schemaVersion"`
 		ID            string `firestore:"id"`
 
@@ -40,25 +40,25 @@ type (
 	}
 )
 
-func planningEncode(i feature.Project) planningDocument {
-	return planningDocument{SchemaVersion: 1, ID: i.ID, OwnerID: i.OwnerID, DefaultRepositoryID: i.DefaultRepositoryID, Title: i.Title, Body: i.Body, CreatorID: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
+func encodeProject(i feature.Project) projectDocument {
+	return projectDocument{SchemaVersion: 1, ID: i.ID, OwnerID: i.OwnerID, DefaultRepositoryID: i.DefaultRepositoryID, Title: i.Title, Body: i.Body, CreatorID: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
 }
 
 // Repository-scoped API callers additionally
 // restrict results to projects created with that default repository.
-func (d planningDocument) belongsTo(scope feature.Scope) bool {
+func (d projectDocument) belongsTo(scope feature.Scope) bool {
 	return identity.ValidOwner(d.OwnerID) && d.OwnerID == scope.OwnerID && feature.ValidID(d.DefaultRepositoryID) &&
 		(!scope.Legacy || scope.SourceRepositoryID == "" || scope.SourceRepositoryID == d.DefaultRepositoryID)
 }
 
-func planningDecode(snap *db.DocumentSnapshot, err error, scope feature.Scope) (feature.Project, error) {
+func decodeProject(snap *db.DocumentSnapshot, err error, scope feature.Scope) (feature.Project, error) {
 	if status.Code(err) == codes.NotFound {
 		return feature.Project{}, feature.ErrNotFound
 	}
 	if err != nil {
 		return feature.Project{}, err
 	}
-	var d planningDocument
+	var d projectDocument
 	if e := snap.DataTo(&d); e != nil {
 		return feature.Project{}, e
 	}
@@ -67,28 +67,6 @@ func planningDecode(snap *db.DocumentSnapshot, err error, scope feature.Scope) (
 		return feature.Project{}, feature.ErrUnavailable
 	}
 	return feature.Project{ID: d.ID, DefaultRepositoryID: d.DefaultRepositoryID, OwnerID: d.OwnerID, Title: d.Title, Body: d.Body, CreatorID: d.CreatorID, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
-}
-
-type planningFailure struct{ cause error }
-
-func (e *planningFailure) Error() string { return "project storage unavailable" }
-func (e *planningFailure) Unwrap() error { return feature.ErrUnavailable }
-func planningError(err error) error {
-	if err == nil {
-		return nil
-	}
-	for _, known := range []error{feature.ErrInput, feature.ErrNotFound, feature.ErrForbidden, feature.ErrConflict, feature.ErrCreationConflict, feature.ErrUnavailable, context.Canceled, context.DeadlineExceeded} {
-		if errors.Is(err, known) {
-			return err
-		}
-	}
-	if status.Code(err) == codes.Canceled {
-		return context.Canceled
-	}
-	if status.Code(err) == codes.DeadlineExceeded {
-		return context.DeadlineExceeded
-	}
-	return &planningFailure{err}
 }
 
 func (s *Store) ownerDoc(id string) *db.DocumentRef {
@@ -103,8 +81,8 @@ func (s *Store) repositoryRef(id string) *db.DocumentRef {
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("repositories").Doc(id)
 }
 
-func (s *Store) planningReady() bool { return s != nil && s.Client != nil && s.ChannelID != "" }
-func (s *Store) planningContainer(tx *db.Transaction, r feature.Scope, parent *db.DocumentRef) error {
+func (s *Store) ready() bool { return s != nil && s.Client != nil && s.ChannelID != "" }
+func (s *Store) checkProjectOwner(tx *db.Transaction, r feature.Scope, parent *db.DocumentRef) error {
 	if identity.IsUserOwnerID(r.OwnerID) {
 		if r.OwnerID != r.Actor {
 			return feature.ErrForbidden
@@ -134,39 +112,25 @@ func (s *Store) planningContainer(tx *db.Transaction, r feature.Scope, parent *d
 	return nil
 }
 
-func planningHash(v any) string {
-	b, _ := json.Marshal(v)
-	sum := sha256.Sum256(b)
-	return hex.EncodeToString(sum[:])
-}
-
-type planningCursor struct{ Scope, Last string }
-
-func planningPage(q db.Query, token string, scope any) (db.Query, error) {
+func applyListCursor(q db.Query, token string, scope any) (db.Query, error) {
 	if token != "" {
-		b, e := base64.RawURLEncoding.DecodeString(token)
-		var c planningCursor
-		if e != nil || json.Unmarshal(b, &c) != nil || c.Scope != planningHash(scope) || !feature.ValidID(c.Last) {
+		last, ok := firestorekey.DecodeCursor(token, scope)
+		if !ok || !feature.ValidID(last) {
 			return q, feature.ErrInput
 		}
-		q = q.StartAfter(c.Last)
+		q = q.StartAfter(last)
 	}
 	return q.Limit(21), nil
 }
 
-func planningNext(scope any, id string) string {
-	b, _ := json.Marshal(planningCursor{planningHash(scope), id})
-	return base64.RawURLEncoding.EncodeToString(b)
-}
-
 func (s *Store) Get(ctx context.Context, r feature.Scope, id string) (result feature.Project, err error) {
-	defer func() { err = planningError(err) }()
-	if !s.planningReady() {
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
+	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
 	parent := s.ownerDoc(r.OwnerID)
 	snap, e := parent.Collection("projects").Doc(id).Get(ctx)
-	result, err = planningDecode(snap, e, r)
+	result, err = decodeProject(snap, e, r)
 	if err == nil {
 		links, e := snap.Ref.Collection("linkedRepositories").DocumentRefs(ctx).GetAll()
 		if e != nil {
@@ -182,9 +146,9 @@ func (s *Store) Get(ctx context.Context, r feature.Scope, id string) (result fea
 }
 
 func (s *Store) List(ctx context.Context, r feature.Scope, actor, token string) (result feature.Page, err error) {
-	defer func() { err = planningError(err) }()
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	result.Items = []feature.Project{}
-	if !s.planningReady() {
+	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
 	parent := s.ownerDoc(r.OwnerID)
@@ -192,7 +156,7 @@ func (s *Store) List(ctx context.Context, r feature.Scope, actor, token string) 
 	if r.Legacy {
 		scope[1] = r.SourceRepositoryID
 	}
-	q, e := planningPage(parent.Collection("projects").OrderBy(db.DocumentID, db.Asc), token, scope)
+	q, e := applyListCursor(parent.Collection("projects").OrderBy(db.DocumentID, db.Asc), token, scope)
 	if e != nil {
 		return result, e
 	}
@@ -207,7 +171,7 @@ func (s *Store) List(ctx context.Context, r feature.Scope, actor, token string) 
 	for _, snap := range snaps {
 		decodeScope := r
 		decodeScope.SourceRepositoryID = ""
-		i, e := planningDecode(snap, nil, decodeScope)
+		i, e := decodeProject(snap, nil, decodeScope)
 		if e != nil {
 			return feature.Page{}, e
 		}
@@ -217,20 +181,20 @@ func (s *Store) List(ctx context.Context, r feature.Scope, actor, token string) 
 		result.Items = append(result.Items, i)
 	}
 	if more {
-		result.NextCursor = planningNext(scope, snaps[len(snaps)-1].Ref.ID)
+		result.NextCursor = firestorekey.EncodeCursor(scope, snaps[len(snaps)-1].Ref.ID)
 	}
 	return result, nil
 }
 
-type planningReceipt struct {
+type projectReceipt struct {
 	ID            string `firestore:"id"`
 	PayloadHash   string `firestore:"payloadHash"`
 	SchemaVersion int64  `firestore:"schemaVersion"`
 }
 
 func (s *Store) Create(ctx context.Context, r feature.Scope, actor, key string, c feature.Content) (result feature.Project, err error) {
-	defer func() { err = planningError(err) }()
-	if !s.planningReady() {
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
+	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
 	var random [16]byte
@@ -239,15 +203,15 @@ func (s *Store) Create(ctx context.Context, r feature.Scope, actor, key string, 
 	}
 	id := hex.EncodeToString(random[:])
 	now := time.Now().UTC().Truncate(time.Microsecond)
-	payload := planningHash(struct {
+	payload := firestorekey.JSONDigest(struct {
 		Version int    `json:"version"`
 		Title   string `json:"title"`
 		Body    string `json:"body"`
 	}{1, c.Title, c.Body})
 	parent := s.ownerDoc(r.OwnerID)
-	receipt := parent.Collection("projectCreationScopes").Doc(r.SourceRepositoryID).Collection("receipts").Doc(planningHash([]string{actor, key}))
+	receipt := parent.Collection("projectCreationScopes").Doc(r.SourceRepositoryID).Collection("receipts").Doc(firestorekey.JSONDigest([]string{actor, key}))
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		if e := s.planningContainer(tx, r, parent); e != nil {
+		if e := s.checkProjectOwner(tx, r, parent); e != nil {
 			return e
 		}
 		if e := s.checkSourceRepository(tx, feature.Source{ID: r.SourceRepositoryID, OwnerID: r.OwnerID}); e != nil {
@@ -255,7 +219,7 @@ func (s *Store) Create(ctx context.Context, r feature.Scope, actor, key string, 
 		}
 		snap, e := tx.Get(receipt)
 		if e == nil {
-			var d planningReceipt
+			var d projectReceipt
 			if e := snap.DataTo(&d); e != nil {
 				return e
 			}
@@ -272,13 +236,13 @@ func (s *Store) Create(ctx context.Context, r feature.Scope, actor, key string, 
 			return e
 		}
 		i := feature.Project{ID: id, DefaultRepositoryID: r.SourceRepositoryID, OwnerID: r.OwnerID, Title: c.Title, Body: c.Body, CreatorID: actor, Version: 1, CreatedAt: now, UpdatedAt: now}
-		if e := tx.Create(parent.Collection("projects").Doc(id), planningEncode(i)); e != nil {
+		if e := tx.Create(parent.Collection("projects").Doc(id), encodeProject(i)); e != nil {
 			return e
 		}
 		if e := tx.Create(parent.Collection("projects").Doc(id).Collection("linkedRepositories").Doc(r.SourceRepositoryID), map[string]string{"repositoryId": r.SourceRepositoryID}); e != nil {
 			return e
 		}
-		return tx.Create(receipt, planningReceipt{id, payload, 1})
+		return tx.Create(receipt, projectReceipt{id, payload, 1})
 	})
 	if err != nil {
 		return result, err
@@ -286,14 +250,14 @@ func (s *Store) Create(ctx context.Context, r feature.Scope, actor, key string, 
 	return s.Get(ctx, r, id)
 }
 
-type planningChange struct {
+type projectChange struct {
 	ActorID string    `firestore:"actorId"`
 	Version int64     `firestore:"version"`
 	At      time.Time `firestore:"at"`
 	Action  string    `firestore:"action"`
 }
 
-func (s *Store) planningWrite(tx *db.Transaction, ref *db.DocumentRef, current, result feature.Project, actor, action string) error {
+func writeProjectChange(tx *db.Transaction, ref *db.DocumentRef, current, result feature.Project, actor, action string) error {
 	if result.Version == current.Version {
 		return nil
 	}
@@ -301,15 +265,15 @@ func (s *Store) planningWrite(tx *db.Transaction, ref *db.DocumentRef, current, 
 	if result.UpdatedAt.Before(current.UpdatedAt) {
 		result.UpdatedAt = current.UpdatedAt
 	}
-	if e := tx.Set(ref, planningEncode(result)); e != nil {
+	if e := tx.Set(ref, encodeProject(result)); e != nil {
 		return e
 	}
-	return tx.Create(ref.Collection("changes").Doc(strconv.FormatInt(result.Version, 10)), planningChange{actor, result.Version, result.UpdatedAt, action})
+	return tx.Create(ref.Collection("changes").Doc(strconv.FormatInt(result.Version, 10)), projectChange{actor, result.Version, result.UpdatedAt, action})
 }
 
 func (s *Store) Update(ctx context.Context, r feature.Scope, actor, id string, input feature.Update) (result feature.Project, err error) {
-	defer func() { err = planningError(err) }()
-	if !s.planningReady() {
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
+	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
 	if r.SourceRepositoryID == "" {
@@ -322,11 +286,11 @@ func (s *Store) Update(ctx context.Context, r feature.Scope, actor, id string, i
 	parent := s.ownerDoc(r.OwnerID)
 	ref := parent.Collection("projects").Doc(id)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		if e := s.planningContainer(tx, r, parent); e != nil {
+		if e := s.checkProjectOwner(tx, r, parent); e != nil {
 			return e
 		}
 		snap, e := tx.Get(ref)
-		current, e := planningDecode(snap, e, r)
+		current, e := decodeProject(snap, e, r)
 		if e != nil {
 			return e
 		}
@@ -370,7 +334,7 @@ func (s *Store) Update(ctx context.Context, r feature.Scope, actor, id string, i
 				updated.Version = current.Version + 1
 			}
 		}
-		return s.planningWrite(tx, ref, current, updated, actor, "update")
+		return writeProjectChange(tx, ref, current, updated, actor, "update")
 	})
 	if err != nil {
 		return result, err

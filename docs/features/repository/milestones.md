@@ -1,5 +1,32 @@
 # 里程碑
 
-成員可建立里程碑，建立者可修改、手動完成或重開。事項作者可設定或清除所屬里程碑。事項完成比例達到 100% 時仍由建立者決定是否完成里程碑。
+```mermaid
+stateDiagram-v2
+  open --> completed: 建立者手動完成
+  completed --> open: 建立者手動重開
+```
 
-[原始操作契約與驗證紀錄](../../reports/2026-11-13/planning.md)
+事項作者可設定或清除所屬里程碑。事項完成比例只供顯示，即使達到 100% 仍由建立者手動完成。正式環境驗收須有實際證據。
+
+## 操作契約
+
+| 項目 | 規則 |
+| --- | --- |
+| Actor／Resource／Action | Session／Bearer 核驗本人；同一啟用儲存庫中的 Milestone；列出、建立、詳情與更新 |
+| Context／Authority | 核驗當下群組成員資格；建立者才能編輯，狀態轉移見上圖 |
+| Policy／Decision | 標題 1–120 字元、描述最多 8000 字元；可選 YYYY-MM-DD 曆日 |
+| Result | 回傳內容、版本與更新時間；無事項時顯示「尚無事項」 |
+| 重送／併發 | 建立鍵同內容回同一 ID，異內容回 409；更新檢查 expectedVersion，衝突回 409；無變化不增加版本 |
+| Event／Audit | 保存建立者與時間、更新操作者／版本／時間；無外部通知 |
+
+## 資料與相容邊界
+
+核心位於 `backend/internal/business/repository/milestones`，Firestore 使用既有 Repository Store；資料在 channel／repository 下的 `milestones`，建立收據使用對應功能的 receipt collection。不占共用資源編號，不更動既有事項／討論收據。
+
+事項的可選 milestoneId 限同一儲存庫；舊資料缺欄位視為未歸屬，更新省略時保留、null 清除。事項建立收據雜湊保持相容。寫入交易檢查容器啟用、群組綁定、作者、版本與引用範圍，全部讀取先於寫入。
+
+進度由當前來源事項計算，不複製事項狀態；查詢成本隨資料量增長，不自行加入計數器或排程。
+
+## 契約與驗收入口
+
+[OpenAPI 來源](../../../api/contract/repository/milestones.yaml) · [事項規格](issues.md) · [驗收矩陣](../../agents/acceptance.md)。文件規則與歷史通過紀錄均不能代替本次變更或目標環境的驗收。

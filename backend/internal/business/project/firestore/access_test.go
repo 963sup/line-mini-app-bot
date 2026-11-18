@@ -131,7 +131,7 @@ func TestSourceHydrationFailurePreservesProjectMetadata(t *testing.T) {
 	}
 	value := updated
 	err = store.Progress(ctx, p.Scope{OwnerID: gid, Actor: "owner"}, &value)
-	if !errors.Is(err, p.ErrSourceUnavailable) || !errors.Is(err, p.ErrUnavailable) || errors.Is(err, p.ErrInput) {
+	if !errors.Is(err, p.ErrSourceUnavailable) || errors.Is(err, p.ErrInput) {
 		t.Fatalf("source classification must expose only its domain categories: %v", err)
 	}
 	if _, err = issue.Set(ctx, issueData); err != nil {

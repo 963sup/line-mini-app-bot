@@ -40,15 +40,19 @@ func run() (resultErr error) {
 	defer cancel()
 	client, err := firestore.NewClientWithDatabase(ctx, project, database)
 	if err != nil {
-		return errors.New("cannot initialize Firestore; check ADC and project configuration")
+		return err
 	}
-	defer func() { resultErr = errors.Join(resultErr, client.Close()) }()
+	defer func() {
+		if closeErr := client.Close(); resultErr == nil {
+			resultErr = closeErr
+		}
+	}()
 	_, err = client.Doc(*document).Get(ctx)
 	if status.Code(err) == codes.NotFound {
 		return errors.New("firestore returned NotFound; confirm database and document exist; read access not confirmed")
 	}
 	if err != nil {
-		return errors.New("firestore read failed; check project, database, IAM and connectivity")
+		return err
 	}
 	fmt.Println("Firestore read access confirmed; document exists; contents not printed; no data written")
 	return nil

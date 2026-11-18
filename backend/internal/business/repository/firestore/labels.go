@@ -12,6 +12,8 @@ import (
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository/labels"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -20,7 +22,7 @@ var _ labels.Store = (*Store)(nil)
 
 // ValidateLabelIDs only reads within the caller's transaction, before its writes.
 func (s *Store) ValidateLabelIDs(_ context.Context, tx *db.Transaction, scope repository.Repository, ids []string) error {
-	if s == nil || s.Client == nil || s.ChannelID == "" {
+	if !s.ready() {
 		return labels.ErrUnavailable
 	}
 	if len(ids) > 10 {
@@ -30,7 +32,7 @@ func (s *Store) ValidateLabelIDs(_ context.Context, tx *db.Transaction, scope re
 		if !repository.ValidID(id) {
 			return repository.ErrNotFound
 		}
-		snap, err := tx.Get(s.channel().Collection("repositories").Doc(scope.ID).Collection("labels").Doc(id))
+		snap, err := tx.Get(s.repositoryRef(scope.ID).Collection("labels").Doc(id))
 		if status.Code(err) == codes.NotFound {
 			return repository.ErrNotFound
 		}
@@ -63,11 +65,8 @@ type (
 		LabelID       string `firestore:"labelId"`
 		PayloadHash   string `firestore:"payloadHash"`
 	}
-	labelStorageFailure struct{ cause error }
 )
 
-func (e *labelStorageFailure) Error() string { return "label storage unavailable" }
-func (e *labelStorageFailure) Unwrap() error { return labels.ErrUnavailable }
 func labelError(err error) error {
 	if err == nil {
 		return nil
@@ -80,14 +79,7 @@ func labelError(err error) error {
 	if errors.Is(err, repository.ErrNotFound) {
 		return labels.ErrNotFound
 	}
-	switch status.Code(err) {
-	case codes.Canceled:
-		return context.Canceled
-	case codes.DeadlineExceeded:
-		return context.DeadlineExceeded
-	default:
-		return &labelStorageFailure{cause: err}
-	}
+	return grpcstatus.NormalizeContextError(err)
 }
 
 func decodeLabel(snap *db.DocumentSnapshot, err error, scope string) (labels.Label, error) {
@@ -111,14 +103,14 @@ func decodeLabel(snap *db.DocumentSnapshot, err error, scope string) (labels.Lab
 func (s *Store) ListLabels(ctx context.Context, scope repository.Repository, actor, value string) (result labels.Page, err error) {
 	defer func() { err = labelError(err) }()
 	result.Items = []labels.Label{}
-	if s == nil || s.Client == nil || s.ChannelID == "" {
+	if !s.ready() {
 		return result, labels.ErrUnavailable
 	}
 	encoded, err := json.Marshal([]string{"repository-label-list", s.ChannelID, scope.ID, actor})
 	if err != nil {
 		return result, err
 	}
-	scopeKey := key(string(encoded))
+	scopeKey := firestorekey.Digest(encoded)
 	var c cursor
 	if value != "" {
 		b, e := base64.RawURLEncoding.DecodeString(value)
@@ -126,7 +118,7 @@ func (s *Store) ListLabels(ctx context.Context, scope repository.Repository, act
 			return result, labels.ErrInput
 		}
 	}
-	q := s.channel().Collection("repositories").Doc(scope.ID).Collection("labels").OrderBy(db.DocumentID, db.Asc)
+	q := s.repositoryRef(scope.ID).Collection("labels").OrderBy(db.DocumentID, db.Asc)
 	if c.ID != "" {
 		q = q.StartAfter(c.ID)
 	}
@@ -158,7 +150,7 @@ func (s *Store) ListLabels(ctx context.Context, scope repository.Repository, act
 
 func (s *Store) CreateLabel(ctx context.Context, scope repository.Repository, actor, creationKey, name string) (result labels.Label, err error) {
 	defer func() { err = labelError(err) }()
-	if s == nil || s.Client == nil || s.ChannelID == "" {
+	if !s.ready() {
 		return result, labels.ErrUnavailable
 	}
 	var random [16]byte
@@ -177,11 +169,11 @@ func (s *Store) CreateLabel(ctx context.Context, scope repository.Repository, ac
 	if err != nil {
 		return result, err
 	}
-	parent := s.channel().Collection("repositories").Doc(scope.ID)
+	parent := s.repositoryRef(scope.ID)
 	catalog := parent.Collection("labels")
-	receipt := parent.Collection("labelCreationReceipts").Doc(key(string(encoded)))
+	receipt := parent.Collection("labelCreationReceipts").Doc(firestorekey.Digest(encoded))
 	nameKey := labels.NameKey(name)
-	binding := parent.Collection("labelNames").Doc(key(nameKey))
+	binding := parent.Collection("labelNames").Doc(firestorekey.Digest([]byte(nameKey)))
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = labels.Label{}
 		container, err := decode(tx.Get(parent))
@@ -200,7 +192,7 @@ func (s *Store) CreateLabel(ctx context.Context, scope repository.Repository, ac
 			if prior.SchemaVersion != 1 || !repository.ValidID(prior.LabelID) {
 				return labels.ErrUnavailable
 			}
-			if prior.PayloadHash != key(string(payload)) {
+			if prior.PayloadHash != firestorekey.Digest(payload) {
 				return labels.ErrCreationConflict
 			}
 			item, err := tx.Get(catalog.Doc(prior.LabelID))
@@ -259,7 +251,7 @@ func (s *Store) CreateLabel(ctx context.Context, scope repository.Repository, ac
 		if err := tx.Create(binding, labelBinding{1, id}); err != nil {
 			return err
 		}
-		if err := tx.Create(receipt, labelReceipt{1, id, key(string(payload))}); err != nil {
+		if err := tx.Create(receipt, labelReceipt{1, id, firestorekey.Digest(payload)}); err != nil {
 			return err
 		}
 		result = labels.Label{ID: id, RepositoryID: scope.ID, Name: name, CreatedAt: now}

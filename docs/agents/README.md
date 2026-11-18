@@ -4,9 +4,9 @@
 
 ## 文件索引
 
-- [Acceptance and evidence](acceptance.md)
+- [變更驗收矩陣與證據限制](acceptance.md)
 - [Systematic debugging and root cause analysis](debugging.md)
-- [Agent delivery workflow](workflow.md)
+- [Agent delivery workflow](workflow.md) · [證據重用流程](workflow.md#minimal-handoff-and-evidence-reuse)
 
 ## 歸屬與維護
 

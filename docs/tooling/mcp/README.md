@@ -67,7 +67,7 @@ The doctor bounds stdio waits and isolates each HTTP exchange in a worker that
 is killed and reaped on timeout or interruption. Its existing server timeout
 configuration owns the budget; this is not a hard real-time guarantee for OS
 process creation. Offline regressions run in the configuration CI job; see the
-[deadline and cleanup evidence](../../reports/2026-11-13/http-deadline-convergence-20261113.md).
+[MCP 診斷期限與清理](README.md).
 
 Local Codex sessions may disable an unrelated server without deleting its
 configuration using `-c 'mcp_servers.SERVER.enabled=false'`. `enabled_tools` and

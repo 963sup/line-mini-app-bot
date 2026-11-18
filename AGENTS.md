@@ -48,35 +48,7 @@ This routing rule does not require extra user confirmation.
 
 ### Registered roles
 
-| Role | Responsibility |
-| --- | --- |
-| Orchestrator | Task decomposition, assignment, coordination and result integration |
-| Architect | System architecture, technical decisions and module boundaries |
-| Researcher | Technical research, official documentation and option comparisons |
-| Explorer | Code exploration, dependency analysis and change impact |
-| Implementer | Implementation, refactoring, bug fixes and scoped environment repairs |
-| Debugger | Reproduction, root cause diagnosis, minimal complete fixes and regression evidence |
-| Tester | Test design, execution and issue verification |
-| Reviewer | Code quality, security and architectural compliance review |
-| Documentation | Write, review and repair assigned Markdown against the documentation policy |
-| Integrator | Change integration, conflict resolution and final acceptance |
-| Graphify | Read-only graph navigation and current-source evidence; graph updates only when assigned |
-| Repomix | Scoped source bundles and cross-file corroboration without source edits |
-| Shadcn | Registry evidence and assigned UI composition under component protection rules |
-| Golang | Assigned Go implementation with gopls evidence and Go verification |
-| TypeScript | Assigned language, type and client changes with package checks |
-| Next.js | Assigned framework changes under the current router and static-export architecture |
-| Context7 | Read-only version-matched library evidence, applicability limits and unresolved questions |
-| Mermaid | Source-backed architecture, relationship, operation and state diagrams; rendering evidence and business boundary checks |
-
-Every handoff includes the goal, owned files, constraints, dependencies and
-acceptance checks. Every result includes evidence, actual test outcomes and
-remaining limitations. Integrator receives exclusive file ownership before
-resolving conflicts and checks the combined result; orchestrator retains final
-coordination responsibility. Integration never grants permission to push, merge
-remote changes, deploy or publish. Depth and scheduling policy is maintained in
-the [shared workflow](docs/agents/workflow.md#delegation-depth-and-role-selection),
-with numeric bounds owned by `.codex/config.toml`.
+角色能力與設定由 [.codex/agents](.codex/agents) 維護；角色選用、交接欄位、一檔一寫入者及整合責任依 [shared workflow](docs/agents/workflow.md#delegation-depth-and-role-selection)。角色是可選能力，不是每個任務都必須經過的階段；主機限制優先，委派不增加外部寫入權限。
 
 ## graphify
 
@@ -143,7 +115,7 @@ Application deployment uses Cloud Run only. Read docs/foundation/architecture/de
 and docs/foundation/operations/cloud-run.md before deployment work; use a dedicated runtime service account and minimal IAM.
 For location tasks read docs/foundation/integrations/web-geolocation.md: browser JavaScript obtains location,
 Go validates untrusted coordinates and authorization. No location history or presence verification
-without the product contract. Read docs/foundation/architecture/codex-readiness.md and
+without the product contract. Read docs/foundation/architecture/README.md#接手時的證據與用語 and
 docs/development/naming.md for implementation handoffs. Preserve generated upstream skills.
 
 ## Nested directory instructions

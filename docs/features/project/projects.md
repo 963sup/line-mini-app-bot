@@ -20,7 +20,7 @@
 
 Project 自有資料的授權不得再要求 Repository 作為父容器。來源成員資格被撤銷或來源不可用時，來源 Issue 的內容、狀態及衍生進度不能由 Project 權限繞過；不得把未知統計回傳成零或以舊來源資料冒充成功。前端隱藏按鈕不能代替後端檢查。
 
-Canonical來源hydration失敗時，已授權的Project自有metadata仍可讀取／管理，回應以`sourceAvailable=false`標明進度不可用；來源項目內容不因此開放。Project 容器或 item 結構錯誤以及取消／逾時仍回錯誤，不當成來源降級；legacy路徑維持原失敗語義。[第二輪收斂證據](../../reports/2026-11-13/architecture-convergence-pass2-20261113.md)記錄此故障邊界與實際驗證。
+Canonical來源hydration失敗時，已授權的Project自有metadata仍可讀取／管理，回應以`sourceAvailable=false`標明進度不可用；來源項目內容不因此開放。Project 容器或 item 結構錯誤以及取消／逾時仍回錯誤，不當成來源降級；legacy路徑維持原失敗語義。
 
 ## API、頁面與側欄
 
@@ -33,7 +33,13 @@ Canonical來源hydration失敗時，已授權的Project自有metadata仍可讀�
 
 ## 最小來源引用骨架
 
-專案只收錄來源引用，不建立第二份物件、問題或討論資料；每個 Project 可連結多個來源庫。新增`references`入口支援object、subobject、issue、discussion四類，沿用同一Project與items集合。舊`items`入口只回Issue欄位／狀態，既有Issue引用ID、移除與IssueCount／CompletedIssueCount語意保留，不將物件完成數混成專案百分比。
+```mermaid
+erDiagram
+  PROJECT ||--o{ SOURCE_REFERENCE : 收錄
+  REPOSITORY ||--o{ SOURCE_REFERENCE : 提供來源
+```
+
+每個 Project 可連結多個來源庫。引用指向物件、子物件、事項或討論，四類共用 items 集合。舊 `items` 入口保留 Issue 欄位、狀態、引用 ID、移除及 IssueCount／CompletedIssueCount 語意。物件完成數與專案事項統計分開。
 
 新引用只保存sourceType、sourceId及子物件必要的parentObjectId與關聯追溯欄位；跨庫引用保存 sourceRepositoryId。物件改名、數量或狀態更新後，列表重新讀取來源目前值，不儲存一份可分歧的名稱／狀態快照。子引用需同時驗父物件路徑，不能只有子ID。來源引用不是存取或修改來源的授權。
 
@@ -65,6 +71,16 @@ Project 文件保存 `ownerId` 與 `defaultRepositoryId`。同一擁有者底下
 
 ## 工程驗收送件
 
-個人 Project 的本人或群組 Project 的當下成員，取得已連結來源庫的讀權後，可對 Object 或 SubObject 引用送驗。GET／POST `/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions` 讀取紀錄或提交檢查說明。送件保存於引用下的 inspectionSubmissions，記錄來源版本、送件人與時間；施工進度維持原值。同一引用一次只能有一筆待審，同人重送相同說明回傳原紀錄。有送件紀錄的引用不可移除。
+```mermaid
+flowchart TB
+  A["核驗個人擁有者或群組當下成員、庫連結、狀態與來源讀權"] --> B{"讀取歷史或新送件？"}
+  B -->|歷史| H["讀取已保存送件，原物件已刪除仍可查"]
+  B -->|新送件| O["核驗 Object 或 SubObject 引用及目前有效來源版本"]
+  O --> R{"同人重送相同說明？"}
+  R -->|是| X["回原紀錄"]
+  R -->|否| P{"此引用已有待審送件？"}
+  P -->|有| F["維持既有待審送件"]
+  P -->|無| S["保存說明、來源版本、送件人與時間"]
+```
 
-查看歷史需通過Project 擁有者範圍與來源庫授權、庫連結及狀態檢查；原物件被刪除仍可讀取已保存的送件。新送件必須能讀取目前有效的物件與版本。
+GET／POST `/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions` 分別讀歷史與提交。資料保存在引用下的 `inspectionSubmissions`。施工進度維持原值，有送件紀錄的引用不可移除。

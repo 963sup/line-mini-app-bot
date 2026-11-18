@@ -133,7 +133,7 @@ const MaxVersion int64 = 1<<53 - 1
 var idPattern = regexp.MustCompile(`^[a-f0-9]{32}$`)
 
 func ValidID(id string) bool { return idPattern.MatchString(id) }
-func (s *Service) scope(ctx context.Context, actor, id string) (Scope, error) {
+func (s *Service) resolveProjectScope(ctx context.Context, actor, id string) (Scope, error) {
 	if s == nil || s.Groups == nil || s.Sources == nil || s.Store == nil {
 		return Scope{}, ErrUnavailable
 	}
@@ -187,7 +187,7 @@ func (s *Service) progress(ctx context.Context, r Scope, p *Project) error {
 }
 
 func (s *Service) List(ctx context.Context, actor, rid, cursor string) (Page, error) {
-	r, e := s.scope(ctx, actor, rid)
+	r, e := s.resolveProjectScope(ctx, actor, rid)
 	if e != nil {
 		return Page{}, e
 	}
@@ -207,7 +207,7 @@ func (s *Service) List(ctx context.Context, actor, rid, cursor string) (Page, er
 }
 
 func (s *Service) Get(ctx context.Context, actor, rid, id string) (Project, error) {
-	r, e := s.scope(ctx, actor, rid)
+	r, e := s.resolveProjectScope(ctx, actor, rid)
 	if e != nil {
 		return Project{}, e
 	}
@@ -222,7 +222,7 @@ func (s *Service) Get(ctx context.Context, actor, rid, id string) (Project, erro
 }
 
 func (s *Service) Create(ctx context.Context, actor, rid, key string, c Content) (Project, error) {
-	r, e := s.scope(ctx, actor, rid)
+	r, e := s.resolveProjectScope(ctx, actor, rid)
 	if e != nil {
 		return Project{}, e
 	}
@@ -248,7 +248,7 @@ func (s *Service) Create(ctx context.Context, actor, rid, key string, c Content)
 }
 
 func (s *Service) Update(ctx context.Context, actor, rid, id string, input Update) (Project, error) {
-	r, e := s.scope(ctx, actor, rid)
+	r, e := s.resolveProjectScope(ctx, actor, rid)
 	if e != nil {
 		return Project{}, e
 	}
@@ -287,7 +287,7 @@ type (
 )
 
 func (s *Service) ListItems(ctx context.Context, actor, rid, id, cursor string) (ItemPage, error) {
-	r, e := s.scope(ctx, actor, rid)
+	r, e := s.resolveProjectScope(ctx, actor, rid)
 	if e != nil {
 		return ItemPage{}, e
 	}
@@ -306,7 +306,7 @@ func (s *Service) ListItems(ctx context.Context, actor, rid, id, cursor string) 
 }
 
 func (s *Service) ChangeItem(ctx context.Context, actor, rid, id, target string, add bool, version int64) (Project, error) {
-	r, e := s.scope(ctx, actor, rid)
+	r, e := s.resolveProjectScope(ctx, actor, rid)
 	if e != nil {
 		return Project{}, e
 	}

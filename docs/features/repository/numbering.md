@@ -49,9 +49,31 @@
 - Firestore 實作：[numbering.go](../../../backend/internal/business/repository/firestore/numbering.go)。使用既有 Store 的 client 與 channel，不另建服務或連線。
 - `CreateNumberedResource(ctx, command, create)`：command 包含已核驗的 Repository／群組／操作者、資源類型、防重鍵及正規化且帶版本的業務內容雜湊。雜湊不包含伺服器產生的 ID／number／時間。
 - `create(ctx, tx, reference)`：未來業務 Firestore adapter 依 reference 的 ID／number 建立自己的資料，所有讀寫使用同一 tx。可先讀取額外資料檢查業務規則，再寫入；不得提交交易、開新交易、呼叫外部服務或發送通知。
-- 共通交易先完成全部共用讀取，再執行 callback，最後寫入計數器、對照與收據。callback 可能被重試，不得依靠單次執行或向外洩漏未提交結果。
 - 隨機 ID 與微秒精度 UTC 時間在交易 callback 外產生，號碼在交易內決定。重試結果不更改原資源建立時間。
 - `GetResourceNumber(ctx, repositoryID, number)`：只解析對照，未新增 API 路徑或修改生成型別。
+
+```mermaid
+sequenceDiagram
+  participant A as 已授權使用案例
+  participant T as 共用 Firestore 交易
+  participant C as 業務建立 callback
+  A->>T: 傳入命令與防重鍵
+  T->>T: 核對 Repository 與收據
+  alt 同鍵同內容及類型
+    T-->>A: 原 ID、number 與建立時間
+  else 同鍵不同內容或類型
+    T-->>A: ErrCreationConflict
+  else 新請求
+    T->>T: 讀共用計數器與下一號對照
+    T->>C: 以同一交易檢查規則及寫入資源
+    C-->>T: 業務結果
+    T->>T: 寫入計數器、對照與收據
+    T-->>A: 整筆提交成功後回傳結果
+  end
+```
+
+callback 可能重跑。僅使用已提交結果，提交不明時沿用原鍵。
+
 
 群組成員核驗依既有外部機制完成，無法與 Firestore 組成原子快照；交易中的容器狀態檢查不擴大此保證。未來業務寫入權須另定，不把本基礎視為已授權。
 

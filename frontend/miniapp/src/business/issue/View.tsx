@@ -44,10 +44,10 @@ function Content({ repositoryId }: { repositoryId: string }) {
   const [milestoneID,setMilestoneID]=useState("");
   const [labelIDs,setLabelIDs]=useState<string[]>([]);
   const [busy, setBusy] = useState(false), [detailBusy, setDetailBusy] = useState(false);
-  const [uncertain, setUncertain] = useState(false), [needsRefresh, setNeedsRefresh] = useState(false);
+  const [createOutcomeUnknown, setCreateOutcomeUnknown] = useState(false), [needsRefresh, setNeedsRefresh] = useState(false);
   const [status, setStatus] = useState("");
   const lock = useRef(false);
-  const attempt = useRef<{ key: string; body: Creation } | null>(null);
+  const createAttempt = useRef<{ idempotencyKey: string; body: Creation } | null>(null);
   const mine = !!selected && selected.creatorId === user?.userId;
   const [activeId, setActiveId] = useState("");
   const [recovery, setRecovery] = useState(false);
@@ -61,7 +61,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
   }
   const discard = useDiscardChanges(dirty, focusEditor);
   const guard = useRepositoryGuard(dirty, focusEditor);
-  useEffect(() => { guard.block(busy || uncertain || recovery); }, [busy, uncertain, recovery]);
+  useEffect(() => { guard.block(busy || createOutcomeUnknown || recovery); }, [busy, createOutcomeUnknown, recovery]);
   useEffect(() => { navigating.current = false; });
   useEffect(() => {
     if (!mode) opener.current?.focus();
@@ -71,11 +71,11 @@ function Content({ repositoryId }: { repositoryId: string }) {
     detailRequest.cancel(); setDetailBusy(false); setSelected(null); setMode(null); setActiveId(""); setNeedsRefresh(false); setStatus("");
   }
   function close() {
-    if (lock.current || uncertain || recovery) return;
+    if (lock.current || createOutcomeUnknown || recovery) return;
     discard.navigate(() => { navigating.current = true; clearEditor(); });
   }
   function saved(item: Issue, message: string) {
-    guard.block(false); setRecovery(false); setUncertain(false); attempt.current = null;
+    guard.block(false); setRecovery(false); setCreateOutcomeUnknown(false); createAttempt.current = null;
     clearEditor();
     setItems(previous => previous.some(value => value.id === item.id) ? previous.map(value => value.id === item.id ? item : value) : [item, ...previous]);
     setListStatus(message);
@@ -104,10 +104,10 @@ function Content({ repositoryId }: { repositoryId: string }) {
   function show(item: Issue) {
     baseline.current = JSON.stringify([item.title, item.body, item.milestoneId || "", item.labelIds || []]); setActiveId(item.id); setRecovery(false); guard.block(false);
     setSelected(item); setTitle(item.title); setBody(item.body); setLabelIDs(item.labelIds || []);setMilestoneID(item.milestoneId || ""); setMode("detail");
-    setNeedsRefresh(false); setUncertain(false); attempt.current = null;
+    setNeedsRefresh(false); setCreateOutcomeUnknown(false); createAttempt.current = null;
   }
   function open(id: string, trigger?: HTMLElement) {
-    if (!user || lock.current || uncertain || (recovery && id !== activeId) || !guard.canWrite()) return;
+    if (!user || lock.current || createOutcomeUnknown || (recovery && id !== activeId) || !guard.canWrite()) return;
     discard.navigate(() => {
       if (trigger) opener.current = trigger;
       navigating.current = true; cancelRead(); setListBusy(false);
@@ -120,12 +120,12 @@ function Content({ repositoryId }: { repositoryId: string }) {
       );
     });
   }
-  function create(trigger: HTMLElement) {
-    if (lock.current || uncertain || recovery || !guard.canWrite()) return;
+  function openCreateForm(trigger: HTMLElement) {
+    if (lock.current || createOutcomeUnknown || recovery || !guard.canWrite()) return;
     discard.navigate(() => {
       opener.current = trigger; navigating.current = true; cancelRead(); setListBusy(false); clearEditor();
       baseline.current = JSON.stringify(["", "", "", []]);
-      setMode("create"); setTitle(""); setBody(""); setMilestoneID(""); setLabelIDs([]); attempt.current = null;
+      setMode("create"); setTitle(""); setBody(""); setMilestoneID(""); setLabelIDs([]); createAttempt.current = null;
     });
   }
   function submit(event: FormEvent) {
@@ -134,19 +134,19 @@ function Content({ repositoryId }: { repositoryId: string }) {
     if (mode === "detail") { if (selected) save(selected.state); return; }
     const content = { title: title.trim(), body: body.trim() };
     if (!content.title) { setStatus("請填寫問題標題。"); return; }
-    if (!uncertain || !attempt.current) attempt.current = { key: crypto.randomUUID(), body: content };
-    const pending = attempt.current;
-    const wasUnknown = uncertain;
+    if (!createOutcomeUnknown || !createAttempt.current) createAttempt.current = { idempotencyKey: crypto.randomUUID(), body: content };
+    const pending = createAttempt.current;
+    const previousCreateOutcomeUnknown = createOutcomeUnknown;
     guard.block(true);
-    lock.current = true; setBusy(true); setUncertain(true); setStatus("正在建立問題……");
+    lock.current = true; setBusy(true); setCreateOutcomeUnknown(true); setStatus("正在建立問題……");
     void write.run(
       (signal) => request((client, s) => client.POST("/api/v1/repositories/{repositoryId}/issues", {
-        signal: s, params: { path: { repositoryId }, header: { "Idempotency-Key": pending.key } }, body: pending.body,
+        signal: s, params: { path: { repositoryId }, header: { "Idempotency-Key": pending.idempotencyKey } }, body: pending.body,
       }), { signal }),
       (item) => { lock.current = false; setBusy(false); saved(item, "已建立問題。"); },
       (error) => {
         lock.current = false; setBusy(false);
-        if (!wasUnknown && ["invalid_input", "forbidden", "not_found", "idempotency_conflict"].includes((error as { code?: string }).code || "")) { setUncertain(false); guard.block(false); }
+        if (!previousCreateOutcomeUnknown && ["invalid_input", "forbidden", "not_found", "idempotency_conflict"].includes((error as { code?: string }).code || "")) { setCreateOutcomeUnknown(false); guard.block(false); }
         setStatus(errorMessage(error) + " 結果未確認時請沿用原內容重試，或先查詢問題；重新開頁前請先確認紀錄。");
       },
     );
@@ -171,28 +171,28 @@ function Content({ repositoryId }: { repositoryId: string }) {
       </div>}
       {(mode === "create" || selected) && <form onSubmit={submit}>
         <FieldGroup>
-          <fieldset className="grid min-w-0 gap-4" disabled={busy || detailBusy || uncertain || needsRefresh || (mode === "detail" && !mine)}>
+          <fieldset className="grid min-w-0 gap-4" disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh || (mode === "detail" && !mine)}>
             <FormField>標題<Input ref={titleInput} required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} /></FormField>
             <FormField>內容<Textarea maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} /></FormField>
           </fieldset>
-          {selected && <MilestonePicker repositoryId={repositoryId} value={milestoneID} onChange={setMilestoneID} disabled={busy || detailBusy || uncertain || needsRefresh || !mine} />}
-          {selected && <LabelPicker repositoryId={repositoryId} value={labelIDs} onChange={setLabelIDs} disabled={busy || detailBusy || uncertain || needsRefresh || !mine} />}
+          {selected && <MilestonePicker repositoryId={repositoryId} value={milestoneID} onChange={setMilestoneID} disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh || !mine} />}
+          {selected && <LabelPicker repositoryId={repositoryId} value={labelIDs} onChange={setLabelIDs} disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh || !mine} />}
           {(mode === "create" || mine) && <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={busy || needsRefresh}>{mode === "create" ? uncertain ? "重試原建立請求" : "建立問題" : "儲存內容"}</Button>
+            <Button type="submit" disabled={busy || needsRefresh}>{mode === "create" ? createOutcomeUnknown ? "重試原建立請求" : "建立問題" : "儲存內容"}</Button>
             {selected && <Button type="button" variant="outline" disabled={busy || needsRefresh} onClick={() => save(nextState[selected.state])}>{action[selected.state]}</Button>}
           </div>}
         </FieldGroup>
       </form>}
-      <Button type="button" variant="outline" disabled={busy || uncertain || recovery} onClick={close}>{mine || mode === "create" ? "取消" : "關閉"}</Button>
+      <Button type="button" variant="outline" disabled={busy || createOutcomeUnknown || recovery} onClick={close}>{mine || mode === "create" ? "取消" : "關閉"}</Button>
     </section>;
   return <>
     <PagePanel heading="問題">
       <p className="mb-4 text-sm text-muted-foreground">空間成員可建立問題；只有建立者可以修改或變更狀態。</p>
       <div className="mb-4 flex flex-wrap gap-2">
-        <Button disabled={!user || busy || uncertain || recovery} onClick={event => create(event.currentTarget)}>新增問題</Button>
-        <Button variant="outline" disabled={!user || listBusy || busy || !!mode || uncertain || recovery} onClick={() => load()}>重新載入問題</Button>
+        <Button disabled={!user || busy || createOutcomeUnknown || recovery} onClick={event => openCreateForm(event.currentTarget)}>新增問題</Button>
+        <Button variant="outline" disabled={!user || listBusy || busy || !!mode || createOutcomeUnknown || recovery} onClick={() => load()}>重新載入問題</Button>
       </div>
-      <form onSubmit={(event) => { event.preventDefault(); if (!lock.current && !uncertain && !recovery) discard.navigate(() => { navigating.current = true; clearEditor(); setFilter({ query: query.trim(), state }); }); }}>
+      <form onSubmit={(event) => { event.preventDefault(); if (!lock.current && !createOutcomeUnknown && !recovery) discard.navigate(() => { navigating.current = true; clearEditor(); setFilter({ query: query.trim(), state }); }); }}>
         <FieldGroup className="mb-4">
           <FormField>搜尋標題<Input maxLength={120} value={query} onChange={(e) => setQuery(e.target.value)} /></FormField>
           <FormField>狀態<NativeSelect value={state} onChange={(e) => setState(e.target.value as typeof state)}>
@@ -207,15 +207,15 @@ function Content({ repositoryId }: { repositoryId: string }) {
       <ItemGroup className="gap-3">
         {items.map((item) => <Item key={item.id} variant="outline" role="listitem" className="min-w-0">
           <ItemContent className="min-w-0">
-            <ItemTitle className="min-w-0 max-w-full"><Button variant="link" className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || detailBusy || uncertain || recovery} onClick={event => open(item.id, event.currentTarget)}>#{item.number} {item.title}</Button></ItemTitle>
+            <ItemTitle className="min-w-0 max-w-full"><Button variant="link" className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || detailBusy || createOutcomeUnknown || recovery} onClick={event => open(item.id, event.currentTarget)}>#{item.number} {item.title}</Button></ItemTitle>
             <Badge variant="outline">{states[item.state]}</Badge>
           </ItemContent>
-          {item.creatorId === user?.userId && <ItemActions><Button variant="outline" aria-label={`編輯問題：${item.title}`} disabled={busy || detailBusy || uncertain || recovery} onClick={event => open(item.id, event.currentTarget)}>編輯</Button></ItemActions>}
+          {item.creatorId === user?.userId && <ItemActions><Button variant="outline" aria-label={`編輯問題：${item.title}`} disabled={busy || detailBusy || createOutcomeUnknown || recovery} onClick={event => open(item.id, event.currentTarget)}>編輯</Button></ItemActions>}
           {mode === "detail" && activeId === item.id && <ItemFooter>{editor}</ItemFooter>}
         </Item>)}
       </ItemGroup>
       {loaded && !items.length && <Empty><EmptyHeader><EmptyTitle>{cursor ? "本頁沒有符合的問題" : "沒有符合的問題"}</EmptyTitle><EmptyDescription>{cursor ? "請繼續載入下一頁。" : "可調整篩選條件，或建立新的問題。"}</EmptyDescription></EmptyHeader></Empty>}
-      {cursor && <Button variant="outline" disabled={listBusy || busy || !!mode || uncertain || recovery} onClick={() => load(cursor)}>載入更多問題</Button>}
+      {cursor && <Button variant="outline" disabled={listBusy || busy || !!mode || createOutcomeUnknown || recovery} onClick={() => load(cursor)}>載入更多問題</Button>}
     </PagePanel>
 
     {discard.dialog}

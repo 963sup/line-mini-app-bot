@@ -4,7 +4,7 @@
 
 ## 職責與邊界
 
-- 狀態：基礎事項 API 已接入；先讀 [事項操作規格](../../../docs/features/repository/issues.md)。types／comments 仍為雛形，[業務模型設計](../../../docs/foundation/architecture/domain-model.md) 不取代已確認規格。
+- 狀態：基礎事項 API 已接入；先讀 [事項操作規格](../../../docs/features/repository/issues.md)。types／comments 仍為雛形，[業務模型設計](../../../docs/planning/domain-model.md) 不取代已確認規格。
 - 實體用 Issue、集合用 issues；每個 Issue 歸屬既有 Repository。正式路由、欄位、識別碼與保存位置須在功能規格確認。
 - 建立契約前先建立 Issue 功能規格，定義建立、查詢、修改與生命週期的操作者、權限、狀態轉換、版本、重送及必要稽核。
 - Issue 的關閉不自動代表施工驗收或業務核准；不沿用出勤補卡的狀態或審核權。

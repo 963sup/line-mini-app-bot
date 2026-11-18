@@ -67,9 +67,13 @@ func run() (resultErr error) {
 	defer stop()
 	client, err := db.NewClientWithDatabase(ctx, project, database)
 	if err != nil {
-		return errors.New("cannot initialize Firestore; check explicit project, database and ADC")
+		return err
 	}
-	defer func() { resultErr = errors.Join(resultErr, client.Close()) }()
+	defer func() {
+		if closeErr := client.Close(); resultErr == nil {
+			resultErr = closeErr
+		}
+	}()
 	store := &storage.Attendance{Client: client, ChannelID: channel}
 	for !saved.Progress.Complete {
 		next, err := store.MigrateQueryBatch(ctx, saved.Progress, *apply)
@@ -92,7 +96,9 @@ func run() (resultErr error) {
 				err = staged.Sync()
 			}
 			closeErr := staged.Close()
-			err = errors.Join(err, closeErr)
+			if err == nil {
+				err = closeErr
+			}
 			if err == nil {
 				err = os.Rename(name, *checkpointPath)
 			}

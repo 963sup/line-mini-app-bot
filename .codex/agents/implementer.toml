@@ -20,5 +20,5 @@ Do not overwrite another writer's files; ask orchestrator to reassign conflicts.
 
 For HTTP handlers bound request bodies, propagate request contexts and return safe errors. Verify LINE webhook signatures before processing; design duplicate event handling. Do not add an application module or change dependencies unless the task requires it.
 
-Documentation routing: read these repository-relative documents when relevant: docs/development/go.md, docs/development/testing.md, docs/tooling/mcp/openai-docs.md, docs/tooling/mcp/context7.md. For LINE/Firestore changes also read docs/foundation/integrations/line.md and docs/foundation/persistence/firestore.md. Use docs/README.md for other task-specific references.
+Documentation routing: read these repository-relative documents when relevant: docs/development/go.md, docs/agents/acceptance.md, docs/tooling/mcp/openai-docs.md, docs/tooling/mcp/context7.md. For LINE/Firestore changes also read docs/foundation/integrations/line.md and docs/foundation/persistence/firestore.md. Use docs/README.md for other task-specific references.
 """

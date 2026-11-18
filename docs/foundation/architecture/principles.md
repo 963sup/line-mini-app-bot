@@ -31,11 +31,16 @@
 
 ## 3. 每次功能交付順序
 
-1. 定義入口、可信身分、輸入與預期結果。
-2. 在使用案例實作業務規則與授權。
-3. 接上必要 adapter，明確處理逾時與失敗。
-4. 驗證成功、拒絕、重複請求與下游失敗。
-5. 確認日誌可追查且不含 token、機密或不必要的個資。
+```mermaid
+flowchart LR
+  A["定義入口、可信身分、輸入與預期結果"]
+  A --> B["在使用案例實作業務規則與授權"]
+  B --> C["接上 adapter 並處理逾時與失敗"]
+  C --> D["驗證成功、拒絕、重複請求與下游失敗"]
+  D --> E["核對日誌可追查且排除 token、機密與不必要個資"]
+```
+
+業務變更的查證與交付證據依[業務操作符合性流程](../../agents/workflow.md#business-operation-compliance)。
 
 ## 4. 邊界檢查
 
@@ -47,7 +52,7 @@
 目前先不引入微服務、完整 CQRS、Event Sourcing 或通用 Repository 框架。
 當獨立部署、讀寫差異或事件稽核需求成立時，再重新評估。
 
-實作細節見 [Go 慣例](../../development/go.md)；驗證方式見 [測試](../../development/testing.md)。
+實作細節見 [Go 慣例](../../development/go.md)；驗證方式見 [驗收矩陣](../../agents/acceptance.md#變更驗收矩陣)。
 
 目標套件配置見 [目錄規劃](layout.md)，依賴方向見 [依賴規則](dependencies.md)。
 

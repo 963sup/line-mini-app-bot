@@ -4,7 +4,6 @@ package browser
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
 	"io/fs"
 	"net/http"
 	"os"
@@ -39,7 +38,7 @@ func ReadFile(name string) ([]byte, error) { return fs.ReadFile(os.DirFS(Root())
 func Validate() error {
 	for _, name := range []string{"miniapp.html", "miniapp/history.html", "miniapp/correction.html", "miniapp/review.html", "miniapp/punch.html", "miniapp/leave.html", "miniapp/journal.html", "miniapp/repositories.html", "miniapp/projects.html", "miniapp/dashboard.html", "miniapp/feed.html", "location.html"} {
 		if _, err := ReadFile(name); err != nil {
-			return fmt.Errorf("frontend artifact %s: %w (run pnpm build)", name, err)
+			return err
 		}
 	}
 	return nil

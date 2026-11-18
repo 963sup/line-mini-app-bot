@@ -1,5 +1,22 @@
 # 套件依賴與圖譜
 
+## 技術棧與 SDK 維護
+
+技術組成與主要 SDK 概覽見[根 README](../../../README.md#技術棧與-sdk)。Go 依賴以 [go.mod](../../../backend/go.mod)、前端依賴以 [package.json](../../../frontend/miniapp/package.json)、API client 以[其 package.json](../../../api/client/package.json)、工具版本以 [mise.toml](../../../mise.toml)為準，不在文件複製固定版本。
+
+修改整合前先定位既有 adapter 與使用端介面，核對實際套件及適用版本的官方文件；文件查證流程依[根指引](../../../AGENTS.md#mandatory-documentation-verification)。SDK、直接 HTTP 整合與開發工具須分開辨識；已列為依賴不等於已完成真實服務驗收。更換 SDK 或增加依賴涉及選型時，依[ADR 流程](decisions/README.md)記錄適用的決策，不以整理文件為由替換實作。
+
+## 契約與不變條件的維護位置
+
+| 契約 | 權威維護位置 | 導航時的界線 |
+| --- | --- | --- |
+| Project 所有權、群組資格與來源授權 | [Project 規格](../../features/project/projects.md) | 不從來源 Repository 推導 Project 所有權 |
+| Repository 內資源、編號與交易防重 | [Repository 功能索引](../../features/repository/README.md) | 各功能保存自己的規則與相容例外 |
+| 出勤狀態、工時與重送 | [出勤功能索引](../../features/attendance/README.md) | 依具體操作契約判定，不另維護通用業務狀態 |
+| HTTP 格式、Session 與身分 | [OpenAPI](../../../api/README.md)、[Session](../identity/browser-session.md) | HTTP 結構驗證不取代業務授權 |
+| 資料與可靠性規劃 | [資料契約](../persistence/data-contracts.md)、[可靠性索引](../reliability/README.md) | 遵循各頁狀態標示；規劃中的 schema／Outbox 不作為現行資料庫全貌 |
+| 業務操作的共用描述方式 | [操作模型](business-operation.md) | 功能文件填具體操作；本頁只提供定位 |
+
 ## 目前實作
 
 `backend/cmd/server → internal/server → 各功能入口與整合實作`。
@@ -48,10 +65,8 @@ flowchart LR
 
 ## Graphify 與 Repomix 工作流
 
-1. Graphify query 找已索引符號與關係；無結果時讀當前程式，不能解讀為沒有依賴。
-2. 實作改動後使用 `mise run graphify-update` 重建；AST 圖可能遺漏 Go 隱式介面、動態 dispatch、TOML 與 Markdown。
-3. 用 `go list -deps ./...`／gopls 與原始碼核對 import；上方 Mermaid 才是尚未實作架構的設計圖。
-4. 使用 Repomix 完整包做全局審查；日常審查按 docs 與 Go 原始碼範圍打包，避免工具生成技能與 binary 噪音。
-5. Repomix 安全掃描保留開啟；排除提示需個別檢查，不能當成絕對無機密證明。
+共用的定位、核對與驗收順序見[業務操作符合性流程](../../agents/workflow.md#business-operation-compliance)。Graphify 查不到節點時查當前程式，再以 `go list -deps ./...` 或 gopls 核對 import。程式改動後執行 `mise run graphify-update`。AST 可能遺漏 Go 隱式介面、動態 dispatch、TOML 與 Markdown。上方 Mermaid 描述尚未實作的目標架構。
+
+全局審查使用完整 Repomix 包。日常審查限定所需文件與 Go 原始碼，排除生成技能與 binary。保持安全掃描開啟，逐項核對排除提示及敏感內容。
 
 Graphify 統計不等同架構合規，Repomix token 減少不等同功能最佳化。目錄調整應以責任與依賴為依據，不以圖形美觀作為驗收。

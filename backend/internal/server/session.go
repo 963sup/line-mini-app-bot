@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"cloud.google.com/go/firestore"
@@ -21,7 +20,7 @@ func newSessions(ctx context.Context, channel string) (*session.Service, func() 
 	}
 	client, err := firestore.NewClientWithDatabase(ctx, project, database)
 	if err != nil {
-		return nil, nil, fmt.Errorf("cannot initialize session database: %w", err)
+		return nil, nil, err
 	}
 	return &session.Service{Store: &storage.Store{Client: client}, ChannelID: channel}, client.Close, nil
 }

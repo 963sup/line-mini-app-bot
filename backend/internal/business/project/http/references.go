@@ -3,6 +3,8 @@ package projecthttp
 import (
 	"net/http"
 
+	"github.com/963sup/line-mini-app-bot/internal/identity"
+
 	feature "github.com/963sup/line-mini-app-bot/internal/business/project"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
@@ -35,7 +37,7 @@ func (s *projectServer) ListProjectReferences(w http.ResponseWriter, r *http.Req
 	if p.Cursor != nil {
 		cursor = *p.Cursor
 	}
-	page, e := s.service.ListReferences(r.Context(), actor(r), sid, pid, cursor)
+	page, e := s.service.ListReferences(r.Context(), identity.UserID(r.Context()), sid, pid, cursor)
 	if writeError(w, e) {
 		return
 	}
@@ -48,7 +50,7 @@ func (s *projectServer) ListProjectReferences(w http.ResponseWriter, r *http.Req
 
 func (s *projectServer) AddProjectReference(w http.ResponseWriter, r *http.Request, sid, pid string, _ generated.AddProjectReferenceParams) {
 	var input generated.ProjectReferenceAddition
-	if !body(w, r, &input) {
+	if !transport.ReadJSON(w, r, &input, "資料無效。") {
 		return
 	}
 	ref := feature.Reference{SourceType: string(input.SourceType), SourceID: input.SourceId}
@@ -58,14 +60,14 @@ func (s *projectServer) AddProjectReference(w http.ResponseWriter, r *http.Reque
 	if input.ParentObjectId != nil {
 		ref.ParentObjectID = *input.ParentObjectId
 	}
-	value, e := s.service.AddReference(r.Context(), actor(r), sid, pid, ref, input.ExpectedVersion)
+	value, e := s.service.AddReference(r.Context(), identity.UserID(r.Context()), sid, pid, ref, input.ExpectedVersion)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(value))
 	}
 }
 
 func (s *projectServer) RemoveProjectReference(w http.ResponseWriter, r *http.Request, sid, pid, itemID string, p generated.RemoveProjectReferenceParams) {
-	value, e := s.service.RemoveReference(r.Context(), actor(r), sid, pid, itemID, p.ExpectedVersion)
+	value, e := s.service.RemoveReference(r.Context(), identity.UserID(r.Context()), sid, pid, itemID, p.ExpectedVersion)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(value))
 	}

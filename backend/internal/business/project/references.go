@@ -32,7 +32,7 @@ func ValidReference(r Reference) bool {
 }
 
 func (s *Service) projectScope(ctx context.Context, actor, ownerID, pid string) (Scope, Project, error) {
-	r, e := s.scope(ctx, actor, ownerID)
+	r, e := s.resolveProjectScope(ctx, actor, ownerID)
 	if e != nil {
 		return Scope{}, Project{}, e
 	}

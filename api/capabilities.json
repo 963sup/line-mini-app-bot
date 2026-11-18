@@ -94,13 +94,13 @@
     "issue.types": {
       "kind": "scaffold",
       "contract": "issue/types.yaml",
-      "specification": "docs/foundation/architecture/domain-model.md",
+      "specification": "docs/planning/domain-model.md",
       "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
     },
     "issue.comments": {
       "kind": "scaffold",
       "contract": "issue/comments.yaml",
-      "specification": "docs/foundation/architecture/domain-model.md",
+      "specification": "docs/planning/domain-model.md",
       "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
     },
     "discussion": {
@@ -112,7 +112,7 @@
     "discussion.categories": {
       "kind": "scaffold",
       "contract": "discussion/categories.yaml",
-      "specification": "docs/foundation/architecture/domain-model.md",
+      "specification": "docs/planning/domain-model.md",
       "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
     },
     "discussion.comments": {
@@ -136,13 +136,13 @@
     "project.fields": {
       "kind": "scaffold",
       "contract": "project/fields.yaml",
-      "specification": "docs/foundation/architecture/domain-model.md",
+      "specification": "docs/planning/domain-model.md",
       "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
     },
     "project.views": {
       "kind": "scaffold",
       "contract": "project/views.yaml",
-      "specification": "docs/foundation/architecture/domain-model.md",
+      "specification": "docs/planning/domain-model.md",
       "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
     },
     "repository.statistics": {

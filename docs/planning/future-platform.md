@@ -3,7 +3,7 @@
 > 狀態：規劃。以下是完整責任配置，非現有檔案清單；按交付階段建立，避免空目錄與空介面。
 > 路徑從 repository root 起算；每個 Go 子目錄是獨立 package，不假設父目錄自動包含子目錄。
 
-現行模組與啟用條件見 [架構總覽](overview.md)。本頁保留早期平台設計，供評估通用 Inbox、Outbox、租約與管理後台時參考。
+現行模組與啟用條件見 [架構總覽](../foundation/architecture/overview.md)。本頁保留早期平台設計，供評估通用 Inbox、Outbox、租約與管理後台時參考。
 
 ## 第二層與第三層目錄
 
@@ -84,7 +84,7 @@ MINI App Service Message adapter 在資格與需求確立後新增，不預建�
 - application 不能 import adapters；SDK 與 Firestore 型別留在 adapter。
 - 機密由部署環境注入，config 不保存 token；工具設定仍由 mise.toml 管理。
 
-依賴允許表見 [dependencies.md](dependencies.md)，實作順序見 [delivery.md](delivery.md)。
+依賴允許表見 [dependencies.md](../foundation/architecture/dependencies.md)，實作順序見 [delivery.md](delivery.md)。
 
 ## 後續平台擴充參考流程
 

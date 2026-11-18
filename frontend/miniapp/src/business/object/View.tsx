@@ -46,7 +46,7 @@ function Content({ repositoryId, extract }: Props) {
   const [spaces, setSpaces] = useState<BusinessSpace[]>([]), [spaceCursor, setSpaceCursor] = useState("");
   const [spacesBusy, setSpacesBusy] = useState(false), [spaceStatus, setSpaceStatus] = useState(""), [spaceName, setSpaceName] = useState("");
   const [spaceUnknown, setSpaceUnknown] = useState(false);
-  const pendingSpace = useRef<{ key: string; name: string } | null>(null);
+  const spaceCreateAttempt = useRef<{ idempotencyKey: string; name: string } | null>(null);
   const [items, setItems] = useState<Resource[]>([]), [cursor, setCursor] = useState("");
   const [listBusy, setListBusy] = useState(false), [loaded, setLoaded] = useState(false), [listStatus, setListStatus] = useState("");
   const [mode, setMode] = useState<"create" | "detail" | null>(null), [selected, setSelected] = useState<Resource | null>(null);
@@ -70,7 +70,7 @@ function Content({ repositoryId, extract }: Props) {
   const subBlock = useCallback((value: boolean) => { subLock.current = value; setSubBlocked(value); }, []);
   const importLock = useRef(false);
   const importBlock = useCallback((value: boolean) => { repositoryGuard.block(value); importLock.current = value; setImportBlocked(value); }, [repositoryGuard.block]);
-  const lock = useRef(false), formNavigation = useRef(false), pending = useRef<{ key: string; body: Creation } | null>(null);
+  const lock = useRef(false), formNavigation = useRef(false), objectCreateAttempt = useRef<{ idempotencyKey: string; body: Creation } | null>(null);
   useEffect(() => { formNavigation.current = false; });
   const canSubWrite = useCallback(() => !formNavigation.current && !lock.current && !busy && !uncertain && !listBusy && !detailBusy && !needsRefresh && !dirty && !discard.isConfirming() && repositoryGuard.canWrite(), [repositoryGuard.canWrite, busy, uncertain, listBusy, detailBusy, needsRefresh, dirty]);
   const canImportWrite = useCallback(() => !formNavigation.current && repositoryGuard.canWrite(), [repositoryGuard.canWrite]);
@@ -91,7 +91,7 @@ function Content({ repositoryId, extract }: Props) {
     setSpaceName(""); setSpaceStatus("");
     setSelected(item); setActiveId(item.id); baseline.current = { name: item.name, description: item.description, type: item.type, quantity: item.quantity, unit: item.unit,
       spaceId: item.spaceId || "", sourceDocument: item.sourceDocument || "", sourceRevision: item.sourceRevision || "", completedQuantity: item.completedQuantity }; setContent(baseline.current);
-    setMode("detail"); setNeedsRefresh(false); setUncertain(false); pending.current = null; repositoryGuard.block(false);
+    setMode("detail"); setNeedsRefresh(false); setUncertain(false); objectCreateAttempt.current = null; repositoryGuard.block(false);
   }
   useEffect(() => {
     if (!mode) { opener.current?.focus(); return; }
@@ -108,7 +108,7 @@ function Content({ repositoryId, extract }: Props) {
   function saved(item: Resource, message: string) {
     setSpaceName(""); setSpaceStatus("");
     setItems(previous => previous.some(value => value.id === item.id) ? previous.map(value => value.id === item.id ? item : value) : [item, ...previous]);
-    setMode(null); setSelected(null); setActiveId(""); baseline.current = empty; setContent(empty); setUncertain(false); setNeedsRefresh(false); pending.current = null; repositoryGuard.block(false); setListStatus(message);
+    setMode(null); setSelected(null); setActiveId(""); baseline.current = empty; setContent(empty); setUncertain(false); setNeedsRefresh(false); objectCreateAttempt.current = null; repositoryGuard.block(false); setListStatus(message);
   }
   function open(id: string, trigger?: HTMLElement) {
     if (!user || subLock.current || lock.current || uncertain || (needsRefresh && id !== activeId) || formNavigation.current) return;
@@ -121,12 +121,12 @@ function Content({ repositoryId, extract }: Props) {
       }, error => { setDetailBusy(false); setStatus(errorMessage(error)); });
     });
   }
-  function create(trigger: HTMLElement) {
+  function openCreateForm(trigger: HTMLElement) {
     if (subLock.current || lock.current || uncertain || needsRefresh || formNavigation.current) return;
     discard.navigate(() => {
       opener.current = trigger;
       formNavigation.current = true; read.cancel(); setListBusy(false); clearEditor();
-      setMode("create"); setContent({ ...empty }); setNeedsRefresh(false); pending.current = null;
+      setMode("create"); setContent({ ...empty }); setNeedsRefresh(false); objectCreateAttempt.current = null;
     });
   }
   function submit(event: FormEvent) {
@@ -153,11 +153,11 @@ function Content({ repositoryId, extract }: Props) {
       }, error => { lock.current = false; setBusy(false); repositoryGuard.block(true); setNeedsRefresh(true); setStatus(errorMessage(error) + " 請重新讀取物件後再修改。"); });
       return;
     }
-    if (!uncertain || !pending.current) pending.current = { key: crypto.randomUUID(), body };
-    const attempt = pending.current;
+    if (!uncertain || !objectCreateAttempt.current) objectCreateAttempt.current = { idempotencyKey: crypto.randomUUID(), body };
+    const attempt = objectCreateAttempt.current;
     const wasUnknown = uncertain;
     lock.current = true; setBusy(true); setUncertain(true); repositoryGuard.block(true); setStatus("正在建立物件……");
-    void write.run(signal => request((client, s) => client.POST("/api/v1/repositories/{repositoryId}/objects", { signal: s, params: { path: { repositoryId }, header: { "Idempotency-Key": attempt.key } }, body: attempt.body }), { signal }), item => {
+    void write.run(signal => request((client, s) => client.POST("/api/v1/repositories/{repositoryId}/objects", { signal: s, params: { path: { repositoryId }, header: { "Idempotency-Key": attempt.idempotencyKey } }, body: attempt.body }), { signal }), item => {
       lock.current = false; setBusy(false); saved(item, "已建立物件。");
     }, error => {
       lock.current = false; setBusy(false);
@@ -174,22 +174,22 @@ function Content({ repositoryId, extract }: Props) {
   }, [request, repositoryId, spaceRead.run]);
   useEffect(() => { if (mode) loadSpaces(); return spaceRead.cancel; }, [!!mode, loadSpaces, spaceRead.cancel]);
   function createSpace() {
-    if (!user || discard.isConfirming() || formNavigation.current || detailBusy || importing || importLock.current || !repositoryGuard.canWrite() || lock.current || (uncertain && !pendingSpace.current) || needsRefresh || subLock.current || (mode === "detail" && !mine)) return;
-    if (!pendingSpace.current) {
+    if (!user || discard.isConfirming() || formNavigation.current || detailBusy || importing || importLock.current || !repositoryGuard.canWrite() || lock.current || (uncertain && !spaceCreateAttempt.current) || needsRefresh || subLock.current || (mode === "detail" && !mine)) return;
+    if (!spaceCreateAttempt.current) {
       const name = spaceName.trim();
       if (!name) { setSpaceStatus("請填寫業務空間名稱。"); return; }
-      pendingSpace.current = { key: crypto.randomUUID(), name };
+      spaceCreateAttempt.current = { idempotencyKey: crypto.randomUUID(), name };
     }
-    const attempt = pendingSpace.current;
+    const attempt = spaceCreateAttempt.current;
     const wasUnknown = spaceUnknown;
     lock.current = true; setBusy(true); setUncertain(true); repositoryGuard.block(true); setSpaceStatus("正在建立業務空間……");
-    void write.run(signal => request((client, s) => client.POST("/api/v1/repositories/{repositoryId}/spaces", { signal: s, params: { path: { repositoryId }, header: { "Idempotency-Key": attempt.key } }, body: { name: attempt.name } }), { signal }), item => {
-      pendingSpace.current = null; lock.current = false; setBusy(false); setUncertain(false); setSpaceUnknown(false); repositoryGuard.block(false);
+    void write.run(signal => request((client, s) => client.POST("/api/v1/repositories/{repositoryId}/spaces", { signal: s, params: { path: { repositoryId }, header: { "Idempotency-Key": attempt.idempotencyKey } }, body: { name: attempt.name } }), { signal }), item => {
+      spaceCreateAttempt.current = null; lock.current = false; setBusy(false); setUncertain(false); setSpaceUnknown(false); repositoryGuard.block(false);
       setSpaces(previous => [...previous.filter(value => value.id !== item.id), item]); setContent(previous => ({ ...previous, spaceId: item.id })); setSpaceName(""); setSpaceStatus("已建立業務空間。");
     }, error => {
       lock.current = false; setBusy(false);
       if (!wasUnknown && ["invalid_input", "not_found", "idempotency_conflict"].includes((error as { code?: string }).code || "")) {
-        pendingSpace.current = null; setUncertain(false); setSpaceUnknown(false); repositoryGuard.block(false);
+        spaceCreateAttempt.current = null; setUncertain(false); setSpaceUnknown(false); repositoryGuard.block(false);
       } else setSpaceUnknown(true);
       setSpaceStatus(errorMessage(error) + " 結果未確認時請重試原空間建立請求。");
     });
@@ -247,7 +247,7 @@ function Content({ repositoryId, extract }: Props) {
     <PagePanel heading="物件" className="w-full min-w-0">
       <p className="mb-4 text-sm text-muted-foreground">每個清單項次是一筆物件，數量不拆成單件。成員可新增，僅建立者可編輯；完成不代表驗收或付款。</p>
       <div className="mb-4 flex flex-wrap gap-2">
-        <Button disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={event => create(event.currentTarget)}>新增物件</Button>
+        <Button disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={event => openCreateForm(event.currentTarget)}>新增物件</Button>
         <Button variant="outline" disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={() => { if (!subLock.current && !lock.current && !uncertain && !needsRefresh) discard.navigate(() => { formNavigation.current = true; clearEditor(); setImporting(true); }); }}>PDF匯入</Button>
         <Button variant="outline" disabled={!user || busy || listBusy || subBlocked || uncertain || !!mode} onClick={() => load()}>重新載入物件</Button>
       </div>

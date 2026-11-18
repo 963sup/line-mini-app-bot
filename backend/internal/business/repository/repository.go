@@ -14,12 +14,10 @@ var (
 	ErrNotFound    = errors.New("repository not found")
 	ErrUnavailable = errors.New("repository unavailable")
 	ErrCursor      = errors.New("invalid repository cursor")
-	groupPattern   = regexp.MustCompile(`^C[0-9a-f]{32}$`)
 	idPattern      = regexp.MustCompile(`^[0-9a-f]{32}$`)
 )
 
 func ValidOwner(id string) bool { return identity.ValidOwner(id) }
-func ValidGroup(id string) bool { return groupPattern.MatchString(id) }
 func ValidID(id string) bool    { return idPattern.MatchString(id) }
 
 type Repository struct {

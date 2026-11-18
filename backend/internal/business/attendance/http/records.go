@@ -169,11 +169,11 @@ func attendanceQueryError(w http.ResponseWriter, err error) bool {
 	}
 	switch {
 	case errors.Is(err, recordmodel.ErrInvalidCursor):
-		transport.WriteAPIError(w, 400, "invalid_cursor", "分頁已失效，請重新查詢。")
+		transport.WriteServiceError(w, 400, "invalid_cursor", "分頁已失效，請重新查詢。", err)
 	case errors.Is(err, recordmodel.ErrRecordNotFound):
-		transport.WriteAPIError(w, 404, "not_found", "找不到此班次。")
+		transport.WriteServiceError(w, 404, "not_found", "找不到此班次。", err)
 	default:
-		transport.WriteAPIError(w, 503, "unavailable", "暫時無法讀取出勤，請重試。")
+		transport.WriteServiceError(w, 503, "unavailable", "暫時無法讀取出勤，請重試。", err)
 	}
 	return true
 }

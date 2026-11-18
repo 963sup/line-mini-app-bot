@@ -62,11 +62,7 @@ them, and report the fallback rather than claiming native role execution.
 
 ## Go verification
 
-For Go changes use the pinned environment through `bash scripts/tooling/tool-exec.sh`.
-Run mise tasks `fmt-check`, `lint`, `check` and `build`; run `vuln` for dependency
-changes and before delivery. Use `deadcode` and `callgraph` for focused analysis,
-and `debug`, `coverage`, `bench`, `profile` only when relevant. See
-[mise tooling](../tooling/mise.md) for installation and artifact paths.
+Go 變更的必要檢查、條件與執行方式統一依 [驗收矩陣](acceptance.md#變更驗收矩陣)。工具安裝與額外分析任務見 [mise tooling](../tooling/mise.md)；不要因角色交接重跑未失效的完整檢查。
 
 ## Assignment contract
 
@@ -92,35 +88,30 @@ Use six fields rather than forwarding the full conversation or raw logs:
 | Checks | Exact commands already run, actual results and required checks still pending |
 | Open issues | Missing evidence, conflicts, failures and cross-scope work needing reassignment |
 
-Reuse evidence only while its repository/revision, relevant dirty paths, query or
-bundle coverage, dependency versions and tool configuration remain applicable.
-An unchanged HEAD alone is insufficient when relevant working files changed.
-Refresh only invalidated evidence after source/version/scope/configuration changes
-or conflicting observations; do not repeat unchanged document reads, library
-lookups, bundles or whole check suites just because the owner changed.
+```mermaid
+flowchart TB
+  E["收到來源、查證、工具或檢查證據"] --> VALID{"版本、工作樹、涵蓋範圍、依賴與工具設定仍適用，且無衝突？"}
+  VALID -->|是，分析報告| HASH{"commit、dirty state、來源 SHA 與契約及產物雜湊仍匹配？"}
+  HASH -->|是| REUSE
+  HASH -->|否| REFRESH
+  VALID -->|是，其他證據| REUSE["沿用證據；不因換人重讀、重查或重跑整套檢查"]
+  VALID -->|否| REFRESH["只更新失效或缺少的證據"]
+  REFRESH --> TOOL{"工具操作失敗？"}
+  TOOL -->|否| USE["記錄來源、範圍、實際結果與限制"]
+  TOOL -->|是| DIAG["記錄 host、環境、server 設定與失敗階段"]
+  DIAG --> RETRY{"相關條件改變，或已明確指派有界診斷？"}
+  RETRY -->|是| REFRESH
+  RETRY -->|否| FALLBACK["沿用已診斷失敗與文件 fallback；不重複逾時"]
+  REUSE --> USE
+  FALLBACK --> USE
+```
 
-Every agent that actually explores the codebase MUST still perform its initial
-Graphify query under the root rule. Supply the previous focused query and located
-paths to avoid repeating broad exploration; reuse that agent's still-valid query
-for the same question. A worker consuming supplied evidence without new codebase
-exploration need not invent an additional exploration task. New questions or stale
-graphs require focused queries and current-source corroboration.
+適用邊界：
 
-For Context7 reuse a prior resolved library ID and versioned answer only for the
-same covered question; new or unsupported questions still require resolve/query
-and the root official-source route. Reuse a scoped Repomix bundle only while its
-source revision, dirty paths and inclusion/exclusion coverage match. Reviewers
-retain independent judgment and perform checks needed to challenge a conclusion.
-
-The [MCP operating guide](../tooling/mcp/README.md#task-scoped-tool-use) owns tool
-inventory and connection reuse. A service, role or source mismatch invalidates
-the relevant evidence; successful registration is never runtime acceptance.
-
-Cache a diagnosed tool failure with its host/environment, server configuration
-and failure stage. Use the documented fallback for the rest of that unchanged
-task; another role is not a reason to repeat the same timeout. Retry only after
-a relevant condition changes or a bounded diagnostic is explicitly assigned.
-
+- HEAD 相同不足以證明證據有效；須核對相關 dirty paths、query／bundle 範圍與來源版本。Context7 只重用相同問題與版本涵蓋的結果；Repomix 另核對包含／排除路徑。
+- 每位實際探索程式的代理仍須執行首次 Graphify query；只消費已提供證據而未探索者不必另造查詢。新問題、過期圖譜或矛盾觀察須重新定位並核對當前來源。
+- MCP inventory 與連線重用依 [工具操作指南](../tooling/mcp/README.md#task-scoped-tool-use)；host／server／allowlist、服務、角色或來源不符會使相關證據失效。註冊成功不等於 runtime 驗收。
+- reviewer 依獨立判斷補足挑戰結論所需的證據；流程不限制必要審查。
 
 ## Reading and handoff
 
@@ -133,22 +124,26 @@ is separate authorization, not permission inferred from delegation.
 
 ## Repository publication
 
-1. 從最新的 `main` 開始一項可獨立回退的變更。先核對遠端、工作樹和差異，只提交本任務的檔案或區塊。`work` 可以保存多筆開發提交。
-2. 完成相關驗證後推送 `work`，建立或更新目標為 `main` 的 PR。PR 描述最終行為、驗證與限制。使用者指定僅分析、僅本機或暫停發布時，依指定範圍交付。
-3. 確認 PR 的 head 是已驗證的 SHA，符合審查與分支保護要求後，使用 **Squash and merge**。每個可獨立回退的功能或修正，在 `main` 留一筆提交。跨前端、API 與後端的同一功能可以合在一筆。
-4. 合併後 fetch 最新 `main` 和 `work`，將 `origin/main` 合回長期使用的 `work` 並正常推送。若有其他人推進分支，先核對新增內容；同步完成後以祖先關係和檔案差異確認新工作的起點。
-5. 交付時列出 PR、主分支提交與實際驗證。版本完成驗收後可依發布安排加標籤。重寫已發布歷史需單次明確授權與可還原備份。遠端拒絕時遵守分支保護與審核結果。
+```mermaid
+flowchart TB
+  A["從最新 main 開始，核對遠端、工作樹與差異"] --> B["只提交本任務範圍並完成相關驗證"]
+  B --> C{"任務範圍允許發布？"}
+  C -->|否| L["依指定範圍交付"]
+  C -->|是| P["推送 work，建立或更新指向 main 的 PR"]
+  P --> V{"PR head 等於已驗證 SHA，且通過審查與分支保護？"}
+  V -->|否| W["處理檢查或審查結果後重新確認"]
+  V -->|是| M["Squash and merge"]
+  M --> S["fetch 最新兩分支，將 origin/main 合回 work 並正常推送"]
+  S --> E["核對祖先關係與差異，交付 PR、main 提交及驗證結果"]
+```
+
+`work` 可保存多筆開發提交，`main` 每項可獨立回退的變更保留一筆提交，可涵蓋同一功能的前端、API 與後端。PR 描述最終行為、驗證和限制。同步時若他人已推進分支，先核對新增內容。版本驗收後可按發布安排加標籤。重寫已發布歷史需單次明確授權與可還原備份，遠端拒絕時遵循分支保護與審核結果。
 
 GitHub MCP 與 Git CLI 的使用見 [GitHub 工具指南](../tooling/mcp/github.md)。推送、CI 與正式部署分別核對，見 [發布驗收](../foundation/operations/release-acceptance.md)。
 
 ## Deployment and browser location routing
 
-Application deployment uses Cloud Run only. Read docs/foundation/architecture/decisions/0003-cloud-run-primary.md
-and docs/foundation/operations/cloud-run.md before deployment work; use a dedicated runtime service account and minimal IAM.
-For location tasks read docs/foundation/integrations/web-geolocation.md: browser JavaScript obtains location,
-Go validates untrusted coordinates and authorization. No location history or presence verification
-without the product contract. Read docs/foundation/architecture/codex-readiness.md and
-docs/development/naming.md for implementation handoffs. Preserve generated upstream skills.
+部署與瀏覽器定位任務依[根指引的路由](../../AGENTS.md#deployment-and-browser-location-routing)載入適用決策與操作文件；實際驗收依 [acceptance](acceptance.md#cloud-run-and-browser-location)。本節不另外維護部署政策。
 
 ## Mandatory documentation verification
 
@@ -162,12 +157,22 @@ additional writes.
 
 業務開發、審查及修正必須先讀 [操作模型](../foundation/architecture/business-operation.md)。任務分派附上操作契約、規格來源、既有實作、檔案所有權與驗收條件。
 
-1. **定位**：先執行 Graphify query，必要時 path／explain；依符號定位目前程式。圖譜可能過期或遺漏動態關係，不以無節點判定無實作。
-2. **核對**：執行 Repomix CLI，核對打包範圍與對應原文，確認根／巢狀指引、契約、規則和入口。Markdown／TOML 不保證被 AST 收錄，遺漏者直接讀取並註明。產物使用任務專屬且不提交的目錄，不覆蓋他人分析。
-3. **查證**：涉及技術判斷或修改時，Context7 先 resolve library ID 再查版本相符文件；LINE、Google Cloud、Codex 問題仍遵循根指引的官方來源路由。重用本任務已查證且仍適用的證據，不重查未變內容。產品決策取自使用者及已接受規格，不從套件文件推導。
-4. **判定**：記錄違反哪條規格、檔案／符號、可觀察影響、最小修正與驗證方式。區分確認缺陷、工具盲點與待確認需求。
-5. **修正**：explorer／reviewer 保持唯讀，將發現交 orchestrator；範圍內由 implementer 修正，必要時 debugger 定位。保留既有變更；範圍外問題列為後續工作，不自動全庫改寫。主機不支援角色時由主代理承擔責任並說明，不聲稱有委派。
-6. **驗收**：依 [acceptance](acceptance.md) 檢查契約、實作與證據。程式變更後依根指引更新 Graphify，受影響內容再打包；已驗證且未變內容沿用證據。必需來源不可用時保留受影響決策待確認，繼續可獨立完成部分。
+```mermaid
+flowchart TB
+  A["Graphify query 定位符號，必要時 path／explain"] --> B["Repomix CLI 與原文核對指引、契約、規則及入口"]
+  B --> C["依查證路由核對版本與產品規格"]
+  C --> D{"必需來源可用？"}
+  D -->|否| H["受影響決策待確認，繼續獨立部分"]
+  D -->|是| E["區分缺陷、工具盲點與待確認需求"]
+  E --> F["記錄規格、符號、影響、最小修正及檢查"]
+  F --> G["分派範圍內修正，依驗收矩陣交付"]
+```
+
+圖譜可能過期或漏掉動態關係，無節點時核對原始碼。核對 Repomix 打包範圍，Markdown／TOML 等遺漏內容直接讀取並記錄。產物放任務專屬的未提交目錄。
+
+Context7 先解析 library ID 再查適用版本。LINE、Google Cloud 與 Codex 依[根查證路由](../../AGENTS.md#mandatory-documentation-verification)。產品決策以使用者與已接受規格為準。
+
+Explorer 與 reviewer 維持唯讀並回報 orchestrator，implementer 修正，必要時由 debugger 定位。保留既有變更，範圍外另列。主機不支援角色時由主代理直接承接並說明。依[驗收矩陣](acceptance.md)核對契約、實作與證據。程式修改後依根指引更新 Graphify，重新打包受影響內容並沿用有效證據。
 
 交付列出：發現 → 規格依據 → 修改位置 → 檢查結果 → 剩餘限制。不把工具成功等同業務正確，不無限重跑全庫檢查。此流程不增加 push、部署或資料遷移授權。
 

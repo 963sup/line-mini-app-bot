@@ -2,9 +2,7 @@ package projecthttp
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"io"
 	"mime"
 	"net/http"
 	"strings"
@@ -91,16 +89,6 @@ func view(i feature.Project) generated.Project {
 	}
 	return generated.Project{Id: i.ID, Title: i.Title, Body: i.Body, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, IssueCount: i.IssueCount, CompletedIssueCount: i.CompletedIssueCount, OwnerId: i.OwnerID, DefaultRepositoryId: i.DefaultRepositoryID, LinkedRepositoryIds: &i.LinkedRepositoryIDs, SourceAvailable: &i.SourceAvailable}
 }
-func actor(r *http.Request) string { u, _ := identity.FromContext(r.Context()); return u.ID }
-func body(w http.ResponseWriter, r *http.Request, target any) bool {
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if d.Decode(target) != nil || d.Decode(new(any)) != io.EOF {
-		transport.WriteAPIError(w, 400, "invalid_input", "資料無效。")
-		return false
-	}
-	return true
-}
 
 func writeError(w http.ResponseWriter, e error) bool {
 	if e == nil {
@@ -123,7 +111,7 @@ func writeError(w http.ResponseWriter, e error) bool {
 	case errors.Is(e, feature.ErrCreationConflict):
 		code, status, message = "idempotency_conflict", 409, "建立識別碼已用於不同內容，請確認原紀錄。"
 	}
-	transport.WriteAPIError(w, status, code, message)
+	transport.WriteServiceError(w, status, code, message, e)
 	return true
 }
 
@@ -132,7 +120,7 @@ func (s *projectServer) ListProjects(w http.ResponseWriter, r *http.Request, rep
 	if p.Cursor != nil {
 		cursor = *p.Cursor
 	}
-	page, e := s.service.List(r.Context(), actor(r), repositoryId, cursor)
+	page, e := s.service.List(r.Context(), identity.UserID(r.Context()), repositoryId, cursor)
 	if writeError(w, e) {
 		return
 	}
@@ -144,7 +132,7 @@ func (s *projectServer) ListProjects(w http.ResponseWriter, r *http.Request, rep
 }
 
 func (s *projectServer) GetProject(w http.ResponseWriter, r *http.Request, repositoryId, id string) {
-	i, e := s.service.Get(r.Context(), actor(r), repositoryId, id)
+	i, e := s.service.Get(r.Context(), identity.UserID(r.Context()), repositoryId, id)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -152,10 +140,10 @@ func (s *projectServer) GetProject(w http.ResponseWriter, r *http.Request, repos
 
 func (s *projectServer) CreateProject(w http.ResponseWriter, r *http.Request, repositoryId string, p generated.CreateProjectParams) {
 	var input generated.ProjectCreation
-	if !body(w, r, &input) {
+	if !transport.ReadJSON(w, r, &input, "資料無效。") {
 		return
 	}
-	i, e := s.service.Create(r.Context(), actor(r), repositoryId, p.IdempotencyKey, feature.Content{Title: input.Title, Body: input.Body})
+	i, e := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryId, p.IdempotencyKey, feature.Content{Title: input.Title, Body: input.Body})
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -163,7 +151,7 @@ func (s *projectServer) CreateProject(w http.ResponseWriter, r *http.Request, re
 
 func (s *projectServer) UpdateProject(w http.ResponseWriter, r *http.Request, repositoryId, id string, _ generated.UpdateProjectParams) {
 	var input generated.ProjectUpdate
-	if !body(w, r, &input) {
+	if !transport.ReadJSON(w, r, &input, "資料無效。") {
 		return
 	}
 	update := feature.Update{Content: feature.Content{Title: input.Title, Body: input.Body}, ExpectedVersion: input.ExpectedVersion}
@@ -173,7 +161,7 @@ func (s *projectServer) UpdateProject(w http.ResponseWriter, r *http.Request, re
 	if input.UnlinkRepositoryId != nil {
 		update.UnlinkRepositoryID = *input.UnlinkRepositoryId
 	}
-	i, e := s.service.Update(r.Context(), actor(r), repositoryId, id, update)
+	i, e := s.service.Update(r.Context(), identity.UserID(r.Context()), repositoryId, id, update)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -184,7 +172,7 @@ func (s *projectServer) ListProjectItems(w http.ResponseWriter, r *http.Request,
 	if p.Cursor != nil {
 		cursor = *p.Cursor
 	}
-	page, e := s.service.ListItems(r.Context(), actor(r), repositoryId, id, cursor)
+	page, e := s.service.ListItems(r.Context(), identity.UserID(r.Context()), repositoryId, id, cursor)
 	if writeError(w, e) {
 		return
 	}
@@ -197,17 +185,17 @@ func (s *projectServer) ListProjectItems(w http.ResponseWriter, r *http.Request,
 
 func (s *projectServer) AddProjectItem(w http.ResponseWriter, r *http.Request, repositoryId, id string, _ generated.AddProjectItemParams) {
 	var input generated.ProjectItemAddition
-	if !body(w, r, &input) {
+	if !transport.ReadJSON(w, r, &input, "資料無效。") {
 		return
 	}
-	i, e := s.service.ChangeItem(r.Context(), actor(r), repositoryId, id, input.IssueId, true, input.ExpectedVersion)
+	i, e := s.service.ChangeItem(r.Context(), identity.UserID(r.Context()), repositoryId, id, input.IssueId, true, input.ExpectedVersion)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}
 }
 
 func (s *projectServer) RemoveProjectItem(w http.ResponseWriter, r *http.Request, repositoryId, id, itemId string, p generated.RemoveProjectItemParams) {
-	i, e := s.service.ChangeItem(r.Context(), actor(r), repositoryId, id, itemId, false, p.ExpectedVersion)
+	i, e := s.service.ChangeItem(r.Context(), identity.UserID(r.Context()), repositoryId, id, itemId, false, p.ExpectedVersion)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -223,10 +211,10 @@ func (s *projectServer) GetOwnerProject(w http.ResponseWriter, r *http.Request, 
 
 func (s *projectServer) CreateOwnerProject(w http.ResponseWriter, r *http.Request, ownerId string, p generated.CreateOwnerProjectParams) {
 	var input generated.OwnerProjectCreation
-	if !body(w, r, &input) {
+	if !transport.ReadJSON(w, r, &input, "資料無效。") {
 		return
 	}
-	value, e := s.service.Create(r.Context(), actor(r), ownerId, p.IdempotencyKey, feature.Content{Title: input.Title, Body: input.Body, SourceRepositoryID: input.DefaultRepositoryId})
+	value, e := s.service.Create(r.Context(), identity.UserID(r.Context()), ownerId, p.IdempotencyKey, feature.Content{Title: input.Title, Body: input.Body, SourceRepositoryID: input.DefaultRepositoryId})
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(value))
 	}

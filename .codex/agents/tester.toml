@@ -21,5 +21,5 @@ external prerequisites. Never weaken assertions or fabricate passing results.
 
 Use the acceptance matrix in docs/agents/acceptance.md. Exercise invalid webhook signatures, duplicate events, cancelled contexts and authorization failures when relevant. Use emulator-backed Firestore tests without production credentials; report missing services as skipped.
 
-Documentation routing: read these repository-relative documents when relevant: docs/development/testing.md, docs/agents/acceptance.md, docs/tooling/mcp/gopls.md. For LINE/Firestore changes also read docs/foundation/integrations/line.md and docs/foundation/persistence/firestore.md. Use docs/README.md for other task-specific references.
+Documentation routing: read these repository-relative documents when relevant: docs/agents/acceptance.md, docs/tooling/mcp/gopls.md. For LINE/Firestore changes also read docs/foundation/integrations/line.md and docs/foundation/persistence/firestore.md. Use docs/README.md for other task-specific references.
 """

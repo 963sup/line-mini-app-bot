@@ -43,7 +43,27 @@ Discussion 與 Issue 保持獨立業務，不因畫面或欄位相似而共用�
 ## 最小實作邊界與驗證
 
 後端 [business/discussion](../../../backend/internal/business/discussion/discussion.go) 核心及其 HTTP、Firestore adapters，由 server 注入既有身分、Repository client 與編號能力。前端 [business/discussion](../../../frontend/miniapp/src/business/discussion/View.tsx) 由正式空間「討論」入口組合既有官方 UI；不修改 primitives、既有出勤或事項模型。
-前端分開取消列表、主題、留言與寫入請求；切換空間／主題或身分時隔離資料，建立重試沿用原鍵，編輯失敗先重新讀取。防重鍵只保留本次畫面；離頁或重新整理前應先確認不明結果。
+前端分開取消列表、主題、留言與寫入請求，切換空間／主題或身分時隔離資料。編輯失敗先重新讀取。
+
+```mermaid
+sequenceDiagram
+  participant N as 父層導覽
+  participant C as 留言表單
+  participant A as 留言 API
+  alt 導覽已開始
+    C->>N: 確認能否開始寫入
+    N-->>C: 拒絕送出
+  else 留言先開始寫入
+    C->>N: 同步鎖定會卸載留言的切題與新建
+    C->>A: 送出留言
+    opt 結果不明
+      Note over N,C: 維持鎖定與原防重鍵
+      C->>A: 以原鍵重試
+    end
+  end
+```
+
+防重鍵只保留在本次畫面。離頁或重新整理前應先核對不明結果。遇到跨儲存庫頁籤切換、身分失效或整頁離開時，這項互鎖無法提供持久保障。
 沿用既有驗收命令與必要隔離 smoke，不新增正式測試框架；本機、真實 LINE 裝置及正式 Firestore 驗收分別回報。
 
 ## 查證與本機驗證

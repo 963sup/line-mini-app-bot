@@ -2,15 +2,28 @@
 
 工程群組／Project新增獨立入口；既有Repository-scoped Project路由由相容adapter呼叫同一用例，來源識別不再代表專案擁有權。資料與授權／相容界線見 [獨立Project](../docs/features/project/projects.md)，契約及生成碼仍遵循本頁流程，不手改generated檔。
 
-`contract/openapi.yaml` 是公開 HTTP 契約的唯一組合入口。Identity、Repository、Issue、Discussion 與 Attendance 各自擁有操作、參數與資料格式；共用錯誤與認證方式位於 `contract/common/`。完整歸屬與引用規則見 [契約能力索引](contract/README.md)。兩端產生器先使用 Redocly bundle 解析外部參照，再由同一份 bundle 產生 Go 與 TypeScript；不手改產生檔。
+[contract/openapi.yaml](contract/openapi.yaml) 是公開 HTTP 契約的唯一組合入口。各能力維護自己的操作與格式，共用錯誤與認證位於 `contract/common/`；歸屬見[契約能力索引](contract/README.md)。不手改產生檔，業務核心不 import 生成套件。
+
+```mermaid
+flowchart TB
+  SPEC["修改 OpenAPI 來源契約"] --> GEN["pnpm api:generate"]
+  GEN --> BUNDLE["Redocly bundle：解析外部參照"]
+  BUNDLE --> GO["Go 生成路由與 HTTP DTO"]
+  BUNDLE --> TS["TypeScript paths／components／operations 型別"]
+  GO --> BACK["同步 HTTP adapter 與業務用例接線"]
+  TS --> FRONT["同步 createAPIClient 與前端呼叫端"]
+  BACK --> CHECK["pnpm api:check 與受影響工作區檢查"]
+  FRONT --> CHECK
+```
+
+圖表示開發與生成順序，依據[生成腳本](../scripts/api/api-generate.mts)；不表示業務核心依賴 HTTP DTO。從儲存庫根目錄執行，前置工具安裝使用 `bash scripts/tooling/tool-exec.sh mise run install-web`：
 
 ```bash
-bash scripts/tooling/tool-exec.sh mise run install-web
 bash scripts/tooling/tool-exec.sh pnpm api:generate
 bash scripts/tooling/tool-exec.sh pnpm api:check
 ```
 
-Go 使用生成路由與 HTTP DTO，業務核心不 import 生成套件。TS 端以 api/client 的 createAPIClient 呼叫，paths/components/operations 型別都來自契約。瀏覽器查詢與互動控制器已使用 React hooks，共用 SessionProvider 的認證請求；見 [React 前端生命週期](../docs/foundation/frontend/react-frontend.md)。
+瀏覽器控制器與 SessionProvider 的認證請求見 [React 前端生命週期](../docs/foundation/frontend/react-frontend.md)。
 
 ## 相容性與 CI
 
@@ -70,7 +83,7 @@ Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄
 
 - [群組請假登記](../docs/features/attendance/leave.md)
 
-- [Business 模組與契約對照](../docs/development/business-refactor.md)
+- [目前模組與責任](../docs/foundation/architecture/layout.md)
 
 ## Business 入口分類
 
@@ -81,9 +94,9 @@ Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄
 - [空間事項第一階段](../docs/features/repository/issues.md)：已接入公開 Issue 契約與生成型別；正式環境待驗收。
 - [空間討論與留言](../docs/features/repository/discussions.md)：主題及單層留言契約，作者編輯。
 
-- [Repository、Issue 與 Discussion 模型及 Connection 分頁規劃](../docs/foundation/architecture/domain-model.md)：未來設計參考，現行 OpenAPI 契約維持原狀。
+- [Repository、Issue 與 Discussion 模型及 Connection 分頁規劃](../docs/planning/domain-model.md)：未來設計參考，現行 OpenAPI 契約維持原狀。
 
-- [里程碑、專案與統計](../docs/reports/2026-11-13/planning.md)：正式契約與三層接線。
+- [里程碑](../docs/features/repository/milestones.md)、[Project](../docs/features/project/projects.md)與[統計](../docs/features/repository/statistics.md)：正式契約與三層接線。
 
 ## 協作能力分佈與交付狀態
 

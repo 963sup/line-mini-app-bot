@@ -3,7 +3,6 @@ package statisticshttp
 import (
 	"context"
 	"errors"
-	"mime"
 	"net/http"
 	"time"
 
@@ -60,18 +59,6 @@ func Register(mux *http.ServeMux, service *statistics.Service, auth Authenticato
 			}
 			if !transport.ValidateUniqueQuery(w, r) {
 				return
-			}
-			if r.Method == http.MethodPost || r.Method == http.MethodPatch {
-				media, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
-				if err != nil || media != "application/json" {
-					transport.WriteAPIError(w, 415, "invalid_content_type", "請使用 JSON。")
-					return
-				}
-				r.Body = http.MaxBytesReader(w, r.Body, 1024)
-				if r.Method == http.MethodPost && len(r.Header.Values("Idempotency-Key")) != 1 {
-					transport.WriteAPIError(w, 400, "invalid_input", "請提供唯一的重試識別碼。")
-					return
-				}
 			}
 			ctx, cancel := context.WithTimeout(r.Context(), 12*time.Second)
 			defer cancel()

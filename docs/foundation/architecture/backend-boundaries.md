@@ -4,7 +4,7 @@
 
 | 目錄 | 責任與允許依賴 |
 | --- | --- |
-| business/attendance/{punch,records,worktime,corrections,approvals,leave,board} | 各子功能的模型、規則與能力契約；依賴方向見 [重構對照](../../development/business-refactor.md) |
+| business/attendance/{punch,records,worktime,corrections,approvals,leave,board} | 各子功能的模型、規則與能力契約；依賴方向見 [目前模組與責任](layout.md) |
 | business/attendance/http | 出勤 HTTP、生成 DTO 轉換、認證後的契約驗證；依賴消費端 Authenticator 介面 |
 | business/issue | 事項用例、建立者權限與三狀態規則；只依賴標準庫與 Repository 核心契約 |
 | business/issue/http、business/issue/firestore | 分別擁有 HTTP DTO／契約驗證與文件／交易；server 注入既有身分、Repository client 及共用編號 |
@@ -38,7 +38,15 @@ HTTP adapter 不建立 Firestore／LINE／Google client，也不讀 gRPC 狀態�
 
 ## 格式與資料相容
 
-領域模型不帶 JSON／Firestore tags。HTTP 使用 OpenAPI 生成 DTO；Firestore 使用私有 document structs 與明確轉換。打卡 Request 屬儲存憑證，已移出領域模型。
+```mermaid
+block-beta
+  columns 3
+  H["HTTP adapter：OpenAPI 生成 DTO"] D["領域模型：沒有 JSON 或 Firestore tags"] F["Firestore adapter：私有 document structs"]
+  H --> D
+  F --> D
+```
+
+雙方 adapter 各自負責格式與領域型別之間的明確轉換。打卡 Request 屬於儲存憑證，由儲存層維護。
 
 原文件欄位名稱、omitempty、巢狀位置、事件回執及核准稽核格式保持不變。更正防重雜湊的 JSON 格式是已持久化的 v1 契約：由 Firestore codec 保留原欄位順序、伺服器欄位排除、UTC 與空休息區間正規化，不能改用 HTTP DTO 或直接序列化核心型別。
 
@@ -50,4 +58,4 @@ HTTP 舊月報以遷移前捕捉的 JSON fixture 驗證。Firestore 相容測試
 
 前端已完成 React hooks/state；剩餘真實 LINE／正式環境整合驗收；此階段不新增框架、部署或變更資料庫索引。
 
-里程碑、專案與統計的操作及保存規格見 [基礎追蹤](../../reports/2026-11-13/planning.md)。`repository/milestones` 與 `project` 各自保留核心及 HTTP adapter；Milestone 由既有 Repository Firestore Store 保存，Project adapter 注入同一 client；`repository/statistics` 只讀。
+里程碑、專案與統計的操作及保存規格見 [里程碑](../../features/repository/milestones.md)、[Project](../../features/project/projects.md)與[統計](../../features/repository/statistics.md)。`repository/milestones` 與 `project` 各自保留核心及 HTTP adapter；Milestone 由既有 Repository Firestore Store 保存，Project adapter 注入同一 client；`repository/statistics` 只讀。

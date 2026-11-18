@@ -59,7 +59,15 @@ TTL 可能延遲刪除，程式讀取仍會排除過期資料。工作期限也�
 保存來源 user ID 不等於驗證真實身分，也不代表發言為事實。
 
 訊息以穩定 message ID 原子建立；命令以 event ID 原子建立工作；Cloud Tasks 也使用固定 task ID。佇列建立失敗回傳503，由 LINE 重送恢復。
-任務先取得租約，生成結果後先保存，再用固定 UUID retry key Push。Push 回應409視為已接受，其他錯誤重試時沿用結果。
+```mermaid
+stateDiagram-v2
+  Queued --> Leased: 取得租約
+  Leased --> Saved: 生成並保存結果
+  Saved --> Saved: Push 失敗時沿用結果與固定 UUID retry key
+  Saved --> Accepted: Push 成功或回應 409
+  Leased --> Invalidated: 來源收回使舊版本失效
+  Saved --> Invalidated: 來源收回使舊版本失效並清除結果
+```
 模型呼叫完成但結果尚未保存時若程序中斷，可能重新呼叫模型；不宣稱模型費用 exactly-once。不同摘要指令是不同工作，第一版沒有跨請求快取或頻率限制。
 
 收到收回事件時覆寫為不含原文的 tombstone（保留48小時防止延遲原訊息恢復），使舊版本工作失效並清除相關結果；舊模型結果不能寫回。

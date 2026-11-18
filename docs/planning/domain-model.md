@@ -1,6 +1,6 @@
 # Repository、Issue 與 Discussion 業務模型設計
 
-已確認的新邊界：Project 由個人或工程群組擁有，可跨庫收錄引用；預設來源庫、來源唯讀及相容／遷移規則見 [獨立Project](../../features/project/projects.md)。本頁後方GitHub Projects素材與未定完整產品功能仍是參考，不能覆蓋已接受的工程群組身份、當下成員核驗與作者管理規則。
+已確認的新邊界：Project 由個人或工程群組擁有，可跨庫收錄引用；預設來源庫、來源唯讀及相容／遷移規則見 [獨立Project](../features/project/projects.md)。本頁後方GitHub Projects素材與未定完整產品功能仍是參考，不能覆蓋已接受的工程群組身份、當下成員核驗與作者管理規則。
 
 狀態：後續開發設計參考，尚未核定完整產品規則；不構成現在實作、部署或資料遷移的要求。
 整理日期：2026-11-12。
@@ -10,10 +10,10 @@
 設計文件與程式碼放在同一個 Git 儲存庫，跨業務模型集中於本頁，各業務維護自己的功能規格。
 業務上的 Repository 指個人或群組擁有的工程資料容器，與保存原始碼的 Git 儲存庫是不同概念。
 
-- 命名政策只有一份：[命名規範](../../development/naming.md#業務實體集合與-api-命名)。本頁保存三個主要業務的應用對照及後續資源模型參考。
-- Repository 既有功能、授權及 REST 入口見 [群組 Repository](../../features/repository/repository.md)。本頁不取代其已實作規格。
-- Issue 基礎操作已依 [事項規格](../../features/repository/issues.md) 接入；Discussion 基礎主題與單層留言依 [討論規格](../../features/repository/discussions.md) 接入，其他擴充仍為後續設計。
-- 本專案使用 REST／OpenAPI。GitHub 文件僅作業務資源、關係與功能分類的設計參考；不將其介面技術、查詢形式或型別結構列為本專案規劃。HTTP 來源見 [OpenAPI 契約](../../../api/README.md)。
+- 命名政策只有一份：[命名規範](../development/naming.md#業務實體集合與-api-命名)。本頁保存三個主要業務的應用對照及後續資源模型參考。
+- Repository 既有功能、授權及 REST 入口見 [群組 Repository](../features/repository/repository.md)。本頁不取代其已實作規格。
+- Issue 基礎操作已依 [事項規格](../features/repository/issues.md) 接入；Discussion 基礎主題與單層留言依 [討論規格](../features/repository/discussions.md) 接入，其他擴充仍為後續設計。
+- 本專案使用 REST／OpenAPI。GitHub 文件僅作業務資源、關係與功能分類的設計參考；不將其介面技術、查詢形式或型別結構列為本專案規劃。HTTP 來源見 [OpenAPI 契約](../../api/README.md)。
 
 ## 實體、集合與 REST 資源命名
 
@@ -24,7 +24,7 @@
 | REST 集合名稱 | `/repositories` | `/issues` | `/discussions` |
 | REST 單筆形式 | `/repositories/{id}` | `/issues/{id}` | `/discussions/{id}` |
 
-上述 REST 名稱表達命名形式，Issue／Discussion 的版本前綴、是否巢狀於 Repository 及正式路由尚待契約設計。
+上述 REST 名稱僅表達設計命名形式；Issue／Discussion 現行版本前綴、巢狀路徑與正式路由以 [OpenAPI 契約](../../api/contract/openapi.yaml)為準，不以本頁規劃推導。
 既有 Repository API 為 `/api/v1/repositories` 與 `/api/v1/repositories/{id}`，不得依本頁直接改名。
 
 ## 業務邊界與關係
@@ -36,15 +36,15 @@
 | 業務 | 設計責任 | 必須保留的邊界 |
 | --- | --- | --- |
 | Repository | 容器識別、群組綁定、可見性與入口狀態 | 既有 Bot 管理模式維持；取得容器資格不自動授予所有子業務操作權 |
-| Issue | 可追蹤事項及其生命週期 | 基礎欄位、建立者權限與生命週期依 [事項規格](../../features/repository/issues.md)；指派等擴充待確認，不套用出勤審核權 |
-| Discussion | 討論主題及其互動規則 | 基礎主題、作者編輯與單層留言依 [討論規格](../../features/repository/discussions.md)；分類、解答、鎖定與轉換另定 |
+| Issue | 可追蹤事項及其生命週期 | 基礎欄位、建立者權限與生命週期依 [事項規格](../features/repository/issues.md)；指派等擴充待確認，不套用出勤審核權 |
+| Discussion | 討論主題及其互動規則 | 基礎主題、作者編輯與單層留言依 [討論規格](../features/repository/discussions.md)；分類、解答、鎖定與轉換另定 |
 
 Issue 與 Discussion 各自擁有狀態與操作；若未來需要互相連結或轉換，另訂識別、授權、原子性及追溯規則。
 Repository 停用時子資源如何讀寫、保存多久、能否移轉或刪除，均須明確設計，不能推定連帶刪除。
 
 ## 日誌與專案的歸屬設計
 
-Journal 為獨立業務，每篇以發布群組界定可見範圍。Feed 與 Dashboard 共用日誌資料。儲存庫或專案為工作明細上的可選引用。人員名單屬於當日整篇日誌。[日誌設計與雛型範圍](../../features/journal/design.md)
+Journal 為獨立業務，每篇以發布群組界定可見範圍。Feed 與 Dashboard 共用日誌資料。儲存庫或專案為工作明細上的可選引用。人員名單屬於當日整篇日誌。[日誌設計與雛型範圍](../features/journal/design.md)
 
 ## REST 分頁與契約邊界
 
@@ -177,8 +177,8 @@ Iteration 是規劃區間，不等同實際出勤、工時結算或施工完成�
 
 ## 後續開發文件與實作順序
 
-1. Repository 維持 [既有功能文件](../../features/repository/repository.md)；Issue 與 Discussion 開發時分別建立 `docs/features/repository/issues.md`、`docs/features/repository/discussions.md`，並加入功能索引。
-2. 功能文件先按 [操作契約範本](business-operation.md#功能操作契約範本) 補齊每個操作：誰操作、對象、行為、權限、業務條件及成功結果；Context、Authority、Decision 與必要 Audit 明確記錄。
+1. Repository 維持 [既有功能文件](../features/repository/repository.md)；Issue 與 Discussion 開發時分別建立 `docs/features/repository/issues.md`、`docs/features/repository/discussions.md`，並加入功能索引。
+2. 功能文件先按 [操作契約範本](../foundation/architecture/business-operation.md#功能操作契約範本) 補齊每個操作：誰操作、對象、行為、權限、業務條件及成功結果；Context、Authority、Decision 與必要 Audit 明確記錄。
 3. 開發前確認 Issue／Discussion 的建立、讀取、修改與生命週期操作，以及權限來源、可見範圍、併發版本、重送、失敗及稽核語意。不從 GitHub 功能自行推定產品需求。
 4. HTTP 契約依業務放在 `api/contract/<業務>/`，由既有 OpenAPI 入口組合，沿用 REST 介面；不先建立空契約或生成碼。
 5. 程式按業務維護，模組 README 連回功能規格；契約來源、設計說明與實作避免重複維護相同欄位定義。
@@ -188,4 +188,4 @@ Iteration 是規劃區間，不等同實際出勤、工時結算或施工完成�
 
 - [GitHub 資源設計參考目錄](https://github.com/github/docs/tree/main/src/graphql/data/fpt)：使用者指定的設計參考，借鏡資源名稱、關係、描述與分類；網址中的技術目錄名稱不代表本專案採用該技術。先前資源名稱核對使用 revision `528435f1d245ebc2a1c2a8d1c0254a5d4ad17b21`，不宣稱是最新版本。
 - [GitHub Projects 文件](https://docs.github.com/en/issues/planning-and-tracking-with-projects)：先前於 2026-11-12 經 Context7 `/github/docs` 查閱 iteration、視圖、篩選及項目欄位責任，來源為 main，未固定 revision。僅作功能設計參考；未查證所有 Workflows、Insights、Permissions、Templates 的方案限制或 API 覆蓋，採用時仍須核對。
-- 本專案介面沿用 REST／OpenAPI；Issue 基礎操作與資料保存依 [事項規格](../../features/repository/issues.md)；Discussion 基礎操作依 [討論規格](../../features/repository/discussions.md)；本參考頁未啟用其他分類／專案管理 API 或遷移。
+- 本專案介面沿用 REST／OpenAPI；Issue 基礎操作與資料保存依 [事項規格](../features/repository/issues.md)；Discussion 基礎操作依 [討論規格](../features/repository/discussions.md)；本參考頁未啟用其他分類／專案管理 API 或遷移。

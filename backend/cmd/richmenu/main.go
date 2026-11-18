@@ -86,11 +86,11 @@ func run(args []string) error {
 	client := &http.Client{Timeout: 10 * time.Second}
 	api, err := messaging_api.NewMessagingApiAPI(token, messaging_api.WithHTTPClient(client))
 	if err != nil {
-		return errors.New("cannot initialize LINE client")
+		return err
 	}
 	blob, err := messaging_api.NewMessagingApiBlobAPI(token, messaging_api.WithBlobHTTPClient(client))
 	if err != nil {
-		return errors.New("cannot initialize LINE image client")
+		return err
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -99,7 +99,7 @@ func run(args []string) error {
 	if *menuID == "" {
 		created, err := api.CreateRichMenu(menu)
 		if err != nil {
-			return errors.New("rich menu creation failed; inspect LINE configuration and permissions before retrying")
+			return err
 		}
 		if created == nil || created.RichMenuId == "" {
 			return errors.New("LINE returned no menu ID; inspect existing menus before retrying")
@@ -142,7 +142,7 @@ func run(args []string) error {
 func readMenuImage(path string) ([]byte, string, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, "", errors.New("provide a readable -image file")
+		return nil, "", err
 	}
 	// This file is read-only; no writes need to be committed on close.
 	defer func() { _ = file.Close() }()

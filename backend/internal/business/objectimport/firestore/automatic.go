@@ -44,7 +44,7 @@ type storedAutomaticRun struct {
 	UpdatedAt      time.Time            `json:"updatedAt"`
 }
 
-func storeAutomatic(j automatic.Run) storedAutomaticRun {
+func toStoredRun(j automatic.Run) storedAutomaticRun {
 	d := storedAutomaticRun{ID: j.ID, RepositoryID: j.RepositoryID, CreatorID: j.CreatorID, IntentHash: j.IntentHash, SourceDocument: j.SourceDocument, SourceRevision: j.SourceRevision, SourceHash: j.SourceHash, Status: j.Status, Reason: j.Reason, Rows: []storedAutomaticRow{}, CreatedAt: j.CreatedAt, UpdatedAt: j.UpdatedAt}
 	for _, r := range j.Rows {
 		d.Rows = append(d.Rows, storedAutomaticRow{ID: r.ID, Name: r.Name, Description: r.Description, Type: r.Type, Quantity: r.Quantity, Unit: r.Unit, MaterialCode: r.MaterialCode, SourceItemNo: r.SourceItemNo, SourcePages: r.SourcePages, ResultObjectID: r.ResultObjectID})
@@ -52,7 +52,7 @@ func storeAutomatic(j automatic.Run) storedAutomaticRun {
 	return d
 }
 
-func loadAutomatic(d storedAutomaticRun) automatic.Run {
+func fromStoredRun(d storedAutomaticRun) automatic.Run {
 	j := automatic.Run{ID: d.ID, RepositoryID: d.RepositoryID, CreatorID: d.CreatorID, IntentHash: d.IntentHash, SourceDocument: d.SourceDocument, SourceRevision: d.SourceRevision, SourceHash: d.SourceHash, Status: d.Status, Reason: d.Reason, Rows: []automatic.Row{}, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}
 	for _, r := range d.Rows {
 		j.Rows = append(j.Rows, automatic.Row{ID: r.ID, Fields: feature.Fields{Name: r.Name, Description: r.Description, Type: r.Type, Quantity: r.Quantity, Unit: r.Unit, MaterialCode: r.MaterialCode}, SourceItemNo: r.SourceItemNo, SourcePages: r.SourcePages, ResultObjectID: r.ResultObjectID})
@@ -64,7 +64,7 @@ func encodeAutomatic(j automatic.Run) (document, error) {
 	if automatic.ValidateStored(j) != nil {
 		return document{}, feature.ErrUnavailable
 	}
-	d := storeAutomatic(j)
+	d := toStoredRun(j)
 	projected := d
 	projected.Rows = slices.Clone(d.Rows)
 	projected.Reason = "creation_unavailable"
@@ -101,11 +101,11 @@ func (s *AutomaticStore) Update(ctx context.Context, r repository.Repository, ac
 	if actor == "" || !repository.ValidID(id) {
 		return result, feature.ErrNotFound
 	}
-	parent := s.parent(r.ID)
+	parent := s.repositoryRef(r.ID)
 	ref := parent.Collection("objectImportRuns").Doc(id)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = automatic.Run{}
-		if e := container(tx, parent, r); e != nil {
+		if e := checkActiveRepository(tx, parent, r); e != nil {
 			return e
 		}
 		snap, e := tx.Get(ref)
@@ -119,7 +119,7 @@ func (s *AutomaticStore) Update(ctx context.Context, r repository.Repository, ac
 			if json.Unmarshal([]byte(d.Payload), &stored) != nil {
 				return feature.ErrUnavailable
 			}
-			j := loadAutomatic(stored)
+			j := fromStoredRun(stored)
 			if j.ID != id || j.RepositoryID != r.ID || automatic.ValidateStored(j) != nil {
 				return feature.ErrUnavailable
 			}

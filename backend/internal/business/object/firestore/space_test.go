@@ -34,11 +34,11 @@ func TestEmulatorRepositorySpaceAssignment(t *testing.T) {
 	now := time.Now().UTC()
 	doc := map[string]any{"schemaVersion": 1, "id": spaceID, "repositoryId": r.ID, "name": "Site A", "creatorId": "actor-a", "version": 1, "createdAt": now, "updatedAt": now}
 	// An equal ID in another repository grants no assignment authority.
-	if _, err := store.parent(other).Collection("spaces").Doc(spaceID).Set(ctx, doc); err != nil {
+	if _, err := store.repositoryRef(other).Collection("spaces").Doc(spaceID).Set(ctx, doc); err != nil {
 		t.Fatal(err)
 	}
 	otherChannel := &Store{Client: store.Client, ChannelID: "another-channel"}
-	if _, err := otherChannel.parent(r.ID).Collection("spaces").Doc(spaceID).Set(ctx, doc); err != nil {
+	if _, err := otherChannel.repositoryRef(r.ID).Collection("spaces").Doc(spaceID).Set(ctx, doc); err != nil {
 		t.Fatal(err)
 	}
 	c := testContent()
@@ -46,10 +46,10 @@ func TestEmulatorRepositorySpaceAssignment(t *testing.T) {
 	if _, err := store.Create(ctx, r, "actor-a", "cross-space-key-001", c); !errors.Is(err, object.ErrInput) {
 		t.Fatalf("cross-repository space accepted: %v", err)
 	}
-	if collectionCount(t, ctx, store.parent(r.ID), "objects") != 0 || collectionCount(t, ctx, store.parent(r.ID), "objectCreationReceipts") != 0 {
+	if collectionCount(t, ctx, store.repositoryRef(r.ID), "objects") != 0 || collectionCount(t, ctx, store.repositoryRef(r.ID), "objectCreationReceipts") != 0 {
 		t.Fatal("rejected binding wrote an object or receipt")
 	}
-	if _, err := store.parent(r.ID).Collection("spaces").Doc(spaceID).Set(ctx, doc); err != nil {
+	if _, err := store.repositoryRef(r.ID).Collection("spaces").Doc(spaceID).Set(ctx, doc); err != nil {
 		t.Fatal(err)
 	}
 	first, err := store.Create(ctx, r, "actor-a", "same-space-key-0001", c)
@@ -80,7 +80,7 @@ func TestEmulatorRepositorySpaceAssignment(t *testing.T) {
 	if err != nil || got.SpaceID != "" || got.Version != 2 {
 		t.Fatal("clear", got, err)
 	}
-	snap, err := store.parent(r.ID).Collection("objects").Doc(first.ID).Get(ctx)
+	snap, err := store.repositoryRef(r.ID).Collection("objects").Doc(first.ID).Get(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

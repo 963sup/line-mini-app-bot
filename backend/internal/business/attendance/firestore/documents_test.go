@@ -12,11 +12,11 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance"
 	correctionsmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/corrections"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/punch"
 	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/records"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/worktime"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -50,14 +50,14 @@ func TestReceiptHashRetainsLegacyEncoding(t *testing.T) {
 	}
 }
 
-func TestTechnicalErrorsStayInsideStorage(t *testing.T) {
+func TestTechnicalErrorsPassThroughStorage(t *testing.T) {
 	raw := status.Error(codes.NotFound, "private document details")
 	if !errors.Is(translateError(raw, correctionsmodel.ErrCorrection), correctionsmodel.ErrCorrection) {
 		t.Fatal("missing correction not translated")
 	}
 	got := translateError(raw, nil)
-	if !errors.Is(got, attendance.ErrUnavailable) || status.Code(got) == codes.NotFound || got.Error() == raw.Error() {
-		t.Fatal("technical error escaped adapter")
+	if got != raw {
+		t.Fatal("technical error was replaced")
 	}
 	if translateError(status.Error(codes.DeadlineExceeded, "timeout"), nil) != context.DeadlineExceeded {
 		t.Fatal("gRPC timeout was not translated")
@@ -88,8 +88,8 @@ func TestFirestoreDocumentsRemainCompatible(t *testing.T) {
 	now := time.Date(2026, 11, 1, 8, 0, 0, 123000000, time.UTC)
 	record := recordmodel.Record{RecordID: "r1", GroupID: "g", ClockInAt: now, IsOpen: true, ClockInPosition: &recordmodel.Position{Latitude: 25.1234567890123, Longitude: 121.9876543210123, CapturedAt: now, AccuracyMeters: 1}, Breaks: []worktime.Interval{{Start: now, End: now.Add(time.Minute)}}, SourceEventIDs: []string{"event"}, SchemaVersion: 3}
 	oldRecord := legacyRecord{RecordID: record.RecordID, GroupID: record.GroupID, ClockInAt: record.ClockInAt, IsOpen: record.IsOpen, ClockInPosition: &legacyPosition{Latitude: record.ClockInPosition.Latitude, Longitude: record.ClockInPosition.Longitude, CapturedAt: now, AccuracyMeters: 1}, Breaks: record.Breaks, SourceEventIDs: record.SourceEventIDs, SchemaVersion: 3}
-	correction := correctionsmodel.Correction{ID: "c1", UserKey: documentKey("u"), GroupID: "g", RecordID: "r1", Start: now, End: now.Add(time.Hour), Reason: "reason", RestConfirmed: true, CreatedAt: now}
-	request := requestDocument{GroupID: "g", UserID: documentKey("u"), EventID: "e", Action: "clock-in", EventTime: now.UnixMilli(), ExpiresAt: now.Add(time.Hour)}
+	correction := correctionsmodel.Correction{ID: "c1", UserKey: firestorekey.Encode("u"), GroupID: "g", RecordID: "r1", Start: now, End: now.Add(time.Hour), Reason: "reason", RestConfirmed: true, CreatedAt: now}
+	request := requestDocument{GroupID: "g", UserID: firestorekey.Encode("u"), EventID: "e", Action: "clock-in", EventTime: now.UnixMilli(), ExpiresAt: now.Add(time.Hour)}
 	cases := []struct {
 		name     string
 		old, new any
@@ -145,8 +145,8 @@ func TestFirestoreDocumentsRemainCompatible(t *testing.T) {
 	// A receipt written before this refactor must replay without reading a revised/deleted shift.
 	store := &Attendance{Client: client, ChannelID: fmt.Sprint("legacy-replay-", time.Now().UnixNano())}
 	key := "00000000-0000-4000-8000-000000000001"
-	expected := documentKey("correction", "u", key)
-	_, err = store.user("u").Collection("attendanceCorrectionReceipts").Doc(documentKey(key)).Set(ctx, correctionReceipt{Version: 1, PayloadHash: legacyHash(correction), CorrectionID: expected})
+	expected := firestorekey.Encode("correction", "u", key)
+	_, err = store.user("u").Collection("attendanceCorrectionReceipts").Doc(firestorekey.Encode(key)).Set(ctx, correctionReceipt{Version: 1, PayloadHash: legacyHash(correction), CorrectionID: expected})
 	if err != nil {
 		t.Fatal(err)
 	}

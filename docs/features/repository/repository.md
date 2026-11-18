@@ -40,18 +40,37 @@ ACTIVE / INACTIVE 表示 Bot 群組入口狀態。離開保留資料，再加入
 - `GET /api/v1/repositories/{id}`：核驗本人或當下群組成員資格；格式錯誤／不存在／無權均不揭露資料。
 - API 契約：[Repository](../../../api/contract/repository/repositories.yaml)，由 [OpenAPI 入口](../../../api/contract/openapi.yaml) 組合；生成 Go/TS DTO，不手改產生碼。
 - UI：側欄「空間」可展開已驗證使用者可開啟的空間，選取後在 `/miniapp/repositories?selected=...` 顯示既有詳情。原頁不再重複顯示另一份列表；既有 `?id=...` 及 `repository`／`liff.state` 群組入口仍相容。
-- `business/repository/RepositoryContext.tsx` 共用列表、分頁與詳情載入：一般功能頁首次展開側欄才讀列表，空間頁自動載入；列表回空但有 nextCursor 時保留「載入更多空間」。錯誤清空舊項目並提供重試，不將候選或停用空間當作可開啟。
 - 側欄一般選取使用乾淨 `selected` 參數，不沿用打卡 launch／其他表單 query；既有 `id`／`repository` 群組專用入口只讀指定詳情，不讀一般列表、不於失敗後退回其他群組。這些參數只在空間頁解析，不把其他功能的 `id` 當空間 ID。
 - 列表與詳情各自取消舊請求，並以 Session epoch、本人及作用域隔離可見狀態；登出／重新驗證立即隱藏舊資料，即使 transport 忽略取消也不得跨身分顯示。點選空間仍重新呼叫詳情 API 核驗，不以列表快取授權。
 - 手機選取空間後關閉抽屜；定位頁保留正式空間頁連結，不建立虛假的本人空間資料。無 JavaScript 時提供原路由連結及啟用提示。
 - 出勤連結只帶既有 group 查詢條件，不新增授權；摘要仍回原群組操作。
 - 從成員加入、本人群組訊息或 postback 建立列表候選。未互動的既有群組成員需先互動；這不是完整群組成員清單。
 
+## 空間載入時序
+
+```mermaid
+sequenceDiagram
+  participant UI as 側欄或空間頁
+  participant Context as RepositoryContext
+  participant API as Repository API
+  alt 一般功能頁首次展開側欄或直接進入一般空間頁
+    UI->>Context: 載入空間列表
+    Context->>API: 查詢有權開啟的空間
+  else 群組專用入口或選取空間
+    UI->>Context: 載入指定詳情
+    Context->>API: 重新核驗該空間
+  end
+  API-->>Context: 回應
+  Context-->>UI: 僅套用目前本人、Session epoch 與作用域的回應
+```
+
+`business/repository/RepositoryContext.tsx` 共用列表、分頁與詳情載入。空頁仍有 `nextCursor` 時保留「載入更多空間」。讀取失敗時清除舊項目並提供重試，候選或停用空間不得開啟。身分改變時的共用清理規則見[頁面與身分生命週期](../../foundation/frontend/react-frontend.md#頁面與身分生命週期)。
+
 ## 正式空間 UI 基礎雛形
 
 正式空間沿用上述 List / Get 操作契約與身分隔離，以寬版卡片呈現已授權空間的基本資料與本人出勤入口。
 正式頁內導覽由 `frontend/miniapp/src/business/repository/navigation.ts` 定義；Repository內容維持原有問題、討論、標籤及里程碑。專案改走獨立側欄／`/miniapp/projects`，舊入口僅導向帶明確Space／來源識別的新頁，不再在Repository View掛載Project業務。
-總覽使用真實空間資料，問題已接入 [問題第一階段](issues.md)，討論已接入 [討論與留言](discussions.md)，標籤目錄已接入 [標籤規格](labels.md)；里程碑、專案及總覽統計依 [基礎追蹤規格](../../reports/2026-11-13/planning.md) 接入；公開稽核仍明示尚未開放，不回填示範資料。載入、核驗失敗、登出時不呈現空間內容。
+總覽使用真實空間資料，問題已接入 [問題第一階段](issues.md)，討論已接入 [討論與留言](discussions.md)，標籤目錄已接入 [標籤規格](labels.md)；里程碑、專案及總覽統計依 [里程碑](milestones.md)、[Project](../project/projects.md)與[統計](statistics.md) 接入；公開稽核仍明示尚未開放，不回填示範資料。載入、核驗失敗、登出時不呈現空間內容。
 既有 API、Bot 管理、成員核驗及共用編號規則不變。問題與討論／留言依各自獨立規格接入；標籤已接入問題／討論作者的分類操作；完成界線依 [基礎雛形](foundation.md)，里程碑、專案及統計依本次授權另完成最小切片，不自動展開其他管理功能。
 總覽為讀取畫面基礎整合；問題驗證另依功能規格，不代表其他協作業務或真實 LINE 裝置已驗收。
 
@@ -83,4 +102,4 @@ LINE「選單 → 請選擇功能」與功能說明提供「空間」URI 入口�
 
 內部共用編號基礎見 [Repository 共用資源編號](numbering.md)。問題與討論建立已接入，留言不占編號；本頁 Bot 管理、公開查詢及成員核驗規則保持原樣。
 
-Repository 的實體、查詢、集合與 Connection 分頁命名，以及 Issue／Discussion 的歸屬規劃，見 [業務模型設計](../../foundation/architecture/domain-model.md)。該頁為後續開發參考，不變更本頁既有 REST、成員核驗與 Bot 管理模式。
+Repository 的實體、查詢、集合與 Connection 分頁命名，以及 Issue／Discussion 的歸屬規劃，見 [業務模型設計](../../planning/domain-model.md)。該頁為後續開發參考，不變更本頁既有 REST、成員核驗與 Bot 管理模式。

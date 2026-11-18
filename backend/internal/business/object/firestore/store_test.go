@@ -15,6 +15,8 @@ import (
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/object"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
+
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 )
 
 // These tests require an explicitly selected loopback emulator, never ADC or a
@@ -46,7 +48,7 @@ func emulatorStore(t *testing.T) (context.Context, *Store, repository.Repository
 	})
 	store := &Store{Client: client, ChannelID: "isolated-object-tests"}
 	r := repository.Repository{ID: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", OwnerID: "Cbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", Status: "ACTIVE"}
-	if _, err := store.parent(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": r.Status}); err != nil {
+	if _, err := store.repositoryRef(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": r.Status}); err != nil {
 		t.Fatal(err)
 	}
 	return ctx, store, r
@@ -89,7 +91,7 @@ func TestEmulatorConcurrentCreationAndReceiptReplay(t *testing.T) {
 			t.Fatalf("duplicate create produced different resource: %#v", results[i])
 		}
 	}
-	parent := store.parent(r.ID)
+	parent := store.repositoryRef(r.ID)
 	if n := collectionCount(t, ctx, parent, "objects"); n != 1 {
 		t.Fatalf("objects=%d, want 1", n)
 	}
@@ -114,7 +116,7 @@ func TestEmulatorConcurrentCreationAndReceiptReplay(t *testing.T) {
 	}
 	other := r
 	other.ID = "cccccccccccccccccccccccccccccccc"
-	if _, err := store.parent(other.ID).Set(ctx, map[string]any{"id": other.ID, "ownerId": other.OwnerID, "status": "ACTIVE"}); err != nil {
+	if _, err := store.repositoryRef(other.ID).Set(ctx, map[string]any{"id": other.ID, "ownerId": other.OwnerID, "status": "ACTIVE"}); err != nil {
 		t.Fatal(err)
 	}
 	independent, err := store.Create(ctx, other, "actor-a", "same-creation-key-0001", content)
@@ -125,7 +127,7 @@ func TestEmulatorConcurrentCreationAndReceiptReplay(t *testing.T) {
 
 func TestEmulatorContainerAndReceiptFailuresDoNotWrite(t *testing.T) {
 	ctx, store, r := emulatorStore(t)
-	parent := store.parent(r.ID)
+	parent := store.repositoryRef(r.ID)
 	for _, mutation := range []map[string]any{
 		{"id": r.ID, "ownerId": r.OwnerID, "status": "INACTIVE"},
 		{"id": r.ID, "ownerId": "Cdddddddddddddddddddddddddddddddd", "status": "ACTIVE"},
@@ -143,7 +145,7 @@ func TestEmulatorContainerAndReceiptFailuresDoNotWrite(t *testing.T) {
 	if _, err := parent.Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": "ACTIVE"}); err != nil {
 		t.Fatal(err)
 	}
-	rec := parent.Collection("objectCreationReceipts").Doc(hash([]string{"actor-a", "corrupt-receipt-key"}))
+	rec := parent.Collection("objectCreationReceipts").Doc(firestorekey.JSONDigest([]string{"actor-a", "corrupt-receipt-key"}))
 	if _, err := rec.Set(ctx, map[string]any{"schemaVersion": 1, "id": "invalid", "payloadHash": "broken"}); err != nil {
 		t.Fatal(err)
 	}
@@ -180,7 +182,7 @@ func TestEmulatorUpdateChecksAuthorVersionAndPreservesNoOp(t *testing.T) {
 	if err != nil || updated.Version != 2 || updated.SourceDocument != original.SourceDocument || updated.SourceRevision != original.SourceRevision || updated.SourceItemNo != original.SourceItemNo {
 		t.Fatalf("update: %#v %v", updated, err)
 	}
-	ref := store.parent(r.ID).Collection("objects").Doc(original.ID)
+	ref := store.repositoryRef(r.ID).Collection("objects").Doc(original.ID)
 	if n := collectionCount(t, ctx, ref, "changes"); n != 1 {
 		t.Fatalf("changes=%d", n)
 	}
@@ -214,7 +216,7 @@ func TestEmulatorListPaginatesWithoutMissingOrDuplicateObjects(t *testing.T) {
 		for n := 1; n <= 21; n++ {
 			id := fmt.Sprintf("%032x", n)
 			item := object.Object{Content: testContent(), ID: id, RepositoryID: r.ID, CreatorID: "actor-a", Status: "not_started", Version: 1, CreatedAt: now, UpdatedAt: now}
-			if err := tx.Set(store.parent(r.ID).Collection("objects").Doc(id), encode(item)); err != nil {
+			if err := tx.Set(store.repositoryRef(r.ID).Collection("objects").Doc(id), encode(item)); err != nil {
 				return err
 			}
 		}

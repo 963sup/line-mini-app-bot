@@ -24,7 +24,7 @@ function Rows({title,rows,change,targets}:{title:string;rows:string[];change:(v:
 function Composer({request,group,saved}:{request:Request;group:string;saved:()=>void}) {
   const [today,setToday]=useState(["first"]),[tomorrow,setTomorrow]=useState<string[]>([]);
   const [targets,setTargets]=useState<Target[]>([]),[notice,setNotice]=useState(""),[error,setError]=useState(""),[busy,setBusy]=useState(false);
-  const last=useRef({body:"",key:""}),submitting=useRef(false);
+  const publishAttempt=useRef({serializedBody:"",idempotencyKey:""}),submitting=useRef(false);
   const write=useLatestRequest();
   useEffect(()=>{
     const controller=new AbortController(), options={signal:controller.signal};
@@ -45,9 +45,9 @@ function Composer({request,group,saved}:{request:Request;group:string;saved:()=>
       todayItems:today.map(id=>({...row(id),completionPercent:Number(get(id+"percent"))})),
       tomorrowItems:tomorrow.map(id=>({...row(id),expectedCompletionPercent:Number(get(id+"percent"))}))};
     if(!today.length&&!tomorrow.length){setError("請新增至少一項工作。");return;}
-    const json=JSON.stringify(body);if(last.current.body!==json)last.current={body:json,key:crypto.randomUUID()};
+    const json=JSON.stringify(body);if(publishAttempt.current.serializedBody!==json)publishAttempt.current={serializedBody:json,idempotencyKey:crypto.randomUUID()};
     submitting.current=true;setBusy(true);setError("");
-    void write.run(signal=>request((c,s)=>c.POST("/api/v1/journals",{signal:s,params:{header:{"Idempotency-Key":last.current.key}},body}),{signal}),
+    void write.run(signal=>request((c,s)=>c.POST("/api/v1/journals",{signal:s,params:{header:{"Idempotency-Key":publishAttempt.current.idempotencyKey}},body}),{signal}),
       saved,e=>{submitting.current=false;setBusy(false);setError(errorMessage(e));});
   }}><fieldset disabled={busy} className="grid gap-3">
     <label>工作日期<Input required type="date" name="date" defaultValue={workDate()}/></label>

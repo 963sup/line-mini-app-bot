@@ -3,7 +3,6 @@ package firestore
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -14,8 +13,11 @@ import (
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/object"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 )
 
 type Store struct {
@@ -77,14 +79,10 @@ func decode(snap *db.DocumentSnapshot, err error, rid string) (object.Object, er
 	return object.Object{Content: c, ID: d.ID, RepositoryID: d.RepositoryID, CreatorID: d.CreatorID, Status: d.Status, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
 }
 func (s *Store) ready() bool { return s != nil && s.Client != nil && s.ChannelID != "" }
-func (s *Store) parent(id string) *db.DocumentRef {
+func (s *Store) repositoryRef(id string) *db.DocumentRef {
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("repositories").Doc(id)
 }
 
-type storageFailure struct{ cause error }
-
-func (e *storageFailure) Error() string { return "object storage unavailable" }
-func (e *storageFailure) Unwrap() error { return object.ErrUnavailable }
 func translate(e error) error {
 	if e == nil {
 		return nil
@@ -94,19 +92,7 @@ func translate(e error) error {
 			return e
 		}
 	}
-	switch status.Code(e) {
-	case codes.Canceled:
-		return context.Canceled
-	case codes.DeadlineExceeded:
-		return context.DeadlineExceeded
-	}
-	return &storageFailure{e}
-}
-
-func hash(v any) string {
-	b, _ := json.Marshal(v)
-	h := sha256.Sum256(b)
-	return hex.EncodeToString(h[:])
+	return grpcstatus.NormalizeContextError(e)
 }
 
 func (s *Store) Get(ctx context.Context, r repository.Repository, id string) (result object.Object, err error) {
@@ -114,7 +100,7 @@ func (s *Store) Get(ctx context.Context, r repository.Repository, id string) (re
 	if !s.ready() {
 		return result, object.ErrUnavailable
 	}
-	snap, e := s.parent(r.ID).Collection("objects").Doc(id).Get(ctx)
+	snap, e := s.repositoryRef(r.ID).Collection("objects").Doc(id).Get(ctx)
 	return decode(snap, e, r.ID)
 }
 
@@ -126,7 +112,7 @@ func (s *Store) List(ctx context.Context, r repository.Repository, actor, token 
 	if !s.ready() {
 		return result, object.ErrUnavailable
 	}
-	scope := hash([]string{s.ChannelID, r.ID, actor})
+	scope := firestorekey.JSONDigest([]string{s.ChannelID, r.ID, actor})
 	c := cursor{}
 	if token != "" {
 		b, e := base64.RawURLEncoding.DecodeString(token)
@@ -134,7 +120,7 @@ func (s *Store) List(ctx context.Context, r repository.Repository, actor, token 
 			return result, object.ErrInput
 		}
 	}
-	q := s.parent(r.ID).Collection("objects").OrderBy(db.DocumentID, db.Asc)
+	q := s.repositoryRef(r.ID).Collection("objects").OrderBy(db.DocumentID, db.Asc)
 	if c.ID != "" {
 		q = q.StartAfter(c.ID)
 	}
@@ -200,10 +186,10 @@ func (s *Store) Create(ctx context.Context, r repository.Repository, actor, key 
 	}
 	id := hex.EncodeToString(random[:])
 	now := time.Now().UTC().Truncate(time.Microsecond)
-	parent := s.parent(r.ID)
+	parent := s.repositoryRef(r.ID)
 	ref := parent.Collection("objects").Doc(id)
 	// Unnumbered Object receipts use their own namespace; no counter or number allocation.
-	rec := parent.Collection("objectCreationReceipts").Doc(hash([]string{actor, key}))
+	rec := parent.Collection("objectCreationReceipts").Doc(firestorekey.JSONDigest([]string{actor, key}))
 	payload := creationHash(c)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = object.Object{}
@@ -252,7 +238,7 @@ func (s *Store) Update(ctx context.Context, r repository.Repository, actor, id s
 	if !s.ready() {
 		return result, object.ErrUnavailable
 	}
-	parent := s.parent(r.ID)
+	parent := s.repositoryRef(r.ID)
 	ref := parent.Collection("objects").Doc(id)
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
@@ -333,7 +319,7 @@ func creationHash(c object.Content) string {
 	if c.SpaceID != "" {
 		spaceID := c.SpaceID
 		c.SpaceID = ""
-		return hash(struct {
+		return firestorekey.JSONDigest(struct {
 			Version              int
 			ContentHash, SpaceID string
 		}{3, creationHash(c), spaceID})
@@ -341,12 +327,12 @@ func creationHash(c object.Content) string {
 	type legacyContent struct{ Name, Description, Type, Quantity, Unit, SourceDocument, SourceRevision, SourceItemNo, SourcePages, MaterialCode string }
 	old := legacyContent{c.Name, c.Description, c.Type, c.Quantity, c.Unit, c.SourceDocument, c.SourceRevision, c.SourceItemNo, c.SourcePages, c.MaterialCode}
 	if c.CompletedQuantity == "" || (c.Type == object.TypeWork && c.CompletedQuantity == "0") {
-		return hash(struct {
+		return firestorekey.JSONDigest(struct {
 			Version int
 			Content legacyContent
 		}{1, old})
 	}
-	return hash(struct {
+	return firestorekey.JSONDigest(struct {
 		Version           int
 		Content           legacyContent
 		CompletedQuantity string

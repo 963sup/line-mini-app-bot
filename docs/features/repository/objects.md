@@ -18,6 +18,16 @@
 
 來源欄位可獨立留白，只是追溯資料，不承諾 sourceDocument＋revision＋itemNo 唯一。同來源換建立鍵仍可新增另一筆；不自動認定為同一物件。新版 PDF 不會自動比對、合併或覆寫既有物件與狀態。來源項次不作為資料庫 ID。
 
+## 物件與子物件歸屬
+
+```mermaid
+erDiagram
+  REPOSITORY ||--o{ OBJECT : 包含
+  OBJECT ||--o{ SUBOBJECT : 包含
+```
+
+此圖表示保存歸屬。子物件只有一層，父子數量、單位與進度各自維護。操作及路徑見[子物件規格](subobjects.md)。
+
 ## 進度與歷史相容
 
 quantity是唯一總數，completedQuantity是完成數；畫面進度由兩者組成，不另外保存百分比或重複總量。後端以math/big精確比較18位整數／6位小數，前端以固定小數位的BigInt預驗，不使用float或int64保存數量。更新是設定絕對完成數，不是每次加一；同一值不製造版本變更。

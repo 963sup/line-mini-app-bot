@@ -75,7 +75,7 @@ func ReplyForEvent(event webhook.EventInterface, appURL string, repositoryIDs ..
 	case "/menu", "選單", "功能":
 		return transport.Reply{Token: token, Message: lineui.QuickMenu(group, appURL, repositoryIDs...)}
 	case "/miniapp":
-		return transport.Reply{Token: token, Message: lineui.MiniApp(appURL, os.Getenv("LINE_MINI_APP_WEB_URL"))}
+		return transport.Reply{Token: token, Message: lineui.MiniApp(appURL, os.Getenv("LINE_MINI_APP_WEB_URL"), repositoryIDs...)}
 	case "/help":
 		return transport.Reply{Token: token, Message: lineui.Help(group, appURL, os.Getenv("LINE_MINI_APP_WEB_URL"), repositoryIDs...)}
 	default:

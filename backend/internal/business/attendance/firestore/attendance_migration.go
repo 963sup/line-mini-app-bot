@@ -7,6 +7,7 @@ import (
 
 	db "cloud.google.com/go/firestore"
 	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/records"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -116,7 +117,7 @@ func (s *Attendance) migrateQueryRecord(ctx context.Context, user *db.DocumentRe
 		if err := tx.Update(current.Ref, []db.Update{{Path: "isOpen", Value: r.ClockOutAt.IsZero()}}); err != nil {
 			return err
 		}
-		return tx.Set(user.Collection("attendanceGroups").Doc(documentKey(r.GroupID)), map[string]any{"groupID": r.GroupID})
+		return tx.Set(user.Collection("attendanceGroups").Doc(firestorekey.Encode(r.GroupID)), map[string]any{"groupID": r.GroupID})
 	})
 }
 

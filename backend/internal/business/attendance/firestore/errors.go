@@ -13,11 +13,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// Keep technical causes private to the adapter. Unwrap exposes only the domain category.
-type storageFailure struct{ cause error }
-
-func (e *storageFailure) Error() string { return "attendance storage unavailable" }
-func (e *storageFailure) Unwrap() error { return attendance.ErrUnavailable }
 func translateError(err, missing error) error {
 	if err == nil {
 		return nil
@@ -42,5 +37,5 @@ func translateError(err, missing error) error {
 	if missing != nil && status.Code(err) == codes.NotFound {
 		return missing
 	}
-	return &storageFailure{cause: err}
+	return err
 }

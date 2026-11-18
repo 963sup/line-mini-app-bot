@@ -1,31 +1,43 @@
 # Troubleshooting
 
-1. Run `python3 scripts/tooling/check-config.py` for syntax and document references.
-2. Run Go doctor for compiler, race toolchain and writable paths.
-3. Diagnose one MCP with `python3 scripts/tooling/mcp-doctor.py --server <name>` through
-   tool-exec.sh. Missing optional credentials need not block another service.
-4. For Codex configuration problems use [OpenAI Docs MCP](../../tooling/mcp/openai-docs.md)
-   search/fetch. Use [Context7](../../tooling/mcp/context7.md) for version-specific APIs.
-5. Repair repository-owned settings within task scope, then rerun the affected check.
+```mermaid
+flowchart TB
+  A["檢查設定語法與文件引用"] --> B["Go doctor：編譯器、race 工具鏈與可寫路徑"]
+  B --> C["按服務檢查 MCP transport"]
+  C --> D{"transport 正常但聊天缺少工具？"}
+  D -->|是| H["檢查 host 設定與信任狀態"]
+  D -->|否| T["定位安裝、連線或功能失敗"]
+  H --> R["修正範圍內的儲存庫設定，重跑受影響檢查"]
+  T --> R
+```
 
-Separate configured, installed, transport-ready, host-loaded and functional states.
-Inspect host config/trust diagnostics when direct transport works but chat tools
-are missing. Do not rewrite HOME/CODEX_HOME or platform credentials to force it.
+使用 `python3 scripts/tooling/check-config.py` 檢查設定。單一 MCP 使用 `bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server <name>`。可選憑證缺漏時可繼續檢查其他服務。分別記錄設定、安裝、transport、host 載入與實際操作結果。
+
+Codex 設定用 [OpenAI Docs MCP](../../tooling/mcp/openai-docs.md) search/fetch 查證，版本專屬 API 用 [Context7](../../tooling/mcp/context7.md)。
+Do not rewrite HOME/CODEX_HOME or platform credentials to force it.
 Never print authentication headers or secret values while debugging.
 
 
 ## Cloud Build、Cloud Run 與部署後同步
 
-先記錄 project、region、build ID、來源 commit 與查詢時間，再依下表定位。
+先記錄 project、region、build ID、來源 commit 與查詢時間，再依下圖定位。
 部署前後 metadata 的取得方式見[發布證據](release-acceptance.md#發布證據與前置條件)。
 只保存必要 metadata 與匿名化錯誤，不輸出 Secret payload 或登入 token。
 
-| 階段／症狀 | 核對證據與處理 |
-| --- | --- |
-| Build 失敗，尚未產生新版映像 | 查看第一個失敗步驟及來源 SHA；若出現 `--mount option requires BuildKit`，核對實際 inline Build env 與 [BuildKit 契約](cloud-run.md#docker-buildkit-建置契約)。 |
-| Deploy 失敗或 revision 未 Ready | 核對該 revision 的啟動日誌、映像 digest、PORT、runtime service account 與 Secret references；與前一版 metadata 比較，勿用本機 YAML 推定實際設定。 |
-| Deploy 成功、SyncRichMenus 失敗 | 分別確認 Deploy 結果與目前流量；整體 Build 失敗不代表前面已回滾。核對實際 Trigger 的 `-images /assets/line/richmenu`，再核對同一映像中的目錄可穿越及 JPEG 可由 nonroot 讀取。詳見[圖片路徑與權限紀錄](cloud-run.md#managed-trigger-的-rich-menu-圖片路徑)。 |
-| Build 成功，但登入／出勤／摘要失敗 | 依請求對應 revision 查執行期錯誤，再核對 Session、Firestore、Cloud Tasks、模型與 LINE 訊息流程；Ready 不代表端到端驗收完成。 |
+```mermaid
+flowchart TB
+  B{"新版映像建置成功？"} -->|否| F["查第一個失敗步驟與來源 SHA"]
+  B -->|是| D{"部署成功且 revision Ready？"}
+  D -->|否| L["查該 revision 的啟動日誌與實際設定"]
+  D -->|是| M{"SyncRichMenus 失敗？"}
+  M -->|是| S["分別核對 Deploy 結果、目前流量與圖片權限"]
+  M -->|否| E["有功能錯誤時，依請求對應 revision 查執行期"]
+```
+
+- **建置失敗**：遇到 `--mount option requires BuildKit` 時核對實際 inline Build env。[BuildKit 契約](cloud-run.md#docker-buildkit-建置契約)
+- **部署失敗或未 Ready**：核對映像 digest、PORT、runtime service account 與 Secret references。以實際 revision 與前版 metadata 比對。
+- **選單同步失敗**：整體 Build 失敗後仍須查流量確認部署結果。核對實際 Trigger 的 `-images /assets/line/richmenu`，確認同一映像內的目錄可穿越且 JPEG 可由 nonroot 讀取。[圖片路徑與權限](cloud-run.md#managed-trigger-的-rich-menu-圖片路徑)
+- **登入、出勤或摘要失敗**：核對 Session、Firestore、Cloud Tasks、模型與 LINE 訊息流程。端到端驗收須以真實功能結果為準。
 
 managed trigger 使用 inline build；修改 repository YAML 不會修正該 Trigger。
 修正後以新 Build 的來源 SHA、每個步驟結果、Ready revision、traffic 及真實功能結果驗收。

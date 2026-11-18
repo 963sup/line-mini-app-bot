@@ -89,13 +89,13 @@ func replyError(w http.ResponseWriter, err error) bool {
 	}
 	switch {
 	case errors.Is(err, feature.ErrInput):
-		transport.WriteAPIError(w, 400, "invalid_input", "日誌資料無效。")
+		transport.WriteServiceError(w, 400, "invalid_input", "日誌資料無效。", err)
 	case errors.Is(err, feature.ErrNotFound):
-		transport.WriteAPIError(w, 404, "not_found", "找不到日誌或關聯來源。")
+		transport.WriteServiceError(w, 404, "not_found", "找不到日誌或關聯來源。", err)
 	case errors.Is(err, feature.ErrConflict):
-		transport.WriteAPIError(w, 409, "idempotency_conflict", "重試識別碼已用於不同內容。")
+		transport.WriteServiceError(w, 409, "idempotency_conflict", "重試識別碼已用於不同內容。", err)
 	default:
-		transport.WriteAPIError(w, 503, "unavailable", "日誌服務暫時無法使用。")
+		transport.WriteServiceError(w, 503, "unavailable", "日誌服務暫時無法使用。", err)
 	}
 	return true
 }
@@ -107,7 +107,7 @@ func (s *journalServer) enabled(w http.ResponseWriter) bool {
 	transport.WriteAPIError(w, 503, "not_configured", "群組日誌尚未啟用。")
 	return false
 }
-func actor(r *http.Request) string { u, _ := identity.FromContext(r.Context()); return u.ID }
+
 func source(r *generated.JournalReference) *feature.Reference {
 	if r == nil {
 		return nil
@@ -151,7 +151,7 @@ func (s *journalServer) CreateJournal(w http.ResponseWriter, r *http.Request, p 
 	for _, i := range b.TomorrowItems {
 		d.Tomorrow = append(d.Tomorrow, feature.Work{Name: i.Name, Percent: i.ExpectedCompletionPercent, Reference: source(i.Reference)})
 	}
-	e, err := s.service.Create(r.Context(), actor(r), p.IdempotencyKey, d)
+	e, err := s.service.Create(r.Context(), identity.UserID(r.Context()), p.IdempotencyKey, d)
 	if !replyError(w, err) {
 		transport.WriteJSON(w, 201, view(e))
 	}
@@ -161,7 +161,7 @@ func (s *journalServer) GetJournal(w http.ResponseWriter, r *http.Request, id st
 	if !s.enabled(w) {
 		return
 	}
-	e, err := s.service.Get(r.Context(), actor(r), id)
+	e, err := s.service.Get(r.Context(), identity.UserID(r.Context()), id)
 	if !replyError(w, err) {
 		transport.WriteJSON(w, 200, view(e))
 	}
@@ -181,7 +181,7 @@ func (s *journalServer) ListJournals(w http.ResponseWriter, r *http.Request, p g
 	if p.Cursor != nil {
 		f.Cursor = *p.Cursor
 	}
-	page, err := s.service.List(r.Context(), actor(r), f)
+	page, err := s.service.List(r.Context(), identity.UserID(r.Context()), f)
 	if replyError(w, err) {
 		return
 	}

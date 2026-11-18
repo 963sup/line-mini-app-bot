@@ -4,7 +4,7 @@
 
 ## 職責與邊界
 
-README.md 是文件索引；features/ 保存六項業務，foundation/ 保存共用架構、整合與營運，development/、tooling/、agents/、reports/ 分別保存開發規範、工具指南、代理流程與歷史報告。
+README.md 是文件索引；features/ 保存六項業務，foundation/ 保存共用架構、整合與營運，development/、tooling/、agents/、planning/ 分別保存開發規範、工具指南、代理流程與未來提案。歷史變更透過 Git 查閱，不在 docs 維護日期報告副本。
 
 以已接受 ADR 與實際來源為準，區分已實作、待驗收與未來規劃。不在多處複製版本、連線設定、機密或完整政策。
 

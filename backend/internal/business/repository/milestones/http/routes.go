@@ -2,9 +2,7 @@ package milestonehttp
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"io"
 	"mime"
 	"net/http"
 	"time"
@@ -85,16 +83,6 @@ func Register(mux *http.ServeMux, service *feature.Service, auth Authenticator) 
 func view(i feature.Milestone) generated.Milestone {
 	return generated.Milestone{Id: i.ID, RepositoryId: i.RepositoryID, Title: i.Title, Body: i.Body, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, IssueCount: i.IssueCount, CompletedIssueCount: i.CompletedIssueCount, State: generated.MilestoneState(i.State), DueDate: i.DueDate}
 }
-func actor(r *http.Request) string { u, _ := identity.FromContext(r.Context()); return u.ID }
-func body(w http.ResponseWriter, r *http.Request, target any) bool {
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if d.Decode(target) != nil || d.Decode(new(any)) != io.EOF {
-		transport.WriteAPIError(w, 400, "invalid_input", "資料無效。")
-		return false
-	}
-	return true
-}
 
 func writeError(w http.ResponseWriter, e error) bool {
 	if e == nil {
@@ -113,7 +101,7 @@ func writeError(w http.ResponseWriter, e error) bool {
 	case errors.Is(e, feature.ErrCreationConflict):
 		code, status, message = "idempotency_conflict", 409, "建立識別碼已用於不同內容，請確認原紀錄。"
 	}
-	transport.WriteAPIError(w, status, code, message)
+	transport.WriteServiceError(w, status, code, message, e)
 	return true
 }
 
@@ -122,7 +110,7 @@ func (s *milestoneServer) ListMilestones(w http.ResponseWriter, r *http.Request,
 	if p.Cursor != nil {
 		cursor = *p.Cursor
 	}
-	page, e := s.service.List(r.Context(), actor(r), repositoryId, cursor)
+	page, e := s.service.List(r.Context(), identity.UserID(r.Context()), repositoryId, cursor)
 	if writeError(w, e) {
 		return
 	}
@@ -134,7 +122,7 @@ func (s *milestoneServer) ListMilestones(w http.ResponseWriter, r *http.Request,
 }
 
 func (s *milestoneServer) GetMilestone(w http.ResponseWriter, r *http.Request, repositoryId, id string) {
-	i, e := s.service.Get(r.Context(), actor(r), repositoryId, id)
+	i, e := s.service.Get(r.Context(), identity.UserID(r.Context()), repositoryId, id)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -142,10 +130,10 @@ func (s *milestoneServer) GetMilestone(w http.ResponseWriter, r *http.Request, r
 
 func (s *milestoneServer) CreateMilestone(w http.ResponseWriter, r *http.Request, repositoryId string, p generated.CreateMilestoneParams) {
 	var input generated.MilestoneCreation
-	if !body(w, r, &input) {
+	if !transport.ReadJSON(w, r, &input, "資料無效。") {
 		return
 	}
-	i, e := s.service.Create(r.Context(), actor(r), repositoryId, p.IdempotencyKey, feature.Content{Title: input.Title, Body: input.Body, DueDate: input.DueDate})
+	i, e := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryId, p.IdempotencyKey, feature.Content{Title: input.Title, Body: input.Body, DueDate: input.DueDate})
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -153,10 +141,10 @@ func (s *milestoneServer) CreateMilestone(w http.ResponseWriter, r *http.Request
 
 func (s *milestoneServer) UpdateMilestone(w http.ResponseWriter, r *http.Request, repositoryId, id string, _ generated.UpdateMilestoneParams) {
 	var input generated.MilestoneUpdate
-	if !body(w, r, &input) {
+	if !transport.ReadJSON(w, r, &input, "資料無效。") {
 		return
 	}
-	i, e := s.service.Update(r.Context(), actor(r), repositoryId, id, feature.Update{Content: feature.Content{Title: input.Title, Body: input.Body, DueDate: input.DueDate}, ExpectedVersion: input.ExpectedVersion, State: string(input.State)})
+	i, e := s.service.Update(r.Context(), identity.UserID(r.Context()), repositoryId, id, feature.Update{Content: feature.Content{Title: input.Title, Body: input.Body, DueDate: input.DueDate}, ExpectedVersion: input.ExpectedVersion, State: string(input.State)})
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}

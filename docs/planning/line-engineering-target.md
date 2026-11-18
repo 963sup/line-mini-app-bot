@@ -1,6 +1,6 @@
 # LINE 工程管理平台目標架構（提案）
 
-以下保存架構討論提出的目標模型。Project 由建立它的個人或工程群組擁有，Space 表示 Repository 內的工區，見[現行 Project 設計](../../features/project/projects.md)。平台能力與逐庫授權仍須在實作時驗證。
+以下保存架構討論提出的目標模型。Project 由建立它的個人或工程群組擁有，Space 表示 Repository 內的工區，見[現行 Project 設計](../features/project/projects.md)。平台能力與逐庫授權仍須在實作時驗證。
 
 **建議採用：LINE Group 1:1 對應 Repository、Repository 管理工區、Object 與 SubObject；個人或工程群組擁有 Project，一個 Project 可連結多個 Repository；LINE 1:1 私訊則作為使用者的個人入口，已驗簽的 follow 事件建立個人 Repository。**
 
@@ -560,7 +560,7 @@ LINE Webhook 可能重送或亂序，應按 `webhookEventId` 處理防重，且�
 
 ## 九、現有 Repository 與目標設計的差距
 
-現行 Project 的擁有者、來源庫連結與儲存路徑見 [Project 功能規格](../../features/project/projects.md)。以下對照現況與目標。
+現行 Project 的擁有者、來源庫連結與儲存路徑見 [Project 功能規格](../features/project/projects.md)。以下對照現況與目標。
 
 | 項目 | 現有設計 | 目標設計 |
 |--------|--------|--------|

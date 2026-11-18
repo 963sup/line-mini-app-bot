@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -37,7 +36,8 @@ func newAttendance(ctx context.Context, channel string) (*attendanceDependencies
 	}
 	zone, err := time.LoadLocation("Asia/Taipei")
 	if err != nil {
-		return nil, nil, errors.Join(err, client.Close())
+		_ = client.Close()
+		return nil, nil, err
 	}
 	return &attendanceDependencies{store: &storage.Attendance{Client: client, ChannelID: channel}, zone: zone}, client.Close, nil
 }

@@ -64,7 +64,16 @@ bash scripts/tooling/tool-exec.sh gcloud run deploy line-mini-app-bot \
 
 ## 切換、觀察、回復
 
-先記錄具名舊 revision（或原流量分配圖），候選通過後以具名 revision 切換。不能使用 `LATEST` 作回復識別。
+```mermaid
+flowchart TB
+  B["記錄具名舊 revision 或原流量分配"] --> A["候選通過驗收並取得發布授權"]
+  A --> C["切換到具名候選 revision"] --> O{"觀察結果超過回復門檻？"}
+  O -->|是| R["停止擴大發布並還原原流量分配"]
+  R --> V["重驗 snapshot、HTTP、真實登入與查詢"]
+  O -->|否| K["維持候選流量"]
+```
+
+回復使用已記錄的具名 revision 或分流配置，禁止以 `LATEST` 識別回復目標。
 
 ```bash
 # 會變更正式流量；完成候選驗收及發布授權後執行。
@@ -96,11 +105,18 @@ bash scripts/tooling/tool-exec.sh gcloud run services update-traffic line-mini-a
 | Secret versions | 保留 serving 與回滾版本引用的數字版本，另核對共用服務及輪替要求；映像清理不連帶授權刪除 Secret。 |
 | 發布證據 | 保留來源 SHA、build ID、前後 snapshot、驗收結果與清理清單；建置歷史／日誌依其獨立保存政策管理。 |
 
-1. 協調暫停並行部署，重新取得 serving、traffic、候選與回滾版本清單，建立 revision → digest → Secret versions 對照。
-2. 列出 Artifact Registry 實際 manifests、tags 與附件關係；保留集合以 digest 識別，不只看 tag 或建立時間。
-3. 產生具體待刪清單並記錄保留理由。確認本次清理範圍已獲授權，再移除不在保留集合的舊 revisions 及其無其他引用的映像；不要把範例數量當作固定清理目標。
-4. 分批檢查刪除結果。CLI／批次 API 成功訊息不能代替重新列舉；區分指定刪除與連帶消失的附件，避免重複計數。
-5. 最後核對流量、Ready 狀態、HTTP smoke、回滾版本與映像／Secret references。遇到新部署、保留集合變動或結果不明即停止，重新建立清單。
+```mermaid
+flowchart TB
+  A["暫停並行部署，重列 serving、traffic、候選與回滾版本"] --> B["建立 revision／digest／Secret 版本對照，核對 manifests、tags 與附件"]
+  B --> C["列出待刪項目與保留理由"]
+  C --> D{"清理範圍已有授權？"}
+  D -->|是| E["分批移除保留集合外的舊 revision 與無其他引用的映像"]
+  D -->|否| H["停在清單審查"]
+  E --> F["重新列舉結果，區分指定刪除與連帶消失的附件"]
+  F --> G["核對流量、Ready、HTTP smoke、回滾版本及映像／Secret 引用"]
+```
+
+保留集合以不可變 digest 識別。依實際引用決定清理範圍與數量，分批核對以免重複計數。任一階段遇到新部署、保留集合變動或結果不明，立即停止並重新建立清單。
 
 Cloud Run 流量回復不還原已刪映像、Secret、Firestore 寫入或 LINE 選單。
 實際清理另行依當時官方文件與 CLI help 操作；本頁不提供可直接批次刪除正式資源的命令。

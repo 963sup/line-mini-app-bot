@@ -167,7 +167,7 @@ func TestAutomaticStorageReservesEveryResultAndRoundtrips(t *testing.T) {
 	if json.Unmarshal([]byte(doc.Payload), &stored) != nil {
 		t.Fatal("DTO decode")
 	}
-	got := loadAutomatic(stored)
+	got := fromStoredRun(stored)
 	if !reflect.DeepEqual(j, got) {
 		t.Fatal("DTO drift")
 	}

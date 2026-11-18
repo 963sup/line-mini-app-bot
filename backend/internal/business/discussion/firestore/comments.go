@@ -12,6 +12,7 @@ import (
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/discussion"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -51,12 +52,12 @@ func decodeComment(snap *db.DocumentSnapshot, err error, repositoryID, discussio
 }
 
 func (s *Store) topic(scope repository.Repository, id string) *db.DocumentRef {
-	return s.parent(scope.ID).Collection("discussions").Doc(id)
+	return s.repositoryRef(scope.ID).Collection("discussions").Doc(id)
 }
 
 // Every comment write rechecks the container and topic within the same transaction.
 func (s *Store) checkThread(tx *db.Transaction, scope repository.Repository, id string) error {
-	snap, err := tx.Get(s.parent(scope.ID))
+	snap, err := tx.Get(s.repositoryRef(scope.ID))
 	if status.Code(err) == codes.NotFound {
 		return discussion.ErrNotFound
 	}
@@ -97,7 +98,7 @@ func (s *Store) ListComments(ctx context.Context, scope repository.Repository, a
 	if err != nil {
 		return result, err
 	}
-	scopeKey := hash(key)
+	scopeKey := firestorekey.Digest(key)
 	var c commentCursor
 	if value != "" {
 		b, e := base64.RawURLEncoding.DecodeString(value)
@@ -164,7 +165,7 @@ func (s *Store) CreateComment(ctx context.Context, scope repository.Repository, 
 		return result, err
 	}
 	parent := s.topic(scope, id)
-	receipt := parent.Collection("commentCreationReceipts").Doc(hash(keyScope))
+	receipt := parent.Collection("commentCreationReceipts").Doc(firestorekey.Digest(keyScope))
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = discussion.Comment{}
 		if err := s.checkThread(tx, scope, id); err != nil {
@@ -179,7 +180,7 @@ func (s *Store) CreateComment(ctx context.Context, scope repository.Repository, 
 			if prior.SchemaVersion != 1 || !repository.ValidID(prior.CommentID) {
 				return discussion.ErrUnavailable
 			}
-			if prior.PayloadHash != hash(payload) {
+			if prior.PayloadHash != firestorekey.Digest(payload) {
 				return discussion.ErrCreationConflict
 			}
 			snap, err := tx.Get(parent.Collection("comments").Doc(prior.CommentID))
@@ -202,7 +203,7 @@ func (s *Store) CreateComment(ctx context.Context, scope repository.Repository, 
 		if err := tx.Create(parent.Collection("comments").Doc(newID), encodeComment(result)); err != nil {
 			return err
 		}
-		return tx.Create(receipt, commentReceipt{1, hash(payload), newID})
+		return tx.Create(receipt, commentReceipt{1, firestorekey.Digest(payload), newID})
 	})
 	if err != nil {
 		return discussion.Comment{}, err

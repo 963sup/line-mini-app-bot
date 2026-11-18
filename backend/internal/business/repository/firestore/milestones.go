@@ -3,22 +3,23 @@ package firestore
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"strconv"
 	"time"
+
+	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
 
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/repository/milestones"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 )
 
-type planningDocument struct {
+type milestoneDocument struct {
 	SchemaVersion int64     `firestore:"schemaVersion"`
 	ID            string    `firestore:"id"`
 	RepositoryID  string    `firestore:"repositoryId"`
@@ -32,18 +33,18 @@ type planningDocument struct {
 	DueDate       string    `firestore:"dueDate"`
 }
 
-func planningEncode(i feature.Milestone) planningDocument {
-	return planningDocument{SchemaVersion: 1, ID: i.ID, RepositoryID: i.RepositoryID, Title: i.Title, Body: i.Body, CreatorID: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, State: i.State, DueDate: i.DueDate}
+func encodeMilestone(i feature.Milestone) milestoneDocument {
+	return milestoneDocument{SchemaVersion: 1, ID: i.ID, RepositoryID: i.RepositoryID, Title: i.Title, Body: i.Body, CreatorID: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, State: i.State, DueDate: i.DueDate}
 }
 
-func planningDecode(snap *db.DocumentSnapshot, err error, rid string) (feature.Milestone, error) {
+func decodeMilestone(snap *db.DocumentSnapshot, err error, rid string) (feature.Milestone, error) {
 	if status.Code(err) == codes.NotFound {
 		return feature.Milestone{}, feature.ErrNotFound
 	}
 	if err != nil {
 		return feature.Milestone{}, err
 	}
-	var d planningDocument
+	var d milestoneDocument
 	if e := snap.DataTo(&d); e != nil {
 		return feature.Milestone{}, e
 	}
@@ -54,34 +55,8 @@ func planningDecode(snap *db.DocumentSnapshot, err error, rid string) (feature.M
 	return feature.Milestone{ID: d.ID, RepositoryID: d.RepositoryID, Title: d.Title, Body: d.Body, CreatorID: d.CreatorID, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt, State: d.State, DueDate: d.DueDate}, nil
 }
 
-type planningFailure struct{ cause error }
-
-func (e *planningFailure) Error() string { return "milestones storage unavailable" }
-func (e *planningFailure) Unwrap() error { return feature.ErrUnavailable }
-func planningError(err error) error {
-	if err == nil {
-		return nil
-	}
-	for _, known := range []error{feature.ErrInput, feature.ErrNotFound, feature.ErrForbidden, feature.ErrConflict, feature.ErrCreationConflict, feature.ErrUnavailable, context.Canceled, context.DeadlineExceeded} {
-		if errors.Is(err, known) {
-			return err
-		}
-	}
-	if status.Code(err) == codes.Canceled {
-		return context.Canceled
-	}
-	if status.Code(err) == codes.DeadlineExceeded {
-		return context.DeadlineExceeded
-	}
-	return &planningFailure{err}
-}
-
-func (s *Store) planningParent(rid string) *db.DocumentRef {
-	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("repositories").Doc(rid)
-}
-func (s *Store) planningReady() bool { return s != nil && s.Client != nil && s.ChannelID != "" }
-func (s *Store) planningContainer(tx *db.Transaction, r repository.Repository) error {
-	snap, e := tx.Get(s.planningParent(r.ID))
+func (s *Store) checkActiveRepository(tx *db.Transaction, r repository.Repository) error {
+	snap, e := tx.Get(s.repositoryRef(r.ID))
 	if status.Code(e) == codes.NotFound {
 		return feature.ErrNotFound
 	}
@@ -102,52 +77,38 @@ func (s *Store) planningContainer(tx *db.Transaction, r repository.Repository) e
 	return nil
 }
 
-func planningHash(v any) string {
-	b, _ := json.Marshal(v)
-	sum := sha256.Sum256(b)
-	return hex.EncodeToString(sum[:])
-}
-
-type planningCursor struct{ Scope, Last string }
-
-func planningPage(q db.Query, token string, scope any) (db.Query, error) {
+func applyMilestoneCursor(q db.Query, token string, scope any) (db.Query, error) {
 	if token != "" {
-		b, e := base64.RawURLEncoding.DecodeString(token)
-		var c planningCursor
-		if e != nil || json.Unmarshal(b, &c) != nil || c.Scope != planningHash(scope) || !repository.ValidID(c.Last) {
+		last, ok := firestorekey.DecodeCursor(token, scope)
+		if !ok || !repository.ValidID(last) {
 			return q, feature.ErrInput
 		}
-		q = q.StartAfter(c.Last)
+		q = q.StartAfter(last)
 	}
 	return q.Limit(21), nil
 }
 
-func planningNext(scope any, id string) string {
-	b, _ := json.Marshal(planningCursor{planningHash(scope), id})
-	return base64.RawURLEncoding.EncodeToString(b)
-}
-
 func (s *Store) GetMilestone(ctx context.Context, r repository.Repository, id string) (result feature.Milestone, err error) {
-	defer func() { err = planningError(err) }()
-	if !s.planningReady() {
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
+	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
-	snap, e := s.planningParent(r.ID).Collection("milestones").Doc(id).Get(ctx)
-	result, err = planningDecode(snap, e, r.ID)
+	snap, e := s.repositoryRef(r.ID).Collection("milestones").Doc(id).Get(ctx)
+	result, err = decodeMilestone(snap, e, r.ID)
 	if err == nil {
-		err = s.planningProgress(ctx, r, &result)
+		err = s.loadMilestoneIssueCounts(ctx, r, &result)
 	}
 	return
 }
 
 func (s *Store) ListMilestones(ctx context.Context, r repository.Repository, actor, token string) (result feature.Page, err error) {
-	defer func() { err = planningError(err) }()
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	result.Items = []feature.Milestone{}
-	if !s.planningReady() {
+	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
 	scope := []string{s.ChannelID, r.ID, actor}
-	q, e := planningPage(s.planningParent(r.ID).Collection("milestones").OrderBy(db.DocumentID, db.Asc), token, scope)
+	q, e := applyMilestoneCursor(s.repositoryRef(r.ID).Collection("milestones").OrderBy(db.DocumentID, db.Asc), token, scope)
 	if e != nil {
 		return result, e
 	}
@@ -160,30 +121,30 @@ func (s *Store) ListMilestones(ctx context.Context, r repository.Repository, act
 		snaps = snaps[:20]
 	}
 	for _, snap := range snaps {
-		i, e := planningDecode(snap, nil, r.ID)
+		i, e := decodeMilestone(snap, nil, r.ID)
 		if e != nil {
 			return feature.Page{}, e
 		}
-		if e := s.planningProgress(ctx, r, &i); e != nil {
+		if e := s.loadMilestoneIssueCounts(ctx, r, &i); e != nil {
 			return feature.Page{}, e
 		}
 		result.Items = append(result.Items, i)
 	}
 	if more {
-		result.NextCursor = planningNext(scope, snaps[len(snaps)-1].Ref.ID)
+		result.NextCursor = firestorekey.EncodeCursor(scope, snaps[len(snaps)-1].Ref.ID)
 	}
 	return result, nil
 }
 
-type planningReceipt struct {
+type milestoneReceipt struct {
 	ID            string `firestore:"id"`
 	PayloadHash   string `firestore:"payloadHash"`
 	SchemaVersion int64  `firestore:"schemaVersion"`
 }
 
 func (s *Store) CreateMilestone(ctx context.Context, r repository.Repository, actor, key string, c feature.Content) (result feature.Milestone, err error) {
-	defer func() { err = planningError(err) }()
-	if !s.planningReady() {
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
+	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
 	var random [16]byte
@@ -192,21 +153,21 @@ func (s *Store) CreateMilestone(ctx context.Context, r repository.Repository, ac
 	}
 	id := hex.EncodeToString(random[:])
 	now := time.Now().UTC().Truncate(time.Microsecond)
-	payload := planningHash(struct {
+	payload := firestorekey.JSONDigest(struct {
 		Version int    `json:"version"`
 		Title   string `json:"title"`
 		Body    string `json:"body"`
 		DueDate string `json:"dueDate"`
 	}{1, c.Title, c.Body, c.DueDate})
-	parent := s.planningParent(r.ID)
-	receipt := parent.Collection("milestonesCreationReceipts").Doc(planningHash([]string{actor, key}))
+	parent := s.repositoryRef(r.ID)
+	receipt := parent.Collection("milestonesCreationReceipts").Doc(firestorekey.JSONDigest([]string{actor, key}))
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		if e := s.planningContainer(tx, r); e != nil {
+		if e := s.checkActiveRepository(tx, r); e != nil {
 			return e
 		}
 		snap, e := tx.Get(receipt)
 		if e == nil {
-			var d planningReceipt
+			var d milestoneReceipt
 			if e := snap.DataTo(&d); e != nil {
 				return e
 			}
@@ -223,10 +184,10 @@ func (s *Store) CreateMilestone(ctx context.Context, r repository.Repository, ac
 			return e
 		}
 		i := feature.Milestone{ID: id, RepositoryID: r.ID, Title: c.Title, Body: c.Body, CreatorID: actor, Version: 1, CreatedAt: now, UpdatedAt: now, State: "open", DueDate: c.DueDate}
-		if e := tx.Create(parent.Collection("milestones").Doc(id), planningEncode(i)); e != nil {
+		if e := tx.Create(parent.Collection("milestones").Doc(id), encodeMilestone(i)); e != nil {
 			return e
 		}
-		return tx.Create(receipt, planningReceipt{id, payload, 1})
+		return tx.Create(receipt, milestoneReceipt{id, payload, 1})
 	})
 	if err != nil {
 		return result, err
@@ -234,14 +195,14 @@ func (s *Store) CreateMilestone(ctx context.Context, r repository.Repository, ac
 	return s.GetMilestone(ctx, r, id)
 }
 
-type planningChange struct {
+type milestoneChange struct {
 	ActorID string    `firestore:"actorId"`
 	Version int64     `firestore:"version"`
 	At      time.Time `firestore:"at"`
 	Action  string    `firestore:"action"`
 }
 
-func (s *Store) planningWrite(tx *db.Transaction, ref *db.DocumentRef, current, result feature.Milestone, actor, action string) error {
+func writeMilestoneChange(tx *db.Transaction, ref *db.DocumentRef, current, result feature.Milestone, actor, action string) error {
 	if result.Version == current.Version {
 		return nil
 	}
@@ -249,24 +210,24 @@ func (s *Store) planningWrite(tx *db.Transaction, ref *db.DocumentRef, current, 
 	if result.UpdatedAt.Before(current.UpdatedAt) {
 		result.UpdatedAt = current.UpdatedAt
 	}
-	if e := tx.Set(ref, planningEncode(result)); e != nil {
+	if e := tx.Set(ref, encodeMilestone(result)); e != nil {
 		return e
 	}
-	return tx.Create(ref.Collection("changes").Doc(strconv.FormatInt(result.Version, 10)), planningChange{actor, result.Version, result.UpdatedAt, action})
+	return tx.Create(ref.Collection("changes").Doc(strconv.FormatInt(result.Version, 10)), milestoneChange{actor, result.Version, result.UpdatedAt, action})
 }
 
 func (s *Store) UpdateMilestone(ctx context.Context, r repository.Repository, actor, id string, input feature.Update) (result feature.Milestone, err error) {
-	defer func() { err = planningError(err) }()
-	if !s.planningReady() {
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
+	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
-	ref := s.planningParent(r.ID).Collection("milestones").Doc(id)
+	ref := s.repositoryRef(r.ID).Collection("milestones").Doc(id)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		if e := s.planningContainer(tx, r); e != nil {
+		if e := s.checkActiveRepository(tx, r); e != nil {
 			return e
 		}
 		snap, e := tx.Get(ref)
-		current, e := planningDecode(snap, e, r.ID)
+		current, e := decodeMilestone(snap, e, r.ID)
 		if e != nil {
 			return e
 		}
@@ -274,7 +235,7 @@ func (s *Store) UpdateMilestone(ctx context.Context, r repository.Repository, ac
 		if e != nil {
 			return e
 		}
-		return s.planningWrite(tx, ref, current, updated, actor, "update")
+		return writeMilestoneChange(tx, ref, current, updated, actor, "update")
 	})
 	if err != nil {
 		return result, err
@@ -282,8 +243,8 @@ func (s *Store) UpdateMilestone(ctx context.Context, r repository.Repository, ac
 	return s.GetMilestone(ctx, r, id)
 }
 
-func (s *Store) planningProgress(ctx context.Context, r repository.Repository, result *feature.Milestone) error {
-	snaps, e := s.planningParent(r.ID).Collection("issues").Where("milestoneId", "==", result.ID).Select("state").Documents(ctx).GetAll()
+func (s *Store) loadMilestoneIssueCounts(ctx context.Context, r repository.Repository, result *feature.Milestone) error {
+	snaps, e := s.repositoryRef(r.ID).Collection("issues").Where("milestoneId", "==", result.ID).Select("state").Documents(ctx).GetAll()
 	if e != nil {
 		return e
 	}
@@ -306,11 +267,11 @@ func (s *Store) planningProgress(ctx context.Context, r repository.Repository, r
 
 // ValidateMilestoneID reads within the caller's update transaction.
 func (s *Store) ValidateMilestoneID(_ context.Context, tx *db.Transaction, r repository.Repository, id string) error {
-	if !s.planningReady() {
+	if !s.ready() {
 		return repository.ErrNotFound
 	}
-	snap, e := tx.Get(s.planningParent(r.ID).Collection("milestones").Doc(id))
-	_, e = planningDecode(snap, e, r.ID)
+	snap, e := tx.Get(s.repositoryRef(r.ID).Collection("milestones").Doc(id))
+	_, e = decodeMilestone(snap, e, r.ID)
 	if errors.Is(e, feature.ErrNotFound) {
 		return repository.ErrNotFound
 	}

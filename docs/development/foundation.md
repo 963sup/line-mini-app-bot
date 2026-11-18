@@ -22,33 +22,49 @@
 
 ## 第一階段：執行與部署基礎（目前優先）
 
-1. 依 [環境設定](setup.md) 準備工具，整理啟動所需的設定與注入來源。
-2. 啟動現有 HTTP 骨架，記錄 PORT、啟動指令、實際路由與關閉方式，不新增健康檢查路由。
-3. 確認 Docker 可用，依現有 container-build 任務建置骨架；建置問題在此階段處理。
-4. 依 [Cloud Run 指南](../foundation/operations/cloud-run.md) 選定 project、region、Artifact Registry、
-   執行服務帳戶與機密來源。
-5. 在取得部署授權及必要設定後，先部署 Cloud Run 骨架，記錄 URL、revision、
-   服務帳戶、程序日誌與實際路由狀態。
+```mermaid
+flowchart TB
+  subgraph phase0["執行與部署基礎"]
+  ENV["依環境設定準備工具、啟動設定與注入來源"]
+  ENV --> HTTP["啟動現有 HTTP 骨架；記錄 PORT、命令、路由與關閉方式；不新增健康檢查路由"]
+  HTTP --> DOCKER["確認 Docker 可用；以既有 container-build 任務建置並處理問題"]
+  DOCKER --> CONFIG["選定 project、region、Artifact Registry、服務帳戶與機密來源"]
+  CONFIG --> READY{"已有部署授權、憑證與必要設定？"}
+  READY -->|是| DEPLOY["部署 Cloud Run 骨架"]
+  DEPLOY --> RECORD["記錄 URL、revision、服務帳戶、程序日誌與實際路由狀態"]
+  READY -->|否| BLOCKED["標記阻塞；繼續不依賴缺項的工作"]
+  end
+  subgraph phase1["資料與 LINE 接入"]
+  SCOPE["決定 Firestore project、database 與位置"]
+  SCOPE --> IAM["配置 Cloud Run 執行服務帳戶與最小 IAM"]
+  IAM --> CONNECT["配置資料庫連線與認證"]
+  CONNECT --> APP["實作設定載入、缺值啟動錯誤、Firestore client 生命週期與基本連線"]
+  APP --> LINE["確認首期 LINE 入口與 Channel；注入必要設定"]
+  LINE --> AUTH["接上身分驗證及必要收發；不一次實作全部 LINE 能力"]
+  end
+  subgraph phase2["基礎出勤"]
+  DECIDE["收斂出勤規格中的必要決策"] --> IN["實作上班"]
+  IN --> OUT["實作下班"]
+  OUT --> RECORDS["實作本人紀錄查詢"]
+  end
+  RECORD --> VERIFY1["本機可啟動、容器可建置、Cloud Run 可存取，並有紀錄"] --> SCOPE
+  AUTH --> VERIFY2["留下資料連線、LINE 入口與可信身分的操作紀錄"] --> DECIDE
+  RECORDS --> VERIFY3["核驗本人、保存及查閱正確紀錄，並正確呈現失敗"]
+```
 
-完成條件：本機可啟動、容器可建置、Cloud Run 骨架可存取，並有對應執行紀錄。
+操作依據：[環境設定](setup.md) · [Cloud Run 指南](../foundation/operations/cloud-run.md)。圖表示本階段工作順序，不代表已執行部署。
+
 尚未授權或缺憑證的項目標記阻塞，不把出勤功能混入這一階段。
 
 ## 第二階段：資料與 LINE 接入基礎
 
-1. 決定 Firestore project、database 與位置，配置 Cloud Run 執行服務帳戶與最小 IAM。
-2. 依 [Firestore 文件](../foundation/persistence/firestore.md) 配置應用所需的資料庫連線與認證。
-3. 在應用中實作設定載入、缺值時的啟動錯誤、Firestore client 生命週期與基本連線。
-4. 確認首期只採用的 LINE 入口及對應 Channel，依 [LINE 設定契約](../foundation/integrations/line-environment.md)
-   注入必要設定，再接上身分驗證與必要的收發能力；不一次實作全部 LINE 能力。
+設定與整合依據：[Firestore 文件](../foundation/persistence/firestore.md) · [LINE 設定契約](../foundation/integrations/line-environment.md)。圖表示接入順序，不代表真實環境已連通。
 
-完成條件：選定環境的資料連線、LINE 入口及可信人員識別各有實際操作紀錄；
-失敗時能從日誌定位問題，且不記錄憑證與原始身分 token。
+在選定環境驗證。失敗時能從日誌定位問題，且不記錄憑證與原始身分 token。
 這是基礎連線確認，不新增自動化測試工程。
 
 ## 第三階段：基礎出勤
 
-先收斂 [出勤規格](../features/attendance/attendance.md) 列出的必要決策，
-再依序實作上班、下班與本人紀錄查詢。只新增這些操作需要的 API、資料欄位及 adapter。
-完成條件：可識別本人並保存、查看正確的出勤紀錄，錯誤不會被顯示為成功。
+規則依[出勤規格](../features/attendance/attendance.md)；只新增這些操作需要的 API、資料欄位及 adapter。圖表示實作順序，不是使用者每次查詢的前置操作。
 
 基礎設施與接入尚未完成時，不宣稱出勤可以落地；文件中的完成條件也不是完成證據。

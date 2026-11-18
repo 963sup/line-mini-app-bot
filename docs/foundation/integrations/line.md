@@ -49,12 +49,16 @@ HTTP 成功代表 API 接受請求，不代表使用者已收到或讀取。
 
 ## 3. Webhook 事件與可靠性
 
-1. 對未改動的原始 body 驗證簽章，限制 body 大小；驗證後才解析與分流。
-2. 處理一次請求中的多個事件，以及驗證請求可能出現的空事件陣列。
-3. 依 `webhookEventId` 去重，不以 `isRedelivery` 作唯一判斷；事件可能重複或順序不同。
-4. 依來源與事件類型分派：Message、Postback、Follow／Unfollow、Join／Leave、Member Joined／Left、Unsend。
-5. Unsend 需依保存政策處理已儲存的內容，避免繼續顯示或使用已收回資料。
-6. 需要非同步處理時先可靠保存工作再回成功；不在請求結束後依賴未受管理 goroutine。
+```mermaid
+flowchart TB
+  Raw["限制 body 大小並驗證未改動原始 body 的簽章"] -->|通過| Parse["解析空陣列或逐筆處理多事件"]
+  Parse --> Dedup["依 webhookEventId 去重，容許重送與亂序"]
+  Dedup --> Dispatch["依來源及事件類型分派"]
+  Dispatch -->|Unsend| Policy["依保存政策停止顯示或使用已收回內容"]
+  Dispatch -->|需非同步處理| Work["可靠保存工作後回成功"]
+```
+
+依 `webhookEventId` 去重，`isRedelivery` 僅供參考。分派範圍包括 Message、Postback、Follow／Unfollow、Join／Leave、Member Joined／Left 和 Unsend。非同步工作由受管理機制執行，原請求結束後仍須可追蹤。
 
 去重狀態需區分處理中、完成與失敗，避免先標完成卻未執行；外部發送不在 Firestore transaction callback 內。
 未知或非本產品範圍事件採安全忽略並觀測，不能觸發未授權業務。

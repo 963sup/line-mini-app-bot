@@ -2,15 +2,15 @@ package project
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 	"unicode/utf8"
 )
 
 var (
-	ErrInspectionPending = fmt.Errorf("%w: inspection pending", ErrConflict)
-	ErrInspectionHistory = fmt.Errorf("%w: inspection history retained", ErrConflict)
+	ErrInspectionPending = errors.New("inspection pending")
+	ErrInspectionHistory = errors.New("inspection history retained")
 )
 
 type InspectionSubmission struct {

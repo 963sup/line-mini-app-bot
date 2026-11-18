@@ -97,9 +97,13 @@ func run(args []string, output io.Writer) (resultErr error) {
 	defer cancel()
 	client, err := db.NewClientWithDatabase(ctx, o.Project, o.Database)
 	if err != nil {
-		return errors.New("cannot initialize explicit Firestore project/database; check ADC or emulator")
+		return err
 	}
-	defer func() { resultErr = errors.Join(resultErr, client.Close()) }()
+	defer func() {
+		if closeErr := client.Close(); resultErr == nil {
+			resultErr = closeErr
+		}
+	}()
 	m := &migrator{client: client, options: o}
 	if !o.Apply && !o.Rollback && !o.ReleaseLock {
 		if _, err := os.Stat(o.Manifest); err == nil {
@@ -152,7 +156,9 @@ func save(path string, value manifest) error {
 	if err == nil {
 		err = f.Sync()
 	}
-	err = errors.Join(err, f.Close())
+	if closeErr := f.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		return err
 	}
@@ -185,7 +191,7 @@ func load(path string, o options) (manifest, error) {
 func digest(data map[string]any) (string, error) {
 	b, err := json.Marshal(data)
 	if err != nil {
-		return "", errors.New("document cannot be represented in migration hash")
+		return "", err
 	}
 	sum := sha256.Sum256(b)
 	return hex.EncodeToString(sum[:]), nil

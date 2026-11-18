@@ -1,11 +1,11 @@
-# 實作階段與驗收
+# 平台交付階段參考
 
 > 狀態：規劃；不預建全部套件、不宣稱現有 HTTP 服務已實作以下功能。
 
 ## 當前交付順序
 
-依 [ADR 0002](decisions/0002-baseline.md)、[分階段落地](../../development/foundation.md)
-與 [基礎出勤](../../features/attendance/attendance.md)：執行／Cloud Run 骨架 → 資料與首期 LINE 接入 → 上班、下班與本人紀錄。
+依 [ADR 0002](../foundation/architecture/decisions/0002-baseline.md)、[分階段落地](../development/foundation.md)
+與 [基礎出勤](../features/attendance/attendance.md)：執行／Cloud Run 骨架 → 資料與首期 LINE 接入 → 上班、下班與本人紀錄。
 目前不新增測試方案、案例或工具，既有 CI 保留。
 
 ## 後續平台擴充參考
@@ -25,7 +25,7 @@ Service Message 等正式資格功能需另外驗收後啟用。
 
 ## Codex 任務輸入與完成條件
 
-每次只讀 [overview](overview.md) 路由所需文件，再讀當前範圍的原始碼。
+每次只讀 [overview](../foundation/architecture/overview.md) 路由所需文件，再讀當前範圍的原始碼。
 交接列出目標、擁有檔案、依賴與驗收；一檔一寫入者。小任務不要自動展開全部角色。
-新增 package 前依 [layout](layout.md) 選位置，依 [dependencies](dependencies.md) 核對 import 方向。
+新增 package 前依 [layout](../foundation/architecture/layout.md) 選位置，依 [dependencies](../foundation/architecture/dependencies.md) 核對 import 方向。
 完成時列出實際變更、執行過的檢查、未實作部分與外部阻礙；Graphify/Repomix 的產出不是功能測試。

@@ -3,6 +3,8 @@ package projecthttp
 import (
 	"net/http"
 
+	"github.com/963sup/line-mini-app-bot/internal/identity"
+
 	feature "github.com/963sup/line-mini-app-bot/internal/business/project"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
@@ -13,7 +15,7 @@ func inspectionView(v feature.InspectionSubmission) generated.InspectionSubmissi
 }
 
 func (s *projectServer) ListInspectionSubmissions(w http.ResponseWriter, r *http.Request, sid, pid, item string) {
-	entries, err := s.service.Inspections(r.Context(), actor(r), sid, pid, item, nil)
+	entries, err := s.service.Inspections(r.Context(), identity.UserID(r.Context()), sid, pid, item, nil)
 	if !writeError(w, err) {
 		views := make([]generated.InspectionSubmission, 0, len(entries))
 		for _, entry := range entries {
@@ -25,10 +27,10 @@ func (s *projectServer) ListInspectionSubmissions(w http.ResponseWriter, r *http
 
 func (s *projectServer) SubmitInspection(w http.ResponseWriter, r *http.Request, sid, pid, item string, _ generated.SubmitInspectionParams) {
 	var input generated.InspectionInput
-	if !body(w, r, &input) {
+	if !transport.ReadJSON(w, r, &input, "資料無效。") {
 		return
 	}
-	entries, err := s.service.Inspections(r.Context(), actor(r), sid, pid, item, &input.Note)
+	entries, err := s.service.Inspections(r.Context(), identity.UserID(r.Context()), sid, pid, item, &input.Note)
 	if !writeError(w, err) {
 		transport.WriteJSON(w, http.StatusOK, inspectionView(entries[0]))
 	}

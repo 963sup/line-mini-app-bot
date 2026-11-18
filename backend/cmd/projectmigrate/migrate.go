@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sort"
 	"strings"
 
@@ -95,7 +94,7 @@ func collect(ctx context.Context, collection *db.CollectionRef, out *[]*db.Docum
 		}
 		snap, err := ref.Get(ctx)
 		if err != nil {
-			return errors.New("missing or unreadable document in migration subtree")
+			return err
 		}
 		*out = append(*out, snap)
 		children := ref.Collections(ctx)
@@ -128,7 +127,7 @@ func (m *migrator) source(ctx context.Context) ([]*db.DocumentSnapshot, error) {
 func (m *migrator) repositoryData(ctx context.Context) (map[string]any, string, error) {
 	snap, err := m.repository().Get(ctx)
 	if err != nil {
-		return nil, "", errors.New("explicit source repository is missing or unreadable")
+		return nil, "", err
 	}
 	d := snap.Data()
 	id, _ := d["id"].(string)
@@ -395,7 +394,7 @@ func (m *migrator) verifyTarget(ctx context.Context, plan manifest) error {
 		ref := m.client.Doc(path)
 		snap, err := ref.Get(ctx)
 		if err != nil {
-			return errors.New("target root missing")
+			return err
 		}
 		h, err := digest(snap.Data())
 		if err != nil {
@@ -527,10 +526,10 @@ func (m *migrator) rollback(ctx context.Context, plan *manifest) error {
 		return err
 	}
 	if err := m.verifySource(ctx, *plan); err != nil {
-		return fmt.Errorf("rollback refused: %w", err)
+		return err
 	}
 	if err := m.verifyTarget(ctx, *plan); err != nil {
-		return fmt.Errorf("rollback refused: %w", err)
+		return err
 	}
 	if err := m.switchLocation(ctx, *plan, "space", "legacy"); err != nil {
 		return err

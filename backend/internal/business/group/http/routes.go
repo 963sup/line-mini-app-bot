@@ -92,11 +92,11 @@ func writeError(w http.ResponseWriter, err error) bool {
 	}
 	switch {
 	case errors.Is(err, groupdomain.ErrNotFound):
-		transport.WriteAPIError(w, 404, "not_found", "找不到此群組。")
+		transport.WriteServiceError(w, 404, "not_found", "找不到此群組。", err)
 	case errors.Is(err, groupdomain.ErrCursor):
-		transport.WriteAPIError(w, 400, "invalid_cursor", "分頁已失效，請重新查詢。")
+		transport.WriteServiceError(w, 400, "invalid_cursor", "分頁已失效，請重新查詢。", err)
 	default:
-		transport.WriteAPIError(w, 503, "unavailable", "暫時無法讀取群組，請重試。")
+		transport.WriteServiceError(w, 503, "unavailable", "暫時無法讀取群組，請重試。", err)
 	}
 	return true
 }

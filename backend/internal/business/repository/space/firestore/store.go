@@ -3,18 +3,19 @@ package firestore
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"time"
 
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/repository/space"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 )
 
 type Store struct {
@@ -57,52 +58,28 @@ func decode(snap *db.DocumentSnapshot, err error, rid string) (feature.Space, er
 	return feature.Space{ID: d.ID, RepositoryID: d.RepositoryID, Name: d.Name, CreatorID: d.CreatorID, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
 }
 func (s *Store) ready() bool { return s != nil && s.Client != nil && s.ChannelID != "" }
-func (s *Store) parent(rid string) *db.DocumentRef {
+func (s *Store) repositoryRef(rid string) *db.DocumentRef {
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("repositories").Doc(rid)
 }
 
-func hash(v any) string {
-	b, _ := json.Marshal(v)
-	h := sha256.Sum256(b)
-	return hex.EncodeToString(h[:])
-}
-
-func translate(e error) error {
-	if e == nil {
-		return nil
-	}
-	for _, v := range []error{feature.ErrInput, feature.ErrNotFound, feature.ErrCreationConflict, feature.ErrUnavailable, context.Canceled, context.DeadlineExceeded} {
-		if errors.Is(e, v) {
-			return e
-		}
-	}
-	switch status.Code(e) {
-	case codes.Canceled:
-		return context.Canceled
-	case codes.DeadlineExceeded:
-		return context.DeadlineExceeded
-	}
-	return feature.ErrUnavailable
-}
-
 func (s *Store) Get(ctx context.Context, r repository.Repository, id string) (result feature.Space, err error) {
-	defer func() { err = translate(err) }()
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
-	snap, e := s.parent(r.ID).Collection("spaces").Doc(id).Get(ctx)
+	snap, e := s.repositoryRef(r.ID).Collection("spaces").Doc(id).Get(ctx)
 	return decode(snap, e, r.ID)
 }
 
 type cursor struct{ Scope, ID string }
 
 func (s *Store) List(ctx context.Context, r repository.Repository, actor, token string) (result feature.Page, err error) {
-	defer func() { err = translate(err) }()
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	result.Items = []feature.Space{}
 	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
-	scope := hash([]string{s.ChannelID, r.ID, actor})
+	scope := firestorekey.JSONDigest([]string{s.ChannelID, r.ID, actor})
 	c := cursor{}
 	if token != "" {
 		b, e := base64.RawURLEncoding.DecodeString(token)
@@ -110,7 +87,7 @@ func (s *Store) List(ctx context.Context, r repository.Repository, actor, token 
 			return result, feature.ErrInput
 		}
 	}
-	q := s.parent(r.ID).Collection("spaces").OrderBy(db.DocumentID, db.Asc)
+	q := s.repositoryRef(r.ID).Collection("spaces").OrderBy(db.DocumentID, db.Asc)
 	if c.ID != "" {
 		q = q.StartAfter(c.ID)
 	}
@@ -166,7 +143,7 @@ type receipt struct {
 }
 
 func (s *Store) Create(ctx context.Context, r repository.Repository, actor, key string, name string) (result feature.Space, err error) {
-	defer func() { err = translate(err) }()
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
@@ -176,11 +153,11 @@ func (s *Store) Create(ctx context.Context, r repository.Repository, actor, key 
 	}
 	id := hex.EncodeToString(random[:])
 	now := time.Now().UTC().Truncate(time.Microsecond)
-	parent := s.parent(r.ID)
+	parent := s.repositoryRef(r.ID)
 	ref := parent.Collection("spaces").Doc(id)
 	// Space receipts do not allocate repository resource numbers.
-	rec := parent.Collection("spaceCreationReceipts").Doc(hash([]string{actor, key}))
-	payload := hash(struct{ Name string }{name})
+	rec := parent.Collection("spaceCreationReceipts").Doc(firestorekey.JSONDigest([]string{actor, key}))
+	payload := firestorekey.JSONDigest(struct{ Name string }{name})
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = feature.Space{}
 		if e := container(tx, parent, r); e != nil {

@@ -44,12 +44,25 @@ DELETE /api/v1/session 先驗證 Origin 與 CSRF，再刪除資料、清 Cookie�
 POST /api/v1/session/refresh 要求 Cookie、相同 Origin、X-CSRF-Token 與 JSON
 空物件。續期保留 Session ID 與 CSRF，不因讀取或續期而輪替識別碼。
 
-Firestore transaction 先讀取現存文件，再驗證身分、期限與 CSRF。只有剩餘期限
-不超過 10 分鐘、距上次續期至少 5 分鐘，且新期限確實增加時才更新：
+```mermaid
+sequenceDiagram
+  participant B as 瀏覽器
+  participant G as Go Session API
+  participant F as Firestore
+  B->>G: POST refresh
+  G->>F: 交易讀取現存 Session
+  alt 文件不存在或驗證失敗
+    G-->>B: 拒絕續期
+  else Session 有效且符合續期條件
+    G->>F: Update 並提交
+    F-->>G: 提交完成
+    G-->>B: Cookie 與新到期時間
+  else Session 有效但未達續期條件
+    G-->>B: 目前有效期
+  end
+```
 
-- expiresAt=min(now+30 分鐘, absoluteExpiresAt)。
-- lastRenewedAt=now，revision 加一。
-- 其他欄位不變；不符合續期時間條件則回目前有效期，不產生更新。
+交易核驗身分、期限與 CSRF。剩餘期限不超過 10 分鐘、距上次續期至少 5 分鐘且新期限增加時，更新 `expiresAt=min(now+30 分鐘, absoluteExpiresAt)`、`lastRenewedAt=now`，並將 revision 加一。
 
 每次交易嘗試都在讀取文件後讀時鐘，避免鎖定等待或重試沿用已過期的時間。交易
 只使用 Update，不使用 upsert；遇到登出或 TTL 刪除會衝突重試或找不到文件，

@@ -2,9 +2,7 @@ package subobjecthttp
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"io"
 	"mime"
 	"net/http"
 	"time"
@@ -89,7 +87,7 @@ func view(i object.Subobject) generated.Subobject {
 	}
 	return generated.Subobject{Id: i.ID, ParentObjectId: i.ParentObjectID, RepositoryId: i.RepositoryID, CreatorId: i.CreatorID, Name: i.Name, Type: generated.SubobjectType(i.Type), Quantity: i.Quantity, Unit: i.Unit, CompletedQuantity: completed, Status: generated.SubobjectStatus(i.Status), Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
 }
-func actor(r *http.Request) string { u, _ := identity.FromContext(r.Context()); return u.ID }
+
 func writeError(w http.ResponseWriter, e error) bool {
 	if e == nil {
 		return false
@@ -109,26 +107,16 @@ func writeError(w http.ResponseWriter, e error) bool {
 	case errors.Is(e, object.ErrCreationConflict):
 		code, httpStatus, message = "idempotency_conflict", 409, "重試識別碼已用於不同內容，請先確認原子物件。"
 	}
-	transport.WriteAPIError(w, httpStatus, code, message)
+	transport.WriteServiceError(w, httpStatus, code, message, e)
 	return true
 }
 
-func body(w http.ResponseWriter, r *http.Request, target any) bool {
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if d.Decode(target) != nil || d.Decode(new(any)) != io.EOF {
-		transport.WriteAPIError(w, 400, "invalid_input", "子物件資料無效。")
-		return false
-	}
-	return true
-}
-
-func (s *subobjectServer) ListSubobjects(w http.ResponseWriter, r *http.Request, rid, pid string, p generated.ListSubobjectsParams) {
+func (s *subobjectServer) ListSubobjects(w http.ResponseWriter, r *http.Request, repositoryID, parentObjectID string, p generated.ListSubobjectsParams) {
 	cursor := ""
 	if p.Cursor != nil {
 		cursor = *p.Cursor
 	}
-	page, e := s.service.List(r.Context(), actor(r), rid, pid, cursor)
+	page, e := s.service.List(r.Context(), identity.UserID(r.Context()), repositoryID, parentObjectID, cursor)
 	if writeError(w, e) {
 		return
 	}
@@ -139,8 +127,8 @@ func (s *subobjectServer) ListSubobjects(w http.ResponseWriter, r *http.Request,
 	transport.WriteJSON(w, 200, generated.SubobjectPage{Items: items, NextCursor: page.NextCursor})
 }
 
-func (s *subobjectServer) GetSubobject(w http.ResponseWriter, r *http.Request, rid, pid, id string) {
-	i, e := s.service.Get(r.Context(), actor(r), rid, pid, id)
+func (s *subobjectServer) GetSubobject(w http.ResponseWriter, r *http.Request, repositoryID, parentObjectID, subobjectID string) {
+	i, e := s.service.Get(r.Context(), identity.UserID(r.Context()), repositoryID, parentObjectID, subobjectID)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -153,25 +141,25 @@ func value(v *string) string {
 	return *v
 }
 
-func (s *subobjectServer) CreateSubobject(w http.ResponseWriter, r *http.Request, rid, pid string, p generated.CreateSubobjectParams) {
+func (s *subobjectServer) CreateSubobject(w http.ResponseWriter, r *http.Request, repositoryID, parentObjectID string, p generated.CreateSubobjectParams) {
 	var in generated.SubobjectCreation
-	if !body(w, r, &in) {
+	if !transport.ReadJSON(w, r, &in, "子物件資料無效。") {
 		return
 	}
 	c := object.Content{Name: in.Name, Type: string(in.Type), Quantity: in.Quantity, Unit: in.Unit, CompletedQuantity: value(in.CompletedQuantity)}
-	i, e := s.service.Create(r.Context(), actor(r), rid, pid, p.IdempotencyKey, c)
+	i, e := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryID, parentObjectID, p.IdempotencyKey, c)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}
 }
 
-func (s *subobjectServer) UpdateSubobject(w http.ResponseWriter, r *http.Request, rid, pid, id string, _ generated.UpdateSubobjectParams) {
+func (s *subobjectServer) UpdateSubobject(w http.ResponseWriter, r *http.Request, repositoryID, parentObjectID, subobjectID string, _ generated.UpdateSubobjectParams) {
 	var in generated.SubobjectUpdate
-	if !body(w, r, &in) {
+	if !transport.ReadJSON(w, r, &in, "子物件資料無效。") {
 		return
 	}
 	u := object.Update{Content: object.Content{Name: in.Name, Type: string(in.Type), Quantity: in.Quantity, Unit: in.Unit}, CompletedQuantity: in.CompletedQuantity, ExpectedVersion: in.ExpectedVersion}
-	i, e := s.service.Update(r.Context(), actor(r), rid, pid, id, u)
+	i, e := s.service.Update(r.Context(), identity.UserID(r.Context()), repositoryID, parentObjectID, subobjectID, u)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}

@@ -3,9 +3,7 @@ package firestore
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"sort"
@@ -17,6 +15,7 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/journal"
 	"github.com/963sup/line-mini-app-bot/internal/business/project"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -37,7 +36,6 @@ type receipt struct {
 	Hash  string `firestore:"hash"`
 }
 
-func digest(data []byte) string        { h := sha256.Sum256(data); return hex.EncodeToString(h[:]) }
 func (s *Store) root() *db.DocumentRef { return s.Client.Collection("channels").Doc(s.Channel) }
 func (s *Store) entries(group string) *db.CollectionRef {
 	return s.root().Collection("journalGroups").Doc(group).Collection("entries")
@@ -101,27 +99,27 @@ func (s *Store) checkRefs(ctx context.Context, actor string, d journal.Draft, re
 	return nil
 }
 
-func (s *Store) Create(ctx context.Context, actor, key string, d journal.Draft) (journal.Entry, error) {
-	if e := s.group(ctx, actor, d.GroupID); e != nil {
+func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d journal.Draft) (journal.Entry, error) {
+	if e := s.group(ctx, actorID, d.GroupID); e != nil {
 		return journal.Entry{}, e
 	}
-	if e := s.checkRefs(ctx, actor, d, false, map[journal.Reference]error{}); e != nil {
+	if e := s.checkRefs(ctx, actorID, d, false, map[journal.Reference]error{}); e != nil {
 		return journal.Entry{}, e
 	}
-	id := digest([]byte(actor + "\x00" + key))[:32]
+	entryID := firestorekey.Digest([]byte(actorID + "\x00" + idempotencyKey))[:32]
 	body, e := json.Marshal(d)
 	if e != nil {
 		return journal.Entry{}, e
 	}
-	claim := receipt{Group: d.GroupID, Hash: digest(body)}
-	entry := journal.Entry{Draft: d, ID: id, CreatorID: actor, CreatedAt: time.Now().UTC().Truncate(time.Microsecond)}
+	claim := receipt{Group: d.GroupID, Hash: firestorekey.Digest(body)}
+	entry := journal.Entry{Draft: d, ID: entryID, CreatorID: actorID, CreatedAt: time.Now().UTC().Truncate(time.Microsecond)}
 	payload, e := json.Marshal(entry)
 	if e != nil {
 		return journal.Entry{}, e
 	}
-	order := d.WorkDate.Format(time.DateOnly) + "/" + entry.CreatedAt.Format("20060102T150405.000000Z") + "/" + id
-	target := s.entries(d.GroupID).Doc(id)
-	locator := s.root().Collection("journalReceipts").Doc(id)
+	order := d.WorkDate.Format(time.DateOnly) + "/" + entry.CreatedAt.Format("20060102T150405.000000Z") + "/" + entryID
+	target := s.entries(d.GroupID).Doc(entryID)
+	locator := s.root().Collection("journalReceipts").Doc(entryID)
 	e = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		prev, e := tx.Get(locator)
 		if e == nil {
@@ -185,7 +183,7 @@ func (s *Store) Get(ctx context.Context, actor, id string) (journal.Entry, error
 
 func (s *Store) List(ctx context.Context, actor string, f journal.Filter) (journal.Page, error) {
 	const size = 20
-	scope := digest([]byte(actor+"\x00"+f.GroupID+"\x00"+f.WorkDate)) + "/"
+	scope := firestorekey.Digest([]byte(actor+"\x00"+f.GroupID+"\x00"+f.WorkDate)) + "/"
 	after := ""
 	if f.Cursor != "" {
 		raw, e := base64.RawURLEncoding.DecodeString(f.Cursor)

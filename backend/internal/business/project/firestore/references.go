@@ -5,12 +5,16 @@ import (
 	"errors"
 	"time"
 
+	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
+
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/object"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/project"
 	child "github.com/963sup/line-mini-app-bot/internal/business/subobject"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 )
 
 func itemReference(d itemDocument) feature.Reference {
@@ -18,7 +22,7 @@ func itemReference(d itemDocument) feature.Reference {
 }
 
 func referenceID(pid string, r feature.Reference) string {
-	return planningHash([]string{"project-repository-reference", pid, r.SourceRepositoryID, r.SourceType, r.ParentObjectID, r.SourceID})[:32]
+	return firestorekey.JSONDigest([]string{"project-repository-reference", pid, r.SourceRepositoryID, r.SourceType, r.ParentObjectID, r.SourceID})[:32]
 }
 
 func (s *Store) checkSourceRepository(tx *db.Transaction, source feature.Source) error {
@@ -146,25 +150,25 @@ func (s *Store) sourceReference(tx *db.Transaction, source feature.Source, ref f
 }
 
 func (s *Store) ListReferences(ctx context.Context, r feature.Scope, actor, pid, token string, hydrate bool) (result feature.ReferencePage, err error) {
-	defer func() { err = planningError(err) }()
-	if !s.planningReady() {
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
+	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
 	root := s.ownerDoc(r.OwnerID)
 	parent := root.Collection("projects").Doc(pid)
 	scope := []string{"project-references-v1", s.ChannelID, r.OwnerID, actor, pid}
-	q, e := planningPage(parent.Collection("items").OrderBy(db.DocumentID, db.Asc), token, scope)
+	q, e := applyListCursor(parent.Collection("items").OrderBy(db.DocumentID, db.Asc), token, scope)
 	if e != nil {
 		return result, e
 	}
 	authorized := make(map[string]feature.Source)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = feature.ReferencePage{Items: []feature.Reference{}}
-		if e := s.planningContainer(tx, r, root); e != nil {
+		if e := s.checkProjectOwner(tx, r, root); e != nil {
 			return e
 		}
 		snap, e := tx.Get(parent)
-		if _, e = planningDecode(snap, e, r); e != nil {
+		if _, e = decodeProject(snap, e, r); e != nil {
 			return e
 		}
 		snaps, e := tx.Documents(q).GetAll()
@@ -224,7 +228,7 @@ func (s *Store) ListReferences(ctx context.Context, r feature.Scope, actor, pid,
 			result.Items = append(result.Items, ref)
 		}
 		if more {
-			result.NextCursor = planningNext(scope, snaps[len(snaps)-1].Ref.ID)
+			result.NextCursor = firestorekey.EncodeCursor(scope, snaps[len(snaps)-1].Ref.ID)
 		}
 		return nil
 	}, db.ReadOnly)
@@ -235,8 +239,8 @@ func (s *Store) ListReferences(ctx context.Context, r feature.Scope, actor, pid,
 }
 
 func (s *Store) ChangeReference(ctx context.Context, r feature.Scope, actor, pid string, ref feature.Reference, add bool, version int64) (result feature.Project, err error) {
-	defer func() { err = planningError(err) }()
-	if !s.planningReady() {
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
+	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
 	root := s.ownerDoc(r.OwnerID)
@@ -248,11 +252,11 @@ func (s *Store) ChangeReference(ctx context.Context, r feature.Scope, actor, pid
 	item := parent.Collection("items").Doc(itemID)
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		if e := s.planningContainer(tx, r, root); e != nil {
+		if e := s.checkProjectOwner(tx, r, root); e != nil {
 			return e
 		}
 		snap, e := tx.Get(parent)
-		current, e := planningDecode(snap, e, r)
+		current, e := decodeProject(snap, e, r)
 		if e != nil {
 			return e
 		}
@@ -321,7 +325,7 @@ func (s *Store) ChangeReference(ctx context.Context, r feature.Scope, actor, pid
 				return e
 			}
 		}
-		return s.planningWrite(tx, parent, current, updated, actor, action)
+		return writeProjectChange(tx, parent, current, updated, actor, action)
 	})
 	if err != nil {
 		return result, err

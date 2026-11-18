@@ -31,9 +31,7 @@ External bootstrap and MCP launchers use the paths under `scripts/tooling/`. Ric
 
 ## 相關文件
 
-- [HTTP 診斷期限與正式 CI 回歸](../docs/reports/2026-11-13/http-deadline-convergence-20261113.md)
-- [doctor 版本來源與正式回歸驗證](../docs/reports/2026-11-13/preview-removal-optimization-20261113.md)
-- [架構延續：MCP doctor 固定 request 期限](../docs/reports/2026-11-13/architecture-continuation-20261113.md#第一輪診斷-request-只有一個期限)
+- [MCP 診斷期限與清理](../docs/tooling/mcp/README.md)
 - [文件索引：Scripts](../docs/README.md#按模組閱讀)
 - [mise 任務與工具](../docs/tooling/mise.md)
 - [分析範圍與稽核](../docs/tooling/analysis-scope.md)

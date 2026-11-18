@@ -2,14 +2,13 @@ package firestore
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"time"
 
 	db "cloud.google.com/go/firestore"
 	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -36,8 +35,6 @@ func (d document) model() groupdomain.Group {
 }
 
 func (s *Store) channel() *db.DocumentRef { return s.Client.Collection("channels").Doc(s.ChannelID) }
-
-func key(value string) string { sum := sha256.Sum256([]byte(value)); return hex.EncodeToString(sum[:]) }
 
 // The LINE group ID is the document key. Event
 // ordering prevents old deliveries from reactivating a departed group.
@@ -88,7 +85,7 @@ func (s *Store) Observe(ctx context.Context, o groupdomain.Observation) error {
 				continue
 			}
 			seen[user] = true
-			candidate := s.channel().Collection("groupUsers").Doc(key(user)).Collection("groups").Doc(id)
+			candidate := s.channel().Collection("groupUsers").Doc(firestorekey.Digest([]byte(user))).Collection("groups").Doc(id)
 			if err := tx.Set(candidate, map[string]any{"groupId": id}); err != nil {
 				return err
 			}
@@ -125,7 +122,7 @@ type cursor struct{ Scope, ID string }
 
 func (s *Store) Candidates(ctx context.Context, user, value string) (groupdomain.Page, error) {
 	page := groupdomain.Page{Items: []groupdomain.Group{}}
-	scope := key(s.ChannelID + ":" + user)
+	scope := firestorekey.Digest([]byte(s.ChannelID + ":" + user))
 	c := cursor{}
 	if value != "" {
 		b, err := base64.RawURLEncoding.DecodeString(value)
@@ -133,7 +130,7 @@ func (s *Store) Candidates(ctx context.Context, user, value string) (groupdomain
 			return page, groupdomain.ErrCursor
 		}
 	}
-	q := s.channel().Collection("groupUsers").Doc(key(user)).Collection("groups").OrderBy(db.DocumentID, db.Asc)
+	q := s.channel().Collection("groupUsers").Doc(firestorekey.Digest([]byte(user))).Collection("groups").OrderBy(db.DocumentID, db.Asc)
 	if c.ID != "" {
 		q = q.StartAfter(c.ID)
 	}

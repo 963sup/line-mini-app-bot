@@ -12,7 +12,8 @@
 - [Go LINE 接入能力](line-prototype.md)
 - [檔案、套件、函數與契約命名](naming.md)
 - [Environment setup](setup.md)
-- [Testing](testing.md)
+- [既有測試與驗收入口](../agents/acceptance.md#變更驗收矩陣)
+- [需求到實作導航](../foundation/architecture/layout.md#從需求定位修改範圍)
 
 ## 歸屬與維護
 
@@ -21,4 +22,4 @@
 
 [本目錄指引](AGENTS.md) · [父層指引](../AGENTS.md) · [文件總索引](../README.md)
 
-- [Business 模組、契約與實作分佈](business-refactor.md)：協作能力的 API／後端／正式畫面對照、驗證狀態與歷史重構紀錄。
+目前需求與實作入口見[需求導航](../foundation/architecture/layout.md)；歷史變更透過 Git 查閱。

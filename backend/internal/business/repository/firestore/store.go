@@ -3,13 +3,13 @@ package firestore
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"time"
 
 	"github.com/963sup/line-mini-app-bot/internal/identity"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
@@ -38,9 +38,13 @@ func (d document) model() repository.Repository {
 	return repository.Repository{ID: d.ID, OwnerID: d.OwnerID, Name: d.Name, Status: d.Status, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}
 }
 
+func (s *Store) ready() bool { return s != nil && s.Client != nil && s.ChannelID != "" }
+
 func (s *Store) channel() *db.DocumentRef { return s.Client.Collection("channels").Doc(s.ChannelID) }
 
-func key(value string) string { sum := sha256.Sum256([]byte(value)); return hex.EncodeToString(sum[:]) }
+func (s *Store) repositoryRef(id string) *db.DocumentRef {
+	return s.channel().Collection("repositories").Doc(id)
+}
 
 // Observe commits the independent ID and unique group binding together. Event
 // ordering prevents old deliveries from reactivating a departed group.
@@ -71,7 +75,7 @@ func (s *Store) Observe(ctx context.Context, o repository.Observation) error {
 		} else if status.Code(err) != codes.NotFound {
 			return err
 		}
-		ref := s.channel().Collection("repositories").Doc(id)
+		ref := s.repositoryRef(id)
 		d := document{ID: id, OwnerID: o.OwnerID, Status: o.Status, Name: o.Name, Version: 1, CreatedAt: now, UpdatedAt: now, EventAt: o.At, EventID: o.EventID}
 		writeRepository := true
 		if bound != nil && bound.Exists() {
@@ -115,7 +119,7 @@ func (s *Store) Observe(ctx context.Context, o repository.Observation) error {
 				continue
 			}
 			seen[user] = true
-			candidate := s.channel().Collection("repositoryUsers").Doc(key(user)).Collection("repositories").Doc(id)
+			candidate := s.channel().Collection("repositoryUsers").Doc(firestorekey.Digest([]byte(user))).Collection("repositories").Doc(id)
 			if err := tx.Set(candidate, map[string]any{"repositoryId": id}); err != nil {
 				return err
 			}
@@ -145,11 +149,11 @@ func (s *Store) GetByID(ctx context.Context, id string) (repository.Repository, 
 	if !repository.ValidID(id) {
 		return repository.Repository{}, repository.ErrNotFound
 	}
-	return decode(s.channel().Collection("repositories").Doc(id).Get(ctx))
+	return decode(s.repositoryRef(id).Get(ctx))
 }
 
 func (s *Store) GetByGroupID(ctx context.Context, group string) (repository.Repository, error) {
-	if !repository.ValidGroup(group) {
+	if !identity.IsGroupOwnerID(group) {
 		return repository.Repository{}, repository.ErrNotFound
 	}
 	snap, err := s.channel().Collection("repositoryOwnerBindings").Doc(group).Get(ctx)
@@ -176,7 +180,7 @@ type cursor struct{ Scope, ID string }
 
 func (s *Store) Candidates(ctx context.Context, user, value string) (repository.Page, error) {
 	page := repository.Page{Items: []repository.Repository{}}
-	scope := key(s.ChannelID + ":" + user)
+	scope := firestorekey.Digest([]byte(s.ChannelID + ":" + user))
 	c := cursor{}
 	if value != "" {
 		b, err := base64.RawURLEncoding.DecodeString(value)
@@ -184,7 +188,7 @@ func (s *Store) Candidates(ctx context.Context, user, value string) (repository.
 			return page, repository.ErrCursor
 		}
 	}
-	q := s.channel().Collection("repositoryUsers").Doc(key(user)).Collection("repositories").OrderBy(db.DocumentID, db.Asc)
+	q := s.channel().Collection("repositoryUsers").Doc(firestorekey.Digest([]byte(user))).Collection("repositories").OrderBy(db.DocumentID, db.Asc)
 	if c.ID != "" {
 		q = q.StartAfter(c.ID)
 	}

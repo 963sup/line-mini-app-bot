@@ -4,14 +4,23 @@ Next.js Pages Router 靜態輸出，React Strict Mode 啟用。出勤功能入�
 
 - `identity/Session.tsx`：身分 Context、LINE 初始化、伺服器驗證、登入／登出、BFCache 恢復與型別化認證請求。LINE token 僅於交換後端 Session 時從 SDK 取得；後續 API 使用 Cookie 與記憶體中的 CSRF token。可見頁面有近期活動時，接近到期才以單一請求續期；閒置／背景不保活。登出會先撤銷後端 Session，失敗時保留重試入口。見 [Session 契約](../identity/browser-session.md)。SDK init single-flight；Strict Mode 清理會取消等待並拒收結果。
 - `platform/line/sdk.ts`：官方 SDK script loader 與初始化共用 Promise。全域僅有官方 `window.liff`，沒有自訂 client、DOM dataset 或身分事件橋接。
-- `shared/http/lifecycle.ts`：AbortController、獨立 deadline、世代檢查。即使底層忽略 abort，也不套用過期回應。
+- `shared/http/lifecycle.ts`：AbortController、獨立 deadline、世代檢查。即使底層忽略 abort，也不套用過期回應。已啟動 Promise 在預先取消時仍須觀察其成功／拒絕，避免未處理拒絕；外層取消仍回 AbortError，正常錯誤不吞掉。
 - `shared/location/position.ts`：單次定位，成功、錯誤、逾時、取消一律 clearWatch；拒收無效座標及遲到 callback。權限等待另有 15 秒期限。
 - `shell/AppFrame.tsx`：所有應用頁共用官方 sidebar-07 的外框、Breadcrumb 與收合開關；`shell/sidebar-07/` 保留 AppSidebar、NavMain、NavProjects、NavUser、TeamSwitcher 及 SidebarRail 結構。身分操作由 Shell 注入 NavUser，頁面不再重複顯示身分卡。定位診斷不要求 LINE 登入；空間 UI 預覽及專用導覽已移除。
-- `business/repository/RepositoryContext.tsx`：在正式 Shell 的 SessionProvider 之下共用側欄空間清單與詳情；列表首次展開才載入，空間頁直接進入時自動載入。以本人、epoch 與空間作用域隔離資料並取消晚回應；群組專用入口不退回一般列表。詳細契約見 [群組 Repository](../../features/repository/repository.md)。
-- `shell/Shell.tsx`：身分世代變更時重建功能子樹，清除舊使用者資料、表單與重試狀態。`pagehide` 取消請求；BFCache `pageshow.persisted` 重新驗證。
 - `shared/ui/` 與 `shared/utils.ts`：shadcn primitives 與樣式工具，由 shell／identity／business 組合使用；不擁有業務 API、授權判定或領域狀態。生成設定在 workspace `components.json`，`@/*` 對應 `src/*`。
 
-Tailwind 由 PostCSS 編譯 `styles/globals.css`，透過 Pages Router `_app.tsx` 載入，包含 Preflight、主題與 utilities。正式頁與定位頁均使用 Tailwind utilities 與 shadcn 元件；已移除獨立頁面 CSS、asset-map 及 CSS 複製流程。樣式入口只保留主題變數與必要的 base layer，不以廣泛選擇器覆寫元件。工具與 MCP 流程見 [shadcn UI 與 MCP](../../tooling/mcp/shadcn.md)。
+## 頁面與身分生命週期
+
+```mermaid
+stateDiagram-v2
+  Active --> Hidden: pagehide 取消請求
+  Hidden --> Revalidating: BFCache pageshow.persisted
+  Revalidating --> Active: 重新核驗成功
+```
+
+身分世代改變時，`shell/Shell.tsx` 重建功能子樹並清除舊使用者資料、表單及重試狀態。正式 Shell 的 SessionProvider 下共用空間載入狀態，詳見[空間載入時序](../../features/repository/repository.md#空間載入時序)。
+
+樣式編譯、Preflight、utilities 與歷史 CSS 移除範圍集中於 [CSS 編譯與版面](../../tooling/mcp/shadcn.md#css-編譯與版面)。樣式入口保留主題變數與必要的 base layer。
 
 月摘要與明細分開請求，cursor 翻頁只讀明細；條件變更立即清空原畫面並取消舊讀取。更正申請同一份序列化草稿沿用同一 Idempotency-Key，內容變更才換碼；同步 ref 防止連點。審核必須先讀取目前編號，變更編號即作廢舊內容。
 

@@ -2,9 +2,7 @@ package discussionhttp
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"io"
 	"mime"
 	"net/http"
 	"time"
@@ -86,7 +84,7 @@ func view(i discussion.Discussion) generated.Discussion {
 	ids := append([]string{}, i.LabelIDs...)
 	return generated.Discussion{Id: i.ID, RepositoryId: i.RepositoryID, Number: i.Number, Title: i.Title, Body: i.Body, AuthorId: i.AuthorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, LabelIds: &ids}
 }
-func actor(r *http.Request) string { user, _ := identity.FromContext(r.Context()); return user.ID }
+
 func writeError(w http.ResponseWriter, err error) bool {
 	if err == nil {
 		return false
@@ -104,17 +102,7 @@ func writeError(w http.ResponseWriter, err error) bool {
 	case errors.Is(err, discussion.ErrCreationConflict):
 		code, status, message = "idempotency_conflict", 409, "重試識別碼已用於不同內容，請先確認原討論。"
 	}
-	transport.WriteAPIError(w, status, code, message)
-	return true
-}
-
-func body(w http.ResponseWriter, r *http.Request, target any) bool {
-	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
-	if decoder.Decode(target) != nil || decoder.Decode(new(any)) != io.EOF {
-		transport.WriteAPIError(w, 400, "invalid_input", "討論資料無效。")
-		return false
-	}
+	transport.WriteServiceError(w, status, code, message, err)
 	return true
 }
 
@@ -126,7 +114,7 @@ func (s *discussionServer) ListDiscussions(w http.ResponseWriter, r *http.Reques
 	if params.Query != nil {
 		f.Query = *params.Query
 	}
-	page, err := s.service.List(r.Context(), actor(r), repositoryId, f)
+	page, err := s.service.List(r.Context(), identity.UserID(r.Context()), repositoryId, f)
 	if writeError(w, err) {
 		return
 	}
@@ -138,7 +126,7 @@ func (s *discussionServer) ListDiscussions(w http.ResponseWriter, r *http.Reques
 }
 
 func (s *discussionServer) GetDiscussion(w http.ResponseWriter, r *http.Request, repositoryId string, id string) {
-	i, err := s.service.Get(r.Context(), actor(r), repositoryId, id)
+	i, err := s.service.Get(r.Context(), identity.UserID(r.Context()), repositoryId, id)
 	if !writeError(w, err) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -146,10 +134,10 @@ func (s *discussionServer) GetDiscussion(w http.ResponseWriter, r *http.Request,
 
 func (s *discussionServer) CreateDiscussion(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.CreateDiscussionParams) {
 	var input generated.DiscussionCreation
-	if !body(w, r, &input) {
+	if !transport.ReadJSON(w, r, &input, "討論資料無效。") {
 		return
 	}
-	i, err := s.service.Create(r.Context(), actor(r), repositoryId, params.IdempotencyKey, discussion.Content{Title: input.Title, Body: input.Body})
+	i, err := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryId, params.IdempotencyKey, discussion.Content{Title: input.Title, Body: input.Body})
 	if !writeError(w, err) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -157,10 +145,10 @@ func (s *discussionServer) CreateDiscussion(w http.ResponseWriter, r *http.Reque
 
 func (s *discussionServer) UpdateDiscussion(w http.ResponseWriter, r *http.Request, repositoryId string, id string, _ generated.UpdateDiscussionParams) {
 	var input generated.DiscussionUpdate
-	if !body(w, r, &input) {
+	if !transport.ReadJSON(w, r, &input, "討論資料無效。") {
 		return
 	}
-	i, err := s.service.Update(r.Context(), actor(r), repositoryId, id, discussion.Update{Content: discussion.Content{Title: input.Title, Body: input.Body}, ExpectedVersion: input.ExpectedVersion, LabelIDs: input.LabelIds})
+	i, err := s.service.Update(r.Context(), identity.UserID(r.Context()), repositoryId, id, discussion.Update{Content: discussion.Content{Title: input.Title, Body: input.Body}, ExpectedVersion: input.ExpectedVersion, LabelIDs: input.LabelIds})
 	if !writeError(w, err) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -175,7 +163,7 @@ func (s *discussionServer) ListDiscussionComments(w http.ResponseWriter, r *http
 	if params.Cursor != nil {
 		cursor = *params.Cursor
 	}
-	page, err := s.service.ListComments(r.Context(), actor(r), repositoryId, id, cursor)
+	page, err := s.service.ListComments(r.Context(), identity.UserID(r.Context()), repositoryId, id, cursor)
 	if writeError(w, err) {
 		return
 	}
@@ -188,10 +176,10 @@ func (s *discussionServer) ListDiscussionComments(w http.ResponseWriter, r *http
 
 func (s *discussionServer) CreateDiscussionComment(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params generated.CreateDiscussionCommentParams) {
 	var input generated.DiscussionCommentCreation
-	if !body(w, r, &input) {
+	if !transport.ReadJSON(w, r, &input, "討論資料無效。") {
 		return
 	}
-	item, err := s.service.CreateComment(r.Context(), actor(r), repositoryId, id, params.IdempotencyKey, input.Body)
+	item, err := s.service.CreateComment(r.Context(), identity.UserID(r.Context()), repositoryId, id, params.IdempotencyKey, input.Body)
 	if !writeError(w, err) {
 		transport.WriteJSON(w, 200, commentView(item))
 	}
@@ -199,10 +187,10 @@ func (s *discussionServer) CreateDiscussionComment(w http.ResponseWriter, r *htt
 
 func (s *discussionServer) UpdateDiscussionComment(w http.ResponseWriter, r *http.Request, repositoryId string, id string, commentId string, _ generated.UpdateDiscussionCommentParams) {
 	var input generated.DiscussionCommentUpdate
-	if !body(w, r, &input) {
+	if !transport.ReadJSON(w, r, &input, "討論資料無效。") {
 		return
 	}
-	item, err := s.service.UpdateComment(r.Context(), actor(r), repositoryId, id, commentId, input.Body, input.ExpectedVersion)
+	item, err := s.service.UpdateComment(r.Context(), identity.UserID(r.Context()), repositoryId, id, commentId, input.Body, input.ExpectedVersion)
 	if !writeError(w, err) {
 		transport.WriteJSON(w, 200, commentView(item))
 	}

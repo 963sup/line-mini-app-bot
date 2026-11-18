@@ -53,7 +53,11 @@ func Run() (resultErr error) {
 	if err != nil {
 		return err
 	}
-	defer func() { resultErr = errors.Join(resultErr, closeSessions()) }()
+	defer func() {
+		if closeErr := closeSessions(); resultErr == nil {
+			resultErr = closeErr
+		}
+	}()
 	auth.Sessions = sessions
 	appURL, err := auth.Register(mux)
 	if err != nil {
@@ -63,7 +67,11 @@ func Run() (resultErr error) {
 	if err != nil {
 		return err
 	}
-	defer func() { resultErr = errors.Join(resultErr, closeAttendance()) }()
+	defer func() {
+		if closeErr := closeAttendance(); resultErr == nil {
+			resultErr = closeErr
+		}
+	}()
 	var groupLookup func(context.Context, string) string
 	lookup := func(ctx context.Context, group string) string {
 		if groupLookup != nil {
@@ -88,17 +96,29 @@ func Run() (resultErr error) {
 	if err != nil {
 		return err
 	}
-	defer func() { resultErr = errors.Join(resultErr, closeSummaries()) }()
+	defer func() {
+		if closeErr := closeSummaries(); resultErr == nil {
+			resultErr = closeErr
+		}
+	}()
 	repositories, closeRepositories, err := newRepositories(context.Background())
 	if err != nil {
 		return err
 	}
-	defer func() { resultErr = errors.Join(resultErr, closeRepositories()) }()
+	defer func() {
+		if closeErr := closeRepositories(); resultErr == nil {
+			resultErr = closeErr
+		}
+	}()
 	groups, closeGroups, err := newGroups(context.Background())
 	if err != nil {
 		return err
 	}
-	defer func() { resultErr = errors.Join(resultErr, closeGroups()) }()
+	defer func() {
+		if closeErr := closeGroups(); resultErr == nil {
+			resultErr = closeErr
+		}
+	}()
 	projects := newProjects(groups, repositories)
 	journalhttp.Register(mux, newJournals(groups, repositories, projects), auth)
 	grouphttp.Register(mux, groups, auth)

@@ -2,9 +2,7 @@ package objecthttp
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"io"
 	"mime"
 	"net/http"
 	"time"
@@ -92,7 +90,7 @@ func view(i object.Object) generated.Object {
 	}
 	return generated.Object{SpaceId: spaceID, CompletedQuantity: completed, Id: i.ID, RepositoryId: i.RepositoryID, Name: i.Name, Description: i.Description, Type: i.Type, Quantity: i.Quantity, Unit: i.Unit, Status: generated.ObjectStatus(i.Status), SourceDocument: i.SourceDocument, SourceRevision: i.SourceRevision, SourceItemNo: i.SourceItemNo, SourcePages: i.SourcePages, MaterialCode: i.MaterialCode, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
 }
-func actor(r *http.Request) string { u, _ := identity.FromContext(r.Context()); return u.ID }
+
 func writeError(w http.ResponseWriter, e error) bool {
 	if e == nil {
 		return false
@@ -112,17 +110,7 @@ func writeError(w http.ResponseWriter, e error) bool {
 	case errors.Is(e, object.ErrCreationConflict):
 		code, httpStatus, message = "idempotency_conflict", 409, "重試識別碼已用於不同內容，請先確認原物件。"
 	}
-	transport.WriteAPIError(w, httpStatus, code, message)
-	return true
-}
-
-func body(w http.ResponseWriter, r *http.Request, target any) bool {
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if d.Decode(target) != nil || d.Decode(new(any)) != io.EOF {
-		transport.WriteAPIError(w, 400, "invalid_input", "物件資料無效。")
-		return false
-	}
+	transport.WriteServiceError(w, httpStatus, code, message, e)
 	return true
 }
 
@@ -131,7 +119,7 @@ func (s *objectServer) ListObjects(w http.ResponseWriter, r *http.Request, rid s
 	if p.Cursor != nil {
 		cursor = *p.Cursor
 	}
-	page, e := s.service.List(r.Context(), actor(r), rid, cursor)
+	page, e := s.service.List(r.Context(), identity.UserID(r.Context()), rid, cursor)
 	if writeError(w, e) {
 		return
 	}
@@ -143,7 +131,7 @@ func (s *objectServer) ListObjects(w http.ResponseWriter, r *http.Request, rid s
 }
 
 func (s *objectServer) GetObject(w http.ResponseWriter, r *http.Request, rid, id string) {
-	i, e := s.service.Get(r.Context(), actor(r), rid, id)
+	i, e := s.service.Get(r.Context(), identity.UserID(r.Context()), rid, id)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -158,11 +146,11 @@ func value(v *string) string {
 
 func (s *objectServer) CreateObject(w http.ResponseWriter, r *http.Request, rid string, p generated.CreateObjectParams) {
 	var in generated.ObjectCreation
-	if !body(w, r, &in) {
+	if !transport.ReadJSON(w, r, &in, "物件資料無效。") {
 		return
 	}
 	c := object.Content{SpaceID: value(in.SpaceId), CompletedQuantity: value(in.CompletedQuantity), Name: in.Name, Description: in.Description, Type: in.Type, Quantity: in.Quantity, Unit: in.Unit, SourceDocument: value(in.SourceDocument), SourceRevision: value(in.SourceRevision), SourceItemNo: value(in.SourceItemNo), SourcePages: value(in.SourcePages), MaterialCode: value(in.MaterialCode)}
-	i, e := s.service.Create(r.Context(), actor(r), rid, p.IdempotencyKey, c)
+	i, e := s.service.Create(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, c)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -170,11 +158,11 @@ func (s *objectServer) CreateObject(w http.ResponseWriter, r *http.Request, rid 
 
 func (s *objectServer) UpdateObject(w http.ResponseWriter, r *http.Request, rid, id string, _ generated.UpdateObjectParams) {
 	var in generated.ObjectUpdate
-	if !body(w, r, &in) {
+	if !transport.ReadJSON(w, r, &in, "物件資料無效。") {
 		return
 	}
 	u := object.Update{SpaceID: in.SpaceId, Content: object.Content{CompletedQuantity: value(in.CompletedQuantity), Name: in.Name, Description: in.Description, Type: in.Type, Quantity: in.Quantity, Unit: in.Unit, SourceDocument: value(in.SourceDocument), SourceRevision: value(in.SourceRevision), SourceItemNo: value(in.SourceItemNo), SourcePages: value(in.SourcePages), MaterialCode: value(in.MaterialCode)}, Status: statusValue(in.Status), CompletedQuantity: in.CompletedQuantity, ExpectedVersion: in.ExpectedVersion, Sources: object.SourceUpdate{SourceDocument: in.SourceDocument, SourceRevision: in.SourceRevision, SourceItemNo: in.SourceItemNo, SourcePages: in.SourcePages, MaterialCode: in.MaterialCode}}
-	i, e := s.service.Update(r.Context(), actor(r), rid, id, u)
+	i, e := s.service.Update(r.Context(), identity.UserID(r.Context()), rid, id, u)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}

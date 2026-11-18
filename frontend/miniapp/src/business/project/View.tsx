@@ -90,7 +90,7 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
     }
     return () => { detailRequest.cancel(); write.cancel(); };
   }, [projectId, open, detailRequest.cancel, write.cancel, block]);
-  function create() {
+  function openCreateForm() {
     if (lock.current || unknown.current || referenceLock.current || !canWrite()) return;
     navigation.current = true;
     onSelect("new"); detailRequest.cancel(); setDetailBusy(false); setSelected(null); setMode("create");
@@ -139,7 +139,7 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
     <PagePanel heading="專案">
       <p className="mb-4 text-sm text-muted-foreground">群組成員可建立專案；只有建立者可以修改及管理收錄來源。</p>
       <div className="mb-4 flex flex-wrap gap-2">
-        <Button disabled={!user || busy || uncertain || referencesBlocked} onClick={create}>新增專案</Button>
+        <Button disabled={!user || busy || uncertain || referencesBlocked} onClick={openCreateForm}>新增專案</Button>
         <Button variant="outline" disabled={!user || listBusy || busy || uncertain || referencesBlocked} onClick={() => load()}>重新載入專案</Button>
       </div>
       <Status role="status">{listStatus}</Status>

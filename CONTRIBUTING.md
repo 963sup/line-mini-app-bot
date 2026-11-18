@@ -5,7 +5,7 @@
 1. 從最新目標分支建立工作分支，讓每次變更聚焦於單一問題。
 2. 更新相關文件；目前依 [已接受的基線](docs/foundation/architecture/decisions/0002-baseline.md) 先穩定基礎，不新增測試方案、案例或工具。
 3. 依下列步驟執行設定、Shell 與格式檢查；Go 修改另跑既有 CI 對應任務。
-4. 現有 Go 應用與 CI 保留；[測試指引](docs/development/testing.md) 作為後續階段參考，實際執行結果應如實回報。
+4. 現有 Go 應用與 CI 保留；[驗收矩陣](docs/agents/acceptance.md#變更驗收矩陣)列出現階段應執行的檢查，實際執行結果應如實回報。
 5. 從 work 提出 PR，驗證後 squash merge 到 main；下一項工作開始前將 main 合回 work。細節見[發布流程](docs/agents/workflow.md#repository-publication)。
 
 請勿提交機密、工具快取或產生的分析輸出。安全漏洞請依 [安全政策](.github/SECURITY.md) 私下回報。

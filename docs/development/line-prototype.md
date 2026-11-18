@@ -47,12 +47,9 @@ openid scope；要顯示名稱時再啟用 profile。設定 MINI App Endpoint UR
 `https://<service-host>/miniapp`，與部署環境的 Developing／Review／Published 對應。
 已設定的 MINI App 永久連結為 `https://miniapp.line.me/<LIFF ID>`。
 
-1. Go 提供 Next.js 靜態輸出的 /miniapp 頁面與 React 程式，載入 LINE 官方 LIFF v2 SDK。
-2. 前端以 /api/v1/miniapp/config 取得公開 LIFF ID，執行 liff.init。
-3. 外部瀏覽器由使用者點擊登入，redirectUri 保留本站目前頁面與查詢參數。
-4. 前端取得 liff.getIDToken()，以 Bearer header 呼叫 POST /api/v1/session，body 為空物件。
-5. Go 向 LINE 驗證 token 與預期 Channel，成功後建立 Firestore Session，回傳安全 Cookie、本人資料、CSRF token 與有效期限。
-6. 後續本人與出勤 API 透過 SessionProvider.request 使用 Cookie／CSRF；需要近期活動且接近到期才續期。
+Go 提供 Next.js 靜態匯出的 `/miniapp` 與 React 程式。前端載入官方 LIFF v2 SDK，由 `/api/v1/miniapp/config` 取得公開 LIFF ID 並執行 `liff.init`。外部瀏覽器由使用者點擊登入，`redirectUri` 保留本站目前頁面與查詢參數。
+
+驗證與資源授權的時序集中於[MINI App 信任流程](../foundation/api/http-contracts.md#mini-app-信任流程)。瀏覽器以 `liff.getIDToken()` 的 Bearer token 與空物件呼叫 `POST /api/v1/session`。Go 驗證成功才建立 Firestore Session，回傳安全 Cookie、本人資料、CSRF token 與有效期。後續本人及出勤 API 經 `SessionProvider.request` 使用 Cookie／CSRF，近期有活動且接近到期才續期。
 
 不接受前端 profile、decoded token 或任意 userId 作身分。Session ID 透過 HttpOnly Cookie
 傳遞，CSRF token 僅保留於記憶體；原始 Session ID、CSRF 與 LINE token 不存入資料庫或日誌。

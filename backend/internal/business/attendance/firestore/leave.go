@@ -9,6 +9,7 @@ import (
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/leave"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -43,13 +44,13 @@ func (s *Attendance) CreateLeaveLaunch(ctx context.Context, group string) (_ str
 		return "", err
 	}
 	token := hex.EncodeToString(raw[:])
-	_, err = s.leaveLaunches().Doc(documentKey(token)).Create(ctx, launch{GroupID: group, ExpiresAt: time.Now().UTC().Add(30 * time.Minute)})
+	_, err = s.leaveLaunches().Doc(firestorekey.Encode(token)).Create(ctx, launch{GroupID: group, ExpiresAt: time.Now().UTC().Add(30 * time.Minute)})
 	return token, err
 }
 
-func (s *Attendance) LeaveGroup(ctx context.Context, token string) (_ string, err error) {
+func (s *Attendance) LeaveGroup(ctx context.Context, launchToken string) (_ string, err error) {
 	defer func() { err = translateError(err, nil) }()
-	snap, err := s.leaveLaunches().Doc(documentKey(token)).Get(ctx)
+	snap, err := s.leaveLaunches().Doc(firestorekey.Encode(launchToken)).Get(ctx)
 	if status.Code(err) == codes.NotFound {
 		return "", attendance.ErrExpiredLaunch
 	}
@@ -66,16 +67,16 @@ func (s *Attendance) LeaveGroup(ctx context.Context, token string) (_ string, er
 	return l.GroupID, nil
 }
 
-func (s *Attendance) SubmitLeave(ctx context.Context, token, user, key string, proposal leave.Leave) (_ leave.Leave, err error) {
+func (s *Attendance) SubmitLeave(ctx context.Context, launchToken, userID, requestKey string, proposal leave.Leave) (_ leave.Leave, err error) {
 	defer func() { err = translateError(err, nil) }()
-	if !leave.ValidLeaveKey(key) || user == "" || proposal.GroupID == "" {
+	if !leave.ValidLeaveKey(requestKey) || userID == "" || proposal.GroupID == "" {
 		return leave.Leave{}, leave.ErrInvalidLeave
 	}
 	proposal, err = leave.NormalizeLeave(proposal)
 	if err != nil {
 		return leave.Leave{}, err
 	}
-	ref := s.user(user).Collection("leaveRequests").Doc(documentKey(key))
+	ref := s.user(userID).Collection("leaveRequests").Doc(firestorekey.Encode(requestKey))
 	var result leave.Leave
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		snap, err := tx.Get(ref)
@@ -84,7 +85,7 @@ func (s *Attendance) SubmitLeave(ctx context.Context, token, user, key string, p
 			if err = snap.DataTo(&old); err != nil {
 				return err
 			}
-			if old.LaunchKey != documentKey(token) || old.GroupID != proposal.GroupID || old.Kind != proposal.Kind || !old.Start.Equal(proposal.Start) || !old.End.Equal(proposal.End) || old.Reason != proposal.Reason {
+			if old.LaunchKey != firestorekey.Encode(launchToken) || old.GroupID != proposal.GroupID || old.Kind != proposal.Kind || !old.Start.Equal(proposal.Start) || !old.End.Equal(proposal.End) || old.Reason != proposal.Reason {
 				return leave.ErrLeaveConflict
 			}
 			result = old.domain(ref.ID)
@@ -93,7 +94,7 @@ func (s *Attendance) SubmitLeave(ctx context.Context, token, user, key string, p
 		if status.Code(err) != codes.NotFound {
 			return err
 		}
-		snap, err = tx.Get(s.leaveLaunches().Doc(documentKey(token)))
+		snap, err = tx.Get(s.leaveLaunches().Doc(firestorekey.Encode(launchToken)))
 		if status.Code(err) == codes.NotFound {
 			return attendance.ErrExpiredLaunch
 		}
@@ -111,7 +112,7 @@ func (s *Attendance) SubmitLeave(ctx context.Context, token, user, key string, p
 		if err != nil {
 			return err
 		}
-		d := leaveDocument{ID: id.String(), GroupID: l.GroupID, LaunchKey: documentKey(token), Kind: proposal.Kind, Start: proposal.Start, End: proposal.End, Reason: proposal.Reason, CreatedAt: time.Now().UTC()}
+		d := leaveDocument{ID: id.String(), GroupID: l.GroupID, LaunchKey: firestorekey.Encode(launchToken), Kind: proposal.Kind, Start: proposal.Start, End: proposal.End, Reason: proposal.Reason, CreatedAt: time.Now().UTC()}
 		result = d.domain(ref.ID)
 		return tx.Create(ref, d)
 	})

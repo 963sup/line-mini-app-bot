@@ -28,6 +28,38 @@ runtime 環境變數與 Secret reference 儲存在 Cloud Run service configurati
 API 契約、產生碼與相容性流程見 [API 工作流程](api/README.md)。
 完整檔案樹見 [目前目錄](docs/foundation/architecture/layout.md)，功能入口見 [文件索引](docs/README.md)。
 
+## 技術棧與 SDK
+
+專案採用 Go、Next.js／React、TypeScript、OpenAPI 與 Google Cloud 的 Monorepo 架構。
+Next.js 正式建置採靜態匯出，由 Go 在 Cloud Run 提供網頁與 HTTP API。
+
+| 分類 | 技術與用途 | 設定與來源 |
+| --- | --- | --- |
+| 後端 | Go、標準函式庫 `net/http` | [後端說明](backend/README.md)、[go.mod](backend/go.mod) |
+| 前端 | Next.js、React、TypeScript | [前端依賴](frontend/miniapp/package.json)、[靜態匯出設定](frontend/miniapp/next.config.ts) |
+| UI | shadcn/ui、Radix UI、Tailwind CSS、Lucide 圖示 | [前端說明](frontend/README.md) |
+| API 契約 | OpenAPI；以 oapi-codegen 與 openapi-typescript 產生 Go／TypeScript 程式碼 | [API 工作流程](api/README.md) |
+| 資料儲存 | Cloud Firestore | [持久化文件](docs/foundation/persistence/README.md) |
+| 工作區與建置 | Node.js、pnpm workspaces、Turborepo；mise 管理工具鏈 | [工作區設定](package.json)、[工具設定](mise.toml) |
+| 部署 | Docker 多階段建置、Cloud Build、Cloud Run、Secret Manager | [Dockerfile](Dockerfile)、[部署說明](docs/foundation/operations/cloud-run.md) |
+| 品質檢查 | GitHub Actions、Go 測試與檢查工具、Node Test Runner／tsx／jsdom | [CI 說明](.github/README.md)、[工具設定](mise.toml)、[前端測試指令](frontend/miniapp/package.json) |
+
+主要 SDK 與套件如下；完整依賴與固定版本以 [backend/go.mod](backend/go.mod)、
+[前端 package.json](frontend/miniapp/package.json) 及 [API client package.json](api/client/package.json) 為準。
+
+| SDK／套件 | 用途 |
+| --- | --- |
+| `github.com/line/line-bot-sdk-go/v8` | LINE Messaging API 與 Webhook 整合 |
+| `cloud.google.com/go/firestore` | Firestore 存取 |
+| `github.com/sashabaranov/go-openai` | OpenAI 整合，使用第三方 Go SDK |
+| `google.golang.org/api`、`golang.org/x/oauth2` | Google API 與身分驗證支援 |
+| `github.com/getkin/kin-openapi`、`github.com/oapi-codegen/nethttp-middleware`、`github.com/oapi-codegen/runtime` | OpenAPI 契約處理、請求驗證與 Go 產生碼支援 |
+| `openapi-fetch` | TypeScript API client |
+| `pdfjs-dist` | 前端 PDF 解析 |
+
+技術基準與契約歸屬見[依賴與契約維護位置](docs/foundation/architecture/dependencies.md)。
+本節描述技術組成，不代表外部服務或正式環境已完成端到端驗收。首版功能範圍仍以[已接受的基線](docs/foundation/architecture/decisions/0002-baseline.md)為準。
+
 ## 開始開發
 
 ```bash
@@ -47,6 +79,8 @@ MCP 握手與聊天主機實際可用性須分別驗收，不因快取存在而�
 
 
 - [文件索引與 Backend／API／Frontend／Scripts／Deploy 閱讀入口](docs/README.md#按模組閱讀)
+- [需求到實作導航](docs/foundation/architecture/layout.md#從需求定位修改範圍)
+- [變更驗收矩陣](docs/agents/acceptance.md#變更驗收矩陣)
 - [架構與流程](docs/foundation/architecture/overview.md)
 - [Go 開發](docs/development/go.md)
 - [貢獻方式](CONTRIBUTING.md)
@@ -103,7 +137,7 @@ MINI App 頁面為 `/miniapp`；Channel 未設定時頁面顯示設定提示。
 | `scripts/` | [腳本工具](scripts/README.md) | [AGENTS.md](scripts/AGENTS.md) |
 | `frontend/` | [MINI App 前端](frontend/README.md) | [AGENTS.md](frontend/AGENTS.md) |
 
-進入 `frontend/miniapp/` 另讀其 [Next.js 指引](frontend/miniapp/AGENTS.md)。分析結果與涵蓋限制見 [交叉比對](docs/reports/2026-11-11-graphify-repomix.md)。
+進入 `frontend/miniapp/` 另讀其 [Next.js 指引](frontend/miniapp/AGENTS.md)。分析結果與涵蓋限制見 [分析範圍與證據限制](docs/tooling/analysis-scope.md)。
 
 ## 業務操作開發原則
 

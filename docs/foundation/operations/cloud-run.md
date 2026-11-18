@@ -4,13 +4,22 @@
 
 Monorepo 候選驗收、裝置清單、無流量發布與具名 revision 回復見 [整合與發布驗收](release-acceptance.md)。
 
-目前有兩條不同的部署路徑，不能混為一談：
+## 建置入口
 
-1. 現行 GitHub managed trigger 監聽 `main`，使用 Google 管理的 inline build 與根目錄
-   `Dockerfile` 建置映像，再以 image-only update 更新 Cloud Run。它不讀取 repository
-   `deploy/cloudbuild.yaml`，也不會把該檔的 substitutions、環境變數或服務帳戶套入服務。
-2. `deploy/cloudbuild.yaml` 是手動 `gcloud builds submit --config=deploy/cloudbuild.yaml`
-   或未來自訂 Trigger 的完整 build → push → deploy 配置。
+```mermaid
+block-beta
+  columns 3
+  M["main push：GitHub managed trigger"] H["手動 gcloud builds submit"] C["未來自訂 Trigger"]
+  I["inline build 與根 Dockerfile"] Y["deploy/cloudbuild.yaml"]:2
+  G["image-only update"] D["build → push → deploy"]:2
+  M --> I
+  H --> Y
+  C --> Y
+  I --> G
+  Y --> D
+```
+
+手動入口使用 `gcloud builds submit --config=deploy/cloudbuild.yaml`。Managed trigger 的 substitutions、環境變數與服務帳戶由實際 inline build 和服務設定管理。
 
 現行 managed trigger 的 runtime 環境變數與 Secret reference 以 Cloud Run service
 configuration 為準；image-only update 會沿用當時的 service template。Git push 不會把
@@ -218,12 +227,16 @@ Trigger 啟動時會忽略 YAML 的 serviceAccount 欄位，只採用 Trigger �
 
 ## 部署後確認與回滾
 
-1. 在 Cloud Run Console 記錄 Ready revision、service URL、映像 digest、執行服務帳戶與 secret 版本。
-2. 開啟 `<service-url>/location` 與 `/miniapp`，確認頁面和功能設定狀態。
-3. 在 LINE Developers 將 Webhook 設為 `<service-url>/webhooks/line/<Messaging API Channel ID>`，
-   驗證後確認一對一／群組公開指令；MINI App Endpoint 設為 `<service-url>/miniapp`。
-4. 公開 HTTP 不代表免除應用驗證；Webhook 仍驗簽，/api/v1/me 仍須已驗證身分；瀏覽器使用 Cookie Session，既有無 Cookie Bearer 路徑仍驗 LINE ID token。
-5. 出勤與 Firestore 持久化已有程式實作；需實測 LINE 事件、資料庫讀寫與本人紀錄，不能把 revision Ready 當作完成出勤驗收。
+```mermaid
+flowchart TB
+  R["記錄 Ready revision、服務 URL、映像 digest、服務帳戶與 Secret 版本"]
+  R --> P["開啟 /location 與 /miniapp，核對頁面和設定"]
+  P --> L["設定 LINE Webhook 為 /webhooks/line/加上 Messaging API Channel ID，MINI App Endpoint 為 /miniapp"]
+  L --> V["驗證 Webhook，測試一對一及群組公開指令"]
+  V --> A["實測 LINE 事件、Firestore 讀寫和本人出勤紀錄"]
+```
+
+公開 HTTP 的 Webhook 仍驗簽，`/api/v1/me` 須驗證身分。瀏覽器使用 Cookie Session，既有無 Cookie Bearer 路徑仍驗 LINE ID token。出勤與 Firestore 持久化已有程式實作，依圖中的功能結果完成驗收。
 
 回滾時在 Cloud Run Console 的 Revisions 選取前一個已驗收 revision，將流量切回 100%，
 再確認 LINE 收訊與頁面。不要刪除其映像或 secret versions，直到回滾保留期結束。

@@ -18,17 +18,17 @@ Call resolve-library-id first, then query-docs with its exact library ID and a f
 
 ## Anonymous fallback
 
-Use the host Context7 plugin when available. If it reports an exhausted quota,
-switch to the project `context7` MCP server and retry the lookup once. This
-server is configured without an API key or credential header. Use the
-anonymous server directly if the plugin is unavailable. Resolve the library ID
-on the selected server before querying its documentation.
+```mermaid
+flowchart TB
+  P{"Host plugin available?"} -->|Yes| Q["Use plugin"]
+  Q -->|Quota exhausted| H{"Project server exposed by host?"}
+  P -->|No| H
+  H -->|Yes| A["Use anonymous server, retry once after plugin quota failure"]
+  H -->|No| M["Report missing project connection and required host configuration"]
+  A -->|Rate limited| S["Stop and report blocker"]
+```
 
-The plugin and project server are separate connections. This retry is an agent
-instruction and requires the host to expose the project server. If the server
-is missing from the current session, report that limitation and identify the
-need for a session that loads the project configuration. If the anonymous
-server also rate limits the lookup, stop retrying and report the blocker.
+The two connections are separate. The project server uses no API key or credential header. Resolve the library ID on the selected connection before querying documentation.
 
 ## Verification and failures
 

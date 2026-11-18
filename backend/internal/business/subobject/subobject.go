@@ -124,50 +124,50 @@ type (
 	}
 )
 
-func (s *Service) scope(ctx context.Context, actor, rid, pid string) (repository.Repository, error) {
+func (s *Service) scope(ctx context.Context, actor, repositoryID, parentObjectID string) (repository.Repository, error) {
 	if s == nil || s.Store == nil || s.Repositories == nil {
 		return repository.Repository{}, ErrUnavailable
 	}
-	if actor == "" || !repository.ValidID(rid) || !repository.ValidID(pid) {
+	if actor == "" || !repository.ValidID(repositoryID) || !repository.ValidID(parentObjectID) {
 		return repository.Repository{}, ErrNotFound
 	}
-	r, e := s.Repositories.Get(ctx, actor, rid)
+	r, e := s.Repositories.Get(ctx, actor, repositoryID)
 	if errors.Is(e, repository.ErrNotFound) {
 		return repository.Repository{}, ErrNotFound
 	}
 	if e != nil {
-		return repository.Repository{}, ErrUnavailable
+		return repository.Repository{}, e
 	}
-	if r.ID != rid || r.Status != "ACTIVE" || !repository.ValidOwner(r.OwnerID) {
+	if r.ID != repositoryID || r.Status != "ACTIVE" || !repository.ValidOwner(r.OwnerID) {
 		return repository.Repository{}, ErrNotFound
 	}
 	return r, nil
 }
 
-func (s *Service) List(ctx context.Context, actor, rid, pid, cursor string) (Page, error) {
-	r, e := s.scope(ctx, actor, rid, pid)
+func (s *Service) List(ctx context.Context, actor, repositoryID, parentObjectID, cursor string) (Page, error) {
+	r, e := s.scope(ctx, actor, repositoryID, parentObjectID)
 	if e != nil {
 		return Page{}, e
 	}
 	if len(cursor) > 1024 {
 		return Page{}, ErrInput
 	}
-	return s.Store.List(ctx, r, actor, pid, cursor)
+	return s.Store.List(ctx, r, actor, parentObjectID, cursor)
 }
 
-func (s *Service) Get(ctx context.Context, actor, rid, pid, id string) (Subobject, error) {
-	r, e := s.scope(ctx, actor, rid, pid)
+func (s *Service) Get(ctx context.Context, actor, repositoryID, parentObjectID, subobjectID string) (Subobject, error) {
+	r, e := s.scope(ctx, actor, repositoryID, parentObjectID)
 	if e != nil {
 		return Subobject{}, e
 	}
-	if !repository.ValidID(id) {
+	if !repository.ValidID(subobjectID) {
 		return Subobject{}, ErrNotFound
 	}
-	return s.Store.Get(ctx, r, actor, pid, id)
+	return s.Store.Get(ctx, r, actor, parentObjectID, subobjectID)
 }
 
-func (s *Service) Create(ctx context.Context, actor, rid, pid, key string, input Content) (Subobject, error) {
-	r, e := s.scope(ctx, actor, rid, pid)
+func (s *Service) Create(ctx context.Context, actor, repositoryID, parentObjectID, key string, input Content) (Subobject, error) {
+	r, e := s.scope(ctx, actor, repositoryID, parentObjectID)
 	if e != nil {
 		return Subobject{}, e
 	}
@@ -181,16 +181,16 @@ func (s *Service) Create(ctx context.Context, actor, rid, pid, key string, input
 	if e != nil {
 		return Subobject{}, e
 	}
-	return s.Store.Create(ctx, r, actor, pid, key, c)
+	return s.Store.Create(ctx, r, actor, parentObjectID, key, c)
 }
 
-func (s *Service) Update(ctx context.Context, actor, rid, pid, id string, input Update) (Subobject, error) {
-	r, e := s.scope(ctx, actor, rid, pid)
+func (s *Service) Update(ctx context.Context, actor, repositoryID, parentObjectID, subobjectID string, input Update) (Subobject, error) {
+	r, e := s.scope(ctx, actor, repositoryID, parentObjectID)
 	if e != nil {
 		return Subobject{}, e
 	}
-	if !repository.ValidID(id) {
+	if !repository.ValidID(subobjectID) {
 		return Subobject{}, ErrNotFound
 	}
-	return s.Store.Update(ctx, r, actor, pid, id, input)
+	return s.Store.Update(ctx, r, actor, parentObjectID, subobjectID, input)
 }

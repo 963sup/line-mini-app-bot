@@ -9,6 +9,7 @@ import (
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/summary/messagecollection"
 	"github.com/963sup/line-mini-app-bot/internal/business/summary/summarization"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -29,7 +30,7 @@ func (s *Summary) editOperation(ctx context.Context, g, id, text string, timesta
 		return nil
 	}
 	root := s.group(g)
-	ref := root.Collection("summaryMessages").Doc(documentKey(id))
+	ref := root.Collection("summaryMessages").Doc(firestorekey.Encode(id))
 	return s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		st, err := state(tx, root)
 		if err != nil {
@@ -59,7 +60,7 @@ func (s *Summary) editOperation(ctx context.Context, g, id, text string, timesta
 }
 
 func (s *Summary) group(g string) *db.DocumentRef {
-	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("summaryGroups").Doc(documentKey(g))
+	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("summaryGroups").Doc(firestorekey.Encode(g))
 }
 
 func state(tx *db.Transaction, r *db.DocumentRef) (chatState, error) {
@@ -80,7 +81,7 @@ func (s *Summary) collectOperation(ctx context.Context, g string, m messagecolle
 		return nil
 	}
 	root := s.group(g)
-	ref := root.Collection("summaryMessages").Doc(documentKey(m.ID))
+	ref := root.Collection("summaryMessages").Doc(firestorekey.Encode(m.ID))
 	return s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		st, e := state(tx, root)
 		if e != nil {
@@ -118,7 +119,7 @@ func (s *Summary) unsendOperation(ctx context.Context, g, id string) error {
 			return e
 		}
 		// A tombstone prevents a delayed original message from restoring content.
-		return tx.Set(root.Collection("summaryMessages").Doc(documentKey(id)), messageDocument{ID: id, Deleted: true, Epoch: st.Epoch, ExpireAt: time.Now().Add(48 * time.Hour)})
+		return tx.Set(root.Collection("summaryMessages").Doc(firestorekey.Encode(id)), messageDocument{ID: id, Deleted: true, Epoch: st.Epoch, ExpireAt: time.Now().Add(48 * time.Hour)})
 	})
 	if err != nil {
 		return err
@@ -150,7 +151,7 @@ func (s *Summary) unsendOperation(ctx context.Context, g, id string) error {
 
 func (s *Summary) commandOperation(ctx context.Context, g, event, command string, timestamp int64) (summarization.Job, error) {
 	root := s.group(g)
-	id := documentKey(event)
+	id := firestorekey.Encode(event)
 	ref := root.Collection("summaryJobs").Doc(id)
 	var job summarization.Job
 	now := time.Now().UTC()

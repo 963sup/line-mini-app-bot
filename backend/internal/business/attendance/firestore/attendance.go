@@ -11,6 +11,7 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/punch"
 	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/records"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/worktime"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -21,7 +22,7 @@ type Attendance struct {
 }
 
 func (s *Attendance) user(user string) *db.DocumentRef {
-	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("users").Doc(documentKey(user))
+	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("users").Doc(firestorekey.Encode(user))
 }
 
 type punchMode uint8
@@ -44,8 +45,8 @@ type punchCommand struct {
 // Mode is explicit: a missing position must never implicitly select preflight.
 func (s *Attendance) executePunch(ctx context.Context, command punchCommand) (punch.Result, error) {
 	u := s.user(command.UserID)
-	state := u.Collection("attendanceStates").Doc(documentKey(command.GroupID))
-	receipt := u.Collection("attendanceEvents").Doc(documentKey(command.GroupID, command.EventID, command.Action))
+	state := u.Collection("attendanceStates").Doc(firestorekey.Encode(command.GroupID))
+	receipt := u.Collection("attendanceEvents").Doc(firestorekey.Encode(command.GroupID, command.EventID, command.Action))
 	var result punch.Result
 	err := s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		result = punch.Result{}
@@ -58,7 +59,7 @@ func (s *Attendance) executePunch(ctx context.Context, command punchCommand) (pu
 			if err := snap.DataTo(&request); err != nil {
 				return err
 			}
-			if request.UserID != documentKey(command.UserID) || request.GroupID != command.GroupID || request.EventID != command.EventID || request.Action != command.Action {
+			if request.UserID != firestorekey.Encode(command.UserID) || request.GroupID != command.GroupID || request.EventID != command.EventID || request.Action != command.Action {
 				return attendance.ErrInvalidRequest
 			}
 		}
@@ -86,7 +87,7 @@ func (s *Attendance) executePunch(ctx context.Context, command punchCommand) (pu
 		}
 		if command.EventTimeMillis < active.LastEventTime {
 			result.Code = "stale_event"
-			if err := tx.Create(u.Collection("attendanceRawEvents").Doc(documentKey(command.GroupID, command.EventID, command.Action)), map[string]any{"eventID": command.EventID, "action": command.Action, "occurredAt": command.ReceivedAt, "eventTime": command.EventTimeMillis, "groupID": command.GroupID, "source": "server", "resultCode": result.Code}); err != nil {
+			if err := tx.Create(u.Collection("attendanceRawEvents").Doc(firestorekey.Encode(command.GroupID, command.EventID, command.Action)), map[string]any{"eventID": command.EventID, "action": command.Action, "occurredAt": command.ReceivedAt, "eventTime": command.EventTimeMillis, "groupID": command.GroupID, "source": "server", "resultCode": result.Code}); err != nil {
 				return err
 			}
 			return tx.Create(receipt, resultDocumentFrom(result))
@@ -134,7 +135,7 @@ func (s *Attendance) executePunch(ctx context.Context, command punchCommand) (pu
 		}
 		if outcome.Accepted {
 			if command.Action == "clock-in" {
-				record = recordmodel.Record{SchemaVersion: 3, GroupID: command.GroupID, RecordID: documentKey(command.GroupID, command.EventID), ClockInPosition: command.Position}
+				record = recordmodel.Record{SchemaVersion: 3, GroupID: command.GroupID, RecordID: firestorekey.Encode(command.GroupID, command.EventID), ClockInPosition: command.Position}
 				ref = u.Collection("attendance").Doc(record.RecordID)
 			}
 			record.ClockInAt = outcome.Session.Start
@@ -158,7 +159,7 @@ func (s *Attendance) executePunch(ctx context.Context, command punchCommand) (pu
 					return err
 				}
 			}
-			if err := tx.Set(u.Collection("attendanceGroups").Doc(documentKey(command.GroupID)), map[string]any{"groupID": command.GroupID}); err != nil {
+			if err := tx.Set(u.Collection("attendanceGroups").Doc(firestorekey.Encode(command.GroupID)), map[string]any{"groupID": command.GroupID}); err != nil {
 				return err
 			}
 			active.RecordID = ""
@@ -180,7 +181,7 @@ func (s *Attendance) executePunch(ctx context.Context, command punchCommand) (pu
 		if result.Record.RecordID != "" {
 			raw["recordID"] = result.Record.RecordID
 		}
-		if err := tx.Create(u.Collection("attendanceRawEvents").Doc(documentKey(command.GroupID, command.EventID, command.Action)), raw); err != nil {
+		if err := tx.Create(u.Collection("attendanceRawEvents").Doc(firestorekey.Encode(command.GroupID, command.EventID, command.Action)), raw); err != nil {
 			return err
 		}
 		return tx.Create(receipt, resultDocumentFrom(result))
@@ -204,7 +205,7 @@ func (s *Attendance) executePunchRequest(ctx context.Context, command punchComma
 	if err := snapshot.DataTo(&request); err != nil {
 		return punch.Result{}, err
 	}
-	if request.UserID != documentKey(command.UserID) {
+	if request.UserID != firestorekey.Encode(command.UserID) {
 		return punch.Result{}, attendance.ErrInvalidRequest
 	}
 	command.GroupID, command.EventID, command.Action = request.GroupID, request.EventID, request.Action

@@ -2,9 +2,7 @@ package objectimporthttp
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"io"
 	"mime"
 	"net/http"
 	"time"
@@ -115,7 +113,7 @@ func view(j objectimport.Job) generated.ObjectImport {
 	}
 	return generated.ObjectImport{Id: j.ID, RepositoryId: j.RepositoryID, CreatorId: j.CreatorID, Status: generated.ObjectImportStatus(j.Status), Version: j.Version, ConfirmedFromReviewVersion: j.ConfirmedFromReviewVersion, SourceDocument: j.SourceDocument, SourceRevision: j.SourceRevision, SourceHash: j.SourceHash, Rows: rows, CreatedAt: j.CreatedAt, UpdatedAt: j.UpdatedAt, ReviewedAt: j.ReviewedAt}
 }
-func actor(r *http.Request) string { u, _ := identity.FromContext(r.Context()); return u.ID }
+
 func writeError(w http.ResponseWriter, e error) bool {
 	if e == nil {
 		return false
@@ -133,23 +131,13 @@ func writeError(w http.ResponseWriter, e error) bool {
 	case errors.Is(e, objectimport.ErrCreationConflict):
 		code, httpStatus, message = "idempotency_conflict", 409, "識別碼已用於不同草稿，請先確認原結果。"
 	}
-	transport.WriteAPIError(w, httpStatus, code, message)
-	return true
-}
-
-func body(w http.ResponseWriter, r *http.Request, target any) bool {
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if d.Decode(target) != nil || d.Decode(new(any)) != io.EOF {
-		transport.WriteAPIError(w, 400, "invalid_input", "草稿 JSON 無效。")
-		return false
-	}
+	transport.WriteServiceError(w, httpStatus, code, message, e)
 	return true
 }
 
 func (s *importServer) CreateObjectImport(w http.ResponseWriter, r *http.Request, rid string, p generated.CreateObjectImportParams) {
 	var in generated.ObjectImportCreation
-	if !body(w, r, &in) {
+	if !transport.ReadJSON(w, r, &in, "草稿 JSON 無效。") {
 		return
 	}
 	c := objectimport.Creation{SourceDocument: in.SourceDocument, SourceRevision: in.SourceRevision, Pages: []objectimport.Page{}, Rows: []objectimport.Candidate{}}
@@ -163,14 +151,14 @@ func (s *importServer) CreateObjectImport(w http.ResponseWriter, r *http.Request
 		}
 		c.Rows = append(c.Rows, candidate)
 	}
-	j, e := s.service.Create(r.Context(), actor(r), rid, p.IdempotencyKey, c)
+	j, e := s.service.Create(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, c)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(j))
 	}
 }
 
 func (s *importServer) GetObjectImport(w http.ResponseWriter, r *http.Request, rid, id string) {
-	j, e := s.service.Get(r.Context(), actor(r), rid, id)
+	j, e := s.service.Get(r.Context(), identity.UserID(r.Context()), rid, id)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(j))
 	}
@@ -178,14 +166,14 @@ func (s *importServer) GetObjectImport(w http.ResponseWriter, r *http.Request, r
 
 func (s *importServer) ReviewObjectImport(w http.ResponseWriter, r *http.Request, rid, id string, _ generated.ReviewObjectImportParams) {
 	var in generated.ObjectImportReview
-	if !body(w, r, &in) {
+	if !transport.ReadJSON(w, r, &in, "草稿 JSON 無效。") {
 		return
 	}
 	input := objectimport.Review{ExpectedVersion: in.ExpectedVersion, Rows: []objectimport.ReviewedRow{}}
 	for _, row := range in.Rows {
 		input.Rows = append(input.Rows, objectimport.ReviewedRow{ID: row.Id, Fields: objectimport.Fields{Name: row.Name, Description: row.Description, Type: row.Type, Quantity: row.Quantity, Unit: row.Unit, MaterialCode: row.MaterialCode}})
 	}
-	j, e := s.service.Review(r.Context(), actor(r), rid, id, input)
+	j, e := s.service.Review(r.Context(), identity.UserID(r.Context()), rid, id, input)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(j))
 	}
@@ -193,10 +181,10 @@ func (s *importServer) ReviewObjectImport(w http.ResponseWriter, r *http.Request
 
 func (s *importServer) ConfirmObjectImport(w http.ResponseWriter, r *http.Request, rid, id string, _ generated.ConfirmObjectImportParams) {
 	var in generated.ObjectImportConfirmation
-	if !body(w, r, &in) {
+	if !transport.ReadJSON(w, r, &in, "草稿 JSON 無效。") {
 		return
 	}
-	j, e := s.service.Confirm(r.Context(), actor(r), rid, id, in.ExpectedVersion)
+	j, e := s.service.Confirm(r.Context(), identity.UserID(r.Context()), rid, id, in.ExpectedVersion)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(j))
 	}
@@ -204,14 +192,14 @@ func (s *importServer) ConfirmObjectImport(w http.ResponseWriter, r *http.Reques
 
 func (s *importServer) ParseObjectImport(w http.ResponseWriter, r *http.Request, rid string, _ generated.ParseObjectImportParams) {
 	var in generated.ObjectImportParsing
-	if !body(w, r, &in) {
+	if !transport.ReadJSON(w, r, &in, "草稿 JSON 無效。") {
 		return
 	}
 	source := objectimport.Source{SourceDocument: in.SourceDocument, SourceRevision: in.SourceRevision}
 	for _, page := range in.Pages {
 		source.Pages = append(source.Pages, objectimport.Page{Number: page.Number, Text: page.Text})
 	}
-	result, e := s.parser.Parse(r.Context(), actor(r), rid, parsing.Input{Source: source, Consent: bool(in.Consent)})
+	result, e := s.parser.Parse(r.Context(), identity.UserID(r.Context()), rid, parsing.Input{Source: source, Consent: bool(in.Consent)})
 	if e != nil {
 		switch {
 		case errors.Is(e, parsing.ErrNotConfigured):

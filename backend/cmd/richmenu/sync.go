@@ -39,7 +39,7 @@ func syncMenus(args []string) error {
 	for _, alias := range names {
 		data, _, err := readMenuImage(filepath.Join(*dir, alias+".jpg"))
 		if err != nil {
-			return fmt.Errorf("%s: %w", alias, err)
+			return err
 		}
 		config, err := json.Marshal(menus[alias])
 		if err != nil {
@@ -62,19 +62,19 @@ func syncMenus(args []string) error {
 	httpClient := &http.Client{Timeout: 20 * time.Second}
 	api, err := messaging_api.NewMessagingApiAPI(token, messaging_api.WithHTTPClient(httpClient))
 	if err != nil {
-		return errors.New("cannot initialize LINE client")
+		return err
 	}
 	blob, err := messaging_api.NewMessagingApiBlobAPI(token, messaging_api.WithBlobHTTPClient(httpClient))
 	if err != nil {
-		return errors.New("cannot initialize image client")
+		return err
 	}
 	list, err := api.GetRichMenuList()
 	if err != nil {
-		return errors.New("cannot list LINE menus")
+		return err
 	}
 	aliases, err := api.GetRichMenuAliasList()
 	if err != nil {
-		return errors.New("cannot list LINE aliases")
+		return err
 	}
 	ids := map[string]string{}
 	for _, alias := range names {
@@ -92,7 +92,7 @@ func syncMenus(args []string) error {
 		}
 		created, err := api.CreateRichMenu(menus[alias])
 		if err != nil {
-			return errors.New("menu creation failed; live aliases unchanged")
+			return err
 		}
 		ids[alias] = created.RichMenuId
 		if _, err := blob.SetRichMenuImage(created.RichMenuId, "image/jpeg", bytes.NewReader(images[alias])); err != nil {
@@ -148,11 +148,11 @@ var managedMenuName = regexp.MustCompile(`^managed-(attendance-in|attendance-out
 func cleanupMenus(api *messaging_api.MessagingApiAPI, current map[string]string) error {
 	list, err := api.GetRichMenuList()
 	if err != nil {
-		return errors.New("publication verified; cannot list cleanup candidates; rerun sync")
+		return err
 	}
 	aliases, err := api.GetRichMenuAliasList()
 	if err != nil {
-		return errors.New("publication verified; cannot check cleanup alias references")
+		return err
 	}
 	for _, menu := range list.Richmenus {
 		if !managedMenuName.MatchString(menu.Name) || menu.RichMenuId == current["attendance-in"] || menu.RichMenuId == current["attendance-out"] {
@@ -170,7 +170,7 @@ func cleanupMenus(api *messaging_api.MessagingApiAPI, current map[string]string)
 		// Rich-menu switching can leave per-user links; migrate all of them first.
 		response, _, err := api.RichMenuBatchWithHttpInfo(&messaging_api.RichMenuBatchRequest{Operations: []messaging_api.RichMenuBatchOperationInterface{&messaging_api.RichMenuBatchLinkOperation{From: menu.RichMenuId, To: target}}})
 		if err != nil {
-			return errors.New("publication verified; user menu migration failed; old menu retained")
+			return err
 		}
 		requestID := response.Header.Get("x-line-request-id")
 		if requestID == "" {
@@ -180,7 +180,7 @@ func cleanupMenus(api *messaging_api.MessagingApiAPI, current map[string]string)
 		for {
 			progress, err := api.GetRichMenuBatchProgress(requestID)
 			if err != nil {
-				return errors.New("cannot verify user migration; old menu retained; rerun sync")
+				return err
 			}
 			if progress.Phase == "succeeded" {
 				break

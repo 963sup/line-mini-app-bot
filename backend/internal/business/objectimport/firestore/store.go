@@ -9,6 +9,7 @@ import (
 	db "cloud.google.com/go/firestore"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/objectimport"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -35,7 +36,7 @@ func encode(j feature.Job) (document, error) {
 	if e := feature.ValidateStored(j); e != nil {
 		return document{}, e
 	}
-	b, e := json.Marshal(toStored(j))
+	b, e := json.Marshal(toStoredJob(j))
 	if e != nil || len(b) > feature.MaxDraftBytes {
 		return document{}, feature.ErrInput
 	}
@@ -57,7 +58,7 @@ func decode(snap *db.DocumentSnapshot, e error, rid, actor string) (feature.Job,
 	if d.SchemaVersion != 1 || len(d.Payload) > feature.MaxDraftBytes || json.Unmarshal([]byte(d.Payload), &stored) != nil {
 		return feature.Job{}, feature.ErrUnavailable
 	}
-	j := fromStored(stored)
+	j := fromStoredJob(stored)
 	if j.ID != snap.Ref.ID || j.RepositoryID != rid || feature.ValidateStored(j) != nil {
 		return feature.Job{}, feature.ErrUnavailable
 	}
@@ -67,11 +68,11 @@ func decode(snap *db.DocumentSnapshot, e error, rid, actor string) (feature.Job,
 	return j, nil
 }
 func (s *Store) ready() bool { return s != nil && s.Client != nil && s.ChannelID != "" }
-func (s *Store) parent(rid string) *db.DocumentRef {
+func (s *Store) repositoryRef(rid string) *db.DocumentRef {
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("repositories").Doc(rid)
 }
 
-func container(tx *db.Transaction, parent *db.DocumentRef, r repository.Repository) error {
+func checkActiveRepository(tx *db.Transaction, parent *db.DocumentRef, r repository.Repository) error {
 	snap, e := tx.Get(parent)
 	if status.Code(e) == codes.NotFound {
 		return feature.ErrNotFound
@@ -93,10 +94,6 @@ func container(tx *db.Transaction, parent *db.DocumentRef, r repository.Reposito
 	return nil
 }
 
-type failure struct{ cause error }
-
-func (e *failure) Error() string { return "object import storage unavailable" }
-func (e *failure) Unwrap() error { return feature.ErrUnavailable }
 func translate(e error) error {
 	if e == nil {
 		return nil
@@ -106,13 +103,7 @@ func translate(e error) error {
 			return e
 		}
 	}
-	switch status.Code(e) {
-	case codes.Canceled:
-		return context.Canceled
-	case codes.DeadlineExceeded:
-		return context.DeadlineExceeded
-	}
-	return &failure{e}
+	return grpcstatus.NormalizeContextError(e)
 }
 
 func (s *Store) Create(ctx context.Context, r repository.Repository, actor, key, payload string, j feature.Job) (result feature.Job, err error) {
@@ -127,11 +118,11 @@ func (s *Store) Create(ctx context.Context, r repository.Repository, actor, key,
 	if e != nil {
 		return result, e
 	}
-	parent := s.parent(r.ID)
+	parent := s.repositoryRef(r.ID)
 	rec := parent.Collection("objectImportCreationReceipts").Doc(feature.Hash([]string{"object-import-create-v1", actor, key}))
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = feature.Job{}
-		if e := container(tx, parent, r); e != nil {
+		if e := checkActiveRepository(tx, parent, r); e != nil {
 			return e
 		}
 		snap, e := tx.Get(rec)
@@ -177,11 +168,11 @@ func (s *Store) mutate(ctx context.Context, r repository.Repository, actor, id s
 	if !s.ready() {
 		return result, feature.ErrUnavailable
 	}
-	parent := s.parent(r.ID)
+	parent := s.repositoryRef(r.ID)
 	ref := parent.Collection("objectImports").Doc(id)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = feature.Job{}
-		if e := container(tx, parent, r); e != nil {
+		if e := checkActiveRepository(tx, parent, r); e != nil {
 			return e
 		}
 		snap, e := tx.Get(ref)

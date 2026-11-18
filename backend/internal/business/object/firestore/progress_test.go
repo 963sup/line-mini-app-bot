@@ -56,7 +56,7 @@ func TestEmulatorExactProgressAndLegacyDocuments(t *testing.T) {
 	if _, e = service.Update(ctx, "actor-a", r.ID, j.ID, u); !errors.Is(e, object.ErrProgressRemoval) {
 		t.Fatal(e)
 	}
-	snap, e := store.parent(r.ID).Collection("objects").Doc(j.ID).Get(ctx)
+	snap, e := store.repositoryRef(r.ID).Collection("objects").Doc(j.ID).Get(ctx)
 	if e != nil || snap.Data()["completedQuantity"] != done {
 		t.Fatal("stored exact value", e)
 	}
@@ -80,7 +80,7 @@ func TestEmulatorExactProgressAndLegacyDocuments(t *testing.T) {
 	if e != nil || read.Status != object.StatusCompleted || read.CompletedQuantity != "" {
 		t.Fatal("legacy patch", read, e)
 	}
-	snapshot, e := store.parent(r.ID).Collection("objects").Doc(old.ID).Get(ctx)
+	snapshot, e := store.repositoryRef(r.ID).Collection("objects").Doc(old.ID).Get(ctx)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -98,7 +98,7 @@ func TestEmulatorExactProgressAndLegacyDocuments(t *testing.T) {
 	if _, e = service.Get(ctx, "actor-a", strings.Repeat("c", 32), j.ID); !errors.Is(e, object.ErrNotFound) {
 		t.Fatal(e)
 	}
-	if _, e = store.parent(r.ID).Update(ctx, []db.Update{{Path: "status", Value: "ARCHIVED"}}); e != nil {
+	if _, e = store.repositoryRef(r.ID).Update(ctx, []db.Update{{Path: "status", Value: "ARCHIVED"}}); e != nil {
 		t.Fatal(e)
 	}
 	if _, e = service.Update(ctx, "actor-a", r.ID, j.ID, u); !errors.Is(e, object.ErrNotFound) {

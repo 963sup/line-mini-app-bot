@@ -4,8 +4,8 @@ Cloud Run 部署、發布驗收與故障排查。
 
 ## 文件索引
 
-- [Cloud Run 部署](cloud-run.md)
-- [Monorepo 整合、發布與回復](release-acceptance.md)
+- [Cloud Run 部署](cloud-run.md) · [建置入口圖](cloud-run.md#建置入口)
+- [Monorepo 整合、發布與回復](release-acceptance.md) · [切流與回復圖](release-acceptance.md#切換觀察回復)
 - [Troubleshooting](troubleshooting.md)
 
 ## 歸屬與維護

@@ -13,28 +13,19 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/repository/statistics"
 )
 
-type statisticsFailure struct{ cause error }
-
-func (e *statisticsFailure) Error() string { return "statistics storage unavailable" }
-func (e *statisticsFailure) Unwrap() error { return statistics.ErrUnavailable }
 func (s *Store) Statistics(ctx context.Context, r repository.Repository) (result statistics.Statistics, err error) {
-	defer func() {
-		if err != nil && !errors.Is(err, statistics.ErrNotFound) && !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
-			err = &statisticsFailure{err}
-		}
-	}()
-	if !s.planningReady() {
+	if !s.ready() {
 		return result, statistics.ErrUnavailable
 	}
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = statistics.Statistics{}
-		if e := s.planningContainer(tx, r); e != nil {
+		if e := s.checkActiveRepository(tx, r); e != nil {
 			if errors.Is(e, milestones.ErrNotFound) {
 				return statistics.ErrNotFound
 			}
 			return e
 		}
-		parent := s.planningParent(r.ID)
+		parent := s.repositoryRef(r.ID)
 		personal := identity.IsUserOwnerID(r.OwnerID)
 		collection := "groups"
 		if personal {

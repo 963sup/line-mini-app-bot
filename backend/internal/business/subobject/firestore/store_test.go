@@ -52,7 +52,7 @@ func setup(t *testing.T) (context.Context, *Store, *feature.Service, repository.
 	t.Cleanup(func() { _ = client.Close() })
 	store := &Store{Client: client, ChannelID: "subobject-tests"}
 	r := repository.Repository{ID: strings.Repeat("a", 32), OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
-	if _, e = store.repository(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": r.Status}); e != nil {
+	if _, e = store.repositoryRef(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": r.Status}); e != nil {
 		t.Fatal(e)
 	}
 	objects := &object.Service{Repositories: repos{r}, Store: &objectdb.Store{Client: client, ChannelID: store.ChannelID}}
@@ -65,7 +65,7 @@ func setup(t *testing.T) (context.Context, *Store, *feature.Service, repository.
 
 func TestEmulatorSubobjectAuthorityReceiptsAndParentIsolation(t *testing.T) {
 	ctx, store, s, r, parent := setup(t)
-	parentRef := store.parent(r.ID, parent.ID)
+	parentRef := store.parentObjectRef(r.ID, parent.ID)
 	before, e := parentRef.Get(ctx)
 	if e != nil {
 		t.Fatal(e)
@@ -146,7 +146,7 @@ func TestEmulatorSubobjectAuthorityReceiptsAndParentIsolation(t *testing.T) {
 	if e != nil || !reflect.DeepEqual(before.Data(), after.Data()) || !before.UpdateTime.Equal(after.UpdateTime) {
 		t.Fatal("parent changed", e)
 	}
-	if _, e = store.repository(r.ID).Update(ctx, []db.Update{{Path: "status", Value: "ARCHIVED"}}); e != nil {
+	if _, e = store.repositoryRef(r.ID).Update(ctx, []db.Update{{Path: "status", Value: "ARCHIVED"}}); e != nil {
 		t.Fatal(e)
 	}
 	if _, e = s.Update(ctx, "owner", r.ID, parent.ID, child.ID, u); !errors.Is(e, feature.ErrNotFound) {
@@ -176,7 +176,7 @@ func TestEmulatorSubobjectPaginationScope(t *testing.T) {
 	if _, e = s.List(ctx, "owner", r.ID, strings.Repeat("c", 32), page.NextCursor); !errors.Is(e, feature.ErrInput) {
 		t.Fatal("parent cursor", e)
 	}
-	if _, e = store.parent(r.ID, parent.ID).Update(ctx, []db.Update{{Path: "creatorId", Value: "member"}}); e != nil {
+	if _, e = store.parentObjectRef(r.ID, parent.ID).Update(ctx, []db.Update{{Path: "creatorId", Value: "member"}}); e != nil {
 		t.Fatal(e)
 	}
 	if _, e = s.Create(ctx, "owner", r.ID, parent.ID, "stale-owner-key-01", feature.Content{Name: "new", Type: "non_work", Quantity: "1", Unit: "SET"}); !errors.Is(e, feature.ErrForbidden) {

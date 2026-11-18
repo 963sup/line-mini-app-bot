@@ -39,8 +39,18 @@ pageSize 預設20、範圍1–100；cursor 必須與本人、channel、群組／
 
 伺服器以channel、已驗證本人與key隔離回執，對固定版本的業務payload做正規化雜湊。時間以UTC正規化，breaks順序保留，server ID／CreatedAt不參與。申請與最小回執同交易建立；交易可能重跑，但不能建立第二筆申請。
 
-- 相同key／相同payload：回原申請ID，包括後續班次已核准或版本已變動時。
-- 相同key／不同payload：409 idempotency_conflict。
+```mermaid
+sequenceDiagram
+  Web->>API: POST 防重鍵與申請內容
+  alt 同鍵同內容
+    API-->>Web: 原申請 ID，即使後續已核准或版本已變動
+  else 同鍵異內容
+    API-->>Web: 409 idempotency_conflict
+  else 首次提交
+    API->>Firestore: 同交易建立申請與回執
+  end
+```
+
 - 空白、無效或重複header：400 invalid_idempotency_key。
 - 無header：保留舊呼叫契約，但沒有跨請求去重保證；新Web一律帶header。
 
@@ -62,4 +72,12 @@ UUID API 已對照 [官方 v1.6.0 原始碼](https://github.com/google/uuid/blob
 
 ## 審核畫面狀態同步
 
-審核者核准或駁回成功後，前端清空詳情與舊清單，保留所選群組並重新查詢第一頁；清單與分頁游標使用伺服器最新回應，查詢失敗時不再呈現舊的待審資料，可重新查詢。手動輸入編號但未選群組時不額外查詢群組清單。審核權限、禁止自審及狀態轉換仍由後端執行，畫面更新不代表新增授權。補卡休息確認使用 shadcn Checkbox，保留必填與後端驗證。
+```mermaid
+flowchart LR
+  S["核准或駁回成功"] --> C["清空詳情與舊清單"]
+  C --> G{"已選群組？"}
+  G -->|有| Q["保留群組，重新查詢第一頁"]
+  G -->|無| E["結束畫面更新"]
+```
+
+第一頁資料與分頁游標以伺服器最新回應為準。查詢失敗時維持空清單並提供重查。手動輸入編號且未選群組時直接結束畫面更新。審核權限、禁止自審與狀態轉換由後端執行。補卡休息確認使用 shadcn Checkbox，保留必填與後端驗證。

@@ -20,12 +20,9 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 ## 相關文件
 
-- [空間 UI 預覽移除與正式入口回歸](../docs/reports/2026-11-13/preview-removal-optimization-20261113.md)
-- [架構延續：已取消 Promise 的完整處理](../docs/reports/2026-11-13/architecture-continuation-20261113.md#第二輪取消也要處理已啟動工作)
-- [架構迭代：留言寫入與父層導覽的生命週期協調](../docs/reports/2026-11-13/architecture-iteration-20261113.md#第二輪保住-comments-的寫入狀態)
+- [正式前端入口與生命週期](../docs/foundation/frontend/react-frontend.md)
 - [文件索引：Frontend](../docs/README.md#按模組閱讀)
 - [Go browser Session 與滑動續期](../docs/foundation/identity/browser-session.md)
-- [React 架構與生命週期](../docs/foundation/frontend/react-frontend.md)
 - [shadcn UI 與 MCP：元件位置、CSS 與工具驗證](../docs/tooling/mcp/shadcn.md)
 - [瀏覽器定位整合](../docs/foundation/integrations/web-geolocation.md)
 - [出勤查詢與更正](../docs/features/attendance/queries.md)
@@ -33,7 +30,7 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 - [群組請假登記](../docs/features/attendance/leave.md)
 
-- [Business 模組重構](../docs/development/business-refactor.md)
+- [目前模組與責任](../docs/foundation/architecture/layout.md)
 
 ## Business 畫面範圍
 

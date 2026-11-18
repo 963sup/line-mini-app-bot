@@ -8,6 +8,7 @@ import (
 	db "cloud.google.com/go/firestore"
 	boardmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/board"
 	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/records"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -20,7 +21,7 @@ const (
 
 // currentShift reads only the trusted user's group state and validates its target.
 func currentShift(tx *db.Transaction, employee *db.DocumentRef, group string) (*recordmodel.Record, error) {
-	snap, err := tx.Get(employee.Collection("attendanceStates").Doc(documentKey(group)))
+	snap, err := tx.Get(employee.Collection("attendanceStates").Doc(firestorekey.Encode(group)))
 	if status.Code(err) == codes.NotFound {
 		return nil, nil
 	}

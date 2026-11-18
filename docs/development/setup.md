@@ -4,6 +4,8 @@ Current priority is the execution/deployment foundation, not attendance behavior
 Follow [the phased foundation plan](foundation.md) for prerequisites, current
 evidence and completion criteria before implementing [attendance](../features/attendance/attendance.md).
 
+## Bootstrap
+
 From the repository root:
 
 ```bash
@@ -12,7 +14,11 @@ bash scripts/tooling/tool-exec.sh mise run check-config
 bash scripts/tooling/tool-exec.sh mise run doctor
 # Optional tools, separate from core Go development:
 bash scripts/tooling/bootstrap.sh mcp
+# Full Cloud setup, including optional tools and MCP probes:
+bash scripts/tooling/bootstrap.sh all
 ```
+
+Running bootstrap without an argument selects `core`. See the [Cloud host prerequisites](codex-cloud.md#required-host-configuration) before running `all`.
 
 See [mise prerequisites](../tooling/mise.md). GitHub MCP requires the runtime
 credential named in `.codex/config.toml`; never put its value in tracked files.

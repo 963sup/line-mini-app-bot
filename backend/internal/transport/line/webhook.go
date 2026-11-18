@@ -43,7 +43,7 @@ func RegisterWebhook(mux *http.ServeMux, handlers []Handler) (func(context.Conte
 	bot, err := messaging_api.NewMessagingApiAPI(token,
 		messaging_api.WithHTTPClient(&http.Client{Timeout: 5 * time.Second}))
 	if err != nil {
-		return nil, errors.New("cannot initialize LINE Messaging API client")
+		return nil, err
 	}
 	lookup := func(ctx context.Context, group string) string {
 		lookupCtx, cancel := context.WithTimeout(ctx, 400*time.Millisecond)

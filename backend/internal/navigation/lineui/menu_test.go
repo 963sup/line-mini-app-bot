@@ -117,3 +117,16 @@ func TestMiniAppDesktopEncodedURLLimit(t *testing.T) {
 		t.Fatal("bound applies after UTF-8 percent encoding")
 	}
 }
+
+func TestMiniAppGroupRepositoryOnBothEntrances(t *testing.T) {
+	const id = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	const mobile = "https://miniapp.line.me/example"
+	const desktop = "https://app.example.com/miniapp"
+	message := MiniApp(mobile, desktop, id).(*messaging_api.FlexMessage)
+	button := message.Contents.(*messaging_api.FlexBubble).Footer.Contents[0].(*messaging_api.FlexButton)
+	action := button.Action.(*messaging_api.UriAction)
+	const query = "?repositories=1&repository=" + id
+	if action.Uri != mobile+query || action.AltUri == nil || action.AltUri.Desktop != desktop+query {
+		t.Fatalf("group repository was lost between entry points: %+v", action)
+	}
+}
