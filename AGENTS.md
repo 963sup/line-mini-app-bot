@@ -1,5 +1,7 @@
 # Repository agent guidance
 
+Project 和 Repository 各自保存一個 `ownerId`。LINE UserID（U）以登入本人核驗，GroupID（C）以當下群組成員資格核驗。Project 可連結多個 Repository，每筆來源引用各自授權。Space 隸屬 Repository。
+
 ## Mandatory documentation verification
 
 Repository-wide rule for every role and task, subject to higher-priority host instructions:

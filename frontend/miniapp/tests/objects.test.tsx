@@ -22,7 +22,7 @@ async function fixture(handle: (request: Request, actor: string) => Promise<Resp
     const path = new URL(request.url).pathname;
     if (path.endsWith("/config")) return Response.json({ liffId: "object-test" });
     if (path.endsWith("/session")) return Response.json({ user: { userId: actor, displayName: actor }, csrfToken: "c".repeat(43), expiresAt: new Date(Date.now() + 1800000).toISOString() });
-    if (path === `/api/v1/repositories/${rid}`) return Response.json({ id: rid, groupId: "C" + rid, name: "測試儲存庫", status: "ACTIVE", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" });
+    if (path === `/api/v1/repositories/${rid}`) return Response.json({ id: rid, ownerId: "C" + rid, name: "測試儲存庫", status: "ACTIVE", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" });
     if (path === "/api/v1/repositories") return Response.json({ items: [], nextCursor: "" });
     if (path.endsWith("/statistics")) return Response.json({});
     return handle(request, actor);

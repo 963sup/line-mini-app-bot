@@ -29,9 +29,9 @@ Journal 表示一篇工作日誌，集合路徑使用 `/api/v1/journals`。Feed 
 | 操作 | 用途 |
 | --- | --- |
 | POST /api/v1/journals | 建立日誌，必填 Idempotency-Key。同一作者與同鍵同內容重送取得原結果，異內容回 409。 |
-| GET /api/v1/journals | Feed 可跨本人可讀群組，Dashboard 以 spaceId 和 workDate 篩選。以工作日期、建立時間、ID 依序降冪分頁；nextCursor 為空表示最後一頁。游標綁定使用者與篩選條件。 |
+| GET /api/v1/journals | Feed 可跨本人可讀群組，Dashboard 以 groupId 和 workDate 篩選。以工作日期、建立時間、ID 依序降冪分頁；nextCursor 為空表示最後一頁。游標綁定使用者與篩選條件。 |
 | GET /api/v1/journals/{journalId} | 以日誌 ID 開啟原文，查無資料或無閱讀權均回 404。 |
 
-此契約的 spaceId 指發布用的 LINE 群組上下文。人員名單記錄當日配置；creatorId 與 createdAt 由服務端產生。工作列可省略 reference。原關聯失權後，讀取端省略該列的 reference。今日與明日清單合計至少一項。完整欄位見 [Journal 契約](../../../api/contract/journal/journals.yaml)。
+此契約的 groupId 指發布用的 LINE 群組上下文。人員名單記錄當日配置；creatorId 與 createdAt 由服務端產生。工作列可省略 reference。原關聯失權後，讀取端省略該列的 reference。今日與明日清單合計至少一項。完整欄位見 [Journal 契約](../../../api/contract/journal/journals.yaml)。
 
 後端沿用既有群組、儲存庫、專案及 Firestore 設定。日誌明細與建立收據在同一交易保存。跨群組 Feed 依當下可讀群組分別查詢，再合併排序。單頁最多 20 篇，成本隨可讀群組數增加。缺少必要服務設定時回 503。

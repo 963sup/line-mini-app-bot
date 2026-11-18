@@ -655,15 +655,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/spaces": {
+    "/api/v1/groups": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Independent Space membership and lifecycle, not Repository ownership */
-        get: operations["listSpaces"];
+        /** Independent Group membership and lifecycle, not Repository ownership */
+        get: operations["listGroups"];
         put?: never;
         post?: never;
         delete?: never;
@@ -672,15 +672,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/spaces/{id}": {
+    "/api/v1/groups/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Independent Space membership and lifecycle, not Repository ownership */
-        get: operations["getSpace"];
+        /** Independent Group membership and lifecycle, not Repository ownership */
+        get: operations["getGroup"];
         put?: never;
         post?: never;
         delete?: never;
@@ -689,61 +689,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/spaces/{spaceId}/projects": {
+    "/api/v1/owners/{ownerId}/projects": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Space-owned Project; source Repository only supplies authorized read references */
-        get: operations["listSpaceProjects"];
+        /** Owner-scoped Project; source Repository only supplies authorized read references */
+        get: operations["listOwnerProjects"];
         put?: never;
-        /** Space-owned Project; source Repository only supplies authorized read references */
-        post: operations["createSpaceProject"];
+        /** Owner-scoped Project; source Repository only supplies authorized read references */
+        post: operations["createOwnerProject"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/spaces/{spaceId}/projects/{id}": {
+    "/api/v1/owners/{ownerId}/projects/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Space-owned Project; source Repository only supplies authorized read references */
-        get: operations["getSpaceProject"];
+        /** Owner-scoped Project; source Repository only supplies authorized read references */
+        get: operations["getOwnerProject"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /** Space-owned Project; source Repository only supplies authorized read references */
-        patch: operations["updateSpaceProject"];
+        /** Owner-scoped Project; source Repository only supplies authorized read references */
+        patch: operations["updateOwnerProject"];
         trace?: never;
     };
-    "/api/v1/spaces/{spaceId}/projects/{id}/items": {
+    "/api/v1/owners/{ownerId}/projects/{id}/items": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Space-owned Project; source Repository only supplies authorized read references */
-        get: operations["listSpaceProjectItems"];
+        /** Owner-scoped Project; source Repository only supplies authorized read references */
+        get: operations["listOwnerProjectItems"];
         put?: never;
-        /** Space-owned Project; source Repository only supplies authorized read references */
-        post: operations["addSpaceProjectItem"];
+        /** Owner-scoped Project; source Repository only supplies authorized read references */
+        post: operations["addOwnerProjectItem"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/spaces/{spaceId}/projects/{id}/items/{itemId}": {
+    "/api/v1/owners/{ownerId}/projects/{id}/items/{itemId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -753,8 +753,8 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Space-owned Project; source Repository only supplies authorized read references */
-        delete: operations["removeSpaceProjectItem"];
+        /** Owner-scoped Project; source Repository only supplies authorized read references */
+        delete: operations["removeOwnerProjectItem"];
         options?: never;
         head?: never;
         patch?: never;
@@ -951,7 +951,7 @@ export interface paths {
         patch: operations["updateSubobject"];
         trace?: never;
     };
-    "/api/v1/spaces/{spaceId}/projects/{id}/references": {
+    "/api/v1/owners/{ownerId}/projects/{id}/references": {
         parameters: {
             query?: never;
             header?: never;
@@ -969,7 +969,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/spaces/{spaceId}/projects/{id}/references/{itemId}": {
+    "/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1056,6 +1056,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 查看引用的驗收紀錄 */
+        get: operations["listInspectionSubmissions"];
+        put?: never;
+        /** 提交驗收 */
+        post: operations["submitInspection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1081,7 +1099,7 @@ export interface components {
         };
         Repository: {
             id: string;
-            groupId: string;
+            ownerId: string;
             name: string;
             /** @enum {string} */
             status: "ACTIVE" | "INACTIVE";
@@ -1256,7 +1274,6 @@ export interface components {
         };
         Project: {
             id: string;
-            repositoryId: string;
             title: string;
             body: string;
             creatorId: string;
@@ -1270,10 +1287,11 @@ export interface components {
             issueCount: number;
             /** Format: int64 */
             completedIssueCount: number;
-            spaceId?: string;
-            sourceRepositoryId?: string;
+            ownerId: string;
             /** @description False means source counts/details are unavailable; numeric count fields must not be shown as observed zero. */
             sourceAvailable?: boolean;
+            linkedRepositoryIds?: string[];
+            defaultRepositoryId: string;
         };
         ProjectCreation: {
             title: string;
@@ -1284,6 +1302,8 @@ export interface components {
             body: string;
             /** Format: int64 */
             expectedVersion: number;
+            linkRepositoryId?: string;
+            unlinkRepositoryId?: string;
         };
         ProjectPage: {
             items: components["schemas"]["Project"][];
@@ -1322,7 +1342,7 @@ export interface components {
             /** Format: date-time */
             observedAt: string;
         };
-        Space: {
+        Group: {
             id: string;
             groupId: string;
             name: string;
@@ -1335,15 +1355,15 @@ export interface components {
             /** Format: int64 */
             version: number;
         };
-        SpacePage: {
-            items: components["schemas"]["Space"][];
+        EngineeringGroupPage: {
+            items: components["schemas"]["Group"][];
             /** @description Empty when finished. Pages may be empty after current-membership filtering. */
             nextCursor: string;
         };
-        SpaceProjectCreation: {
+        OwnerProjectCreation: {
             title: string;
             body: string;
-            sourceRepositoryId: string;
+            defaultRepositoryId: string;
         };
         Object: {
             name: string;
@@ -1650,6 +1670,7 @@ export interface components {
             parentObjectId?: string;
             /** Format: int64 */
             expectedVersion: number;
+            sourceRepositoryId?: string;
         };
         RepositorySpace: {
             name: string;
@@ -1692,7 +1713,7 @@ export interface components {
             reference?: components["schemas"]["JournalReference"];
         };
         JournalCreation: {
-            spaceId: string;
+            groupId: string;
             /** Format: date */
             workDate: string;
             personnel: components["schemas"]["JournalPersonnel"];
@@ -1704,7 +1725,7 @@ export interface components {
             creatorId: string;
             /** Format: date-time */
             createdAt: string;
-            spaceId: string;
+            groupId: string;
             /** Format: date */
             workDate: string;
             personnel: components["schemas"]["JournalPersonnel"];
@@ -1714,6 +1735,23 @@ export interface components {
         JournalPage: {
             items: components["schemas"]["Journal"][];
             nextCursor: string;
+        };
+        InspectionSubmission: {
+            id: string;
+            submittedBy: string;
+            sourceRepositoryId: string;
+            sourceId: string;
+            sourceType: string;
+            note: string;
+            /** @enum {string} */
+            status: "pending";
+            /** Format: date-time */
+            submittedAt: string;
+            /** Format: int64 */
+            sourceVersion: number;
+        };
+        InspectionInput: {
+            note: string;
         };
         GroupItem: {
             id: string;
@@ -4868,7 +4906,7 @@ export interface operations {
             503: components["responses"]["IssueError"];
         };
     };
-    listSpaces: {
+    listGroups: {
         parameters: {
             query?: {
                 cursor?: string;
@@ -4885,7 +4923,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SpacePage"];
+                    "application/json": components["schemas"]["EngineeringGroupPage"];
                 };
             };
             /** @description Request failed */
@@ -4926,7 +4964,7 @@ export interface operations {
             };
         };
     };
-    getSpace: {
+    getGroup: {
         parameters: {
             query?: never;
             header?: never;
@@ -4943,7 +4981,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Space"];
+                    "application/json": components["schemas"]["Group"];
                 };
             };
             /** @description Request failed */
@@ -4984,14 +5022,14 @@ export interface operations {
             };
         };
     };
-    listSpaceProjects: {
+    listOwnerProjects: {
         parameters: {
             query?: {
                 cursor?: string;
             };
             header?: never;
             path: {
-                spaceId: string;
+                ownerId: string;
             };
             cookie?: never;
         };
@@ -5015,7 +5053,7 @@ export interface operations {
             503: components["responses"]["ProjectError"];
         };
     };
-    createSpaceProject: {
+    createOwnerProject: {
         parameters: {
             query?: never;
             header: {
@@ -5025,13 +5063,13 @@ export interface operations {
                 "X-CSRF-Token"?: string;
             };
             path: {
-                spaceId: string;
+                ownerId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SpaceProjectCreation"];
+                "application/json": components["schemas"]["OwnerProjectCreation"];
             };
         };
         responses: {
@@ -5053,12 +5091,12 @@ export interface operations {
             503: components["responses"]["ProjectError"];
         };
     };
-    getSpaceProject: {
+    getOwnerProject: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                spaceId: string;
+                ownerId: string;
                 id: string;
             };
             cookie?: never;
@@ -5083,7 +5121,7 @@ export interface operations {
             503: components["responses"]["ProjectError"];
         };
     };
-    updateSpaceProject: {
+    updateOwnerProject: {
         parameters: {
             query?: never;
             header?: {
@@ -5091,7 +5129,7 @@ export interface operations {
                 "X-CSRF-Token"?: string;
             };
             path: {
-                spaceId: string;
+                ownerId: string;
                 id: string;
             };
             cookie?: never;
@@ -5120,14 +5158,14 @@ export interface operations {
             503: components["responses"]["ProjectError"];
         };
     };
-    listSpaceProjectItems: {
+    listOwnerProjectItems: {
         parameters: {
             query?: {
                 cursor?: string;
             };
             header?: never;
             path: {
-                spaceId: string;
+                ownerId: string;
                 id: string;
             };
             cookie?: never;
@@ -5152,14 +5190,14 @@ export interface operations {
             503: components["responses"]["ProjectError"];
         };
     };
-    addSpaceProjectItem: {
+    addOwnerProjectItem: {
         parameters: {
             query?: never;
             header?: {
                 "X-CSRF-Token"?: string;
             };
             path: {
-                spaceId: string;
+                ownerId: string;
                 id: string;
             };
             cookie?: never;
@@ -5188,7 +5226,7 @@ export interface operations {
             503: components["responses"]["ProjectError"];
         };
     };
-    removeSpaceProjectItem: {
+    removeOwnerProjectItem: {
         parameters: {
             query: {
                 expectedVersion: number;
@@ -5197,7 +5235,7 @@ export interface operations {
                 "X-CSRF-Token"?: string;
             };
             path: {
-                spaceId: string;
+                ownerId: string;
                 id: string;
                 itemId: string;
             };
@@ -5752,7 +5790,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                spaceId: string;
+                ownerId: string;
                 id: string;
             };
             cookie?: never;
@@ -5784,7 +5822,7 @@ export interface operations {
                 "X-CSRF-Token"?: string;
             };
             path: {
-                spaceId: string;
+                ownerId: string;
                 id: string;
             };
             cookie?: never;
@@ -5822,7 +5860,7 @@ export interface operations {
                 "X-CSRF-Token"?: string;
             };
             path: {
-                spaceId: string;
+                ownerId: string;
                 id: string;
                 itemId: string;
             };
@@ -5950,7 +5988,7 @@ export interface operations {
     listJournals: {
         parameters: {
             query?: {
-                spaceId?: string;
+                groupId?: string;
                 workDate?: string;
                 cursor?: string;
             };
@@ -6161,6 +6199,74 @@ export interface operations {
                     "application/json": components["schemas"]["APIError"];
                 };
             };
+        };
+    };
+    listInspectionSubmissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ownerId: string;
+                id: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InspectionSubmission"][];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
+        };
+    };
+    submitInspection: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                ownerId: string;
+                id: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InspectionInput"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InspectionSubmission"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
         };
     };
 }

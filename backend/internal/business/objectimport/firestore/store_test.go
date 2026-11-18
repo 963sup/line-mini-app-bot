@@ -46,9 +46,9 @@ func importEmulator(t *testing.T) (context.Context, *db.Client, repository.Repos
 			t.Error(err)
 		}
 	})
-	r := repository.Repository{ID: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", GroupID: "Cbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", Status: "ACTIVE"}
+	r := repository.Repository{ID: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", OwnerID: "Cbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", Status: "ACTIVE"}
 	parent := client.Collection("channels").Doc("isolated-import-tests").Collection("repositories").Doc(r.ID)
-	if _, err := parent.Set(ctx, map[string]any{"id": r.ID, "groupId": r.GroupID, "status": "ACTIVE"}); err != nil {
+	if _, err := parent.Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": "ACTIVE"}); err != nil {
 		t.Fatal(err)
 	}
 	return ctx, client, r, parent

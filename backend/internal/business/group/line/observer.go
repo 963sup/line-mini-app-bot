@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/space"
+	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
 type Observer struct {
-	Store     space.Store
+	Store     groupdomain.Store
 	GroupName func(context.Context, string) string
 }
 
@@ -27,16 +27,16 @@ func (o *Observer) Observe(ctx context.Context, event webhook.EventInterface) (t
 	if group.Status == "ACTIVE" && o.GroupName != nil {
 		lookupName := group.Joined
 		if !lookupName {
-			current, err := o.Store.GetByGroupID(ctx, group.GroupID)
-			if err != nil && !errors.Is(err, space.ErrNotFound) {
+			current, err := o.Store.GetByID(ctx, group.GroupID)
+			if err != nil && !errors.Is(err, groupdomain.ErrNotFound) {
 				return transport.Reply{}, false, err
 			}
-			lookupName = errors.Is(err, space.ErrNotFound) || current.Name == ""
+			lookupName = errors.Is(err, groupdomain.ErrNotFound) || current.Name == ""
 		}
 		if lookupName {
 			name = o.GroupName(ctx, group.GroupID)
 		}
 	}
-	err := o.Store.Observe(ctx, space.Observation{GroupID: group.GroupID, Name: name, Status: group.Status, EventID: group.EventID, At: group.At, Users: group.Users})
+	err := o.Store.Observe(ctx, groupdomain.Observation{GroupID: group.GroupID, Name: name, Status: group.Status, EventID: group.EventID, At: group.At, Users: group.Users})
 	return transport.Reply{}, false, err
 }

@@ -52,6 +52,39 @@ func (e CorrectionApprovedStatus) Valid() bool {
 	}
 }
 
+// Defines values for GroupStatus.
+const (
+	GroupStatusACTIVE   GroupStatus = "ACTIVE"
+	GroupStatusINACTIVE GroupStatus = "INACTIVE"
+)
+
+// Valid indicates whether the value is a known member of the GroupStatus enum.
+func (e GroupStatus) Valid() bool {
+	switch e {
+	case GroupStatusACTIVE:
+		return true
+	case GroupStatusINACTIVE:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for InspectionSubmissionStatus.
+const (
+	InspectionSubmissionStatusPending InspectionSubmissionStatus = "pending"
+)
+
+// Valid indicates whether the value is a known member of the InspectionSubmissionStatus enum.
+func (e InspectionSubmissionStatus) Valid() bool {
+	switch e {
+	case InspectionSubmissionStatusPending:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for IssueState.
 const (
 	IssueStateCompleted  IssueState = "completed"
@@ -442,24 +475,6 @@ func (e RepositoryStatus) Valid() bool {
 	}
 }
 
-// Defines values for SpaceStatus.
-const (
-	SpaceStatusACTIVE   SpaceStatus = "ACTIVE"
-	SpaceStatusINACTIVE SpaceStatus = "INACTIVE"
-)
-
-// Valid indicates whether the value is a known member of the SpaceStatus enum.
-func (e SpaceStatus) Valid() bool {
-	switch e {
-	case SpaceStatusACTIVE:
-		return true
-	case SpaceStatusINACTIVE:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for SubobjectStatus.
 const (
 	SubobjectStatusCompleted  SubobjectStatus = "completed"
@@ -792,6 +807,28 @@ type DiscussionUpdate struct {
 	Title    string    `json:"title"`
 }
 
+// EngineeringGroupPage defines model for EngineeringGroupPage.
+type EngineeringGroupPage struct {
+	Items []Group `json:"items"`
+
+	// NextCursor Empty when finished. Pages may be empty after current-membership filtering.
+	NextCursor string `json:"nextCursor"`
+}
+
+// Group defines model for Group.
+type Group struct {
+	CreatedAt time.Time   `json:"createdAt"`
+	GroupId   string      `json:"groupId"`
+	Id        string      `json:"id"`
+	Name      string      `json:"name"`
+	Status    GroupStatus `json:"status"`
+	UpdatedAt time.Time   `json:"updatedAt"`
+	Version   int64       `json:"version"`
+}
+
+// GroupStatus defines model for Group.Status.
+type GroupStatus string
+
 // GroupItem defines model for GroupItem.
 type GroupItem struct {
 	Id   string `json:"id"`
@@ -805,6 +842,27 @@ type GroupPage struct {
 	NextCursor string      `json:"nextCursor"`
 	QueryMode  string      `json:"queryMode"`
 }
+
+// InspectionInput defines model for InspectionInput.
+type InspectionInput struct {
+	Note string `json:"note"`
+}
+
+// InspectionSubmission defines model for InspectionSubmission.
+type InspectionSubmission struct {
+	Id                 string                     `json:"id"`
+	Note               string                     `json:"note"`
+	SourceId           string                     `json:"sourceId"`
+	SourceRepositoryId string                     `json:"sourceRepositoryId"`
+	SourceType         string                     `json:"sourceType"`
+	SourceVersion      int64                      `json:"sourceVersion"`
+	Status             InspectionSubmissionStatus `json:"status"`
+	SubmittedAt        time.Time                  `json:"submittedAt"`
+	SubmittedBy        string                     `json:"submittedBy"`
+}
+
+// InspectionSubmissionStatus defines model for InspectionSubmission.Status.
+type InspectionSubmissionStatus string
 
 // Interval defines model for Interval.
 type Interval struct {
@@ -870,9 +928,9 @@ type IssueUpdateState string
 type Journal struct {
 	CreatedAt     time.Time             `json:"createdAt"`
 	CreatorId     string                `json:"creatorId"`
+	GroupId       string                `json:"groupId"`
 	Id            string                `json:"id"`
 	Personnel     JournalPersonnel      `json:"personnel"`
-	SpaceId       string                `json:"spaceId"`
 	TodayItems    []JournalTodayItem    `json:"todayItems"`
 	TomorrowItems []JournalTomorrowItem `json:"tomorrowItems"`
 	WorkDate      openapi_types.Date    `json:"workDate"`
@@ -880,8 +938,8 @@ type Journal struct {
 
 // JournalCreation defines model for JournalCreation.
 type JournalCreation struct {
+	GroupId       string                `json:"groupId"`
 	Personnel     JournalPersonnel      `json:"personnel"`
-	SpaceId       string                `json:"spaceId"`
 	TodayItems    []JournalTodayItem    `json:"todayItems"`
 	TomorrowItems []JournalTomorrowItem `json:"tomorrowItems"`
 	WorkDate      openapi_types.Date    `json:"workDate"`
@@ -1336,23 +1394,30 @@ type ObjectUpdate struct {
 // ObjectUpdateStatus Optional legacy status. Work status is derived from completedQuantity; explicit contradictory status is rejected. Omission preserves historical status.
 type ObjectUpdateStatus string
 
+// OwnerProjectCreation defines model for OwnerProjectCreation.
+type OwnerProjectCreation struct {
+	Body                string `json:"body"`
+	DefaultRepositoryId string `json:"defaultRepositoryId"`
+	Title               string `json:"title"`
+}
+
 // Project defines model for Project.
 type Project struct {
 	Body                string    `json:"body"`
 	CompletedIssueCount int64     `json:"completedIssueCount"`
 	CreatedAt           time.Time `json:"createdAt"`
 	CreatorId           string    `json:"creatorId"`
+	DefaultRepositoryId string    `json:"defaultRepositoryId"`
 	Id                  string    `json:"id"`
 	IssueCount          int64     `json:"issueCount"`
-	RepositoryId        string    `json:"repositoryId"`
+	LinkedRepositoryIds *[]string `json:"linkedRepositoryIds,omitempty"`
+	OwnerId             string    `json:"ownerId"`
 
 	// SourceAvailable False means source counts/details are unavailable; numeric count fields must not be shown as observed zero.
-	SourceAvailable    *bool     `json:"sourceAvailable,omitempty"`
-	SourceRepositoryId *string   `json:"sourceRepositoryId,omitempty"`
-	SpaceId            *string   `json:"spaceId,omitempty"`
-	Title              string    `json:"title"`
-	UpdatedAt          time.Time `json:"updatedAt"`
-	Version            int64     `json:"version"`
+	SourceAvailable *bool     `json:"sourceAvailable,omitempty"`
+	Title           string    `json:"title"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+	Version         int64     `json:"version"`
 }
 
 // ProjectCreation defines model for ProjectCreation.
@@ -1413,10 +1478,11 @@ type ProjectReferenceSourceType string
 
 // ProjectReferenceAddition Reference only within the Project source repository. Subobject requires its parentObjectId. Duplicate source identity is a no-op after current authorization, including retries of an unknown successful add.
 type ProjectReferenceAddition struct {
-	ExpectedVersion int64                              `json:"expectedVersion"`
-	ParentObjectId  *string                            `json:"parentObjectId,omitempty"`
-	SourceId        string                             `json:"sourceId"`
-	SourceType      ProjectReferenceAdditionSourceType `json:"sourceType"`
+	ExpectedVersion    int64                              `json:"expectedVersion"`
+	ParentObjectId     *string                            `json:"parentObjectId,omitempty"`
+	SourceId           string                             `json:"sourceId"`
+	SourceRepositoryId *string                            `json:"sourceRepositoryId,omitempty"`
+	SourceType         ProjectReferenceAdditionSourceType `json:"sourceType"`
 }
 
 // ProjectReferenceAdditionSourceType defines model for ProjectReferenceAddition.SourceType.
@@ -1430,9 +1496,11 @@ type ProjectReferencePage struct {
 
 // ProjectUpdate defines model for ProjectUpdate.
 type ProjectUpdate struct {
-	Body            string `json:"body"`
-	ExpectedVersion int64  `json:"expectedVersion"`
-	Title           string `json:"title"`
+	Body               string  `json:"body"`
+	ExpectedVersion    int64   `json:"expectedVersion"`
+	LinkRepositoryId   *string `json:"linkRepositoryId,omitempty"`
+	Title              string  `json:"title"`
+	UnlinkRepositoryId *string `json:"unlinkRepositoryId,omitempty"`
 }
 
 // PunchPreflightRequest defines model for PunchPreflightRequest.
@@ -1466,9 +1534,9 @@ type RecordPage struct {
 // Repository defines model for Repository.
 type Repository struct {
 	CreatedAt time.Time        `json:"createdAt"`
-	GroupId   string           `json:"groupId"`
 	Id        string           `json:"id"`
 	Name      string           `json:"name"`
+	OwnerId   string           `json:"ownerId"`
 	Status    RepositoryStatus `json:"status"`
 	UpdatedAt time.Time        `json:"updatedAt"`
 	Version   int64            `json:"version"`
@@ -1525,35 +1593,6 @@ type SessionResponse struct {
 	CsrfToken string      `json:"csrfToken"`
 	ExpiresAt time.Time   `json:"expiresAt"`
 	User      CurrentUser `json:"user"`
-}
-
-// Space defines model for Space.
-type Space struct {
-	CreatedAt time.Time   `json:"createdAt"`
-	GroupId   string      `json:"groupId"`
-	Id        string      `json:"id"`
-	Name      string      `json:"name"`
-	Status    SpaceStatus `json:"status"`
-	UpdatedAt time.Time   `json:"updatedAt"`
-	Version   int64       `json:"version"`
-}
-
-// SpaceStatus defines model for Space.Status.
-type SpaceStatus string
-
-// SpacePage defines model for SpacePage.
-type SpacePage struct {
-	Items []Space `json:"items"`
-
-	// NextCursor Empty when finished. Pages may be empty after current-membership filtering.
-	NextCursor string `json:"nextCursor"`
-}
-
-// SpaceProjectCreation defines model for SpaceProjectCreation.
-type SpaceProjectCreation struct {
-	Body               string `json:"body"`
-	SourceRepositoryId string `json:"sourceRepositoryId"`
-	Title              string `json:"title"`
 }
 
 // StoredRecord defines model for StoredRecord.
@@ -1793,9 +1832,14 @@ type GetAttendanceRecordParams struct {
 	Group string `form:"group" json:"group"`
 }
 
+// ListGroupsParams defines parameters for ListGroups.
+type ListGroupsParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
 // ListJournalsParams defines parameters for ListJournals.
 type ListJournalsParams struct {
-	SpaceId  *string             `form:"spaceId,omitempty" json:"spaceId,omitempty"`
+	GroupId  *string             `form:"groupId,omitempty" json:"groupId,omitempty"`
 	WorkDate *openapi_types.Date `form:"workDate,omitempty" json:"workDate,omitempty"`
 	Cursor   *string             `form:"cursor,omitempty" json:"cursor,omitempty"`
 }
@@ -1803,6 +1847,63 @@ type ListJournalsParams struct {
 // CreateJournalParams defines parameters for CreateJournal.
 type CreateJournalParams struct {
 	IdempotencyKey string `json:"Idempotency-Key"`
+}
+
+// ListOwnerProjectsParams defines parameters for ListOwnerProjects.
+type ListOwnerProjectsParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// CreateOwnerProjectParams defines parameters for CreateOwnerProject.
+type CreateOwnerProjectParams struct {
+	// IdempotencyKey Reuse the same key and normalized content after an ambiguous result. Scoped to the verified actor and repository across resource types.
+	IdempotencyKey string `json:"Idempotency-Key"`
+
+	// XCSRFToken Required for Cookie Session writes; validated by the existing session authenticator.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// UpdateOwnerProjectParams defines parameters for UpdateOwnerProject.
+type UpdateOwnerProjectParams struct {
+	// XCSRFToken Required for Cookie Session writes; validated by the existing session authenticator.
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// ListOwnerProjectItemsParams defines parameters for ListOwnerProjectItems.
+type ListOwnerProjectItemsParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// AddOwnerProjectItemParams defines parameters for AddOwnerProjectItem.
+type AddOwnerProjectItemParams struct {
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// RemoveOwnerProjectItemParams defines parameters for RemoveOwnerProjectItem.
+type RemoveOwnerProjectItemParams struct {
+	ExpectedVersion int64   `form:"expectedVersion" json:"expectedVersion"`
+	XCSRFToken      *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// ListProjectReferencesParams defines parameters for ListProjectReferences.
+type ListProjectReferencesParams struct {
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// AddProjectReferenceParams defines parameters for AddProjectReference.
+type AddProjectReferenceParams struct {
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// RemoveProjectReferenceParams defines parameters for RemoveProjectReference.
+type RemoveProjectReferenceParams struct {
+	ExpectedVersion int64   `form:"expectedVersion" json:"expectedVersion"`
+	XCSRFToken      *string `json:"X-CSRF-Token,omitempty"`
+}
+
+// SubmitInspectionParams defines parameters for SubmitInspection.
+type SubmitInspectionParams struct {
+	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
 }
 
 // ListRepositoriesParams defines parameters for ListRepositories.
@@ -2056,63 +2157,6 @@ type RefreshSessionParams struct {
 	XCSRFToken string `json:"X-CSRF-Token"`
 }
 
-// ListSpacesParams defines parameters for ListSpaces.
-type ListSpacesParams struct {
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
-}
-
-// ListSpaceProjectsParams defines parameters for ListSpaceProjects.
-type ListSpaceProjectsParams struct {
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
-}
-
-// CreateSpaceProjectParams defines parameters for CreateSpaceProject.
-type CreateSpaceProjectParams struct {
-	// IdempotencyKey Reuse the same key and normalized content after an ambiguous result. Scoped to the verified actor and repository across resource types.
-	IdempotencyKey string `json:"Idempotency-Key"`
-
-	// XCSRFToken Required for Cookie Session writes; validated by the existing session authenticator.
-	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
-}
-
-// UpdateSpaceProjectParams defines parameters for UpdateSpaceProject.
-type UpdateSpaceProjectParams struct {
-	// XCSRFToken Required for Cookie Session writes; validated by the existing session authenticator.
-	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
-}
-
-// ListSpaceProjectItemsParams defines parameters for ListSpaceProjectItems.
-type ListSpaceProjectItemsParams struct {
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
-}
-
-// AddSpaceProjectItemParams defines parameters for AddSpaceProjectItem.
-type AddSpaceProjectItemParams struct {
-	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
-}
-
-// RemoveSpaceProjectItemParams defines parameters for RemoveSpaceProjectItem.
-type RemoveSpaceProjectItemParams struct {
-	ExpectedVersion int64   `form:"expectedVersion" json:"expectedVersion"`
-	XCSRFToken      *string `json:"X-CSRF-Token,omitempty"`
-}
-
-// ListProjectReferencesParams defines parameters for ListProjectReferences.
-type ListProjectReferencesParams struct {
-	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
-}
-
-// AddProjectReferenceParams defines parameters for AddProjectReference.
-type AddProjectReferenceParams struct {
-	XCSRFToken *string `json:"X-CSRF-Token,omitempty"`
-}
-
-// RemoveProjectReferenceParams defines parameters for RemoveProjectReference.
-type RemoveProjectReferenceParams struct {
-	ExpectedVersion int64   `form:"expectedVersion" json:"expectedVersion"`
-	XCSRFToken      *string `json:"X-CSRF-Token,omitempty"`
-}
-
 // ProposeAttendanceCorrectionJSONRequestBody defines body for ProposeAttendanceCorrection for application/json ContentType.
 type ProposeAttendanceCorrectionJSONRequestBody = CorrectionSubmission
 
@@ -2133,6 +2177,21 @@ type PreflightAttendancePunchJSONRequestBody = PunchPreflightRequest
 
 // CreateJournalJSONRequestBody defines body for CreateJournal for application/json ContentType.
 type CreateJournalJSONRequestBody = JournalCreation
+
+// CreateOwnerProjectJSONRequestBody defines body for CreateOwnerProject for application/json ContentType.
+type CreateOwnerProjectJSONRequestBody = OwnerProjectCreation
+
+// UpdateOwnerProjectJSONRequestBody defines body for UpdateOwnerProject for application/json ContentType.
+type UpdateOwnerProjectJSONRequestBody = ProjectUpdate
+
+// AddOwnerProjectItemJSONRequestBody defines body for AddOwnerProjectItem for application/json ContentType.
+type AddOwnerProjectItemJSONRequestBody = ProjectItemAddition
+
+// AddProjectReferenceJSONRequestBody defines body for AddProjectReference for application/json ContentType.
+type AddProjectReferenceJSONRequestBody = ProjectReferenceAddition
+
+// SubmitInspectionJSONRequestBody defines body for SubmitInspection for application/json ContentType.
+type SubmitInspectionJSONRequestBody = InspectionInput
 
 // CreateDiscussionJSONRequestBody defines body for CreateDiscussion for application/json ContentType.
 type CreateDiscussionJSONRequestBody = DiscussionCreation
@@ -2206,18 +2265,6 @@ type CreateSessionJSONRequestBody = CreateSessionJSONBody
 // RefreshSessionJSONRequestBody defines body for RefreshSession for application/json ContentType.
 type RefreshSessionJSONRequestBody = RefreshSessionJSONBody
 
-// CreateSpaceProjectJSONRequestBody defines body for CreateSpaceProject for application/json ContentType.
-type CreateSpaceProjectJSONRequestBody = SpaceProjectCreation
-
-// UpdateSpaceProjectJSONRequestBody defines body for UpdateSpaceProject for application/json ContentType.
-type UpdateSpaceProjectJSONRequestBody = ProjectUpdate
-
-// AddSpaceProjectItemJSONRequestBody defines body for AddSpaceProjectItem for application/json ContentType.
-type AddSpaceProjectItemJSONRequestBody = ProjectItemAddition
-
-// AddProjectReferenceJSONRequestBody defines body for AddProjectReference for application/json ContentType.
-type AddProjectReferenceJSONRequestBody = ProjectReferenceAddition
-
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// ListAttendanceCorrections List own requests, or group requests for an authorized reviewer
@@ -2281,6 +2328,12 @@ type ServerInterface interface {
 	// GetAttendanceRecord getAttendanceRecord
 	// (GET /api/v1/attendance/records/{id})
 	GetAttendanceRecord(w http.ResponseWriter, r *http.Request, id string, params GetAttendanceRecordParams)
+	// ListGroups Independent Group membership and lifecycle, not Repository ownership
+	// (GET /api/v1/groups)
+	ListGroups(w http.ResponseWriter, r *http.Request, params ListGroupsParams)
+	// GetGroup Independent Group membership and lifecycle, not Repository ownership
+	// (GET /api/v1/groups/{id})
+	GetGroup(w http.ResponseWriter, r *http.Request, id string)
 	// ListJournals List readable journals for Feed and Dashboard
 	// (GET /api/v1/journals)
 	ListJournals(w http.ResponseWriter, r *http.Request, params ListJournalsParams)
@@ -2296,6 +2349,42 @@ type ServerInterface interface {
 	// GetMiniAppConfig MiniAppConfig
 	// (GET /api/v1/miniapp/config)
 	GetMiniAppConfig(w http.ResponseWriter, r *http.Request)
+	// ListOwnerProjects Owner-scoped Project; source Repository only supplies authorized read references
+	// (GET /api/v1/owners/{ownerId}/projects)
+	ListOwnerProjects(w http.ResponseWriter, r *http.Request, ownerId string, params ListOwnerProjectsParams)
+	// CreateOwnerProject Owner-scoped Project; source Repository only supplies authorized read references
+	// (POST /api/v1/owners/{ownerId}/projects)
+	CreateOwnerProject(w http.ResponseWriter, r *http.Request, ownerId string, params CreateOwnerProjectParams)
+	// GetOwnerProject Owner-scoped Project; source Repository only supplies authorized read references
+	// (GET /api/v1/owners/{ownerId}/projects/{id})
+	GetOwnerProject(w http.ResponseWriter, r *http.Request, ownerId string, id string)
+	// UpdateOwnerProject Owner-scoped Project; source Repository only supplies authorized read references
+	// (PATCH /api/v1/owners/{ownerId}/projects/{id})
+	UpdateOwnerProject(w http.ResponseWriter, r *http.Request, ownerId string, id string, params UpdateOwnerProjectParams)
+	// ListOwnerProjectItems Owner-scoped Project; source Repository only supplies authorized read references
+	// (GET /api/v1/owners/{ownerId}/projects/{id}/items)
+	ListOwnerProjectItems(w http.ResponseWriter, r *http.Request, ownerId string, id string, params ListOwnerProjectItemsParams)
+	// AddOwnerProjectItem Owner-scoped Project; source Repository only supplies authorized read references
+	// (POST /api/v1/owners/{ownerId}/projects/{id}/items)
+	AddOwnerProjectItem(w http.ResponseWriter, r *http.Request, ownerId string, id string, params AddOwnerProjectItemParams)
+	// RemoveOwnerProjectItem Owner-scoped Project; source Repository only supplies authorized read references
+	// (DELETE /api/v1/owners/{ownerId}/projects/{id}/items/{itemId})
+	RemoveOwnerProjectItem(w http.ResponseWriter, r *http.Request, ownerId string, id string, itemId string, params RemoveOwnerProjectItemParams)
+	// ListProjectReferences listProjectReferences
+	// (GET /api/v1/owners/{ownerId}/projects/{id}/references)
+	ListProjectReferences(w http.ResponseWriter, r *http.Request, ownerId string, id string, params ListProjectReferencesParams)
+	// AddProjectReference addProjectReference
+	// (POST /api/v1/owners/{ownerId}/projects/{id}/references)
+	AddProjectReference(w http.ResponseWriter, r *http.Request, ownerId string, id string, params AddProjectReferenceParams)
+	// RemoveProjectReference removeProjectReference
+	// (DELETE /api/v1/owners/{ownerId}/projects/{id}/references/{itemId})
+	RemoveProjectReference(w http.ResponseWriter, r *http.Request, ownerId string, id string, itemId string, params RemoveProjectReferenceParams)
+	// ListInspectionSubmissions 查看引用的驗收紀錄
+	// (GET /api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions)
+	ListInspectionSubmissions(w http.ResponseWriter, r *http.Request, ownerId string, id string, itemId string)
+	// SubmitInspection 提交驗收
+	// (POST /api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions)
+	SubmitInspection(w http.ResponseWriter, r *http.Request, ownerId string, id string, itemId string, params SubmitInspectionParams)
 	// ListRepositories List repositories from verified group interactions; current membership is rechecked
 	// (GET /api/v1/repositories)
 	ListRepositories(w http.ResponseWriter, r *http.Request, params ListRepositoriesParams)
@@ -2440,42 +2529,6 @@ type ServerInterface interface {
 	// RefreshSession Renew a valid browser session within its absolute lifetime
 	// (POST /api/v1/session/refresh)
 	RefreshSession(w http.ResponseWriter, r *http.Request, params RefreshSessionParams)
-	// ListSpaces Independent Space membership and lifecycle, not Repository ownership
-	// (GET /api/v1/spaces)
-	ListSpaces(w http.ResponseWriter, r *http.Request, params ListSpacesParams)
-	// GetSpace Independent Space membership and lifecycle, not Repository ownership
-	// (GET /api/v1/spaces/{id})
-	GetSpace(w http.ResponseWriter, r *http.Request, id string)
-	// ListSpaceProjects Space-owned Project; source Repository only supplies authorized read references
-	// (GET /api/v1/spaces/{spaceId}/projects)
-	ListSpaceProjects(w http.ResponseWriter, r *http.Request, spaceId string, params ListSpaceProjectsParams)
-	// CreateSpaceProject Space-owned Project; source Repository only supplies authorized read references
-	// (POST /api/v1/spaces/{spaceId}/projects)
-	CreateSpaceProject(w http.ResponseWriter, r *http.Request, spaceId string, params CreateSpaceProjectParams)
-	// GetSpaceProject Space-owned Project; source Repository only supplies authorized read references
-	// (GET /api/v1/spaces/{spaceId}/projects/{id})
-	GetSpaceProject(w http.ResponseWriter, r *http.Request, spaceId string, id string)
-	// UpdateSpaceProject Space-owned Project; source Repository only supplies authorized read references
-	// (PATCH /api/v1/spaces/{spaceId}/projects/{id})
-	UpdateSpaceProject(w http.ResponseWriter, r *http.Request, spaceId string, id string, params UpdateSpaceProjectParams)
-	// ListSpaceProjectItems Space-owned Project; source Repository only supplies authorized read references
-	// (GET /api/v1/spaces/{spaceId}/projects/{id}/items)
-	ListSpaceProjectItems(w http.ResponseWriter, r *http.Request, spaceId string, id string, params ListSpaceProjectItemsParams)
-	// AddSpaceProjectItem Space-owned Project; source Repository only supplies authorized read references
-	// (POST /api/v1/spaces/{spaceId}/projects/{id}/items)
-	AddSpaceProjectItem(w http.ResponseWriter, r *http.Request, spaceId string, id string, params AddSpaceProjectItemParams)
-	// RemoveSpaceProjectItem Space-owned Project; source Repository only supplies authorized read references
-	// (DELETE /api/v1/spaces/{spaceId}/projects/{id}/items/{itemId})
-	RemoveSpaceProjectItem(w http.ResponseWriter, r *http.Request, spaceId string, id string, itemId string, params RemoveSpaceProjectItemParams)
-	// ListProjectReferences listProjectReferences
-	// (GET /api/v1/spaces/{spaceId}/projects/{id}/references)
-	ListProjectReferences(w http.ResponseWriter, r *http.Request, spaceId string, id string, params ListProjectReferencesParams)
-	// AddProjectReference addProjectReference
-	// (POST /api/v1/spaces/{spaceId}/projects/{id}/references)
-	AddProjectReference(w http.ResponseWriter, r *http.Request, spaceId string, id string, params AddProjectReferenceParams)
-	// RemoveProjectReference removeProjectReference
-	// (DELETE /api/v1/spaces/{spaceId}/projects/{id}/references/{itemId})
-	RemoveProjectReference(w http.ResponseWriter, r *http.Request, spaceId string, id string, itemId string, params RemoveProjectReferenceParams)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -3279,6 +3332,65 @@ func (siw *ServerInterfaceWrapper) GetAttendanceRecord(w http.ResponseWriter, r 
 	handler.ServeHTTP(w, r)
 }
 
+// ListGroups operation middleware
+func (siw *ServerInterfaceWrapper) ListGroups(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListGroupsParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListGroups(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetGroup operation middleware
+func (siw *ServerInterfaceWrapper) GetGroup(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetGroup(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListJournals operation middleware
 func (siw *ServerInterfaceWrapper) ListJournals(w http.ResponseWriter, r *http.Request) {
 
@@ -3288,15 +3400,15 @@ func (siw *ServerInterfaceWrapper) ListJournals(w http.ResponseWriter, r *http.R
 	// Parameter object where we will unmarshal all parameters from the context
 	var params ListJournalsParams
 
-	// ------------- Optional query parameter "spaceId" -------------
+	// ------------- Optional query parameter "groupId" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "spaceId", r.URL.Query(), &params.SpaceId, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "groupId", r.URL.Query(), &params.GroupId, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
 	if err != nil {
 		var requiredError *runtime.RequiredParameterError
 		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "spaceId"})
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "groupId"})
 		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupId", Err: err})
 		}
 		return
 	}
@@ -3428,6 +3540,709 @@ func (siw *ServerInterfaceWrapper) GetMiniAppConfig(w http.ResponseWriter, r *ht
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetMiniAppConfig(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListOwnerProjects operation middleware
+func (siw *ServerInterfaceWrapper) ListOwnerProjects(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "ownerId" -------------
+	var ownerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ownerId", r.PathValue("ownerId"), &ownerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ownerId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListOwnerProjectsParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListOwnerProjects(w, r, ownerId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateOwnerProject operation middleware
+func (siw *ServerInterfaceWrapper) CreateOwnerProject(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "ownerId" -------------
+	var ownerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ownerId", r.PathValue("ownerId"), &ownerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ownerId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateOwnerProjectParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateOwnerProject(w, r, ownerId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetOwnerProject operation middleware
+func (siw *ServerInterfaceWrapper) GetOwnerProject(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "ownerId" -------------
+	var ownerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ownerId", r.PathValue("ownerId"), &ownerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ownerId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetOwnerProject(w, r, ownerId, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateOwnerProject operation middleware
+func (siw *ServerInterfaceWrapper) UpdateOwnerProject(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "ownerId" -------------
+	var ownerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ownerId", r.PathValue("ownerId"), &ownerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ownerId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateOwnerProjectParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateOwnerProject(w, r, ownerId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListOwnerProjectItems operation middleware
+func (siw *ServerInterfaceWrapper) ListOwnerProjectItems(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "ownerId" -------------
+	var ownerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ownerId", r.PathValue("ownerId"), &ownerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ownerId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListOwnerProjectItemsParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListOwnerProjectItems(w, r, ownerId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AddOwnerProjectItem operation middleware
+func (siw *ServerInterfaceWrapper) AddOwnerProjectItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "ownerId" -------------
+	var ownerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ownerId", r.PathValue("ownerId"), &ownerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ownerId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AddOwnerProjectItemParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AddOwnerProjectItem(w, r, ownerId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RemoveOwnerProjectItem operation middleware
+func (siw *ServerInterfaceWrapper) RemoveOwnerProjectItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "ownerId" -------------
+	var ownerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ownerId", r.PathValue("ownerId"), &ownerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ownerId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RemoveOwnerProjectItemParams
+
+	// ------------- Required query parameter "expectedVersion" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "expectedVersion", r.URL.Query(), &params.ExpectedVersion, runtime.BindQueryParameterOptions{Type: "integer", Format: "int64"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "expectedVersion"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "expectedVersion", Err: err})
+		}
+		return
+	}
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RemoveOwnerProjectItem(w, r, ownerId, id, itemId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListProjectReferences operation middleware
+func (siw *ServerInterfaceWrapper) ListProjectReferences(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "ownerId" -------------
+	var ownerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ownerId", r.PathValue("ownerId"), &ownerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ownerId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListProjectReferencesParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListProjectReferences(w, r, ownerId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AddProjectReference operation middleware
+func (siw *ServerInterfaceWrapper) AddProjectReference(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "ownerId" -------------
+	var ownerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ownerId", r.PathValue("ownerId"), &ownerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ownerId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AddProjectReferenceParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AddProjectReference(w, r, ownerId, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RemoveProjectReference operation middleware
+func (siw *ServerInterfaceWrapper) RemoveProjectReference(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "ownerId" -------------
+	var ownerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ownerId", r.PathValue("ownerId"), &ownerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ownerId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RemoveProjectReferenceParams
+
+	// ------------- Required query parameter "expectedVersion" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "expectedVersion", r.URL.Query(), &params.ExpectedVersion, runtime.BindQueryParameterOptions{Type: "integer", Format: "int64"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "expectedVersion"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "expectedVersion", Err: err})
+		}
+		return
+	}
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RemoveProjectReference(w, r, ownerId, id, itemId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListInspectionSubmissions operation middleware
+func (siw *ServerInterfaceWrapper) ListInspectionSubmissions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "ownerId" -------------
+	var ownerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ownerId", r.PathValue("ownerId"), &ownerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ownerId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListInspectionSubmissions(w, r, ownerId, id, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SubmitInspection operation middleware
+func (siw *ServerInterfaceWrapper) SubmitInspection(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "ownerId" -------------
+	var ownerId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "ownerId", r.PathValue("ownerId"), &ownerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ownerId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params SubmitInspectionParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-CSRF-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
+		var XCSRFToken string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
+			return
+		}
+
+		params.XCSRFToken = &XCSRFToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SubmitInspection(w, r, ownerId, id, itemId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -6069,656 +6884,6 @@ func (siw *ServerInterfaceWrapper) RefreshSession(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r)
 }
 
-// ListSpaces operation middleware
-func (siw *ServerInterfaceWrapper) ListSpaces(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-	_ = err
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ListSpacesParams
-
-	// ------------- Optional query parameter "cursor" -------------
-
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
-	if err != nil {
-		var requiredError *runtime.RequiredParameterError
-		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
-		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
-		}
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ListSpaces(w, r, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// GetSpace operation middleware
-func (siw *ServerInterfaceWrapper) GetSpace(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-	_ = err
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetSpace(w, r, id)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// ListSpaceProjects operation middleware
-func (siw *ServerInterfaceWrapper) ListSpaceProjects(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-	_ = err
-
-	// ------------- Path parameter "spaceId" -------------
-	var spaceId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ListSpaceProjectsParams
-
-	// ------------- Optional query parameter "cursor" -------------
-
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
-	if err != nil {
-		var requiredError *runtime.RequiredParameterError
-		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
-		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
-		}
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ListSpaceProjects(w, r, spaceId, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// CreateSpaceProject operation middleware
-func (siw *ServerInterfaceWrapper) CreateSpaceProject(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-	_ = err
-
-	// ------------- Path parameter "spaceId" -------------
-	var spaceId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params CreateSpaceProjectParams
-
-	headers := r.Header
-
-	// ------------- Required header parameter "Idempotency-Key" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
-		var IdempotencyKey string
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
-			return
-		}
-
-		params.IdempotencyKey = IdempotencyKey
-
-	} else {
-		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
-		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
-		return
-	}
-
-	// ------------- Optional header parameter "X-CSRF-Token" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
-		var XCSRFToken string
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
-			return
-		}
-
-		params.XCSRFToken = &XCSRFToken
-
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.CreateSpaceProject(w, r, spaceId, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// GetSpaceProject operation middleware
-func (siw *ServerInterfaceWrapper) GetSpaceProject(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-	_ = err
-
-	// ------------- Path parameter "spaceId" -------------
-	var spaceId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetSpaceProject(w, r, spaceId, id)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// UpdateSpaceProject operation middleware
-func (siw *ServerInterfaceWrapper) UpdateSpaceProject(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-	_ = err
-
-	// ------------- Path parameter "spaceId" -------------
-	var spaceId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params UpdateSpaceProjectParams
-
-	headers := r.Header
-
-	// ------------- Optional header parameter "X-CSRF-Token" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
-		var XCSRFToken string
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
-			return
-		}
-
-		params.XCSRFToken = &XCSRFToken
-
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UpdateSpaceProject(w, r, spaceId, id, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// ListSpaceProjectItems operation middleware
-func (siw *ServerInterfaceWrapper) ListSpaceProjectItems(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-	_ = err
-
-	// ------------- Path parameter "spaceId" -------------
-	var spaceId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ListSpaceProjectItemsParams
-
-	// ------------- Optional query parameter "cursor" -------------
-
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
-	if err != nil {
-		var requiredError *runtime.RequiredParameterError
-		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
-		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
-		}
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ListSpaceProjectItems(w, r, spaceId, id, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// AddSpaceProjectItem operation middleware
-func (siw *ServerInterfaceWrapper) AddSpaceProjectItem(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-	_ = err
-
-	// ------------- Path parameter "spaceId" -------------
-	var spaceId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params AddSpaceProjectItemParams
-
-	headers := r.Header
-
-	// ------------- Optional header parameter "X-CSRF-Token" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
-		var XCSRFToken string
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
-			return
-		}
-
-		params.XCSRFToken = &XCSRFToken
-
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AddSpaceProjectItem(w, r, spaceId, id, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// RemoveSpaceProjectItem operation middleware
-func (siw *ServerInterfaceWrapper) RemoveSpaceProjectItem(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-	_ = err
-
-	// ------------- Path parameter "spaceId" -------------
-	var spaceId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "itemId" -------------
-	var itemId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params RemoveSpaceProjectItemParams
-
-	// ------------- Required query parameter "expectedVersion" -------------
-
-	err = runtime.BindQueryParameterWithOptions("form", true, true, "expectedVersion", r.URL.Query(), &params.ExpectedVersion, runtime.BindQueryParameterOptions{Type: "integer", Format: "int64"})
-	if err != nil {
-		var requiredError *runtime.RequiredParameterError
-		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "expectedVersion"})
-		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "expectedVersion", Err: err})
-		}
-		return
-	}
-
-	headers := r.Header
-
-	// ------------- Optional header parameter "X-CSRF-Token" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
-		var XCSRFToken string
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
-			return
-		}
-
-		params.XCSRFToken = &XCSRFToken
-
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.RemoveSpaceProjectItem(w, r, spaceId, id, itemId, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// ListProjectReferences operation middleware
-func (siw *ServerInterfaceWrapper) ListProjectReferences(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-	_ = err
-
-	// ------------- Path parameter "spaceId" -------------
-	var spaceId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ListProjectReferencesParams
-
-	// ------------- Optional query parameter "cursor" -------------
-
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
-	if err != nil {
-		var requiredError *runtime.RequiredParameterError
-		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
-		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
-		}
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ListProjectReferences(w, r, spaceId, id, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// AddProjectReference operation middleware
-func (siw *ServerInterfaceWrapper) AddProjectReference(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-	_ = err
-
-	// ------------- Path parameter "spaceId" -------------
-	var spaceId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params AddProjectReferenceParams
-
-	headers := r.Header
-
-	// ------------- Optional header parameter "X-CSRF-Token" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
-		var XCSRFToken string
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
-			return
-		}
-
-		params.XCSRFToken = &XCSRFToken
-
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AddProjectReference(w, r, spaceId, id, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// RemoveProjectReference operation middleware
-func (siw *ServerInterfaceWrapper) RemoveProjectReference(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-	_ = err
-
-	// ------------- Path parameter "spaceId" -------------
-	var spaceId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "spaceId", r.PathValue("spaceId"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "spaceId", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "itemId" -------------
-	var itemId string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params RemoveProjectReferenceParams
-
-	// ------------- Required query parameter "expectedVersion" -------------
-
-	err = runtime.BindQueryParameterWithOptions("form", true, true, "expectedVersion", r.URL.Query(), &params.ExpectedVersion, runtime.BindQueryParameterOptions{Type: "integer", Format: "int64"})
-	if err != nil {
-		var requiredError *runtime.RequiredParameterError
-		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "expectedVersion"})
-		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "expectedVersion", Err: err})
-		}
-		return
-	}
-
-	headers := r.Header
-
-	// ------------- Optional header parameter "X-CSRF-Token" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-CSRF-Token")]; found {
-		var XCSRFToken string
-		n := len(valueList)
-		if n != 1 {
-			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CSRF-Token", Count: n})
-			return
-		}
-
-		err = runtime.BindStyledParameterWithOptions("simple", "X-CSRF-Token", valueList[0], &XCSRFToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
-		if err != nil {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CSRF-Token", Err: err})
-			return
-		}
-
-		params.XCSRFToken = &XCSRFToken
-
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.RemoveProjectReference(w, r, spaceId, id, itemId, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -6890,15 +7055,15 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/projects/{id}/items", wrapper.AddProjectItem)
 	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/projects/{id}/items/{itemId}", wrapper.RemoveProjectItem)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/statistics", wrapper.GetRepositoryStatistics)
-	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/spaces", wrapper.ListSpaces)
-	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/spaces/{id}", wrapper.GetSpace)
-	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects", wrapper.ListSpaceProjects)
-	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects", wrapper.CreateSpaceProject)
-	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}", wrapper.GetSpaceProject)
-	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}", wrapper.UpdateSpaceProject)
-	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}/items", wrapper.ListSpaceProjectItems)
-	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}/items", wrapper.AddSpaceProjectItem)
-	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}/items/{itemId}", wrapper.RemoveSpaceProjectItem)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/groups", wrapper.ListGroups)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/groups/{id}", wrapper.GetGroup)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/owners/{ownerId}/projects", wrapper.ListOwnerProjects)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/owners/{ownerId}/projects", wrapper.CreateOwnerProject)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/owners/{ownerId}/projects/{id}", wrapper.GetOwnerProject)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/owners/{ownerId}/projects/{id}", wrapper.UpdateOwnerProject)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/owners/{ownerId}/projects/{id}/items", wrapper.ListOwnerProjectItems)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/owners/{ownerId}/projects/{id}/items", wrapper.AddOwnerProjectItem)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/owners/{ownerId}/projects/{id}/items/{itemId}", wrapper.RemoveOwnerProjectItem)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/objects", wrapper.ListObjects)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/objects", wrapper.CreateObject)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/objects/{id}", wrapper.GetObject)
@@ -6914,15 +7079,17 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects", wrapper.CreateSubobject)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}", wrapper.GetSubobject)
 	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}", wrapper.UpdateSubobject)
-	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}/references", wrapper.ListProjectReferences)
-	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}/references", wrapper.AddProjectReference)
-	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/spaces/{spaceId}/projects/{id}/references/{itemId}", wrapper.RemoveProjectReference)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/owners/{ownerId}/projects/{id}/references", wrapper.ListProjectReferences)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/owners/{ownerId}/projects/{id}/references", wrapper.AddProjectReference)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}", wrapper.RemoveProjectReference)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/spaces", wrapper.ListRepositorySpaces)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/spaces", wrapper.CreateRepositorySpace)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/repositories/{repositoryId}/spaces/{id}", wrapper.GetRepositorySpace)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/journals", wrapper.ListJournals)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/journals", wrapper.CreateJournal)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/journals/{journalId}", wrapper.GetJournal)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions", wrapper.ListInspectionSubmissions)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions", wrapper.SubmitInspection)
 
 	return m
 }
@@ -6932,201 +7099,209 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"fYIzMQ96r3uHva8fv/7/AQA=",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

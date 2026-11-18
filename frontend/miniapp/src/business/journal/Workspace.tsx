@@ -30,9 +30,9 @@ function Composer({request,group,saved}:{request:Request;group:string;saved:()=>
     const controller=new AbortController(), options={signal:controller.signal};
     Promise.all([
       collect(cursor=>request((c,signal)=>c.GET("/api/v1/repositories",{signal,params:{query:{cursor:cursor||undefined}}}),options)),
-      collect(cursor=>request((c,signal)=>c.GET("/api/v1/spaces/{spaceId}/projects",{signal,params:{path:{spaceId:group},query:{cursor:cursor||undefined}}}),options))
+      collect(cursor=>request((c,signal)=>c.GET("/api/v1/owners/{ownerId}/projects",{signal,params:{path:{ownerId:group},query:{cursor:cursor||undefined}}}),options))
     ]).then(([repos,projects])=>{
-      if(!controller.signal.aborted)setTargets([...repos.filter(r=>r.groupId===group).map(r=>({type:"repository" as const,id:r.id,name:r.name})),...projects.map(p=>({type:"project" as const,id:p.id,name:p.title}))]);
+      if(!controller.signal.aborted)setTargets([...repos.filter(r=>r.ownerId===group).map(r=>({type:"repository" as const,id:r.id,name:r.name})),...projects.map(p=>({type:"project" as const,id:p.id,name:p.title}))]);
     }).catch(e=>{if(!controller.signal.aborted)setNotice("關聯清單無法載入："+errorMessage(e));});
     return ()=>controller.abort();
   },[group,request]);
@@ -41,7 +41,7 @@ function Composer({request,group,saved}:{request:Request;group:string;saved:()=>
     const form=new FormData(event.currentTarget),get=(k:string)=>String(form.get(k)??"").trim();
     const people=(k:string)=>get(k).split(/[、，,\n]/).map(s=>s.trim()).filter(Boolean);
     const row=(id:string)=>{const t=targets.find(t=>t.type+t.id===get(id+"ref"));return {name:get(id+"name"),reference:t?{type:t.type,id:t.id}:undefined};};
-    const body:Draft={spaceId:group,workDate:get("date"), personnel:{management:people("management"),control:people("control"),workers:people("workers")},
+    const body:Draft={groupId:group,workDate:get("date"), personnel:{management:people("management"),control:people("control"),workers:people("workers")},
       todayItems:today.map(id=>({...row(id),completionPercent:Number(get(id+"percent"))})),
       tomorrowItems:tomorrow.map(id=>({...row(id),expectedCompletionPercent:Number(get(id+"percent"))}))};
     if(!today.length&&!tomorrow.length){setError("請新增至少一項工作。");return;}
@@ -73,7 +73,7 @@ function View({dashboard,request}:{dashboard:boolean;request:Request}){
   useEffect(()=>{setDetail(dashboard?"":new URLSearchParams(location.search).get("journalId")||"");setReady(true);},[dashboard]);
   useEffect(()=>{
     const controller=new AbortController();setGroupError("");
-    collect(cursor=>request((c,s)=>c.GET("/api/v1/spaces",{signal:s,params:{query:{cursor:cursor||undefined}}}),{signal:controller.signal}))
+    collect(cursor=>request((c,s)=>c.GET("/api/v1/groups",{signal:s,params:{query:{cursor:cursor||undefined}}}),{signal:controller.signal}))
       .then(gs=>{if(!controller.signal.aborted)setGroups(gs);}).catch(e=>{if(!controller.signal.aborted)setGroupError(errorMessage(e));});
     return ()=>controller.abort();
   },[request,revision]);
@@ -81,7 +81,7 @@ function View({dashboard,request}:{dashboard:boolean;request:Request}){
     setBusy(true);setError("");setCursor("");if(!next)setEntries([]);
     void list.run(async signal=>{
       if(detail){const entry=await request((c,s)=>c.GET("/api/v1/journals/{journalId}",{signal:s,params:{path:{journalId:detail}}}),{signal});return {items:[entry],nextCursor:""};}
-      return request((c,s)=>c.GET("/api/v1/journals",{signal:s,params:{query:{spaceId:group||undefined,workDate:dashboard?date||undefined:undefined,cursor:next||undefined}}}),{signal});
+      return request((c,s)=>c.GET("/api/v1/journals",{signal:s,params:{query:{groupId:group||undefined,workDate:dashboard?date||undefined:undefined,cursor:next||undefined}}}),{signal});
     },page=>{setEntries(old=>next?[...old,...page.items]:page.items);setCursor(page.nextCursor);setBusy(false);},e=>{setEntries([]);setBusy(false);setError(errorMessage(e));});
   }
   useEffect(()=>{if(ready)load();return list.cancel;},[group,date,revision,detail,dashboard,ready,request]);
@@ -94,10 +94,10 @@ function View({dashboard,request}:{dashboard:boolean;request:Request}){
   </PagePanel>
   {writing&&<Composer key={group} request={request} group={group} saved={()=>{setWriting(false);reload(n=>n+1);}}/>}
   {busy&&<p role="status">正在讀取日誌……</p>}{!busy&&!error&&!entries.length&&<p>目前條件下沒有日誌。</p>}
-  {entries.map(j=><PagePanel key={j.id} heading={j.workDate+" · "+(groups.find(g=>g.id===j.spaceId)?.name||"群組日誌")}>
+  {entries.map(j=><PagePanel key={j.id} heading={j.workDate+" · "+(groups.find(g=>g.id===j.groupId)?.name||"群組日誌")}>
     {Object.entries(roles).map(([key,label])=><p key={key}>{label}：{j.personnel[key as keyof typeof roles].join("、")||"未填"}</p>)}
     {([["今日工作",j.todayItems],["明日計畫",j.tomorrowItems]] as const).map(([title,items])=><section key={title}><h3>{title}</h3>{items.length?<ul>{items.map((i,k)=><li key={k}>{i.name} · {"completionPercent" in i?i.completionPercent:i.expectedCompletionPercent}%
-      {i.reference&&<a href={i.reference.type==="repository"?"/miniapp/repositories?selected="+i.reference.id:"/miniapp/projects?space="+j.spaceId+"&project="+i.reference.id}> · {i.reference.type==="repository"?"儲存庫":"專案"}</a>}</li>)}</ul>:<p>未填</p>}</section>)}
+      {i.reference&&<a href={i.reference.type==="repository"?"/miniapp/repositories?selected="+i.reference.id:"/miniapp/projects?owner="+j.groupId+"&project="+i.reference.id}> · {i.reference.type==="repository"?"儲存庫":"專案"}</a>}</li>)}</ul>:<p>未填</p>}</section>)}
     {!detail&&<a href={"/miniapp/feed?journalId="+j.id}>查看原文</a>}
   </PagePanel>)}
   {cursor&&<Button disabled={busy} onClick={()=>load(cursor)}>載入更多</Button>}</>;

@@ -23,7 +23,7 @@ func journalURL(appURL string) string {
 	return u.String()
 }
 
-func repositoryURL(appURL string, group bool, ids ...string) string {
+func RepositoryURL(appURL string, group bool, ids ...string) string {
 	if group && (len(ids) != 1 || !regexp.MustCompile(`^[a-f0-9]{32}$`).MatchString(ids[0])) {
 		return ""
 	}
@@ -80,7 +80,7 @@ func Help(group bool, appURL, desktopURL string, repositoryIDs ...string) messag
 	} else {
 		buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.PostbackAction{Label: "出勤紀錄", Data: "action=attendance-history"}})
 	}
-	if link := repositoryURL(appURL, group, repositoryIDs...); link != "" {
+	if link := RepositoryURL(appURL, group, repositoryIDs...); link != "" {
 		buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.UriAction{Label: "空間", Uri: link}})
 	}
 	if appURL != "" {
@@ -122,7 +122,7 @@ func QuickMenu(group bool, appURL string, repositoryIDs ...string) messaging_api
 	} else {
 		add("出勤紀錄", "出勤紀錄")
 	}
-	if link := repositoryURL(appURL, group, repositoryIDs...); link != "" {
+	if link := RepositoryURL(appURL, group, repositoryIDs...); link != "" {
 		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.UriAction{Label: "空間", Uri: link}})
 	}
 	if appURL != "" {

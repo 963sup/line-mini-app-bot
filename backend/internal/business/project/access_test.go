@@ -6,20 +6,20 @@ import (
 	"strings"
 	"testing"
 
+	sp "github.com/963sup/line-mini-app-bot/internal/business/group"
 	p "github.com/963sup/line-mini-app-bot/internal/business/project"
-	sp "github.com/963sup/line-mini-app-bot/internal/business/space"
 )
 
-type spaces struct{ denied bool }
+type groups struct{ denied bool }
 
-func (s *spaces) Get(_ context.Context, a, id string) (sp.Space, error) {
+func (s *groups) Get(_ context.Context, a, id string) (sp.Group, error) {
 	if s.denied || a == "outsider" {
-		return sp.Space{}, sp.ErrNotFound
+		return sp.Group{}, sp.ErrNotFound
 	}
-	return sp.Space{ID: id, GroupID: id, Status: "ACTIVE"}, nil
+	return sp.Group{ID: id, GroupID: id, Status: "ACTIVE"}, nil
 }
 
-func (s *spaces) LegacyGet(ctx context.Context, a, id string) (sp.Space, error) {
+func (s *groups) LegacyGet(ctx context.Context, a, id string) (sp.Group, error) {
 	return s.Get(ctx, a, id)
 }
 
@@ -32,7 +32,7 @@ func (s *sources) Authorize(_ context.Context, a, id, owner string) (p.Source, e
 	if s.denied || a == "outsider" || owner != "" && owner != s.space {
 		return p.Source{}, p.ErrNotFound
 	}
-	return p.Source{ID: id, GroupID: s.space}, nil
+	return p.Source{ID: id, OwnerID: s.space}, nil
 }
 
 type store struct {
@@ -45,7 +45,7 @@ func (s *store) List(context.Context, p.Scope, string, string) (p.Page, error) {
 }
 func (s *store) Get(context.Context, p.Scope, string) (p.Project, error) { return s.item, nil }
 func (s *store) Create(_ context.Context, r p.Scope, a, k string, c p.Content) (p.Project, error) {
-	s.item = p.Project{ID: strings.Repeat("2", 32), SpaceID: r.GroupID, SourceRepositoryID: c.SourceRepositoryID, CreatorID: a, Title: c.Title, Body: c.Body, Version: 1}
+	s.item = p.Project{ID: strings.Repeat("2", 32), OwnerID: r.OwnerID, DefaultRepositoryID: c.SourceRepositoryID, CreatorID: a, Title: c.Title, Body: c.Body, Version: 1}
 	return s.item, nil
 }
 
@@ -65,17 +65,17 @@ func (s *store) ChangeItem(context.Context, p.Scope, string, string, string, boo
 	return s.item, nil
 }
 func (s *store) Progress(context.Context, p.Scope, *p.Project) error { s.progress++; return nil }
-func TestSpaceOwnedMetadataIndependentSource(t *testing.T) {
+func TestGroupProjectMetadataSurvivesSourceDenial(t *testing.T) {
 	ctx := context.Background()
 	gid := "C" + strings.Repeat("1", 32)
 	rid := strings.Repeat("3", 32)
 	pid := strings.Repeat("2", 32)
-	ss := &spaces{}
+	ss := &groups{}
 	src := &sources{space: gid}
-	st := &store{item: p.Project{ID: pid, SpaceID: gid, SourceRepositoryID: rid, CreatorID: "owner", Title: "own metadata", Version: 1}}
-	svc := &p.Service{Spaces: ss, Sources: src, Store: st}
+	st := &store{item: p.Project{ID: pid, OwnerID: gid, DefaultRepositoryID: rid, CreatorID: "owner", Title: "own metadata", Version: 1}}
+	svc := &p.Service{Groups: ss, Sources: src, Store: st}
 	if _, err := svc.Create(ctx, "owner", "C"+strings.Repeat("5", 32), "cross-space-key-0001", p.Content{Title: "must reject foreign source", SourceRepositoryID: rid}); !errors.Is(err, p.ErrNotFound) {
-		t.Fatalf("Space membership must not authorize another Space source: %v", err)
+		t.Fatalf("Group membership must not authorize another Group source: %v", err)
 	}
 	src.denied = true
 	got, e := svc.Get(ctx, "owner", gid, pid)
@@ -84,7 +84,7 @@ func TestSpaceOwnedMetadataIndependentSource(t *testing.T) {
 	}
 	page, e := svc.List(ctx, "owner", gid, "")
 	if e != nil || len(page.Items) != 1 || page.Items[0].SourceAvailable {
-		t.Fatalf("Space list must remain own metadata: %+v %v", page, e)
+		t.Fatalf("Group list must remain own metadata: %+v %v", page, e)
 	}
 	if _, e = svc.ListItems(ctx, "owner", gid, pid, ""); !errors.Is(e, p.ErrNotFound) {
 		t.Fatalf("source item read must deny after source revoke: %v", e)
@@ -102,10 +102,10 @@ func TestSpaceOwnedMetadataIndependentSource(t *testing.T) {
 	ss.denied = true
 	src.denied = false
 	if _, e = svc.List(ctx, "owner", gid, ""); !errors.Is(e, p.ErrNotFound) {
-		t.Fatalf("canonical must deny Space revoke: %v", e)
+		t.Fatalf("canonical must deny Group revoke: %v", e)
 	}
 	if _, e = svc.List(ctx, "owner", rid, ""); !errors.Is(e, p.ErrNotFound) {
-		t.Fatalf("legacy cannot bypass Space revoke using source auth: %v", e)
+		t.Fatalf("legacy cannot bypass Group revoke using source auth: %v", e)
 	}
 }
 
@@ -125,8 +125,8 @@ func TestSourceHydrationFailurePreservesCanonicalMetadata(t *testing.T) {
 	hydration := errors.Join(p.ErrSourceUnavailable, p.ErrUnavailable)
 	for _, operation := range []string{"get", "list", "update"} {
 		t.Run(operation, func(t *testing.T) {
-			st := &progressFailureStore{store: store{item: p.Project{ID: pid, SpaceID: gid, SourceRepositoryID: rid, CreatorID: "owner", Title: "owned metadata", Version: 1}}, failure: hydration}
-			svc := &p.Service{Spaces: &spaces{}, Sources: &sources{space: gid}, Store: st}
+			st := &progressFailureStore{store: store{item: p.Project{ID: pid, OwnerID: gid, DefaultRepositoryID: rid, CreatorID: "owner", Title: "owned metadata", Version: 1}}, failure: hydration}
+			svc := &p.Service{Groups: &groups{}, Sources: &sources{space: gid}, Store: st}
 			var got p.Project
 			var err error
 			switch operation {
@@ -147,8 +147,8 @@ func TestSourceHydrationFailurePreservesCanonicalMetadata(t *testing.T) {
 			}
 		})
 	}
-	st := &progressFailureStore{store: store{item: p.Project{ID: pid, SpaceID: gid, SourceRepositoryID: rid, CreatorID: "owner", Title: "before", Version: 1}}, failure: hydration}
-	svc := &p.Service{Spaces: &spaces{}, Sources: &sources{space: gid}, Store: st}
+	st := &progressFailureStore{store: store{item: p.Project{ID: pid, OwnerID: gid, DefaultRepositoryID: rid, CreatorID: "owner", Title: "before", Version: 1}}, failure: hydration}
+	svc := &p.Service{Groups: &groups{}, Sources: &sources{space: gid}, Store: st}
 	updated, err := svc.Update(ctx, "owner", gid, pid, p.Update{Content: p.Content{Title: "after"}, ExpectedVersion: 1})
 	if err != nil || updated.Version != 2 || st.item.Title != "after" || updated.SourceAvailable {
 		t.Fatalf("committed own metadata update reported failure: %+v %v", updated, err)
@@ -158,15 +158,15 @@ func TestSourceHydrationFailurePreservesCanonicalMetadata(t *testing.T) {
 func TestOwnStorageCancellationAndLegacyHydrationStillFail(t *testing.T) {
 	gid, rid, pid := "C"+strings.Repeat("1", 32), strings.Repeat("3", 32), strings.Repeat("2", 32)
 	for _, failure := range []error{p.ErrUnavailable, p.ErrNotFound, context.Canceled, context.DeadlineExceeded, errors.Join(p.ErrSourceUnavailable, context.Canceled), errors.Join(p.ErrSourceUnavailable, context.DeadlineExceeded)} {
-		st := &progressFailureStore{store: store{item: p.Project{ID: pid, SpaceID: gid, SourceRepositoryID: rid, Title: "own", Version: 1}}, failure: failure}
-		svc := &p.Service{Spaces: &spaces{}, Sources: &sources{space: gid}, Store: st}
+		st := &progressFailureStore{store: store{item: p.Project{ID: pid, OwnerID: gid, DefaultRepositoryID: rid, Title: "own", Version: 1}}, failure: failure}
+		svc := &p.Service{Groups: &groups{}, Sources: &sources{space: gid}, Store: st}
 		if _, err := svc.Get(context.Background(), "owner", gid, pid); !errors.Is(err, failure) {
 			t.Fatalf("own storage or cancellation error swallowed: %v => %v", failure, err)
 		}
 	}
 	failure := errors.Join(p.ErrSourceUnavailable, p.ErrUnavailable)
-	st := &progressFailureStore{store: store{item: p.Project{ID: pid, SpaceID: gid, SourceRepositoryID: rid, Title: "legacy", Version: 1}}, failure: failure}
-	svc := &p.Service{Spaces: &spaces{}, Sources: &sources{space: gid}, Store: st}
+	st := &progressFailureStore{store: store{item: p.Project{ID: pid, OwnerID: gid, DefaultRepositoryID: rid, Title: "legacy", Version: 1}}, failure: failure}
+	svc := &p.Service{Groups: &groups{}, Sources: &sources{space: gid}, Store: st}
 	if _, err := svc.Get(context.Background(), "owner", rid, pid); !errors.Is(err, failure) {
 		t.Fatalf("legacy source failure swallowed: %v", err)
 	}
@@ -180,17 +180,35 @@ func (s *store) ChangeReference(context.Context, p.Scope, string, string, p.Refe
 	return p.Project{}, nil
 }
 
-func TestLegacyProjectScopeUsesGroupIDWithoutChangingPublicSpaceID(t *testing.T) {
+func TestLegacyProjectScopeUsesGroupIDWithoutChangingPublicGroupID(t *testing.T) {
 	gid := "C" + strings.Repeat("1", 32)
 	rid := strings.Repeat("3", 32)
 	for _, route := range []string{gid, rid} {
 		t.Run(route, func(t *testing.T) {
 			st := &store{}
-			svc := &p.Service{Spaces: &spaces{}, Sources: &sources{space: gid}, Store: st}
+			svc := &p.Service{Groups: &groups{}, Sources: &sources{space: gid}, Store: st}
 			got, err := svc.Create(context.Background(), "owner", route, "group-context-key-0001", p.Content{Title: "project", SourceRepositoryID: rid})
-			if err != nil || got.SpaceID != gid || got.SourceRepositoryID != rid {
-				t.Fatalf("legacy public SpaceID must remain GroupID, got %+v, %v", got, err)
+			if err != nil || got.OwnerID != gid || got.DefaultRepositoryID != rid {
+				t.Fatalf("legacy public GroupID must remain GroupID, got %+v, %v", got, err)
 			}
 		})
+	}
+}
+
+func (s *store) Inspections(context.Context, p.Scope, string, string, string) ([]p.InspectionSubmission, error) {
+	return nil, nil
+}
+
+func TestPersonalProjectOwner(t *testing.T) {
+	owner := "U" + strings.Repeat("a", 32)
+	other := "U" + strings.Repeat("b", 32)
+	svc := &p.Service{Groups: &groups{denied: true}, Sources: &sources{space: owner}, Store: &store{}}
+	ctx := context.Background()
+	project, err := svc.Create(ctx, owner, owner, "personal-project-0001", p.Content{Title: "個人專案", SourceRepositoryID: strings.Repeat("c", 32)})
+	if err != nil || project.OwnerID != owner {
+		t.Fatalf("create personal project: %+v %v", project, err)
+	}
+	if _, err = svc.Get(ctx, other, owner, project.ID); !errors.Is(err, p.ErrNotFound) {
+		t.Fatalf("foreign personal owner: %v", err)
 	}
 }

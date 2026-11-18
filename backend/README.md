@@ -1,6 +1,6 @@
 # Go 後端
 
-Space及Project各自保存核心、用例與adapters。Project不依賴Repository核心模型作父容器，只透過使用端定義的來源讀取port查事項；Space成員及來源資格分開核驗。現行邊界與遷移見 [獨立Project](../docs/features/project/projects.md)。
+工程群組及Project各自保存核心、用例與adapters。Project不依賴Repository核心模型作父容器，只透過使用端定義的來源讀取port查事項；工程群組成員及來源資格分開核驗。現行邊界與遷移見 [獨立Project](../docs/features/project/projects.md)。
 
 來源Issue hydration故障與Project自有資料錯誤的隔離、回歸及架構度量見[第二輪收斂證據](../docs/reports/2026-11-13/architecture-convergence-pass2-20261113.md)。
 

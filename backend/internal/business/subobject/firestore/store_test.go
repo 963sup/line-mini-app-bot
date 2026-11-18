@@ -51,8 +51,8 @@ func setup(t *testing.T) (context.Context, *Store, *feature.Service, repository.
 	}
 	t.Cleanup(func() { _ = client.Close() })
 	store := &Store{Client: client, ChannelID: "subobject-tests"}
-	r := repository.Repository{ID: strings.Repeat("a", 32), GroupID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
-	if _, e = store.repository(r.ID).Set(ctx, map[string]any{"id": r.ID, "groupId": r.GroupID, "status": r.Status}); e != nil {
+	r := repository.Repository{ID: strings.Repeat("a", 32), OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
+	if _, e = store.repository(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": r.Status}); e != nil {
 		t.Fatal(e)
 	}
 	objects := &object.Service{Repositories: repos{r}, Store: &objectdb.Store{Client: client, ChannelID: store.ChannelID}}

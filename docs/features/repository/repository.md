@@ -1,14 +1,18 @@
 # 群組 Repository
 
+Project 和 Repository 各自保存一個 `ownerId`。LINE UserID（U）以登入本人核驗，GroupID（C）以當下群組成員資格核驗。Project 可連結多個 Repository，每筆來源引用各自授權。Space 隸屬 Repository。
+
 Space 與 Project 的新邊界見 [獨立 Project](../project/projects.md)：Space 使用 channel 內可信群組ID，Project由Space擁有，Repository只作問題來源。下方既有Repository身份與群組綁定保持相容；歷史「空間」用語不代表Project仍由Repository聚合擁有。
 
 ## 範圍與資料
 
-每個 LINE 群組一個 Bot 管理的空間，具有獨立 `id` 與唯一 `groupId`。
+每個 LINE 群組一個 Bot 管理的空間，具有獨立 `id` 與 `ownerId`。
 不建立人類擁有者、角色、手動建立、換綁或刪除能力。Bot 管理容器不授予使用者審核或讀取他人出勤的權限。
 
-資料位於 `channels/{channelId}/repositories/{id}`，保存 id、groupId、name、status、version、createdAt、updatedAt；內部另存最後事件時間及 ID。
-`repositoryGroupBindings/{groupId}` 與容器在同一交易建立；ID 隨機產生，重送與併發沿用既有群組綁定。
+已驗簽的 LINE follow 事件用 UserID 建立個人庫，並寫入本人候選清單。`repositoryOwnerBindings/{ownerId}` 使事件重送沿用同一庫。
+
+資料位於 `channels/{channelId}/repositories/{id}`，保存 id、ownerId、name、status、version、createdAt、updatedAt；內部另存最後事件時間及 ID。
+`repositoryOwnerBindings/{ownerId}` 與容器在同一交易建立；ID 隨機產生，重送與併發沿用既有群組綁定。
 ACTIVE / INACTIVE 表示 Bot 群組入口狀態。離開保留資料，再加入沿用 ID。舊事件不得覆寫新狀態；同時間停用優先。版本只在公開狀態或名稱改變時遞增。
 名稱是加入或首次互動時取得的群組名稱快照，查詢失敗時允許空白，後續事件會重試補齊；UI 顯示「群組空間」。不宣稱即時同步群組更名。
 
@@ -71,7 +75,7 @@ MINI App 與 Messaging API 使用者識別須在相同 LINE provider 下對應�
 
 LINE「選單 → 請選擇功能」與功能說明提供「空間」URI 入口，以既有 LIFF URL 加 `repositories=1`，首頁解析一般 query 或 liff.state 後導向空間頁。
 
-群組空間入口由可信 groupId 查得 Repository ID，連結帶 `repositories=1&repository=<id>`。一般 query 與 liff.state 均保留目標 ID；專用入口只查詳情，重新載入仍查同一 ID，失敗不退回列表。私訊入口維持本人列表。後端仍依目標容器 groupId 即時核驗成員；連結不是授權憑證，修改 ID 不授予其他群組權限。
+群組空間入口由可信 groupId 查得 Repository ID，連結帶 `repositories=1&repository=<id>`。一般 query 與 liff.state 均保留目標 ID；專用入口只查詳情，重新載入仍查同一 ID，失敗不退回列表。私訊入口維持本人列表。個人庫比對本人，群組庫以 ownerId 即時核驗成員；連結不是授權憑證，修改 ID 不授予其他群組權限。
 
 群組專用入口本機驗證：以實際 Go 靜態頁路由、受控 LINE SDK／API 回應檢查一般 query、liff.state 與 404 情境；三者均只請求指定 Repository 詳情，重新載入不切換到列表，390px 無水平溢出。這不取代 LINE 裝置驗收。
 

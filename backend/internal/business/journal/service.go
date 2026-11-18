@@ -25,7 +25,7 @@ type (
 type (
 	Personnel struct{ Management, Control, Workers []string }
 	Draft     struct {
-		SpaceID         string
+		GroupID         string
 		WorkDate        time.Time
 		Personnel       Personnel
 		Today, Tomorrow []Work
@@ -38,7 +38,7 @@ type Entry struct {
 	CreatedAt     time.Time
 }
 type (
-	Filter struct{ SpaceID, WorkDate, Cursor string }
+	Filter struct{ GroupID, WorkDate, Cursor string }
 	Page   struct {
 		Items      []Entry
 		NextCursor string

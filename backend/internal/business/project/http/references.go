@@ -52,6 +52,9 @@ func (s *projectServer) AddProjectReference(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	ref := feature.Reference{SourceType: string(input.SourceType), SourceID: input.SourceId}
+	if input.SourceRepositoryId != nil {
+		ref.SourceRepositoryID = *input.SourceRepositoryId
+	}
 	if input.ParentObjectId != nil {
 		ref.ParentObjectID = *input.ParentObjectId
 	}

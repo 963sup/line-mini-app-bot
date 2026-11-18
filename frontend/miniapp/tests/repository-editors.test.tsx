@@ -19,7 +19,7 @@ async function fixture(handle: (request: Request) => Promise<Response | undefine
     const path = new URL(request.url).pathname;
     if (path.endsWith("/config")) return Response.json({liffId:"test"});
     if (path.endsWith("/session")) return Response.json({user:{userId:"A",displayName:"A"},csrfToken:"c".repeat(43),expiresAt:new Date(Date.now()+1800000).toISOString()});
-    if (path === `/api/v1/repositories/${rid}`) return Response.json({id:rid,groupId:"C"+rid,name:"測試儲存庫",status:"ACTIVE",version:1});
+    if (path === `/api/v1/repositories/${rid}`) return Response.json({id:rid,ownerId:"C"+rid,name:"測試儲存庫",status:"ACTIVE",version:1});
     const response = await handle(request);
     if (response) return response;
     if (path.endsWith(id)) return Response.json(item());

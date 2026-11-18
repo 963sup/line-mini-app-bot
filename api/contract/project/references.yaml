@@ -1,6 +1,6 @@
 {
   "paths": {
-    "/api/v1/spaces/{spaceId}/projects/{id}/references": {
+    "/api/v1/owners/{ownerId}/projects/{id}/references": {
       "get": {
         "operationId": "listProjectReferences",
         "summary": "listProjectReferences",
@@ -15,11 +15,11 @@
         "parameters": [
           {
             "in": "path",
-            "name": "spaceId",
+            "name": "ownerId",
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^C[a-f0-9]{32}$"
+              "pattern": "^[UC][a-f0-9]{32}$"
             }
           },
           {
@@ -88,11 +88,11 @@
         "parameters": [
           {
             "in": "path",
-            "name": "spaceId",
+            "name": "ownerId",
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^C[a-f0-9]{32}$"
+              "pattern": "^[UC][a-f0-9]{32}$"
             }
           },
           {
@@ -157,7 +157,7 @@
         }
       }
     },
-    "/api/v1/spaces/{spaceId}/projects/{id}/references/{itemId}": {
+    "/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}": {
       "delete": {
         "operationId": "removeProjectReference",
         "summary": "removeProjectReference",
@@ -172,11 +172,11 @@
         "parameters": [
           {
             "in": "path",
-            "name": "spaceId",
+            "name": "ownerId",
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^C[a-f0-9]{32}$"
+              "pattern": "^[UC][a-f0-9]{32}$"
             }
           },
           {
@@ -365,6 +365,10 @@
             "format": "int64",
             "minimum": 1,
             "maximum": 9007199254740991
+          },
+          "sourceRepositoryId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
           }
         },
         "description": "Reference only within the Project source repository. Subobject requires its parentObjectId. Duplicate source identity is a no-op after current authorization, including retries of an unknown successful add."

@@ -13,10 +13,10 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
+	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
 	"github.com/963sup/line-mini-app-bot/internal/business/journal"
 	"github.com/963sup/line-mini-app-bot/internal/business/project"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
-	"github.com/963sup/line-mini-app-bot/internal/business/space"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -24,7 +24,7 @@ import (
 type Store struct {
 	Client       *db.Client
 	Channel      string
-	Spaces       *space.Service
+	Groups       *groupdomain.Service
 	Repositories *repository.Service
 	Projects     *project.Service
 }
@@ -33,7 +33,7 @@ type record struct {
 	Order   string `firestore:"order"`
 }
 type receipt struct {
-	Space string `firestore:"spaceId"`
+	Group string `firestore:"groupId"`
 	Hash  string `firestore:"hash"`
 }
 
@@ -44,14 +44,14 @@ func (s *Store) entries(group string) *db.CollectionRef {
 }
 
 func missing(e error) error {
-	if status.Code(e) == codes.NotFound || errors.Is(e, space.ErrNotFound) || errors.Is(e, repository.ErrNotFound) || errors.Is(e, project.ErrNotFound) {
+	if status.Code(e) == codes.NotFound || errors.Is(e, groupdomain.ErrNotFound) || errors.Is(e, repository.ErrNotFound) || errors.Is(e, project.ErrNotFound) {
 		return journal.ErrNotFound
 	}
 	return e
 }
 
 func (s *Store) group(ctx context.Context, actor, group string) error {
-	_, e := s.Spaces.Get(ctx, actor, group)
+	_, e := s.Groups.Get(ctx, actor, group)
 	return missing(e)
 }
 
@@ -62,7 +62,7 @@ func (s *Store) reference(ctx context.Context, actor, group string, r journal.Re
 		if e != nil {
 			return missing(e)
 		}
-		if item.GroupID == group {
+		if item.OwnerID == group {
 			return nil
 		}
 	case "project":
@@ -70,7 +70,7 @@ func (s *Store) reference(ctx context.Context, actor, group string, r journal.Re
 		if e != nil {
 			return missing(e)
 		}
-		if item.SpaceID == group {
+		if item.OwnerID == group {
 			return nil
 		}
 	}
@@ -86,7 +86,7 @@ func (s *Store) checkRefs(ctx context.Context, actor string, d journal.Draft, re
 			}
 			e, ok := cache[*r]
 			if !ok {
-				e = s.reference(ctx, actor, d.SpaceID, *r)
+				e = s.reference(ctx, actor, d.GroupID, *r)
 				cache[*r] = e
 			}
 			if redact && errors.Is(e, journal.ErrNotFound) {
@@ -102,7 +102,7 @@ func (s *Store) checkRefs(ctx context.Context, actor string, d journal.Draft, re
 }
 
 func (s *Store) Create(ctx context.Context, actor, key string, d journal.Draft) (journal.Entry, error) {
-	if e := s.group(ctx, actor, d.SpaceID); e != nil {
+	if e := s.group(ctx, actor, d.GroupID); e != nil {
 		return journal.Entry{}, e
 	}
 	if e := s.checkRefs(ctx, actor, d, false, map[journal.Reference]error{}); e != nil {
@@ -113,14 +113,14 @@ func (s *Store) Create(ctx context.Context, actor, key string, d journal.Draft) 
 	if e != nil {
 		return journal.Entry{}, e
 	}
-	claim := receipt{Space: d.SpaceID, Hash: digest(body)}
+	claim := receipt{Group: d.GroupID, Hash: digest(body)}
 	entry := journal.Entry{Draft: d, ID: id, CreatorID: actor, CreatedAt: time.Now().UTC().Truncate(time.Microsecond)}
 	payload, e := json.Marshal(entry)
 	if e != nil {
 		return journal.Entry{}, e
 	}
 	order := d.WorkDate.Format(time.DateOnly) + "/" + entry.CreatedAt.Format("20060102T150405.000000Z") + "/" + id
-	target := s.entries(d.SpaceID).Doc(id)
+	target := s.entries(d.GroupID).Doc(id)
 	locator := s.root().Collection("journalReceipts").Doc(id)
 	e = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		prev, e := tx.Get(locator)
@@ -169,10 +169,10 @@ func (s *Store) Get(ctx context.Context, actor, id string) (journal.Entry, error
 	if e = locator.DataTo(&r); e != nil {
 		return journal.Entry{}, e
 	}
-	if e = s.group(ctx, actor, r.Space); e != nil {
+	if e = s.group(ctx, actor, r.Group); e != nil {
 		return journal.Entry{}, e
 	}
-	snap, e := s.entries(r.Space).Doc(id).Get(ctx)
+	snap, e := s.entries(r.Group).Doc(id).Get(ctx)
 	if e != nil {
 		return journal.Entry{}, missing(e)
 	}
@@ -185,7 +185,7 @@ func (s *Store) Get(ctx context.Context, actor, id string) (journal.Entry, error
 
 func (s *Store) List(ctx context.Context, actor string, f journal.Filter) (journal.Page, error) {
 	const size = 20
-	scope := digest([]byte(actor+"\x00"+f.SpaceID+"\x00"+f.WorkDate)) + "/"
+	scope := digest([]byte(actor+"\x00"+f.GroupID+"\x00"+f.WorkDate)) + "/"
 	after := ""
 	if f.Cursor != "" {
 		raw, e := base64.RawURLEncoding.DecodeString(f.Cursor)
@@ -195,15 +195,15 @@ func (s *Store) List(ctx context.Context, actor string, f journal.Filter) (journ
 		after = strings.TrimPrefix(string(raw), scope)
 	}
 	groups := []string{}
-	if f.SpaceID != "" {
-		if e := s.group(ctx, actor, f.SpaceID); e != nil {
+	if f.GroupID != "" {
+		if e := s.group(ctx, actor, f.GroupID); e != nil {
 			return journal.Page{}, e
 		}
-		groups = append(groups, f.SpaceID)
+		groups = append(groups, f.GroupID)
 	} else {
 		cursor := ""
 		for {
-			p, e := s.Spaces.List(ctx, actor, cursor)
+			p, e := s.Groups.List(ctx, actor, cursor)
 			if e != nil {
 				return journal.Page{}, e
 			}
@@ -252,7 +252,7 @@ func (s *Store) List(ctx context.Context, actor string, f journal.Filter) (journ
 	}
 	caches := map[string]map[journal.Reference]error{}
 	for _, r := range rows {
-		g := r.item.SpaceID
+		g := r.item.GroupID
 		if caches[g] == nil {
 			caches[g] = map[journal.Reference]error{}
 		}

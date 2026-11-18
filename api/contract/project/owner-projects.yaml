@@ -1,9 +1,9 @@
 {
   "paths": {
-    "/api/v1/spaces/{spaceId}/projects": {
+    "/api/v1/owners/{ownerId}/projects": {
       "get": {
-        "operationId": "listSpaceProjects",
-        "summary": "Space-owned Project; source Repository only supplies authorized read references",
+        "operationId": "listOwnerProjects",
+        "summary": "Owner-scoped Project; source Repository only supplies authorized read references",
         "security": [
           {
             "bearerAuth": []
@@ -15,11 +15,11 @@
         "parameters": [
           {
             "in": "path",
-            "name": "spaceId",
+            "name": "ownerId",
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^C[a-f0-9]{32}$"
+              "pattern": "^[UC][a-f0-9]{32}$"
             }
           },
           {
@@ -66,8 +66,8 @@
         }
       },
       "post": {
-        "operationId": "createSpaceProject",
-        "summary": "Space-owned Project; source Repository only supplies authorized read references",
+        "operationId": "createOwnerProject",
+        "summary": "Owner-scoped Project; source Repository only supplies authorized read references",
         "security": [
           {
             "bearerAuth": []
@@ -79,11 +79,11 @@
         "parameters": [
           {
             "in": "path",
-            "name": "spaceId",
+            "name": "ownerId",
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^C[a-f0-9]{32}$"
+              "pattern": "^[UC][a-f0-9]{32}$"
             }
           },
           {
@@ -143,17 +143,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SpaceProjectCreation"
+                "$ref": "#/components/schemas/OwnerProjectCreation"
               }
             }
           }
         }
       }
     },
-    "/api/v1/spaces/{spaceId}/projects/{id}": {
+    "/api/v1/owners/{ownerId}/projects/{id}": {
       "get": {
-        "operationId": "getSpaceProject",
-        "summary": "Space-owned Project; source Repository only supplies authorized read references",
+        "operationId": "getOwnerProject",
+        "summary": "Owner-scoped Project; source Repository only supplies authorized read references",
         "security": [
           {
             "bearerAuth": []
@@ -165,11 +165,11 @@
         "parameters": [
           {
             "in": "path",
-            "name": "spaceId",
+            "name": "ownerId",
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^C[a-f0-9]{32}$"
+              "pattern": "^[UC][a-f0-9]{32}$"
             }
           },
           {
@@ -217,8 +217,8 @@
         }
       },
       "patch": {
-        "operationId": "updateSpaceProject",
-        "summary": "Space-owned Project; source Repository only supplies authorized read references",
+        "operationId": "updateOwnerProject",
+        "summary": "Owner-scoped Project; source Repository only supplies authorized read references",
         "security": [
           {
             "bearerAuth": []
@@ -230,11 +230,11 @@
         "parameters": [
           {
             "in": "path",
-            "name": "spaceId",
+            "name": "ownerId",
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^C[a-f0-9]{32}$"
+              "pattern": "^[UC][a-f0-9]{32}$"
             }
           },
           {
@@ -300,10 +300,10 @@
         }
       }
     },
-    "/api/v1/spaces/{spaceId}/projects/{id}/items": {
+    "/api/v1/owners/{ownerId}/projects/{id}/items": {
       "get": {
-        "operationId": "listSpaceProjectItems",
-        "summary": "Space-owned Project; source Repository only supplies authorized read references",
+        "operationId": "listOwnerProjectItems",
+        "summary": "Owner-scoped Project; source Repository only supplies authorized read references",
         "security": [
           {
             "bearerAuth": []
@@ -315,11 +315,11 @@
         "parameters": [
           {
             "in": "path",
-            "name": "spaceId",
+            "name": "ownerId",
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^C[a-f0-9]{32}$"
+              "pattern": "^[UC][a-f0-9]{32}$"
             }
           },
           {
@@ -375,8 +375,8 @@
         }
       },
       "post": {
-        "operationId": "addSpaceProjectItem",
-        "summary": "Space-owned Project; source Repository only supplies authorized read references",
+        "operationId": "addOwnerProjectItem",
+        "summary": "Owner-scoped Project; source Repository only supplies authorized read references",
         "security": [
           {
             "bearerAuth": []
@@ -388,11 +388,11 @@
         "parameters": [
           {
             "in": "path",
-            "name": "spaceId",
+            "name": "ownerId",
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^C[a-f0-9]{32}$"
+              "pattern": "^[UC][a-f0-9]{32}$"
             }
           },
           {
@@ -457,10 +457,10 @@
         }
       }
     },
-    "/api/v1/spaces/{spaceId}/projects/{id}/items/{itemId}": {
+    "/api/v1/owners/{ownerId}/projects/{id}/items/{itemId}": {
       "delete": {
-        "operationId": "removeSpaceProjectItem",
-        "summary": "Space-owned Project; source Repository only supplies authorized read references",
+        "operationId": "removeOwnerProjectItem",
+        "summary": "Owner-scoped Project; source Repository only supplies authorized read references",
         "security": [
           {
             "bearerAuth": []
@@ -472,11 +472,11 @@
         "parameters": [
           {
             "in": "path",
-            "name": "spaceId",
+            "name": "ownerId",
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^C[a-f0-9]{32}$"
+              "pattern": "^[UC][a-f0-9]{32}$"
             }
           },
           {
@@ -554,13 +554,13 @@
   },
   "components": {
     "schemas": {
-      "SpaceProjectCreation": {
+      "OwnerProjectCreation": {
         "type": "object",
         "additionalProperties": false,
         "required": [
           "title",
           "body",
-          "sourceRepositoryId"
+          "defaultRepositoryId"
         ],
         "properties": {
           "title": {
@@ -572,7 +572,7 @@
             "type": "string",
             "maxLength": 8000
           },
-          "sourceRepositoryId": {
+          "defaultRepositoryId": {
             "type": "string",
             "pattern": "^[a-f0-9]{32}$"
           }

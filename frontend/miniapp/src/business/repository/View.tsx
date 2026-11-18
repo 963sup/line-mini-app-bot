@@ -55,8 +55,8 @@ function Content() {
                 <dl className="grid gap-2 text-sm [&>dt]:font-medium [&>dd]:break-all [&>dd]:text-muted-foreground">
                   <dt>儲存庫 ID</dt>
                   <dd>{selected.id}</dd>
-                  <dt>群組 ID</dt>
-                  <dd>{selected.groupId}</dd>
+                  <dt>擁有者 ID</dt>
+                  <dd>{selected.ownerId}</dd>
                   <dt>狀態</dt>
                   <dd>{selected.status === "ACTIVE" ? "啟用" : "停用"}</dd>
                   <dt>版本</dt>
@@ -67,15 +67,15 @@ function Content() {
                   <dd>{displayTime(selected.updatedAt)}</dd>
                 </dl>
               </PagePanel>
-              <PagePanel heading="出勤與群組服務">
+              {selected.ownerId.startsWith("C") && <PagePanel heading="出勤與群組服務">
                 <a
                   className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
-                  href={"/miniapp/history?" + new URLSearchParams({ group: selected.groupId })}
+                  href={"/miniapp/history?" + new URLSearchParams({ group: selected.ownerId })}
                 >
                   查看本人出勤
                 </a>
                 <p className="text-sm leading-relaxed text-muted-foreground">摘要請回原群組操作。</p>
-              </PagePanel>
+              </PagePanel>}
             </div>
           ) : page === "物件" ? <Objects key={selected.id} repositoryId={selected.id} /> : page === "問題" ? <Issues key={selected.id} repositoryId={selected.id} /> : page === "討論" ? <Discussions key={selected.id} repositoryId={selected.id} /> : page === "里程碑" ? <Milestones key={selected.id} repositoryId={selected.id} /> : page === "標籤" ? <Labels key={selected.id} repositoryId={selected.id} /> : (
             <PagePanel heading={page}>

@@ -1,4 +1,4 @@
-// Package repository owns the Bot-managed, one-group work container.
+// Package repository owns Bot-managed user and group repositories.
 package repository
 
 import (
@@ -6,6 +6,8 @@ import (
 	"errors"
 	"regexp"
 	"time"
+
+	"github.com/963sup/line-mini-app-bot/internal/identity"
 )
 
 var (
@@ -16,11 +18,12 @@ var (
 	idPattern      = regexp.MustCompile(`^[0-9a-f]{32}$`)
 )
 
+func ValidOwner(id string) bool { return identity.ValidOwner(id) }
 func ValidGroup(id string) bool { return groupPattern.MatchString(id) }
 func ValidID(id string) bool    { return idPattern.MatchString(id) }
 
 type Repository struct {
-	ID, GroupID, Name, Status string
+	ID, OwnerID, Name, Status string
 	Version                   int64
 	CreatedAt, UpdatedAt      time.Time
 }
@@ -28,7 +31,7 @@ type Repository struct {
 // Observation is accepted only from the signature-verified webhook adapter.
 // Users are discovery candidates, never an authorization grant.
 type Observation struct {
-	GroupID, Name, Status, EventID string
+	OwnerID, Name, Status, EventID string
 	At                             time.Time
 	Users                          []string
 }
@@ -98,8 +101,14 @@ func (s *Service) allowed(ctx context.Context, user string, r Repository) (bool,
 	if r.Status != "ACTIVE" {
 		return false, nil
 	}
+	if !identity.ValidOwner(r.OwnerID) {
+		return false, nil
+	}
+	if r.OwnerID[0] == 'U' {
+		return r.OwnerID == user, nil
+	}
 	if s.Membership == nil {
 		return false, ErrUnavailable
 	}
-	return s.Membership.IsMember(ctx, r.GroupID, user)
+	return s.Membership.IsMember(ctx, r.OwnerID, user)
 }

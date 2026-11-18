@@ -42,8 +42,8 @@ func TestEmulatorSpaceReceiptsScopeAndPagination(t *testing.T) {
 		}
 	})
 	s := &Store{Client: c, ChannelID: "isolated-space-test"}
-	r := repository.Repository{ID: strings.Repeat("a", 32), GroupID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
-	if _, e = s.parent(r.ID).Set(ctx, map[string]any{"id": r.ID, "groupId": r.GroupID, "status": "ACTIVE"}); e != nil {
+	r := repository.Repository{ID: strings.Repeat("a", 32), OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
+	if _, e = s.parent(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": "ACTIVE"}); e != nil {
 		t.Fatal(e)
 	}
 	var wg sync.WaitGroup

@@ -130,27 +130,29 @@ func RegisterStatistics(public *http.ServeMux, handler StatisticsServer, wrap fu
 	public.Handle("GET /api/v1/repositories/{repositoryId}/statistics", routes)
 }
 
-func RegisterSpaces(public *http.ServeMux, handler SpaceServer) {
-	routes := routeHandler(contractServer{SpaceServer: handler})
-	public.Handle("GET /api/v1/spaces", routes)
-	public.Handle("GET /api/v1/spaces/{id}", routes)
+func RegisterGroups(public *http.ServeMux, handler GroupServer) {
+	routes := routeHandler(contractServer{GroupServer: handler})
+	public.Handle("GET /api/v1/groups", routes)
+	public.Handle("GET /api/v1/groups/{id}", routes)
 }
 
-func RegisterSpaceProjects(public *http.ServeMux, handler SpaceProjectServer, wrap func(http.Handler) http.Handler) {
-	routes := routeHandler(contractServer{SpaceProjectServer: handler})
+func RegisterOwnerProjects(public *http.ServeMux, handler OwnerProjectServer, wrap func(http.Handler) http.Handler) {
+	routes := routeHandler(contractServer{OwnerProjectServer: handler})
 	if wrap != nil {
 		routes = wrap(routes)
 	}
-	public.Handle("GET /api/v1/spaces/{spaceId}/projects", routes)
-	public.Handle("POST /api/v1/spaces/{spaceId}/projects", routes)
-	public.Handle("GET /api/v1/spaces/{spaceId}/projects/{id}", routes)
-	public.Handle("PATCH /api/v1/spaces/{spaceId}/projects/{id}", routes)
-	public.Handle("GET /api/v1/spaces/{spaceId}/projects/{id}/items", routes)
-	public.Handle("POST /api/v1/spaces/{spaceId}/projects/{id}/items", routes)
-	public.Handle("DELETE /api/v1/spaces/{spaceId}/projects/{id}/items/{itemId}", routes)
-	public.Handle("GET /api/v1/spaces/{spaceId}/projects/{id}/references", routes)
-	public.Handle("POST /api/v1/spaces/{spaceId}/projects/{id}/references", routes)
-	public.Handle("DELETE /api/v1/spaces/{spaceId}/projects/{id}/references/{itemId}", routes)
+	public.Handle("GET /api/v1/owners/{ownerId}/projects", routes)
+	public.Handle("POST /api/v1/owners/{ownerId}/projects", routes)
+	public.Handle("GET /api/v1/owners/{ownerId}/projects/{id}", routes)
+	public.Handle("PATCH /api/v1/owners/{ownerId}/projects/{id}", routes)
+	public.Handle("GET /api/v1/owners/{ownerId}/projects/{id}/items", routes)
+	public.Handle("POST /api/v1/owners/{ownerId}/projects/{id}/items", routes)
+	public.Handle("DELETE /api/v1/owners/{ownerId}/projects/{id}/items/{itemId}", routes)
+	public.Handle("GET /api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions", routes)
+	public.Handle("POST /api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions", routes)
+	public.Handle("GET /api/v1/owners/{ownerId}/projects/{id}/references", routes)
+	public.Handle("POST /api/v1/owners/{ownerId}/projects/{id}/references", routes)
+	public.Handle("DELETE /api/v1/owners/{ownerId}/projects/{id}/references/{itemId}", routes)
 }
 
 func RegisterObjects(public *http.ServeMux, handler ObjectServer, wrap func(http.Handler) http.Handler) {

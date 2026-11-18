@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/963sup/line-mini-app-bot/internal/identity"
+
 	db "cloud.google.com/go/firestore"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/project"
 
@@ -24,22 +26,29 @@ type (
 		ChannelID string
 	}
 	planningDocument struct {
-		SchemaVersion      int64     `firestore:"schemaVersion"`
-		ID                 string    `firestore:"id"`
-		RepositoryID       string    `firestore:"repositoryId"`
-		SpaceID            string    `firestore:"spaceId,omitempty"`
-		SourceRepositoryID string    `firestore:"sourceRepositoryId,omitempty"`
-		Title              string    `firestore:"title"`
-		Body               string    `firestore:"body"`
-		CreatorID          string    `firestore:"creatorId"`
-		Version            int64     `firestore:"version"`
-		CreatedAt          time.Time `firestore:"createdAt"`
-		UpdatedAt          time.Time `firestore:"updatedAt"`
+		SchemaVersion int64  `firestore:"schemaVersion"`
+		ID            string `firestore:"id"`
+
+		OwnerID             string    `firestore:"ownerId"`
+		DefaultRepositoryID string    `firestore:"defaultRepositoryId"`
+		Title               string    `firestore:"title"`
+		Body                string    `firestore:"body"`
+		CreatorID           string    `firestore:"creatorId"`
+		Version             int64     `firestore:"version"`
+		CreatedAt           time.Time `firestore:"createdAt"`
+		UpdatedAt           time.Time `firestore:"updatedAt"`
 	}
 )
 
 func planningEncode(i feature.Project) planningDocument {
-	return planningDocument{SchemaVersion: 1, ID: i.ID, RepositoryID: i.SourceRepositoryID, SpaceID: i.SpaceID, SourceRepositoryID: i.SourceRepositoryID, Title: i.Title, Body: i.Body, CreatorID: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
+	return planningDocument{SchemaVersion: 1, ID: i.ID, OwnerID: i.OwnerID, DefaultRepositoryID: i.DefaultRepositoryID, Title: i.Title, Body: i.Body, CreatorID: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
+}
+
+// Repository-scoped API callers additionally
+// restrict results to projects created with that default repository.
+func (d planningDocument) belongsTo(scope feature.Scope) bool {
+	return identity.ValidOwner(d.OwnerID) && d.OwnerID == scope.OwnerID && feature.ValidID(d.DefaultRepositoryID) &&
+		(!scope.Legacy || scope.SourceRepositoryID == "" || scope.SourceRepositoryID == d.DefaultRepositoryID)
 }
 
 func planningDecode(snap *db.DocumentSnapshot, err error, scope feature.Scope) (feature.Project, error) {
@@ -54,10 +63,10 @@ func planningDecode(snap *db.DocumentSnapshot, err error, scope feature.Scope) (
 		return feature.Project{}, e
 	}
 	c, e := feature.Normalize(feature.Content{Title: d.Title, Body: d.Body})
-	if e != nil || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !feature.ValidID(d.ID) || (scope.SourceRepositoryID != "" && d.RepositoryID != scope.SourceRepositoryID) || (d.SpaceID != "" && d.SpaceID != scope.GroupID) || (d.SourceRepositoryID != "" && d.SourceRepositoryID != d.RepositoryID) || c.Title != d.Title || c.Body != d.Body || d.CreatorID == "" || d.Version < 1 || d.Version > feature.MaxVersion || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) {
+	if e != nil || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !feature.ValidID(d.ID) || !d.belongsTo(scope) || c.Title != d.Title || c.Body != d.Body || d.CreatorID == "" || d.Version < 1 || d.Version > feature.MaxVersion || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) {
 		return feature.Project{}, feature.ErrUnavailable
 	}
-	return feature.Project{ID: d.ID, SourceRepositoryID: d.RepositoryID, SpaceID: scope.GroupID, Title: d.Title, Body: d.Body, CreatorID: d.CreatorID, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
+	return feature.Project{ID: d.ID, DefaultRepositoryID: d.DefaultRepositoryID, OwnerID: d.OwnerID, Title: d.Title, Body: d.Body, CreatorID: d.CreatorID, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
 }
 
 type planningFailure struct{ cause error }
@@ -82,105 +91,23 @@ func planningError(err error) error {
 	return &planningFailure{err}
 }
 
-func (s *Store) spaceParent(id string) *db.DocumentRef {
-	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("spaces").Doc(id)
+func (s *Store) ownerDoc(id string) *db.DocumentRef {
+	collection := "groups"
+	if identity.IsUserOwnerID(id) {
+		collection = "users"
+	}
+	return s.Client.Collection("channels").Doc(s.ChannelID).Collection(collection).Doc(id)
 }
 
-func (s *Store) legacyParent(id string) *db.DocumentRef {
+func (s *Store) repositoryRef(id string) *db.DocumentRef {
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("repositories").Doc(id)
-}
-
-func (s *Store) marker(id string) *db.DocumentRef {
-	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("projectStorage").Doc(id)
-}
-
-type routing struct {
-	SpaceID  string `firestore:"spaceId"`
-	Location string `firestore:"location"`
-	Locked   bool   `firestore:"locked"`
-}
-
-func (s *Store) readParent(ctx context.Context, r feature.Scope) (*db.DocumentRef, error) {
-	source := r.SourceRepositoryID
-	if source == "" {
-		rows, e := s.Client.Collection("channels").Doc(s.ChannelID).Collection("projectStorage").Where("spaceId", "==", r.GroupID).Limit(2).Documents(ctx).GetAll()
-		if e != nil {
-			return nil, e
-		}
-		if len(rows) == 0 {
-			return s.spaceParent(r.GroupID), nil
-		}
-		if len(rows) > 1 {
-			return nil, feature.ErrUnavailable
-		}
-		source = rows[0].Ref.ID
-	}
-	snap, e := s.marker(source).Get(ctx)
-	if status.Code(e) == codes.NotFound {
-		if r.Legacy {
-			return s.legacyParent(source), nil
-		}
-		return s.spaceParent(r.GroupID), nil
-	}
-	if e != nil {
-		return nil, e
-	}
-	var route routing
-	if e = snap.DataTo(&route); e != nil {
-		return nil, e
-	}
-	if route.Locked || route.SpaceID != r.GroupID {
-		return nil, feature.ErrUnavailable
-	}
-	if route.Location == "space" {
-		return s.spaceParent(r.GroupID), nil
-	}
-	if route.Location != "legacy" {
-		return nil, feature.ErrUnavailable
-	}
-	return s.legacyParent(source), nil
 }
 
 func (s *Store) planningReady() bool { return s != nil && s.Client != nil && s.ChannelID != "" }
 func (s *Store) planningContainer(tx *db.Transaction, r feature.Scope, parent *db.DocumentRef) error {
-	source := r.SourceRepositoryID
-	if source != "" {
-		snap, e := tx.Get(s.marker(source))
-		route := routing{SpaceID: r.GroupID, Location: "legacy"}
-		if e == nil {
-			if e = snap.DataTo(&route); e != nil {
-				return e
-			}
-		} else if status.Code(e) != codes.NotFound {
-			return e
-		}
-		if route.Locked || route.SpaceID != r.GroupID {
-			return feature.ErrUnavailable
-		}
-		expected := s.legacyParent(source)
-		if route.Location == "space" {
-			expected = s.spaceParent(r.GroupID)
-		} else if route.Location != "legacy" {
-			return feature.ErrUnavailable
-		}
-		if parent.Path != expected.Path {
-			return feature.ErrUnavailable
-		}
-	}
-	if !r.Legacy && parent.Path != s.spaceParent(r.GroupID).Path {
-		owner, e := tx.Get(s.spaceParent(r.GroupID))
-		if e != nil {
-			return e
-		}
-		var value struct {
-			ID, GroupID, Status string
-			Version             int64
-		}
-		if e = owner.DataTo(&value); e != nil {
-			return e
-		}
-		if value.ID != r.GroupID || value.GroupID != r.GroupID || value.Status != "ACTIVE" || value.Version < 1 {
-			return feature.ErrNotFound
+	if identity.IsUserOwnerID(r.OwnerID) {
+		if r.OwnerID != r.Actor {
+			return feature.ErrForbidden
 		}
 		return nil
 	}
@@ -201,93 +128,10 @@ func (s *Store) planningContainer(tx *db.Transaction, r feature.Scope, parent *d
 	if d.Status != "ACTIVE" || d.Version < 1 {
 		return feature.ErrNotFound
 	}
-	if parent.Path == s.spaceParent(r.GroupID).Path {
-		if d.ID != r.GroupID || d.GroupID != r.GroupID {
-			return feature.ErrNotFound
-		}
-	} else if d.ID != source || d.GroupID != r.GroupID {
+	if d.ID != r.OwnerID || d.GroupID != r.OwnerID {
 		return feature.ErrNotFound
-	} else {
-		owner, e := tx.Get(s.spaceParent(r.GroupID))
-		if e == nil {
-			var value struct {
-				ID, GroupID, Status string
-				Version             int64
-			}
-			if e = owner.DataTo(&value); e != nil {
-				return e
-			}
-			if value.ID != r.GroupID || value.GroupID != r.GroupID || value.Status != "ACTIVE" || value.Version < 1 {
-				return feature.ErrNotFound
-			}
-		} else if status.Code(e) != codes.NotFound {
-			return e
-		}
 	}
 	return nil
-}
-
-// A fresh source is claimed atomically only when no legacy projects or receipts exist.
-func (s *Store) prepareSource(ctx context.Context, r feature.Scope) error {
-	return s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
-		snap, e := tx.Get(s.marker(r.SourceRepositoryID))
-		if e == nil {
-			var v routing
-			if e = snap.DataTo(&v); e != nil {
-				return e
-			}
-			if v.Locked || v.SpaceID != r.GroupID {
-				return feature.ErrUnavailable
-			}
-			if v.Location == "legacy" && r.Legacy {
-				return nil
-			}
-			if v.Location != "space" {
-				return feature.ErrUnavailable
-			}
-			return nil
-		}
-		if status.Code(e) != codes.NotFound {
-			return e
-		}
-		owner, ownerErr := tx.Get(s.spaceParent(r.GroupID))
-		if status.Code(ownerErr) == codes.NotFound && r.Legacy {
-			return nil
-		}
-		if ownerErr != nil {
-			return ownerErr
-		}
-		var ownerState struct {
-			ID, GroupID, Status string
-			Version             int64
-		}
-		if e := owner.DataTo(&ownerState); e != nil {
-			return e
-		}
-		if ownerState.ID != r.GroupID || ownerState.GroupID != r.GroupID || ownerState.Status != "ACTIVE" || ownerState.Version < 1 {
-			return feature.ErrNotFound
-		}
-		for _, kind := range []string{"projects", "projectsCreationReceipts"} {
-			docs, e := tx.Documents(s.legacyParent(r.SourceRepositoryID).Collection(kind).Limit(1)).GetAll()
-			if e != nil {
-				return e
-			}
-			if len(docs) > 0 {
-				if r.Legacy {
-					return nil
-				}
-				return feature.ErrUnavailable
-			}
-		}
-		return tx.Create(s.marker(r.SourceRepositoryID), map[string]any{"spaceId": r.GroupID, "location": "space", "locked": false})
-	})
-}
-
-func (s *Store) receipt(parent *db.DocumentRef, r feature.Scope, actor, key string) *db.DocumentRef {
-	if parent.Path == s.spaceParent(r.GroupID).Path {
-		return parent.Collection("projectCreationScopes").Doc(r.SourceRepositoryID).Collection("receipts").Doc(planningHash([]string{actor, key}))
-	}
-	return parent.Collection("projectsCreationReceipts").Doc(planningHash([]string{actor, key}))
 }
 
 func planningHash(v any) string {
@@ -315,53 +159,23 @@ func planningNext(scope any, id string) string {
 	return base64.RawURLEncoding.EncodeToString(b)
 }
 
-func (s *Store) visible(ctx context.Context, r feature.Scope, p feature.Project, parent *db.DocumentRef) error {
-	if r.Legacy {
-		return nil
-	}
-	snap, e := s.marker(p.SourceRepositoryID).Get(ctx)
-	if status.Code(e) == codes.NotFound {
-		return feature.ErrNotFound
-	}
-	if e != nil {
-		return e
-	}
-	var route routing
-	if e = snap.DataTo(&route); e != nil {
-		return e
-	}
-	if route.Locked || route.SpaceID != r.GroupID {
-		return feature.ErrUnavailable
-	}
-	if route.Location == "legacy" {
-		if parent.Path == s.legacyParent(p.SourceRepositoryID).Path {
-			return nil
-		}
-		return feature.ErrNotFound
-	}
-	if route.Location != "space" {
-		return feature.ErrUnavailable
-	}
-	return nil
-}
-
 func (s *Store) Get(ctx context.Context, r feature.Scope, id string) (result feature.Project, err error) {
 	defer func() { err = planningError(err) }()
 	if !s.planningReady() {
 		return result, feature.ErrUnavailable
 	}
-	parent, e := s.readParent(ctx, r)
-	if e != nil {
-		return result, e
-	}
+	parent := s.ownerDoc(r.OwnerID)
 	snap, e := parent.Collection("projects").Doc(id).Get(ctx)
-	decodeScope := r
-	if parent.Path != s.spaceParent(r.GroupID).Path {
-		decodeScope.SourceRepositoryID = parent.ID
-	}
-	result, err = planningDecode(snap, e, decodeScope)
+	result, err = planningDecode(snap, e, r)
 	if err == nil {
-		err = s.visible(ctx, r, result, parent)
+		links, e := snap.Ref.Collection("linkedRepositories").DocumentRefs(ctx).GetAll()
+		if e != nil {
+			return result, e
+		}
+		result.LinkedRepositoryIDs = make([]string, 0, len(links))
+		for _, link := range links {
+			result.LinkedRepositoryIDs = append(result.LinkedRepositoryIDs, link.ID)
+		}
 	}
 
 	return
@@ -373,11 +187,8 @@ func (s *Store) List(ctx context.Context, r feature.Scope, actor, token string) 
 	if !s.planningReady() {
 		return result, feature.ErrUnavailable
 	}
-	parent, e := s.readParent(ctx, r)
-	if e != nil {
-		return result, e
-	}
-	scope := []string{s.ChannelID, r.GroupID, actor}
+	parent := s.ownerDoc(r.OwnerID)
+	scope := []string{s.ChannelID, r.OwnerID, actor}
 	if r.Legacy {
 		scope[1] = r.SourceRepositoryID
 	}
@@ -395,22 +206,12 @@ func (s *Store) List(ctx context.Context, r feature.Scope, actor, token string) 
 	}
 	for _, snap := range snaps {
 		decodeScope := r
-		if parent.Path == s.spaceParent(r.GroupID).Path {
-			decodeScope.SourceRepositoryID = ""
-		} else {
-			decodeScope.SourceRepositoryID = parent.ID
-		}
+		decodeScope.SourceRepositoryID = ""
 		i, e := planningDecode(snap, nil, decodeScope)
 		if e != nil {
 			return feature.Page{}, e
 		}
-		if e := s.visible(ctx, r, i, parent); e != nil {
-			if errors.Is(e, feature.ErrNotFound) {
-				continue
-			}
-			return feature.Page{}, e
-		}
-		if r.Legacy && i.SourceRepositoryID != r.SourceRepositoryID {
+		if r.Legacy && i.DefaultRepositoryID != r.SourceRepositoryID {
 			continue
 		}
 		result.Items = append(result.Items, i)
@@ -443,16 +244,13 @@ func (s *Store) Create(ctx context.Context, r feature.Scope, actor, key string, 
 		Title   string `json:"title"`
 		Body    string `json:"body"`
 	}{1, c.Title, c.Body})
-	if e := s.prepareSource(ctx, r); e != nil {
-		return result, e
-	}
-	parent, e := s.readParent(ctx, r)
-	if e != nil {
-		return result, e
-	}
-	receipt := s.receipt(parent, r, actor, key)
+	parent := s.ownerDoc(r.OwnerID)
+	receipt := parent.Collection("projectCreationScopes").Doc(r.SourceRepositoryID).Collection("receipts").Doc(planningHash([]string{actor, key}))
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		if e := s.planningContainer(tx, r, parent); e != nil {
+			return e
+		}
+		if e := s.checkSourceRepository(tx, feature.Source{ID: r.SourceRepositoryID, OwnerID: r.OwnerID}); e != nil {
 			return e
 		}
 		snap, e := tx.Get(receipt)
@@ -473,8 +271,11 @@ func (s *Store) Create(ctx context.Context, r feature.Scope, actor, key string, 
 		if status.Code(e) != codes.NotFound {
 			return e
 		}
-		i := feature.Project{ID: id, SourceRepositoryID: r.SourceRepositoryID, SpaceID: r.GroupID, Title: c.Title, Body: c.Body, CreatorID: actor, Version: 1, CreatedAt: now, UpdatedAt: now}
+		i := feature.Project{ID: id, DefaultRepositoryID: r.SourceRepositoryID, OwnerID: r.OwnerID, Title: c.Title, Body: c.Body, CreatorID: actor, Version: 1, CreatedAt: now, UpdatedAt: now}
 		if e := tx.Create(parent.Collection("projects").Doc(id), planningEncode(i)); e != nil {
+			return e
+		}
+		if e := tx.Create(parent.Collection("projects").Doc(id).Collection("linkedRepositories").Doc(r.SourceRepositoryID), map[string]string{"repositoryId": r.SourceRepositoryID}); e != nil {
 			return e
 		}
 		return tx.Create(receipt, planningReceipt{id, payload, 1})
@@ -516,12 +317,9 @@ func (s *Store) Update(ctx context.Context, r feature.Scope, actor, id string, i
 		if e != nil {
 			return result, e
 		}
-		r.SourceRepositoryID = value.SourceRepositoryID
+		r.SourceRepositoryID = value.DefaultRepositoryID
 	}
-	parent, e := s.readParent(ctx, r)
-	if e != nil {
-		return result, e
-	}
+	parent := s.ownerDoc(r.OwnerID)
 	ref := parent.Collection("projects").Doc(id)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		if e := s.planningContainer(tx, r, parent); e != nil {
@@ -535,6 +333,42 @@ func (s *Store) Update(ctx context.Context, r feature.Scope, actor, id string, i
 		updated, e := feature.ApplyUpdate(current, actor, input)
 		if e != nil {
 			return e
+		}
+		linkID, add := input.LinkRepositoryID, true
+		if linkID == "" {
+			linkID, add = input.UnlinkRepositoryID, false
+		}
+		if linkID != "" {
+			link := ref.Collection("linkedRepositories").Doc(linkID)
+			_, err := tx.Get(link)
+			exists := err == nil
+			if err != nil && status.Code(err) != codes.NotFound {
+				return err
+			}
+			if exists != add {
+				if current.Version >= feature.MaxVersion {
+					return feature.ErrConflict
+				}
+				if add {
+					repo, err := tx.Get(s.repositoryRef(linkID))
+					if err != nil {
+						return err
+					}
+					var src struct{ ID, OwnerID, Status string }
+					if err = repo.DataTo(&src); err != nil {
+						return err
+					}
+					if src.ID != linkID || src.OwnerID != r.SelectedSource.OwnerID || src.Status != "ACTIVE" {
+						return feature.ErrForbidden
+					}
+					if err := tx.Create(link, map[string]string{"repositoryId": linkID}); err != nil {
+						return err
+					}
+				} else if err := tx.Delete(link); err != nil {
+					return err
+				}
+				updated.Version = current.Version + 1
+			}
 		}
 		return s.planningWrite(tx, ref, current, updated, actor, "update")
 	})

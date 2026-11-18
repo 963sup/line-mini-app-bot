@@ -65,13 +65,13 @@ func (s *Store) checkThread(tx *db.Transaction, scope repository.Repository, id 
 	}
 	var container struct {
 		ID      string `firestore:"id"`
-		GroupID string `firestore:"groupId"`
+		OwnerID string `firestore:"ownerId"`
 		Status  string `firestore:"status"`
 	}
 	if err := snap.DataTo(&container); err != nil {
 		return err
 	}
-	if container.ID != scope.ID || container.GroupID != scope.GroupID || container.Status != "ACTIVE" {
+	if container.ID != scope.ID || container.OwnerID != scope.OwnerID || container.Status != "ACTIVE" {
 		return discussion.ErrNotFound
 	}
 	snap, err = tx.Get(s.topic(scope, id))

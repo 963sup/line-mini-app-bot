@@ -18,6 +18,8 @@ import (
 	attendanceline "github.com/963sup/line-mini-app-bot/internal/business/attendance/line"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/presentation"
 	discussionhttp "github.com/963sup/line-mini-app-bot/internal/business/discussion/http"
+	grouphttp "github.com/963sup/line-mini-app-bot/internal/business/group/http"
+	groupline "github.com/963sup/line-mini-app-bot/internal/business/group/line"
 	issuehttp "github.com/963sup/line-mini-app-bot/internal/business/issue/http"
 	objecthttp "github.com/963sup/line-mini-app-bot/internal/business/object/http"
 	objectimporthttp "github.com/963sup/line-mini-app-bot/internal/business/objectimport/http"
@@ -26,10 +28,8 @@ import (
 	labelhttp "github.com/963sup/line-mini-app-bot/internal/business/repository/labels/http"
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/line"
 	milestonehttp "github.com/963sup/line-mini-app-bot/internal/business/repository/milestones/http"
-	businessspacehttp "github.com/963sup/line-mini-app-bot/internal/business/repository/space/http"
+	businessgrouphttp "github.com/963sup/line-mini-app-bot/internal/business/repository/space/http"
 	statisticshttp "github.com/963sup/line-mini-app-bot/internal/business/repository/statistics/http"
-	spacehttp "github.com/963sup/line-mini-app-bot/internal/business/space/http"
-	spaceline "github.com/963sup/line-mini-app-bot/internal/business/space/line"
 	subobjecthttp "github.com/963sup/line-mini-app-bot/internal/business/subobject/http"
 	"github.com/963sup/line-mini-app-bot/internal/diagnostics/geolocation"
 	identityhttp "github.com/963sup/line-mini-app-bot/internal/identity/http"
@@ -94,21 +94,21 @@ func Run() (resultErr error) {
 		return err
 	}
 	defer func() { resultErr = errors.Join(resultErr, closeRepositories()) }()
-	spaces, closeSpaces, err := newSpaces(context.Background())
+	groups, closeGroups, err := newGroups(context.Background())
 	if err != nil {
 		return err
 	}
-	defer func() { resultErr = errors.Join(resultErr, closeSpaces()) }()
-	projects := newProjects(spaces, repositories)
-	journalhttp.Register(mux, newJournals(spaces, repositories, projects), auth)
-	spacehttp.Register(mux, spaces, auth)
+	defer func() { resultErr = errors.Join(resultErr, closeGroups()) }()
+	projects := newProjects(groups, repositories)
+	journalhttp.Register(mux, newJournals(groups, repositories, projects), auth)
+	grouphttp.Register(mux, groups, auth)
 	repositoryhttp.Register(mux, repositories, auth)
 	labelhttp.Register(mux, newLabels(repositories), auth)
 	milestonehttp.Register(mux, newMilestones(repositories), auth)
 	projecthttp.Register(mux, projects, auth)
 	statisticshttp.Register(mux, newStatistics(repositories), auth)
 	issuehttp.Register(mux, newIssues(repositories), auth)
-	businessspacehttp.Register(mux, newRepositorySpaces(repositories), auth)
+	businessgrouphttp.Register(mux, newRepositorySpaces(repositories), auth)
 	objecthttp.Register(mux, newObjects(repositories), auth)
 	subobjecthttp.Register(mux, newSubobjects(repositories), auth)
 	objectimporthttp.RegisterAutomatic(mux, newObjectImports(repositories), auth, newAutomaticObjectImports(repositories), newObjectParser(repositories))
@@ -117,11 +117,11 @@ func Run() (resultErr error) {
 	if repositories != nil {
 		repositoryObserver = &repositoryline.Observer{Store: repositories.Store}
 	}
-	var spaceObserver *spaceline.Observer
-	if spaces != nil {
-		spaceObserver = &spaceline.Observer{Store: spaces.Store}
+	var groupObserver *groupline.Observer
+	if groups != nil {
+		groupObserver = &groupline.Observer{Store: groups.Store}
 	}
-	groupLookup, err = registerLINE(mux, appURL, punches, summaries, repositoryObserver, spaceObserver)
+	groupLookup, err = registerLINE(mux, appURL, punches, summaries, repositoryObserver, groupObserver, repositories)
 	if err != nil {
 		return err
 	}

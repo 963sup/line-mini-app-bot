@@ -15,9 +15,9 @@ import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/em
 import { Item, ItemGroup, ItemContent, ItemTitle } from "@/shared/ui/item";
 
 type Project = components["schemas"]["Project"];
-type Creation = components["schemas"]["SpaceProjectCreation"];
+type Creation = components["schemas"]["OwnerProjectCreation"];
 
-export function View({ spaceId, projectId, initialSource, onSelect, onBlocked, canWrite }: { spaceId: string; projectId: string; initialSource: string; onSelect: (id: string) => void; onBlocked: (value: boolean) => void; canWrite: () => boolean }) {
+export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, canWrite }: { ownerId: string; projectId: string; initialSource: string; onSelect: (id: string) => void; onBlocked: (value: boolean) => void; canWrite: () => boolean }) {
   const { user, request } = useSession();
   const { run: readRun, cancel: cancelRead } = useLatestRequest();
   const detailRequest = useLatestRequest(), write = useLatestRequest();
@@ -52,8 +52,8 @@ export function View({ spaceId, projectId, initialSource, onSelect, onBlocked, c
     if (!nextCursor) setItems([]);
     setListStatus("正在讀取專案……");
     void readRun(
-      (signal) => request((client, s) => client.GET("/api/v1/spaces/{spaceId}/projects", {
-        signal: s, params: { path: { spaceId }, query: { cursor: nextCursor || undefined } },
+      (signal) => request((client, s) => client.GET("/api/v1/owners/{ownerId}/projects", {
+        signal: s, params: { path: { ownerId }, query: { cursor: nextCursor || undefined } },
       }), { signal }),
       (page) => {
         setItems((previous) => [...new Map([...(nextCursor ? previous : []), ...page.items].map((item) => [item.id, item])).values()]);
@@ -62,7 +62,7 @@ export function View({ spaceId, projectId, initialSource, onSelect, onBlocked, c
       },
       (error) => { setItems([]); setListBusy(false); setLoaded(false); setListStatus(errorMessage(error)); },
     );
-  }, [user, request, spaceId, readRun]);
+  }, [user, request, ownerId, readRun]);
   useEffect(() => { load(); return cancelRead; }, [load, cancelRead]);
 
   const show = useCallback((item: Project) => {
@@ -74,11 +74,11 @@ export function View({ spaceId, projectId, initialSource, onSelect, onBlocked, c
     navigation.current = true;
     setSelected(null); setMode("detail"); setDetailBusy(true); setStatus("正在核驗並讀取專案……");
     void detailRequest.run(
-      (signal) => request((client, s) => client.GET("/api/v1/spaces/{spaceId}/projects/{id}", { signal: s, params: { path: { spaceId, id } } }), { signal }),
+      (signal) => request((client, s) => client.GET("/api/v1/owners/{ownerId}/projects/{id}", { signal: s, params: { path: { ownerId, id } } }), { signal }),
       (item) => { show(item); setDetailBusy(false); setStatus("已讀取專案。"); },
       (error) => { setDetailBusy(false); setStatus(errorMessage(error)); },
     );
-  }, [user, request, spaceId, detailRequest.run, show, canWrite]);
+  }, [user, request, ownerId, detailRequest.run, show, canWrite]);
   useEffect(() => {
     detailRequest.cancel(); write.cancel(); lock.current = false; block(false);
     setBusy(false); setDetailBusy(false); setSelected(null); setMode(null); setUncertain(false); setNeedsRefresh(false); setStatus(""); attempt.current = null;
@@ -100,15 +100,15 @@ export function View({ spaceId, projectId, initialSource, onSelect, onBlocked, c
     event.preventDefault();
     if (!user || lock.current || referenceLock.current || navigation.current || needsRefresh || !canWrite()) return;
     if (mode === "detail") { if (selected) save(); return; }
-    const content = { title: title.trim(), body: body.trim(), sourceRepositoryId };
+    const content = { title: title.trim(), body: body.trim(), defaultRepositoryId: sourceRepositoryId };
     if (!content.title || !sourceRepositoryId) { setStatus("請填寫專案標題並選擇來源儲存庫。"); return; }
     if (!uncertain || !attempt.current) attempt.current = { key: crypto.randomUUID(), body: content };
     const pending = attempt.current;
     const wasUnknown = unknown.current;
     lock.current = true; block(true); setBusy(true); setUncertain(true); setStatus("正在建立專案……");
     void write.run(
-      (signal) => request((client, s) => client.POST("/api/v1/spaces/{spaceId}/projects", {
-        signal: s, params: { path: { spaceId }, header: { "Idempotency-Key": pending.key } }, body: pending.body,
+      (signal) => request((client, s) => client.POST("/api/v1/owners/{ownerId}/projects", {
+        signal: s, params: { path: { ownerId }, header: { "Idempotency-Key": pending.key } }, body: pending.body,
       }), { signal }),
       (item) => { lock.current = false; setBusy(false); show(item); onSelect(item.id); setStatus("已建立專案。"); load(); },
       (error) => {
@@ -123,8 +123,8 @@ export function View({ spaceId, projectId, initialSource, onSelect, onBlocked, c
     const id = selected.id;
     lock.current = true; block(true); setBusy(true); setStatus("正在更新專案……");
     void write.run(
-      (signal) => request((client, s) => client.PATCH("/api/v1/spaces/{spaceId}/projects/{id}", {
-        signal: s, params: { path: { spaceId, id } }, body: { title: title.trim(), body: body.trim(), expectedVersion: selected.version },
+      (signal) => request((client, s) => client.PATCH("/api/v1/owners/{ownerId}/projects/{id}", {
+        signal: s, params: { path: { ownerId, id } }, body: { title: title.trim(), body: body.trim(), expectedVersion: selected.version },
       }), { signal }),
       (item) => { lock.current = false; setBusy(false); show(item); setStatus("已更新專案。"); load(); },
       (error) => {
@@ -137,7 +137,7 @@ export function View({ spaceId, projectId, initialSource, onSelect, onBlocked, c
   }
   return <>
     <PagePanel heading="專案">
-      <p className="mb-4 text-sm text-muted-foreground">空間成員可建立專案；只有建立者可以修改及管理收錄來源。</p>
+      <p className="mb-4 text-sm text-muted-foreground">群組成員可建立專案；只有建立者可以修改及管理收錄來源。</p>
       <div className="mb-4 flex flex-wrap gap-2">
         <Button disabled={!user || busy || uncertain || referencesBlocked} onClick={create}>新增專案</Button>
         <Button variant="outline" disabled={!user || listBusy || busy || uncertain || referencesBlocked} onClick={() => load()}>重新載入專案</Button>
@@ -157,14 +157,13 @@ export function View({ spaceId, projectId, initialSource, onSelect, onBlocked, c
     </PagePanel>
     {mode && <PagePanel heading={mode === "create" ? "新增專案" : selected ? selected.title : "專案詳情"}>
       <Status role="status">{status}</Status>
-      {selected && <p>{selected.sourceAvailable === false ? "來源儲存庫目前不可讀取，暫不顯示來源內容。" : selected.issueCount ? `問題已完成 ${selected.completedIssueCount}/${selected.issueCount} 項（${Math.round(selected.completedIssueCount/selected.issueCount*100)}%）` : "尚無收錄問題"}</p>}
       {mode === "detail" && /^[a-f0-9]{32}$/.test(projectId) && <div className="mb-4 flex flex-wrap items-center gap-2">
 
         <Button variant="outline" disabled={busy || detailBusy || referencesBlocked} onClick={() => open(projectId)}>重新讀取專案</Button>
       </div>}
       {(mode === "create" || selected) && <form onSubmit={submit}>
         <FieldGroup>
-          {mode === "create" && <SourcePicker spaceId={spaceId} initialSource={initialSource} value={sourceRepositoryId} onChange={setSourceRepositoryId} disabled={busy || uncertain} />}
+          {mode === "create" && <SourcePicker ownerId={ownerId} initialSource={initialSource} value={sourceRepositoryId} onChange={setSourceRepositoryId} disabled={busy || uncertain} />}
           <fieldset className="grid min-w-0 gap-4" disabled={busy || detailBusy || referencesBlocked || uncertain || needsRefresh || (mode === "detail" && !mine)}>
             <FormField>標題<Input required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} /></FormField>
             <FormField>內容<Textarea maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} /></FormField>
@@ -176,6 +175,6 @@ export function View({ spaceId, projectId, initialSource, onSelect, onBlocked, c
         </FieldGroup>
       </form>}
     </PagePanel>}
-    {selected && <Items key={selected.id+":"+selected.version} spaceId={spaceId} sourceRepositoryId={selected.sourceRepositoryId || selected.repositoryId} project={selected} disabled={busy||detailBusy||needsRefresh||title!==selected.title||body!==selected.body} canWrite={() => !navigation.current && !lock.current && !unknown.current && !detailBusy && !needsRefresh && title === selected.title && body === selected.body && canWrite()} onBlocked={referenceBlock} onChange={(item)=>{show(item);load();}} onRefresh={()=>open(selected.id)} />}
+    {selected && <Items key={selected.id+":"+selected.version} ownerId={ownerId} sourceRepositoryId={selected.defaultRepositoryId} project={selected} disabled={busy||detailBusy||needsRefresh||title!==selected.title||body!==selected.body} canWrite={() => !navigation.current && !lock.current && !unknown.current && !detailBusy && !needsRefresh && title === selected.title && body === selected.body && canWrite()} onBlocked={referenceBlock} onChange={(item)=>{show(item);load();}} onRefresh={()=>open(selected.id)} />}
   </>;
 }

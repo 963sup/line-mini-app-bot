@@ -48,7 +48,7 @@ func TestJournalRoutes(t *testing.T) {
 	const base = "/api/v1/journals"
 	const group = "C11111111111111111111111111111111"
 	const key = "sample-journal-001"
-	const draft = `{"spaceId":"` + group + `","workDate":"2026-11-18","personnel":{"management":[],"control":[],"workers":["甲"]},"todayItems":[{"name":"鋪設","completionPercent":40,"reference":{"type":"project","id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},{"name":"整理","completionPercent":100}],"tomorrowItems":[]}`
+	const draft = `{"groupId":"` + group + `","workDate":"2026-11-18","personnel":{"management":[],"control":[],"workers":["甲"]},"todayItems":[{"name":"鋪設","completionPercent":40,"reference":{"type":"project","id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},{"name":"整理","completionPercent":100}],"tomorrowItems":[]}`
 	f := new(fixture)
 	mux := http.NewServeMux()
 	Register(mux, f, testAuth{})
@@ -75,8 +75,8 @@ func TestJournalRoutes(t *testing.T) {
 	if f.key != key || f.saved.CreatorID != "actor" || f.saved.Today[0].Reference.Kind != "project" || f.saved.Today[1].Reference != nil {
 		t.Fatal("creation mapping")
 	}
-	list := call("GET", base+"?workDate=2026-11-18&spaceId="+group, "", true, 200)
-	if f.filter.SpaceID != group || f.filter.WorkDate != "2026-11-18" || !strings.Contains(list, f.saved.ID) {
+	list := call("GET", base+"?workDate=2026-11-18&groupId="+group, "", true, 200)
+	if f.filter.GroupID != group || f.filter.WorkDate != "2026-11-18" || !strings.Contains(list, f.saved.ID) {
 		t.Fatal("dashboard filter or response")
 	}
 	call("GET", base+"/"+f.saved.ID, "", true, 200)

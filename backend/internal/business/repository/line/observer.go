@@ -3,6 +3,9 @@ package line
 import (
 	"context"
 	"errors"
+	"time"
+
+	"github.com/963sup/line-mini-app-bot/internal/identity"
 
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
@@ -18,6 +21,12 @@ type Observer struct {
 func (o *Observer) Observe(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
 	if o == nil || o.Store == nil {
 		return transport.Reply{}, false, nil
+	}
+	if follow, ok := event.(webhook.FollowEvent); ok && follow.Mode == "active" && follow.Timestamp > 0 && follow.WebhookEventId != "" {
+		if person, ok := follow.Source.(webhook.UserSource); ok && identity.IsUserOwnerID(person.UserId) {
+			err := o.Store.Observe(ctx, repository.Observation{OwnerID: person.UserId, Name: "個人儲存庫", Status: "ACTIVE", EventID: follow.WebhookEventId, At: time.UnixMilli(follow.Timestamp), Users: []string{person.UserId}})
+			return transport.Reply{}, false, err
+		}
 	}
 	group, ok := transport.DecodeGroupEvent(event)
 	if !ok {
@@ -37,6 +46,6 @@ func (o *Observer) Observe(ctx context.Context, event webhook.EventInterface) (t
 			name = o.GroupName(ctx, group.GroupID)
 		}
 	}
-	err := o.Store.Observe(ctx, repository.Observation{GroupID: group.GroupID, Name: name, Status: group.Status, EventID: group.EventID, At: group.At, Users: group.Users})
+	err := o.Store.Observe(ctx, repository.Observation{OwnerID: group.GroupID, Name: name, Status: group.Status, EventID: group.EventID, At: group.At, Users: group.Users})
 	return transport.Reply{}, false, err
 }

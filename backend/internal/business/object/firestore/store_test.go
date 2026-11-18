@@ -45,8 +45,8 @@ func emulatorStore(t *testing.T) (context.Context, *Store, repository.Repository
 		}
 	})
 	store := &Store{Client: client, ChannelID: "isolated-object-tests"}
-	r := repository.Repository{ID: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", GroupID: "Cbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", Status: "ACTIVE"}
-	if _, err := store.parent(r.ID).Set(ctx, map[string]any{"id": r.ID, "groupId": r.GroupID, "status": r.Status}); err != nil {
+	r := repository.Repository{ID: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", OwnerID: "Cbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", Status: "ACTIVE"}
+	if _, err := store.parent(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": r.Status}); err != nil {
 		t.Fatal(err)
 	}
 	return ctx, store, r
@@ -114,7 +114,7 @@ func TestEmulatorConcurrentCreationAndReceiptReplay(t *testing.T) {
 	}
 	other := r
 	other.ID = "cccccccccccccccccccccccccccccccc"
-	if _, err := store.parent(other.ID).Set(ctx, map[string]any{"id": other.ID, "groupId": other.GroupID, "status": "ACTIVE"}); err != nil {
+	if _, err := store.parent(other.ID).Set(ctx, map[string]any{"id": other.ID, "ownerId": other.OwnerID, "status": "ACTIVE"}); err != nil {
 		t.Fatal(err)
 	}
 	independent, err := store.Create(ctx, other, "actor-a", "same-creation-key-0001", content)
@@ -127,8 +127,8 @@ func TestEmulatorContainerAndReceiptFailuresDoNotWrite(t *testing.T) {
 	ctx, store, r := emulatorStore(t)
 	parent := store.parent(r.ID)
 	for _, mutation := range []map[string]any{
-		{"id": r.ID, "groupId": r.GroupID, "status": "INACTIVE"},
-		{"id": r.ID, "groupId": "Cdddddddddddddddddddddddddddddddd", "status": "ACTIVE"},
+		{"id": r.ID, "ownerId": r.OwnerID, "status": "INACTIVE"},
+		{"id": r.ID, "ownerId": "Cdddddddddddddddddddddddddddddddd", "status": "ACTIVE"},
 	} {
 		if _, err := parent.Set(ctx, mutation); err != nil {
 			t.Fatal(err)
@@ -140,7 +140,7 @@ func TestEmulatorContainerAndReceiptFailuresDoNotWrite(t *testing.T) {
 			t.Fatal("rejected creation left resource or receipt")
 		}
 	}
-	if _, err := parent.Set(ctx, map[string]any{"id": r.ID, "groupId": r.GroupID, "status": "ACTIVE"}); err != nil {
+	if _, err := parent.Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": "ACTIVE"}); err != nil {
 		t.Fatal(err)
 	}
 	rec := parent.Collection("objectCreationReceipts").Doc(hash([]string{"actor-a", "corrupt-receipt-key"}))

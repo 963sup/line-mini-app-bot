@@ -65,7 +65,7 @@ func (s *Service) scope(ctx context.Context, actor, rid string) (repository.Repo
 	if e != nil {
 		return repository.Repository{}, feature.ErrUnavailable
 	}
-	if r.ID != rid || r.Status != "ACTIVE" || !repository.ValidGroup(r.GroupID) {
+	if r.ID != rid || r.Status != "ACTIVE" || !repository.ValidOwner(r.OwnerID) {
 		return repository.Repository{}, feature.ErrNotFound
 	}
 	return r, nil

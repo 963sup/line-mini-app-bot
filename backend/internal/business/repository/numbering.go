@@ -22,12 +22,12 @@ var (
 // or an authorization grant. The caller must authorize the specific business
 // operation first and hash its normalized, versioned business input.
 type NumberedCreation struct {
-	RepositoryID, GroupID, ActorID string
+	RepositoryID, OwnerID, ActorID string
 	ResourceType, Key, PayloadHash string
 }
 
 func (c NumberedCreation) Valid() bool {
-	return ValidID(c.RepositoryID) && ValidGroup(c.GroupID) && c.ActorID != "" && len(c.ActorID) <= 256 &&
+	return ValidID(c.RepositoryID) && ValidOwner(c.OwnerID) && c.ActorID != "" && len(c.ActorID) <= 256 &&
 		resourceTypePattern.MatchString(c.ResourceType) && creationKeyPattern.MatchString(c.Key) && payloadHashPattern.MatchString(c.PayloadHash)
 }
 

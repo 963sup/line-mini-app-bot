@@ -188,7 +188,7 @@ func (s *Store) CreateLabel(ctx context.Context, scope repository.Repository, ac
 		if err != nil {
 			return err
 		}
-		if container.GroupID != scope.GroupID || container.Status != "ACTIVE" {
+		if container.OwnerID != scope.OwnerID || container.Status != "ACTIVE" {
 			return labels.ErrNotFound
 		}
 		snap, err := tx.Get(receipt)

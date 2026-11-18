@@ -8,13 +8,13 @@ import { Button } from "@/shared/ui/button";
 import { Item, ItemGroup, ItemContent, ItemTitle } from "@/shared/ui/item";
 import { View } from "./View";
 
-type Space = components["schemas"]["Space"];
-type Route = { space: string; project: string; source: string };
-const emptyRoute: Route = { space: "", project: "", source: "" };
+type Group = components["schemas"]["Group"];
+type Route = { owner: string; project: string; source: string };
+const emptyRoute: Route = { owner: "", project: "", source: "" };
 
 function readRoute(): Route {
   const query = new URLSearchParams(location.search);
-  return { space: query.get("space") || "", project: query.get("project") || "", source: query.get("source") || "" };
+  return { owner: query.get("owner") || query.get("group") || "", project: query.get("project") || "", source: query.get("source") || "" };
 }
 
 export function Workspace() {
@@ -24,7 +24,7 @@ export function Workspace() {
 }
 
 function AuthenticatedWorkspace() {
-  const { request } = useSession();
+  const { request, user } = useSession();
   const list = useLatestRequest(), detail = useLatestRequest();
   const blocked = useRef(false), navigating = useRef(false);
   const [writeBlocked, setWriteBlocked] = useState(false);
@@ -33,8 +33,8 @@ function AuthenticatedWorkspace() {
   useEffect(() => { navigating.current = false; });
   const [route, setRoute] = useState<Route>(emptyRoute);
   const [ready, setReady] = useState(false);
-  const [spaces, setSpaces] = useState<Space[]>([]), [cursor, setCursor] = useState("");
-  const [selected, setSelected] = useState<{ id: string; item: Space | null }>({ id: "", item: null });
+  const [groups, setGroups] = useState<Group[]>([]), [cursor, setCursor] = useState("");
+  const [selected, setSelected] = useState<{ id: string; item: Group | null }>({ id: "", item: null });
   const [busy, setBusy] = useState(false), [status, setStatus] = useState("");
   const [detailStatus, setDetailStatus] = useState("");
 
@@ -45,12 +45,12 @@ function AuthenticatedWorkspace() {
     return () => window.removeEventListener("popstate", update);
   }, []);
 
-  const navigate = useCallback((space: string, project = "", source = "") => {
+  const navigate = useCallback((owner: string, project = "", source = "") => {
     if (blocked.current) return;
     navigating.current = true;
-    const next = { space, project, source };
+    const next = { owner, project, source };
     const query = new URLSearchParams();
-    if (space) query.set("space", space);
+    if (owner) query.set("owner", owner);
     if (project) query.set("project", project);
     if (source) query.set("source", source);
     window.history.pushState(null, "", "/miniapp/projects" + (query.size ? "?" + query : ""));
@@ -59,48 +59,50 @@ function AuthenticatedWorkspace() {
 
   const load = useCallback((next = "") => {
     if (blocked.current) return;
-    setBusy(true); setCursor(""); setStatus("正在核驗可開啟的空間……");
-    if (!next) setSpaces([]);
-    void list.run(signal => request((client, s) => client.GET("/api/v1/spaces", {
+    setBusy(true); setCursor(""); setStatus("正在核驗可開啟的群組……");
+    if (!next) setGroups([]);
+    void list.run(signal => request((client, s) => client.GET("/api/v1/groups", {
       signal: s, params: { query: { cursor: next || undefined } },
     }), { signal }), page => {
-      setSpaces(previous => [...new Map([...(next ? previous : []), ...page.items].map(item => [item.id, item])).values()]);
+      setGroups(previous => [...new Map([...(next ? previous : []), ...page.items].map(item => [item.id, item])).values()]);
       setCursor(page.nextCursor); setBusy(false);
-      setStatus(page.nextCursor ? "可繼續載入空間。" : "已讀取可開啟的空間。");
-    }, error => { setSpaces([]); setBusy(false); setStatus(errorMessage(error)); });
+      setStatus(page.nextCursor ? "可繼續載入群組。" : "已讀取可開啟的群組。");
+    }, error => { setGroups([]); setBusy(false); setStatus(errorMessage(error)); });
   }, [request, list.run]);
   useEffect(() => { load(); return list.cancel; }, [load, list.cancel]);
 
   useEffect(() => {
-    detail.cancel(); setSelected({ id: route.space, item: null });
-    if (!ready || !route.space) { setDetailStatus(""); return; }
-    if (!/^C[0-9a-f]{32}$/.test(route.space)) { setDetailStatus("空間連結無效。"); return; }
-    setDetailStatus("正在核驗空間資格……");
-    void detail.run(signal => request((client, s) => client.GET("/api/v1/spaces/{id}", {
-      signal: s, params: { path: { id: route.space } },
+    detail.cancel(); setSelected({ id: route.owner, item: null });
+    if (!ready || !route.owner) { setDetailStatus(""); return; }
+    if (route.owner === user?.userId) { setDetailStatus(""); return; }
+    if (!/^C[0-9a-f]{32}$/.test(route.owner)) { setDetailStatus("群組連結無效。"); return; }
+    setDetailStatus("正在核驗群組資格……");
+    void detail.run(signal => request((client, s) => client.GET("/api/v1/groups/{id}", {
+      signal: s, params: { path: { id: route.owner } },
     }), { signal }), item => {
-      if (item.id !== route.space || item.groupId !== route.space || item.status !== "ACTIVE") { setDetailStatus("無法開啟此空間。"); return; }
-      setSelected({ id: route.space, item }); setDetailStatus("");
+      if (item.id !== route.owner || item.groupId !== route.owner || item.status !== "ACTIVE") { setDetailStatus("無法開啟此群組。"); return; }
+      setSelected({ id: route.owner, item }); setDetailStatus("");
     }, error => setDetailStatus(errorMessage(error)));
     return detail.cancel;
-  }, [ready, route.space, request, detail.run, detail.cancel]);
+  }, [ready, user?.userId, route.owner, request, detail.run, detail.cancel]);
 
-  const active = selected.id === route.space ? selected.item : null;
-  const selectProject = useCallback((id: string) => navigate(route.space, id, route.source), [navigate, route.space, route.source]);
+  const active = selected.id === route.owner ? selected.item : null;
+  const selectProject = useCallback((id: string) => navigate(route.owner, id, route.source), [navigate, route.owner, route.source]);
   return <>
-    <PagePanel heading="專案空間">
-      <p>專案由空間管理，來源儲存庫提供可讀取的物件、子物件、問題與討論。</p>
-      <Button variant="outline" disabled={busy || writeBlocked} onClick={() => load()}>重新載入專案空間</Button>
+    <PagePanel heading="專案群組">
+      <p>專案由個人或群組管理，來源儲存庫提供可讀取的物件、子物件、問題與討論。</p>
+      <Button variant="outline" disabled={busy || writeBlocked} onClick={() => load()}>重新載入專案群組</Button>
       <Status role="status">{status}</Status>
+      <Button disabled={writeBlocked} onClick={() => user && navigate(user.userId)}>我的個人專案</Button>
       <ItemGroup>
-        {spaces.map(space => <Item key={space.id} variant="outline"><ItemContent><ItemTitle>
-          <Button variant="link" disabled={writeBlocked} aria-current={space.id === route.space ? "page" : undefined} onClick={() => navigate(space.id)}>{space.name || "群組空間"}</Button>
+        {groups.map(group => <Item key={group.id} variant="outline"><ItemContent><ItemTitle>
+          <Button variant="link" disabled={writeBlocked} aria-current={group.id === route.owner ? "page" : undefined} onClick={() => navigate(group.id)}>{group.name || "工程群組"}</Button>
         </ItemTitle></ItemContent></Item>)}
       </ItemGroup>
-      {cursor && <Button variant="outline" disabled={busy || writeBlocked} onClick={() => load(cursor)}>載入更多專案空間</Button>}
-      {ready && !route.space && <p>請選擇專案所屬空間。</p>}
+      {cursor && <Button variant="outline" disabled={busy || writeBlocked} onClick={() => load(cursor)}>載入更多專案群組</Button>}
+      {ready && !route.owner && <p>請選擇個人或群組專案。</p>}
       <Status role="status">{detailStatus}</Status>
     </PagePanel>
-    {active && <View key={active.id} spaceId={active.id} projectId={route.project} initialSource={route.source} onSelect={selectProject} onBlocked={onBlocked} canWrite={canWrite} />}
+    {(active || (user && route.owner === user.userId)) && <View key={route.owner} ownerId={route.owner} projectId={route.project} initialSource={route.source} onSelect={selectProject} onBlocked={onBlocked} canWrite={canWrite} />}
   </>;
 }

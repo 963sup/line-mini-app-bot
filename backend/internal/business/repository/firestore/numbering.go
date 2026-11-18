@@ -45,7 +45,7 @@ type numberReceipt struct {
 // CreateNumberedResource commits the shared repository number, lookup, creation
 // receipt and caller's business writes together. It is NOT a public allocator.
 // The caller must first authenticate ActorID and authorize the domain operation.
-// GroupID must come from that authorized repository, never from client claims.
+// OwnerID must come from that authorized repository, never from client claims.
 //
 // create must persist the business resource using this transaction and the supplied
 // ID/number, returning any validation/write error. It may read before its own
@@ -80,7 +80,7 @@ func (s *Store) CreateNumberedResource(ctx context.Context, command repository.N
 		if err != nil {
 			return err
 		}
-		if container.GroupID != command.GroupID || container.Status != "ACTIVE" {
+		if container.OwnerID != command.OwnerID || container.Status != "ACTIVE" {
 			return repository.ErrNotFound
 		}
 		prior, err := tx.Get(receipt)

@@ -51,7 +51,7 @@ func (s *Service) Parse(ctx context.Context, actor, rid string, input Input) (Re
 	if e != nil {
 		return Result{}, feature.ErrUnavailable
 	}
-	if r.ID != rid || r.Status != "ACTIVE" || !repository.ValidGroup(r.GroupID) {
+	if r.ID != rid || r.Status != "ACTIVE" || !repository.ValidOwner(r.OwnerID) {
 		return Result{}, feature.ErrNotFound
 	}
 	source, _, e := feature.ValidateSource(input.Source)

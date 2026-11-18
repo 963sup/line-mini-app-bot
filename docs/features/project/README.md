@@ -1,3 +1,3 @@
 # 專案
 
-- [Space 擁有的獨立 Project](projects.md)
+- [個人或群組擁有的獨立 Project](projects.md)

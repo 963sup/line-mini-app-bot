@@ -20,7 +20,7 @@ func (r *repos) Get(_ context.Context, _, id string) (repository.Repository, err
 	if r.deny {
 		return repository.Repository{}, repository.ErrNotFound
 	}
-	return repository.Repository{ID: id, GroupID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}, nil
+	return repository.Repository{ID: id, OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}, nil
 }
 
 type producer struct {

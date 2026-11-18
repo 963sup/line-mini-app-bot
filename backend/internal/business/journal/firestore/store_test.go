@@ -10,11 +10,11 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
+	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
+	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/journal"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	repodb "github.com/963sup/line-mini-app-bot/internal/business/repository/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/space"
-	spacedb "github.com/963sup/line-mini-app-bot/internal/business/space/firestore"
 )
 
 type membership struct{}
@@ -39,13 +39,13 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 		}
 	})
 	channel := fmt.Sprintf("test-%d", time.Now().UnixNano())
-	groups := &spacedb.Store{Client: client, ChannelID: channel}
+	groups := &groupdb.Store{Client: client, ChannelID: channel}
 	g := "C" + strings.Repeat("a", 32)
-	if e := groups.Observe(ctx, space.Observation{GroupID: g, Status: "ACTIVE", At: time.Now(), EventID: "join", Users: []string{"writer"}}); e != nil {
+	if e := groups.Observe(ctx, groupdomain.Observation{GroupID: g, Status: "ACTIVE", At: time.Now(), EventID: "join", Users: []string{"writer"}}); e != nil {
 		t.Fatal(e)
 	}
-	store := Store{Client: client, Channel: channel, Spaces: &space.Service{Store: groups, Membership: membership{}}}
-	draft := journal.Draft{SpaceID: g, WorkDate: time.Date(2026, 11, 18, 0, 0, 0, 0, time.UTC), Today: []journal.Work{{Name: "鋪設", Percent: 40}}}
+	store := Store{Client: client, Channel: channel, Groups: &groupdomain.Service{Store: groups, Membership: membership{}}}
+	draft := journal.Draft{GroupID: g, WorkDate: time.Date(2026, 11, 18, 0, 0, 0, 0, time.UTC), Today: []journal.Work{{Name: "鋪設", Percent: 40}}}
 	entry, e := store.Create(ctx, "writer", "key", draft)
 	if e != nil {
 		t.Fatal(e)
@@ -79,7 +79,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	if e != nil || len(p.Items) != 1 || p.Items[0].ID != entry.ID {
 		t.Fatalf("continuation: %d %v", len(p.Items), e)
 	}
-	f.SpaceID = g
+	f.GroupID = g
 	if _, e := store.List(ctx, "writer", f); !errors.Is(e, journal.ErrInput) {
 		t.Fatalf("filter changed: %v", e)
 	}
@@ -87,7 +87,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	// A linked repository can become unavailable while the publishing group remains readable.
 	rid := strings.Repeat("b", 32)
 	repo := client.Collection("channels").Doc(channel).Collection("repositories").Doc(rid)
-	_, e = repo.Set(ctx, map[string]any{"id": rid, "groupId": g, "status": "ACTIVE", "version": int64(1)})
+	_, e = repo.Set(ctx, map[string]any{"id": rid, "ownerId": g, "status": "ACTIVE", "version": int64(1)})
 	if e != nil {
 		t.Fatal(e)
 	}

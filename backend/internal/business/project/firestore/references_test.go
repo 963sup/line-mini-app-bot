@@ -17,11 +17,11 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
+	sp "github.com/963sup/line-mini-app-bot/internal/business/group"
+	spaceDB "github.com/963sup/line-mini-app-bot/internal/business/group/firestore"
 	p "github.com/963sup/line-mini-app-bot/internal/business/project"
 	projectDB "github.com/963sup/line-mini-app-bot/internal/business/project/firestore"
 	projectHTTP "github.com/963sup/line-mini-app-bot/internal/business/project/http"
-	sp "github.com/963sup/line-mini-app-bot/internal/business/space"
-	spaceDB "github.com/963sup/line-mini-app-bot/internal/business/space/firestore"
 )
 
 func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
@@ -46,12 +46,12 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	defer func() { _ = client.Close() }()
 	root := client.Collection("channels").Doc("isolated-refs")
 	gid, rid := "C"+strings.Repeat("a", 32), strings.Repeat("b", 32)
-	spaces := &spaceDB.Store{Client: client, ChannelID: root.ID}
-	if e = spaces.Observe(ctx, sp.Observation{GroupID: gid, Status: "ACTIVE", EventID: "synthetic-join", At: time.Now().UTC(), Users: []string{"owner"}}); e != nil {
+	groups := &spaceDB.Store{Client: client, ChannelID: root.ID}
+	if e = groups.Observe(ctx, sp.Observation{GroupID: gid, Status: "ACTIVE", EventID: "synthetic-join", At: time.Now().UTC(), Users: []string{"owner"}}); e != nil {
 		t.Fatal(e)
 	}
 	repository := root.Collection("repositories").Doc(rid)
-	if _, e = repository.Set(ctx, map[string]any{"id": rid, "groupId": gid, "status": "ACTIVE", "version": int64(1)}); e != nil {
+	if _, e = repository.Set(ctx, map[string]any{"id": rid, "ownerId": gid, "status": "ACTIVE", "version": int64(1)}); e != nil {
 		t.Fatal(e)
 	}
 	oid, sid, iid, did := strings.Repeat("c", 32), strings.Repeat("d", 32), strings.Repeat("e", 32), strings.Repeat("f", 32)
@@ -70,7 +70,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	}
 	access := &sourceAccess{root: root}
 	store := &projectDB.Store{Client: client, ChannelID: root.ID}
-	svc := &p.Service{Spaces: &sp.Service{Store: spaces, Membership: membership{}}, Sources: access, Store: store}
+	svc := &p.Service{Groups: &sp.Service{Store: groups, Membership: membership{}}, Sources: access, Store: store}
 	project, e := svc.Create(ctx, "owner", gid, "typed-reference-project", p.Content{Title: "Existing project", SourceRepositoryID: rid})
 	if e != nil {
 		t.Fatal(e)
@@ -113,7 +113,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	if ids["issue"] != oldIssueID {
 		t.Fatal("duplicate legacy issue")
 	}
-	raw, e := root.Collection("spaces").Doc(gid).Collection("projects").Doc(project.ID).Collection("items").Documents(ctx).GetAll()
+	raw, e := root.Collection("groups").Doc(gid).Collection("projects").Doc(project.ID).Collection("items").Documents(ctx).GetAll()
 	if e != nil || len(raw) != 4 {
 		t.Fatal(e)
 	}
@@ -135,7 +135,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 			t.Fatal("source changed", string(encoded), string(wanted))
 		}
 	}
-	before, e := root.Collection("spaces").Doc(gid).Collection("projects").Doc(project.ID).Get(ctx)
+	before, e := root.Collection("groups").Doc(gid).Collection("projects").Doc(project.ID).Get(ctx)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -250,7 +250,98 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 			t.Fatal("missing source leak", ref)
 		}
 	}
+	// A second group may use the same issue ID. Its link and read authority are independent.
+	secondID := strings.Repeat("9", 32)
+	second := root.Collection("repositories").Doc(secondID)
+	if _, e = second.Set(ctx, map[string]any{"id": secondID, "ownerId": "C" + secondID, "status": "ACTIVE", "version": 1}); e != nil {
+		t.Fatal(e)
+	}
+	if _, e = second.Collection("issues").Doc(iid).Set(ctx, map[string]any{"schemaVersion": 1, "id": iid, "repositoryId": secondID, "title": "Second group issue", "state": "open"}); e != nil {
+		t.Fatal(e)
+	}
+	secondRef := p.Reference{SourceRepositoryID: secondID, SourceType: "issue", SourceID: iid}
+	if _, e = svc.AddReference(ctx, "owner", gid, project.ID, secondRef, project.Version); !errors.Is(e, p.ErrForbidden) {
+		t.Fatalf("unlinked source: %v", e)
+	}
+	project, e = svc.Update(ctx, "owner", gid, project.ID, p.Update{Content: p.Content{Title: project.Title, Body: project.Body}, ExpectedVersion: project.Version, LinkRepositoryID: secondID})
+	if e != nil {
+		t.Fatal(e)
+	}
+	project, e = svc.AddReference(ctx, "owner", gid, project.ID, secondRef, project.Version)
+	if e != nil {
+		t.Fatal(e)
+	}
+	page, e = svc.ListReferences(ctx, "owner", gid, project.ID, "")
+	if e != nil {
+		t.Fatal(e)
+	}
+	secondItem := ""
+	for _, ref := range page.Items {
+		if ref.SourceRepositoryID == secondID && ref.SourceTitle == "Second group issue" {
+			secondItem = ref.ID
+		}
+	}
+	if secondItem == "" || secondItem == oldIssueID {
+		t.Fatal("distinct second issue missing", page)
+	}
+	project, e = svc.Update(ctx, "owner", gid, project.ID, p.Update{Content: p.Content{Title: project.Title, Body: project.Body}, ExpectedVersion: project.Version, UnlinkRepositoryID: secondID})
+	if e != nil {
+		t.Fatal(e)
+	}
+	page, e = svc.ListReferences(ctx, "owner", gid, project.ID, "")
+	if e != nil {
+		t.Fatal(e)
+	}
+	for _, ref := range page.Items {
+		if ref.ID == secondItem && (!ref.SourceUnavailable || ref.SourceTitle != "") {
+			t.Fatal("unlinked preview", ref)
+		}
+	}
+	project, e = svc.RemoveReference(ctx, "owner", gid, project.ID, secondItem, project.Version)
+	if e != nil {
+		t.Fatal(e)
+	}
+	// Submission evidence belongs to the existing reference; submitting never edits the source.
+	if _, e = sub.Update(ctx, []db.Update{{Path: "version", Value: int64(7)}}); e != nil {
+		t.Fatal(e)
+	}
+	beforeSource, e := sub.Get(ctx)
+	if e != nil {
+		t.Fatal(e)
+	}
+	note := "配線檢查完成"
+	sent, e := svc.Inspections(ctx, "member", gid, project.ID, ids["subobject"], &note)
+	if e != nil || len(sent) != 1 || sent[0].SourceVersion != 7 || sent[0].Status != "pending" {
+		t.Fatal(sent, e)
+	}
+	retried, e := svc.Inspections(ctx, "member", gid, project.ID, ids["subobject"], &note)
+	if e != nil || len(retried) != 1 || retried[0].ID != sent[0].ID {
+		t.Fatal(retried, e)
+	}
+	if _, e = svc.Inspections(ctx, "owner", gid, project.ID, ids["subobject"], &note); !errors.Is(e, p.ErrInspectionPending) {
+		t.Fatal(e)
+	}
+	if _, e = svc.RemoveReference(ctx, "owner", gid, project.ID, ids["subobject"], project.Version); !errors.Is(e, p.ErrInspectionHistory) {
+		t.Fatal(e)
+	}
+	afterSource, e := sub.Get(ctx)
+	if e != nil || !beforeSource.UpdateTime.Equal(afterSource.UpdateTime) {
+		t.Fatal("submission modified source", e)
+	}
+	if _, e = sub.Delete(ctx); e != nil {
+		t.Fatal(e)
+	}
+	history, e := svc.Inspections(ctx, "member", gid, project.ID, ids["subobject"], nil)
+	if e != nil || len(history) != 1 || history[0].ID != sent[0].ID {
+		t.Fatal("deleted source hid authorized history", history, e)
+	}
+	if _, e = svc.Inspections(ctx, "member", gid, project.ID, ids["subobject"], &note); e == nil {
+		t.Fatal("submitted on deleted source")
+	}
 	access.denied = true
+	if _, e = svc.Inspections(ctx, "member", gid, project.ID, ids["subobject"], nil); !errors.Is(e, p.ErrNotFound) {
+		t.Fatal("revoked inspection readable", e)
+	}
 	page, e = svc.ListReferences(ctx, "owner", gid, project.ID, "")
 	if e != nil || len(page.Items) != 4 {
 		t.Fatal(page, e)
@@ -278,7 +369,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	// HTTP read returns sealed unavailable rows and accepts no added snapshot/authority fields.
 	mux := http.NewServeMux()
 	projectHTTP.Register(mux, svc, auth{})
-	path := fmt.Sprintf("/api/v1/spaces/%s/projects/%s/references", gid, project.ID)
+	path := fmt.Sprintf("/api/v1/owners/%s/projects/%s/references", gid, project.ID)
 	req := httptest.NewRequest("GET", path, nil)
 	req.Header.Set("X-Test-Actor", "owner")
 	w := httptest.NewRecorder()

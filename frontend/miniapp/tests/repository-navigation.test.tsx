@@ -7,7 +7,7 @@ import { Shell } from "../src/shell/Shell";
 import { View as RepositoryView } from "../src/business/repository/View";
 
 const a = "a".repeat(32), b = "b".repeat(32);
-const space = (id: string, name = "同名空間", status = "ACTIVE") => ({ id, name, status, groupId: "C" + id, version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" });
+const space = (id: string, name = "同名空間", status = "ACTIVE") => ({ id, name, status, ownerId: "C" + id, version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" });
 const flush = async () => { for (let i = 0; i < 10; i++) await new Promise<void>((resolve) => setImmediate(resolve)); };
 async function fixture(path: string, handle: (request: Request, actor: string) => Promise<Response>, width = 1024) {
   Object.defineProperty(window, "innerWidth", { value: width, configurable: true });

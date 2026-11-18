@@ -160,7 +160,7 @@
         "type": "object",
         "required": [
           "id",
-          "groupId",
+          "ownerId",
           "name",
           "status",
           "createdAt",
@@ -172,8 +172,9 @@
             "type": "string",
             "pattern": "^[a-f0-9]{32}$"
           },
-          "groupId": {
-            "type": "string"
+          "ownerId": {
+            "type": "string",
+            "pattern": "^[UC][a-f0-9]{32}$"
           },
           "name": {
             "type": "string"
