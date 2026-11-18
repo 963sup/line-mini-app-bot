@@ -13,29 +13,37 @@ var (
 	ErrConflict = errors.New("idempotency key already used for different content")
 )
 
-type Reference struct{ Kind, ID string }
-type Work struct {
-	Name      string
-	Percent   int
-	Reference *Reference
-}
-type Personnel struct{ Management, Control, Workers []string }
-type Draft struct {
-	SpaceID         string
-	WorkDate        time.Time
-	Personnel       Personnel
-	Today, Tomorrow []Work
-}
+type (
+	Reference struct{ Kind, ID string }
+	Work      struct {
+		Name      string
+		Percent   int
+		Reference *Reference
+	}
+)
+
+type (
+	Personnel struct{ Management, Control, Workers []string }
+	Draft     struct {
+		SpaceID         string
+		WorkDate        time.Time
+		Personnel       Personnel
+		Today, Tomorrow []Work
+	}
+)
+
 type Entry struct {
 	Draft
 	ID, CreatorID string
 	CreatedAt     time.Time
 }
-type Filter struct{ SpaceID, WorkDate, Cursor string }
-type Page struct {
-	Items      []Entry
-	NextCursor string
-}
+type (
+	Filter struct{ SpaceID, WorkDate, Cursor string }
+	Page   struct {
+		Items      []Entry
+		NextCursor string
+	}
+)
 
 // Operations is implemented by the membership-aware persistent service.
 // Actor is always supplied by the authenticated transport. Implementations

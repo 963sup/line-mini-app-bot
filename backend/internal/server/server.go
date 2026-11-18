@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"errors"
-	journalhttp "github.com/963sup/line-mini-app-bot/internal/business/journal/http"
 	"log/slog"
 	"net"
 	"net/http"
@@ -11,6 +10,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	journalhttp "github.com/963sup/line-mini-app-bot/internal/business/journal/http"
 
 	"github.com/963sup/line-mini-app-bot/internal/browser"
 	attendancehttp "github.com/963sup/line-mini-app-bot/internal/business/attendance/http"

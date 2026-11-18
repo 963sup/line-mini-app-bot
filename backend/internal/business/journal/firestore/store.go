@@ -42,16 +42,19 @@ func (s *Store) root() *db.DocumentRef { return s.Client.Collection("channels").
 func (s *Store) entries(group string) *db.CollectionRef {
 	return s.root().Collection("journalGroups").Doc(group).Collection("entries")
 }
+
 func missing(e error) error {
 	if status.Code(e) == codes.NotFound || errors.Is(e, space.ErrNotFound) || errors.Is(e, repository.ErrNotFound) || errors.Is(e, project.ErrNotFound) {
 		return journal.ErrNotFound
 	}
 	return e
 }
+
 func (s *Store) group(ctx context.Context, actor, group string) error {
 	_, e := s.Spaces.Get(ctx, actor, group)
 	return missing(e)
 }
+
 func (s *Store) reference(ctx context.Context, actor, group string, r journal.Reference) error {
 	switch r.Kind {
 	case "repository":
@@ -73,6 +76,7 @@ func (s *Store) reference(ctx context.Context, actor, group string, r journal.Re
 	}
 	return journal.ErrNotFound
 }
+
 func (s *Store) checkRefs(ctx context.Context, actor string, d journal.Draft, redact bool, cache map[journal.Reference]error) error {
 	for _, rows := range [][]journal.Work{d.Today, d.Tomorrow} {
 		for i := range rows {
@@ -96,6 +100,7 @@ func (s *Store) checkRefs(ctx context.Context, actor string, d journal.Draft, re
 	}
 	return nil
 }
+
 func (s *Store) Create(ctx context.Context, actor, key string, d journal.Draft) (journal.Entry, error) {
 	if e := s.group(ctx, actor, d.SpaceID); e != nil {
 		return journal.Entry{}, e
@@ -144,6 +149,7 @@ func (s *Store) Create(ctx context.Context, actor, key string, d journal.Draft) 
 	})
 	return entry, e
 }
+
 func decode(snap *db.DocumentSnapshot) (journal.Entry, string, error) {
 	var row record
 	var item journal.Entry
@@ -153,6 +159,7 @@ func decode(snap *db.DocumentSnapshot) (journal.Entry, string, error) {
 	e := json.Unmarshal([]byte(row.Payload), &item)
 	return item, row.Order, e
 }
+
 func (s *Store) Get(ctx context.Context, actor, id string) (journal.Entry, error) {
 	locator, e := s.root().Collection("journalReceipts").Doc(id).Get(ctx)
 	if e != nil {
@@ -175,6 +182,7 @@ func (s *Store) Get(ctx context.Context, actor, id string) (journal.Entry, error
 	}
 	return item, e
 }
+
 func (s *Store) List(ctx context.Context, actor string, f journal.Filter) (journal.Page, error) {
 	const size = 20
 	scope := digest([]byte(actor+"\x00"+f.SpaceID+"\x00"+f.WorkDate)) + "/"
