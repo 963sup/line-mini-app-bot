@@ -16,7 +16,7 @@ cmd/ 保存 server、richmenu、firestorecheck 與 attendancemigrate 入口；in
 
 ## 相關文件
 
-- [日誌表單入口](../docs/features/journal/google-forms.md)
+- [工程日誌與群組發布](../docs/features/journal/design.md)
 
 - [文件索引：Backend](../docs/README.md#按模組閱讀)
 - [Go browser Session 與滑動續期](../docs/foundation/identity/browser-session.md)

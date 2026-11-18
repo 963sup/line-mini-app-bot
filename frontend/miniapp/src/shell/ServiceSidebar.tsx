@@ -11,7 +11,6 @@ import {
   LayoutDashboard,
   List,
   MapPin,
-  NotebookPen,
 } from "lucide-react";
 import { RepositoryProvider, useRepositories } from "../business/repository/RepositoryContext";
 import { repositoryNavigation } from "./repository-navigation";
@@ -72,12 +71,6 @@ function NavigationSidebar({ workflow, account, repositoryItem, ...props }: Serv
       isActive:
         attendance.some((item) => item.isActive) || workflow === "punch",
       items: attendance,
-    },
-    {
-      title: "日誌",
-      url: "/miniapp/journal",
-      icon: NotebookPen,
-      isActive: workflow === "journal",
     },
   ];
   return (

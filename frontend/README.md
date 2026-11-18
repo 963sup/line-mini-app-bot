@@ -4,7 +4,7 @@
 
 ## 目錄導覽與維護
 
-miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/attendance/ 提供出勤畫面，business/form/journal/ 提供日誌表單，identity/、platform/line/、shared/、shell/ 分別處理身分、平台、共用與外框。
+miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/attendance/ 提供出勤畫面，business/journal/ 提供工程日誌，identity/、platform/line/、shared/、shell/ 分別處理身分、平台、共用與外框。
 
 進入 miniapp/ 先讀其 AGENTS.md 與安裝版本的 Next.js 指引。HTTP 呼叫透過 @repo/api-client；位置由瀏覽器取得，後端驗證。不手改建置輸出。
 
@@ -36,7 +36,6 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 | 業務 | 既有前端實作 | 其他入口 |
 | --- | --- | --- |
-| 日誌表單 | `/miniapp/journal` 開啟 Google 表單 | [表單設定](../docs/features/journal/google-forms.md) |
 | 工程日誌 | `/miniapp/dashboard` 與 `/miniapp/feed` 共用 JournalWorkspace | [日誌設計](../docs/features/journal/design.md) |
 | 出勤 | 打卡、紀錄、更正、審核、請假；工時由紀錄頁呈現 | [出勤功能](../docs/features/attendance/attendance.md) |
 | Repository | `/miniapp/repositories` 提供庫內工區、物件與協作功能 | [儲存庫功能索引](../docs/features/repository/README.md) |

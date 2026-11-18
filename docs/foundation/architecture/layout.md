@@ -55,8 +55,8 @@ frontend/miniapp/
   src/pages/                   # Next.js Pages Router；靜態輸出
   src/navigation/home/
   src/business/attendance/     # 打卡、紀錄、更正、審核、請假
-  src/business/repository/、project/、object/、subobject/、issue/、discussion/、journal/
-  src/business/form/journal/   # Google 日誌表單入口
+  src/business/repository/、project/、object/、subobject/、issue/、discussion/
+  src/business/journal/        # 工程日誌填寫與查閱
   src/identity/、platform/line/、shared/、shell/
   src/diagnostics/geolocation/
   tests/                       # React Strict Mode 與非同步行為檢查

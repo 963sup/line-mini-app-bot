@@ -58,10 +58,10 @@ export function AppSidebar({
       items: attendance,
     },
     {
-      title: "日誌",
-      url: "/miniapp/journal",
+      title: "Feed",
+      url: "/miniapp/feed",
       icon: NotebookPen,
-      isActive: workflow === "journal",
+      isActive: workflow === "feed",
     },
     ...(contextItems
       ? [
