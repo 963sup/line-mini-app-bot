@@ -64,6 +64,16 @@ jobs:
           install: false
           env: false
           cache_save_post: true
+      - name: Cache Go modules and build output
+        if: steps.module.outputs.present == 'true'
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        with:
+          path: |
+            /workspace/tooling/go/pkg/mod
+            /workspace/tooling/cache/go-build
+          key: go-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('mise.toml', 'backend/go.sum') }}
+          restore-keys: |
+            go-${{ runner.os }}-${{ runner.arch }}-
       - name: Install pinned Go development environment
         if: steps.module.outputs.present == 'true'
         run: |
