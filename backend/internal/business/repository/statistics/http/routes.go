@@ -58,11 +58,8 @@ func Register(mux *http.ServeMux, service *statistics.Service, auth Authenticato
 				r = r.Clone(r.Context())
 				r.Method = http.MethodGet
 			}
-			for _, values := range r.URL.Query() {
-				if len(values) > 1 {
-					transport.WriteAPIError(w, 400, "invalid_input", "請勿重複查詢參數。")
-					return
-				}
+			if !transport.ValidateUniqueQuery(w, r) {
+				return
 			}
 			if r.Method == http.MethodPost || r.Method == http.MethodPatch {
 				media, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))

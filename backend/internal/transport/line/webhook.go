@@ -2,6 +2,7 @@ package line
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -101,8 +102,8 @@ func WebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, handlers 
 					continue
 				}
 				if reply.Message != nil {
-					_, sendErr := client.ReplyMessage(&messaging_api.ReplyMessageRequest{ReplyToken: reply.Token, Messages: []messaging_api.MessageInterface{reply.Message}})
-					if sendErr != nil && handler.RetryOnSendFailure {
+					response, _, sendErr := client.ReplyMessageWithHttpInfo(&messaging_api.ReplyMessageRequest{ReplyToken: reply.Token, Messages: []messaging_api.MessageInterface{reply.Message}})
+					if sendErr != nil && handler.RetryOnSendFailure && !spentRedeliveryToken(event, response) {
 						http.Error(w, "attendance reply unavailable", http.StatusServiceUnavailable)
 						return
 					}
@@ -115,4 +116,22 @@ func WebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, handlers 
 		}
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+// A token rejected on redelivery cannot recover by retrying the same reply.
+func spentRedeliveryToken(event webhook.EventInterface, response *http.Response) bool {
+	var delivery *webhook.DeliveryContext
+	switch e := event.(type) {
+	case webhook.MessageEvent:
+		delivery = e.DeliveryContext
+	case webhook.PostbackEvent:
+		delivery = e.DeliveryContext
+	}
+	if delivery == nil || !delivery.IsRedelivery || response == nil || response.StatusCode != http.StatusBadRequest {
+		return false
+	}
+	var rejection struct {
+		Message string `json:"message"`
+	}
+	return json.NewDecoder(response.Body).Decode(&rejection) == nil && rejection.Message == "Invalid reply token"
 }
