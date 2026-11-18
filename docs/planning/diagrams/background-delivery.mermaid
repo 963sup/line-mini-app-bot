@@ -1,0 +1,16 @@
+
+flowchart TD
+    A["業務操作成功"]
+    B["Firestore Transaction"]
+    C["保存業務資料及 Outbox"]
+    D["可靠派送工作"]
+    E["Cloud Tasks / Worker"]
+    F["Messaging API"]
+    G{"發送結果"}
+    H["標記完成"]
+    I["依規則重試／人工處理"]
+
+    A --> B --> C --> D --> E --> F --> G
+    G -->|"成功"| H
+    G -->|"失敗"| I
+    I -.->|"可重試"| E

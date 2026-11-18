@@ -40,3 +40,5 @@ Graphify AST 只描述可擷取程式關係，Markdown 規劃用 Mermaid 與連�
 [功能規格](../../features/README.md) · [HTTP](../api/README.md) · [Session](../identity/README.md) · [資料](../persistence/README.md) · [前端](../frontend/README.md) · [驗收矩陣](../../agents/acceptance.md)
 
 [本目錄指引](AGENTS.md) · [父層指引](../../AGENTS.md) · [文件總入口](../../README.md)
+
+[現行實作圖索引](../../diagrams.md#現行實作) · [未來設計圖](../../diagrams.md#未來設計)。

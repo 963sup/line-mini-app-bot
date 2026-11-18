@@ -39,6 +39,8 @@ pageSize 預設20、範圍1–100；cursor 必須與本人、channel、群組／
 
 伺服器以channel、已驗證本人與key隔離回執，對固定版本的業務payload做正規化雜湊。時間以UTC正規化，breaks順序保留，server ID／CreatedAt不參與。申請與最小回執同交易建立；交易可能重跑，但不能建立第二筆申請。
 
+**現行實作**
+
 ```mermaid
 sequenceDiagram
   Web->>API: POST 防重鍵與申請內容
@@ -71,6 +73,8 @@ sequenceDiagram
 UUID API 已對照 [官方 v1.6.0 原始碼](https://github.com/google/uuid/blob/v1.6.0/version4.go)。Context7 團隊篩選拒絕此套件文件，因此未取得 Context7 查證；版本沿用既有 v1.6.0。
 
 ## 審核畫面狀態同步
+
+**現行實作**
 
 ```mermaid
 flowchart LR

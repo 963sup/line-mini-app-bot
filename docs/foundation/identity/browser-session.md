@@ -44,6 +44,8 @@ DELETE /api/v1/session 先驗證 Origin 與 CSRF，再刪除資料、清 Cookie�
 POST /api/v1/session/refresh 要求 Cookie、相同 Origin、X-CSRF-Token 與 JSON
 空物件。續期保留 Session ID 與 CSRF，不因讀取或續期而輪替識別碼。
 
+**現行實作**
+
 ```mermaid
 sequenceDiagram
   participant B as 瀏覽器

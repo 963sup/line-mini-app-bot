@@ -21,3 +21,5 @@ README.md 是文件索引；features/ 保存六項業務，foundation/ 保存共
 各主題目錄 README 列出完整文件入口，AGENTS.md 補充歸屬與維護規則；入口見 [文件歸屬](README.md#文件歸屬與維護)。新增或搬移單篇文件時，更新所屬分類索引及受影響的引用。分類入口變動時，才更新引用該入口的上層索引。
 
 業務操作模型維持於 [單一來源](foundation/architecture/business-operation.md)，功能文件保存具體操作契約；引用模型不代表既有功能已通過驗收。
+
+[現行實作圖索引](diagrams.md#現行實作) · [未來設計圖](diagrams.md#未來設計)。

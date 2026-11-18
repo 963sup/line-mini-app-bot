@@ -88,6 +88,8 @@ MINI App Service Message adapter 在資格與需求確立後新增，不預建�
 
 ## 後續平台擴充參考流程
 
+**未來設計**
+
 ```mermaid
 flowchart TD
   DM[LINE 一對一] --> WH[Go Webhook：原始 body 驗簽]

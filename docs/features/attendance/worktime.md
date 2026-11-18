@@ -36,6 +36,8 @@ Firestore 交易仍須使用 emulator／真實測試環境驗證；單元測試�
 
 ## 共用狀態規則與事件重建
 
+**現行實作**
+
 ```mermaid
 flowchart TB
   EVENT["ApplyEvent：即時交易與重建共用規則"] --> OK{"接受事件？"}
@@ -69,6 +71,8 @@ ApplyEvent 產生結果代碼與班次、休息狀態。新休息開始或結束
 API 契約集中於 api/contract/attendance/{corrections,approvals}.yaml：GET corrections 為本人清單，scope=review 且指定 group 為授權群組清單；GET corrections/reviewer-groups 為可審核群組；POST corrections/{id}/reject 接收 reason；POST corrections/{id}/cancel 撤回本人申請。原有提交、狀態、審核明細及核准路徑保留。
 
 新增無班次補卡時，HTTP 層使用已驗證使用者向 LINE 查核原群組成員身分，不能只相信網址或前端群組值；查核失敗時不寫入申請。前端保留同草稿冪等鍵，結果不明時以同內容重試。
+
+**現行實作**
 
 ```mermaid
 stateDiagram-v2
@@ -127,6 +131,8 @@ Firestore 閉環測試：設定僅供本地測試的 FIRESTORE_EMULATOR_HOST 後
 未啟動 emulator 時，套件測試通過不代表資料庫閉環驗證已通過。
 
 ## 休息未確認與暫估工時
+
+**現行實作**
 
 ```mermaid
 flowchart TB

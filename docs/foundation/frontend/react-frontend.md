@@ -11,6 +11,8 @@ Next.js Pages Router 靜態輸出，React Strict Mode 啟用。出勤功能入�
 
 ## 頁面與身分生命週期
 
+**現行實作**
+
 ```mermaid
 stateDiagram-v2
   Active --> Hidden: pagehide 取消請求

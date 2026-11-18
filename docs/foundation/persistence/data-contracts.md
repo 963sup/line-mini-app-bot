@@ -38,6 +38,8 @@ TTL 僅在終態加 expireAt，工作中不可被 TTL 清除；刪除父文件�
 
 ## 邏輯關係（非資料庫外鍵）
 
+**未來設計**
+
 ```mermaid
 erDiagram
   CHANNEL ||--o{ USER : scopes
@@ -53,3 +55,5 @@ erDiagram
 
 Firestore 不強制圖中關聯；Outbox 必須含快照或不可變版本，版本刪除不得破壞未完成工作。
 參考：[Firestore transactions](https://docs.cloud.google.com/firestore/native/docs/manage-data/transactions)、[刪除資料](https://docs.cloud.google.com/firestore/native/docs/manage-data/delete-data)。
+
+對照目前的資料保存方式，見[Firestore 整合與實作入口](firestore.md)。

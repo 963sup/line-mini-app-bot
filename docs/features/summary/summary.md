@@ -59,6 +59,9 @@ TTL 可能延遲刪除，程式讀取仍會排除過期資料。工作期限也�
 保存來源 user ID 不等於驗證真實身分，也不代表發言為事實。
 
 訊息以穩定 message ID 原子建立；命令以 event ID 原子建立工作；Cloud Tasks 也使用固定 task ID。佇列建立失敗回傳503，由 LINE 重送恢復。
+
+**現行實作**
+
 ```mermaid
 stateDiagram-v2
   Queued --> Leased: 取得租約

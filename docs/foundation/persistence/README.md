@@ -6,3 +6,5 @@
 - [資料契約提案](data-contracts.md)：尚未實作的 schemaVersion、Inbox／Outbox、保存與刪除設計；不作為現行資料庫全貌。
 
 [共用系統入口](../README.md) · [需求導航](../architecture/layout.md) · [未來規劃](../../planning/README.md)
+
+[現行實作圖索引](../../diagrams.md#現行實作) · [未來設計圖](../../diagrams.md#未來設計)。

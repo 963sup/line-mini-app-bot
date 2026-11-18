@@ -19,3 +19,5 @@ separately; see [Session and renewal design](../identity/browser-session.md).
 ## 索引宣告
 
 部署用索引集中於 [deploy/firestore/indexes.json](../../../deploy/firestore/indexes.json)。搬移設定檔不會建立索引或切換讀取模式；套用到目標資料庫仍依發布與資料回填流程執行。
+
+未來的通用資料模型見[資料契約提案](data-contracts.md#邏輯關係非資料庫外鍵)。

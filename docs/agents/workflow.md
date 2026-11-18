@@ -88,6 +88,8 @@ Use six fields rather than forwarding the full conversation or raw logs:
 | Checks | Exact commands already run, actual results and required checks still pending |
 | Open issues | Missing evidence, conflicts, failures and cross-scope work needing reassignment |
 
+**開發與維運指引**
+
 ```mermaid
 flowchart TB
   E["收到來源、查證、工具或檢查證據"] --> VALID{"版本、工作樹、涵蓋範圍、依賴與工具設定仍適用，且無衝突？"}
@@ -124,6 +126,8 @@ is separate authorization, not permission inferred from delegation.
 
 ## Repository publication
 
+**開發與維運指引**
+
 ```mermaid
 flowchart TB
   A["從最新 main 開始，核對遠端、工作樹與差異"] --> B["只提交本任務範圍並完成相關驗證"]
@@ -156,6 +160,8 @@ additional writes.
 ## Business Operation compliance
 
 業務開發、審查及修正必須先讀 [操作模型](../foundation/architecture/business-operation.md)。任務分派附上操作契約、規格來源、既有實作、檔案所有權與驗收條件。
+
+**開發與維運指引**
 
 ```mermaid
 flowchart TB

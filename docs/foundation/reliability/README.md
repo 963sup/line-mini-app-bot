@@ -5,3 +5,5 @@
 - [事件與發送狀態機提案](state-machines.md)
 
 只在任務涉及持久工作、重試或平台設計時載入；目前必要檢查見[驗收矩陣](../../agents/acceptance.md)。[規劃入口](../../planning/README.md)
+
+[未來設計圖索引](../../diagrams.md#未來設計) · [對照現行實作](../../diagrams.md#現行實作)。

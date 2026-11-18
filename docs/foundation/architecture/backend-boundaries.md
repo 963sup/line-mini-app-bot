@@ -38,6 +38,8 @@ HTTP adapter 不建立 Firestore／LINE／Google client，也不讀 gRPC 狀態�
 
 ## 格式與資料相容
 
+**現行實作**
+
 ```mermaid
 block-beta
   columns 3
@@ -59,3 +61,5 @@ HTTP 舊月報以遷移前捕捉的 JSON fixture 驗證。Firestore 相容測試
 前端已完成 React hooks/state；剩餘真實 LINE／正式環境整合驗收；此階段不新增框架、部署或變更資料庫索引。
 
 里程碑、專案與統計的操作及保存規格見 [里程碑](../../features/repository/milestones.md)、[Project](../../features/project/projects.md)與[統計](../../features/repository/statistics.md)。`repository/milestones` 與 `project` 各自保留核心及 HTTP adapter；Milestone 由既有 Repository Firestore Store 保存，Project adapter 注入同一 client；`repository/statistics` 只讀。
+
+後續分層構想見[未來套件依賴方向](dependencies.md#允許方向)。

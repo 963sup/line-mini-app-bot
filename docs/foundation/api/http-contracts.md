@@ -4,6 +4,8 @@
 
 `POST /webhooks/line/{channelID}` 使用該渠道的 secret 驗證原始請求。未配置的路徑不會註冊。Go 限制 body 為 1 MiB，超限回 413；簽章錯誤回 401，其他解析錯誤回 400。整批事件共用 5 秒處理期限。[Webhook 實作](../../../backend/internal/transport/line/webhook.go)
 
+**現行實作**
+
 ```mermaid
 flowchart TD
   V["已驗簽的事件批次"] --> N{"還有事件？"}
@@ -29,6 +31,8 @@ HTTP 200 表示這次事件迴圈完成，空批次也回 200。持久接收後�
 Cookie Session 的建立、續期、撤銷及 CSRF 檢查見 [Session 契約](../identity/browser-session.md)。
 
 ## MINI App 信任流程
+
+**現行實作**
 
 ```mermaid
 sequenceDiagram

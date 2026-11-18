@@ -23,3 +23,5 @@
 [本目錄指引](AGENTS.md) · [父層指引](../AGENTS.md) · [文件總索引](../README.md)
 
 目前需求與實作入口見[需求導航](../foundation/architecture/layout.md)；歷史變更透過 Git 查閱。
+
+[開發與維運指引圖索引](../diagrams.md#開發與維運指引) · [未來設計圖](../diagrams.md#未來設計)。

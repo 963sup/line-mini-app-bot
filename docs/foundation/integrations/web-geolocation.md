@@ -94,6 +94,8 @@ Go 另產生 receivedAt，不信任客戶端時間；必填數值用 pointer／�
 - `backend/internal/business/attendance/firestore/attendance.go`：在交易中驗證短效打卡請求，隔離群組狀態並保存單次定位。
 - `backend/internal/diagnostics/geolocation/geolocation.go` 與 `frontend/miniapp/src/diagnostics/geolocation/{View.tsx,style.css}`：保留獨立定位示範，不寫入出勤資料。
 
+**現行實作**
+
 ```mermaid
 sequenceDiagram
   participant U as 使用者

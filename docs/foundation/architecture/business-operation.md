@@ -5,6 +5,8 @@
 
 ## 模型與語意
 
+**開發與維運指引**
+
 ```mermaid
 flowchart LR
   A["取得可信 Actor、Resource、Action 與 Context"] --> B{"Authority 允許此範圍？"}

@@ -6,6 +6,8 @@ Monorepo 候選驗收、裝置清單、無流量發布與具名 revision 回復�
 
 ## 建置入口
 
+**現況與提案對照**　Managed trigger 與手動提交為現行入口；自訂 Trigger 為候選方案。
+
 ```mermaid
 block-beta
   columns 3
@@ -226,6 +228,8 @@ Trigger 啟動時會忽略 YAML 的 serviceAccount 欄位，只採用 Trigger �
 建置步驟自動推送每個 BUILD_ID 對應的映像，再部署同一個服務，不建立 preview app。
 
 ## 部署後確認與回滾
+
+**開發與維運指引**
 
 ```mermaid
 flowchart TB

@@ -32,6 +32,8 @@
 
 ## 允許方向
 
+**未來設計**
+
 ```mermaid
 flowchart LR
   CMD[cmd/server · cmd/worker] --> BOOT[bootstrap 組裝]

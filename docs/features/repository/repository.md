@@ -48,6 +48,8 @@ ACTIVE / INACTIVE 表示 Bot 群組入口狀態。離開保留資料，再加入
 
 ## 空間載入時序
 
+**現行實作**
+
 ```mermaid
 sequenceDiagram
   participant UI as 側欄或空間頁

@@ -2,6 +2,21 @@
 
 先依任務選一個入口，讀相關規格與局部指引後再查程式碼；不需要依序讀完所有分類。文件與設定存在不代表已完成部署或真實環境驗收。
 
+## 日常開發看哪張圖
+
+[全部圖表按狀態查閱](diagrams.md)。初次接手先看執行入口；修改功能時，依手上的問題選讀一張。
+
+| 開發問題 | 現行實作圖 |
+| --- | --- |
+| 瀏覽器、LINE 與 Cloud Tasks 的請求在哪裡匯合？ | [系統執行入口](foundation/architecture/overview.md#執行入口) |
+| 前端從背景回到頁面，何時重新核驗身分？ | [頁面與身分生命週期](foundation/frontend/react-frontend.md#頁面與身分生命週期) |
+| MINI App 的 LINE token 如何換成 Session，資源操作在哪裡授權？ | [MINI App 信任流程](foundation/api/http-contracts.md#mini-app-信任流程) |
+| LINE Webhook 何時回成功、何時要求重送？ | [Webhook 事件處理](foundation/api/http-contracts.md#基礎入口) |
+| 改 API 或 Firestore 欄位時，格式在哪一層轉換？ | [後端資料邊界](foundation/architecture/backend-boundaries.md#格式與資料相容) |
+| 專案如何收錄多個 Repository的來源項目？ | [Project 與來源引用](features/project/projects.md#最小來源引用骨架) |
+
+出勤、請假、送件等流程從[功能索引](features/README.md)進入。評估未來設計時才讀[平台規劃](planning/README.md)；[Inbox、Outbox 與 Webhook 時序](foundation/reliability/state-machines.md)描述規劃中的持久接收機制。
+
 ## 按任務開始
 
 | 要做的事 | 先讀 | 再按需要查閱 |
@@ -15,6 +30,8 @@
 | 評估未來能力 | [規劃與提案](planning/README.md) | 已接受 ADR 與現行功能規格 |
 
 ## 目錄責任
+
+**開發與維運指引**
 
 ```mermaid
 flowchart TB

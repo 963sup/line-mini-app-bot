@@ -20,6 +20,8 @@
 
 ## 物件與子物件歸屬
 
+**現行實作**
+
 ```mermaid
 erDiagram
   REPOSITORY ||--o{ OBJECT : 包含

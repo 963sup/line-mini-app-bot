@@ -33,6 +33,8 @@ Canonical來源hydration失敗時，已授權的Project自有metadata仍可讀�
 
 ## 最小來源引用骨架
 
+**現行實作**
+
 ```mermaid
 erDiagram
   PROJECT ||--o{ SOURCE_REFERENCE : 收錄
@@ -70,6 +72,8 @@ Project 文件保存 `ownerId` 與 `defaultRepositoryId`。同一擁有者底下
 工程對象、待處理問題、決策討論分區顯示；專案詳情不把預設庫的 Issue 計數顯示為跨庫進度。Repository 統計中的專案數指以該庫為初始來源的專案數。
 
 ## 工程驗收送件
+
+**現行實作**
 
 ```mermaid
 flowchart TB

@@ -8,3 +8,5 @@
 - [天氣](weather/README.md)
 
 功能規格的歸屬與維護方式見[功能文件指引](AGENTS.md)。
+
+[現行實作圖索引](../diagrams.md#現行實作) · [未來設計圖](../diagrams.md#未來設計)。

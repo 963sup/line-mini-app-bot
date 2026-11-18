@@ -2,6 +2,8 @@
 
 ## 最小流程
 
+**現行實作**
+
 ```mermaid
 sequenceDiagram
   participant U as 群組成員

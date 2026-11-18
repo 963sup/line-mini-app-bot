@@ -40,6 +40,8 @@ not enable agent-phase MCP traffic.
 
 ## Acceptance
 
+**開發與維運指引**
+
 ```mermaid
 flowchart LR
   B["Run bootstrap all in a fresh environment"] --> T{"Credentials and MCP transports pass?"}

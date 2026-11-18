@@ -10,3 +10,5 @@ superseded rather than silently rewriting history. Do not invent completed
 implementation or deployment evidence.
 
 - [ADR 0004：前後端與 API 契約分離的 Monorepo](0004-monorepo.md)
+
+[現行實作圖索引](../../../diagrams.md#現行實作) · [未來設計圖](../../../diagrams.md#未來設計)。

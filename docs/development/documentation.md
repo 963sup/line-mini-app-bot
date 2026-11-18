@@ -52,6 +52,8 @@ SHOULD 依主題與責任拆分文件，移除已確認過時、重複或不適�
 
 ## 編寫與修正流程
 
+**開發與維運指引**
+
 ```mermaid
 flowchart TB
   I["Identify：確認目的、讀者、範圍、權威來源與檔案所有權"]
@@ -92,3 +94,18 @@ flowchart TB
 - 可維護性優於一次性美化。
 
 最終目標：**Write for accurate machine interpretation and efficient human maintenance.** 以最少必要資訊傳達完整、可驗證的意圖，不增加無助理解、決策或執行的內容。
+
+## 圖表狀態與入口
+
+每張 Mermaid 前標示「現行實作」、「未來設計」或「開發與維運指引」。同圖必須比較兩者時標示「現況與提案對照」，指出各分支的狀態。現行圖在所在頁提供實作或契約來源；提案有現行對照時連到現行章節。新增圖或變更狀態時同步更新[圖表索引](../diagrams.md)與引用該圖的模組入口，保留既有章節錨點。
+
+### 獨立圖檔
+
+短圖與解釋一起維護在 Markdown。需要獨立審查的圖，在主題文件旁的 `diagrams/` 保存同名的 `.mermaid` 原始檔與 `.svg` 預覽。原章節保留狀態、圖片說明與原始檔連結；索引連到章節，讓讀者先看見用途。只編輯原始檔，使用儲存庫固定版 CLI 重新產生預覽。
+
+例如，從儲存庫根目錄更新 Inbox 預覽：
+
+```bash
+diagram=docs/foundation/reliability/diagrams/inbox-state
+bash scripts/tooling/tool-exec.sh mermaid render "$diagram.mermaid" --format svg > "$diagram.svg.tmp" && mv "$diagram.svg.tmp" "$diagram.svg"
+```

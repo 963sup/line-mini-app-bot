@@ -19,6 +19,8 @@ Orchestrator decides completion from this evidence, not from a role's confidence
 
 ## Diagnostic loop
 
+**開發與維運指引**
+
 ```mermaid
 flowchart TB
   BASE["記錄 revision、環境、預期與實際結果；以最小輸入重現"] --> REPRO{"原始觸發條件可重現？"}

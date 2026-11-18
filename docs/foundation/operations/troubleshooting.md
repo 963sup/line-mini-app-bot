@@ -1,5 +1,7 @@
 # Troubleshooting
 
+**開發與維運指引**
+
 ```mermaid
 flowchart TB
   A["檢查設定語法與文件引用"] --> B["Go doctor：編譯器、race 工具鏈與可寫路徑"]
@@ -23,6 +25,8 @@ Never print authentication headers or secret values while debugging.
 先記錄 project、region、build ID、來源 commit 與查詢時間，再依下圖定位。
 部署前後 metadata 的取得方式見[發布證據](release-acceptance.md#發布證據與前置條件)。
 只保存必要 metadata 與匿名化錯誤，不輸出 Secret payload 或登入 token。
+
+**開發與維運指引**
 
 ```mermaid
 flowchart TB

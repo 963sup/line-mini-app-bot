@@ -49,6 +49,8 @@ HTTP 成功代表 API 接受請求，不代表使用者已收到或讀取。
 
 ## 3. Webhook 事件與可靠性
 
+**未來設計**　此圖列出整合目標；現行重送行為見[Webhook 事件處理](../api/http-contracts.md#基礎入口)。
+
 ```mermaid
 flowchart TB
   Raw["限制 body 大小並驗證未改動原始 body 的簽章"] -->|通過| Parse["解析空陣列或逐筆處理多事件"]

@@ -64,6 +64,8 @@ bash scripts/tooling/tool-exec.sh gcloud run deploy line-mini-app-bot \
 
 ## 切換、觀察、回復
 
+**開發與維運指引**
+
 ```mermaid
 flowchart TB
   B["記錄具名舊 revision 或原流量分配"] --> A["候選通過驗收並取得發布授權"]
@@ -104,6 +106,8 @@ bash scripts/tooling/tool-exec.sh gcloud run services update-traffic line-mini-a
 | 映像與附件 | 保留上述版本的不可變 digest、必要 manifest／平台映像、來源證明與相關附件；同一 digest 可能被多個 revision 或服務引用，需一併核對。 |
 | Secret versions | 保留 serving 與回滾版本引用的數字版本，另核對共用服務及輪替要求；映像清理不連帶授權刪除 Secret。 |
 | 發布證據 | 保留來源 SHA、build ID、前後 snapshot、驗收結果與清理清單；建置歷史／日誌依其獨立保存政策管理。 |
+
+**開發與維運指引**
 
 ```mermaid
 flowchart TB

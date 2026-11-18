@@ -45,6 +45,8 @@ Discussion 與 Issue 保持獨立業務，不因畫面或欄位相似而共用�
 後端 [business/discussion](../../../backend/internal/business/discussion/discussion.go) 核心及其 HTTP、Firestore adapters，由 server 注入既有身分、Repository client 與編號能力。前端 [business/discussion](../../../frontend/miniapp/src/business/discussion/View.tsx) 由正式空間「討論」入口組合既有官方 UI；不修改 primitives、既有出勤或事項模型。
 前端分開取消列表、主題、留言與寫入請求，切換空間／主題或身分時隔離資料。編輯失敗先重新讀取。
 
+**現行實作**
+
 ```mermaid
 sequenceDiagram
   participant N as 父層導覽

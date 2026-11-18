@@ -13,3 +13,5 @@
 - [物件的單層子物件](subobjects.md)
 
 - [儲存庫業務空間與 ID 責任](spaces.md)
+
+[現行實作圖索引](../../diagrams.md#現行實作) · [未來設計圖](../../diagrams.md#未來設計)。

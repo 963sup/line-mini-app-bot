@@ -11,3 +11,5 @@ mise、Skills、MCP 與 Graphify／Repomix 分析範圍及報告。
 
 先讀 [本目錄索引](README.md) 與 [文件總索引](../README.md)。索引更新依[文件維護指引](../AGENTS.md#主題子目錄)。
 純文件修改驗證本機路徑、標題錨點及 `git diff --check`；設定變更另依父層規定檢查。不把未執行的應用測試或外部驗收宣稱為通過。
+
+[開發與維運指引圖索引](../diagrams.md#開發與維運指引) · [未來設計圖](../diagrams.md#未來設計)。

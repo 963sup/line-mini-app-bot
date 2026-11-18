@@ -4,6 +4,10 @@
 
 [contract/openapi.yaml](contract/openapi.yaml) 是公開 HTTP 契約的唯一組合入口。各能力維護自己的操作與格式，共用錯誤與認證位於 `contract/common/`；歸屬見[契約能力索引](contract/README.md)。不手改產生檔，業務核心不 import 生成套件。
 
+## 契約生成流程
+
+**開發與維運指引**
+
 ```mermaid
 flowchart TB
   SPEC["修改 OpenAPI 來源契約"] --> GEN["pnpm api:generate"]
@@ -102,4 +106,4 @@ Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄
 
 已接線與規劃中的操作以[能力清單](capabilities.json)為準，各操作的請求與回應見 [OpenAPI 契約](contract/openapi.yaml)。
 
-[流程圖（Mermaid）](../docs/foundation/api/http-contracts.md#基礎入口)
+[現行實作圖：基礎入口](../docs/foundation/api/http-contracts.md#基礎入口) · [未來設計圖](../docs/diagrams.md#未來設計)

@@ -4,6 +4,8 @@ Cloud Run 執行一個 Go HTTP 服務。Next.js 在建置階段匯出 MINI App�
 
 ## 執行入口
 
+**現行實作**
+
 ```mermaid
 architecture-beta
   group run(cloud)[Cloud Run]
@@ -33,3 +35,5 @@ Go 驗簽後分派 LINE 事件，由 handler 決定回覆及重試。MINI App �
 | 修改模組與依賴 | [目前目錄](layout.md)、[後端邊界](backend-boundaries.md) |
 | 修改資料與交易 | [Firestore 整合](../persistence/firestore.md) |
 | 準備裝置或部署驗收 | [整合與發布驗收](../operations/release-acceptance.md)、[Cloud Run 部署](../operations/cloud-run.md) |
+
+與現況比較時可對照[工程平台目標架構](../../planning/line-engineering-target.md#一完整系統總架構)。

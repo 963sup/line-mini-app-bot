@@ -52,6 +52,8 @@
 - 隨機 ID 與微秒精度 UTC 時間在交易 callback 外產生，號碼在交易內決定。重試結果不更改原資源建立時間。
 - `GetResourceNumber(ctx, repositoryID, number)`：只解析對照，未新增 API 路徑或修改生成型別。
 
+**現行實作**
+
 ```mermaid
 sequenceDiagram
   participant A as 已授權使用案例
