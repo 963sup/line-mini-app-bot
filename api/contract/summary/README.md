@@ -15,3 +15,5 @@ worker 保持現有回應：204 無內容；401 unauthorized；400 invalid job�
 共用 LINE 組合入口在 business/summary/line，依序交給摘要指令與訊息收集；不讓收集模組依賴摘要生成。
 
 沒有既有 MINI App 畫面或公開 Summary HTTP API；不得把此內部工作端點當成瀏覽器 API。
+
+[流程圖（Mermaid）](../../../docs/features/summary/summary.md#資料與可靠性)

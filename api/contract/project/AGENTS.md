@@ -10,3 +10,5 @@
 - 項目 ID 與來源 Issue ID 分開；欄位定義、選項與項目欄位值分開；來源事項狀態不等於專案 Status。
 - Table、Board、Roadmap 共用項目資料，View 保存呈現與查詢設定；篩選或隱藏欄位不是授權。
 - 不因雛型需求自動加入跨群組、草稿、排程、自動化、分析或範本；來源資源與專案權限分別核驗。
+
+[流程圖（Mermaid）](../../../docs/features/project/projects.md#最小來源引用骨架)

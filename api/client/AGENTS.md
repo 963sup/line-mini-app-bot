@@ -8,3 +8,5 @@
 - 新業務沿用現有 createAPIClient 與前端 Session 認證請求，不按能力複製 client、登入或重試機制。
 - 內部 Summary worker 不加入瀏覽器 client；不把 token、服務帳戶憑證或服務端設定打包到前端。
 - 修改契約先執行上層生成與相容性流程；修改 client 行為另跑相關既有型別與消費端檢查。
+
+[流程圖（Mermaid）](../../docs/foundation/api/http-contracts.md#基礎入口)

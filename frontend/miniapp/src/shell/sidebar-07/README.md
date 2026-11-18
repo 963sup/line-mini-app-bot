@@ -22,3 +22,5 @@ Codex 遵循根目錄 AGENTS.md 的「shadcn 元件保護」，不得為頁面�
 LINE 頭像經伺服器身分驗證成功後，以 LIFF `getProfile()` 取得，僅存在前端記憶體；登出、重新驗證及 pagehide 時清除，過期回應不更新畫面。不把 profile 回傳後端或當作授權依據。頭像限官方 `profile.line-scdn.net` HTTPS 來源；需 LINE Console 啟用並取得 `profile` scope 授權，失敗或未設定圖片時使用 AvatarFallback。側欄及帳號選單均使用 AvatarImage，未修改共用 Avatar 元件。
 
 來源：LINE 官方 docs source main `dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54` 的 LIFF getProfile 參考，以及 Context7 `/shadcn-ui/ui` AvatarImage／AvatarFallback 文件；shadcn CLI 維持 4.23.0。
+
+[流程圖（Mermaid）](../../../../../docs/foundation/frontend/react-frontend.md#頁面與身分生命週期)

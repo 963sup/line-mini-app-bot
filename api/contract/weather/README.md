@@ -12,3 +12,5 @@
 後端 core、CWA adapter、LINE adapter 分別位於 business/weather/forecast、其 cwa/、line/。
 組裝在 internal/server/line.go，與出勤、摘要資料層無依賴。
 沒有既有公開 Weather HTTP API 或 MINI App 天氣畫面。
+
+[流程圖（Mermaid）](../../../docs/foundation/api/http-contracts.md#基礎入口)

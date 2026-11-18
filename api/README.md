@@ -101,3 +101,5 @@ Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄
 ## 協作能力分佈與交付狀態
 
 已接線與規劃中的操作以[能力清單](capabilities.json)為準，各操作的請求與回應見 [OpenAPI 契約](contract/openapi.yaml)。
+
+[流程圖（Mermaid）](../docs/foundation/api/http-contracts.md#基礎入口)

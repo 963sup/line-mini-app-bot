@@ -40,3 +40,5 @@ FIRESTORE_EMULATOR_HOST=127.0.0.1:8787 bash scripts/tooling/tool-exec.sh bash -c
 一般suite檢查明確scope、dry-run預設、writer readiness、路徑／namespace隔離、來源無損轉換及manifest防篡改。emulator測試只在 `FIRESTORE_EMULATOR_HOST` 明列時執行，涵蓋完整資料／收據保存、候選可發現、cutover中斷恢復、無漂移回退、新寫入拒絕回退及衝突拒絕覆寫；不使用正式資料作測試。
 
 交易與先讀後寫依Context7 `/googleapis/google-cloud-go` 官方transaction.go及本機Firestore v1.29.2核對；`DocumentRefs`包含缺少父文件的子集合入口，遷移遇到孤兒來源拒絕而非默默省略。Google Developer Knowledge工具未在此host提供；未宣稱實際IAM、正式資料規模、部署或live回退驗收。
+
+[流程圖（Mermaid）](../../../docs/foundation/architecture/backend-boundaries.md#格式與資料相容)

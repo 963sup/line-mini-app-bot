@@ -23,3 +23,5 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 開始相關任務前，必須閱讀 [操作模型](../docs/foundation/architecture/business-operation.md) 與 [符合性流程](../docs/agents/workflow.md#business-operation-compliance)。
 
 畫面呈現操作可用性、確認與結果；前端隱藏按鈕不能取代後端授權。使用 API 契約處理拒絕、過期版本與失敗，結果未知時遵循既有重試契約，不自行宣告權限或成功。
+
+[流程圖（Mermaid）](../docs/foundation/frontend/react-frontend.md#頁面與身分生命週期)

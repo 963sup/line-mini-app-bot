@@ -9,3 +9,5 @@
 - 保留既有 JSON 大小寫、時間與月份、nullable、分頁、請求上限及 Idempotency-Key 語義；不藉命名整理更改公開路徑。
 - 登入、Repository 存取與審核權分開；後端執行本人範圍、群組權、版本與交易檢查。契約驗證不替代業務授權。
 - 請假登記不代表已有請假審核；不把未實作能力列為可用操作。
+
+[流程圖（Mermaid）](../../../docs/features/attendance/attendance.md#定位前預檢狀態與時序)

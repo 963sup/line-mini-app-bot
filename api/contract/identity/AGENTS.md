@@ -8,3 +8,5 @@
 - 可信身分由後端驗證；客戶端輸入、登入或 profile 不等同 Repository 成員或其他業務操作權。
 - 保留現有 Cookie／Bearer、CSRF、錯誤及單例路徑相容性；不在公開 DTO 暴露憑證與服務端機密。
 - 修改前閱讀 [Session 設計](../../../docs/foundation/identity/browser-session.md)。
+
+[流程圖（Mermaid）](../../../docs/foundation/api/http-contracts.md#基礎入口)

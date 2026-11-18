@@ -10,3 +10,5 @@
 - Issue 的 types／comments、Discussion categories 與 Project fields／views 保留 scaffold，空 paths／schemas 不接入組合入口。Project／items 與 Repository milestones／statistics 已依 [專案與來源引用](../../docs/features/project/projects.md)、[里程碑](../../docs/features/repository/milestones.md)、[儲存庫統計](../../docs/features/repository/statistics.md) 接入；其餘能力先完成操作規格再新增契約及實作。
 - 新增操作同步維護 [能力清單](../capabilities.json)、對應 adapter、消費端及功能規格；事件入口不為目錄一致而新增 HTTP API。
 - 契約變更由儲存庫根目錄執行 `bash scripts/tooling/tool-exec.sh pnpm api:check`；純指引變更檢查連結與 whitespace，不刷新相容性 baseline。
+
+[流程圖（Mermaid）](../../docs/foundation/api/http-contracts.md#基礎入口)

@@ -71,3 +71,5 @@ OpenAPI 拆分不等同 runtime 完整驗證，也不代表資料庫交易的原
 ## 工作日誌
 
 [Journal 契約](journal/journals.yaml) 定義發布、列表與單篇讀取。Feed 與 Dashboard 使用同一資源；兩者的查詢方式與正式啟用條件見 [日誌設計](../../docs/features/journal/design.md)。
+
+[流程圖（Mermaid）](../../docs/foundation/api/http-contracts.md#基礎入口)

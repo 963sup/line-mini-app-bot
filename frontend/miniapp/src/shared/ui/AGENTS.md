@@ -59,3 +59,5 @@ bash scripts/tooling/tool-exec.sh shadcn add @shadcn/button --diff --cwd fronten
 完整 Components／AI Elements 清單、用途、兩種 base 的文件與內嵌範例由 [本機參考庫](../../../../../docs/tooling/shadcn-reference/README.md) 的 [生成索引](../../../../../docs/tooling/shadcn-reference/snapshot/INDEX.md) 統一維護，不在本檔複製快照或數量。先搜尋索引，再按需讀相關 Radix 文件；未安裝、棄用及 base 不符都不能憑目錄推定可直接使用。
 
 更新與完整性檢查依參考庫說明執行；最新官方目錄仍是發現新增／改名項目的來源。應用檢查、安裝來源與 MCP 診斷見 [shadcn 工具指南](../../../../../docs/tooling/mcp/shadcn.md) 與 [前端入口](../../../../README.md)。純指引修改驗證連結及 whitespace；實際安裝／組合再依前端指引檢查，不把文件查證當作 UI、LINE 裝置或整合驗收。
+
+[流程圖（Mermaid）](../../../../../docs/foundation/frontend/react-frontend.md#頁面與身分生命週期)
