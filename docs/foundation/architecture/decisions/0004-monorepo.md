@@ -54,7 +54,7 @@ Context7：Turborepo v2.11.10 任務／輸入輸出設定；oapi-codegen 官方�
 
 ## 第二階段進度
 
-出勤的 12 個端點現已納入契約（合計 14 個 operations），接上生成路由／DTO、身分驗證後的 runtime schema 驗證、產生碼同步與 oasdiff 相容性檢查。詳見 [API 契約工作流程](../../../../api/README.md)。第二階段不改資料層交易或 LINE 平台 API；HTTP 功能拆分與 React hooks 遷移仍屬後續階段。
+出勤的 12 個端點現已納入契約（合計 14 個 operations），接上生成路由／DTO、身分驗證後的 runtime schema 驗證、產生碼同步檢查。詳見 [API 契約工作流程](../../../../api/README.md)。第二階段不改資料層交易或 LINE 平台 API；HTTP 功能拆分與 React hooks 遷移仍屬後續階段。
 
 
 ## 第三階段進度

@@ -1,4 +1,5 @@
 import React, { act } from "react";
+import { once } from "node:events";
 import { createRoot } from "react-dom/client";
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -272,9 +273,18 @@ test("object editor stays in its row, cancel preserves a draft until confirmed, 
     await f.click("另一物件");
     assert.ok(document.querySelector("[role=dialog]"));
     assert.equal(document.activeElement?.textContent, "繼續編輯");
-    await f.click("繼續編輯");
-    assert.equal(document.activeElement, row.querySelector("input"));
-    await f.click("取消"); await f.click("繼續編輯");
+    const input = row.querySelector("input")!;
+    async function continueEditing() {
+      // Radix restores focus from a timer after the dialog unmounts.
+      await Promise.all([
+        once(input, "focus", { signal: AbortSignal.timeout(2_000) }),
+        f.click("繼續編輯"),
+      ]);
+      assert.ok(document.activeElement === input, "focus returns to the editor");
+    }
+    await continueEditing();
+    await f.click("取消");
+    await continueEditing();
     assert.equal(writes, 0);
     assert.equal(row.querySelector<HTMLInputElement>("input")!.value, "更新名稱");
     await f.click("儲存物件");

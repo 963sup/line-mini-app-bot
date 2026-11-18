@@ -3,14 +3,20 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 source scripts/tooling/dev-env.sh
 mise exec -- go version
-for tool in gopls deadcode callgraph stringer golangci-lint gofumpt govulncheck; do
-  mise exec -- sh -c 'command -v "$1" >/dev/null' -- "$tool" || {
-    echo "FAIL: missing $tool; run mise run install-core"; exit 1;
-  }
-done
+mise exec -- sh -c '
+  for tool do
+    command -v "$tool" >/dev/null || {
+      echo "FAIL: missing $tool; run mise run install-core"; exit 1;
+    }
+  done
+' -- gopls deadcode callgraph stringer golangci-lint gofumpt govulncheck
 echo 'PASS: core Go development tools on PATH'
-for name in GOPATH GOCACHE GOMODCACHE GOENV GOTMPDIR; do
-  value="$(mise exec -- go env "$name")"
+go_env_names=(GOPATH GOCACHE GOMODCACHE GOENV GOTMPDIR)
+go_env_output="$(mise exec -- go env "${go_env_names[@]}" GOVERSION)"
+mapfile -t go_env_values <<< "$go_env_output"
+for index in "${!go_env_names[@]}"; do
+  name="${go_env_names[$index]}"
+  value="${go_env_values[$index]}"
   case "$value" in /workspace/*) ;; *) echo "FAIL: $name outside workspace: $value"; exit 1;; esac
 done
 for directory in "$GOCACHE" "$GOMODCACHE" "$GOTMPDIR" "$XDG_CONFIG_HOME" "$CLOUDSDK_CONFIG" "$DOCKER_CONFIG"; do
@@ -18,7 +24,7 @@ for directory in "$GOCACHE" "$GOMODCACHE" "$GOTMPDIR" "$XDG_CONFIG_HOME" "$CLOUD
 done
 checkdir="$(mktemp -d "$TMPDIR/go-doctor.XXXXXX")"
 trap 'rm -rf "$checkdir"' EXIT
-go_version="$(mise exec -- go env GOVERSION)"
+go_version="${go_env_values[-1]}"
 printf 'module doctor.local/check\n\ngo %s\n' "${go_version#go}" > "$checkdir/go.mod"
 printf 'package check\nfunc Sum(a,b int) int { return a+b }\n' > "$checkdir/check.go"
 printf 'package check\nimport "testing"\nfunc TestSum(t *testing.T) { if Sum(2,3)!=5 { t.Fatal("sum") } }\n' > "$checkdir/check_test.go"
@@ -29,7 +35,7 @@ if [[ -f backend/go.mod ]]; then
 else
   echo "NOT RUN: application checks (no go.mod)"
 fi
-for tool in gopls docker java; do
+for tool in docker java; do
   if mise exec -- sh -c 'command -v "$1" >/dev/null' -- "$tool"; then
     echo "PRESENT: $tool (presence only; not service or authentication readiness)"
   else

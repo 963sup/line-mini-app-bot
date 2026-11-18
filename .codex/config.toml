@@ -96,7 +96,8 @@ config_file = "agents/mermaid.toml"
 [mcp_servers.mermaid]
 url = "https://mcp.mermaid.ai/mcp"
 env_http_headers = { Authorization = "MERMAID_TOKEN" }
-enabled = true
+# Local rendering uses mise's render-mermaid task.
+enabled = false
 required = false
 startup_timeout_sec = 30
 tool_timeout_sec = 60
@@ -209,7 +210,7 @@ command = "bash"
 args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "bash", "-c", 'export DK_API_KEY="${DEVELOPERKNOWLEDGE_API_KEY:-}"; exec gke-mcp']
 env_vars = ["DEVELOPERKNOWLEDGE_API_KEY", "CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "CLOUDSDK_CORE_PROJECT", "CLOUDSDK_CORE_ACCOUNT", "CLOUDSDK_COMPUTE_REGION", "CLOUDSDK_COMPUTE_ZONE", "KUBECONFIG", "GKE_MCP_PROVIDER", "GKE_MCP_MODEL", "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_LOCATION", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
 default_tools_approval_mode = "prompt"
-enabled = true
+enabled = false
 required = false
 startup_timeout_sec = 120
 tool_timeout_sec = 120

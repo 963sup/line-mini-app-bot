@@ -9,7 +9,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY backend/package.json ./backend/package.json
 COPY api/ ./api/
 COPY frontend/ ./frontend/
-COPY scripts/tooling/prepare-miniapp-assets.mjs ./scripts/tooling/prepare-miniapp-assets.mjs
+COPY scripts/tooling/prepare-miniapp-assets.mts ./scripts/tooling/prepare-miniapp-assets.mts
 RUN --mount=type=secret,id=build-ca \
     if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
     pnpm install --frozen-lockfile

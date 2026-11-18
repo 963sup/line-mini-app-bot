@@ -71,21 +71,24 @@ jobs:
           mise trust mise.toml
           bash scripts/tooling/tool-exec.sh mise run install-core
           bash scripts/tooling/tool-exec.sh mise run doctor
-      - name: Prepare frontend and API contract
-        env:
-          API_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+      - name: Install pinned frontend and API tooling
         if: steps.module.outputs.present == 'true'
-        run: |
-          # A history rewrite can put the push event's comparison base outside all branches.
-          if [[ "$API_BASE_REF" =~ ^[0-9a-f]{40}$ && ! "$API_BASE_REF" =~ ^0+$ ]] && ! git cat-file -e "${API_BASE_REF}^{commit}" 2>/dev/null; then
-            git fetch --no-tags origin "$API_BASE_REF"
-          fi
-          bash scripts/tooling/tool-exec.sh mise run install-web
-          bash scripts/tooling/tool-exec.sh pnpm install --frozen-lockfile
-          bash scripts/tooling/tool-exec.sh pnpm api:check
-          bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp build
-          bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check
-          bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp test
+        run: bash scripts/tooling/tool-exec.sh mise run install-web
+      - name: Install workspace dependencies
+        if: steps.module.outputs.present == 'true'
+        run: bash scripts/tooling/tool-exec.sh pnpm install --frozen-lockfile
+      - name: Verify API contract
+        if: steps.module.outputs.present == 'true'
+        run: bash scripts/tooling/tool-exec.sh pnpm api:check
+      - name: Build frontend
+        if: steps.module.outputs.present == 'true'
+        run: bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp build
+      - name: Check frontend types
+        if: steps.module.outputs.present == 'true'
+        run: bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check
+      - name: Test frontend
+        if: steps.module.outputs.present == 'true'
+        run: bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp test
       - name: Verify Go application
         if: steps.module.outputs.present == 'true'
         run: |
