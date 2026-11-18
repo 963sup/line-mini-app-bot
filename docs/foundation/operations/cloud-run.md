@@ -17,7 +17,7 @@ configuration 為準；image-only update 會沿用當時的 service template。G
 repository 的 `backend/.env.example` 或 `deploy/cloudbuild.yaml` 設定同步到 Cloud Run。機密只由
 Cloud Run 引用 Secret Manager，不進入 Dockerfile、映像或 Git。
 
-### Managed trigger 的 Rich Menu 圖片路徑
+## Managed trigger 的 Rich Menu 圖片路徑
 
 現行 managed trigger 的權威設定在 Cloud Build（global trigger
 `4276bf03-26ee-4b4b-a206-0d7fc74a9862`）的 inline build；repository

@@ -87,4 +87,4 @@ Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄
 
 ## 協作能力分佈與交付狀態
 
-Issue、Discussion／留言、Labels、Milestones、Project／items 與 Repository statistics 的本機契約及跨層對照見 [能力分佈](../docs/development/business-refactor.md#協作能力的本機分佈2026-11-13)。其中包含尚未提交來源；Project fields／views 仍為 scaffold。API 生成同步、相容性與正式環境驗收須有各自證據，不能由契約或本文件存在推論。
+已接線與規劃中的操作以[能力清單](capabilities.json)為準，各操作的請求與回應見 [OpenAPI 契約](contract/openapi.yaml)。

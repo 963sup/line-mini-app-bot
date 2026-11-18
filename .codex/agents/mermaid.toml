@@ -18,9 +18,8 @@ Read only the relevant feature contracts: docs/features/repository/repository.md
 docs/features/repository/objects.md, docs/features/repository/subobjects.md, docs/features/repository/issues.md,
 docs/features/repository/discussions.md and docs/features/project/projects.md. Preserve these bounds:
 Repository owns source data; Project provides an execution view through references.
-Project and Repository are parallel businesses under the current Space context.
-Current SpaceID means LINE group identity within a channel, not physical location.
-Physical spaces are a proposed separate concept until code/contracts implement it.
+Verify owner and cross-repository relationships against the Project contract and
+docs/features/repository/spaces.md before drawing Group or Space nodes.
 Subobjects form one level under Object; parent/child progress and units remain
 independent. Issue state and Discussion conclusions do not update object progress.
 Project references object/subobject/issue/discussion without copying authority;

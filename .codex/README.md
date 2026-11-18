@@ -30,12 +30,14 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 
 | 圖表目的 | 必讀來源與邊界 |
 | --- | --- |
-| 儲存庫與專案關係 | [Project](../docs/features/project/projects.md)：Space 下平行業務，專案引用單一來源儲存庫，引用不增加來源權限 |
+| 儲存庫與專案關係 | [Project](../docs/features/project/projects.md)：個人或群組擁有 Project，引用可跨庫，來源讀權逐庫核驗 |
 | 物件與子工序 | [Object](../docs/features/repository/objects.md)、[Subobject](../docs/features/repository/subobjects.md)：單層子項，數量／單位／進度獨立 |
 | 問題與討論 | [Issue](../docs/features/repository/issues.md)、[Discussion](../docs/features/repository/discussions.md)：各自狀態與資料，不自動推進物件進度 |
 | 授權與寫入流程 | [操作模型](../docs/foundation/architecture/business-operation.md)：區分主體、資源、權限、領域規則、交易與結果 |
 
-目前 `SpaceID` 對應 LINE 群組；實體位置 Space 的新設計必須標示「提案」，不能混入現行資料模型。圖表須註明來源版本、相關未提交變更及已實作／提案／待確認狀態，不以舊圖譜或規劃文件代替現行程式證據。
+以 `GroupID` 識別 LINE 群組，以 `SpaceID` 識別 Repository 內的工區。[庫內工區](../docs/features/repository/spaces.md)
+
+圖表須註明來源版本、相關未提交變更及已實作／提案／待確認狀態，不以舊圖譜或規劃文件代替現行程式證據。
 
 ### 操作與驗收
 

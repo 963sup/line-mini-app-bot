@@ -1,10 +1,5 @@
 # Firestore 資料契約
 
-範圍：本頁保留後續平台擴充的設計參考，不是首版必建清單。
-當前依 [ADR 0002](../architecture/decisions/0002-baseline.md)、[分階段落地](../../development/foundation.md)
-與 [基礎出勤](../../features/attendance/attendance.md) 先完成基礎，再建立出勤所需的 API／資料／套件。
-不預建 Worker、Garr、群組角色、管理後台或模板；不新增測試工程。
-
 > 狀態：技術基線 schemaVersion=1，尚未實作。業務欄位依 P01 加入；保存期與刪除 SLA 待 P05，不默認永久保存。
 
 ## 路徑與欄位

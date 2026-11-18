@@ -1,9 +1,6 @@
 # Codex 接手索引與完整度
 
-> 狀態：文件導覽；不是所有產品決策已完成。最後核對：2026-11-10。
-
-先讀 [ADR 0002](decisions/0002-baseline.md) 與 [分階段落地](../../development/foundation.md)。
-首版僅做 [基礎出勤](../../features/attendance/attendance.md)，其餘平台與測試材料留作後續參考，不新增測試工程。
+目前功能與執行入口見 [架構總覽](overview.md)。原始交付順序保存在 [架構基線決策](decisions/0002-baseline.md)。
 
 ## 最短閱讀路徑
 
@@ -37,13 +34,7 @@ flowchart TD
 
 ## 現況與設計分開
 
-目前程式：cmd/server 啟動 internal/server；HTTP 與 LINE adapter 分別位於 internal/adapters/http、line，
-internal/web 管理頁面與資源，internal/lineui 共用訊息呈現；出勤、月查詢、更正與可選摘要已有實作。
-目前沒有健康檢查路由或 cmd/worker。
-Dockerfile 已複製 go.mod、go.sum、cmd 與 internal；頁面資產透過 go:embed 建入 server。
-Messaging API／MINI App 與 Rich Menu CLI 已有接入程式；真實渠道與雲端連線仍待驗收。
-Cloud Run 已確定為唯一部署目標（ADR 0003）。已有 cloudbuild.yaml 與上傳範圍設定；
-建置／執行服務帳戶、secrets、ADC/IAM、Trigger 與實際部署尚未驗收。
+目錄與組裝位置見 [模組配置](layout.md)。前端在映像建置階段匯出，由 Go 讀取靜態檔案。Cloud Run 為已接受的部署目標；實際渠道、裝置、服務帳戶及 revision 的驗收，依 [發布驗收](../operations/release-acceptance.md) 留存證據。
 
 ## 讓 Codex 不猜的額外材料
 

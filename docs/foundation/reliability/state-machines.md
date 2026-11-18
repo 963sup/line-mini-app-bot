@@ -1,11 +1,6 @@
 # 事件與發送狀態機
 
-範圍：本頁保留後續平台擴充的設計參考，不是首版必建清單。
-當前依 [ADR 0002](../architecture/decisions/0002-baseline.md)、[分階段落地](../../development/foundation.md)
-與 [基礎出勤](../../features/attendance/attendance.md) 先完成基礎，再建立出勤所需的 API／資料／套件。
-不預建 Worker、Garr、群組角色、管理後台或模板；不新增測試工程。
-
-> 狀態：技術契約；外部 API 不提供與 Firestore 跨系統原子交易，不保證 exactly-once。
+> 狀態：後續平台提案。現行 Webhook 見 [HTTP 契約](../api/http-contracts.md#基礎入口)。外部 API 不提供與 Firestore 跨系統原子交易，不保證 exactly-once。
 
 ## Inbox
 

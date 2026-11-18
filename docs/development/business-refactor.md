@@ -2,7 +2,7 @@
 
 ## 協作能力的本機分佈（2026-11-13）
 
-依未提交差異重新核對 API、後端、文件與前端的對應。觀察基準為 `work` 的 HEAD `01631be9de257e9b9c32e86736a9f4a8d22a0914` 加當時工作樹；下表包含尚未提交的新檔，描述本機接線，不表示這些功能已隨本文件發布。功能擁有者提交或程式接線改變後，須同步核對本表。
+依未提交差異重新核對 API、後端、文件與前端的對應。觀察基準為 `work` 的 HEAD `01631be9de257e9b9c32e86736a9f4a8d22a0914` 加當時工作樹；下表包含尚未提交的新檔，描述本機接線，不表示這些功能已隨本文件發布。此表保留當時的審查基準。目前能力狀態見[能力清單](../../api/capabilities.json)，現行操作見[功能索引](../features/README.md)。
 
 API 路徑相對於 `api/contract/`，後端相對於 `backend/internal/business/`，前端相對於 `frontend/miniapp/src/business/`。來源契約仍由 `api/contract/openapi.yaml` 組合，能力歸屬以 `api/capabilities.json` 為準；本表只提供跨層導覽，不複製操作規則。
 

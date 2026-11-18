@@ -1,12 +1,12 @@
 # 目前目錄與責任
 
-本頁描述第四階段完成後的配置；邊界規則見 [後端功能邊界](backend-boundaries.md)。
+本頁描述目前的主要目錄；邊界規則見 [後端功能邊界](backend-boundaries.md)。
 
 ```text
 backend/
   .env.example                 # 後端執行期設定範本
   go.mod、go.sum
-  cmd/server/、attendancemigrate/、firestorecheck/、richmenu/
+  cmd/server/、attendancemigrate/、firestorecheck/、projectmigrate/、richmenu/
   internal/
     business/
       attendance/
@@ -18,6 +18,8 @@ backend/
           http/、line/、cloudtasks/、summarizer/
         line/                  # 收集與摘要指令的組合入口
         firestore/             # 訊息與工作共用版本／交易
+      group/、repository/、project/
+      object/、subobject/、objectimport/、issue/、discussion/、journal/
       weather/forecast/
         cwa/、line/
     identity/                  # 身分與驗證契約
@@ -35,6 +37,7 @@ frontend/miniapp/
   src/pages/                   # Next.js Pages Router；靜態輸出
   src/navigation/home/
   src/business/attendance/     # 打卡、紀錄、更正、審核、請假
+  src/business/repository/、project/、object/、subobject/、issue/、discussion/、journal/
   src/business/form/journal/   # Google 日誌表單入口
   src/identity/、platform/line/、shared/、shell/
   src/diagnostics/geolocation/
@@ -45,14 +48,15 @@ deploy/
   firestore/indexes.json       # Firestore 索引宣告
 api/
   redocly.yaml                 # 契約 lint／bundle 規則
-  contract/                    # 唯一入口與依出勤子功能拆分的契約
+  contract/                    # 唯一入口與依功能拆分的契約
   client/                     # TS 生成型別與 openapi-fetch factory
-  codegen/、compatibility/
+  codegen/                    # 程式碼產生設定
+  capabilities.json           # 功能清單
 assets/line/richmenu/           # LINE 選單素材
 scripts/
   tooling/                     # 環境、檢查、編輯器與前端資產工具
   analysis/                    # 圖譜與來源範圍稽核
-  api/                         # 契約生成與相容性檢查
+  api/                         # 契約生成、功能清單與路由分派檢查
   release/                     # 發布驗證與狀態檢視
 docs/、.github/、.vscode/、.agents/、.codex/
 ```

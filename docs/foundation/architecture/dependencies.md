@@ -11,11 +11,6 @@
 以下完整分層表與圖保留為未來平台規劃，並非目前檔案樹。
 
 
-範圍：本頁保留後續平台擴充的設計參考，不是首版必建清單。
-當前依 [ADR 0002](decisions/0002-baseline.md)、[分階段落地](../../development/foundation.md)
-與 [基礎出勤](../../features/attendance/attendance.md) 先完成基礎，再建立出勤所需的 API／資料／套件。
-不預建 Worker、Garr、群組角色、管理後台或模板；不新增測試工程。
-
 > 狀態：目標 import 規則；圖中是允許依賴，不是假稱現有程式已實作。
 
 ## 允許方向

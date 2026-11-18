@@ -62,4 +62,4 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 ## 協作能力分佈與交付狀態
 
-正式空間的事項、討論／留言、標籤、里程碑、專案／items 與總覽統計已在本機 `repository/View.tsx` 組合，各畫面及 API／後端對照見 [能力分佈](../docs/development/business-refactor.md#協作能力的本機分佈2026-11-13)。空間 UI 預覽及其入口已移除；正式驗收仍須分別確認，不以畫面檔存在推論完成。
+工程畫面的使用方式與入口見[功能索引](../docs/features/README.md)，跨儲存庫操作見[專案](../docs/features/project/projects.md)。

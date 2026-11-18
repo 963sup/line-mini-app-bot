@@ -1,3 +1,5 @@
+# MINI App 開發指引
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know
