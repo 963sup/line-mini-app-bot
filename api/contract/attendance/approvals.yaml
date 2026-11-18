@@ -1,0 +1,423 @@
+{
+  "paths": {
+    "/api/v1/attendance/corrections/{id}/review": {
+      "get": {
+        "operationId": "getAttendanceCorrectionReview",
+        "summary": "getAttendanceCorrectionReview",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./corrections.yaml#/components/schemas/CorrectionReview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attendance/corrections/{id}/approve": {
+      "post": {
+        "operationId": "approveAttendanceCorrection",
+        "summary": "approveAttendanceCorrection",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "description": "Required when authenticating with the session cookie.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionApproved"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "cross-origin request blocked"
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attendance/corrections/{id}/reject": {
+      "post": {
+        "operationId": "rejectAttendanceCorrection",
+        "summary": "Reject with a reason, authorized independent reviewer only",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "description": "Required when authenticating with the session cookie.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./corrections.yaml#/components/schemas/CorrectionDecisionResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./corrections.yaml#/components/responses/CorrectionError"
+          },
+          "401": {
+            "$ref": "./corrections.yaml#/components/responses/CorrectionError"
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "cross-origin request blocked"
+              }
+            }
+          },
+          "404": {
+            "$ref": "./corrections.yaml#/components/responses/CorrectionError"
+          },
+          "409": {
+            "$ref": "./corrections.yaml#/components/responses/CorrectionError"
+          },
+          "415": {
+            "$ref": "./corrections.yaml#/components/responses/CorrectionError"
+          },
+          "503": {
+            "$ref": "./corrections.yaml#/components/responses/CorrectionError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectionDecision"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attendance/corrections/reviewer-groups": {
+      "get": {
+        "operationId": "listAttendanceReviewerGroups",
+        "summary": "List server-provisioned reviewer groups",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "./records.yaml#/components/schemas/GroupItem"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./corrections.yaml#/components/responses/CorrectionError"
+          },
+          "401": {
+            "$ref": "./corrections.yaml#/components/responses/CorrectionError"
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "./corrections.yaml#/components/responses/CorrectionError"
+          },
+          "409": {
+            "$ref": "./corrections.yaml#/components/responses/CorrectionError"
+          },
+          "415": {
+            "$ref": "./corrections.yaml#/components/responses/CorrectionError"
+          },
+          "503": {
+            "$ref": "./corrections.yaml#/components/responses/CorrectionError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CorrectionApproved": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "approved"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "CorrectionDecision": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        }
+      }
+    }
+  }
+}

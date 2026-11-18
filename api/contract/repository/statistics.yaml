@@ -1,0 +1,148 @@
+{
+  "paths": {
+    "/api/v1/repositories/{repositoryId}/statistics": {
+      "get": {
+        "operationId": "getRepositoryStatistics",
+        "summary": "Current complete repository counts; no cached or page-derived totals",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepositoryStatistics"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/IssueError"
+          },
+          "401": {
+            "$ref": "#/components/responses/IssueError"
+          },
+          "403": {
+            "$ref": "#/components/responses/IssueForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/IssueError"
+          },
+          "409": {
+            "$ref": "#/components/responses/IssueError"
+          },
+          "415": {
+            "$ref": "#/components/responses/IssueError"
+          },
+          "503": {
+            "$ref": "#/components/responses/IssueError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RepositoryStatistics": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "openIssues",
+          "inProgressIssues",
+          "completedIssues",
+          "discussions",
+          "milestones",
+          "projects",
+          "observedAt"
+        ],
+        "properties": {
+          "openIssues": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "inProgressIssues": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "completedIssues": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "discussions": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "milestones": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "projects": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "observedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "responses": {
+      "IssueError": {
+        "description": "Request rejected or unavailable; errors never expose hidden resources.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../common/transport.yaml#/components/schemas/APIError"
+            }
+          }
+        }
+      },
+      "IssueForbidden": {
+        "description": "Creator permission or CSRF denied. Standard cross-origin protection may return text/plain.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../common/transport.yaml#/components/schemas/APIError"
+            }
+          },
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

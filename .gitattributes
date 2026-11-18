@@ -1,0 +1,31 @@
+# Normalize text files in Git; scripts must remain executable on Linux.
+* text=auto
+*.go text eol=lf
+*.mod text eol=lf
+*.sum text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.svg text eol=lf
+Dockerfile text eol=lf
+.*ignore text eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+
+# Vendored upstream skills remain tracked but do not dominate language statistics.
+.agents/skills/** linguist-vendored
+.codex/skills/** linguist-vendored

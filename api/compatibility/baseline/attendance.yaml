@@ -1,0 +1,2092 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Attendance API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/attendance/groups": {
+      "get": {
+        "operationId": "listAttendanceGroups",
+        "summary": "listAttendanceGroups",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GroupItem"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": true,
+        "description": "Existing compatibility endpoint. Prefer the paginated records and independent monthly summary endpoints."
+      }
+    },
+    "/api/v1/attendance/groups/page": {
+      "get": {
+        "operationId": "listAttendanceGroupPage",
+        "summary": "listAttendanceGroupPage",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 4096
+            },
+            "description": "Opaque cursor; keep the same filters. Empty/missing starts the first page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attendance/records": {
+      "get": {
+        "operationId": "listAttendanceRecords",
+        "summary": "listAttendanceRecords",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+            },
+            "description": "Calendar month in Asia/Taipei; cross-month shifts are clipped by business rules."
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 4096
+            },
+            "description": "Opaque cursor; keep the same filters. Empty/missing starts the first page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attendance/records/{id}": {
+      "get": {
+        "operationId": "getAttendanceRecord",
+        "summary": "getAttendanceRecord",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceRecord"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attendance/monthly": {
+      "get": {
+        "operationId": "getAttendanceMonthlyReport",
+        "summary": "getAttendanceMonthlyReport",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+            },
+            "description": "Calendar month in Asia/Taipei; cross-month shifts are clipped by business rules."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonthlyReport"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": true,
+        "description": "Existing compatibility endpoint. Prefer the paginated records and independent monthly summary endpoints."
+      }
+    },
+    "/api/v1/attendance/monthly/summary": {
+      "get": {
+        "operationId": "getAttendanceMonthlySummary",
+        "summary": "getAttendanceMonthlySummary",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "group",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+            },
+            "description": "Calendar month in Asia/Taipei; cross-month shifts are clipped by business rules."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonthlySummary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attendance/launch": {
+      "post": {
+        "operationId": "exchangeAttendanceLaunch",
+        "summary": "exchangeAttendanceLaunch",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "cross-origin request blocked"
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaunchRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attendance/punches": {
+      "post": {
+        "operationId": "submitAttendancePunch",
+        "summary": "submitAttendancePunch",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PunchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "cross-origin request blocked"
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PunchRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attendance/corrections": {
+      "post": {
+        "operationId": "proposeAttendanceCorrection",
+        "summary": "proposeAttendanceCorrection",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "description": "Optional for existing clients. Same user/key/payload replays the original acceptance; different payload returns 409. Preserve this key across ambiguous failures."
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionAccepted"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "cross-origin request blocked"
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectionSubmission"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attendance/corrections/{id}": {
+      "get": {
+        "operationId": "getAttendanceCorrectionStatus",
+        "summary": "getAttendanceCorrectionStatus",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attendance/corrections/{id}/review": {
+      "get": {
+        "operationId": "getAttendanceCorrectionReview",
+        "summary": "getAttendanceCorrectionReview",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionReview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attendance/corrections/{id}/approve": {
+      "post": {
+        "operationId": "approveAttendanceCorrection",
+        "summary": "approveAttendanceCorrection",
+        "tags": [
+          "attendance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionApproved"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "cross-origin request blocked"
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "APIError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Interval": {
+        "type": "object",
+        "properties": {
+          "Start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "End": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "Start",
+          "End"
+        ]
+      },
+      "Position": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "format": "double"
+          },
+          "accuracyMeters": {
+            "type": "number",
+            "minimum": 0,
+            "format": "double"
+          },
+          "capturedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude",
+          "accuracyMeters",
+          "capturedAt"
+        ]
+      },
+      "AttendanceRecord": {
+        "type": "object",
+        "properties": {
+          "RecordID": {
+            "type": "string"
+          },
+          "GroupID": {
+            "type": "string"
+          },
+          "ClockInAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ClockOutAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "EventSequence": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "Breaks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Interval"
+            },
+            "nullable": true
+          },
+          "BreakStartedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "RestConfirmed": {
+            "type": "boolean"
+          },
+          "RebuildIssues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "required": [
+          "RecordID",
+          "GroupID",
+          "ClockInAt",
+          "ClockOutAt",
+          "Revision",
+          "EventSequence",
+          "Breaks",
+          "BreakStartedAt",
+          "RestConfirmed",
+          "RebuildIssues"
+        ]
+      },
+      "StoredRecord": {
+        "type": "object",
+        "properties": {
+          "RecordID": {
+            "type": "string"
+          },
+          "GroupID": {
+            "type": "string"
+          },
+          "ClockInAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ClockOutAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "EventSequence": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "Breaks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Interval"
+            },
+            "nullable": true
+          },
+          "BreakStartedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "RestConfirmed": {
+            "type": "boolean"
+          },
+          "RebuildIssues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "CorrectionID": {
+            "type": "string"
+          },
+          "LastAppliedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "SourceEventIDs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "SchemaVersion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "ClockInPosition": {
+            "$ref": "#/components/schemas/NullablePosition"
+          },
+          "ClockOutPosition": {
+            "$ref": "#/components/schemas/NullablePosition"
+          }
+        },
+        "required": [
+          "RecordID",
+          "GroupID",
+          "ClockInAt",
+          "ClockOutAt",
+          "Revision",
+          "EventSequence",
+          "Breaks",
+          "BreakStartedAt",
+          "RestConfirmed",
+          "RebuildIssues",
+          "CorrectionID",
+          "LastAppliedAt",
+          "SourceEventIDs",
+          "SchemaVersion",
+          "ClockInPosition",
+          "ClockOutPosition"
+        ]
+      },
+      "GroupItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "GroupPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GroupItem"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "queryMode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "asOf",
+          "queryMode"
+        ]
+      },
+      "RecordPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttendanceRecord"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "queryMode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "asOf",
+          "queryMode"
+        ]
+      },
+      "CalculationIssue": {
+        "type": "object",
+        "properties": {
+          "SessionID": {
+            "type": "string"
+          },
+          "Code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "SessionID",
+          "Code"
+        ]
+      },
+      "Calculation": {
+        "type": "object",
+        "properties": {
+          "EventIDs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "Version": {
+            "type": "string"
+          },
+          "Duration": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Nanoseconds; Go time.Duration JSON representation."
+          },
+          "Minutes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "Pending": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "Issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalculationIssue"
+            },
+            "nullable": true
+          },
+          "Intervals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Interval"
+            },
+            "nullable": true
+          }
+        },
+        "required": [
+          "EventIDs",
+          "Version",
+          "Duration",
+          "Minutes",
+          "Pending",
+          "Issues",
+          "Intervals"
+        ]
+      },
+      "MonthlySummary": {
+        "type": "object",
+        "properties": {
+          "Calculation": {
+            "$ref": "#/components/schemas/Calculation"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "Calculation",
+          "count",
+          "asOf"
+        ]
+      },
+      "MonthlyReport": {
+        "type": "object",
+        "properties": {
+          "Start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoredRecord"
+            },
+            "nullable": true
+          },
+          "Calculation": {
+            "$ref": "#/components/schemas/Calculation"
+          },
+          "CorrectionIDs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "required": [
+          "Start",
+          "Records",
+          "Calculation",
+          "CorrectionIDs"
+        ]
+      },
+      "CorrectionSubmission": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "groupId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "recordId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "expectedEventSequence": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "breaks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Interval"
+            },
+            "nullable": true,
+            "maxItems": 100
+          },
+          "restConfirmed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "groupId",
+          "recordId"
+        ],
+        "additionalProperties": false,
+        "description": "Existing optional fields remain optional. Business validation, revision checks and review authorization are enforced by Go. Server ignores supplied id. Times are RFC3339; business calculations use Asia/Taipei."
+      },
+      "CorrectionReview": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "groupId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "recordId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "expectedEventSequence": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "breaks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Interval"
+            },
+            "nullable": true,
+            "maxItems": 100
+          },
+          "restConfirmed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "groupId",
+          "recordId",
+          "expectedEventSequence",
+          "expectedRevision",
+          "reason",
+          "start",
+          "end",
+          "breaks",
+          "restConfirmed"
+        ]
+      },
+      "CorrectionAccepted": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "accepted"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "status"
+        ]
+      },
+      "CorrectionStatus": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "Known values: pending, approved, stale, invalid; clients must tolerate additional states."
+          }
+        },
+        "required": [
+          "id",
+          "status"
+        ]
+      },
+      "CorrectionApproved": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "approved"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "LaunchRequest": {
+        "type": "object",
+        "properties": {
+          "launch": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "launch"
+        ],
+        "additionalProperties": false
+      },
+      "LaunchResponse": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "requestId"
+        ]
+      },
+      "PunchRequest": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "format": "double"
+          },
+          "accuracyMeters": {
+            "type": "number",
+            "minimum": 0,
+            "format": "double"
+          },
+          "capturedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "requestId",
+          "latitude",
+          "longitude",
+          "accuracyMeters",
+          "capturedAt"
+        ],
+        "additionalProperties": false
+      },
+      "PunchResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "NullablePosition": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "format": "double"
+          },
+          "accuracyMeters": {
+            "type": "number",
+            "minimum": 0,
+            "format": "double"
+          },
+          "capturedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude",
+          "accuracyMeters",
+          "capturedAt"
+        ],
+        "nullable": true
+      }
+    }
+  }
+}

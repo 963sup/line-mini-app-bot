@@ -1,0 +1,33 @@
+# Agent files and installation copies
+/.agents/**
+/.claude/
+/agent/
+
+# Generated analysis outputs
+/graphify-out/
+/repomix-output.*
+# Upstream reference pages are not application dependency evidence.
+/docs/tooling/shadcn-reference/snapshot/
+
+# Dependencies, caches and build outputs
+**/node_modules/
+**/vendor/
+**/.venv/
+**/__pycache__/
+/bin/
+/server
+/.artifacts/
+/coverage.out
+
+# Secrets and credentials
+.env
+.env.*
+!backend/.env.example
+**/*.pem
+**/*.key
+**/credentials*.json
+**/service-account*.json
+.git/
+
+# Agent metadata and local installation copies
+skills-lock.json

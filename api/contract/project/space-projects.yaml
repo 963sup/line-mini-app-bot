@@ -1,0 +1,584 @@
+{
+  "paths": {
+    "/api/v1/spaces/{spaceId}/projects": {
+      "get": {
+        "operationId": "listSpaceProjects",
+        "summary": "Space-owned Project; source Repository only supplies authorized read references",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "spaceId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^C[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./projects.yaml#/components/schemas/ProjectPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "./projects.yaml#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createSpaceProject",
+        "summary": "Space-owned Project; source Repository only supplies authorized read references",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "spaceId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^C[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "description": "Reuse the same key and normalized content after an ambiguous result. Scoped to the verified actor and repository across resource types."
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; validated by the existing session authenticator."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./projects.yaml#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "./projects.yaml#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpaceProjectCreation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/spaces/{spaceId}/projects/{id}": {
+      "get": {
+        "operationId": "getSpaceProject",
+        "summary": "Space-owned Project; source Repository only supplies authorized read references",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "spaceId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^C[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./projects.yaml#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "./projects.yaml#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateSpaceProject",
+        "summary": "Space-owned Project; source Repository only supplies authorized read references",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "spaceId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^C[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; validated by the existing session authenticator."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./projects.yaml#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "./projects.yaml#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "./projects.yaml#/components/responses/ProjectError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./projects.yaml#/components/schemas/ProjectUpdate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/spaces/{spaceId}/projects/{id}/items": {
+      "get": {
+        "operationId": "listSpaceProjectItems",
+        "summary": "Space-owned Project; source Repository only supplies authorized read references",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "spaceId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^C[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./items.yaml#/components/schemas/ProjectItemPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "./items.yaml#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "addSpaceProjectItem",
+        "summary": "Space-owned Project; source Repository only supplies authorized read references",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "spaceId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^C[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./projects.yaml#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "./items.yaml#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./items.yaml#/components/schemas/ProjectItemAddition"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/spaces/{spaceId}/projects/{id}/items/{itemId}": {
+      "delete": {
+        "operationId": "removeSpaceProjectItem",
+        "summary": "Space-owned Project; source Repository only supplies authorized read references",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "spaceId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^C[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "itemId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expectedVersion",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./projects.yaml#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "./items.yaml#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SpaceProjectCreation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "body",
+          "sourceRepositoryId"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "sourceRepositoryId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          }
+        }
+      }
+    },
+    "responses": {}
+  }
+}

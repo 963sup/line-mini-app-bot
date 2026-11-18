@@ -1,0 +1,54 @@
+schema = 1
+# Universe: git ls-files, plus explicit first-commit additions below.
+# Remove an addition once its path is tracked; working-tree deletions are omitted.
+additional = []
+managed_suffixes = [".go", ".mod", ".sum", ".sh", ".py", ".toml", ".md", ".json", ".yaml", ".yml", ".js", ".cjs", ".mjs", ".ts", ".tsx", ".css", ".html", ".txt"]
+managed_names = ["Dockerfile", "LICENSE", "GOOGLE-SKILLS-LICENSE", ".editorconfig", ".gcloudignore", ".gitattributes", ".gitignore", ".dockerignore", ".graphifyignore", ".repomixignore", ".env.example"]
+
+[[exclude]]
+pattern = "docs/tooling/shadcn-reference/snapshot/*"
+reason = "Generated upstream documentation snapshot has its own source manifest and integrity checks"
+impact = "Reference pages are searched on demand; project guidance and download script remain managed"
+owner = "tooling"
+
+[[exclude]]
+pattern = ".agents/*"
+reason = "Agent installation metadata and upstream skill provenance are outside application analysis"
+impact = "Agent metadata is not project dependency evidence; maintained project documentation remains included"
+owner = "tooling"
+
+[[exclude]]
+pattern = "skills-lock.json"
+reason = "Generated upstream skill installation lockfile"
+impact = "Skill installation metadata is not application dependency evidence"
+owner = "tooling"
+
+[[exclude]]
+pattern = ".agents/skills/*"
+reason = "Upstream skills have their own provenance and maintenance lifecycle"
+impact = "Third-party skill internals are not project dependency evidence"
+owner = "tooling"
+
+[[exclude]]
+pattern = ".codex/skills/*"
+reason = "Generated installation copies of upstream skills"
+impact = "Installation copies are not analyzed"
+owner = "tooling"
+
+[[exclude]]
+pattern = "graphify-out/*"
+reason = "Generated analysis artifacts; avoid recursive analysis"
+impact = "Graph structure and coverage are verified separately during audit"
+owner = "tooling"
+
+[[exclude]]
+pattern = "repomix-output.*"
+reason = "Generated source bundle"
+impact = "Bundle coverage is verified separately during audit"
+owner = "tooling"
+
+[[exclude]]
+pattern = "assets/line/richmenu/*.jpg"
+reason = "Binary LINE rich menu images cannot be represented in text source bundles"
+impact = "Menu definitions and upload code remain managed; image appearance requires visual verification"
+owner = "application"

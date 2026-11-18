@@ -1,0 +1,56 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "globalDependencies": [
+    "mise.toml",
+    "api/contract/**",
+    "api/codegen/**"
+  ],
+  "globalEnv": [
+    "CI",
+    "GOOS",
+    "GOARCH",
+    "CGO_ENABLED"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**",
+        "out/**"
+      ]
+    },
+    "check": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": [
+        "^build"
+      ],
+      "cache": false
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  },
+  "globalPassThroughEnv": [
+    "GOPATH",
+    "GOCACHE",
+    "GOMODCACHE",
+    "GOENV",
+    "GOTMPDIR",
+    "GOFLAGS",
+    "GOTOOLCHAIN",
+    "TMPDIR",
+    "MISE_*",
+    "XDG_*",
+    "NEXT_TELEMETRY_DISABLED"
+  ]
+}

@@ -1,0 +1,283 @@
+import React, { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
+import { useRepositoryGuard } from "../repository/NavigationGuard";
+import { ReadFeedback } from "@/shared/ReadFeedback";
+import { useDiscardChanges } from "@/shared/useDiscardChanges";
+import type { extractPdf } from "./pdf";
+import { View as Subobjects } from "../subobject/View";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/shared/ui/collapsible";
+import { Import } from "./Import";
+import type { components } from "@repo/api-client";
+import { useSession } from "@/identity/Session";
+import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
+import { PagePanel } from "@/shared/PagePanel";
+import { FormField } from "@/shared/FormField";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Textarea } from "@/shared/ui/textarea";
+import { FieldGroup } from "@/shared/ui/field";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { Item, ItemGroup, ItemContent, ItemTitle, ItemActions, ItemFooter } from "@/shared/ui/item";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
+
+type Resource = components["schemas"]["Object"];
+type Creation = components["schemas"]["ObjectCreation"];
+type BusinessSpace = components["schemas"]["RepositorySpace"];
+type Props = { repositoryId: string; extract?: typeof extractPdf };
+const states = { not_started: "未開始", in_progress: "進行中", completed: "已完成" };
+const empty: Creation = { name: "", description: "", type: "work", completedQuantity: "0", quantity: "1", unit: "SET", sourceDocument: "", sourceRevision: "" };
+const decimal = /^(?:0|[1-9][0-9]{0,17})(?:\.[0-9]{1,6})?$/;
+const exact = (value: string) => { const [whole, fraction = ""] = value.split("."); return BigInt(whole + fraction.padEnd(6, "0")); };
+const typeLabel = (type: string) => type === "work" ? "施作" : type === "non_work" ? "非施作" : `${type}（待確認）`;
+const statusLabel = (item: Resource) => item.type === "non_work" ? "不適用" : states[item.status];
+const progressLabel = (item: Resource) => item.type === "non_work" ? "不適用" : item.type === "work" && item.completedQuantity !== undefined ? `${item.completedQuantity}/${item.quantity} ${item.unit}` : "待補／待確認";
+const fields = [
+  ["name", "物件名稱", 120], ["quantity", "數量", 25], ["unit", "單位", 32],
+] as const;
+
+export function View(props: Props) {
+  const { epoch, user } = useSession();
+  return <Content key={`${props.repositoryId}:${epoch}:${user?.userId || ""}`} {...props} />;
+}
+
+function Content({ repositoryId, extract }: Props) {
+  const { user, request } = useSession();
+  const read = useLatestRequest(), detail = useLatestRequest(), write = useLatestRequest(), spaceRead = useLatestRequest();
+  const [spaces, setSpaces] = useState<BusinessSpace[]>([]), [spaceCursor, setSpaceCursor] = useState("");
+  const [spacesBusy, setSpacesBusy] = useState(false), [spaceStatus, setSpaceStatus] = useState(""), [spaceName, setSpaceName] = useState("");
+  const [spaceUnknown, setSpaceUnknown] = useState(false);
+  const pendingSpace = useRef<{ key: string; name: string } | null>(null);
+  const [items, setItems] = useState<Resource[]>([]), [cursor, setCursor] = useState("");
+  const [listBusy, setListBusy] = useState(false), [loaded, setLoaded] = useState(false), [listStatus, setListStatus] = useState("");
+  const [mode, setMode] = useState<"create" | "detail" | null>(null), [selected, setSelected] = useState<Resource | null>(null);
+  const [content, setContent] = useState<Creation>(empty);
+  const baseline = useRef<Creation>(empty);
+  const dirty = !!mode && (JSON.stringify(content) !== JSON.stringify(baseline.current) || !!spaceName.trim());
+  const nameInput = useRef<HTMLInputElement>(null), editorPanel = useRef<HTMLElement>(null), opener = useRef<HTMLElement | null>(null);
+  function focusEditor() {
+    if (nameInput.current && !nameInput.current.matches(":disabled")) nameInput.current.focus();
+    else editorPanel.current?.focus();
+  }
+  const discard = useDiscardChanges(dirty, focusEditor);
+  const repositoryGuard = useRepositoryGuard(dirty, focusEditor);
+  const [activeId, setActiveId] = useState("");
+  const [busy, setBusy] = useState(false), [detailBusy, setDetailBusy] = useState(false), [uncertain, setUncertain] = useState(false), [needsRefresh, setNeedsRefresh] = useState(false), [status, setStatus] = useState("");
+  const [importing, setImporting] = useState(false), [importBlocked, setImportBlocked] = useState(false);
+  useEffect(() => { repositoryGuard.block(busy || uncertain || needsRefresh || importBlocked); }, [busy, uncertain, needsRefresh, importBlocked]);
+  const [expanded, setExpanded] = useState("");
+  const [subBlocked, setSubBlocked] = useState(false);
+  const subLock = useRef(false);
+  const subBlock = useCallback((value: boolean) => { subLock.current = value; setSubBlocked(value); }, []);
+  const importLock = useRef(false);
+  const importBlock = useCallback((value: boolean) => { repositoryGuard.block(value); importLock.current = value; setImportBlocked(value); }, [repositoryGuard.block]);
+  const lock = useRef(false), formNavigation = useRef(false), pending = useRef<{ key: string; body: Creation } | null>(null);
+  useEffect(() => { formNavigation.current = false; });
+  const canSubWrite = useCallback(() => !formNavigation.current && !lock.current && !busy && !uncertain && !listBusy && !detailBusy && !needsRefresh && !dirty && !discard.isConfirming() && repositoryGuard.canWrite(), [repositoryGuard.canWrite, busy, uncertain, listBusy, detailBusy, needsRefresh, dirty]);
+  const canImportWrite = useCallback(() => !formNavigation.current && repositoryGuard.canWrite(), [repositoryGuard.canWrite]);
+  const mine = !!selected && selected.creatorId === user?.userId;
+
+  const load = useCallback((next = "") => {
+    if (!user || subLock.current) return;
+    formNavigation.current = true;
+    setListBusy(true); setLoaded(false); setCursor("");
+    setListStatus("");
+    void read.run(signal => request((client, s) => client.GET("/api/v1/repositories/{repositoryId}/objects", { signal: s, params: { path: { repositoryId }, query: { cursor: next || undefined } } }), { signal }), page => {
+      setItems(previous => [...new Map([...(next ? previous : []), ...page.items].map(item => [item.id, item])).values()]);
+      setCursor(page.nextCursor); setListBusy(false); setLoaded(true); setListStatus("");
+    }, error => { setItems([]); setListBusy(false); setListStatus(errorMessage(error)); });
+  }, [user, request, repositoryId, read.run]);
+  useEffect(() => { load(); return read.cancel; }, [load, read.cancel]);
+  function show(item: Resource) {
+    setSpaceName(""); setSpaceStatus("");
+    setSelected(item); setActiveId(item.id); baseline.current = { name: item.name, description: item.description, type: item.type, quantity: item.quantity, unit: item.unit,
+      spaceId: item.spaceId || "", sourceDocument: item.sourceDocument || "", sourceRevision: item.sourceRevision || "", completedQuantity: item.completedQuantity }; setContent(baseline.current);
+    setMode("detail"); setNeedsRefresh(false); setUncertain(false); pending.current = null; repositoryGuard.block(false);
+  }
+  useEffect(() => {
+    if (!mode) { opener.current?.focus(); return; }
+    if (!detailBusy && !busy) focusEditor();
+  }, [mode, detailBusy, busy]);
+  function clearEditor() {
+    setSpaceName(""); setSpaceStatus("");
+    detail.cancel(); setDetailBusy(false); setMode(null); setSelected(null); setActiveId(""); baseline.current = empty; setContent(empty); setStatus("");
+  }
+  function close() {
+    if (lock.current || uncertain || needsRefresh || subLock.current) return;
+    discard.navigate(() => { formNavigation.current = true; clearEditor(); });
+  }
+  function saved(item: Resource, message: string) {
+    setSpaceName(""); setSpaceStatus("");
+    setItems(previous => previous.some(value => value.id === item.id) ? previous.map(value => value.id === item.id ? item : value) : [item, ...previous]);
+    setMode(null); setSelected(null); setActiveId(""); baseline.current = empty; setContent(empty); setUncertain(false); setNeedsRefresh(false); pending.current = null; repositoryGuard.block(false); setListStatus(message);
+  }
+  function open(id: string, trigger?: HTMLElement) {
+    if (!user || subLock.current || lock.current || uncertain || (needsRefresh && id !== activeId) || formNavigation.current) return;
+    discard.navigate(() => {
+      if (trigger) opener.current = trigger;
+      formNavigation.current = true; read.cancel(); setListBusy(false);
+      setMode("detail"); setActiveId(id); setSelected(null); baseline.current = empty; setContent(empty); setDetailBusy(true); setStatus("");
+      void detail.run(signal => request((client, s) => client.GET("/api/v1/repositories/{repositoryId}/objects/{id}", { signal: s, params: { path: { repositoryId, id } } }), { signal }), item => {
+        show(item); setDetailBusy(false); setStatus("");
+      }, error => { setDetailBusy(false); setStatus(errorMessage(error)); });
+    });
+  }
+  function create(trigger: HTMLElement) {
+    if (subLock.current || lock.current || uncertain || needsRefresh || formNavigation.current) return;
+    discard.navigate(() => {
+      opener.current = trigger;
+      formNavigation.current = true; read.cancel(); setListBusy(false); clearEditor();
+      setMode("create"); setContent({ ...empty }); setNeedsRefresh(false); pending.current = null;
+    });
+  }
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    if (spaceUnknown || discard.isConfirming() || !user || subLock.current || importing || importLock.current || lock.current || formNavigation.current || needsRefresh || !repositoryGuard.canWrite() || (mode === "detail" && !mine)) return;
+    const body = Object.fromEntries(Object.entries(content).map(([key, value]) => [key, value?.trim() || ""])) as Creation;
+    if (!body.name || !body.type || !body.unit || !/^(?:0|[1-9][0-9]{0,17})(?:\.[0-9]{1,6})?$/.test(body.quantity) || !/[1-9]/.test(body.quantity)) {
+      setStatus("請填寫名稱、類型、單位及大於零的數量（最多18位整數及6位小數）。"); return;
+    }
+    if (body.type === "work") {
+      if (!decimal.test(body.completedQuantity || "") || exact(body.completedQuantity!) > exact(body.quantity)) {
+        setStatus("請填寫0至數量之間的完成數（最多18位整數及6位小數）。"); return;
+      }
+    } else {
+      delete body.completedQuantity;
+    }
+    if (selected?.type === "work" && body.type === "non_work" && selected.completedQuantity !== undefined && decimal.test(selected.completedQuantity) && exact(selected.completedQuantity) > 0n) {
+      setStatus("請先將完成數改為0並儲存，再將類型改為非施作。"); return;
+    }
+    if (mode === "detail" && selected) {
+      lock.current = true; setBusy(true); repositoryGuard.block(true); setStatus("正在更新物件……");
+      void write.run(signal => request((client, s) => client.PATCH("/api/v1/repositories/{repositoryId}/objects/{id}", { signal: s, params: { path: { repositoryId, id: selected.id } }, body: { ...body, expectedVersion: selected.version } }), { signal }), item => {
+        lock.current = false; setBusy(false); saved(item, "已更新物件。");
+      }, error => { lock.current = false; setBusy(false); repositoryGuard.block(true); setNeedsRefresh(true); setStatus(errorMessage(error) + " 請重新讀取物件後再修改。"); });
+      return;
+    }
+    if (!uncertain || !pending.current) pending.current = { key: crypto.randomUUID(), body };
+    const attempt = pending.current;
+    const wasUnknown = uncertain;
+    lock.current = true; setBusy(true); setUncertain(true); repositoryGuard.block(true); setStatus("正在建立物件……");
+    void write.run(signal => request((client, s) => client.POST("/api/v1/repositories/{repositoryId}/objects", { signal: s, params: { path: { repositoryId }, header: { "Idempotency-Key": attempt.key } }, body: attempt.body }), { signal }), item => {
+      lock.current = false; setBusy(false); saved(item, "已建立物件。");
+    }, error => {
+      lock.current = false; setBusy(false);
+      if (!wasUnknown && ["invalid_input", "forbidden", "not_found", "idempotency_conflict"].includes((error as { code?: string }).code || "")) { setUncertain(false); repositoryGuard.block(false); }
+      setStatus(errorMessage(error) + " 結果未確認時請重試原建立請求，避免重複建立；離開頁面前請先確認紀錄。");
+    });
+  }
+  const loadSpaces = useCallback((next = "") => {
+    setSpacesBusy(true); setSpaceStatus("");
+    void spaceRead.run(signal => request((client, s) => client.GET("/api/v1/repositories/{repositoryId}/spaces", { signal: s, params: { path: { repositoryId }, query: { cursor: next || undefined } } }), { signal }), page => {
+      setSpaces(previous => [...new Map([...(next ? previous : []), ...page.items].map(item => [item.id, item])).values()]);
+      setSpaceCursor(page.nextCursor); setSpacesBusy(false);
+    }, error => { setSpacesBusy(false); setSpaceStatus(errorMessage(error)); });
+  }, [request, repositoryId, spaceRead.run]);
+  useEffect(() => { if (mode) loadSpaces(); return spaceRead.cancel; }, [!!mode, loadSpaces, spaceRead.cancel]);
+  function createSpace() {
+    if (!user || discard.isConfirming() || formNavigation.current || detailBusy || importing || importLock.current || !repositoryGuard.canWrite() || lock.current || (uncertain && !pendingSpace.current) || needsRefresh || subLock.current || (mode === "detail" && !mine)) return;
+    if (!pendingSpace.current) {
+      const name = spaceName.trim();
+      if (!name) { setSpaceStatus("請填寫業務空間名稱。"); return; }
+      pendingSpace.current = { key: crypto.randomUUID(), name };
+    }
+    const attempt = pendingSpace.current;
+    const wasUnknown = spaceUnknown;
+    lock.current = true; setBusy(true); setUncertain(true); repositoryGuard.block(true); setSpaceStatus("正在建立業務空間……");
+    void write.run(signal => request((client, s) => client.POST("/api/v1/repositories/{repositoryId}/spaces", { signal: s, params: { path: { repositoryId }, header: { "Idempotency-Key": attempt.key } }, body: { name: attempt.name } }), { signal }), item => {
+      pendingSpace.current = null; lock.current = false; setBusy(false); setUncertain(false); setSpaceUnknown(false); repositoryGuard.block(false);
+      setSpaces(previous => [...previous.filter(value => value.id !== item.id), item]); setContent(previous => ({ ...previous, spaceId: item.id })); setSpaceName(""); setSpaceStatus("已建立業務空間。");
+    }, error => {
+      lock.current = false; setBusy(false);
+      if (!wasUnknown && ["invalid_input", "not_found", "idempotency_conflict"].includes((error as { code?: string }).code || "")) {
+        pendingSpace.current = null; setUncertain(false); setSpaceUnknown(false); repositoryGuard.block(false);
+      } else setSpaceUnknown(true);
+      setSpaceStatus(errorMessage(error) + " 結果未確認時請重試原空間建立請求。");
+    });
+  }
+  const editor = <section ref={editorPanel} tabIndex={-1} aria-label={mode === "create" ? "新增物件" : "物件編輯"} className="flex w-full min-w-0 flex-col gap-3">
+      <ReadFeedback busy={detailBusy} message={status} label="正在讀取物件……" />
+      {mode === "detail" && <Button variant="outline" disabled={busy || detailBusy || subBlocked} onClick={() => open(activeId)}>重新讀取物件</Button>}
+      {(mode === "create" || selected) && <form onSubmit={submit}><FieldGroup>
+        <fieldset className="grid min-w-0 gap-4" disabled={busy || detailBusy || subBlocked || uncertain || needsRefresh || (mode === "detail" && !mine)}>
+          <FormField>類型<NativeSelect value={content.type} onChange={event => {
+            const type = event.target.value;
+            setContent(previous => {
+              let completedQuantity: string | undefined;
+              if (type === "work") {
+                completedQuantity = "";
+                if (selected?.type === "work") completedQuantity = selected.completedQuantity || "";
+                else if (selected && selected.type !== "non_work") {
+                  if (selected.status === "not_started") completedQuantity = "0";
+                  if (selected.status === "completed") completedQuantity = previous.quantity;
+                }
+              }
+              return { ...previous, type, completedQuantity };
+            });
+          }}>
+            {selected && selected.type !== "work" && selected.type !== "non_work" && <NativeSelectOption value={selected.type}>{typeLabel(selected.type)}</NativeSelectOption>}
+            <NativeSelectOption value="work">施作</NativeSelectOption><NativeSelectOption value="non_work">非施作</NativeSelectOption>
+          </NativeSelect></FormField>
+          {fields.map(([key, label, max]) => <FormField key={key}>{label}<Input ref={key === "name" ? nameInput : undefined} required={["name", "type", "quantity", "unit"].includes(key)} maxLength={max} inputMode={key === "quantity" ? "decimal" : undefined} value={content[key] || ""} onChange={event => setContent(previous => ({ ...previous, [key]: event.target.value }))} /></FormField>)}
+          <FormField>業務空間<NativeSelect value={content.spaceId || ""} onChange={event => setContent(previous => ({ ...previous, spaceId: event.target.value }))}>
+            <NativeSelectOption value="">未分配</NativeSelectOption>
+            {content.spaceId && !spaces.some(value => value.id === content.spaceId) && <NativeSelectOption value={content.spaceId}>目前空間（未載入）</NativeSelectOption>}
+            {spaces.map(space => <NativeSelectOption key={space.id} value={space.id}>{space.name}</NativeSelectOption>)}
+          </NativeSelect></FormField>
+          <ReadFeedback busy={spacesBusy} message={spaceStatus} label="正在讀取業務空間……" />
+          <Button type="button" variant="outline" disabled={spacesBusy} onClick={() => loadSpaces()}>重新讀取業務空間</Button>
+          {spaceCursor && <Button type="button" variant="outline" disabled={spacesBusy} onClick={() => loadSpaces(spaceCursor)}>載入更多業務空間</Button>}
+          <FormField>新業務空間名稱<Input maxLength={120} value={spaceName} onChange={event => setSpaceName(event.target.value)} /></FormField>
+          <Button type="button" variant="outline" onClick={createSpace}>新增業務空間</Button>
+          <FormField>完整說明<Textarea maxLength={8000} value={content.description} onChange={event => setContent(previous => ({ ...previous, description: event.target.value }))} /></FormField>
+          {content.type === "work" && <FormField>完成數<Input required inputMode="decimal" maxLength={25} value={content.completedQuantity || ""} onChange={event => setContent(previous => ({ ...previous, completedQuantity: event.target.value }))} /></FormField>}
+          <p>狀態：{content.type === "non_work" ? "不適用" : selected ? statusLabel(selected) : "未開始"}</p>
+          <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{content.type === "non_work" ? "不適用" : selected ? progressLabel(selected) : "儲存後依完成數更新"}</p>
+        </fieldset>
+
+        {spaceUnknown && <><p role="status">{spaceStatus}</p><Button type="button" disabled={busy} onClick={createSpace}>重試原空間建立請求</Button></>}
+        {(mode === "create" || mine) && <Button type="submit" disabled={spaceUnknown || busy || detailBusy || needsRefresh || subBlocked}>{mode === "create" ? uncertain && !spaceUnknown ? "重試原物件建立請求" : "建立物件" : "儲存物件"}</Button>}
+      </FieldGroup></form>}
+      <Button type="button" variant="outline" disabled={busy || uncertain || needsRefresh || subBlocked} onClick={close}>{mine || mode === "create" ? "取消" : "關閉"}</Button>
+    </section>;
+  if (importing) return <>
+    <Button variant="outline" disabled={importBlocked} onClick={() => { if (!importLock.current) { formNavigation.current = true; setImporting(false); load(); } }}>返回物件清單</Button>
+    <Import repositoryId={repositoryId} onBlocked={importBlock} canWrite={canImportWrite} extract={extract} />
+  </>;
+  return <>
+    <PagePanel heading="物件" className="w-full min-w-0">
+      <p className="mb-4 text-sm text-muted-foreground">每個清單項次是一筆物件，數量不拆成單件。成員可新增，僅建立者可編輯；完成不代表驗收或付款。</p>
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Button disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={event => create(event.currentTarget)}>新增物件</Button>
+        <Button variant="outline" disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={() => { if (!subLock.current && !lock.current && !uncertain && !needsRefresh) discard.navigate(() => { formNavigation.current = true; clearEditor(); setImporting(true); }); }}>PDF匯入</Button>
+        <Button variant="outline" disabled={!user || busy || listBusy || subBlocked || uncertain || !!mode} onClick={() => load()}>重新載入物件</Button>
+      </div>
+      <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取物件……" />
+      {mode === "create" && <PagePanel heading="新增物件">{editor}</PagePanel>}
+      <ItemGroup className="w-full min-w-0 gap-3">{items.map(item => <Collapsible key={item.id} open={expanded === item.id} onOpenChange={value => {
+        if (subLock.current || lock.current || uncertain || formNavigation.current || discard.isConfirming()) return;
+        formNavigation.current = true; setExpanded(value ? item.id : "");
+      }} className="w-full min-w-0">
+        <Item role="listitem" variant="outline" className="w-full min-w-0">
+          <ItemContent className="w-full min-w-0">
+            <ItemTitle className="min-w-0 max-w-full">
+              <CollapsibleTrigger asChild><Button variant="ghost" size="icon" disabled={busy || detailBusy || uncertain || needsRefresh || subBlocked} aria-label={`子物件：${item.name}`} title={expanded === item.id ? "收合子物件" : "展開子物件"}>{expanded === item.id ? <ChevronDownIcon aria-hidden="true" /> : <ChevronRightIcon aria-hidden="true" />}</Button></CollapsibleTrigger>
+              <Button variant="link" aria-label={item.name} className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || detailBusy || uncertain || needsRefresh || subBlocked} onClick={event => open(item.id, event.currentTarget)}>名稱：{item.name}</Button>
+            </ItemTitle>
+            <p className="whitespace-normal [overflow-wrap:anywhere]">數量：{item.quantity} {item.unit}</p>
+            <p className="whitespace-normal [overflow-wrap:anywhere]">類型：{typeLabel(item.type)}</p>
+            <p>狀態：{statusLabel(item)}</p>
+            <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{progressLabel(item)}</p>
+          </ItemContent>
+          <ItemActions className="flex-wrap">
+            {item.creatorId === user?.userId && <Button variant="outline" aria-label={`編輯物件：${item.name}`} disabled={busy || detailBusy || uncertain || needsRefresh || subBlocked} onClick={event => open(item.id, event.currentTarget)}>編輯</Button>}
+          </ItemActions>
+          {mode === "detail" && activeId === item.id && <ItemFooter>{editor}</ItemFooter>}
+        </Item>
+        <CollapsibleContent className="min-w-0 ps-6 pt-3 sm:ps-10">{expanded === item.id && <Subobjects repositoryId={repositoryId} objectId={item.id} ownerId={item.creatorId} parentEditing={!!mode} onEdit={() => { opener.current = null; clearEditor(); }} onBlocked={subBlock} canWrite={canSubWrite}/>}</CollapsibleContent>
+      </Collapsible>)}</ItemGroup>
+      {loaded && !items.length && <Empty><EmptyHeader><EmptyTitle>尚無物件</EmptyTitle><EmptyDescription>可手動建立清單項目；選擇PDF可自動匯入支援的明細表。</EmptyDescription></EmptyHeader></Empty>}
+      {cursor && <Button variant="outline" disabled={busy || listBusy || subBlocked || !!mode} onClick={() => load(cursor)}>載入更多物件</Button>}
+    </PagePanel>
+    {discard.dialog}
+  </>;
+}

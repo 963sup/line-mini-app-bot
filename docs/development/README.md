@@ -1,0 +1,25 @@
+# 開發流程
+
+開發環境、命名慣例、開發階段與路徑遷移。
+
+## 文件索引
+
+- [Markdown 文件規範](documentation.md)
+- [Cloud development environment](cloud-environment.md)
+- [Codex Cloud: mise + MCP](codex-cloud.md)
+- [基礎設施與分階段落地](foundation.md)
+- [Go development](go.md)
+- [Go LINE 接入能力](line-prototype.md)
+- [檔案、套件、函數與契約命名](naming.md)
+- [素材與腳本路徑整理](path-reorganization.md)
+- [Environment setup](setup.md)
+- [Testing](testing.md)
+
+## 歸屬與維護
+
+工具版本與任務以 mise.toml 為準；局部命令連到模組 README，正式部署步驟放 operations。
+新增或搬移文件時，依[文件維護指引](../AGENTS.md#主題子目錄)更新索引。
+
+[本目錄指引](AGENTS.md) · [父層指引](../AGENTS.md) · [文件總索引](../README.md)
+
+- [Business 模組、契約與實作分佈](business-refactor.md)：協作能力的 API／後端／正式畫面對照、驗證狀態與歷史重構紀錄。

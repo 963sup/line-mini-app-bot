@@ -1,0 +1,96 @@
+name: Repository checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  configuration:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - run: python3 scripts/tooling/check-config.py
+      - name: Offline tooling regressions
+        run: python3 -m unittest discover -s scripts/tooling -p 'test_*.py'
+      - name: Analysis scope contract
+        run: python3 scripts/analysis/analysis-scope.py
+      - name: Shell syntax
+        run: find scripts -type f -name '*.sh' -exec bash -n {} +
+      - name: Whitespace
+        run: git diff --check
+  go:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: Inspect module
+        id: module
+        run: |
+          python3 - <<'PY'
+          import os, pathlib
+          exists = pathlib.Path("backend/go.mod").is_file()
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              print("present=" + str(exists).lower(), file=output)
+          if not exists:
+              print("Application checks NOT RUN: no go.mod exists yet.")
+          PY
+      - name: Prepare development tooling directory
+        if: steps.module.outputs.present == 'true'
+        # mise.toml and bootstrap share the Codex Cloud tooling path.
+        # GitHub-hosted runners need it created for the unprivileged runner user.
+        run: sudo install -d -m 0755 -o "$(id -u)" -g "$(id -g)" /workspace/tooling
+      - name: Set up mise
+        if: steps.module.outputs.present == 'true'
+        uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+        with:
+          # Latest official CDN build; mise.toml enforces the minimum version.
+          minimum_release_age: 0s
+          fetch_from_github: false
+          mise_dir: /workspace/tooling/mise-data
+          install: false
+          env: false
+          cache_save_post: true
+      - name: Install pinned Go development environment
+        if: steps.module.outputs.present == 'true'
+        run: |
+          source scripts/tooling/dev-env.sh
+          mise trust mise.toml
+          bash scripts/tooling/tool-exec.sh mise run install-core
+          bash scripts/tooling/tool-exec.sh mise run doctor
+      - name: Prepare frontend and API contract
+        env:
+          API_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+        if: steps.module.outputs.present == 'true'
+        run: |
+          # A history rewrite can put the push event's comparison base outside all branches.
+          if [[ "$API_BASE_REF" =~ ^[0-9a-f]{40}$ && ! "$API_BASE_REF" =~ ^0+$ ]] && ! git cat-file -e "${API_BASE_REF}^{commit}" 2>/dev/null; then
+            git fetch --no-tags origin "$API_BASE_REF"
+          fi
+          bash scripts/tooling/tool-exec.sh mise run install-web
+          bash scripts/tooling/tool-exec.sh pnpm install --frozen-lockfile
+          bash scripts/tooling/tool-exec.sh pnpm api:check
+          bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp build
+          bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check
+          bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp test
+      - name: Verify Go application
+        if: steps.module.outputs.present == 'true'
+        run: |
+          bash scripts/tooling/tool-exec.sh mise run fmt-check
+          bash scripts/tooling/tool-exec.sh mise run lint
+          bash scripts/tooling/tool-exec.sh mise run check
+          bash scripts/tooling/tool-exec.sh mise run build
+          bash scripts/tooling/tool-exec.sh mise run vuln

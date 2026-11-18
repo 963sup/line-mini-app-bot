@@ -1,0 +1,417 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "LINE MINI App API",
+    "version": "1.0.0",
+    "description": "HTTP contract for MINI App identity and attendance. Preserve existing field casing, nullable arrays, legacy routes, complete monthly totals and idempotent correction semantics."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/api/v1/miniapp/config": {
+      "$ref": "./identity/identity.yaml#/paths/~1api~1v1~1miniapp~1config"
+    },
+    "/api/v1/me": {
+      "$ref": "./identity/identity.yaml#/paths/~1api~1v1~1me"
+    },
+    "/api/v1/attendance/groups": {
+      "$ref": "./attendance/records.yaml#/paths/~1api~1v1~1attendance~1groups"
+    },
+    "/api/v1/attendance/groups/page": {
+      "$ref": "./attendance/records.yaml#/paths/~1api~1v1~1attendance~1groups~1page"
+    },
+    "/api/v1/attendance/records": {
+      "$ref": "./attendance/records.yaml#/paths/~1api~1v1~1attendance~1records"
+    },
+    "/api/v1/attendance/records/{id}": {
+      "$ref": "./attendance/records.yaml#/paths/~1api~1v1~1attendance~1records~1{id}"
+    },
+    "/api/v1/attendance/monthly": {
+      "$ref": "./attendance/records.yaml#/paths/~1api~1v1~1attendance~1monthly"
+    },
+    "/api/v1/attendance/monthly/summary": {
+      "$ref": "./attendance/records.yaml#/paths/~1api~1v1~1attendance~1monthly~1summary"
+    },
+    "/api/v1/attendance/launch": {
+      "$ref": "./attendance/punch.yaml#/paths/~1api~1v1~1attendance~1launch"
+    },
+    "/api/v1/attendance/punches": {
+      "$ref": "./attendance/punch.yaml#/paths/~1api~1v1~1attendance~1punches"
+    },
+    "/api/v1/attendance/corrections": {
+      "$ref": "./attendance/corrections.yaml#/paths/~1api~1v1~1attendance~1corrections"
+    },
+    "/api/v1/attendance/corrections/{id}": {
+      "$ref": "./attendance/corrections.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}"
+    },
+    "/api/v1/attendance/corrections/{id}/review": {
+      "$ref": "./attendance/approvals.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1review"
+    },
+    "/api/v1/attendance/corrections/{id}/approve": {
+      "$ref": "./attendance/approvals.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1approve"
+    },
+    "/api/v1/session": {
+      "$ref": "./identity/identity.yaml#/paths/~1api~1v1~1session"
+    },
+    "/api/v1/session/refresh": {
+      "$ref": "./identity/identity.yaml#/paths/~1api~1v1~1session~1refresh"
+    },
+    "/api/v1/attendance/leaves": {
+      "$ref": "./attendance/leave.yaml#/paths/~1api~1v1~1attendance~1leaves"
+    },
+    "/api/v1/attendance/punches/preflight": {
+      "$ref": "./attendance/punch.yaml#/paths/~1api~1v1~1attendance~1punches~1preflight"
+    },
+    "/api/v1/attendance/corrections/{id}/reject": {
+      "$ref": "./attendance/approvals.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1reject"
+    },
+    "/api/v1/attendance/corrections/{id}/cancel": {
+      "$ref": "./attendance/corrections.yaml#/paths/~1api~1v1~1attendance~1corrections~1{id}~1cancel"
+    },
+    "/api/v1/attendance/corrections/reviewer-groups": {
+      "$ref": "./attendance/approvals.yaml#/paths/~1api~1v1~1attendance~1corrections~1reviewer-groups"
+    },
+    "/api/v1/repositories": {
+      "$ref": "./repository/repositories.yaml#/paths/~1api~1v1~1repositories"
+    },
+    "/api/v1/repositories/{id}": {
+      "$ref": "./repository/repositories.yaml#/paths/~1api~1v1~1repositories~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/issues": {
+      "$ref": "./issue/issues.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1issues"
+    },
+    "/api/v1/repositories/{repositoryId}/issues/{id}": {
+      "$ref": "./issue/issues.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1issues~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/discussions": {
+      "$ref": "./discussion/discussions.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1discussions"
+    },
+    "/api/v1/repositories/{repositoryId}/discussions/{id}": {
+      "$ref": "./discussion/discussions.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1discussions~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/discussions/{id}/comments": {
+      "$ref": "./discussion/comments.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1discussions~1{id}~1comments"
+    },
+    "/api/v1/repositories/{repositoryId}/discussions/{id}/comments/{commentId}": {
+      "$ref": "./discussion/comments.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1discussions~1{id}~1comments~1{commentId}"
+    },
+    "/api/v1/repositories/{repositoryId}/labels": {
+      "$ref": "./repository/labels.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1labels"
+    },
+    "/api/v1/repositories/{repositoryId}/milestones": {
+      "$ref": "./repository/milestones.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1milestones"
+    },
+    "/api/v1/repositories/{repositoryId}/milestones/{id}": {
+      "$ref": "./repository/milestones.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1milestones~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/projects": {
+      "$ref": "./project/projects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1projects"
+    },
+    "/api/v1/repositories/{repositoryId}/projects/{id}": {
+      "$ref": "./project/projects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1projects~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/projects/{id}/items": {
+      "$ref": "./project/items.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1projects~1{id}~1items"
+    },
+    "/api/v1/repositories/{repositoryId}/projects/{id}/items/{itemId}": {
+      "$ref": "./project/items.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1projects~1{id}~1items~1{itemId}"
+    },
+    "/api/v1/repositories/{repositoryId}/statistics": {
+      "$ref": "./repository/statistics.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1statistics"
+    },
+    "/api/v1/spaces": {
+      "$ref": "./space/spaces.yaml#/paths/~1api~1v1~1spaces"
+    },
+    "/api/v1/spaces/{id}": {
+      "$ref": "./space/spaces.yaml#/paths/~1api~1v1~1spaces~1{id}"
+    },
+    "/api/v1/spaces/{spaceId}/projects": {
+      "$ref": "./project/space-projects.yaml#/paths/~1api~1v1~1spaces~1{spaceId}~1projects"
+    },
+    "/api/v1/spaces/{spaceId}/projects/{id}": {
+      "$ref": "./project/space-projects.yaml#/paths/~1api~1v1~1spaces~1{spaceId}~1projects~1{id}"
+    },
+    "/api/v1/spaces/{spaceId}/projects/{id}/items": {
+      "$ref": "./project/space-projects.yaml#/paths/~1api~1v1~1spaces~1{spaceId}~1projects~1{id}~1items"
+    },
+    "/api/v1/spaces/{spaceId}/projects/{id}/items/{itemId}": {
+      "$ref": "./project/space-projects.yaml#/paths/~1api~1v1~1spaces~1{spaceId}~1projects~1{id}~1items~1{itemId}"
+    },
+    "/api/v1/repositories/{repositoryId}/objects": {
+      "$ref": "./object/objects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects"
+    },
+    "/api/v1/repositories/{repositoryId}/objects/{id}": {
+      "$ref": "./object/objects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/object-imports": {
+      "$ref": "./object-import/object-imports.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-imports"
+    },
+    "/api/v1/repositories/{repositoryId}/object-imports/{id}": {
+      "$ref": "./object-import/object-imports.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-imports~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/object-imports/{id}/review": {
+      "$ref": "./object-import/object-imports.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-imports~1{id}~1review"
+    },
+    "/api/v1/repositories/{repositoryId}/object-imports/{id}/confirm": {
+      "$ref": "./object-import/object-imports.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-imports~1{id}~1confirm"
+    },
+    "/api/v1/repositories/{repositoryId}/object-imports/parse": {
+      "$ref": "./object-import/object-imports.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-imports~1parse"
+    },
+    "/api/v1/repositories/{repositoryId}/object-import-runs": {
+      "$ref": "./object-import/object-imports.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-import-runs"
+    },
+    "/api/v1/repositories/{repositoryId}/object-import-runs/{id}": {
+      "$ref": "./object-import/object-imports.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-import-runs~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects": {
+      "$ref": "./subobject/subobjects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects~1{objectId}~1subobjects"
+    },
+    "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}": {
+      "$ref": "./subobject/subobjects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects~1{objectId}~1subobjects~1{id}"
+    },
+    "/api/v1/spaces/{spaceId}/projects/{id}/references": {
+      "$ref": "./project/references.yaml#/paths/~1api~1v1~1spaces~1{spaceId}~1projects~1{id}~1references"
+    },
+    "/api/v1/spaces/{spaceId}/projects/{id}/references/{itemId}": {
+      "$ref": "./project/references.yaml#/paths/~1api~1v1~1spaces~1{spaceId}~1projects~1{id}~1references~1{itemId}"
+    },
+    "/api/v1/repositories/{repositoryId}/spaces": {
+      "$ref": "./repository/spaces.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1spaces"
+    },
+    "/api/v1/repositories/{repositoryId}/spaces/{id}": {
+      "$ref": "./repository/spaces.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1spaces~1{id}"
+    },
+    "/api/v1/journals": {
+      "$ref": "./journal/journals.yaml#/paths/~1api~1v1~1journals"
+    },
+    "/api/v1/journals/{journalId}": {
+      "$ref": "./journal/journals.yaml#/paths/~1api~1v1~1journals~1{journalId}"
+    }
+  },
+  "components": {
+    "schemas": {
+      "APIError": {
+        "$ref": "./common/transport.yaml#/components/schemas/APIError"
+      },
+      "MiniAppConfig": {
+        "$ref": "./identity/identity.yaml#/components/schemas/MiniAppConfig"
+      },
+      "CurrentUser": {
+        "$ref": "./identity/identity.yaml#/components/schemas/CurrentUser"
+      },
+      "SessionResponse": {
+        "$ref": "./identity/identity.yaml#/components/schemas/SessionResponse"
+      },
+      "Repository": {
+        "$ref": "./repository/repositories.yaml#/components/schemas/Repository"
+      },
+      "RepositoryPage": {
+        "$ref": "./repository/repositories.yaml#/components/schemas/RepositoryPage"
+      },
+      "Issue": {
+        "$ref": "./issue/issues.yaml#/components/schemas/Issue"
+      },
+      "IssueCreation": {
+        "$ref": "./issue/issues.yaml#/components/schemas/IssueCreation"
+      },
+      "IssueUpdate": {
+        "$ref": "./issue/issues.yaml#/components/schemas/IssueUpdate"
+      },
+      "IssuePage": {
+        "$ref": "./issue/issues.yaml#/components/schemas/IssuePage"
+      },
+      "Discussion": {
+        "$ref": "./discussion/discussions.yaml#/components/schemas/Discussion"
+      },
+      "DiscussionCreation": {
+        "$ref": "./discussion/discussions.yaml#/components/schemas/DiscussionCreation"
+      },
+      "DiscussionUpdate": {
+        "$ref": "./discussion/discussions.yaml#/components/schemas/DiscussionUpdate"
+      },
+      "DiscussionPage": {
+        "$ref": "./discussion/discussions.yaml#/components/schemas/DiscussionPage"
+      },
+      "DiscussionComment": {
+        "$ref": "./discussion/comments.yaml#/components/schemas/DiscussionComment"
+      },
+      "DiscussionCommentCreation": {
+        "$ref": "./discussion/comments.yaml#/components/schemas/DiscussionCommentCreation"
+      },
+      "DiscussionCommentUpdate": {
+        "$ref": "./discussion/comments.yaml#/components/schemas/DiscussionCommentUpdate"
+      },
+      "DiscussionCommentPage": {
+        "$ref": "./discussion/comments.yaml#/components/schemas/DiscussionCommentPage"
+      },
+      "Label": {
+        "$ref": "./repository/labels.yaml#/components/schemas/Label"
+      },
+      "LabelCreation": {
+        "$ref": "./repository/labels.yaml#/components/schemas/LabelCreation"
+      },
+      "LabelPage": {
+        "$ref": "./repository/labels.yaml#/components/schemas/LabelPage"
+      },
+      "Milestone": {
+        "$ref": "./repository/milestones.yaml#/components/schemas/Milestone"
+      },
+      "MilestoneCreation": {
+        "$ref": "./repository/milestones.yaml#/components/schemas/MilestoneCreation"
+      },
+      "MilestoneUpdate": {
+        "$ref": "./repository/milestones.yaml#/components/schemas/MilestoneUpdate"
+      },
+      "MilestonePage": {
+        "$ref": "./repository/milestones.yaml#/components/schemas/MilestonePage"
+      },
+      "Project": {
+        "$ref": "./project/projects.yaml#/components/schemas/Project"
+      },
+      "ProjectCreation": {
+        "$ref": "./project/projects.yaml#/components/schemas/ProjectCreation"
+      },
+      "ProjectUpdate": {
+        "$ref": "./project/projects.yaml#/components/schemas/ProjectUpdate"
+      },
+      "ProjectPage": {
+        "$ref": "./project/projects.yaml#/components/schemas/ProjectPage"
+      },
+      "ProjectItemAddition": {
+        "$ref": "./project/items.yaml#/components/schemas/ProjectItemAddition"
+      },
+      "ProjectItem": {
+        "$ref": "./project/items.yaml#/components/schemas/ProjectItem"
+      },
+      "ProjectItemPage": {
+        "$ref": "./project/items.yaml#/components/schemas/ProjectItemPage"
+      },
+      "RepositoryStatistics": {
+        "$ref": "./repository/statistics.yaml#/components/schemas/RepositoryStatistics"
+      },
+      "Space": {
+        "$ref": "./space/spaces.yaml#/components/schemas/Space"
+      },
+      "SpacePage": {
+        "$ref": "./space/spaces.yaml#/components/schemas/SpacePage"
+      },
+      "SpaceProjectCreation": {
+        "$ref": "./project/space-projects.yaml#/components/schemas/SpaceProjectCreation"
+      },
+      "Object": {
+        "$ref": "./object/objects.yaml#/components/schemas/Object"
+      },
+      "ObjectCreation": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectCreation"
+      },
+      "ObjectUpdate": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectUpdate"
+      },
+      "ObjectPage": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectPage"
+      },
+      "ObjectImportEvidence": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportEvidence"
+      },
+      "ObjectImportCandidate": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportCandidate"
+      },
+      "ObjectImportRow": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportRow"
+      },
+      "ObjectImportReviewedRow": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportReviewedRow"
+      },
+      "ObjectImportCreation": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportCreation"
+      },
+      "ObjectImportReview": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportReview"
+      },
+      "ObjectImportConfirmation": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportConfirmation"
+      },
+      "ObjectImport": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImport"
+      },
+      "ObjectImportParsing": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportParsing"
+      },
+      "ObjectImportParsed": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportParsed"
+      },
+      "ObjectImportRunCreation": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportRunCreation"
+      },
+      "ObjectImportRunRow": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportRunRow"
+      },
+      "ObjectImportRun": {
+        "$ref": "./object-import/object-imports.yaml#/components/schemas/ObjectImportRun"
+      },
+      "Subobject": {
+        "$ref": "./subobject/subobjects.yaml#/components/schemas/Subobject"
+      },
+      "SubobjectCreation": {
+        "$ref": "./subobject/subobjects.yaml#/components/schemas/SubobjectCreation"
+      },
+      "SubobjectUpdate": {
+        "$ref": "./subobject/subobjects.yaml#/components/schemas/SubobjectUpdate"
+      },
+      "SubobjectPage": {
+        "$ref": "./subobject/subobjects.yaml#/components/schemas/SubobjectPage"
+      },
+      "ProjectReference": {
+        "$ref": "./project/references.yaml#/components/schemas/ProjectReference"
+      },
+      "ProjectReferencePage": {
+        "$ref": "./project/references.yaml#/components/schemas/ProjectReferencePage"
+      },
+      "ProjectReferenceAddition": {
+        "$ref": "./project/references.yaml#/components/schemas/ProjectReferenceAddition"
+      },
+      "RepositorySpace": {
+        "$ref": "./repository/spaces.yaml#/components/schemas/RepositorySpace"
+      },
+      "RepositorySpaceCreation": {
+        "$ref": "./repository/spaces.yaml#/components/schemas/RepositorySpaceCreation"
+      },
+      "RepositorySpacePage": {
+        "$ref": "./repository/spaces.yaml#/components/schemas/RepositorySpacePage"
+      },
+      "JournalReference": {
+        "$ref": "./journal/journals.yaml#/components/schemas/JournalReference"
+      },
+      "JournalPersonnel": {
+        "$ref": "./journal/journals.yaml#/components/schemas/JournalPersonnel"
+      },
+      "JournalTodayItem": {
+        "$ref": "./journal/journals.yaml#/components/schemas/JournalTodayItem"
+      },
+      "JournalTomorrowItem": {
+        "$ref": "./journal/journals.yaml#/components/schemas/JournalTomorrowItem"
+      },
+      "JournalCreation": {
+        "$ref": "./journal/journals.yaml#/components/schemas/JournalCreation"
+      },
+      "Journal": {
+        "$ref": "./journal/journals.yaml#/components/schemas/Journal"
+      },
+      "JournalPage": {
+        "$ref": "./journal/journals.yaml#/components/schemas/JournalPage"
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "$ref": "./common/transport.yaml#/components/securitySchemes/bearerAuth"
+      },
+      "sessionCookie": {
+        "$ref": "./common/transport.yaml#/components/securitySchemes/sessionCookie"
+      }
+    }
+  }
+}

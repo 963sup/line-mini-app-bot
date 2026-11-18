@@ -1,0 +1,25 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Internal worker API",
+    "version": "1.0.0",
+    "description": "Existing internal work only; never exposed through the MINI App client."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/internal/summary": {
+      "$ref": "./summary/worker.yaml#/paths/~1internal~1summary"
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "workerIdentity": {
+        "$ref": "./summary/worker.yaml#/components/securitySchemes/workerIdentity"
+      }
+    }
+  }
+}

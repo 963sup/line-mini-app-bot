@@ -1,0 +1,35 @@
+{
+  "extends": [
+    "//"
+  ],
+  "tasks": {
+    "build": {
+      "cache": false,
+      "outputs": [
+        "bin/**"
+      ]
+    },
+    "test": {
+      "dependsOn": [
+        "^build"
+      ],
+      "cache": false,
+      "passThroughEnv": [
+        "FIRESTORE_EMULATOR_HOST"
+      ]
+    },
+    "dev": {
+      "env": [
+        "PORT",
+        "FRONTEND_DIR",
+        "LINE_*",
+        "GOOGLE_*",
+        "FIRESTORE_*",
+        "SUMMARY_*",
+        "GEMINI_API_KEY",
+        "OPENAI_API_KEY",
+        "CWA_API_KEY"
+      ]
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "components": {
+    "schemas": {
+      "APIError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-session",
+        "description": "Server session with sliding expiry capped by the verified LINE token and absolute lifetime. Unsafe requests require same-origin Origin and X-CSRF-Token."
+      }
+    }
+  }
+}

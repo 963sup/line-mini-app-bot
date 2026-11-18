@@ -1,0 +1,414 @@
+{
+  "paths": {
+    "/api/v1/miniapp/config": {
+      "get": {
+        "operationId": "getMiniAppConfig",
+        "summary": "MiniAppConfig",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MiniAppConfig"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me": {
+      "get": {
+        "operationId": "getCurrentUser",
+        "summary": "CurrentUser",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUser"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/session": {
+      "post": {
+        "operationId": "createSession",
+        "summary": "Exchange a verified LINE ID token for a browser session",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session created; response is not cacheable",
+            "headers": {
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Secure HttpOnly __Host-session cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteSession",
+        "summary": "Revoke browser session before clearing its cookie",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Session revoked or already absent"
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/session/refresh": {
+      "post": {
+        "operationId": "refreshSession",
+        "summary": "Renew a valid browser session within its absolute lifetime",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Current session expiry, extended when eligible; ID and CSRF remain unchanged",
+            "headers": {
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Secure HttpOnly __Host-session cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "MiniAppConfig": {
+        "type": "object",
+        "required": [
+          "liffId"
+        ],
+        "properties": {
+          "liffId": {
+            "type": "string"
+          }
+        }
+      },
+      "CurrentUser": {
+        "type": "object",
+        "required": [
+          "userId",
+          "displayName"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          }
+        }
+      },
+      "SessionResponse": {
+        "type": "object",
+        "required": [
+          "user",
+          "csrfToken",
+          "expiresAt"
+        ],
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/CurrentUser"
+          },
+          "csrfToken": {
+            "type": "string",
+            "minLength": 43,
+            "maxLength": 43
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

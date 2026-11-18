@@ -1,0 +1,525 @@
+{
+  "paths": {
+    "/api/v1/journals": {
+      "get": {
+        "operationId": "listJournals",
+        "summary": "List readable journals for Feed and Dashboard",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "spaceId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "pattern": "^C[a-f0-9]{32}$"
+            },
+            "required": false
+          },
+          {
+            "name": "workDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "required": false
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JournalPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JournalPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createJournal",
+        "summary": "Publish a journal with scoped idempotency",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Journal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Journal"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JournalCreation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/journals/{journalId}": {
+      "get": {
+        "operationId": "getJournal",
+        "summary": "Read a journal in its publishing group",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "journalId",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Journal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Journal"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "JournalReference": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "id"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "repository",
+              "project"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          }
+        }
+      },
+      "JournalPersonnel": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "management",
+          "control",
+          "workers"
+        ],
+        "properties": {
+          "management": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "\\S"
+            },
+            "maxItems": 100
+          },
+          "control": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "\\S"
+            },
+            "maxItems": 100
+          },
+          "workers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "\\S"
+            },
+            "maxItems": 100
+          }
+        }
+      },
+      "JournalTodayItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "completionPercent"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "\\S"
+          },
+          "completionPercent": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "reference": {
+            "$ref": "#/components/schemas/JournalReference"
+          }
+        }
+      },
+      "JournalTomorrowItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "expectedCompletionPercent"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "\\S"
+          },
+          "expectedCompletionPercent": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "reference": {
+            "$ref": "#/components/schemas/JournalReference"
+          }
+        }
+      },
+      "JournalCreation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "spaceId",
+          "workDate",
+          "personnel",
+          "todayItems",
+          "tomorrowItems"
+        ],
+        "properties": {
+          "spaceId": {
+            "type": "string",
+            "pattern": "^C[a-f0-9]{32}$"
+          },
+          "workDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "personnel": {
+            "$ref": "#/components/schemas/JournalPersonnel"
+          },
+          "todayItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JournalTodayItem"
+            },
+            "maxItems": 100
+          },
+          "tomorrowItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JournalTomorrowItem"
+            },
+            "maxItems": 100
+          }
+        }
+      },
+      "Journal": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "creatorId",
+          "createdAt",
+          "spaceId",
+          "workDate",
+          "personnel",
+          "todayItems",
+          "tomorrowItems"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "creatorId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "spaceId": {
+            "type": "string",
+            "pattern": "^C[a-f0-9]{32}$"
+          },
+          "workDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "personnel": {
+            "$ref": "#/components/schemas/JournalPersonnel"
+          },
+          "todayItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JournalTodayItem"
+            },
+            "maxItems": 100
+          },
+          "tomorrowItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JournalTomorrowItem"
+            },
+            "maxItems": 100
+          }
+        }
+      },
+      "JournalPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Journal"
+            },
+            "maxItems": 100
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

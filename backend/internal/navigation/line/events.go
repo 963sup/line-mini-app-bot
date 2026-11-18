@@ -1,0 +1,88 @@
+package line
+
+import (
+	"net/url"
+	"os"
+	"strings"
+
+	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
+
+	"github.com/963sup/line-mini-app-bot/internal/navigation/lineui"
+	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
+)
+
+func ReplyForEvent(event webhook.EventInterface, appURL string, repositoryIDs ...string) transport.Reply {
+	var source webhook.SourceInterface
+	var command, token string
+	switch e := event.(type) {
+	case webhook.JoinEvent:
+		g, ok := e.Source.(webhook.GroupSource)
+		if !ok || g.GroupId == "" || !transport.CanReply(e.Mode, e.ReplyToken, e.DeliveryContext) {
+			return transport.Reply{}
+		}
+		return transport.Reply{Token: e.ReplyToken, Message: lineui.Help(true, appURL, os.Getenv("LINE_MINI_APP_WEB_URL"), repositoryIDs...)}
+	case webhook.MessageEvent:
+		if !transport.CanReply(e.Mode, e.ReplyToken, e.DeliveryContext) {
+			return transport.Reply{}
+		}
+		if sticker, ok := e.Message.(webhook.StickerMessageContent); ok {
+			g, group := e.Source.(webhook.GroupSource)
+			if !group || g.GroupId == "" || sticker.PackageId == "" || sticker.StickerId == "" ||
+				sticker.PackageId != os.Getenv("LINE_MENU_STICKER_PACKAGE_ID") || sticker.StickerId != os.Getenv("LINE_MENU_STICKER_ID") {
+				return transport.Reply{}
+			}
+			return transport.Reply{Token: e.ReplyToken, Message: lineui.QuickMenu(true, appURL, repositoryIDs...)}
+		}
+		text, ok := e.Message.(webhook.TextMessageContent)
+		if !ok {
+			return transport.Reply{}
+		}
+		source, token = e.Source, e.ReplyToken
+		command = strings.ToLower(strings.TrimSpace(text.Text))
+	case webhook.PostbackEvent:
+		if !transport.CanReply(e.Mode, e.ReplyToken, e.DeliveryContext) || e.Postback == nil {
+			return transport.Reply{}
+		}
+		values, err := url.ParseQuery(e.Postback.Data)
+		if err != nil || len(values) != 1 || len(values["action"]) != 1 {
+			return transport.Reply{}
+		}
+		if values.Get("action") != "help" && values.Get("action") != "miniapp" {
+			return transport.Reply{}
+		}
+		command = "/" + values.Get("action")
+		source, token = e.Source, e.ReplyToken
+	default:
+		return transport.Reply{}
+	}
+
+	group := false
+	switch s := source.(type) {
+	case webhook.UserSource:
+		if s.UserId == "" {
+			return transport.Reply{}
+		}
+	case webhook.GroupSource:
+		if s.GroupId == "" {
+			return transport.Reply{}
+		}
+		group = true
+	default:
+		return transport.Reply{}
+	}
+
+	switch command {
+	case "/menu", "選單", "功能":
+		return transport.Reply{Token: token, Message: lineui.QuickMenu(group, appURL, repositoryIDs...)}
+	case "/miniapp":
+		return transport.Reply{Token: token, Message: lineui.MiniApp(appURL, os.Getenv("LINE_MINI_APP_WEB_URL"))}
+	case "/help":
+		return transport.Reply{Token: token, Message: lineui.Help(group, appURL, os.Getenv("LINE_MINI_APP_WEB_URL"), repositoryIDs...)}
+	default:
+		// Ordinary group conversation must not trigger the bot or expose personal data.
+		if group {
+			return transport.Reply{}
+		}
+		return transport.Reply{Token: token, Message: lineui.Help(false, appURL, os.Getenv("LINE_MINI_APP_WEB_URL"))}
+	}
+}

@@ -1,0 +1,152 @@
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import type { components } from "@repo/api-client";
+import { useSession } from "@/identity/Session";
+import { useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
+import { PagePanel } from "@/shared/PagePanel";
+import { FormField } from "@/shared/FormField";
+import { Status } from "@/shared/Status";
+import { Button } from "@/shared/ui/button";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { Item, ItemGroup, ItemContent, ItemTitle } from "@/shared/ui/item";
+import { FieldGroup } from "@/shared/ui/field";
+
+type Project = components["schemas"]["Project"];
+type Reference = components["schemas"]["ProjectReference"];
+type Addition = components["schemas"]["ProjectReferenceAddition"];
+type Kind = Addition["sourceType"];
+type Option = { id: string; title: string };
+const kinds: Record<Kind, string> = { object: "物件", subobject: "子物件", issue: "問題", discussion: "討論" };
+const states: Record<string, string> = { open: "待處理", in_progress: "進行中", completed: "已完成", not_started: "未開始", closed: "已結束" };
+type Props = { spaceId: string; sourceRepositoryId: string; project: Project; disabled: boolean; canWrite: () => boolean; onBlocked: (blocked: boolean) => void; onChange: (project: Project) => void; onRefresh: () => void };
+export function Items({ spaceId, sourceRepositoryId, project, disabled, canWrite, onBlocked, onChange, onRefresh }: Props) {
+  const { user, request } = useSession(), read = useLatestRequest(), catalog = useLatestRequest(), parents = useLatestRequest(), write = useLatestRequest();
+  const [items, setItems] = useState<Reference[]>([]), [options, setOptions] = useState<Option[]>([]), [objects, setObjects] = useState<Option[]>([]);
+  const [kind, setKind] = useState<Kind>("issue"), [parent, setParent] = useState(""), [choice, setChoice] = useState("");
+  const [cursor, setCursor] = useState(""), [catalogCursor, setCatalogCursor] = useState(""), [parentCursor, setParentCursor] = useState("");
+  const [status, setStatus] = useState(""), [catalogStatus, setCatalogStatus] = useState(""), [parentStatus, setParentStatus] = useState("");
+  const [busy, setBusy] = useState(false), [uncertain, setUncertain] = useState(false), [readBusy, setReadBusy] = useState(false), [catalogBusy, setCatalogBusy] = useState(false), [parentBusy, setParentBusy] = useState(false), [loaded, setLoaded] = useState(false), [needsRefresh, setNeedsRefresh] = useState(false);
+  const lock = useRef(false), unknown = useRef(false), selecting = useRef(false);
+  const pending = useRef<{ body: Addition } | { itemId: string; version: number } | null>(null);
+  const mine = project.creatorId === user?.userId, sourceAvailable = project.sourceAvailable !== false;
+  useEffect(() => { selecting.current = false; });
+  useEffect(() => () => onBlocked(false), [onBlocked]);
+  function block(value: boolean) { unknown.current = value; setUncertain(value); onBlocked(value); }
+  useEffect(() => {
+    if (!busy && !uncertain) return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn);
+  }, [busy, uncertain]);
+  const load = useCallback((next = "") => {
+    if (!user || lock.current || unknown.current) return;
+    setReadBusy(true); setLoaded(false); if (!next) setItems([]); setCursor(""); setStatus("正在讀取專案引用……");
+    void read.run(signal => request((client, s) => client.GET("/api/v1/spaces/{spaceId}/projects/{id}/references", { signal: s, params: { path: { spaceId, id: project.id }, query: { cursor: next || undefined } } }), { signal }), page => {
+      setItems(previous => [...new Map([...(next ? previous : []), ...page.items].map(item => [item.id, item])).values()]); setCursor(page.nextCursor); setReadBusy(false); setLoaded(true); setStatus("");
+    }, error => { setItems([]); setReadBusy(false); setStatus(errorMessage(error)); });
+  }, [user, request, read.run, spaceId, project.id]);
+  const loadParents = useCallback((next = "") => {
+    if (!user || !mine || !sourceAvailable || kind !== "subobject") return;
+    setParentBusy(true); if (!next) {setObjects([]);setParent("");setChoice("");setOptions([]);catalog.cancel();} setParentCursor(""); setParentStatus("正在讀取父物件……");
+    void parents.run(signal => request((client,s) => client.GET("/api/v1/repositories/{repositoryId}/objects", {signal:s,params:{path:{repositoryId:sourceRepositoryId},query:{cursor:next || undefined}}}),{signal}), page => {
+      setObjects(previous => [...new Map([...(next ? previous : []), ...page.items.map(item => ({id:item.id,title:`${item.name} · ${item.quantity} ${item.unit}`}))].map(item => [item.id,item])).values()]); setParentCursor(page.nextCursor); setParentBusy(false); setParentStatus("");
+    }, error => {setObjects([]);setParent("");setChoice("");setOptions([]);catalog.cancel();setParentBusy(false);setParentStatus(errorMessage(error));});
+  }, [user,mine,sourceAvailable,kind,parents.run,request,sourceRepositoryId,catalog.cancel]);
+  const loadCatalog = useCallback((next = "") => {
+    if (!user || !mine || !sourceAvailable || (kind === "subobject" && !parent)) return;
+    setCatalogBusy(true); if (!next) { setOptions([]); setChoice(""); } setCatalogCursor(""); setCatalogStatus(`正在讀取可收錄${kinds[kind]}……`);
+    void catalog.run(async signal => {
+      const query = {cursor:next || undefined}, repositoryId=sourceRepositoryId;
+      if (kind === "object") {
+        const page=await request((client,s)=>client.GET("/api/v1/repositories/{repositoryId}/objects",{signal:s,params:{path:{repositoryId},query}}),{signal});
+        return {items:page.items.map(item=>({id:item.id,title:`${item.name} · ${item.quantity} ${item.unit}`})),nextCursor:page.nextCursor};
+      }
+      if (kind === "subobject") {
+        const page=await request((client,s)=>client.GET("/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects",{signal:s,params:{path:{repositoryId,objectId:parent},query}}),{signal});
+        return {items:page.items.map(item=>({id:item.id,title:`${item.name} · ${item.quantity} ${item.unit}`})),nextCursor:page.nextCursor};
+      }
+      if (kind === "discussion") {
+        const page=await request((client,s)=>client.GET("/api/v1/repositories/{repositoryId}/discussions",{signal:s,params:{path:{repositoryId},query}}),{signal});
+        return {items:page.items.map(item=>({id:item.id,title:item.title})),nextCursor:page.nextCursor};
+      }
+      const page=await request((client,s)=>client.GET("/api/v1/repositories/{repositoryId}/issues",{signal:s,params:{path:{repositoryId},query}}),{signal});
+      return {items:page.items.map(item=>({id:item.id,title:`#${item.number} ${item.title}`})),nextCursor:page.nextCursor};
+    }, page => {setOptions(previous=>[...new Map([...(next?previous:[]),...page.items].map(item=>[item.id,item])).values()]);setCatalogCursor(page.nextCursor);setCatalogBusy(false);setCatalogStatus("");}, error=>{setOptions([]);setChoice("");setCatalogBusy(false);setCatalogStatus(errorMessage(error));});
+  }, [user,mine,sourceAvailable,kind,parent,catalog.run,request,sourceRepositoryId]);
+  useEffect(()=>{load();return read.cancel;},[load,read.cancel]);
+  useEffect(()=>{loadParents();return parents.cancel;},[loadParents,parents.cancel]);
+  useEffect(()=>{loadCatalog();return catalog.cancel;},[loadCatalog,catalog.cancel]);
+  function change(itemId?: string) {
+    if (!user || !mine || lock.current || selecting.current || needsRefresh || !canWrite() || (disabled && !unknown.current)) return;
+    if (!pending.current) {
+      if (!itemId && (!choice || !sourceAvailable || (kind === "subobject" && !parent))) return;
+      pending.current = itemId ? {itemId,version:project.version} : {body:{sourceType:kind,sourceId:choice,...(kind === "subobject" ? {parentObjectId:parent} : {}),expectedVersion:project.version}};
+    }
+    const attempt=pending.current, wasUnknown=unknown.current;
+    lock.current=true;setBusy(true);block(true);setStatus("正在更新專案引用……");
+    void write.run(signal=>request((client,s)=>"itemId" in attempt ? client.DELETE("/api/v1/spaces/{spaceId}/projects/{id}/references/{itemId}",{signal:s,params:{path:{spaceId,id:project.id,itemId:attempt.itemId},query:{expectedVersion:attempt.version}}}) : client.POST("/api/v1/spaces/{spaceId}/projects/{id}/references",{signal:s,params:{path:{spaceId,id:project.id}},body:attempt.body}),{signal}), value=>{
+      lock.current=false;setBusy(false);pending.current=null;block(false);onChange(value);
+    },error=>{
+      lock.current=false;setBusy(false);
+      const rejected=["invalid_input","forbidden","not_found","version_conflict","conflict"].includes((error as {code?:string}).code || "");
+      if(rejected && !wasUnknown){pending.current=null;block(false);setNeedsRefresh(true);setStatus(errorMessage(error)+" 請重新讀取專案後再管理引用。");}
+      else setStatus(errorMessage(error)+" 結果尚未確認，請重試原引用操作；不要更換來源。");
+    });
+  }
+  function verify() {
+    if (lock.current || !unknown.current || !pending.current || !canWrite()) return;
+    const attempt = pending.current;
+    lock.current = true; setBusy(true); setStatus("正在核對引用結果……");
+    read.cancel(); catalog.cancel(); parents.cancel(); setOptions([]); setObjects([]);
+    setReadBusy(false); setCatalogBusy(false); setParentBusy(false);
+    void write.run(async signal => {
+      const current = await request((client,s) => client.GET("/api/v1/spaces/{spaceId}/projects/{id}", {signal:s,params:{path:{spaceId,id:project.id}}}), {signal});
+      const rows: Reference[] = [], seen = new Set<string>(); let next = "", found = false;
+      for (let pageNumber = 0; pageNumber < 50; pageNumber++) {
+        const page = await request((client,s) => client.GET("/api/v1/spaces/{spaceId}/projects/{id}/references", {signal:s,params:{path:{spaceId,id:project.id},query:{cursor:next || undefined}}}), {signal});
+        rows.push(...page.items);
+        found = page.items.some(item => "itemId" in attempt ? item.id === attempt.itemId : item.sourceType === attempt.body.sourceType && item.sourceId === attempt.body.sourceId && (item.parentObjectId || "") === (attempt.body.parentObjectId || ""));
+        next = page.nextCursor;
+        if (found || !next) return {current, rows, next, confirmed:"itemId" in attempt ? !found : found};
+        if (seen.has(next)) throw new Error("引用分頁無法完整核對，請稍後重試。");
+        seen.add(next);
+      }
+      throw new Error("引用數量超過本次核對範圍，請稍後重試。");
+    }, result => {
+      lock.current = false; setBusy(false); setItems(result.rows); setCursor(result.next); setLoaded(true);
+      if (!result.confirmed) { setStatus("尚未確認原操作已完成；請保留原操作並稍後重試或核對。"); return; }
+      pending.current = null; setNeedsRefresh(false); setChoice(""); block(false); onChange(result.current);
+      setStatus("已核對引用結果，來源資料未變更。");
+    }, error => {lock.current=false;setBusy(false);setStatus(errorMessage(error)+" 原操作仍保留，請稍後再次核對。");});
+  }
+  return <PagePanel heading="專案引用"><p>顯示來源最新內容。加入或移出專案只變更引用，不會修改來源、授予來源編輯權或加總不同來源的進度。</p>
+    <Status role="status">{status}</Status>
+    <Button type="button" variant="outline" disabled={busy||uncertain||disabled} onClick={onRefresh}>重新讀取專案與引用</Button>
+    {uncertain && <><Button type="button" disabled={busy} onClick={()=>change()}>重試原引用操作</Button><Button type="button" variant="outline" disabled={busy} onClick={verify}>核對引用結果</Button></>}
+    <ItemGroup className="min-w-0">{items.map(item=>{
+      const title=item.sourceUnavailable ? `不可讀取的${kinds[item.sourceType]}` : item.sourceTitle;
+      return <Item key={item.id} variant="outline" className="min-w-0"><ItemContent className="min-w-0"><ItemTitle className="w-full min-w-0 whitespace-normal [overflow-wrap:anywhere]">{kinds[item.sourceType]}：{title}</ItemTitle>
+        {item.sourceUnavailable ? <p>來源目前不可讀取；不顯示先前內容。</p> : <>
+          {(item.type === "non_work" || item.sourceState) && <p>狀態：{item.type === "non_work" ? "不適用" : states[item.sourceState] || item.sourceState}</p>}
+          {item.quantity !== undefined && <p className="whitespace-normal [overflow-wrap:anywhere]">數量：{item.quantity} {item.unit}</p>}
+          {item.type === "non_work" ? <p>進度：不適用</p> : item.completedQuantity !== undefined && <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{item.completedQuantity}/{item.quantity} {item.unit}</p>}
+        </>}
+        {mine&&<Button type="button" variant="outline" aria-label={`移出專案：${title}`} disabled={disabled||needsRefresh||busy||uncertain} onClick={()=>change(item.id)}>移出專案</Button>}
+      </ItemContent></Item>;
+    })}</ItemGroup>
+    {loaded&&!items.length&&<p>尚未收錄來源。</p>}
+    {cursor&&<Button type="button" variant="outline" disabled={readBusy||busy||uncertain} onClick={()=>load(cursor)}>載入更多專案引用</Button>}
+    {mine && (sourceAvailable ? <FieldGroup>
+      <FormField>來源種類<NativeSelect value={kind} disabled={disabled||needsRefresh||busy||uncertain} onChange={event=>{if(lock.current||unknown.current||event.target.value===kind)return;selecting.current=true;catalog.cancel();parents.cancel();setKind(event.target.value as Kind);setParent("");setChoice("");setOptions([]);setObjects([]);setCatalogCursor("");setParentCursor("");setCatalogStatus("");setParentStatus("");}}>{Object.entries(kinds).map(([value,label])=><NativeSelectOption key={value} value={value}>{label}</NativeSelectOption>)}</NativeSelect></FormField>
+      {kind === "subobject" && <>
+        <Status role="status">{parentStatus}</Status>
+        <FormField>父物件<NativeSelect value={parent} disabled={disabled||needsRefresh||busy||uncertain||parentBusy} onChange={event=>{if(lock.current||unknown.current||event.target.value===parent)return;selecting.current=true;catalog.cancel();setParent(event.target.value);setChoice("");setOptions([]);setCatalogCursor("");}}><NativeSelectOption value="">請先選擇父物件</NativeSelectOption>{objects.map(item=><NativeSelectOption key={item.id} value={item.id}>{item.title}</NativeSelectOption>)}</NativeSelect></FormField>
+        <Button type="button" variant="outline" disabled={disabled||needsRefresh||busy||uncertain||parentBusy} onClick={()=>loadParents()}>重新讀取父物件</Button>
+        {parentCursor&&<Button type="button" variant="outline" disabled={disabled||needsRefresh||busy||uncertain||parentBusy} onClick={()=>loadParents(parentCursor)}>載入更多父物件</Button>}
+      </>}
+      <Status role="status">{catalogStatus}</Status>
+      <FormField>選擇既有{kinds[kind]}<NativeSelect value={choice} disabled={disabled||needsRefresh||busy||uncertain||catalogBusy||(kind === "subobject"&&!parent)} onChange={event=>{if(event.target.value===choice)return;selecting.current=true;setChoice(event.target.value);}}><NativeSelectOption value="">請選擇{kinds[kind]}</NativeSelectOption>{options.map(item=><NativeSelectOption key={item.id} value={item.id}>{item.title}</NativeSelectOption>)}</NativeSelect></FormField>
+      <Button type="button" disabled={disabled||needsRefresh||busy||uncertain||catalogBusy||!choice} onClick={()=>change()}>加入專案</Button>
+      <Button type="button" variant="outline" disabled={disabled||catalogBusy||busy||uncertain||(kind === "subobject"&&!parent)} onClick={()=>loadCatalog()}>重新讀取可收錄來源</Button>
+      {catalogCursor&&<Button type="button" variant="outline" disabled={disabled||catalogBusy||busy||uncertain} onClick={()=>loadCatalog(catalogCursor)}>載入更多可收錄來源</Button>}
+    </FieldGroup> : <p>來源儲存庫目前不可讀取；仍可移除專案引用。</p>)}
+  </PagePanel>;
+}

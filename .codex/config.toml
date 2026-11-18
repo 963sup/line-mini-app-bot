@@ -1,0 +1,249 @@
+[features]
+multi_agent = true
+
+[skills]
+include_instructions = true
+# Keep the large repository skill catalog visible within Codex's 10,000-token cap.
+max_context_tokens = 10000
+
+[skills.bundled]
+enabled = true
+
+[[skills.config]]
+# Match the installed skill without tying the selector to a checkout location.
+name = "openai-docs"
+enabled = true
+
+[agents]
+# Spawned threads include orchestrator and exclude the primary; host limits prevail.
+max_concurrent_threads_per_session = 6
+# V1: primary(0) -> orchestrator(1) -> specialist(2). V2 ignores max_depth.
+# Specialists do not spawn; see docs/agents/workflow.md for the shared policy.
+max_depth = 2
+
+[agents.orchestrator]
+description = "Task decomposition, assignment, coordination and result integration."
+config_file = "agents/orchestrator.toml"
+
+[agents.architect]
+description = "System architecture, technical decisions and module boundaries."
+config_file = "agents/architect.toml"
+
+[agents.researcher]
+description = "Technical research, official documentation and option comparisons."
+config_file = "agents/researcher.toml"
+
+[agents.explorer]
+description = "Code exploration, dependency analysis and change impact."
+config_file = "agents/explorer.toml"
+
+[agents.implementer]
+description = "Implementation, refactoring, bug fixes and scoped environment repairs."
+config_file = "agents/implementer.toml"
+
+[agents.debugger]
+description = "Reproduce bugs, identify root causes, implement minimal fixes, and verify regressions."
+config_file = "agents/debugger.toml"
+
+[agents.tester]
+description = "Test design, execution and issue verification."
+config_file = "agents/tester.toml"
+
+[agents.reviewer]
+description = "Code quality, security and architectural compliance review."
+config_file = "agents/reviewer.toml"
+
+[agents.documentation]
+description = "Write, review and repair assigned Markdown while preserving meaning and verified sources."
+config_file = "agents/documentation.toml"
+
+[agents.integrator]
+description = "Change integration, conflict resolution and final acceptance."
+config_file = "agents/integrator.toml"
+
+[agents.graphify]
+description = "Read-only graph exploration with current-source corroboration and scoped graph maintenance when assigned."
+config_file = "agents/graphify.toml"
+
+[agents.repomix]
+description = "Produce scoped source bundles and cross-file evidence without editing source or generating skills."
+config_file = "agents/repomix.toml"
+
+[agents.shadcn]
+description = "Inspect shadcn registry evidence and implement assigned UI composition while protecting upstream components."
+config_file = "agents/shadcn.toml"
+
+[agents.golang]
+description = "Implement assigned Go changes using gopls evidence and the repository's Go verification workflow."
+config_file = "agents/golang.toml"
+
+[agents.typescript]
+description = "Implement assigned TypeScript language and client changes with version-matched documentation and type checks."
+config_file = "agents/typescript.toml"
+
+[agents.nextjs]
+description = "Implement assigned Next.js changes while preserving the installed router, static export and application boundaries."
+config_file = "agents/nextjs.toml"
+
+[agents.context7]
+description = "Resolve version-matched library documentation and return traceable evidence without editing source or inventing unsupported claims."
+config_file = "agents/context7.toml"
+
+[agents.mermaid]
+description = "Create and maintain source-backed project diagrams with Mermaid; validate rendering and preserve business boundaries."
+config_file = "agents/mermaid.toml"
+
+[mcp_servers.mermaid]
+url = "https://mcp.mermaid.ai/mcp"
+env_http_headers = { Authorization = "MERMAID_TOKEN" }
+enabled = true
+required = false
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+enabled_tools = ["validate_and_render_mermaid_diagram", "get_diagram_title", "get_diagram_summary"]
+
+[mcp_servers.graphify]
+# Forward runtime network settings by name; never store credential values.
+env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "graphify-mcp", "/workspace/line-mini-app-bot/graphify-out/graph.json"]
+enabled = true
+required = false
+startup_timeout_sec = 45
+tool_timeout_sec = 60
+enabled_tools = ["query_graph", "get_node", "get_neighbors", "get_community", "god_nodes", "graph_stats", "shortest_path"]
+
+[mcp_servers.openaiDeveloperDocs]
+# Keep documentation context focused on search and retrieval.
+enabled_tools = ["search_openai_docs", "fetch_openai_doc"]
+url = "https://developers.openai.com/mcp"
+enabled = true
+required = false
+startup_timeout_sec = 20
+tool_timeout_sec = 45
+
+[mcp_servers.context7]
+url = "https://mcp.context7.com/mcp"
+enabled = true
+required = false
+startup_timeout_sec = 20
+tool_timeout_sec = 45
+
+[mcp_servers.repomix_skills]
+# Forward runtime network settings by name; never store credential values.
+env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "repomix", "--mcp"]
+enabled_tools = ["generate_skill"]
+default_tools_approval_mode = "prompt"
+enabled = true
+required = false
+startup_timeout_sec = 45
+tool_timeout_sec = 120
+
+
+[mcp_servers.repomix]
+# Forward runtime network settings by name; never store credential values.
+env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "repomix", "--mcp", "--sandbox", "/workspace/line-mini-app-bot"]
+enabled_tools = ["pack_codebase", "read_repomix_output", "grep_repomix_output", "file_system_read_file", "file_system_read_directory"]
+enabled = true
+required = false
+startup_timeout_sec = 45
+tool_timeout_sec = 120
+
+[mcp_servers.gopls]
+# Forward runtime network settings by name; never store credential values.
+env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS", "GOPROXY", "GOPRIVATE", "GONOPROXY", "GONOSUMDB", "GOSUMDB"]
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "gopls", "mcp"]
+enabled = true
+required = false
+startup_timeout_sec = 120
+tool_timeout_sec = 60
+
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+bearer_token_env_var = "GITHUB_MCP_TOKEN"
+enabled = true
+required = false
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+
+[mcp_servers.google-developer-knowledge]
+url = "https://developerknowledge.googleapis.com/mcp"
+env_http_headers = { "X-Goog-Api-Key" = "DEVELOPERKNOWLEDGE_API_KEY" }
+enabled = true
+required = false
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+
+[mcp_servers.gcloud]
+# Official server: https://github.com/googleapis/gcloud-mcp
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "npx", "-y", "@google-cloud/gcloud-mcp"]
+env_vars = ["CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "CLOUDSDK_CORE_PROJECT", "CLOUDSDK_CORE_ACCOUNT", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
+enabled_tools = ["run_gcloud_command"]
+default_tools_approval_mode = "prompt"
+enabled = true
+required = false
+startup_timeout_sec = 60
+tool_timeout_sec = 120
+
+[mcp_servers.cloud-run]
+# Official local stdio server: https://github.com/GoogleCloudPlatform/cloud-run-mcp
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "npx", "-y", "@google-cloud/cloud-run-mcp"]
+env_vars = ["CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_REGION", "DEFAULT_SERVICE_NAME", "SKIP_IAM_CHECK", "RUN_INGRESS_POLICY", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
+default_tools_approval_mode = "prompt"
+enabled = true
+required = false
+startup_timeout_sec = 60
+tool_timeout_sec = 120
+
+[mcp_servers.gke]
+# Official Go stdio server: https://github.com/GoogleCloudPlatform/gke-mcp
+# Upstream reads DK_API_KEY; reuse the host's Developer Knowledge key at launch.
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "bash", "-c", 'export DK_API_KEY="${DEVELOPERKNOWLEDGE_API_KEY:-}"; exec gke-mcp']
+env_vars = ["DEVELOPERKNOWLEDGE_API_KEY", "CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "CLOUDSDK_CORE_PROJECT", "CLOUDSDK_CORE_ACCOUNT", "CLOUDSDK_COMPUTE_REGION", "CLOUDSDK_COMPUTE_ZONE", "KUBECONFIG", "GKE_MCP_PROVIDER", "GKE_MCP_MODEL", "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_LOCATION", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
+default_tools_approval_mode = "prompt"
+enabled = true
+required = false
+startup_timeout_sec = 120
+tool_timeout_sec = 120
+
+[mcp_servers.toolbox]
+# Official MCP Toolbox; use the project's existing Firestore integration.
+# Requires FIRESTORE_PROJECT and ADC; FIRESTORE_DATABASE is optional.
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "npx", "-y", "@toolbox-sdk/server", "--prebuilt", "firestore", "--stdio"]
+env_vars = ["FIRESTORE_PROJECT", "FIRESTORE_DATABASE", "CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
+default_tools_approval_mode = "prompt"
+enabled = true
+required = false
+startup_timeout_sec = 120
+tool_timeout_sec = 120
+
+[mcp_servers.shadcn]
+# Forward runtime network settings by name; values remain host-owned.
+env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "bash", "-c", "cd /workspace/line-mini-app-bot/frontend/miniapp && exec shadcn mcp"]
+enabled = true
+required = false
+startup_timeout_sec = 45
+tool_timeout_sec = 60
+
+[mcp_servers.next-devtools]
+# Runtime inspection is task-specific; use the installed Next.js dev server.
+env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS", "NEXT_TELEMETRY_DISABLED"]
+command = "bash"
+args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "bash", "-c", "cd /workspace/line-mini-app-bot/frontend/miniapp && exec next-devtools-mcp"]
+enabled_tools = ["nextjs_index", "nextjs_call", "nextjs_docs", "browser_eval"]
+default_tools_approval_mode = "writes"
+enabled = true
+required = false
+startup_timeout_sec = 30
+tool_timeout_sec = 60

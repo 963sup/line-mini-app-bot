@@ -1,0 +1,19 @@
+{
+  "name": "@repo/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/client.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "openapi-fetch": "0.17.0"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  }
+}

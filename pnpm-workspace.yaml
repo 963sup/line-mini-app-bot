@@ -1,0 +1,11 @@
+packages:
+  - backend
+  - frontend/*
+  - api/client
+
+minimumReleaseAge: 1440
+
+allowBuilds:
+  core-js: false
+  protobufjs: false
+  esbuild: true
