@@ -194,7 +194,7 @@ for (const width of [375, 1024]) {
   });
 }
 
-for (const path of ["/miniapp", "/miniapp/history?id=attendance-id", "/miniapp/journal?id=journal-id"]) {
+for (const path of ["/miniapp", "/miniapp/history?id=attendance-id", "/miniapp/feed?journalId=journal-id"]) {
   test(`repository expansion remains lazy and independent of workflow query: ${path}`, async () => {
     const f = await fixture(path, async (request) => {
       assert.equal(new URL(request.url).pathname, "/api/v1/repositories");

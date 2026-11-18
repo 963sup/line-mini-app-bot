@@ -66,7 +66,7 @@ function Content({
         "/miniapp/repositories" +
           (repository ? "?" + new URLSearchParams({ id: repository }) : ""),
       );
-    else if (journal) location.replace("/miniapp/journal");
+    else if (journal) location.replace("/miniapp/feed");
     else if (correction)
       location.replace(
         "/miniapp/correction?" + new URLSearchParams({ group: correction }),
@@ -121,7 +121,7 @@ function Content({
     >
       <div
         className="flex flex-col gap-3"
-        key={workflow === "journal" ? "journal" : epoch}
+        key={epoch}
       >
         {children}
       </div>

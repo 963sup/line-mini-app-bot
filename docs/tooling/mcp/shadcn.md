@@ -64,7 +64,7 @@ MCP 可提供 registry 資訊及新增命令；若回傳命令使用浮動版本
 
 前端改動沿用 [前端檢查](../../../frontend/README.md)，並檢查窄螢幕外框、控制項與警告內容；MCP handshake 不代替 UI 或整合驗收。
 
-查證來源：Context7 `/websites/ui_shadcn` 的 [components.json](https://ui.shadcn.com/docs/components-json)、[monorepo](https://ui.shadcn.com/docs/monorepo) 與 [MCP](https://ui.shadcn.com/docs/mcp)。文件描述目前 workspace 的配置方式；實際版本以工具與套件權威檔案為準，實機 LINE／Google 表單驗收另行記錄。
+查證來源：Context7 `/websites/ui_shadcn` 的 [components.json](https://ui.shadcn.com/docs/components-json)、[monorepo](https://ui.shadcn.com/docs/monorepo) 與 [MCP](https://ui.shadcn.com/docs/mcp)。文件描述目前 workspace 的配置方式；實際版本以工具與套件權威檔案為準，LINE 實機驗收另行記錄。
 
 ## 官方能力索引與適用範圍
 
