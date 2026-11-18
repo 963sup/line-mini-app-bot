@@ -53,8 +53,10 @@ def main():
             with response:
                 status, headers = response.status, response.headers
                 body = response.read(2_000_001)
-            assert status in (expected if isinstance(expected, tuple) else (expected,)), f'HTTP {status}, expected {expected}'
-            assert len(body) <= 2_000_000, 'response exceeds probe limit'
+            if status not in (expected if isinstance(expected, tuple) else (expected,)):
+                raise ValueError(f'HTTP {status}, expected {expected}')
+            if len(body) > 2_000_000:
+                raise ValueError('response exceeds probe limit')
             if check:
                 check(headers, body)
             results.append({'path': path, 'passed': True, 'status': status})
@@ -65,13 +67,19 @@ def main():
             return b''
 
     def page(headers, body):
-        assert headers.get_content_type() == 'text/html', 'not HTML'
-        assert 'no-store' in headers.get('Cache-Control', ''), 'page cache policy missing'
-        assert headers.get('X-Content-Type-Options') == 'nosniff', 'nosniff missing'
-        assert headers.get('Referrer-Policy') == 'no-referrer', 'referrer policy missing'
+        if headers.get_content_type() != 'text/html':
+            raise ValueError('not HTML')
+        if 'no-store' not in headers.get('Cache-Control', ''):
+            raise ValueError('page cache policy missing')
+        if headers.get('X-Content-Type-Options') != 'nosniff':
+            raise ValueError('nosniff missing')
+        if headers.get('Referrer-Policy') != 'no-referrer':
+            raise ValueError('referrer policy missing')
         policy = headers.get('Content-Security-Policy', '')
-        assert "default-src 'none'" in policy and "'unsafe-inline'" not in policy, 'CSP missing or relaxed'
-        assert b'__NEXT_DATA__' in body, 'Next page artifact missing'
+        if "default-src 'none'" not in policy or "'unsafe-inline'" in policy:
+            raise ValueError('CSP missing or relaxed')
+        if b'__NEXT_DATA__' not in body:
+            raise ValueError('Next page artifact missing')
 
     assets = set()
     for path in ['/miniapp', '/miniapp/history', '/miniapp/correction', '/miniapp/review', '/miniapp/punch']:

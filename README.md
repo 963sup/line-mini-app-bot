@@ -32,9 +32,6 @@ API 契約、產生碼與相容性流程見 [API 工作流程](api/README.md)。
 
 ```bash
 bash scripts/tooling/bootstrap.sh core
-bash scripts/tooling/tool-exec.sh mise run doctor
-bash scripts/tooling/tool-exec.sh mise run install-web
-bash scripts/tooling/tool-exec.sh pnpm install --frozen-lockfile
 bash scripts/tooling/tool-exec.sh pnpm build
 bash scripts/tooling/tool-exec.sh pnpm check
 bash scripts/tooling/tool-exec.sh pnpm test
@@ -42,7 +39,9 @@ bash scripts/tooling/tool-exec.sh pnpm dev
 ```
 
 完整 Cloud／MCP 安裝與限制請見 [Codex Cloud 設定](docs/development/codex-cloud.md)。
-需要 Graphify／Repomix 與 MCP 時使用 `bash scripts/tooling/bootstrap.sh all`；工具安裝、
+預設初始化會安裝 Go、Web 依賴及 Mermaid CLI。需要 Graphify／Repomix 與 MCP 時使用
+`bash scripts/tooling/bootstrap.sh all`。Firestore Toolbox 需要先提供 Google ADC，GKE MCP 預設停用。
+工具安裝、
 MCP 握手與聊天主機實際可用性須分別驗收，不因快取存在而視為全新環境已驗證。
 工具與非機密環境以 `mise.toml` 為準；日常命令使用 `scripts/tooling/tool-exec.sh`。
 

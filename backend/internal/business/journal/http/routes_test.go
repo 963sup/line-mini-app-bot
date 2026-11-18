@@ -2,11 +2,12 @@ package journalhttp
 
 import (
 	"context"
-	"github.com/963sup/line-mini-app-bot/internal/business/journal"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/963sup/line-mini-app-bot/internal/business/journal"
 )
 
 type testAuth struct{}
@@ -30,16 +31,19 @@ func (f *fixture) Create(_ context.Context, actor, key string, d journal.Draft) 
 	f.saved = journal.Entry{Draft: d, ID: strings.Repeat("a", 32), CreatorID: actor, CreatedAt: d.WorkDate}
 	return f.saved, nil
 }
+
 func (f *fixture) List(_ context.Context, actor string, filter journal.Filter) (journal.Page, error) {
 	f.filter = filter
 	return journal.Page{Items: []journal.Entry{f.saved}}, nil
 }
+
 func (f *fixture) Get(_ context.Context, actor, id string) (journal.Entry, error) {
 	if id != f.saved.ID || actor != f.saved.CreatorID {
 		return journal.Entry{}, journal.ErrNotFound
 	}
 	return f.saved, nil
 }
+
 func TestJournalRoutes(t *testing.T) {
 	const base = "/api/v1/journals"
 	const group = "C11111111111111111111111111111111"

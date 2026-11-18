@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	types "github.com/oapi-codegen/runtime/types"
 	"io"
 	"mime"
 	"net/http"
 	"time"
+
+	types "github.com/oapi-codegen/runtime/types"
 
 	feature "github.com/963sup/line-mini-app-bot/internal/business/journal"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
@@ -98,6 +99,7 @@ func replyError(w http.ResponseWriter, err error) bool {
 	}
 	return true
 }
+
 func (s *journalServer) enabled(w http.ResponseWriter) bool {
 	if s.service != nil {
 		return true
@@ -112,6 +114,7 @@ func source(r *generated.JournalReference) *feature.Reference {
 	}
 	return &feature.Reference{Kind: string(r.Type), ID: r.Id}
 }
+
 func refView(r *feature.Reference) *generated.JournalReference {
 	if r == nil {
 		return nil
@@ -129,6 +132,7 @@ func view(e feature.Entry) generated.Journal {
 	}
 	return j
 }
+
 func (s *journalServer) CreateJournal(w http.ResponseWriter, r *http.Request, p generated.CreateJournalParams) {
 	var b generated.JournalCreation
 	decoder := json.NewDecoder(r.Body)
@@ -152,6 +156,7 @@ func (s *journalServer) CreateJournal(w http.ResponseWriter, r *http.Request, p 
 		transport.WriteJSON(w, 201, view(e))
 	}
 }
+
 func (s *journalServer) GetJournal(w http.ResponseWriter, r *http.Request, id string) {
 	if !s.enabled(w) {
 		return
@@ -161,6 +166,7 @@ func (s *journalServer) GetJournal(w http.ResponseWriter, r *http.Request, id st
 		transport.WriteJSON(w, 200, view(e))
 	}
 }
+
 func (s *journalServer) ListJournals(w http.ResponseWriter, r *http.Request, p generated.ListJournalsParams) {
 	if !s.enabled(w) {
 		return

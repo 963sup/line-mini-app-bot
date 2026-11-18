@@ -14,7 +14,7 @@ Tool versions are owned by `mise.toml`; never copy token values into documentati
 
 ## Operation
 
-Refresh with `mise run graphify-update`; query with `graphify query "<question>"`.
+Refresh with `bash scripts/tooling/tool-exec.sh mise run graphify-update`; query with `graphify query "<question>"`.
 
 ### Docs-only graph
 

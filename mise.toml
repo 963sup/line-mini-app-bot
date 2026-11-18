@@ -42,7 +42,6 @@ go = "1.27.4"
 # Node includes npm and npx.
 node = "24.22.1"
 "npm:pnpm" = "12.18.0"
-"go:github.com/oasdiff/oasdiff" = "1.37.0"
 "go:github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen" = "2.8.2"
 "go:golang.org/x/tools/gopls" = "0.24.0"
 "go:golang.org/x/tools/cmd/deadcode" = "0.52.0"
@@ -58,6 +57,7 @@ python = "3.12.14"
 "npm:repomix" = "1.18.1"
 "npm:shadcn" = "4.23.0"
 "npm:next-devtools-mcp" = "0.4.0"
+"npm:mermaid" = "13.0.0-alpha.3"
 "npm:skills" = "1.7.6"
 gcloud = "592.0.0"
 "npm:@google-cloud/gcloud-mcp" = "0.5.3"
@@ -76,7 +76,7 @@ run = "go build ./..."
 
 [tasks.graphify-update]
 description = "Build a local code graph without LLM calls"
-run = "graphify extract /workspace/line-mini-app-bot --code-only --allow-dedup-shrink --out /workspace/line-mini-app-bot"
+run = "graphify extract . --code-only --allow-dedup-shrink --out ."
 
 [tasks.graphify-docs]
 description = "Build a separate docs heading/link graph without API credentials"
@@ -84,7 +84,7 @@ run = "python3 scripts/analysis/docs-graph.py"
 
 [tasks.install-web]
 description = "Install pinned Node and pnpm workspace tooling"
-run = "mise install node npm:pnpm go:github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen go:github.com/oasdiff/oasdiff"
+run = "mise install node npm:pnpm go:github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen"
 
 [tasks.install-core]
 description = "Install pinned Go toolchain and development tools"
@@ -119,7 +119,7 @@ run = "callgraph"
 
 [tasks.debug]
 dir = "backend"
-run = "dlv debug"
+run = "dlv debug ./cmd/server"
 
 [tasks.coverage]
 dir = "backend"
@@ -136,7 +136,21 @@ run = "bash ../scripts/tooling/go-profile.sh"
 
 [tasks.install-mcp]
 description = "Install optional local MCP tools separately from Go"
-run = ["mise install node python uv npm:repomix npm:shadcn", "mise run install-graphify"]
+run = [
+  "mise install node python uv npm:repomix",
+  "mise run install-shadcn",
+  "mise run install-next-devtools",
+  "mise run install-graphify",
+]
+
+[tasks.install-mermaid]
+description = "Install the pinned Mermaid CLI"
+env = { MISE_NPM_SHELL_OUT = "true", MISE_NPM_PACKAGE_MANAGER = "npm" }
+run = "mise install node npm:mermaid"
+
+[tasks.render-mermaid]
+description = "Render a Mermaid diagram locally"
+run = "mermaid"
 
 [tasks.install-shadcn]
 description = "Install the pinned shadcn CLI and its Node runtime without regenerating components or skills"
@@ -175,7 +189,7 @@ description = "Build locally using the project's Dockerfile"
 run = "bash scripts/tooling/app-task.sh container-build"
 
 [tasks.bootstrap]
-description = "Prepare Go tools without requiring remote MCP credentials"
+description = "Prepare Go, web dependencies, and local Mermaid without remote MCP credentials"
 run = "bash scripts/tooling/bootstrap.sh core"
 
 [tasks.doctor-mcp]

@@ -33,7 +33,11 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	defer client.Close()
+	t.Cleanup(func() {
+		if err := client.Close(); err != nil {
+			t.Errorf("close Firestore client: %v", err)
+		}
+	})
 	channel := fmt.Sprintf("test-%d", time.Now().UnixNano())
 	groups := &spacedb.Store{Client: client, ChannelID: channel}
 	g := "C" + strings.Repeat("a", 32)

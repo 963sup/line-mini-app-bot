@@ -63,7 +63,7 @@ Repository milestones／statistics 與 Project／items 已依 [基礎追蹤規�
 
 先改來源契約，再依 [API 工作流程](../README.md) 生成共用 Go／TypeScript 產物。Redocly 從根入口 bundle，不需每個能力各建 client 或生成器；相容性 baseline 不隨搬移刷新。
 
-純歸屬重組先比較搬移前後 `redocly bundle --dereferenced` 的完整 JSON 結構，再執行 `pnpm api:check` 與 `pnpm api:compat --base <基準提交>`。路徑、operationId、型別名稱、授權、錯誤、nullable 與 deprecated 語義均須保持；生成碼變更需檢視，不能只因生成成功就認定相容。
+純歸屬重組先比較搬移前後 `redocly bundle --dereferenced` 的完整 JSON 結構，再執行 `pnpm api:check`。路徑、operationId、型別名稱、授權、錯誤、nullable 與 deprecated 語義均須保持；生成碼變更需檢視，不能只因生成成功就認定相容。
 
 OpenAPI 拆分不等同 runtime 完整驗證，也不代表資料庫交易的原子性。HTTP handler、業務規則與交易邊界另依實作核對。
 

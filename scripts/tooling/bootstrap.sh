@@ -4,7 +4,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 source scripts/tooling/dev-env.sh
 mode="${1:-core}"
 case "$mode" in core|mcp|all) ;; *) echo "Usage: $0 [core|mcp|all]" >&2; exit 2;; esac
-version=2026.11.3
+version="$(python3 scripts/tooling/render-env.py --mise-version)"
 case "$(uname -m)" in x86_64) arch=x64;; aarch64) arch=arm64;; *) exit 1;; esac
 if [[ ! -x /workspace/tooling/bin/mise ]] || [[ "$(/workspace/tooling/bin/mise --version)" != "$version "* ]]; then
   stage="$(mktemp -d "$TMPDIR/mise-bootstrap.XXXXXX")"
@@ -24,13 +24,16 @@ if [[ ! -x /workspace/tooling/bin/mise ]] || [[ "$(/workspace/tooling/bin/mise -
   install -m 0755 "$stage/mise/bin/mise" /workspace/tooling/bin/mise
 fi
 mise trust mise.toml
+mise run install-core
 if [[ "$mode" == core || "$mode" == all ]]; then
-  mise run install-core
+  mise run install-web
+  mise exec -- pnpm install --frozen-lockfile
   mise run doctor
 fi
+mise run install-mermaid
 if [[ "$mode" == mcp || "$mode" == all ]]; then
-  if [[ "$mode" == mcp ]]; then mise run install-core; fi
   mise run install-mcp
+  mise run install-cloud
   mise run graphify-update
   mise run doctor-mcp
 fi

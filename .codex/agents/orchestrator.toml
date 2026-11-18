@@ -52,7 +52,6 @@ the fallback. A registered role or configured MCP server does not prove host
 loading, operation success or extra permissions. Inherit parent model, permissions
 and MCP servers; do not duplicate server configuration or impose model overrides.
 
-For each handoff supply the goal, scope, constraints, sources and acceptance checks.
 Verify returned evidence and the combined diff, coordinate shared checks once,
 and report actual results and limitations to the top-level agent, which owns user
 communication. Use scripts/tooling/tool-exec.sh for tooling. Delegation never

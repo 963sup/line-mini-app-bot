@@ -16,6 +16,20 @@ Tool versions are owned by `mise.toml`; never copy token values into documentati
 
 Call resolve-library-id first, then query-docs with its exact library ID and a focused version-aware question. Return source URLs, documented versions and applicability limits. If the installed version is unavailable, state the mismatch rather than treating another version as verified. Do not send secrets or private source in queries.
 
+## Anonymous fallback
+
+Use the host Context7 plugin when available. If it reports an exhausted quota,
+switch to the project `context7` MCP server and retry the lookup once. This
+server is configured without an API key or credential header. Use the
+anonymous server directly if the plugin is unavailable. Resolve the library ID
+on the selected server before querying its documentation.
+
+The plugin and project server are separate connections. This retry is an agent
+instruction and requires the host to expose the project server. If the server
+is missing from the current session, report that limitation and identify the
+need for a session that loads the project configuration. If the anonymous
+server also rate limits the lookup, stop retrying and report the blocker.
+
 ## Verification and failures
 
 ```bash

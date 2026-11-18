@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const temporary = mkdtempSync(join(tmpdir(), 'line-api-generate-'));
 const check = process.argv.includes('--check');
-function run(command, args, cwd = root) {
+function run(command: string, args: string[], cwd = root) {
  const result = spawnSync(command, args, { cwd, stdio: 'inherit' });
  if (result.error) throw result.error;
  if (result.status !== 0) throw new Error(`${command} failed (${result.status})`);

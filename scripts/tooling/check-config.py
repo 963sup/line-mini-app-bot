@@ -74,6 +74,7 @@ def check():
     spec = spec_from_file_location("render_env", ROOT / "scripts/tooling/render-env.py")
     module = module_from_spec(spec)
     spec.loader.exec_module(module)
+    module.mise_version(mise)
     module.render_exports(mise["env"], {})
     json_paths = list((ROOT / ".vscode").glob("*.json"))
     json_paths += list(codex_dir.glob("*.json")) + list(ROOT.glob("*.config.json"))

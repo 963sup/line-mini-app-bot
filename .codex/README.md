@@ -40,10 +40,8 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 ### 操作與驗收
 
 1. 核對來源並在指派的 Markdown 保存可編修 `mermaid` 區塊及相對來源連結。
-2. 啟動 Codex 的程序須繼承 `MERMAID_TOKEN`；token 值只由主機環境提供，不放入儲存庫、mise 或圖表。設定使用環境變數映射的 Authorization 標頭。
-3. 確認主機實際曝光 Mermaid 工具並讀取 schema，再以 `validate_and_render_mermaid_diagram` 驗證最小脫敏圖表；送往遠端的圖表不得包含憑證、真實群組 ID、私人紀錄或整包程式碼。主機提供 Mermaid Chart 時，可用 display_mermaid 預覽並註明實際工具。專案 MCP 設定預設只開放渲染、標題與摘要工具，不開放帳號圖表寫入。
-4. 核對圖中文字與箭頭符合來源，另執行設定檢查與 `git diff --check`。記錄實際渲染結果；未曝光工具、缺憑證或連線失敗時保留本機草稿並回報，不宣稱已驗證。
+2. 從專案根目錄安裝固定版 Mermaid v13 alpha，執行 `bash scripts/tooling/tool-exec.sh mise run install-mermaid`。
+3. 執行 `bash scripts/tooling/tool-exec.sh mise run render-mermaid -- render diagram.mmd --format svg > diagram.svg`。
+4. 核對圖中文字與箭頭符合來源，並記錄實際渲染結果。
 
-已執行中的聊天不會因修改設定自動取得工具；須由載入本專案設定且繼承環境變數的新 Codex 工作階段驗收。設定解析、主機載入、遠端渲染與業務語意為不同完成條件。
-
-設定依據：[Mermaid MCP 官方文件](https://mermaid.ai/docs/ai/mcp-server) 與 [Codex 設定參考](https://developers.openai.com/codex/config-reference)，2026-11-18 查核；官方頁面未固定版本。圖表語法依當次任務查證，不假定遠端 renderer 與本機版本相同。
+專案預設使用本機渲染。v13 alpha 由 Node 直接渲染，無須 Chromium。遠端 Mermaid MCP 預設停用。用法見 [Mermaid v13 alpha](https://mermaid.js.org/intro/v13-alpha.html)。
