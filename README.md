@@ -103,7 +103,7 @@ MINI App 頁面為 `/miniapp`；Channel 未設定時頁面顯示設定提示。
 | `scripts/` | [腳本工具](scripts/README.md) | [AGENTS.md](scripts/AGENTS.md) |
 | `frontend/` | [MINI App 前端](frontend/README.md) | [AGENTS.md](frontend/AGENTS.md) |
 
-進入 `frontend/miniapp/` 另讀其 [Next.js 指引](frontend/miniapp/AGENTS.md)。分析結果與涵蓋限制見 [交叉比對](docs/tooling/graphify-repomix-crosscheck.md)。
+進入 `frontend/miniapp/` 另讀其 [Next.js 指引](frontend/miniapp/AGENTS.md)。分析結果與涵蓋限制見 [交叉比對](docs/reports/2026-11-11-graphify-repomix.md)。
 
 ## 業務操作開發原則
 

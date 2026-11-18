@@ -6,3 +6,5 @@
 - [日誌](journal/README.md)
 - [群聊摘要](summary/README.md)
 - [天氣](weather/README.md)
+
+功能規格的歸屬與維護方式見[功能文件指引](AGENTS.md)。

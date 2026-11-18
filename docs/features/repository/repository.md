@@ -1,18 +1,16 @@
-# 群組 Repository
+# 個人與群組 Repository
 
-Project 和 Repository 各自保存一個 `ownerId`。LINE UserID（U）以登入本人核驗，GroupID（C）以當下群組成員資格核驗。Project 可連結多個 Repository，每筆來源引用各自授權。Space 隸屬 Repository。
-
-Space 與 Project 的新邊界見 [獨立 Project](../project/projects.md)：Space 使用 channel 內可信群組ID，Project由Space擁有，Repository只作問題來源。下方既有Repository身份與群組綁定保持相容；歷史「空間」用語不代表Project仍由Repository聚合擁有。
+Repository 保存工程資料並管理[庫內工區](spaces.md)。跨庫引用與專案管理見 [Project 功能規格](../project/projects.md)。
 
 ## 範圍與資料
 
 每個 LINE 群組一個 Bot 管理的空間，具有獨立 `id` 與 `ownerId`。
-不建立人類擁有者、角色、手動建立、換綁或刪除能力。Bot 管理容器不授予使用者審核或讀取他人出勤的權限。
+個人或群組由 LINE 事件綁定，目前未提供手動建庫、換綁或刪除入口。Bot 管理容器不授予使用者審核或讀取他人出勤的權限。
 
-已驗簽的 LINE follow 事件用 UserID 建立個人庫，並寫入本人候選清單。`repositoryOwnerBindings/{ownerId}` 使事件重送沿用同一庫。
+已驗簽的 LINE follow 事件用 UserID 建立個人庫，並寫入本人候選清單。
 
 資料位於 `channels/{channelId}/repositories/{id}`，保存 id、ownerId、name、status、version、createdAt、updatedAt；內部另存最後事件時間及 ID。
-`repositoryOwnerBindings/{ownerId}` 與容器在同一交易建立；ID 隨機產生，重送與併發沿用既有群組綁定。
+`repositoryOwnerBindings/{ownerId}` 與容器在同一交易建立；ID 隨機產生，重送與併發沿用同一擁有者的綁定。
 ACTIVE / INACTIVE 表示 Bot 群組入口狀態。離開保留資料，再加入沿用 ID。舊事件不得覆寫新狀態；同時間停用優先。版本只在公開狀態或名稱改變時遞增。
 名稱是加入或首次互動時取得的群組名稱快照，查詢失敗時允許空白，後續事件會重試補齊；UI 顯示「群組空間」。不宣稱即時同步群組更名。
 
@@ -30,7 +28,7 @@ ACTIVE / INACTIVE 表示 Bot 群組入口狀態。離開保留資料，再加入
 | 欄位 | 列表／詳情查詢 |
 | --- | --- |
 | Actor / Resource / Action | 現有 Cookie Session 或 Bearer 驗證的使用者；Repository；List / Get |
-| Context / Authority | 候選來自可信群組互動，不代表成員資格；每次以 LINE group-member-profile 核驗目前成員 |
+| Context / Authority | 候選來自已驗簽的事件。個人庫比對登入者與 ownerId；群組庫每次以 LINE group-member-profile 核驗當下成員資格 |
 | Policy / Decision | 只顯示 ACTIVE 且核驗成功的容器；不存在、停用或無權詳情統一 404；LINE 非 200/404 或無效 profile 為 503，不能推定有權 |
 | Result | 不可快取的基本資料；沒有摘要內容、他人出勤或管理能力 |
 | 重送／併發 | 讀取無副作用；成員關係為查詢當下的外部觀察，不宣稱跨 LINE/Firestore 原子快照 |
@@ -39,7 +37,7 @@ ACTIVE / INACTIVE 表示 Bot 群組入口狀態。離開保留資料，再加入
 ## API 與前端
 
 - `GET /api/v1/repositories?cursor=...`：一次讀取本人最多十筆互動候選，再核驗目前資格；可能回傳空頁及 nextCursor，需繼續下一頁。
-- `GET /api/v1/repositories/{id}`：即時核驗群組成員；格式錯誤／不存在／無權均不揭露資料。
+- `GET /api/v1/repositories/{id}`：核驗本人或當下群組成員資格；格式錯誤／不存在／無權均不揭露資料。
 - API 契約：[Repository](../../../api/contract/repository/repositories.yaml)，由 [OpenAPI 入口](../../../api/contract/openapi.yaml) 組合；生成 Go/TS DTO，不手改產生碼。
 - UI：側欄「空間」可展開已驗證使用者可開啟的空間，選取後在 `/miniapp/repositories?selected=...` 顯示既有詳情。原頁不再重複顯示另一份列表；既有 `?id=...` 及 `repository`／`liff.state` 群組入口仍相容。
 - `business/repository/RepositoryContext.tsx` 共用列表、分頁與詳情載入：一般功能頁首次展開側欄才讀列表，空間頁自動載入；列表回空但有 nextCursor 時保留「載入更多空間」。錯誤清空舊項目並提供重試，不將候選或停用空間當作可開啟。

@@ -6,7 +6,7 @@
 
 後續來源授權取消語義的最小修正與逐輪驗證見[架構迭代](../docs/reports/2026-11-13/architecture-iteration-20261113.md#第一輪統一-project-取消語義)。
 
-`cmd/projectmigrate` 是明確namespace的dry-run／apply／受限rollback工具，旗標與writer部署前提見 [遷移指南](../docs/foundation/operations/project-migration.md)；不由server啟動時自動搬正式資料。
+`cmd/projectmigrate` 是明確namespace的dry-run／apply／受限rollback工具，旗標與writer部署前提見 [遷移指南](cmd/projectmigrate/README.md)；不由server啟動時自動搬正式資料。
 
 ## 目錄導覽與維護
 

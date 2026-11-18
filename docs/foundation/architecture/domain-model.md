@@ -8,7 +8,7 @@
 ## 文件歸屬與現況
 
 設計文件與程式碼放在同一個 Git 儲存庫，跨業務模型集中於本頁，各業務維護自己的功能規格。
-業務上的 Repository 指群組空間，與保存原始碼的 Git 儲存庫是不同概念。
+業務上的 Repository 指個人或群組擁有的工程資料容器，與保存原始碼的 Git 儲存庫是不同概念。
 
 - 命名政策只有一份：[命名規範](../../development/naming.md#業務實體集合與-api-命名)。本頁保存三個主要業務的應用對照及後續資源模型參考。
 - Repository 既有功能、授權及 REST 入口見 [群組 Repository](../../features/repository/repository.md)。本頁不取代其已實作規格。

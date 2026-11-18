@@ -11,7 +11,6 @@
 - [Go development](go.md)
 - [Go LINE 接入能力](line-prototype.md)
 - [檔案、套件、函數與契約命名](naming.md)
-- [素材與腳本路徑整理](path-reorganization.md)
 - [Environment setup](setup.md)
 - [Testing](testing.md)
 

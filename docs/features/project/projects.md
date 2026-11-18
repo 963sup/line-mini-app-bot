@@ -6,8 +6,6 @@
 
 工程群組直接保存於 `channels/{channelId}/groups/{groupId}`，由已驗簽的群組生命週期獨立建立／更新，候選索引及目前成員核驗獨立於 Repository Service。
 
-Repository 的既有 ID、groupId 綁定、事項與討論保存位置不變。初始 Repository 的 ownerId 必須等於 Project 的 OwnerID；後續來源依各自群組授權；從 sourceRepositoryId 不得推導新增管理權或跳過當下來源授權。
-
 ## 操作契約
 
 | 欄位 | Group 列表／詳情 | Project 列表／詳情／建立／更新 | ProjectItem 列表／加入／移除 |
@@ -22,14 +20,14 @@ Repository 的既有 ID、groupId 綁定、事項與討論保存位置不變。�
 
 Project 自有資料的授權不得再要求 Repository 作為父容器。來源成員資格被撤銷或來源不可用時，來源 Issue 的內容、狀態及衍生進度不能由 Project 權限繞過；不得把未知統計回傳成零或以舊來源資料冒充成功。前端隱藏按鈕不能代替後端檢查。
 
-Canonical來源hydration失敗時，已授權的Project自有metadata仍可讀取／管理，回應以`sourceAvailable=false`標明進度不可用；來源項目內容不因此開放。Project自有container、migration marker、item結構錯誤以及取消／逾時仍回錯誤，不當成來源降級；legacy路徑維持原失敗語義。[第二輪收斂證據](../../reports/2026-11-13/architecture-convergence-pass2-20261113.md)記錄此故障邊界與實際驗證。
+Canonical來源hydration失敗時，已授權的Project自有metadata仍可讀取／管理，回應以`sourceAvailable=false`標明進度不可用；來源項目內容不因此開放。Project 容器或 item 結構錯誤以及取消／逾時仍回錯誤，不當成來源降級；legacy路徑維持原失敗語義。[第二輪收斂證據](../../reports/2026-11-13/architecture-convergence-pass2-20261113.md)記錄此故障邊界與實際驗證。
 
 ## API、頁面與側欄
 
 - Group 提供獨立 List／Get；Project 新入口為 `/api/v1/owners/{ownerId}/projects` 及其專案／items 子資源。Create 明確指定 `defaultRepositoryId`，URL 的 Group 或 Project ID 不是授權憑證。
-- 舊 `/api/v1/repositories/{repositoryId}/projects...` 保留相容 adapter，解析來源及 Group 後呼叫同一組用例，不維護第二份授權或寫入邏輯。原回應、ID、版本、防重及分頁契約依相容檢查保留。
+- 舊 `/api/v1/repositories/{repositoryId}/projects...` 保留相容 adapter，解析來源庫及其擁有者 後呼叫同一組用例，不維護第二份授權或寫入邏輯。原回應、ID、版本、防重及分頁契約依相容檢查保留。
 - 舊Repository統計的projects欄位相容回報以該Repository為來源的專案數，依唯一保存位置讀取；這是唯讀來源關聯統計，不表示Repository擁有或可寫Project。
-- 正式專案頁為 `/miniapp/projects`，URL 保存 Group／Project 選取；側欄「專案」與「儲存庫」同層。Project 頁透過 Group API 與本人 Session 管理資料，不需要 RepositoryProvider 作為 Project 生命週期。
+- 正式專案頁為 `/miniapp/projects`，URL 保存 owner／Project 選取；側欄「專案」與「儲存庫」同層。Project 頁透過 Group API 與本人 Session 管理資料，不需要 RepositoryProvider 作為 Project 生命週期。
 - Repository不再提供專案頁籤，專案由獨立入口開啟。新增專案的來源選擇只列可讀來源，不能因此取得事項修改／審核權。切換 Group、Project、身份或登出時取消舊請求並隔離畫面資料，上一頁、重新整理與直接連結可回到同一目標。
 - 原官方 shadcn primitives 及 sidebar-07 模板維持不變；業務導覽在應用層組合。Pages Router 維持靜態輸出，Go 靜態頁路由亦註冊新入口，不新增前端框架或依賴。
 
@@ -55,25 +53,18 @@ Canonical來源hydration失敗時，已授權的Project自有metadata仍可讀�
 
 ## 保存路徑與顯示範圍
 
-核心模型以 `OwnerID` 表示個人或工程群組。HTTP 使用 `owners/{ownerId}`，Firestore 依身分使用 `users/{userId}` 或 `groups/{groupId}`，Project 文件欄位為 `ownerId`，核心模型以 `DefaultRepositoryID` 表示建立時的預設庫（API 與 Firestore 欄位 `defaultRepositoryId`）。每筆 ProjectReference 各自保存所引用的來源庫。
+| 位置 | Project 路徑 |
+| --- | --- |
+| HTTP | `/api/v1/owners/{ownerId}/projects/{id}` |
+| Firestore 個人專案 | `channels/{channelId}/users/{userId}/projects/{projectId}` |
+| Firestore 群組專案 | `channels/{channelId}/groups/{groupId}/projects/{projectId}` |
 
-Project 固定保存於 `channels/{channelId}/owners/{ownerId}/projects/{projectId}`。Repository 路由先解析工程群組，再存取同一個 Project。初始來源只作預設選擇，其他有效來源保存在 linkedRepositories。建立收據沿用工程群組 內的 projectCreationScopes；舊 projectStorage marker 不參與服務端讀寫。舊遷移工具僅供離線歷史資料處理，操作前須停止所有讀寫服務。
+Project 文件保存 `ownerId` 與 `defaultRepositoryId`。同一擁有者底下的 `projectCreationScopes` 保存建立收據，Project 底下的 `linkedRepositories` 保存庫連結；每筆引用以 `sourceRepositoryId` 定位來源。
 
 工程對象、待處理問題、決策討論分區顯示；專案詳情不把預設庫的 Issue 計數顯示為跨庫進度。Repository 統計中的專案數指以該庫為初始來源的專案數。
 
-## 歷史版本驗證（2026-11-13，含舊保存路由）
-
-- 已維護Space service／Firestore及Project service／Firestore測試，另有migration CLI單元與emulator測試。隔離本機emulator的race驗證涵蓋無Repository的Space事件／候選、owner與來源撤權分離、非成員／作者／版本／同Space限制、canonical與legacy的同ID／收據重送、原Issue不變、marker鎖與部分copy不可見，以及rollback後新頁仍可讀legacy資料。
-- 遷移實測dry-run零寫入、writer-ready門檻、完整items／changes／收據及時間版本保存、異內容碰撞／來源及目標漂移拒絕、無漂移回復與新寫入後不切回舊資料；舊Repository統計在移轉前後不重複計數。
-- API能力檢查、生成同步及相容性驗證通過（61項操作、27個契約來源）；Go格式、lint、module verify、vet、完整既有race suite、build與漏洞檢查通過。漏洞檢查無應用可達項，仍有3筆未被應用呼叫的required-module項目，不稱所有依賴無漏洞。
-- 前端型別及29個現有框架測試通過，包含新增6個Space／Project／身份與來源隔離、同層側欄、URL回復、原鍵重試及來源不可用情境；Next靜態build輸出新projects頁。官方UI primitives、use-mobile及sidebar-07模板與基準完全相同，未新增依賴。
-
-LINE官方來源庫本次HEAD為 `e39b8daf919dc7a9396e44b5fc55a2aad918d932`，核對group-chats與其成員profile引用。Context7核對Next `16.4.5` Pages Router，並對照安裝版；Firestore官方Go client交易來源與本機 `1.29.2` 核對讀取先於寫入及callback可重試。Google Developer Knowledge／Google skills未提供可用入口，未宣稱其主機驗證或正式服務驗收。實際程式來源先用Graphify與Repomix定位／完整交叉核對，修改後重建並驗證圖與來源涵蓋；AST關係與安全掃描不取代執行測試。
-
-本次僅對隔離emulator執行apply／rollback，沒有對正式資料庫執行遷移、清理或部署。正式環境須先確認writer升級與namespace、審閱dry-run manifest，依操作指南另行執行；有canonical新寫入的回復仍需額外copy-back方案，不在本工具能力內。
-
 ## 工程驗收送件
 
-有 Project 所屬群組 成員資格、且可讀取已連結來源庫的使用者，可對 Object 或 SubObject 引用送驗。GET／POST `/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions` 讀取紀錄或提交檢查說明。送件保存於引用下的 inspectionSubmissions，記錄來源版本、送件人與時間；施工進度維持原值。同一引用一次只能有一筆待審，同人重送相同說明回傳原紀錄。有送件紀錄的引用不可移除。
+個人 Project 的本人或群組 Project 的當下成員，取得已連結來源庫的讀權後，可對 Object 或 SubObject 引用送驗。GET／POST `/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions` 讀取紀錄或提交檢查說明。送件保存於引用下的 inspectionSubmissions，記錄來源版本、送件人與時間；施工進度維持原值。同一引用一次只能有一筆待審，同人重送相同說明回傳原紀錄。有送件紀錄的引用不可移除。
 
-查看歷史需通過協作空間與來源庫授權、庫連結及狀態檢查；原物件被刪除仍可讀取已保存的送件。新送件必須能讀取目前有效的物件與版本。
+查看歷史需通過Project 擁有者範圍與來源庫授權、庫連結及狀態檢查；原物件被刪除仍可讀取已保存的送件。新送件必須能讀取目前有效的物件與版本。

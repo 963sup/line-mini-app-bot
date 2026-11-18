@@ -560,17 +560,13 @@ LINE Webhook 可能重送或亂序，應按 `webhookEventId` 處理防重，且�
 
 ## 九、現有 Repository 與目標設計的差距
 
-核心模型以 `OwnerID` 表示個人或工程群組。HTTP 使用 `owners/{ownerId}`，Firestore 依身分使用 `users/{userId}` 或 `groups/{groupId}`，Project 文件欄位為 `ownerId`，核心模型以 `DefaultRepositoryID` 表示建立時的預設庫（API 與 Firestore 欄位 `defaultRepositoryId`）。每筆 ProjectReference 各自保存所引用的來源庫。
-
-依照[Project 功能文件](../../features/project/projects.md)與目前實作，程式已具備 Go Session、OpenAPI 契約、Repository、Project、Issue、Discussion、Firestore 持久化等基礎。
-
-Project 由個人或工程群組擁有。建立時選擇初始來源，再以 Project PATCH 連結或解除其他來源庫。以 OwnerID 定位 Project，以 linkedRepositories 表示來源連結，每筆引用明確保存 sourceRepositoryId。後端、OpenAPI、前端及測試資料同步更新；本次不設單一來源格式的遷移、雙寫或相容讀取。驗收涵蓋跨庫同 ID 引用、逐庫授權與重送防重。
+現行 Project 的擁有者、來源庫連結與儲存路徑見 [Project 功能規格](../../features/project/projects.md)。以下對照現況與目標。
 
 | 項目 | 現有設計 | 目標設計 |
 |--------|--------|--------|
 | GroupID | 群組已直接綁定 Repository | 沿用群組綁定作為工程入口 |
 | Space | Group 代表群組，Space 代表庫內工區 | Space 專指庫內工區，群組使用 GroupID |
-| Project | 個人或群組擁有，已支援多庫；由 ownerId 定位，詳情按引用用途分區顯示 | 初始庫只作預設來源。以群組定位專案，避免把單庫數字顯示為全專案進度 |
+| Project | 個人或群組擁有，已支援多庫；由 ownerId 定位，詳情按引用用途分區顯示 | 初始庫只作預設來源。以擁有者定位專案，避免把單庫數字顯示為全專案進度 |
 | 驗收歷史 | 已保存送件時的來源版本，讀歷史只核驗 Project、庫連結與來源庫讀權 | 提交時查驗有效物件及版本；讀歷史時核對專案成員、庫連結及來源讀權。物件移除後仍可查看已保存的送件；解除連結或失去來源權限則禁止讀取 |
 | Repository | 工程來源資料 | 工程管理根容器 |
 | 附件檔案流程 | 尚未從查核文件確認完整實作 | Firestore metadata + Firebase Storage |
