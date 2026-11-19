@@ -79,6 +79,10 @@ func (s *Store) Observe(ctx context.Context, o groupdomain.Observation) error {
 				return err
 			}
 		}
+		// Project the canonical group state even on replay to backfill existing teams.
+		if err := tx.Set(s.channel().Collection("teams").Doc(id), map[string]any{"name": d.Name, "status": d.Status}, db.MergeAll); err != nil {
+			return err
+		}
 		seen := map[string]bool{}
 		for _, user := range o.Users {
 			if user == "" || seen[user] {
