@@ -1,0 +1,9 @@
+flowchart TB
+  U["User"] -->|"ownerUserId"| O["Organization"]
+  E["Enterprise"] -->|"旗下組織"| O
+  E -->|"管理"| ET["Enterprise Team"]
+  O -->|"管理"| OT["Organization Team"]
+  ET -->|"可指派至多個旗下組織"| O
+  ET --> I["teamId = LINE groupId"]
+  OT --> I
+  O -->|"個別授權"| R["Repository"]

@@ -5,6 +5,7 @@
 ## 業務功能
 
 [儲存庫](#儲存庫)
+[Organization 所有權與 Team 歸屬（目標規格）](repository/organization.md)
 
 [專案](#專案)
 

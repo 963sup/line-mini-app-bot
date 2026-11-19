@@ -30,6 +30,7 @@
 - [Web Geolocation API 整合契約 · 現有出勤整合檔案與責任](architecture/integrations/web-geolocation.md#現有出勤整合檔案與責任)
 
 ## 未來設計
+- [Organization 所有權與 Team 歸屬](domains/repository/organization.md)
 
 - [套件依賴與圖譜 · 允許方向](architecture/runtime/dependencies.md#允許方向)
 - [LINE 整合：能力與邊界 · 3. Webhook 事件與可靠性](architecture/integrations/line.md#3-webhook-事件與可靠性)
