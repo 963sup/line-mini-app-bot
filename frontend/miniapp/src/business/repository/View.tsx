@@ -40,7 +40,7 @@ function Content() {
       {selectedID ? <>
         <Button disabled={!canLoad || detailBusy || guard.blocked} onClick={() => guard.navigate(reloadDetail)}>重新載入空間</Button>
         <ReadFeedback busy={detailBusy} message={selected ? "" : detailStatus} label="正在讀取空間……" />
-      </> : <p>展開側邊欄「空間」，選擇可開啟的群組空間。</p>}
+      </> : <p>展開側欄「儲存庫」，選擇可開啟的群組空間。</p>}
       <noscript>請啟用 JavaScript 並完成 LINE 身分驗證，以載入側邊欄空間及內容。</noscript>
       {selected && (
         <>

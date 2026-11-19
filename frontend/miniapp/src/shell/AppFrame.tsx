@@ -44,7 +44,7 @@ export function AppFrame({
   return (
     <SidebarProvider>
       <Head>
-        <title>{title}｜LINE MINI App</title>
+        <title>{`${title}｜LINE MINI App`}</title>
       </Head>
       <ServiceSidebar
         workflow={workflow}

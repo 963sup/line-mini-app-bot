@@ -6,6 +6,7 @@ import { RepositoryProvider, useRepositories } from "../business/repository/Repo
 import { AppFrame } from "./AppFrame";
 import { repositoryNavigation } from "./repository-navigation";
 import type { NavItem } from "./sidebar-07/nav-main";
+import { Status } from "../shared/Status";
 export function Shell({
   title,
   workflow,
@@ -123,6 +124,18 @@ function Content({
         className="flex flex-col gap-3"
         key={epoch}
       >
+        {!session.user && (
+          <Status aria-label="LINE 身分狀態" aria-busy={session.busy}>
+            <p>{session.status}</p>
+            {!session.busy && (
+              <p>
+                請開啟側欄底部的「LINE 身分」選單，
+                {session.ready ? "登入或重新驗證身分。" : "重試初始化。"}
+                手機可點左上角開啟側欄。
+              </p>
+            )}
+          </Status>
+        )}
         {children}
       </div>
     </AppFrame>
