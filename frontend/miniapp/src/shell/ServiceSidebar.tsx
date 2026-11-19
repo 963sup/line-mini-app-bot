@@ -11,6 +11,8 @@ import {
   LayoutDashboard,
   List,
   MapPin,
+  SquarePen,
+  ClipboardPenLine,
 } from "lucide-react";
 import { RepositoryProvider, useRepositories } from "../business/repository/RepositoryContext";
 import { repositoryNavigation } from "./repository-navigation";
@@ -22,6 +24,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
   SidebarHeader,
   SidebarRail,
 } from "@/shared/ui/sidebar";
@@ -46,11 +49,12 @@ function ProjectSidebar(props: ServiceSidebarProps) {
 }
 
 function NavigationSidebar({ workflow, account, repositoryItem, ...props }: ServiceSidebarProps) {
+  const { setOpenMobile } = useSidebar();
   const attendance = [
-    { title: "出勤", url: "/miniapp/history", workflow: "history" },
-    { title: "請假", url: "/miniapp/leave", workflow: "leave" },
-    { title: "補登", url: "/miniapp/correction", workflow: "correction" },
-    { title: "審核", url: "/miniapp/review", workflow: "review" },
+    { title: "出勤紀錄", url: "/miniapp/history", workflow: "history" },
+    { title: "請假紀錄", url: "/miniapp/leave", workflow: "leave" },
+    { title: "補卡與更正", url: "/miniapp/correction", workflow: "correction" },
+    { title: "補卡審核", url: "/miniapp/review", workflow: "review" },
   ].map((item) => ({ ...item, isActive: item.workflow === workflow }));
   const items: NavItem[] = [
     {
@@ -89,6 +93,23 @@ function NavigationSidebar({ workflow, account, repositoryItem, ...props }: Serv
         />
       </SidebarHeader>
       <SidebarContent>
+        <nav aria-label="快捷入口">
+          <SidebarGroup>
+            <SidebarGroupLabel>快捷入口</SidebarGroupLabel>
+            <SidebarMenu>
+              {[
+                { title: "寫日誌", url: "/miniapp/feed?compose=1", icon: SquarePen },
+                { title: "申請補卡", url: "/miniapp/correction", icon: ClipboardPenLine },
+              ].map(({ title, url, icon: Icon }) => (
+                <SidebarMenuItem key={url}>
+                  <SidebarMenuButton asChild tooltip={title} onClick={() => setOpenMobile(false)}>
+                    <a href={url} aria-label={title}><Icon aria-hidden="true" /><span>{title}</span></a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
+        </nav>
         <NavMain items={items} />
         <noscript><a href={repositoryItem?.url || "/miniapp/repositories"}>儲存庫（請啟用 JavaScript 載入清單）</a></noscript>
         <NavProjects
