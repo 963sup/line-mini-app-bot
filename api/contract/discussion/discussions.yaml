@@ -225,7 +225,7 @@
       },
       "patch": {
         "operationId": "updateDiscussion",
-        "summary": "Author-only topic content update with expected version",
+        "summary": "Members classify topics; only the author edits content; version checked",
         "security": [
           {
             "bearerAuth": []

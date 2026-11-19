@@ -86,6 +86,6 @@ flowchart LR
   h["查證與本機驗證"]
   h --- n0["Graphify CLI 定位事項核心、編號與 adapter 關<br/>係，Repomix CLI 限定打包核對原文；圖譜的同名<br/>符號與動態 JSX 仍須由來源及實際行為核對。 錯<br/>誤包裝依 Context7 /websites/go_dev_doc 的官<br/>方 errors.Is／Unwrap 語意及既有 adapter 模式<br/>，對照 Go 1.27.4；未知 SDK 原因保留於私有值<br/>，不暴露在 HTTP 或領域錯誤鏈。 Google skills<br/>／Developer Knowledge MCP 在此對話不可用；交<br/>易依本對話已查閱的官方 Go client 契約及本機 <br/>firestore v1.29.2，留言游標另核對 query.go <br/>與 Context7 <br/>/websites/cloud_google_firestore_native 的 <br/>Standard 索引文件：同方向的 createdAt、<br/>__name__ 排序可沿用自動單欄索引，不新增複合<br/>索引或操作正式資源。 UI 沿用本對話已查閱的固<br/>定 shadcn 官方範例與 Next.js 16.4.5 Pages <br/>Router 文件，不新增套件、SSR 或 App Router。"]
   h --- n1["本機 API 能力／生成同步／向後相容、Go 格式／<br/>lint／vet／完整既有 race suite／build、前端<br/>型別／23 個既有測試／靜態輸出、設定及文件路<br/>徑檢查通過。govulncheck 未發現應用可達漏洞，<br/>另報三筆未被呼叫的 required-module 項目。 隔<br/>離 Firestore emulator 的暫存 overlay race <br/>smoke 確認 Issue／Discussion 共用編號、留言<br/>不占號、各自作者權限、防重收據、併發留言只建<br/>立一次、編輯衝突、相同建立時間的 ID 排序與分<br/>頁、跨主題／空間／身分游標拒絕、更新 <br/>metadata、HTTP 契約／CSRF、停用容器交易拒絕<br/>及取消語義。 暫存 React smoke 確認正式空間入<br/>口、發起主題及留言的連點鎖與原鍵重試、主題作<br/>者不能代改他人留言、編輯衝突後重新讀取、切換<br/>主題隔離及登出後拒收遲到留言。驗證檔案與 <br/>Java runtime 僅放 /tmp；不代表真實 LINE 裝置<br/>、正式資料庫或部署已驗收。"]
-  h --- n2["標籤分類透過既有更新的可選 labelIds 接入，只<br/>有討論作者可套用或移除；省略欄位保留、空陣列<br/>清除、同空間及版本規則依 標籤引用切片。既有<br/>建立防重雜湊不變。"]
+  h --- n2["標籤分類透過既有更新的可選 labelIds 接入，目前成員可套用或移除；省略欄位保留、空陣列<br/>清除、同空間及版本規則依 標籤引用切片。既有<br/>建立防重雜湊不變。"]
   click n2 "labels.md#標籤引用切片"
 ```

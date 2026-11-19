@@ -67,7 +67,7 @@
       },
       "post": {
         "operationId": "createLabel",
-        "summary": "Create an immutable, unique-name repository label without allocating a shared number",
+        "summary": "Create a unique-name repository label",
         "security": [
           {
             "bearerAuth": []
@@ -148,6 +148,83 @@
           }
         }
       }
+    },
+    "/api/v1/repositories/{repositoryId}/labels/{id}": {
+      "patch": {
+        "operationId": "renameLabel",
+        "summary": "Rename a repository label as a current member",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Label"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LabelError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LabelError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LabelForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/LabelError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LabelError"
+          },
+          "415": {
+            "$ref": "#/components/responses/LabelError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LabelError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelRename"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -211,6 +288,26 @@
           },
           "nextCursor": {
             "type": "string"
+          }
+        }
+      },
+      "LabelRename": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "expectedName"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "expectedName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
           }
         }
       }

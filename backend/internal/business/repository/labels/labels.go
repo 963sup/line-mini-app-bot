@@ -1,4 +1,4 @@
-// Package labels owns the minimal, immutable repository label catalog.
+// Package labels owns the shared repository label catalog.
 package labels
 
 import (
@@ -17,6 +17,7 @@ import (
 var (
 	ErrInput            = errors.New("invalid label input")
 	ErrNotFound         = errors.New("repository not found")
+	ErrStaleName        = errors.New("label name has changed")
 	ErrNameConflict     = errors.New("label name already exists")
 	ErrCreationConflict = errors.New("label creation key conflict")
 	ErrUnavailable      = errors.New("label storage unavailable")
@@ -69,6 +70,7 @@ type (
 	}
 	Store interface {
 		ListLabels(context.Context, repository.Repository, string, string) (Page, error)
+		RenameLabel(context.Context, repository.Repository, string, string, string) (Label, error)
 		CreateLabel(context.Context, repository.Repository, string, string, string) (Label, error)
 	}
 )
@@ -110,4 +112,19 @@ func (s *Service) Create(ctx context.Context, actor, id, key, name string) (Labe
 		return Label{}, ErrInput
 	}
 	return s.Store.CreateLabel(ctx, r, actor, key, name)
+}
+
+func (s *Service) Rename(ctx context.Context, actor, rid, id, expected, name string) (Label, error) {
+	r, err := s.scope(ctx, actor, rid)
+	if err != nil {
+		return Label{}, err
+	}
+	name, err = NormalizeName(name)
+	if err != nil || !repository.ValidID(id) {
+		return Label{}, ErrInput
+	}
+	if original, e := NormalizeName(expected); e != nil || original != expected {
+		return Label{}, ErrInput
+	}
+	return s.Store.RenameLabel(ctx, r, id, expected, name)
 }

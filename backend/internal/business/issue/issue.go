@@ -63,7 +63,7 @@ func Normalize(c Content) (Content, error) {
 
 // ApplyUpdate runs inside the storage transaction against the current item.
 func ApplyUpdate(current Issue, actor string, input Update) (Issue, error) {
-	if actor == "" || actor != current.CreatorID {
+	if actor == "" || (actor != current.CreatorID && (input.Title != current.Title || input.Body != current.Body || input.State != current.State || (input.LabelIDs == nil && input.MilestoneID == nil))) {
 		return Issue{}, ErrForbidden
 	}
 	content, err := Normalize(input.Content)

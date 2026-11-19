@@ -87,6 +87,6 @@ flowchart LR
   h --- n0["Graphify 定位共用 navigation、Repository <br/>Context 及業務關係；同名 View 與動態 JSX 另<br/>以原始碼／Repomix 交叉核對，不以圖譜無路徑推<br/>論無實作。 第一階段六個檔案與先前驗證包相符<br/>；沿用當時的型別檢查、23 個前端測試、靜態建<br/>置及七個入口切換證據，問題變更另執行受影響檢<br/>查。 Next.js 架構沿用已查閱的 Context7 <br/>/vercel/next.js/v16.4.5 及安裝版 Pages <br/>Router 文件；UI 依固定 shadcn CLI 的官方範例<br/>組合，未改 primitives。 Google skills／<br/>Developer Knowledge MCP 未提供可用入口；改查<br/> Context7 /googleapis/google-cloud-go 官方 <br/>transaction.go，並核對本機 firestore v1.29.2<br/> 的交易重試、先讀後寫與游標行為。未操作正式 <br/>Google Cloud 資源。 實際檢查結果於交付訊息列<br/>出；本機檢查不取代真實 LINE 裝置、外部身分及<br/>正式資料庫驗收。"]
   h --- n1["本次本機驗證：API 能力／生成碼同步／向後相容<br/>、Go 格式／lint／vet／完整既有 race suite／<br/>build、前端型別／23 個既有測試／靜態輸出、設<br/>定及文件路徑檢查通過。govulncheck 未發現應用<br/>可達漏洞，另報三筆未被程式呼叫的 <br/>required-module 項目。 隔離 Firestore <br/>emulator 的暫存 Go overlay race smoke 確認共<br/>用編號、併發建立防重、建立鍵衝突、目前成員與<br/>建立者規則、非法狀態拒絕、版本衝突及併發更新<br/>只允許一筆成功、追溯紀錄、空頁續查、游標範圍<br/>、跨空間隔離、生成 HTTP 驗證、停用容器交易拒<br/>絕及取消語義。 暫存 React smoke 確認正式空間<br/>問題入口、建立連點鎖、結果不明重試沿用鍵、三<br/>狀態操作、版本衝突後重新讀取、他人問題不顯示<br/>寫入操作及登出後拒收遲到回應。smoke 與 Java <br/>runtime 僅置於 /tmp，未新增正式測試框架或部<br/>署設定。"]
   h --- n2["進入討論階段前再次查核，修正 Firestore 未保<br/>留未知 SDK 原因的缺口：現在以私有 <br/>storageFailure 保存原因，Unwrap 只公開 <br/>ErrUnavailable，維持原 HTTP 失敗語義；受影響<br/>套件與分層檢查、後續完整既有 race suite 均通<br/>過。"]
-  h --- n3["標籤分類透過既有更新的可選 labelIds 接入，只<br/>有問題作者可套用或移除；省略欄位保留、空陣列<br/>清除、同空間及版本規則依 標籤引用切片。既有<br/>建立防重雜湊不變。"]
+  h --- n3["標籤分類透過既有更新的可選 labelIds 接入，目前成員可套用或移除；省略欄位保留、空陣列<br/>清除、同空間及版本規則依 標籤引用切片。既有<br/>建立防重雜湊不變。"]
   click n3 "labels.md#標籤引用切片"
 ```

@@ -71,7 +71,7 @@ func labelError(err error) error {
 	if err == nil {
 		return nil
 	}
-	for _, known := range []error{labels.ErrInput, labels.ErrNotFound, labels.ErrNameConflict, labels.ErrCreationConflict, labels.ErrUnavailable, context.Canceled, context.DeadlineExceeded} {
+	for _, known := range []error{labels.ErrInput, labels.ErrStaleName, labels.ErrNotFound, labels.ErrNameConflict, labels.ErrCreationConflict, labels.ErrUnavailable, context.Canceled, context.DeadlineExceeded} {
 		if errors.Is(err, known) {
 			return known
 		}
@@ -200,10 +200,8 @@ func (s *Store) CreateLabel(ctx context.Context, scope repository.Repository, ac
 			if err != nil {
 				return err
 			}
-			if result.Name != name {
-				return labels.ErrUnavailable
-			}
-			snap, err = tx.Get(binding)
+			currentBinding := parent.Collection("labelNames").Doc(firestorekey.Digest([]byte(labels.NameKey(result.Name))))
+			snap, err = tx.Get(currentBinding)
 			if status.Code(err) == codes.NotFound {
 				return labels.ErrUnavailable
 			}
@@ -256,6 +254,74 @@ func (s *Store) CreateLabel(ctx context.Context, scope repository.Repository, ac
 		}
 		result = labels.Label{ID: id, RepositoryID: scope.ID, Name: name, CreatedAt: now}
 		return nil
+	})
+	if err != nil {
+		return labels.Label{}, err
+	}
+	return result, nil
+}
+
+func (s *Store) RenameLabel(ctx context.Context, scope repository.Repository, id, expected, name string) (result labels.Label, err error) {
+	defer func() { err = labelError(err) }()
+	if !s.ready() {
+		return result, labels.ErrUnavailable
+	}
+	parent := s.repositoryRef(scope.ID)
+	item := parent.Collection("labels").Doc(id)
+	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+		container, e := decode(tx.Get(parent))
+		if e != nil {
+			return e
+		}
+		if container.Status != "ACTIVE" || container.OwnerID != scope.OwnerID {
+			return labels.ErrNotFound
+		}
+		snap, e := tx.Get(item)
+		if status.Code(e) == codes.NotFound {
+			return labels.ErrNotFound
+		}
+		result, e = decodeLabel(snap, e, scope.ID)
+		if e != nil {
+			return e
+		}
+		if result.Name == name {
+			return nil
+		}
+		if result.Name != expected {
+			return labels.ErrStaleName
+		}
+		oldKey, newKey := labels.NameKey(expected), labels.NameKey(name)
+		names := parent.Collection("labelNames")
+		old := names.Doc(firestorekey.Digest([]byte(oldKey)))
+		snap, e = tx.Get(old)
+		if e != nil {
+			return e
+		}
+		var binding labelBinding
+		if e = snap.DataTo(&binding); e != nil {
+			return e
+		}
+		if binding.SchemaVersion != 1 || binding.LabelID != id {
+			return labels.ErrUnavailable
+		}
+		if oldKey != newKey {
+			next := names.Doc(firestorekey.Digest([]byte(newKey)))
+			_, e = tx.Get(next)
+			if e == nil {
+				return labels.ErrNameConflict
+			}
+			if status.Code(e) != codes.NotFound {
+				return e
+			}
+			if e = tx.Create(next, binding); e != nil {
+				return e
+			}
+			if e = tx.Delete(old); e != nil {
+				return e
+			}
+		}
+		result.Name = name
+		return tx.Update(item, []db.Update{{Path: "name", Value: name}, {Path: "nameKey", Value: newKey}})
 	})
 	if err != nil {
 		return labels.Label{}, err
