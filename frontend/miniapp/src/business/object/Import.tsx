@@ -32,12 +32,13 @@ export function Import({ repositoryId, onBlocked, canWrite, extract = extractPdf
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
     window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn);
   }, [busy, blocked]);
+  const retryOnly = useRef(false);
   function send() {
     if (lock.current || canWrite?.() === false || !user || !attempt.current) return;
     const pending = attempt.current;
     lock.current = true; setBusy(true); block(true); setMessage("正在解析明細並建立物件……");
     void rpc.run(signal => request((client, s) => client.POST("/api/v1/repositories/{repositoryId}/object-import-runs", { signal: s, params: { path: { repositoryId }, header: { "Idempotency-Key": pending.key } }, body: pending.body }), { signal, timeoutMs: 90000 }), value => {
-      lock.current = false; setBusy(false); setJob(value);
+      retryOnly.current = false; lock.current = false; setBusy(false); setJob(value);
       const count = value.rows.filter(row => row.resultObjectId).length;
       block(value.status !== "completed");
       if (value.status === "completed") forget(pending.body.sourceDocument, pending.key);
@@ -45,14 +46,14 @@ export function Import({ repositoryId, onBlocked, canWrite, extract = extractPdf
       if (ambiguous && !value.reason) { setMessage(`已建立 ${count} 筆物件，另有 ${ambiguous} 筆需要確認類型。`); return; }
       setMessage(value.status === "completed" ? `已建立 ${count} 筆物件。可返回清單查看及修改。` : `${reasons[value.reason] || "匯入尚未完成"}；已建立 ${count}/${value.rows.length} 筆物件。請重試繼續原匯入。`);
     }, error => {
-      lock.current = false; setBusy(false); everUnknown.current = true;
+      lock.current = false; setBusy(false); everUnknown.current = true; retryOnly.current = true;
       setMessage(`${errorMessage(error)} 結果尚未確認，請重試原匯入；將沿用相同內容，避免重複建立。`);
     });
   }
   async function choose(file: File | undefined) {
     if (!file || lock.current || unresolved.current || canWrite?.() === false || !user) return;
     extraction.current?.abort(); const controller = new AbortController(); extraction.current = controller;
-    const current = ++generation.current; attempt.current = null; everUnknown.current = false; setJob(null); lock.current = true; setBusy(true); block(true); setMessage("正在本機擷取支援的明細表……");
+    const current = ++generation.current; attempt.current = null; everUnknown.current = false; retryOnly.current = false; setJob(null); lock.current = true; setBusy(true); block(true); setMessage("正在本機擷取支援的明細表……");
     try {
       const result = await extract(file, controller.signal);
       if (current !== generation.current) return;
@@ -78,9 +79,9 @@ export function Import({ repositoryId, onBlocked, canWrite, extract = extractPdf
       attempt.current = null; setJob(null); block(false); if (fileInput.current) fileInput.current.value = ""; setMessage("尚未建立物件，請重新選擇PDF。");
     }}>更換PDF</Button>}
     {job && <><p>已建立 {job.rows.filter(row => row.resultObjectId).length}/{job.rows.length} 筆物件。</p>{job.rows.map(row => <p key={row.id} className="min-w-0 whitespace-normal [overflow-wrap:anywhere]">項次 {row.sourceItemNo} · {row.name} · {row.quantity} {row.unit}（第 {row.sourcePages} 頁）{row.description && <span>「{row.description}」</span>}
-      {row.type === "needs_review" ? (["work","non_work"] as const).map(t => <Button key={t} disabled={busy} onClick={() => {
+      {row.type === "needs_review" ? (["work","non_work"] as const).map(t => <Button key={t} disabled={busy || retryOnly.current} onClick={() => {
         const pending = attempt.current;
-        if (!pending || lock.current) return;
+        if (!pending || lock.current || retryOnly.current) return;
         pending.body = {...pending.body, decisions: {...pending.body.decisions, [row.id]: t}};
         send();
       }}>{t === "work" ? "確認為施作" : "確認為非施作"}</Button>) : row.type === "work" ? "施作" : row.type === "non_work" ? "非施作" : ""}</p>)}</>}
