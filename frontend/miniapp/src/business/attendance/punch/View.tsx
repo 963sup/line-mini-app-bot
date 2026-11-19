@@ -158,7 +158,7 @@ export function View() {
         id="punch"
         disabled={busy}
         aria-busy={busy}
-        onClick={() => void start()}
+        onClick={start}
       >
         {busy && <Spinner aria-label="處理中" />}
         確認並完成打卡

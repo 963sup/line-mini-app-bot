@@ -108,7 +108,7 @@ function Content({ repositoryId, objectId, ownerId, parentEditing, onEdit, onBlo
   }
   const editor = <form ref={editorPanel} tabIndex={-1} className="w-full min-w-0" aria-label="子物件編輯" onSubmit={submit}><FieldGroup>
       <Status role="status">{status}</Status>
-      {selected && <Button type="button" variant="outline" disabled={busy} onClick={() => discard.navigate(() => reloadDetail())}>重新讀取子物件</Button>}
+      {selected && <Button type="button" variant="outline" disabled={busy} onClick={() => discard.navigate(reloadDetail)}>重新讀取子物件</Button>}
       <fieldset className="grid min-w-0 gap-3" disabled={busy || uncertain || refresh}>
         <FormField>子物件名稱<Input ref={nameInput} required maxLength={120} value={content.name} onChange={event => setContent(previous=>({...previous,name:event.target.value}))}/></FormField>
         <FormField>子物件類型<NativeSelect value={content.type} onChange={event=>setContent(previous=>({...previous,type:event.target.value as Creation["type"],completedQuantity:event.target.value === "work" ? (selected?.type === "work" ? selected.completedQuantity : "0") : undefined}))}><NativeSelectOption value="work">施作</NativeSelectOption><NativeSelectOption value="non_work">非施作</NativeSelectOption></NativeSelect></FormField>

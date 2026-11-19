@@ -103,7 +103,7 @@ function Content({
             id: "verify",
             label:
               session.ready || session.busy ? "重新驗證身分" : "重試初始化",
-            onSelect: () => void session.verify(),
+            onSelect: session.verify,
             disabled: session.busy,
           },
           ...(session.canLogout
@@ -111,7 +111,7 @@ function Content({
                 {
                   id: "logout",
                   label: "登出",
-                  onSelect: () => void session.logout(),
+                  onSelect: session.logout,
                   disabled: session.busy,
                 },
               ]
