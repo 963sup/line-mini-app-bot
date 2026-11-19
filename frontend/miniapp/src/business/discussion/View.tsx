@@ -20,11 +20,6 @@ type Discussion = components["schemas"]["Discussion"];
 type Creation = components["schemas"]["DiscussionCreation"];
 
 export function View({ repositoryId }: { repositoryId: string }) {
-  const { user, epoch } = useSession();
-  return <Content key={`${repositoryId}:${user?.userId}:${epoch}`} repositoryId={repositoryId} />;
-}
-
-function Content({ repositoryId }: { repositoryId: string }) {
   const { user, request } = useSession();
   const { run: readRun, cancel: cancelRead } = useLatestRequest();
   const detailRequest = useLatestRequest(), write = useLatestRequest();
@@ -60,8 +55,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
   const focusEditor = () => titleInput.current?.focus();
   const discard = useDiscardChanges(dirty, focusEditor);
   const guard = useRepositoryGuard(dirty, focusEditor);
-  const [recovery, setRecovery] = useState(false);
-  useEffect(() => { guard.block(busy || createOutcomeUnknown || recovery); }, [busy, createOutcomeUnknown, recovery]);
+  useEffect(() => { guard.block(busy || createOutcomeUnknown || needsRefresh); }, [busy, createOutcomeUnknown, needsRefresh]);
   useEffect(() => { if (!detailBusy) navigating.current = false; }, [mode, detailBusy]);
 
   const load = useCallback((nextCursor = "") => {
@@ -84,13 +78,13 @@ function Content({ repositoryId }: { repositoryId: string }) {
   useEffect(() => { load(); return cancelRead; }, [load, cancelRead]);
 
   function show(item: Discussion) {
-    setActiveId(item.id); baseline.current = JSON.stringify([item.title, item.body, item.labelIds || []]); setRecovery(false); guard.block(false);
+    setActiveId(item.id); baseline.current = JSON.stringify([item.title, item.body, item.labelIds || []]); guard.block(false);
     navigating.current = false;
     setSelected(item); setTitle(item.title); setBody(item.body); setLabelIDs(item.labelIds || []); setMode("detail");
     setNeedsRefresh(false); setCreateOutcomeUnknown(false); createAttempt.current = null;
   }
   function open(id: string) {
-    if (!user || lock.current || commentLock.current || createOutcomeUnknown || (recovery && id !== activeId) || !guard.canWrite()) return;
+    if (!user || lock.current || commentLock.current || createOutcomeUnknown || (needsRefresh && id !== activeId) || !guard.canWrite()) return;
     discard.navigate(() => {
       navigating.current = true;
       setActiveId(id); baseline.current = JSON.stringify(["", "", []]); setTitle(""); setBody(""); setLabelIDs([]);
@@ -103,7 +97,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
     });
   }
   function openCreateForm() {
-    if (lock.current || commentLock.current || createOutcomeUnknown || recovery || !guard.canWrite()) return;
+    if (lock.current || commentLock.current || createOutcomeUnknown || needsRefresh || !guard.canWrite()) return;
     discard.navigate(() => {
       setActiveId(""); baseline.current = JSON.stringify(["", "", []]); setLabelIDs([]);
       navigating.current = true;
@@ -143,17 +137,17 @@ function Content({ repositoryId }: { repositoryId: string }) {
         signal: s, params: { path: { repositoryId, id } }, body: { title: title.trim(), body: body.trim(), expectedVersion: selected.version, labelIds:labelIDs },
       }), { signal }),
       (item) => { lock.current = false; setBusy(false); show(item); setStatus("已更新討論。"); load(); },
-      (error) => { lock.current = false; setBusy(false); setNeedsRefresh(true); setRecovery(true); setStatus(errorMessage(error) + " 請重新讀取討論後再修改。"); },
+      (error) => { lock.current = false; setBusy(false); setNeedsRefresh(true); setStatus(errorMessage(error) + " 請重新讀取討論後再修改。"); },
     );
   }
   return <>
     <PagePanel heading="討論">
       <p className="mb-4 text-sm text-muted-foreground">空間成員可發起討論與留言；主題及留言各由自己的作者編輯。</p>
       <div className="mb-4 flex flex-wrap gap-2">
-        <Button disabled={!user || busy || createOutcomeUnknown || recovery || commentsBlocked} onClick={openCreateForm}>發起討論</Button>
+        <Button disabled={!user || busy || createOutcomeUnknown || needsRefresh || commentsBlocked} onClick={openCreateForm}>發起討論</Button>
         <Button variant="outline" disabled={!user || listBusy || busy} onClick={() => load()}>重新載入討論</Button>
       </div>
-      <form onSubmit={(event) => { event.preventDefault(); if (!lock.current && !createOutcomeUnknown && !recovery && !commentLock.current) discard.navigate(() => { navigating.current = true; detailRequest.cancel(); setDetailBusy(false); setMode(null); setSelected(null); setStatus(""); setFilter({ query: query.trim() }); }); }}>
+      <form onSubmit={(event) => { event.preventDefault(); if (!lock.current && !createOutcomeUnknown && !needsRefresh && !commentLock.current) discard.navigate(() => { navigating.current = true; detailRequest.cancel(); setDetailBusy(false); setMode(null); setSelected(null); setStatus(""); setFilter({ query: query.trim() }); }); }}>
         <FieldGroup className="mb-4">
           <FormField>搜尋標題<Input maxLength={120} value={query} onChange={(e) => setQuery(e.target.value)} /></FormField>
           <Button type="submit" disabled={!user || listBusy || busy}>套用篩選</Button>
@@ -163,7 +157,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
       <ItemGroup className="gap-3">
         {items.map((item) => <Item key={item.id} variant="outline" role="listitem">
           <ItemContent>
-            <ItemTitle><Button variant="link" className="h-auto whitespace-normal text-left" disabled={busy || detailBusy || createOutcomeUnknown || recovery || commentsBlocked} onClick={() => open(item.id)}>#{item.number} {item.title}</Button></ItemTitle>
+            <ItemTitle><Button variant="link" className="h-auto whitespace-normal text-left" disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh || commentsBlocked} onClick={() => open(item.id)}>#{item.number} {item.title}</Button></ItemTitle>
           </ItemContent>
         </Item>)}
       </ItemGroup>
@@ -187,7 +181,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
           </div>}
         </FieldGroup>
       </form>}
-      <Button type="button" variant="outline" disabled={busy || createOutcomeUnknown || recovery || commentsBlocked} onClick={() => discard.navigate(() => { navigating.current = true; detailRequest.cancel(); setMode(null); setSelected(null); })}>關閉</Button>
+      <Button type="button" variant="outline" disabled={busy || createOutcomeUnknown || needsRefresh || commentsBlocked} onClick={() => discard.navigate(() => { navigating.current = true; detailRequest.cancel(); setMode(null); setSelected(null); })}>關閉</Button>
     </PagePanel>}
     {selected && <Comments key={selected.id} repositoryId={repositoryId} discussionId={selected.id} onWriteStateChange={onCommentWriteStateChange} />}
     {discard.dialog}

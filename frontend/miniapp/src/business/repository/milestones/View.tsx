@@ -22,11 +22,6 @@ const nextState = { open: "completed", completed: "open" } as const;
 const action = { open: "標記完成", completed: "重新開啟" };
 
 export function View({ repositoryId }: { repositoryId: string }) {
-  const { user, epoch } = useSession();
-  return <Content key={`${repositoryId}:${user?.userId}:${epoch}`} repositoryId={repositoryId} />;
-}
-
-function Content({ repositoryId }: { repositoryId: string }) {
   const { user, request } = useSession();
   const { run: readRun, cancel: cancelRead } = useLatestRequest();
   const detailRequest = useLatestRequest(), write = useLatestRequest();
@@ -44,7 +39,6 @@ function Content({ repositoryId }: { repositoryId: string }) {
   const attempt = useRef<{ key: string; body: Creation } | null>(null);
   const mine = !!selected && selected.creatorId === user?.userId;
   const [activeId, setActiveId] = useState("");
-  const [recovery, setRecovery] = useState(false);
   const baseline = useRef(JSON.stringify(["", "", ""]));
   const dirty = !!mode && JSON.stringify([title, body, dueDate]) !== baseline.current;
   const titleInput = useRef<HTMLInputElement>(null), editorPanel = useRef<HTMLElement>(null), opener = useRef<HTMLElement | null>(null);
@@ -55,7 +49,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
   }
   const discard = useDiscardChanges(dirty, focusEditor);
   const guard = useRepositoryGuard(dirty, focusEditor);
-  useEffect(() => { guard.block(busy || uncertain || recovery); }, [busy, uncertain, recovery]);
+  useEffect(() => { guard.block(busy || uncertain || needsRefresh); }, [busy, uncertain, needsRefresh]);
   useEffect(() => { navigating.current = false; });
   useEffect(() => {
     if (!mode) opener.current?.focus();
@@ -65,11 +59,11 @@ function Content({ repositoryId }: { repositoryId: string }) {
     detailRequest.cancel(); setDetailBusy(false); setSelected(null); setMode(null); setActiveId(""); setNeedsRefresh(false); setStatus("");
   }
   function close() {
-    if (lock.current || uncertain || recovery) return;
+    if (lock.current || uncertain || needsRefresh) return;
     discard.navigate(() => { navigating.current = true; clearEditor(); });
   }
   function saved(item: Milestone, message: string) {
-    guard.block(false); setRecovery(false); setUncertain(false); attempt.current = null;
+    guard.block(false); setUncertain(false); attempt.current = null;
     clearEditor();
     setItems(previous => previous.some(value => value.id === item.id) ? previous.map(value => value.id === item.id ? item : value) : [item, ...previous]);
     setListStatus(message);
@@ -96,12 +90,12 @@ function Content({ repositoryId }: { repositoryId: string }) {
   useEffect(() => { load(); return cancelRead; }, [load, cancelRead]);
 
   function show(item: Milestone) {
-    baseline.current = JSON.stringify([item.title, item.body, item.dueDate]); setActiveId(item.id); setRecovery(false); guard.block(false);
+    baseline.current = JSON.stringify([item.title, item.body, item.dueDate]); setActiveId(item.id); guard.block(false);
     setSelected(item); setTitle(item.title); setBody(item.body);setDueDate(item.dueDate); setMode("detail");
     setNeedsRefresh(false); setUncertain(false); attempt.current = null;
   }
   function open(id: string, trigger?: HTMLElement) {
-    if (!user || lock.current || uncertain || (recovery && id !== activeId) || !guard.canWrite()) return;
+    if (!user || lock.current || uncertain || (needsRefresh && id !== activeId) || !guard.canWrite()) return;
     discard.navigate(() => {
       if (trigger) opener.current = trigger;
       navigating.current = true; cancelRead(); setListBusy(false);
@@ -115,7 +109,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
     });
   }
   function openCreateForm(trigger: HTMLElement) {
-    if (lock.current || uncertain || recovery || !guard.canWrite()) return;
+    if (lock.current || uncertain || needsRefresh || !guard.canWrite()) return;
     discard.navigate(() => {
       opener.current = trigger; navigating.current = true; cancelRead(); setListBusy(false); clearEditor();
       baseline.current = JSON.stringify(["", "", ""]);
@@ -155,7 +149,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
         signal: s, params: { path: { repositoryId, id } }, body: { title: title.trim(), body: body.trim(),dueDate, state, expectedVersion: selected.version },
       }), { signal }),
       (item) => { lock.current = false; setBusy(false); saved(item, "已更新里程碑。"); },
-      (error) => { lock.current = false; setBusy(false); setNeedsRefresh(true); setRecovery(true); setStatus(errorMessage(error) + " 請重新讀取里程碑後再修改。"); },
+      (error) => { lock.current = false; setBusy(false); setNeedsRefresh(true); setStatus(errorMessage(error) + " 請重新讀取里程碑後再修改。"); },
     );
   }
   const editor = <section ref={editorPanel} tabIndex={-1} aria-label="里程碑編輯" className="flex w-full min-w-0 flex-col gap-3">
@@ -178,29 +172,29 @@ function Content({ repositoryId }: { repositoryId: string }) {
           </div>}
         </FieldGroup>
       </form>}
-      <Button type="button" variant="outline" disabled={busy || uncertain || recovery} onClick={close}>{mine || mode === "create" ? "取消" : "關閉"}</Button>
+      <Button type="button" variant="outline" disabled={busy || uncertain || needsRefresh} onClick={close}>{mine || mode === "create" ? "取消" : "關閉"}</Button>
     </section>;
   return <>
     <PagePanel heading="里程碑">
       <p className="mb-4 text-sm text-muted-foreground">空間成員可建立里程碑；只有建立者可以編輯、完成或重新開啟。</p>
       <div className="mb-4 flex flex-wrap gap-2">
-        <Button disabled={!user || busy || uncertain || recovery} onClick={event => openCreateForm(event.currentTarget)}>新增里程碑</Button>
-        <Button variant="outline" disabled={!user || listBusy || busy || !!mode || uncertain || recovery} onClick={() => load()}>重新載入里程碑</Button>
+        <Button disabled={!user || busy || uncertain || needsRefresh} onClick={event => openCreateForm(event.currentTarget)}>新增里程碑</Button>
+        <Button variant="outline" disabled={!user || listBusy || busy || !!mode || uncertain || needsRefresh} onClick={() => load()}>重新載入里程碑</Button>
       </div>
       <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取里程碑……" />
       {mode === "create" && <PagePanel heading="新增里程碑">{editor}</PagePanel>}
       <ItemGroup className="gap-3">
         {items.map((item) => <Item key={item.id} variant="outline" role="listitem" className="min-w-0">
           <ItemContent className="min-w-0">
-            <ItemTitle className="min-w-0 max-w-full"><Button variant="link" className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || detailBusy || uncertain || recovery} onClick={event => open(item.id, event.currentTarget)}>{item.title}</Button></ItemTitle>
+            <ItemTitle className="min-w-0 max-w-full"><Button variant="link" className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || detailBusy || uncertain || needsRefresh} onClick={event => open(item.id, event.currentTarget)}>{item.title}</Button></ItemTitle>
             <Badge variant="outline">{states[item.state]}</Badge>
           </ItemContent>
-          {item.creatorId === user?.userId && <ItemActions><Button variant="outline" aria-label={`編輯里程碑：${item.title}`} disabled={busy || detailBusy || uncertain || recovery} onClick={event => open(item.id, event.currentTarget)}>編輯</Button></ItemActions>}
+          {item.creatorId === user?.userId && <ItemActions><Button variant="outline" aria-label={`編輯里程碑：${item.title}`} disabled={busy || detailBusy || uncertain || needsRefresh} onClick={event => open(item.id, event.currentTarget)}>編輯</Button></ItemActions>}
           {mode === "detail" && activeId === item.id && <ItemFooter>{editor}</ItemFooter>}
         </Item>)}
       </ItemGroup>
       {loaded && !items.length && <Empty><EmptyHeader><EmptyTitle>{cursor ? "本頁沒有里程碑" : "目前沒有里程碑"}</EmptyTitle><EmptyDescription>{cursor ? "請繼續載入下一頁。" : "可建立新的里程碑。"}</EmptyDescription></EmptyHeader></Empty>}
-      {cursor && <Button variant="outline" disabled={listBusy || busy || !!mode || uncertain || recovery} onClick={() => load(cursor)}>載入更多里程碑</Button>}
+      {cursor && <Button variant="outline" disabled={listBusy || busy || !!mode || uncertain || needsRefresh} onClick={() => load(cursor)}>載入更多里程碑</Button>}
     </PagePanel>
 
     {discard.dialog}

@@ -37,7 +37,7 @@ export function Comments({repositoryId,discussionId,onWriteStateChange}:{reposit
   useEffect(() => { onWriteStateChange(busy || uncertain || needsRefresh || dirty); }, [busy, uncertain, needsRefresh, dirty, onWriteStateChange]);
   useEffect(() => () => { onWriteStateChange(false); }, [onWriteStateChange]);
   const load=useCallback((nextCursor="")=>{
-    if(!user)return;
+    if(!user || lock.current)return;
     navigating.current = true;
     setReadBusy(true);setLoaded(false);setCursor("");
     if(!nextCursor)setItems([]);
@@ -81,7 +81,13 @@ export function Comments({repositoryId,discussionId,onWriteStateChange}:{reposit
     const item=editing;lock.current=true;setBusy(true);setStatus("正在更新留言……");
     void write.run(
       signal=>request((client,s)=>client.PATCH("/api/v1/repositories/{repositoryId}/discussions/{id}/comments/{commentId}",{signal:s,params:{path:{repositoryId,id:discussionId,commentId:item.id}},body:{body:editBody.trim(),expectedVersion:item.version}}),{signal}),
-      ()=>{lock.current=false;recoveryTarget.current=null;guard.block(false);onWriteStateChange(false);setBusy(false);setEditing(null);setStatus("已更新留言。");load();},
+      updated => {
+        lock.current = false; guard.block(false); onWriteStateChange(false);
+        setBusy(false); setEditing(null); setStatus("已更新留言。");
+        // A page requested before the edit could still return the old version.
+        if (readBusy) load();
+        else setItems(rows => rows.map(row => row.id === updated.id ? updated : row));
+      },
       error=>{lock.current=false;recoveryTarget.current=item;onWriteStateChange(true);setBusy(false);setNeedsRefresh(true);setStatus(errorMessage(error)+" 請重新載入留言後再編輯。");},
     );
   }
