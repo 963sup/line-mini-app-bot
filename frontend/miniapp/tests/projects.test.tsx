@@ -37,6 +37,12 @@ async function fixture(path: string, handle: (request: Request, actor: string) =
         assert.ok(button, `missing ${text}`); button.click(); await flush();
       });
     },
+    async chooseKind(value: string) {
+      await act(async () => {
+        document.querySelector<HTMLButtonElement>(`[role="radiogroup"][aria-label="來源種類"] [value="${value}"]`)!.click();
+        await flush();
+      });
+    },
     async select(label: string, value: string) {
       await act(async () => { const select = [...document.querySelectorAll("label")].find(node => node.textContent?.startsWith(label))?.querySelector<HTMLSelectElement>("select"); assert.ok(select, `missing ${label}`); select.value = value; select.dispatchEvent(new window.Event("change", { bubbles: true })); await flush(); });
     },
@@ -185,7 +191,7 @@ for(const kind of ['object','subobject','issue','discussion'])test(`Project adds
   return sourceCatalog(request);
  });
  try{
-  await f.select('來源種類',kind);if(kind==='subobject'){assert.ok(!f.requests.some(request=>new URL(request.url).pathname.endsWith('/subobjects')));await f.select('父物件',parentId);}
+  await f.chooseKind(kind);if(kind==='subobject'){assert.ok(!f.requests.some(request=>new URL(request.url).pathname.endsWith('/subobjects')));await f.select('父物件',parentId);}
   await f.select('選擇既有',kind==='object'?parentId:sourceId);await f.click('加入專案');
   assert.deepEqual(bodies,[{sourceRepositoryId:rid,sourceType:kind,sourceId:kind==='object'?parentId:sourceId,...(kind==='subobject'?{parentObjectId:parentId}:{}),expectedVersion:3}]);
  }finally{await f.dispose();}
@@ -229,7 +235,7 @@ test("reference source-kind change synchronously invalidates old selected source
  const f=await fixture(`/miniapp/projects?owner=${sa}&project=${pid}`,async request=>{if(request.method==='POST'&&new URL(request.url).pathname.endsWith('/references'))posts++;return sourceCatalog(request);});
  try{
   await f.select('選擇既有',sourceId);const add=[...document.querySelectorAll<HTMLButtonElement>('button')].find(node=>node.textContent==='加入專案')!;
-  await act(async()=>{const select=[...document.querySelectorAll('label')].find(node=>node.textContent?.startsWith('來源種類'))!.querySelector('select')!;select.value='discussion';select.dispatchEvent(new window.Event('change',{bubbles:true}));add.click();await flush();});
+  await act(async()=>{document.querySelector<HTMLButtonElement>('[role="radio"][value="discussion"]')!.click();add.click();await flush();});
   assert.equal(posts,0);assert.equal([...document.querySelectorAll<HTMLButtonElement>('button')].find(node=>node.textContent==='加入專案')!.disabled,true);
  }finally{await f.dispose();}
 });
@@ -271,7 +277,7 @@ test("Project reference parent change rejects stale selected child in the same b
  let posts=0;
  const f=await fixture(`/miniapp/projects?owner=${sa}&project=${pid}`,async request=>{const path=new URL(request.url).pathname;if(request.method==='POST'&&path.endsWith('/references'))posts++;if(path.endsWith('/objects'))return Response.json({items:[objectSource,{...objectSource,id:'2'.repeat(32),name:'另一父物件'}],nextCursor:""});return sourceCatalog(request);});
  try{
-  await f.select('來源種類','subobject');await f.select('父物件',parentId);await f.select('選擇既有',sourceId);const add=[...document.querySelectorAll<HTMLButtonElement>('button')].find(node=>node.textContent==='加入專案')!;
+  await f.chooseKind('subobject');await f.select('父物件',parentId);await f.select('選擇既有',sourceId);const add=[...document.querySelectorAll<HTMLButtonElement>('button')].find(node=>node.textContent==='加入專案')!;
   await act(async()=>{const select=[...document.querySelectorAll('label')].find(node=>node.textContent?.startsWith('父物件'))!.querySelector('select')!;select.value='2'.repeat(32);select.dispatchEvent(new window.Event('change',{bubbles:true}));add.click();await flush();});assert.equal(posts,0);
  }finally{await f.dispose();}
 });
@@ -364,7 +370,7 @@ test("inspection on a SubObject submits once and reads the saved pending result"
     await f.click("提交驗收");
     assert.equal(writes,1);
     await f.click("查看驗收紀錄");
-    assert.match(document.body.textContent!,/待審.*配線完成/);
+    assert.match(document.body.textContent!,/配線完成.*待審/);
   } finally {await f.dispose();}
 });
 
