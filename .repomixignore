@@ -89,7 +89,7 @@ crash.log
 .env
 .env.*
 # Non-secret template and maintained documentation are analysis inputs.
-!backend/.env.example
+!/.env.example
 
 # Agent metadata and local installation copies
 skills-lock.json
