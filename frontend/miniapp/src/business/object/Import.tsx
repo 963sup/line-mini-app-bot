@@ -7,7 +7,7 @@ import { FormField } from "@/shared/FormField";
 import { Status } from "@/shared/Status";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
 import { FieldGroup } from "@/shared/ui/field";
 import { extractPdf } from "./pdf";
 
@@ -60,10 +60,18 @@ export function Import({ repositoryId, onBlocked, canWrite, extract = extractPdf
   }
   return <PagePanel heading="PDF匯入物件" className="w-full min-w-0"><FieldGroup>
     <p>選擇PDF即會在本機擷取支援的明細表，將明細文字經伺服器傳送至OpenAI解析並自動建立物件。原始PDF留在本機。僅支援文字型訂單表格，不支援掃描或密碼PDF。</p>
-    <FormField>整批類型<NativeSelect value={type} disabled={busy || blocked} onChange={event => {
-      if (lock.current || unresolved.current) return;
-      selectedType.current = event.target.value as "work" | "non_work"; setType(selectedType.current);
-    }}><NativeSelectOption value="work">施作</NativeSelectOption><NativeSelectOption value="non_work">非施作</NativeSelectOption></NativeSelect></FormField>
+    <fieldset>
+      <legend>整批類型</legend>
+      <RadioGroup aria-label="整批類型" className="grid-cols-2" value={type} disabled={busy || blocked}
+        onValueChange={value => {
+          if (lock.current || unresolved.current || (value !== "work" && value !== "non_work")) return;
+          selectedType.current = value; setType(value);
+        }}>
+        <label className="flex min-h-11 items-center gap-2"><RadioGroupItem value="work" aria-label="施作" />施作</label>
+        <label className="flex min-h-11 items-center gap-2"><RadioGroupItem value="non_work" aria-label="非施作" />非施作</label>
+      </RadioGroup>
+    </fieldset>
+
     <p>整批物件皆使用此類型，匯入後可在個別物件中修改。</p>
     <FormField>選擇PDF並匯入<Input ref={fileInput} type="file" accept="application/pdf,.pdf" disabled={busy || blocked} onChange={event => void choose(event.target.files?.[0])} /></FormField>
     <Status role="status">{message}</Status>
