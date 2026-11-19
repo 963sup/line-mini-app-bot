@@ -104,7 +104,7 @@ func WebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, handlers 
 				if reply.Message != nil {
 					response, _, sendErr := client.ReplyMessageWithHttpInfo(&messaging_api.ReplyMessageRequest{ReplyToken: reply.Token, Messages: []messaging_api.MessageInterface{reply.Message}})
 					if sendErr != nil && handler.RetryOnSendFailure && !spentRedeliveryToken(event, response) {
-						http.Error(w, "attendance reply unavailable", http.StatusServiceUnavailable)
+						http.Error(w, "LINE reply unavailable", http.StatusServiceUnavailable)
 						return
 					}
 					if sendErr != nil {

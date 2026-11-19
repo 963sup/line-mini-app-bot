@@ -117,14 +117,17 @@ func (s Store) Context(ctx context.Context, user string, preference string, writ
 }
 
 func (s Store) Create(ctx context.Context, user string, name string) (*generated.Organization, error) {
-	name = strings.TrimSpace(name)
 	id := uuid.NewString()
 	return run(s, ctx, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*generated.Organization, error) {
-		if name == "" || len([]rune(name)) > 120 {
-			return nil, organization.ErrInvalid
-		}
-		return &generated.Organization{OrganizationId: id, OwnerUserId: user, Name: name}, tx.Create(root.Collection("organizations").Doc(id), map[string]any{"ownerUserId": user, "createdBy": user, "name": name})
+		return createOrganization(tx, root, user, id, strings.TrimSpace(name))
 	})
+}
+
+func createOrganization(tx *firestore.Transaction, root *firestore.DocumentRef, user, id, name string) (*generated.Organization, error) {
+	if name == "" || len([]rune(name)) > 120 {
+		return nil, organization.ErrInvalid
+	}
+	return &generated.Organization{OrganizationId: id, OwnerUserId: user, Name: name}, tx.Create(root.Collection("organizations").Doc(id), map[string]any{"ownerUserId": user, "createdBy": user, "name": name})
 }
 
 func (s Store) Transfer(ctx context.Context, user string, organizationId, target string) (*generated.Organization, error) {

@@ -62,7 +62,7 @@ func AttendanceRichMenus(appURL string) map[string]*messaging_api.RichMenuReques
 
 func Help(group bool, appURL, desktopURL string, repositoryIDs ...string) messaging_api.MessageInterface {
 	title := "LINE 功能選單"
-	description := "輸入「出勤紀錄」查詢本人紀錄，或開啟網頁服務。"
+	description := "輸入「出勤紀錄」查詢本人紀錄，或輸入「建立組織」「建立企業」開始建立。"
 	if group {
 		title = "群組功能選單"
 		description = "點選下方按鈕：打卡、出勤、請假登記或補卡申請。請假送出不代表核准；歷史出勤請私訊查詢。分享位置可查天氣，輸入「摘要」整理群聊。"
@@ -121,6 +121,8 @@ func QuickMenu(group bool, appURL string, repositoryIDs ...string) messaging_api
 		add("摘要", "摘要")
 	} else {
 		add("出勤紀錄", "出勤紀錄")
+		add("建立組織", "建立組織")
+		add("建立企業", "建立企業")
 	}
 	if link := RepositoryURL(appURL, group, repositoryIDs...); link != "" {
 		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.UriAction{Label: "空間", Uri: link}})

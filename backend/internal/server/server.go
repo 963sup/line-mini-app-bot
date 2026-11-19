@@ -124,10 +124,13 @@ func Run() (resultErr error) {
 			resultErr = closeErr
 		}
 	}()
+	var creation creationConversation
 	organizationHandler := organizationhttp.Handler{Auth: auth}
 	if sessions != nil {
 		if db, ok := sessions.Store.(*sessiondb.Store); ok && os.Getenv("LINE_MESSAGING_API_CHANNEL_ID") != "" {
-			organizationHandler.Store = organizationdb.Store{DB: db.Client, Channel: os.Getenv("LINE_MESSAGING_API_CHANNEL_ID"), Groups: groups}
+			store := organizationdb.Store{DB: db.Client, Channel: os.Getenv("LINE_MESSAGING_API_CHANNEL_ID"), Groups: groups}
+			organizationHandler.Store = store
+			creation = store
 		}
 	}
 	httpapi.RegisterOrganizations(mux, organizationHandler)
@@ -154,7 +157,7 @@ func Run() (resultErr error) {
 	if groups != nil {
 		groupObserver = &groupline.Observer{Store: groups.Store}
 	}
-	groupLookup, err = registerLINE(mux, appURL, endpointURL, punches, summaries, repositoryObserver, groupObserver, repositories)
+	groupLookup, err = registerLINE(mux, appURL, endpointURL, punches, summaries, repositoryObserver, groupObserver, repositories, creation)
 	if err != nil {
 		return err
 	}

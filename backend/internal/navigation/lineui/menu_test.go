@@ -14,7 +14,7 @@ func TestQuickMenuPayload(t *testing.T) {
 		group    bool
 		commands []string
 	}{
-		{false, []string{"出勤紀錄"}},
+		{false, []string{"出勤紀錄", "建立組織", "建立企業"}},
 		{true, []string{"打卡", "出勤", "請假", "補卡", "摘要"}},
 	} {
 		data, err := json.Marshal(QuickMenu(tc.group, "https://liff.line.me/example", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))

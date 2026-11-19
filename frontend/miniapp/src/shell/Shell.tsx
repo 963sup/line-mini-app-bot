@@ -55,6 +55,10 @@ function Content({
       const nested = params.get("liff.state");
       if (nested) {
         const query = new URL(nested, location.origin).searchParams;
+        for (const key of ["enterprise", "organization"]) {
+          const id = query.get(key);
+          if (id) { location.replace("/miniapp?" + new URLSearchParams({[key]: id})); return; }
+        }
         repositories ||= query.has("repositories");
         repository ||= query.get("repository") || "";
         journal ||= query.has("journal");

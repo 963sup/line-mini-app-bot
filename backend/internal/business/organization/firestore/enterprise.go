@@ -70,34 +70,37 @@ func enterpriseNavigation(tx *firestore.Transaction, root *firestore.DocumentRef
 }
 
 func (s Store) CreateEnterprise(ctx context.Context, user, name string) (*generated.EnterpriseLink, error) {
-	name = strings.TrimSpace(name)
+	id := uuid.NewString()
+	return run(s, ctx, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*generated.EnterpriseLink, error) {
+		return createEnterprise(tx, root, user, id, strings.TrimSpace(name), true)
+	})
+}
+
+func createEnterprise(tx *firestore.Transaction, root *firestore.DocumentRef, user, id, name string, allowExisting bool) (*generated.EnterpriseLink, error) {
 	if name == "" || len([]rune(name)) > 120 {
 		return nil, organization.ErrInvalid
 	}
-	id := uuid.NewString()
-	return run(s, ctx, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*generated.EnterpriseLink, error) {
-		g, ref, e := provisioning(tx, root, user)
+	g, ref, e := provisioning(tx, root, user)
+	if e != nil {
+		return nil, e
+	}
+	if !g.Enabled || (!allowExisting && g.EnterpriseID != "") {
+		return nil, organization.ErrForbidden
+	}
+	if g.EnterpriseID != "" {
+		existing, e := read(tx, root.Collection("enterprises").Doc(g.EnterpriseID))
 		if e != nil {
 			return nil, e
 		}
-		if !g.Enabled {
+		if !existing.isOwner(user) {
 			return nil, organization.ErrForbidden
 		}
-		if g.EnterpriseID != "" {
-			existing, e := read(tx, root.Collection("enterprises").Doc(g.EnterpriseID))
-			if e != nil {
-				return nil, e
-			}
-			if !existing.isOwner(user) {
-				return nil, organization.ErrForbidden
-			}
-			return &generated.EnterpriseLink{Id: g.EnterpriseID, Name: existing.Name}, nil
-		}
-		if e := tx.Create(root.Collection("enterprises").Doc(id), map[string]any{"name": name, "ownerUserIds": []string{user}, "createdBy": user}); e != nil {
-			return nil, e
-		}
-		return &generated.EnterpriseLink{Id: id, Name: name}, tx.Update(ref, []firestore.Update{{Path: "enterpriseId", Value: id}})
-	})
+		return &generated.EnterpriseLink{Id: g.EnterpriseID, Name: existing.Name}, nil
+	}
+	if e := tx.Create(root.Collection("enterprises").Doc(id), map[string]any{"name": name, "ownerUserIds": []string{user}, "createdBy": user}); e != nil {
+		return nil, e
+	}
+	return &generated.EnterpriseLink{Id: id, Name: name}, tx.Update(ref, []firestore.Update{{Path: "enterpriseId", Value: id}})
 }
 
 func (s Store) Enterprise(ctx context.Context, user, id string) (*generated.Enterprise, error) {
