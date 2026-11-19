@@ -238,7 +238,7 @@
       },
       "patch": {
         "operationId": "updateIssue",
-        "summary": "Creator-only content and state update; expected version required; open to in_progress to completed to open",
+        "summary": "Creator-only content and lifecycle update with version check; supports direct closure and reopening",
         "security": [
           {
             "bearerAuth": []

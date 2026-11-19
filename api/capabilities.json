@@ -321,7 +321,7 @@
       "core": "backend/internal/business/attendance/punch/ports.go",
       "specification": "docs/domains/attendance/README.md",
       "consumers": [
-        "frontend/miniapp/src/business/attendance/punch/usePunch.ts"
+        "frontend/miniapp/src/business/attendance/punch/View.tsx"
       ],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
@@ -336,7 +336,7 @@
       "core": "backend/internal/business/attendance/punch/ports.go",
       "specification": "docs/domains/attendance/README.md",
       "consumers": [
-        "frontend/miniapp/src/business/attendance/punch/usePunch.ts"
+        "frontend/miniapp/src/business/attendance/punch/View.tsx"
       ],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
@@ -351,7 +351,7 @@
       "core": "backend/internal/business/attendance/punch/ports.go",
       "specification": "docs/domains/attendance/README.md",
       "consumers": [
-        "frontend/miniapp/src/business/attendance/punch/usePunch.ts"
+        "frontend/miniapp/src/business/attendance/punch/View.tsx"
       ],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },

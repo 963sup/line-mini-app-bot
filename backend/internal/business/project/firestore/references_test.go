@@ -284,6 +284,40 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	if secondItem == "" || secondItem == oldIssueID {
 		t.Fatal("distinct second issue missing", page)
 	}
+	other, e := svc.Create(ctx, "owner", gid, "independent-issue-board", p.Content{Title: "Audit", SourceRepositoryID: rid})
+	if e != nil {
+		t.Fatal(e)
+	}
+	other, e = svc.Update(ctx, "owner", gid, other.ID, p.Update{Content: p.Content{Title: other.Title}, ExpectedVersion: other.Version, LinkRepositoryID: secondID})
+	if e != nil {
+		t.Fatal(e)
+	}
+	other, e = svc.AddReference(ctx, "owner", gid, other.ID, secondRef, other.Version)
+	if e != nil {
+		t.Fatal(e)
+	}
+	project, e = svc.Update(ctx, "owner", gid, project.ID, p.Update{Content: p.Content{Title: project.Title, Body: project.Body}, ExpectedVersion: project.Version, ItemID: secondItem, ItemStatus: "done"})
+	if e != nil {
+		t.Fatal(e)
+	}
+	for board, want := range map[string]string{project.ID: "done", other.ID: "todo"} {
+		items, e := svc.ListReferences(ctx, "owner", gid, board, "")
+		if e != nil {
+			t.Fatal(e)
+		}
+		found := false
+		for _, item := range items.Items {
+			if item.SourceRepositoryID == secondID && item.SourceID == iid {
+				found = true
+				if item.ItemStatus != want || item.SourceState != "open" {
+					t.Fatalf("board %s: %+v", board, item)
+				}
+			}
+		}
+		if !found {
+			t.Fatal("missing issue on board", board)
+		}
+	}
 	project, e = svc.Update(ctx, "owner", gid, project.ID, p.Update{Content: p.Content{Title: project.Title, Body: project.Body}, ExpectedVersion: project.Version, UnlinkRepositoryID: secondID})
 	if e != nil {
 		t.Fatal(e)

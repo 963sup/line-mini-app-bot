@@ -312,6 +312,9 @@
           },
           "type": {
             "type": "string"
+          },
+          "itemStatus": {
+            "$ref": "./projects.yaml#/components/schemas/ProjectItemStatus"
           }
         }
       },

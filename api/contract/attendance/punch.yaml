@@ -449,11 +449,16 @@
           },
           "message": {
             "type": "string"
+          },
+          "accepted": {
+            "type": "boolean",
+            "description": "True when the punch was applied, including a replay of its successful receipt."
           }
         },
         "required": [
           "code",
-          "message"
+          "message",
+          "accepted"
         ]
       },
       "PunchPreflightRequest": {

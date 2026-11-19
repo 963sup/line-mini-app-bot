@@ -16,6 +16,7 @@ import (
 
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance"
 	correctionsmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/corrections"
+	"github.com/963sup/line-mini-app-bot/internal/business/attendance/punch"
 	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/records"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/worktime"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
@@ -79,6 +80,14 @@ func (s *contractStore) LaunchGroup(context.Context, string) (string, error) {
 func (s *contractStore) ExchangeLaunch(context.Context, string, string) (string, error) {
 	s.writes++
 	return "", nil
+}
+
+func (s *contractStore) ResolvePunchAttempt(context.Context, string, string, time.Time) (punch.Result, error) {
+	return punch.Result{Code: "needs_position"}, nil
+}
+
+func (s *contractStore) SubmitPunch(context.Context, string, string, recordmodel.Position, time.Time) (punch.Result, error) {
+	return punch.Result{Code: "break_started"}, nil
 }
 
 func contractTestHandler(t *testing.T, store *contractStore) (http.Handler, *int) {
@@ -193,6 +202,7 @@ func TestAttendanceResponsesConformToContract(t *testing.T) {
 		{"POST", "/api/v1/attendance/corrections", `{"groupId":"g","recordId":"r1"}`},
 		{"POST", "/api/v1/attendance/corrections/c1/approve", `{}`},
 		{"POST", "/api/v1/attendance/launch", `{"launch":"` + strings.Repeat("b", 64) + `"}`},
+		{"POST", "/api/v1/attendance/punches/preflight", `{"requestId":"` + strings.Repeat("a", 64) + `"}`},
 		{"POST", "/api/v1/attendance/punches", `{"requestId":"` + strings.Repeat("a", 64) + `","latitude":25,"longitude":121,"accuracyMeters":1,"capturedAt":"` + time.Now().UTC().Format(time.RFC3339) + `"}`},
 	}
 	for _, tc := range cases {
@@ -210,6 +220,14 @@ func TestAttendanceResponsesConformToContract(t *testing.T) {
 			input := &openapi3filter.ResponseValidationInput{RequestValidationInput: &openapi3filter.RequestValidationInput{Request: req, PathParams: params, Route: route}, Status: w.Code, Header: w.Header(), Body: io.NopCloser(bytes.NewReader(w.Body.Bytes()))}
 			if err := openapi3filter.ValidateResponse(context.Background(), input); err != nil {
 				t.Fatalf("response violates contract: %v\n%s", err, w.Body.String())
+			}
+			if strings.HasPrefix(tc.path, "/api/v1/attendance/punches") {
+				var receipt struct {
+					Accepted *bool `json:"accepted"`
+				}
+				if err := json.Unmarshal(w.Body.Bytes(), &receipt); err != nil || w.Code != 200 || receipt.Accepted == nil || *receipt.Accepted != (tc.path == "/api/v1/attendance/punches") {
+					t.Fatalf("unexpected punch receipt: %d %s", w.Code, w.Body.String())
+				}
 			}
 			if strings.Contains(tc.path, "records/r1") {
 				var data map[string]any

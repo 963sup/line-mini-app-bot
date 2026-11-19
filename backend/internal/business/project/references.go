@@ -7,6 +7,7 @@ import (
 
 // Reference retains source identity only; display fields are resolved for each read.
 type Reference struct {
+	ItemStatus                                                        string
 	SourceVersion                                                     int64
 	ID, SourceType, SourceID, ParentObjectID, SourceRepositoryID      string
 	SourceUnavailable                                                 bool

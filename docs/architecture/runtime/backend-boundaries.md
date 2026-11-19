@@ -14,7 +14,7 @@ flowchart LR
   h --- n0["目錄：business/attendance/{punch,records,<br/>worktime,corrections,approvals,leave,board}<br/>責任與允許依賴：各子功能的模型、規則與能力契<br/>約；依賴方向見 目前模組與責任"]
   click n0 "code-layout.md"
   h --- n1["目錄：business/attendance/http<br/>責任與允許依賴：出勤 HTTP、生成 DTO 轉換、認<br/>證後的契約驗證；依賴消費端 Authenticator 介<br/>面"]
-  h --- n2["目錄：business/issue<br/>責任與允許依賴：事項用例、建立者權限與三狀態<br/>規則；只依賴標準庫與 Repository 核心契約"]
+  h --- n2["目錄：business/issue<br/>責任與允許依賴：事項用例、建立者權限與生命週期<br/>規則；只依賴標準庫與 Repository 核心契約"]
   h --- n3["目錄：business/issue/http、<br/>business/issue/firestore<br/>責任與允許依賴：分別擁有 HTTP DTO／契約驗證<br/>與文件／交易；server 注入既有身分、<br/>Repository client 及共用編號"]
   h --- n4["目錄：business/discussion<br/>責任與允許依賴：主題、單層留言及各自作者編輯<br/>規則；只依賴標準庫與 Repository 核心"]
   h --- n5["目錄：business/discussion/http、<br/>business/discussion/firestore<br/>責任與允許依賴：分別擁有主題／留言 HTTP 契約<br/>及文件／交易；討論配置共用 number，留言不配<br/>置 number"]

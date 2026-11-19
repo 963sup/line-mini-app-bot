@@ -12,6 +12,7 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/punch"
 	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/records"
+	"github.com/963sup/line-mini-app-bot/internal/business/attendance/worktime"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 )
@@ -103,5 +104,5 @@ func (bot *Attendance) punchResponse(result punch.Result) generated.PunchRespons
 	case "stale_event":
 		message = "較早的打卡請求未變更出勤，請回群組重新操作。"
 	}
-	return generated.PunchResponse{Code: result.Code, Message: message}
+	return generated.PunchResponse{Code: result.Code, Message: message, Accepted: worktime.AcceptedCode(result.Code)}
 }
