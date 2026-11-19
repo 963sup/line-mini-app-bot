@@ -160,9 +160,15 @@ test("object create retains its original retry after unknown then forbidden unde
 const comment = (overrides = {}) => ({id:"c".repeat(32),authorId:"A",body:"原留言",version:1,createdAt:"2026-11-01T00:00:00Z",...overrides});
 
 test("comment pagination preserves an edit and failed-page retry; switching comments confirms discarding",async()=>{
- let fail=true;
+ let fail=true, reads=0, writes=0;
  const f=await fixture(async request=>{
+  if(request.method==="PATCH"){
+   writes++;
+   assert.equal((await request.json()).expectedVersion,1);
+   return Response.json(comment({id:"d".repeat(32),body:"伺服器確認的修改",version:2}));
+  }
   if(!new URL(request.url).pathname.endsWith("/comments"))return;
+  reads++;
   if(new URL(request.url).searchParams.has("cursor")){
    if(fail){fail=false;return Response.json({error:{code:"unavailable",message:"下一頁讀取失敗"}},{status:503});}
    return Response.json({items:[comment({id:"d".repeat(32),body:"另一則留言"})],nextCursor:""});
@@ -181,7 +187,45 @@ test("comment pagination preserves an edit and failed-page retry; switching comm
   assert.ok([...document.querySelectorAll("textarea")].some(node=>node.value==="未儲存修改"));
   await act(async()=>{[...document.querySelectorAll<HTMLButtonElement>("button")].filter(node=>node.textContent==="編輯留言")[1].click();await flush();});
   await f.click("放棄修改");assert.ok([...document.querySelectorAll("textarea")].some(node=>node.value==="另一則留言"));
+  await f.fill("編輯自己的留言","修改第二頁留言");
+  const readsBeforeSave=reads;
+  await f.click("儲存留言");
+  assert.equal(writes,1);
+  assert.equal(reads,readsBeforeSave);
+  assert.match(document.body.textContent!,/伺服器確認的修改/);
+  assert.match(document.body.textContent!,/原留言/);
  }finally{await f.dispose();}
+});
+
+test("a comments page already in flight cannot overwrite a successful edit", async () => {
+  let updated = false, firstPageReads = 0;
+  let finishPage!: (response: Response) => void;
+  const stalePage = new Promise<Response>(resolve => { finishPage = resolve; });
+  const edited = comment({body: "已更新的留言", version: 2});
+  const f = await fixture(async request => {
+    if (request.method === "PATCH") {
+      updated = true;
+      return Response.json(edited);
+    }
+    const url = new URL(request.url);
+    if (!url.pathname.endsWith("/comments")) return;
+    if (url.searchParams.has("cursor")) return stalePage;
+    firstPageReads++;
+    return Response.json({items: [updated ? edited : comment()], nextCursor: "page2"});
+  });
+  try {
+    await f.click("討論"); await f.click("#1 測試項目"); await f.click("編輯留言");
+    await f.fill("編輯自己的留言", "修改"); await f.click("載入更多留言");
+    const before = firstPageReads;
+    await f.click("儲存留言");
+    assert.equal(firstPageReads, before + 1);
+    await act(async () => {
+      finishPage(Response.json({items: [comment({body: "過期的留言"})], nextCursor: ""}));
+      await flush();
+    });
+    assert.match(document.body.textContent!, /已更新的留言/);
+    assert.doesNotMatch(document.body.textContent!, /過期的留言/);
+  } finally { await f.dispose(); }
 });
 
 test("unconfirmed comment update stays locked across unrelated pages and resolves only when its target is read",async()=>{
