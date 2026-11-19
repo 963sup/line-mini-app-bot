@@ -51,6 +51,10 @@ func (m *referenceMemory) Progress(context.Context, feature.Scope, *feature.Proj
 	return nil
 }
 
+func (m *referenceMemory) ReferencePresent(context.Context, feature.Scope, string, string, feature.Reference) (bool, error) {
+	return true, nil
+}
+
 func TestReferencePostHasIdentityRetryWithoutCreationHeader(t *testing.T) {
 	gid, rid, pid := "C"+strings.Repeat("a", 32), strings.Repeat("b", 32), strings.Repeat("c", 32)
 	m := &referenceMemory{project: feature.Project{ID: pid, DefaultRepositoryID: rid, OwnerID: gid, CreatorID: "owner", Title: "Project", Version: 1}}
@@ -72,5 +76,11 @@ func TestReferencePostHasIdentityRetryWithoutCreationHeader(t *testing.T) {
 	mux.ServeHTTP(w, req)
 	if w.Code != 400 || m.calls != 1 {
 		t.Fatal("project creation lost key requirement", w.Code)
+	}
+	req = httptest.NewRequest("GET", base+"/"+pid+"/reference-state?itemId="+strings.Repeat("d", 32)+"&desiredPresent=true", nil)
+	w = httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	if w.Code != 200 || !strings.Contains(w.Body.String(), `"matches":true`) || w.Header().Get("Cache-Control") != "no-store" {
+		t.Fatal(w.Code, w.Body.String())
 	}
 }

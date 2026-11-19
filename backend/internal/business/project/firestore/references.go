@@ -335,3 +335,48 @@ func (s *Store) ChangeReference(ctx context.Context, r feature.Scope, actor, pid
 	}
 	return s.Get(ctx, r, pid)
 }
+
+// ReferencePresent rechecks owner and creator in the same read transaction.
+func (s *Store) ReferencePresent(ctx context.Context, r feature.Scope, actor, pid string, ref feature.Reference) (present bool, err error) {
+	defer func() { err = grpcstatus.NormalizeContextError(err) }()
+	if !s.ready() {
+		return false, feature.ErrUnavailable
+	}
+	root := s.ownerDoc(r.OwnerID)
+	parent := root.Collection("projects").Doc(pid)
+	id := ref.ID
+	if id == "" {
+		id = referenceID(pid, ref)
+	}
+	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+		present = false
+		if e := s.checkProjectOwner(tx, r, root); e != nil {
+			return e
+		}
+		snap, e := tx.Get(parent)
+		current, e := decodeProject(snap, e, r)
+		if e != nil {
+			return e
+		}
+		if actor == "" || current.CreatorID != actor {
+			return feature.ErrForbidden
+		}
+		snap, e = tx.Get(parent.Collection("items").Doc(id))
+		if status.Code(e) == codes.NotFound {
+			return nil
+		}
+		if e != nil {
+			return e
+		}
+		d, e := decodeItem(snap, pid)
+		if e != nil {
+			return e
+		}
+		if ref.ID == "" && referenceID(pid, itemReference(d)) != id {
+			return feature.ErrUnavailable
+		}
+		present = true
+		return nil
+	}, db.ReadOnly)
+	return present, err
+}

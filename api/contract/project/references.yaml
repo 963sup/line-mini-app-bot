@@ -250,6 +250,127 @@
           }
         }
       }
+    },
+    "/api/v1/owners/{ownerId}/projects/{id}/reference-state": {
+      "get": {
+        "operationId": "getProjectReferenceState",
+        "summary": "Check current reference state without inferring historical operation success",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ownerId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[UC][a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "desiredPresent",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "itemId",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sourceRepositoryId",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sourceType",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "object",
+                "subobject",
+                "issue",
+                "discussion"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "sourceId",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "parentObjectId",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectReferenceState"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "401": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "403": {
+            "$ref": "./items.yaml#/components/responses/ProjectForbidden"
+          },
+          "404": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "409": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "415": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          },
+          "503": {
+            "$ref": "./items.yaml#/components/responses/ProjectError"
+          }
+        },
+        "description": "Creator-only read. Supply either itemId or sourceRepositoryId/sourceType/sourceId (parentObjectId required for subobject). Returns whether the current presence matches desiredPresent; this is not an operation receipt. No source content is returned."
+      }
     }
   },
   "components": {
@@ -375,6 +496,21 @@
           }
         },
         "description": "Reference only within the Project source repository. Subobject requires its parentObjectId. Duplicate source identity is a no-op after current authorization, including retries of an unknown successful add."
+      },
+      "ProjectReferenceState": {
+        "type": "object",
+        "required": [
+          "matches",
+          "present"
+        ],
+        "properties": {
+          "matches": {
+            "type": "boolean"
+          },
+          "present": {
+            "type": "boolean"
+          }
+        }
       }
     }
   }

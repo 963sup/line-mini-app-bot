@@ -25,6 +25,10 @@ func (s *referenceStore) ChangeReference(context.Context, p.Scope, string, strin
 	return s.item, nil
 }
 
+func (s *referenceStore) ReferencePresent(context.Context, p.Scope, string, string, p.Reference) (bool, error) {
+	return true, nil
+}
+
 func TestReferenceIdentityAndIndependentAuthorization(t *testing.T) {
 	id := strings.Repeat("a", 32)
 	for _, kind := range []string{"object", "issue", "discussion"} {
@@ -51,5 +55,19 @@ func TestReferenceIdentityAndIndependentAuthorization(t *testing.T) {
 	}
 	if _, e = svc.RemoveReference(context.Background(), "owner", gid, id, id, 1); e != nil || st.changes != 1 {
 		t.Fatal("revoked reference trapped", e)
+	}
+	present, matches, e := svc.ReferenceState(context.Background(), "owner", gid, id, p.Reference{SourceRepositoryID: id, SourceType: "object", SourceID: id}, true)
+	if e != nil || !present || !matches {
+		t.Fatal("source permission must not block identity-only check", e)
+	}
+	_, matches, e = svc.ReferenceState(context.Background(), "owner", gid, id, p.Reference{ID: id}, false)
+	if e != nil || matches {
+		t.Fatal("present reference cannot confirm absence", e)
+	}
+	if _, _, e = svc.ReferenceState(context.Background(), "member", gid, id, p.Reference{ID: id}, true); !errors.Is(e, p.ErrForbidden) {
+		t.Fatal("non-creator state check", e)
+	}
+	if _, _, e = svc.ReferenceState(context.Background(), "owner", gid, id, p.Reference{ID: id, SourceID: id}, true); !errors.Is(e, p.ErrInput) {
+		t.Fatal("ambiguous identity", e)
 	}
 }

@@ -74,3 +74,26 @@ func (s *projectServer) RemoveProjectReference(w http.ResponseWriter, r *http.Re
 		transport.WriteJSON(w, 200, view(value))
 	}
 }
+
+func (s *projectServer) GetProjectReferenceState(w http.ResponseWriter, r *http.Request, ownerID, pid string, p generated.GetProjectReferenceStateParams) {
+	ref := feature.Reference{}
+	if p.ItemId != nil {
+		ref.ID = *p.ItemId
+	}
+	if p.SourceRepositoryId != nil {
+		ref.SourceRepositoryID = *p.SourceRepositoryId
+	}
+	if p.SourceType != nil {
+		ref.SourceType = string(*p.SourceType)
+	}
+	if p.SourceId != nil {
+		ref.SourceID = *p.SourceId
+	}
+	if p.ParentObjectId != nil {
+		ref.ParentObjectID = *p.ParentObjectId
+	}
+	present, matches, err := s.service.ReferenceState(r.Context(), identity.UserID(r.Context()), ownerID, pid, ref, p.DesiredPresent)
+	if !writeError(w, err) {
+		transport.WriteJSON(w, 200, generated.ProjectReferenceState{Present: present, Matches: matches})
+	}
+}

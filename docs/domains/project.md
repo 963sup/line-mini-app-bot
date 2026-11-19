@@ -130,3 +130,13 @@ flowchart LR
   h["工程驗收送件"]
   h --- n0["GET／POST /api/v1/owners/{ownerId}/projects/<br/>{id}/references/{itemId}<br/>/inspection-submissions 分別讀歷史與提交。資<br/>料保存在引用下的 inspectionSubmissions。施工<br/>進度維持原值，有送件紀錄的引用不可移除。"]
 ```
+
+## 引用目前狀態核對
+
+`GET /api/v1/owners/{ownerId}/projects/{id}/reference-state` 供已登入的專案建立者核對目前引用狀態。後端核驗 Project owner 範圍與建立者，再於交易內重查 owner、Project 及目標引用，不讀取來源內容，因此來源權限失效時仍可核對。
+
+輸入為 `desiredPresent` 與互斥的兩種識別：`itemId`，或完整來源組合 `sourceRepositoryId`、`sourceType`、`sourceId`（子物件另帶 `parentObjectId`）。混用、缺漏或格式無效回傳 `invalid_input`；非建立者拒絕存取。回傳 `present` 與 `matches`，只代表讀取當下狀態，不是原寫入的成功收據，也不保證後續未被其他操作改變。
+
+這是唯讀操作，不新增業務事件、不寫入資料；回應禁止快取。前端在符合預期後解除待確認狀態並重新讀取專案，不再逐頁掃描引用推斷原操作結果。未符合或查詢失敗時保留原請求供重試。
+
+契約見 [references.yaml](../../api/contract/project/references.yaml)，核心見 [references.go](../../backend/internal/business/project/references.go)。既有引用授權、HTTP 與前端流程檢查涵蓋此路徑；真實 Firestore 交易與 LINE 裝置驗收仍需另行執行。

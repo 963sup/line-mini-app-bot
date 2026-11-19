@@ -113,6 +113,7 @@ type GroupServer interface {
 	GetGroup(w http.ResponseWriter, r *http.Request, id string)
 }
 type OwnerProjectServer interface {
+	GetProjectReferenceState(w http.ResponseWriter, r *http.Request, ownerId string, id string, params generated.GetProjectReferenceStateParams)
 	ListInspectionSubmissions(w http.ResponseWriter, r *http.Request, ownerId string, id string, itemId string)
 	SubmitInspection(w http.ResponseWriter, r *http.Request, ownerId string, id string, itemId string, params generated.SubmitInspectionParams)
 	ListProjectReferences(w http.ResponseWriter, r *http.Request, ownerId string, id string, params generated.ListProjectReferencesParams)
