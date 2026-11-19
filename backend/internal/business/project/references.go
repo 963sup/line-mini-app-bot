@@ -112,3 +112,32 @@ func (s *Service) RemoveReference(ctx context.Context, actor, ownerID, pid, item
 	}
 	return result, e
 }
+
+// ReferenceStateStore reads identity only, without accessing source content.
+type ReferenceStateStore interface {
+	ReferencePresent(context.Context, Scope, string, string, Reference) (bool, error)
+}
+
+// ReferenceState checks the current state, not the outcome of a past request.
+func (s *Service) ReferenceState(ctx context.Context, actor, ownerID, pid string, ref Reference, desired bool) (present, matches bool, err error) {
+	r, p, err := s.projectScope(ctx, actor, ownerID, pid)
+	if err != nil {
+		return false, false, err
+	}
+	if p.CreatorID != actor {
+		return false, false, ErrForbidden
+	}
+	if ref.ID != "" {
+		if !ValidID(ref.ID) || ref.SourceRepositoryID != "" || ref.SourceType != "" || ref.SourceID != "" || ref.ParentObjectID != "" {
+			return false, false, ErrInput
+		}
+	} else if !ValidReference(ref) || !ValidID(ref.SourceRepositoryID) {
+		return false, false, ErrInput
+	}
+	store, ok := s.Store.(ReferenceStateStore)
+	if !ok {
+		return false, false, ErrUnavailable
+	}
+	present, err = store.ReferencePresent(ctx, r, actor, pid, ref)
+	return present, err == nil && present == desired, err
+}

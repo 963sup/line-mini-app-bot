@@ -1144,6 +1144,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/owners/{ownerId}/projects/{id}/reference-state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check current reference state without inferring historical operation success
+         * @description Creator-only read. Supply either itemId or sourceRepositoryId/sourceType/sourceId (parentObjectId required for subobject). Returns whether the current presence matches desiredPresent; this is not an operation receipt. No source content is returned.
+         */
+        get: operations["getProjectReferenceState"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1871,6 +1891,10 @@ export interface components {
         };
         /** @enum {string} */
         CorrectionLifecycleState: "pending" | "approved" | "rejected" | "cancelled" | "stale" | "invalid";
+        ProjectReferenceState: {
+            matches: boolean;
+            present: boolean;
+        };
         GroupItem: {
             id: string;
             name: string;
@@ -6603,6 +6627,43 @@ export interface operations {
             409: components["responses"]["WikiError"];
             415: components["responses"]["WikiError"];
             503: components["responses"]["WikiError"];
+        };
+    };
+    getProjectReferenceState: {
+        parameters: {
+            query: {
+                desiredPresent: boolean;
+                itemId?: string;
+                sourceRepositoryId?: string;
+                sourceType?: "object" | "subobject" | "issue" | "discussion";
+                sourceId?: string;
+                parentObjectId?: string;
+            };
+            header?: never;
+            path: {
+                ownerId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectReferenceState"];
+                };
+            };
+            400: components["responses"]["ProjectError"];
+            401: components["responses"]["ProjectError"];
+            403: components["responses"]["ProjectForbidden"];
+            404: components["responses"]["ProjectError"];
+            409: components["responses"]["ProjectError"];
+            415: components["responses"]["ProjectError"];
+            503: components["responses"]["ProjectError"];
         };
     };
 }

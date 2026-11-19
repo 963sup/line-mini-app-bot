@@ -309,6 +309,12 @@ test("unknown committed reference can be reconciled after source permission loss
       posts++; if (posts === 1) { present = true; throw new Error("committed reply lost"); }
       return Response.json({error:{code:"forbidden",message:"來源無法存取"}},{status:403});
     }
+    if (path.endsWith("/reference-state")) {
+      const query = new URL(request.url).searchParams;
+      assert.equal(query.get("sourceId"), sourceId);
+      assert.equal(query.get("desiredPresent"), "true");
+      return Response.json({present, matches:present});
+    }
     if (request.method === "DELETE") { deletes++; present = false; return Response.json({...project,version:5,sourceAvailable:false}); }
     if (path.endsWith("/projects/" + pid) && posts) return Response.json({...project,version:4,sourceAvailable:false});
     if (path.endsWith("/references")) return Response.json({items:present?[reference({sourceUnavailable:true,sourceTitle:"不應顯示的來源"})]:[],nextCursor:""});

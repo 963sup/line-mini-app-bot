@@ -1500,6 +1500,20 @@
       "core": "backend/internal/business/repository/wiki/wiki.go",
       "adapter": "backend/internal/business/repository/wiki/http/routes.go",
       "specification": "docs/domains/repository/wiki.md"
+    },
+    {
+      "operationId": "getProjectReferenceState",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/owners/{ownerId}/projects/{id}/reference-state",
+      "owner": "project.references",
+      "adapter": "backend/internal/business/project/http/references.go",
+      "handler": "GetProjectReferenceState",
+      "core": "backend/internal/business/project/references.go",
+      "specification": "docs/domains/project.md",
+      "consumers": [
+        "frontend/miniapp/src/business/project/Items.tsx"
+      ]
     }
   ],
   "events": [

@@ -205,6 +205,9 @@
     },
     "/api/v1/repositories/{repositoryId}/wiki-pages/{id}/revisions": {
       "$ref": "./repository/wiki.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1wiki-pages~1{id}~1revisions"
+    },
+    "/api/v1/owners/{ownerId}/projects/{id}/reference-state": {
+      "$ref": "./project/references.yaml#/paths/~1api~1v1~1owners~1{ownerId}~1projects~1{id}~1reference-state"
     }
   },
   "components": {
@@ -448,6 +451,9 @@
       },
       "CorrectionLifecycleState": {
         "$ref": "./attendance/corrections.yaml#/components/schemas/CorrectionLifecycleState"
+      },
+      "ProjectReferenceState": {
+        "$ref": "./project/references.yaml#/components/schemas/ProjectReferenceState"
       }
     },
     "securitySchemes": {

@@ -151,6 +151,7 @@ func RegisterOwnerProjects(public *http.ServeMux, handler OwnerProjectServer, wr
 	public.Handle("GET /api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions", routes)
 	public.Handle("POST /api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions", routes)
 	public.Handle("GET /api/v1/owners/{ownerId}/projects/{id}/references", routes)
+	public.Handle("GET /api/v1/owners/{ownerId}/projects/{id}/reference-state", routes)
 	public.Handle("POST /api/v1/owners/{ownerId}/projects/{id}/references", routes)
 	public.Handle("DELETE /api/v1/owners/{ownerId}/projects/{id}/references/{itemId}", routes)
 }

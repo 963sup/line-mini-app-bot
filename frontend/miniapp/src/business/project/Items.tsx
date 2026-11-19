@@ -121,24 +121,17 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
     lock.current = true; setBusy(true); setStatus("正在核對引用結果……");
     read.cancel(); catalog.cancel(); parents.cancel(); setOptions([]); setObjects([]);
     setReadBusy(false); setCatalogBusy(false); setParentBusy(false);
-    void write.run(async signal => {
-      const current = await request((client,s) => client.GET("/api/v1/owners/{ownerId}/projects/{id}", {signal:s,params:{path:{ownerId,id:project.id}}}), {signal});
-      const rows: Reference[] = [], seen = new Set<string>(); let next = "", found = false;
-      for (let pageNumber = 0; pageNumber < 50; pageNumber++) {
-        const page = await request((client,s) => client.GET("/api/v1/owners/{ownerId}/projects/{id}/references", {signal:s,params:{path:{ownerId,id:project.id},query:{cursor:next || undefined}}}), {signal});
-        rows.push(...page.items);
-        found = page.items.some(item => "itemId" in attempt ? item.id === attempt.itemId : item.sourceRepositoryId === attempt.body.sourceRepositoryId && item.sourceType === attempt.body.sourceType && item.sourceId === attempt.body.sourceId && (item.parentObjectId || "") === (attempt.body.parentObjectId || ""));
-        next = page.nextCursor;
-        if (found || !next) return {current, rows, next, confirmed:"itemId" in attempt ? !found : found};
-        if (seen.has(next)) throw new Error("引用分頁無法完整核對，請稍後重試。");
-        seen.add(next);
-      }
-      throw new Error("引用數量超過本次核對範圍，請稍後重試。");
-    }, result => {
-      lock.current = false; setBusy(false); setItems(result.rows); setCursor(result.next); setLoaded(true);
-      if (!result.confirmed) { setStatus("尚未確認原操作已完成；請保留原操作並稍後重試或核對。"); return; }
-      pending.current = null; setNeedsRefresh(false); setChoice(""); block(false); onChange(result.current);
-      setStatus("已核對引用結果，來源資料未變更。");
+    void write.run(signal => request((client, s) => client.GET("/api/v1/owners/{ownerId}/projects/{id}/reference-state", {
+      signal: s, params: { path: { ownerId, id: project.id }, query: "itemId" in attempt
+        ? { itemId: attempt.itemId, desiredPresent: false }
+        : { sourceRepositoryId: attempt.body.sourceRepositoryId || initialRepositoryId, sourceType: attempt.body.sourceType,
+            sourceId: attempt.body.sourceId, parentObjectId: attempt.body.parentObjectId, desiredPresent: true } },
+    }), {signal}), result => {
+      lock.current = false; setBusy(false);
+      if (!result.matches) { setStatus("目前引用狀態尚未符合原操作，請保留原操作並稍後重試或核對。"); return; }
+      pending.current = null; setNeedsRefresh(false); setChoice(""); block(false);
+      setStatus("目前引用狀態已符合預期，正在重新讀取專案。");
+      onRefresh();
     }, error => {lock.current=false;setBusy(false);setStatus(errorMessage(error)+" 原操作仍保留，請稍後再次核對。");});
   }
   return <PagePanel heading="專案引用"><p>顯示來源最新內容。加入或移出專案只變更引用，不會修改來源、授予來源編輯權或加總不同來源的進度。</p>
