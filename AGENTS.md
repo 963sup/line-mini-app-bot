@@ -70,14 +70,14 @@ Rules:
 
 ## Documentation routing
 
-新增、修改或審查任何自有 Markdown 前，MUST 讀取並遵守[文件規範](docs/development/documentation.md)。協調者按需分派 documentation 角色並明確指派檔案所有權；所有角色均依該規範自主修正任務範圍內有證據的問題，不擴展為全庫重寫。
+新增、修改或審查任何自有 Markdown 前，MUST 讀取並遵守[文件規範](docs/standards/documentation.md)。協調者按需分派 documentation 角色並明確指派檔案所有權；所有角色均依該規範自主修正任務範圍內有證據的問題，不擴展為全庫重寫。
 
 Read docs/README.md for the document index. Follow docs/agents/workflow.md and
 docs/agents/acceptance.md for assignments and acceptance. Roles reference scoped
 documents in their developer_instructions; read relevant pages on demand, not all
 docs for every task. MCP selection and diagnosis: docs/tooling/mcp/README.md.
 
-實作交接依[架構證據與用語](docs/foundation/architecture/README.md#接手時的證據與用語)與[命名規範](docs/development/naming.md)。
+實作交接依[架構證據與用語](docs/architecture/README.md#接手時的證據與用語)與[命名規範](docs/standards/naming.md)。
 
 ## Repository publication default
 

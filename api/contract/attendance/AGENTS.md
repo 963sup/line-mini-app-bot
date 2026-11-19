@@ -5,9 +5,9 @@
 ## 職責與邊界
 
 - 維護打卡、查詢、工時、更正、審核與請假的既有操作；按 [能力索引](../README.md) 保持型別擁有者及依賴方向。
-- 修改前閱讀對應功能規格：[出勤](../../../docs/features/attendance/attendance.md)、[查詢與更正](../../../docs/features/attendance/queries.md)、[工時](../../../docs/features/attendance/worktime.md)、[請假](../../../docs/features/attendance/leave.md)。
+- 修改前閱讀對應功能規格：[出勤](../../../docs/domains/attendance/README.md)、[查詢與更正](../../../docs/domains/attendance/queries.md)、[工時](../../../docs/domains/attendance/worktime.md)、[請假](../../../docs/domains/attendance/leave.md)。
 - 保留既有 JSON 大小寫、時間與月份、nullable、分頁、請求上限及 Idempotency-Key 語義；不藉命名整理更改公開路徑。
 - 登入、Repository 存取與審核權分開；後端執行本人範圍、群組權、版本與交易檢查。契約驗證不替代業務授權。
 - 請假登記不代表已有請假審核；不把未實作能力列為可用操作。
 
-[現行實作圖：定位前預檢、狀態與時序](../../../docs/features/attendance/attendance.md#定位前預檢狀態與時序) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：定位前預檢、狀態與時序](../../../docs/domains/attendance/README.md#定位前預檢狀態與時序) · [未來設計圖](../../../docs/diagrams.md#未來設計)

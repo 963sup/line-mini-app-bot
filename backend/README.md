@@ -1,6 +1,6 @@
 # Go 後端
 
-工程群組及Project各自保存核心、用例與adapters。Project不依賴Repository核心模型作父容器，只透過使用端定義的來源讀取port查事項；工程群組成員及來源資格分開核驗。現行邊界與遷移見 [獨立Project](../docs/features/project/projects.md)。
+工程群組及Project各自保存核心、用例與adapters。Project不依賴Repository核心模型作父容器，只透過使用端定義的來源讀取port查事項；工程群組成員及來源資格分開核驗。現行邊界與遷移見 [獨立Project](../docs/domains/project.md)。
 
 `cmd/projectmigrate` 是明確namespace的dry-run／apply／受限rollback工具，旗標與writer部署前提見 [遷移指南](cmd/projectmigrate/README.md)；不由server啟動時自動搬正式資料。
 
@@ -16,21 +16,21 @@ cmd/ 保存 server、richmenu、firestorecheck 與 attendancemigrate 入口；in
 
 ## 相關文件
 
-- [工程日誌與群組發布](../docs/features/journal/design.md)
+- [工程日誌與群組發布](../docs/domains/journal.md)
 
 - [文件索引：Backend](../docs/README.md#按模組閱讀)
-- [Go browser Session 與滑動續期](../docs/foundation/identity/browser-session.md)
-- [後端功能邊界](../docs/foundation/architecture/backend-boundaries.md)
-- [依賴規則](../docs/foundation/architecture/dependencies.md)
-- [Go 開發慣例](../docs/development/go.md)
-- [可靠性與資料](../docs/foundation/reliability/state-machines.md)
+- [Go browser Session 與滑動續期](../docs/architecture/identity/browser-session.md)
+- [後端功能邊界](../docs/architecture/runtime/backend-boundaries.md)
+- [依賴規則](../docs/architecture/runtime/dependencies.md)
+- [Go 開發慣例](../docs/standards/go.md)
+- [可靠性與資料](../docs/proposals/webhook-delivery/design.md)
 - [API 契約工作流程](../api/README.md)
 
-- [群組請假登記](../docs/features/attendance/leave.md)
+- [群組請假登記](../docs/domains/attendance/leave.md)
 
-- [群組出勤看板與本人漏下班檢查](../docs/features/attendance/board.md)
+- [群組出勤看板與本人漏下班檢查](../docs/domains/attendance/board.md)
 
-- [目前模組與責任](../docs/foundation/architecture/layout.md)
+- [目前模組與責任](../docs/architecture/runtime/code-layout.md)
 
 Summary 的共用 LINE 組合入口在 business/summary/line；訊息收集位於
 messagecollection/line，摘要指令與排程位於 summarization/line。
@@ -38,17 +38,17 @@ messagecollection/line，摘要指令與排程位於 summarization/line。
 Weather 既有實作集中在 business/weather/forecast/{cwa,line}。
 入口契約見 [Summary](../api/contract/summary/README.md) 與 [Weather](../api/contract/weather/README.md)。
 
-- [群組 Repository](../docs/features/repository/repository.md)
-- [基礎雛形與停止擴充界線](../docs/features/repository/foundation.md)
-- [空間標籤目錄](../docs/features/repository/labels.md)：沿用 Repository client，建立名稱綁定及防重收據，不占共用編號。
-- [空間討論與留言](../docs/features/repository/discussions.md)：獨立核心及 HTTP／Firestore adapters，重用既有 client 與編號。
-- [空間事項第一階段](../docs/features/repository/issues.md)：核心、HTTP 與 Firestore 分層實作；正式環境待驗收。
-- [Repository 共用資源編號基礎](../docs/features/repository/numbering.md)：內部交易介面，已由事項建立使用，不提供獨立公開分配 API。
+- [群組 Repository](../docs/domains/repository/README.md)
+- [基礎雛形與停止擴充界線](../docs/domains/repository/acceptance.md)
+- [空間標籤目錄](../docs/domains/repository/labels.md)：沿用 Repository client，建立名稱綁定及防重收據，不占共用編號。
+- [空間討論與留言](../docs/domains/repository/discussions.md)：獨立核心及 HTTP／Firestore adapters，重用既有 client 與編號。
+- [空間事項第一階段](../docs/domains/repository/issues.md)：核心、HTTP 與 Firestore 分層實作；正式環境待驗收。
+- [Repository 共用資源編號基礎](../docs/domains/repository/numbering.md)：內部交易介面，已由事項建立使用，不提供獨立公開分配 API。
 
-- [里程碑](../docs/features/repository/milestones.md)、[Project](../docs/features/project/projects.md)與[統計](../docs/features/repository/statistics.md)
+- [里程碑](../docs/domains/repository/milestones.md)、[Project](../docs/domains/project.md)與[統計](../docs/domains/repository/statistics.md)
 
 ## 協作能力分佈與交付狀態
 
-業務模組位於 [internal/business](internal/business)，服務組裝見 [server](internal/server)，各功能行為見[功能索引](../docs/features/README.md)。
+業務模組位於 [internal/business](internal/business)，服務組裝見 [server](internal/server)，各功能行為見[功能索引](../docs/domains/README.md)。
 
-[現行實作圖：格式與資料相容](../docs/foundation/architecture/backend-boundaries.md#格式與資料相容) · [未來設計圖](../docs/diagrams.md#未來設計)
+[現行實作圖：格式與資料相容](../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../docs/diagrams.md#未來設計)

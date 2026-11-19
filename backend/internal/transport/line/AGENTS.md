@@ -2,4 +2,4 @@
 
 遵循[上層指引](../AGENTS.md)。修改套件行為時，檢查呼叫端與受影響的 Go 測試。 實作入口見[本目錄導覽](README.md)。
 
-[現行實作圖：基礎入口](../../../../docs/foundation/api/http-contracts.md#基礎入口) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
+[現行實作圖：基礎入口](../../../../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../../../../docs/diagrams.md#未來設計)

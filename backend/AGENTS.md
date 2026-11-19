@@ -20,11 +20,11 @@ cmd/ 保存 server、richmenu、firestorecheck 與 attendancemigrate 入口；in
 
 ## Business Operation
 
-開始相關任務前，必須閱讀 [操作模型](../docs/foundation/architecture/business-operation.md) 與 [符合性流程](../docs/agents/workflow.md#business-operation-compliance)。
+開始相關任務前，必須閱讀 [操作模型](../docs/architecture/contracts/business-operations.md) 與 [符合性流程](../docs/agents/workflow.md#business-operation-compliance)。
 
 後端由可信身分取得 Actor，依資源歸屬與範圍檢查 Authority／Policy，使用案例協調領域規則與結果。涉及一致性的授權、版本及狀態檢查與交易協調；定義重送與副作用失敗語義。不建立無實際需求的通用引擎或 access 模組。
 
-[現行實作圖：格式與資料相容](../docs/foundation/architecture/backend-boundaries.md#格式與資料相容) · [未來設計圖](../docs/diagrams.md#未來設計)
+[現行實作圖：格式與資料相容](../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../docs/diagrams.md#未來設計)
 
 ## 前端操作與業務契約
 
@@ -38,6 +38,6 @@ Web 業務操作遵循 **Frontend → API → Backend**。每個 API 操作以�
 
 審查時，若前端必須掃描清單或拼接多個查詢才能推斷操作是否成功，應回頭檢查契約。例如「加入專案引用」的回應遺失時，UI 應顯示結果待確認，依契約重試或查詢原操作，由 Go 回覆結果。清單反映的是目前狀態，可能已被後續操作改變。
 
-新增、修改或審查業務模型、API 契約、資源路徑、collection 或查詢欄位前，所有角色必讀 [命名規範](../docs/development/naming.md#業務實體集合與-api-命名)，遵守單一業務實體用單數、集合與 REST 資源路徑用複數的規則及既有相容例外。完整規範只維護於該文件；不得直接重新命名既有公開契約或保存資料。
+新增、修改或審查業務模型、API 契約、資源路徑、collection 或查詢欄位前，所有角色必讀 [命名規範](../docs/standards/naming.md#業務實體集合與-api-命名)，遵守單一業務實體用單數、集合與 REST 資源路徑用複數的規則及既有相容例外。完整規範只維護於該文件；不得直接重新命名既有公開契約或保存資料。
 
-後端執行授權與業務規則，各領域保留獨立狀態模型，共用必要機制，避免不必要抽象。 定位資料的授權與驗證依[定位規格](../docs/foundation/integrations/web-geolocation.md)。
+後端執行授權與業務規則，各領域保留獨立狀態模型，共用必要機制，避免不必要抽象。 定位資料的授權與驗證依[定位規格](../docs/architecture/integrations/web-geolocation.md)。

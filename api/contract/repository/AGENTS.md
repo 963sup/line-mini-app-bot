@@ -6,10 +6,10 @@ Project 和 Repository 各自保存一個 `ownerId`。LINE UserID（U）以登�
 
 ## 職責與邊界
 
-- 先讀 [群組 Repository 規格](../../../docs/features/repository/repository.md)；每個群組一個空間，由驗證簽章的 Bot 事件建立與更新。
+- 先讀 [群組 Repository 規格](../../../docs/domains/repository/README.md)；每個群組一個空間，由驗證簽章的 Bot 事件建立與更新。
 - 保留既有列表、詳情與分頁契約；不新增人工建立、刪除、換綁、擁有者或角色管理能力。
 - Repository ID 與 ownerId 分開；互動候選不是完整成員名冊，也不是授權。容器存取資格不自動授予子業務寫入或審核權。
-- Label 目錄依 [標籤規格](../../../docs/features/repository/labels.md) 提供列出及建立，不含改名或刪除，引用沿用事項／討論作者更新。Milestone 與 statistics 依 [里程碑](../../../docs/features/repository/milestones.md)、[儲存庫統計](../../../docs/features/repository/statistics.md)；Member 等未來能力先定義操作與擁有者；不得把互動候選當作 members API。
+- Label 目錄依 [標籤規格](../../../docs/domains/repository/labels.md) 提供列出及建立，不含改名或刪除，引用沿用事項／討論作者更新。Milestone 與 statistics 依 [里程碑](../../../docs/domains/repository/milestones.md)、[儲存庫統計](../../../docs/domains/repository/statistics.md)；Member 等未來能力先定義操作與擁有者；不得把互動候選當作 members API。
 - 子業務引用既有 Repository 歸屬，不由 Issue／Discussion 的寫入順便建立容器。
 
-[現行實作圖：空間載入時序](../../../docs/features/repository/repository.md#空間載入時序) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：空間載入時序](../../../docs/domains/repository/README.md#空間載入時序) · [未來設計圖](../../../docs/diagrams.md#未來設計)

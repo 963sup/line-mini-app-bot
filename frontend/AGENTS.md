@@ -20,11 +20,11 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 ## Business Operation
 
-開始相關任務前，必須閱讀 [操作模型](../docs/foundation/architecture/business-operation.md) 與 [符合性流程](../docs/agents/workflow.md#business-operation-compliance)。
+開始相關任務前，必須閱讀 [操作模型](../docs/architecture/contracts/business-operations.md) 與 [符合性流程](../docs/agents/workflow.md#business-operation-compliance)。
 
 畫面呈現操作可用性、確認與結果；前端隱藏按鈕不能取代後端授權。使用 API 契約處理拒絕、過期版本與失敗，結果未知時遵循既有重試契約，不自行宣告權限或成功。
 
-[現行實作圖：頁面與身分生命週期](../docs/foundation/frontend/react-frontend.md#頁面與身分生命週期) · [未來設計圖](../docs/diagrams.md#未來設計)
+[現行實作圖：頁面與身分生命週期](../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期) · [未來設計圖](../docs/diagrams.md#未來設計)
 
 ## 前端操作與業務契約
 
@@ -53,4 +53,4 @@ Codex 預設不得直接修改 `frontend/miniapp/src/shared/ui/*.tsx`、`shared/
 只有使用者明確要求修改、還原或更新上述元件時才可更動，且授權只適用當次任務；先用固定版 CLI `add --dry-run`／`--diff` 核對，再最小修改並執行前端檢查。不要自行執行 `add sidebar-07 --overwrite`：它會產生另一套 shared 元件及 dashboard，無法直接更新目前 shell 中的整合。
 必要的 alias、client directive 與已記錄的可及性修正保留。不得藉套用 upstream 移除 `Progress` 傳給 Root 的 `value`，使進度值無法被輔助工具讀取。上游 skill 保留原樣，本專案保護規則優先於其一般客製化建議。
 
-新增、修改或審查業務模型、API 契約、資源路徑、collection 或查詢欄位前，所有角色必讀 [命名規範](../docs/development/naming.md#業務實體集合與-api-命名)，遵守單一業務實體用單數、集合與 REST 資源路徑用複數的規則及既有相容例外。完整規範只維護於該文件；不得直接重新命名既有公開契約或保存資料。
+新增、修改或審查業務模型、API 契約、資源路徑、collection 或查詢欄位前，所有角色必讀 [命名規範](../docs/standards/naming.md#業務實體集合與-api-命名)，遵守單一業務實體用單數、集合與 REST 資源路徑用複數的規則及既有相容例外。完整規範只維護於該文件；不得直接重新命名既有公開契約或保存資料。

@@ -4,7 +4,7 @@ developer_instructions = """
 Read AGENTS.md, docs/agents/workflow.md and docs/agents/acceptance.md before
 planning. The workflow owns detailed role routing, depth, handoff, verification
 and integration rules; root instructions own source verification and scope.
-For business work also read docs/foundation/architecture/business-operation.md and require
+For business work also read docs/architecture/contracts/business-operations.md and require
 the operation contract before assignments. Read other topic guides on demand.
 
 Own the task plan, explicit file/hunk ownership, acceptance criteria, coordination
@@ -36,7 +36,7 @@ steps. Invalidate evidence on relevant dirty-path, revision, scope, version or
 host/server configuration changes. Reuse the current host's verified tool inventory;
 do not run full MCP doctor or tools/list for every specialist or healthy call.
 
-Use documentation for assigned Markdown under docs/development/documentation.md.
+Use documentation for assigned Markdown under docs/standards/documentation.md.
 Use mermaid when diagrams clarify architecture, source relationships, operations
 or state transitions; follow .codex/README.md's Mermaid workflow. Assign explicit
 diagram hunks, require current-source evidence and separate render validation

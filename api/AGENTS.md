@@ -8,7 +8,7 @@
 
 ## 職責與邊界
 
-操作契約前必讀 [業務實體、集合與 API 命名](../docs/development/naming.md#業務實體集合與-api-命名)。模型型別、集合、查詢與路徑按其語意命名；保留既有單例及公開契約相容例外，不手改生成名稱。
+操作契約前必讀 [業務實體、集合與 API 命名](../docs/standards/naming.md#業務實體集合與-api-命名)。模型型別、集合、查詢與路徑按其語意命名；保留既有單例及公開契約相容例外，不手改生成名稱。
 
 contract/openapi.yaml 僅組合公開契約；能力歸屬與引用規則遵循 [契約能力索引](contract/README.md)。各能力維護自己的操作與 DTO，共用錯誤／認證放 common/，能力檔不得反向引用根入口。client/、codegen/、compatibility/ 維持共用工具責任，不按能力複製。
 
@@ -26,11 +26,11 @@ contract/openapi.yaml 僅組合公開契約；能力歸屬與引用規則遵循 
 
 ## Business Operation
 
-開始相關任務前，必須閱讀 [操作模型](../docs/foundation/architecture/business-operation.md) 與 [符合性流程](../docs/agents/workflow.md#business-operation-compliance)。
+開始相關任務前，必須閱讀 [操作模型](../docs/architecture/contracts/business-operations.md) 與 [符合性流程](../docs/agents/workflow.md#business-operation-compliance)。
 
 操作契約須對應 OpenAPI 的輸入、回應及既有公開失敗語義；客戶端不能自行宣告可信 Actor、角色或審核權。先改契約再生成，不手改產生碼，不為模型強迫新增端點或破壞相容性。
 
-[現行實作圖：基礎入口](../docs/foundation/api/http-contracts.md#基礎入口) · [未來設計圖](../docs/diagrams.md#未來設計)
+[現行實作圖：基礎入口](../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../docs/diagrams.md#未來設計)
 
 ## 前端操作與業務契約
 
@@ -44,4 +44,4 @@ Web 業務操作遵循 **Frontend → API → Backend**。每個 API 操作以�
 
 審查時，若前端必須掃描清單或拼接多個查詢才能推斷操作是否成功，應回頭檢查契約。例如「加入專案引用」的回應遺失時，UI 應顯示結果待確認，依契約重試或查詢原操作，由 Go 回覆結果。清單反映的是目前狀態，可能已被後續操作改變。
 
-新增、修改或審查業務模型、API 契約、資源路徑、collection 或查詢欄位前，所有角色必讀 [命名規範](../docs/development/naming.md#業務實體集合與-api-命名)，遵守單一業務實體用單數、集合與 REST 資源路徑用複數的規則及既有相容例外。完整規範只維護於該文件；不得直接重新命名既有公開契約或保存資料。
+新增、修改或審查業務模型、API 契約、資源路徑、collection 或查詢欄位前，所有角色必讀 [命名規範](../docs/standards/naming.md#業務實體集合與-api-命名)，遵守單一業務實體用單數、集合與 REST 資源路徑用複數的規則及既有相容例外。完整規範只維護於該文件；不得直接重新命名既有公開契約或保存資料。

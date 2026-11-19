@@ -1,0 +1,21 @@
+sequenceDiagram
+    actor User as 工程人員
+    participant LINE as LINE 群組
+    participant Go as Cloud Run Go
+    participant App as MINI App
+    participant DB as Firestore
+
+    User->>LINE: 點選工程管理卡片
+    LINE->>App: 開啟 MINI App 連結
+    App->>Go: 提交啟動參照與 LINE ID Token
+    Go->>Go: 驗證 Token / Channel
+    Go->>DB: 查詢啟動參照對應的 GroupID
+    Go->>DB: 查詢 GroupID 對應 RepositoryID
+    Go->>LINE: 查核 UserID 的群組成員資格
+    LINE-->>Go: 成員核驗結果
+    Go->>Go: 檢查 Resource / Action / Policy
+    Go-->>App: 建立 Session / 返回授權範圍
+    App->>Go: 載入 Repository 資料
+    Go->>DB: 讀取庫內工區與物件，以及群組有權查看的 Project
+    DB-->>Go: 業務資料
+    Go-->>App: 顯示工程管理畫面

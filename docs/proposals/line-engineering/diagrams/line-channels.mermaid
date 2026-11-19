@@ -1,0 +1,18 @@
+flowchart TD
+    P["Provider · 同一服務提供者"]
+
+    M["Messaging API Channel"]
+    A["LINE MINI App Channel"]
+
+    OA["LINE Official Account"]
+    BOT["Webhook / Reply / Push"]
+    MINI["LIFF ID / MINI App URL"]
+    ID["LINE UserID · 同 Provider 識別"]
+
+    P --> M
+    P --> A
+    M --> OA
+    M --> BOT
+    A --> MINI
+    M -.-> ID
+    A -.-> ID

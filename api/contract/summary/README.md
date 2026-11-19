@@ -1,7 +1,7 @@
 # Summary 既有入口契約
 
 本文件描述既有 LINE／內部工作入口，不加入公開 OpenAPI、不產生瀏覽器 client。
-完整產品規則與資料保存方式見 [群聊摘要](../../../docs/features/summary/summary.md)。
+完整產品規則與資料保存方式見 [群聊摘要](../../../docs/domains/summary.md)。
 
 | 能力 | 入口與可信來源 | 輸入、規則與結果 | 後端 |
 | --- | --- | --- | --- |
@@ -16,4 +16,4 @@ worker 保持現有回應：204 無內容；401 unauthorized；400 invalid job�
 
 沒有既有 MINI App 畫面或公開 Summary HTTP API；不得把此內部工作端點當成瀏覽器 API。
 
-[現行實作圖：資料與可靠性](../../../docs/features/summary/summary.md#資料與可靠性) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：資料與可靠性](../../../docs/domains/summary.md#資料與可靠性) · [未來設計圖](../../../docs/diagrams.md#未來設計)

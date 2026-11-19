@@ -3,8 +3,8 @@ description = "Create and maintain source-backed project diagrams with Mermaid; 
 developer_instructions = """
 Read AGENTS.md, .codex/README.md (Mermaid section), docs/agents/workflow.md,
 docs/agents/acceptance.md and applicable nested instructions. For Markdown read
-docs/development/documentation.md. For business diagrams read
-docs/foundation/architecture/business-operation.md and the workflow's compliance section.
+docs/standards/documentation.md. For business diagrams read
+docs/architecture/contracts/business-operations.md and the workflow's compliance section.
 Accept a focused diagram question, owned files/hunks, source revision, relevant
 dirty paths and acceptance criteria; do not delegate or expand the assignment.
 
@@ -14,12 +14,12 @@ and corroborate relationships against current source; use scoped Repomix evidenc
 when useful. Graphs, bundles and rendered diagrams are not correctness proofs.
 Follow root official-source/Context7 routing for uncertain technical syntax.
 
-Read only the relevant feature contracts: docs/features/repository/repository.md,
-docs/features/repository/objects.md, docs/features/repository/subobjects.md, docs/features/repository/issues.md,
-docs/features/repository/discussions.md and docs/features/project/projects.md. Preserve these bounds:
+Read only the relevant feature contracts: docs/domains/repository/README.md,
+docs/domains/repository/objects.md, docs/domains/repository/objects.md, docs/domains/repository/issues.md,
+docs/domains/repository/discussions.md and docs/domains/project.md. Preserve these bounds:
 Repository owns source data; Project provides an execution view through references.
 Verify owner and cross-repository relationships against the Project contract and
-docs/features/repository/spaces.md before drawing Group or Space nodes.
+docs/domains/repository/spaces.md before drawing Group or Space nodes.
 Subobjects form one level under Object; parent/child progress and units remain
 independent. Issue state and Discussion conclusions do not update object progress.
 Project references object/subobject/issue/discussion without copying authority;

@@ -1,0 +1,98 @@
+# 物件自動匯入
+
+<a id="物件自動匯入"></a>
+
+```mermaid
+flowchart LR
+  h["物件自動匯入"]
+  h --- n0["先選整批「施作／非施作」，再選文字型 PDF 後<br/>，瀏覽器擷取支援版型的明細，伺服器以單一 <br/>OpenAI 模型產生候選、驗證並自動保存為物件。<br/>結果可由既有物件詳情編修；正常流程不要求另存<br/>草稿、人工審查或確認建立。這是受控工作流程，<br/>模型不能直接操作資料庫或決定權限。"]
+```
+
+<a id="使用與資料邊界"></a>
+
+```mermaid
+flowchart LR
+  h["使用與資料邊界"]
+  h --- n0["在儲存庫「物件」先選「整批類型」（施作／非施<br/>作），再選「選擇PDF並匯入」。預選施作可見且<br/>可改，整批先套此類型，匯入後可逐筆編修；不是<br/>模型分類或server替使用者選類型。選檔處明示會<br/>將明細文字經伺服器傳送至 OpenAI；使用者選檔<br/>才啟動處理，不另外要求兩個勾選或手填來源／版<br/>本。"]
+  h --- n1["原 PDF 僅在瀏覽器處理，不上傳或永久保存全文<br/>。只支援可辨識明細表頭與結尾的文字訂單；本機<br/>依座標保留項次、品名／說明、數量與單位，排除<br/>右側價格欄、頁首與表外條款。未知版型明確拒絕<br/>，不退回外傳全文；不支援掃描 OCR、密碼 PDF <br/>或任意文件格式。"]
+  h --- n2["檔案最多 10 MiB、50 頁，明細文字合計 128 KiB<br/>、單頁 32 KiB；本機擷取有 30 秒截止。PDF.js <br/>legacy build 與 worker／字型／CMap／WASM 同<br/>源自託管，不執行 PDF JavaScript、XFA、附件或<br/>外部 URI。"]
+  h --- n3["類型隨原請求body／key凍結，抽取、未知結果或<br/>部分成功期間不能更換；來源識別自動使用原件雜<br/>湊，版次僅取文件內明示值，不以檔名或雜湊冒充<br/>商務版本。不確定版次留空；模型只收到必要明細<br/>頁文，不需要訂單號或檔名。"]
+  h --- n4["新自動路徑的AI只回傳name、quantity、unit及安<br/>全追溯用sourceItemNo／pages，不回傳type、<br/>description、materialCode；不要求模型重抄長<br/>引文作為入庫門檻。頁參照與欄位有效不代表模型<br/>解讀或原件真實性已認證，AI仍可能漏項或誤解，<br/>使用者可檢查結果並編修；completed只表示已凍<br/>結候選全部建立，不認證原件所有項次皆已辨識。"]
+  h --- n5["伺服器沿用 OPENAI_API_KEY 與既有 Secret <br/>reference；OBJECT_IMPORT_MODEL 可選，預設 <br/>gpt-4.1-mini。金鑰不進瀏覽器。本機替身與測試<br/>不能證明正式模型、LINE 或手機環境已驗收。"]
+```
+
+<a id="自動匯入操作契約"></a>
+
+```mermaid
+flowchart LR
+  h["自動匯入操作契約"]
+  h --- n0["權威 HTTP 契約為 object-imports.yaml。新增 <br/>POST /api/v1/repositories/{repositoryId}<br/>/object-import-runs 與 GET .../{id}，舊 API <br/>語意保持相容。"]
+  click n0 "../../../api/contract/object-import/object-imports.yaml"
+```
+
+```mermaid
+flowchart LR
+  h["自動匯入操作契約"]
+  h --- n0["欄位：Actor／Resource／Action<br/>自動匯入／重試：Session／Bearer 可信本人；指<br/>定 Repository 的匯入執行；解析並建立物件<br/>查看結果：同本人、同儲存庫的執行結果"]
+  h --- n1["欄位：Context／Authority<br/>自動匯入／重試：當下群組成員、啟用容器；<br/>Idempotency-Key 與提交來源內容<br/>查看結果：當下成員、啟用容器且為執行建立者"]
+  h --- n2["欄位：Policy／Decision<br/>自動匯入／重試：驗證全部候選後才凍結；模型不<br/>能指定 actor、狀態、ID 或建立鍵；每項次一筆<br/>，不依數量拆分<br/>查看結果：不揭露其他本人／儲存庫的執行"]
+  h --- n3["欄位：Result<br/>自動匯入／重試：pending 尚無候選快照；<br/>processing 已凍結候選且建立中；completed 全<br/>部結果映射完成。安全 reason 說明可重試失敗<br/>查看結果：回傳保存快照、每列已建立 ID 與尚未<br/>完成結果"]
+  h --- n4["欄位：重送／併發<br/>自動匯入／重試：同本人／儲存庫／鍵與內容（含<br/>所選type）回同一執行；同鍵異內容或異類型409<br/>。只有首個候選快照可凍結，競爭者必須沿用贏家<br/>的列與鍵<br/>查看結果：讀取不重新解析"]
+  h --- n5["欄位：Audit／保存<br/>自動匯入／重試：保存來源指紋、建立者／時間、<br/>候選與逐列結果；不保存原 PDF、整份頁文、金鑰<br/>或模型原始回覆<br/>查看結果：不額外記錄原文或個資"]
+```
+
+```mermaid
+flowchart LR
+  h["自動匯入操作契約"]
+  h --- n0["候選遵循 物件欄位規則：正十進位數量字串、原<br/>單位不換算、類型只能由使用者此次選擇灌入、同<br/>執行項次不可重複。施作初始完成數0與<br/>not_started僅由後端物件建立服務設定；非施作<br/>不給完成數，畫面狀態／進度不適用。AI不再依費<br/>用、章節或內容推斷類型；新列description／<br/>materialCode留空，不刪改舊凍結列的既有資料。<br/>舊人工草稿自由type保持相容。模型或輸入失敗不<br/>建立無效物件；不同建立鍵仍可能重複同份文件，<br/>不宣稱全文件去重。"]
+  click n0 "objects.md"
+  h --- n1["現行實作"]
+```
+
+```mermaid
+stateDiagram-v2
+  pending --> processing: 驗證並凍結候選，確認有足夠容量保存所有結果 ID
+  processing --> processing: 部分成功或回覆遺失時只續跑原快照
+  processing --> completed: 全部列的結果 ID 已保存
+```
+
+```mermaid
+flowchart LR
+  h["自動匯入操作契約"]
+  h --- n0["模型呼叫在交易外。凍結後逐列呼叫唯一的 <br/>object.Service.Create，沿用穩定建立鍵與結果<br/>映射。續跑時跳過已建立物件並沿用凍結候選。每<br/>列獨立提交，畫面分別顯示已建立與待重試數量。"]
+  h --- n1["瀏覽器僅在目前頁面記憶體保留未確認請求 body<br/>／鍵；不保存原文至 localStorage。回覆不明時<br/>請在原頁重試，不宣稱重新整理後可恢復原意圖。<br/>首次明確回傳 pending、尚無候選及物件且從未結<br/>果不明時，可更換PDF；已建立部分結果或曾結果<br/>不明則沿用原意圖續跑。"]
+  h --- n2["當下成員資格由外部服務觀察，無法與 Firestore<br/> 形成原子快照；交易仍核對容器啟用與群組綁定<br/>。不能以畫面或模型輸出取代後端授權。"]
+```
+
+<a id="舊自動執行相容"></a>
+
+```mermaid
+flowchart LR
+  h["舊自動執行相容"]
+  h --- n0["creation.type在公開schema維持optional以接收<br/>舊body，但新意圖必須明確提供work／non_work；<br/>缺值在任何新保存／模型呼叫前拒絕，不能暗中預<br/>設。run ID方向不變，新意圖指紋v2綁定所選type<br/>。"]
+  h --- n1["舊v1已凍結的processing／completed執行，原本<br/>缺type的相同source指紋仍能沿舊列續跑，不再解<br/>析、不改類型；帶新type套舊key視為不同意圖409<br/>。舊pending尚未指定類型時明確提示重新選擇並<br/>建立新意圖，保留舊資料，不猜類型、不宣稱其他<br/>舊請求必定未提交，也不擴張跨key文件去重承諾<br/>。"]
+```
+
+<a id="相容的人工草稿-api"></a>
+
+```mermaid
+flowchart LR
+  h["相容的人工草稿 API"]
+  h --- n0["既有 /object-imports/parse 仍只產生候選，不<br/>改成寫入。/object-imports、/{id}、/{id}<br/>/review、/{id}/confirm 仍保留人工草稿／逐字<br/>引文／版本確認與原有儲存格式，供既有客戶端相<br/>容；新畫面不偽造人工審查紀錄，也不要求新流程<br/>經過這些步驟。"]
+  h --- n1["舊草稿存於 channels/{channelId}<br/>/repositories/{repositoryId}/objectImports/{<br/>id}；新自動執行存於同儲存庫的 <br/>objectImportRuns/{id}。不自動刪除舊資料或配<br/>置 TTL，不宣稱業務資料已實體清除。"]
+```
+
+<a id="驗收界線"></a>
+
+```mermaid
+flowchart LR
+  h["驗收界線"]
+  h --- n0["以脫敏資料與 fake HTTP provider 驗證候選有效<br/>性、權限／跨儲存庫、同鍵內容衝突、候選凍結競<br/>爭、部分成功與未知結果重試；以真本機 <br/>Firestore emulator 驗交易與結果映射。真 PDF <br/>只做本機擷取驗證，不將商業內容放入 repo／公<br/>開 fixture 或傳至模型。正式 OpenAI、LINE 與<br/>手機驗收另列，不能用替身、emulator 或 build <br/>冒稱通過。"]
+  h --- n1["物件規格 · 功能索引 · 操作模型"]
+  n1 --- n1l0["物件規格"]
+  click n1l0 "objects.md"
+  n1 --- n1l1["功能索引"]
+  click n1l1 "../README.md"
+  n1 --- n1l2["操作模型"]
+  click n1l2 "../../architecture/contracts/business-operations.md"
+```

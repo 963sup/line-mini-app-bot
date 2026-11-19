@@ -1,6 +1,6 @@
 # HTTP API 契約
 
-工程群組／Project新增獨立入口；既有Repository-scoped Project路由由相容adapter呼叫同一用例，來源識別不再代表專案擁有權。資料與授權／相容界線見 [獨立Project](../docs/features/project/projects.md)，契約及生成碼仍遵循本頁流程，不手改generated檔。
+工程群組／Project新增獨立入口；既有Repository-scoped Project路由由相容adapter呼叫同一用例，來源識別不再代表專案擁有權。資料與授權／相容界線見 [獨立Project](../docs/domains/project.md)，契約及生成碼仍遵循本頁流程，不手改generated檔。
 
 [contract/openapi.yaml](contract/openapi.yaml) 是公開 HTTP 契約的唯一組合入口。各能力維護自己的操作與格式，共用錯誤與認證位於 `contract/common/`；歸屬見[契約能力索引](contract/README.md)。不手改產生檔，業務核心不 import 生成套件。
 
@@ -27,7 +27,7 @@ bash scripts/tooling/tool-exec.sh pnpm api:generate
 bash scripts/tooling/tool-exec.sh pnpm api:check
 ```
 
-瀏覽器控制器與 SessionProvider 的認證請求見 [React 前端生命週期](../docs/foundation/frontend/react-frontend.md)。
+瀏覽器控制器與 SessionProvider 的認證請求見 [React 前端生命週期](../docs/architecture/runtime/react-lifecycle.md)。
 
 ## 相容性與 CI
 
@@ -37,7 +37,7 @@ api:check 驗證目前的 OpenAPI 契約、路由與產生碼同步。
 
 ## 保持的資料語意
 
-- 工時新增出勤、暫估合計與確認狀態；既有 Minutes 仍為已確認淨工時。EstimatedMinutes 已含 Minutes，不可重複相加，見 [工時計算](../docs/features/attendance/worktime.md)。
+- 工時新增出勤、暫估合計與確認狀態；既有 Minutes 仍為已確認淨工時。EstimatedMinutes 已含 Minutes，不可重複相加，見 [工時計算](../docs/domains/attendance/worktime.md)。
 - 原有大小寫保留：班次回應為 RecordID/ClockInAt 等；更正輸入為 recordId/start 等。
 - null 與空陣列分開描述並保留。時間為 RFC3339；月份依 Asia/Taipei 解讀，跨月計算與完整摘要仍由出勤核心決定。
 - 座標使用 double，避免 Go 生成 float32 導致精度改變。工時 Duration 保留既有奈秒整數格式，Minutes 是已計算分鐘。
@@ -80,30 +80,30 @@ Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄
 ## 相關文件
 
 - [文件索引：API](../docs/README.md#按模組閱讀)
-- [Session 與滑動續期](../docs/foundation/identity/browser-session.md)
-- [HTTP 契約設計](../docs/foundation/api/http-contracts.md)
-- [資料契約](../docs/foundation/persistence/data-contracts.md)
-- [出勤查詢與更正](../docs/features/attendance/queries.md)
+- [Session 與滑動續期](../docs/architecture/identity/browser-session.md)
+- [HTTP 契約設計](../docs/architecture/contracts/http.md)
+- [資料契約](../docs/proposals/firestore-data-contracts.md)
+- [出勤查詢與更正](../docs/domains/attendance/queries.md)
 
-- [群組請假登記](../docs/features/attendance/leave.md)
+- [群組請假登記](../docs/domains/attendance/leave.md)
 
-- [目前模組與責任](../docs/foundation/architecture/layout.md)
+- [目前模組與責任](../docs/architecture/runtime/code-layout.md)
 
 ## Business 入口分類
 
 公開 HTTP 能力為 Identity、Repository、Issue、Discussion、Attendance；Summary、Weather 描述既有事件／內部工作入口，不加入公開 codegen，也不新增 HTTP 端點。各能力來源與依賴見 [契約能力索引](contract/README.md)。
 
-- [群組 Repository](../docs/features/repository/repository.md)
-- [空間標籤目錄](../docs/features/repository/labels.md)：目錄列出／建立，分類沿用 Issue／Discussion 更新；不含改名或刪除。
-- [空間事項第一階段](../docs/features/repository/issues.md)：已接入公開 Issue 契約與生成型別；正式環境待驗收。
-- [空間討論與留言](../docs/features/repository/discussions.md)：主題及單層留言契約，作者編輯。
+- [群組 Repository](../docs/domains/repository/README.md)
+- [空間標籤目錄](../docs/domains/repository/labels.md)：目錄列出／建立，分類沿用 Issue／Discussion 更新；不含改名或刪除。
+- [空間事項第一階段](../docs/domains/repository/issues.md)：已接入公開 Issue 契約與生成型別；正式環境待驗收。
+- [空間討論與留言](../docs/domains/repository/discussions.md)：主題及單層留言契約，作者編輯。
 
-- [Repository、Issue 與 Discussion 模型及 Connection 分頁規劃](../docs/planning/domain-model.md)：未來設計參考，現行 OpenAPI 契約維持原狀。
+- [Repository、Issue 與 Discussion 模型及 Connection 分頁規劃](../docs/proposals/platform/domain-model.md)：未來設計參考，現行 OpenAPI 契約維持原狀。
 
-- [里程碑](../docs/features/repository/milestones.md)、[Project](../docs/features/project/projects.md)與[統計](../docs/features/repository/statistics.md)：正式契約與三層接線。
+- [里程碑](../docs/domains/repository/milestones.md)、[Project](../docs/domains/project.md)與[統計](../docs/domains/repository/statistics.md)：正式契約與三層接線。
 
 ## 協作能力分佈與交付狀態
 
 已接線與規劃中的操作以[能力清單](capabilities.json)為準，各操作的請求與回應見 [OpenAPI 契約](contract/openapi.yaml)。
 
-[現行實作圖：基礎入口](../docs/foundation/api/http-contracts.md#基礎入口) · [未來設計圖](../docs/diagrams.md#未來設計)
+[現行實作圖：基礎入口](../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../docs/diagrams.md#未來設計)

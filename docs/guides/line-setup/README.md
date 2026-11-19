@@ -1,0 +1,26 @@
+# Go LINE 接入：啟動
+
+```mermaid
+flowchart LR
+  h["Go LINE 接入：啟動"]
+  h --- scope["官方 Go SDK；版本見 backend/go.mod。已接入 Webhook、MINI App Session、Firestore 出勤／請假及 Cloud Tasks 摘要。群組角色管理、Service Message 與常駐 Worker 不在此範圍。"]
+  h --- n0["bash scripts/tooling/tool-exec.sh mise run dev"]
+  h --- n1["PORT 預設 8080，不自動讀 .env。保留 /location<br/>定位示範，沒有健康檢查路由。 Messaging API 與 MINI App<br/>分別啟用；各組全缺時停用、部分缺失時啟動失敗。 設定名稱與 Channel 分離規則見 LINE<br/>環境變數（../../architecture/integrations/line-environment.md）。"]
+```
+
+<a id="firestore-唯讀連線"></a>
+
+```mermaid
+flowchart LR
+  a["接入後要驗證什麼？"]
+  a --- n0["Webhook 與指令"]
+  click n0 "webhook.md"
+  a --- n1["MINI App 與 Session"]
+  click n1 "session.md"
+  a --- n2["建立或替換 Rich Menu"]
+  click n2 "rich-menu.md"
+  a --- n3["測試 Firestore 唯讀連線"]
+  click n3 "../local-development/firestore-read-check.md"
+  a --- n4["歷史查證與環境限制"]
+  click n4 "references.md"
+```

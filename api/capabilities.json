@@ -5,91 +5,91 @@
       "contract": "identity/identity.yaml",
       "adapter": "backend/internal/identity/http/identity.go",
       "core": "backend/internal/identity/session/session.go",
-      "specification": "docs/foundation/identity/browser-session.md"
+      "specification": "docs/foundation/identity_browser-session.md"
     },
     "repository": {
       "contract": "repository/repositories.yaml",
       "adapter": "backend/internal/business/repository/http/routes.go",
       "core": "backend/internal/business/repository/repository.go",
-      "specification": "docs/features/repository/repository.md"
+      "specification": "docs/features/repository_repository.md"
     },
     "attendance.punch": {
       "contract": "attendance/punch.yaml",
       "adapter": "backend/internal/business/attendance/http/attendance_launch.go",
       "core": "backend/internal/business/attendance/punch/ports.go",
-      "specification": "docs/features/attendance/attendance.md"
+      "specification": "docs/features/attendance_attendance.md"
     },
     "attendance.records": {
       "contract": "attendance/records.yaml",
       "adapter": "backend/internal/business/attendance/http/records.go",
       "core": "backend/internal/business/attendance/records/ports.go",
-      "specification": "docs/features/attendance/queries.md"
+      "specification": "docs/features/attendance_queries.md"
     },
     "attendance.corrections": {
       "contract": "attendance/corrections.yaml",
       "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
       "core": "backend/internal/business/attendance/corrections/correction.go",
-      "specification": "docs/features/attendance/queries.md"
+      "specification": "docs/features/attendance_queries.md"
     },
     "attendance.approvals": {
       "contract": "attendance/approvals.yaml",
       "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
       "core": "backend/internal/business/attendance/approvals/approval.go",
-      "specification": "docs/features/attendance/queries.md"
+      "specification": "docs/features/attendance_queries.md"
     },
     "attendance.leave": {
       "contract": "attendance/leave.yaml",
       "adapter": "backend/internal/business/attendance/http/leave.go",
       "core": "backend/internal/business/attendance/leave/leave.go",
-      "specification": "docs/features/attendance/leave.md"
+      "specification": "docs/features/attendance_leave.md"
     },
     "attendance.worktime": {
       "contract": "attendance/worktime.yaml",
       "adapter": "backend/internal/business/attendance/http/records.go",
       "core": "backend/internal/business/attendance/worktime/worktime.go",
-      "specification": "docs/features/attendance/worktime.md"
+      "specification": "docs/features/attendance_worktime.md"
     },
     "summary.summarization": {
       "contract": "summary/worker.yaml",
       "adapter": "backend/internal/business/summary/summarization/http/summary.go",
       "core": "backend/internal/business/summary/summarization/summary.go",
-      "specification": "docs/features/summary/summary.md"
+      "specification": "docs/features/summary_summary.md"
     },
     "summary.messagecollection": {
       "kind": "event",
       "document": "api/contract/summary/README.md",
       "core": "backend/internal/business/summary/messagecollection/message.go",
-      "specification": "docs/features/summary/summary.md"
+      "specification": "docs/features/summary_summary.md"
     },
     "weather.forecast": {
       "kind": "event",
       "document": "api/contract/weather/README.md",
       "core": "backend/internal/business/weather/forecast/forecast.go",
-      "specification": "docs/features/weather/weather.md"
+      "specification": "docs/features/weather_weather.md"
     },
     "attendance.board": {
       "kind": "event",
-      "document": "docs/features/attendance/board.md",
+      "document": "docs/features/attendance_board.md",
       "core": "backend/internal/business/attendance/board/board.go",
-      "specification": "docs/features/attendance/board.md"
+      "specification": "docs/features/attendance_board.md"
     },
     "repository.labels": {
       "contract": "repository/labels.yaml",
       "adapter": "backend/internal/business/repository/labels/http/routes.go",
       "core": "backend/internal/business/repository/labels/labels.go",
-      "specification": "docs/features/repository/labels.md"
+      "specification": "docs/features/repository_labels.md"
     },
     "repository.milestones": {
       "contract": "repository/milestones.yaml",
       "adapter": "backend/internal/business/repository/milestones/http/routes.go",
       "core": "backend/internal/business/repository/milestones/milestone.go",
-      "specification": "docs/features/repository/milestones.md"
+      "specification": "docs/features/repository_milestones.md"
     },
     "issue": {
       "contract": "issue/issues.yaml",
       "adapter": "backend/internal/business/issue/http/routes.go",
       "core": "backend/internal/business/issue/issue.go",
-      "specification": "docs/features/repository/issues.md"
+      "specification": "docs/features/repository_issues.md"
     },
     "issue.types": {
       "kind": "scaffold",
@@ -107,7 +107,7 @@
       "contract": "discussion/discussions.yaml",
       "adapter": "backend/internal/business/discussion/http/routes.go",
       "core": "backend/internal/business/discussion/discussion.go",
-      "specification": "docs/features/repository/discussions.md"
+      "specification": "docs/features/repository_discussions.md"
     },
     "discussion.categories": {
       "kind": "scaffold",
@@ -119,19 +119,19 @@
       "contract": "discussion/comments.yaml",
       "adapter": "backend/internal/business/discussion/http/routes.go",
       "core": "backend/internal/business/discussion/discussion.go",
-      "specification": "docs/features/repository/discussions.md"
+      "specification": "docs/features/repository_discussions.md"
     },
     "project": {
       "contract": "project/projects.yaml",
       "adapter": "backend/internal/business/project/http/routes.go",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md"
+      "specification": "docs/features/project_projects.md"
     },
     "project.items": {
       "contract": "project/items.yaml",
       "adapter": "backend/internal/business/project/http/routes.go",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md"
+      "specification": "docs/features/project_projects.md"
     },
     "project.fields": {
       "kind": "scaffold",
@@ -149,61 +149,61 @@
       "contract": "repository/statistics.yaml",
       "adapter": "backend/internal/business/repository/statistics/http/routes.go",
       "core": "backend/internal/business/repository/statistics/statistics.go",
-      "specification": "docs/features/repository/statistics.md"
+      "specification": "docs/features/repository_statistics.md"
     },
     "group": {
       "contract": "group/groups.yaml",
       "adapter": "backend/internal/business/group/http/routes.go",
       "core": "backend/internal/business/group/group.go",
-      "specification": "docs/features/project/projects.md"
+      "specification": "docs/features/project_projects.md"
     },
     "project.group": {
       "contract": "project/owner-projects.yaml",
       "adapter": "backend/internal/business/project/http/routes.go",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md"
+      "specification": "docs/features/project_projects.md"
     },
     "object": {
       "contract": "object/objects.yaml",
       "adapter": "backend/internal/business/object/http/routes.go",
       "core": "backend/internal/business/object/object.go",
-      "specification": "docs/features/repository/objects.md"
+      "specification": "docs/features/repository_objects.md"
     },
     "objectimport": {
       "contract": "object-import/object-imports.yaml",
       "adapter": "backend/internal/business/objectimport/http/routes.go",
       "core": "backend/internal/business/objectimport/object_import.go",
-      "specification": "docs/features/repository/object-imports.md"
+      "specification": "docs/features/repository_object-imports.md"
     },
     "subobject": {
       "contract": "subobject/subobjects.yaml",
       "adapter": "backend/internal/business/subobject/http/routes.go",
       "core": "backend/internal/business/subobject/subobject.go",
-      "specification": "docs/features/repository/subobjects.md"
+      "specification": "docs/features/repository_objects.md"
     },
     "project.references": {
       "contract": "project/references.yaml",
       "adapter": "backend/internal/business/project/http/references.go",
       "core": "backend/internal/business/project/references.go",
-      "specification": "docs/features/project/projects.md"
+      "specification": "docs/features/project_projects.md"
     },
     "repository.spaces": {
       "contract": "repository/spaces.yaml",
       "adapter": "backend/internal/business/repository/space/http/routes.go",
       "core": "backend/internal/business/repository/space/space.go",
-      "specification": "docs/features/repository/spaces.md"
+      "specification": "docs/features/repository_spaces.md"
     },
     "journal": {
       "contract": "journal/journals.yaml",
       "adapter": "backend/internal/business/journal/http/routes.go",
       "core": "backend/internal/business/journal/service.go",
-      "specification": "docs/features/journal/design.md"
+      "specification": "docs/features/journal_design.md"
     },
     "project.inspections": {
       "contract": "project/inspection-submissions.yaml",
       "adapter": "backend/internal/business/project/http/inspections.go",
       "core": "backend/internal/business/project/inspections.go",
-      "specification": "docs/features/project/projects.md"
+      "specification": "docs/features/project_projects.md"
     }
   },
   "operations": [
@@ -216,7 +216,7 @@
       "adapter": "backend/internal/identity/http/identity.go",
       "handler": "GetMiniAppConfig",
       "core": "backend/internal/identity/session/session.go",
-      "specification": "docs/foundation/identity/browser-session.md",
+      "specification": "docs/foundation/identity_browser-session.md",
       "consumers": [
         "frontend/miniapp/src/identity/Session.tsx"
       ],
@@ -231,7 +231,7 @@
       "adapter": "backend/internal/identity/http/identity.go",
       "handler": "GetCurrentUser",
       "core": "backend/internal/identity/session/session.go",
-      "specification": "docs/foundation/identity/browser-session.md",
+      "specification": "docs/foundation/identity_browser-session.md",
       "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
@@ -244,7 +244,7 @@
       "adapter": "backend/internal/identity/http/identity.go",
       "handler": "CreateSession",
       "core": "backend/internal/identity/session/session.go",
-      "specification": "docs/foundation/identity/browser-session.md",
+      "specification": "docs/foundation/identity_browser-session.md",
       "consumers": [
         "frontend/miniapp/src/identity/Session.tsx"
       ],
@@ -259,7 +259,7 @@
       "adapter": "backend/internal/identity/http/identity.go",
       "handler": "DeleteSession",
       "core": "backend/internal/identity/session/session.go",
-      "specification": "docs/foundation/identity/browser-session.md",
+      "specification": "docs/foundation/identity_browser-session.md",
       "consumers": [
         "frontend/miniapp/src/identity/Session.tsx"
       ],
@@ -274,7 +274,7 @@
       "adapter": "backend/internal/identity/http/identity.go",
       "handler": "RefreshSession",
       "core": "backend/internal/identity/session/session.go",
-      "specification": "docs/foundation/identity/browser-session.md",
+      "specification": "docs/foundation/identity_browser-session.md",
       "consumers": [
         "frontend/miniapp/src/identity/Session.tsx"
       ],
@@ -289,7 +289,7 @@
       "adapter": "backend/internal/business/repository/http/routes.go",
       "handler": "ListRepositories",
       "core": "backend/internal/business/repository/repository.go",
-      "specification": "docs/features/repository/repository.md",
+      "specification": "docs/features/repository_repository.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/RepositoryContext.tsx"
       ],
@@ -304,7 +304,7 @@
       "adapter": "backend/internal/business/repository/http/routes.go",
       "handler": "GetRepository",
       "core": "backend/internal/business/repository/repository.go",
-      "specification": "docs/features/repository/repository.md",
+      "specification": "docs/features/repository_repository.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/RepositoryContext.tsx"
       ],
@@ -319,7 +319,7 @@
       "adapter": "backend/internal/business/attendance/http/attendance_launch.go",
       "handler": "ExchangeAttendanceLaunch",
       "core": "backend/internal/business/attendance/punch/ports.go",
-      "specification": "docs/features/attendance/attendance.md",
+      "specification": "docs/features/attendance_attendance.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/punch/usePunch.ts"
       ],
@@ -334,7 +334,7 @@
       "adapter": "backend/internal/business/attendance/http/punch.go",
       "handler": "SubmitAttendancePunch",
       "core": "backend/internal/business/attendance/punch/ports.go",
-      "specification": "docs/features/attendance/attendance.md",
+      "specification": "docs/features/attendance_attendance.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/punch/usePunch.ts"
       ],
@@ -349,7 +349,7 @@
       "adapter": "backend/internal/business/attendance/http/attendance_preflight.go",
       "handler": "PreflightAttendancePunch",
       "core": "backend/internal/business/attendance/punch/ports.go",
-      "specification": "docs/features/attendance/attendance.md",
+      "specification": "docs/features/attendance_attendance.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/punch/usePunch.ts"
       ],
@@ -364,7 +364,7 @@
       "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
       "handler": "ListAttendanceGroups",
       "core": "backend/internal/business/attendance/records/ports.go",
-      "specification": "docs/features/attendance/queries.md",
+      "specification": "docs/features/attendance_queries.md",
       "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
@@ -377,7 +377,7 @@
       "adapter": "backend/internal/business/attendance/http/records.go",
       "handler": "ListAttendanceGroupPage",
       "core": "backend/internal/business/attendance/records/ports.go",
-      "specification": "docs/features/attendance/queries.md",
+      "specification": "docs/features/attendance_queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/View.tsx",
         "frontend/miniapp/src/business/attendance/records/View.tsx"
@@ -393,7 +393,7 @@
       "adapter": "backend/internal/business/attendance/http/records.go",
       "handler": "ListAttendanceRecords",
       "core": "backend/internal/business/attendance/records/ports.go",
-      "specification": "docs/features/attendance/queries.md",
+      "specification": "docs/features/attendance_queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/records/View.tsx"
       ],
@@ -408,7 +408,7 @@
       "adapter": "backend/internal/business/attendance/http/records.go",
       "handler": "GetAttendanceRecord",
       "core": "backend/internal/business/attendance/records/ports.go",
-      "specification": "docs/features/attendance/queries.md",
+      "specification": "docs/features/attendance_queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/View.tsx"
       ],
@@ -423,7 +423,7 @@
       "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
       "handler": "GetAttendanceMonthlyReport",
       "core": "backend/internal/business/attendance/records/ports.go",
-      "specification": "docs/features/attendance/queries.md",
+      "specification": "docs/features/attendance_queries.md",
       "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
@@ -436,7 +436,7 @@
       "adapter": "backend/internal/business/attendance/http/records.go",
       "handler": "GetAttendanceMonthlySummary",
       "core": "backend/internal/business/attendance/records/ports.go",
-      "specification": "docs/features/attendance/queries.md",
+      "specification": "docs/features/attendance_queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/records/View.tsx"
       ],
@@ -451,7 +451,7 @@
       "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
       "handler": "ProposeAttendanceCorrection",
       "core": "backend/internal/business/attendance/corrections/correction.go",
-      "specification": "docs/features/attendance/queries.md",
+      "specification": "docs/features/attendance_queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/Requests.tsx",
         "frontend/miniapp/src/business/attendance/corrections/View.tsx"
@@ -467,7 +467,7 @@
       "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
       "handler": "ListAttendanceCorrections",
       "core": "backend/internal/business/attendance/corrections/correction.go",
-      "specification": "docs/features/attendance/queries.md",
+      "specification": "docs/features/attendance_queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/Requests.tsx",
         "frontend/miniapp/src/business/attendance/corrections/View.tsx"
@@ -483,7 +483,7 @@
       "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
       "handler": "GetAttendanceCorrectionStatus",
       "core": "backend/internal/business/attendance/corrections/correction.go",
-      "specification": "docs/features/attendance/queries.md",
+      "specification": "docs/features/attendance_queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/View.tsx"
       ],
@@ -498,7 +498,7 @@
       "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
       "handler": "CancelAttendanceCorrection",
       "core": "backend/internal/business/attendance/corrections/correction.go",
-      "specification": "docs/features/attendance/queries.md",
+      "specification": "docs/features/attendance_queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/Requests.tsx"
       ],
@@ -513,7 +513,7 @@
       "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
       "handler": "GetAttendanceCorrectionReview",
       "core": "backend/internal/business/attendance/approvals/approval.go",
-      "specification": "docs/features/attendance/queries.md",
+      "specification": "docs/features/attendance_queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/approvals/View.tsx"
       ],
@@ -528,7 +528,7 @@
       "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
       "handler": "ApproveAttendanceCorrection",
       "core": "backend/internal/business/attendance/approvals/approval.go",
-      "specification": "docs/features/attendance/queries.md",
+      "specification": "docs/features/attendance_queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/approvals/View.tsx"
       ],
@@ -543,7 +543,7 @@
       "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
       "handler": "RejectAttendanceCorrection",
       "core": "backend/internal/business/attendance/approvals/approval.go",
-      "specification": "docs/features/attendance/queries.md",
+      "specification": "docs/features/attendance_queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/approvals/View.tsx"
       ],
@@ -558,7 +558,7 @@
       "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
       "handler": "ListAttendanceReviewerGroups",
       "core": "backend/internal/business/attendance/approvals/approval.go",
-      "specification": "docs/features/attendance/queries.md",
+      "specification": "docs/features/attendance_queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/Requests.tsx"
       ],
@@ -573,7 +573,7 @@
       "adapter": "backend/internal/business/attendance/http/leave.go",
       "handler": "ListOwnLeaveRequests",
       "core": "backend/internal/business/attendance/leave/leave.go",
-      "specification": "docs/features/attendance/leave.md",
+      "specification": "docs/features/attendance_leave.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/leave/View.tsx"
       ],
@@ -588,7 +588,7 @@
       "adapter": "backend/internal/business/attendance/http/leave.go",
       "handler": "SubmitLeaveRequest",
       "core": "backend/internal/business/attendance/leave/leave.go",
-      "specification": "docs/features/attendance/leave.md",
+      "specification": "docs/features/attendance_leave.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/leave/View.tsx"
       ],
@@ -603,7 +603,7 @@
       "adapter": "backend/internal/business/summary/summarization/http/summary.go",
       "handler": "SummaryWorker",
       "core": "backend/internal/business/summary/summarization/summary.go",
-      "specification": "docs/features/summary/summary.md",
+      "specification": "docs/features/summary_summary.md",
       "consumers": [
         "backend/internal/business/summary/summarization/cloudtasks/queue.go"
       ],
@@ -618,7 +618,7 @@
       "adapter": "backend/internal/business/issue/http/routes.go",
       "handler": "ListIssues",
       "core": "backend/internal/business/issue/issue.go",
-      "specification": "docs/features/repository/issues.md",
+      "specification": "docs/features/repository_issues.md",
       "consumers": [
         "frontend/miniapp/src/business/issue/View.tsx",
         "frontend/miniapp/src/business/project/Items.tsx"
@@ -633,7 +633,7 @@
       "adapter": "backend/internal/business/issue/http/routes.go",
       "handler": "CreateIssue",
       "core": "backend/internal/business/issue/issue.go",
-      "specification": "docs/features/repository/issues.md",
+      "specification": "docs/features/repository_issues.md",
       "consumers": [
         "frontend/miniapp/src/business/issue/View.tsx"
       ]
@@ -647,7 +647,7 @@
       "adapter": "backend/internal/business/issue/http/routes.go",
       "handler": "GetIssue",
       "core": "backend/internal/business/issue/issue.go",
-      "specification": "docs/features/repository/issues.md",
+      "specification": "docs/features/repository_issues.md",
       "consumers": [
         "frontend/miniapp/src/business/issue/View.tsx"
       ]
@@ -661,7 +661,7 @@
       "adapter": "backend/internal/business/issue/http/routes.go",
       "handler": "UpdateIssue",
       "core": "backend/internal/business/issue/issue.go",
-      "specification": "docs/features/repository/issues.md",
+      "specification": "docs/features/repository_issues.md",
       "consumers": [
         "frontend/miniapp/src/business/issue/View.tsx"
       ]
@@ -675,7 +675,7 @@
       "adapter": "backend/internal/business/discussion/http/routes.go",
       "handler": "ListDiscussions",
       "core": "backend/internal/business/discussion/discussion.go",
-      "specification": "docs/features/repository/discussions.md",
+      "specification": "docs/features/repository_discussions.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/View.tsx"
       ]
@@ -689,7 +689,7 @@
       "adapter": "backend/internal/business/discussion/http/routes.go",
       "handler": "CreateDiscussion",
       "core": "backend/internal/business/discussion/discussion.go",
-      "specification": "docs/features/repository/discussions.md",
+      "specification": "docs/features/repository_discussions.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/View.tsx"
       ]
@@ -703,7 +703,7 @@
       "adapter": "backend/internal/business/discussion/http/routes.go",
       "handler": "GetDiscussion",
       "core": "backend/internal/business/discussion/discussion.go",
-      "specification": "docs/features/repository/discussions.md",
+      "specification": "docs/features/repository_discussions.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/View.tsx"
       ]
@@ -717,7 +717,7 @@
       "adapter": "backend/internal/business/discussion/http/routes.go",
       "handler": "UpdateDiscussion",
       "core": "backend/internal/business/discussion/discussion.go",
-      "specification": "docs/features/repository/discussions.md",
+      "specification": "docs/features/repository_discussions.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/View.tsx"
       ]
@@ -731,7 +731,7 @@
       "adapter": "backend/internal/business/discussion/http/routes.go",
       "handler": "ListDiscussionComments",
       "core": "backend/internal/business/discussion/discussion.go",
-      "specification": "docs/features/repository/discussions.md",
+      "specification": "docs/features/repository_discussions.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/Comments.tsx"
       ]
@@ -745,7 +745,7 @@
       "adapter": "backend/internal/business/discussion/http/routes.go",
       "handler": "CreateDiscussionComment",
       "core": "backend/internal/business/discussion/discussion.go",
-      "specification": "docs/features/repository/discussions.md",
+      "specification": "docs/features/repository_discussions.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/Comments.tsx"
       ]
@@ -759,7 +759,7 @@
       "adapter": "backend/internal/business/discussion/http/routes.go",
       "handler": "UpdateDiscussionComment",
       "core": "backend/internal/business/discussion/discussion.go",
-      "specification": "docs/features/repository/discussions.md",
+      "specification": "docs/features/repository_discussions.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/Comments.tsx"
       ]
@@ -773,7 +773,7 @@
       "adapter": "backend/internal/business/repository/labels/http/routes.go",
       "handler": "ListLabels",
       "core": "backend/internal/business/repository/labels/labels.go",
-      "specification": "docs/features/repository/labels.md",
+      "specification": "docs/features/repository_labels.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/labels/View.tsx",
         "frontend/miniapp/src/business/repository/labels/Picker.tsx"
@@ -788,7 +788,7 @@
       "adapter": "backend/internal/business/repository/labels/http/routes.go",
       "handler": "CreateLabel",
       "core": "backend/internal/business/repository/labels/labels.go",
-      "specification": "docs/features/repository/labels.md",
+      "specification": "docs/features/repository_labels.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/labels/View.tsx"
       ]
@@ -802,7 +802,7 @@
       "adapter": "backend/internal/business/repository/milestones/http/routes.go",
       "handler": "ListMilestones",
       "core": "backend/internal/business/repository/milestones/milestone.go",
-      "specification": "docs/features/repository/milestones.md",
+      "specification": "docs/features/repository_milestones.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx",
         "frontend/miniapp/src/business/repository/milestones/Picker.tsx"
@@ -817,7 +817,7 @@
       "adapter": "backend/internal/business/repository/milestones/http/routes.go",
       "handler": "CreateMilestone",
       "core": "backend/internal/business/repository/milestones/milestone.go",
-      "specification": "docs/features/repository/milestones.md",
+      "specification": "docs/features/repository_milestones.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx"
       ]
@@ -831,7 +831,7 @@
       "adapter": "backend/internal/business/repository/milestones/http/routes.go",
       "handler": "GetMilestone",
       "core": "backend/internal/business/repository/milestones/milestone.go",
-      "specification": "docs/features/repository/milestones.md",
+      "specification": "docs/features/repository_milestones.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx"
       ]
@@ -845,7 +845,7 @@
       "adapter": "backend/internal/business/repository/milestones/http/routes.go",
       "handler": "UpdateMilestone",
       "core": "backend/internal/business/repository/milestones/milestone.go",
-      "specification": "docs/features/repository/milestones.md",
+      "specification": "docs/features/repository_milestones.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx"
       ]
@@ -859,7 +859,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "ListProjects",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": []
     },
     {
@@ -871,7 +871,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "CreateProject",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": []
     },
     {
@@ -883,7 +883,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "GetProject",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": []
     },
     {
@@ -895,7 +895,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "UpdateProject",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": []
     },
     {
@@ -907,7 +907,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "ListProjectItems",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": []
     },
     {
@@ -919,7 +919,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "AddProjectItem",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": []
     },
     {
@@ -931,7 +931,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "RemoveProjectItem",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": []
     },
     {
@@ -943,7 +943,7 @@
       "adapter": "backend/internal/business/repository/statistics/http/routes.go",
       "handler": "GetRepositoryStatistics",
       "core": "backend/internal/business/repository/statistics/statistics.go",
-      "specification": "docs/features/repository/statistics.md",
+      "specification": "docs/features/repository_statistics.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/statistics/View.tsx"
       ]
@@ -957,7 +957,7 @@
       "adapter": "backend/internal/business/group/http/routes.go",
       "handler": "ListGroups",
       "core": "backend/internal/business/group/group.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Workspace.tsx"
       ]
@@ -971,7 +971,7 @@
       "adapter": "backend/internal/business/group/http/routes.go",
       "handler": "GetGroup",
       "core": "backend/internal/business/group/group.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Workspace.tsx"
       ]
@@ -985,7 +985,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "ListOwnerProjects",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": [
         "frontend/miniapp/src/business/project/View.tsx"
       ]
@@ -999,7 +999,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "CreateOwnerProject",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": [
         "frontend/miniapp/src/business/project/View.tsx"
       ]
@@ -1013,7 +1013,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "GetOwnerProject",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": [
         "frontend/miniapp/src/business/project/View.tsx"
       ]
@@ -1027,7 +1027,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "UpdateOwnerProject",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": [
         "frontend/miniapp/src/business/project/View.tsx"
       ]
@@ -1041,7 +1041,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "ListOwnerProjectItems",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": []
     },
     {
@@ -1053,7 +1053,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "AddOwnerProjectItem",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": []
     },
     {
@@ -1065,7 +1065,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "RemoveOwnerProjectItem",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": []
     },
     {
@@ -1077,7 +1077,7 @@
       "adapter": "backend/internal/business/object/http/routes.go",
       "handler": "ListObjects",
       "core": "backend/internal/business/object/object.go",
-      "specification": "docs/features/repository/objects.md",
+      "specification": "docs/features/repository_objects.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx"
       ]
@@ -1091,7 +1091,7 @@
       "adapter": "backend/internal/business/object/http/routes.go",
       "handler": "CreateObject",
       "core": "backend/internal/business/object/object.go",
-      "specification": "docs/features/repository/objects.md",
+      "specification": "docs/features/repository_objects.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx"
       ]
@@ -1105,7 +1105,7 @@
       "adapter": "backend/internal/business/object/http/routes.go",
       "handler": "GetObject",
       "core": "backend/internal/business/object/object.go",
-      "specification": "docs/features/repository/objects.md",
+      "specification": "docs/features/repository_objects.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx"
       ]
@@ -1119,7 +1119,7 @@
       "adapter": "backend/internal/business/object/http/routes.go",
       "handler": "UpdateObject",
       "core": "backend/internal/business/object/object.go",
-      "specification": "docs/features/repository/objects.md",
+      "specification": "docs/features/repository_objects.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx"
       ]
@@ -1133,7 +1133,7 @@
       "adapter": "backend/internal/business/objectimport/http/routes.go",
       "handler": "CreateObjectImport",
       "core": "backend/internal/business/objectimport/object_import.go",
-      "specification": "docs/features/repository/object-imports.md",
+      "specification": "docs/features/repository_object-imports.md",
       "consumers": []
     },
     {
@@ -1145,7 +1145,7 @@
       "adapter": "backend/internal/business/objectimport/http/routes.go",
       "handler": "GetObjectImport",
       "core": "backend/internal/business/objectimport/object_import.go",
-      "specification": "docs/features/repository/object-imports.md",
+      "specification": "docs/features/repository_object-imports.md",
       "consumers": []
     },
     {
@@ -1157,7 +1157,7 @@
       "adapter": "backend/internal/business/objectimport/http/routes.go",
       "handler": "ReviewObjectImport",
       "core": "backend/internal/business/objectimport/object_import.go",
-      "specification": "docs/features/repository/object-imports.md",
+      "specification": "docs/features/repository_object-imports.md",
       "consumers": []
     },
     {
@@ -1169,7 +1169,7 @@
       "adapter": "backend/internal/business/objectimport/http/routes.go",
       "handler": "ConfirmObjectImport",
       "core": "backend/internal/business/objectimport/object_import.go",
-      "specification": "docs/features/repository/object-imports.md",
+      "specification": "docs/features/repository_object-imports.md",
       "consumers": []
     },
     {
@@ -1181,7 +1181,7 @@
       "adapter": "backend/internal/business/objectimport/http/routes.go",
       "handler": "ParseObjectImport",
       "core": "backend/internal/business/objectimport/parsing/parsing.go",
-      "specification": "docs/features/repository/object-imports.md",
+      "specification": "docs/features/repository_object-imports.md",
       "consumers": []
     },
     {
@@ -1193,7 +1193,7 @@
       "adapter": "backend/internal/business/objectimport/http/automatic.go",
       "handler": "CreateObjectImportRun",
       "core": "backend/internal/business/objectimport/automatic/automatic.go",
-      "specification": "docs/features/repository/object-imports.md",
+      "specification": "docs/features/repository_object-imports.md",
       "consumers": [
         "frontend/miniapp/src/business/object/Import.tsx"
       ]
@@ -1207,7 +1207,7 @@
       "adapter": "backend/internal/business/objectimport/http/automatic.go",
       "handler": "GetObjectImportRun",
       "core": "backend/internal/business/objectimport/automatic/automatic.go",
-      "specification": "docs/features/repository/object-imports.md",
+      "specification": "docs/features/repository_object-imports.md",
       "consumers": []
     },
     {
@@ -1219,7 +1219,7 @@
       "adapter": "backend/internal/business/subobject/http/routes.go",
       "handler": "ListSubobjects",
       "core": "backend/internal/business/subobject/subobject.go",
-      "specification": "docs/features/repository/subobjects.md",
+      "specification": "docs/features/repository_objects.md",
       "consumers": []
     },
     {
@@ -1231,7 +1231,7 @@
       "adapter": "backend/internal/business/subobject/http/routes.go",
       "handler": "CreateSubobject",
       "core": "backend/internal/business/subobject/subobject.go",
-      "specification": "docs/features/repository/subobjects.md",
+      "specification": "docs/features/repository_objects.md",
       "consumers": []
     },
     {
@@ -1243,7 +1243,7 @@
       "adapter": "backend/internal/business/subobject/http/routes.go",
       "handler": "GetSubobject",
       "core": "backend/internal/business/subobject/subobject.go",
-      "specification": "docs/features/repository/subobjects.md",
+      "specification": "docs/features/repository_objects.md",
       "consumers": []
     },
     {
@@ -1255,7 +1255,7 @@
       "adapter": "backend/internal/business/subobject/http/routes.go",
       "handler": "UpdateSubobject",
       "core": "backend/internal/business/subobject/subobject.go",
-      "specification": "docs/features/repository/subobjects.md",
+      "specification": "docs/features/repository_objects.md",
       "consumers": []
     },
     {
@@ -1267,7 +1267,7 @@
       "adapter": "backend/internal/business/project/http/references.go",
       "handler": "ListProjectReferences",
       "core": "backend/internal/business/project/references.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Items.tsx"
       ]
@@ -1281,7 +1281,7 @@
       "adapter": "backend/internal/business/project/http/references.go",
       "handler": "AddProjectReference",
       "core": "backend/internal/business/project/references.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Items.tsx"
       ]
@@ -1295,7 +1295,7 @@
       "adapter": "backend/internal/business/project/http/references.go",
       "handler": "RemoveProjectReference",
       "core": "backend/internal/business/project/references.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Items.tsx"
       ]
@@ -1309,7 +1309,7 @@
       "adapter": "backend/internal/business/repository/space/http/routes.go",
       "handler": "ListRepositorySpaces",
       "core": "backend/internal/business/repository/space/space.go",
-      "specification": "docs/features/repository/spaces.md",
+      "specification": "docs/features/repository_spaces.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx"
       ]
@@ -1323,7 +1323,7 @@
       "adapter": "backend/internal/business/repository/space/http/routes.go",
       "handler": "CreateRepositorySpace",
       "core": "backend/internal/business/repository/space/space.go",
-      "specification": "docs/features/repository/spaces.md",
+      "specification": "docs/features/repository_spaces.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx"
       ]
@@ -1337,7 +1337,7 @@
       "adapter": "backend/internal/business/repository/space/http/routes.go",
       "handler": "GetRepositorySpace",
       "core": "backend/internal/business/repository/space/space.go",
-      "specification": "docs/features/repository/spaces.md",
+      "specification": "docs/features/repository_spaces.md",
       "consumers": []
     },
     {
@@ -1349,7 +1349,7 @@
       "adapter": "backend/internal/business/journal/http/routes.go",
       "handler": "ListJournals",
       "core": "backend/internal/business/journal/service.go",
-      "specification": "docs/features/journal/design.md",
+      "specification": "docs/features/journal_design.md",
       "consumers": [
         "frontend/miniapp/src/business/journal/Workspace.tsx"
       ]
@@ -1363,7 +1363,7 @@
       "adapter": "backend/internal/business/journal/http/routes.go",
       "handler": "CreateJournal",
       "core": "backend/internal/business/journal/service.go",
-      "specification": "docs/features/journal/design.md",
+      "specification": "docs/features/journal_design.md",
       "consumers": [
         "frontend/miniapp/src/business/journal/Workspace.tsx"
       ]
@@ -1377,7 +1377,7 @@
       "adapter": "backend/internal/business/journal/http/routes.go",
       "handler": "GetJournal",
       "core": "backend/internal/business/journal/service.go",
-      "specification": "docs/features/journal/design.md",
+      "specification": "docs/features/journal_design.md",
       "consumers": [
         "frontend/miniapp/src/business/journal/Workspace.tsx"
       ]
@@ -1391,7 +1391,7 @@
       "adapter": "backend/internal/business/project/http/inspections.go",
       "handler": "ListInspectionSubmissions",
       "core": "backend/internal/business/project/inspections.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Inspections.tsx"
       ]
@@ -1405,7 +1405,7 @@
       "adapter": "backend/internal/business/project/http/inspections.go",
       "handler": "SubmitInspection",
       "core": "backend/internal/business/project/inspections.go",
-      "specification": "docs/features/project/projects.md",
+      "specification": "docs/features/project_projects.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Inspections.tsx"
       ]
@@ -1415,7 +1415,7 @@
     {
       "owner": "repository",
       "action": "Observe",
-      "contract": "docs/features/repository/repository.md",
+      "contract": "docs/features/repository_repository.md",
       "adapter": "backend/internal/business/repository/line/observer.go",
       "handler": "Observe",
       "note": "Verified webhook drives the container lifecycle; no public create/update API."
@@ -1447,7 +1447,7 @@
     {
       "owner": "attendance.board",
       "action": "Board",
-      "contract": "docs/features/attendance/board.md",
+      "contract": "docs/features/attendance_board.md",
       "adapter": "backend/internal/business/attendance/line/board.go",
       "handler": "replyGroupStatus",
       "note": "Existing LINE-only query; no public HTTP operation."

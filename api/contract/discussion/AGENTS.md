@@ -4,10 +4,10 @@
 
 ## 職責與邊界
 
-- 狀態：基礎主題與單層留言已接入；先讀 [討論操作規格](../../../docs/features/repository/discussions.md)。categories 仍為雛形，其他擴充另依功能規格。
+- 狀態：基礎主題與單層留言已接入；先讀 [討論操作規格](../../../docs/domains/repository/discussions.md)。categories 仍為雛形，其他擴充另依功能規格。
 - 實體用 Discussion、集合用 discussions；每個主題歸屬既有 Repository，DiscussionComment 的回覆關係由本能力定義。
 - 建立、讀取、修改、分類、回覆、解答與鎖定按需求逐項決定，不把 GitHub 所有操作當成必建清單。
 - 明定可見範圍、編輯權、回覆層級、生命週期、重送與併發；留言、Reaction 或標記解答不等同正式核准。
 - 與 Issue 連結或轉換需另定授權、識別及追溯語義，不直接改寫或共用兩者狀態。
 
-[現行實作圖：最小實作邊界與驗證](../../../docs/features/repository/discussions.md#最小實作邊界與驗證) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：最小實作邊界與驗證](../../../docs/domains/repository/discussions.md#最小實作邊界與驗證) · [未來設計圖](../../../docs/diagrams.md#未來設計)

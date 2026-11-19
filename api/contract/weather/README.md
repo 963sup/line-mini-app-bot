@@ -1,7 +1,7 @@
 # Weather / Forecast 既有入口契約
 
 本文件描述既有 LINE 入口，不加入公開 OpenAPI、不產生瀏覽器 client。
-完整產品規則見 [群組位置天氣](../../../docs/features/weather/weather.md)。
+完整產品規則見 [群組位置天氣](../../../docs/domains/weather.md)。
 
 - Actor／Context：共用 webhook 驗證簽章後，群組來源的位置訊息；沿用 active、reply token 與非重送條件。
 - Resource／Action：以該訊息的經緯度、地址查詢目前有效的區域預報；不保存位置。
@@ -13,4 +13,4 @@
 組裝在 internal/server/line.go，與出勤、摘要資料層無依賴。
 沒有既有公開 Weather HTTP API 或 MINI App 天氣畫面。
 
-[現行實作圖：基礎入口](../../../docs/foundation/api/http-contracts.md#基礎入口) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：基礎入口](../../../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../../../docs/diagrams.md#未來設計)

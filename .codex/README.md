@@ -12,7 +12,7 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 
 ## Business Operation
 
-開始相關任務前，必須閱讀 [操作模型](../docs/foundation/architecture/business-operation.md) 與 [符合性流程](../docs/agents/workflow.md#business-operation-compliance)。
+開始相關任務前，必須閱讀 [操作模型](../docs/architecture/contracts/business-operations.md) 與 [符合性流程](../docs/agents/workflow.md#business-operation-compliance)。
 
 現有角色依 Business Operation 契約分工；角色開始相關任務時須讀取模型及符合性流程，文件路徑不是自動 include。
 
@@ -30,18 +30,18 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 
 | 圖表目的 | 必讀來源與邊界 |
 | --- | --- |
-| 儲存庫與專案關係 | [Project](../docs/features/project/projects.md)：個人或群組擁有 Project，引用可跨庫，來源讀權逐庫核驗 |
-| 物件與子工序 | [Object](../docs/features/repository/objects.md)、[Subobject](../docs/features/repository/subobjects.md)：單層子項，數量／單位／進度獨立 |
-| 問題與討論 | [Issue](../docs/features/repository/issues.md)、[Discussion](../docs/features/repository/discussions.md)：各自狀態與資料，不自動推進物件進度 |
-| 授權與寫入流程 | [操作模型](../docs/foundation/architecture/business-operation.md)：區分主體、資源、權限、領域規則、交易與結果 |
+| 儲存庫與專案關係 | [Project](../docs/domains/project.md)：個人或群組擁有 Project，引用可跨庫，來源讀權逐庫核驗 |
+| 物件與子工序 | [Object](../docs/domains/repository/objects.md)、[Subobject](../docs/domains/repository/objects.md)：單層子項，數量／單位／進度獨立 |
+| 問題與討論 | [Issue](../docs/domains/repository/issues.md)、[Discussion](../docs/domains/repository/discussions.md)：各自狀態與資料，不自動推進物件進度 |
+| 授權與寫入流程 | [操作模型](../docs/architecture/contracts/business-operations.md)：區分主體、資源、權限、領域規則、交易與結果 |
 
-以 `GroupID` 識別 LINE 群組，以 `SpaceID` 識別 Repository 內的工區。[庫內工區](../docs/features/repository/spaces.md)
+以 `GroupID` 識別 LINE 群組，以 `SpaceID` 識別 Repository 內的工區。[庫內工區](../docs/domains/repository/spaces.md)
 
 圖表須註明來源版本、相關未提交變更及已實作／提案／待確認狀態，不以舊圖譜或規劃文件代替現行程式證據。
 
 ### 操作與驗收
 
-1. 核對來源並依[文件圖表規範](../docs/development/documentation.md#獨立圖檔)維護內嵌區塊或獨立圖檔。
+1. 核對來源並依[文件圖表規範](../docs/standards/documentation.md#獨立圖檔)維護內嵌區塊或獨立圖檔。
 2. 從專案根目錄安裝固定版 Mermaid v13 alpha，執行 `bash scripts/tooling/tool-exec.sh mise run install-mermaid`。
 3. 執行 `bash scripts/tooling/tool-exec.sh mise run render-mermaid -- render diagram.mmd --format svg > diagram.svg`。
 4. 核對圖中文字與箭頭符合來源，並記錄實際渲染結果。

@@ -2,7 +2,7 @@ name = "nextjs"
 description = "Implement assigned Next.js changes while preserving the installed router, static export and application boundaries."
 developer_instructions = """
 Read AGENTS.md, frontend/AGENTS.md, frontend/README.md,
-frontend/miniapp/AGENTS.md, docs/foundation/frontend/react-frontend.md,
+frontend/miniapp/AGENTS.md, docs/architecture/runtime/react-lifecycle.md,
 docs/agents/workflow.md, docs/agents/acceptance.md and docs/tooling/mcp/context7.md.
 Accept the UI/runtime goal, route/data contract, evidence, owned files and checks.
 Follow Graphify-first and verify current package/config sources before designing.
