@@ -1,8 +1,16 @@
 import dynamic from "next/dynamic";
 import React, { useEffect, useState, useRef } from "react";
 import { useSession, type Request } from "@/identity/Session";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/shared/ui/combobox";
+import { Field, FieldLabel, FieldLegend, FieldSet } from "@/shared/ui/field";
+import { NativeSelect } from "@/shared/ui/native-select";
+import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
+import { ReadFeedback } from "@/shared/ReadFeedback";
+import { useDiscardChanges } from "@/shared/useDiscardChanges";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
+import { Questionnaire, QuestionnaireActions, QuestionnaireItem, QuestionnairePrevious, QuestionnaireProgress, QuestionnaireTitle } from "@/shared/ui/questionnaire";
 import { Input } from "@/shared/ui/input";
 import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
 import type { components } from "@repo/api-client";
@@ -23,14 +31,35 @@ async function collect<T>(fetch:(cursor:string)=>Promise<{items:T[];nextCursor:s
   return all;
 }
 function Rows({title,rows,change,targets}:{title:string;rows:string[];change:(v:string[])=>void;targets:Target[]}) {
-  return <fieldset className="grid gap-2"><legend>{title}</legend>{rows.map((id,i)=><fieldset key={id}><legend>第 {i+1} 項</legend>
-    <label>工作名稱<Input name={id+"name"} required maxLength={120}/></label>
-    <label>累計完成度（%）<Input name={id+"percent"} required type="number" min={0} max={100} step={1}/></label>
-    <label>工作關聯 <select name={id+"ref"}><option value="">無關聯</option>{targets.map(t=><option key={t.type+t.id} value={t.type+t.id}>{t.type==="project"?"專案":"儲存庫"} · {t.name}</option>)}</select></label>
-    <Button type="button" variant="outline" onClick={()=>change(rows.filter(k=>k!==id))}>移除第 {i+1} 項</Button>
-  </fieldset>)}<Button type="button" variant="outline" disabled={rows.length>=100} onClick={()=>change([...rows,crypto.randomUUID()])}>新增{title}</Button></fieldset>;
+  const options = React.useMemo(() => [
+    {label: "無關聯", value: ""},
+    ...targets.map(t => ({label: `${t.type === "project" ? "專案" : "儲存庫"} · ${t.name}`, value: t.type + t.id})),
+  ], [targets]);
+  return <div className="grid gap-3">
+    {rows.map((id, i) => <FieldSet key={id} className="rounded-lg border p-3">
+      <FieldLegend>第 {i + 1} 項</FieldLegend>
+      <Field><FieldLabel htmlFor={id+"name"}>工作名稱</FieldLabel>
+        <Input id={id+"name"} name={id+"name"} required maxLength={120} /></Field>
+      <Field><FieldLabel htmlFor={id+"percent"}>累計完成度（%）</FieldLabel>
+        <Input id={id+"percent"} name={id+"percent"} required type="number" min={0} max={100} step={1} /></Field>
+      <Field><FieldLabel htmlFor={id+"ref"}>工作關聯</FieldLabel>
+        <Combobox<(typeof options)[number]> items={options} name={id+"ref"} itemToStringValue={option => option.value}>
+          <ComboboxInput id={id+"ref"} placeholder="搜尋專案或儲存庫（可無關聯）" />
+          <ComboboxContent>
+            <ComboboxEmpty>沒有符合的工作關聯</ComboboxEmpty>
+            <ComboboxList>{(option: (typeof options)[number]) =>
+              <ComboboxItem key={option.value} value={option}>{option.label}</ComboboxItem>}
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
+      </Field>
+      <Button type="button" variant="outline" onClick={() => change(rows.filter(k => k !== id))}>移除第 {i+1} 項</Button>
+    </FieldSet>)}
+    <Button type="button" variant="outline" disabled={rows.length >= 100} onClick={() => change([...rows, crypto.randomUUID()])}>新增{title}</Button>
+  </div>;
 }
 function Composer({request,group,saved}:{request:Request;group:string;saved:()=>void}) {
+  const [step, setStep] = useState("people");
   const [today,setToday]=useState(["first"]),[tomorrow,setTomorrow]=useState<string[]>([]);
   const [targets,setTargets]=useState<Target[]>([]),[notice,setNotice]=useState(""),[error,setError]=useState(""),[busy,setBusy]=useState(false);
   const publishAttempt=useRef({serializedBody:"",idempotencyKey:""}),submitting=useRef(false);
@@ -45,8 +74,15 @@ function Composer({request,group,saved}:{request:Request;group:string;saved:()=>
     }).catch(e=>{if(!controller.signal.aborted)setNotice("關聯清單無法載入："+errorMessage(e));});
     return ()=>controller.abort();
   },[group,request]);
-  return <PagePanel heading="寫日誌"><form onSubmit={event=>{
-    event.preventDefault();if(submitting.current)return;
+  return <PagePanel heading="寫日誌"><Questionnaire item={step} onItemChange={setStep} onSubmitCapture={event=>{
+    // Each step contains several native fields. Validate the active group together.
+    event.preventDefault();
+    event.stopPropagation();
+    if (submitting.current) return;
+    const invalid = event.currentTarget.querySelector<HTMLInputElement>("fieldset[data-active] input:invalid");
+    if (invalid) { invalid.reportValidity(); invalid.focus(); return; }
+    if (step === "people") { setStep("today"); return; }
+    if (step === "today") { setStep("tomorrow"); return; }
     const form=new FormData(event.currentTarget),get=(k:string)=>String(form.get(k)??"").trim();
     const people=(k:string)=>get(k).split(/[、，,\n]/).map(s=>s.trim()).filter(Boolean);
     const row=(id:string)=>{const t=targets.find(t=>t.type+t.id===get(id+"ref"));return {name:get(id+"name"),reference:t?{type:t.type,id:t.id}:undefined};};
@@ -58,14 +94,26 @@ function Composer({request,group,saved}:{request:Request;group:string;saved:()=>
     submitting.current=true;setBusy(true);setError("");
     void write.run(signal=>request((c,s)=>c.POST("/api/v1/journals",{signal:s,params:{header:{"Idempotency-Key":publishAttempt.current.idempotencyKey}},body}),{signal}),
       saved,e=>{submitting.current=false;setBusy(false);setError(errorMessage(e));});
-  }}><fieldset disabled={busy} className="grid gap-3">
+  }}>
+    <QuestionnaireProgress aria-label="日誌填寫進度" aria-valuetext={step === "people" ? "日期與人員" : step === "today" ? "今日工作" : "明日計畫與發布"}>第 {step === "people" ? 1 : step === "today" ? 2 : 3} 步，共 3 步</QuestionnaireProgress>
+    <fieldset disabled={busy} className="grid gap-3">
+    <QuestionnaireItem name="people"><QuestionnaireTitle>日期與人員</QuestionnaireTitle>
     <label>工作日期<Input required type="date" name="date" defaultValue={workDate()}/></label>
     {Object.entries(roles).map(([key,label])=><label key={key}>{label}<Input name={key} placeholder="多位姓名以頓號分隔"/></label>)}
-    {notice&&<p role="status">{notice}</p>}
+    </QuestionnaireItem>
+    <QuestionnaireItem name="today"><QuestionnaireTitle>今日工作</QuestionnaireTitle>
     <Rows title="今日工作" rows={today} change={setToday} targets={targets}/>
+    </QuestionnaireItem>
+    <QuestionnaireItem name="tomorrow"><QuestionnaireTitle>明日計畫與發布</QuestionnaireTitle>
     <Rows title="明日計畫" rows={tomorrow} change={setTomorrow} targets={targets}/>
-    {error&&<p role="alert">{error}</p>}<Button type="submit">{busy?"發布中":"發布日誌"}</Button>
-  </fieldset></form></PagePanel>;
+    </QuestionnaireItem>
+    {notice && step !== "people" && <p role="status">{notice}</p>}
+    {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
+    <QuestionnaireActions>
+      <QuestionnairePrevious>上一步</QuestionnairePrevious>
+      <Button type="submit" className="col-start-3">{step === "tomorrow" ? (busy ? "發布中" : "發布日誌") : "下一步"}</Button>
+    </QuestionnaireActions>
+  </fieldset></Questionnaire></PagePanel>;
 }
 
 type WorkspaceProps = {
@@ -87,6 +135,8 @@ function ComposeView({request, close}: {request: Request; close: () => void}) {
   const [groups, setGroups] = useState<Option[] | null>(null);
   const [publishGroup, setPublishGroup] = useState("");
   const [error, setError] = useState("");
+  const cancelButton = useRef<HTMLButtonElement>(null);
+  const discard = useDiscardChanges(!!publishGroup, () => cancelButton.current?.focus());
   const [revision, retry] = useState(0);
 
   useEffect(() => {
@@ -104,19 +154,18 @@ function ComposeView({request, close}: {request: Request; close: () => void}) {
   return <>
     <PagePanel heading="發布群組">
       <div className="flex flex-wrap items-center gap-3">
-        {error ? <>
-          <p role="alert">{error}</p>
+        {error ? <Alert variant="destructive"><AlertDescription>
+          {error}
           <Button type="button" variant="outline" onClick={() => retry(value => value + 1)}>重新讀取</Button>
-        </> : !groups ? <p role="status">正在讀取群組……</p>
-          : !groups.length ? <p>目前沒有可選擇的群組。</p>
+        </AlertDescription></Alert> : !groups ? <p role="status">正在讀取群組……</p>
+          : !groups.length ? <Empty><EmptyHeader><EmptyTitle>目前沒有可選擇的群組。</EmptyTitle></EmptyHeader></Empty>
           : publishGroup ? <p>{groups.find(group => group.id === publishGroup)?.name || publishGroup}</p>
-          : <label>選擇發布群組 <select value="" onChange={event => setPublishGroup(event.target.value)}>
+          : <label>選擇發布群組 <NativeSelect value="" onChange={event => setPublishGroup(event.target.value)}>
             <option value="">請選擇群組</option>
             {groups.map(group => <option key={group.id} value={group.id}>{group.name || group.id}</option>)}
-          </select></label>}
-        <Button type="button" variant="outline" onClick={() => {
-          if (!publishGroup || window.confirm("放棄這份日誌？")) close();
-        }}>取消填寫</Button>
+          </NativeSelect></label>}
+        <Button ref={cancelButton} type="button" variant="outline" onClick={() => discard.navigate(close)}>取消填寫</Button>
+        {discard.dialog}
       </div>
     </PagePanel>
     {publishGroup && <Composer request={request} group={publishGroup} saved={close} />}
@@ -149,11 +198,12 @@ function View({dashboard,request,detail}:{dashboard:boolean;request:Request;deta
     {!detail&&<a href={"/miniapp/feed?journalId="+j.id}>查看原文</a>}
   </PagePanel>;
   return <><PagePanel heading={dashboard?"工作概況":"工作牆"}>
-    {detail?<a href="/miniapp/feed">返回 Feed</a>:<label>群組 <select value={group} onChange={e=>setGroup(e.target.value)}><option value="">全部可讀群組</option>{groups.map(g=><option key={g.id} value={g.id}>{g.name||g.id}</option>)}</select></label>}
+    {detail?<a href="/miniapp/feed">返回 Feed</a>:<label>群組 <NativeSelect value={group} onChange={e=>setGroup(e.target.value)}><option value="">全部可讀群組</option>{groups.map(g=><option key={g.id} value={g.id}>{g.name||g.id}</option>)}</NativeSelect></label>}
     {dashboard&&<label>工作日期<Input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>}
-    {(error||groupError)&&<><p role="alert">{error||groupError}</p><Button onClick={()=>reload(v=>v+1)}>重新讀取</Button></>}
+    {(error||groupError)&&<Alert variant="destructive"><AlertDescription>{error||groupError}<Button onClick={()=>reload(v=>v+1)}>重新讀取</Button></AlertDescription></Alert>}
   </PagePanel>
-  {busy&&<p role="status">正在讀取日誌……</p>}{!busy&&!error&&!entries.length&&<p>目前條件下沒有日誌。</p>}
+  <ReadFeedback busy={busy} label="正在讀取日誌……" />
+  {!busy&&!error&&!groupError&&!entries.length&&<Empty><EmptyHeader><EmptyTitle>目前條件下沒有日誌。</EmptyTitle></EmptyHeader></Empty>}
   {dashboard?<GroupCharts entries={entries} groups={groups} renderEntry={renderEntry}/>:entries.map(renderEntry)}
   {cursor&&<Button disabled={busy} onClick={()=>load(cursor)}>載入更多</Button>}</>;
 }

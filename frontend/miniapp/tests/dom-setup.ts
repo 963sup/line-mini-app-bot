@@ -8,6 +8,8 @@ for (const key of [
   "document",
   "navigator",
   "location",
+  "Node",
+  "FormData",
   "HTMLElement",
   "Event",
   "MouseEvent",
