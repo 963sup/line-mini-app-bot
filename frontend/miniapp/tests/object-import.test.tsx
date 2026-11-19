@@ -9,6 +9,8 @@ import type { extractPdf } from "../src/business/object/pdf";
 const rid = "a".repeat(32), jid = "b".repeat(32), rowid = "c".repeat(32), hash = "d".repeat(64), fileHash = "e".repeat(64);
 const candidate = { name: "工程A", description: "測試說明", type: "工程", quantity: "1", unit: "SET", materialCode: "sample", sourceItemNo: "10", evidence: [{ page: 1, quote: "項次10 工程A 1 SET" }] };
 const job = (status = "draft", version = 1, progress = false) => ({ id: jid, repositoryId: rid, creatorId: "A", sourceDocument: "sample", sourceRevision: "v0", sourceHash: hash, status, version, confirmedFromReviewVersion: status === "confirming" || status === "completed" ? 2 : 0, rows: [{ ...candidate, id: rowid, resultObjectId: progress ? "f".repeat(32) : "" }], createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" });
+const batchRadio = (value: string) =>
+  document.querySelector<HTMLButtonElement>(`[role="radiogroup"][aria-label="整批類型"] [role="radio"][value="${value}"]`)!;
 const flush = async () => { for (let i = 0; i < 12; i++) await new Promise<void>(resolve => setImmediate(resolve)); };
 async function fixture(handle: (request: Request, blocked: boolean) => Promise<Response>, extractor: typeof extractPdf = async () => ({ pages: [{ number: 1, text: "10 測試物件 1 SET" }], fileHash }), seed?: { id: string; fileHash: string }) {
   document.body.innerHTML = '<div id="root"></div>'; window.history.replaceState(null, "", "/miniapp/projects");
@@ -26,7 +28,7 @@ async function fixture(handle: (request: Request, blocked: boolean) => Promise<R
   await act(async () => { root.render(<Shell title="匯入" workflow="projects"><Import repositoryId={rid} onBlocked={block} extract={extractor} /></Shell>); await flush(); });
   return {
     blocked: () => blocked,
-    async selectType(value: string) { await act(async () => { const select = document.querySelector<HTMLSelectElement>("select")!; select.value = value; select.dispatchEvent(new window.Event("change", { bubbles: true })); await flush(); }); },
+    async selectType(value: string) { await act(async () => { batchRadio(value).click(); await flush(); }); },
     async file() { await act(async () => { const input = document.querySelector<HTMLInputElement>('input[type="file"]')!; Object.defineProperty(input, "files", { value: [new File(["%PDF-1.7"], "local.pdf", { type: "application/pdf" })], configurable: true }); input.dispatchEvent(new window.Event("change", { bubbles: true })); await flush(); }); },
     async click(text: string) { await act(async () => { const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === text); assert.ok(node, `missing ${text}`); node.click(); await flush(); }); },
     async check(text: string) { await act(async () => { const label = [...document.querySelectorAll("label")].find(label => label.textContent?.includes(text)); assert.ok(label, `missing ${text}`); label.querySelector<HTMLElement>('[role="checkbox"]')!.click(); await flush(); }); },
@@ -47,7 +49,7 @@ test("choosing PDF automatically imports; ambiguous retry preserves exact body a
     await f.file(); assert.equal(calls.length, 1); assert.equal(f.blocked(), true);
     assert.equal(document.querySelectorAll("textarea,[role=checkbox]").length, 0);
     assert.deepEqual(calls[0].body, {type: "work", sourceDocument: `pdf:${fileHash}`, sourceRevision: "", pages: [{number: 1, text: "10 測試物件 1 SET"}]});
-    assert.equal(document.querySelector<HTMLSelectElement>("select")!.disabled, true);
+    assert.equal(batchRadio("non_work").disabled, true);
     await f.selectType("non_work");
     await f.click("重試原匯入"); assert.deepEqual(calls[0], calls[1]); assert.equal(f.blocked(), false);
     assert.match(document.body.textContent!, /已建立 1 筆物件/);
@@ -56,12 +58,12 @@ test("choosing PDF automatically imports; ambiguous retry preserves exact body a
 test("partial results report actual successes and retry frozen run", async () => {
   let count = 0; const calls: {key: string | null; body: unknown}[] = [];
   const f = await fixture(async request => { calls.push({key: request.headers.get("Idempotency-Key"), body: await request.json()}); return Response.json({id: jid, status: ++count === 1 ? "processing" : "completed", reason: "creation_unavailable", rows: [{id: rowid, name: "測試物件", quantity: "1", unit: "SET", resultObjectId: count === 1 ? "" : "f".repeat(32)}]}); });
-  try { await f.selectType("non_work"); await f.file(); assert.equal(f.blocked(), true); assert.equal(document.querySelector<HTMLSelectElement>("select")!.disabled, true); assert.match(document.body.textContent!, /已建立 0\/1/); await f.selectType("work"); await f.click("重試原匯入"); assert.deepEqual(calls[0], calls[1]); assert.equal(f.blocked(), false); } finally { await f.dispose(); }
+  try { await f.selectType("non_work"); await f.file(); assert.equal(f.blocked(), true); assert.equal(batchRadio("non_work").disabled, true); assert.match(document.body.textContent!, /已建立 0\/1/); await f.selectType("work"); await f.click("重試原匯入"); assert.deepEqual(calls[0], calls[1]); assert.equal(f.blocked(), false); } finally { await f.dispose(); }
 });
 test("PDF extraction cancellation aborts without API transmission", async () => {
   let calls = 0, aborted = false;
   const f = await fixture(async () => { calls++; throw new Error("unexpected API"); }, async (_file, signal) => new Promise((_resolve, reject) => { signal.addEventListener("abort", () => { aborted = true; reject(new Error("cancelled")); }); }));
-  try { await f.file(); assert.equal(document.querySelector<HTMLSelectElement>("select")!.disabled, true); await f.click("取消擷取"); assert.equal(aborted, true); assert.equal(calls, 0); assert.equal(f.blocked(), false); } finally { await f.dispose(); }
+  try { await f.file(); assert.equal(batchRadio("non_work").disabled, true); await f.click("取消擷取"); assert.equal(aborted, true); assert.equal(calls, 0); assert.equal(f.blocked(), false); } finally { await f.dispose(); }
 });
 
 for (const unknown of [false, true]) {
@@ -89,11 +91,11 @@ test("batch type is visible before PDF and explicit non-work selection freezes i
     return Response.json({ id: jid, status: "completed", rows: [], reason: "" });
   });
   try {
-    const select = document.querySelector<HTMLSelectElement>("select")!;
-    assert.equal(select.value, "work"); assert.equal(select.disabled, false);
-    assert.deepEqual([...select.options].map(option => option.textContent), ["施作", "非施作"]);
-    assert.match(document.body.textContent!, /整批類型/);
-    assert.ok(select.compareDocumentPosition(document.querySelector('input[type="file"]')!) & window.Node.DOCUMENT_POSITION_FOLLOWING);
+    const work = batchRadio("work");
+    assert.equal(work.getAttribute("aria-checked"), "true");
+    assert.equal(work.disabled, false);
+    assert.equal(batchRadio("non_work").getAttribute("aria-checked"), "false");
+    assert.ok(work.compareDocumentPosition(document.querySelector('input[type="file"]')!) & window.Node.DOCUMENT_POSITION_FOLLOWING);
     await f.selectType("non_work"); await f.file(); assert.equal(calls[0].body.type, "non_work");
     await f.selectType("work"); await f.file(); assert.equal(calls[1].body.type, "work"); assert.notEqual(calls[0].key, calls[1].key);
   } finally { await f.dispose(); }
