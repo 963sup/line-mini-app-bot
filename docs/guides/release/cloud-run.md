@@ -144,8 +144,7 @@ flowchart LR
 flowchart LR
   h["Secret Manager 與環境變數"]
   h --- n0["Cloud Build substitution：<br/>_MESSAGING_API_CHANNEL_ID<br/>注入位置／用途：<br/>LINE_MESSAGING_API_CHANNEL_ID；必填<br/>預設：2012305727"]
-  h --- n1["Cloud Build substitution：<br/>_MINI_APP_CHANNEL_ID<br/>注入位置／用途：LINE_MINI_APP_CHANNEL_ID；選<br/>用<br/>預設：2012412007"]
-  h --- n2["Cloud Build substitution：_MINI_APP_LIFF_ID<br/>注入位置／用途：LINE_MINI_APP_LIFF_ID；選用<br/>，需與上一項一起提供<br/>預設：2012412007-0xCIzCmZ"]
+  h --- n1["Cloud Build substitution：_MINI_APP_ENV<br/>注入 LINE_MINI_APP_ENV，從內建公開配對選擇 developing、review 或 published；預設 developing。"]
   h --- n3["Cloud Build substitution：<br/>_CHANNEL_SECRET_NAME<br/>注入位置／用途：<br/>LINE_MESSAGING_API_CHANNEL_SECRET 的 secret <br/>名稱<br/>預設：line-messaging-api-channel-secret"]
   h --- n4["Cloud Build substitution：<br/>_CHANNEL_SECRET_VERSION<br/>注入位置／用途：上述 secret 的版本<br/>預設：3"]
   h --- n5["Cloud Build substitution：<br/>_CHANNEL_ACCESS_TOKEN_NAME<br/>注入位置／用途：<br/>LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN 的 <br/>secret 名稱<br/>預設：<br/>line-messaging-api-channel-access-token"]
@@ -189,7 +188,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["首次手動部署"]
-  h --- n0["這個命令會真的建立 Build、上傳映像並部署；不<br/>是 dry run。 需要 MINI App 時，在 <br/>substitutions 加入 _MINI_APP_CHANNEL_ID 與 <br/>_MINI_APP_LIFF_ID。 所有 gcloud 命令以實際安<br/>裝版本的 leaf-level help 為準；builds submit<br/>／run deploy 沒有一般 dry-run 旗標。"]
+  h --- n0["這個命令會真的建立 Build、上傳映像並部署；不<br/>是 dry run。 MINI App 公開配對已內建；如需切換環境，在 substitutions 設定 _MINI_APP_ENV。 所有 gcloud 命令以實際安<br/>裝版本的 leaf-level help 為準；builds submit<br/>／run deploy 沒有一般 dry-run 旗標。"]
 ```
 
 <a id="現行-github-managed-trigger"></a>

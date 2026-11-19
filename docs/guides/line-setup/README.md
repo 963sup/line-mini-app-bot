@@ -5,7 +5,7 @@ flowchart LR
   h["Go LINE 接入：啟動"]
   h --- scope["官方 Go SDK；版本見 backend/go.mod。已接入 Webhook、MINI App Session、Firestore 出勤／請假及 Cloud Tasks 摘要。群組角色管理、Service Message 與常駐 Worker 不在此範圍。"]
   h --- n0["bash scripts/tooling/tool-exec.sh mise run dev"]
-  h --- n1["PORT 預設 8080，不自動讀 .env。保留 /location<br/>定位示範，沒有健康檢查路由。 Messaging API 與 MINI App<br/>分別啟用；各組全缺時停用、部分缺失時啟動失敗。 設定名稱與 Channel 分離規則見 LINE<br/>環境變數（../../architecture/integrations/line-environment.md）。"]
+  h --- n1["PORT 預設 8080，不自動讀 .env。保留 /location<br/>定位示範，沒有健康檢查路由。 Messaging API 三項全缺時停用、部分缺失時啟動失敗。MINI App 以 LINE_MINI_APP_ENV 選環境，預設 developing；未知值啟動失敗。 設定名稱與 Channel 分離規則見 LINE<br/>環境變數（../../architecture/integrations/line-environment.md）。"]
 ```
 
 <a id="firestore-唯讀連線"></a>
