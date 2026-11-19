@@ -89,8 +89,12 @@ test("only ambiguous items prompt for a type, using the same import key", async 
   const calls: {key:string|null;body:Record<string,unknown>}[]=[];
   const f=await fixture(async request=>{
     calls.push({key:request.headers.get("Idempotency-Key"),body:await request.json()});
-    const done=calls.length===2;
+    if (calls.length===2) throw new TypeError("confirmation reply lost");
+    const done=calls.length===3;
     return Response.json({id:jid,status:done?"completed":"processing",reason:"",rows:[{id:rowid,type:done?"work":"needs_review",name:"燈具",quantity:"10",unit:"盞",sourceItemNo:"10",sourcePages:"1",resultObjectId:done?"f".repeat(32):""}]});
   });
-  try {assert.equal(batchRadio("work"),null);await f.file();await f.click("確認為施作");assert.equal(calls[0].key,calls[1].key);assert.deepEqual(calls[1].body.decisions,{[rowid]:"work"});assert.equal(f.blocked(),false);} finally {await f.dispose();}
+  try {assert.equal(batchRadio("work"),null);await f.file();await f.click("確認為施作");
+    await f.click("確認為非施作"); assert.equal(calls.length,2);
+    await f.click("重試原匯入"); assert.deepEqual(calls[2],calls[1]);
+    assert.equal(calls[0].key,calls[1].key);assert.deepEqual(calls[1].body.decisions,{[rowid]:"work"});assert.equal(f.blocked(),false);} finally {await f.dispose();}
 });
