@@ -13,6 +13,9 @@ import (
 )
 
 type Store interface {
+	CreateEnterprise(context.Context, string, string) (*generated.EnterpriseLink, error)
+	Enterprise(context.Context, string, string) (*generated.Enterprise, error)
+	UpdateEnterprise(context.Context, string, string, string, bool) (*generated.EnterpriseLink, error)
 	Context(ctx context.Context, user string, preference string, write bool) (*organization.Context, error)
 	Create(ctx context.Context, user string, name string) (*generated.Organization, error)
 	Transfer(ctx context.Context, user string, organizationId, target string) (*generated.Organization, error)
@@ -38,12 +41,14 @@ func (h Handler) serve(w http.ResponseWriter, r *http.Request, op func(context.C
 	}
 	result, err := op(r.Context(), user)
 	switch {
+	case errors.Is(err, organization.ErrForbidden):
+		transport.WriteAPIError(w, 403, "forbidden", "帳號尚無企業開通資格。")
 	case errors.Is(err, organization.ErrInvalid):
 		transport.WriteAPIError(w, 400, "invalid_input", "請求資料無效。")
 	case errors.Is(err, organization.ErrNotFound):
 		transport.WriteAPIError(w, 404, "not_found", "找不到資源。")
 	case errors.Is(err, organization.ErrConflict):
-		transport.WriteAPIError(w, 409, "conflict", "Team 已有管理歸屬。")
+		transport.WriteAPIError(w, 409, "conflict", "資源已有其他管理歸屬。")
 	case err != nil:
 		transport.WriteServiceError(w, 503, "unavailable", "暫時無法完成操作。", err)
 	case result == nil:
@@ -123,5 +128,41 @@ func (h Handler) RemoveEnterpriseTeam(w http.ResponseWriter, r *http.Request, or
 func (h Handler) ListOrganizationTeams(w http.ResponseWriter, r *http.Request, organizationId string) {
 	h.serve(w, r, func(ctx context.Context, user string) (any, error) {
 		return h.Store.List(ctx, user, organizationId)
+	})
+}
+
+func (h Handler) CreateEnterprise(w http.ResponseWriter, r *http.Request) {
+	h.serve(w, r, func(ctx context.Context, user string) (any, error) {
+		var input generated.CreateOrganizationRequest
+		if err := decode(r, w, &input); err != nil {
+			return nil, err
+		}
+		return h.Store.CreateEnterprise(ctx, user, input.Name)
+	})
+}
+
+func (h Handler) GetEnterprise(w http.ResponseWriter, r *http.Request, enterpriseId string) {
+	h.serve(w, r, func(ctx context.Context, user string) (any, error) {
+		return h.Store.Enterprise(ctx, user, enterpriseId)
+	})
+}
+
+func (h Handler) AddEnterpriseOwner(w http.ResponseWriter, r *http.Request, enterpriseId string) {
+	h.serve(w, r, func(ctx context.Context, user string) (any, error) {
+		var input generated.EnterpriseOwnerRequest
+		if err := decode(r, w, &input); err != nil {
+			return nil, err
+		}
+		return h.Store.UpdateEnterprise(ctx, user, enterpriseId, input.UserId, true)
+	})
+}
+
+func (h Handler) AttachEnterpriseOrganization(w http.ResponseWriter, r *http.Request, enterpriseId string) {
+	h.serve(w, r, func(ctx context.Context, user string) (any, error) {
+		var input generated.SelectOrganizationRequest
+		if err := decode(r, w, &input); err != nil {
+			return nil, err
+		}
+		return h.Store.UpdateEnterprise(ctx, user, enterpriseId, input.OrganizationId, false)
 	})
 }

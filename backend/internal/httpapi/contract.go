@@ -7,6 +7,10 @@ import (
 )
 
 type OrganizationServer interface {
+	AttachEnterpriseOrganization(w http.ResponseWriter, r *http.Request, enterpriseId string)
+	AddEnterpriseOwner(w http.ResponseWriter, r *http.Request, enterpriseId string)
+	GetEnterprise(w http.ResponseWriter, r *http.Request, enterpriseId string)
+	CreateEnterprise(w http.ResponseWriter, r *http.Request)
 	RemoveEnterpriseTeam(w http.ResponseWriter, r *http.Request, organizationId string, teamId string)
 	AssignEnterpriseTeam(w http.ResponseWriter, r *http.Request, organizationId string, teamId string)
 	ListOrganizationTeams(w http.ResponseWriter, r *http.Request, organizationId string)

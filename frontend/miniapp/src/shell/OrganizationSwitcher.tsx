@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuLabel,
+  DropdownMenuItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/shared/ui/dropdown-menu";
@@ -128,7 +129,22 @@ function Switcher() {
               >
                 {context.groups.map((group) => (
                   <React.Fragment key={group.enterpriseId ?? "independent"}>
-                    <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
+                    {group.enterpriseId ? (
+                      <DropdownMenuItem asChild>
+                        <a
+                          href={
+                            "/miniapp?" +
+                            new URLSearchParams({
+                              enterprise: group.enterpriseId,
+                            })
+                          }
+                        >
+                          {group.label}
+                        </a>
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
+                    )}
                     {group.organizations.map((org) => (
                       <DropdownMenuRadioItem
                         key={org.organizationId}
@@ -156,6 +172,19 @@ function Switcher() {
             >
               {label}
             </a>
+          </SidebarMenuButton>
+        )}
+        {context?.enterprises?.map((ent) => (
+          <SidebarMenuButton key={ent.id} asChild>
+            <a href={"/miniapp?" + new URLSearchParams({ enterprise: ent.id })}>
+              <Building2 />
+              {ent.name}
+            </a>
+          </SidebarMenuButton>
+        ))}
+        {context?.canCreateEnterprise && (
+          <SidebarMenuButton asChild>
+            <a href="/miniapp?enterprise=new">建立企業</a>
           </SidebarMenuButton>
         )}
         {error && <span role="alert">{error}</span>}

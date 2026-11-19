@@ -37,6 +37,7 @@ func run[T any](s Store, ctx context.Context, op func(*firestore.Transaction, *f
 }
 
 type entity struct {
+	Owners     []string `firestore:"ownerUserIds"`
 	Name       string   `firestore:"name"`
 	Owner      string   `firestore:"ownerUserId"`
 	Members    []string `firestore:"memberUserIds"`
@@ -102,6 +103,9 @@ func (s Store) Context(ctx context.Context, user string, preference string, writ
 			}
 		}
 		result := organization.BuildContext(rows, selected)
+		if err := enterpriseNavigation(tx, root, user, labels, &result); err != nil {
+			return nil, err
+		}
 		if write {
 			if result.Selected == nil || result.Selected.ID != selected {
 				return nil, organization.ErrNotFound
@@ -152,7 +156,11 @@ func (s Store) Manage(ctx context.Context, user string, teamId, scope, managemen
 		if e != nil {
 			return nil, e
 		}
-		if target.Owner != user && !slices.Contains(target.Managers, user) {
+		owner := target.Owner == user
+		if scope == "enterprise" {
+			owner = target.isOwner(user)
+		}
+		if !owner && !slices.Contains(target.Managers, user) {
 			return nil, organization.ErrNotFound
 		}
 		ref := root.Collection("teams").Doc(teamId)
@@ -192,7 +200,7 @@ func (s Store) Assign(ctx context.Context, user string, id, teamId string, add b
 		if e != nil {
 			return nil, e
 		}
-		if ent.Owner != user && !slices.Contains(ent.Managers, user) {
+		if !ent.isOwner(user) && !slices.Contains(ent.Managers, user) {
 			return nil, organization.ErrNotFound
 		}
 		link := ref.Collection("enterpriseTeams").Doc(teamId)

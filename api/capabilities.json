@@ -1532,7 +1532,8 @@
       "core": "backend/internal/business/organization/context.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
-        "frontend/miniapp/src/shell/OrganizationSwitcher.tsx"
+        "frontend/miniapp/src/shell/OrganizationSwitcher.tsx",
+        "frontend/miniapp/src/shell/Enterprise.tsx"
       ]
     },
     {
@@ -1622,6 +1623,62 @@
       "core": "backend/internal/business/organization/context.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": []
+    },
+    {
+      "operationId": "createEnterprise",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/enterprises",
+      "owner": "organization",
+      "adapter": "backend/internal/business/organization/http/routes.go",
+      "handler": "CreateEnterprise",
+      "core": "backend/internal/business/organization/context.go",
+      "specification": "docs/domains/repository/organization.md",
+      "consumers": [
+        "frontend/miniapp/src/shell/Enterprise.tsx"
+      ]
+    },
+    {
+      "operationId": "getEnterprise",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/enterprises/{enterpriseId}",
+      "owner": "organization",
+      "adapter": "backend/internal/business/organization/http/routes.go",
+      "handler": "GetEnterprise",
+      "core": "backend/internal/business/organization/context.go",
+      "specification": "docs/domains/repository/organization.md",
+      "consumers": [
+        "frontend/miniapp/src/shell/Enterprise.tsx"
+      ]
+    },
+    {
+      "operationId": "addEnterpriseOwner",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/enterprises/{enterpriseId}/owners",
+      "owner": "organization",
+      "adapter": "backend/internal/business/organization/http/routes.go",
+      "handler": "AddEnterpriseOwner",
+      "core": "backend/internal/business/organization/context.go",
+      "specification": "docs/domains/repository/organization.md",
+      "consumers": [
+        "frontend/miniapp/src/shell/Enterprise.tsx"
+      ]
+    },
+    {
+      "operationId": "attachEnterpriseOrganization",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/enterprises/{enterpriseId}/organizations",
+      "owner": "organization",
+      "adapter": "backend/internal/business/organization/http/routes.go",
+      "handler": "AttachEnterpriseOrganization",
+      "core": "backend/internal/business/organization/context.go",
+      "specification": "docs/domains/repository/organization.md",
+      "consumers": [
+        "frontend/miniapp/src/shell/Enterprise.tsx"
+      ]
     }
   ],
   "events": [
@@ -1776,6 +1833,11 @@
       "entity": "Organization",
       "collection": "organizations",
       "path": "/api/v1/organizations"
+    },
+    {
+      "entity": "Enterprise",
+      "collection": "enterprises",
+      "path": "/api/v1/enterprises"
     }
   ],
   "namingExceptions": {

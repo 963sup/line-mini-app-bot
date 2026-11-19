@@ -232,4 +232,8 @@ func RegisterOrganizations(public *http.ServeMux, handler OrganizationServer) {
 	public.Handle("GET /api/v1/organizations/{organizationId}/teams", routes)
 	public.Handle("PUT /api/v1/organizations/{organizationId}/enterprise-teams/{teamId}", routes)
 	public.Handle("DELETE /api/v1/organizations/{organizationId}/enterprise-teams/{teamId}", routes)
+	public.Handle("POST /api/v1/enterprises", routes)
+	public.Handle("GET /api/v1/enterprises/{enterpriseId}", routes)
+	public.Handle("POST /api/v1/enterprises/{enterpriseId}/owners", routes)
+	public.Handle("POST /api/v1/enterprises/{enterpriseId}/organizations", routes)
 }

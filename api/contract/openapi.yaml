@@ -226,6 +226,18 @@
     },
     "/api/v1/organizations/{organizationId}/enterprise-teams/{teamId}": {
       "$ref": "./organization/context.yaml#/paths/~1api~1v1~1organizations~1{organizationId}~1enterprise-teams~1{teamId}"
+    },
+    "/api/v1/enterprises": {
+      "$ref": "./organization/context.yaml#/paths/~1api~1v1~1enterprises"
+    },
+    "/api/v1/enterprises/{enterpriseId}": {
+      "$ref": "./organization/context.yaml#/paths/~1api~1v1~1enterprises~1{enterpriseId}"
+    },
+    "/api/v1/enterprises/{enterpriseId}/owners": {
+      "$ref": "./organization/context.yaml#/paths/~1api~1v1~1enterprises~1{enterpriseId}~1owners"
+    },
+    "/api/v1/enterprises/{enterpriseId}/organizations": {
+      "$ref": "./organization/context.yaml#/paths/~1api~1v1~1enterprises~1{enterpriseId}~1organizations"
     }
   },
   "components": {

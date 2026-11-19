@@ -16,6 +16,7 @@ import (
 	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"github.com/google/uuid"
 )
 
@@ -65,7 +66,7 @@ func TestWorkspaceLifecycle(t *testing.T) {
 	}
 	root := db.Collection("channels").Doc(channel)
 	id := org.OrganizationId
-	enterprise := uuid.NewString()
+	var provisioned generated.EnterpriseLink
 	gid := "C" + strings.Repeat("a", 32)
 	save := func(ref *firestore.DocumentRef, data map[string]any) {
 		t.Helper()
@@ -73,8 +74,40 @@ func TestWorkspaceLifecycle(t *testing.T) {
 			t.Fatal(e)
 		}
 	}
-	save(root.Collection("organizations").Doc(id), map[string]any{"enterpriseId": enterprise, "memberUserIds": []string{other}})
-	save(root.Collection("enterprises").Doc(enterprise), map[string]any{"name": "HQ", "ownerUserId": string(owner)})
+	call("POST", "enterprises", `{"name":"HQ"}`, 403)
+	save(root.Collection("enterpriseEntitlements").Doc(firestorekey.Digest([]byte(owner))), map[string]any{"enabled": true})
+	if !strings.Contains(string(call("GET", "me/organization-context", "", 200)), `"canCreateEnterprise":true`) {
+		t.Fatal("eligible user cannot create")
+	}
+	if err = json.Unmarshal(call("POST", "enterprises", `{"name":"HQ"}`, 200), &provisioned); err != nil {
+		t.Fatal(err)
+	}
+	enterprise := provisioned.Id
+	ep := "enterprises/" + enterprise
+	if !strings.Contains(string(call("POST", "enterprises", `{"name":"HQ"}`, 200)), enterprise) {
+		t.Fatal("duplicate enterprise on retry")
+	}
+	if !strings.Contains(string(call("GET", "me/organization-context", "", 200)), enterprise) {
+		t.Fatal("empty enterprise not discoverable")
+	}
+	original := owner
+	owner = actor(other)
+	call("GET", ep, "", 404)
+	call("POST", ep+"/owners", `{"userId":"`+other+`"}`, 404)
+	owner = original
+	call("POST", ep+"/organizations", `{"organizationId":"`+id+`"}`, 200)
+	save(root.Collection("organizations").Doc(id), map[string]any{"memberUserIds": []string{other}})
+	owner = actor(other)
+	if !strings.Contains(string(call("GET", ep, "", 200)), `"canManage":false`) {
+		t.Fatal("member acquired owner privileges")
+	}
+	owner = original
+	call("POST", ep+"/owners", `{"userId":"`+other+`"}`, 200)
+	owner = actor(other)
+	if !strings.Contains(string(call("GET", ep, "", 200)), `"canManage":true`) {
+		t.Fatal("additional owner cannot manage")
+	}
+	owner = original
 	selection := `{"organizationId":"` + id + `"}`
 	call("PUT", "me/organization-context", selection, 200)
 	call("PUT", "me/organization-context", `{"organizationId":"`+uuid.NewString()+`"}`, 404)
@@ -100,6 +133,18 @@ func TestWorkspaceLifecycle(t *testing.T) {
 	call("PUT", mgmt, `{"managementScope":"organization","managementId":"`+id+`"}`, 409)
 	call("PUT", link, "", 204)
 	call("PUT", link, "", 204)
+	viewer := actor("U" + strings.Repeat("c", 32))
+	save(root.Collection("organizations").Doc(id), map[string]any{"memberUserIds": []string{other, string(viewer)}})
+	owner = viewer
+	if !strings.Contains(string(call("GET", ep, "", 200)), gid) {
+		t.Fatal("assigned team missing for member")
+	}
+	groups.Membership = member(false)
+	if strings.Contains(string(call("GET", ep, "", 200)), gid) {
+		t.Fatal("enterprise exposed team after LINE membership revoked")
+	}
+	groups.Membership = member(true)
+	owner = original
 	list := "organizations/" + id + "/teams"
 	if !strings.Contains(string(call("GET", list, "", 200)), gid) {
 		t.Fatal("team missing")

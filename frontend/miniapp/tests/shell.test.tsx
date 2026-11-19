@@ -42,7 +42,7 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
         return Response.json({error:{code:"not_found",message:"找不到組織。"}},{status:404});
       }
       const options = (organizationRevoked ? ["org1"] : ["org1","org2"]).map(id => ({organizationId:id,name:"台北營運",detail:id}));
-      return Response.json({groups:[{enterpriseId:"hq",label:"總公司",organizations:options}],selected:{organizationId:"org1",name:"台北營運",groupLabel:"總公司"},canSwitch:options.length>1});
+      return Response.json({enterprises:[{id:"hq",name:"總公司"}],canCreateEnterprise:!organizationRevoked,groups:[{enterpriseId:"hq",label:"總公司",organizations:options}],selected:{organizationId:"org1",name:"台北營運",groupLabel:"總公司"},canSwitch:options.length>1});
     }
     if (new URL(request.url).pathname.endsWith("/config")) return Response.json({ liffId: "test-shell" });
     if (request.method === "DELETE") {
@@ -111,12 +111,15 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
       document.querySelector<HTMLElement>('[aria-label="切換組織"]')!.dispatchEvent(new window.KeyboardEvent("keydown",{key:"Enter",bubbles:true}));
       await flush();
     });
+    assert.ok(document.querySelector('a[href="/miniapp?enterprise=hq"]'));
+    assert.ok(document.querySelector('a[href="/miniapp?enterprise=new"]'));
     const choices = [...document.querySelectorAll<HTMLElement>('[role="menuitemradio"]')];
     assert.equal(choices.length,2);
     assert.equal(choices[0].getAttribute("aria-checked"),"true");
     assert.match(choices[1].textContent!,/org2/);
     await act(async () => { choices[1].click(); await flush(); });
     assert.ok(organizationRevoked);
+    assert.equal(document.querySelector('a[href="/miniapp?enterprise=new"]'),null);
     assert.equal(document.querySelector('[aria-label="切換組織"]'),null);
     await openMenu();
     assert.equal(document.getElementById("login"), null);
