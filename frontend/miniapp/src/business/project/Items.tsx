@@ -51,7 +51,15 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
     setReadBusy(true); setLoaded(false); if (!next) setItems([]); setCursor(""); setStatus("正在讀取專案引用……");
     void read.run(signal => request((client, s) => client.GET("/api/v1/owners/{ownerId}/projects/{id}/references", { signal: s, params: { path: { ownerId, id: project.id }, query: { cursor: next || undefined } } }), { signal }), page => {
       setItems(previous => [...new Map([...(next ? previous : []), ...page.items].map(item => [item.id, item])).values()]); setCursor(page.nextCursor); setReadBusy(false); setLoaded(true); setStatus("");
-    }, error => { setItems([]); setReadBusy(false); setStatus(errorMessage(error)); });
+    }, error => {
+      const status = (error as {httpStatus?: number}).httpStatus;
+      if (next && (!status || status >= 500 || status === 408 || status === 429)) {
+        setCursor(next);
+      } else {
+        setItems([]);
+      }
+      setReadBusy(false); setStatus(errorMessage(error));
+    });
   }, [user, request, read.run, ownerId, project.id]);
   const loadParents = useCallback((next = "") => {
     if (!user || !mine || !sourceAvailable || kind !== "subobject") return;
