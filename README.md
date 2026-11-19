@@ -16,7 +16,7 @@ Secret Manager 綁定。
 它不執行 `deploy/cloudbuild.yaml`。該檔保留給手動提交或改成自訂 Trigger 時使用。
 runtime 環境變數與 Secret reference 儲存在 Cloud Run service configuration；
 兩種部署方式、首次設定與 IAM 見 [Cloud Run 部署](docs/guides/release/cloud-run.md)。
-桌面 MINI App Flex 入口另需 runtime `LINE_MINI_APP_WEB_URL`，設定與手機 fallback 見 [LINE 環境變數](docs/architecture/integrations/line-environment.md#3-mini-app)。
+三個 MINI App 環境共用的 HTTPS Endpoint 已內建；桌面 Flex 入口與手機永久連結的分流見 [LINE 環境變數](docs/architecture/integrations/line-environment.md#3-mini-app)。
 目前先穩定基礎，不新增測試方案、案例或工具；保留既有 CI。
 架構與階段範圍依 [已接受的基線](docs/decisions/0002-baseline.md)，
 首版只處理上班、下班與本人紀錄，見 [基礎出勤](docs/domains/attendance/README.md)。
