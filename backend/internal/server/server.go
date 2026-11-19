@@ -47,7 +47,7 @@ func Run() (resultErr error) {
 	if err := browser.Register(mux); err != nil {
 		return err
 	}
-	auth, err := newMiniAppAuthenticator(os.Getenv("LINE_MINI_APP_ENV"))
+	auth, endpointURL, err := newMiniAppAuthenticator(os.Getenv("LINE_MINI_APP_ENV"))
 	if err != nil {
 		return err
 	}
@@ -142,7 +142,7 @@ func Run() (resultErr error) {
 	if groups != nil {
 		groupObserver = &groupline.Observer{Store: groups.Store}
 	}
-	groupLookup, err = registerLINE(mux, appURL, punches, summaries, repositoryObserver, groupObserver, repositories)
+	groupLookup, err = registerLINE(mux, appURL, endpointURL, punches, summaries, repositoryObserver, groupObserver, repositories)
 	if err != nil {
 		return err
 	}

@@ -11,10 +11,7 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
-// All three MINI App environments use this public web endpoint.
-const miniAppEndpointURL = "https://line-mini-app-bot-jtghegqd7q-de.a.run.app/miniapp"
-
-func ReplyForEvent(event webhook.EventInterface, appURL string, repositoryIDs ...string) transport.Reply {
+func ReplyForEvent(event webhook.EventInterface, appURL, endpointURL string, repositoryIDs ...string) transport.Reply {
 	var source webhook.SourceInterface
 	var command, token string
 	switch e := event.(type) {
@@ -23,7 +20,7 @@ func ReplyForEvent(event webhook.EventInterface, appURL string, repositoryIDs ..
 		if !ok || g.GroupId == "" || !transport.CanReply(e.Mode, e.ReplyToken, e.DeliveryContext) {
 			return transport.Reply{}
 		}
-		return transport.Reply{Token: e.ReplyToken, Message: lineui.Help(true, appURL, miniAppEndpointURL, repositoryIDs...)}
+		return transport.Reply{Token: e.ReplyToken, Message: lineui.Help(true, appURL, endpointURL, repositoryIDs...)}
 	case webhook.MessageEvent:
 		if !transport.CanReply(e.Mode, e.ReplyToken, e.DeliveryContext) {
 			return transport.Reply{}
@@ -78,14 +75,14 @@ func ReplyForEvent(event webhook.EventInterface, appURL string, repositoryIDs ..
 	case "/menu", "選單", "功能":
 		return transport.Reply{Token: token, Message: lineui.QuickMenu(group, appURL, repositoryIDs...)}
 	case "/miniapp":
-		return transport.Reply{Token: token, Message: lineui.MiniApp(appURL, miniAppEndpointURL, repositoryIDs...)}
+		return transport.Reply{Token: token, Message: lineui.MiniApp(appURL, endpointURL, repositoryIDs...)}
 	case "/help":
-		return transport.Reply{Token: token, Message: lineui.Help(group, appURL, miniAppEndpointURL, repositoryIDs...)}
+		return transport.Reply{Token: token, Message: lineui.Help(group, appURL, endpointURL, repositoryIDs...)}
 	default:
 		// Ordinary group conversation must not trigger the bot or expose personal data.
 		if group {
 			return transport.Reply{}
 		}
-		return transport.Reply{Token: token, Message: lineui.Help(false, appURL, miniAppEndpointURL)}
+		return transport.Reply{Token: token, Message: lineui.Help(false, appURL, endpointURL)}
 	}
 }

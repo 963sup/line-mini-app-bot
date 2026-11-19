@@ -1,7 +1,7 @@
 # Local secrets and credentials
 .env
 .env.*
-!backend/.env.example
+!.env.example
 *.pem
 *.key
 credentials*.json

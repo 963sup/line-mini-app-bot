@@ -36,7 +36,7 @@ block-beta
 flowchart LR
   h["建置入口"]
   h --- n0["手動入口使用 gcloud builds submit <br/>--config=deploy/cloudbuild.yaml。Managed <br/>trigger 的 substitutions、環境變數與服務帳戶<br/>由實際 inline build 和服務設定管理。"]
-  h --- n1["現行 managed trigger 的 runtime 環境變數與 <br/>Secret reference 以 Cloud Run service <br/>configuration 為準；image-only update 會沿用<br/>當時的 service template。Git push 不會把 <br/>repository 的 backend/.env.example 或 <br/>deploy/cloudbuild.yaml 設定同步到 Cloud Run<br/>。機密只由 Cloud Run 引用 Secret Manager，不<br/>進入 Dockerfile、映像或 Git。"]
+  h --- n1["現行 managed trigger 的 runtime 環境變數與 <br/>Secret reference 以 Cloud Run service <br/>configuration 為準；image-only update 會沿用<br/>當時的 service template。Git push 不會把 <br/>repository 的 .env.example 或 <br/>deploy/cloudbuild.yaml 設定同步到 Cloud Run<br/>。機密只由 Cloud Run 引用 Secret Manager，不<br/>進入 Dockerfile、映像或 Git。"]
 ```
 
 <a id="managed-trigger-的-rich-menu-圖片路徑"></a>
@@ -144,7 +144,7 @@ flowchart LR
 flowchart LR
   h["Secret Manager 與環境變數"]
   h --- n0["Cloud Build substitution：<br/>_MESSAGING_API_CHANNEL_ID<br/>注入位置／用途：<br/>LINE_MESSAGING_API_CHANNEL_ID；必填<br/>預設：2012305727"]
-  h --- n1["Cloud Build substitution：_MINI_APP_ENV<br/>注入 LINE_MINI_APP_ENV，從內建公開配對選擇 developing、review 或 published；預設 developing。"]
+  h --- n1["Cloud Build substitution：_MINI_APP_ENV<br/>注入 LINE_MINI_APP_ENV，選擇 developing、review 或 published，並注入該階段公開三元組；預設 developing。"]
   h --- n3["Cloud Build substitution：<br/>_CHANNEL_SECRET_NAME<br/>注入位置／用途：<br/>LINE_MESSAGING_API_CHANNEL_SECRET 的 secret <br/>名稱<br/>預設：line-messaging-api-channel-secret"]
   h --- n4["Cloud Build substitution：<br/>_CHANNEL_SECRET_VERSION<br/>注入位置／用途：上述 secret 的版本<br/>預設：3"]
   h --- n5["Cloud Build substitution：<br/>_CHANNEL_ACCESS_TOKEN_NAME<br/>注入位置／用途：<br/>LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN 的 <br/>secret 名稱<br/>預設：<br/>line-messaging-api-channel-access-token"]
@@ -251,3 +251,9 @@ flowchart LR
   click n4 "https://docs.cloud.google.com/run/docs/configuring/services/secrets"
   h --- n5["配置參考 kkdai/linebot-garbage-helper 的 <br/>build → push → deploy 流程； 本專案採 <br/>Artifact Registry、分離服務身分與 Secret <br/>Manager，沒有加入其 token endpoint 或 <br/>Scheduler。"]
 ```
+
+## MINI App 公開設定遷移
+
+公開鍵名與驗證規則見 [LINE 環境設定](../../architecture/integrations/line-environment.md#公開環境設定)。根 `.env.example` 與手動 Cloud Build substitutions 不會由 managed image-only trigger 自動匯入服務。切換至不含硬編碼 fallback 的映像前，先以 Cloud Run `--update-env-vars` 補齊所選組三元組及 selector；不要使用會覆蓋其他環境變數的 `--set-env-vars`，也不要更動現有 Secret references。此遷移會建立 revision，必須在取得部署授權後另行執行及驗收；本機測試或 PR CI 不代表遠端已遷移。
+
+手動 Cloud Build 範例以 `^|^` 切換 gcloud dictionary 分隔符，因此 Endpoint query 中的逗號不會被拆為其他變數；URL 若需要 pipe 字元，使用 URL 編碼 `%7C`。一般命令的逗號分隔規則與替代 delimiter 語法以 `gcloud topic escaping` 為準。

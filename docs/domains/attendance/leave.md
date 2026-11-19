@@ -40,7 +40,7 @@ flowchart LR
   h --- n4["一般側欄入口供查閱本人紀錄；持群組連結才顯示登記表單。伺服器判定連結過期或失去成員資格後停止送件。回應逾時不代表失敗，先重新載入本人紀錄。頁面<br/>重開、連結過期後，應先確認最近紀錄再重新填寫<br/>；第一版不保存跨頁草稿，也不提供語意重複／時<br/>段重疊的自動拒絕。"]
   h --- n5["Firestore：channels/{channel}/leaveLaunches/<br/>{tokenHash} 保存群組與到期；channels/{<br/>channel}/users/{userHash}/leaveRequests/{<br/>requestKeyHash} 保存伺服器以 google/uuid 產<br/>生的 UUID v4 申請編號、群組、token雜湊、假別<br/>、UTC起訖、理由及建立時間。原始 token 不寫入<br/>假單文件；交易再次確認連結有效，重試不建立第<br/>二筆。"]
   h --- n6["最近紀錄僅在本人子集合以單欄 createdAt 排序<br/>並限制20筆，不需要新增複合索引、回填或新環境<br/>變數。保存期與清除政策尚未設定；不擅自替請假<br/>理由或去重紀錄加TTL。"]
-  h --- n7["MINI App 與 Messaging API 仍需同一 Provider<br/>，且 Bot 在群組中。沿用 LINE_MINI_APP_ENV 選定的內建 LIFF ID、身分／Session 與出勤<br/>資料庫設定。主頁的 ?leave= 及 LIFF <br/>liff.state 會導向請假頁，打卡連結維持原流程<br/>。"]
+  h --- n7["MINI App 與 Messaging API 仍需同一 Provider<br/>，且 Bot 在群組中。沿用 LINE_MINI_APP_ENV 選定的 LIFF ID 設定、身分／Session 與出勤<br/>資料庫設定。主頁的 ?leave= 及 LIFF <br/>liff.state 會導向請假頁，打卡連結維持原流程<br/>。"]
 ```
 
 <a id="查證與驗證邊界"></a>
