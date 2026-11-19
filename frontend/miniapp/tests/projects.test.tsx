@@ -373,6 +373,8 @@ test("inspection on a SubObject submits once and reads the saved pending result"
       Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype,"value")!.set!.call(field,saved.note);
       field.dispatchEvent(new window.Event("input",{bubbles:true}));await flush();
     });
+    await f.click("查看驗收紀錄");
+    assert.equal(field.value,saved.note);
     await f.click("提交驗收");
     assert.equal(writes,1);
     await f.click("查看驗收紀錄");
