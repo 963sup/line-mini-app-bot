@@ -79,8 +79,8 @@ flowchart LR
   click n2l0 "../../domains/repository/milestones.md"
   n2 --- n2l1["Project"]
   click n2l1 "../../domains/project.md"
-  n2 --- n2l2["統計"]
-  click n2l2 "../../domains/repository/statistics.md"
+  n2 --- n2l2["洞察（Insights）"]
+  click n2l2 "../../domains/repository/insights.md"
   h --- n3["後續分層構想見未來套件依賴方向。"]
   click n3 "dependencies.md#允許方向"
 ```
