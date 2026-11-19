@@ -8,7 +8,7 @@ import { Status } from "@/shared/Status";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
-import { FieldGroup } from "@/shared/ui/field";
+import { FieldGroup, FieldSet } from "@/shared/ui/field";
 import { Items } from "./Items";
 import { SourcePicker } from "./SourcePicker";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
@@ -164,10 +164,10 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
       {(mode === "create" || selected) && <form onSubmit={submit}>
         <FieldGroup>
           {mode === "create" && <SourcePicker ownerId={ownerId} initialSource={initialSource} value={sourceRepositoryId} onChange={setSourceRepositoryId} disabled={busy || uncertain} />}
-          <fieldset className="grid min-w-0 gap-4" disabled={busy || detailBusy || referencesBlocked || uncertain || needsRefresh || (mode === "detail" && !mine)}>
+          <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || referencesBlocked || uncertain || needsRefresh || (mode === "detail" && !mine)}>
             <FormField>標題<Input required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} /></FormField>
             <FormField>內容<Textarea maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} /></FormField>
-          </fieldset>
+          </FieldSet>
 
           {(mode === "create" || mine) && <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={busy || needsRefresh || referencesBlocked}>{mode === "create" ? uncertain ? "重試原建立請求" : "建立專案" : "儲存內容"}</Button>

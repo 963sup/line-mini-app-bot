@@ -12,7 +12,7 @@ import { FormField } from "@/shared/FormField";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
-import { FieldGroup } from "@/shared/ui/field";
+import { FieldGroup, FieldSet, FieldLegend } from "@/shared/ui/field";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { Badge } from "@/shared/ui/badge";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
@@ -162,10 +162,10 @@ export function View({ repositoryId }: { repositoryId: string }) {
       </div>}
       {(mode === "create" || selected) && <form onSubmit={submit}>
         <FieldGroup>
-          <fieldset className="grid min-w-0 gap-4" disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh || (mode === "detail" && !mine)}>
+          <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh || (mode === "detail" && !mine)}>
             <FormField>標題<Input ref={titleInput} required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} /></FormField>
             <FormField>內容<Textarea maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} /></FormField>
-          </fieldset>
+          </FieldSet>
           {selected && <MilestonePicker repositoryId={repositoryId} value={milestoneID} onChange={setMilestoneID} disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh} />}
           {selected && <LabelPicker repositoryId={repositoryId} value={labelIDs} onChange={setLabelIDs} disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh} />}
           {(mode === "create" || selected) && <div className="flex flex-wrap gap-2">
@@ -186,7 +186,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
       <form onSubmit={(event) => { event.preventDefault(); if (!lock.current && !createOutcomeUnknown && !needsRefresh) discard.navigate(() => { navigating.current = true; clearEditor(); setFilter({ query: query.trim(), state }); }); }}>
         <FieldGroup className="mb-4">
           <FormField>搜尋標題<Input maxLength={120} value={query} onChange={(e) => setQuery(e.target.value)} /></FormField>
-          <fieldset><legend>狀態</legend>
+          <FieldSet><FieldLegend>狀態</FieldLegend>
             <ToggleGroup type="single" value={state || "all"} variant="outline" className="max-w-full flex-wrap justify-start"
               aria-label="問題狀態篩選" onValueChange={value => {
                 if (value === "all") setState("");
@@ -195,7 +195,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
               <ToggleGroupItem value="all">全部</ToggleGroupItem>
               {Object.entries(states).map(([value, label]) => <ToggleGroupItem key={value} value={value}>{label}</ToggleGroupItem>)}
             </ToggleGroup>
-          </fieldset>
+          </FieldSet>
 
           <Button type="submit" disabled={!user || listBusy || busy}>套用篩選</Button>
         </FieldGroup>

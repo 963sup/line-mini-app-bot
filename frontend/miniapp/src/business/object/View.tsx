@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState, type FormEvent } from 
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 import { useRepositoryGuard } from "../repository/NavigationGuard";
 import { ReadFeedback } from "@/shared/ReadFeedback";
+import { Status } from "@/shared/Status";
 import { useDiscardChanges } from "@/shared/useDiscardChanges";
 import type { extractPdf } from "./pdf";
 import { View as Subobjects } from "../subobject/View";
@@ -15,7 +16,7 @@ import { FormField } from "@/shared/FormField";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
-import { FieldError, FieldGroup } from "@/shared/ui/field";
+import { FieldError, FieldGroup, FieldSet } from "@/shared/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Item, ItemGroup, ItemContent, ItemTitle, ItemActions, ItemFooter } from "@/shared/ui/item";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
@@ -205,7 +206,7 @@ function Content({ repositoryId, extract }: Props) {
       <ReadFeedback busy={detailBusy} message={status} label="正在讀取物件……" />
       {mode === "detail" && <Button variant="outline" disabled={busy || detailBusy || subBlocked} onClick={() => open(activeId)}>重新讀取物件</Button>}
       {(mode === "create" || selected) && <form onSubmit={submit} onChange={() => setInvalidField(null)}><FieldGroup>
-        <fieldset className="grid min-w-0 gap-4" disabled={busy || detailBusy || subBlocked || uncertain || needsRefresh || (mode === "detail" && !mine)}>
+        <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || subBlocked || uncertain || needsRefresh || (mode === "detail" && !mine)}>
           <FormField>類型<NativeSelect value={content.type} onChange={event => {
             const type = event.target.value;
             setContent(previous => {
@@ -252,9 +253,9 @@ function Content({ repositoryId, extract }: Props) {
           {invalidField === "completedQuantity" && <FieldError id="object-completed-error">請填寫0至數量之間的完成數（最多18位整數及6位小數）。</FieldError>}
           <p>狀態：{content.type === "non_work" ? "不適用" : selected ? statusLabel(selected) : "未開始"}</p>
           <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{content.type === "non_work" ? "不適用" : selected ? progressLabel(selected) : "儲存後依完成數更新"}</p>
-        </fieldset>
+        </FieldSet>
 
-        {spaceUnknown && <><p role="status">{spaceStatus}</p><Button type="button" disabled={busy} onClick={createSpace}>重試原空間建立請求</Button></>}
+        {spaceUnknown && <><Status role="status">{spaceStatus}</Status><Button type="button" disabled={busy} onClick={createSpace}>重試原空間建立請求</Button></>}
         {(mode === "create" || mine) && <Button type="submit" disabled={spaceUnknown || busy || detailBusy || needsRefresh || subBlocked}>{mode === "create" ? uncertain && !spaceUnknown ? "重試原物件建立請求" : "建立物件" : "儲存物件"}</Button>}
       </FieldGroup></form>}
       <Button type="button" variant="outline" disabled={busy || uncertain || needsRefresh || subBlocked} onClick={close}>{mine || mode === "create" ? "取消" : "關閉"}</Button>

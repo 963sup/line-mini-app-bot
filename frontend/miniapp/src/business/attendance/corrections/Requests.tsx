@@ -1,7 +1,8 @@
+import { FieldSet } from "@/shared/ui/field";
 import { Item, ItemGroup, ItemContent, ItemTitle, ItemDescription, ItemActions } from "@/shared/ui/item";
 import { Badge } from "@/shared/ui/badge";
 import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
-import { Spinner } from "@/shared/ui/spinner";
+import { ReadFeedback } from "@/shared/ReadFeedback";
 import { FormField } from "@/shared/FormField";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
@@ -144,7 +145,7 @@ export function Requests({
   }
   return (
     <PagePanel heading={review ? "群組申請清單" : "本人申請清單"}>
-      <fieldset
+      <FieldSet
         className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
         disabled={!user || busy || disabled}
       >
@@ -178,7 +179,7 @@ export function Requests({
         <Button id="requests-load" onClick={() => load()}>
           查詢{review ? "群組" : "本人"}申請
         </Button>
-        {busy && <p role="status" className="flex items-center gap-2"><Spinner aria-hidden="true" />正在處理申請清單</p>}
+        {busy && <ReadFeedback busy label="正在處理申請清單" />}
         <ItemGroup id="requests-list" className="gap-3" aria-busy={busy}>
           {items.map((item) => (
             <Item key={item.id} role="listitem" variant="outline">
@@ -203,7 +204,7 @@ export function Requests({
         </ItemGroup>
         {loaded && !busy && !items.length && <Empty><EmptyHeader><EmptyTitle>本頁沒有申請</EmptyTitle></EmptyHeader></Empty>}
         {next && <Button onClick={() => load(next)}>載入更多申請</Button>}
-      </fieldset>
+      </FieldSet>
       <Status role="status">{status}</Status>
     </PagePanel>
   );
