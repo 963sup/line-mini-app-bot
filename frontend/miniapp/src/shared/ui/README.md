@@ -28,11 +28,14 @@ Data Table、Date Picker、Typography 是組合／樣式配方，沿用已安裝
 | sheet | sidebar 在手機寬度以 Sheet 顯示側欄，含標題、說明與焦點管理。 |
 | tooltip | sidebar 提供 TooltipProvider；有 tooltip 設定的選單按鈕可在圖示收折模式提示名稱。 |
 | skeleton | sidebar 的 SidebarMenuSkeleton 使用 Skeleton。此路徑代表原始碼依賴，只有渲染 SidebarMenuSkeleton 才會出現佔位內容。 |
+| toggle | toggle-group 共用 toggle 的 variants；這是樣式依賴，不代表另外渲染 Toggle 控制項。 |
 
-其餘 30 個模組目前未從上述入口引用，仍屬已安裝的官方目錄：
+上述 30 個直接引用與 5 個間接依賴，共 35 個入口可達模組；不是畫面上的元件實例數。其餘 29 個模組目前未從上述入口引用，仍屬已安裝的官方目錄：
 
-- 表單、日期、分頁與浮層：calendar、dialog、drawer、form、pagination、popover、select、slider、sonner、switch、toggle。
+- 表單、日期、分頁與浮層：calendar、dialog、drawer、form、pagination、popover、select、slider、sonner、switch。
 - 導覽及進階互動：command、context-menu、hover-card、input-otp、kbd、menubar、navigation-menu、resizable、scroll-area。
 - 媒體、訊息與追蹤：aspect-ratio、attachment、bubble、carousel、code-block、direction、marker、message、message-scroller、trace。
 
 異動引用後可用 `rg -n 'from .*ui/' frontend/miniapp/src` 查找畫面與共用入口，再查元件本身的 import（含相對路徑）。更換控制項時核對操作語意：工作關聯在完整清單內搜尋，來源儲存庫仍採游標載入；Issue 狀態在套用篩選後查詢；儲存庫頁籤在使用者確認切換後載入。
+
+表單群組與標籤使用 FieldSet／FieldLegend／FieldLabel（含 FormField 包裝），載入與訊息沿用 ReadFeedback／Status，適用的可展開明細使用 Collapsible。日期、月份、數字、檔案輸入仍保留原生型別與驗證；表單、文字、連結、資料列表、圖表圖例及診斷結果的語意 HTML 不為增加元件數而替換。未登入頁面的說明可保留文字，避免與 Shell 的身分提示重複。

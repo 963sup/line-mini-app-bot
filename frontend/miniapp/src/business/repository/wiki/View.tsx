@@ -5,6 +5,8 @@ import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/ui/collapsible";
+import { Status } from "@/shared/Status";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { FormField } from "@/shared/FormField";
@@ -71,7 +73,7 @@ export function View({repositoryId, initialId}: {repositoryId:string; initialId:
       });
   }
   return <PagePanel heading="知識庫 Wiki">
-    {message && <p role="status">{message}</p>}
+    {message && <Status role="status">{message}</Status>}
     {!draft && !id && <><Button disabled={busy} onClick={()=>{key.current=crypto.randomUUID();setDraft({title:"",body:""});}}>建立頁面</Button>
       <ul>{items.map(p=><li key={p.id}><Item asChild size="sm"><a href={link(p.id)}>{p.title}</a></Item></li>)}</ul>
       {cursor && <Button disabled={busy} onClick={()=>load(cursor)}>更多頁面</Button>}</>}
@@ -91,7 +93,10 @@ export function View({repositoryId, initialId}: {repositoryId:string; initialId:
       <FormField>標題<Input ref={titleInput} required maxLength={120} disabled={busy||uncertain} value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})}/></FormField>
       <FormField>Markdown 內容<Textarea maxLength={32000} disabled={busy||uncertain} value={draft.body} onChange={e=>setDraft({...draft,body:e.target.value})}/></FormField>
       {compare && <Button type="button" disabled={busy} onClick={()=>{setBusy(true);void run(signal=>request((c,s)=>c.GET(detail,{signal:s,params:{path}}),{signal}),p=>{setPage(p);setCompare(false);setBusy(false);setMessage("已載入目前版本。請比對草稿後再儲存。");},fail);}}>讀取目前版本以比對</Button>}
-      {page && <details key={page.version}><summary>對照第 {page.version} 版 · {page.title}</summary><Markdown body={page.body}/></details>}
+      {page && <Collapsible key={page.version}>
+        <CollapsibleTrigger asChild><Button type="button" variant="outline" className="h-auto max-w-full whitespace-normal text-left"><span className="min-w-0 break-words">對照第 {page.version} 版 · {page.title}</span></Button></CollapsibleTrigger>
+        <CollapsibleContent><Markdown body={page.body}/></CollapsibleContent>
+      </Collapsible>}
       <Button type="submit" disabled={busy||compare}>{uncertain?"重試原建立請求":"儲存"}</Button>
       <Button type="button" disabled={busy||uncertain} onClick={()=>{setDraft(null);setCompare(false);setMessage("");}}>取消編輯</Button>
     </form>}

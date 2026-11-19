@@ -8,6 +8,7 @@ import { Button } from "@/shared/ui/button";
 import { Textarea } from "@/shared/ui/textarea";
 import { FormField } from "@/shared/FormField";
 import { Status } from "@/shared/Status";
+import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
 
 type Submission = components["schemas"]["InspectionSubmission"];
 const endpoint = "/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions";
@@ -42,7 +43,7 @@ export function Inspections({canSubmit, ownerId, projectId, itemId}: {canSubmit:
       </ItemContent>
       <Badge variant="outline">待審</Badge>
     </Item>)}
-    {rows?.length===0 && !canSubmit && <p>目前沒有驗收紀錄。</p>}
+    {rows?.length===0 && !canSubmit && <Empty><EmptyHeader><EmptyTitle>目前沒有驗收紀錄。</EmptyTitle></EmptyHeader></Empty>}
     {rows?.length===0 && canSubmit && <>
       <FormField>檢查說明<Textarea maxLength={2000} disabled={busy} value={note} onChange={e=>setNote(e.target.value)}/></FormField>
       <Button type="button" disabled={busy||!note.trim()} onClick={()=>perform(true)}>提交驗收</Button>
