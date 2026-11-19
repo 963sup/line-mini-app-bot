@@ -979,6 +979,7 @@
       "core": "backend/internal/business/group/group.go",
       "specification": "docs/domains/project.md",
       "consumers": [
+        "frontend/miniapp/src/business/journal/Workspace.tsx",
         "frontend/miniapp/src/business/project/Workspace.tsx"
       ]
     },

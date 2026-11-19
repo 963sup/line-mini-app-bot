@@ -68,23 +68,66 @@ function Composer({request,group,saved}:{request:Request;group:string;saved:()=>
   </fieldset></form></PagePanel>;
 }
 
-export function JournalWorkspace({dashboard}:{dashboard:boolean}){
+type WorkspaceProps = {
+  dashboard: boolean;
+  journalId?: string;
+  onCloseComposer?: () => void;
+};
+
+export function JournalWorkspace({dashboard, journalId = "", onCloseComposer}: WorkspaceProps) {
   const {user,epoch,request}=useSession();
-  if(!user)return <p role="status">請先登入以查閱群組日誌。</p>;
-  return <View key={epoch+":"+user.userId} dashboard={dashboard} request={request}/>;
+  if(!user)return <p role="status">{onCloseComposer ? "請先登入以撰寫日誌。" : "請先登入以查閱群組日誌。"}</p>;
+  const sessionKey = epoch + ":" + user.userId;
+  return onCloseComposer
+    ? <ComposeView key={sessionKey} request={request} close={onCloseComposer} />
+    : <View key={sessionKey + ":" + journalId} dashboard={dashboard} request={request} detail={journalId} />;
 }
-function View({dashboard,request}:{dashboard:boolean;request:Request}){
+
+function ComposeView({request, close}: {request: Request; close: () => void}) {
+  const [groups, setGroups] = useState<Option[] | null>(null);
+  const [publishGroup, setPublishGroup] = useState("");
+  const [error, setError] = useState("");
+  const [revision, retry] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setError("");
+    collect(cursor => request((client, signal) => client.GET("/api/v1/groups", {
+      signal, params: {query: {cursor: cursor || undefined}},
+    }), {signal: controller.signal})).then(
+      items => { if (!controller.signal.aborted) setGroups(items); },
+      reason => { if (!controller.signal.aborted) setError(errorMessage(reason)); },
+    );
+    return () => controller.abort();
+  }, [request, revision]);
+
+  return <>
+    <PagePanel heading="發布群組">
+      <div className="flex flex-wrap items-center gap-3">
+        {error ? <>
+          <p role="alert">{error}</p>
+          <Button type="button" variant="outline" onClick={() => retry(value => value + 1)}>重新讀取</Button>
+        </> : !groups ? <p role="status">正在讀取群組……</p>
+          : !groups.length ? <p>目前沒有可選擇的群組。</p>
+          : publishGroup ? <p>{groups.find(group => group.id === publishGroup)?.name || publishGroup}</p>
+          : <label>選擇發布群組 <select value="" onChange={event => setPublishGroup(event.target.value)}>
+            <option value="">請選擇群組</option>
+            {groups.map(group => <option key={group.id} value={group.id}>{group.name || group.id}</option>)}
+          </select></label>}
+        <Button type="button" variant="outline" onClick={() => {
+          if (!publishGroup || window.confirm("放棄這份日誌？")) close();
+        }}>取消填寫</Button>
+      </div>
+    </PagePanel>
+    {publishGroup && <Composer request={request} group={publishGroup} saved={close} />}
+  </>;
+}
+
+function View({dashboard,request,detail}:{dashboard:boolean;request:Request;detail:string}){
   const [groups,setGroups]=useState<Option[]>([]),[group,setGroup]=useState(""),[date,setDate]=useState(workDate);
-  const [entries,setEntries]=useState<Journal[]>([]),[cursor,setCursor]=useState(""),[writing,setWriting]=useState(false);
-  const [publishGroup,setPublishGroup]=useState("");
+  const [entries,setEntries]=useState<Journal[]>([]),[cursor,setCursor]=useState("");
   const [revision,reload]=useState(0),[error,setError]=useState(""),[groupError,setGroupError]=useState(""),[busy,setBusy]=useState(true);
-  const [detail,setDetail]=useState(""),[ready,setReady]=useState(false);
   const list=useLatestRequest();
-  useEffect(()=>{
-    const params=new URLSearchParams(location.search);
-    const journalId=dashboard?"":params.get("journalId")||"";
-    setDetail(journalId);setWriting(!dashboard && !journalId && params.get("compose")==="1");setReady(true);
-  },[dashboard]);
   useEffect(()=>{
     const controller=new AbortController();setGroupError("");
     collect(cursor=>request((c,s)=>c.GET("/api/v1/groups",{signal:s,params:{query:{cursor:cursor||undefined}}}),{signal:controller.signal}))
@@ -98,12 +141,7 @@ function View({dashboard,request}:{dashboard:boolean;request:Request}){
       return request((c,s)=>c.GET("/api/v1/journals",{signal:s,params:{query:{groupId:group||undefined,workDate:dashboard?date||undefined:undefined,cursor:next||undefined}}}),{signal});
     },page=>{setEntries(old=>next?[...old,...page.items]:page.items);setCursor(page.nextCursor);setBusy(false);},e=>{setEntries([]);setBusy(false);setError(errorMessage(e));});
   }
-  useEffect(()=>{if(ready)load();return list.cancel;},[group,date,revision,detail,dashboard,ready,request]);
-  function closeComposer(){
-    const url=new URL(location.href);url.searchParams.delete("compose");window.history.replaceState(window.history.state,"",url);
-    setWriting(false);
-    setPublishGroup("");
-  }
+  useEffect(()=>{load();return list.cancel;},[group,date,revision,detail,dashboard,request]);
   const renderEntry = (j:Journal) => <PagePanel key={j.id} heading={j.workDate+" · "+(groups.find(g=>g.id===j.groupId)?.name||"群組日誌")}>
     {Object.entries(roles).map(([key,label])=><p key={key}>{label}：{j.personnel[key as keyof typeof roles].join("、")||"未填"}</p>)}
     {([["今日工作",j.todayItems],["明日計畫",j.tomorrowItems]] as const).map(([title,items])=><section key={title}><h3>{title}</h3>{items.length?<ul>{items.map((i,k)=><li key={k}>{i.name} · {"completionPercent" in i?i.completionPercent:i.expectedCompletionPercent}%
@@ -111,19 +149,10 @@ function View({dashboard,request}:{dashboard:boolean;request:Request}){
     {!detail&&<a href={"/miniapp/feed?journalId="+j.id}>查看原文</a>}
   </PagePanel>;
   return <><PagePanel heading={dashboard?"工作概況":"工作牆"}>
-    {detail?<a href="/miniapp/feed">返回 Feed</a>:<label>群組 <select disabled={writing} value={group} onChange={e=>setGroup(e.target.value)}><option value="">全部可讀群組</option>{groups.map(g=><option key={g.id} value={g.id}>{g.name||g.id}</option>)}</select></label>}
+    {detail?<a href="/miniapp/feed">返回 Feed</a>:<label>群組 <select value={group} onChange={e=>setGroup(e.target.value)}><option value="">全部可讀群組</option>{groups.map(g=><option key={g.id} value={g.id}>{g.name||g.id}</option>)}</select></label>}
     {dashboard&&<label>工作日期<Input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>}
     {(error||groupError)&&<><p role="alert">{error||groupError}</p><Button onClick={()=>reload(v=>v+1)}>重新讀取</Button></>}
   </PagePanel>
-  {writing&&<PagePanel heading="發布群組">
-    {publishGroup?<p>{groups.find(g=>g.id===publishGroup)?.name||publishGroup}</p>:
-      <label>選擇發布群組 <select value="" onChange={e=>setPublishGroup(e.target.value)}>
-        <option value="">請選擇群組</option>
-        {groups.map(g=><option key={g.id} value={g.id}>{g.name||g.id}</option>)}
-      </select></label>}
-    <Button variant="outline" onClick={()=>{if(!publishGroup||window.confirm("放棄這份日誌？"))closeComposer();}}>取消填寫</Button>
-  </PagePanel>}
-  {writing&&publishGroup&&<Composer request={request} group={publishGroup} saved={()=>{closeComposer();reload(n=>n+1);}}/>}
   {busy&&<p role="status">正在讀取日誌……</p>}{!busy&&!error&&!entries.length&&<p>目前條件下沒有日誌。</p>}
   {dashboard?<GroupCharts entries={entries} groups={groups} renderEntry={renderEntry}/>:entries.map(renderEntry)}
   {cursor&&<Button disabled={busy} onClick={()=>load(cursor)}>載入更多</Button>}</>;
