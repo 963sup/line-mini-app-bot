@@ -1,3 +1,5 @@
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/shared/ui/accordion";
+import { Item } from "@/shared/ui/item";
 import React, { useEffect, useRef, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
@@ -71,12 +73,17 @@ export function View({repositoryId, initialId}: {repositoryId:string; initialId:
   return <PagePanel heading="知識庫 Wiki">
     {message && <p role="status">{message}</p>}
     {!draft && !id && <><Button disabled={busy} onClick={()=>{key.current=crypto.randomUUID();setDraft({title:"",body:""});}}>建立頁面</Button>
-      <ul>{items.map(p=><li key={p.id}><a href={link(p.id)}>{p.title}</a></li>)}</ul>
+      <ul>{items.map(p=><li key={p.id}><Item asChild size="sm"><a href={link(p.id)}>{p.title}</a></Item></li>)}</ul>
       {cursor && <Button disabled={busy} onClick={()=>load(cursor)}>更多頁面</Button>}</>}
     {!draft && page && <><h2>{page.title}</h2><Markdown body={page.body}/><a href={link(page.id)}>此頁永久連結</a>
       <Button disabled={busy} onClick={()=>setDraft({title:page.title,body:page.body})}>編輯</Button>
       <Button disabled={busy} onClick={()=>versions()}>版本歷史</Button>
-      {history.map(p=><details key={p.version}><summary>第 {p.version} 版 · {p.title} · {p.authorId} · {p.updatedAt}</summary><Markdown body={p.body}/></details>)}
+      {history.length > 0 && <Accordion type="multiple" key={page.id}>
+        {history.map(p => <AccordionItem key={p.version} value={String(p.version)}>
+          <AccordionTrigger>第 {p.version} 版 · {p.title} · {p.authorId} · {p.updatedAt}</AccordionTrigger>
+          <AccordionContent><Markdown body={p.body} /></AccordionContent>
+        </AccordionItem>)}
+      </Accordion>}
       {historyCursor && <Button disabled={busy} onClick={()=>versions(historyCursor)}>更早版本</Button>}</>}
     {!draft && id && <Button disabled={busy} onClick={()=>{setPage(null);setId("");}}>返回目錄</Button>}
     {!draft && message && <Button disabled={busy} onClick={()=>load()}>重新讀取</Button>}

@@ -5,7 +5,7 @@ import { ReadFeedback } from "@/shared/ReadFeedback";
 import { useSession } from "@/identity/Session";
 import { RepositoryNavigationContext, useRepositoryNavigation } from "./NavigationGuard";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
-import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useRepositories } from "./RepositoryContext";
 import { navigation } from "./navigation";
 import { displayTime } from "../../shared/time/time";
@@ -48,14 +48,15 @@ function Content() {
             <h2 className="text-2xl font-semibold tracking-tight">{selected.name || "群組空間"}</h2>
             <p className="text-sm text-muted-foreground">在同一個空間掌握工作、交流想法與追蹤目標。</p>
           </div>
-          <ToggleGroup type="single" value={page} onValueChange={(value) => { if (value && value !== page) guard.navigate(() => setPage(value)); }} aria-label="空間功能" className="max-w-full flex-wrap justify-start">
-            {navigation.map(({ title, icon: Icon }) => (
-              <ToggleGroupItem key={title} value={title} aria-label={title} disabled={guard.blocked && title !== page}>
-                <Icon aria-hidden="true" />{title}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-          {page === "總覽" ? (
+          <Tabs value={page} activationMode="manual" onValueChange={value => guard.navigate(() => setPage(value))}>
+            <TabsList aria-label="空間功能" className="h-auto max-w-full flex-wrap justify-start">
+              {navigation.map(({ title, icon: Icon }) => (
+                <TabsTrigger key={title} value={title} aria-label={title} disabled={guard.blocked && title !== page}>
+                  <Icon aria-hidden="true" />{title}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <TabsContent value="總覽">
             <div className="grid min-w-0 gap-4 lg:grid-cols-2">
               <PagePanel heading="空間資料">
                 <dl className="grid gap-2 text-sm [&>dt]:font-medium [&>dd]:break-all [&>dd]:text-muted-foreground">
@@ -83,16 +84,23 @@ function Content() {
                 <p className="text-sm leading-relaxed text-muted-foreground">摘要請回原群組操作。</p>
               </PagePanel>}
             </div>
-          ) : page === "Wiki" ? <Wiki key={selected.id} repositoryId={selected.id} initialId={wikiId} /> : page === "洞察" ? <Insights key={selected.id} repositoryId={selected.id} /> : page === "物件" ? <Objects key={selected.id} repositoryId={selected.id} /> : page === "問題" ? <Issues key={selected.id} repositoryId={selected.id} /> : page === "討論" ? <Discussions key={selected.id} repositoryId={selected.id} /> : page === "里程碑" ? <Milestones key={selected.id} repositoryId={selected.id} /> : page === "標籤" ? <Labels key={selected.id} repositoryId={selected.id} /> : (
-            <PagePanel heading={page}>
-              <Empty>
-                <EmptyHeader>
-                  <EmptyTitle>{page}尚未開放</EmptyTitle>
+            </TabsContent>
+            <TabsContent value="物件"><Objects repositoryId={selected.id} /></TabsContent>
+            <TabsContent value="問題"><Issues repositoryId={selected.id} /></TabsContent>
+            <TabsContent value="討論"><Discussions repositoryId={selected.id} /></TabsContent>
+            <TabsContent value="標籤"><Labels repositoryId={selected.id} /></TabsContent>
+            <TabsContent value="里程碑"><Milestones repositoryId={selected.id} /></TabsContent>
+            <TabsContent value="Wiki"><Wiki repositoryId={selected.id} initialId={wikiId} /></TabsContent>
+            <TabsContent value="洞察"><Insights repositoryId={selected.id} /></TabsContent>
+            <TabsContent value="稽核">
+              <PagePanel heading="稽核">
+                <Empty><EmptyHeader>
+                  <EmptyTitle>稽核尚未開放</EmptyTitle>
                   <EmptyDescription>此空間目前提供基本資料與本人出勤查詢，協作功能將逐步開放。</EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            </PagePanel>
-          )}
+                </EmptyHeader></Empty>
+              </PagePanel>
+            </TabsContent>
+          </Tabs>
         </>
       )}
     </section>{guard.dialog}</RepositoryNavigationContext.Provider>

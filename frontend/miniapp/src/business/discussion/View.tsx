@@ -1,3 +1,4 @@
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/shared/ui/input-group";
 import React, { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useRepositoryGuard } from "../repository/NavigationGuard";
 import { useDiscardChanges } from "@/shared/useDiscardChanges";
@@ -148,10 +149,13 @@ export function View({ repositoryId }: { repositoryId: string }) {
         <Button variant="outline" disabled={!user || listBusy || busy} onClick={() => load()}>重新載入討論</Button>
       </div>
       <form onSubmit={(event) => { event.preventDefault(); if (!lock.current && !createOutcomeUnknown && !needsRefresh && !commentLock.current) discard.navigate(() => { navigating.current = true; detailRequest.cancel(); setDetailBusy(false); setMode(null); setSelected(null); setStatus(""); setFilter({ query: query.trim() }); }); }}>
-        <FieldGroup className="mb-4">
-          <FormField>搜尋標題<Input maxLength={120} value={query} onChange={(e) => setQuery(e.target.value)} /></FormField>
-          <Button type="submit" disabled={!user || listBusy || busy}>套用篩選</Button>
-        </FieldGroup>
+        <label htmlFor="discussion-search">搜尋標題</label>
+        <InputGroup className="mb-4">
+          <InputGroupInput id="discussion-search" maxLength={120} value={query} onChange={e => setQuery(e.target.value)} />
+          <InputGroupAddon align="inline-end">
+            <InputGroupButton type="submit" disabled={!user || listBusy || busy}>套用篩選</InputGroupButton>
+          </InputGroupAddon>
+        </InputGroup>
       </form>
       <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取討論……" />
       <ItemGroup className="gap-3">
