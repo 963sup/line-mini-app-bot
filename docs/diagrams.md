@@ -50,11 +50,11 @@
 - [HTTP API 契約 · 契約生成流程](../api/README.md#契約生成流程)
 
 - [專案文件入口 · 目錄責任](README.md#目錄責任)
-- [Acceptance and evidence · 變更驗收矩陣](agents/acceptance.md#變更驗收矩陣)
-- [Systematic debugging and root cause analysis · Diagnostic loop](agents/debugging.md#diagnostic-loop)
-- [Agent delivery workflow · Minimal handoff and evidence reuse](agents/workflow.md#minimal-handoff-and-evidence-reuse)
-- [Agent delivery workflow · Repository publication](agents/workflow.md#repository-publication)
-- [Agent delivery workflow · Business Operation compliance](agents/workflow.md#business-operation-compliance)
+- [Acceptance and evidence · 變更驗收矩陣](development/acceptance.md#變更驗收矩陣)
+- [Systematic debugging and root cause analysis · Diagnostic loop](development/debugging.md#diagnostic-loop)
+- [Agent delivery workflow · Minimal handoff and evidence reuse](development/workflow.md#minimal-handoff-and-evidence-reuse)
+- [Agent delivery workflow · Repository publication](development/workflow.md#repository-publication)
+- [Agent delivery workflow · Business Operation compliance](development/workflow.md#business-operation-compliance)
 - [Codex Cloud: mise + MCP · Acceptance](guides/local-development/setup.md)
 - [Markdown 文件規範 · 編寫與修正流程](standards/documentation.md#編寫與修正流程)
 - [基礎設施與分階段落地 · 第一階段：執行與部署基礎（目前優先）](guides/local-development/environment-verification.md)
@@ -65,7 +65,7 @@
 - [Monorepo 整合、發布與回復 · 舊版本與映像清理](guides/release/release-acceptance.md#舊版本與映像清理)
 - [Troubleshooting](guides/release/troubleshooting.md#troubleshooting)
 - [Troubleshooting · Cloud Build、Cloud Run 與部署後同步](guides/release/troubleshooting.md#cloud-buildcloud-run-與部署後同步)
-- [context7 · Anonymous fallback](tooling/mcp/context7.md#anonymous-fallback)
+- [context7 · Anonymous fallback](development/tooling/mcp/context7.md#anonymous-fallback)
 
 ## 現況與提案對照
 

@@ -24,4 +24,4 @@ bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server
 
 This checks initialize, tools/list and configured allowlists. Verify a representative
 operation separately. For failures distinguish missing binary, network, credential,
-workspace prerequisites and host loading; see [troubleshooting](../../guides/release/troubleshooting.md).
+workspace prerequisites and host loading; see [troubleshooting](../../../guides/release/troubleshooting.md).

@@ -201,7 +201,6 @@ description = "Install Graphify with uv using the mise Python interpreter"
 run = [
   "mise install python uv",
   'uv tool install --python "$(mise which python)" --no-python-downloads "graphifyy[mcp,terraform]==0.9.103"',
-  "graphify install --platform codex --project",
   "graphify install --platform agents --project",
 ]
 

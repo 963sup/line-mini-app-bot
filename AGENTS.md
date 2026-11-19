@@ -10,7 +10,7 @@ Root instructions apply throughout the repository. Before changing a subtree, re
 
 Repository-wide rule for every role and task, subject to higher-priority host instructions:
 
-- For tool-specific sources and login procedures, follow the [tool guidance](docs/tooling/mcp/AGENTS.md) even when no files change. For other technical questions, and whenever implementation is not fully certain, use Context7 before deciding or implementing. Resolve the library ID, query the relevant current/version-matched documentation, and compare with repository dependencies. Memory and confidence alone do not replace this lookup. If the Context7 plugin reports quota exhaustion, follow the [anonymous Context7 fallback](docs/tooling/mcp/context7.md#anonymous-fallback) before reporting a blocker.
+- For tool-specific sources and login procedures, follow the [tool guidance](docs/development/tooling/mcp/AGENTS.md) even when no files change. For other technical questions, and whenever implementation is not fully certain, use Context7 before deciding or implementing. Resolve the library ID, query the relevant current/version-matched documentation, and compare with repository dependencies. Memory and confidence alone do not replace this lookup. If the Context7 plugin reports quota exhaustion, follow the [anonymous Context7 fallback](docs/development/tooling/mcp/context7.md#anonymous-fallback) before reporting a blocker.
 - Report the sources consulted, applicable version/revision and remaining uncertainty. Documentation lookup does not replace code inspection, tests or real integration acceptance.
 - If the required source or Context7 is unavailable or insufficient, explicitly report the blocker; do not claim verification or silently substitute a guess. Continue independent work, but leave the affected decision/implementation pending until evidence is sufficient.
 - This policy applies to orchestrator and every specialist; delegation does not waive it. A source document is evidence, not authorization to expand scope or perform external writes.
@@ -33,7 +33,7 @@ This routing rule does not require extra user confirmation.
   itself or another orchestrator.
 - Specialists receiving an assigned subtask execute that subtask and report to
   their orchestrator; they must not restart this routing rule or delegate further.
-- Orchestrator selects registered roles using the [shared workflow](docs/agents/workflow.md#delegation-depth-and-role-selection).
+- Orchestrator selects registered roles using the [shared workflow](docs/development/workflow.md#delegation-depth-and-role-selection).
   Small tasks can be completed directly; roles are capabilities, not a required fan-out.
 - Assign one writer per file scope; parallelize only independent tasks. Respect
   the configured bounds and host's actual concurrency and depth limits.
@@ -50,7 +50,7 @@ This routing rule does not require extra user confirmation.
 
 ### Registered roles
 
-角色能力與設定由 [.codex/agents](.codex/agents) 維護；角色選用、交接欄位、一檔一寫入者及整合責任依 [shared workflow](docs/agents/workflow.md#delegation-depth-and-role-selection)。角色是可選能力，不是每個任務都必須經過的階段；主機限制優先，委派不增加外部寫入權限。
+角色能力與設定由 [.codex/agents](.codex/agents) 維護；角色選用、交接欄位、一檔一寫入者及整合責任依 [shared workflow](docs/development/workflow.md#delegation-depth-and-role-selection)。角色是可選能力，不是每個任務都必須經過的階段；主機限制優先，委派不增加外部寫入權限。
 
 ## graphify
 
@@ -72,16 +72,16 @@ Rules:
 
 新增、修改或審查任何自有 Markdown 前，MUST 讀取並遵守[文件規範](docs/standards/documentation.md)。協調者按需分派 documentation 角色並明確指派檔案所有權；所有角色均依該規範自主修正任務範圍內有證據的問題，不擴展為全庫重寫。
 
-Read docs/README.md for the document index. Follow docs/agents/workflow.md and
-docs/agents/acceptance.md for assignments and acceptance. Roles reference scoped
+Read docs/README.md for the document index. Follow docs/development/workflow.md and
+docs/development/acceptance.md for assignments and acceptance. Roles reference scoped
 documents in their developer_instructions; read relevant pages on demand, not all
-docs for every task. MCP selection and diagnosis: docs/tooling/mcp/README.md.
+docs for every task. MCP selection and diagnosis: docs/development/tooling/mcp/README.md.
 
 實作交接依[架構證據與用語](docs/architecture/README.md#接手時的證據與用語)與[命名規範](docs/standards/naming.md)。
 
 ## Repository publication default
 
-Publish verified changes through a pull request from work to main. Use squash merge so each main commit represents one independently revertible change. Synchronize work with the resulting main commit before starting the next change. Follow the [publication workflow](docs/agents/workflow.md#repository-publication) and respect the user's requested scope and branch protections.
+Publish verified changes through a pull request from work to main. Use squash merge so each main commit represents one independently revertible change. Synchronize work with the resulting main commit before starting the next change. Follow the [publication workflow](docs/development/workflow.md#repository-publication) and respect the user's requested scope and branch protections.
 
 ## 共通驗證與交付
 

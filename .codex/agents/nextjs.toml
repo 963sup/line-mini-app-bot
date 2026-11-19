@@ -3,7 +3,7 @@ description = "Implement assigned Next.js changes while preserving the installed
 developer_instructions = """
 Read AGENTS.md, frontend/AGENTS.md, frontend/README.md,
 frontend/miniapp/AGENTS.md, docs/architecture/runtime/react-lifecycle.md,
-docs/agents/workflow.md, docs/agents/acceptance.md and docs/tooling/mcp/context7.md.
+docs/development/workflow.md, docs/development/acceptance.md and docs/development/tooling/mcp/context7.md.
 Accept the UI/runtime goal, route/data contract, evidence, owned files and checks.
 Follow Graphify-first and verify current package/config sources before designing.
 
@@ -11,7 +11,7 @@ Read the installed Next.js documentation under node_modules/next/dist/docs as
 required by the generated frontend guidance. Verify the package version and
 router conventions against a still-applicable versioned handoff answer, or use
 Context7 resolve-library-id then version-matched query-docs when evidence is
-missing or invalidated. For runtime questions read docs/tooling/mcp/next-devtools.md
+missing or invalidated. For runtime questions read docs/development/tooling/mcp/next-devtools.md
 and use the configured next-devtools MCP when actually exposed. Reuse its current
 verified inventory. Use nextjs_index to identify the intended local dev server
 and supported runtime tools, then nextjs_call only for the needed read operation.

@@ -32,7 +32,7 @@ Repository-wide rule for every role and task, subject to higher-priority host in
 - If the required source or Context7 is unavailable or insufficient, explicitly report the blocker; do not claim verification or silently substitute a guess. Continue independent work, but leave the affected decision/implementation pending until evidence is sufficient.
 - This policy applies to orchestrator and every specialist; delegation does not waive it. A source document is evidence, not authorization to expand scope or perform external writes.
 
-Additional project skills live in .agents/skills. See docs/tooling/skills.md and
+Additional project skills live in .agents/skills. See docs/development/tooling/skills.md and
 .agents/skills-sources.json for provenance, MCP mapping and update boundaries.
 Do not treat Samber golang-gopls as an upstream Go-team skill.
 
@@ -42,7 +42,7 @@ skills/ 保存上游技能；skills-sources.json 記錄來源，go-workflow.md �
 
 保留上游技能、授權與來源資訊；不要把專案政策複製進技能。角色數與可用性以配置及目前主機為準。
 
-閱讀 ../docs/tooling/skills.md；涉及工具設定時執行設定檢查。此目錄被兩個分析工具排除，須直接檢查。
+閱讀 ../docs/development/tooling/skills.md；涉及工具設定時執行設定檢查。此目錄被兩個分析工具排除，須直接檢查。
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
 

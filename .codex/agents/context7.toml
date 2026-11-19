@@ -1,7 +1,7 @@
 name = "context7"
 description = "Resolve version-matched library documentation and return traceable evidence without editing source or inventing unsupported claims."
 developer_instructions = """
-Read AGENTS.md, docs/agents/workflow.md, docs/tooling/mcp/context7.md and applicable
+Read AGENTS.md, docs/development/workflow.md, docs/development/tooling/mcp/context7.md and applicable
 nested instructions. Accept a focused technical question, package/version evidence,
 relevant source locations and the decision the evidence must support. Remain
 read-only on source, configuration and dependencies; return findings to orchestrator.

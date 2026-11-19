@@ -40,14 +40,14 @@ bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server
 
 This checks initialize, tools/list and configured allowlists. Verify a representative
 operation separately. For failures distinguish missing binary, network, credential,
-workspace prerequisites and host loading; see [troubleshooting](../../guides/release/troubleshooting.md).
+workspace prerequisites and host loading; see [troubleshooting](../../../guides/release/troubleshooting.md).
 
 ## Source routing and evidence
 
-Follow the [root source-verification policy](../../../AGENTS.md#mandatory-documentation-verification),
+Follow the [root source-verification policy](../../../../AGENTS.md#mandatory-documentation-verification),
 including its Codex, LINE and Google Cloud official-source routes. Context7 does
 not replace those sources or define product requirements. Role handoffs follow
-[the agent workflow](../../agents/workflow.md#delegation-depth-and-role-selection).
+[the agent workflow](../../workflow.md#delegation-depth-and-role-selection).
 If the service or required evidence is unavailable, report the blocker and leave
 the affected decision pending. A successful query does not prove application
 behavior or host loading.

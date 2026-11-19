@@ -24,8 +24,8 @@
 | 找修改位置 | [需求到實作導航](architecture/runtime/code-layout.md#從需求定位修改範圍) | 所屬功能規格與目錄 AGENTS.md |
 | 修改業務或授權 | [功能索引](domains/README.md) | [操作模型](architecture/contracts/business-operations.md)、[契約歸屬](architecture/runtime/dependencies.md#契約與不變條件的維護位置) |
 | 修改公開 API | [API 契約與生成流程](../api/README.md) | 對應功能與 [HTTP 契約](architecture/README.md#http-契約) |
-| 準備開發環境 | [開發入口](guides/README.md) | [工具與 MCP](tooling/README.md) |
-| 判定修改是否完成 | [驗收矩陣](agents/acceptance.md#變更驗收矩陣) | 對應功能及外部環境驗收 |
+| 準備開發環境 | [開發入口](guides/README.md) | [工具與 MCP](development/tooling/README.md) |
+| 判定修改是否完成 | [驗收矩陣](development/acceptance.md#變更驗收矩陣) | 對應功能及外部環境驗收 |
 | 部署、發布或排錯 | [營運入口](architecture/README.md#部署與營運) | 相關設定與真實環境證據 |
 | 評估未來能力 | [規劃與提案](proposals/README.md) | 已接受 ADR 與現行功能規格 |
 
@@ -38,7 +38,7 @@
 | 跨功能機制與契約 | [系統架構](architecture/README.md) |
 | 修改程式與文件 | [命名](standards/naming.md) · [Go](standards/go.md) · [文件規範](standards/documentation.md) |
 | 查已採用決策或未來設計 | [ADR](architecture/README.md#architecture-decision-records) · [提案](proposals/README.md) |
-| 工具與代理協作 | [工具](tooling/README.md) · [工作流程](agents/workflow.md) |
+| 工具與代理協作 | [開發工作流程與工具](development/README.md) |
 
 ## 按模組閱讀
 

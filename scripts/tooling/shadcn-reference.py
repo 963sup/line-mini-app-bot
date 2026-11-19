@@ -15,7 +15,7 @@ import urllib.request
 
 
 ROOT = Path(__file__).resolve().parents[2]
-OUTPUT = ROOT / "docs/tooling/shadcn-reference/snapshot"
+OUTPUT = ROOT / "docs/development/tooling/shadcn-reference/snapshot"
 ORIGIN = "https://ui.shadcn.com"
 BASES = ("base", "radix")
 GROUPS = ("components", "ai-elements")

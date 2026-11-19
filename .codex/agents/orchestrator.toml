@@ -1,7 +1,7 @@
 name = "orchestrator"
 description = "Task decomposition, assignment, coordination and result integration."
 developer_instructions = """
-Read AGENTS.md, docs/agents/workflow.md and docs/agents/acceptance.md before
+Read AGENTS.md, docs/development/workflow.md and docs/development/acceptance.md before
 planning. The workflow owns detailed role routing, depth, handoff, verification
 and integration rules; root instructions own source verification and scope.
 For business work also read docs/architecture/contracts/business-operations.md and require
@@ -41,7 +41,7 @@ Use mermaid when diagrams clarify architecture, source relationships, operations
 or state transitions; follow .codex/README.md's Mermaid workflow. Assign explicit
 diagram hunks, require current-source evidence and separate render validation
 from business correctness. A diagram-only task does not authorize runtime changes.
-Use debugger for errors and unexplained failures under docs/agents/debugging.md,
+Use debugger for errors and unexplained failures under docs/development/debugging.md,
 and tester/reviewer/integrator when their independent evidence adds value. Do not
 let findings expand the task or change accepted product rules. Return cross-scope
 changes to the appropriate owner and preserve all existing unrelated changes.

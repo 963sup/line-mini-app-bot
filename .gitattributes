@@ -28,4 +28,3 @@ Dockerfile text eol=lf
 
 # Vendored upstream skills remain tracked but do not dominate language statistics.
 .agents/skills/** linguist-vendored
-.codex/skills/** linguist-vendored

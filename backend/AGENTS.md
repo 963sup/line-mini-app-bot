@@ -10,7 +10,7 @@ cmd/ 保存 server、richmenu、firestorecheck 與 attendancemigrate 入口；in
 
 ## 驗證
 
-使用根目錄 scripts/tooling/tool-exec.sh；Go 修改依 ../docs/agents/acceptance.md 執行 fmt-check、lint、check、build 與相關既有測試。純文件修改不冒稱應用測試已執行。
+使用根目錄 scripts/tooling/tool-exec.sh；Go 修改依 ../docs/development/acceptance.md 執行 fmt-check、lint、check、build 與相關既有測試。純文件修改不冒稱應用測試已執行。
 
 命令除另有標示外均在儲存庫根目錄執行。閱讀 [本目錄 README](README.md) 與 [文件索引](../docs/README.md)；回報實際執行結果與限制。
 
@@ -20,7 +20,7 @@ cmd/ 保存 server、richmenu、firestorecheck 與 attendancemigrate 入口；in
 
 ## Business Operation
 
-開始相關任務前，必須閱讀 [操作模型](../docs/architecture/contracts/business-operations.md) 與 [符合性流程](../docs/agents/workflow.md#business-operation-compliance)。
+開始相關任務前，必須閱讀 [操作模型](../docs/architecture/contracts/business-operations.md) 與 [符合性流程](../docs/development/workflow.md#business-operation-compliance)。
 
 後端由可信身分取得 Actor，依資源歸屬與範圍檢查 Authority／Policy，使用案例協調領域規則與結果。涉及一致性的授權、版本及狀態檢查與交易協調；定義重送與副作用失敗語義。不建立無實際需求的通用引擎或 access 模組。
 

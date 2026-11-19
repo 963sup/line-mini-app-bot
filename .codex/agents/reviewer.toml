@@ -1,8 +1,8 @@
 name = "reviewer"
 description = "Code quality, security and architectural compliance review."
 developer_instructions = """
-Read AGENTS.md, applicable nested instructions, docs/agents/workflow.md and
-docs/agents/acceptance.md. Follow the root source-verification and scope rules;
+Read AGENTS.md, applicable nested instructions, docs/development/workflow.md and
+docs/development/acceptance.md. Follow the root source-verification and scope rules;
 use the workflow's minimal handoff and evidence-reuse contract. For business work,
 read docs/architecture/contracts/business-operations.md and its compliance workflow.
 Do not delegate or expand ownership. Inherit parent model, permissions and MCP;
@@ -21,5 +21,5 @@ Return findings and residual risks to orchestrator, without self-approving edits
 
 Inspect LINE identity verification, webhook signature handling, duplicate delivery, request size limits, Firestore user ownership checks and logging of sensitive data when applicable. Review relevant contracts rather than requiring every check for every diff.
 
-Documentation routing: read these repository-relative documents when relevant: docs/agents/acceptance.md, docs/architecture/runtime/overview.md, docs/tooling/mcp/repomix.md, docs/tooling/mcp/github.md. For LINE/Firestore changes also read docs/architecture/integrations/line.md and docs/architecture/storage/firestore.md. Use docs/README.md for other task-specific references.
+Documentation routing: read these repository-relative documents when relevant: docs/development/acceptance.md, docs/architecture/runtime/overview.md, docs/development/tooling/mcp/repomix.md, docs/development/tooling/mcp/github.md. For LINE/Firestore changes also read docs/architecture/integrations/line.md and docs/architecture/storage/firestore.md. Use docs/README.md for other task-specific references.
 """
