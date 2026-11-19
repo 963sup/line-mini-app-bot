@@ -366,7 +366,12 @@ test("month reads are cancelled on reload and private records clear on logout", 
     return response;
   });
   try {
-    assert.match(f.node("month-summary").textContent!, /暫估合計 60 分鐘（含已確認 0 分鐘）/);
+    const metrics = [...f.node("month-summary").querySelectorAll("dt")];
+    const value = (label: string) => metrics.find(term => term.textContent === label)?.nextElementSibling?.textContent;
+    assert.equal(value("全月暫估合計"), "60 分鐘");
+    assert.equal(value("其中已確認"), "0 分鐘");
+    assert.equal(value("休息待確認"), "1 筆");
+    assert.equal(value("無法計算"), "0");
     assert.match(f.node("record-list").textContent!, /暫估工時 60 分鐘（休息待確認）/);
     let resolve!: (value: Response) => void;
     const old = f.setHandler(async (r) =>
@@ -762,6 +767,23 @@ test("diagnostic location renders only validated coordinates and retains the las
   } finally {
     await f.dispose();
   }
+});
+
+for (const newRecord of [true, false]) test(`review compares a proposed shift with ${newRecord ? "no original shift" : "the original shift"}`, async () => {
+  const f = await fixture(<Review />, "", async (request, next) =>
+    request.url.endsWith("/review") ? Response.json({
+      newRecord, before: newRecord ? null : record, status: "pending",
+      start: record.ClockInAt, end: record.ClockOutAt, restConfirmed: false,
+      applicantName: "員工甲", reason: "班次異動",
+    }) : next(request));
+  try {
+    await f.input("correction-id", "c1");
+    await f.click("review-correction");
+    const [original, proposed] = f.node("review-details").querySelectorAll('[data-slot="item"]');
+    assert.match(original.textContent!, newRecord ? /無原班次/ : /上班：.+下班：/);
+    assert.match(proposed.textContent!, /申報班次.*休息完整確認：否/);
+    assert.match(f.node("review-details").textContent!, /申請原因：班次異動/);
+  } finally { await f.dispose(); }
 });
 
 test("review without a reported status never offers approval or rejection", async () => {

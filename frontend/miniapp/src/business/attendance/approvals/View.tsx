@@ -1,3 +1,5 @@
+import { Badge } from "@/shared/ui/badge";
+import { Item, ItemContent, ItemTitle } from "@/shared/ui/item";
 import { FormField } from "@/shared/FormField";
 import { PagePanel } from "@/shared/PagePanel";
 import { Input } from "@/shared/ui/input";
@@ -142,13 +144,33 @@ export function View() {
           <Button id="review-correction" onClick={loadCorrection}>
             讀取審核內容
           </Button>
-          <pre
-            id="review-details"
-            className="my-4 max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-xl border bg-muted p-4 font-sans text-sm empty:hidden"
-          >
-            {proposal &&
-              `申請 ${reviewed}\n申請人：${proposal.applicantName || "姓名未留存，請依申請編號核對"}\n狀態：${correctionStatus(proposal.status)}\n原紀錄：${proposal.before ? `${displayTime(proposal.before.ClockInAt)} ～ ${displayTime(proposal.before.ClockOutAt)}` : proposal.newRecord ? "無，申請新增補卡班次" : "請核對原班次"}\n審核理由：${proposal.decisionReason || "—"}\n原因：${proposal.reason}\n上班：${displayTime(proposal.start)}\n下班：${displayTime(proposal.end)}\n休息：${(proposal.breaks || []).map((b) => `${displayTime(b.Start)} ～ ${displayTime(b.End)}`).join("；") || "無"}\n休息完整確認：${proposal.restConfirmed ? "是" : "否"}`}
-          </pre>
+          <section id="review-details" aria-label="申請內容" hidden={!proposal} className="grid gap-3">
+            {proposal && <>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="break-all font-medium">申請 {reviewed}</h3>
+                <Badge variant="outline">{correctionStatus(proposal.status)}</Badge>
+              </div>
+              <p>申請人：{proposal.applicantName || "姓名未留存，請依申請編號核對"}</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Item variant="outline"><ItemContent>
+                  <ItemTitle>原班次</ItemTitle>
+                  {proposal.before ? <>
+                    <p>上班：{displayTime(proposal.before.ClockInAt)}</p>
+                    <p>下班：{displayTime(proposal.before.ClockOutAt)}</p>
+                  </> : <p>{proposal.newRecord ? "無原班次，申請新增補卡" : "請核對原班次"}</p>}
+                </ItemContent></Item>
+                <Item variant="outline"><ItemContent>
+                  <ItemTitle>申報班次</ItemTitle>
+                  <p>上班：{displayTime(proposal.start)}</p>
+                  <p>下班：{displayTime(proposal.end)}</p>
+                  <p>休息：{proposal.breaks?.map(b => `${displayTime(b.Start)} ～ ${displayTime(b.End)}`).join("；") || "無"}</p>
+                  <p>休息完整確認：{proposal.restConfirmed ? "是" : "否"}</p>
+                </ItemContent></Item>
+              </div>
+              <p className="whitespace-pre-wrap break-words">申請原因：{proposal.reason}</p>
+              <p className="whitespace-pre-wrap break-words">審核理由：{proposal.decisionReason || "—"}</p>
+            </>}
+          </section>
           <Button
             id="approve-correction"
             disabled={
