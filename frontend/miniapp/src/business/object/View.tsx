@@ -15,7 +15,7 @@ import { FormField } from "@/shared/FormField";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
-import { FieldGroup } from "@/shared/ui/field";
+import { FieldError, FieldGroup } from "@/shared/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Item, ItemGroup, ItemContent, ItemTitle, ItemActions, ItemFooter } from "@/shared/ui/item";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
@@ -50,6 +50,7 @@ function Content({ repositoryId, extract }: Props) {
   const [items, setItems] = useState<Resource[]>([]), [cursor, setCursor] = useState("");
   const [listBusy, setListBusy] = useState(false), [loaded, setLoaded] = useState(false), [listStatus, setListStatus] = useState("");
   const [mode, setMode] = useState<"create" | "detail" | null>(null), [selected, setSelected] = useState<Resource | null>(null);
+  const [invalidField, setInvalidField] = useState<"quantity" | "completedQuantity" | null>(null);
   const [content, setContent] = useState<Creation>(empty);
   const baseline = useRef<Creation>(empty);
   const dirty = !!mode && (JSON.stringify(content) !== JSON.stringify(baseline.current) || !!spaceName.trim());
@@ -88,6 +89,7 @@ function Content({ repositoryId, extract }: Props) {
   }, [user, request, repositoryId, read.run]);
   useEffect(() => { load(); return read.cancel; }, [load, read.cancel]);
   function show(item: Resource) {
+    setInvalidField(null);
     setSpaceName(""); setSpaceStatus("");
     setSelected(item); setActiveId(item.id); baseline.current = { name: item.name, description: item.description, type: item.type, quantity: item.quantity, unit: item.unit,
       spaceId: item.spaceId || "", sourceDocument: item.sourceDocument || "", sourceRevision: item.sourceRevision || "", completedQuantity: item.completedQuantity }; setContent(baseline.current);
@@ -98,6 +100,7 @@ function Content({ repositoryId, extract }: Props) {
     if (!detailBusy && !busy) focusEditor();
   }, [mode, detailBusy, busy]);
   function clearEditor() {
+    setInvalidField(null);
     setSpaceName(""); setSpaceStatus("");
     detail.cancel(); setDetailBusy(false); setMode(null); setSelected(null); setActiveId(""); baseline.current = empty; setContent(empty); setStatus("");
   }
@@ -133,12 +136,16 @@ function Content({ repositoryId, extract }: Props) {
     event.preventDefault();
     if (spaceUnknown || discard.isConfirming() || !user || subLock.current || importing || importLock.current || lock.current || formNavigation.current || needsRefresh || !repositoryGuard.canWrite() || (mode === "detail" && !mine)) return;
     const body = Object.fromEntries(Object.entries(content).map(([key, value]) => [key, value?.trim() || ""])) as Creation;
-    if (!body.name || !body.type || !body.unit || !/^(?:0|[1-9][0-9]{0,17})(?:\.[0-9]{1,6})?$/.test(body.quantity) || !/[1-9]/.test(body.quantity)) {
-      setStatus("請填寫名稱、類型、單位及大於零的數量（最多18位整數及6位小數）。"); return;
+    setInvalidField(null);
+    if (!body.name || !body.type || !body.unit) {
+      setStatus("請填寫名稱、類型及單位。"); return;
+    }
+    if (!decimal.test(body.quantity) || !/[1-9]/.test(body.quantity)) {
+      setStatus(""); setInvalidField("quantity"); return;
     }
     if (body.type === "work") {
       if (!decimal.test(body.completedQuantity || "") || exact(body.completedQuantity!) > exact(body.quantity)) {
-        setStatus("請填寫0至數量之間的完成數（最多18位整數及6位小數）。"); return;
+        setStatus(""); setInvalidField("completedQuantity"); return;
       }
     } else {
       delete body.completedQuantity;
@@ -197,7 +204,7 @@ function Content({ repositoryId, extract }: Props) {
   const editor = <section ref={editorPanel} tabIndex={-1} aria-label={mode === "create" ? "新增物件" : "物件編輯"} className="flex w-full min-w-0 flex-col gap-3">
       <ReadFeedback busy={detailBusy} message={status} label="正在讀取物件……" />
       {mode === "detail" && <Button variant="outline" disabled={busy || detailBusy || subBlocked} onClick={() => open(activeId)}>重新讀取物件</Button>}
-      {(mode === "create" || selected) && <form onSubmit={submit}><FieldGroup>
+      {(mode === "create" || selected) && <form onSubmit={submit} onChange={() => setInvalidField(null)}><FieldGroup>
         <fieldset className="grid min-w-0 gap-4" disabled={busy || detailBusy || subBlocked || uncertain || needsRefresh || (mode === "detail" && !mine)}>
           <FormField>類型<NativeSelect value={content.type} onChange={event => {
             const type = event.target.value;
@@ -217,7 +224,19 @@ function Content({ repositoryId, extract }: Props) {
             {selected && selected.type !== "work" && selected.type !== "non_work" && <NativeSelectOption value={selected.type}>{typeLabel(selected.type)}</NativeSelectOption>}
             <NativeSelectOption value="work">施作</NativeSelectOption><NativeSelectOption value="non_work">非施作</NativeSelectOption>
           </NativeSelect></FormField>
-          {fields.map(([key, label, max]) => <FormField key={key}>{label}<Input ref={key === "name" ? nameInput : undefined} required={["name", "type", "quantity", "unit"].includes(key)} maxLength={max} inputMode={key === "quantity" ? "decimal" : undefined} value={content[key] || ""} onChange={event => setContent(previous => ({ ...previous, [key]: event.target.value }))} /></FormField>)}
+          {fields.map(([key, label, max]) => {
+            const invalid = key === "quantity" && invalidField === key;
+            return <React.Fragment key={key}>
+              <FormField data-invalid={invalid || undefined}>{label}
+                <Input ref={key === "name" ? nameInput : undefined}
+                  required={["name", "type", "quantity", "unit"].includes(key)}
+                  maxLength={max} inputMode={key === "quantity" ? "decimal" : undefined}
+                  aria-invalid={invalid || undefined} aria-describedby={invalid ? "object-quantity-error" : undefined}
+                  value={content[key] || ""} onChange={event => setContent(previous => ({ ...previous, [key]: event.target.value }))} />
+              </FormField>
+              {invalid && <FieldError id="object-quantity-error">請填寫大於零的數量（最多18位整數及6位小數）。</FieldError>}
+            </React.Fragment>;
+          })}
           <FormField>業務空間<NativeSelect value={content.spaceId || ""} onChange={event => setContent(previous => ({ ...previous, spaceId: event.target.value }))}>
             <NativeSelectOption value="">未分配</NativeSelectOption>
             {content.spaceId && !spaces.some(value => value.id === content.spaceId) && <NativeSelectOption value={content.spaceId}>目前空間（未載入）</NativeSelectOption>}
@@ -229,7 +248,8 @@ function Content({ repositoryId, extract }: Props) {
           <FormField>新業務空間名稱<Input maxLength={120} value={spaceName} onChange={event => setSpaceName(event.target.value)} /></FormField>
           <Button type="button" variant="outline" onClick={createSpace}>新增業務空間</Button>
           <FormField>完整說明<Textarea maxLength={8000} value={content.description} onChange={event => setContent(previous => ({ ...previous, description: event.target.value }))} /></FormField>
-          {content.type === "work" && <FormField>完成數<Input required inputMode="decimal" maxLength={25} value={content.completedQuantity || ""} onChange={event => setContent(previous => ({ ...previous, completedQuantity: event.target.value }))} /></FormField>}
+          {content.type === "work" && <FormField data-invalid={invalidField === "completedQuantity" || undefined}>完成數<Input aria-invalid={invalidField === "completedQuantity" || undefined} aria-describedby={invalidField === "completedQuantity" ? "object-completed-error" : undefined} required inputMode="decimal" maxLength={25} value={content.completedQuantity || ""} onChange={event => setContent(previous => ({ ...previous, completedQuantity: event.target.value }))} /></FormField>}
+          {invalidField === "completedQuantity" && <FieldError id="object-completed-error">請填寫0至數量之間的完成數（最多18位整數及6位小數）。</FieldError>}
           <p>狀態：{content.type === "non_work" ? "不適用" : selected ? statusLabel(selected) : "未開始"}</p>
           <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{content.type === "non_work" ? "不適用" : selected ? progressLabel(selected) : "儲存後依完成數更新"}</p>
         </fieldset>
@@ -265,7 +285,8 @@ function Content({ repositoryId, extract }: Props) {
             </ItemTitle>
             <p className="whitespace-normal [overflow-wrap:anywhere]">數量：{item.quantity} {item.unit}</p>
             <p className="whitespace-normal [overflow-wrap:anywhere]">類型：{typeLabel(item.type)}</p>
-            <p>狀態：{statusLabel(item)}</p>
+            {invalidField === "completedQuantity" && <FieldError id="object-completed-error">請填寫0至數量之間的完成數（最多18位整數及6位小數）。</FieldError>}
+          <p>狀態：{statusLabel(item)}</p>
             <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{progressLabel(item)}</p>
           </ItemContent>
           <ItemActions className="flex-wrap">

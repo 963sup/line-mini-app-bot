@@ -2,7 +2,7 @@ import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import test from "node:test";
 import assert from "node:assert/strict";
-import "./sidebar-dom";
+import { pressButton } from "./sidebar-dom";
 import { Shell } from "../src/shell/Shell";
 import { View } from "../src/business/repository/View";
 
@@ -28,11 +28,32 @@ async function fixture(handle: (request: Request) => Promise<Response | undefine
   const root = createRoot(document.getElementById("root")!);
   await act(async () => { root.render(<Shell title="測試" workflow="repositories"><View /></Shell>); await flush(); });
   return {
-    async click(text: string) { await act(async () => { const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === text || node.getAttribute("aria-label") === text); assert.ok(node, `missing ${text}`); node.click(); await flush(); }); },
+    async click(text: string) { await act(async () => { const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === text || node.getAttribute("aria-label") === text); assert.ok(node, `missing ${text}`); pressButton(node); await flush(); }); },
     async fill(label: string, value: string) { await act(async () => { const node = [...document.querySelectorAll("label")].find(node => node.textContent?.startsWith(label))?.querySelector<HTMLInputElement|HTMLTextAreaElement>("input,textarea"); assert.ok(node, `missing ${label}`); const proto = node.tagName === "TEXTAREA" ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(proto,"value")!.set!.call(node,value); node.dispatchEvent(new window.Event("input",{bubbles:true})); await flush(); }); },
     async dispose() { await act(async () => { root.unmount(); await flush(); }); globalThis.fetch = oldFetch; window.liff = oldSDK; },
   };
 }
+
+test("issue status selection stays selected and fetches only on apply", async () => {
+  const queries: URLSearchParams[] = [];
+  const f = await fixture(async request => {
+    const url = new URL(request.url);
+    if (url.pathname.endsWith("/issues")) queries.push(url.searchParams);
+    return undefined;
+  });
+  try {
+    await f.click("問題");
+    const before = queries.length;
+    await f.click("已關閉");
+    await f.click("已關閉");
+    assert.equal(queries.length, before);
+    await f.click("套用篩選");
+    assert.equal(queries.at(-1)?.get("state"), "completed");
+    await f.click("全部");
+    await f.click("套用篩選");
+    assert.equal(queries.at(-1)?.has("state"), false);
+  } finally { await f.dispose(); }
+});
 
 for (const [name, collection] of [["問題","issues"],["里程碑","milestones"]] as const) {
   test(`${name}: inline draft confirms navigation, conflict freezes writes until fresh read, save updates and closes`, async () => {
@@ -47,7 +68,7 @@ for (const [name, collection] of [["問題","issues"],["里程碑","milestones"]
       assert.ok(editor.closest('[data-slot="item"]'));
       assert.equal(document.activeElement,editor.querySelector("input:not([type=date])"));
       await f.fill("標題","更新標題"); await f.click("標籤");
-      assert.ok(document.querySelector("[role=dialog]")); await f.click("繼續編輯");
+      assert.ok(document.querySelector("[role=alertdialog]")); await f.click("繼續編輯");
       assert.equal(editor.querySelector<HTMLInputElement>("input:not([type=date])")!.value,"更新標題");
       await f.click("儲存內容"); assert.equal(patches[0].expectedVersion,2);
       assert.equal(document.querySelector<HTMLButtonElement>('[aria-label="標籤"]')!.disabled,true);
@@ -85,8 +106,8 @@ for (const name of ["討論","標籤"] as const) test(`${name}: tab and reposito
   try {
     await f.click(name);
     if(name==="討論"){await f.click("發起討論");await f.fill("標題","保留討論");}else await f.fill("標籤名稱","保留標籤");
-    await f.click("重新載入空間");assert.ok(document.querySelector("[role=dialog]"));await f.click("繼續編輯");
-    await f.click("物件");assert.ok(document.querySelector("[role=dialog]"));await f.click("放棄修改");
+    await f.click("重新載入空間");assert.ok(document.querySelector("[role=alertdialog]"));await f.click("繼續編輯");
+    await f.click("物件");assert.ok(document.querySelector("[role=alertdialog]"));await f.click("放棄修改");
     assert.equal(writes,0);assert.ok([...document.querySelectorAll("button")].some(node=>node.textContent==="新增物件"));
   }finally{await f.dispose();}
 });
@@ -113,12 +134,12 @@ for (const name of ["問題","里程碑"] as const) for (const first of ["write"
       const form=document.querySelector(`[aria-label="${name}編輯"] form`)!;
       const tab=document.querySelector<HTMLButtonElement>('[aria-label="標籤"]')!;
       await act(async()=>{
-        if(first==="write"){form.dispatchEvent(new window.Event("submit",{bubbles:true,cancelable:true}));tab.click();}
-        else{tab.click();form.dispatchEvent(new window.Event("submit",{bubbles:true,cancelable:true}));}
+        if(first==="write"){form.dispatchEvent(new window.Event("submit",{bubbles:true,cancelable:true}));pressButton(tab);}
+        else{pressButton(tab);form.dispatchEvent(new window.Event("submit",{bubbles:true,cancelable:true}));}
         await flush();
       });
       assert.equal(writes,first==="write"?1:0);
-      if(first==="navigation")assert.ok(document.querySelector("[role=dialog]"));else assert.equal(tab.disabled,true);
+      if(first==="navigation")assert.ok(document.querySelector("[role=alertdialog]"));else assert.equal(tab.disabled,true);
     }finally{await f.dispose();}
   });
 }
@@ -180,10 +201,10 @@ test("comment pagination preserves an edit and failed-page retry; switching comm
   for(let i=0;i<2;i++){
    await f.click("載入更多留言");
    assert.ok([...document.querySelectorAll("textarea")].some(node=>node.value==="未儲存修改"));
-   assert.equal(document.querySelector("[role=dialog]"),null);
+   assert.equal(document.querySelector("[role=alertdialog]"),null);
   }
   await act(async()=>{[...document.querySelectorAll<HTMLButtonElement>("button")].filter(node=>node.textContent==="編輯留言")[1].click();await flush();});
-  assert.ok(document.querySelector("[role=dialog]"));await f.click("繼續編輯");
+  assert.ok(document.querySelector("[role=alertdialog]"));await f.click("繼續編輯");
   assert.ok([...document.querySelectorAll("textarea")].some(node=>node.value==="未儲存修改"));
   await act(async()=>{[...document.querySelectorAll<HTMLButtonElement>("button")].filter(node=>node.textContent==="編輯留言")[1].click();await flush();});
   await f.click("放棄修改");assert.ok([...document.querySelectorAll("textarea")].some(node=>node.value==="另一則留言"));
@@ -244,7 +265,7 @@ test("unconfirmed comment update stays locked across unrelated pages and resolve
   assert.equal(tab().disabled,true);
   await f.click("載入更多留言");assert.equal(tab().disabled,true);
   assert.ok([...document.querySelectorAll("textarea")].some(node=>node.value==="可能已提交的修改"));
-  await f.click("重新載入留言");assert.equal(tab().disabled,true);assert.equal(document.querySelector("[role=dialog]"),null);
+  await f.click("重新載入留言");assert.equal(tab().disabled,true);assert.equal(document.querySelector("[role=alertdialog]"),null);
   await f.click("載入更多留言");assert.equal(tab().disabled,false);
   assert.ok([...document.querySelectorAll("textarea")].some(node=>node.value==="伺服器確認的內容"));assert.equal(reads,4);
  }finally{await f.dispose();}

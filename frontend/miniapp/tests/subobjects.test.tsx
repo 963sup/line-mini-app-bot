@@ -2,7 +2,7 @@ import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import test from "node:test";
 import assert from "node:assert/strict";
-import "./sidebar-dom";
+import { pressButton } from "./sidebar-dom";
 import { Shell } from "../src/shell/Shell";
 import { View as Objects } from "../src/business/object/View";
 import { View as RepositoryView } from "../src/business/repository/View";
@@ -30,7 +30,7 @@ async function fixture(handle: (request: Request, actor: string) => Promise<Resp
   const render = async () => { await act(async () => { root.render(<Shell title="測試" workflow={integrated ? "repositories" : "projects"}>{integrated ? <RepositoryView /> : <Objects repositoryId={repository} extract={extractor} />}</Shell>); await flush(); }); };
   await render();
   return {
-    async click(text: string) { await act(async () => { const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === text || node.getAttribute("aria-label") === text); assert.ok(node, `missing ${text}`); node.click(); await flush(); }); },
+    async click(text: string) { await act(async () => { const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === text || node.getAttribute("aria-label") === text); assert.ok(node, `missing ${text}`); pressButton(node); await flush(); }); },
     async fill(label: string, value: string) { await act(async () => { const node = [...document.querySelectorAll("label")].find(node => node.textContent === label)?.querySelector<HTMLInputElement>("input,textarea"); assert.ok(node, `missing field ${label}`); const proto = node.tagName === "TEXTAREA" ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(proto, "value")!.set!.call(node, value); node.dispatchEvent(new window.Event("input", { bubbles: true })); await flush(); }); },
     async selectType(value: string) { await act(async () => { const node = document.querySelector<HTMLSelectElement>("fieldset select")!; node.value = value; node.dispatchEvent(new window.Event("change", { bubbles: true })); await flush(); }); },
     async switchRepository() { repository = other; await render(); },
@@ -127,8 +127,8 @@ for(const first of ['child','parent'])test(`child write and parent navigation ha
  },true);
  try{
   await f.click('物件');await f.click('子物件：測試物件');await f.click('新增子物件');await f.fill('子物件名稱','同步子工序');const form=document.querySelector('[aria-label="子物件"] form')!;const tab=document.querySelector<HTMLButtonElement>('[aria-label="問題"]')!;
-  await act(async()=>{if(first==='child'){form.dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));tab.click();}else{tab.click();form.dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));}await flush();});
-  assert.equal(posts,first==='child'?1:0,'navigation confirmation protects the child draft');if(first==='parent')assert.ok(document.querySelector('[role=dialog]'));if(first==='child'){assert.equal(tab.disabled,true);assert.match(document.body.textContent!,/重試原子物件建立請求/);}
+  await act(async()=>{if(first==='child'){form.dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));pressButton(tab);}else{pressButton(tab);form.dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));}await flush();});
+  assert.equal(posts,first==='child'?1:0,'navigation confirmation protects the child draft');if(first==='parent')assert.ok(document.querySelector('[role=alertdialog]'));if(first==='child'){assert.equal(tab.disabled,true);assert.match(document.body.textContent!,/重試原子物件建立請求/);}
  }finally{await f.dispose();}
 });
 

@@ -3,7 +3,7 @@ import { once } from "node:events";
 import { createRoot } from "react-dom/client";
 import test from "node:test";
 import assert from "node:assert/strict";
-import "./sidebar-dom";
+import { pressButton } from "./sidebar-dom";
 import { Shell } from "../src/shell/Shell";
 import { View as Objects } from "../src/business/object/View";
 import { View as RepositoryView } from "../src/business/repository/View";
@@ -31,7 +31,7 @@ async function fixture(handle: (request: Request, actor: string) => Promise<Resp
   const render = async () => { await act(async () => { root.render(<Shell title="測試" workflow={integrated ? "repositories" : "projects"}>{integrated ? <RepositoryView /> : <Objects repositoryId={repository} extract={extractor} />}</Shell>); await flush(); }); };
   await render();
   return {
-    async click(text: string) { await act(async () => { const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === text || node.getAttribute("aria-label") === text); assert.ok(node, `missing ${text}`); node.click(); await flush(); }); },
+    async click(text: string) { await act(async () => { const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === text || node.getAttribute("aria-label") === text); assert.ok(node, `missing ${text}`); pressButton(node); await flush(); }); },
     async fill(label: string, value: string) { await act(async () => { const node = [...document.querySelectorAll("label")].find(node => node.textContent === label)?.querySelector<HTMLInputElement>("input,textarea"); assert.ok(node, `missing field ${label}`); const proto = node.tagName === "TEXTAREA" ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(proto, "value")!.set!.call(node, value); node.dispatchEvent(new window.Event("input", { bubbles: true })); await flush(); }); },
     async selectType(value: string) { await act(async () => { const node = document.querySelector<HTMLSelectElement>("fieldset select")!; node.value = value; node.dispatchEvent(new window.Event("change", { bubbles: true })); await flush(); }); },
     async switchRepository() { repository = other; await render(); },
@@ -97,6 +97,26 @@ for (const scope of ["repository", "identity"]) {
   });
 }
 
+test("repository tab focus keeps the current panel until keyboard activation", async () => {
+  const reads: string[] = [];
+  const f = await fixture(async request => {
+    reads.push(new URL(request.url).pathname);
+    return Response.json({ items: [], nextCursor: "" });
+  }, true);
+  try {
+    const issues = document.querySelector<HTMLButtonElement>('[role=tab][aria-label="問題"]')!;
+    await act(async () => { issues.focus(); await flush(); });
+    assert.equal(issues.getAttribute("aria-selected"), "false");
+    assert.ok(!reads.some(path => path.endsWith("/issues")));
+    await act(async () => {
+      issues.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+      await flush();
+    });
+    assert.equal(issues.getAttribute("aria-selected"), "true");
+    assert.ok(reads.some(path => path.endsWith("/issues")));
+  } finally { await f.dispose(); }
+});
+
 test("repository exposes Problems and Objects and retains an uncertain creation when tab navigation is attempted", async () => {
   const f = await fixture(async request => request.method === "POST" ? Promise.reject(new Error("unknown")) : Response.json({ items: [], nextCursor: "" }), true);
   try {
@@ -127,12 +147,12 @@ for (const first of ["create", "reload", "tab"] as const) {
       const reload = [...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === "重新載入空間")!;
       const tab = document.querySelector<HTMLButtonElement>('[aria-label="問題"]')!;
       await act(async () => {
-        if (first === "create") { form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true })); reload.click(); tab.click(); }
-        else { (first === "reload" ? reload : tab).click(); form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true })); }
+        if (first === "create") { form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true })); reload.click(); pressButton(tab); }
+        else { pressButton(first === "reload" ? reload : tab); form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true })); }
         await flush();
       });
       assert.equal(posts, first === "create" ? 1 : 0, "pending navigation confirmation prevents a stale form submission");
-      if (first !== "create") assert.ok(document.querySelector("[role=dialog]"));
+      if (first !== "create") assert.ok(document.querySelector("[role=alertdialog]"));
       if (first === "create") assert.match(document.body.textContent!, /重試原物件建立請求/);
     } finally { await f.dispose(); }
   });
@@ -271,7 +291,7 @@ test("object editor stays in its row, cancel preserves a draft until confirmed, 
     assert.ok(row.querySelector("form")); assert.equal(document.querySelectorAll("form").length, 1);
     await f.fill("物件名稱", "更新名稱");
     await f.click("另一物件");
-    assert.ok(document.querySelector("[role=dialog]"));
+    assert.ok(document.querySelector("[role=alertdialog]"));
     assert.equal(document.activeElement?.textContent, "繼續編輯");
     const input = row.querySelector("input")!;
     async function continueEditing() {
