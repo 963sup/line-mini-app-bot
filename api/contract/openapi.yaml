@@ -193,6 +193,9 @@
     },
     "/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions": {
       "$ref": "./project/inspection-submissions.yaml#/paths/~1api~1v1~1owners~1{ownerId}~1projects~1{id}~1references~1{itemId}~1inspection-submissions"
+    },
+    "/api/v1/repositories/{repositoryId}/labels/{id}": {
+      "$ref": "./repository/labels.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1labels~1{id}"
     }
   },
   "components": {
@@ -412,6 +415,9 @@
       },
       "InspectionInput": {
         "$ref": "./project/inspection-submissions.yaml#/components/schemas/InspectionInput"
+      },
+      "LabelRename": {
+        "$ref": "./repository/labels.yaml#/components/schemas/LabelRename"
       }
     },
     "securitySchemes": {

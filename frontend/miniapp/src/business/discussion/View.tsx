@@ -129,7 +129,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
     );
   }
   function save() {
-    if (!user || !selected || !mine || lock.current || navigating.current || needsRefresh || discard.isConfirming() || !guard.canWrite()) return;
+    if (!user || !selected || lock.current || navigating.current || needsRefresh || discard.isConfirming() || !guard.canWrite()) return;
     const id = selected.id; guard.block(true);
     lock.current = true; setBusy(true); setStatus("正在更新討論……");
     void write.run(
@@ -142,7 +142,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
   }
   return <>
     <PagePanel heading="討論">
-      <p className="mb-4 text-sm text-muted-foreground">空間成員可發起討論與留言；主題及留言各由自己的作者編輯。</p>
+      <p className="mb-4 text-sm text-muted-foreground">空間成員可整理討論標籤；主題正文與留言各由作者編輯。</p>
       <div className="mb-4 flex flex-wrap gap-2">
         <Button disabled={!user || busy || createOutcomeUnknown || needsRefresh || commentsBlocked} onClick={openCreateForm}>發起討論</Button>
         <Button variant="outline" disabled={!user || listBusy || busy} onClick={() => load()}>重新載入討論</Button>
@@ -175,9 +175,9 @@ export function View({ repositoryId }: { repositoryId: string }) {
             <FormField>標題<Input ref={titleInput} required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} /></FormField>
             <FormField>內容<Textarea maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} /></FormField>
           </fieldset>
-          {selected && <LabelPicker repositoryId={repositoryId} value={labelIDs} onChange={setLabelIDs} disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh || !mine} />}
-          {(mode === "create" || mine) && <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={busy || needsRefresh}>{mode === "create" ? createOutcomeUnknown ? "重試原建立請求" : "建立討論" : "儲存內容"}</Button>
+          {selected && <LabelPicker repositoryId={repositoryId} value={labelIDs} onChange={setLabelIDs} disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh} />}
+          {(mode === "create" || selected) && <div className="flex flex-wrap gap-2">
+            <Button type="submit" disabled={busy || needsRefresh}>{mode === "create" ? createOutcomeUnknown ? "重試原建立請求" : "建立討論" : mine ? "儲存內容" : "儲存分類"}</Button>
           </div>}
         </FieldGroup>
       </form>}

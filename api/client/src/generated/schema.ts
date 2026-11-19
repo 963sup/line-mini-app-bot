@@ -438,7 +438,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Creator-only content and lifecycle update with version check; supports direct closure and reopening */
+        /** Members classify issues; only the creator edits content or lifecycle; version checked */
         patch: operations["updateIssue"];
         trace?: never;
     };
@@ -474,7 +474,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Author-only topic content update with expected version */
+        /** Members classify topics; only the author edits content; version checked */
         patch: operations["updateDiscussion"];
         trace?: never;
     };
@@ -523,7 +523,7 @@ export interface paths {
         /** List the current member-visible label catalog */
         get: operations["listLabels"];
         put?: never;
-        /** Create an immutable, unique-name repository label without allocating a shared number */
+        /** Create a unique-name repository label */
         post: operations["createLabel"];
         delete?: never;
         options?: never;
@@ -1072,6 +1072,23 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/labels/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Rename a repository label as a current member */
+        patch: operations["renameLabel"];
         trace?: never;
     };
 }
@@ -1757,6 +1774,10 @@ export interface components {
         };
         InspectionInput: {
             note: string;
+        };
+        LabelRename: {
+            name: string;
+            expectedName: string;
         };
         GroupItem: {
             id: string;
@@ -6276,6 +6297,40 @@ export interface operations {
             409: components["responses"]["ProjectError"];
             415: components["responses"]["ProjectError"];
             503: components["responses"]["ProjectError"];
+        };
+    };
+    renameLabel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LabelRename"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Label"];
+                };
+            };
+            400: components["responses"]["LabelError"];
+            401: components["responses"]["LabelError"];
+            403: components["responses"]["LabelForbidden"];
+            404: components["responses"]["LabelError"];
+            409: components["responses"]["LabelError"];
+            415: components["responses"]["LabelError"];
+            503: components["responses"]["LabelError"];
         };
     };
 }

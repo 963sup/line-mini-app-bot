@@ -94,6 +94,8 @@ func writeError(w http.ResponseWriter, err error) bool {
 		code, status, message = "not_found", 404, "找不到此空間。"
 	case errors.Is(err, labels.ErrInput):
 		code, status, message = "invalid_input", 400, "請確認40字以內的名稱或有效分頁；名稱不得含控制字元。"
+	case errors.Is(err, labels.ErrStaleName):
+		code, status, message = "version_conflict", 409, "名稱已更新，請重新讀取。"
 	case errors.Is(err, labels.ErrNameConflict):
 		code, status, message = "name_conflict", 409, "此空間已有同名標籤，請重新載入標籤。"
 	case errors.Is(err, labels.ErrCreationConflict):
@@ -125,6 +127,17 @@ func (s *labelServer) CreateLabel(w http.ResponseWriter, r *http.Request, reposi
 		return
 	}
 	item, err := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryId, params.IdempotencyKey, input.Name)
+	if !writeError(w, err) {
+		transport.WriteJSON(w, 200, view(item))
+	}
+}
+
+func (s *labelServer) RenameLabel(w http.ResponseWriter, r *http.Request, repositoryId, id string) {
+	var input generated.LabelRename
+	if !transport.ReadJSON(w, r, &input, "標籤資料無效。") {
+		return
+	}
+	item, err := s.service.Rename(r.Context(), identity.UserID(r.Context()), repositoryId, id, input.ExpectedName, input.Name)
 	if !writeError(w, err) {
 		transport.WriteJSON(w, 200, view(item))
 	}
