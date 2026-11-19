@@ -4,9 +4,11 @@ import { useSession, type Request } from "@/identity/Session";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/shared/ui/combobox";
 import { Field, FieldLabel, FieldLegend, FieldSet } from "@/shared/ui/field";
-import { NativeSelect } from "@/shared/ui/native-select";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
 import { ReadFeedback } from "@/shared/ReadFeedback";
+import { FormField } from "@/shared/FormField";
+import { Status } from "@/shared/Status";
 import { useDiscardChanges } from "@/shared/useDiscardChanges";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
@@ -15,7 +17,7 @@ import { Input } from "@/shared/ui/input";
 import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
 import type { components } from "@repo/api-client";
 const GroupCharts = dynamic(() => import("./GroupCharts"), {
-  loading: () => <p role="status">正在載入群組圖表……</p>,
+  loading: () => <ReadFeedback busy label="正在載入群組圖表……" />,
 });
 type Journal = components["schemas"]["Journal"];
 type Draft = components["schemas"]["JournalCreation"];
@@ -96,10 +98,10 @@ function Composer({request,group,saved}:{request:Request;group:string;saved:()=>
       saved,e=>{submitting.current=false;setBusy(false);setError(errorMessage(e));});
   }}>
     <QuestionnaireProgress aria-label="日誌填寫進度" aria-valuetext={step === "people" ? "日期與人員" : step === "today" ? "今日工作" : "明日計畫與發布"}>第 {step === "people" ? 1 : step === "today" ? 2 : 3} 步，共 3 步</QuestionnaireProgress>
-    <fieldset disabled={busy} className="grid gap-3">
+    <FieldSet disabled={busy} className="grid gap-3">
     <QuestionnaireItem name="people"><QuestionnaireTitle>日期與人員</QuestionnaireTitle>
-    <label>工作日期<Input required type="date" name="date" defaultValue={workDate()}/></label>
-    {Object.entries(roles).map(([key,label])=><label key={key}>{label}<Input name={key} placeholder="多位姓名以頓號分隔"/></label>)}
+    <FormField>工作日期<Input required type="date" name="date" defaultValue={workDate()}/></FormField>
+    {Object.entries(roles).map(([key,label])=><FormField key={key}>{label}<Input name={key} placeholder="多位姓名以頓號分隔"/></FormField>)}
     </QuestionnaireItem>
     <QuestionnaireItem name="today"><QuestionnaireTitle>今日工作</QuestionnaireTitle>
     <Rows title="今日工作" rows={today} change={setToday} targets={targets}/>
@@ -107,13 +109,13 @@ function Composer({request,group,saved}:{request:Request;group:string;saved:()=>
     <QuestionnaireItem name="tomorrow"><QuestionnaireTitle>明日計畫與發布</QuestionnaireTitle>
     <Rows title="明日計畫" rows={tomorrow} change={setTomorrow} targets={targets}/>
     </QuestionnaireItem>
-    {notice && step !== "people" && <p role="status">{notice}</p>}
+    {notice && step !== "people" && <Status>{notice}</Status>}
     {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
     <QuestionnaireActions>
       <QuestionnairePrevious>上一步</QuestionnairePrevious>
       <Button type="submit" className="col-start-3">{step === "tomorrow" ? (busy ? "發布中" : "發布日誌") : "下一步"}</Button>
     </QuestionnaireActions>
-  </fieldset></Questionnaire></PagePanel>;
+  </FieldSet></Questionnaire></PagePanel>;
 }
 
 type WorkspaceProps = {
@@ -157,13 +159,13 @@ function ComposeView({request, close}: {request: Request; close: () => void}) {
         {error ? <Alert variant="destructive"><AlertDescription>
           {error}
           <Button type="button" variant="outline" onClick={() => retry(value => value + 1)}>重新讀取</Button>
-        </AlertDescription></Alert> : !groups ? <p role="status">正在讀取群組……</p>
+        </AlertDescription></Alert> : !groups ? <ReadFeedback busy label="正在讀取群組……" />
           : !groups.length ? <Empty><EmptyHeader><EmptyTitle>目前沒有可選擇的群組。</EmptyTitle></EmptyHeader></Empty>
           : publishGroup ? <p>{groups.find(group => group.id === publishGroup)?.name || publishGroup}</p>
-          : <label>選擇發布群組 <NativeSelect value="" onChange={event => setPublishGroup(event.target.value)}>
-            <option value="">請選擇群組</option>
-            {groups.map(group => <option key={group.id} value={group.id}>{group.name || group.id}</option>)}
-          </NativeSelect></label>}
+          : <FormField>選擇發布群組 <NativeSelect value="" onChange={event => setPublishGroup(event.target.value)}>
+            <NativeSelectOption value="">請選擇群組</NativeSelectOption>
+            {groups.map(group => <NativeSelectOption key={group.id} value={group.id}>{group.name || group.id}</NativeSelectOption>)}
+          </NativeSelect></FormField>}
         <Button ref={cancelButton} type="button" variant="outline" onClick={() => discard.navigate(close)}>取消填寫</Button>
         {discard.dialog}
       </div>
@@ -198,8 +200,8 @@ function View({dashboard,request,detail}:{dashboard:boolean;request:Request;deta
     {!detail&&<a href={"/miniapp/feed?journalId="+j.id}>查看原文</a>}
   </PagePanel>;
   return <><PagePanel heading={dashboard?"工作概況":"工作牆"}>
-    {detail?<a href="/miniapp/feed">返回 Feed</a>:<label>群組 <NativeSelect value={group} onChange={e=>setGroup(e.target.value)}><option value="">全部可讀群組</option>{groups.map(g=><option key={g.id} value={g.id}>{g.name||g.id}</option>)}</NativeSelect></label>}
-    {dashboard&&<label>工作日期<Input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>}
+    {detail?<a href="/miniapp/feed">返回 Feed</a>:<FormField>群組 <NativeSelect value={group} onChange={e=>setGroup(e.target.value)}><NativeSelectOption value="">全部可讀群組</NativeSelectOption>{groups.map(g=><NativeSelectOption key={g.id} value={g.id}>{g.name||g.id}</NativeSelectOption>)}</NativeSelect></FormField>}
+    {dashboard&&<FormField>工作日期<Input type="date" value={date} onChange={e=>setDate(e.target.value)}/></FormField>}
     {(error||groupError)&&<Alert variant="destructive"><AlertDescription>{error||groupError}<Button onClick={()=>reload(v=>v+1)}>重新讀取</Button></AlertDescription></Alert>}
   </PagePanel>
   <ReadFeedback busy={busy} label="正在讀取日誌……" />
