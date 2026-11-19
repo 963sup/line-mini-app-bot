@@ -26,10 +26,17 @@ type Selected struct {
 	GroupLabel string `json:"groupLabel"`
 }
 
+type EnterpriseLink struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type Context struct {
-	Groups    []Group   `json:"groups"`
-	Selected  *Selected `json:"selected"`
-	CanSwitch bool      `json:"canSwitch"`
+	Enterprises         []EnterpriseLink `json:"enterprises"`
+	CanCreateEnterprise bool             `json:"canCreateEnterprise"`
+	Groups              []Group          `json:"groups"`
+	Selected            *Selected        `json:"selected"`
+	CanSwitch           bool             `json:"canSwitch"`
 }
 
 // BuildContext orders authorized organizations and restores a still-visible preference.
