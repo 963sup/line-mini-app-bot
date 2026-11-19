@@ -129,7 +129,9 @@ export function View() {
         });
         setGroupCursor(data.nextCursor || "");
         setGroupsBusy(false);
-        setStatus("請選擇群組與月份後查詢。");
+        setStatus(!append && !desired && !data.items?.length
+          ? "目前沒有出勤紀錄可供選擇。"
+          : "請選擇群組與月份後查詢。");
         if (!append && desired) loadRecords({selected:desired,selectedMonth,withSummary:true,cursor:""});
       },
       (error) => {

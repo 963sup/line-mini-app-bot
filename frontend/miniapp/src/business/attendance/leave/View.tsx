@@ -33,6 +33,7 @@ export function View() {
   const [uncertain, setUncertain] = useState(false);
   const [status, setStatus] = useState("請從原群組輸入「請假」取得表單連結。");
   const [records, setRecords] = useState<S["LeaveRecord"][]>([]);
+  const [historyGroup, setHistoryGroup] = useState("");
   const [listStatus, setListStatus] = useState("");
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const lock = useRef(false),
@@ -129,6 +130,10 @@ export function View() {
     setReason("");
     setStatus("請填寫另一筆請假；送出不代表核准。");
   }
+  const historyGroups = [...new Set(records.map(record => record.groupId))];
+  const selectedGroup = historyGroups.includes(historyGroup) ? historyGroup : "";
+  const visibleRecords = selectedGroup ? records.filter(record => record.groupId === selectedGroup) : records;
+
   return (
     <>
       <PagePanel heading="群組請假登記">
@@ -202,8 +207,17 @@ export function View() {
           重新載入本人紀錄
         </Button>
         <Status role="status">{listStatus}</Status>
+        {user && historyGroups.length > 0 && (
+          <FormField>
+            群組
+            <NativeSelect value={selectedGroup} onChange={event => setHistoryGroup(event.target.value)}>
+              <NativeSelectOption value="">全部群組</NativeSelectOption>
+              {historyGroups.map(group => <NativeSelectOption key={group} value={group}>{group}</NativeSelectOption>)}
+            </NativeSelect>
+          </FormField>
+        )}
         <ItemGroup className="gap-3">
-          {records.map((leave) => (
+          {visibleRecords.map((leave) => (
             <Item key={leave.id} role="listitem" variant="outline">
               <ItemContent className="min-w-0">
                 <ItemTitle>{kinds[leave.kind]}<Badge variant="outline">已登記、未核准</Badge></ItemTitle>
