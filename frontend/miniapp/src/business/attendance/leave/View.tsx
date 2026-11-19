@@ -4,7 +4,7 @@ import { Badge } from "@/shared/ui/badge";
 import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
 import { FormField } from "@/shared/FormField";
 import { PagePanel } from "@/shared/PagePanel";
-import { FieldGroup } from "@/shared/ui/field";
+import { FieldGroup, FieldSet } from "@/shared/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
@@ -145,7 +145,7 @@ export function View() {
         )}
         {launch && <form onSubmit={submitLeave}>
           <FieldGroup>
-            <fieldset
+            <FieldSet
               className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
               disabled={!user || !launch || busy || sent || uncertain}
             >
@@ -191,7 +191,7 @@ export function View() {
                   onChange={(e) => setReason(e.target.value)}
                 />
               </FormField>
-            </fieldset>
+            </FieldSet>
             <Button type="submit" disabled={!user || !launch || busy || sent}>
               {uncertain ? "重試原申請" : "送出請假登記"}
             </Button>

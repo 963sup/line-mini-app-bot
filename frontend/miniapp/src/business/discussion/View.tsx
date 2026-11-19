@@ -13,7 +13,7 @@ import { Comments } from "./Comments";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
-import { FieldGroup } from "@/shared/ui/field";
+import { FieldGroup, FieldSet, Field, FieldLabel } from "@/shared/ui/field";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
 import { Item, ItemGroup, ItemContent, ItemTitle } from "@/shared/ui/item";
 
@@ -149,13 +149,15 @@ export function View({ repositoryId }: { repositoryId: string }) {
         <Button variant="outline" disabled={!user || listBusy || busy} onClick={() => load()}>重新載入討論</Button>
       </div>
       <form onSubmit={(event) => { event.preventDefault(); if (!lock.current && !createOutcomeUnknown && !needsRefresh && !commentLock.current) discard.navigate(() => { navigating.current = true; detailRequest.cancel(); setDetailBusy(false); setMode(null); setSelected(null); setStatus(""); setFilter({ query: query.trim() }); }); }}>
-        <label htmlFor="discussion-search">搜尋標題</label>
-        <InputGroup className="mb-4">
+        <Field className="mb-4">
+        <FieldLabel htmlFor="discussion-search">搜尋標題</FieldLabel>
+        <InputGroup>
           <InputGroupInput id="discussion-search" maxLength={120} value={query} onChange={e => setQuery(e.target.value)} />
           <InputGroupAddon align="inline-end">
             <InputGroupButton type="submit" disabled={!user || listBusy || busy}>套用篩選</InputGroupButton>
           </InputGroupAddon>
         </InputGroup>
+        </Field>
       </form>
       <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取討論……" />
       <ItemGroup className="gap-3">
@@ -175,10 +177,10 @@ export function View({ repositoryId }: { repositoryId: string }) {
       </div>}
       {(mode === "create" || selected) && <form onSubmit={submit}>
         <FieldGroup>
-          <fieldset className="grid min-w-0 gap-4" disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh || (mode === "detail" && !mine)}>
+          <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh || (mode === "detail" && !mine)}>
             <FormField>標題<Input ref={titleInput} required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} /></FormField>
             <FormField>內容<Textarea maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} /></FormField>
-          </fieldset>
+          </FieldSet>
           {selected && <LabelPicker repositoryId={repositoryId} value={labelIDs} onChange={setLabelIDs} disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh} />}
           {(mode === "create" || selected) && <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={busy || needsRefresh}>{mode === "create" ? createOutcomeUnknown ? "重試原建立請求" : "建立討論" : mine ? "儲存內容" : "儲存分類"}</Button>

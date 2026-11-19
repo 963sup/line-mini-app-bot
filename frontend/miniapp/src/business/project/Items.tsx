@@ -1,5 +1,5 @@
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
 import { useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
@@ -10,7 +10,7 @@ import { Button } from "@/shared/ui/button";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Item, ItemGroup, ItemContent, ItemTitle } from "@/shared/ui/item";
 import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
-import { FieldGroup } from "@/shared/ui/field";
+import { FieldGroup, FieldSet, FieldLegend, Field, FieldLabel } from "@/shared/ui/field";
 
 import { Inspections } from "./Inspections";
 import { SourcePicker } from "./SourcePicker";
@@ -26,6 +26,7 @@ const kinds: Record<Kind, string> = { object: "物件", subobject: "子物件", 
 const states: Record<string, string> = { open: "待處理", in_progress: "進行中", completed: "已完成", not_started: "未開始", closed: "已結束" };
 type Props = { ownerId: string; sourceRepositoryId: string; project: Project; disabled: boolean; canWrite: () => boolean; onBlocked: (blocked: boolean) => void; onChange: (project: Project) => void; onRefresh: () => void };
 export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, project, disabled, canWrite, onBlocked, onChange, onRefresh }: Props) {
+  const kindID = useId();
   const [sourceRepositoryId, setSourceRepositoryId] = useState(initialRepositoryId);
   const { user, request } = useSession(), read = useLatestRequest(), catalog = useLatestRequest(), parents = useLatestRequest(), write = useLatestRequest();
   const [items, setItems] = useState<Reference[]>([]), [options, setOptions] = useState<Option[]>([]), [objects, setObjects] = useState<Option[]>([]);
@@ -165,7 +166,7 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
     {mine && <SourcePicker ownerId="" initialSource="" value={sourceRepositoryId} disabled={disabled||needsRefresh||busy||uncertain} onChange={id => { catalog.cancel(); parents.cancel(); setChoice(""); setParent(""); setOptions([]); setObjects([]); setSourceRepositoryId(id); }} />}
     {mine && sourceRepositoryId && <Button type="button" variant="outline" disabled={disabled||needsRefresh||busy||uncertain} onClick={()=>updateProject()}>{linked ? "解除儲存庫連結" : "連結此儲存庫"}</Button>}
     {mine && (sourceAvailable ? <FieldGroup>
-      <fieldset><legend>來源種類</legend>
+      <FieldSet><FieldLegend>來源種類</FieldLegend>
         <RadioGroup aria-label="來源種類" className="grid-cols-2 sm:grid-cols-4" value={kind}
           disabled={disabled || needsRefresh || busy || uncertain}
           onValueChange={value => {
@@ -176,12 +177,12 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
             setCatalogCursor(""); setParentCursor(""); setCatalogStatus(""); setParentStatus("");
           }}>
           {Object.entries(kinds).map(([value, label]) => (
-            <label key={value} className="flex min-h-11 items-center gap-2">
-              <RadioGroupItem value={value} aria-label={label} />{label}
-            </label>
+            <Field key={value} orientation="horizontal" className="gap-2">
+              <RadioGroupItem id={kindID + "-" + value} value={value} aria-label={label} /><FieldLabel htmlFor={kindID + "-" + value} className="min-h-11 flex-1">{label}</FieldLabel>
+            </Field>
           ))}
         </RadioGroup>
-      </fieldset>
+      </FieldSet>
       {kind === "subobject" && <>
         <Status role="status">{parentStatus}</Status>
         <FormField>父物件<NativeSelect value={parent} disabled={disabled||needsRefresh||busy||uncertain||parentBusy} onChange={event=>{if(lock.current||unknown.current||event.target.value===parent)return;selecting.current=true;catalog.cancel();setParent(event.target.value);setChoice("");setOptions([]);setCatalogCursor("");}}><NativeSelectOption value="">請先選擇父物件</NativeSelectOption>{objects.map(item=><NativeSelectOption key={item.id} value={item.id}>{item.title}</NativeSelectOption>)}</NativeSelect></FormField>

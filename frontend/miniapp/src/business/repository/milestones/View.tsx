@@ -11,7 +11,7 @@ import { FormField } from "@/shared/FormField";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
-import { FieldGroup } from "@/shared/ui/field";
+import { FieldGroup, FieldSet } from "@/shared/ui/field";
 import { Badge } from "@/shared/ui/badge";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
 import { Item, ItemGroup, ItemContent, ItemTitle, ItemActions, ItemFooter } from "@/shared/ui/item";
@@ -165,11 +165,11 @@ export function View({ repositoryId }: { repositoryId: string }) {
       </div>}
       {(mode === "create" || selected) && <form onSubmit={submit}>
         <FieldGroup>
-          <fieldset className="grid min-w-0 gap-4" disabled={busy || detailBusy || uncertain || needsRefresh || (mode === "detail" && !mine)}>
+          <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || uncertain || needsRefresh || (mode === "detail" && !mine)}>
             <FormField>到期日<Input type="date" value={dueDate} onChange={(e)=>setDueDate(e.target.value)} /></FormField>
           <FormField>標題<Input ref={titleInput} required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} /></FormField>
             <FormField>內容<Textarea maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} /></FormField>
-          </fieldset>
+          </FieldSet>
 
           {(mode === "create" || mine) && <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={busy || needsRefresh}>{mode === "create" ? uncertain ? "重試原建立請求" : "建立里程碑" : "儲存內容"}</Button>
