@@ -1,3 +1,4 @@
+import { FieldSet } from "@/shared/ui/field";
 import { Badge } from "@/shared/ui/badge";
 import { Item, ItemContent, ItemTitle } from "@/shared/ui/item";
 import { FormField } from "@/shared/FormField";
@@ -122,7 +123,7 @@ export function View() {
         <p>
           取得員工提供的申請編號後，先讀取內容再核准。權限由伺服器確認，不能審核自己的申請。
         </p>
-        <fieldset
+        <FieldSet
           className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
           id="review-controls"
           disabled={!user || busy}
@@ -203,7 +204,7 @@ export function View() {
           >
             駁回已讀取的申請
           </Button>
-        </fieldset>
+        </FieldSet>
         <Status id="review-status" role="status">
           {user ? status : "請先完成身分驗證。"}
         </Status>

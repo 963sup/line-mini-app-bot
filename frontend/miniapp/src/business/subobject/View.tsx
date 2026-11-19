@@ -10,7 +10,7 @@ import { Status } from "@/shared/Status";
 import { Button } from "@/shared/ui/button";
 import { Item, ItemGroup, ItemContent, ItemTitle, ItemActions, ItemFooter } from "@/shared/ui/item";
 import { Input } from "@/shared/ui/input";
-import { FieldGroup } from "@/shared/ui/field";
+import { FieldGroup, FieldSet } from "@/shared/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 
 type Resource = components["schemas"]["Subobject"];
@@ -109,13 +109,13 @@ function Content({ repositoryId, objectId, ownerId, parentEditing, onEdit, onBlo
   const editor = <form ref={editorPanel} tabIndex={-1} className="w-full min-w-0" aria-label="子物件編輯" onSubmit={submit}><FieldGroup>
       <Status role="status">{status}</Status>
       {selected && <Button type="button" variant="outline" disabled={busy} onClick={() => discard.navigate(reloadDetail)}>重新讀取子物件</Button>}
-      <fieldset className="grid min-w-0 gap-3" disabled={busy || uncertain || refresh}>
+      <FieldSet className="grid min-w-0 gap-3" disabled={busy || uncertain || refresh}>
         <FormField>子物件名稱<Input ref={nameInput} required maxLength={120} value={content.name} onChange={event => setContent(previous=>({...previous,name:event.target.value}))}/></FormField>
         <FormField>子物件類型<NativeSelect value={content.type} onChange={event=>setContent(previous=>({...previous,type:event.target.value as Creation["type"],completedQuantity:event.target.value === "work" ? (selected?.type === "work" ? selected.completedQuantity : "0") : undefined}))}><NativeSelectOption value="work">施作</NativeSelectOption><NativeSelectOption value="non_work">非施作</NativeSelectOption></NativeSelect></FormField>
         <FormField>子物件數量<Input required maxLength={25} inputMode="decimal" value={content.quantity} onChange={event=>setContent(previous=>({...previous,quantity:event.target.value}))}/></FormField>
         <FormField>子物件單位<Input required maxLength={32} value={content.unit} onChange={event=>setContent(previous=>({...previous,unit:event.target.value}))}/></FormField>
         {content.type === "work" ? <FormField>子物件完成數<Input required maxLength={25} inputMode="decimal" value={content.completedQuantity || ""} onChange={event=>setContent(previous=>({...previous,completedQuantity:event.target.value}))}/></FormField> : <p>狀態與進度：不適用</p>}
-      </fieldset>
+      </FieldSet>
       <Button type="submit" disabled={busy || refresh}>{selected ? "儲存子物件" : uncertain ? "重試原子物件建立請求" : "建立子物件"}</Button>
       <Button type="button" variant="outline" disabled={busy || uncertain} onClick={close}>取消</Button>
     </FieldGroup></form>;

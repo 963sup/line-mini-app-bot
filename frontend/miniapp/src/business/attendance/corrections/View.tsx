@@ -2,7 +2,7 @@ import { FormField } from "@/shared/FormField";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
 import { Checkbox } from "@/shared/ui/checkbox";
-import { Field, FieldLabel, FieldGroup } from "@/shared/ui/field";
+import { Field, FieldLabel, FieldGroup, FieldSet, FieldLegend } from "@/shared/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
@@ -215,7 +215,7 @@ export function View() {
           </a>
         </p>
         {newShift && (
-          <fieldset
+          <FieldSet
             className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
             disabled={!user || busy}
           >
@@ -247,7 +247,7 @@ export function View() {
             {groupCursor && (
               <Button onClick={() => loadGroups(true)}>載入更多群組</Button>
             )}
-          </fieldset>
+          </FieldSet>
         )}
         <p id="record-description">
           {selected
@@ -258,7 +258,7 @@ export function View() {
         </p>
         <form id="correction-form" onSubmit={submitCorrection}>
           <FieldGroup>
-            <fieldset
+            <FieldSet
               className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
               id="correction-fields"
               disabled={!user || (!selected && !newShift) || !group || busy}
@@ -287,10 +287,10 @@ export function View() {
                   />
                 </FormField>
               </div>
-              <fieldset className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60">
-                <legend className="px-1 text-sm font-semibold">
+              <FieldSet className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60">
+                <FieldLegend className="px-1 text-sm font-semibold">
                   實際休息區間
-                </legend>
+                </FieldLegend>
                 <div id="correction-breaks">
                   {breaks.map((b, index) => (
                     <div key={index}>
@@ -334,7 +334,7 @@ export function View() {
                 >
                   新增休息區間
                 </Button>
-              </fieldset>
+              </FieldSet>
               <FormField>
                 申請原因
                 <Textarea
@@ -359,7 +359,7 @@ export function View() {
               <Button id="submit-correction" type="submit">
                 送出申請
               </Button>
-            </fieldset>
+            </FieldSet>
           </FieldGroup>
         </form>
         <Status id="correction-status" role="status">
@@ -369,7 +369,7 @@ export function View() {
       <Requests />
       <PagePanel heading="查看申請結果">
         <p>輸入送出申請時取得的編號；核准前工時不變。</p>
-        <fieldset
+        <FieldSet
           className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
           id="status-controls"
           disabled={!user}
@@ -391,7 +391,7 @@ export function View() {
           <Button id="check-correction" onClick={checkCorrectionStatus}>
             查詢本人申請
           </Button>
-        </fieldset>
+        </FieldSet>
         <Status id="application-status" role="status">
           {application}
         </Status>

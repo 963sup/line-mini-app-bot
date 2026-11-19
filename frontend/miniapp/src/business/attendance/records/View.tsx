@@ -1,8 +1,9 @@
+import { FieldSet } from "@/shared/ui/field";
 import { ButtonGroup, ButtonGroupText } from "@/shared/ui/button-group";
 import { Badge } from "@/shared/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableCaption } from "@/shared/ui/table";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
-import { Spinner } from "@/shared/ui/spinner";
+import { ReadFeedback } from "@/shared/ReadFeedback";
 import { FormField } from "@/shared/FormField";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
@@ -171,7 +172,7 @@ export function View() {
       <p className="text-sm leading-relaxed text-muted-foreground">
         整月摘要與下方分頁明細分開計算。資料可能更新；更正後請重新查詢。
       </p>
-      <fieldset
+      <FieldSet
         className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
         id="history-controls"
         disabled={!user}
@@ -237,7 +238,7 @@ export function View() {
         >
           查詢月紀錄
         </Button>
-      </fieldset>
+      </FieldSet>
       <Status id="history-status" role="status">
         {status}
       </Status>
@@ -259,7 +260,7 @@ export function View() {
           <p className="text-sm text-muted-foreground">合計裁切本月區間；明細為完整班次。暫估非薪資結算，正常／加班分類待認定。</p>
         </>}
       </section>
-      {busy && <p role="status" className="flex items-center gap-2"><Spinner aria-hidden="true" />正在讀取出勤明細</p>}
+      {busy && <ReadFeedback busy label="正在讀取出勤明細" />}
       <Table aria-busy={busy}>
         <TableCaption>本人班次明細；工時單位為分鐘</TableCaption>
         <TableHeader>

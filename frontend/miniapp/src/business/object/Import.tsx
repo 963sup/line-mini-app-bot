@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
 import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
@@ -8,7 +8,7 @@ import { Status } from "@/shared/Status";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
-import { FieldGroup } from "@/shared/ui/field";
+import { FieldGroup, FieldSet, FieldLegend, Field, FieldLabel } from "@/shared/ui/field";
 import { extractPdf } from "./pdf";
 
 type Run = components["schemas"]["ObjectImportRun"];
@@ -16,6 +16,7 @@ type Creation = components["schemas"]["ObjectImportRunCreation"];
 const reasons: Record<string, string> = { model_unavailable: "解析服務暫時無法使用", output_rejected: "無法安全辨識明細內容", creation_unavailable: "部分物件尚未建立", storage_unavailable: "進度暫時無法保存" };
 
 export function Import({ repositoryId, onBlocked, canWrite, extract = extractPdf }: { repositoryId: string; onBlocked: (blocked: boolean) => void; canWrite?: () => boolean; extract?: typeof extractPdf }) {
+  const typeID = useId();
   const { user, request, epoch } = useSession(), rpc = useLatestRequest();
   const [busy, setBusy] = useState(false), [blocked, setBlocked] = useState(false), [message, setMessage] = useState(""), [job, setJob] = useState<Run | null>(null);
   const lock = useRef(false), unresolved = useRef(false), generation = useRef(0), extraction = useRef<AbortController | null>(null);
@@ -60,17 +61,17 @@ export function Import({ repositoryId, onBlocked, canWrite, extract = extractPdf
   }
   return <PagePanel heading="PDF匯入物件" className="w-full min-w-0"><FieldGroup>
     <p>選擇PDF即會在本機擷取支援的明細表，將明細文字經伺服器傳送至OpenAI解析並自動建立物件。原始PDF留在本機。僅支援文字型訂單表格，不支援掃描或密碼PDF。</p>
-    <fieldset>
-      <legend>整批類型</legend>
+    <FieldSet>
+      <FieldLegend>整批類型</FieldLegend>
       <RadioGroup aria-label="整批類型" className="grid-cols-2" value={type} disabled={busy || blocked}
         onValueChange={value => {
           if (lock.current || unresolved.current || (value !== "work" && value !== "non_work")) return;
           selectedType.current = value; setType(value);
         }}>
-        <label className="flex min-h-11 items-center gap-2"><RadioGroupItem value="work" aria-label="施作" />施作</label>
-        <label className="flex min-h-11 items-center gap-2"><RadioGroupItem value="non_work" aria-label="非施作" />非施作</label>
+        <Field orientation="horizontal" className="gap-2"><RadioGroupItem id={typeID + "-work"} value="work" aria-label="施作" /><FieldLabel htmlFor={typeID + "-work"} className="min-h-11 flex-1">施作</FieldLabel></Field>
+        <Field orientation="horizontal" className="gap-2"><RadioGroupItem id={typeID + "-non-work"} value="non_work" aria-label="非施作" /><FieldLabel htmlFor={typeID + "-non-work"} className="min-h-11 flex-1">非施作</FieldLabel></Field>
       </RadioGroup>
-    </fieldset>
+    </FieldSet>
 
     <p>整批物件皆使用此類型，匯入後可在個別物件中修改。</p>
     <FormField>選擇PDF並匯入<Input ref={fileInput} type="file" accept="application/pdf,.pdf" disabled={busy || blocked} onChange={event => void choose(event.target.files?.[0])} /></FormField>
