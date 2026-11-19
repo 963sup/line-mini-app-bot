@@ -102,5 +102,8 @@
 
 
 ### LINE 一對一建立入口
+![LINE 私訊建立流程](diagrams/private-chat-creation.svg)
+
+[Mermaid 原始檔](diagrams/private-chat-creation.mermaid)
 
 在私訊輸入「建立組織」或「建立企業」，五分鐘內回覆名稱即可建立；輸入「取消」結束。建立企業時，詢問名稱及實際建立時都檢查開通資格。已驗證的 webhook 決定建立者身分。成功回覆附上對應 MINI App 入口。對話狀態依渠道與使用者隔離；資源建立、結束對話及事件回覆紀錄在同一個 Firestore 交易完成，重送同一事件會取得原結果。群組事件沿用原有 Team 流程。
