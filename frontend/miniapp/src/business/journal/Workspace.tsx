@@ -80,7 +80,11 @@ function View({dashboard,request}:{dashboard:boolean;request:Request}){
   const [revision,reload]=useState(0),[error,setError]=useState(""),[groupError,setGroupError]=useState(""),[busy,setBusy]=useState(true);
   const [detail,setDetail]=useState(""),[ready,setReady]=useState(false);
   const list=useLatestRequest();
-  useEffect(()=>{setDetail(dashboard?"":new URLSearchParams(location.search).get("journalId")||"");setReady(true);},[dashboard]);
+  useEffect(()=>{
+    const params=new URLSearchParams(location.search);
+    const journalId=dashboard?"":params.get("journalId")||"";
+    setDetail(journalId);setWriting(!dashboard && !journalId && params.get("compose")==="1");setReady(true);
+  },[dashboard]);
   useEffect(()=>{
     const controller=new AbortController();setGroupError("");
     collect(cursor=>request((c,s)=>c.GET("/api/v1/groups",{signal:s,params:{query:{cursor:cursor||undefined}}}),{signal:controller.signal}))
@@ -96,6 +100,7 @@ function View({dashboard,request}:{dashboard:boolean;request:Request}){
   }
   useEffect(()=>{if(ready)load();return list.cancel;},[group,date,revision,detail,dashboard,ready,request]);
   function closeComposer(){
+    const url=new URL(location.href);url.searchParams.delete("compose");window.history.replaceState(window.history.state,"",url);
     setWriting(false);
     setPublishGroup("");
   }
@@ -106,7 +111,6 @@ function View({dashboard,request}:{dashboard:boolean;request:Request}){
     {!detail&&<a href={"/miniapp/feed?journalId="+j.id}>查看原文</a>}
   </PagePanel>;
   return <><PagePanel heading={dashboard?"工作概況":"工作牆"}>
-    {!dashboard&&!detail&&!writing&&<Button onClick={()=>setWriting(true)}>寫日誌</Button>}
     {detail?<a href="/miniapp/feed">返回 Feed</a>:<label>群組 <select disabled={writing} value={group} onChange={e=>setGroup(e.target.value)}><option value="">全部可讀群組</option>{groups.map(g=><option key={g.id} value={g.id}>{g.name||g.id}</option>)}</select></label>}
     {dashboard&&<label>工作日期<Input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>}
     {(error||groupError)&&<><p role="alert">{error||groupError}</p><Button onClick={()=>reload(v=>v+1)}>重新讀取</Button></>}
