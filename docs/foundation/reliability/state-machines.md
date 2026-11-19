@@ -2,25 +2,15 @@
 
 > 狀態：LINE、Firestore 與 Garr 的後續平台提案。現行 Webhook 見 [HTTP 契約](../api/http-contracts.md#基礎入口)。外部 API 不提供與 Firestore 跨系統原子交易，不保證 exactly-once。
 
-## Inbox
+## Webhook 接收、處理與發送
 
 **未來設計**
 
-![Inbox](diagrams/inbox-state.svg)
+![Webhook 批次回覆、Inbox 交易與 Outbox Push 發送狀態](diagrams/webhook-lifecycle.svg)
 
-[編輯 Mermaid 原始檔](diagrams/inbox-state.mermaid)
+[編輯生命週期圖](diagrams/webhook-lifecycle.mermaid)
 
-所有交易先讀後寫；callback 無 LINE 呼叫。重複 event ID 回接收成功，不重設既有狀態。
-以渠道和 webhookEventId 共同去重，isRedelivery 僅供參考。重複與亂序分開處理，重要狀態依版本與事件時間判斷。Unsend 依保存政策移除或停止使用內容。
-Inbox completed 只表示處理與通知意圖已提交，不表示通知已送達；Reply 記錄另有狀態。
-
-## Outbox
-
-**未來設計**
-
-![Outbox](diagrams/outbox-state.svg)
-
-[編輯 Mermaid 原始檔](diagrams/outbox-state.mermaid)
+Firestore 交易先讀後寫，callback 中不呼叫 LINE。isRedelivery 僅供參考；亂序事件依版本與事件時間判斷，未知來源需觀測，Unsend 依保存政策移除或停止使用內容。
 
 sending 過期不得當成未發送的 pending。先持久化 sending 再呼叫 API；租約版本只保護資料更新，不能取消已在外部執行的請求。
 避免 lease 在呼叫期間失效：外部 timeout 小於剩餘租約，必要時續租；失去租約者不得提交完成。
@@ -28,31 +18,6 @@ sending 過期不得當成未發送的 pending。先持久化 sending 再呼叫 
 Reply 沒有 Push retry key 的同等保障：not_attempted → attempting → accepted/rejected/unknown；unknown 不自動重送或改 Push。
 Push 工作保存 typed target、內容快照或不可變模板版本、retry key、attempt、nextRunAt、leaseOwner、leaseUntil 與 leaseVersion。續租與完成均驗證租約版本。Reply token 短效且單次使用，限制嘗試次數。API 接受只表示供應商已接收請求。
 具體 retry 次數、延遲、去重期限由 endpoint 現行規則與 P05 確認，未確認不得開正式自動重送。
-
-## Webhook 時序
-
-**未來設計**
-
-```mermaid
-sequenceDiagram
-  participant L as LINE
-  participant H as Go Webhook
-  participant F as Firestore
-  participant W as Dispatcher
-  participant U as Direct / Group Use Case
-  L->>H: 原始 body + signature
-  H->>H: 按渠道選 secret 驗原始 body，再解析空陣列或多事件
-  H->>F: 以渠道與事件 ID 建立 Inbox
-  alt 保存失敗
-    H-->>L: 503；已保存部分可安全重送
-  else 所有需接收事件均已保存
-    H-->>L: 200（非業務完成）
-    W->>F: claim Inbox 租約
-    W->>U: 依 user/group 分派可信資料，安全忽略並觀測未知來源
-    U->>F: 交易：業務變更 + Outbox + 完成狀態
-    Note over U,F: 不在 callback 內呼叫 LINE
-  end
-```
 
 Reply 由獨立優先路徑處理，受 token 期限約束；不能用定期慢掃描保證即時 Reply。實作時以延遲測試選定喚醒／掃描策略。
 

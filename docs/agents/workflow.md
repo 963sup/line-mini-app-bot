@@ -147,7 +147,7 @@ GitHub MCP 與 Git CLI 的使用見 [GitHub 工具指南](../tooling/mcp/github.
 
 ## Deployment and browser location routing
 
-部署與瀏覽器定位任務依[根指引的路由](../../AGENTS.md#deployment-and-browser-location-routing)載入適用決策與操作文件；實際驗收依 [acceptance](acceptance.md#cloud-run-and-browser-location)。本節不另外維護部署政策。
+部署與瀏覽器定位任務分別依[部署指引](../../deploy/AGENTS.md)與[定位指引](../../frontend/miniapp/src/shared/location/AGENTS.md)載入適用決策與操作文件；實際驗收依 [acceptance](acceptance.md#cloud-run-and-browser-location)。本節不另外維護部署政策。
 
 ## Mandatory documentation verification
 
@@ -176,7 +176,7 @@ flowchart TB
 
 圖譜可能過期或漏掉動態關係，無節點時核對原始碼。核對 Repomix 打包範圍，Markdown／TOML 等遺漏內容直接讀取並記錄。產物放任務專屬的未提交目錄。
 
-Context7 先解析 library ID 再查適用版本。LINE、Google Cloud 與 Codex 依[根查證路由](../../AGENTS.md#mandatory-documentation-verification)。產品決策以使用者與已接受規格為準。
+Context7 先解析 library ID 再查適用版本。LINE、Google Cloud 與 Codex 依[工具查證指引](../tooling/mcp/AGENTS.md)。產品決策以使用者與已接受規格為準。
 
 Explorer 與 reviewer 維持唯讀並回報 orchestrator，implementer 修正，必要時由 debugger 定位。保留既有變更，範圍外另列。主機不支援角色時由主代理直接承接並說明。依[驗收矩陣](acceptance.md)核對契約、實作與證據。程式修改後依根指引更新 Graphify，重新打包受影響內容並沿用有效證據。
 

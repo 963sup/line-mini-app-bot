@@ -36,10 +36,7 @@ expected channel. Avoid logging tokens, secret values or whole webhook payloads.
 
 ## Bootstrap and editor
 
-The base image must provide Bash, curl, tar, checksum utilities and Python 3.11+
-before mise starts. Python parses the single-source environment table in
-mise.toml. The managed Python pin cannot satisfy this earlier bootstrap step.
-For optional remote MCP dependencies and offline configuration validation, see the [Bootstrap commands](setup.md#bootstrap).
+主機前置條件、bootstrap 模式及 MCP 執行期驗收見[環境設定](setup.md#bootstrap)。
 
 VS Code recommends golang.go. Its Go and gopls paths use repository wrappers so
 the same mise tools and writable paths are used. Run Go: setup before opening

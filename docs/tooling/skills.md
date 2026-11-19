@@ -12,7 +12,7 @@
 | context7-mcp | upstash/context7（官方） | 版本相符文件查詢 |
 | repomix-explorer | yamadashy/repomix（官方） | CLI 打包、搜尋、分析 |
 | openai-docs | openai/skills（官方） | OpenAI／Codex 官方文件 |
-| shadcn | shadcn/ui（官方；CLI lock 見 skills-lock.json） | 元件、registry、preset、MCP 工作流程；[專案規則](../../AGENTS.md#shadcn-任務入口) |
+| shadcn | shadcn/ui（官方；CLI lock 見 skills-lock.json） | 元件、registry、preset、MCP 工作流程；[專案規則](../../frontend/AGENTS.md#shadcn-任務入口) |
 | graphify | 既有 Graphify CLI 安裝 | 程式關係圖查詢 |
 
 ## MCP 對應與搜尋範圍
