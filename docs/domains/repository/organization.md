@@ -14,6 +14,18 @@
 | 指派企業 Team | 具企業 Team 指派權的管理者指定旗下 Organization。後端核對 Team 的管理企業與目標組織的企業相同，再依組織與 Team 的組合鍵寫入；跨企業一律拒絕，重送不產生第二份名單。 |
 | 移除指派 | 刪除指定組織的指派。依賴這筆指派的授權即失效，其他組織的指派與企業成員名單維持有效。 |
 
+### 企業自助開通與共用頁面
+
+| 操作 | 後端規則與前端呈現 |
+|---|---|
+| 顯示入口 | 組織 context 一併回傳 enterprises 與 canCreateEnterprise；空企業也對其 Owner 顯示。側欄直接使用回應。 |
+| POST /api/v1/enterprises | 名稱為 1–120 字。後端於交易內核對登入者資格、建立企業、加入第一位 Owner 並記錄 enterpriseId。重送同一開通請求回傳既有企業。 |
+| GET /api/v1/enterprises/{enterpriseId} | 企業 Owner 與管理者可看旗下組織及企業團隊清單；一般組織成員只看本人可見組織及已指派且通過 LINE 成員核驗的 Team。只有 Owner 收到 canManage=true。 |
+| POST /api/v1/enterprises/{enterpriseId}/owners | 現任企業 Owner 可新增另一位 Owner；交易保留原有 Owner，支援既有 ownerUserId。 |
+| POST /api/v1/enterprises/{enterpriseId}/organizations | 操作者須同時擁有企業與目標組織；已屬其他企業回 409。獨立組織可繼續單獨運作。 |
+
+開通資格由服務端配置於同一渠道下的 `enterpriseEntitlements/{SHA-256(userId)}`（文件鍵使用專案 firestorekey.Digest）。設定 `enabled: true` 提供一次企業開通資格。建立成功後由後端保存 enterpriseId；缺少資格時直接呼叫建立 API 也回 403。頁面使用 OpenAPI 生成的型別，顯示後端回傳的清單與管理操作。
+
 ## Organization（組織）
 
 | 資料或操作 | 規則與驗收條件 |
@@ -41,7 +53,7 @@
 | 畫面狀態 | 側欄呈現與操作 | 資料來源 |
 |---|---|---|
 | 收合 | SidebarMenuButton 第一行顯示目前組織（例：台北營運），第二行顯示企業（例：台灣總公司）。可存取名稱為「切換組織」。 | selected.name 與 selected.groupLabel |
-| 展開 | DropdownMenu 以「切換組織」為標題。每個分組顯示企業名稱，下面列出組織單選項目；目前組織打勾。企業標題不觸發切換。 | 按 groups 與 organizations 的回傳順序繪製，用 organizationId 比對選取狀態。 |
+| 展開 | DropdownMenu 以「切換組織」為標題。每個分組顯示企業名稱，下面列出組織單選項目；目前組織打勾。點企業名稱開啟企業頁，點組織項目切換組織。 | 按 groups 與 organizations 的回傳順序繪製，用 organizationId 比對選取狀態。 |
 | 獨立組織 | 無所屬企業的組織列在「獨立組織」分組，收合時第二行也使用此名稱。 | 後端提供 enterpriseId 為 null 的單一分組。 |
 | 同名組織 | 跨企業以分組區分；同分組內重名時，在項目後顯示後端提供的辨識文字。 | option.detail，例如可區分兩者的 ID 片段。 |
 | 零或一個組織 | 零個顯示「尚無可用組織」；只有一個時保留組織與企業兩行，省略展開操作。 | selected 與 canSwitch |
@@ -86,4 +98,4 @@
 | PUT /api/v1/teams/{teamId}/management | 為已自動建立的 Team 指定管理歸屬。 |
 | PUT 或 DELETE /api/v1/organizations/{organizationId}/enterprise-teams/{teamId} | 新增或移除同企業內的 Team 指派。 |
 
-組織的 memberUserIds 代表有效成員；管理歸屬操作讀取服務端維護的 managerUserIds。企業帳戶、管理名單與組織的 enterpriseId 由部署端配置。既有 LINE 群組在下一筆可信事件時以 groupId 補齊 Team；事件只更新群組名稱與狀態，保留既有管理範圍與權限。
+組織的 memberUserIds 代表有效成員；管理歸屬操作讀取服務端維護的 managerUserIds。企業自助開通與組織加入流程見上方企業規格。既有 LINE 群組在下一筆可信事件時以 groupId 補齊 Team；事件只更新群組名稱與狀態，保留既有管理範圍與權限。
