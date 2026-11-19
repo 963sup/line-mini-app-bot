@@ -47,7 +47,7 @@ flowchart LR
   h["3. MINI App"]
   h --- n0["環境變數：LINE_MINI_APP_ENV<br/>值：developing（預設）、review、published<br/>Go 同時選定公開 Channel ID 與 LIFF ID；未知值使服務啟動失敗。"]
   h --- n1["公開配對只在 Go server/miniapp.go 定義。舊 LINE_MINI_APP_CHANNEL_ID 與 LINE_MINI_APP_LIFF_ID 不再讀取；不會覆寫所選環境或成為額外 audience。"]
-  h --- n2["環境變數：LINE_MINI_APP_WEB_URL<br/>用途：Flex URI action的桌面替代入口，精確<br/>HTTPS網頁Endpoint<br/>機密：否<br/>必要條件：啟用桌面開啟卡時；不從請求Host推導"]
+  h --- n2["三環境共用的 HTTPS Endpoint 已內建，不再讀取 LINE_MINI_APP_WEB_URL；桌面 Flex 使用此固定入口，不從請求 Host 或 postback 推導。"]
   h --- n3["環境變數：LINE_MINI_APP_CHANNEL_ACCESS_TOKEN<br/>用途：呼叫 MINI App Service Message API<br/>機密：是<br/>必要條件：啟用 Service Message 且採預先簽發 <br/>token 時"]
 ```
 
@@ -57,8 +57,8 @@ flowchart LR
   h --- n0["MINI App 的 Developing／Review／Published 有<br/>不同內部 Channel；每個部署只選擇一個環境的內建 Channel／LIFF 配對，不接受其他環境的 token，不得混用<br/>。Messaging API 與 MINI App 即使位於相同 <br/>Provider，也使用各自的 Channel 憑證。"]
   h --- n1["目前沒有使用 MINI App Channel secret 的流程<br/>，因此不預設加入該變數。 未來若選定的授權流<br/>程需要，再明確增加 <br/>LINE_MINI_APP_CHANNEL_SECRET。"]
   h --- n2["Quick Reply的「MINI App」先送既有Webhook <br/>postback action=miniapp，回覆一張Flex開啟卡<br/>；手機再點卡片後使用原MINI App URI，比原先多<br/>一次點擊。桌面LINE使用altUri.desktop開啟已設<br/>定的HTTPS網頁入口；Quick Reply本身不支援此屬<br/>性，Rich Menu與其他quick chips不變。功能說明<br/>卡的MINI App按鈕共用同一桌面分流規則。"]
-  h --- n3["缺少或無效的LINE_MINI_APP_WEB_URL不推測網址<br/>，卡片明示目前供手機LINE使用。範例部署的<br/>_MINI_APP_WEB_URL採已知服務的/miniapp作公開<br/>候選，不代表已核LINE Console Endpoint或完成<br/>桌面SSO。Managed trigger只換image時不會自動<br/>注入新變數，必須另外經授權更新服務runtime設<br/>定／新revision後驗收；本機.env.example不自動<br/>載入。"]
-  h --- n4["依據：官方URI action與外部瀏覽器，官方來源庫<br/>revision <br/>259d1fa7698d597f95a7f044f2592379a63defbe。桌<br/>面需要手動LINE登入，不能把網頁入口當授權或繞<br/>過目前成員核驗。"]
+  h --- n3["Developing、Review、Published 共用 https://line-mini-app-bot-jtghegqd7q-de.a.run.app/miniapp。這是公開網頁 Endpoint，不取代各環境 miniapp.line.me 永久連結，也不授予登入或群組權限。本次僅固定程式設定，不代表已部署或完成桌面 SSO 驗收。"]
+  h --- n4["依據：官方URI action與外部瀏覽器，官方來源庫<br/>revision <br/>c15d6d3fa2eff7fcae65554c20be5b1e60f9a10a。桌<br/>面需要手動LINE登入，不能把網頁入口當授權或繞<br/>過目前成員核驗。"]
   n4 --- n4l0["官方URI action"]
   click n4l0 "https://developers.line.biz/en/reference/messaging-api/#uri-action"
   n4 --- n4l1["外部瀏覽器"]
@@ -103,3 +103,5 @@ flowchart LR
 | published | 2012412009 | 2012412009-Xp2CQWOP | https://miniapp.line.me/2012412009-Xp2CQWOP |
 
 公開設定 API、ID token verifier 與 Session Channel 使用同一選擇。公開 ID 內建不表示已完成 LINE Console、HTTPS、openid、ADC 或 Firestore 權限設定；不會自動切換、發布或建立雲端資源。`.env` 不自動載入，既有舊 ID 鍵可保留，但不再生效。Cloud Build 範例明確維持 developing；切換 Published 必須明確設定 `LINE_MINI_APP_ENV=published`。
+
+三環境共用的網頁 Endpoint 單一來源為 [LINE 導覽](../../../backend/internal/navigation/line/events.go) 的 `miniAppEndpointURL`；舊 `LINE_MINI_APP_WEB_URL` 與 `_MINI_APP_WEB_URL` 不再生效。手機仍使用上表各環境的永久連結。

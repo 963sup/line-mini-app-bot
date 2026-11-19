@@ -14,6 +14,9 @@ import (
 
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 	identityline "github.com/963sup/line-mini-app-bot/internal/identity/line"
+	navigation "github.com/963sup/line-mini-app-bot/internal/navigation/line"
+	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
+	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
 type miniAppRoundTrip func(*http.Request) (*http.Response, error)
@@ -24,6 +27,7 @@ func TestMiniAppProfiles(t *testing.T) {
 	// Legacy keys cannot mix a different audience into the selected profile.
 	t.Setenv("LINE_MINI_APP_CHANNEL_ID", "999")
 	t.Setenv("LINE_MINI_APP_LIFF_ID", "999-legacy")
+	t.Setenv("LINE_MINI_APP_WEB_URL", "https://attacker.example/miniapp")
 	for _, test := range []struct{ environment, channelID, liffID string }{
 		{"", "2012412007", "2012412007-0xCIzCmZ"},
 		{"developing", "2012412007", "2012412007-0xCIzCmZ"},
@@ -42,6 +46,12 @@ func TestMiniAppProfiles(t *testing.T) {
 			link, err := auth.Register(mux)
 			if err != nil || link != "https://miniapp.line.me/"+test.liffID {
 				t.Fatalf("unexpected permanent link %q: %v", link, err)
+			}
+			event := webhook.PostbackEvent{Mode: "active", ReplyToken: "reply", Source: webhook.UserSource{UserId: "user"}, Postback: &webhook.PostbackContent{Data: "action=miniapp"}}
+			card := navigation.ReplyForEvent(event, link).Message.(*messaging_api.FlexMessage)
+			action := card.Contents.(*messaging_api.FlexBubble).Footer.Contents[0].(*messaging_api.FlexButton).Action.(*messaging_api.UriAction)
+			if action.Uri != link || action.AltUri == nil || action.AltUri.Desktop != "https://line-mini-app-bot-jtghegqd7q-de.a.run.app/miniapp" {
+				t.Fatal("each profile must keep its permalink and use the fixed desktop endpoint")
 			}
 			response := httptest.NewRecorder()
 			mux.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/v1/miniapp/config", nil))
