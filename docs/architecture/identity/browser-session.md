@@ -80,7 +80,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["部署與驗收界線"]
-  h --- n0["沿用 GOOGLE_CLOUD_PROJECT 與 <br/>FIRESTORE_DATABASE_ID；缺少 project 或 MINI <br/>App channel 時 Session 回 503。runtime <br/>service account 須可讀寫指定資料庫；Go <br/>server SDK 使用 IAM，不以 Security Rules 取<br/>代應用授權。"]
+  h --- n0["沿用 GOOGLE_CLOUD_PROJECT 與 <br/>FIRESTORE_DATABASE_ID；缺少 project 時 Session 回 503；MINI App Channel 由 LINE_MINI_APP_ENV 選定的內建配對提供。runtime <br/>service account 須可讀寫指定資料庫；Go <br/>server SDK 使用 IAM，不以 Security Rules 取<br/>代應用授權。"]
   h --- n1["deploy/firestore/indexes.json 宣告 <br/>sessions.expiresAt TTL 與索引豁免，其他 <br/>Session 欄位不建索引。提交設定不代表雲端已套<br/>用。TTL 通常在過期後 24 小時內清理， 過期文<br/>件仍可能被查到；清理失效只影響保留時間與費用<br/>，不延長登入效力。"]
   h --- n2["每個業務請求至少一筆 Session 讀取；符合前端<br/>條件的 refresh 額外執行交易讀取， 只有符合伺<br/>服器條件才增加寫入。尚未加入會延遲撤銷生效的<br/>本機快取。"]
   h --- n3["本機編譯、mock 與契約驗證不證明 production <br/>IAM、TTL 已啟用或真機 Cookie 行為正常。需分<br/>別驗收 LINE iOS、Android、外部瀏覽器，以及真<br/>實 Firestore 續期／登出競爭、交易重試、背景<br/>頁面、Cookie 回應亂序與多頁籤帳號切換。"]

@@ -7,8 +7,7 @@ steps:
     entrypoint: bash
     env:
       - 'LINE_MESSAGING_API_CHANNEL_ID=${_MESSAGING_API_CHANNEL_ID}'
-      - 'LINE_MINI_APP_CHANNEL_ID=${_MINI_APP_CHANNEL_ID}'
-      - 'LINE_MINI_APP_LIFF_ID=${_MINI_APP_LIFF_ID}'
+      - 'LINE_MINI_APP_ENV=${_MINI_APP_ENV}'
       - 'SECRET_VERSION=${_CHANNEL_SECRET_VERSION}'
       - 'TOKEN_VERSION=${_CHANNEL_ACCESS_TOKEN_VERSION}'
     args:
@@ -17,12 +16,10 @@ steps:
         [[ "$${LINE_MESSAGING_API_CHANNEL_ID}" =~ ^[0-9]+$ ]] || {
           echo 'Set _MESSAGING_API_CHANNEL_ID to the Messaging API Channel ID.' >&2; exit 2;
         }
-        if [[ -n "$${LINE_MINI_APP_CHANNEL_ID}" || -n "$${LINE_MINI_APP_LIFF_ID}" ]]; then
-          [[ "$${LINE_MINI_APP_CHANNEL_ID}" =~ ^[0-9]+$ ]] &&
-          [[ "$${LINE_MINI_APP_LIFF_ID}" =~ ^[0-9]+-[A-Za-z0-9]+$ ]] || {
-            echo 'Set both _MINI_APP_CHANNEL_ID and _MINI_APP_LIFF_ID, or leave both empty.' >&2; exit 2;
-          }
-        fi
+        case "$${LINE_MINI_APP_ENV}" in
+          developing|review|published) ;;
+          *) echo 'Set _MINI_APP_ENV to developing, review or published.' >&2; exit 2 ;;
+        esac
         [[ "$${SECRET_VERSION}" =~ ^[1-9][0-9]*$ ]] &&
         [[ "$${TOKEN_VERSION}" =~ ^[1-9][0-9]*$ ]] || {
           echo 'Secret versions must be positive version numbers, not latest.' >&2; exit 2;
@@ -66,7 +63,7 @@ steps:
       - --concurrency=20
       - --timeout=100s
       - --deploy-health-check
-      - '--set-env-vars=GOOGLE_CLOUD_PROJECT=$PROJECT_ID,LINE_MESSAGING_API_CHANNEL_ID=${_MESSAGING_API_CHANNEL_ID},LINE_MINI_APP_CHANNEL_ID=${_MINI_APP_CHANNEL_ID},LINE_MINI_APP_LIFF_ID=${_MINI_APP_LIFF_ID},LINE_MINI_APP_WEB_URL=${_MINI_APP_WEB_URL},SUMMARY_PROVIDER=${_SUMMARY_PROVIDER},SUMMARY_MODEL=${_SUMMARY_MODEL},SUMMARY_TASK_QUEUE=${_SUMMARY_TASK_QUEUE},SUMMARY_TASK_URL=${_SUMMARY_TASK_URL},SUMMARY_TASK_SERVICE_ACCOUNT=${_SUMMARY_TASK_SERVICE_ACCOUNT},LINE_MENU_STICKER_PACKAGE_ID=${_MENU_STICKER_PACKAGE_ID},LINE_MENU_STICKER_ID=${_MENU_STICKER_ID}'
+      - '--set-env-vars=GOOGLE_CLOUD_PROJECT=$PROJECT_ID,LINE_MESSAGING_API_CHANNEL_ID=${_MESSAGING_API_CHANNEL_ID},LINE_MINI_APP_ENV=${_MINI_APP_ENV},LINE_MINI_APP_WEB_URL=${_MINI_APP_WEB_URL},SUMMARY_PROVIDER=${_SUMMARY_PROVIDER},SUMMARY_MODEL=${_SUMMARY_MODEL},SUMMARY_TASK_QUEUE=${_SUMMARY_TASK_QUEUE},SUMMARY_TASK_URL=${_SUMMARY_TASK_URL},SUMMARY_TASK_SERVICE_ACCOUNT=${_SUMMARY_TASK_SERVICE_ACCOUNT},LINE_MENU_STICKER_PACKAGE_ID=${_MENU_STICKER_PACKAGE_ID},LINE_MENU_STICKER_ID=${_MENU_STICKER_ID}'
       - '--set-secrets=LINE_MINI_APP_CHANNEL_SECRET=line_mini_app_channel_secret:${_MINI_APP_CHANNEL_SECRET_VERSION},LINE_MESSAGING_API_CHANNEL_SECRET=${_CHANNEL_SECRET_NAME}:${_CHANNEL_SECRET_VERSION},LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN=${_CHANNEL_ACCESS_TOKEN_NAME}:${_CHANNEL_ACCESS_TOKEN_VERSION},GEMINI_API_KEY=gemini-api-key:${_GEMINI_API_KEY_VERSION},OPENAI_API_KEY=openai-api-key:${_OPENAI_API_KEY_VERSION},CWA_API_KEY=cwa-api-key:${_CWA_API_KEY_VERSION}'
       - --quiet
 
@@ -85,9 +82,8 @@ substitutions:
   _RUNTIME_SERVICE_ACCOUNT: line-mini-app-runtime
   # Messaging API Channel ID; submission/trigger substitutions may override it.
   _MESSAGING_API_CHANNEL_ID: '2012305727'
-  # Optional pair; leave both empty to disable MINI App authentication.
-  _MINI_APP_CHANNEL_ID: '2012412007'
-  _MINI_APP_LIFF_ID: '2012412007-0xCIzCmZ'
+  # Select a built-in public profile; preserve the current developing channel.
+  _MINI_APP_ENV: developing
   # Public service endpoint candidate; validate desktop LINE Login before production acceptance.
   _MINI_APP_WEB_URL: 'https://line-mini-app-bot-jtghegqd7q-de.a.run.app/miniapp'
   # Reserved runtime binding; the current MINI App flow does not read this secret.
