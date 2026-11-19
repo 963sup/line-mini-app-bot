@@ -45,7 +45,7 @@ func TestAutomaticHTTPKeyReplayAndBoundaries(t *testing.T) {
 		o := &objects{}
 		s := &automatic.Service{Repositories: repos{}, Objects: o, Store: m, Producer: p}
 		mux := http.NewServeMux()
-		RegisterAutomatic(mux, &feature.Service{}, auth{deny: deny}, s, nil)
+		Register(mux, &feature.Service{}, auth{deny: deny}, s, nil)
 		path := "/api/v1/repositories/" + strings.Repeat("a", 32) + "/object-import-runs"
 		body := `{"type":"work","sourceDocument":"pdf:synthetic","sourceRevision":"","pages":[{"number":7,"text":"synthetic pump"}]}`
 		request := func(method, path, body, key string) *httptest.ResponseRecorder {

@@ -99,7 +99,7 @@ func TestHTTPDraftReviewConfirmAndStrictBoundaries(t *testing.T) {
 	m := &memory{}
 	o := &objects{}
 	mux := http.NewServeMux()
-	Register(mux, &feature.Service{Repositories: repos{}, Objects: o, Store: m}, auth{})
+	Register(mux, &feature.Service{Repositories: repos{}, Objects: o, Store: m}, auth{}, nil, nil)
 	request := func(method, path, body string, key bool) *httptest.ResponseRecorder {
 		t.Helper()
 		r := httptest.NewRequest(method, path, strings.NewReader(body))
@@ -173,7 +173,7 @@ func TestHTTPRejectsIdentityAndRepositoryBeforeStore(t *testing.T) {
 	}{{true, false, 401}, {false, true, 404}} {
 		m := &memory{}
 		mux := http.NewServeMux()
-		Register(mux, &feature.Service{Repositories: repos{deny: tc.repo}, Store: m}, auth{deny: tc.auth})
+		Register(mux, &feature.Service{Repositories: repos{deny: tc.repo}, Store: m}, auth{deny: tc.auth}, nil, nil)
 		r := httptest.NewRequest("GET", "/api/v1/repositories/"+strings.Repeat("a", 32)+"/object-imports/"+strings.Repeat("b", 32), nil)
 		w := httptest.NewRecorder()
 		mux.ServeHTTP(w, r)
@@ -219,7 +219,7 @@ func TestHTTPParseProducesOnlyValidatedCandidates(t *testing.T) {
 			}
 			parser := &parsing.Service{Repositories: repos{deny: tc.denyRepo}, Producer: producer}
 			mux := http.NewServeMux()
-			Register(mux, &feature.Service{Repositories: repos{}, Store: drafts, Objects: writer}, auth{deny: tc.denyAuth}, parser)
+			Register(mux, &feature.Service{Repositories: repos{}, Store: drafts, Objects: writer}, auth{deny: tc.denyAuth}, nil, parser)
 			text := body
 			if tc.noConsent {
 				text = strings.Replace(text, `"consent":true`, `"consent":false`, 1)
