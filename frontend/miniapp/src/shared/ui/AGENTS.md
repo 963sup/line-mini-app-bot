@@ -60,4 +60,4 @@ bash scripts/tooling/tool-exec.sh shadcn add @shadcn/button --diff --cwd fronten
 
 更新與完整性檢查依參考庫說明執行；最新官方目錄仍是發現新增／改名項目的來源。應用檢查、安裝來源與 MCP 診斷見 [shadcn 工具指南](../../../../../docs/tooling/mcp/shadcn.md) 與 [前端入口](../../../../README.md)。純指引修改驗證連結及 whitespace；實際安裝／組合再依前端指引檢查，不把文件查證當作 UI、LINE 裝置或整合驗收。
 
-[現行實作圖：頁面與身分生命週期](../../../../../docs/foundation/frontend/react-frontend.md#頁面與身分生命週期) · [未來設計圖](../../../../../docs/diagrams.md#未來設計)
+[現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期) · [未來設計圖](../../../../../docs/diagrams.md#未來設計)

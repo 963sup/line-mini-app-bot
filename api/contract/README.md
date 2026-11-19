@@ -10,11 +10,11 @@
 | Repository | [repository/repositories.yaml](repository/repositories.yaml) | 容器列表、詳情、分頁及容器 DTO；不提供手動建立或管理 API |
 | Group | [group/groups.yaml](group/groups.yaml) | 工程群組列表、詳情與當下成員資格 |
 | Repository / Space | [repository/spaces.yaml](repository/spaces.yaml) | 庫內工區，沿用所屬 Repository 的授權 |
-| Project | [project/owner-projects.yaml](project/owner-projects.yaml) | 個人或工程群組擁有的專案與items，來源唯讀；[Project規格](../../docs/features/project/projects.md) |
+| Project | [project/owner-projects.yaml](project/owner-projects.yaml) | 個人或工程群組擁有的專案與items，來源唯讀；[Project規格](../../docs/domains/project.md) |
 | Project legacy | [project/projects.yaml](project/projects.yaml)、[items.yaml](project/items.yaml) | 原Repository-scoped路由與DTO相容轉接；同一用例，不構成新擁有權 |
-| Repository / Labels | [repository/labels.yaml](repository/labels.yaml) | 標籤目錄列出與建立，規格見 [標籤](../../docs/features/repository/labels.md) |
-| Issue | [issue/issues.yaml](issue/issues.yaml) | 空間事項列表、詳情、建立及建立者修改；操作規格見 [事項](../../docs/features/repository/issues.md) |
-| Discussion | [discussion/discussions.yaml](discussion/discussions.yaml)、[comments.yaml](discussion/comments.yaml) | 主題讀寫及單層留言；作者編輯，規格見 [討論](../../docs/features/repository/discussions.md) |
+| Repository / Labels | [repository/labels.yaml](repository/labels.yaml) | 標籤目錄列出與建立，規格見 [標籤](../../docs/domains/repository/labels.md) |
+| Issue | [issue/issues.yaml](issue/issues.yaml) | 空間事項列表、詳情、建立及建立者修改；操作規格見 [事項](../../docs/domains/repository/issues.md) |
+| Discussion | [discussion/discussions.yaml](discussion/discussions.yaml)、[comments.yaml](discussion/comments.yaml) | 主題讀寫及單層留言；作者編輯，規格見 [討論](../../docs/domains/repository/discussions.md) |
 | Attendance / Punch | [attendance/punch.yaml](attendance/punch.yaml) | launch、打卡與 preflight |
 | Attendance / Records | [attendance/records.yaml](attendance/records.yaml) | 群組、出勤紀錄、月摘要及分頁 |
 | Attendance / Worktime | [attendance/worktime.yaml](attendance/worktime.yaml) | 工時計算與時間區間型別，沒有獨立 HTTP 操作 |
@@ -41,7 +41,7 @@
 
 ## 歸屬與依賴
 
-命名遵循 [業務實體、集合與 API 命名](../../docs/development/naming.md#業務實體集合與-api-命名)：單一實體型別用單數，資源集合及 REST 集合路徑用複數。既有單例及公開契約相容例外按該規範處理；能力名稱不以英文單複數機械判定。
+命名遵循 [業務實體、集合與 API 命名](../../docs/standards/naming.md#業務實體集合與-api-命名)：單一實體型別用單數，資源集合及 REST 集合路徑用複數。既有單例及公開契約相容例外按該規範處理；能力名稱不以英文單複數機械判定。
 
 - 根入口只組合來源，不內嵌能力的 path、schema 或 security scheme 定義。路徑與原有 component 名稱仍保留在入口索引，維持公開介面。
 - 能力來源不得引用 `openapi.yaml`；共用錯誤與認證定義由 common 擁有。security requirement 名稱由根入口的 securitySchemes 組合解析，能力檔不是獨立完整 OpenAPI 文件。
@@ -54,7 +54,7 @@
 
 ### 最小契約雛形
 
-Repository milestones／statistics 與 Project／items 已依 [里程碑](../../docs/features/repository/milestones.md)、[Project](../../docs/features/project/projects.md)與[統計](../../docs/features/repository/statistics.md) 接入。以下檔案目前以 `x-status: scaffold` 標記，只有空的 `paths` 與 `components.schemas`，尚未定義端點或資料欄位，也不由公開／內部組合入口引用。能力清單登記其擁有者，不表示功能已實作。
+Repository milestones／statistics 與 Project／items 已依 [里程碑](../../docs/domains/repository/milestones.md)、[Project](../../docs/domains/project.md)與[統計](../../docs/domains/repository/statistics.md) 接入。以下檔案目前以 `x-status: scaffold` 標記，只有空的 `paths` 與 `components.schemas`，尚未定義端點或資料欄位，也不由公開／內部組合入口引用。能力清單登記其擁有者，不表示功能已實作。
 
 - Issue：[types.yaml](issue/types.yaml)（IssueType）、[comments.yaml](issue/comments.yaml)。
 - Discussion：[categories.yaml](discussion/categories.yaml)。
@@ -70,6 +70,6 @@ OpenAPI 拆分不等同 runtime 完整驗證，也不代表資料庫交易的原
 
 ## 工作日誌
 
-[Journal 契約](journal/journals.yaml) 定義發布、列表與單篇讀取。Feed 與 Dashboard 使用同一資源；兩者的查詢方式與正式啟用條件見 [日誌設計](../../docs/features/journal/design.md)。
+[Journal 契約](journal/journals.yaml) 定義發布、列表與單篇讀取。Feed 與 Dashboard 使用同一資源；兩者的查詢方式與正式啟用條件見 [日誌設計](../../docs/domains/journal.md)。
 
-[現行實作圖：基礎入口](../../docs/foundation/api/http-contracts.md#基礎入口) · [未來設計圖](../../docs/diagrams.md#未來設計)
+[現行實作圖：基礎入口](../../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../../docs/diagrams.md#未來設計)

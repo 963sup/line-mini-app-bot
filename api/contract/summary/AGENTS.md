@@ -4,9 +4,9 @@
 
 ## 職責與邊界
 
-- 先讀 [既有入口契約](README.md) 與 [摘要功能](../../../docs/features/summary/summary.md)。訊息收集、摘要指令與內部 worker 分開描述。
+- 先讀 [既有入口契約](README.md) 與 [摘要功能](../../../docs/domains/summary.md)。訊息收集、摘要指令與內部 worker 分開描述。
 - worker 契約由 `../internal-openapi.yaml` 組合，生成內部 DTO；不放入公開瀏覽器 client，不把工作身分替換成瀏覽器 Session。
 - 保留既有輸入、請求上限、大小寫相容、回應、重送、租約及失敗語義；不複製 LINE 官方事件 schema。
 - 只有新功能規格明確需要時才新增公開 Summary API。
 
-[現行實作圖：資料與可靠性](../../../docs/features/summary/summary.md#資料與可靠性) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：資料與可靠性](../../../docs/domains/summary.md#資料與可靠性) · [未來設計圖](../../../docs/diagrams.md#未來設計)

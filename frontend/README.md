@@ -1,6 +1,6 @@
 # MINI App 前端
 
-專案與儲存庫在側欄同層。專案頁自行管理工程群組與 Project 選取；來源選擇的讀取資格及舊入口轉接規則見 [Project 契約](../docs/features/project/projects.md)。
+專案與儲存庫在側欄同層。專案頁自行管理工程群組與 Project 選取；來源選擇的讀取資格及舊入口轉接規則見 [Project 契約](../docs/domains/project.md)。
 
 ## 目錄導覽與維護
 
@@ -20,32 +20,32 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 ## 相關文件
 
-- [正式前端入口與生命週期](../docs/foundation/frontend/react-frontend.md)
+- [正式前端入口與生命週期](../docs/architecture/runtime/react-lifecycle.md)
 - [文件索引：Frontend](../docs/README.md#按模組閱讀)
-- [Go browser Session 與滑動續期](../docs/foundation/identity/browser-session.md)
+- [Go browser Session 與滑動續期](../docs/architecture/identity/browser-session.md)
 - [shadcn UI 與 MCP：元件位置、CSS 與工具驗證](../docs/tooling/mcp/shadcn.md)
-- [瀏覽器定位整合](../docs/foundation/integrations/web-geolocation.md)
-- [出勤查詢與更正](../docs/features/attendance/queries.md)
+- [瀏覽器定位整合](../docs/architecture/integrations/web-geolocation.md)
+- [出勤查詢與更正](../docs/domains/attendance/queries.md)
 - [API 契約工作流程](../api/README.md)
 
-- [群組請假登記](../docs/features/attendance/leave.md)
+- [群組請假登記](../docs/domains/attendance/leave.md)
 
-- [目前模組與責任](../docs/foundation/architecture/layout.md)
+- [目前模組與責任](../docs/architecture/runtime/code-layout.md)
 
 ## Business 畫面範圍
 
 | 業務 | 既有前端實作 | 其他入口 |
 | --- | --- | --- |
-| 工程日誌 | `/miniapp/dashboard` 與 `/miniapp/feed` 共用 JournalWorkspace | [日誌設計](../docs/features/journal/design.md) |
-| 出勤 | 打卡、紀錄、更正、審核、請假；工時由紀錄頁呈現 | [出勤功能](../docs/features/attendance/attendance.md) |
-| Repository | `/miniapp/repositories` 提供庫內工區、物件與協作功能 | [儲存庫功能索引](../docs/features/repository/README.md) |
-| Project | `/miniapp/projects` 提供獨立的跨庫專案頁 | [Project 契約](../docs/features/project/projects.md) |
+| 工程日誌 | `/miniapp/dashboard` 與 `/miniapp/feed` 共用 JournalWorkspace | [日誌設計](../docs/domains/journal.md) |
+| 出勤 | 打卡、紀錄、更正、審核、請假；工時由紀錄頁呈現 | [出勤功能](../docs/domains/attendance/README.md) |
+| Repository | `/miniapp/repositories` 提供庫內工區、物件與協作功能 | [儲存庫功能索引](../docs/domains/README.md#儲存庫) |
+| Project | `/miniapp/projects` 提供獨立的跨庫專案頁 | [Project 契約](../docs/domains/project.md) |
 | 摘要與天氣 | 使用 LINE 入口，摘要背景工作由內部端點處理 | [摘要](../api/contract/summary/README.md) · [天氣](../api/contract/weather/README.md) |
 
 ## shadcn 頁內組合
 
-補卡確認使用 Checkbox。PagePanel 沿用 Card 預設圓角與內距。既有 Checkbox、Toggle、ToggleGroup 透過固定版 CLI 的 registry 輸出安裝，只修正專案 alias，沿用既有 radix-ui 依賴。sidebar-07 的 asChild 原生 button 保留，屬於官方元件組合。審核清單同步行為見 [出勤查詢與更正](../docs/features/attendance/queries.md#審核畫面狀態同步)。
+補卡確認使用 Checkbox。PagePanel 沿用 Card 預設圓角與內距。既有 Checkbox、Toggle、ToggleGroup 透過固定版 CLI 的 registry 輸出安裝，只修正專案 alias，沿用既有 radix-ui 依賴。sidebar-07 的 asChild 原生 button 保留，屬於官方元件組合。審核清單同步行為見 [出勤查詢與更正](../docs/domains/attendance/queries.md#審核畫面狀態同步)。
 
 出勤明細使用 Table；補卡／審核申請、請假紀錄與空間清單使用 Item。空白清單在成功查詢後以 Empty 呈現，載入與查詢失敗維持獨立狀態。安裝來源及用途見 [shadcn 指引](../docs/tooling/mcp/shadcn.md#頁面元件應用)。
 
-[現行實作圖：頁面與身分生命週期](../docs/foundation/frontend/react-frontend.md#頁面與身分生命週期) · [未來設計圖](../docs/diagrams.md#未來設計)
+[現行實作圖：頁面與身分生命週期](../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期) · [未來設計圖](../docs/diagrams.md#未來設計)

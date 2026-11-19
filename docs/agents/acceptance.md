@@ -1,6 +1,6 @@
 # Acceptance and evidence
 
-目前階段依[已接受的基線](../foundation/architecture/decisions/0002-baseline.md)：不新增測試方案、案例或工具，保留並執行與變更相關的既有檢查。此限制不代表停止執行既有測試；若既有案例不足，列出證據缺口與待決定的階段調整，不自行宣稱驗收通過。
+目前階段依[已接受的基線](../decisions/0002-baseline.md)：不新增測試方案、案例或工具，保留並執行與變更相關的既有檢查。此限制不代表停止執行既有測試；若既有案例不足，列出證據缺口與待決定的階段調整，不自行宣稱驗收通過。
 
 ## 變更驗收矩陣
 
@@ -24,7 +24,7 @@ flowchart TB
 
 | 變更類型 | 必要的既有檢查 | 條件式證據與限制 |
 | --- | --- | --- |
-| Markdown | `git diff --check`；核對變更頁面的本機路徑、標題錨點與相關索引 | 不執行無關應用測試；圖形變更依[文件規範](../development/documentation.md#增量驗證)渲染 |
+| Markdown | `git diff --check`；核對變更頁面的本機路徑、標題錨點與相關索引 | 不執行無關應用測試；圖形變更依[文件規範](../standards/documentation.md#增量驗證)渲染 |
 | 設定、腳本、Agent 設定 | `python3 scripts/tooling/check-config.py`；相關既有腳本檢查或 smoke check | 依腳本實際影響補相應類型；不為驗證文件執行部署或外部寫入 |
 | Go 行為 | 開發時執行受影響套件的既有測試；交付前執行 `mise run fmt-check`、`mise run lint`、`mise run check`、`mise run build`、`mise run vuln` | `check` 已含模組驗證、vet 與完整 race 測試，不重複執行全套 race；不得格式化他人檔案 |
 | 公開 HTTP API | 依 [API 流程](../../api/README.md)更新契約與生成碼，執行 `pnpm api:check`；Go／前端變更另套對應列 | 核對相容性、認證、錯誤格式及既有行為；不手改產生檔或任意刷新 baseline |
@@ -55,7 +55,7 @@ Report LINE iOS/Android and external-browser acceptance separately; mocks do not
 
 ## Business Operation evidence
 
-業務變更須對照 [操作契約](../foundation/architecture/business-operation.md#功能操作契約範本) 與 [符合性流程](workflow.md#business-operation-compliance)：
+業務變更須對照 [操作契約](../architecture/contracts/business-operations.md#功能操作契約範本) 與 [符合性流程](workflow.md#business-operation-compliance)：
 
 - Actor 的可信來源、Resource 歸屬、Action 與 Authority 範圍可定位至實作。
 - 授權條件、領域規則、系統判定與合法轉換一致；前端不能取代後端授權。

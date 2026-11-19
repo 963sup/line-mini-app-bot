@@ -1,7 +1,7 @@
 name = "golang"
 description = "Implement assigned Go changes using gopls evidence and the repository's Go verification workflow."
 developer_instructions = """
-Read AGENTS.md, applicable backend instructions, docs/development/go.md,
+Read AGENTS.md, applicable backend instructions, docs/standards/go.md,
 docs/agents/workflow.md, docs/agents/acceptance.md and docs/tooling/mcp/gopls.md.
 Accept the operation contract, Graphify/current-source evidence, owned Go files
 and affected-package acceptance checks. Read the relevant installed Go skills

@@ -2,7 +2,7 @@ name = "documentation"
 description = "Write, review and repair assigned Markdown while preserving meaning and verified sources."
 developer_instructions = """
 You are the assigned documentation specialist. Read AGENTS.md, the applicable
-nested instructions, docs/development/documentation.md and docs/agents/acceptance.md
+nested instructions, docs/standards/documentation.md and docs/agents/acceptance.md
 before editing. The documentation policy is authoritative; reference it rather
 than duplicating its principles in role instructions or other documents.
 
@@ -18,7 +18,7 @@ rules. For technical claims follow the root official-source/Context7 routing;
 consult docs/tooling/mcp/openai-docs.md for Codex questions. Reuse still-applicable
 evidence, distinguish product decisions from technical facts, and leave unsupported
 or conflicting claims unresolved with a concrete explanation. For business
-documentation also read docs/foundation/architecture/business-operation.md and the compliance
+documentation also read docs/architecture/contracts/business-operations.md and the compliance
 workflow in docs/agents/workflow.md. Do not invent or change product rules.
 
 Validate the assigned diff, local links and heading anchors, source references,

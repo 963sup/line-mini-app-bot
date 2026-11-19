@@ -4,7 +4,7 @@
 
 ## 職責與邊界
 
-README.md 是文件索引；features/ 保存六項業務，foundation/ 保存共用架構、整合與營運，development/、tooling/、agents/、planning/ 分別保存開發規範、工具指南、代理流程與未來提案。歷史變更透過 Git 查閱，不在 docs 維護日期報告副本。
+文件分類與各主題入口見 [README.md](README.md#目錄責任)。歷史變更透過 Git 查閱。
 
 以已接受 ADR 與實際來源為準，區分已實作、待驗收與未來規劃。不在多處複製版本、連線設定、機密或完整政策。
 
@@ -20,6 +20,6 @@ README.md 是文件索引；features/ 保存六項業務，foundation/ 保存共
 
 各主題目錄 README 列出完整文件入口，AGENTS.md 補充歸屬與維護規則；入口見 [文件歸屬](README.md#文件歸屬與維護)。新增或搬移單篇文件時，更新所屬分類索引及受影響的引用。分類入口變動時，才更新引用該入口的上層索引。
 
-業務操作模型維持於 [單一來源](foundation/architecture/business-operation.md)，功能文件保存具體操作契約；引用模型不代表既有功能已通過驗收。
+業務操作模型維持於 [單一來源](architecture/contracts/business-operations.md)，功能文件保存具體操作契約；引用模型不代表既有功能已通過驗收。
 
 [現行實作圖索引](diagrams.md#現行實作) · [未來設計圖](diagrams.md#未來設計)。

@@ -66,7 +66,7 @@ Go 變更的必要檢查、條件與執行方式統一依 [驗收矩陣](accepta
 
 ## Assignment contract
 
-For Markdown work, apply the [documentation policy](../development/documentation.md).
+For Markdown work, apply the [documentation policy](../standards/documentation.md).
 Assign documentation explicit files/hunks and necessary direct-reference updates;
 it may edit that scope directly. Keep one writer per file and return code/tooling
 changes to their assigned owner. Small edits may stay with the current owner.
@@ -143,7 +143,7 @@ flowchart TB
 
 `work` 可保存多筆開發提交，`main` 每項可獨立回退的變更保留一筆提交，可涵蓋同一功能的前端、API 與後端。PR 描述最終行為、驗證和限制。同步時若他人已推進分支，先核對新增內容。版本驗收後可按發布安排加標籤。重寫已發布歷史需單次明確授權與可還原備份，遠端拒絕時遵循分支保護與審核結果。
 
-GitHub MCP 與 Git CLI 的使用見 [GitHub 工具指南](../tooling/mcp/github.md)。推送、CI 與正式部署分別核對，見 [發布驗收](../foundation/operations/release-acceptance.md)。
+GitHub MCP 與 Git CLI 的使用見 [GitHub 工具指南](../tooling/mcp/github.md)。推送、CI 與正式部署分別核對，見 [發布驗收](../guides/release/release-acceptance.md)。
 
 ## Deployment and browser location routing
 
@@ -152,14 +152,14 @@ GitHub MCP 與 Git CLI 的使用見 [GitHub 工具指南](../tooling/mcp/github.
 ## Mandatory documentation verification
 
 All roles MUST follow the [root source-verification policy](../../AGENTS.md#mandatory-documentation-verification)
-and the [Markdown policy](../development/documentation.md). Reuse applicable
+and the [Markdown policy](../standards/documentation.md). Reuse applicable
 evidence; report unavailable sources and leave affected decisions pending.
 Documentation evidence does not replace implementation checks or authorize
 additional writes.
 
 ## Business Operation compliance
 
-業務開發、審查及修正必須先讀 [操作模型](../foundation/architecture/business-operation.md)。任務分派附上操作契約、規格來源、既有實作、檔案所有權與驗收條件。
+業務開發、審查及修正必須先讀 [操作模型](../architecture/contracts/business-operations.md)。任務分派附上操作契約、規格來源、既有實作、檔案所有權與驗收條件。
 
 **開發與維運指引**
 
