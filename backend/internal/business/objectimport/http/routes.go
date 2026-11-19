@@ -31,22 +31,10 @@ type (
 
 var _ httpapi.ObjectImportServer = (*importServer)(nil)
 
-func Register(mux *http.ServeMux, service *objectimport.Service, auth Authenticator, parsers ...*parsing.Service) {
-	register(mux, service, auth, nil, parsers...)
-}
-
-func RegisterAutomatic(mux *http.ServeMux, service *objectimport.Service, auth Authenticator, automatic *automatic.Service, parser *parsing.Service) {
-	register(mux, service, auth, automatic, parser)
-}
-
-func register(mux *http.ServeMux, service *objectimport.Service, auth Authenticator, auto *automatic.Service, parsers ...*parsing.Service) {
+func Register(mux *http.ServeMux, service *objectimport.Service, auth Authenticator, auto *automatic.Service, parser *parsing.Service) {
 	spec, err := httpapi.Spec()
 	if err != nil {
 		panic(err)
-	}
-	var parser *parsing.Service
-	if len(parsers) > 0 {
-		parser = parsers[0]
 	}
 	httpapi.RegisterObjectImports(mux, &importServer{service: service, parser: parser, automatic: auto}, func(next http.Handler) http.Handler {
 		document := *spec
