@@ -9,8 +9,8 @@ export function PagePanel({
 }: React.ComponentProps<typeof Card> & { heading: React.ReactNode }) {
   return (
     <Card className={className} {...props}>
-      <CardHeader>
-        <CardTitle role="heading" aria-level={2}>
+      <CardHeader className="min-w-0">
+        <CardTitle role="heading" aria-level={2} className="min-w-0 break-words">
           {heading}
         </CardTitle>
       </CardHeader>

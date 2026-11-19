@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { PagePanel } from "@/shared/PagePanel";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/shared/ui/chart";
+import { Button } from "@/shared/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/ui/collapsible";
 import type { components } from "@repo/api-client";
 
 type Journal = components["schemas"]["Journal"];
@@ -64,7 +66,10 @@ export default function GroupCharts({ entries, groups, renderEntry }: {
           </BarChart>
         </ChartContainer>
       </div>
-      <details><summary>日誌明細</summary>{journals.map(renderEntry)}</details>
+      <Collapsible>
+        <CollapsibleTrigger asChild><Button type="button" variant="outline">日誌明細</Button></CollapsibleTrigger>
+        <CollapsibleContent>{journals.map(renderEntry)}</CollapsibleContent>
+      </Collapsible>
     </PagePanel>;
   });
 }

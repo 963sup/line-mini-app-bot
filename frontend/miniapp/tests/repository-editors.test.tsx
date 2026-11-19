@@ -293,8 +293,23 @@ test("Wiki creation retries the same request and conflicting edits preserve the 
     await f.click("重試原建立請求");assert.equal(attempts.length,2);assert.equal(attempts[0],attempts[1]);
     const permanent=[...document.querySelectorAll("a")].find(a=>a.textContent==="此頁永久連結");
     assert.equal(new URL(permanent!.href).searchParams.get("wiki"),id);
-    await f.click("編輯");await f.fill("Markdown 內容","我的修訂");await f.click("儲存");
+    await f.click("編輯");await f.fill("Markdown 內容","我的修訂");
+    const comparison = () => [...document.querySelectorAll<HTMLButtonElement>("button")].find(button => button.textContent?.startsWith("對照第"))!;
+    assert.equal(comparison().type,"button");
+    assert.equal(comparison().getAttribute("aria-expanded"),"false","comparison starts collapsed");
+    comparison().focus();
+    await f.click("對照第 1 版 · 巡檢");
+    assert.equal(comparison().getAttribute("aria-expanded"),"true");
+    assert.match(document.getElementById(comparison().getAttribute("aria-controls")!)!.textContent!,/原文/);
+    assert.equal(document.activeElement,comparison(),"toggle retains keyboard focus");
+    await f.click("對照第 1 版 · 巡檢");
+    assert.equal(comparison().getAttribute("aria-expanded"),"false");
+    assert.equal(document.querySelector("textarea")?.value,"我的修訂","collapse cannot discard the editor draft");
+    assert.equal(attempts.length,2);assert.deepEqual(versions,[],"comparison toggles must not submit the form");
+    await f.click("對照第 1 版 · 巡檢");await f.click("儲存");
     await f.click("讀取目前版本以比對");assert.equal(document.querySelector("textarea")?.value,"我的修訂");
+    assert.match(comparison().textContent!,/對照第 2 版/);
+    assert.equal(comparison().getAttribute("aria-expanded"),"false","a fresh server version resets comparison state");
     await f.click("儲存");assert.deepEqual(versions,[1,2]);
   }finally{await f.dispose();}
 });
