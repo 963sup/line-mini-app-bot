@@ -16,7 +16,7 @@ function library(options: { pageCount?: number; text?: string; stall?: boolean; 
 }
 test("PDF extraction uses binary local data, fixed same-origin assets, passive settings, and preserves page/line boundaries", async () => {
   const lib = library(); const result = await extractPdf(pdf(), new AbortController().signal, lib.load);
-  assert.equal(result.pages[0].text, "10 測試物件 1 SET"); assert.match(result.fileHash, /^[a-f0-9]{64}$/);
+  assert.equal(result.pages[0].text, "[[item:10]] 10 測試物件 1 SET"); assert.match(result.fileHash, /^[a-f0-9]{64}$/);
   const options = lib.requests[0]; assert.ok(options.data instanceof Uint8Array); assert.ok(!("url" in options));
   assert.equal(options.enableXfa, false); assert.equal(options.useWorkerFetch, false); assert.equal(options.disableFontFace, true);
   assert.equal(lib.fake.GlobalWorkerOptions.workerSrc, "/assets/pdfjs/pdf.worker.min.mjs");

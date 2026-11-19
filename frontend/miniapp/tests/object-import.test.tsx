@@ -14,7 +14,7 @@ const batchRadio = (value: string) =>
 const flush = async () => { for (let i = 0; i < 12; i++) await new Promise<void>(resolve => setImmediate(resolve)); };
 async function fixture(handle: (request: Request, blocked: boolean) => Promise<Response>, extractor: typeof extractPdf = async () => ({ pages: [{ number: 1, text: "10 測試物件 1 SET" }], fileHash }), seed?: { id: string; fileHash: string }) {
   document.body.innerHTML = '<div id="root"></div>'; window.history.replaceState(null, "", "/miniapp/projects");
-  Object.defineProperty(globalThis, "localStorage", { value: window.localStorage, configurable: true }); window.localStorage.clear(); if (seed) window.localStorage.setItem(`object-import:${rid}:A`, JSON.stringify(seed));
+  Object.defineProperty(globalThis, "localStorage", { value: window.localStorage, configurable: true }); window.sessionStorage.clear(); window.localStorage.clear(); if (seed) window.localStorage.setItem(`object-import:${rid}:A`, JSON.stringify(seed));
   const oldFetch = globalThis.fetch, oldSDK = window.liff;
   window.liff = { init: async () => {}, isLoggedIn: () => true, isInClient: () => false, getIDToken: () => "token", getProfile: async () => ({ userId: "A", displayName: "A" }), login() {}, logout() {}, closeWindow() {} };
   globalThis.fetch = async (input, init) => {
@@ -49,9 +49,9 @@ test("choosing PDF automatically imports; ambiguous retry preserves exact body a
   try {
     await f.file(); assert.equal(calls.length, 1); assert.equal(f.blocked(), true);
     assert.equal(document.querySelectorAll("textarea,[role=checkbox]").length, 0);
-    assert.deepEqual(calls[0].body, {type: "work", sourceDocument: `pdf:${fileHash}`, sourceRevision: "", pages: [{number: 1, text: "10 測試物件 1 SET"}]});
-    assert.equal(batchRadio("non_work").disabled, true);
-    await f.selectType("non_work");
+    assert.deepEqual(calls[0].body, {classification: "per_item", sourceDocument: `pdf:${fileHash}`, sourceRevision: "", pages: [{number: 1, text: "10 測試物件 1 SET"}]});
+    assert.equal(batchRadio("non_work"), null);
+
     await f.click("重試原匯入"); assert.deepEqual(calls[0], calls[1]); assert.equal(f.blocked(), false);
     assert.match(document.body.textContent!, /已建立 1 筆物件/);
   } finally { await f.dispose(); }
@@ -59,12 +59,12 @@ test("choosing PDF automatically imports; ambiguous retry preserves exact body a
 test("partial results report actual successes and retry frozen run", async () => {
   let count = 0; const calls: {key: string | null; body: unknown}[] = [];
   const f = await fixture(async request => { calls.push({key: request.headers.get("Idempotency-Key"), body: await request.json()}); return Response.json({id: jid, status: ++count === 1 ? "processing" : "completed", reason: "creation_unavailable", rows: [{id: rowid, name: "測試物件", quantity: "1", unit: "SET", resultObjectId: count === 1 ? "" : "f".repeat(32)}]}); });
-  try { await f.selectType("non_work"); await f.file(); assert.equal(f.blocked(), true); assert.equal(batchRadio("non_work").disabled, true); assert.match(document.body.textContent!, /已建立 0\/1/); await f.selectType("work"); await f.click("重試原匯入"); assert.deepEqual(calls[0], calls[1]); assert.equal(f.blocked(), false); } finally { await f.dispose(); }
+  try {  await f.file(); assert.equal(f.blocked(), true); assert.equal(batchRadio("non_work"), null); assert.match(document.body.textContent!, /已建立 0\/1/);  await f.click("重試原匯入"); assert.deepEqual(calls[0], calls[1]); assert.equal(f.blocked(), false); } finally { await f.dispose(); }
 });
 test("PDF extraction cancellation aborts without API transmission", async () => {
   let calls = 0, aborted = false;
   const f = await fixture(async () => { calls++; throw new Error("unexpected API"); }, async (_file, signal) => new Promise((_resolve, reject) => { signal.addEventListener("abort", () => { aborted = true; reject(new Error("cancelled")); }); }));
-  try { await f.file(); assert.equal(batchRadio("non_work").disabled, true); await f.click("取消擷取"); assert.equal(aborted, true); assert.equal(calls, 0); assert.equal(f.blocked(), false); } finally { await f.dispose(); }
+  try { await f.file(); assert.equal(batchRadio("non_work"), null); await f.click("取消擷取"); assert.equal(aborted, true); assert.equal(calls, 0); assert.equal(f.blocked(), false); } finally { await f.dispose(); }
 });
 
 for (const unknown of [false, true]) {
@@ -79,36 +79,18 @@ for (const unknown of [false, true]) {
    await f.file(); if(unknown) await f.click("重試原匯入");
    const change=[...document.querySelectorAll<HTMLButtonElement>("button")].find(b=>b.textContent==="更換PDF");
    if(unknown) {assert.equal(change,undefined);assert.equal(f.blocked(),true);assert.deepEqual(calls[0],calls[1]);}
-   else {assert.ok(change);await f.click("更換PDF");assert.equal(f.blocked(),false);await f.selectType("non_work");await f.file();assert.notEqual(calls[0].key,calls[1].key);assert.equal((calls[1].body as {type:string}).type,"non_work");}
+   else {assert.ok(change);await f.click("更換PDF");assert.equal(f.blocked(),false);await f.file();assert.notEqual(calls[0].key,calls[1].key);assert.equal((calls[1].body as {classification:string}).classification,"per_item");}
   } finally {await f.dispose();}
  });
 }
 
 
-test("batch type is visible before PDF and explicit non-work selection freezes into new intent", async () => {
-  const calls: { key: string | null; body: { type: string } }[] = [];
-  const f = await fixture(async request => {
-    calls.push({ key: request.headers.get("Idempotency-Key"), body: await request.json() });
-    return Response.json({ id: jid, status: "completed", rows: [], reason: "" });
+test("only ambiguous items prompt for a type, using the same import key", async () => {
+  const calls: {key:string|null;body:Record<string,unknown>}[]=[];
+  const f=await fixture(async request=>{
+    calls.push({key:request.headers.get("Idempotency-Key"),body:await request.json()});
+    const done=calls.length===2;
+    return Response.json({id:jid,status:done?"completed":"processing",reason:"",rows:[{id:rowid,type:done?"work":"needs_review",name:"燈具",quantity:"10",unit:"盞",sourceItemNo:"10",sourcePages:"1",resultObjectId:done?"f".repeat(32):""}]});
   });
-  try {
-    const work = batchRadio("work");
-    assert.equal(work.getAttribute("aria-checked"), "true");
-    assert.equal(work.disabled, false);
-    assert.equal(batchRadio("non_work").getAttribute("aria-checked"), "false");
-    assert.ok(work.compareDocumentPosition(document.querySelector('input[type="file"]')!) & window.Node.DOCUMENT_POSITION_FOLLOWING);
-    await f.selectType("non_work"); await f.file(); assert.equal(calls[0].body.type, "non_work");
-    await f.selectType("work"); await f.file(); assert.equal(calls[1].body.type, "work"); assert.notEqual(calls[0].key, calls[1].key);
-  } finally { await f.dispose(); }
-});
-
-test("extraction snapshots batch type and ignores same-batch selector changes", async () => {
-  let finish!: (value: Awaited<ReturnType<typeof extractPdf>>) => void;
-  const calls: {type: string}[] = [];
-  const f = await fixture(async request => { calls.push(await request.json()); return Response.json({id: jid, status: "completed", rows: [], reason: ""}); }, async () => new Promise(resolve => { finish = resolve; }));
-  try {
-    await f.selectType("non_work"); await f.file(); await f.selectType("work");
-    await act(async () => { finish({ pages: [{number: 1, text: "10 測試物件 1 SET"}], fileHash }); await flush(); });
-    assert.equal(calls[0].type, "non_work");
-  } finally { await f.dispose(); }
+  try {assert.equal(batchRadio("work"),null);await f.file();await f.click("確認為施作");assert.equal(calls[0].key,calls[1].key);assert.deepEqual(calls[1].body.decisions,{[rowid]:"work"});assert.equal(f.blocked(),false);} finally {await f.dispose();}
 });

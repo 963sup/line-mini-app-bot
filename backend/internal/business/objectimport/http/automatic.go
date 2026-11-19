@@ -33,7 +33,23 @@ func (s *importServer) CreateObjectImportRun(w http.ResponseWriter, r *http.Requ
 	for _, p := range input.Pages {
 		source.Pages = append(source.Pages, feature.Page{Number: p.Number, Text: p.Text})
 	}
-	j, e := s.automatic.Create(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, source, selectedType(input.Type))
+	var j automatic.Run
+	var e error
+	if input.Classification != nil {
+		if string(*input.Classification) != "per_item" || input.Type != nil {
+			writeAutomaticError(w, feature.ErrInput)
+			return
+		}
+		var decisions map[string]string
+		if input.Decisions != nil {
+			decisions = *input.Decisions
+		}
+		j, e = s.automatic.Classify(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, source, decisions)
+	} else if input.Decisions != nil {
+		e = feature.ErrInput
+	} else {
+		j, e = s.automatic.Create(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, source, selectedType(input.Type))
+	}
 	if !writeAutomaticError(w, e) {
 		transport.WriteJSON(w, 200, automaticView(j))
 	}

@@ -23,6 +23,8 @@ func decodeAutomatic(content string) ([]automatic.Candidate, error) {
 		return nil, parsing.ErrOutput
 	}
 	type automaticRow struct {
+		Type         string  `json:"type"`
+		Quote        string  `json:"quote"`
 		Name         *string `json:"name"`
 		Quantity     *string `json:"quantity"`
 		Unit         *string `json:"unit"`
@@ -42,7 +44,7 @@ func decodeAutomatic(content string) ([]automatic.Candidate, error) {
 		if r.Name == nil || r.Quantity == nil || r.Unit == nil || r.SourceItemNo == nil || len(r.Pages) < 1 || len(r.Pages) > 4 {
 			return nil, parsing.ErrOutput
 		}
-		rows = append(rows, automatic.Candidate{Name: *r.Name, Quantity: *r.Quantity, Unit: *r.Unit, SourceItemNo: *r.SourceItemNo, Pages: r.Pages})
+		rows = append(rows, automatic.Candidate{Name: *r.Name, Quantity: *r.Quantity, Unit: *r.Unit, Type: r.Type, Quote: r.Quote, SourceItemNo: *r.SourceItemNo, Pages: r.Pages})
 	}
 	return rows, nil
 }
@@ -50,13 +52,28 @@ func decodeAutomatic(content string) ([]automatic.Candidate, error) {
 func (p *Producer) Rows(ctx context.Context, source feature.Source) ([]automatic.Candidate, error) {
 	var schema map[string]any
 	_ = json.Unmarshal(automaticSchema, &schema)
+	return p.rows(ctx, source, schema, automaticInstruction, false)
+}
+
+func (p *Producer) ClassifiedRows(ctx context.Context, source feature.Source) ([]automatic.Candidate, error) {
+	var schema map[string]any
+	_ = json.Unmarshal(automaticSchema, &schema)
+	item := schema["properties"].(map[string]any)["rows"].(map[string]any)["items"].(map[string]any)
+	props := item["properties"].(map[string]any)
+	props["type"] = map[string]any{"type": "string", "enum": []string{"work", "non_work", "needs_review"}}
+	props["quote"] = map[string]any{"type": "string"}
+	item["required"] = append(item["required"].([]any), "type", "quote")
+	return p.rows(ctx, source, schema, automaticInstruction+" Use each [[item:ID]] marker as the source item number, without the marker syntax. Additionally classify each item by its own scope and applicable heading: work for tracked installation or execution, non_work for explicitly supply-only or non-execution charges, needs_review for insufficient or contradictory evidence. Include a short exact quote from the cited item supporting the decision. Never infer installation from a product name alone.", true)
+}
+
+func (p *Producer) rows(ctx context.Context, source feature.Source, schema map[string]any, prompt string, classified bool) ([]automatic.Candidate, error) {
 	refs := []int{}
 	for _, p := range source.Pages {
 		refs = append(refs, p.Number)
 	}
 	schema["properties"].(map[string]any)["rows"].(map[string]any)["items"].(map[string]any)["properties"].(map[string]any)["pages"].(map[string]any)["items"].(map[string]any)["enum"] = refs
 	boundedSchema, _ := json.Marshal(schema)
-	content, e := p.complete(ctx, source, automaticInstruction, boundedSchema)
+	content, e := p.complete(ctx, source, prompt, boundedSchema)
 	if e != nil {
 		if errors.Is(e, parsing.ErrOutput) {
 			slog.WarnContext(ctx, "object import model output rejected", "reason", "output_rejected")
@@ -68,6 +85,11 @@ func (p *Producer) Rows(ctx context.Context, source feature.Source) ([]automatic
 	if e != nil {
 		slog.WarnContext(ctx, "object import model output rejected", "reason", "output_rejected")
 		return nil, automatic.ErrOutput
+	}
+	for _, r := range rows {
+		if !classified && (r.Type != "" || r.Quote != "") {
+			return nil, automatic.ErrOutput
+		}
 	}
 	return rows, nil
 }

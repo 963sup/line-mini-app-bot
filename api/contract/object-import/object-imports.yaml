@@ -1048,6 +1048,20 @@
               "non_work"
             ],
             "description": "User-selected batch type: work (施作) or non_work (非施作). Required for new intents; omit only to resume an existing frozen legacy run. The model cannot select this field."
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "per_item"
+            ],
+            "description": "Classify each source item. Omit legacy batch type."
+          },
+          "decisions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Confirm previously frozen ambiguous row IDs as work or non_work."
           }
         }
       },

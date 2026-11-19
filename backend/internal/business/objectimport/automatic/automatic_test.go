@@ -30,3 +30,18 @@ func TestAutomaticCandidateRules(t *testing.T) {
 		t.Fatal("duplicate normalized source item")
 	}
 }
+
+func TestMixedOrderRequiresItemScopedEvidence(t *testing.T) {
+	source := feature.Source{Pages: []feature.Page{{Number: 1, Text: "[[item:1]] pump supply only\n[[item:2]] pump installation\n[[item:3]] pump"}}}
+	candidates := []Candidate{}
+	for _, item := range []struct{ id, kind, quote string }{{"1", "non_work", "supply only"}, {"2", "work", "installation"}, {"3", "work", "installation"}} {
+		candidates = append(candidates, Candidate{Name: "pump", Quantity: "1", Unit: "SET", SourceItemNo: item.id, Type: item.kind, Quote: item.quote, Pages: []int{1}})
+	}
+	rows, err := Prepare(Run{}, source, candidates, "per_item")
+	if err != nil || rows[0].Type != "non_work" || rows[1].Type != "work" || rows[2].Type != "needs_review" {
+		t.Fatal(rows, err)
+	}
+	if _, err := Prepare(Run{}, source, candidates[:2], "per_item"); err == nil {
+		t.Fatal("accepted missing source item")
+	}
+}
