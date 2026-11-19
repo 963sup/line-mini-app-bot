@@ -5,7 +5,9 @@ import { act, StrictMode, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { SessionProvider, useSession } from "../src/identity/Session";
 import { SessionControls } from "./session-controls";
-import { launchToken, View as Punch } from "../src/business/attendance/punch/View";
+import { attendanceLaunchToken } from "../src/business/attendance/launchToken";
+import { View as Punch } from "../src/business/attendance/punch/View";
+import { View as Leave } from "../src/business/attendance/leave/View";
 import { View as History } from "../src/business/attendance/records/View";
 import { View as Correction } from "../src/business/attendance/corrections/View";
 import { View as Geo } from "../src/diagnostics/geolocation/View";
@@ -347,11 +349,11 @@ test("geolocation abort, permission failure, invalid coordinates and synchronous
   });
   await locate(new AbortController().signal);
   assert.equal(cleared, 4);
-  assert.equal(launchToken("?request=" + launch, "https://example.test"), "");
+  assert.equal(attendanceLaunchToken("?request=" + launch, "https://example.test", "launch"), "");
   assert.equal(
-    launchToken(
+    attendanceLaunchToken(
       "?liff.state=" + encodeURIComponent("?launch=" + launch),
-      "https://example.test",
+      "https://example.test", "launch",
     ),
     launch,
   );
@@ -760,4 +762,38 @@ test("diagnostic location renders only validated coordinates and retains the las
   } finally {
     await f.dispose();
   }
+});
+
+test("review without a reported status never offers approval or rejection", async () => {
+  const f=await fixture(<Review />);
+  try {
+    await f.input("correction-id","c1"); await f.click("review-correction");
+    assert.match(f.node("review-details").textContent!,/狀態無法確認/);
+    await f.input("rejection-reason","查無證據");
+    for(const id of ["approve-correction","reject-correction"]) assert.ok(f.node<HTMLButtonElement>(id).disabled);
+  } finally {await f.dispose();}
+});
+
+test("expired leave launch offers history instead of retrying an unusable link", async () => {
+  const f=await fixture(<Leave />,"?leave="+launch, async(r,next)=>r.url.endsWith("/leaves")
+    ? r.method==="POST" ? Response.json({error:{code:"expired_launch",message:"請假連結已過期"}},{status:403}) : Response.json([]) : next(r));
+  try{
+    const form=document.querySelector("form")!;
+    const fields=form.querySelectorAll("input");
+    fields[0].id="leave-from";fields[1].id="leave-to";form.querySelector("textarea")!.id="leave-why";
+    await f.input("leave-from","2026-11-01T09:00");await f.input("leave-to","2026-11-01T12:00");await f.input("leave-why","看診");
+    await act(async()=>{form.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));await flush();});
+    assert.match(document.body.textContent!,/請假連結已過期/);assert.equal(document.querySelector("form"),null);
+    assert.doesNotMatch(document.body.textContent!,/重試原申請/);
+  }finally{await f.dispose();}
+});
+
+test("a denied corrections reload clears previously readable requests",async()=>{
+  let denied=false;
+  const f=await fixture(<Correction />,"",async(r,next)=>new URL(r.url).pathname.endsWith("/corrections")
+    ? denied ? Response.json({error:{code:"forbidden",message:"權限已變更"}},{status:403}) : Response.json({items:[{id:"c1",status:"pending",reason:"私人申請內容",start:record.ClockInAt,end:record.ClockOutAt}],nextCursor:""}) : next(r));
+  try{
+    await f.click("requests-load");assert.match(f.node("requests-list").textContent!,/私人申請內容/);
+    denied=true;await f.click("requests-load");assert.doesNotMatch(f.node("requests-list").textContent!,/私人申請內容/);
+  }finally{await f.dispose();}
 });

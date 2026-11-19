@@ -222,37 +222,16 @@ func (s *attendanceServer) correction(w http.ResponseWriter, r *http.Request, id
 }
 
 func (s *attendanceServer) GetAttendanceCorrectionStatus(w http.ResponseWriter, r *http.Request, id string) {
-	s.correction(w, r, id, func(ctx context.Context, user string) {
-		bot := s.bot
-		review := false
-
-		store, ok := bot.store.(interface {
-			CorrectionDetails(context.Context, string, string, bool) (correctionsmodel.CorrectionDetails, error)
-		})
-		if !ok {
-			transport.WriteAPIError(w, 503, "not_configured", "申請查詢尚未啟用。")
-			return
-		}
-		details, err := store.CorrectionDetails(ctx, user, id, review)
-		if correctionHTTPError(w, err) {
-			return
-		}
-		if review {
-			transport.WriteJSON(w, 200, correctionDetailsView(details))
-			return
-		}
-		view := generated.CorrectionStatus{Id: details.ID, Status: details.Status, DecisionReason: &details.DecisionReason}
-		if !details.ReviewedAt.IsZero() {
-			view.ReviewedAt = &details.ReviewedAt
-		}
-		transport.WriteJSON(w, 200, view)
-	})
+	s.getCorrectionDetails(w, r, id, false)
 }
 
 func (s *attendanceServer) GetAttendanceCorrectionReview(w http.ResponseWriter, r *http.Request, id string) {
+	s.getCorrectionDetails(w, r, id, true)
+}
+
+func (s *attendanceServer) getCorrectionDetails(w http.ResponseWriter, r *http.Request, id string, review bool) {
 	s.correction(w, r, id, func(ctx context.Context, user string) {
 		bot := s.bot
-		review := true
 
 		store, ok := bot.store.(interface {
 			CorrectionDetails(context.Context, string, string, bool) (correctionsmodel.CorrectionDetails, error)
@@ -269,7 +248,7 @@ func (s *attendanceServer) GetAttendanceCorrectionReview(w http.ResponseWriter, 
 			transport.WriteJSON(w, 200, correctionDetailsView(details))
 			return
 		}
-		view := generated.CorrectionStatus{Id: details.ID, Status: details.Status, DecisionReason: &details.DecisionReason}
+		view := generated.CorrectionStatus{Id: details.ID, Status: generated.CorrectionLifecycleState(details.Status), DecisionReason: &details.DecisionReason}
 		if !details.ReviewedAt.IsZero() {
 			view.ReviewedAt = &details.ReviewedAt
 		}
@@ -375,9 +354,9 @@ func (s *attendanceServer) decideCorrection(w http.ResponseWriter, r *http.Reque
 		if correctionHTTPError(w, err) {
 			return
 		}
-		status := "rejected"
+		status := generated.DecisionRejected
 		if action == "cancel" {
-			status = "cancelled"
+			status = generated.DecisionCancelled
 		}
 		transport.WriteJSON(w, 200, generated.CorrectionDecisionResult{Status: status})
 	})

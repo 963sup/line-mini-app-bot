@@ -1,3 +1,4 @@
+import { attendanceLaunchToken } from "../launchToken";
 import { PagePanel } from "@/shared/PagePanel";
 import { Spinner } from "@/shared/ui/spinner";
 import { Button } from "@/shared/ui/button";
@@ -9,19 +10,6 @@ import { locate } from "../../../shared/location/position";
 
 const unknownResult =
   "打卡結果尚未確認；請先私訊查詢本人紀錄。重試仍使用同一打卡連結。";
-
-export function launchToken(search: string, origin: string) {
-  try {
-    const params = new URLSearchParams(search),
-      nested = params.get("liff.state"),
-      token =
-        params.get("launch") ||
-        (nested ? new URL(nested, origin).searchParams.get("launch") : "");
-    return /^[a-f0-9]{64}$/.test(token || "") ? token! : "";
-  } catch {
-    return "";
-  }
-}
 
 export function View() {
   const { user, request, close, autoPunch, punchNotice } = useSession(),
@@ -117,7 +105,7 @@ export function View() {
     }
   }, [user, request, launch, close]);
   useEffect(() => {
-    setLaunch(launchToken(location.search, location.origin));
+    setLaunch(attendanceLaunchToken(location.search, location.origin, "launch"));
   }, []);
   useEffect(() => {
     const cancel = () => {

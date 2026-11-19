@@ -1,3 +1,4 @@
+import { attendanceLaunchToken } from "../launchToken";
 import { Item, ItemGroup, ItemContent, ItemTitle, ItemDescription } from "@/shared/ui/item";
 import { Badge } from "@/shared/ui/badge";
 import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
@@ -37,19 +38,9 @@ export function View() {
   const lock = useRef(false),
     attempt = useRef<S["LeaveSubmission"] | null>(null);
   useEffect(() => {
-    try {
-      const params = new URLSearchParams(location.search);
-      const nested = params.get("liff.state");
-      const token =
-        params.get("leave") ||
-        (nested
-          ? new URL(nested, location.origin).searchParams.get("leave")
-          : "");
-      if (/^[a-f0-9]{64}$/.test(token || "")) {
-        setLaunch(token!);
-        setStatus("請填寫原群組的請假資料；送出只代表登記，不代表核准。");
-      }
-    } catch {}
+    const token = attendanceLaunchToken(location.search, location.origin, "leave");
+    setLaunch(token);
+    if(token) setStatus("請填寫原群組的請假資料；送出只代表登記，不代表核准。");
   }, []);
   function loadLeaveHistory() {
     if (!user) return;
@@ -69,7 +60,7 @@ export function View() {
             : "目前沒有請假登記。",
         );
       },
-      (error) => setListStatus(errorMessage(error)),
+      (error) => {setRecords([]);setListStatus(errorMessage(error));},
     );
   }
   useEffect(() => {
@@ -83,12 +74,6 @@ export function View() {
       if (!uncertain || !attempt.current) {
         const from = timestamp(start),
           to = timestamp(end);
-        if (
-          Date.parse(to) <= Date.parse(from) ||
-          Date.parse(to) - Date.parse(from) > 366 * 86400000
-        )
-          throw new Error("結束須晚於開始，請假期間最多366天。");
-        if (!reason.trim()) throw new Error("請填寫請假理由。");
         attempt.current = {
           launch,
           requestKey: crypto.randomUUID(),
@@ -123,8 +108,10 @@ export function View() {
           lock.current = false;
           setBusy(false);
           const code = (error as { code?: string })?.code;
-          if (code === "invalid_input" || code === "not_member")
-            setUncertain(false);
+          if (code === "expired_launch" || code === "not_member") {
+            setLaunch(""); setUncertain(false); attempt.current=null; setStatus(errorMessage(error)); return;
+          }
+          if (code === "invalid_input") {setUncertain(false);setStatus(errorMessage(error));return;}
           setStatus(
             errorMessage(error) +
               " 請先重新載入本人紀錄確認結果；未確認時，重試會沿用原內容。重新開頁前也請先確認紀錄。",
@@ -151,7 +138,7 @@ export function View() {
         {!launch && (
           <p>請回群組輸入「請假」，點選「填寫請假」。下方仍可查詢本人紀錄。</p>
         )}
-        <form onSubmit={submitLeave}>
+        {launch && <form onSubmit={submitLeave}>
           <FieldGroup>
             <fieldset
               className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
@@ -204,7 +191,7 @@ export function View() {
               {uncertain ? "重試原申請" : "送出請假登記"}
             </Button>
           </FieldGroup>
-        </form>
+        </form>}
         {sent && <Button onClick={startAnotherLeave}>填寫另一筆</Button>}
         <Status role="status">
           {user ? status : "請先完成 LINE 身分驗證。"}

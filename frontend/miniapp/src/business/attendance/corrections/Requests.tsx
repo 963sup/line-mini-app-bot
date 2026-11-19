@@ -13,29 +13,24 @@ import { useSession } from "../../../identity/Session";
 import { useLatestRequest, errorMessage } from "../../../shared/http/lifecycle";
 import { displayTime } from "../../../shared/time/time";
 type S = components["schemas"];
-export function correctionStatus(status: string) {
-  return (
-    (
-      {
-        pending: "待審核",
-        approved: "已核准",
-        rejected: "已駁回",
-        cancelled: "已撤回",
-        stale: "原紀錄已變動，請重新申請",
-        invalid: "核准證據異常，請聯絡管理者",
-      } as Record<string, string>
-    )[status] || "狀態無法確認"
-  );
+const statusLabels = {
+  pending: "待審核", approved: "已核准", rejected: "已駁回", cancelled: "已撤回",
+  stale: "原紀錄已變動，請重新申請", invalid: "核准證據異常，請聯絡管理者",
+} satisfies Record<S["CorrectionLifecycleState"], string>;
+export function correctionStatus(status: S["CorrectionReview"]["status"]) {
+  return (status && statusLabels[status]) || "狀態無法確認";
 }
 export function Requests({
   review = false,
   refreshVersion = 0,
   disabled = false,
   onSelect,
+  onClearReview,
 }: {
   review?: boolean;
   refreshVersion?: number;
   disabled?: boolean;
+  onClearReview?: () => void;
   onSelect?: (item: S["CorrectionReview"]) => void;
 }) {
   const { user, request } = useSession(),
@@ -89,10 +84,13 @@ export function Requests({
       },
       (error) => {
         setBusy(false);
+        setItems([]);
+        setNext("");
+        onClearReview?.();
         setStatus(errorMessage(error));
       },
     );
-  }, [review, group, request, runRead]);
+  }, [review, group, request, runRead, onClearReview]);
   useEffect(() => {
     if (!refreshVersion) return;
     setItems([]);
@@ -114,7 +112,12 @@ export function Requests({
         setGroups(data);
         setStatus(data.length ? "請選擇審核群組。" : "尚未指定審核群組。");
       },
-      (error) => setStatus(errorMessage(error)),
+      (error) => {
+        cancelRead();
+        setGroups([]); setGroup(""); setItems([]); setNext(""); setLoaded(false); setBusy(false);
+        onClearReview?.();
+        setStatus(errorMessage(error));
+      },
     );
   }
   function cancel(id: string) {
@@ -152,6 +155,7 @@ export function Requests({
                 value={group}
                 onChange={(e) => {
                   cancelRead();
+                  onClearReview?.();
                   setGroup(e.target.value);
                   setLoaded(false);
                   setItems([]);
@@ -179,7 +183,7 @@ export function Requests({
               <ItemContent className="min-w-0">
                 <ItemTitle>{review ? item.applicantName || "姓名未留存，請依申請編號核對" : "補卡／時間更正"}</ItemTitle>
                 <ItemDescription className="line-clamp-none break-words">{displayTime(item.start)} ～ {displayTime(item.end)}</ItemDescription>
-                <Badge variant={item.status === "approved" ? "secondary" : "outline"}>{correctionStatus(item.status || "pending")}</Badge>
+                <Badge variant={item.status === "approved" ? "secondary" : "outline"}>{correctionStatus(item.status)}</Badge>
                 <ItemDescription className="line-clamp-none break-words">{item.reason}</ItemDescription>
                 {item.decisionReason && <ItemDescription className="line-clamp-none break-words">審核理由：{item.decisionReason}</ItemDescription>}
               </ItemContent>

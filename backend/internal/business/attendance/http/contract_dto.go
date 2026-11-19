@@ -82,7 +82,8 @@ func pointerInt64(value int) *int64 { converted := int64(value); return &convert
 func correctionDetailsView(source correctionsmodel.CorrectionDetails) generated.CorrectionReview {
 	view := correctionView(source.Correction)
 	view.ApplicantName = &source.ApplicantName
-	view.Status, view.DecisionReason, view.NewRecord = &source.Status, &source.DecisionReason, &source.NewRecord
+	state := generated.CorrectionLifecycleState(source.Status)
+	view.Status, view.DecisionReason, view.NewRecord = &state, &source.DecisionReason, &source.NewRecord
 	if !source.CreatedAt.IsZero() {
 		view.CreatedAt = &source.CreatedAt
 	}
