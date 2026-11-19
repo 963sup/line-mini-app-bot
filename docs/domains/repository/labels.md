@@ -8,11 +8,17 @@ flowchart LR
   h --- n0["狀態：依使用者「先用最基礎的實現」完成目錄列<br/>出與建立及本機隔離驗證；正式環境待驗收。"]
 ```
 
+## 分類協作與改名
+
+分類操作只更新同庫的標籤引用，以及 Issue 可選的里程碑。Go 重新核驗操作者資格、資源歸屬與版本。只有分類權的操作者若同時修改正文或問題狀態，整筆拒絕。Discussion 沿用同一套標籤規則。
+
+授權改名時保留 Label ID；新名稱仍需在同庫唯一，名稱綁定與標籤在同一交易更新。以原建立鍵重送原請求，應取回同一 ID 與目前名稱。改名不需要逐筆更新 Issue 或 Discussion。群組 Repository 的所有目前成員均可分類及改名；個人 Repository 僅限本人。改名須提交讀到的原名稱，名稱過期回 409。
+
 <a id="前置查核與最小範圍"></a>
 
 ```mermaid
 flowchart LR
-  h["前置查核與最小範圍"]
+  h["首版歷史範圍"]
   h --- n0["先以 Graphify CLI、Repomix CLI 核對討論／留<br/>言原始碼，與上一階段驗證包一致，沿用已有契約<br/>、分層、交易及 UI 驗證證據。 查核發現空間文<br/>件仍稱共用編號未接入業務，已修正為事項與討論<br/>已接入、留言不占號；程式未發現阻擋此切片的結<br/>構或方向問題。"]
   h --- n1["沿用現有成員核驗模式，核驗成員可列出及建立空<br/>間標籤。目錄只有名稱，不新增改名、刪除、自訂<br/>顏色、角色或編號；本次以既有事項／討論的作者<br/>編輯權限接入標籤引用，不擴大可編輯對象。"]
 ```
@@ -97,5 +103,5 @@ flowchart LR
   h["標籤引用切片"]
   h --- n0["Mermaid 原始檔。問題與討論沿用既有 PATCH，留<br/>言不套用標籤。標籤建立者沒有因此取得修改他人<br/>內容的權限。過期版本回 409；任何引用驗證失敗<br/>都不提交更新。成功只改該資源與既有更新紀錄（<br/>操作者、版本、時間），標籤與共用編號不變，也<br/>不產生通知或公開稽核端點。"]
   click n0 "diagrams/resource-classification.mermaid"
-  h --- n1["既有未含 labelIds 的資料讀作空集合，HTTP 新<br/>回應提供陣列（可選欄位，不回 null），舊更新<br/>請求省略欄位時不清空關聯。既有建立收據 v1 雜<br/>湊與 ID／number 分配完全不變，不掃描或回填歷<br/>史資料。 核心只共用 labels.NormalizeIDs 這個<br/>實際跨業務需要的值驗證；各領域保留自己的用例<br/>及版本規則。Firestore adapters 透過小型 <br/>LabelValidator 介面，在同一交易的寫入前驗證<br/>引用，由 server 注入既有 Repository Store，<br/>不建立共通操作引擎或新 client。 前端共用 <br/>business/repository/labels/Picker，透過既有<br/>目錄 API 分頁讀取名稱；載入或失敗不清除目前<br/>選取，讀取更多頁不觸發表單送出。非作者只能查<br/>看，作者選取／移除後沿用資源儲存與衝突處理。"]
+  h --- n1["既有未含 labelIds 的資料讀作空集合，HTTP 新<br/>回應提供陣列（可選欄位，不回 null），舊更新<br/>請求省略欄位時不清空關聯。既有建立收據 v1 雜<br/>湊與 ID／number 分配完全不變，不掃描或回填歷<br/>史資料。 核心只共用 labels.NormalizeIDs 這個<br/>實際跨業務需要的值驗證；各領域保留自己的用例<br/>及版本規則。Firestore adapters 透過小型 <br/>LabelValidator 介面，在同一交易的寫入前驗證<br/>引用，由 server 注入既有 Repository Store，<br/>不建立共通操作引擎或新 client。 前端共用 <br/>business/repository/labels/Picker，透過既有<br/>目錄 API 分頁讀取名稱；載入或失敗不清除目前<br/>選取，讀取更多頁不觸發表單送出。目前成員選取或移除分類後沿用資源版本與衝突處理。"]
 ```

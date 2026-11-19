@@ -50,6 +50,7 @@ func RegisterLabels(public *http.ServeMux, handler LabelServer, wrap func(http.H
 	}
 	public.Handle("GET /api/v1/repositories/{repositoryId}/labels", routes)
 	public.Handle("POST /api/v1/repositories/{repositoryId}/labels", routes)
+	public.Handle("PATCH /api/v1/repositories/{repositoryId}/labels/{id}", routes)
 }
 
 func RegisterIssues(public *http.ServeMux, handler IssueServer, wrap func(http.Handler) http.Handler) {

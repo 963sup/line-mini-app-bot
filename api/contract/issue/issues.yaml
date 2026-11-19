@@ -238,7 +238,7 @@
       },
       "patch": {
         "operationId": "updateIssue",
-        "summary": "Creator-only content and lifecycle update with version check; supports direct closure and reopening",
+        "summary": "Members classify issues; only the creator edits content or lifecycle; version checked",
         "security": [
           {
             "bearerAuth": []

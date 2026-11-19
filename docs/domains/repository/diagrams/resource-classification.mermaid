@@ -1,6 +1,6 @@
 flowchart TB
   actor["Session／Bearer 核驗本人、當下群組成員與啟用的儲存庫"] --> target{"正在編輯哪個資源？"}
-  target -->|問題或討論| edit["該問題或討論的作者，提交資源的 expectedVersion"]
+  target -->|問題或討論| edit["目前成員可整理分類；僅作者可改正文或問題狀態；核驗 expectedVersion"]
   edit --> labels{"labelIds：問題與討論"}
   edit -->|僅問題| milestone{"milestoneId"}
   labels -->|省略| keep["保留原關聯"]

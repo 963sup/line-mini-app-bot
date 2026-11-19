@@ -794,6 +794,20 @@
       ]
     },
     {
+      "operationId": "renameLabel",
+      "audience": "public",
+      "method": "PATCH",
+      "path": "/api/v1/repositories/{repositoryId}/labels/{id}",
+      "owner": "repository.labels",
+      "adapter": "backend/internal/business/repository/labels/http/routes.go",
+      "handler": "RenameLabel",
+      "core": "backend/internal/business/repository/labels/labels.go",
+      "specification": "docs/domains/repository/labels.md",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/labels/View.tsx"
+      ]
+    },
+    {
       "operationId": "listMilestones",
       "audience": "public",
       "method": "GET",

@@ -70,7 +70,7 @@ func NormalizeComment(body string) (string, error) {
 }
 
 func ApplyUpdate(current Discussion, actor string, input Update) (Discussion, error) {
-	if actor == "" || actor != current.AuthorID {
+	if actor == "" || (actor != current.AuthorID && (input.Title != current.Title || input.Body != current.Body || input.LabelIDs == nil)) {
 		return Discussion{}, ErrForbidden
 	}
 	c, err := Normalize(input.Content)

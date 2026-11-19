@@ -154,7 +154,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
   }
   const editor = <section ref={editorPanel} tabIndex={-1} aria-label="里程碑編輯" className="flex w-full min-w-0 flex-col gap-3">
       <ReadFeedback busy={detailBusy} message={status} label="正在讀取里程碑……" />
-      {selected && <p>{selected.issueCount ? `已完成 ${selected.completedIssueCount}/${selected.issueCount} 項（${Math.round(selected.completedIssueCount/selected.issueCount*100)}%）` : "尚無問題"}</p>}
+      {selected && <p>{selected.issueCount ? `已關閉 ${selected.completedIssueCount}/${selected.issueCount} 個問題（${Math.round(selected.completedIssueCount/selected.issueCount*100)}%）` : "尚無問題"}</p>}
       {mode === "detail" && <div className="mb-4 flex flex-wrap items-center gap-2">
         <Button variant="outline" disabled={busy || detailBusy} onClick={() => open(activeId)}>重新讀取里程碑</Button>
       </div>}

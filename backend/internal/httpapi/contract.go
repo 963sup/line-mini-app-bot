@@ -44,6 +44,7 @@ type RepositoryServer interface {
 
 type LabelServer interface {
 	ListLabels(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ListLabelsParams)
+	RenameLabel(w http.ResponseWriter, r *http.Request, repositoryId string, id string)
 	CreateLabel(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.CreateLabelParams)
 }
 
