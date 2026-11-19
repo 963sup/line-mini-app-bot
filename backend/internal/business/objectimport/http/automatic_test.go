@@ -97,3 +97,38 @@ func TestAutomaticHTTPKeyReplayAndBoundaries(t *testing.T) {
 		}
 	}
 }
+
+func (p *automaticProducer) ClassifiedRows(context.Context, feature.Source) ([]automatic.Candidate, error) {
+	p.calls++
+	return []automatic.Candidate{
+		{Name: "Pump", Quantity: "1", Unit: "SET", SourceItemNo: "10", Pages: []int{7}, Type: "non_work", Quote: "supply only"},
+		{Name: "Labor", Quantity: "1", Unit: "SET", SourceItemNo: "20", Pages: []int{7}, Type: "work", Quote: "installation"},
+		{Name: "Lamp", Quantity: "1", Unit: "SET", SourceItemNo: "30", Pages: []int{7}, Type: "needs_review", Quote: "Lamp"},
+	}, nil
+}
+
+func TestMixedImportResumesOnlyConfirmedRow(t *testing.T) {
+	p, o := &automaticProducer{}, &objects{}
+	s := automatic.Service{Repositories: repos{}, Objects: o, Store: &automaticMemory{runs: map[string]automatic.Run{}}, Producer: p}
+	source := feature.Source{SourceDocument: "pdf:test", Pages: []feature.Page{{Number: 7, Text: "[[item:10]] Pump supply only\n[[item:20]] Labor installation\n[[item:30]] Lamp"}}}
+	run := func(decisions map[string]string) automatic.Run {
+		t.Helper()
+		j, e := s.Classify(context.Background(), "user", strings.Repeat("a", 32), "stable-classified-key", source, decisions)
+		if e != nil || automatic.ValidateStored(j) != nil {
+			t.Fatal(j, e)
+		}
+		return j
+	}
+	j := run(nil)
+	if j.Status != "processing" || o.calls != 2 || j.Rows[2].ResultObjectID != "" {
+		t.Fatal(j)
+	}
+	d := map[string]string{j.Rows[2].ID: "work"}
+	if j = run(d); j.Status != "completed" || j.Rows[2].Type != "work" {
+		t.Fatal(j)
+	}
+	run(d)
+	if p.calls != 1 || o.calls != 3 {
+		t.Fatal(p.calls, o.calls)
+	}
+}

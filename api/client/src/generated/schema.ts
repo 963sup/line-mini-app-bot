@@ -1823,6 +1823,15 @@ export interface components {
              * @enum {string}
              */
             type?: "work" | "non_work";
+            /**
+             * @description Classify each source item. Omit legacy batch type.
+             * @enum {string}
+             */
+            classification?: "per_item";
+            /** @description Confirm previously frozen ambiguous row IDs as work or non_work. */
+            decisions?: {
+                [key: string]: string;
+            };
         };
         ObjectImportRunRow: {
             name: string;
