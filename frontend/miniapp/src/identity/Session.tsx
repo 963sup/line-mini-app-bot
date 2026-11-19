@@ -42,6 +42,7 @@ function unwrap<T>({ data, error, response }: Result<T>): T {
       ?.error;
     throw Object.assign(new Error(detail?.message || "伺服器無法完成請求。"), {
       code: detail?.code,
+      httpStatus: response.status,
     });
   }
   if (data === undefined) throw new Error("伺服器回應無效。");
