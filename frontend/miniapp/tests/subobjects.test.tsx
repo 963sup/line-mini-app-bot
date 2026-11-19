@@ -132,7 +132,7 @@ for(const first of ['child','parent'])test(`child write and parent navigation ha
  }finally{await f.dispose();}
 });
 
-test("temporary type selection does not reset stored child completion", async () => {
+test("temporary type selection preserves unsaved child completion", async () => {
   const patches: Record<string, unknown>[] = [];
   const f = await fixture(async request => {
     if (request.method === "PATCH") { patches.push(await request.json()); return Response.json(child({quantity:"100",completedQuantity:"25"})); }
@@ -141,11 +141,12 @@ test("temporary type selection does not reset stored child completion", async ()
   });
   try {
     await f.click("子物件：測試物件"); await f.click("編輯子物件：測試工序");
+    await f.fill("子物件完成數","37");
     for (const type of ["non_work", "work"]) await act(async () => {
       const select = document.querySelector<HTMLSelectElement>('[aria-label="子物件"] select')!;
       select.value = type; select.dispatchEvent(new window.Event("change", {bubbles:true})); await flush();
     });
-    await f.click("儲存子物件"); assert.equal(patches[0].completedQuantity, "25");
+    await f.click("儲存子物件"); assert.equal(patches[0].completedQuantity, "37");
   } finally { await f.dispose(); }
 });
 
