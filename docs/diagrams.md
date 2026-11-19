@@ -57,7 +57,7 @@
 - [Agent delivery workflow · Minimal handoff and evidence reuse](agents/workflow.md#minimal-handoff-and-evidence-reuse)
 - [Agent delivery workflow · Repository publication](agents/workflow.md#repository-publication)
 - [Agent delivery workflow · Business Operation compliance](agents/workflow.md#business-operation-compliance)
-- [Codex Cloud: mise + MCP · Acceptance](development/codex-cloud.md#acceptance)
+- [Cloud development environment · Analysis and Codex](development/cloud-environment.md#analysis-and-codex)
 - [Markdown 文件規範 · 編寫與修正流程](development/documentation.md#編寫與修正流程)
 - [基礎設施與分階段落地 · 第一階段：執行與部署基礎（目前優先）](development/foundation.md#第一階段執行與部署基礎目前優先)
 - [資源導向的通用業務操作模型 · 模型與語意](foundation/architecture/business-operation.md#模型與語意)
