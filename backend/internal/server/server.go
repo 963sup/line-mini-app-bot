@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	wikihttp "github.com/963sup/line-mini-app-bot/internal/business/repository/wiki/http"
+
 	journalhttp "github.com/963sup/line-mini-app-bot/internal/business/journal/http"
 
 	"github.com/963sup/line-mini-app-bot/internal/browser"
@@ -123,6 +125,7 @@ func Run() (resultErr error) {
 	journalhttp.Register(mux, newJournals(groups, repositories, projects), auth)
 	grouphttp.Register(mux, groups, auth)
 	repositoryhttp.Register(mux, repositories, auth)
+	wikihttp.Register(mux, newWiki(repositories), auth)
 	labelhttp.Register(mux, newLabels(repositories), auth)
 	milestonehttp.Register(mux, newMilestones(repositories), auth)
 	projecthttp.Register(mux, projects, auth)

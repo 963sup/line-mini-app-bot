@@ -196,6 +196,15 @@
     },
     "/api/v1/repositories/{repositoryId}/labels/{id}": {
       "$ref": "./repository/labels.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1labels~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/wiki-pages": {
+      "$ref": "./repository/wiki.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1wiki-pages"
+    },
+    "/api/v1/repositories/{repositoryId}/wiki-pages/{id}": {
+      "$ref": "./repository/wiki.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1wiki-pages~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/wiki-pages/{id}/revisions": {
+      "$ref": "./repository/wiki.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1wiki-pages~1{id}~1revisions"
     }
   },
   "components": {
@@ -418,6 +427,24 @@
       },
       "LabelRename": {
         "$ref": "./repository/labels.yaml#/components/schemas/LabelRename"
+      },
+      "WikiSummary": {
+        "$ref": "./repository/wiki.yaml#/components/schemas/WikiSummary"
+      },
+      "WikiPage": {
+        "$ref": "./repository/wiki.yaml#/components/schemas/WikiPage"
+      },
+      "WikiCreation": {
+        "$ref": "./repository/wiki.yaml#/components/schemas/WikiCreation"
+      },
+      "WikiUpdate": {
+        "$ref": "./repository/wiki.yaml#/components/schemas/WikiUpdate"
+      },
+      "WikiDirectory": {
+        "$ref": "./repository/wiki.yaml#/components/schemas/WikiDirectory"
+      },
+      "WikiHistory": {
+        "$ref": "./repository/wiki.yaml#/components/schemas/WikiHistory"
       }
     },
     "securitySchemes": {

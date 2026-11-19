@@ -14,6 +14,7 @@ import { View as Issues } from "../issue/View";
 import { View as Discussions } from "../discussion/View";
 import { View as Milestones } from "./milestones/View";
 import { View as Insights } from "./insights/View";
+import { View as Wiki } from "./wiki/View";
 import { View as Labels } from "./labels/View";
 
 export function View() {
@@ -24,7 +25,13 @@ export function View() {
 
 function Content() {
   const { selected, selectedID, scope, detailBusy, detailStatus, reloadDetail, canLoad } = useRepositories();
-  const [page, setPage] = useState("總覽");
+  const [wikiId] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const params = new URLSearchParams(location.search);
+    try { return params.get("wiki") || new URL(params.get("liff.state") || "/", location.origin).searchParams.get("wiki") || ""; }
+    catch { return ""; }
+  });
+  const [page, setPage] = useState(wikiId ? "Wiki" : "總覽");
   const guard = useRepositoryNavigation();
   useEffect(() => { if (!detailBusy) guard.settled(); }, [page, detailBusy]);
   return (
@@ -76,7 +83,7 @@ function Content() {
                 <p className="text-sm leading-relaxed text-muted-foreground">摘要請回原群組操作。</p>
               </PagePanel>}
             </div>
-          ) : page === "洞察" ? <Insights key={selected.id} repositoryId={selected.id} /> : page === "物件" ? <Objects key={selected.id} repositoryId={selected.id} /> : page === "問題" ? <Issues key={selected.id} repositoryId={selected.id} /> : page === "討論" ? <Discussions key={selected.id} repositoryId={selected.id} /> : page === "里程碑" ? <Milestones key={selected.id} repositoryId={selected.id} /> : page === "標籤" ? <Labels key={selected.id} repositoryId={selected.id} /> : (
+          ) : page === "Wiki" ? <Wiki key={selected.id} repositoryId={selected.id} initialId={wikiId} /> : page === "洞察" ? <Insights key={selected.id} repositoryId={selected.id} /> : page === "物件" ? <Objects key={selected.id} repositoryId={selected.id} /> : page === "問題" ? <Issues key={selected.id} repositoryId={selected.id} /> : page === "討論" ? <Discussions key={selected.id} repositoryId={selected.id} /> : page === "里程碑" ? <Milestones key={selected.id} repositoryId={selected.id} /> : page === "標籤" ? <Labels key={selected.id} repositoryId={selected.id} /> : (
             <PagePanel heading={page}>
               <Empty>
                 <EmptyHeader>

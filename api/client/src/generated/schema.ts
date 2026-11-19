@@ -1091,6 +1091,59 @@ export interface paths {
         patch: operations["renameLabel"];
         trace?: never;
     };
+    "/api/v1/repositories/{repositoryId}/wiki-pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Repository member operation: listWikiPages */
+        get: operations["listWikiPages"];
+        put?: never;
+        /** Repository member operation: createWikiPage */
+        post: operations["createWikiPage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/wiki-pages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Repository member operation: getWikiPage */
+        get: operations["getWikiPage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Repository member operation: updateWikiPage */
+        patch: operations["updateWikiPage"];
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/wiki-pages/{id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Repository member operation: listWikiRevisions */
+        get: operations["listWikiRevisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1779,6 +1832,43 @@ export interface components {
             name: string;
             expectedName: string;
         };
+        WikiSummary: {
+            id: string;
+            title: string;
+            /** Format: int64 */
+            version: number;
+            authorId: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        WikiPage: {
+            id: string;
+            title: string;
+            /** Format: int64 */
+            version: number;
+            authorId: string;
+            /** Format: date-time */
+            updatedAt: string;
+            body: string;
+        };
+        WikiCreation: {
+            title: string;
+            body: string;
+        };
+        WikiUpdate: {
+            title: string;
+            body: string;
+            /** Format: int64 */
+            expectedVersion: number;
+        };
+        WikiDirectory: {
+            items: components["schemas"]["WikiSummary"][];
+            nextCursor: string;
+        };
+        WikiHistory: {
+            items: components["schemas"]["WikiPage"][];
+            nextCursor: string;
+        };
         GroupItem: {
             id: string;
             name: string;
@@ -2199,6 +2289,25 @@ export interface components {
             };
             content: {
                 "application/json": components["schemas"]["APIError"];
+            };
+        };
+        /** @description Rejected or unavailable without exposing private data. */
+        WikiError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+            };
+        };
+        /** @description Rejected or unavailable without exposing private data. */
+        WikiForbidden: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["APIError"];
+                "text/plain": string;
             };
         };
     };
@@ -6331,6 +6440,168 @@ export interface operations {
             409: components["responses"]["LabelError"];
             415: components["responses"]["LabelError"];
             503: components["responses"]["LabelError"];
+        };
+    };
+    listWikiPages: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiDirectory"];
+                };
+            };
+            400: components["responses"]["WikiError"];
+            401: components["responses"]["WikiError"];
+            403: components["responses"]["WikiForbidden"];
+            404: components["responses"]["WikiError"];
+            409: components["responses"]["WikiError"];
+            415: components["responses"]["WikiError"];
+            503: components["responses"]["WikiError"];
+        };
+    };
+    createWikiPage: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WikiCreation"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiPage"];
+                };
+            };
+            400: components["responses"]["WikiError"];
+            401: components["responses"]["WikiError"];
+            403: components["responses"]["WikiForbidden"];
+            404: components["responses"]["WikiError"];
+            409: components["responses"]["WikiError"];
+            415: components["responses"]["WikiError"];
+            503: components["responses"]["WikiError"];
+        };
+    };
+    getWikiPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiPage"];
+                };
+            };
+            400: components["responses"]["WikiError"];
+            401: components["responses"]["WikiError"];
+            403: components["responses"]["WikiForbidden"];
+            404: components["responses"]["WikiError"];
+            409: components["responses"]["WikiError"];
+            415: components["responses"]["WikiError"];
+            503: components["responses"]["WikiError"];
+        };
+    };
+    updateWikiPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WikiUpdate"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiPage"];
+                };
+            };
+            400: components["responses"]["WikiError"];
+            401: components["responses"]["WikiError"];
+            403: components["responses"]["WikiForbidden"];
+            404: components["responses"]["WikiError"];
+            409: components["responses"]["WikiError"];
+            415: components["responses"]["WikiError"];
+            503: components["responses"]["WikiError"];
+        };
+    };
+    listWikiRevisions: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WikiHistory"];
+                };
+            };
+            400: components["responses"]["WikiError"];
+            401: components["responses"]["WikiError"];
+            403: components["responses"]["WikiForbidden"];
+            404: components["responses"]["WikiError"];
+            409: components["responses"]["WikiError"];
+            415: components["responses"]["WikiError"];
+            503: components["responses"]["WikiError"];
         };
     };
 }
