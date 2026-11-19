@@ -17,6 +17,7 @@ type contractServer struct {
 	SubobjectServer
 	ObjectImportServer
 	DiscussionServer
+	WikiServer
 	LabelServer
 	MilestoneServer
 	ProjectServer
@@ -161,4 +162,12 @@ type JournalServer interface {
 	ListJournals(w http.ResponseWriter, r *http.Request, params generated.ListJournalsParams)
 	GetJournal(w http.ResponseWriter, r *http.Request, journalId string)
 	CreateJournal(w http.ResponseWriter, r *http.Request, params generated.CreateJournalParams)
+}
+
+type WikiServer interface {
+	ListWikiPages(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ListWikiPagesParams)
+	CreateWikiPage(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.CreateWikiPageParams)
+	GetWikiPage(w http.ResponseWriter, r *http.Request, repositoryId string, id string)
+	UpdateWikiPage(w http.ResponseWriter, r *http.Request, repositoryId string, id string)
+	ListWikiRevisions(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params generated.ListWikiRevisionsParams)
 }

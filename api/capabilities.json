@@ -204,6 +204,12 @@
       "adapter": "backend/internal/business/project/http/inspections.go",
       "core": "backend/internal/business/project/inspections.go",
       "specification": "docs/domains/project.md"
+    },
+    "repository.wiki": {
+      "contract": "repository/wiki.yaml",
+      "core": "backend/internal/business/repository/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "specification": "docs/domains/repository/wiki.md"
     }
   },
   "operations": [
@@ -1423,6 +1429,76 @@
       "consumers": [
         "frontend/miniapp/src/business/project/Inspections.tsx"
       ]
+    },
+    {
+      "operationId": "listWikiPages",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/wiki-pages",
+      "owner": "repository.wiki",
+      "handler": "ListWikiPages",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/wiki/View.tsx"
+      ],
+      "core": "backend/internal/business/repository/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "specification": "docs/domains/repository/wiki.md"
+    },
+    {
+      "operationId": "createWikiPage",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/wiki-pages",
+      "owner": "repository.wiki",
+      "handler": "CreateWikiPage",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/wiki/View.tsx"
+      ],
+      "core": "backend/internal/business/repository/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "specification": "docs/domains/repository/wiki.md"
+    },
+    {
+      "operationId": "getWikiPage",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/wiki-pages/{id}",
+      "owner": "repository.wiki",
+      "handler": "GetWikiPage",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/wiki/View.tsx"
+      ],
+      "core": "backend/internal/business/repository/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "specification": "docs/domains/repository/wiki.md"
+    },
+    {
+      "operationId": "updateWikiPage",
+      "audience": "public",
+      "method": "PATCH",
+      "path": "/api/v1/repositories/{repositoryId}/wiki-pages/{id}",
+      "owner": "repository.wiki",
+      "handler": "UpdateWikiPage",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/wiki/View.tsx"
+      ],
+      "core": "backend/internal/business/repository/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "specification": "docs/domains/repository/wiki.md"
+    },
+    {
+      "operationId": "listWikiRevisions",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/wiki-pages/{id}/revisions",
+      "owner": "repository.wiki",
+      "handler": "ListWikiRevisions",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/wiki/View.tsx"
+      ],
+      "core": "backend/internal/business/repository/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "specification": "docs/domains/repository/wiki.md"
     }
   ],
   "events": [
@@ -1567,6 +1643,11 @@
       "entity": "Journal",
       "collection": "journals",
       "path": "/api/v1/journals"
+    },
+    {
+      "entity": "WikiPage",
+      "collection": "wiki-pages",
+      "path": "/api/v1/repositories/{repositoryId}/wiki-pages"
     }
   ],
   "namingExceptions": {

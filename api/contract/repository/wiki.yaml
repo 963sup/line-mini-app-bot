@@ -1,0 +1,551 @@
+{
+  "paths": {
+    "/api/v1/repositories/{repositoryId}/wiki-pages": {
+      "get": {
+        "operationId": "listWikiPages",
+        "summary": "Repository member operation: listWikiPages",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WikiDirectory"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "401": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/WikiForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "409": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "415": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "503": {
+            "$ref": "#/components/responses/WikiError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createWikiPage",
+        "summary": "Repository member operation: createWikiPage",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WikiPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "401": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/WikiForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "409": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "415": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "503": {
+            "$ref": "#/components/responses/WikiError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WikiCreation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/repositories/{repositoryId}/wiki-pages/{id}": {
+      "get": {
+        "operationId": "getWikiPage",
+        "summary": "Repository member operation: getWikiPage",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WikiPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "401": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/WikiForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "409": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "415": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "503": {
+            "$ref": "#/components/responses/WikiError"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateWikiPage",
+        "summary": "Repository member operation: updateWikiPage",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WikiPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "401": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/WikiForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "409": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "415": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "503": {
+            "$ref": "#/components/responses/WikiError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WikiUpdate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/repositories/{repositoryId}/wiki-pages/{id}/revisions": {
+      "get": {
+        "operationId": "listWikiRevisions",
+        "summary": "Repository member operation: listWikiRevisions",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WikiHistory"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "401": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "403": {
+            "$ref": "#/components/responses/WikiForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "409": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "415": {
+            "$ref": "#/components/responses/WikiError"
+          },
+          "503": {
+            "$ref": "#/components/responses/WikiError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WikiSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "authorId": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "version",
+          "authorId",
+          "updatedAt"
+        ]
+      },
+      "WikiPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "authorId": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 32000
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "version",
+          "authorId",
+          "updatedAt",
+          "body"
+        ]
+      },
+      "WikiCreation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 32000
+          }
+        },
+        "required": [
+          "title",
+          "body"
+        ]
+      },
+      "WikiUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 32000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "title",
+          "body",
+          "expectedVersion"
+        ]
+      },
+      "WikiDirectory": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WikiSummary"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ]
+      },
+      "WikiHistory": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WikiPage"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ]
+      }
+    },
+    "responses": {
+      "WikiError": {
+        "description": "Rejected or unavailable without exposing private data.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../common/transport.yaml#/components/schemas/APIError"
+            }
+          }
+        }
+      },
+      "WikiForbidden": {
+        "description": "Rejected or unavailable without exposing private data.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../common/transport.yaml#/components/schemas/APIError"
+            }
+          },
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

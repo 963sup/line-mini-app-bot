@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/963sup/line-mini-app-bot/internal/business/repository/wiki"
+
 	"cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/discussion"
 	discussiondb "github.com/963sup/line-mini-app-bot/internal/business/discussion/firestore"
@@ -170,4 +172,15 @@ func newRepositorySpaces(r *repository.Service) *businessspace.Service {
 		return nil
 	}
 	return &businessspace.Service{Repositories: r, Store: &businessspacedb.Store{Client: store.Client, ChannelID: store.ChannelID}}
+}
+
+func newWiki(repositories *repository.Service) *wiki.Service {
+	if repositories == nil {
+		return nil
+	}
+	store, ok := repositories.Store.(*repositorydb.Store)
+	if !ok {
+		return nil
+	}
+	return &wiki.Service{Repositories: repositories, Store: store}
 }
