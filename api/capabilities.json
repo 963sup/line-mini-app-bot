@@ -385,7 +385,6 @@
       "core": "backend/internal/business/attendance/records/ports.go",
       "specification": "docs/domains/attendance/queries.md",
       "consumers": [
-        "frontend/miniapp/src/business/attendance/corrections/View.tsx",
         "frontend/miniapp/src/business/attendance/records/View.tsx"
       ],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
@@ -979,6 +978,7 @@
       "core": "backend/internal/business/group/group.go",
       "specification": "docs/domains/project.md",
       "consumers": [
+        "frontend/miniapp/src/business/attendance/corrections/View.tsx",
         "frontend/miniapp/src/business/journal/Workspace.tsx",
         "frontend/miniapp/src/business/project/Workspace.tsx"
       ]

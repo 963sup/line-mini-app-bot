@@ -774,6 +774,40 @@ test("review without a reported status never offers approval or rejection", asyn
   } finally {await f.dispose();}
 });
 
+test("new-shift corrections discover membership groups before any attendance records exist", async () => {
+  const f = await fixture(<Correction />, "", async (r, next) =>
+    new URL(r.url).pathname === "/api/v1/groups"
+      ? Response.json({ items: [{ id: "g1", groupId: "g1", name: "First group" }], nextCursor: "" })
+      : next(r));
+  try {
+    const select = f.node<HTMLSelectElement>("correction-group");
+    assert.equal(select.options[1].value, "g1");
+    assert.equal(select.options[1].textContent, "First group");
+    assert.ok(f.requests.some(r => new URL(r.url).pathname === "/api/v1/groups"));
+    assert.equal(f.requests.some(r => new URL(r.url).pathname.endsWith("/groups/page")), false);
+  } finally { await f.dispose(); }
+});
+
+test("leave history filters already loaded records by group without issuing another request", async () => {
+  const f = await fixture(<Leave />, "", async (r, next) => r.url.endsWith("/leaves")
+    ? Response.json(["g1", "g2"].map(groupId => ({ id: groupId, groupId, kind: "personal", start: record.ClockInAt, end: record.ClockOutAt, reason: groupId + " reason" })))
+    : next(r));
+  try {
+    const count = f.requests.filter(r => r.url.endsWith("/leaves")).length;
+    const select = document.querySelector<HTMLSelectElement>("select")!;
+    assert.equal(document.querySelectorAll('[role="listitem"]').length, 2);
+    await act(async () => {
+      select.value = "g2";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      await flush();
+    });
+    const items = document.querySelectorAll('[role="listitem"]');
+    assert.equal(items.length, 1);
+    assert.match(items[0].textContent!, /g2 reason/);
+    assert.equal(f.requests.filter(r => r.url.endsWith("/leaves")).length, count);
+  } finally { await f.dispose(); }
+});
+
 test("expired leave launch offers history instead of retrying an unusable link", async () => {
   const f=await fixture(<Leave />,"?leave="+launch, async(r,next)=>r.url.endsWith("/leaves")
     ? r.method==="POST" ? Response.json({error:{code:"expired_launch",message:"請假連結已過期"}},{status:403}) : Response.json([]) : next(r));
@@ -795,5 +829,7 @@ test("a denied corrections reload clears previously readable requests",async()=>
   try{
     await f.click("requests-load");assert.match(f.node("requests-list").textContent!,/私人申請內容/);
     denied=true;await f.click("requests-load");assert.doesNotMatch(f.node("requests-list").textContent!,/私人申請內容/);
+    assert.match(document.body.textContent!, /權限已變更/);
+    assert.doesNotMatch(document.body.textContent!, /目前沒有補卡審核權限/);
   }finally{await f.dispose();}
 });
