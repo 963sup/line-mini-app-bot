@@ -12,7 +12,7 @@ flowchart LR
   click n0l1 "../project.md"
 ```
 
-[Repository Insights 與 Pulse](insights.md)
+[Repository Insights 與 Pulse](insights.md) · [工程知識庫 Wiki](wiki.md)
 
 <a id="範圍與資料"></a>
 

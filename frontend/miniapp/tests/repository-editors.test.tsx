@@ -249,3 +249,31 @@ test("unconfirmed comment update stays locked across unrelated pages and resolve
   assert.ok([...document.querySelectorAll("textarea")].some(node=>node.value==="伺服器確認的內容"));assert.equal(reads,4);
  }finally{await f.dispose();}
 });
+
+test("Wiki creation retries the same request and conflicting edits preserve the draft", async () => {
+  const attempts:string[] = [], versions:number[] = [];
+  const response = (version:number) => Response.json({id,title:"巡檢",body:"原文",version,authorId:"A",updatedAt:"2026-11-19T00:00:00Z"});
+  const f=await fixture(async req=>{
+    if(!req.url.includes("/wiki-pages"))return;
+    if(req.method==="POST"){
+      attempts.push(req.headers.get("Idempotency-Key")+" "+await req.text());
+      if(attempts.length===1)throw new Error("network lost");
+      return response(1);
+    }
+    if(req.method==="PATCH"){
+      versions.push((await req.json()).expectedVersion);
+      return versions.length===1?Response.json({error:{code:"conflict",message:"版本已更新"}},{status:409}):response(3);
+    }
+    if(req.url.endsWith(id))return response(versions.length?2:1);
+    return Response.json({items:[],nextCursor:""});
+  });
+  try{
+    await f.click("Wiki");await f.click("建立頁面");await f.fill("標題","巡檢");await f.fill("Markdown 內容","原文");await f.click("儲存");
+    await f.click("重試原建立請求");assert.equal(attempts.length,2);assert.equal(attempts[0],attempts[1]);
+    const permanent=[...document.querySelectorAll("a")].find(a=>a.textContent==="此頁永久連結");
+    assert.equal(new URL(permanent!.href).searchParams.get("wiki"),id);
+    await f.click("編輯");await f.fill("Markdown 內容","我的修訂");await f.click("儲存");
+    await f.click("讀取目前版本以比對");assert.equal(document.querySelector("textarea")?.value,"我的修訂");
+    await f.click("儲存");assert.deepEqual(versions,[1,2]);
+  }finally{await f.dispose();}
+});

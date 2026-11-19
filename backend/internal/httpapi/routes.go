@@ -208,3 +208,15 @@ func RegisterJournals(public *http.ServeMux, handler JournalServer, wrap func(ht
 	public.Handle("POST /api/v1/journals", routes)
 	public.Handle("GET /api/v1/journals/{journalId}", routes)
 }
+
+func RegisterWiki(public *http.ServeMux, handler WikiServer, wrap func(http.Handler) http.Handler) {
+	routes := routeHandler(contractServer{WikiServer: handler})
+	if wrap != nil {
+		routes = wrap(routes)
+	}
+	public.Handle("GET /api/v1/repositories/{repositoryId}/wiki-pages", routes)
+	public.Handle("POST /api/v1/repositories/{repositoryId}/wiki-pages", routes)
+	public.Handle("GET /api/v1/repositories/{repositoryId}/wiki-pages/{id}", routes)
+	public.Handle("GET /api/v1/repositories/{repositoryId}/wiki-pages/{id}/revisions", routes)
+	public.Handle("PATCH /api/v1/repositories/{repositoryId}/wiki-pages/{id}", routes)
+}
