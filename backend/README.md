@@ -45,7 +45,7 @@ Weather 既有實作集中在 business/weather/forecast/{cwa,line}。
 - [空間事項第一階段](../docs/domains/repository/issues.md)：核心、HTTP 與 Firestore 分層實作；正式環境待驗收。
 - [Repository 共用資源編號基礎](../docs/domains/repository/numbering.md)：內部交易介面，已由事項建立使用，不提供獨立公開分配 API。
 
-- [里程碑](../docs/domains/repository/milestones.md)、[Project](../docs/domains/project.md)與[統計](../docs/domains/repository/statistics.md)
+- [里程碑](../docs/domains/repository/milestones.md)、[Project](../docs/domains/project.md)與[洞察（Insights）](../docs/domains/repository/insights.md)
 
 ## 協作能力分佈與交付狀態
 

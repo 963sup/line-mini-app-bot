@@ -1,4 +1,4 @@
-import { LayoutDashboard, CircleDot, MessagesSquare, Tags, Flag, History, Package } from "lucide-react";
+import { ChartNoAxesCombined, LayoutDashboard, CircleDot, MessagesSquare, Tags, Flag, History, Package } from "lucide-react";
 
 export const navigation = [
   { title: "總覽", icon: LayoutDashboard },
@@ -7,5 +7,6 @@ export const navigation = [
   { title: "討論", icon: MessagesSquare },
   { title: "標籤", icon: Tags },
   { title: "里程碑", icon: Flag },
+  { title: "洞察", icon: ChartNoAxesCombined },
   { title: "稽核", icon: History },
 ];

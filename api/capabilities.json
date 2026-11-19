@@ -149,7 +149,7 @@
       "contract": "repository/statistics.yaml",
       "adapter": "backend/internal/business/repository/statistics/http/routes.go",
       "core": "backend/internal/business/repository/statistics/statistics.go",
-      "specification": "docs/domains/repository/statistics.md"
+      "specification": "docs/domains/repository/insights.md"
     },
     "group": {
       "contract": "group/groups.yaml",
@@ -943,9 +943,9 @@
       "adapter": "backend/internal/business/repository/statistics/http/routes.go",
       "handler": "GetRepositoryStatistics",
       "core": "backend/internal/business/repository/statistics/statistics.go",
-      "specification": "docs/domains/repository/statistics.md",
+      "specification": "docs/domains/repository/insights.md",
       "consumers": [
-        "frontend/miniapp/src/business/repository/statistics/View.tsx"
+        "frontend/miniapp/src/business/repository/insights/View.tsx"
       ]
     },
     {

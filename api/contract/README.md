@@ -54,7 +54,7 @@
 
 ### 最小契約雛形
 
-Repository milestones／statistics 與 Project／items 已依 [里程碑](../../docs/domains/repository/milestones.md)、[Project](../../docs/domains/project.md)與[統計](../../docs/domains/repository/statistics.md) 接入。以下檔案目前以 `x-status: scaffold` 標記，只有空的 `paths` 與 `components.schemas`，尚未定義端點或資料欄位，也不由公開／內部組合入口引用。能力清單登記其擁有者，不表示功能已實作。
+Repository milestones／statistics 與 Project／items 已依 [里程碑](../../docs/domains/repository/milestones.md)、[Project](../../docs/domains/project.md)與[洞察（Insights）](../../docs/domains/repository/insights.md) 接入。以下檔案目前以 `x-status: scaffold` 標記，只有空的 `paths` 與 `components.schemas`，尚未定義端點或資料欄位，也不由公開／內部組合入口引用。能力清單登記其擁有者，不表示功能已實作。
 
 - Issue：[types.yaml](issue/types.yaml)（IssueType）、[comments.yaml](issue/comments.yaml)。
 - Discussion：[categories.yaml](discussion/categories.yaml)。
