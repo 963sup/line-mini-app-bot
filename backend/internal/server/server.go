@@ -34,8 +34,6 @@ import (
 	statisticshttp "github.com/963sup/line-mini-app-bot/internal/business/repository/statistics/http"
 	subobjecthttp "github.com/963sup/line-mini-app-bot/internal/business/subobject/http"
 	"github.com/963sup/line-mini-app-bot/internal/diagnostics/geolocation"
-	identityhttp "github.com/963sup/line-mini-app-bot/internal/identity/http"
-	identityline "github.com/963sup/line-mini-app-bot/internal/identity/line"
 )
 
 func Run() (resultErr error) {
@@ -49,8 +47,10 @@ func Run() (resultErr error) {
 	if err := browser.Register(mux); err != nil {
 		return err
 	}
-	auth := &identityhttp.Authenticator{ChannelID: os.Getenv("LINE_MINI_APP_CHANNEL_ID"), LIFFID: os.Getenv("LINE_MINI_APP_LIFF_ID")}
-	auth.Verifier = &identityline.Verifier{ChannelID: auth.ChannelID, Client: &http.Client{Timeout: 5 * time.Second}}
+	auth, err := newMiniAppAuthenticator(os.Getenv("LINE_MINI_APP_ENV"))
+	if err != nil {
+		return err
+	}
 	sessions, closeSessions, err := newSessions(context.Background(), auth.ChannelID)
 	if err != nil {
 		return err
@@ -85,9 +85,7 @@ func Run() (resultErr error) {
 	var browserAttendance *attendancehttp.Attendance
 	if attendance != nil {
 		punches = &attendanceline.Attendance{Store: attendance.store, Zone: attendance.zone, GroupName: lookup}
-		if id := os.Getenv("LINE_MINI_APP_LIFF_ID"); id != "" {
-			punches.AppURL = "https://liff.line.me/" + id
-		}
+		punches.AppURL = appURL
 		browserAttendance = attendancehttp.NewAttendance(attendance.store, attendance.zone, func(ctx context.Context, group string) string {
 			return presentation.GroupName(group, lookup(ctx, group))
 		})

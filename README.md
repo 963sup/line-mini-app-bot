@@ -112,9 +112,9 @@ bash scripts/tooling/tool-exec.sh mise run dev
 # LINE 憑證未注入時不註冊 Webhook；連線方式見接入試作文件。
 ```
 
-服務讀取 `PORT`（預設 8080）、Messaging API 三項與 MINI App 兩項設定，不會自動載入 `.env`。
-設定名稱見 `backend/.env.example`；Messaging API 與 MINI App 可各自啟用。
-MINI App 頁面為 `/miniapp`；Channel 未設定時頁面顯示設定提示。
+服務讀取 `PORT`（預設 8080）、Messaging API 三項與 MINI App 環境選擇設定，不會自動載入 `.env`。
+設定名稱見 `backend/.env.example`；MINI App 預設使用 developing，亦可選 review 或 published。
+MINI App 頁面為 `/miniapp`；公開 Channel／LIFF ID 配對已內建，實際登入仍需正確的 HTTPS Endpoint 與 Session 資料庫設定。
 操作與驗證限制見 [LINE 接入說明](docs/guides/line-setup/README.md)。
 
 授權尚未選定，目前依 `LICENSE` 保留所有權利。
