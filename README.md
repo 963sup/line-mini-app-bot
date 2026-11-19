@@ -70,7 +70,7 @@ bash scripts/tooling/tool-exec.sh pnpm test
 bash scripts/tooling/tool-exec.sh pnpm dev
 ```
 
-完整 Cloud／MCP 安裝與限制請見 [Codex Cloud 設定](docs/development/codex-cloud.md)。
+完整 Cloud／MCP 安裝與限制請見 [Codex Cloud 設定](docs/development/cloud-environment.md)。
 預設初始化會安裝 Go、Web 依賴及 Mermaid CLI。需要 Graphify／Repomix 與 MCP 時使用
 `bash scripts/tooling/bootstrap.sh all`。Firestore Toolbox 需要先提供 Google ADC，GKE MCP 預設停用。
 工具安裝、

@@ -6,7 +6,6 @@
 
 - [Markdown 文件規範](documentation.md)
 - [Cloud development environment](cloud-environment.md)
-- [Codex Cloud: mise + MCP](codex-cloud.md)
 - [基礎設施與分階段落地](foundation.md)
 - [Go development](go.md)
 - [Go LINE 接入能力](line-prototype.md)
