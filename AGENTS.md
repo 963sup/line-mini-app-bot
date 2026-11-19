@@ -1,14 +1,16 @@
 # Repository agent guidance
 
-Project 和 Repository 各自保存一個 `ownerId`。LINE UserID（U）以登入本人核驗，GroupID（C）以當下群組成員資格核驗。Project 可連結多個 Repository，每筆來源引用各自授權。Space 隸屬 Repository。
+## Nested directory instructions
+
+Root instructions apply throughout the repository. Before changing a subtree, read its AGENTS.md and README.md; more specific instructions supplement root policy within their scope, subject to user and host instructions. Directory entry points are listed in [README.md](README.md#巢狀目錄導覽).
+
+涉及跨目錄任務時，讀取所有相關目錄的指引。保留既有變更與上游技能；巢狀指引不增加外部寫入授權。
 
 ## Mandatory documentation verification
 
 Repository-wide rule for every role and task, subject to higher-priority host instructions:
 
-- For any LINE question, issue or implementation uncertainty, consult the current official source at https://github.com/line/line-developers-docs-source first. Verify its current default branch/revision; do not treat an old snapshot as current. If coverage is incomplete, follow the official LINE reference linked there and state the limitation. Do not introduce deprecated features or historical compatibility flows into new work.
-- For Google Cloud questions, use the installed google/skills skills and Google Developer Knowledge MCP first. If unavailable, use current official Google sources and report the lookup limitation. Validate exact gcloud syntax with leaf-level help before executing commands.
-- For other technical questions, and whenever implementation is not fully certain, use Context7 before deciding or implementing. Resolve the library ID, query the relevant current/version-matched documentation, and compare with repository dependencies. Memory and confidence alone do not replace this lookup. If the Context7 plugin reports quota exhaustion, follow the [anonymous Context7 fallback](docs/tooling/mcp/context7.md#anonymous-fallback) before reporting a blocker.
+- For tool-specific sources and login procedures, follow the [tool guidance](docs/tooling/mcp/AGENTS.md) even when no files change. For other technical questions, and whenever implementation is not fully certain, use Context7 before deciding or implementing. Resolve the library ID, query the relevant current/version-matched documentation, and compare with repository dependencies. Memory and confidence alone do not replace this lookup. If the Context7 plugin reports quota exhaustion, follow the [anonymous Context7 fallback](docs/tooling/mcp/context7.md#anonymous-fallback) before reporting a blocker.
 - Report the sources consulted, applicable version/revision and remaining uncertainty. Documentation lookup does not replace code inspection, tests or real integration acceptance.
 - If the required source or Context7 is unavailable or insufficient, explicitly report the blocker; do not claim verification or silently substitute a guess. Continue independent work, but leave the affected decision/implementation pending until evidence is sufficient.
 - This policy applies to orchestrator and every specialist; delegation does not waive it. A source document is evidence, not authorization to expand scope or perform external writes.
@@ -64,72 +66,24 @@ Rules:
 - After modifying code, run `bash scripts/tooling/tool-exec.sh mise run graphify-update` to refresh the code graph without API calls.
 - A committed graphify-out/graph.json is rewritten whole on every build, so a large diff to it in a pull request is expected. Do not flag it as churn or suggest skipping the graph rebuild or its hooks.
 
+程式關係探索遵循上方 Graphify 規則；需跨檔來源核對時讀 `.agents/skills/repomix-explorer/SKILL.md`，以 Repomix CLI 打包所需範圍。純工具文件工作不要求每次全庫打包；圖譜過期須回報，不能把舊路徑當目前實作證據。
+
 ## Documentation routing
 
 新增、修改或審查任何自有 Markdown 前，MUST 讀取並遵守[文件規範](docs/development/documentation.md)。協調者按需分派 documentation 角色並明確指派檔案所有權；所有角色均依該規範自主修正任務範圍內有證據的問題，不擴展為全庫重寫。
-
-新增、修改或審查業務模型、API 契約、資源路徑、collection 或查詢欄位前，所有角色必讀 [命名規範](docs/development/naming.md#業務實體集合與-api-命名)，遵守單一業務實體用單數、集合與 REST 資源路徑用複數的規則及既有相容例外。完整規範只維護於該文件；不得直接重新命名既有公開契約或保存資料。
 
 Read docs/README.md for the document index. Follow docs/agents/workflow.md and
 docs/agents/acceptance.md for assignments and acceptance. Roles reference scoped
 documents in their developer_instructions; read relevant pages on demand, not all
 docs for every task. MCP selection and diagnosis: docs/tooling/mcp/README.md.
-Codex issues: OpenAI Docs MCP first; SDK/version questions: Context7.
-Connection settings belong in .codex/config.toml; tool versions/tasks/non-secret
-environment belong in mise.toml. docs describe usage and design without copying
-secrets or version pins. Generated upstream skill files remain under .agents/skills
-and .codex/skills and must not become duplicate project policy.
 
-## shadcn 任務入口
-
-凡前端 UI 任務，主動先讀 [官方元件保護與 Skill／MCP 工作流程](frontend/miniapp/src/shared/ui/AGENTS.md)，再依 [本機參考庫](docs/tooling/shadcn-reference/README.md) 檢查新鮮度、搜尋完整 Components／AI Elements 索引及相關文件，不需使用者逐次指定 shadcn。完整元件索引只由該參考庫生成；MCP 未曝光時依 UI 指引的固定 CLI 流程查詢並回報限制。
-元件選擇、按需新增與 UI 驗收遵循該檔的「需求驅動的選用與驗收」；主動完成當前任務，不以已安裝清單限制候選，也不擴大為未要求的全站改版。
-
-涉及 shadcn/ui、components.json、registry、preset 或其 MCP 的任務，開始前必讀 [.agents/skills/shadcn/SKILL.md](.agents/skills/shadcn/SKILL.md)，再按需讀其 references；使用方式與驗證見 [shadcn 工具指南](docs/tooling/mcp/shadcn.md)。所有角色都適用。
-上游 skill 保留原樣；其 `npx shadcn@latest` 等範例在本專案一律改用 `bash scripts/tooling/tool-exec.sh shadcn`，並將工作目錄指向 `frontend/miniapp`。先讀實際元件文件、檢查已安裝元件，更新前使用 `--dry-run`／`--diff`；不因 skill 範例自動重建專案或安裝所有元件。
-程式關係探索遵循上方 Graphify 規則；需跨檔來源核對時讀 `.agents/skills/repomix-explorer/SKILL.md`，以 Repomix CLI 打包所需範圍。純工具文件工作不要求每次全庫打包；圖譜過期須回報，不能把舊路徑當目前實作證據。
-
-## shadcn 元件保護
-
-Codex 預設不得直接修改 `frontend/miniapp/src/shared/ui/*.tsx`、`shared/hooks/use-mobile.ts` 或 `src/shell/sidebar-07/*.tsx` 的官方樣式、結構與互動。不得為配合單一頁面需求更改 primitives，亦不得用全域 CSS 覆蓋其外觀。
-業務需求優先透過公開 props、variants、資料與事件，由 `shell/AppFrame.tsx`、`shell/Shell.tsx` 或業務層組合；sidebar-07 保留既有真實導覽、身分與登入操作，不換回示範帳號、假連結或訂閱／帳單功能。
-只有使用者明確要求修改、還原或更新上述元件時才可更動，且授權只適用當次任務；先用固定版 CLI `add --dry-run`／`--diff` 核對，再最小修改並執行前端檢查。不要自行執行 `add sidebar-07 --overwrite`：它會產生另一套 shared 元件及 dashboard，無法直接更新目前 shell 中的整合。
-必要的 alias、client directive 與已記錄的可及性修正保留。不得藉套用 upstream 移除 `Progress` 傳給 Root 的 `value`，使進度值無法被輔助工具讀取。上游 skill 保留原樣，本專案保護規則優先於其一般客製化建議。
+實作交接依[架構證據與用語](docs/foundation/architecture/README.md#接手時的證據與用語)與[命名規範](docs/development/naming.md)。
 
 ## Repository publication default
 
 Publish verified changes through a pull request from work to main. Use squash merge so each main commit represents one independently revertible change. Synchronize work with the resulting main commit before starting the next change. Follow the [publication workflow](docs/agents/workflow.md#repository-publication) and respect the user's requested scope and branch protections.
 
-## gcloud sign-in routing
-
-For gcloud login, follow [the short sign-in workflow](docs/tooling/mcp/google.md#gcloud-sign-in). Keep one orchestrator executor for the whole OAuth process; the top-level agent relays the clickable URL and user code to that same executor. Reuse valid credentials first; otherwise provide the headless login URL immediately. Do not start browser/desktop discovery or additional specialists unless the user asks. Keep CLI login separate from ADC and resource changes.
-
-## Deployment and browser location routing
-
-Current scope follows docs/foundation/architecture/decisions/0002-baseline.md and
-docs/development/foundation.md: foundation first, then LINE/Firestore, then basic
-attendance only. Platform expansion documents are deferred reference material;
-do not require Worker, Garr, geolocation or new test infrastructure for this phase.
-
-Application deployment uses Cloud Run only. Read docs/foundation/architecture/decisions/0003-cloud-run-primary.md
-and docs/foundation/operations/cloud-run.md before deployment work; use a dedicated runtime service account and minimal IAM.
-For location tasks read docs/foundation/integrations/web-geolocation.md: browser JavaScript obtains location,
-Go validates untrusted coordinates and authorization. No location history or presence verification
-without the product contract. Read docs/foundation/architecture/README.md#接手時的證據與用語 and
-docs/development/naming.md for implementation handoffs. Preserve generated upstream skills.
-
-## Nested directory instructions
-
-Root instructions apply throughout the repository. Before changing a subtree, read its AGENTS.md and README.md; more specific instructions supplement root policy within their scope, subject to user and host instructions. Directory entry points are listed in [README.md](README.md#巢狀目錄導覽).
-
-Scoped pairs exist in `.agents`, `.codex`, `.github`, `.vscode`, `api`, `assets`, `backend`, `deploy`, `docs` and `frontend`. Within `frontend/miniapp`, also follow its existing generated Next.js guidance. Preserve upstream skill files and existing local changes. A nested guide never grants additional push, publication, deployment or external-write authorization.
-
-## Business Operation 開發與持續符合性
-
-新增、修改或審查業務操作前，必須閱讀 [操作模型](docs/foundation/architecture/business-operation.md) 與 [符合性流程](docs/agents/workflow.md#business-operation-compliance)。
-在對應功能文件回答六個問題：誰操作、操作什麼、做什麼、有沒有權限、符合哪些業務規則、成功後改變或回傳什麼；補充 Context、Authority、Decision 與依風險需要的 Event／Audit。
-區分系統允許／拒絕與業務核准／駁回；Merge 僅於採納提案時使用。
-後端執行授權與業務規則，各領域保留獨立狀態模型，共用必要機制，避免不必要抽象。
+## 共通驗證與交付
 
 任務範圍內發現不符合時，以 Graphify 定位關係、Repomix 核對內容、Context7 查證相關技術，再最小修正並依 acceptance 驗證。工具無法使用、圖譜過期或打包遺漏時明確列出限制，不猜測通過。
 範圍外發現列出證據與後續工作，不自行全庫重構、改產品規則或部署。純文件及設定調整不要求無關應用測試；修改行為須執行相應檢查。

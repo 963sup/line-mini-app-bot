@@ -19,3 +19,7 @@ cloudbuild.yaml 為手動提交或自訂 trigger 的建置部署流程；firesto
 先由 [本模組相關文件](README.md#相關文件) 與 [模組閱讀入口](../docs/README.md#按模組閱讀) 選擇文件。局部用途與命令維護在本模組 README；跨模組架構、功能與營運文件依 docs 主題分類保存。索引更新依[文件維護指引](../docs/AGENTS.md#主題子目錄)。
 
 [開發與維運指引圖索引](../docs/diagrams.md#開發與維運指引) · [未來設計圖](../docs/diagrams.md#未來設計)。
+
+## Cloud Run 部署
+
+應用程式僅部署至 Cloud Run。部署前讀取[部署決策](../docs/foundation/architecture/decisions/0003-cloud-run-primary.md)與[操作指南](../docs/foundation/operations/cloud-run.md)，使用專屬 runtime service account 與最小 IAM 權限。雲端工具查證與登入依[MCP 指引](../docs/tooling/mcp/AGENTS.md)。

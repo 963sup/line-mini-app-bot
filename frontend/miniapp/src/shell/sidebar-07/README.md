@@ -15,7 +15,7 @@
 
 ## 元件保護與官方比對
 
-Codex 遵循根目錄 AGENTS.md 的「shadcn 元件保護」，不得為頁面需求擅改此 block 的外觀或互動。資料、真實路由與身分動作屬必要整合，不能還原成官方示例的帳號、帳單及假連結。
+Codex 遵循[前端元件保護規則](../../../../AGENTS.md#shadcn-元件保護)，不得為頁面需求擅改此 block 的外觀或互動。資料、真實路由與身分動作屬必要整合，不能還原成官方示例的帳號、帳單及假連結。
 
 本次以專案 CLI 4.23.0 的 new-york registry 比對全部 24 個已安裝 primitives；除 alias、client directive 外，Button 改回官方 radix-ui Slot.Root；Progress 保留 Root value 的可及性修正。sidebar.tsx 本體與上游一致。NavUser 選單標頭恢復官方的頭像及雙行排版，保留真實登入操作。Registry 是可更新來源，CLI 版本不等於 registry 內容版本；未宣稱像素或手機實機驗收。
 

@@ -25,3 +25,32 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 畫面呈現操作可用性、確認與結果；前端隱藏按鈕不能取代後端授權。使用 API 契約處理拒絕、過期版本與失敗，結果未知時遵循既有重試契約，不自行宣告權限或成功。
 
 [現行實作圖：頁面與身分生命週期](../docs/foundation/frontend/react-frontend.md#頁面與身分生命週期) · [未來設計圖](../docs/diagrams.md#未來設計)
+
+## 前端操作與業務契約
+
+Web 業務操作遵循 **Frontend → API → Backend**。每個 API 操作以一個可驗證的業務結果為單位，優先沿用能完整表達該結果的既有契約。
+
+| 層級 | 責任 |
+| --- | --- |
+| Frontend | 收集輸入，處理瀏覽器互動與必要的本地狀態，透過產生的 API client 送出操作，依回應呈現載入、成功、拒絕或待確認狀態。 |
+| API | 在 OpenAPI 定義操作的輸入、成功結果與可辨識的錯誤。對可能重送或併發的寫入，明定回應遺失後的重試方式與版本衝突語意。契約變更後重新產生 Go 與 TypeScript 程式碼。 |
+| Backend | Go 依可信身分與目前資料執行授權、權威驗證、業務計算與狀態轉換，維護資料一致性，回傳操作結果。 |
+
+審查時，若前端必須掃描清單或拼接多個查詢才能推斷操作是否成功，應回頭檢查契約。例如「加入專案引用」的回應遺失時，UI 應顯示結果待確認，依契約重試或查詢原操作，由 Go 回覆結果。清單反映的是目前狀態，可能已被後續操作改變。
+
+## shadcn 任務入口
+
+凡前端 UI 任務，主動先讀 [官方元件保護與 Skill／MCP 工作流程](miniapp/src/shared/ui/AGENTS.md)，再依 [本機參考庫](../docs/tooling/shadcn-reference/README.md) 檢查新鮮度、搜尋完整 Components／AI Elements 索引及相關文件，不需使用者逐次指定 shadcn。完整元件索引只由該參考庫生成；MCP 未曝光時依 UI 指引的固定 CLI 流程查詢並回報限制。
+元件選擇、按需新增與 UI 驗收遵循該檔的「需求驅動的選用與驗收」；主動完成當前任務，不以已安裝清單限制候選，也不擴大為未要求的全站改版。
+
+涉及 shadcn/ui、components.json、registry、preset 或其 MCP 的任務，開始前必讀 [.agents/skills/shadcn/SKILL.md](../.agents/skills/shadcn/SKILL.md)，再按需讀其 references；使用方式與驗證見 [shadcn 工具指南](../docs/tooling/mcp/shadcn.md)。所有角色都適用。
+上游 skill 保留原樣；其 `npx shadcn@latest` 等範例在本專案一律改用 `bash scripts/tooling/tool-exec.sh shadcn`，並將工作目錄指向 `frontend/miniapp`。先讀實際元件文件、檢查已安裝元件，更新前使用 `--dry-run`／`--diff`；不因 skill 範例自動重建專案或安裝所有元件。
+
+## shadcn 元件保護
+
+Codex 預設不得直接修改 `frontend/miniapp/src/shared/ui/*.tsx`、`shared/hooks/use-mobile.ts` 或 `src/shell/sidebar-07/*.tsx` 的官方樣式、結構與互動。不得為配合單一頁面需求更改 primitives，亦不得用全域 CSS 覆蓋其外觀。
+業務需求優先透過公開 props、variants、資料與事件，由 `shell/AppFrame.tsx`、`shell/Shell.tsx` 或業務層組合；sidebar-07 保留既有真實導覽、身分與登入操作，不換回示範帳號、假連結或訂閱／帳單功能。
+只有使用者明確要求修改、還原或更新上述元件時才可更動，且授權只適用當次任務；先用固定版 CLI `add --dry-run`／`--diff` 核對，再最小修改並執行前端檢查。不要自行執行 `add sidebar-07 --overwrite`：它會產生另一套 shared 元件及 dashboard，無法直接更新目前 shell 中的整合。
+必要的 alias、client directive 與已記錄的可及性修正保留。不得藉套用 upstream 移除 `Progress` 傳給 Root 的 `value`，使進度值無法被輔助工具讀取。上游 skill 保留原樣，本專案保護規則優先於其一般客製化建議。
+
+新增、修改或審查業務模型、API 契約、資源路徑、collection 或查詢欄位前，所有角色必讀 [命名規範](../docs/development/naming.md#業務實體集合與-api-命名)，遵守單一業務實體用單數、集合與 REST 資源路徑用複數的規則及既有相容例外。完整規範只維護於該文件；不得直接重新命名既有公開契約或保存資料。

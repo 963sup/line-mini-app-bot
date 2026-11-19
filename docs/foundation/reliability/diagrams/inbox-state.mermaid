@@ -1,9 +1,0 @@
-stateDiagram-v2
-  [*] --> pending: durable create-if-absent
-  pending --> processing: 原子領取租約
-  processing --> completed: 業務變更與 Outbox 同交易提交
-  processing --> ignored: 已識別為範圍外或無操作
-  processing --> retry_wait: 暫時失敗
-  retry_wait --> processing: 到期重新領取
-  processing --> pending: 租約過期並以版本檢查回收
-  processing --> failed: 永久失敗或上限

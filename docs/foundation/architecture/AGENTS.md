@@ -13,3 +13,7 @@
 純文件修改驗證本機路徑、標題錨點及 `git diff --check`；設定變更另依父層規定檢查。不把未執行的應用測試或外部驗收宣稱為通過。
 
 [現行實作圖索引](../../diagrams.md#現行實作) · [未來設計圖](../../diagrams.md#未來設計)。
+
+## 階段範圍
+
+依[基線決策](decisions/0002-baseline.md)與[基礎開發規格](../../development/foundation.md)判斷階段範圍：先基礎建設，再 LINE／Firestore，接著基本出勤。平台擴充文件屬延後參考，不將 Worker、Garr、定位或新測試基礎設施設為此階段的必要條件。
