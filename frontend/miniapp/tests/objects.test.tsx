@@ -74,6 +74,7 @@ test("Object detail is read-only for other creators and version conflicts requir
     conflict = false; await f.click("重新讀取物件");
     assert.equal([...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === "儲存物件")!.disabled, false);
     await f.fill("完成數", "11");
+    await f.selectType("non_work"); await f.selectType("work");
     await f.click("儲存物件");
     assert.equal((patches[1] as { completedQuantity: string }).completedQuantity, "11");
     assert.ok(!("status" in (patches[1] as object)));
