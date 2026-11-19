@@ -63,8 +63,8 @@ function NavigationSidebar({ workflow, account, repositoryItem, ...props }: Serv
       icon: Home,
       isActive: workflow === "home",
     },
-    { title: "Dashboard", url: "/miniapp/dashboard", icon: LayoutDashboard, isActive: workflow === "dashboard" },
-    { title: "Feed", url: "/miniapp/feed", icon: List, isActive: workflow === "feed" },
+    { title: "儀表板", url: "/miniapp/dashboard", icon: LayoutDashboard, isActive: workflow === "dashboard" },
+    { title: "動態", url: "/miniapp/feed", icon: List, isActive: workflow === "feed" },
     { title: "專案", url: "/miniapp/projects", icon: Layers, isActive: workflow === "projects" },
     { ...(repositoryItem || {
       title: "儲存庫", url: "/miniapp/repositories", isActive: workflow === "repositories",
