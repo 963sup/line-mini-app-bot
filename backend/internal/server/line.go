@@ -19,7 +19,7 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
-func registerLINE(mux *http.ServeMux, appURL string, punches *attendance.Attendance, summaries *summary.Summary, repositories *repositoryline.Observer, groups *groupline.Observer, catalog *repository.Service) (func(context.Context, string) string, error) {
+func registerLINE(mux *http.ServeMux, appURL, endpointURL string, punches *attendance.Attendance, summaries *summary.Summary, repositories *repositoryline.Observer, groups *groupline.Observer, catalog *repository.Service) (func(context.Context, string) string, error) {
 	var client weather.ForecastLookup
 	if key := os.Getenv("CWA_API_KEY"); key != "" {
 		client = &cwa.Client{APIKey: key, HTTP: &http.Client{Timeout: 3 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}
@@ -37,7 +37,7 @@ func registerLINE(mux *http.ServeMux, appURL string, punches *attendance.Attenda
 			return reply, handled, nil
 		}},
 		{Handle: func(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
-			reply := navigation.ReplyForEvent(event, appURL)
+			reply := navigation.ReplyForEvent(event, appURL, endpointURL)
 			if reply.Message == nil || repositories == nil {
 				return reply, true, nil
 			}
@@ -55,7 +55,7 @@ func registerLINE(mux *http.ServeMux, appURL string, punches *attendance.Attenda
 				if err != nil {
 					return transport.Reply{}, false, err
 				}
-				reply = navigation.ReplyForEvent(event, appURL, container.ID)
+				reply = navigation.ReplyForEvent(event, appURL, endpointURL, container.ID)
 			}
 			return reply, true, nil
 		}},

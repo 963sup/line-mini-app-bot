@@ -45,16 +45,16 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["3. MINI App"]
-  h --- n0["環境變數：LINE_MINI_APP_ENV<br/>值：developing（預設）、review、published<br/>Go 同時選定公開 Channel ID 與 LIFF ID；未知值使服務啟動失敗。"]
-  h --- n1["公開配對只在 Go server/miniapp.go 定義。舊 LINE_MINI_APP_CHANNEL_ID 與 LINE_MINI_APP_LIFF_ID 不再讀取；不會覆寫所選環境或成為額外 audience。"]
-  h --- n2["三環境共用的 HTTPS Endpoint 已內建，不再讀取 LINE_MINI_APP_WEB_URL；桌面 Flex 使用此固定入口，不從請求 Host 或 postback 推導。"]
+  h --- n0["環境變數：LINE_MINI_APP_ENV<br/>值：developing（預設）、review、published<br/>Go 同時選定公開 Channel ID、LIFF ID 與 Endpoint URL；未知階段或選定組缺失／非法值使服務啟動失敗。"]
+  h --- n1["公開設定由根 .env.example 列出三階段鍵名，Go server/miniapp.go 統一讀取及驗證。舊 LINE_MINI_APP_CHANNEL_ID 與 LINE_MINI_APP_LIFF_ID 不再讀取；不會覆寫所選環境或成為額外 audience。"]
+  h --- n2["Endpoint URL 由所選階段的 ENDPOINT_URL 提供，不再讀取 LINE_MINI_APP_WEB_URL；桌面 Flex 使用此設定，不從請求 Host 或 postback 推導。"]
   h --- n3["環境變數：LINE_MINI_APP_CHANNEL_ACCESS_TOKEN<br/>用途：呼叫 MINI App Service Message API<br/>機密：是<br/>必要條件：啟用 Service Message 且採預先簽發 <br/>token 時"]
 ```
 
 ```mermaid
 flowchart LR
   h["3. MINI App"]
-  h --- n0["MINI App 的 Developing／Review／Published 有<br/>不同內部 Channel；每個部署只選擇一個環境的內建 Channel／LIFF 配對，不接受其他環境的 token，不得混用<br/>。Messaging API 與 MINI App 即使位於相同 <br/>Provider，也使用各自的 Channel 憑證。"]
+  h --- n0["MINI App 的 Developing／Review／Published 有<br/>不同內部 Channel；每個部署只選擇一個環境的 Channel／LIFF 設定，不接受其他環境的 token，不得混用<br/>。Messaging API 與 MINI App 即使位於相同 <br/>Provider，也使用各自的 Channel 憑證。"]
   h --- n1["目前沒有使用 MINI App Channel secret 的流程<br/>，因此不預設加入該變數。 未來若選定的授權流<br/>程需要，再明確增加 <br/>LINE_MINI_APP_CHANNEL_SECRET。"]
   h --- n2["Quick Reply的「MINI App」先送既有Webhook <br/>postback action=miniapp，回覆一張Flex開啟卡<br/>；手機再點卡片後使用原MINI App URI，比原先多<br/>一次點擊。桌面LINE使用altUri.desktop開啟已設<br/>定的HTTPS網頁入口；Quick Reply本身不支援此屬<br/>性，Rich Menu與其他quick chips不變。功能說明<br/>卡的MINI App按鈕共用同一桌面分流規則。"]
   h --- n3["Developing、Review、Published 共用 https://line-mini-app-bot-jtghegqd7q-de.a.run.app/miniapp。這是公開網頁 Endpoint，不取代各環境 miniapp.line.me 永久連結，也不授予登入或群組權限。本次僅固定程式設定，不代表已部署或完成桌面 SSO 驗收。"]
@@ -82,7 +82,7 @@ flowchart LR
 flowchart LR
   h["5. 注入與驗證"]
   h --- n0["mise.toml 管理工具與非機密共用預設；真實 <br/>Channel／LIFF ID 由部署環境提供，避免提交某<br/>個環境的固定值。"]
-  h --- n1["Cloud Run 正式環境機密由 Secret Manager 綁定<br/>。現行 GitHub managed trigger 只更新 image <br/>並沿用 service template；它不從 Dockerfile、<br/>backend/.env.example 或 repository <br/>deploy/cloudbuild.yaml 匯入 runtime 變數。變<br/>更設定必須建立新的 Cloud Run revision。 本機<br/>由執行環境安全注入，不提交至 mise、範例檔或<br/>版本庫。"]
+  h --- n1["Cloud Run 正式環境機密由 Secret Manager 綁定<br/>。現行 GitHub managed trigger 只更新 image <br/>並沿用 service template；它不從 Dockerfile、<br/>.env.example 或 repository <br/>deploy/cloudbuild.yaml 匯入 runtime 變數。變<br/>更設定必須建立新的 Cloud Run revision。 本機<br/>由執行環境安全注入，不提交至 mise、範例檔或<br/>版本庫。"]
   h --- n2["前端只公開必要的 LIFF ID 等非機密資訊；所有 <br/>Channel token／secret 限後端使用。"]
   h --- n3["啟動時依啟用功能檢查必填值，錯誤只列變數名稱<br/>，不輸出值；不讀取舊 LINE_CHANNEL_* 別名。"]
   h --- n4["Channel ID 與 LIFF ID 使用字串，不能互換；群<br/>組來源 ID 也不能拿來作使用者授權。"]
@@ -92,16 +92,20 @@ flowchart LR
   click n7 "line.md"
 ```
 
-## 內建公開環境
+## 公開環境設定
 
-設定的單一來源為 [Go MINI App 設定](../../../backend/internal/server/miniapp.go)。
+根目錄 [.env.example](../../../.env.example) 列出十個公開設定變數；[Go MINI App 設定](../../../backend/internal/server/miniapp.go) 是唯一讀取與驗證入口。範例值可替換為其他產品的 Channel、LIFF 與 Endpoint，程式不內建個人 ID 或主機。
 
-| LINE_MINI_APP_ENV | Channel ID | LIFF ID | 永久連結 |
-| --- | --- | --- | --- |
-| developing（預設） | 2012412007 | 2012412007-0xCIzCmZ | https://miniapp.line.me/2012412007-0xCIzCmZ |
-| review | 2012412008 | 2012412008-L7dYhvM1 | https://miniapp.line.me/2012412008-L7dYhvM1 |
-| published | 2012412009 | 2012412009-Xp2CQWOP | https://miniapp.line.me/2012412009-Xp2CQWOP |
+| LINE_MINI_APP_ENV | 所選變數前綴 |
+| --- | --- |
+| developing（預設） | LINE_MINI_APP_DEVELOPING_ |
+| review | LINE_MINI_APP_REVIEW_ |
+| published | LINE_MINI_APP_PUBLISHED_ |
 
-公開設定 API、ID token verifier 與 Session Channel 使用同一選擇。公開 ID 內建不表示已完成 LINE Console、HTTPS、openid、ADC 或 Firestore 權限設定；不會自動切換、發布或建立雲端資源。`.env` 不自動載入，既有舊 ID 鍵可保留，但不再生效。Cloud Build 範例明確維持 developing；切換 Published 必須明確設定 `LINE_MINI_APP_ENV=published`。
+每個前綴包含 `CHANNEL_ID`、`LIFF_ID`、`ENDPOINT_URL`。僅所選組必填：Channel ID 為數字字串；LIFF ID 非空且與 Channel ID 前綴配對；Endpoint 必須是無 credentials／fragment 的絕對 HTTPS URL，可保留路徑與 query。未知階段或所選組缺失／非法值會在啟動時回報變數名稱，不輸出設定內容。未選組不影響啟動。
 
-三環境共用的網頁 Endpoint 單一來源為 [LINE 導覽](../../../backend/internal/navigation/line/events.go) 的 `miniAppEndpointURL`；舊 `LINE_MINI_APP_WEB_URL` 與 `_MINI_APP_WEB_URL` 不再生效。手機仍使用上表各環境的永久連結。
+公開 config API、ID token verifier 與 Session Channel 使用同一選擇，不接受其他環境 audience。手機永久連結仍由所選 LIFF ID 產生 `https://miniapp.line.me/<LIFF ID>`；桌面 Flex 使用該組 Endpoint，不能從請求 Host 或 postback 改寫。Messaging API 設定獨立。
+
+`.env` 不自動載入；本機由 shell／執行環境安全注入。舊 `LINE_MINI_APP_CHANNEL_ID`、`LINE_MINI_APP_LIFF_ID`、`LINE_MINI_APP_WEB_URL` 不再生效，也不作 fallback。公開設定不表示已完成 LINE Console、openid、HTTPS、ADC 或 Firestore 權限驗收。
+
+Cloud Build 範例將十項設定映射為 runtime env；現行 managed trigger 僅更新 image，**合併此變更前必須先補齊 Cloud Run 所選組環境變數**，否則新 revision 會因缺少設定而啟動失敗。變更範例或推送程式不會遷移遠端設定；操作依 [Cloud Run 指南](../../guides/release/cloud-run.md)。
