@@ -21,8 +21,9 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
   document.body.innerHTML = '<div id="root"></div>';
   const originalFetch = globalThis.fetch, originalSDK = window.liff;
   let initialization = 0, login = 0, logout = 0, loggedIn = false, revocations = 0;
+  let failInitialization: (() => void) | undefined;
   window.liff = {
-    init: async () => { if (++initialization === 1) throw new Error("初始化暫時失敗"); },
+    init: async () => { if (++initialization === 1) await new Promise<void>((_, reject) => { failInitialization = () => reject(new Error("初始化暫時失敗")); }); },
     isLoggedIn: () => loggedIn,
     isInClient: () => false,
     getProfile: async () => ({ userId: "u1", pictureUrl: "https://profile.line-scdn.net/test-avatar" }),
@@ -61,6 +62,14 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
   };
   try {
     await act(async () => { root.render(<Shell title="授權審核" workflow="review"><PrivateContent /></Shell>); await flush(); });
+    const notice = () => document.querySelector<HTMLElement>('[aria-label="LINE 身分狀態"]');
+    assert.equal(notice()!.getAttribute("role"), "status");
+    assert.equal(notice()!.getAttribute("aria-busy"), "true");
+    assert.match(notice()!.textContent!, /正在初始化 LINE/);
+    await act(async () => { failInitialization!(); await flush(); });
+    assert.equal(notice()!.getAttribute("aria-busy"), "false");
+    assert.match(notice()!.textContent!, /初始化暫時失敗/);
+    assert.match(notice()!.textContent!, /重試初始化/);
     await showSidebar();
     await act(async () => {
       document.querySelector<HTMLElement>('[aria-label="切換工作區"]')!.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
@@ -76,6 +85,7 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
     await openMenu();
     assert.equal(document.getElementById("verify")!.textContent, "重試初始化");
     await click("verify");
+    assert.match(notice()!.textContent!, /請登入 LINE/);
     await openMenu();
     assert.ok(document.getElementById("login"));
     await click("login");
@@ -84,6 +94,7 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
     await openMenu();
     await click("verify");
     assert.equal(document.getElementById("private-content")!.textContent, "私人內容");
+    assert.equal(notice(), null, "verified users must not retain an authentication notice");
     assert.equal(document.getElementById("private-content")!.getAttribute("data-avatar"), "https://profile.line-scdn.net/test-avatar");
     await openMenu();
     assert.equal(document.getElementById("login"), null);
