@@ -434,6 +434,23 @@
           "unlinkRepositoryId": {
             "type": "string",
             "pattern": "^[a-f0-9]{32}$"
+          },
+          "itemProgress": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "itemId",
+              "status"
+            ],
+            "properties": {
+              "itemId": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              },
+              "status": {
+                "$ref": "#/components/schemas/ProjectItemStatus"
+              }
+            }
           }
         }
       },
@@ -456,6 +473,14 @@
             "description": "Empty when finished. Pages inspect at most twenty candidates and may be empty after filtering; continue while nextCursor is nonempty."
           }
         }
+      },
+      "ProjectItemStatus": {
+        "type": "string",
+        "enum": [
+          "todo",
+          "in_progress",
+          "done"
+        ]
       }
     },
     "responses": {

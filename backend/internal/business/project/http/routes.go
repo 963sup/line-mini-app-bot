@@ -155,6 +155,9 @@ func (s *projectServer) UpdateProject(w http.ResponseWriter, r *http.Request, re
 		return
 	}
 	update := feature.Update{Content: feature.Content{Title: input.Title, Body: input.Body}, ExpectedVersion: input.ExpectedVersion}
+	if input.ItemProgress != nil {
+		update.ItemID, update.ItemStatus = input.ItemProgress.ItemId, string(input.ItemProgress.Status)
+	}
 	if input.LinkRepositoryId != nil {
 		update.LinkRepositoryID = *input.LinkRepositoryId
 	}

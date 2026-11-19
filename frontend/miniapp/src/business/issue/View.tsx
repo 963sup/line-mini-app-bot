@@ -20,16 +20,8 @@ import { Item, ItemGroup, ItemContent, ItemTitle, ItemActions, ItemFooter } from
 
 type Issue = components["schemas"]["Issue"];
 type Creation = components["schemas"]["IssueCreation"];
-const states = { open: "待處理", in_progress: "進行中", completed: "已完成" };
-const nextState = { open: "in_progress", in_progress: "completed", completed: "open" } as const;
-const action = { open: "開始處理", in_progress: "標記完成", completed: "重新開啟" };
-
+const states = { open: "開啟", in_progress: "開啟（原進行中）", completed: "已關閉" };
 export function View({ repositoryId }: { repositoryId: string }) {
-  const { user, epoch } = useSession();
-  return <Content key={`${repositoryId}:${user?.userId}:${epoch}`} repositoryId={repositoryId} />;
-}
-
-function Content({ repositoryId }: { repositoryId: string }) {
   const { user, request } = useSession();
   const { run: readRun, cancel: cancelRead } = useLatestRequest();
   const detailRequest = useLatestRequest(), write = useLatestRequest();
@@ -50,7 +42,6 @@ function Content({ repositoryId }: { repositoryId: string }) {
   const createAttempt = useRef<{ idempotencyKey: string; body: Creation } | null>(null);
   const mine = !!selected && selected.creatorId === user?.userId;
   const [activeId, setActiveId] = useState("");
-  const [recovery, setRecovery] = useState(false);
   const baseline = useRef(JSON.stringify(["", "", "", []]));
   const dirty = !!mode && JSON.stringify([title, body, milestoneID, labelIDs]) !== baseline.current;
   const titleInput = useRef<HTMLInputElement>(null), editorPanel = useRef<HTMLElement>(null), opener = useRef<HTMLElement | null>(null);
@@ -61,7 +52,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
   }
   const discard = useDiscardChanges(dirty, focusEditor);
   const guard = useRepositoryGuard(dirty, focusEditor);
-  useEffect(() => { guard.block(busy || createOutcomeUnknown || recovery); }, [busy, createOutcomeUnknown, recovery]);
+  useEffect(() => { guard.block(busy || createOutcomeUnknown || needsRefresh); }, [busy, createOutcomeUnknown, needsRefresh]);
   useEffect(() => { navigating.current = false; });
   useEffect(() => {
     if (!mode) opener.current?.focus();
@@ -71,11 +62,11 @@ function Content({ repositoryId }: { repositoryId: string }) {
     detailRequest.cancel(); setDetailBusy(false); setSelected(null); setMode(null); setActiveId(""); setNeedsRefresh(false); setStatus("");
   }
   function close() {
-    if (lock.current || createOutcomeUnknown || recovery) return;
+    if (lock.current || createOutcomeUnknown || needsRefresh) return;
     discard.navigate(() => { navigating.current = true; clearEditor(); });
   }
   function saved(item: Issue, message: string) {
-    guard.block(false); setRecovery(false); setCreateOutcomeUnknown(false); createAttempt.current = null;
+    guard.block(false); setCreateOutcomeUnknown(false); createAttempt.current = null;
     clearEditor();
     setItems(previous => previous.some(value => value.id === item.id) ? previous.map(value => value.id === item.id ? item : value) : [item, ...previous]);
     setListStatus(message);
@@ -102,12 +93,12 @@ function Content({ repositoryId }: { repositoryId: string }) {
   useEffect(() => { load(); return cancelRead; }, [load, cancelRead]);
 
   function show(item: Issue) {
-    baseline.current = JSON.stringify([item.title, item.body, item.milestoneId || "", item.labelIds || []]); setActiveId(item.id); setRecovery(false); guard.block(false);
+    baseline.current = JSON.stringify([item.title, item.body, item.milestoneId || "", item.labelIds || []]); setActiveId(item.id); guard.block(false);
     setSelected(item); setTitle(item.title); setBody(item.body); setLabelIDs(item.labelIds || []);setMilestoneID(item.milestoneId || ""); setMode("detail");
     setNeedsRefresh(false); setCreateOutcomeUnknown(false); createAttempt.current = null;
   }
   function open(id: string, trigger?: HTMLElement) {
-    if (!user || lock.current || createOutcomeUnknown || (recovery && id !== activeId) || !guard.canWrite()) return;
+    if (!user || lock.current || createOutcomeUnknown || (needsRefresh && id !== activeId) || !guard.canWrite()) return;
     discard.navigate(() => {
       if (trigger) opener.current = trigger;
       navigating.current = true; cancelRead(); setListBusy(false);
@@ -121,7 +112,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
     });
   }
   function openCreateForm(trigger: HTMLElement) {
-    if (lock.current || createOutcomeUnknown || recovery || !guard.canWrite()) return;
+    if (lock.current || createOutcomeUnknown || needsRefresh || !guard.canWrite()) return;
     discard.navigate(() => {
       opener.current = trigger; navigating.current = true; cancelRead(); setListBusy(false); clearEditor();
       baseline.current = JSON.stringify(["", "", "", []]);
@@ -161,7 +152,7 @@ function Content({ repositoryId }: { repositoryId: string }) {
         signal: s, params: { path: { repositoryId, id } }, body: { title: title.trim(), body: body.trim(), state, expectedVersion: selected.version, labelIds:labelIDs,milestoneId:milestoneID||null },
       }), { signal }),
       (item) => { lock.current = false; setBusy(false); saved(item, "已更新問題。"); },
-      (error) => { lock.current = false; setBusy(false); setNeedsRefresh(true); setRecovery(true); setStatus(errorMessage(error) + " 請重新讀取問題後再修改。"); },
+      (error) => { lock.current = false; setBusy(false); setNeedsRefresh(true); setStatus(errorMessage(error) + " 請重新讀取問題後再修改。"); },
     );
   }
   const editor = <section ref={editorPanel} tabIndex={-1} aria-label="問題編輯" className="flex w-full min-w-0 flex-col gap-3">
@@ -179,20 +170,20 @@ function Content({ repositoryId }: { repositoryId: string }) {
           {selected && <LabelPicker repositoryId={repositoryId} value={labelIDs} onChange={setLabelIDs} disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh || !mine} />}
           {(mode === "create" || mine) && <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={busy || needsRefresh}>{mode === "create" ? createOutcomeUnknown ? "重試原建立請求" : "建立問題" : "儲存內容"}</Button>
-            {selected && <Button type="button" variant="outline" disabled={busy || needsRefresh} onClick={() => save(nextState[selected.state])}>{action[selected.state]}</Button>}
+            {selected && <Button type="button" variant="outline" disabled={busy || needsRefresh} onClick={() => save(selected.state === "completed" ? "open" : "completed")}>{selected.state === "completed" ? "重新開啟" : "關閉問題"}</Button>}
           </div>}
         </FieldGroup>
       </form>}
-      <Button type="button" variant="outline" disabled={busy || createOutcomeUnknown || recovery} onClick={close}>{mine || mode === "create" ? "取消" : "關閉"}</Button>
+      <Button type="button" variant="outline" disabled={busy || createOutcomeUnknown || needsRefresh} onClick={close}>{mine || mode === "create" ? "取消" : "關閉"}</Button>
     </section>;
   return <>
     <PagePanel heading="問題">
       <p className="mb-4 text-sm text-muted-foreground">空間成員可建立問題；只有建立者可以修改或變更狀態。</p>
       <div className="mb-4 flex flex-wrap gap-2">
-        <Button disabled={!user || busy || createOutcomeUnknown || recovery} onClick={event => openCreateForm(event.currentTarget)}>新增問題</Button>
-        <Button variant="outline" disabled={!user || listBusy || busy || !!mode || createOutcomeUnknown || recovery} onClick={() => load()}>重新載入問題</Button>
+        <Button disabled={!user || busy || createOutcomeUnknown || needsRefresh} onClick={event => openCreateForm(event.currentTarget)}>新增問題</Button>
+        <Button variant="outline" disabled={!user || listBusy || busy || !!mode || createOutcomeUnknown || needsRefresh} onClick={() => load()}>重新載入問題</Button>
       </div>
-      <form onSubmit={(event) => { event.preventDefault(); if (!lock.current && !createOutcomeUnknown && !recovery) discard.navigate(() => { navigating.current = true; clearEditor(); setFilter({ query: query.trim(), state }); }); }}>
+      <form onSubmit={(event) => { event.preventDefault(); if (!lock.current && !createOutcomeUnknown && !needsRefresh) discard.navigate(() => { navigating.current = true; clearEditor(); setFilter({ query: query.trim(), state }); }); }}>
         <FieldGroup className="mb-4">
           <FormField>搜尋標題<Input maxLength={120} value={query} onChange={(e) => setQuery(e.target.value)} /></FormField>
           <FormField>狀態<NativeSelect value={state} onChange={(e) => setState(e.target.value as typeof state)}>
@@ -207,15 +198,15 @@ function Content({ repositoryId }: { repositoryId: string }) {
       <ItemGroup className="gap-3">
         {items.map((item) => <Item key={item.id} variant="outline" role="listitem" className="min-w-0">
           <ItemContent className="min-w-0">
-            <ItemTitle className="min-w-0 max-w-full"><Button variant="link" className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || detailBusy || createOutcomeUnknown || recovery} onClick={event => open(item.id, event.currentTarget)}>#{item.number} {item.title}</Button></ItemTitle>
+            <ItemTitle className="min-w-0 max-w-full"><Button variant="link" className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh} onClick={event => open(item.id, event.currentTarget)}>#{item.number} {item.title}</Button></ItemTitle>
             <Badge variant="outline">{states[item.state]}</Badge>
           </ItemContent>
-          {item.creatorId === user?.userId && <ItemActions><Button variant="outline" aria-label={`編輯問題：${item.title}`} disabled={busy || detailBusy || createOutcomeUnknown || recovery} onClick={event => open(item.id, event.currentTarget)}>編輯</Button></ItemActions>}
+          {item.creatorId === user?.userId && <ItemActions><Button variant="outline" aria-label={`編輯問題：${item.title}`} disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh} onClick={event => open(item.id, event.currentTarget)}>編輯</Button></ItemActions>}
           {mode === "detail" && activeId === item.id && <ItemFooter>{editor}</ItemFooter>}
         </Item>)}
       </ItemGroup>
       {loaded && !items.length && <Empty><EmptyHeader><EmptyTitle>{cursor ? "本頁沒有符合的問題" : "沒有符合的問題"}</EmptyTitle><EmptyDescription>{cursor ? "請繼續載入下一頁。" : "可調整篩選條件，或建立新的問題。"}</EmptyDescription></EmptyHeader></Empty>}
-      {cursor && <Button variant="outline" disabled={listBusy || busy || !!mode || createOutcomeUnknown || recovery} onClick={() => load(cursor)}>載入更多問題</Button>}
+      {cursor && <Button variant="outline" disabled={listBusy || busy || !!mode || createOutcomeUnknown || needsRefresh} onClick={() => load(cursor)}>載入更多問題</Button>}
     </PagePanel>
 
     {discard.dialog}

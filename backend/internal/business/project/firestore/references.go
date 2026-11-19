@@ -18,7 +18,10 @@ import (
 )
 
 func itemReference(d itemDocument) feature.Reference {
-	return feature.Reference{ID: d.ID, SourceRepositoryID: d.SourceRepositoryID, SourceType: d.SourceType, SourceID: d.SourceID, ParentObjectID: d.ParentObjectID}
+	if d.ItemStatus == "" {
+		d.ItemStatus = "todo"
+	}
+	return feature.Reference{ItemStatus: d.ItemStatus, ID: d.ID, SourceRepositoryID: d.SourceRepositoryID, SourceType: d.SourceType, SourceID: d.SourceID, ParentObjectID: d.ParentObjectID}
 }
 
 func referenceID(pid string, r feature.Reference) string {

@@ -5,12 +5,11 @@ import { act, StrictMode, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { SessionProvider, useSession } from "../src/identity/Session";
 import { SessionControls } from "./session-controls";
-import { View as Punch } from "../src/business/attendance/punch/View";
+import { launchToken, View as Punch } from "../src/business/attendance/punch/View";
 import { View as History } from "../src/business/attendance/records/View";
 import { View as Correction } from "../src/business/attendance/corrections/View";
 import { View as Geo } from "../src/diagnostics/geolocation/View";
 import { View as Review } from "../src/business/attendance/approvals/View";
-import { launchToken } from "../src/business/attendance/punch/usePunch";
 import { locate } from "../src/shared/location/position";
 const launch = "b".repeat(64),
   requestID = "a".repeat(64);
@@ -92,9 +91,9 @@ async function fixture(
     if (path.endsWith("/launch"))
       return Response.json({ requestId: requestID });
     if (path.endsWith("/punches/preflight"))
-      return Response.json({ code: "needs_position", message: "需要位置" });
+      return Response.json({ code: "needs_position", accepted: false, message: "需要位置" });
     if (path.endsWith("/punches"))
-      return Response.json({ code: "clocked_in", message: "success" });
+      return Response.json({ code: "clocked_in", accepted: true, message: "success" });
     if (path.endsWith("/groups/page"))
       return Response.json({
         items: [{ id: "g1", name: "Group" }],
@@ -201,6 +200,8 @@ const position = {
 } as GeolocationPosition;
 test("Strict Mode initializes SDK once, auto punches once, ignores duplicate callbacks and clears state on logout", async () => {
   const f = await fixture(<Punch />, "?launch=" + launch, async (r, next) => {
+    if (r.url.endsWith("/punches"))
+      return Response.json({ code: "new_server_action", accepted: true, message: "success" });
     const response = await next(r);
     if (r.url.endsWith("/session") && r.method === "POST") {
       const value = await response.json();
@@ -234,7 +235,7 @@ test("Strict Mode initializes SDK once, auto punches once, ignores duplicate cal
     // A completed submission is recovered before any new location request.
     const previous = f.setHandler(async (r) =>
       r.url.endsWith("/punches/preflight")
-        ? Response.json({ code: "clocked_in", message: "saved result" })
+        ? Response.json({ code: "clocked_in", accepted: true, message: "saved result" })
         : previous(r),
     );
     await f.click("punch");
@@ -243,7 +244,7 @@ test("Strict Mode initializes SDK once, auto punches once, ignores duplicate cal
     assert.equal(f.close, 1);
     f.setHandler(async (r) =>
       r.url.endsWith("/punches/preflight")
-        ? Response.json({ code: "already_in", message: "already clocked in" })
+        ? Response.json({ code: "already_in", accepted: false, message: "already clocked in" })
         : previous(r),
     );
     await f.click("punch");
@@ -648,7 +649,7 @@ test("own location and HTTP deadlines allow retry and reject late success", asyn
       true,
     );
     await act(async () => {
-      resolve(Response.json({ code: "clocked_in", message: "late success" }));
+      resolve(Response.json({ code: "clocked_in", accepted: true, message: "late success" }));
       await flush();
     });
     assert.match(f.node("punch-status").textContent!, /尚未確認/);

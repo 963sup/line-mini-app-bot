@@ -1,10 +1,6 @@
+import type { components } from "@repo/api-client";
 import { aborted } from "../http/lifecycle";
-export interface Position {
-  latitude: number;
-  longitude: number;
-  accuracyMeters: number;
-  capturedAt: string;
-}
+export type Position = NonNullable<components["schemas"]["NullablePosition"]>;
 export function locate(signal: AbortSignal): Promise<Position> {
   return new Promise((resolve, reject) => {
     if (!window.isSecureContext || !navigator.geolocation) {

@@ -12,6 +12,8 @@ import (
 
 func referenceView(ref feature.Reference) generated.ProjectReference {
 	out := generated.ProjectReference{Id: ref.ID, SourceType: generated.ProjectReferenceSourceType(ref.SourceType), SourceId: ref.SourceID, SourceRepositoryId: ref.SourceRepositoryID, SourceUnavailable: ref.SourceUnavailable, SourceTitle: ref.SourceTitle, SourceState: ref.SourceState}
+	status := generated.ProjectItemStatus(ref.ItemStatus)
+	out.ItemStatus = &status
 	if ref.ParentObjectID != "" {
 		out.ParentObjectId = &ref.ParentObjectID
 	}

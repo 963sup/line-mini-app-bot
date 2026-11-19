@@ -39,6 +39,7 @@ type (
 		Content
 		ExpectedVersion                      int64
 		LinkRepositoryID, UnlinkRepositoryID string
+		ItemID, ItemStatus                   string
 	}
 	Page struct {
 		Items      []Project
@@ -254,6 +255,11 @@ func (s *Service) Update(ctx context.Context, actor, rid, id string, input Updat
 	}
 	if !ValidID(id) {
 		return Project{}, ErrNotFound
+	}
+	if input.ItemID != "" || input.ItemStatus != "" {
+		if r.Legacy || !ValidID(input.ItemID) || (input.ItemStatus != "todo" && input.ItemStatus != "in_progress" && input.ItemStatus != "done") || input.LinkRepositoryID != "" || input.UnlinkRepositoryID != "" {
+			return Project{}, ErrInput
+		}
 	}
 	if input.LinkRepositoryID != "" || input.UnlinkRepositoryID != "" {
 		if r.Legacy || (input.LinkRepositoryID != "" && input.UnlinkRepositoryID != "") {

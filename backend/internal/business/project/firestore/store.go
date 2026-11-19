@@ -298,6 +298,29 @@ func (s *Store) Update(ctx context.Context, r feature.Scope, actor, id string, i
 		if e != nil {
 			return e
 		}
+		if input.ItemID != "" {
+			item := ref.Collection("items").Doc(input.ItemID)
+			snap, err := tx.Get(item)
+			if status.Code(err) == codes.NotFound {
+				return feature.ErrNotFound
+			}
+			if err != nil {
+				return err
+			}
+			doc, err := decodeItem(snap, id)
+			if err != nil {
+				return err
+			}
+			if itemReference(doc).ItemStatus != input.ItemStatus {
+				if current.Version >= feature.MaxVersion {
+					return feature.ErrConflict
+				}
+				if err := tx.Update(item, []db.Update{{Path: "itemStatus", Value: input.ItemStatus}}); err != nil {
+					return err
+				}
+				updated.Version = current.Version + 1
+			}
+		}
 		linkID, add := input.LinkRepositoryID, true
 		if linkID == "" {
 			linkID, add = input.UnlinkRepositoryID, false

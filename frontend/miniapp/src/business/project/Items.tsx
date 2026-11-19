@@ -16,6 +16,8 @@ import { SourcePicker } from "./SourcePicker";
 type Project = components["schemas"]["Project"];
 type Reference = components["schemas"]["ProjectReference"];
 type Addition = components["schemas"]["ProjectReferenceAddition"];
+type ItemProgress = NonNullable<components["schemas"]["ProjectUpdate"]["itemProgress"]>;
+const progressLabels = {todo:"待辦",in_progress:"進行中",done:"完成"};
 type Kind = Addition["sourceType"];
 type Option = { id: string; title: string };
 const kinds: Record<Kind, string> = { object: "物件", subobject: "子物件", issue: "問題", discussion: "討論" };
@@ -96,18 +98,18 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
       else setStatus(errorMessage(error)+" 結果尚未確認，請重試原引用操作；不要更換來源。");
     });
   }
-  function changeLink() {
-    if (!mine || !sourceRepositoryId || !canWrite() || disabled || lock.current || unknown.current) return;
+  function updateProject(itemProgress?: ItemProgress) {
+    if (!mine || (!itemProgress && !sourceRepositoryId) || !canWrite() || disabled || lock.current || unknown.current) return;
     lock.current = true; setBusy(true); onBlocked(true);
     void write.run(signal => request((client, s) => client.PATCH("/api/v1/owners/{ownerId}/projects/{id}", {
       signal: s, params: { path: { ownerId, id: project.id } },
       body: { title: project.title, body: project.body, expectedVersion: project.version,
-        ...(linked ? { unlinkRepositoryId: sourceRepositoryId } : { linkRepositoryId: sourceRepositoryId }) },
+        ...(itemProgress ? {itemProgress} : linked ? { unlinkRepositoryId: sourceRepositoryId } : { linkRepositoryId: sourceRepositoryId }) },
     }), {signal}), updated => {
       lock.current = false; setBusy(false); onBlocked(false); onChange(updated);
     }, error => {
       lock.current = false; setBusy(false); onBlocked(false); setNeedsRefresh(true);
-      setStatus(errorMessage(error) + " 請重新讀取專案以確認連結狀態。");
+      setStatus(errorMessage(error) + " 請重新讀取專案以確認更新結果。");
     });
   }
   function verify() {
@@ -147,10 +149,11 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
       const title=item.sourceUnavailable ? `不可讀取的${kinds[item.sourceType]}` : item.sourceTitle;
       return <Item key={item.id} variant="outline" className="min-w-0"><ItemContent className="min-w-0"><ItemTitle className="w-full min-w-0 whitespace-normal [overflow-wrap:anywhere]">{kinds[item.sourceType]}：{title}</ItemTitle>
         {item.sourceUnavailable ? <p>來源目前不可讀取；不顯示先前內容。</p> : <>
-          {(item.type === "non_work" || item.sourceState) && <p>狀態：{item.type === "non_work" ? "不適用" : states[item.sourceState] || item.sourceState}</p>}
+          {(item.type === "non_work" || item.sourceState) && <p>來源狀態：{item.type === "non_work" ? "不適用" : states[item.sourceState] || item.sourceState}</p>}
           {item.quantity !== undefined && <p className="whitespace-normal [overflow-wrap:anywhere]">數量：{item.quantity} {item.unit}</p>}
           {item.type === "non_work" ? <p>進度：不適用</p> : item.completedQuantity !== undefined && <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{item.completedQuantity}/{item.quantity} {item.unit}</p>}
         </>}
+        <FormField>本專案進度<NativeSelect value={item.itemStatus ?? "todo"} disabled={!mine || disabled || needsRefresh || busy || uncertain} onChange={e=>updateProject({itemId:item.id,status:e.target.value as ItemProgress["status"]})}>{Object.entries(progressLabels).map(([value,label])=><NativeSelectOption key={value} value={value}>{label}</NativeSelectOption>)}</NativeSelect></FormField>
         {(item.sourceType === "object" || item.sourceType === "subobject") && <Inspections key={String(item.sourceUnavailable)} canSubmit={!item.sourceUnavailable} ownerId={ownerId} projectId={project.id} itemId={item.id}/>}
         {mine&&<Button type="button" variant="outline" aria-label={`移出專案：${title}`} disabled={disabled||needsRefresh||busy||uncertain} onClick={()=>change(item.id)}>移出專案</Button>}
       </ItemContent></Item>;
@@ -158,7 +161,7 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
     {loaded&&!items.length&&<p>尚未收錄來源。</p>}
     {cursor&&<Button type="button" variant="outline" disabled={readBusy||busy||uncertain} onClick={()=>load(cursor)}>載入更多專案引用</Button>}
     {mine && <SourcePicker ownerId="" initialSource="" value={sourceRepositoryId} disabled={disabled||needsRefresh||busy||uncertain} onChange={id => { catalog.cancel(); parents.cancel(); setChoice(""); setParent(""); setOptions([]); setObjects([]); setSourceRepositoryId(id); }} />}
-    {mine && sourceRepositoryId && <Button type="button" variant="outline" disabled={disabled||needsRefresh||busy||uncertain} onClick={changeLink}>{linked ? "解除儲存庫連結" : "連結此儲存庫"}</Button>}
+    {mine && sourceRepositoryId && <Button type="button" variant="outline" disabled={disabled||needsRefresh||busy||uncertain} onClick={()=>updateProject()}>{linked ? "解除儲存庫連結" : "連結此儲存庫"}</Button>}
     {mine && (sourceAvailable ? <FieldGroup>
       <FormField>來源種類<NativeSelect value={kind} disabled={disabled||needsRefresh||busy||uncertain} onChange={event=>{if(lock.current||unknown.current||event.target.value===kind)return;selecting.current=true;catalog.cancel();parents.cancel();setKind(event.target.value as Kind);setParent("");setChoice("");setOptions([]);setObjects([]);setCatalogCursor("");setParentCursor("");setCatalogStatus("");setParentStatus("");}}>{Object.entries(kinds).map(([value,label])=><NativeSelectOption key={value} value={value}>{label}</NativeSelectOption>)}</NativeSelect></FormField>
       {kind === "subobject" && <>

@@ -73,7 +73,7 @@ func ApplyUpdate(current Issue, actor string, input Update) (Issue, error) {
 	if current.Version != input.ExpectedVersion {
 		return Issue{}, ErrConflict
 	}
-	allowed := input.State == current.State || (current.State == "open" && input.State == "in_progress") || (current.State == "in_progress" && input.State == "completed") || (current.State == "completed" && input.State == "open")
+	allowed := input.State == current.State || (current.State == "open" && (input.State == "in_progress" || input.State == "completed")) || (current.State == "in_progress" && input.State == "completed") || (current.State == "completed" && input.State == "open")
 	if !allowed {
 		return Issue{}, ErrInput
 	}

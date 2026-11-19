@@ -16,6 +16,7 @@ import (
 )
 
 type itemDocument struct {
+	ItemStatus         string    `firestore:"itemStatus,omitempty"`
 	SourceRepositoryID string    `firestore:"sourceRepositoryId,omitempty"`
 	SchemaVersion      int64     `firestore:"schemaVersion"`
 	ID                 string    `firestore:"id"`

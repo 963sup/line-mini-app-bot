@@ -438,7 +438,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Creator-only content and state update; expected version required; open to in_progress to completed to open */
+        /** Creator-only content and lifecycle update with version check; supports direct closure and reopening */
         patch: operations["updateIssue"];
         trace?: never;
     };
@@ -1304,6 +1304,10 @@ export interface components {
             expectedVersion: number;
             linkRepositoryId?: string;
             unlinkRepositoryId?: string;
+            itemProgress?: {
+                itemId: string;
+                status: components["schemas"]["ProjectItemStatus"];
+            };
         };
         ProjectPage: {
             items: components["schemas"]["Project"][];
@@ -1657,6 +1661,7 @@ export interface components {
             unit?: string;
             completedQuantity?: string;
             type?: string;
+            itemStatus?: components["schemas"]["ProjectItemStatus"];
         };
         ProjectReferencePage: {
             items: components["schemas"]["ProjectReference"][];
@@ -1917,6 +1922,8 @@ export interface components {
         PunchResponse: {
             code: string;
             message: string;
+            /** @description True when the punch was applied, including a replay of its successful receipt. */
+            accepted: boolean;
         };
         CorrectionReview: {
             id: string;
@@ -2018,6 +2025,8 @@ export interface components {
         CorrectionDecisionResult: {
             status: string;
         };
+        /** @enum {string} */
+        ProjectItemStatus: "todo" | "in_progress" | "done";
     };
     responses: {
         /** @description Request rejected or service unavailable */
