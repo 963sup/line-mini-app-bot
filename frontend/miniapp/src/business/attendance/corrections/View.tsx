@@ -47,11 +47,14 @@ export function View() {
     if (params.get("month")) query.set("month", params.get("month")!);
     setBack("/miniapp/history?" + query);
     setGroup(group);
+    setGroups([]);
+    setGroupCursor("");
     setNewShift(!record);
     if (!user) return;
     if (!record) {
+      loadGroups();
       setStatus("補卡請填寫已結束班次的實際上下班與休息時間；一律須人工審核。");
-      return;
+      return groupsRead.cancel;
     }
     if (!group || !validID(record)) {
       setStatus("請從本人月紀錄選擇班次；也可在下方查詢已送出的申請。");
@@ -177,18 +180,20 @@ export function View() {
       (signal) =>
         request(
           (c, s) =>
-            c.GET("/api/v1/attendance/groups/page", {
+            c.GET("/api/v1/groups", {
               signal: s,
               params: {
-                query: { pageSize: 20, cursor: append ? groupCursor : "" },
+                query: { cursor: append ? groupCursor : undefined },
               },
             }),
           { signal },
         ),
       (data) => {
-        setGroups((previous) =>
-          append ? [...previous, ...data.items] : data.items,
-        );
+        const options = data.items.map(({ groupId, name }) => ({ id: groupId, name: name || groupId }));
+        setGroups(previous => append ? [...previous, ...options] : options);
+        if (!append && !options.length && !data.nextCursor && !group) {
+          setStatus("目前沒有可選群組。請在原 LINE 群組輸入「補卡」開啟表單。");
+        }
         setGroupCursor(data.nextCursor);
       },
       (error) => setStatus(errorMessage(error)),

@@ -87,7 +87,9 @@ export function Requests({
         setItems([]);
         setNext("");
         onClearReview?.();
-        setStatus(errorMessage(error));
+        setStatus(review && (error as { httpStatus?: number }).httpStatus === 403
+          ? "目前沒有補卡審核權限。請聯絡管理員確認審核群組設定。"
+          : errorMessage(error));
       },
     );
   }, [review, group, request, runRead, onClearReview]);
