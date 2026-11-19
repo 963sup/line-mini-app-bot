@@ -11,6 +11,11 @@ import (
 	"syscall"
 	"time"
 
+	organizationdb "github.com/963sup/line-mini-app-bot/internal/business/organization/firestore"
+	organizationhttp "github.com/963sup/line-mini-app-bot/internal/business/organization/http"
+	"github.com/963sup/line-mini-app-bot/internal/httpapi"
+	sessiondb "github.com/963sup/line-mini-app-bot/internal/identity/session/firestore"
+
 	wikihttp "github.com/963sup/line-mini-app-bot/internal/business/repository/wiki/http"
 
 	journalhttp "github.com/963sup/line-mini-app-bot/internal/business/journal/http"
@@ -119,6 +124,13 @@ func Run() (resultErr error) {
 			resultErr = closeErr
 		}
 	}()
+	organizationHandler := organizationhttp.Handler{Auth: auth}
+	if sessions != nil {
+		if db, ok := sessions.Store.(*sessiondb.Store); ok && os.Getenv("LINE_MESSAGING_API_CHANNEL_ID") != "" {
+			organizationHandler.Store = organizationdb.Store{DB: db.Client, Channel: os.Getenv("LINE_MESSAGING_API_CHANNEL_ID"), Groups: groups}
+		}
+	}
+	httpapi.RegisterOrganizations(mux, organizationHandler)
 	projects := newProjects(groups, repositories)
 	journalhttp.Register(mux, newJournals(groups, repositories, projects), auth)
 	grouphttp.Register(mux, groups, auth)

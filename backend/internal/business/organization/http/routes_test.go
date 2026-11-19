@@ -1,0 +1,119 @@
+package organizationhttp
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
+	"cloud.google.com/go/firestore"
+	"github.com/963sup/line-mini-app-bot/internal/business/group"
+	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/firestore"
+	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/firestore"
+	"github.com/963sup/line-mini-app-bot/internal/httpapi"
+	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
+	"github.com/google/uuid"
+)
+
+type actor string
+
+func (a *actor) Authenticate(http.ResponseWriter, *http.Request) (string, string, bool) {
+	return string(*a), "", true
+}
+
+type member bool
+
+func (m member) IsMember(context.Context, string, string) (bool, error) { return bool(m), nil }
+func TestWorkspaceLifecycle(t *testing.T) {
+	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
+		t.Skip("requires local Firestore emulator")
+	}
+	ctx := t.Context()
+	db, err := firestore.NewClient(ctx, "org-test-local")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if e := db.Close(); e != nil {
+			t.Error(e)
+		}
+	})
+	channel := uuid.NewString()
+	owner := actor("U" + strings.Repeat("a", 32))
+	other := "U" + strings.Repeat("b", 32)
+	store := &groupdb.Store{Client: db, ChannelID: channel}
+	groups := &group.Service{Store: store, Membership: member(true)}
+	h := Handler{Auth: &owner, Store: orgdb.Store{DB: db, Channel: channel, Groups: groups}}
+	mux := http.NewServeMux()
+	httpapi.RegisterOrganizations(mux, h)
+	call := func(method, path, body string, code int) []byte {
+		t.Helper()
+		w := httptest.NewRecorder()
+		mux.ServeHTTP(w, httptest.NewRequest(method, "/api/v1/"+path, strings.NewReader(body)))
+		if w.Code != code {
+			t.Fatalf("%s %s: %d %s", method, path, w.Code, w.Body.String())
+		}
+		return w.Body.Bytes()
+	}
+	var org generated.Organization
+	if err = json.Unmarshal(call("POST", "organizations", `{"name":"Taipei"}`, 200), &org); err != nil {
+		t.Fatal(err)
+	}
+	root := db.Collection("channels").Doc(channel)
+	id := org.OrganizationId
+	enterprise := uuid.NewString()
+	gid := "C" + strings.Repeat("a", 32)
+	save := func(ref *firestore.DocumentRef, data map[string]any) {
+		t.Helper()
+		if _, e := ref.Set(ctx, data, firestore.MergeAll); e != nil {
+			t.Fatal(e)
+		}
+	}
+	save(root.Collection("organizations").Doc(id), map[string]any{"enterpriseId": enterprise, "memberUserIds": []string{other}})
+	save(root.Collection("enterprises").Doc(enterprise), map[string]any{"name": "HQ", "ownerUserId": string(owner)})
+	selection := `{"organizationId":"` + id + `"}`
+	call("PUT", "me/organization-context", selection, 200)
+	call("PUT", "me/organization-context", `{"organizationId":"`+uuid.NewString()+`"}`, 404)
+	if !strings.Contains(string(call("GET", "me/organization-context", "", 200)), `"groupLabel":"HQ"`) {
+		t.Fatal("missing selected enterprise")
+	}
+	event := group.Observation{GroupID: gid, EventID: "join", At: time.Now(), Name: "Team", Status: "ACTIVE"}
+	if err = store.Observe(ctx, event); err != nil {
+		t.Fatal(err)
+	}
+	mgmt := "teams/" + gid + "/management"
+	payload := `{"managementScope":"enterprise","managementId":"` + enterprise + `"}`
+	call("PUT", mgmt, payload, 404)
+	save(root.Collection("teams").Doc(gid), map[string]any{"managerUserIds": []string{string(owner)}})
+	call("PUT", mgmt, payload, 204)
+	if err = store.Observe(ctx, event); err != nil {
+		t.Fatal(err)
+	}
+	link := "organizations/" + id + "/enterprise-teams/" + gid
+	foreignID := uuid.NewString()
+	save(root.Collection("organizations").Doc(foreignID), map[string]any{"enterpriseId": uuid.NewString(), "name": "Other", "ownerUserId": string(owner)})
+	call("PUT", "organizations/"+foreignID+"/enterprise-teams/"+gid, "", 404)
+	call("PUT", mgmt, `{"managementScope":"organization","managementId":"`+id+`"}`, 409)
+	call("PUT", link, "", 204)
+	call("PUT", link, "", 204)
+	list := "organizations/" + id + "/teams"
+	if !strings.Contains(string(call("GET", list, "", 200)), gid) {
+		t.Fatal("team missing")
+	}
+	groups.Membership = member(false)
+	if strings.Contains(string(call("GET", list, "", 200)), gid) {
+		t.Fatal("membership revoked")
+	}
+	groups.Membership = member(true)
+	call("DELETE", link, "", 204)
+	if strings.Contains(string(call("GET", list, "", 200)), gid) {
+		t.Fatal("assignment not revoked")
+	}
+	transfer := "organizations/" + id + "/owner"
+	call("PUT", transfer, `{"userId":"`+other+`"}`, 200)
+	call("PUT", transfer, `{"userId":"`+string(owner)+`"}`, 404)
+}

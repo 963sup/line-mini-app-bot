@@ -20,6 +20,7 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
   window.history.replaceState(null, "", "/miniapp/review");
   document.body.innerHTML = '<div id="root"></div>';
   const originalFetch = globalThis.fetch, originalSDK = window.liff;
+  let organizationRevoked = false;
   let initialization = 0, login = 0, logout = 0, loggedIn = false, revocations = 0;
   let failInitialization: (() => void) | undefined;
   window.liff = {
@@ -34,6 +35,15 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
   };
   globalThis.fetch = async (input, init) => {
     const request = input instanceof Request ? input : new Request(new URL(String(input), location.origin), init);
+    if (new URL(request.url).pathname === "/api/v1/me/organization-context") {
+      if (request.method === "PUT") {
+        assert.deepEqual(await request.json(), {organizationId:"org2"});
+        organizationRevoked = true;
+        return Response.json({error:{code:"not_found",message:"找不到組織。"}},{status:404});
+      }
+      const options = (organizationRevoked ? ["org1"] : ["org1","org2"]).map(id => ({organizationId:id,name:"台北營運",detail:id}));
+      return Response.json({groups:[{enterpriseId:"hq",label:"總公司",organizations:options}],selected:{organizationId:"org1",name:"台北營運",groupLabel:"總公司"},canSwitch:options.length>1});
+    }
     if (new URL(request.url).pathname.endsWith("/config")) return Response.json({ liffId: "test-shell" });
     if (request.method === "DELETE") {
       if (++revocations === 1) return Response.json({ error: { message: "retry" } }, { status: 503 });
@@ -96,6 +106,18 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
     assert.equal(document.getElementById("private-content")!.textContent, "私人內容");
     assert.equal(notice(), null, "verified users must not retain an authentication notice");
     assert.equal(document.getElementById("private-content")!.getAttribute("data-avatar"), "https://profile.line-scdn.net/test-avatar");
+    await showSidebar();
+    await act(async () => {
+      document.querySelector<HTMLElement>('[aria-label="切換組織"]')!.dispatchEvent(new window.KeyboardEvent("keydown",{key:"Enter",bubbles:true}));
+      await flush();
+    });
+    const choices = [...document.querySelectorAll<HTMLElement>('[role="menuitemradio"]')];
+    assert.equal(choices.length,2);
+    assert.equal(choices[0].getAttribute("aria-checked"),"true");
+    assert.match(choices[1].textContent!,/org2/);
+    await act(async () => { choices[1].click(); await flush(); });
+    assert.ok(organizationRevoked);
+    assert.equal(document.querySelector('[aria-label="切換組織"]'),null);
     await openMenu();
     assert.equal(document.getElementById("login"), null);
     assert.ok(document.getElementById("logout"));

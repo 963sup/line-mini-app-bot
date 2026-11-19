@@ -6,7 +6,19 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 )
 
+type OrganizationServer interface {
+	RemoveEnterpriseTeam(w http.ResponseWriter, r *http.Request, organizationId string, teamId string)
+	AssignEnterpriseTeam(w http.ResponseWriter, r *http.Request, organizationId string, teamId string)
+	ListOrganizationTeams(w http.ResponseWriter, r *http.Request, organizationId string)
+	SetTeamManagement(w http.ResponseWriter, r *http.Request, teamId string)
+	TransferOrganization(w http.ResponseWriter, r *http.Request, organizationId string)
+	CreateOrganization(w http.ResponseWriter, r *http.Request)
+	GetOrganizationContext(w http.ResponseWriter, r *http.Request)
+	SelectOrganization(w http.ResponseWriter, r *http.Request)
+}
+
 type contractServer struct {
+	OrganizationServer
 	JournalServer
 	IdentityServer
 	AttendanceServer

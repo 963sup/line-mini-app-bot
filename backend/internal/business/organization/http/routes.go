@@ -1,0 +1,127 @@
+package organizationhttp
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"io"
+	"net/http"
+
+	"github.com/963sup/line-mini-app-bot/internal/business/organization"
+	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
+	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+)
+
+type Store interface {
+	Context(ctx context.Context, user string, preference string, write bool) (*organization.Context, error)
+	Create(ctx context.Context, user string, name string) (*generated.Organization, error)
+	Transfer(ctx context.Context, user string, organizationId, target string) (*generated.Organization, error)
+	Manage(ctx context.Context, user string, teamId, scope, managementId string) error
+	Assign(ctx context.Context, user string, id, teamId string, add bool) error
+	List(ctx context.Context, user string, organizationId string) (*generated.OrganizationTeamsResponse, error)
+}
+type Handler struct {
+	Store Store
+	Auth  interface {
+		Authenticate(http.ResponseWriter, *http.Request) (string, string, bool)
+	}
+}
+
+func (h Handler) serve(w http.ResponseWriter, r *http.Request, op func(context.Context, string) (any, error)) {
+	user, _, ok := h.Auth.Authenticate(w, r)
+	if !ok {
+		return
+	}
+	if h.Store == nil {
+		transport.WriteAPIError(w, 503, "not_configured", "組織服務尚未設定。")
+		return
+	}
+	result, err := op(r.Context(), user)
+	switch {
+	case errors.Is(err, organization.ErrInvalid):
+		transport.WriteAPIError(w, 400, "invalid_input", "請求資料無效。")
+	case errors.Is(err, organization.ErrNotFound):
+		transport.WriteAPIError(w, 404, "not_found", "找不到資源。")
+	case errors.Is(err, organization.ErrConflict):
+		transport.WriteAPIError(w, 409, "conflict", "Team 已有管理歸屬。")
+	case err != nil:
+		transport.WriteServiceError(w, 503, "unavailable", "暫時無法完成操作。", err)
+	case result == nil:
+		w.WriteHeader(204)
+	default:
+		transport.WriteJSON(w, 200, result)
+	}
+}
+
+func decode(r *http.Request, w http.ResponseWriter, v any) error {
+	dec := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096))
+	dec.DisallowUnknownFields()
+	if dec.Decode(v) != nil || dec.Decode(&struct{}{}) != io.EOF {
+		return organization.ErrInvalid
+	}
+	return nil
+}
+
+func (h Handler) GetOrganizationContext(w http.ResponseWriter, r *http.Request) {
+	h.serve(w, r, func(ctx context.Context, user string) (any, error) {
+		return h.Store.Context(ctx, user, "", false)
+	})
+}
+
+func (h Handler) SelectOrganization(w http.ResponseWriter, r *http.Request) {
+	h.serve(w, r, func(ctx context.Context, user string) (any, error) {
+		var input generated.SelectOrganizationRequest
+		if err := decode(r, w, &input); err != nil {
+			return nil, err
+		}
+		return h.Store.Context(ctx, user, input.OrganizationId, true)
+	})
+}
+
+func (h Handler) CreateOrganization(w http.ResponseWriter, r *http.Request) {
+	h.serve(w, r, func(ctx context.Context, user string) (any, error) {
+		var input generated.CreateOrganizationRequest
+		if err := decode(r, w, &input); err != nil {
+			return nil, err
+		}
+		return h.Store.Create(ctx, user, input.Name)
+	})
+}
+
+func (h Handler) TransferOrganization(w http.ResponseWriter, r *http.Request, organizationId string) {
+	h.serve(w, r, func(ctx context.Context, user string) (any, error) {
+		var input generated.TransferOrganizationRequest
+		if err := decode(r, w, &input); err != nil {
+			return nil, err
+		}
+		return h.Store.Transfer(ctx, user, organizationId, input.UserId)
+	})
+}
+
+func (h Handler) SetTeamManagement(w http.ResponseWriter, r *http.Request, teamId string) {
+	h.serve(w, r, func(ctx context.Context, user string) (any, error) {
+		var input generated.TeamManagement
+		if err := decode(r, w, &input); err != nil {
+			return nil, err
+		}
+		return nil, h.Store.Manage(ctx, user, teamId, string(input.ManagementScope), input.ManagementId)
+	})
+}
+
+func (h Handler) AssignEnterpriseTeam(w http.ResponseWriter, r *http.Request, organizationId, teamId string) {
+	h.serve(w, r, func(ctx context.Context, user string) (any, error) {
+		return nil, h.Store.Assign(ctx, user, organizationId, teamId, true)
+	})
+}
+
+func (h Handler) RemoveEnterpriseTeam(w http.ResponseWriter, r *http.Request, organizationId, teamId string) {
+	h.serve(w, r, func(ctx context.Context, user string) (any, error) {
+		return nil, h.Store.Assign(ctx, user, organizationId, teamId, false)
+	})
+}
+
+func (h Handler) ListOrganizationTeams(w http.ResponseWriter, r *http.Request, organizationId string) {
+	h.serve(w, r, func(ctx context.Context, user string) (any, error) {
+		return h.Store.List(ctx, user, organizationId)
+	})
+}

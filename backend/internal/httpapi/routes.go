@@ -221,3 +221,15 @@ func RegisterWiki(public *http.ServeMux, handler WikiServer, wrap func(http.Hand
 	public.Handle("GET /api/v1/repositories/{repositoryId}/wiki-pages/{id}/revisions", routes)
 	public.Handle("PATCH /api/v1/repositories/{repositoryId}/wiki-pages/{id}", routes)
 }
+
+func RegisterOrganizations(public *http.ServeMux, handler OrganizationServer) {
+	routes := routeHandler(contractServer{OrganizationServer: handler})
+	public.Handle("GET /api/v1/me/organization-context", routes)
+	public.Handle("PUT /api/v1/me/organization-context", routes)
+	public.Handle("POST /api/v1/organizations", routes)
+	public.Handle("PUT /api/v1/organizations/{organizationId}/owner", routes)
+	public.Handle("PUT /api/v1/teams/{teamId}/management", routes)
+	public.Handle("GET /api/v1/organizations/{organizationId}/teams", routes)
+	public.Handle("PUT /api/v1/organizations/{organizationId}/enterprise-teams/{teamId}", routes)
+	public.Handle("DELETE /api/v1/organizations/{organizationId}/enterprise-teams/{teamId}", routes)
+}

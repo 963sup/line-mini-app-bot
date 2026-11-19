@@ -19,6 +19,7 @@ async function fixture(handle: (request: Request, blocked: boolean) => Promise<R
   window.liff = { init: async () => {}, isLoggedIn: () => true, isInClient: () => false, getIDToken: () => "token", getProfile: async () => ({ userId: "A", displayName: "A" }), login() {}, logout() {}, closeWindow() {} };
   globalThis.fetch = async (input, init) => {
     const request = input instanceof Request ? input : new Request(new URL(String(input), location.origin), init), path = new URL(request.url).pathname;
+    if (path === "/api/v1/me/organization-context") return Response.json({groups:[],selected:null,canSwitch:false});
     if (path.endsWith("/config")) return Response.json({ liffId: "test" });
     if (path.endsWith("/session")) return Response.json({ user: { userId: "A", displayName: "A" }, csrfToken: "c".repeat(43), expiresAt: new Date(Date.now() + 1800000).toISOString() });
     return handle(request, blocked);

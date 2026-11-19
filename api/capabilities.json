@@ -210,6 +210,12 @@
       "core": "backend/internal/business/repository/wiki/wiki.go",
       "adapter": "backend/internal/business/repository/wiki/http/routes.go",
       "specification": "docs/domains/repository/wiki.md"
+    },
+    "organization": {
+      "contract": "organization/context.yaml",
+      "adapter": "backend/internal/business/organization/http/routes.go",
+      "core": "backend/internal/business/organization/context.go",
+      "specification": "docs/domains/repository/organization.md"
     }
   },
   "operations": [
@@ -1514,6 +1520,108 @@
       "consumers": [
         "frontend/miniapp/src/business/project/Items.tsx"
       ]
+    },
+    {
+      "operationId": "getOrganizationContext",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/me/organization-context",
+      "owner": "organization",
+      "adapter": "backend/internal/business/organization/http/routes.go",
+      "handler": "GetOrganizationContext",
+      "core": "backend/internal/business/organization/context.go",
+      "specification": "docs/domains/repository/organization.md",
+      "consumers": [
+        "frontend/miniapp/src/shell/OrganizationSwitcher.tsx"
+      ]
+    },
+    {
+      "operationId": "selectOrganization",
+      "audience": "public",
+      "method": "PUT",
+      "path": "/api/v1/me/organization-context",
+      "owner": "organization",
+      "adapter": "backend/internal/business/organization/http/routes.go",
+      "handler": "SelectOrganization",
+      "core": "backend/internal/business/organization/context.go",
+      "specification": "docs/domains/repository/organization.md",
+      "consumers": [
+        "frontend/miniapp/src/shell/OrganizationSwitcher.tsx"
+      ]
+    },
+    {
+      "operationId": "createOrganization",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/organizations",
+      "owner": "organization",
+      "adapter": "backend/internal/business/organization/http/routes.go",
+      "handler": "CreateOrganization",
+      "core": "backend/internal/business/organization/context.go",
+      "specification": "docs/domains/repository/organization.md",
+      "consumers": []
+    },
+    {
+      "operationId": "transferOrganization",
+      "audience": "public",
+      "method": "PUT",
+      "path": "/api/v1/organizations/{organizationId}/owner",
+      "owner": "organization",
+      "adapter": "backend/internal/business/organization/http/routes.go",
+      "handler": "TransferOrganization",
+      "core": "backend/internal/business/organization/context.go",
+      "specification": "docs/domains/repository/organization.md",
+      "consumers": []
+    },
+    {
+      "operationId": "setTeamManagement",
+      "audience": "public",
+      "method": "PUT",
+      "path": "/api/v1/teams/{teamId}/management",
+      "owner": "organization",
+      "adapter": "backend/internal/business/organization/http/routes.go",
+      "handler": "SetTeamManagement",
+      "core": "backend/internal/business/organization/context.go",
+      "specification": "docs/domains/repository/organization.md",
+      "consumers": []
+    },
+    {
+      "operationId": "listOrganizationTeams",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/organizations/{organizationId}/teams",
+      "owner": "organization",
+      "adapter": "backend/internal/business/organization/http/routes.go",
+      "handler": "ListOrganizationTeams",
+      "core": "backend/internal/business/organization/context.go",
+      "specification": "docs/domains/repository/organization.md",
+      "consumers": [
+        "frontend/miniapp/src/shell/OrganizationTeams.tsx"
+      ]
+    },
+    {
+      "operationId": "assignEnterpriseTeam",
+      "audience": "public",
+      "method": "PUT",
+      "path": "/api/v1/organizations/{organizationId}/enterprise-teams/{teamId}",
+      "owner": "organization",
+      "adapter": "backend/internal/business/organization/http/routes.go",
+      "handler": "AssignEnterpriseTeam",
+      "core": "backend/internal/business/organization/context.go",
+      "specification": "docs/domains/repository/organization.md",
+      "consumers": []
+    },
+    {
+      "operationId": "removeEnterpriseTeam",
+      "audience": "public",
+      "method": "DELETE",
+      "path": "/api/v1/organizations/{organizationId}/enterprise-teams/{teamId}",
+      "owner": "organization",
+      "adapter": "backend/internal/business/organization/http/routes.go",
+      "handler": "RemoveEnterpriseTeam",
+      "core": "backend/internal/business/organization/context.go",
+      "specification": "docs/domains/repository/organization.md",
+      "consumers": []
     }
   ],
   "events": [
@@ -1663,6 +1771,11 @@
       "entity": "WikiPage",
       "collection": "wiki-pages",
       "path": "/api/v1/repositories/{repositoryId}/wiki-pages"
+    },
+    {
+      "entity": "Organization",
+      "collection": "organizations",
+      "path": "/api/v1/organizations"
     }
   ],
   "namingExceptions": {
@@ -1673,6 +1786,8 @@
     "/api/v1/attendance/launch": "Existing launch exchange, not a resource collection.",
     "/api/v1/attendance/monthly": "Existing deprecated monthly query.",
     "/api/v1/attendance/monthly/summary": "Existing monthly summary query.",
-    "/internal/summary": "Existing internal worker action; do not rename task URL."
+    "/internal/summary": "Existing internal worker action; do not rename task URL.",
+    "/api/v1/me/organization-context": "Current user organization selection.",
+    "/api/v1/teams/{teamId}/management": "Singleton management scope of a LINE team."
   }
 }

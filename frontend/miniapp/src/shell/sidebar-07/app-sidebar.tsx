@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import {
-  Building2,
   ClipboardList,
   FolderOpen,
   Home,
@@ -13,7 +12,7 @@ import {
 import { NavMain, type NavItem } from "./nav-main";
 import { NavProjects } from "./nav-projects";
 import { NavUser, type AccountMenu } from "./nav-user";
-import { TeamSwitcher } from "./team-switcher";
+import { OrganizationSwitcher } from "@/shell/OrganizationSwitcher";
 import {
   Sidebar,
   SidebarContent,
@@ -77,17 +76,7 @@ export function AppSidebar({
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher
-          teams={[
-            {
-              name: "LINE MINI App",
-              logo: Building2,
-              plan: "正式服務",
-              url: "/miniapp",
-              isActive: true,
-            },
-          ]}
-        />
+        <OrganizationSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={items} />

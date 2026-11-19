@@ -3,7 +3,6 @@
 
 import * as React from "react";
 import {
-  Building2,
   ClipboardList,
   FolderOpen,
   Home,
@@ -19,7 +18,7 @@ import { repositoryNavigation } from "./repository-navigation";
 import { NavMain, type NavItem } from "./sidebar-07/nav-main";
 import { NavProjects } from "./sidebar-07/nav-projects";
 import { NavUser, type AccountMenu } from "./sidebar-07/nav-user";
-import { TeamSwitcher } from "./sidebar-07/team-switcher";
+import { OrganizationSwitcher } from "@/shell/OrganizationSwitcher";
 import {
   Sidebar,
   SidebarContent,
@@ -80,17 +79,7 @@ function NavigationSidebar({ workflow, account, repositoryItem, ...props }: Serv
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher
-          teams={[
-            {
-              name: "LINE MINI App",
-              logo: Building2,
-              plan: "正式服務",
-              url: "/miniapp",
-              isActive: true,
-            },
-          ]}
-        />
+        <OrganizationSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <nav aria-label="快捷入口">

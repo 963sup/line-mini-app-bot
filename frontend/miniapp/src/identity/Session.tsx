@@ -335,3 +335,5 @@ export function useSession() {
   if (!value) throw new Error("SessionProvider is required");
   return value;
 }
+
+export function useOptionalSession() { return useContext(Context); }

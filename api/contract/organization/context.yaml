@@ -1,0 +1,921 @@
+{
+  "paths": {
+    "/api/v1/me/organization-context": {
+      "get": {
+        "operationId": "getOrganizationContext",
+        "summary": "Get available organizations",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationContext"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "selectOrganization",
+        "summary": "Select current organization",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationContext"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectOrganizationRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations": {
+      "post": {
+        "operationId": "createOrganization",
+        "summary": "createOrganization",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationId}/owner": {
+      "put": {
+        "operationId": "transferOrganization",
+        "summary": "transferOrganization",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "organizationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferOrganizationRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/teams/{teamId}/management": {
+      "put": {
+        "operationId": "setTeamManagement",
+        "summary": "setTeamManagement",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamManagement"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationId}/teams": {
+      "get": {
+        "operationId": "listOrganizationTeams",
+        "summary": "listOrganizationTeams",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationTeamsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "organizationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "in": "path"
+          }
+        ]
+      }
+    },
+    "/api/v1/organizations/{organizationId}/enterprise-teams/{teamId}": {
+      "put": {
+        "operationId": "assignEnterpriseTeam",
+        "summary": "assignEnterpriseTeam",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "organizationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "in": "path"
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "in": "path"
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "removeEnterpriseTeam",
+        "summary": "removeEnterpriseTeam",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "organizationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "in": "path"
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "in": "path"
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "OrganizationOption": {
+        "type": "object",
+        "required": [
+          "organizationId",
+          "name",
+          "detail"
+        ],
+        "properties": {
+          "organizationId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "SelectedOrganization": {
+        "type": "object",
+        "required": [
+          "organizationId",
+          "name",
+          "groupLabel"
+        ],
+        "properties": {
+          "organizationId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "groupLabel": {
+            "type": "string"
+          }
+        }
+      },
+      "OrganizationGroup": {
+        "type": "object",
+        "required": [
+          "enterpriseId",
+          "label",
+          "organizations"
+        ],
+        "properties": {
+          "enterpriseId": {
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "type": "string"
+          },
+          "organizations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrganizationOption"
+            }
+          }
+        }
+      },
+      "OrganizationContext": {
+        "type": "object",
+        "required": [
+          "groups",
+          "selected",
+          "canSwitch"
+        ],
+        "properties": {
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrganizationGroup"
+            }
+          },
+          "selected": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SelectedOrganization"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          },
+          "canSwitch": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SelectOrganizationRequest": {
+        "type": "object",
+        "required": [
+          "organizationId"
+        ],
+        "properties": {
+          "organizationId": {
+            "type": "string"
+          }
+        }
+      },
+      "Organization": {
+        "type": "object",
+        "required": [
+          "organizationId",
+          "name",
+          "ownerUserId"
+        ],
+        "properties": {
+          "organizationId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "ownerUserId": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateOrganizationRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "TransferOrganizationRequest": {
+        "type": "object",
+        "required": [
+          "userId"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string"
+          }
+        }
+      },
+      "TeamManagement": {
+        "type": "object",
+        "required": [
+          "managementScope",
+          "managementId"
+        ],
+        "properties": {
+          "managementScope": {
+            "type": "string",
+            "enum": [
+              "organization",
+              "enterprise"
+            ]
+          },
+          "managementId": {
+            "type": "string"
+          }
+        }
+      },
+      "OrganizationTeamOption": {
+        "type": "object",
+        "required": [
+          "teamId",
+          "name",
+          "managementScope"
+        ],
+        "properties": {
+          "teamId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "managementScope": {
+            "type": "string"
+          }
+        }
+      },
+      "OrganizationTeamsResponse": {
+        "type": "object",
+        "required": [
+          "teams"
+        ],
+        "properties": {
+          "teams": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrganizationTeamOption"
+            }
+          }
+        }
+      }
+    }
+  }
+}

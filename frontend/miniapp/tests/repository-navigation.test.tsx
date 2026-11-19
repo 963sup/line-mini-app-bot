@@ -21,6 +21,7 @@ async function fixture(path: string, handle: (request: Request, actor: string) =
     const request = input instanceof Request ? input : new Request(new URL(String(input), location.origin), init);
     requests.push(request.clone());
     const url = new URL(request.url);
+    if (url.pathname === "/api/v1/me/organization-context") return Response.json({groups:[],selected:null,canSwitch:false});
     if (url.pathname.endsWith("/config")) return Response.json({ liffId: "repository-test" });
     if (url.pathname.endsWith("/session")) {
       if (request.method === "DELETE") return new Response(null, { status: 204 });

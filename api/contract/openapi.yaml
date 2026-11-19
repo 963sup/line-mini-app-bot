@@ -208,6 +208,24 @@
     },
     "/api/v1/owners/{ownerId}/projects/{id}/reference-state": {
       "$ref": "./project/references.yaml#/paths/~1api~1v1~1owners~1{ownerId}~1projects~1{id}~1reference-state"
+    },
+    "/api/v1/me/organization-context": {
+      "$ref": "./organization/context.yaml#/paths/~1api~1v1~1me~1organization-context"
+    },
+    "/api/v1/organizations": {
+      "$ref": "./organization/context.yaml#/paths/~1api~1v1~1organizations"
+    },
+    "/api/v1/organizations/{organizationId}/owner": {
+      "$ref": "./organization/context.yaml#/paths/~1api~1v1~1organizations~1{organizationId}~1owner"
+    },
+    "/api/v1/teams/{teamId}/management": {
+      "$ref": "./organization/context.yaml#/paths/~1api~1v1~1teams~1{teamId}~1management"
+    },
+    "/api/v1/organizations/{organizationId}/teams": {
+      "$ref": "./organization/context.yaml#/paths/~1api~1v1~1organizations~1{organizationId}~1teams"
+    },
+    "/api/v1/organizations/{organizationId}/enterprise-teams/{teamId}": {
+      "$ref": "./organization/context.yaml#/paths/~1api~1v1~1organizations~1{organizationId}~1enterprise-teams~1{teamId}"
     }
   },
   "components": {
