@@ -13,7 +13,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { FieldGroup } from "@/shared/ui/field";
-import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 import { Badge } from "@/shared/ui/badge";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
 import { Item, ItemGroup, ItemContent, ItemTitle, ItemActions, ItemFooter } from "@/shared/ui/item";
@@ -186,10 +186,17 @@ export function View({ repositoryId }: { repositoryId: string }) {
       <form onSubmit={(event) => { event.preventDefault(); if (!lock.current && !createOutcomeUnknown && !needsRefresh) discard.navigate(() => { navigating.current = true; clearEditor(); setFilter({ query: query.trim(), state }); }); }}>
         <FieldGroup className="mb-4">
           <FormField>搜尋標題<Input maxLength={120} value={query} onChange={(e) => setQuery(e.target.value)} /></FormField>
-          <FormField>狀態<NativeSelect value={state} onChange={(e) => setState(e.target.value as typeof state)}>
-            <NativeSelectOption value="">全部</NativeSelectOption>
-            {Object.entries(states).map(([value, label]) => <NativeSelectOption key={value} value={value}>{label}</NativeSelectOption>)}
-          </NativeSelect></FormField>
+          <fieldset><legend>狀態</legend>
+            <ToggleGroup type="single" value={state || "all"} variant="outline" className="max-w-full flex-wrap justify-start"
+              aria-label="問題狀態篩選" onValueChange={value => {
+                if (value === "all") setState("");
+                else if (value in states) setState(value as Issue["state"]);
+              }}>
+              <ToggleGroupItem value="all">全部</ToggleGroupItem>
+              {Object.entries(states).map(([value, label]) => <ToggleGroupItem key={value} value={value}>{label}</ToggleGroupItem>)}
+            </ToggleGroup>
+          </fieldset>
+
           <Button type="submit" disabled={!user || listBusy || busy}>套用篩選</Button>
         </FieldGroup>
       </form>
