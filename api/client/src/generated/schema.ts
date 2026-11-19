@@ -1869,6 +1869,8 @@ export interface components {
             items: components["schemas"]["WikiPage"][];
             nextCursor: string;
         };
+        /** @enum {string} */
+        CorrectionLifecycleState: "pending" | "approved" | "rejected" | "cancelled" | "stale" | "invalid";
         GroupItem: {
             id: string;
             name: string;
@@ -2051,8 +2053,7 @@ export interface components {
             end: string;
             breaks: components["schemas"]["Interval"][] | null;
             restConfirmed: boolean;
-            /** @description pending, approved, rejected, cancelled, stale or invalid */
-            status?: string;
+            status?: components["schemas"]["CorrectionLifecycleState"];
             decisionReason?: string;
             /** Format: date-time */
             reviewedAt?: string;
@@ -2091,8 +2092,7 @@ export interface components {
         };
         CorrectionStatus: {
             id: string;
-            /** @description pending, approved, rejected, cancelled, stale or invalid */
-            status: string;
+            status: components["schemas"]["CorrectionLifecycleState"];
             decisionReason?: string;
             /** Format: date-time */
             reviewedAt?: string;
@@ -2134,7 +2134,8 @@ export interface components {
             reason: string;
         };
         CorrectionDecisionResult: {
-            status: string;
+            /** @enum {string} */
+            status: "rejected" | "cancelled";
         };
         /** @enum {string} */
         ProjectItemStatus: "todo" | "in_progress" | "done";

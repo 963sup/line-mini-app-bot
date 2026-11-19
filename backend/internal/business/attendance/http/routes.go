@@ -14,9 +14,5 @@ type attendanceServer struct {
 var _ httpapi.AttendanceServer = (*attendanceServer)(nil)
 
 func RegisterAttendanceAPI(public *http.ServeMux, bot *Attendance, app Authenticator) {
-	registerAttendanceAPIWithIdentity(public, bot, app)
-}
-
-func registerAttendanceAPIWithIdentity(public *http.ServeMux, bot *Attendance, app Authenticator) {
 	registerContractAttendance(public, &attendanceServer{bot: bot, app: app}, bot, app)
 }

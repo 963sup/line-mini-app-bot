@@ -102,7 +102,7 @@ func contractTestHandler(t *testing.T, store *contractStore) (http.Handler, *int
 		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(body)), Header: make(http.Header)}, nil
 	})})
 	mux := http.NewServeMux()
-	registerAttendanceAPIWithIdentity(mux, &Attendance{store: store, zone: time.UTC}, app)
+	RegisterAttendanceAPI(mux, &Attendance{store: store, zone: time.UTC}, app)
 	return mux, authCalls
 }
 

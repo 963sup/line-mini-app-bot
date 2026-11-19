@@ -41,13 +41,8 @@ export function View() {
     setBusy(false);
     setLoaded(false);
   }
-  function loadPage(
-    target = 0,
-    withSummary = false,
-    selected = group,
-    selectedMonth = month,
-    cursor = cursors[target] || "",
-  ) {
+  function loadRecords({ target = 0, selected = group, selectedMonth = month, cursor = cursors[target] || "", withSummary = false }:
+    {target?:number; selected?:string; selectedMonth?:string; cursor?:string; withSummary?:boolean}) {
     if (!selected || !/^\d{4}-\d{2}$/.test(selectedMonth)) {
       setStatus("請選擇群組與月份。");
       return;
@@ -98,7 +93,9 @@ export function View() {
         );
       },
       (error) => {
-        setBusy(false);
+        const httpStatus=(error as {httpStatus?:number}).httpStatus;
+        if (withSummary || httpStatus === 401 || httpStatus === 403 || httpStatus === 404) clear();
+        else setBusy(false);
         setStatus(errorMessage(error));
       },
     );
@@ -133,7 +130,7 @@ export function View() {
         setGroupCursor(data.nextCursor || "");
         setGroupsBusy(false);
         setStatus("請選擇群組與月份後查詢。");
-        if (!append && desired) loadPage(0, true, desired, selectedMonth, "");
+        if (!append && desired) loadRecords({selected:desired,selectedMonth,withSummary:true,cursor:""});
       },
       (error) => {
         setGroupsBusy(false);
@@ -231,7 +228,7 @@ export function View() {
           id="load-month"
           onClick={() => {
             clear();
-            loadPage(0, true, group, month, "");
+            loadRecords({withSummary:true,cursor:""});
           }}
         >
           查詢月紀錄
@@ -297,7 +294,7 @@ export function View() {
         <Button
           id="previous-records"
           disabled={!user || busy || page === 0}
-          onClick={() => loadPage(page - 1)}
+          onClick={() => loadRecords({target:page-1})}
         >
           上一頁
         </Button>
@@ -311,7 +308,7 @@ export function View() {
               a[page + 1] = next;
               return a;
             });
-            loadPage(page + 1, false, group, month, next);
+            loadRecords({target:page+1,cursor:next});
           }}
         >
           下一頁

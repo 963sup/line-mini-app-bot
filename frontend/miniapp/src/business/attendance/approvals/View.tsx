@@ -5,7 +5,7 @@ import { Button } from "@/shared/ui/button";
 import { Textarea } from "@/shared/ui/textarea";
 import { Status } from "@/shared/Status";
 import React from "react";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "../../../identity/Session";
 import { useLatestRequest, errorMessage } from "../../../shared/http/lifecycle";
@@ -14,7 +14,7 @@ import { Requests, correctionStatus } from "../corrections/Requests";
 export function View() {
   const { user, request } = useSession(),
     read = useLatestRequest(),
-    approvalRequest = useLatestRequest(),
+    decisionRequest = useLatestRequest(),
     lock = useRef(false);
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [id, setID] = useState(""),
@@ -25,12 +25,12 @@ export function View() {
     [reason, setReason] = useState(""),
     [busy, setBusy] = useState(false),
     [status, setStatus] = useState("請輸入員工提供的申請編號。");
-  function clearReview() {
+  const clearReview = useCallback(() => {
     read.cancel();
     setProposal(null);
     setReviewed("");
     setReason("");
-  }
+  }, [read.cancel]);
   function loadCorrection() {
     clearReview();
     const correctionID = id.trim();
@@ -57,7 +57,8 @@ export function View() {
       (error) => setStatus(errorMessage(error)),
     );
   }
-  function approveCorrection(reject = false) {
+  function submitReviewDecision(decision: "approve" | "reject") {
+    const reject = decision === "reject";
     if (lock.current || !user || !reviewed || reviewed !== id.trim()) return;
     if (reject && !reason.trim()) {
       setStatus("請填寫駁回理由。");
@@ -66,9 +67,9 @@ export function View() {
     lock.current = true;
     setBusy(true);
     setStatus(reject ? "正在駁回申請……" : "正在核准申請……");
-    void approvalRequest.run(
+    void decisionRequest.run(
       (signal) =>
-        request(
+        request<components["schemas"]["CorrectionApproved"] | components["schemas"]["CorrectionDecisionResult"]>(
           (c, s) =>
             reject
               ? c.POST("/api/v1/attendance/corrections/{id}/reject", {
@@ -96,7 +97,7 @@ export function View() {
       (error) => {
         lock.current = false;
         setBusy(false);
-        setStatus(errorMessage(error));
+        clearReview();setStatus(errorMessage(error));
       },
     );
   }
@@ -106,6 +107,7 @@ export function View() {
         review
         refreshVersion={refreshVersion}
         disabled={busy}
+        onClearReview={clearReview}
         onSelect={(item) => {
           clearReview();
           setID(item.id);
@@ -145,16 +147,16 @@ export function View() {
             className="my-4 max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-xl border bg-muted p-4 font-sans text-sm empty:hidden"
           >
             {proposal &&
-              `申請 ${reviewed}\n申請人：${proposal.applicantName || "姓名未留存，請依申請編號核對"}\n狀態：${correctionStatus(proposal.status || "pending")}\n原紀錄：${proposal.before ? `${displayTime(proposal.before.ClockInAt)} ～ ${displayTime(proposal.before.ClockOutAt)}` : proposal.newRecord ? "無，申請新增補卡班次" : "請核對原班次"}\n審核理由：${proposal.decisionReason || "—"}\n原因：${proposal.reason}\n上班：${displayTime(proposal.start)}\n下班：${displayTime(proposal.end)}\n休息：${(proposal.breaks || []).map((b) => `${displayTime(b.Start)} ～ ${displayTime(b.End)}`).join("；") || "無"}\n休息完整確認：${proposal.restConfirmed ? "是" : "否"}`}
+              `申請 ${reviewed}\n申請人：${proposal.applicantName || "姓名未留存，請依申請編號核對"}\n狀態：${correctionStatus(proposal.status)}\n原紀錄：${proposal.before ? `${displayTime(proposal.before.ClockInAt)} ～ ${displayTime(proposal.before.ClockOutAt)}` : proposal.newRecord ? "無，申請新增補卡班次" : "請核對原班次"}\n審核理由：${proposal.decisionReason || "—"}\n原因：${proposal.reason}\n上班：${displayTime(proposal.start)}\n下班：${displayTime(proposal.end)}\n休息：${(proposal.breaks || []).map((b) => `${displayTime(b.Start)} ～ ${displayTime(b.End)}`).join("；") || "無"}\n休息完整確認：${proposal.restConfirmed ? "是" : "否"}`}
           </pre>
           <Button
             id="approve-correction"
             disabled={
               !reviewed ||
               reviewed !== id.trim() ||
-              (!!proposal?.status && proposal.status !== "pending")
+              (proposal?.status !== "pending")
             }
-            onClick={() => approveCorrection()}
+            onClick={() => submitReviewDecision("approve")}
           >
             核准已讀取的申請
           </Button>
@@ -173,10 +175,9 @@ export function View() {
               !reviewed ||
               reviewed !== id.trim() ||
               !reason.trim() ||
-              (!!proposal?.status &&
-                !["pending", "stale"].includes(proposal.status))
+              (proposal?.status !== "pending" && proposal?.status !== "stale")
             }
-            onClick={() => approveCorrection(true)}
+            onClick={() => submitReviewDecision("reject")}
           >
             駁回已讀取的申請
           </Button>

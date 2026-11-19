@@ -445,6 +445,9 @@
       },
       "WikiHistory": {
         "$ref": "./repository/wiki.yaml#/components/schemas/WikiHistory"
+      },
+      "CorrectionLifecycleState": {
+        "$ref": "./attendance/corrections.yaml#/components/schemas/CorrectionLifecycleState"
       }
     },
     "securitySchemes": {

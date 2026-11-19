@@ -503,8 +503,7 @@
             "type": "string"
           },
           "status": {
-            "type": "string",
-            "description": "pending, approved, rejected, cancelled, stale or invalid"
+            "$ref": "#/components/schemas/CorrectionLifecycleState"
           },
           "decisionReason": {
             "type": "string"
@@ -583,8 +582,7 @@
             "type": "boolean"
           },
           "status": {
-            "type": "string",
-            "description": "pending, approved, rejected, cancelled, stale or invalid"
+            "$ref": "#/components/schemas/CorrectionLifecycleState"
           },
           "decisionReason": {
             "type": "string"
@@ -628,9 +626,36 @@
         ],
         "properties": {
           "status": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "rejected",
+              "cancelled"
+            ],
+            "x-enum-varnames": [
+              "DecisionRejected",
+              "DecisionCancelled"
+            ]
           }
         }
+      },
+      "CorrectionLifecycleState": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "approved",
+          "rejected",
+          "cancelled",
+          "stale",
+          "invalid"
+        ],
+        "x-enum-varnames": [
+          "CorrectionPending",
+          "CorrectionApprovedState",
+          "CorrectionRejected",
+          "CorrectionCancelled",
+          "CorrectionStale",
+          "CorrectionInvalid"
+        ]
       }
     },
     "responses": {
