@@ -2,6 +2,8 @@ import React, { useRef, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
 import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
+import { Badge } from "@/shared/ui/badge";
+import { Item, ItemContent, ItemDescription } from "@/shared/ui/item";
 import { Button } from "@/shared/ui/button";
 import { Textarea } from "@/shared/ui/textarea";
 import { FormField } from "@/shared/FormField";
@@ -33,7 +35,13 @@ export function Inspections({canSubmit, ownerId, projectId, itemId}: {canSubmit:
   }
   return <div>
     <Button type="button" variant="outline" disabled={busy} onClick={()=>perform(false)}>查看驗收紀錄</Button>
-    {rows?.map(row=><p key={row.id}>待審 · {new Date(row.submittedAt).toLocaleString()} · {row.submittedBy}：{row.note}</p>)}
+    {rows?.map(row => <Item key={row.id} variant="outline" size="sm">
+      <ItemContent className="min-w-0">
+        <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{row.note}</p>
+        <ItemDescription>{row.submittedBy} · <time dateTime={row.submittedAt}>{new Date(row.submittedAt).toLocaleString()}</time></ItemDescription>
+      </ItemContent>
+      <Badge variant="outline">待審</Badge>
+    </Item>)}
     {rows?.length===0 && !canSubmit && <p>目前沒有驗收紀錄。</p>}
     {rows?.length===0 && canSubmit && <>
       <FormField>檢查說明<Textarea maxLength={2000} disabled={busy} value={note} onChange={e=>setNote(e.target.value)}/></FormField>

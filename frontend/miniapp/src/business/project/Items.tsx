@@ -1,3 +1,4 @@
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
@@ -8,6 +9,7 @@ import { Status } from "@/shared/Status";
 import { Button } from "@/shared/ui/button";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Item, ItemGroup, ItemContent, ItemTitle } from "@/shared/ui/item";
+import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
 import { FieldGroup } from "@/shared/ui/field";
 
 import { Inspections } from "./Inspections";
@@ -158,12 +160,28 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
         {mine&&<Button type="button" variant="outline" aria-label={`移出專案：${title}`} disabled={disabled||needsRefresh||busy||uncertain} onClick={()=>change(item.id)}>移出專案</Button>}
       </ItemContent></Item>;
     })}</ItemGroup></section>;})}
-    {loaded&&!items.length&&<p>尚未收錄來源。</p>}
+    {loaded&&!items.length&&<Empty><EmptyHeader><EmptyTitle>尚未收錄來源。</EmptyTitle>{mine && <EmptyDescription>請從下方選擇來源儲存庫與項目。</EmptyDescription>}</EmptyHeader></Empty>}
     {cursor&&<Button type="button" variant="outline" disabled={readBusy||busy||uncertain} onClick={()=>load(cursor)}>載入更多專案引用</Button>}
     {mine && <SourcePicker ownerId="" initialSource="" value={sourceRepositoryId} disabled={disabled||needsRefresh||busy||uncertain} onChange={id => { catalog.cancel(); parents.cancel(); setChoice(""); setParent(""); setOptions([]); setObjects([]); setSourceRepositoryId(id); }} />}
     {mine && sourceRepositoryId && <Button type="button" variant="outline" disabled={disabled||needsRefresh||busy||uncertain} onClick={()=>updateProject()}>{linked ? "解除儲存庫連結" : "連結此儲存庫"}</Button>}
     {mine && (sourceAvailable ? <FieldGroup>
-      <FormField>來源種類<NativeSelect value={kind} disabled={disabled||needsRefresh||busy||uncertain} onChange={event=>{if(lock.current||unknown.current||event.target.value===kind)return;selecting.current=true;catalog.cancel();parents.cancel();setKind(event.target.value as Kind);setParent("");setChoice("");setOptions([]);setObjects([]);setCatalogCursor("");setParentCursor("");setCatalogStatus("");setParentStatus("");}}>{Object.entries(kinds).map(([value,label])=><NativeSelectOption key={value} value={value}>{label}</NativeSelectOption>)}</NativeSelect></FormField>
+      <fieldset><legend>來源種類</legend>
+        <RadioGroup aria-label="來源種類" className="grid-cols-2 sm:grid-cols-4" value={kind}
+          disabled={disabled || needsRefresh || busy || uncertain}
+          onValueChange={value => {
+            if (lock.current || unknown.current || value === kind) return;
+            selecting.current = true;
+            catalog.cancel(); parents.cancel();
+            setKind(value as Kind); setParent(""); setChoice(""); setOptions([]); setObjects([]);
+            setCatalogCursor(""); setParentCursor(""); setCatalogStatus(""); setParentStatus("");
+          }}>
+          {Object.entries(kinds).map(([value, label]) => (
+            <label key={value} className="flex min-h-11 items-center gap-2">
+              <RadioGroupItem value={value} aria-label={label} />{label}
+            </label>
+          ))}
+        </RadioGroup>
+      </fieldset>
       {kind === "subobject" && <>
         <Status role="status">{parentStatus}</Status>
         <FormField>父物件<NativeSelect value={parent} disabled={disabled||needsRefresh||busy||uncertain||parentBusy} onChange={event=>{if(lock.current||unknown.current||event.target.value===parent)return;selecting.current=true;catalog.cancel();setParent(event.target.value);setChoice("");setOptions([]);setCatalogCursor("");}}><NativeSelectOption value="">請先選擇父物件</NativeSelectOption>{objects.map(item=><NativeSelectOption key={item.id} value={item.id}>{item.title}</NativeSelectOption>)}</NativeSelect></FormField>
