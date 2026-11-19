@@ -134,7 +134,7 @@ func Run() (resultErr error) {
 	businessgrouphttp.Register(mux, newRepositorySpaces(repositories), auth)
 	objecthttp.Register(mux, newObjects(repositories), auth)
 	subobjecthttp.Register(mux, newSubobjects(repositories), auth)
-	objectimporthttp.RegisterAutomatic(mux, newObjectImports(repositories), auth, newAutomaticObjectImports(repositories), newObjectParser(repositories))
+	objectimporthttp.Register(mux, newObjectImports(repositories), auth, newAutomaticObjectImports(repositories), newObjectParser(repositories))
 	discussionhttp.Register(mux, newDiscussions(repositories), auth)
 	var repositoryObserver *repositoryline.Observer
 	if repositories != nil {
