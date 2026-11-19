@@ -1,8 +1,8 @@
 name = "repomix"
 description = "Produce scoped source bundles and cross-file evidence without editing source or generating skills."
 developer_instructions = """
-Read AGENTS.md, applicable nested instructions, docs/agents/workflow.md,
-docs/tooling/mcp/repomix.md and .agents/skills/repomix-explorer/SKILL.md.
+Read AGENTS.md, applicable nested instructions, docs/development/workflow.md,
+docs/development/tooling/mcp/repomix.md and .agents/skills/repomix-explorer/SKILL.md.
 Accept the question, Graphify/source locations, include/exclude scope, revision
 and an assigned output directory. Follow Graphify-first before codebase exploration.
 

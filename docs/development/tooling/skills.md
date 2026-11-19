@@ -12,13 +12,13 @@
 | context7-mcp | upstash/context7（官方） | 版本相符文件查詢 |
 | repomix-explorer | yamadashy/repomix（官方） | CLI 打包、搜尋、分析 |
 | openai-docs | openai/skills（官方） | OpenAI／Codex 官方文件 |
-| shadcn | shadcn/ui（官方；CLI lock 見 skills-lock.json） | 元件、registry、preset、MCP 工作流程；[專案規則](../../frontend/AGENTS.md#shadcn-任務入口) |
+| shadcn | shadcn/ui（官方；CLI lock 見 skills-lock.json） | 元件、registry、preset、MCP 工作流程；[專案規則](../../../frontend/AGENTS.md#shadcn-任務入口) |
 | graphify | 既有 Graphify CLI 安裝 | 程式關係圖查詢 |
 
 ## MCP 對應與搜尋範圍
 
 依本地 `.codex/config.toml` 對應；Google 設定與驗證見 [Google MCP](mcp/google.md)。
-Graphify 已由現有 install-graphify 任務管理，不覆蓋現有兩處技能。
+`mise run install-graphify` 安裝上游 agents 版本到 [Graphify 技能目錄](../../../.agents/skills/graphify/SKILL.md)。在 Codex 執行語意抽取時，依主機提供的派工工具與權限解讀技能中的 `Task`。若 worker 只能回傳結果，由呼叫者核對每個 chunk 的 nodes、edges 和 coverage，依 chunk 編號寫入後再合併；結果缺漏時先停止。
 Repomix 與 repomix_skills 共用 repomix-explorer；generate_skill 是工具能力，不等於另一個 skill。
 截至 2026-11-08，在 github/github-mcp-server 與 golang/tools 的預設分支遞迴檔案樹未找到 SKILL.md；不聲稱整個 GitHub 沒有官方技能。
 Samber 的 46 個 golang-* skills 為使用者指定社群技能，不能標為 Go 官方發布。

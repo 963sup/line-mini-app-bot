@@ -1,8 +1,10 @@
-# 代理工作流程
+# 開發工作流程與工具
 
-協作分工、交付驗收與系統化除錯。
+協作分工、交付驗收、系統化除錯與開發工具。
 
 ## 文件索引
+
+- [開發工具、MCP 與本機參考資料](tooling/README.md)
 
 - [變更驗收矩陣與證據限制](acceptance.md)
 - [Systematic debugging and root cause analysis](debugging.md)

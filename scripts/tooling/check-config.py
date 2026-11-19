@@ -47,7 +47,7 @@ def check():
         # Preserve upstream Markdown: /docs/... links belong to ui.shadcn.com.
         # The local snapshot INDEX remains checked here; page hashes/coverage
         # are checked by shadcn-reference.py --check.
-        if path.is_relative_to(ROOT / "docs/tooling/shadcn-reference/snapshot/pages"):
+        if path.is_relative_to(ROOT / "docs/development/tooling/shadcn-reference/snapshot/pages"):
             continue
         for target in re.findall(r"\]\(([^)]+)\)", path.read_text()):
             if "://" in target or target.startswith("#"):

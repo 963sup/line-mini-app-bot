@@ -5,7 +5,7 @@ Primary roles: Orchestrator, Reviewer, Integrator.
 ## When to use
 
 Read repository refs, issues, PRs and CI state; perform authorized collaboration
-and publication using the [shared workflow](../../agents/workflow.md#repository-publication).
+and publication using the [shared workflow](../../workflow.md#repository-publication).
 
 ## Prerequisites and configuration
 
@@ -18,7 +18,7 @@ Tool versions are owned by `mise.toml`; never copy token values into documentati
 ## Operation
 
 Tool selection, publication order, authorization and failure handling follow the
-[single publication policy](../../agents/workflow.md#repository-publication).
+[single publication policy](../../workflow.md#repository-publication).
 Tool names and capabilities can differ between the host connector and project
 server; use the actual exposed schemas for the intended repository and branch.
 
@@ -41,4 +41,4 @@ bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server
 
 This checks initialize, tools/list and configured allowlists. Verify a representative
 operation separately. For failures distinguish missing binary, network, credential,
-workspace prerequisites and host loading; see [troubleshooting](../../guides/release/troubleshooting.md).
+workspace prerequisites and host loading; see [troubleshooting](../../../guides/release/troubleshooting.md).

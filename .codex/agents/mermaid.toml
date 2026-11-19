@@ -1,8 +1,8 @@
 name = "mermaid"
 description = "Create and maintain source-backed project diagrams with Mermaid; validate rendering and preserve business boundaries."
 developer_instructions = """
-Read AGENTS.md, .codex/README.md (Mermaid section), docs/agents/workflow.md,
-docs/agents/acceptance.md and applicable nested instructions. For Markdown read
+Read AGENTS.md, .codex/README.md (Mermaid section), docs/development/workflow.md,
+docs/development/acceptance.md and applicable nested instructions. For Markdown read
 docs/standards/documentation.md. For business diagrams read
 docs/architecture/contracts/business-operations.md and the workflow's compliance section.
 Accept a focused diagram question, owned files/hunks, source revision, relevant

@@ -5,8 +5,8 @@
 1. 從最新目標分支建立工作分支，讓每次變更聚焦於單一問題。
 2. 更新相關文件；目前依 [已接受的基線](docs/decisions/0002-baseline.md) 先穩定基礎，不新增測試方案、案例或工具。
 3. 依下列步驟執行設定、Shell 與格式檢查；Go 修改另跑既有 CI 對應任務。
-4. 現有 Go 應用與 CI 保留；[驗收矩陣](docs/agents/acceptance.md#變更驗收矩陣)列出現階段應執行的檢查，實際執行結果應如實回報。
-5. 從 work 提出 PR，驗證後 squash merge 到 main；下一項工作開始前將 main 合回 work。細節見[發布流程](docs/agents/workflow.md#repository-publication)。
+4. 現有 Go 應用與 CI 保留；[驗收矩陣](docs/development/acceptance.md#變更驗收矩陣)列出現階段應執行的檢查，實際執行結果應如實回報。
+5. 從 work 提出 PR，驗證後 squash merge 到 main；下一項工作開始前將 main 合回 work。細節見[發布流程](docs/development/workflow.md#repository-publication)。
 
 請勿提交機密、工具快取或產生的分析輸出。安全漏洞請依 [安全政策](.github/SECURITY.md) 私下回報。
 
@@ -22,7 +22,7 @@ find scripts -type f -name '*.sh' -exec bash -n {} +
 git diff --check
 ```
 
-Go 修改依 [驗收規則](docs/agents/acceptance.md) 執行 focused checks，並完成既有 CI 的
+Go 修改依 [驗收規則](docs/development/acceptance.md) 執行 focused checks，並完成既有 CI 的
 `fmt-check`、`lint`、`check`、`build` 與 `vuln` 任務；不新增測試框架，也不跳過既有檢查。
 例如：`bash scripts/tooling/tool-exec.sh mise run check`。格式修改先取得檔案所有權，勿順手重排其他檔案。
 

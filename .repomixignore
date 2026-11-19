@@ -18,7 +18,7 @@ test-results/
 
 # Generated reports and profiles
 # Upstream reference pages are searched on demand, not packed into application context.
-/docs/tooling/shadcn-reference/snapshot/
+/docs/development/tooling/shadcn-reference/snapshot/
 coverage/
 coverage.*
 *.log
@@ -95,4 +95,3 @@ crash.log
 skills-lock.json
 
 # Generated Graphify installation copy; source is tracked by skill provenance.
-/.codex/skills/

@@ -18,7 +18,7 @@ enabled = true
 # Spawned threads include orchestrator and exclude the primary; host limits prevail.
 max_concurrent_threads_per_session = 6
 # V1: primary(0) -> orchestrator(1) -> specialist(2). V2 ignores max_depth.
-# Specialists do not spawn; see docs/agents/workflow.md for the shared policy.
+# Specialists do not spawn; see docs/development/workflow.md for the shared policy.
 max_depth = 2
 
 [agents.orchestrator]

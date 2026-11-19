@@ -36,4 +36,4 @@
 ### Implementation status
 
 - 現有 HTTP 服務已組裝 LINE Webhook、MINI App、出勤及摘要模組，沒有健康檢查路由；真實服務、裝置及部署驗收仍須另行確認。
-- 使用者層 Codex plugins 不包含在 Git；安裝紀錄見 docs/tooling/skills.md。
+- 使用者層 Codex plugins 不包含在 Git；安裝紀錄見 docs/development/tooling/skills.md。

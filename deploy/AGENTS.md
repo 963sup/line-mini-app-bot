@@ -22,4 +22,4 @@ cloudbuild.yaml 為手動提交或自訂 trigger 的建置部署流程；firesto
 
 ## Cloud Run 部署
 
-應用程式僅部署至 Cloud Run。部署前讀取[部署決策](../docs/decisions/0003-cloud-run-primary.md)與[操作指南](../docs/guides/release/cloud-run.md)，使用專屬 runtime service account 與最小 IAM 權限。雲端工具查證與登入依[MCP 指引](../docs/tooling/mcp/AGENTS.md)。
+應用程式僅部署至 Cloud Run。部署前讀取[部署決策](../docs/decisions/0003-cloud-run-primary.md)與[操作指南](../docs/guides/release/cloud-run.md)，使用專屬 runtime service account 與最小 IAM 權限。雲端工具查證與登入依[MCP 指引](../docs/development/tooling/mcp/AGENTS.md)。

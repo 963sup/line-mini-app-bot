@@ -4,13 +4,13 @@
 
 ## 搜尋與選用
 
-UI 任務先搜尋完整索引，再讀相關 Radix 文件及內嵌範例，最後以固定 CLI／registry 核對實際安裝內容。元件保護、主動選用與驗收遵循 [UI 指引](../../../frontend/miniapp/src/shared/ui/AGENTS.md#需求驅動的選用與驗收)。
+UI 任務先搜尋完整索引，再讀相關 Radix 文件及內嵌範例，最後以固定 CLI／registry 核對實際安裝內容。元件保護、主動選用與驗收遵循 [UI 指引](../../../../frontend/miniapp/src/shared/ui/AGENTS.md#需求驅動的選用與驗收)。
 
 從儲存庫根目錄執行：
 
 ```bash
-rg -n -i 'select|search|dialog|chat|reasoning' docs/tooling/shadcn-reference/snapshot/INDEX.md
-rg -n '## |```tsx|Installation' docs/tooling/shadcn-reference/snapshot/pages/ai-elements/radix/chat.md
+rg -n -i 'select|search|dialog|chat|reasoning' docs/development/tooling/shadcn-reference/snapshot/INDEX.md
+rg -n '## |```tsx|Installation' docs/development/tooling/shadcn-reference/snapshot/pages/ai-elements/radix/chat.md
 bash scripts/tooling/tool-exec.sh shadcn info --json --cwd frontend/miniapp
 ```
 
@@ -18,7 +18,7 @@ bash scripts/tooling/tool-exec.sh shadcn info --json --cwd frontend/miniapp
 
 ## 更新與完整性
 
-更新由 [下載腳本](../../../scripts/tooling/shadcn-reference.py) 負責，不需要額外 Python 套件：
+更新由 [下載腳本](../../../../scripts/tooling/shadcn-reference.py) 負責，不需要額外 Python 套件：
 
 ```bash
 # 下載當前官方目錄及每項的 Base UI／Radix Markdown；全部驗證後才替換舊快照。
@@ -46,6 +46,6 @@ bash scripts/tooling/tool-exec.sh python3 scripts/tooling/shadcn-reference.py --
 
 實際通過：下載及離線完整性檢查、`check-config.py`、維護文件的本機連結／錨點、`git diff --check`；以暫存副本確認文件損壞與過期會被拒絕、下載失敗保留舊快照。Repomix 交叉核對八個相關檔案；Graphify 已執行 AST 更新，未執行 LLM 語意抽取。分析範圍檢查通過，但其 Git 清單不包含尚未追蹤的新檔，不將該結果冒充新快照的覆蓋證據。
 
-[工具索引](../README.md) · [shadcn 工具指南](../mcp/shadcn.md) · [文件總索引](../../README.md)
+[工具索引](../README.md) · [shadcn 工具指南](../mcp/shadcn.md) · [文件總索引](../../../README.md)
 
-[開發與維運指引圖索引](../../diagrams.md#開發與維運指引) · [未來設計圖](../../diagrams.md#未來設計)。
+[開發與維運指引圖索引](../../../diagrams.md#開發與維運指引) · [未來設計圖](../../../diagrams.md#未來設計)。

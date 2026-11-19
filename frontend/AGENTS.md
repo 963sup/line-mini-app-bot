@@ -20,7 +20,7 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 ## Business Operation
 
-開始相關任務前，必須閱讀 [操作模型](../docs/architecture/contracts/business-operations.md) 與 [符合性流程](../docs/agents/workflow.md#business-operation-compliance)。
+開始相關任務前，必須閱讀 [操作模型](../docs/architecture/contracts/business-operations.md) 與 [符合性流程](../docs/development/workflow.md#business-operation-compliance)。
 
 畫面呈現操作可用性、確認與結果；前端隱藏按鈕不能取代後端授權。使用 API 契約處理拒絕、過期版本與失敗，結果未知時遵循既有重試契約，不自行宣告權限或成功。
 
@@ -40,10 +40,10 @@ Web 業務操作遵循 **Frontend → API → Backend**。每個 API 操作以�
 
 ## shadcn 任務入口
 
-凡前端 UI 任務，主動先讀 [官方元件保護與 Skill／MCP 工作流程](miniapp/src/shared/ui/AGENTS.md)，再依 [本機參考庫](../docs/tooling/shadcn-reference/README.md) 檢查新鮮度、搜尋完整 Components／AI Elements 索引及相關文件，不需使用者逐次指定 shadcn。完整元件索引只由該參考庫生成；MCP 未曝光時依 UI 指引的固定 CLI 流程查詢並回報限制。
+凡前端 UI 任務，主動先讀 [官方元件保護與 Skill／MCP 工作流程](miniapp/src/shared/ui/AGENTS.md)，再依 [本機參考庫](../docs/development/tooling/shadcn-reference/README.md) 檢查新鮮度、搜尋完整 Components／AI Elements 索引及相關文件，不需使用者逐次指定 shadcn。完整元件索引只由該參考庫生成；MCP 未曝光時依 UI 指引的固定 CLI 流程查詢並回報限制。
 元件選擇、按需新增與 UI 驗收遵循該檔的「需求驅動的選用與驗收」；主動完成當前任務，不以已安裝清單限制候選，也不擴大為未要求的全站改版。
 
-涉及 shadcn/ui、components.json、registry、preset 或其 MCP 的任務，開始前必讀 [.agents/skills/shadcn/SKILL.md](../.agents/skills/shadcn/SKILL.md)，再按需讀其 references；使用方式與驗證見 [shadcn 工具指南](../docs/tooling/mcp/shadcn.md)。所有角色都適用。
+涉及 shadcn/ui、components.json、registry、preset 或其 MCP 的任務，開始前必讀 [.agents/skills/shadcn/SKILL.md](../.agents/skills/shadcn/SKILL.md)，再按需讀其 references；使用方式與驗證見 [shadcn 工具指南](../docs/development/tooling/mcp/shadcn.md)。所有角色都適用。
 上游 skill 保留原樣；其 `npx shadcn@latest` 等範例在本專案一律改用 `bash scripts/tooling/tool-exec.sh shadcn`，並將工作目錄指向 `frontend/miniapp`。先讀實際元件文件、檢查已安裝元件，更新前使用 `--dry-run`／`--diff`；不因 skill 範例自動重建專案或安裝所有元件。
 
 ## shadcn 元件保護

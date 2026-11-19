@@ -8,7 +8,7 @@ managed_suffixes = [".go", ".mod", ".sum", ".sh", ".py", ".toml", ".md", ".json"
 managed_names = ["Dockerfile", "LICENSE", "GOOGLE-SKILLS-LICENSE", ".editorconfig", ".gcloudignore", ".gitattributes", ".gitignore", ".dockerignore", ".graphifyignore", ".repomixignore", ".env.example"]
 
 [[exclude]]
-pattern = "docs/tooling/shadcn-reference/snapshot/*"
+pattern = "docs/development/tooling/shadcn-reference/snapshot/*"
 reason = "Generated upstream documentation snapshot has its own source manifest and integrity checks"
 impact = "Reference pages are searched on demand; project guidance and download script remain managed"
 owner = "tooling"
@@ -29,12 +29,6 @@ owner = "tooling"
 pattern = ".agents/skills/*"
 reason = "Upstream skills have their own provenance and maintenance lifecycle"
 impact = "Third-party skill internals are not project dependency evidence"
-owner = "tooling"
-
-[[exclude]]
-pattern = ".codex/skills/*"
-reason = "Generated installation copies of upstream skills"
-impact = "Installation copies are not analyzed"
 owner = "tooling"
 
 [[exclude]]

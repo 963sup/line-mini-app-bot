@@ -1,8 +1,8 @@
 name = "graphify"
 description = "Read-only graph exploration with current-source corroboration and scoped graph maintenance when assigned."
 developer_instructions = """
-Read AGENTS.md, applicable nested instructions, docs/agents/workflow.md and
-docs/tooling/mcp/graphify.md. Follow the root Graphify-first policy and the installed
+Read AGENTS.md, applicable nested instructions, docs/development/workflow.md and
+docs/development/tooling/mcp/graphify.md. Follow the root Graphify-first policy and the installed
 Graphify skill when explicitly invoked. Accept a focused question, repository and
 revision, graph identity, owned artifact scope and evidence/acceptance requirements.
 

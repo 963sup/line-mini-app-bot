@@ -46,7 +46,7 @@ Use evidence specialists first when needed, then assign implementation to an
 explicit owner. For a mixed Next.js/TypeScript/shadcn task, choose one primary
 writer; the other specialists provide read-only advice. Parallel writers require
 disjoint file ownership. Return cross-scope changes to orchestrator for reassignment.
-Tool operations and fallbacks remain in the [MCP guides](../tooling/mcp/README.md).
+Tool operations and fallbacks remain in the [MCP guides](tooling/mcp/README.md).
 
 The orchestrator or current owner MAY call the relevant tools directly; a tool
 does not require its namesake specialist. Do not build a mandatory
@@ -62,7 +62,7 @@ them, and report the fallback rather than claiming native role execution.
 
 ## Go verification
 
-Go 變更的必要檢查、條件與執行方式統一依 [驗收矩陣](acceptance.md#變更驗收矩陣)。工具安裝與額外分析任務見 [mise tooling](../tooling/mise.md)；不要因角色交接重跑未失效的完整檢查。
+Go 變更的必要檢查、條件與執行方式統一依 [驗收矩陣](acceptance.md#變更驗收矩陣)。工具安裝與額外分析任務見 [mise tooling](tooling/mise.md)；不要因角色交接重跑未失效的完整檢查。
 
 ## Assignment contract
 
@@ -112,14 +112,14 @@ flowchart TB
 
 - HEAD 相同不足以證明證據有效；須核對相關 dirty paths、query／bundle 範圍與來源版本。Context7 只重用相同問題與版本涵蓋的結果；Repomix 另核對包含／排除路徑。
 - 每位實際探索程式的代理仍須執行首次 Graphify query；只消費已提供證據而未探索者不必另造查詢。新問題、過期圖譜或矛盾觀察須重新定位並核對當前來源。
-- MCP inventory 與連線重用依 [工具操作指南](../tooling/mcp/README.md#task-scoped-tool-use)；host／server／allowlist、服務、角色或來源不符會使相關證據失效。註冊成功不等於 runtime 驗收。
+- MCP inventory 與連線重用依 [工具操作指南](tooling/mcp/README.md#task-scoped-tool-use)；host／server／allowlist、服務、角色或來源不符會使相關證據失效。註冊成功不等於 runtime 驗收。
 - reviewer 依獨立判斷補足挑戰結論所需的證據；流程不限制必要審查。
 
 ## Reading and handoff
 
 Read [acceptance](acceptance.md) before choosing checks. The root AGENTS.md routes
 roles to relevant documents. Resolve routine issues within the authorized scope;
-report host restrictions accurately. Consult [MCP guidance](../tooling/mcp/README.md)
+report host restrictions accurately. Consult [MCP guidance](tooling/mcp/README.md)
 for tool selection and transport diagnostics. Integration does not grant permission
 to push or deploy. The user-established [publication default](#repository-publication)
 is separate authorization, not permission inferred from delegation.
@@ -143,7 +143,7 @@ flowchart TB
 
 `work` 可保存多筆開發提交，`main` 每項可獨立回退的變更保留一筆提交，可涵蓋同一功能的前端、API 與後端。PR 描述最終行為、驗證和限制。同步時若他人已推進分支，先核對新增內容。版本驗收後可按發布安排加標籤。重寫已發布歷史需單次明確授權與可還原備份，遠端拒絕時遵循分支保護與審核結果。
 
-GitHub MCP 與 Git CLI 的使用見 [GitHub 工具指南](../tooling/mcp/github.md)。推送、CI 與正式部署分別核對，見 [發布驗收](../guides/release/release-acceptance.md)。
+GitHub MCP 與 Git CLI 的使用見 [GitHub 工具指南](tooling/mcp/github.md)。推送、CI 與正式部署分別核對，見 [發布驗收](../guides/release/release-acceptance.md)。
 
 ## Deployment and browser location routing
 
@@ -176,7 +176,7 @@ flowchart TB
 
 圖譜可能過期或漏掉動態關係，無節點時核對原始碼。核對 Repomix 打包範圍，Markdown／TOML 等遺漏內容直接讀取並記錄。產物放任務專屬的未提交目錄。
 
-Context7 先解析 library ID 再查適用版本。LINE、Google Cloud 與 Codex 依[工具查證指引](../tooling/mcp/AGENTS.md)。產品決策以使用者與已接受規格為準。
+Context7 先解析 library ID 再查適用版本。LINE、Google Cloud 與 Codex 依[工具查證指引](tooling/mcp/AGENTS.md)。產品決策以使用者與已接受規格為準。
 
 Explorer 與 reviewer 維持唯讀並回報 orchestrator，implementer 修正，必要時由 debugger 定位。保留既有變更，範圍外另列。主機不支援角色時由主代理直接承接並說明。依[驗收矩陣](acceptance.md)核對契約、實作與證據。程式修改後依根指引更新 Graphify，重新打包受影響內容並沿用有效證據。
 

@@ -8,7 +8,7 @@
 | [shadcn](shadcn.md) | Shadcn；MINI App 元件 registry 與整合輔助 |
 | [next-devtools](next-devtools.md) | Next.js；按需檢查本機開發伺服器的 runtime 狀態 |
 | [repomix](repomix.md) | Repomix；Explorer、Reviewer 亦可使用 |
-| [mermaid](../../../.codex/README.md#mermaid) | Mermaid；架構、資料關係、操作流程與狀態圖，來源與渲染分開驗證 |
+| [mermaid](../../../../.codex/README.md#mermaid) | Mermaid；架構、資料關係、操作流程與狀態圖，來源與渲染分開驗證 |
 | [repomix_skills](repomix-skills.md) | Researcher, Implementer |
 | [gopls](gopls.md) | Golang；Explorer、Tester、Reviewer 亦可使用 |
 | [github](github.md) | Orchestrator, Reviewer, Integrator |
@@ -22,7 +22,7 @@ Use Graphify/gopls for structure and verify source claims; Repomix bundles sourc
 TypeScript and Next.js use Context7 and version-matched official documentation;
 Next.js runtime inspection may additionally use the configured next-devtools
 connector. There is no dedicated TypeScript language-service MCP server.
-Role selection and writer ownership follow the [agent workflow](../../agents/workflow.md#delegation-depth-and-role-selection).
+Role selection and writer ownership follow the [agent workflow](../../workflow.md#delegation-depth-and-role-selection).
 
 Configuration, installation, initialize/tools-list, host loading and functional
 operations are separate verification stages. `mise run doctor-mcp` checks transport
@@ -101,4 +101,4 @@ direct MCP operation and host-exposed tools must still be reported separately.
 References: [OpenAI MCP configuration](https://developers.openai.com/codex/mcp)
 and Context7 `/openai/codex` stdio environment configuration.
 
-[開發與維運指引圖索引](../../diagrams.md#開發與維運指引) · [未來設計圖](../../diagrams.md#未來設計)。
+[開發與維運指引圖索引](../../../diagrams.md#開發與維運指引) · [未來設計圖](../../../diagrams.md#未來設計)。

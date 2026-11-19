@@ -6,7 +6,7 @@
 
 | 需求 | 文件 |
 | --- | --- |
-| 工具版本、任務與環境 | [mise](mise.md)；版本與任務以 [mise.toml](../../mise.toml)為準 |
+| 工具版本、任務與環境 | [mise](mise.md)；版本與任務以 [mise.toml](../../../mise.toml)為準 |
 | 選擇或診斷 MCP | [MCP 索引](mcp/README.md) |
 | 使用專案技能 | [Skills](skills.md) |
 | 理解分析涵蓋與限制 | [分析範圍](analysis-scope.md) |
@@ -21,6 +21,6 @@
 
 分析產物存放於任務暫存目錄，依[來源與證據規則](analysis-scope.md)核對版本及有效性；不在 docs 累積日期報告。
 
-[本目錄指引](AGENTS.md) · [父層指引](../AGENTS.md) · [文件總入口](../README.md)
+[本目錄指引](AGENTS.md) · [父層指引](../../AGENTS.md) · [文件總入口](../../README.md)
 
-[開發與維運指引圖索引](../diagrams.md#開發與維運指引) · [未來設計圖](../diagrams.md#未來設計)。
+[開發與維運指引圖索引](../../diagrams.md#開發與維運指引) · [未來設計圖](../../diagrams.md#未來設計)。
