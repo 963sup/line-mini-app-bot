@@ -2,11 +2,11 @@ import React, { useCallback, useEffect, useRef, useState, type FormEvent } from 
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 import { useRepositoryGuard } from "../repository/NavigationGuard";
 import { ReadFeedback } from "@/shared/ReadFeedback";
-import { Status } from "@/shared/Status";
 import { useDiscardChanges } from "@/shared/useDiscardChanges";
 import type { extractPdf } from "./pdf";
 import { View as Subobjects } from "../subobject/View";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/shared/ui/collapsible";
+import { useSpaces } from "../repository/useSpaces";
 import { Import } from "./Import";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
@@ -23,7 +23,6 @@ import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/em
 
 type Resource = components["schemas"]["Object"];
 type Creation = components["schemas"]["ObjectCreation"];
-type BusinessSpace = components["schemas"]["RepositorySpace"];
 type Props = { repositoryId: string; extract?: typeof extractPdf };
 const states = { not_started: "未開始", in_progress: "進行中", completed: "已完成" };
 const empty: Creation = { name: "", description: "", type: "work", completedQuantity: "0", quantity: "1", unit: "SET", sourceDocument: "", sourceRevision: "" };
@@ -43,18 +42,15 @@ export function View(props: Props) {
 
 function Content({ repositoryId, extract }: Props) {
   const { user, request } = useSession();
-  const read = useLatestRequest(), detail = useLatestRequest(), write = useLatestRequest(), spaceRead = useLatestRequest();
-  const [spaces, setSpaces] = useState<BusinessSpace[]>([]), [spaceCursor, setSpaceCursor] = useState("");
-  const [spacesBusy, setSpacesBusy] = useState(false), [spaceStatus, setSpaceStatus] = useState(""), [spaceName, setSpaceName] = useState("");
-  const [spaceUnknown, setSpaceUnknown] = useState(false);
-  const spaceCreateAttempt = useRef<{ idempotencyKey: string; name: string } | null>(null);
+  const read = useLatestRequest(), detail = useLatestRequest(), write = useLatestRequest();
   const [items, setItems] = useState<Resource[]>([]), [cursor, setCursor] = useState("");
   const [listBusy, setListBusy] = useState(false), [loaded, setLoaded] = useState(false), [listStatus, setListStatus] = useState("");
   const [mode, setMode] = useState<"create" | "detail" | null>(null), [selected, setSelected] = useState<Resource | null>(null);
+  const { spaces, spaceCursor, spacesBusy, spaceStatus, loadSpaces } = useSpaces(repositoryId, !!mode);
   const [invalidField, setInvalidField] = useState<"quantity" | "completedQuantity" | null>(null);
   const [content, setContent] = useState<Creation>(empty);
   const baseline = useRef<Creation>(empty);
-  const dirty = !!mode && (JSON.stringify(content) !== JSON.stringify(baseline.current) || !!spaceName.trim());
+  const dirty = !!mode && (JSON.stringify(content) !== JSON.stringify(baseline.current));
   const nameInput = useRef<HTMLInputElement>(null), editorPanel = useRef<HTMLElement>(null), opener = useRef<HTMLElement | null>(null);
   function focusEditor() {
     if (nameInput.current && !nameInput.current.matches(":disabled")) nameInput.current.focus();
@@ -91,7 +87,6 @@ function Content({ repositoryId, extract }: Props) {
   useEffect(() => { load(); return read.cancel; }, [load, read.cancel]);
   function show(item: Resource) {
     setInvalidField(null);
-    setSpaceName(""); setSpaceStatus("");
     setSelected(item); setActiveId(item.id); baseline.current = { name: item.name, description: item.description, type: item.type, quantity: item.quantity, unit: item.unit,
       spaceId: item.spaceId || "", sourceDocument: item.sourceDocument || "", sourceRevision: item.sourceRevision || "", completedQuantity: item.completedQuantity }; setContent(baseline.current);
     setMode("detail"); setNeedsRefresh(false); setUncertain(false); objectCreateAttempt.current = null; repositoryGuard.block(false);
@@ -102,7 +97,6 @@ function Content({ repositoryId, extract }: Props) {
   }, [mode, detailBusy, busy]);
   function clearEditor() {
     setInvalidField(null);
-    setSpaceName(""); setSpaceStatus("");
     detail.cancel(); setDetailBusy(false); setMode(null); setSelected(null); setActiveId(""); baseline.current = empty; setContent(empty); setStatus("");
   }
   function close() {
@@ -110,7 +104,6 @@ function Content({ repositoryId, extract }: Props) {
     discard.navigate(() => { formNavigation.current = true; clearEditor(); });
   }
   function saved(item: Resource, message: string) {
-    setSpaceName(""); setSpaceStatus("");
     setItems(previous => previous.some(value => value.id === item.id) ? previous.map(value => value.id === item.id ? item : value) : [item, ...previous]);
     setMode(null); setSelected(null); setActiveId(""); baseline.current = empty; setContent(empty); setUncertain(false); setNeedsRefresh(false); objectCreateAttempt.current = null; repositoryGuard.block(false); setListStatus(message);
   }
@@ -135,7 +128,7 @@ function Content({ repositoryId, extract }: Props) {
   }
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (spaceUnknown || discard.isConfirming() || !user || subLock.current || importing || importLock.current || lock.current || formNavigation.current || needsRefresh || !repositoryGuard.canWrite() || (mode === "detail" && !mine)) return;
+    if (discard.isConfirming() || !user || subLock.current || importing || importLock.current || lock.current || formNavigation.current || needsRefresh || !repositoryGuard.canWrite() || (mode === "detail" && !mine)) return;
     const body = Object.fromEntries(Object.entries(content).map(([key, value]) => [key, value?.trim() || ""])) as Creation;
     setInvalidField(null);
     if (!body.name || !body.type || !body.unit) {
@@ -171,35 +164,6 @@ function Content({ repositoryId, extract }: Props) {
       lock.current = false; setBusy(false);
       if (!wasUnknown && ["invalid_input", "forbidden", "not_found", "idempotency_conflict"].includes((error as { code?: string }).code || "")) { setUncertain(false); repositoryGuard.block(false); }
       setStatus(errorMessage(error) + " 結果未確認時請重試原建立請求，避免重複建立；離開頁面前請先確認紀錄。");
-    });
-  }
-  const loadSpaces = useCallback((next = "") => {
-    setSpacesBusy(true); setSpaceStatus("");
-    void spaceRead.run(signal => request((client, s) => client.GET("/api/v1/repositories/{repositoryId}/spaces", { signal: s, params: { path: { repositoryId }, query: { cursor: next || undefined } } }), { signal }), page => {
-      setSpaces(previous => [...new Map([...(next ? previous : []), ...page.items].map(item => [item.id, item])).values()]);
-      setSpaceCursor(page.nextCursor); setSpacesBusy(false);
-    }, error => { setSpacesBusy(false); setSpaceStatus(errorMessage(error)); });
-  }, [request, repositoryId, spaceRead.run]);
-  useEffect(() => { if (mode) loadSpaces(); return spaceRead.cancel; }, [!!mode, loadSpaces, spaceRead.cancel]);
-  function createSpace() {
-    if (!user || discard.isConfirming() || formNavigation.current || detailBusy || importing || importLock.current || !repositoryGuard.canWrite() || lock.current || (uncertain && !spaceCreateAttempt.current) || needsRefresh || subLock.current || (mode === "detail" && !mine)) return;
-    if (!spaceCreateAttempt.current) {
-      const name = spaceName.trim();
-      if (!name) { setSpaceStatus("請填寫業務空間名稱。"); return; }
-      spaceCreateAttempt.current = { idempotencyKey: crypto.randomUUID(), name };
-    }
-    const attempt = spaceCreateAttempt.current;
-    const wasUnknown = spaceUnknown;
-    lock.current = true; setBusy(true); setUncertain(true); repositoryGuard.block(true); setSpaceStatus("正在建立業務空間……");
-    void write.run(signal => request((client, s) => client.POST("/api/v1/repositories/{repositoryId}/spaces", { signal: s, params: { path: { repositoryId }, header: { "Idempotency-Key": attempt.idempotencyKey } }, body: { name: attempt.name } }), { signal }), item => {
-      spaceCreateAttempt.current = null; lock.current = false; setBusy(false); setUncertain(false); setSpaceUnknown(false); repositoryGuard.block(false);
-      setSpaces(previous => [...previous.filter(value => value.id !== item.id), item]); setContent(previous => ({ ...previous, spaceId: item.id })); setSpaceName(""); setSpaceStatus("已建立業務空間。");
-    }, error => {
-      lock.current = false; setBusy(false);
-      if (!wasUnknown && ["invalid_input", "not_found", "idempotency_conflict"].includes((error as { code?: string }).code || "")) {
-        spaceCreateAttempt.current = null; setUncertain(false); setSpaceUnknown(false); repositoryGuard.block(false);
-      } else setSpaceUnknown(true);
-      setSpaceStatus(errorMessage(error) + " 結果未確認時請重試原空間建立請求。");
     });
   }
   const editor = <section ref={editorPanel} tabIndex={-1} aria-label={mode === "create" ? "新增物件" : "物件編輯"} className="flex w-full min-w-0 flex-col gap-3">
@@ -244,10 +208,8 @@ function Content({ repositoryId, extract }: Props) {
             {spaces.map(space => <NativeSelectOption key={space.id} value={space.id}>{space.name}</NativeSelectOption>)}
           </NativeSelect></FormField>
           <ReadFeedback busy={spacesBusy} message={spaceStatus} label="正在讀取業務空間……" />
-          <Button type="button" variant="outline" disabled={spacesBusy} onClick={() => loadSpaces()}>重新讀取業務空間</Button>
+          {spaceStatus && <Button type="button" variant="outline" disabled={spacesBusy} onClick={() => loadSpaces()}>重試讀取</Button>}
           {spaceCursor && <Button type="button" variant="outline" disabled={spacesBusy} onClick={() => loadSpaces(spaceCursor)}>載入更多業務空間</Button>}
-          <FormField>新業務空間名稱<Input maxLength={120} value={spaceName} onChange={event => setSpaceName(event.target.value)} /></FormField>
-          <Button type="button" variant="outline" onClick={createSpace}>新增業務空間</Button>
           <FormField>完整說明<Textarea maxLength={8000} value={content.description} onChange={event => setContent(previous => ({ ...previous, description: event.target.value }))} /></FormField>
           {content.type === "work" && <FormField data-invalid={invalidField === "completedQuantity" || undefined}>完成數<Input aria-invalid={invalidField === "completedQuantity" || undefined} aria-describedby={invalidField === "completedQuantity" ? "object-completed-error" : undefined} required inputMode="decimal" maxLength={25} value={content.completedQuantity || ""} onChange={event => setContent(previous => ({ ...previous, completedQuantity: event.target.value }))} /></FormField>}
           {invalidField === "completedQuantity" && <FieldError id="object-completed-error">請填寫0至數量之間的完成數（最多18位整數及6位小數）。</FieldError>}
@@ -255,8 +217,7 @@ function Content({ repositoryId, extract }: Props) {
           <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{content.type === "non_work" ? "不適用" : selected ? progressLabel(selected) : "儲存後依完成數更新"}</p>
         </FieldSet>
 
-        {spaceUnknown && <><Status role="status">{spaceStatus}</Status><Button type="button" disabled={busy} onClick={createSpace}>重試原空間建立請求</Button></>}
-        {(mode === "create" || mine) && <Button type="submit" disabled={spaceUnknown || busy || detailBusy || needsRefresh || subBlocked}>{mode === "create" ? uncertain && !spaceUnknown ? "重試原物件建立請求" : "建立物件" : "儲存物件"}</Button>}
+        {(mode === "create" || mine) && <Button type="submit" disabled={busy || detailBusy || needsRefresh || subBlocked}>{mode === "create" ? uncertain ? "重試原物件建立請求" : "建立物件" : "儲存物件"}</Button>}
       </FieldGroup></form>}
       <Button type="button" variant="outline" disabled={busy || uncertain || needsRefresh || subBlocked} onClick={close}>{mine || mode === "create" ? "取消" : "關閉"}</Button>
     </section>;
