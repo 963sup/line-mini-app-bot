@@ -49,6 +49,20 @@ Tailwind 4 的 `components.json` 不指定舊式 Tailwind config 檔案。
 [整合來源與責任](../../../../frontend/miniapp/src/shell/sidebar-07/README.md) 記錄 AppSidebar、NavMain、NavProjects、NavUser、TeamSwitcher、SidebarRail 與 Breadcrumb 頁首的歸屬。
 既有 primitives 不覆寫，只補裝 Breadcrumb 與 Collapsible；不保留示例 dashboard、假帳號或尚未實作的操作。
 
+## 官方圖表範例
+
+製作統計、報表或儀表板時，先依資料的呈現目的挑選 shadcn Chart 範例。MINI App 的共用圖表元件位於 `frontend/miniapp/src/shared/ui/chart.tsx`，以 Recharts 為基礎。重用共用元件與主題設定，前端負責呈現，業務統計以後端資料為準。
+
+| 選項 | 適用情境 | 官方範例 |
+| --- | --- | --- |
+| Area（面積圖） | 趨勢與累積量 | [Area](https://ui.shadcn.com/charts/area#charts) |
+| Bar（長條圖） | 類別間的數值比較 | [Bar](https://ui.shadcn.com/charts/bar#charts) |
+| Line（折線圖） | 時間序列與變化趨勢 | [Line](https://ui.shadcn.com/charts/line#charts) |
+| Pie（圓餅圖） | 整體占比 | [Pie](https://ui.shadcn.com/charts/pie#charts) |
+| Radar（雷達圖） | 多個維度的比較 | [Radar](https://ui.shadcn.com/charts/radar#charts) |
+| Radial（徑向圖） | 進度或比例 | [Radial](https://ui.shadcn.com/charts/radial#charts) |
+| Tooltip（提示框） | 顯示資料點細節的共用配件 | [Tooltip](https://ui.shadcn.com/charts/tooltip#charts) |
+
 ## MCP 設定與驗證
 
 唯一連線設定在根目錄 `.codex/config.toml`，版本在 `mise.toml`；不在 feature 或瀏覽器設定 MCP，也不在文件複製 credentials。
@@ -136,4 +150,4 @@ bash scripts/tooling/tool-exec.sh shadcn add @shadcn/button --dry-run --cwd fron
 | Empty（沿用） | 成功查詢後沒有班次、申請、請假或空間時顯示，未查詢與查詢失敗不冒充空結果 |
 | Spinner / Badge（沿用） | 清單處理中及申請狀態 |
 
-官方來源：[Table](https://ui.shadcn.com/docs/components/radix/table)、[Item](https://ui.shadcn.com/docs/components/radix/item)、[InputGroup](https://ui.shadcn.com/docs/components/radix/input-group)，並以 Context7 `/shadcn-ui/ui` 交叉核對。尚無圖表、輪播或聊天需求，因此不額外安裝。LINE 手機實機與視覺驗收仍需獨立確認。
+官方來源：[Table](https://ui.shadcn.com/docs/components/radix/table)、[Item](https://ui.shadcn.com/docs/components/radix/item)、[InputGroup](https://ui.shadcn.com/docs/components/radix/input-group)，並以 Context7 `/shadcn-ui/ui` 交叉核對。圖表選用見[官方圖表範例](#官方圖表範例)。LINE 手機實機與視覺驗收仍需獨立確認。

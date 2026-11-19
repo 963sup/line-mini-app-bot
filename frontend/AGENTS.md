@@ -44,6 +44,8 @@ Web 業務操作遵循 **Frontend → API → Backend**。每個 API 操作以�
 元件選擇、按需新增與 UI 驗收遵循該檔的「需求驅動的選用與驗收」；主動完成當前任務，不以已安裝清單限制候選，也不擴大為未要求的全站改版。
 
 涉及 shadcn/ui、components.json、registry、preset 或其 MCP 的任務，開始前必讀 [.agents/skills/shadcn/SKILL.md](../.agents/skills/shadcn/SKILL.md)，再按需讀其 references；使用方式與驗證見 [shadcn 工具指南](../docs/development/tooling/mcp/shadcn.md)。所有角色都適用。
+
+涉及統計、報表或儀表板時，先查 [shadcn 官方圖表範例](../docs/development/tooling/mcp/shadcn.md#官方圖表範例)，按資料呈現需求選用圖表並重用共用 Chart 元件。
 上游 skill 保留原樣；其 `npx shadcn@latest` 等範例在本專案一律改用 `bash scripts/tooling/tool-exec.sh shadcn`，並將工作目錄指向 `frontend/miniapp`。先讀實際元件文件、檢查已安裝元件，更新前使用 `--dry-run`／`--diff`；不因 skill 範例自動重建專案或安裝所有元件。
 
 ## shadcn 元件保護
