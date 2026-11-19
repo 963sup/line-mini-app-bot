@@ -307,9 +307,7 @@ export function SessionProvider({
       ready,
       inClient,
       request,
-      verify: () => {
-        void verify();
-      },
+      verify,
       login: () => sdk.current?.login({ redirectUri: location.href }),
       logout,
       close,

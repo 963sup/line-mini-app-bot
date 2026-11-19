@@ -72,7 +72,7 @@ export function View() {
   return (
     <>
       <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-        <Button id="locate" disabled={busy} onClick={() => void start()}>
+        <Button id="locate" disabled={busy} onClick={start}>
           {busy && <Spinner aria-label="處理中" />}
           取得位置並驗證
         </Button>
