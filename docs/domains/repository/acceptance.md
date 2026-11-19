@@ -54,11 +54,11 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["後續授權的最小追蹤擴充"]
-  h --- n0["里程碑、專案與統計的現行範圍依里程碑、<br/>Project與統計規格。本頁基本協作雛形的完成界<br/>線不取代各功能後續已確認的契約。"]
+  h --- n0["里程碑、專案與洞察的現行範圍依里程碑、<br/>Project 與 Insights 規格。本頁基本協作雛形的完成界<br/>線不取代各功能後續已確認的契約。"]
   n0 --- n0l0["里程碑"]
   click n0l0 "milestones.md"
   n0 --- n0l1["Project"]
   click n0l1 "../project.md"
-  n0 --- n0l2["統計"]
-  click n0l2 "statistics.md"
+  n0 --- n0l2["洞察（Insights）"]
+  click n0l2 "insights.md"
 ```

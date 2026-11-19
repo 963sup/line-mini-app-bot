@@ -100,7 +100,7 @@ Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄
 
 - [Repository、Issue 與 Discussion 模型及 Connection 分頁規劃](../docs/proposals/platform/domain-model.md)：未來設計參考，現行 OpenAPI 契約維持原狀。
 
-- [里程碑](../docs/domains/repository/milestones.md)、[Project](../docs/domains/project.md)與[統計](../docs/domains/repository/statistics.md)：正式契約與三層接線。
+- [里程碑](../docs/domains/repository/milestones.md)、[Project](../docs/domains/project.md)與[洞察（Insights）](../docs/domains/repository/insights.md)：正式契約與三層接線。
 
 ## 協作能力分佈與交付狀態
 

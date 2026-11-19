@@ -13,7 +13,7 @@ import { View as Objects } from "../object/View";
 import { View as Issues } from "../issue/View";
 import { View as Discussions } from "../discussion/View";
 import { View as Milestones } from "./milestones/View";
-import { View as Statistics } from "./statistics/View";
+import { View as Insights } from "./insights/View";
 import { View as Labels } from "./labels/View";
 
 export function View() {
@@ -50,7 +50,6 @@ function Content() {
           </ToggleGroup>
           {page === "總覽" ? (
             <div className="grid min-w-0 gap-4 lg:grid-cols-2">
-              <Statistics key={selected.id} repositoryId={selected.id} />
               <PagePanel heading="空間資料">
                 <dl className="grid gap-2 text-sm [&>dt]:font-medium [&>dd]:break-all [&>dd]:text-muted-foreground">
                   <dt>儲存庫 ID</dt>
@@ -77,7 +76,7 @@ function Content() {
                 <p className="text-sm leading-relaxed text-muted-foreground">摘要請回原群組操作。</p>
               </PagePanel>}
             </div>
-          ) : page === "物件" ? <Objects key={selected.id} repositoryId={selected.id} /> : page === "問題" ? <Issues key={selected.id} repositoryId={selected.id} /> : page === "討論" ? <Discussions key={selected.id} repositoryId={selected.id} /> : page === "里程碑" ? <Milestones key={selected.id} repositoryId={selected.id} /> : page === "標籤" ? <Labels key={selected.id} repositoryId={selected.id} /> : (
+          ) : page === "洞察" ? <Insights key={selected.id} repositoryId={selected.id} /> : page === "物件" ? <Objects key={selected.id} repositoryId={selected.id} /> : page === "問題" ? <Issues key={selected.id} repositoryId={selected.id} /> : page === "討論" ? <Discussions key={selected.id} repositoryId={selected.id} /> : page === "里程碑" ? <Milestones key={selected.id} repositoryId={selected.id} /> : page === "標籤" ? <Labels key={selected.id} repositoryId={selected.id} /> : (
             <PagePanel heading={page}>
               <Empty>
                 <EmptyHeader>

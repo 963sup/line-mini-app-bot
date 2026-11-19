@@ -106,7 +106,7 @@
 
 [群組 Repository](repository/README.md)
 
-[儲存庫統計](repository/statistics.md)
+[儲存庫洞察（Insights）](repository/insights.md)
 
 [物件的單層子物件](repository/objects.md)
 
