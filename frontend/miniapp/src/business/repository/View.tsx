@@ -45,13 +45,13 @@ function Content() {
       {selected && (
         <>
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">{selected.name || "群組空間"}</h2>
+            <h2 className="text-2xl font-semibold tracking-tight break-words">{selected.name || "群組空間"}</h2>
             <p className="text-sm text-muted-foreground">在同一個空間掌握工作、交流想法與追蹤目標。</p>
           </div>
           <Tabs value={page} activationMode="manual" onValueChange={value => guard.navigate(() => setPage(value))}>
-            <TabsList aria-label="空間功能" className="h-auto max-w-full flex-wrap justify-start">
+            <TabsList aria-label="空間功能" className="max-w-full flex-wrap justify-start group-data-[orientation=horizontal]/tabs:h-auto">
               {navigation.map(({ title, icon: Icon }) => (
-                <TabsTrigger key={title} value={title} aria-label={title} disabled={guard.blocked && title !== page}>
+                <TabsTrigger key={title} value={title} className="h-auto" aria-label={title} disabled={guard.blocked && title !== page}>
                   <Icon aria-hidden="true" />{title}
                 </TabsTrigger>
               ))}
