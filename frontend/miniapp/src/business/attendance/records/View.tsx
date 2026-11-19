@@ -1,3 +1,5 @@
+import { ButtonGroup, ButtonGroupText } from "@/shared/ui/button-group";
+import { Badge } from "@/shared/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableCaption } from "@/shared/ui/table";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
 import { Spinner } from "@/shared/ui/spinner";
@@ -239,13 +241,24 @@ export function View() {
       <Status id="history-status" role="status">
         {status}
       </Status>
-      <pre
-        id="month-summary"
-        className="my-4 max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-xl border bg-muted p-4 font-sans text-sm empty:hidden"
-      >
-        {summary &&
-          `全月暫估合計 ${summary.Calculation.EstimatedMinutes ?? summary.Calculation.Minutes} 分鐘（含已確認 ${summary.Calculation.Minutes} 分鐘）。\n出勤時數 ${summary.Calculation.AttendanceMinutes ?? "—"} 分鐘（未扣休息）；休息待確認 ${summary.Calculation.Unconfirmed ?? "—"} 筆；無法計算 ${summary.Calculation.Uncalculable ?? "—"} 筆；共 ${summary.count} 個班次；其他異常／提醒 ${summary.Calculation.Issues?.filter((issue) => issue.Code !== "rest_unconfirmed").length ?? 0} 項。\n合計裁切本月區間；明細為完整班次。暫估非薪資結算，正常／加班分類待認定。`}
-      </pre>
+      <section id="month-summary" aria-label="全月工時摘要" hidden={!summary} className="my-4 space-y-3">
+        {summary && <>
+          <dl className="grid grid-cols-2 gap-3">
+            <div><dt>全月暫估合計</dt><dd className="text-xl font-semibold">{summary.Calculation.EstimatedMinutes ?? summary.Calculation.Minutes} 分鐘</dd></div>
+            <div><dt>其中已確認</dt><dd className="text-xl font-semibold">{summary.Calculation.Minutes} 分鐘</dd></div>
+            <div><dt>出勤時數（未扣休息）</dt><dd>{summary.Calculation.AttendanceMinutes ?? "—"} 分鐘</dd></div>
+            <div><dt>班次</dt><dd>{summary.count} 班</dd></div>
+          </dl>
+          <dl className="flex flex-wrap gap-3">
+            {([["休息待確認", summary.Calculation.Unconfirmed], ["無法計算", summary.Calculation.Uncalculable],
+              ["其他異常／提醒", summary.Calculation.Issues?.filter(issue => issue.Code !== "rest_unconfirmed").length ?? 0]] as const)
+              .map(([label, count]) => <div key={label} className="flex items-center gap-1">
+                <dt>{label}</dt><dd>{count ? <Badge variant="secondary">{count} 筆</Badge> : count ?? "—"}</dd>
+              </div>)}
+          </dl>
+          <p className="text-sm text-muted-foreground">合計裁切本月區間；明細為完整班次。暫估非薪資結算，正常／加班分類待認定。</p>
+        </>}
+      </section>
       {busy && <p role="status" className="flex items-center gap-2"><Spinner aria-hidden="true" />正在讀取出勤明細</p>}
       <Table aria-busy={busy}>
         <TableCaption>本人班次明細；工時單位為分鐘</TableCaption>
@@ -292,7 +305,7 @@ export function View() {
           </EmptyHeader>
         </Empty>
       )}
-      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+      <ButtonGroup aria-label="出勤紀錄分頁" className="mt-4">
         <Button
           id="previous-records"
           disabled={!user || busy || page === 0}
@@ -300,7 +313,7 @@ export function View() {
         >
           上一頁
         </Button>
-        <span id="record-page">{loaded && `第 ${page + 1} 頁`}</span>
+        <ButtonGroupText id="record-page" aria-live="polite">{loaded && `第 ${page + 1} 頁`}</ButtonGroupText>
         <Button
           id="next-records"
           disabled={!user || busy || !next}
@@ -315,7 +328,7 @@ export function View() {
         >
           下一頁
         </Button>
-      </div>
+      </ButtonGroup>
     </PagePanel>
   );
 }
