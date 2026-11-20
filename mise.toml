@@ -60,6 +60,7 @@ python = "3.12.14"
 "npm:mermaid" = "13.0.0-alpha.3"
 "npm:skills" = "1.7.6"
 gcloud = "592.0.0"
+"npm:firebase-tools" = "15.37.0"
 "npm:@google-cloud/gcloud-mcp" = "0.5.3"
 
 [settings]
@@ -161,8 +162,8 @@ description = "Install the pinned Next.js DevTools MCP connector and Node runtim
 run = "mise install node npm:next-devtools-mcp"
 
 [tasks.install-cloud]
-description = "Install pinned Google Cloud CLI and local MCP (no authentication or deployment)"
-run = "mise install gcloud npm:@google-cloud/gcloud-mcp"
+description = "Install pinned Google Cloud CLI, Firebase CLI, and local MCP"
+run = "mise install node gcloud npm:firebase-tools npm:@google-cloud/gcloud-mcp"
 
 [tasks.doctor-google-knowledge]
 description = "Verify Google Developer Knowledge MCP using the host API key"

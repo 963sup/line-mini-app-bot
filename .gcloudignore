@@ -39,3 +39,6 @@
 !deploy/cloudbuild.yaml
 !deploy/firestore/
 !deploy/firestore/indexes.json
+
+!scripts/tooling/ensure-attendance-indexes.py
+!firebase.json
