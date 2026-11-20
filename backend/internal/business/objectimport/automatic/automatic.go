@@ -21,8 +21,8 @@ var (
 )
 
 type Candidate struct {
-	Name, Quantity, Unit, SourceItemNo string
-	Pages                              []int
+	Name, Quantity, Unit, SourceItemNo, Type, Quote string
+	Pages                                           []int
 }
 type Row struct {
 	feature.Fields
@@ -95,9 +95,34 @@ func content(j Run, r Row) object.Content {
 	return object.Content{Name: r.Name, Description: r.Description, Type: r.Type, Quantity: r.Quantity, Unit: r.Unit, MaterialCode: r.MaterialCode, SourceDocument: j.SourceDocument, SourceRevision: j.SourceRevision, SourceItemNo: r.SourceItemNo, SourcePages: r.SourcePages}
 }
 
+// indexItems binds quotes to the physical item column identified by the PDF reader.
+func indexItems(source feature.Source) map[string]map[int]string {
+	items := map[string]map[int]string{}
+	id := ""
+	for _, page := range source.Pages {
+		for _, line := range strings.Split(page.Text, "\n") {
+			if rest, ok := strings.CutPrefix(line, "[[item:"); ok {
+				key, body, ok := strings.Cut(rest, "]] ")
+				if !ok || key == "" {
+					return nil
+				}
+				id = key
+				line = body
+				if items[id] == nil {
+					items[id] = map[int]string{}
+				}
+			}
+			if id != "" {
+				items[id][page.Number] += line + "\n"
+			}
+		}
+	}
+	return items
+}
+
 // Prepare accepts page references only, never literal quotations or model authority.
 func Prepare(j Run, source feature.Source, candidates []Candidate, selectedType string) ([]Row, error) {
-	if selectedType != object.TypeWork && selectedType != object.TypeNonWork {
+	if selectedType != "per_item" && selectedType != object.TypeWork && selectedType != object.TypeNonWork {
 		return nil, ErrTypeRequired
 	}
 	if len(candidates) < 1 || len(candidates) > 100 {
@@ -109,6 +134,13 @@ func Prepare(j Run, source feature.Source, candidates []Candidate, selectedType 
 	}
 	rows := make([]Row, 0, len(candidates))
 	seen := map[string]bool{}
+	var evidence map[string]map[int]string
+	if selectedType == "per_item" {
+		evidence = indexItems(source)
+		if len(evidence) != len(candidates) {
+			return nil, feature.ErrInput
+		}
+	}
 	for i, c := range candidates {
 		if len(c.Pages) < 1 || len(c.Pages) > 4 {
 			return nil, feature.ErrInput
@@ -124,6 +156,28 @@ func Prepare(j Run, source feature.Source, candidates []Candidate, selectedType 
 			labels = append(labels, strconv.Itoa(p))
 		}
 		row := Row{Fields: feature.Fields{Name: c.Name, Quantity: c.Quantity, Unit: c.Unit, Type: selectedType}, ID: feature.Hash([]string{"automatic-row-v1", j.ID, strconv.Itoa(i)})[:32], SourceItemNo: c.SourceItemNo, SourcePages: strings.Join(labels, ",")}
+		if selectedType == "per_item" {
+			item, ok := evidence[strings.TrimSpace(c.SourceItemNo)]
+			if !ok {
+				return nil, feature.ErrInput
+			}
+			row.Type = c.Type
+			if row.Type != object.TypeWork && row.Type != object.TypeNonWork && row.Type != "needs_review" {
+				return nil, feature.ErrInput
+			}
+			row.Description = strings.TrimSpace(c.Quote)
+			matched := false
+			for _, ref := range refs {
+				if row.Description != "" && strings.Contains(item[ref], row.Description) {
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				row.Type = "needs_review"
+				row.Description = ""
+			}
+		}
 		normalized, e := object.Normalize(content(j, row))
 		if e != nil || normalized.SourceItemNo == "" || seen[normalized.SourceItemNo] {
 			return nil, feature.ErrInput
@@ -173,6 +227,14 @@ func validKey(key string) bool {
 }
 
 func (s *Service) Create(ctx context.Context, actor, rid, key string, input feature.Source, selectedType string) (Run, error) {
+	return s.create(ctx, actor, rid, key, input, selectedType, nil)
+}
+
+func (s *Service) Classify(ctx context.Context, actor, rid, key string, input feature.Source, decisions map[string]string) (Run, error) {
+	return s.create(ctx, actor, rid, key, input, "per_item", decisions)
+}
+
+func (s *Service) create(ctx context.Context, actor, rid, key string, input feature.Source, selectedType string, decisions map[string]string) (Run, error) {
 	if _, e := s.scope(ctx, actor, rid); e != nil {
 		return Run{}, e
 	}
@@ -183,7 +245,7 @@ func (s *Service) Create(ctx context.Context, actor, rid, key string, input feat
 	if e != nil {
 		return Run{}, e
 	}
-	if selectedType != "" && selectedType != object.TypeWork && selectedType != object.TypeNonWork {
+	if selectedType != "" && selectedType != "per_item" && selectedType != object.TypeWork && selectedType != object.TypeNonWork {
 		return Run{}, ErrTypeRequired
 	}
 	id := feature.Hash([]string{"automatic-import-v1", actor, rid, key})[:32]
@@ -199,7 +261,33 @@ func (s *Service) Create(ctx context.Context, actor, rid, key string, input feat
 			if current.Status == "pending" && selectedType == "" {
 				return Run{}, ErrTypeRequired
 			}
-			return *current, nil
+			out := *current
+			if len(decisions) > 0 {
+				out.Rows = slices.Clone(current.Rows)
+				for id, t := range decisions {
+					if t != object.TypeWork && t != object.TypeNonWork {
+						return Run{}, feature.ErrInput
+					}
+					found := false
+					for i, row := range out.Rows {
+						if row.ID == id {
+							if row.Type != "needs_review" && row.Type != t {
+								return Run{}, feature.ErrConflict
+							}
+							out.Rows[i].Type = t
+							found = true
+							break
+						}
+					}
+					if !found {
+						return Run{}, feature.ErrInput
+					}
+				}
+			}
+			return out, nil
+		}
+		if len(decisions) > 0 {
+			return Run{}, feature.ErrInput
 		}
 		if selectedType == "" {
 			return Run{}, ErrTypeRequired
@@ -214,7 +302,17 @@ func (s *Service) Create(ctx context.Context, actor, rid, key string, input feat
 		if s.Producer == nil {
 			return s.reason(ctx, actor, rid, j, "model_unavailable")
 		}
-		candidates, err := s.Producer.Rows(ctx, source)
+		produce := s.Producer.Rows
+		if selectedType == "per_item" {
+			classifier, ok := s.Producer.(interface {
+				ClassifiedRows(context.Context, feature.Source) ([]Candidate, error)
+			})
+			if !ok {
+				return s.reason(ctx, actor, rid, j, "model_unavailable")
+			}
+			produce = classifier.ClassifiedRows
+		}
+		candidates, err := produce(ctx, source)
 		if err != nil {
 			if errors.Is(err, ErrOutput) {
 				return s.reason(ctx, actor, rid, j, "output_rejected")
@@ -246,7 +344,7 @@ func (s *Service) Create(ctx context.Context, actor, rid, key string, input feat
 		}
 	}
 	for _, row := range j.Rows {
-		if row.ResultObjectID != "" {
+		if row.ResultObjectID != "" || row.Type == "needs_review" {
 			continue
 		}
 		if s.Objects == nil {

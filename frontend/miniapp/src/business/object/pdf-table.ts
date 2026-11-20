@@ -1,7 +1,7 @@
 import type { PdfPage } from "./pdf";
 export type PositionedText = { str: string; x: number; y: number; width: number };
 // This supported order layout has explicit column headers. Unknown layouts fail closed.
-export function orderTable(number: number, items: PositionedText[]): PdfPage | null {
+export function orderTable(number: number, items: PositionedText[], markRows = false): PdfPage | null {
   const header = (name: string) => items.find(item => item.str.trim() === name);
   const item = header("項次"), name = header("料號/品名"), quantity = header("數量"), unit = header("單位"), price = header("單價");
   if (!item && !name && !quantity && !unit && !price) return null;
@@ -15,7 +15,17 @@ export function orderTable(number: number, items: PositionedText[]): PdfPage | n
     const line = lines.find(line => Math.abs(line.y - value.y) < 3);
     if (line) line.items.push(value); else lines.push({ y: value.y, items: [value] });
   }
-  const text = lines.map(line => line.items.sort((a, b) => a.x - b.x).map(value => value.str).join(" ").trim()).filter(value => !/^\((?:Cost Ref|Customer PO):/i.test(value)).join("\n");
+  const text = lines.map(line => {
+    const cells = line.items.sort((a, b) => a.x - b.x);
+    const content = cells.map(value => value.str).join(" ").trim();
+    if (!markRows) return content;
+    if (content.includes("[[item:")) throw new Error("明細含有無法辨識的項次標記。");
+    const first = cells[0];
+    if (first.x >= name.x - 2) return content;
+    const id = first.str.trim().split(/\s+/)[0];
+    if (!/^[A-Za-z0-9][A-Za-z0-9._/-]*$/.test(id)) throw new Error(`第 ${number} 頁項次無法辨識。`);
+    return `[[item:${id}]] ${content}`;
+  }).filter(value => !/^\((?:Cost Ref|Customer PO):/i.test(value)).join("\n");
   if (!text) throw new Error("此PDF沒有可辨識的工程明細。");
   return { number, text };
 }

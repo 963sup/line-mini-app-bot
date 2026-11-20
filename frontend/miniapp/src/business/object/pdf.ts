@@ -33,7 +33,8 @@ export async function extractPdf(file: File, signal: AbortSignal, load: () => Pr
         const content = await untilAbort(page.getTextContent(), controller.signal);
         const items = content.items.filter(item => "str" in item).map(item => ({ str: item.str, x: item.transform[4], y: -item.transform[5], width: item.width }));
         if (number === 1) sourceRevision = orderRevision(items);
-        const selected = orderTable(number, items);
+        const selected = orderTable(number, items, true);
+        if (!selected && pdf.numPages > 1) throw new Error(`第 ${number} 頁沒有可辨識的明細表頭，請確認頁面後拆分文件再匯入。`);
         if (selected) {
           total += new TextEncoder().encode(selected.text).length;
           if (total > PDF_LIMITS.textBytes) throw new Error("PDF明細文字超過128 KiB，請先在本機拆分。");
