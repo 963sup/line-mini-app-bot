@@ -3,6 +3,8 @@ package organizationhttp
 import (
 	"context"
 	"encoding/json"
+	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/http"
+	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/http"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -50,14 +52,10 @@ func TestWorkspaceLifecycle(t *testing.T) {
 	other := "U" + strings.Repeat("b", 32)
 	store := &groupdb.Store{Client: db, ChannelID: channel}
 	groups := &group.Service{Store: store, Membership: member(true)}
-	h := Handler{
-		Auth:              &owner,
-		OrganizationStore: orgdb.Store{DB: db, Channel: channel},
-		EnterpriseStore:   enterprisedb.Store{DB: db, Channel: channel, Groups: groups},
-		TeamStore:         teamdb.Store{DB: db, Channel: channel, Groups: groups},
-	}
 	mux := http.NewServeMux()
-	httpapi.RegisterOrganizations(mux, h)
+	httpapi.RegisterOrganizations(mux, Handler{Auth: &owner, Store: orgdb.Store{DB: db, Channel: channel}})
+	httpapi.RegisterEnterprises(mux, enterprisehttp.Handler{Auth: &owner, Store: enterprisedb.Store{DB: db, Channel: channel, Groups: groups}})
+	httpapi.RegisterTeams(mux, teamhttp.Handler{Auth: &owner, Store: teamdb.Store{DB: db, Channel: channel, Groups: groups}})
 	call := func(method, path, body string, code int) []byte {
 		t.Helper()
 		w := httptest.NewRecorder()

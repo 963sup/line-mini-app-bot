@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/firestore"
+	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/http"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/firestore"
+	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/http"
 	"log/slog"
 	"net"
 	"net/http"
@@ -128,17 +130,21 @@ func Run() (resultErr error) {
 	}()
 	var creation creationConversation
 	organizationHandler := organizationhttp.Handler{Auth: auth}
+	enterpriseHandler := enterprisehttp.Handler{Auth: auth}
+	teamHandler := teamhttp.Handler{Auth: auth}
 	if sessions != nil {
 		if db, ok := sessions.Store.(*sessiondb.Store); ok && os.Getenv("LINE_MESSAGING_API_CHANNEL_ID") != "" {
 			channel := os.Getenv("LINE_MESSAGING_API_CHANNEL_ID")
 			organizationStore := organizationdb.Store{DB: db.Client, Channel: channel}
-			organizationHandler.OrganizationStore = organizationStore
-			organizationHandler.EnterpriseStore = enterprisedb.Store{DB: db.Client, Channel: channel, Groups: groups}
-			organizationHandler.TeamStore = teamdb.Store{DB: db.Client, Channel: channel, Groups: groups}
+			organizationHandler.Store = organizationStore
+			enterpriseHandler.Store = enterprisedb.Store{DB: db.Client, Channel: channel, Groups: groups}
+			teamHandler.Store = teamdb.Store{DB: db.Client, Channel: channel, Groups: groups}
 			creation = organizationStore
 		}
 	}
 	httpapi.RegisterOrganizations(mux, organizationHandler)
+	httpapi.RegisterEnterprises(mux, enterpriseHandler)
+	httpapi.RegisterTeams(mux, teamHandler)
 	projects := newProjects(groups, repositories)
 	journalhttp.Register(mux, newJournals(groups, repositories, projects), auth)
 	grouphttp.Register(mux, groups, auth)
