@@ -86,7 +86,7 @@ function Content() {
               </PagePanel>}
             </div>
             </TabsContent>
-            <TabsContent value="業務空間"><Spaces repositoryId={selected.id} /></TabsContent>
+            <TabsContent value="空間"><Spaces repositoryId={selected.id} /></TabsContent>
             <TabsContent value="物件"><Objects repositoryId={selected.id} /></TabsContent>
             <TabsContent value="問題"><Issues repositoryId={selected.id} /></TabsContent>
             <TabsContent value="討論"><Discussions repositoryId={selected.id} /></TabsContent>
