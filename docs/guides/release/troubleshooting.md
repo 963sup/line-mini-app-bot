@@ -23,9 +23,9 @@ flowchart LR
   h --- n0["使用 python3 scripts/tooling/check-config.py<br/> 檢查設定。單一 MCP 使用 bash <br/>scripts/tooling/tool-exec.sh python3 <br/>scripts/tooling/mcp-doctor.py --server &lt;name<br/>&gt;。可選憑證缺漏時可繼續檢查其他服務。分別記<br/>錄設定、安裝、transport、host 載入與實際操作<br/>結果。"]
   h --- n1["Codex 設定用 OpenAI Docs MCP search/fetch 查<br/>證，版本專屬 API 用 Context7。 Do not <br/>rewrite HOME/CODEX_HOME or platform <br/>credentials to force it. Never print <br/>authentication headers or secret values <br/>while debugging."]
   n1 --- n1l0["OpenAI Docs MCP"]
-  click n1l0 "../../tooling/mcp/openai-docs.md"
+  click n1l0 "../../development/tooling/mcp/openai-docs.md"
   n1 --- n1l1["Context7"]
-  click n1l1 "../../tooling/mcp/context7.md"
+  click n1l1 "../../development/tooling/mcp/context7.md"
 ```
 
 <a id="cloud-buildcloud-run-與部署後同步"></a>

@@ -97,7 +97,7 @@ flowchart LR
 flowchart LR
   h["持續檢查與修正"]
   h --- n0["依 代理工作流程 執行 Graphify → Repomix／原<br/>文核對 → Context7 技術查證 → 範圍內修正 → 驗<br/>證。 工具輸出是證據，不是正確性證明或擴大修<br/>改範圍的授權。"]
-  click n0 "../../agents/workflow.md#business-operation-compliance"
+  click n0 "../../development/workflow.md#business-operation-compliance"
 ```
 
 <a id="補卡核准對照範例"></a>
