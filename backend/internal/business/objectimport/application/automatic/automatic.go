@@ -359,7 +359,6 @@ func (s *Service) run(ctx context.Context, actor, rid, key string, source object
 }
 
 func (s *Service) finish(ctx context.Context, actor, rid string, j objectimportDomainEntityAutomatic.Run) (objectimportDomainEntityAutomatic.Run, error) {
-
 	for _, row := range j.Rows {
 		if row.ResultObjectID != "" || row.Type == "needs_review" {
 			continue

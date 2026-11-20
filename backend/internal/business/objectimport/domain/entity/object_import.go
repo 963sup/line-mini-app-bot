@@ -69,8 +69,10 @@ type PDFInput struct {
 // PDFEvidence describes what the server independently recovered from a PDF.
 type PDFEvidence interface{ pdfEvidence() }
 
-type LocatedPDFItems struct{ Items []PDFItem }
-type PDFPageText struct{}
+type (
+	LocatedPDFItems struct{ Items []PDFItem }
+	PDFPageText     struct{}
+)
 
 func (LocatedPDFItems) pdfEvidence() {}
 func (PDFPageText) pdfEvidence()     {}
@@ -217,7 +219,7 @@ func ValidateSource(input Source) (Source, string, error) {
 	}
 	pagesV1 := make([]sourcePageV1, 0, len(canonicalPages))
 	for _, p := range canonicalPages {
-		pagesV1 = append(pagesV1, sourcePageV1{Number: p.Number, Text: p.Text})
+		pagesV1 = append(pagesV1, sourcePageV1(p))
 	}
 	digest := Hash(struct {
 		Version int

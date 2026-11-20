@@ -51,11 +51,12 @@ func TestPDFUsesSourceFieldsAndRequiresUnambiguousClassification(t *testing.T) {
 	source := objectimportDomainEntity.Source{SourceDocument: "pdf:test", Pages: []objectimportDomainEntity.Page{{
 		Number: 1,
 		Text:   "[[item:1]] Pump supply only 2 EA\n[[item:2]] Lamp including installation 3 EA\nwithout installation\n[[item:3]] Fan supply only",
-	}}, PDF: objectimportDomainEntity.LocatedPDFItems{Items: []objectimportDomainEntity.PDFItem{
-		{ItemNo: "1", Name: "Pump", Quantity: "2", Unit: "EA"},
-		{ItemNo: "2", Name: "Lamp", Quantity: "3", Unit: "EA"},
-		{ItemNo: "3", Name: "Fan", Unit: "EA"},
-	},
+	}}, PDF: objectimportDomainEntity.LocatedPDFItems{
+		Items: []objectimportDomainEntity.PDFItem{
+			{ItemNo: "1", Name: "Pump", Quantity: "2", Unit: "EA"},
+			{ItemNo: "2", Name: "Lamp", Quantity: "3", Unit: "EA"},
+			{ItemNo: "3", Name: "Fan", Unit: "EA"},
+		},
 	}}
 	candidates := []objectimportDomainEntityAutomatic.Candidate{
 		{Name: "Pump", Quantity: "99", Unit: "BOX", SourceItemNo: "1", Type: "non_work", Quote: "supply only", Pages: []int{1}},
