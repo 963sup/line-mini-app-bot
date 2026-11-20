@@ -2,8 +2,8 @@ import React from "react";
 import { Shell } from "../../shell/Shell";
 import { View } from "../../navigation/home/View";
 import { useRouter } from "next/router";
-import { OrganizationTeams } from "@/shell/OrganizationTeams";
-import { Enterprise } from "@/shell/Enterprise";
+import { OrganizationTeams } from "@/business/team/OrganizationTeams";
+import { Enterprise } from "@/business/enterprise/Enterprise";
 export default function Page() {
   const { query } = useRouter();
   const id = typeof query.organization === "string" ? query.organization : "";

@@ -10,10 +10,15 @@ import (
 	"testing"
 	"time"
 
+	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/http"
+	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/http"
+
 	"cloud.google.com/go/firestore"
+	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/group"
 	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/firestore"
 	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/firestore"
+	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
@@ -48,9 +53,10 @@ func TestWorkspaceLifecycle(t *testing.T) {
 	other := "U" + strings.Repeat("b", 32)
 	store := &groupdb.Store{Client: db, ChannelID: channel}
 	groups := &group.Service{Store: store, Membership: member(true)}
-	h := Handler{Auth: &owner, Store: orgdb.Store{DB: db, Channel: channel, Groups: groups}}
 	mux := http.NewServeMux()
-	httpapi.RegisterOrganizations(mux, h)
+	httpapi.RegisterOrganizations(mux, Handler{Auth: &owner, Store: orgdb.Store{DB: db, Channel: channel}})
+	httpapi.RegisterEnterprises(mux, enterprisehttp.Handler{Auth: &owner, Store: enterprisedb.Store{DB: db, Channel: channel, Groups: groups}})
+	httpapi.RegisterTeams(mux, teamhttp.Handler{Auth: &owner, Store: teamdb.Store{DB: db, Channel: channel, Groups: groups}})
 	call := func(method, path, body string, code int) []byte {
 		t.Helper()
 		w := httptest.NewRecorder()

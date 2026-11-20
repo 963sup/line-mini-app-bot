@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
-import type { components } from "@repo/api-client";
+import React from "react";
+import { useOrganizationSelection } from "@/business/organization/useOrganizationSelection";
 import { Building2, ChevronsUpDown } from "lucide-react";
-import { useOptionalSession, useSession } from "@/identity/Session";
-import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
+import { useOptionalSession } from "@/identity/Session";
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -41,56 +40,13 @@ export function OrganizationSwitcher() {
 }
 
 function Switcher() {
-  const { request } = useSession(),
-    { isMobile, setOpenMobile } = useSidebar(),
-    { run, cancel } = useLatestRequest();
-  const [context, setContext] =
-    useState<components["schemas"]["OrganizationContext"]>();
-  const [error, setError] = useState(""),
-    [saving, setSaving] = useState(false);
-  function load() {
-    return run(
-      (signal) =>
-        request(
-          (api, s) => api.GET("/api/v1/me/organization-context", { signal: s }),
-          { signal },
-        ),
-      setContext,
-      (e) => setError(errorMessage(e)),
+  const { isMobile, setOpenMobile } = useSidebar();
+  const { context, error, saving, select } = useOrganizationSelection((organizationId) => {
+    setOpenMobile(false);
+    window.location.assign(
+      "/miniapp?" + new URLSearchParams({ organization: organizationId }),
     );
-  }
-  useEffect(() => {
-    void load();
-    return cancel;
-  }, [request, run, cancel]);
-  function select(organizationId: string) {
-    if (saving || context?.selected?.organizationId === organizationId) return;
-    setSaving(true);
-    setError("");
-    void run(
-      (signal) =>
-        request(
-          (api, s) =>
-            api.PUT("/api/v1/me/organization-context", {
-              signal: s,
-              body: { organizationId },
-            }),
-          { signal },
-        ),
-      (next) => {
-        setContext(next);
-        setOpenMobile(false);
-        window.location.assign(
-          "/miniapp?" + new URLSearchParams({ organization: organizationId }),
-        );
-      },
-      (e) => {
-        setSaving(false);
-        setError(errorMessage(e));
-        void load();
-      },
-    );
-  }
+  });
   const label = (
     <>
       <Building2 />

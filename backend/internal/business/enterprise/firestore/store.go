@@ -1,4 +1,4 @@
-package organizationdb
+package enterprisedb
 
 import (
 	"context"
@@ -7,23 +7,28 @@ import (
 	"strings"
 
 	"cloud.google.com/go/firestore"
+	"github.com/963sup/line-mini-app-bot/internal/business/enterprise"
 	"github.com/963sup/line-mini-app-bot/internal/business/group"
+	"github.com/963sup/line-mini-app-bot/internal/business/internal/orgstore"
 	"github.com/963sup/line-mini-app-bot/internal/business/organization"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func (e entity) isOwner(user string) bool { return e.Owner == user || slices.Contains(e.Owners, user) }
+type Store struct {
+	DB      *firestore.Client
+	Channel string
+	Groups  *group.Service
+}
 
 type grant struct {
 	Enabled      bool   `firestore:"enabled"`
 	EnterpriseID string `firestore:"enterpriseId"`
 }
 
-func provisioning(tx *firestore.Transaction, root *firestore.DocumentRef, user string) (grant, *firestore.DocumentRef, error) {
+func Provisioning(tx *firestore.Transaction, root *firestore.DocumentRef, user string) (grant, *firestore.DocumentRef, error) {
 	ref := root.Collection("enterpriseEntitlements").Doc(firestorekey.Digest([]byte(user)))
 	d, e := tx.Get(ref)
 	var g grant
@@ -36,8 +41,8 @@ func provisioning(tx *firestore.Transaction, root *firestore.DocumentRef, user s
 	return g, ref, e
 }
 
-func enterpriseNavigation(tx *firestore.Transaction, root *firestore.DocumentRef, user string, labels map[string]string, c *organization.Context) error {
-	g, _, e := provisioning(tx, root, user)
+func PopulateNavigation(tx *firestore.Transaction, root *firestore.DocumentRef, user string, labels map[string]string, c *organization.Context) error {
+	g, _, e := Provisioning(tx, root, user)
 	if e != nil {
 		return e
 	}
@@ -49,7 +54,7 @@ func enterpriseNavigation(tx *firestore.Transaction, root *firestore.DocumentRef
 			return e
 		}
 		for _, doc := range docs {
-			var ent entity
+			var ent orgstore.Document
 			if e := doc.DataTo(&ent); e != nil {
 				return e
 			}
@@ -69,18 +74,18 @@ func enterpriseNavigation(tx *firestore.Transaction, root *firestore.DocumentRef
 	return nil
 }
 
-func (s Store) CreateEnterprise(ctx context.Context, user, name string) (*generated.EnterpriseLink, error) {
+func (s Store) CreateEnterprise(ctx context.Context, user, name string) (*enterprise.Link, error) {
 	id := uuid.NewString()
-	return run(s, ctx, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*generated.EnterpriseLink, error) {
-		return createEnterprise(tx, root, user, id, strings.TrimSpace(name), true)
+	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*enterprise.Link, error) {
+		return CreateInTransaction(tx, root, user, id, strings.TrimSpace(name), true)
 	})
 }
 
-func createEnterprise(tx *firestore.Transaction, root *firestore.DocumentRef, user, id, name string, allowExisting bool) (*generated.EnterpriseLink, error) {
+func CreateInTransaction(tx *firestore.Transaction, root *firestore.DocumentRef, user, id, name string, allowExisting bool) (*enterprise.Link, error) {
 	if name == "" || len([]rune(name)) > 120 {
 		return nil, organization.ErrInvalid
 	}
-	g, ref, e := provisioning(tx, root, user)
+	g, ref, e := Provisioning(tx, root, user)
 	if e != nil {
 		return nil, e
 	}
@@ -88,44 +93,44 @@ func createEnterprise(tx *firestore.Transaction, root *firestore.DocumentRef, us
 		return nil, organization.ErrForbidden
 	}
 	if g.EnterpriseID != "" {
-		existing, e := read(tx, root.Collection("enterprises").Doc(g.EnterpriseID))
+		existing, e := orgstore.Read(tx, root.Collection("enterprises").Doc(g.EnterpriseID))
 		if e != nil {
 			return nil, e
 		}
-		if !existing.isOwner(user) {
+		if !existing.IsOwner(user) {
 			return nil, organization.ErrForbidden
 		}
-		return &generated.EnterpriseLink{Id: g.EnterpriseID, Name: existing.Name}, nil
+		return &enterprise.Link{ID: g.EnterpriseID, Name: existing.Name}, nil
 	}
 	if e := tx.Create(root.Collection("enterprises").Doc(id), map[string]any{"name": name, "ownerUserIds": []string{user}, "createdBy": user}); e != nil {
 		return nil, e
 	}
-	return &generated.EnterpriseLink{Id: id, Name: name}, tx.Update(ref, []firestore.Update{{Path: "enterpriseId", Value: id}})
+	return &enterprise.Link{ID: id, Name: name}, tx.Update(ref, []firestore.Update{{Path: "enterpriseId", Value: id}})
 }
 
-func (s Store) Enterprise(ctx context.Context, user, id string) (*generated.Enterprise, error) {
+func (s Store) Enterprise(ctx context.Context, user, id string) (*enterprise.Detail, error) {
 	if uuid.Validate(id) != nil {
 		return nil, organization.ErrInvalid
 	}
-	return run(s, ctx, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*generated.Enterprise, error) {
-		ent, e := read(tx, root.Collection("enterprises").Doc(id))
+	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*enterprise.Detail, error) {
+		ent, e := orgstore.Read(tx, root.Collection("enterprises").Doc(id))
 		if e != nil {
 			return nil, e
 		}
-		owner := ent.isOwner(user)
+		owner := ent.IsOwner(user)
 		admin := owner || slices.Contains(ent.Managers, user)
-		view := generated.Enterprise{Id: id, Name: ent.Name, CanManage: owner, Organizations: []generated.EnterpriseLink{}, Teams: []generated.EnterpriseLink{}}
+		view := enterprise.Detail{ID: id, Name: ent.Name, CanManage: owner, Organizations: []enterprise.Link{}, Teams: []enterprise.Link{}}
 		docs, e := tx.Documents(root.Collection("organizations").Where("enterpriseId", "==", id)).GetAll()
 		if e != nil {
 			return nil, e
 		}
 		for _, d := range docs {
-			var org entity
+			var org orgstore.Document
 			if e := d.DataTo(&org); e != nil {
 				return nil, e
 			}
 			if admin || org.Owner == user || slices.Contains(org.Members, user) {
-				view.Organizations = append(view.Organizations, generated.EnterpriseLink{Id: d.Ref.ID, Name: org.Name})
+				view.Organizations = append(view.Organizations, enterprise.Link{ID: d.Ref.ID, Name: org.Name})
 			}
 		}
 		if !admin && len(view.Organizations) == 0 {
@@ -134,7 +139,7 @@ func (s Store) Enterprise(ctx context.Context, user, id string) (*generated.Ente
 		assigned := map[string]bool{}
 		if !admin {
 			for _, org := range view.Organizations {
-				links, err := tx.Documents(root.Collection("organizations").Doc(org.Id).Collection("enterpriseTeams").Query).GetAll()
+				links, err := tx.Documents(root.Collection("organizations").Doc(org.ID).Collection("enterpriseTeams").Query).GetAll()
 				if err != nil {
 					return nil, err
 				}
@@ -148,7 +153,7 @@ func (s Store) Enterprise(ctx context.Context, user, id string) (*generated.Ente
 			return nil, e
 		}
 		for _, d := range docs {
-			var team entity
+			var team orgstore.Document
 			if e := d.DataTo(&team); e != nil {
 				return nil, e
 			}
@@ -170,31 +175,31 @@ func (s Store) Enterprise(ctx context.Context, user, id string) (*generated.Ente
 					return nil, e
 				}
 			}
-			view.Teams = append(view.Teams, generated.EnterpriseLink{Id: d.Ref.ID, Name: team.Name})
+			view.Teams = append(view.Teams, enterprise.Link{ID: d.Ref.ID, Name: team.Name})
 		}
 		return &view, nil
 	})
 }
 
-func (s Store) UpdateEnterprise(ctx context.Context, user, id, target string, addOwner bool) (*generated.EnterpriseLink, error) {
-	if uuid.Validate(id) != nil || (addOwner && !userID.MatchString(target)) || (!addOwner && uuid.Validate(target) != nil) {
+func (s Store) UpdateEnterprise(ctx context.Context, user, id, target string, addOwner bool) (*enterprise.Link, error) {
+	if uuid.Validate(id) != nil || (addOwner && !orgstore.UserID.MatchString(target)) || (!addOwner && uuid.Validate(target) != nil) {
 		return nil, organization.ErrInvalid
 	}
-	return run(s, ctx, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*generated.EnterpriseLink, error) {
+	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*enterprise.Link, error) {
 		ref := root.Collection("enterprises").Doc(id)
-		ent, e := read(tx, ref)
+		ent, e := orgstore.Read(tx, ref)
 		if e != nil {
 			return nil, e
 		}
-		if !ent.isOwner(user) {
+		if !ent.IsOwner(user) {
 			return nil, organization.ErrNotFound
 		}
-		link := &generated.EnterpriseLink{Id: id, Name: ent.Name}
+		link := &enterprise.Link{ID: id, Name: ent.Name}
 		if addOwner {
 			return link, tx.Update(ref, []firestore.Update{{Path: "ownerUserIds", Value: firestore.ArrayUnion(target)}})
 		}
 		orgRef := root.Collection("organizations").Doc(target)
-		org, e := read(tx, orgRef)
+		org, e := orgstore.Read(tx, orgRef)
 		if e != nil {
 			return nil, e
 		}

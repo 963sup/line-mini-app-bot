@@ -228,10 +228,18 @@ func RegisterOrganizations(public *http.ServeMux, handler OrganizationServer) {
 	public.Handle("PUT /api/v1/me/organization-context", routes)
 	public.Handle("POST /api/v1/organizations", routes)
 	public.Handle("PUT /api/v1/organizations/{organizationId}/owner", routes)
+}
+
+func RegisterTeams(public *http.ServeMux, handler TeamServer) {
+	routes := routeHandler(contractServer{TeamServer: handler})
 	public.Handle("PUT /api/v1/teams/{teamId}/management", routes)
 	public.Handle("GET /api/v1/organizations/{organizationId}/teams", routes)
 	public.Handle("PUT /api/v1/organizations/{organizationId}/enterprise-teams/{teamId}", routes)
 	public.Handle("DELETE /api/v1/organizations/{organizationId}/enterprise-teams/{teamId}", routes)
+}
+
+func RegisterEnterprises(public *http.ServeMux, handler EnterpriseServer) {
+	routes := routeHandler(contractServer{EnterpriseServer: handler})
 	public.Handle("POST /api/v1/enterprises", routes)
 	public.Handle("GET /api/v1/enterprises/{enterpriseId}", routes)
 	public.Handle("POST /api/v1/enterprises/{enterpriseId}/owners", routes)
