@@ -93,9 +93,96 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	}
 	store.Repositories = &repository.Service{Store: &repodb.Store{Client: client, ChannelID: channel}, Membership: membership{}}
 	draft.Today[0].Reference = &journal.Reference{Kind: "repository", ID: rid}
+	objectID, childID, spaceID := strings.Repeat("c", 32), strings.Repeat("d", 32), strings.Repeat("e", 32)
+	object := repo.Collection("objects").Doc(objectID)
+	child := object.Collection("subobjects").Doc(childID)
+	space := repo.Collection("spaces").Doc(spaceID)
+	for ref, data := range map[*db.DocumentRef]map[string]any{
+		object: {"id": objectID, "repositoryId": rid, "name": "父物件"},
+		child:  {"id": childID, "repositoryId": rid, "parentObjectId": objectID, "name": "子物件"},
+		space:  {"id": spaceID, "repositoryId": rid, "name": "作業空間"},
+	} {
+		if _, e := ref.Set(ctx, data); e != nil {
+			t.Fatal(e)
+		}
+	}
+	draft.Today[0].ObjectID, draft.Today[0].SubobjectID, draft.Today[0].SpaceIDs = objectID, childID, []string{spaceID}
+	draft.Tomorrow = []journal.Work{{Name: "明日工作", Percent: 60, Reference: &journal.Reference{Kind: "repository", ID: rid}, ObjectID: objectID, SpaceIDs: []string{spaceID}}}
 	linked, e := store.Create(ctx, "writer", "linked", draft)
 	if e != nil {
 		t.Fatal(e)
+	}
+	assertSnapshot := func(entry journal.Entry) {
+		t.Helper()
+		if len(entry.Today) != 1 || len(entry.Tomorrow) != 1 {
+			t.Fatalf("missing work rows: %+v", entry)
+		}
+		row := entry.Today[0]
+		if row.ObjectID != objectID || row.SubobjectID != childID || row.ObjectName != "父物件 › 子物件" || len(row.SpaceIDs) != 1 || row.SpaceIDs[0] != spaceID || len(row.SpaceNames) != 1 || row.SpaceNames[0] != "作業空間" {
+			t.Fatalf("wrong today snapshot: %+v", row)
+		}
+		if row := entry.Tomorrow[0]; row.ObjectName != "父物件" || len(row.SpaceNames) != 1 || row.SpaceNames[0] != "作業空間" {
+			t.Fatalf("wrong tomorrow snapshot: %+v", row)
+		}
+	}
+	assertSnapshot(linked)
+	if draft.Today[0].ObjectName != "" || len(draft.Today[0].SpaceNames) != 0 || draft.Tomorrow[0].ObjectName != "" {
+		t.Fatal("publishing mutated the caller's retry payload")
+	}
+	for _, ref := range []*db.DocumentRef{object, child, space} {
+		if _, e := ref.Update(ctx, []db.Update{{Path: "name", Value: "已改名"}}); e != nil {
+			t.Fatal(e)
+		}
+	}
+	replayed, e := store.Create(ctx, "writer", "linked", draft)
+	if e != nil || replayed.ID != linked.ID || !replayed.CreatedAt.Equal(linked.CreatedAt) {
+		t.Fatalf("snapshot replay: %v", e)
+	}
+	assertSnapshot(replayed)
+	persisted, e := store.Get(ctx, "writer", linked.ID)
+	if e != nil {
+		t.Fatal(e)
+	}
+	assertSnapshot(persisted)
+	wrongParent := object.Collection("subobjects").Doc(strings.Repeat("f", 32))
+	if _, e := wrongParent.Set(ctx, map[string]any{"id": wrongParent.ID, "repositoryId": rid, "parentObjectId": strings.Repeat("1", 32), "name": "其他父物件的子物件"}); e != nil {
+		t.Fatal(e)
+	}
+	otherRepo := repo.Parent.Doc(strings.Repeat("2", 32))
+	if _, e := otherRepo.Set(ctx, map[string]any{"id": otherRepo.ID, "ownerId": "C" + strings.Repeat("3", 32), "status": "ACTIVE", "version": int64(1)}); e != nil {
+		t.Fatal(e)
+	}
+	entriesBefore, e := store.entries(g).Documents(ctx).GetAll()
+	if e != nil {
+		t.Fatal(e)
+	}
+	receiptsBefore, e := store.root().Collection("journalReceipts").Documents(ctx).GetAll()
+	if e != nil {
+		t.Fatal(e)
+	}
+	for _, tc := range []struct {
+		name string
+		row  journal.Work
+		want error
+	}{
+		{"wrong-group", journal.Work{Reference: &journal.Reference{Kind: "repository", ID: otherRepo.ID}, ObjectID: objectID}, journal.ErrNotFound},
+		{"wrong-parent", journal.Work{Reference: &journal.Reference{Kind: "repository", ID: rid}, ObjectID: objectID, SubobjectID: wrongParent.ID}, journal.ErrNotFound},
+		{"duplicate-spaces", journal.Work{Reference: &journal.Reference{Kind: "repository", ID: rid}, SpaceIDs: []string{spaceID, spaceID}}, journal.ErrInput},
+		{"missing-space", journal.Work{Reference: &journal.Reference{Kind: "repository", ID: rid}, ObjectID: objectID, SpaceIDs: []string{strings.Repeat("4", 32)}}, journal.ErrNotFound},
+	} {
+		invalid := draft
+		invalid.Today = []journal.Work{tc.row}
+		if _, e := store.Create(ctx, "writer", tc.name, invalid); !errors.Is(e, tc.want) {
+			t.Fatalf("%s: got %v, want %v", tc.name, e, tc.want)
+		}
+	}
+	entriesAfter, e := store.entries(g).Documents(ctx).GetAll()
+	if e != nil {
+		t.Fatal(e)
+	}
+	receiptsAfter, e := store.root().Collection("journalReceipts").Documents(ctx).GetAll()
+	if e != nil || len(entriesAfter) != len(entriesBefore) || len(receiptsAfter) != len(receiptsBefore) {
+		t.Fatalf("rejected source left an entry or receipt: entries %d -> %d, receipts %d -> %d, err %v", len(entriesBefore), len(entriesAfter), len(receiptsBefore), len(receiptsAfter), e)
 	}
 	_, e = repo.Update(ctx, []db.Update{{Path: "status", Value: "INACTIVE"}})
 	if e != nil {
@@ -104,6 +191,11 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	redacted, e := store.Get(ctx, "writer", linked.ID)
 	if e != nil || redacted.Today[0].Reference != nil {
 		t.Fatalf("redaction: %v", e)
+	}
+	for _, row := range append(redacted.Today, redacted.Tomorrow...) {
+		if row.Reference != nil || row.ObjectID != "" || row.SubobjectID != "" || len(row.SpaceIDs) != 0 || row.ObjectName != "" || len(row.SpaceNames) != 0 {
+			t.Fatalf("unreadable source leaked selection or names: %+v", row)
+		}
 	}
 	if _, e := store.Create(ctx, "writer", "denied-source", draft); !errors.Is(e, journal.ErrNotFound) {
 		t.Fatalf("inactive source: %v", e)

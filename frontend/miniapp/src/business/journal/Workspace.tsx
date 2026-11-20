@@ -15,6 +15,7 @@ import { Button } from "@/shared/ui/button";
 import { Questionnaire, QuestionnaireActions, QuestionnaireItem, QuestionnairePrevious, QuestionnaireProgress, QuestionnaireTitle } from "@/shared/ui/questionnaire";
 import { Input } from "@/shared/ui/input";
 import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
+import { WorkContext, collect } from "./WorkContext";
 import type { components } from "@repo/api-client";
 const GroupCharts = dynamic(() => import("./GroupCharts"), {
   loading: () => <ReadFeedback busy label="正在載入群組圖表……" />,
@@ -27,26 +28,30 @@ const workDate = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Taipei
 
 type Option = {id:string;name:string};
 type Target = Reference & {name:string};
-async function collect<T>(fetch:(cursor:string)=>Promise<{items:T[];nextCursor:string}>):Promise<T[]> {
-  const all:T[]=[];let cursor="";
-  do {const page=await fetch(cursor);all.push(...page.items);cursor=page.nextCursor;} while(cursor);
-  return all;
-}
-function Rows({title,rows,change,targets}:{title:string;rows:string[];change:(v:string[])=>void;targets:Target[]}) {
+function Rows({title,rows,change,targets,request,onPending}:{title:string;rows:string[];change:(v:string[])=>void;targets:Target[];request:Request;onPending:(id:string,value:boolean)=>void}) {
   const options = React.useMemo(() => [
     {label: "無關聯", value: ""},
     ...targets.map(t => ({label: `${t.type === "project" ? "專案" : "儲存庫"} · ${t.name}`, value: t.type + t.id})),
   ], [targets]);
-  return <div className="grid gap-3">
-    {rows.map((id, i) => <FieldSet key={id} className="rounded-lg border p-3">
+  return <div className="grid min-w-0 grid-cols-1 gap-3">
+    {rows.map((id, i) => <WorkRow key={id} id={id} index={i} options={options} targets={targets} request={request} onPending={onPending} remove={() => change(rows.filter(k => k !== id))}/>)}
+    <Button type="button" variant="outline" disabled={rows.length >= 100} onClick={() => change([...rows, crypto.randomUUID()])}>新增{title}</Button>
+  </div>;
+}
+function WorkRow({id,index:i,options,targets,request,remove,onPending}:{id:string;index:number;options:{label:string;value:string}[];targets:Target[];request:Request;remove:()=>void;onPending:(id:string,value:boolean)=>void}) {
+  const [reference,setReference]=useState<(typeof options)[number] | null>(null), [locked,setLocked]=useState(false);
+  const pending = useRef(false);
+  const lock = (value:boolean) => {pending.current=value;setLocked(value);onPending(id,value);};
+  const repository = targets.find(t => t.type === "repository" && t.type+t.id === reference?.value);
+  return <FieldSet className="min-w-0 rounded-lg border p-3">
       <FieldLegend>第 {i + 1} 項</FieldLegend>
       <Field><FieldLabel htmlFor={id+"name"}>工作名稱</FieldLabel>
         <Input id={id+"name"} name={id+"name"} required maxLength={120} /></Field>
       <Field><FieldLabel htmlFor={id+"percent"}>累計完成度（%）</FieldLabel>
         <Input id={id+"percent"} name={id+"percent"} required type="number" min={0} max={100} step={1} /></Field>
       <Field><FieldLabel htmlFor={id+"ref"}>工作關聯</FieldLabel>
-        <Combobox<(typeof options)[number]> items={options} name={id+"ref"} itemToStringValue={option => option.value}>
-          <ComboboxInput id={id+"ref"} placeholder="搜尋專案或儲存庫（可無關聯）" />
+        <Combobox<(typeof options)[number]> items={options} name={id+"ref"} value={reference} onValueChange={value=>{if(!pending.current)setReference(value);}} disabled={locked} itemToStringValue={option => option.value}>
+          <ComboboxInput disabled={locked} id={id+"ref"} placeholder="搜尋專案或儲存庫（可無關聯）" />
           <ComboboxContent>
             <ComboboxEmpty>沒有符合的工作關聯</ComboboxEmpty>
             <ComboboxList>{(option: (typeof options)[number]) =>
@@ -55,12 +60,11 @@ function Rows({title,rows,change,targets}:{title:string;rows:string[];change:(v:
           </ComboboxContent>
         </Combobox>
       </Field>
-      <Button type="button" variant="outline" onClick={() => change(rows.filter(k => k !== id))}>移除第 {i+1} 項</Button>
-    </FieldSet>)}
-    <Button type="button" variant="outline" disabled={rows.length >= 100} onClick={() => change([...rows, crypto.randomUUID()])}>新增{title}</Button>
-  </div>;
+      {repository && <WorkContext key={repository.id} id={id} repositoryId={repository.id} request={request} lock={lock}/>}
+      <Button type="button" variant="outline" disabled={locked} onClick={()=>{if(!pending.current)remove();}}>移除第 {i+1} 項</Button>
+    </FieldSet>;
 }
-function Composer({request,group,saved}:{request:Request;group:string;saved:()=>void}) {
+function Composer({request,group,saved,onPending,isBlocked}:{request:Request;group:string;saved:()=>void;onPending:(id:string,value:boolean)=>void;isBlocked:()=>boolean}) {
   const [step, setStep] = useState("people");
   const [today,setToday]=useState(["first"]),[tomorrow,setTomorrow]=useState<string[]>([]);
   const [targets,setTargets]=useState<Target[]>([]),[notice,setNotice]=useState(""),[error,setError]=useState(""),[busy,setBusy]=useState(false);
@@ -81,13 +85,14 @@ function Composer({request,group,saved}:{request:Request;group:string;saved:()=>
     event.preventDefault();
     event.stopPropagation();
     if (submitting.current) return;
+    if (isBlocked()) {setError("請先完成或重試空間建立，再發布日誌。");return;}
     const invalid = event.currentTarget.querySelector<HTMLInputElement>("fieldset[data-active] input:invalid");
     if (invalid) { invalid.reportValidity(); invalid.focus(); return; }
     if (step === "people") { setStep("today"); return; }
     if (step === "today") { setStep("tomorrow"); return; }
     const form=new FormData(event.currentTarget),get=(k:string)=>String(form.get(k)??"").trim();
     const people=(k:string)=>get(k).split(/[、，,\n]/).map(s=>s.trim()).filter(Boolean);
-    const row=(id:string)=>{const t=targets.find(t=>t.type+t.id===get(id+"ref"));return {name:get(id+"name"),reference:t?{type:t.type,id:t.id}:undefined};};
+    const row=(id:string)=>{const t=targets.find(t=>t.type+t.id===get(id+"ref"));return {name:get(id+"name"),reference:t?{type:t.type,id:t.id}:undefined, ...(t?.type === "repository" ? {objectId:get(id+"object") || undefined,subobjectId:get(id+"subobject") || undefined,spaceIds:form.getAll(id+"space").map(String)} : {})};};
     const body:Draft={groupId:group,workDate:get("date"), personnel:{management:people("management"),control:people("control"),workers:people("workers")},
       todayItems:today.map(id=>({...row(id),completionPercent:Number(get(id+"percent"))})),
       tomorrowItems:tomorrow.map(id=>({...row(id),expectedCompletionPercent:Number(get(id+"percent"))}))};
@@ -98,16 +103,16 @@ function Composer({request,group,saved}:{request:Request;group:string;saved:()=>
       saved,e=>{submitting.current=false;setBusy(false);setError(errorMessage(e));});
   }}>
     <QuestionnaireProgress aria-label="日誌填寫進度" aria-valuetext={step === "people" ? "日期與人員" : step === "today" ? "今日工作" : "明日計畫與發布"}>第 {step === "people" ? 1 : step === "today" ? 2 : 3} 步，共 3 步</QuestionnaireProgress>
-    <FieldSet disabled={busy} className="grid gap-3">
+    <FieldSet disabled={busy} className="grid min-w-0 grid-cols-1 gap-3">
     <QuestionnaireItem name="people"><QuestionnaireTitle>日期與人員</QuestionnaireTitle>
     <FormField>工作日期<Input required type="date" name="date" defaultValue={workDate()}/></FormField>
     {Object.entries(roles).map(([key,label])=><FormField key={key}>{label}<Input name={key} placeholder="多位姓名以頓號分隔"/></FormField>)}
     </QuestionnaireItem>
     <QuestionnaireItem name="today"><QuestionnaireTitle>今日工作</QuestionnaireTitle>
-    <Rows title="今日工作" rows={today} change={setToday} targets={targets}/>
+    <Rows title="今日工作" rows={today} change={setToday} targets={targets} request={request} onPending={onPending}/>
     </QuestionnaireItem>
     <QuestionnaireItem name="tomorrow"><QuestionnaireTitle>明日計畫與發布</QuestionnaireTitle>
-    <Rows title="明日計畫" rows={tomorrow} change={setTomorrow} targets={targets}/>
+    <Rows title="明日計畫" rows={tomorrow} change={setTomorrow} targets={targets} request={request} onPending={onPending}/>
     </QuestionnaireItem>
     {notice && step !== "people" && <Status>{notice}</Status>}
     {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
@@ -134,6 +139,13 @@ export function JournalWorkspace({dashboard, journalId = "", onCloseComposer}: W
 }
 
 function ComposeView({request, close}: {request: Request; close: () => void}) {
+  const pendingRows = useRef(new Set<string>());
+  const [blocked,setBlocked] = useState(false);
+  const onPending = React.useCallback((id:string,value:boolean)=>{
+    if(value)pendingRows.current.add(id);else pendingRows.current.delete(id);
+    setBlocked(pendingRows.current.size>0);
+  },[]);
+  const isBlocked = React.useCallback(()=>pendingRows.current.size>0,[]);
   const [groups, setGroups] = useState<Option[] | null>(null);
   const [publishGroup, setPublishGroup] = useState("");
   const [error, setError] = useState("");
@@ -166,11 +178,11 @@ function ComposeView({request, close}: {request: Request; close: () => void}) {
             <NativeSelectOption value="">請選擇群組</NativeSelectOption>
             {groups.map(group => <NativeSelectOption key={group.id} value={group.id}>{group.name || group.id}</NativeSelectOption>)}
           </NativeSelect></FormField>}
-        <Button ref={cancelButton} type="button" variant="outline" onClick={() => discard.navigate(close)}>取消填寫</Button>
+        <Button ref={cancelButton} type="button" variant="outline" disabled={blocked} onClick={() => {if(!isBlocked())discard.navigate(()=>{if(!isBlocked())close();});}}>取消填寫</Button>
         {discard.dialog}
       </div>
     </PagePanel>
-    {publishGroup && <Composer request={request} group={publishGroup} saved={close} />}
+    {publishGroup && <Composer request={request} group={publishGroup} saved={close} onPending={onPending} isBlocked={isBlocked} />}
   </>;
 }
 
@@ -196,6 +208,7 @@ function View({dashboard,request,detail}:{dashboard:boolean;request:Request;deta
   const renderEntry = (j:Journal) => <PagePanel key={j.id} heading={j.workDate+" · "+(groups.find(g=>g.id===j.groupId)?.name||"群組日誌")}>
     {Object.entries(roles).map(([key,label])=><p key={key}>{label}：{j.personnel[key as keyof typeof roles].join("、")||"未填"}</p>)}
     {([["今日工作",j.todayItems],["明日計畫",j.tomorrowItems]] as const).map(([title,items])=><section key={title}><h3>{title}</h3>{items.length?<ul>{items.map((i,k)=><li key={k}>{i.name} · {"completionPercent" in i?i.completionPercent:i.expectedCompletionPercent}%
+      {i.objectName && <> · {i.objectName}</>}{!!i.spaceNames?.length && <> · {i.spaceNames.join("、")}</>}
       {i.reference&&<a href={i.reference.type==="repository"?"/miniapp/repositories?selected="+i.reference.id:"/miniapp/projects?owner="+j.groupId+"&project="+i.reference.id}> · {i.reference.type==="repository"?"儲存庫":"專案"}</a>}</li>)}</ul>:<p>未填</p>}</section>)}
     {!detail&&<a href={"/miniapp/feed?journalId="+j.id}>查看原文</a>}
   </PagePanel>;

@@ -16,9 +16,14 @@ var (
 type (
 	Reference struct{ Kind, ID string }
 	Work      struct {
-		Name      string
-		Percent   int
-		Reference *Reference
+		Name        string
+		Percent     int
+		Reference   *Reference
+		ObjectID    string   `json:",omitempty"`
+		SubobjectID string   `json:",omitempty"`
+		SpaceIDs    []string `json:",omitempty"`
+		ObjectName  string   `json:",omitempty"`
+		SpaceNames  []string `json:",omitempty"`
 	}
 )
 
