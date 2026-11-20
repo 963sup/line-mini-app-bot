@@ -23,6 +23,7 @@ import (
 )
 
 type Service struct {
+	PDF          func(context.Context, []byte) (objectimportDomainEntity.PDFInput, error)
 	Knowledge    knowledge.Reader
 	Sources      objectimportApplicationPortAutomatic.SourceStore
 	TextTable    func(string, []byte) ([]objectimportDomainEntityAutomatic.Row, error)
@@ -132,12 +133,38 @@ func (s *Service) ImportTable(ctx context.Context, actor, rid, key, document str
 	sum := sha256.Sum256(file)
 	digest := hex.EncodeToString(sum[:])
 	format, _, _ := strings.Cut(document, ":")
-	if !validKey(key) || len(file) == 0 || len(file) > 300*1024 || document != format+":"+digest {
+	limit := 300 * 1024
+	if format == "pdf" {
+		limit = 10 << 20
+	}
+	if !validKey(key) || len(file) == 0 || len(file) > limit || document != format+":"+digest {
 		return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrInput
 	}
+	existing, lookupErr := s.Get(ctx, actor, rid, runID(actor, rid, key))
+	if lookupErr == nil {
+		if existing.SourceDocument != document || existing.IntentHash != objectimportDomainEntity.Hash([]string{"automatic-intent-v2", document, "", existing.SourceHash, "per_item"}) {
+			return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrCreationConflict
+		}
+		if existing.Status != "pending" {
+			return s.Resume(ctx, actor, rid, key, document, decisions, nil)
+		}
+	} else if !errors.Is(lookupErr, objectimportDomainEntity.ErrNotFound) {
+		return objectimportDomainEntityAutomatic.Run{}, lookupErr
+	}
+
 	var rows []objectimportDomainEntityAutomatic.Row
 	var err error
 	switch format {
+	case "pdf":
+		if s.PDF == nil {
+			return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrUnavailable
+		}
+		parsed, err := s.PDF(ctx, file)
+		if err != nil {
+			return objectimportDomainEntityAutomatic.Run{}, err
+		}
+		source := objectimportDomainEntity.Source{SourceDocument: document, Pages: parsed.Pages, PDF: parsed.Evidence}
+		return s.Classify(ctx, actor, rid, key, source, decisions)
 	case "xlsx":
 		if s.Workbook == nil {
 			return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrUnavailable
@@ -158,11 +185,92 @@ func (s *Service) ImportTable(ctx context.Context, actor, rid, key, document str
 	return s.run(ctx, actor, rid, key, objectimportDomainEntity.Source{SourceDocument: document}, digest, "per_item", decisions, rows, file)
 }
 
+type Correction struct {
+	Name, Quantity, Unit string
+}
+
+func runID(actor, rid, key string) string {
+	return objectimportDomainEntity.Hash([]string{"automatic-import-v1", actor, rid, key})[:32]
+}
+
+// Resume applies decisions to the stored snapshot and does not read the source again.
+func (s *Service) Resume(ctx context.Context, actor, rid, key, document string, decisions map[string]string, corrections map[string]Correction) (objectimportDomainEntityAutomatic.Run, error) {
+	if !validKey(key) {
+		return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrInput
+	}
+	id := runID(actor, rid, key)
+	j, err := s.update(ctx, actor, rid, id, func(current *objectimportDomainEntityAutomatic.Run) (objectimportDomainEntityAutomatic.Run, error) {
+		if current == nil {
+			return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrNotFound
+		}
+		if current.SourceDocument != document || current.IntentHash != objectimportDomainEntity.Hash([]string{"automatic-intent-v2", document, current.SourceRevision, current.SourceHash, "per_item"}) {
+			return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrCreationConflict
+		}
+		if current.Status == "pending" {
+			return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrConflict
+		}
+		return applyDecisions(*current, decisions, corrections)
+	})
+	if err != nil {
+		return objectimportDomainEntityAutomatic.Run{}, err
+	}
+	return s.finish(ctx, actor, rid, j)
+}
+
+func applyDecisions(run objectimportDomainEntityAutomatic.Run, decisions map[string]string, corrections map[string]Correction) (objectimportDomainEntityAutomatic.Run, error) {
+	if len(decisions) == 0 && len(corrections) == 0 {
+		return run, nil
+	}
+	for id := range corrections {
+		if _, ok := decisions[id]; !ok {
+			return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrInput
+		}
+	}
+	run.Rows = slices.Clone(run.Rows)
+	applied := 0
+	changed := false
+	for i, row := range run.Rows {
+		kind, ok := decisions[row.ID]
+		if !ok {
+			continue
+		}
+		if kind != objectDomainEntity.TypeWork && kind != objectDomainEntity.TypeNonWork {
+			return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrInput
+		}
+		next := row
+		next.Type = kind
+		if fields, ok := corrections[row.ID]; ok {
+			next.Name, next.Quantity, next.Unit = fields.Name, fields.Quantity, fields.Unit
+			normalized, err := objectDomainEntity.Normalize(objectimportDomainEntityAutomatic.ObjectContent(run, next))
+			if err != nil {
+				return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrInput
+			}
+			next.Name, next.Quantity, next.Unit = normalized.Name, normalized.Quantity, normalized.Unit
+		}
+		if _, err := objectDomainEntity.Normalize(objectimportDomainEntityAutomatic.ObjectContent(run, next)); err != nil {
+			return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrInput
+		}
+		if row.Type != "needs_review" && next != row {
+			return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrConflict
+		}
+		run.Rows[i] = next
+		changed = changed || next != row
+		applied++
+	}
+	if applied != len(decisions) {
+		return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrInput
+	}
+	if changed {
+		run.UpdatedAt = objectimportDomainEntityAutomatic.Stamp(run)
+	}
+	return run, nil
+}
+
 func (s *Service) run(ctx context.Context, actor, rid, key string, source objectimportDomainEntity.Source, digest, selectedType string, decisions map[string]string, structured []objectimportDomainEntityAutomatic.Row, file []byte) (objectimportDomainEntityAutomatic.Run, error) {
 	if selectedType != "" && selectedType != "per_item" && selectedType != objectDomainEntity.TypeWork && selectedType != objectDomainEntity.TypeNonWork {
 		return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntityAutomatic.ErrTypeRequired
 	}
-	id := objectimportDomainEntity.Hash([]string{"automatic-import-v1", actor, rid, key})[:32]
+	id := runID(actor, rid, key)
 	intent := objectimportDomainEntity.Hash([]string{"automatic-intent-v1", source.SourceDocument, source.SourceRevision, digest})
 	if selectedType != "" {
 		intent = objectimportDomainEntity.Hash([]string{"automatic-intent-v2", source.SourceDocument, source.SourceRevision, digest, selectedType})
@@ -175,30 +283,7 @@ func (s *Service) run(ctx context.Context, actor, rid, key string, source object
 			if current.Status == "pending" && selectedType == "" {
 				return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntityAutomatic.ErrTypeRequired
 			}
-			out := *current
-			if len(decisions) > 0 {
-				out.Rows = slices.Clone(current.Rows)
-				for id, t := range decisions {
-					if t != objectDomainEntity.TypeWork && t != objectDomainEntity.TypeNonWork {
-						return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrInput
-					}
-					found := false
-					for i, row := range out.Rows {
-						if row.ID == id {
-							if row.Type != "needs_review" && row.Type != t {
-								return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrConflict
-							}
-							out.Rows[i].Type = t
-							found = true
-							break
-						}
-					}
-					if !found {
-						return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrInput
-					}
-				}
-			}
-			return out, nil
+			return applyDecisions(*current, decisions, nil)
 		}
 		if len(decisions) > 0 {
 			return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrInput
@@ -270,6 +355,10 @@ func (s *Service) run(ctx context.Context, actor, rid, key string, source object
 			return objectimportDomainEntityAutomatic.Run{}, e
 		}
 	}
+	return s.finish(ctx, actor, rid, j)
+}
+
+func (s *Service) finish(ctx context.Context, actor, rid string, j objectimportDomainEntityAutomatic.Run) (objectimportDomainEntityAutomatic.Run, error) {
 	for _, row := range j.Rows {
 		if row.ResultObjectID != "" || row.Type == "needs_review" {
 			continue
@@ -281,7 +370,7 @@ func (s *Service) run(ctx context.Context, actor, rid, key string, source object
 		if err != nil || !repositoryDomainEntity.ValidID(created.ID) {
 			return s.reason(ctx, actor, rid, j, "creation_unavailable")
 		}
-		j, e = s.update(ctx, actor, rid, id, func(current *objectimportDomainEntityAutomatic.Run) (objectimportDomainEntityAutomatic.Run, error) {
+		updated, e := s.update(ctx, actor, rid, j.ID, func(current *objectimportDomainEntityAutomatic.Run) (objectimportDomainEntityAutomatic.Run, error) {
 			if current == nil {
 				return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrNotFound
 			}
@@ -312,6 +401,7 @@ func (s *Service) run(ctx context.Context, actor, rid, key string, source object
 		if e != nil {
 			return objectimportDomainEntityAutomatic.Run{}, e
 		}
+		j = updated
 	}
 	return j, nil
 }

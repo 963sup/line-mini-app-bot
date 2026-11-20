@@ -84,7 +84,11 @@ func Register(mux *http.ServeMux, service *objectimportApplication.Service, auth
 					transport.WriteAPIError(w, 415, "invalid_content_type", "請使用 JSON。")
 					return
 				}
-				r.Body = http.MaxBytesReader(w, r.Body, 512*1024)
+				limit := int64(512 * 1024)
+				if r.Pattern == "POST /api/v1/repositories/{repositoryId}/object-import-runs" {
+					limit = 14 << 20
+				}
+				r.Body = http.MaxBytesReader(w, r.Body, limit)
 				if len(r.Header.Values("Idempotency-Key")) > 1 {
 					transport.WriteAPIError(w, 400, "invalid_input", "請提供唯一的重試識別碼。")
 					return

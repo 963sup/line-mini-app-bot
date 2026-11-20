@@ -12,12 +12,14 @@ import (
 )
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -141,11 +143,21 @@ func TestMixedImportResumesOnlyConfirmedRow(t *testing.T) {
 	if view := automaticView(j); view.CreatedCount != 2 || view.NeedsReviewCount != 1 || view.CanReplaceSource {
 		t.Fatalf("unexpected progress: %+v", view)
 	}
-	d := map[string]string{j.Rows[2].ID: "work"}
-	if j = run(d); j.Status != "completed" || j.Rows[2].Type != "work" {
+	id := j.Rows[2].ID
+	d := map[string]string{id: "work"}
+	corrections := map[string]objectimportApplicationAutomatic.Correction{id: {Name: "Corrected lamp", Quantity: "12.50", Unit: "EA"}}
+	resume := func() objectimportDomainEntityAutomatic.Run {
+		t.Helper()
+		next, err := s.Resume(context.Background(), "user", strings.Repeat("a", 32), "stable-classified-key", source.SourceDocument, d, corrections)
+		if err != nil || objectimportDomainEntityAutomatic.ValidateStored(next) != nil {
+			t.Fatal(next, err)
+		}
+		return next
+	}
+	if j = resume(); j.Status != "completed" || j.Rows[2].Type != "work" || j.Rows[2].Quantity != "12.5" || j.Rows[2].Unit != "EA" {
 		t.Fatal(j)
 	}
-	run(d)
+	resume()
 	if p.calls != 1 || o.calls != 3 {
 		t.Fatal(p.calls, o.calls)
 	}
@@ -202,9 +214,12 @@ func TestWorkbookRunUsesContractQuantityAndRequiresConfirmation(t *testing.T) {
 	if row.Quantity != "20" || row.SourcePages != "'Sheet1'!E2" || row.Type != "needs_review" {
 		t.Fatal(row)
 	}
+	delete(body, "workbook")
+	body["resume"] = true
 	body["decisions"] = map[string]string{row.Id: "work"}
+	body["corrections"] = map[string]map[string]string{row.Id: {"name": "Pump", "quantity": "22.50", "unit": "SET"}}
 	first, replay := post(), post()
-	if first.Status != "completed" || replay.Status != "completed" || o.calls != 1 {
+	if first.Status != "completed" || replay.Status != "completed" || first.Rows[0].Quantity != "22.5" || o.calls != 1 {
 		t.Fatal(o.calls)
 	}
 }
@@ -224,6 +239,30 @@ func TestTextTableRunHTTP(t *testing.T) {
 	mux.ServeHTTP(w, req)
 	var j generated.ObjectImportRun
 	if w.Code != 200 || json.Unmarshal(w.Body.Bytes(), &j) != nil || len(j.Rows) != 1 || j.Rows[0].Quantity != "20" || j.Rows[0].SourcePages != "L2" || j.NeedsReviewCount != 1 || j.CreatedCount != 0 {
+		t.Fatal(w.Code, w.Body.String())
+	}
+}
+
+func TestPDFUploadThroughRunEndpoint(t *testing.T) {
+	file, err := os.ReadFile("../workbook/testdata/cover-order.pdf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Exercise the run-specific body limit beyond the legacy 512 KiB ceiling.
+	file = append(file, bytes.Repeat([]byte(" "), 520*1024)...)
+	body, err := json.Marshal(map[string]any{"classification": "per_item", "sourceDocument": fmt.Sprintf("pdf:%x", sha256.Sum256(file)), "sourceRevision": "", "pdfFile": file})
+	if err != nil {
+		t.Fatal(err)
+	}
+	mux := http.NewServeMux()
+	Register(mux, &objectimportApplication.Service{}, auth{}, &objectimportApplicationAutomatic.Service{Repositories: repos{}, Store: &automaticMemory{runs: map[string]objectimportDomainEntityAutomatic.Run{}}, PDF: workbook.ReadPDF}, nil)
+	req := httptest.NewRequest("POST", "/api/v1/repositories/"+strings.Repeat("a", 32)+"/object-import-runs", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Idempotency-Key", "raw-pdf-test-001")
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	var j generated.ObjectImportRun
+	if w.Code != 200 || json.Unmarshal(w.Body.Bytes(), &j) != nil || j.Reason != "model_unavailable" {
 		t.Fatal(w.Code, w.Body.String())
 	}
 }

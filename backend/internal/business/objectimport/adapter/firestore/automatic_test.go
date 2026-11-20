@@ -13,6 +13,7 @@ import (
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -22,6 +23,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/963sup/line-mini-app-bot/internal/business/objectimport/adapter/workbook"
 
 	db "cloud.google.com/go/firestore"
 )
@@ -294,5 +297,39 @@ func TestEmulatorSelectedTypeAndLegacyIntentCompatibility(t *testing.T) {
 	}
 	if _, e = s.Create(ctx, "actor-a", r.ID, "legacy-pending-key", source, objectDomainEntity.TypeWork); !errors.Is(e, objectimportDomainEntity.ErrCreationConflict) {
 		t.Fatal("legacy pending silently upgraded", e)
+	}
+}
+
+func TestEmulatorResumeCorrectedRowAfterLostObjectReply(t *testing.T) {
+	ctx, client, r, parent := importEmulator(t)
+	manual, _, objects := importServices(client, r)
+	lost := &lostAutomatic{Objects: objects}
+	service := &objectimportApplicationAutomatic.Service{
+		Repositories: manual.Repositories,
+		Objects:      lost,
+		Store:        &AutomaticStore{Store: Store{Client: client, ChannelID: "isolated-import-tests"}},
+		TextTable:    workbook.ReadText,
+	}
+	file := []byte("項次,品名,數量,單位\n1,燈具,10,盞")
+	document := fmt.Sprintf("csv:%x", sha256.Sum256(file))
+	const key = "resume-corrected-row-key"
+	run, err := service.ImportTable(ctx, "actor-a", r.ID, key, document, file, nil)
+	if err != nil || len(run.Rows) != 1 || run.Rows[0].Type != "needs_review" {
+		t.Fatal(run, err)
+	}
+	row := run.Rows[0].ID
+	decisions := map[string]string{row: "work"}
+	corrections := map[string]objectimportApplicationAutomatic.Correction{row: {Name: "燈具", Quantity: "12.00", Unit: "盞"}}
+	first, err := service.Resume(ctx, "actor-a", r.ID, key, document, decisions, corrections)
+	if err != nil || first.Reason != "creation_unavailable" {
+		t.Fatal(first, err)
+	}
+	replay, err := service.Resume(ctx, "actor-a", r.ID, key, document, decisions, corrections)
+	if err != nil || replay.Status != "completed" || importCount(t, ctx, parent, "objects") != 1 {
+		t.Fatal(replay, err)
+	}
+	result, err := objects.Get(ctx, "actor-a", r.ID, replay.Rows[0].ResultObjectID)
+	if err != nil || result.Quantity != "12" || result.Type != "work" {
+		t.Fatal(result, err)
 	}
 }

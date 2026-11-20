@@ -4,7 +4,6 @@ import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 import { useRepositoryGuard } from "../repository/NavigationGuard";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { useDiscardChanges } from "@/shared/useDiscardChanges";
-import type { extractPdf } from "./pdf";
 import { View as Subobjects } from "../subobject/View";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/shared/ui/collapsible";
 import { useSpaces } from "../repository/useSpaces";
@@ -24,7 +23,7 @@ import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/em
 
 type Resource = components["schemas"]["Object"];
 type Creation = components["schemas"]["ObjectCreation"];
-type Props = { repositoryId: string; extract?: typeof extractPdf };
+type Props = { repositoryId: string; prepare?: React.ComponentProps<typeof Import>["prepare"] };
 const states = { not_started: "未開始", in_progress: "進行中", completed: "已完成" };
 const empty: Creation = { name: "", description: "", type: "work", completedQuantity: "0", quantity: "1", unit: "SET", sourceDocument: "", sourceRevision: "" };
 const typeLabel = (type: string) => type === "work" ? "施作" : type === "non_work" ? "非施作" : `${type}（待確認）`;
@@ -39,7 +38,7 @@ export function View(props: Props) {
   return <Content key={`${props.repositoryId}:${epoch}:${user?.userId || ""}`} {...props} />;
 }
 
-function Content({ repositoryId, extract }: Props) {
+function Content({ repositoryId, prepare }: Props) {
   const { user, request } = useSession();
   const read = useLatestRequest(), detail = useLatestRequest(), write = useLatestRequest();
   const [items, setItems] = useState<Resource[]>([]), [cursor, setCursor] = useState("");
@@ -222,7 +221,7 @@ function Content({ repositoryId, extract }: Props) {
     </section>;
   if (importing) return <>
     <Button variant="outline" disabled={importBlocked} onClick={() => { if (!importLock.current) { formNavigation.current = true; setImporting(false); load(); } }}>返回物件清單</Button>
-    <Import repositoryId={repositoryId} onBlocked={importBlock} canWrite={canImportWrite} extract={extract} />
+    <Import repositoryId={repositoryId} onBlocked={importBlock} canWrite={canImportWrite} prepare={prepare} />
   </>;
   return <>
     <PagePanel heading="物件" className="w-full min-w-0">

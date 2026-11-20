@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"strings"
 
+	application "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/automatic"
+
 	workflow "github.com/963sup/line-mini-app-bot/internal/business/workflow/application"
 
 	objectimportDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity"
@@ -61,9 +63,36 @@ func (s *importServer) CreateObjectImportRun(w http.ResponseWriter, r *http.Requ
 	if input.Decisions != nil {
 		request.Decisions = *input.Decisions
 	}
+	if input.Resume != nil {
+		if !request.PerItem || input.SourceRevision != "" || input.Pages != nil || input.Workbook != nil || input.PdfFile != nil || input.TextFile != nil {
+			writeAutomaticError(w, objectimportDomainEntity.ErrInput)
+			return
+		}
+		corrections := map[string]application.Correction{}
+		if input.Corrections != nil {
+			for id, fields := range *input.Corrections {
+				corrections[id] = application.Correction{Name: fields.Name, Quantity: fields.Quantity, Unit: fields.Unit}
+			}
+		}
+		j, err := s.automatic.Resume(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, input.SourceDocument, request.Decisions, corrections)
+		if !writeAutomaticError(w, err) {
+			transport.WriteJSON(w, 200, automaticView(j))
+		}
+		return
+	}
+	if input.Corrections != nil {
+		writeAutomaticError(w, objectimportDomainEntity.ErrInput)
+		return
+	}
 	payload := input.Workbook
-	if input.TextFile != nil {
-		if payload != nil || strings.HasPrefix(input.SourceDocument, "xlsx:") {
+	if input.PdfFile != nil {
+		if payload != nil || input.TextFile != nil || !strings.HasPrefix(input.SourceDocument, "pdf:") {
+			writeAutomaticError(w, objectimportDomainEntity.ErrInput)
+			return
+		}
+		payload = input.PdfFile
+	} else if input.TextFile != nil {
+		if payload != nil || strings.HasPrefix(input.SourceDocument, "pdf:") || strings.HasPrefix(input.SourceDocument, "xlsx:") {
 			writeAutomaticError(w, objectimportDomainEntity.ErrInput)
 			return
 		}

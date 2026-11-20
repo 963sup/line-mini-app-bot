@@ -126,7 +126,7 @@ func newAutomaticObjectImports(r *repositoryApplication.Service, store *reposito
 	if key := os.Getenv("OPENAI_API_KEY"); key != "" {
 		producer = &parseropenai.Producer{Key: key, Model: os.Getenv("OBJECT_IMPORT_MODEL")}
 	}
-	return &objectimportApplicationAutomatic.Service{Workbook: workbook.Read, TextTable: workbook.ReadText, Repositories: r, Objects: newObjects(r, store), Store: &importdb.AutomaticStore{Store: importdb.Store{Client: store.Client, ChannelID: store.ChannelID}}, Producer: producer}
+	return &objectimportApplicationAutomatic.Service{PDF: workbook.ReadPDF, Workbook: workbook.Read, TextTable: workbook.ReadText, Repositories: r, Objects: newObjects(r, store), Store: &importdb.AutomaticStore{Store: importdb.Store{Client: store.Client, ChannelID: store.ChannelID}}, Producer: producer}
 }
 
 func newSubobjects(r *repositoryApplication.Service, store *repositorydb.Store) *subobjectApplication.Service {
