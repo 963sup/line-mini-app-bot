@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/http"
+	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/http"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/http"
 
 	"cloud.google.com/go/firestore"
-	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/firestore"
+	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/group"
 	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/firestore"
 	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/firestore"

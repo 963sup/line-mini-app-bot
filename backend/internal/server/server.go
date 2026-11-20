@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/firestore"
-	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/http"
+	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
+	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/http"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/firestore"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/http"
 

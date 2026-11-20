@@ -219,8 +219,8 @@
     },
     "enterprise": {
       "contract": "enterprise/enterprises.yaml",
-      "adapter": "backend/internal/business/enterprise/http/routes.go",
-      "core": "backend/internal/business/enterprise/firestore/store.go",
+      "adapter": "backend/internal/business/enterprise/adapter/http/routes.go",
+      "core": "backend/internal/business/enterprise/adapter/firestore/store.go",
       "specification": "docs/domains/repository/organization.md"
     },
     "enterprise.types": {
@@ -1649,9 +1649,9 @@
       "method": "POST",
       "path": "/api/v1/enterprises",
       "owner": "enterprise",
-      "adapter": "backend/internal/business/enterprise/http/routes.go",
+      "adapter": "backend/internal/business/enterprise/adapter/http/routes.go",
       "handler": "CreateEnterprise",
-      "core": "backend/internal/business/enterprise/firestore/store.go",
+      "core": "backend/internal/business/enterprise/adapter/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
         "frontend/miniapp/src/business/enterprise/Enterprise.tsx"
@@ -1663,9 +1663,9 @@
       "method": "GET",
       "path": "/api/v1/enterprises/{enterpriseId}",
       "owner": "enterprise",
-      "adapter": "backend/internal/business/enterprise/http/routes.go",
+      "adapter": "backend/internal/business/enterprise/adapter/http/routes.go",
       "handler": "GetEnterprise",
-      "core": "backend/internal/business/enterprise/firestore/store.go",
+      "core": "backend/internal/business/enterprise/adapter/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
         "frontend/miniapp/src/business/enterprise/Enterprise.tsx"
@@ -1677,9 +1677,9 @@
       "method": "POST",
       "path": "/api/v1/enterprises/{enterpriseId}/owners",
       "owner": "enterprise",
-      "adapter": "backend/internal/business/enterprise/http/routes.go",
+      "adapter": "backend/internal/business/enterprise/adapter/http/routes.go",
       "handler": "AddEnterpriseOwner",
-      "core": "backend/internal/business/enterprise/firestore/store.go",
+      "core": "backend/internal/business/enterprise/adapter/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
         "frontend/miniapp/src/business/enterprise/Enterprise.tsx"
@@ -1691,9 +1691,9 @@
       "method": "POST",
       "path": "/api/v1/enterprises/{enterpriseId}/organizations",
       "owner": "enterprise",
-      "adapter": "backend/internal/business/enterprise/http/routes.go",
+      "adapter": "backend/internal/business/enterprise/adapter/http/routes.go",
       "handler": "AttachEnterpriseOrganization",
-      "core": "backend/internal/business/enterprise/firestore/store.go",
+      "core": "backend/internal/business/enterprise/adapter/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
         "frontend/miniapp/src/business/enterprise/Enterprise.tsx"

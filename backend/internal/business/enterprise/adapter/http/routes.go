@@ -4,19 +4,15 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/enterprise"
+	"github.com/963sup/line-mini-app-bot/internal/business/enterprise/application/command"
+	"github.com/963sup/line-mini-app-bot/internal/business/enterprise/application/port"
+	"github.com/963sup/line-mini-app-bot/internal/business/enterprise/application/query"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/orghttp"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 )
 
-type Store interface {
-	CreateEnterprise(context.Context, string, string) (*enterprise.Link, error)
-	Enterprise(context.Context, string, string) (*enterprise.Detail, error)
-	UpdateEnterprise(context.Context, string, string, string, bool) (*enterprise.Link, error)
-}
-
 type Handler struct {
-	Store Store
+	Store port.Store
 	Auth  orghttp.Authenticator
 }
 
@@ -26,13 +22,13 @@ func (h Handler) CreateEnterprise(w http.ResponseWriter, r *http.Request) {
 		if err := orghttp.Decode(r, w, &input); err != nil {
 			return nil, err
 		}
-		return enterpriseLinkResponse(h.Store.CreateEnterprise(ctx, user, input.Name))
+		return enterpriseLinkResponse(command.Create(ctx, h.Store, user, input.Name))
 	})
 }
 
 func (h Handler) GetEnterprise(w http.ResponseWriter, r *http.Request, enterpriseId string) {
 	orghttp.Serve(w, r, h.Auth, h.Store != nil, func(ctx context.Context, user string) (any, error) {
-		return enterpriseResponse(h.Store.Enterprise(ctx, user, enterpriseId))
+		return enterpriseResponse(query.Detail(ctx, h.Store, user, enterpriseId))
 	})
 }
 
@@ -42,7 +38,7 @@ func (h Handler) AddEnterpriseOwner(w http.ResponseWriter, r *http.Request, ente
 		if err := orghttp.Decode(r, w, &input); err != nil {
 			return nil, err
 		}
-		return enterpriseLinkResponse(h.Store.UpdateEnterprise(ctx, user, enterpriseId, input.UserId, true))
+		return enterpriseLinkResponse(command.AddOwner(ctx, h.Store, user, enterpriseId, input.UserId))
 	})
 }
 
@@ -52,6 +48,6 @@ func (h Handler) AttachEnterpriseOrganization(w http.ResponseWriter, r *http.Req
 		if err := orghttp.Decode(r, w, &input); err != nil {
 			return nil, err
 		}
-		return enterpriseLinkResponse(h.Store.UpdateEnterprise(ctx, user, enterpriseId, input.OrganizationId, false))
+		return enterpriseLinkResponse(command.AttachOrganization(ctx, h.Store, user, enterpriseId, input.OrganizationId))
 	})
 }

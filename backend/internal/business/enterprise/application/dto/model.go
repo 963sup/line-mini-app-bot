@@ -1,4 +1,4 @@
-package enterprise
+package dto
 
 type Link struct {
 	ID   string

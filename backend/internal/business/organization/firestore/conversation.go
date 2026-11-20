@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/firestore"
+	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/orgstore"
 
 	"cloud.google.com/go/firestore"
