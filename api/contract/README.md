@@ -32,8 +32,8 @@
 | Project | [project/owner-projects.yaml](project/owner-projects.yaml) | 個人或工程群組擁有的專案與items，來源唯讀；[Project規格](../../docs/domains/project/project.md) |
 | Project legacy | [project/projects.yaml](project/projects.yaml)、[items.yaml](project/items.yaml) | 原Repository-scoped路由與DTO相容轉接；同一用例，不構成新擁有權 |
 | Repository / Labels | [repository/labels.yaml](repository/labels.yaml) | 標籤目錄列出與建立，規格見 [標籤](../../docs/domains/repository/labels.md) |
-| Issue | [issue/issues.yaml](issue/issues.yaml) | 空間事項列表、詳情、建立及建立者修改；操作規格見 [事項](../../docs/domains/repository/issues.md) |
-| Discussion | [discussion/discussions.yaml](discussion/discussions.yaml)、[comments.yaml](discussion/comments.yaml) | 主題讀寫及單層留言；作者編輯，規格見 [討論](../../docs/domains/repository/discussions.md) |
+| Issue | [issue/issues.yaml](issue/issues.yaml) | 空間事項列表、詳情、建立及建立者修改；操作規格見 [事項](../../docs/domains/issue/design.md) |
+| Discussion | [discussion/discussions.yaml](discussion/discussions.yaml)、[comments.yaml](discussion/comments.yaml) | 主題讀寫及單層留言；作者編輯，規格見 [討論](../../docs/domains/discussion/design.md) |
 | Attendance / Punch | [attendance/punch.yaml](attendance/punch.yaml) | launch、打卡與 preflight |
 | Attendance / Records | [attendance/records.yaml](attendance/records.yaml) | 群組、出勤紀錄、月摘要及分頁 |
 | Attendance / Worktime | [attendance/worktime.yaml](attendance/worktime.yaml) | 工時計算與時間區間型別，沒有獨立 HTTP 操作 |
@@ -92,3 +92,11 @@ OpenAPI 拆分不等同 runtime 完整驗證，也不代表資料庫交易的原
 [Journal 契約](journal/journals.yaml) 定義發布、列表與單篇讀取。Feed 與 Dashboard 使用同一資源；兩者的查詢方式與正式啟用條件見 [日誌設計](../../docs/domains/journal/journal.md)。
 
 [現行實作圖：基礎入口](../../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../../docs/diagrams.md#未來設計)
+
+## 下層文件入口
+
+- [group](group/README.md)
+- [journal](journal/README.md)
+- [object-import](object-import/README.md)
+- [object](object/README.md)
+- [subobject](subobject/README.md)

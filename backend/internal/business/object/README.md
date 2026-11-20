@@ -1,5 +1,7 @@
 # 儲存庫物件
 
+[領域文件](../../../../docs/domains/object/README.md) · [全域索引](../../../../docs/domains/README.md#domain-matrix)
+
 ## 用途與範圍
 
 管理工程清單物件的類型、精確數量、單位與內部追蹤狀態。
@@ -14,11 +16,17 @@
 
 ## 相關規格
 
-[物件規格](../../../../docs/domains/repository/objects.md) · [現行實作圖：物件與子物件歸屬](../../../../docs/domains/repository/objects.md#物件與子物件歸屬)
+[物件規格](../../../../docs/domains/object/design.md) · [現行實作圖：物件與子物件歸屬](../../../../docs/architecture/contracts/object-subobject-ownership.md#物件與子物件歸屬)
 
 ## 閱讀入口
 
 Object 保存工程清單項的類型、精確數量、單位及內部追蹤狀態，與 Issue 問題分工。
-操作權限、來源及驗收依 [物件規格](../../../../docs/domains/repository/objects.md) 維護。
+操作權限、來源及驗收依 [物件規格](../../../../docs/domains/object/design.md) 維護。
 
-[現行實作圖：物件與子物件歸屬](../../../../docs/domains/repository/objects.md#物件與子物件歸屬) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
+[現行實作圖：物件與子物件歸屬](../../../../docs/architecture/contracts/object-subobject-ownership.md#物件與子物件歸屬) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
+
+## 領域追蹤入口
+
+[領域規格](../../../../docs/domains/object/README.md) · [判定流程](../../../../docs/domains/object/README.md#decision-flow) · [代表測試](application/progress_test.go)
+
+[上層導覽](../README.md)

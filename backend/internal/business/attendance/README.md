@@ -1,5 +1,7 @@
 # Attendance 套件分工
 
+[領域文件](../../../../docs/domains/attendance/README.md) · [全域索引](../../../../docs/domains/README.md#domain-matrix)
+
 管理打卡、出勤紀錄、補正審核、請假與出勤查詢。依賴由適配器及應用層指向領域層，外部實作由 `internal/bootstrap` 組裝。
 
 ## 現行結構
@@ -34,3 +36,9 @@ attendance/
 ## 規格與驗證
 
 [出勤規格](../../../../docs/domains/attendance/README.md) · [工作指引](AGENTS.md) · [驗收矩陣](../../../../docs/development/acceptance.md)。Go 檢查在根目錄透過 `bash scripts/tooling/tool-exec.sh mise run check` 執行；Firestore 整合測試另需 `FIRESTORE_EMULATOR_HOST`。
+
+## 領域追蹤入口
+
+[領域規格](../../../../docs/domains/attendance/README.md) · [判定流程](../../../../docs/domains/attendance/README.md#decision-flow) · [代表測試](adapter/firestore/attendance_integration_test.go)
+
+[上層導覽](../README.md)

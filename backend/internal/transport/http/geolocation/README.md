@@ -21,3 +21,5 @@
 從 [geolocation.go](geolocation.go) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：現有出勤整合檔案與責任](../../../../../docs/architecture/integrations/web-geolocation.md#現有出勤整合檔案與責任) · [未來設計圖](../../../../../docs/diagrams.md#未來設計)
+
+[上層導覽](../README.md)
