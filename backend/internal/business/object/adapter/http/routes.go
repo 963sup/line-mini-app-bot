@@ -1,13 +1,17 @@
 package objecthttp
 
 import (
+	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
+	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 	"mime"
 	"net/http"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/object"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/identity"
@@ -20,12 +24,12 @@ type (
 	Authenticator interface {
 		Authenticate(http.ResponseWriter, *http.Request) (string, string, bool)
 	}
-	objectServer struct{ service *object.Service }
+	objectServer struct{ service *objectApplication.Service }
 )
 
 var _ httpapi.ObjectServer = (*objectServer)(nil)
 
-func Register(mux *http.ServeMux, service *object.Service, auth Authenticator) {
+func Register(mux *http.ServeMux, service *objectApplication.Service, auth Authenticator) {
 	spec, err := httpapi.Spec()
 	if err != nil {
 		panic(err)
@@ -80,7 +84,7 @@ func Register(mux *http.ServeMux, service *object.Service, auth Authenticator) {
 	})
 }
 
-func view(i object.Object) generated.Object {
+func view(i objectDomainEntity.Object) generated.Object {
 	var completed, spaceID *string
 	if i.SpaceID != "" {
 		spaceID = &i.SpaceID
@@ -97,17 +101,17 @@ func writeError(w http.ResponseWriter, e error) bool {
 	}
 	code, httpStatus, message := "unavailable", 503, "物件結果尚未確認，請重新讀取；建立重試請沿用原識別碼。"
 	switch {
-	case errors.Is(e, object.ErrNotFound):
+	case errors.Is(e, objectDomainEntity.ErrNotFound):
 		code, httpStatus, message = "not_found", 404, "找不到此空間或物件。"
-	case errors.Is(e, object.ErrForbidden):
+	case errors.Is(e, objectDomainEntity.ErrForbidden):
 		code, httpStatus, message = "forbidden", 403, "只有建立者可以修改此物件。"
-	case errors.Is(e, object.ErrProgressRemoval):
+	case errors.Is(e, objectDomainEntity.ErrProgressRemoval):
 		code, httpStatus, message = "progress_removal", 400, "已有完成數量的施作不能改為非施作，請先確認並調整完成數量。"
-	case errors.Is(e, object.ErrInput):
+	case errors.Is(e, objectDomainEntity.ErrInput):
 		code, httpStatus, message = "invalid_input", 400, "請確認名稱、類型、正數數量、單位與狀態。"
-	case errors.Is(e, object.ErrConflict):
+	case errors.Is(e, objectDomainEntity.ErrConflict):
 		code, httpStatus, message = "version_conflict", 409, "物件已更新，請重新讀取。"
-	case errors.Is(e, object.ErrCreationConflict):
+	case errors.Is(e, objectDomainEntity.ErrCreationConflict):
 		code, httpStatus, message = "idempotency_conflict", 409, "重試識別碼已用於不同內容，請先確認原物件。"
 	}
 	transport.WriteServiceError(w, httpStatus, code, message, e)
@@ -149,7 +153,7 @@ func (s *objectServer) CreateObject(w http.ResponseWriter, r *http.Request, rid 
 	if !transport.ReadJSON(w, r, &in, "物件資料無效。") {
 		return
 	}
-	c := object.Content{SpaceID: value(in.SpaceId), CompletedQuantity: value(in.CompletedQuantity), Name: in.Name, Description: in.Description, Type: in.Type, Quantity: in.Quantity, Unit: in.Unit, SourceDocument: value(in.SourceDocument), SourceRevision: value(in.SourceRevision), SourceItemNo: value(in.SourceItemNo), SourcePages: value(in.SourcePages), MaterialCode: value(in.MaterialCode)}
+	c := objectDomainEntity.Content{SpaceID: value(in.SpaceId), CompletedQuantity: value(in.CompletedQuantity), Name: in.Name, Description: in.Description, Type: in.Type, Quantity: in.Quantity, Unit: in.Unit, SourceDocument: value(in.SourceDocument), SourceRevision: value(in.SourceRevision), SourceItemNo: value(in.SourceItemNo), SourcePages: value(in.SourcePages), MaterialCode: value(in.MaterialCode)}
 	i, e := s.service.Create(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, c)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
@@ -161,7 +165,7 @@ func (s *objectServer) UpdateObject(w http.ResponseWriter, r *http.Request, rid,
 	if !transport.ReadJSON(w, r, &in, "物件資料無效。") {
 		return
 	}
-	u := object.Update{SpaceID: in.SpaceId, Content: object.Content{CompletedQuantity: value(in.CompletedQuantity), Name: in.Name, Description: in.Description, Type: in.Type, Quantity: in.Quantity, Unit: in.Unit, SourceDocument: value(in.SourceDocument), SourceRevision: value(in.SourceRevision), SourceItemNo: value(in.SourceItemNo), SourcePages: value(in.SourcePages), MaterialCode: value(in.MaterialCode)}, Status: statusValue(in.Status), CompletedQuantity: in.CompletedQuantity, ExpectedVersion: in.ExpectedVersion, Sources: object.SourceUpdate{SourceDocument: in.SourceDocument, SourceRevision: in.SourceRevision, SourceItemNo: in.SourceItemNo, SourcePages: in.SourcePages, MaterialCode: in.MaterialCode}}
+	u := objectDomainEntity.Update{SpaceID: in.SpaceId, Content: objectDomainEntity.Content{CompletedQuantity: value(in.CompletedQuantity), Name: in.Name, Description: in.Description, Type: in.Type, Quantity: in.Quantity, Unit: in.Unit, SourceDocument: value(in.SourceDocument), SourceRevision: value(in.SourceRevision), SourceItemNo: value(in.SourceItemNo), SourcePages: value(in.SourcePages), MaterialCode: value(in.MaterialCode)}, Status: statusValue(in.Status), CompletedQuantity: in.CompletedQuantity, ExpectedVersion: in.ExpectedVersion, Sources: objectDomainEntity.SourceUpdate{SourceDocument: in.SourceDocument, SourceRevision: in.SourceRevision, SourceItemNo: in.SourceItemNo, SourcePages: in.SourcePages, MaterialCode: in.MaterialCode}}
 	i, e := s.service.Update(r.Context(), identity.UserID(r.Context()), rid, id, u)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))

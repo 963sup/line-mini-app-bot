@@ -1,6 +1,10 @@
 package firestore
 
 import (
+	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 	"time"
@@ -8,7 +12,7 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
 
 	db "cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/object"
+
 	feature "github.com/963sup/line-mini-app-bot/internal/business/project"
 	child "github.com/963sup/line-mini-app-bot/internal/business/subobject"
 	"google.golang.org/grpc/codes"
@@ -121,13 +125,13 @@ func (s *Store) sourceReference(tx *db.Transaction, source feature.Source, ref f
 		return feature.Reference{}, feature.ErrSourceUnavailable
 	}
 
-	raw := object.Content{Name: d.Name, Type: d.Type, Quantity: d.Quantity, Unit: d.Unit, CompletedQuantity: d.CompletedQuantity}
-	normalized, normalizeError := object.Normalize(raw)
-	if normalizeError != nil || normalized != raw || !object.ValidStatus(d.Status) {
+	raw := objectDomainEntity.Content{Name: d.Name, Type: d.Type, Quantity: d.Quantity, Unit: d.Unit, CompletedQuantity: d.CompletedQuantity}
+	normalized, normalizeError := objectDomainEntity.Normalize(raw)
+	if normalizeError != nil || normalized != raw || !objectDomainEntity.ValidStatus(d.Status) {
 		return feature.Reference{}, feature.ErrSourceUnavailable
 	}
-	if d.Type == object.TypeWork && d.CompletedQuantity != "" {
-		derived, e := object.WorkStatus(d.Quantity, d.CompletedQuantity)
+	if d.Type == objectDomainEntity.TypeWork && d.CompletedQuantity != "" {
+		derived, e := objectDomainEntity.WorkStatus(d.Quantity, d.CompletedQuantity)
 		if e != nil || derived != d.Status {
 			return feature.Reference{}, feature.ErrSourceUnavailable
 		}

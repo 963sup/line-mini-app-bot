@@ -1,6 +1,11 @@
 package firestore
 
 import (
+	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
+	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+)
+
+import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -14,8 +19,8 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/object"
-	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/firestore"
+
+	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/subobject"
 )
@@ -29,7 +34,7 @@ func (r repos) Get(_ context.Context, actor, id string) (repository.Repository, 
 	return r.r, nil
 }
 
-func setup(t *testing.T) (context.Context, *Store, *feature.Service, repository.Repository, object.Object) {
+func setup(t *testing.T) (context.Context, *Store, *feature.Service, repository.Repository, objectDomainEntity.Object) {
 	t.Helper()
 	host := os.Getenv("FIRESTORE_EMULATOR_HOST")
 	if host == "" {
@@ -55,8 +60,8 @@ func setup(t *testing.T) (context.Context, *Store, *feature.Service, repository.
 	if _, e = store.repositoryRef(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": r.Status}); e != nil {
 		t.Fatal(e)
 	}
-	objects := &object.Service{Repositories: repos{r}, Store: &objectdb.Store{Client: client, ChannelID: store.ChannelID}}
-	parent, e := objects.Create(ctx, "owner", r.ID, "parent-create-key", object.Content{Name: "Fiber", Type: "non_work", Quantity: "140", Unit: "SET"})
+	objects := &objectApplication.Service{Repositories: repos{r}, Store: &objectdb.Store{Client: client, ChannelID: store.ChannelID}}
+	parent, e := objects.Create(ctx, "owner", r.ID, "parent-create-key", objectDomainEntity.Content{Name: "Fiber", Type: "non_work", Quantity: "140", Unit: "SET"})
 	if e != nil {
 		t.Fatal(e)
 	}

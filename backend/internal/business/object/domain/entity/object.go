@@ -1,8 +1,6 @@
-// Package object owns repository engineering line items and their author-managed tracking.
-package object
+package entity
 
 import (
-	"context"
 	"errors"
 	"math/big"
 	"regexp"
@@ -13,17 +11,21 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
-var (
-	ErrProgressRemoval  = errors.New("completed work cannot become non-work")
-	ErrInput            = errors.New("invalid object input")
-	ErrNotFound         = errors.New("object not found")
-	ErrForbidden        = errors.New("only the creator may update this object")
-	ErrConflict         = errors.New("object version conflict")
-	ErrCreationConflict = errors.New("object creation key conflict")
-	ErrUnavailable      = errors.New("object storage unavailable")
-	decimal             = regexp.MustCompile(`^(0|[1-9][0-9]{0,17})(\.[0-9]{1,6})?$`)
-	creationKey         = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
-)
+var ErrProgressRemoval = errors.New("completed work cannot become non-work")
+
+var ErrInput = errors.New("invalid object input")
+
+var ErrNotFound = errors.New("object not found")
+
+var ErrForbidden = errors.New("only the creator may update this object")
+
+var ErrConflict = errors.New("object version conflict")
+
+var ErrCreationConflict = errors.New("object creation key conflict")
+
+var ErrUnavailable = errors.New("object storage unavailable")
+
+var decimal = regexp.MustCompile(`^(0|[1-9][0-9]{0,17})(\.[0-9]{1,6})?$`)
 
 type Content struct {
 	SpaceID           string
@@ -39,36 +41,34 @@ type Content struct {
 	MaterialCode      string
 	CompletedQuantity string
 }
+
 type Object struct {
 	Content
 	ID, RepositoryID, CreatorID, Status string
 	Version                             int64
 	CreatedAt, UpdatedAt                time.Time
 }
-type (
-	SourceUpdate struct{ SourceDocument, SourceRevision, SourceItemNo, SourcePages, MaterialCode *string }
-	Update       struct {
-		Content
-		Status            string
-		ExpectedVersion   int64
-		CompletedQuantity *string
-		SpaceID           *string
-		Sources           SourceUpdate
-	}
-)
 
-type Page struct {
-	Items      []Object
-	NextCursor string
+type SourceUpdate struct{ SourceDocument, SourceRevision, SourceItemNo, SourcePages, MaterialCode *string }
+
+type Update struct {
+	Content
+	Status            string
+	ExpectedVersion   int64
+	CompletedQuantity *string
+	SpaceID           *string
+	Sources           SourceUpdate
 }
 
-const (
-	TypeWork         = "work"
-	TypeNonWork      = "non_work"
-	StatusNotStarted = "not_started"
-	StatusInProgress = "in_progress"
-	StatusCompleted  = "completed"
-)
+const TypeWork = "work"
+
+const TypeNonWork = "non_work"
+
+const StatusNotStarted = "not_started"
+
+const StatusInProgress = "in_progress"
+
+const StatusCompleted = "completed"
 
 func ValidStatus(s string) bool {
 	switch s {
@@ -224,87 +224,4 @@ func ApplyUpdate(current Object, actor string, input Update) (Object, error) {
 	current.Status = status
 	current.Version++
 	return current, nil
-}
-
-type Repositories interface {
-	Get(context.Context, string, string) (repository.Repository, error)
-}
-type Store interface {
-	List(context.Context, repository.Repository, string, string) (Page, error)
-	Get(context.Context, repository.Repository, string) (Object, error)
-	Create(context.Context, repository.Repository, string, string, Content) (Object, error)
-	Update(context.Context, repository.Repository, string, string, Update) (Object, error)
-}
-type Service struct {
-	Repositories Repositories
-	Store        Store
-}
-
-func (s *Service) scope(ctx context.Context, actor, id string) (repository.Repository, error) {
-	if s == nil || s.Store == nil || s.Repositories == nil {
-		return repository.Repository{}, ErrUnavailable
-	}
-	if actor == "" || !repository.ValidID(id) {
-		return repository.Repository{}, ErrNotFound
-	}
-	r, err := s.Repositories.Get(ctx, actor, id)
-	if errors.Is(err, repository.ErrNotFound) {
-		return repository.Repository{}, ErrNotFound
-	}
-	if err != nil {
-		return repository.Repository{}, err
-	}
-	// Membership is checked by Repositories.Get; active identity/scope is still explicit here.
-	if r.ID != id || r.Status != "ACTIVE" || !repository.ValidOwner(r.OwnerID) {
-		return repository.Repository{}, ErrNotFound
-	}
-	return r, nil
-}
-
-func (s *Service) List(ctx context.Context, actor, id, cursor string) (Page, error) {
-	r, e := s.scope(ctx, actor, id)
-	if e != nil {
-		return Page{}, e
-	}
-	if len(cursor) > 1024 {
-		return Page{}, ErrInput
-	}
-	return s.Store.List(ctx, r, actor, cursor)
-}
-
-func (s *Service) Get(ctx context.Context, actor, rid, id string) (Object, error) {
-	r, e := s.scope(ctx, actor, rid)
-	if e != nil {
-		return Object{}, e
-	}
-	if !repository.ValidID(id) {
-		return Object{}, ErrNotFound
-	}
-	return s.Store.Get(ctx, r, id)
-}
-
-func (s *Service) Create(ctx context.Context, actor, rid, key string, c Content) (Object, error) {
-	r, e := s.scope(ctx, actor, rid)
-	if e != nil {
-		return Object{}, e
-	}
-	if strings.TrimSpace(c.Type) == TypeWork && c.CompletedQuantity == "" {
-		c.CompletedQuantity = "0"
-	}
-	c, e = Normalize(c)
-	if e != nil || !creationKey.MatchString(key) {
-		return Object{}, ErrInput
-	}
-	return s.Store.Create(ctx, r, actor, key, c)
-}
-
-func (s *Service) Update(ctx context.Context, actor, rid, id string, u Update) (Object, error) {
-	r, e := s.scope(ctx, actor, rid)
-	if e != nil {
-		return Object{}, e
-	}
-	if !repository.ValidID(id) {
-		return Object{}, ErrNotFound
-	}
-	return s.Store.Update(ctx, r, actor, id, u)
 }

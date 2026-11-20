@@ -2,6 +2,10 @@
 package automatic
 
 import (
+	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+)
+
+import (
 	"context"
 	"encoding/hex"
 	"errors"
@@ -10,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/object"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/objectimport"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
@@ -91,8 +94,8 @@ func (s *Service) Get(ctx context.Context, actor, rid, id string) (Run, error) {
 	})
 }
 
-func content(j Run, r Row) object.Content {
-	return object.Content{Name: r.Name, Description: r.Description, Type: r.Type, Quantity: r.Quantity, Unit: r.Unit, MaterialCode: r.MaterialCode, SourceDocument: j.SourceDocument, SourceRevision: j.SourceRevision, SourceItemNo: r.SourceItemNo, SourcePages: r.SourcePages}
+func content(j Run, r Row) objectDomainEntity.Content {
+	return objectDomainEntity.Content{Name: r.Name, Description: r.Description, Type: r.Type, Quantity: r.Quantity, Unit: r.Unit, MaterialCode: r.MaterialCode, SourceDocument: j.SourceDocument, SourceRevision: j.SourceRevision, SourceItemNo: r.SourceItemNo, SourcePages: r.SourcePages}
 }
 
 // indexItems binds quotes to the physical item column identified by the PDF reader.
@@ -122,7 +125,7 @@ func indexItems(source feature.Source) map[string]map[int]string {
 
 // Prepare accepts page references only, never literal quotations or model authority.
 func Prepare(j Run, source feature.Source, candidates []Candidate, selectedType string) ([]Row, error) {
-	if selectedType != "per_item" && selectedType != object.TypeWork && selectedType != object.TypeNonWork {
+	if selectedType != "per_item" && selectedType != objectDomainEntity.TypeWork && selectedType != objectDomainEntity.TypeNonWork {
 		return nil, ErrTypeRequired
 	}
 	if len(candidates) < 1 || len(candidates) > 100 {
@@ -162,7 +165,7 @@ func Prepare(j Run, source feature.Source, candidates []Candidate, selectedType 
 				return nil, feature.ErrInput
 			}
 			row.Type = c.Type
-			if row.Type != object.TypeWork && row.Type != object.TypeNonWork && row.Type != "needs_review" {
+			if row.Type != objectDomainEntity.TypeWork && row.Type != objectDomainEntity.TypeNonWork && row.Type != "needs_review" {
 				return nil, feature.ErrInput
 			}
 			row.Description = strings.TrimSpace(c.Quote)
@@ -178,7 +181,7 @@ func Prepare(j Run, source feature.Source, candidates []Candidate, selectedType 
 				row.Description = ""
 			}
 		}
-		normalized, e := object.Normalize(content(j, row))
+		normalized, e := objectDomainEntity.Normalize(content(j, row))
 		if e != nil || normalized.SourceItemNo == "" || seen[normalized.SourceItemNo] {
 			return nil, feature.ErrInput
 		}
@@ -245,7 +248,7 @@ func (s *Service) create(ctx context.Context, actor, rid, key string, input feat
 	if e != nil {
 		return Run{}, e
 	}
-	if selectedType != "" && selectedType != "per_item" && selectedType != object.TypeWork && selectedType != object.TypeNonWork {
+	if selectedType != "" && selectedType != "per_item" && selectedType != objectDomainEntity.TypeWork && selectedType != objectDomainEntity.TypeNonWork {
 		return Run{}, ErrTypeRequired
 	}
 	id := feature.Hash([]string{"automatic-import-v1", actor, rid, key})[:32]
@@ -265,7 +268,7 @@ func (s *Service) create(ctx context.Context, actor, rid, key string, input feat
 			if len(decisions) > 0 {
 				out.Rows = slices.Clone(current.Rows)
 				for id, t := range decisions {
-					if t != object.TypeWork && t != object.TypeNonWork {
+					if t != objectDomainEntity.TypeWork && t != objectDomainEntity.TypeNonWork {
 						return Run{}, feature.ErrInput
 					}
 					found := false
@@ -418,7 +421,7 @@ func ValidateStored(j Run) error {
 	items := map[string]bool{}
 	all := true
 	for _, r := range j.Rows {
-		n, e := object.Normalize(content(j, r))
+		n, e := objectDomainEntity.Normalize(content(j, r))
 		if e != nil || n != content(j, r) || !repository.ValidID(r.ID) || ids[r.ID] || items[r.SourceItemNo] || r.SourceItemNo == "" || r.SourcePages == "" {
 			return feature.ErrUnavailable
 		}

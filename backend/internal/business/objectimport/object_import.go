@@ -2,6 +2,10 @@
 package objectimport
 
 import (
+	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+)
+
+import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
@@ -15,7 +19,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/object"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
@@ -103,7 +106,7 @@ func newID() (string, error) {
 	return hex.EncodeToString(b[:]), e
 }
 
-func objectContent(j Job, r Row) object.Content {
+func objectContent(j Job, r Row) objectDomainEntity.Content {
 	pages := []int{}
 	for _, e := range r.Evidence {
 		if !slices.Contains(pages, e.Page) {
@@ -115,11 +118,11 @@ func objectContent(j Job, r Row) object.Content {
 	for _, p := range pages {
 		labels = append(labels, strconv.Itoa(p))
 	}
-	return object.Content{Name: r.Name, Description: r.Description, Type: r.Type, Quantity: r.Quantity, Unit: r.Unit, MaterialCode: r.MaterialCode, SourceDocument: j.SourceDocument, SourceRevision: j.SourceRevision, SourceItemNo: r.SourceItemNo, SourcePages: strings.Join(labels, ",")}
+	return objectDomainEntity.Content{Name: r.Name, Description: r.Description, Type: r.Type, Quantity: r.Quantity, Unit: r.Unit, MaterialCode: r.MaterialCode, SourceDocument: j.SourceDocument, SourceRevision: j.SourceRevision, SourceItemNo: r.SourceItemNo, SourcePages: strings.Join(labels, ",")}
 }
 
 func normalize(j Job, r Row) (Row, error) {
-	c, e := object.Normalize(objectContent(j, r))
+	c, e := objectDomainEntity.Normalize(objectContent(j, r))
 	if e != nil {
 		return Row{}, ErrInput
 	}
@@ -334,7 +337,7 @@ type Repositories interface {
 	Get(context.Context, string, string) (repository.Repository, error)
 }
 type Objects interface {
-	Create(context.Context, string, string, string, object.Content) (object.Object, error)
+	Create(context.Context, string, string, string, objectDomainEntity.Content) (objectDomainEntity.Object, error)
 }
 type Store interface {
 	Create(context.Context, repository.Repository, string, string, string, Job) (Job, error)

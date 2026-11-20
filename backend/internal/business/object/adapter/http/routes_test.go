@@ -1,13 +1,18 @@
 package objecthttp
 
 import (
+	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
+	objectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
+	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+)
+
+import (
 	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/object"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
@@ -32,30 +37,30 @@ func (r repositories) Get(_ context.Context, _, id string) (repository.Repositor
 
 type store struct {
 	calls  int
-	input  object.Content
-	update object.Update
+	input  objectDomainEntity.Content
+	update objectDomainEntity.Update
 }
 
-func (s *store) List(context.Context, repository.Repository, string, string) (object.Page, error) {
+func (s *store) List(context.Context, repository.Repository, string, string) (objectApplicationDto.Page, error) {
 	s.calls++
-	return object.Page{Items: []object.Object{}}, nil
+	return objectApplicationDto.Page{Items: []objectDomainEntity.Object{}}, nil
 }
 
-func (s *store) Get(context.Context, repository.Repository, string) (object.Object, error) {
+func (s *store) Get(context.Context, repository.Repository, string) (objectDomainEntity.Object, error) {
 	s.calls++
-	return object.Object{}, object.ErrNotFound
+	return objectDomainEntity.Object{}, objectDomainEntity.ErrNotFound
 }
 
-func (s *store) Create(_ context.Context, r repository.Repository, actor, _ string, c object.Content) (object.Object, error) {
+func (s *store) Create(_ context.Context, r repository.Repository, actor, _ string, c objectDomainEntity.Content) (objectDomainEntity.Object, error) {
 	s.calls++
 	s.input = c
-	return object.Object{Content: c, RepositoryID: r.ID, CreatorID: actor, Status: "not_started", Version: 1}, nil
+	return objectDomainEntity.Object{Content: c, RepositoryID: r.ID, CreatorID: actor, Status: "not_started", Version: 1}, nil
 }
 
-func (s *store) Update(_ context.Context, _ repository.Repository, _, _ string, u object.Update) (object.Object, error) {
+func (s *store) Update(_ context.Context, _ repository.Repository, _, _ string, u objectDomainEntity.Update) (objectDomainEntity.Object, error) {
 	s.calls++
 	s.update = u
-	return object.Object{}, object.ErrConflict
+	return objectDomainEntity.Object{}, objectDomainEntity.ErrConflict
 }
 
 func TestHTTPBoundariesAndSourceOmission(t *testing.T) {
@@ -84,7 +89,7 @@ func TestHTTPBoundariesAndSourceOmission(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			s := &store{}
 			mux := http.NewServeMux()
-			Register(mux, &object.Service{Repositories: repositories{deny: c.denied}, Store: s}, auth{deny: c.noAuth})
+			Register(mux, &objectApplication.Service{Repositories: repositories{deny: c.denied}, Store: s}, auth{deny: c.noAuth})
 			r := httptest.NewRequest(c.method, c.path, strings.NewReader(c.body))
 			r.Header.Set("Content-Type", "application/json")
 			r.Header.Set("Idempotency-Key", strings.Repeat("k", 16))
@@ -129,7 +134,7 @@ func TestHTTPSpaceAssignmentOmissionAndClear(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			st := &store{}
 			mux := http.NewServeMux()
-			Register(mux, &object.Service{Repositories: repositories{}, Store: st}, auth{})
+			Register(mux, &objectApplication.Service{Repositories: repositories{}, Store: st}, auth{})
 			path := "/api/v1/repositories/" + rid + "/objects"
 			extra := ""
 			wantStatus := 200

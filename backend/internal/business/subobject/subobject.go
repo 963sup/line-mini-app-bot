@@ -2,13 +2,16 @@
 package subobject
 
 import (
+	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/object"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
@@ -45,10 +48,10 @@ type (
 // Normalize reuses exact decimal and text rules without inheriting Object source fields.
 func Normalize(c Content) (Content, error) {
 	c.Type = strings.TrimSpace(c.Type)
-	if c.Type != object.TypeWork && c.Type != object.TypeNonWork {
+	if c.Type != objectDomainEntity.TypeWork && c.Type != objectDomainEntity.TypeNonWork {
 		return Content{}, ErrInput
 	}
-	n, e := object.Normalize(object.Content{Name: c.Name, Type: c.Type, Quantity: c.Quantity, Unit: c.Unit, CompletedQuantity: c.CompletedQuantity})
+	n, e := objectDomainEntity.Normalize(objectDomainEntity.Content{Name: c.Name, Type: c.Type, Quantity: c.Quantity, Unit: c.Unit, CompletedQuantity: c.CompletedQuantity})
 	if e != nil {
 		return Content{}, ErrInput
 	}
@@ -56,10 +59,10 @@ func Normalize(c Content) (Content, error) {
 }
 
 func Status(c Content) (string, error) {
-	if c.Type == object.TypeNonWork && c.CompletedQuantity == "" {
-		return object.StatusNotStarted, nil
+	if c.Type == objectDomainEntity.TypeNonWork && c.CompletedQuantity == "" {
+		return objectDomainEntity.StatusNotStarted, nil
 	}
-	status, e := object.WorkStatus(c.Quantity, c.CompletedQuantity)
+	status, e := objectDomainEntity.WorkStatus(c.Quantity, c.CompletedQuantity)
 	if e != nil {
 		return "", ErrInput
 	}
@@ -74,15 +77,15 @@ func ApplyUpdate(current Subobject, actor string, input Update) (Subobject, erro
 	c.Type = strings.TrimSpace(c.Type)
 	if input.CompletedQuantity != nil {
 		c.CompletedQuantity = *input.CompletedQuantity
-	} else if c.Type == object.TypeWork && current.Type == object.TypeWork {
+	} else if c.Type == objectDomainEntity.TypeWork && current.Type == objectDomainEntity.TypeWork {
 		c.CompletedQuantity = current.CompletedQuantity
 	} else {
 		c.CompletedQuantity = ""
 	}
-	if current.Type == object.TypeWork && c.Type == object.TypeNonWork && current.CompletedQuantity != "0" {
+	if current.Type == objectDomainEntity.TypeWork && c.Type == objectDomainEntity.TypeNonWork && current.CompletedQuantity != "0" {
 		return Subobject{}, ErrProgressRemoval
 	}
-	if c.Type == object.TypeWork && c.CompletedQuantity == "" {
+	if c.Type == objectDomainEntity.TypeWork && c.CompletedQuantity == "" {
 		return Subobject{}, ErrInput
 	}
 	normalized, e := Normalize(c)
@@ -174,7 +177,7 @@ func (s *Service) Create(ctx context.Context, actor, repositoryID, parentObjectI
 	if !keyPattern.MatchString(key) {
 		return Subobject{}, ErrInput
 	}
-	if strings.TrimSpace(input.Type) == object.TypeWork && input.CompletedQuantity == "" {
+	if strings.TrimSpace(input.Type) == objectDomainEntity.TypeWork && input.CompletedQuantity == "" {
 		input.CompletedQuantity = "0"
 	}
 	c, e := Normalize(input)

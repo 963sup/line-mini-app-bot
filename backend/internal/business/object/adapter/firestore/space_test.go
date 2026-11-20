@@ -1,12 +1,14 @@
 package firestore
 
 import (
+	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+)
+
+import (
 	"errors"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/963sup/line-mini-app-bot/internal/business/object"
 )
 
 func TestSpaceCreationHashKeepsLegacyAndBindsAssignment(t *testing.T) {
@@ -43,7 +45,7 @@ func TestEmulatorRepositorySpaceAssignment(t *testing.T) {
 	}
 	c := testContent()
 	c.SpaceID = spaceID
-	if _, err := store.Create(ctx, r, "actor-a", "cross-space-key-001", c); !errors.Is(err, object.ErrInput) {
+	if _, err := store.Create(ctx, r, "actor-a", "cross-space-key-001", c); !errors.Is(err, objectDomainEntity.ErrInput) {
 		t.Fatalf("cross-repository space accepted: %v", err)
 	}
 	if collectionCount(t, ctx, store.repositoryRef(r.ID), "objects") != 0 || collectionCount(t, ctx, store.repositoryRef(r.ID), "objectCreationReceipts") != 0 {
@@ -61,17 +63,17 @@ func TestEmulatorRepositorySpaceAssignment(t *testing.T) {
 		t.Fatal("reply-lost retry", replay, err)
 	}
 	c.SpaceID = ""
-	if _, err := store.Create(ctx, r, "actor-a", "same-space-key-0001", c); !errors.Is(err, object.ErrCreationConflict) {
+	if _, err := store.Create(ctx, r, "actor-a", "same-space-key-0001", c); !errors.Is(err, objectDomainEntity.ErrCreationConflict) {
 		t.Fatal("space intent collision", err)
 	}
-	u := object.Update{Content: c, ExpectedVersion: 1}
+	u := objectDomainEntity.Update{Content: c, ExpectedVersion: 1}
 	got, err := store.Update(ctx, r, "actor-a", first.ID, u)
 	if err != nil || got.SpaceID != spaceID || got.Version != 1 {
 		t.Fatal("omission not preserved", got, err)
 	}
 	unknown := strings.Repeat("f", 32)
 	u.SpaceID = &unknown
-	if _, err := store.Update(ctx, r, "actor-a", first.ID, u); !errors.Is(err, object.ErrInput) {
+	if _, err := store.Update(ctx, r, "actor-a", first.ID, u); !errors.Is(err, objectDomainEntity.ErrInput) {
 		t.Fatal("unknown space", err)
 	}
 	empty := ""

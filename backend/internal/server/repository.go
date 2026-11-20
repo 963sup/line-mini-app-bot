@@ -1,6 +1,10 @@
 package server
 
 import (
+	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
+)
+
+import (
 	"context"
 	"fmt"
 	"net/http"
@@ -14,8 +18,8 @@ import (
 	discussionapp "github.com/963sup/line-mini-app-bot/internal/business/discussion/application"
 	issuedb "github.com/963sup/line-mini-app-bot/internal/business/issue/adapter/firestore"
 	issueapplication "github.com/963sup/line-mini-app-bot/internal/business/issue/application"
-	"github.com/963sup/line-mini-app-bot/internal/business/object"
-	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/firestore"
+
+	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/objectimport"
 	"github.com/963sup/line-mini-app-bot/internal/business/objectimport/automatic"
 	importdb "github.com/963sup/line-mini-app-bot/internal/business/objectimport/firestore"
@@ -104,7 +108,7 @@ func newStatistics(r *repository.Service) *statistics.Service {
 	return &statistics.Service{Repositories: r, Store: store}
 }
 
-func newObjects(r *repository.Service) *object.Service {
+func newObjects(r *repository.Service) *objectApplication.Service {
 	if r == nil {
 		return nil
 	}
@@ -112,7 +116,7 @@ func newObjects(r *repository.Service) *object.Service {
 	if !ok {
 		return nil
 	}
-	return &object.Service{Repositories: r, Store: &objectdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
+	return &objectApplication.Service{Repositories: r, Store: &objectdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
 }
 
 func newObjectImports(r *repository.Service) *objectimport.Service {

@@ -33,7 +33,7 @@ import (
 	grouphttp "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/http"
 	groupline "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/line"
 	issuehttp "github.com/963sup/line-mini-app-bot/internal/business/issue/adapter/http"
-	objecthttp "github.com/963sup/line-mini-app-bot/internal/business/object/http"
+	objecthttp "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/http"
 	objectimporthttp "github.com/963sup/line-mini-app-bot/internal/business/objectimport/http"
 	projecthttp "github.com/963sup/line-mini-app-bot/internal/business/project/http"
 	repositoryhttp "github.com/963sup/line-mini-app-bot/internal/business/repository/http"

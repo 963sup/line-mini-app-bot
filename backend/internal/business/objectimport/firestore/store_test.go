@@ -1,6 +1,11 @@
 package firestore
 
 import (
+	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
+	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+)
+
+import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -15,8 +20,8 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/object"
-	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/firestore"
+
+	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/firestore"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/objectimport"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
@@ -65,9 +70,9 @@ func (r importRepositories) Get(_ context.Context, actor, id string) (repository
 	return r.repository, nil
 }
 
-func importServices(client *db.Client, r repository.Repository) (*feature.Service, *Store, *object.Service) {
+func importServices(client *db.Client, r repository.Repository) (*feature.Service, *Store, *objectApplication.Service) {
 	repositories := importRepositories{r}
-	objects := &object.Service{Repositories: repositories, Store: &objectdb.Store{Client: client, ChannelID: "isolated-import-tests"}}
+	objects := &objectApplication.Service{Repositories: repositories, Store: &objectdb.Store{Client: client, ChannelID: "isolated-import-tests"}}
 	store := &Store{Client: client, ChannelID: "isolated-import-tests"}
 	return &feature.Service{Repositories: repositories, Objects: objects, Store: store}, store, objects
 }
@@ -188,14 +193,14 @@ func TestEmulatorReviewFreezesExactVersionBeforeObjects(t *testing.T) {
 }
 
 type unknownAfterCommit struct {
-	real  *object.Service
+	real  *objectApplication.Service
 	calls atomic.Int64
 }
 
-func (w *unknownAfterCommit) Create(ctx context.Context, actor, rid, key string, content object.Content) (object.Object, error) {
+func (w *unknownAfterCommit) Create(ctx context.Context, actor, rid, key string, content objectDomainEntity.Content) (objectDomainEntity.Object, error) {
 	result, err := w.real.Create(ctx, actor, rid, key, content)
 	if err == nil && w.calls.Add(1) == 2 {
-		return object.Object{}, object.ErrUnavailable
+		return objectDomainEntity.Object{}, objectDomainEntity.ErrUnavailable
 	}
 	return result, err
 }

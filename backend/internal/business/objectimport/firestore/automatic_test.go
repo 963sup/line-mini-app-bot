@@ -1,6 +1,10 @@
 package firestore
 
 import (
+	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+)
+
+import (
 	"context"
 	"encoding/json"
 	"errors"
@@ -14,7 +18,6 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/object"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/objectimport"
 	"github.com/963sup/line-mini-app-bot/internal/business/objectimport/automatic"
 )
@@ -38,10 +41,10 @@ type lostAutomatic struct {
 	lost    atomic.Bool
 }
 
-func (o *lostAutomatic) Create(ctx context.Context, a, r, k string, c object.Content) (object.Object, error) {
+func (o *lostAutomatic) Create(ctx context.Context, a, r, k string, c objectDomainEntity.Content) (objectDomainEntity.Object, error) {
 	created, e := o.Objects.Create(ctx, a, r, k, c)
 	if e == nil && o.lost.CompareAndSwap(false, true) {
-		return object.Object{}, errors.New("private provider sentinel")
+		return objectDomainEntity.Object{}, errors.New("private provider sentinel")
 	}
 	return created, e
 }
@@ -198,7 +201,7 @@ func TestEmulatorAutomaticWorkInitializationAndRetry(t *testing.T) {
 		t.Fatal(run, e)
 	}
 	created, e := objects.Get(ctx, "actor-a", r.ID, run.Rows[0].ResultObjectID)
-	if e != nil || created.CompletedQuantity != "0" || created.Status != object.StatusNotStarted {
+	if e != nil || created.CompletedQuantity != "0" || created.Status != objectDomainEntity.StatusNotStarted {
 		t.Fatal(created, e)
 	}
 	retry, e := s.Create(ctx, "actor-a", r.ID, "automatic-work-key", source, "work")
@@ -217,7 +220,7 @@ func TestEmulatorSelectedTypeAndLegacyIntentCompatibility(t *testing.T) {
 	if _, e := s.Create(ctx, "actor-a", r.ID, "missing-batch-type", source, ""); !errors.Is(e, automatic.ErrTypeRequired) || p.calls.Load() != 0 || importCount(t, ctx, parent, "objectImportRuns") != 0 {
 		t.Fatal("new missing selection wrote or parsed", e)
 	}
-	for _, typ := range []string{object.TypeWork, object.TypeNonWork} {
+	for _, typ := range []string{objectDomainEntity.TypeWork, objectDomainEntity.TypeNonWork} {
 		key := "batch-type-key-" + typ
 		run, e := s.Create(ctx, "actor-a", r.ID, key, source, typ)
 		if e != nil || run.Status != "completed" {
@@ -228,13 +231,13 @@ func TestEmulatorSelectedTypeAndLegacyIntentCompatibility(t *testing.T) {
 			if e != nil || created.Type != typ || created.Description != "" || created.MaterialCode != "" {
 				t.Fatal(created, e)
 			}
-			if typ == object.TypeWork && created.CompletedQuantity != "0" || typ == object.TypeNonWork && created.CompletedQuantity != "" || created.Status != object.StatusNotStarted {
+			if typ == objectDomainEntity.TypeWork && created.CompletedQuantity != "0" || typ == objectDomainEntity.TypeNonWork && created.CompletedQuantity != "" || created.Status != objectDomainEntity.StatusNotStarted {
 				t.Fatal("wrong progress", created)
 			}
 		}
-		other := object.TypeWork
+		other := objectDomainEntity.TypeWork
 		if typ == other {
-			other = object.TypeNonWork
+			other = objectDomainEntity.TypeNonWork
 		}
 		if _, e = s.Create(ctx, "actor-a", r.ID, key, source, other); !errors.Is(e, feature.ErrCreationConflict) {
 			t.Fatal("different selected type accepted", e)
@@ -267,7 +270,7 @@ func TestEmulatorSelectedTypeAndLegacyIntentCompatibility(t *testing.T) {
 	if e != nil || created.Description != "old description" || created.MaterialCode != "old material" || created.Type != "Engineering" {
 		t.Fatal("historical fields lost", created, e)
 	}
-	if _, e = s.Create(ctx, "actor-a", r.ID, "legacy-frozen-key", source, object.TypeWork); !errors.Is(e, feature.ErrCreationConflict) {
+	if _, e = s.Create(ctx, "actor-a", r.ID, "legacy-frozen-key", source, objectDomainEntity.TypeWork); !errors.Is(e, feature.ErrCreationConflict) {
 		t.Fatal("old frozen retyped", e)
 	}
 	pending := seed("legacy-pending-key", "pending")
@@ -283,7 +286,7 @@ func TestEmulatorSelectedTypeAndLegacyIntentCompatibility(t *testing.T) {
 	if e != nil || !before.UpdateTime.Equal(after.UpdateTime) || p.calls.Load() != calls {
 		t.Fatal("pending legacy mutated", e)
 	}
-	if _, e = s.Create(ctx, "actor-a", r.ID, "legacy-pending-key", source, object.TypeWork); !errors.Is(e, feature.ErrCreationConflict) {
+	if _, e = s.Create(ctx, "actor-a", r.ID, "legacy-pending-key", source, objectDomainEntity.TypeWork); !errors.Is(e, feature.ErrCreationConflict) {
 		t.Fatal("legacy pending silently upgraded", e)
 	}
 }

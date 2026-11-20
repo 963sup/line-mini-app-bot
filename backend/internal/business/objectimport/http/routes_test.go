@@ -1,6 +1,10 @@
 package objectimporthttp
 
 import (
+	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+)
+
+import (
 	"context"
 	"encoding/json"
 	"net/http"
@@ -9,7 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/object"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/objectimport"
 	"github.com/963sup/line-mini-app-bot/internal/business/objectimport/parsing"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
@@ -86,9 +89,9 @@ func (m *memory) RecordResult(_ context.Context, _ repository.Repository, actor,
 
 type objects struct{ calls int }
 
-func (o *objects) Create(_ context.Context, _, _, _ string, _ object.Content) (object.Object, error) {
+func (o *objects) Create(_ context.Context, _, _, _ string, _ objectDomainEntity.Content) (objectDomainEntity.Object, error) {
 	o.calls++
-	return object.Object{ID: strings.Repeat("e", 32)}, nil
+	return objectDomainEntity.Object{ID: strings.Repeat("e", 32)}, nil
 }
 
 const valid = `{"sourceDocument":"source","sourceRevision":"v0","pages":[{"number":2,"text":"literal evidence; private remainder"}],"rows":[{"name":"Line","description":"proposal","type":"manual","quantity":"11.00","unit":"SET","materialCode":"","sourceItemNo":"10","evidence":[{"page":2,"quote":"literal evidence"}]}]}`

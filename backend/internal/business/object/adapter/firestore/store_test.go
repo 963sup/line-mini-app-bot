@@ -1,6 +1,10 @@
 package firestore
 
 import (
+	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+)
+
+import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -13,7 +17,7 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/object"
+
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
@@ -54,8 +58,8 @@ func emulatorStore(t *testing.T) (context.Context, *Store, repository.Repository
 	return ctx, store, r
 }
 
-func testContent() object.Content {
-	return object.Content{Name: "Test engineering item", Type: "Work", Quantity: "11", Unit: "SET", SourceDocument: "test-document", SourceRevision: "v0", SourceItemNo: "10"}
+func testContent() objectDomainEntity.Content {
+	return objectDomainEntity.Content{Name: "Test engineering item", Type: "Work", Quantity: "11", Unit: "SET", SourceDocument: "test-document", SourceRevision: "v0", SourceItemNo: "10"}
 }
 
 func collectionCount(t *testing.T, ctx context.Context, parent *db.DocumentRef, name string) int {
@@ -71,7 +75,7 @@ func TestEmulatorConcurrentCreationAndReceiptReplay(t *testing.T) {
 	ctx, store, r := emulatorStore(t)
 	content := testContent()
 	const callers = 6
-	results := make([]object.Object, callers)
+	results := make([]objectDomainEntity.Object, callers)
 	errs := make([]error, callers)
 	var group sync.WaitGroup
 	start := make(chan struct{})
@@ -103,10 +107,10 @@ func TestEmulatorConcurrentCreationAndReceiptReplay(t *testing.T) {
 	}
 	changed := content
 	changed.Name = "Different intent"
-	if _, err := store.Create(ctx, r, "actor-a", "same-creation-key-0001", changed); !errors.Is(err, object.ErrCreationConflict) {
+	if _, err := store.Create(ctx, r, "actor-a", "same-creation-key-0001", changed); !errors.Is(err, objectDomainEntity.ErrCreationConflict) {
 		t.Fatalf("changed payload error=%v", err)
 	}
-	updated, err := store.Update(ctx, r, "actor-a", results[0].ID, object.Update{Content: content, Status: "completed", ExpectedVersion: 1})
+	updated, err := store.Update(ctx, r, "actor-a", results[0].ID, objectDomainEntity.Update{Content: content, Status: "completed", ExpectedVersion: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,7 +139,7 @@ func TestEmulatorContainerAndReceiptFailuresDoNotWrite(t *testing.T) {
 		if _, err := parent.Set(ctx, mutation); err != nil {
 			t.Fatal(err)
 		}
-		if _, err := store.Create(ctx, r, "actor-a", "rejected-creation-key", testContent()); !errors.Is(err, object.ErrNotFound) {
+		if _, err := store.Create(ctx, r, "actor-a", "rejected-creation-key", testContent()); !errors.Is(err, objectDomainEntity.ErrNotFound) {
 			t.Fatalf("container error=%v", err)
 		}
 		if collectionCount(t, ctx, parent, "objects") != 0 || collectionCount(t, ctx, parent, "objectCreationReceipts") != 0 {
@@ -149,7 +153,7 @@ func TestEmulatorContainerAndReceiptFailuresDoNotWrite(t *testing.T) {
 	if _, err := rec.Set(ctx, map[string]any{"schemaVersion": 1, "id": "invalid", "payloadHash": "broken"}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := store.Create(ctx, r, "actor-a", "corrupt-receipt-key", testContent()); !errors.Is(err, object.ErrUnavailable) {
+	if _, err := store.Create(ctx, r, "actor-a", "corrupt-receipt-key", testContent()); !errors.Is(err, objectDomainEntity.ErrUnavailable) {
 		t.Fatalf("corrupt receipt error=%v", err)
 	}
 	if collectionCount(t, ctx, parent, "objects") != 0 || collectionCount(t, ctx, parent, "objectCreationReceipts") != 1 {
@@ -163,7 +167,7 @@ func TestEmulatorUpdateChecksAuthorVersionAndPreservesNoOp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	input := object.Update{Content: original.Content, Status: "in_progress", ExpectedVersion: 1}
+	input := objectDomainEntity.Update{Content: original.Content, Status: "in_progress", ExpectedVersion: 1}
 	input.SourceDocument = ""
 	input.SourceRevision = ""
 	input.SourceItemNo = ""
@@ -171,7 +175,7 @@ func TestEmulatorUpdateChecksAuthorVersionAndPreservesNoOp(t *testing.T) {
 		actor   string
 		version int64
 		want    error
-	}{{"actor-b", 1, object.ErrForbidden}, {"actor-a", 2, object.ErrConflict}} {
+	}{{"actor-b", 1, objectDomainEntity.ErrForbidden}, {"actor-a", 2, objectDomainEntity.ErrConflict}} {
 		input.ExpectedVersion = tc.version
 		if _, err := store.Update(ctx, r, tc.actor, original.ID, input); !errors.Is(err, tc.want) {
 			t.Fatalf("actor %s version %d error=%v", tc.actor, tc.version, err)
@@ -193,7 +197,7 @@ func TestEmulatorUpdateChecksAuthorVersionAndPreservesNoOp(t *testing.T) {
 	}
 	input.Status = "completed"
 	input.ExpectedVersion = 1
-	if _, err := store.Update(ctx, r, "actor-a", original.ID, input); !errors.Is(err, object.ErrConflict) {
+	if _, err := store.Update(ctx, r, "actor-a", original.ID, input); !errors.Is(err, objectDomainEntity.ErrConflict) {
 		t.Fatalf("stale update error=%v", err)
 	}
 	stored, err := store.Get(ctx, r, original.ID)
@@ -215,7 +219,7 @@ func TestEmulatorListPaginatesWithoutMissingOrDuplicateObjects(t *testing.T) {
 	if err := store.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		for n := 1; n <= 21; n++ {
 			id := fmt.Sprintf("%032x", n)
-			item := object.Object{Content: testContent(), ID: id, RepositoryID: r.ID, CreatorID: "actor-a", Status: "not_started", Version: 1, CreatedAt: now, UpdatedAt: now}
+			item := objectDomainEntity.Object{Content: testContent(), ID: id, RepositoryID: r.ID, CreatorID: "actor-a", Status: "not_started", Version: 1, CreatedAt: now, UpdatedAt: now}
 			if err := tx.Set(store.repositoryRef(r.ID).Collection("objects").Doc(id), encode(item)); err != nil {
 				return err
 			}
@@ -243,15 +247,15 @@ func TestEmulatorListPaginatesWithoutMissingOrDuplicateObjects(t *testing.T) {
 	if err != nil || got.ID != all[0].ID || got.Content != all[0].Content {
 		t.Fatalf("get: %#v, error %v", got, err)
 	}
-	if _, err := store.List(ctx, r, "actor-b", first.NextCursor); !errors.Is(err, object.ErrInput) {
+	if _, err := store.List(ctx, r, "actor-b", first.NextCursor); !errors.Is(err, objectDomainEntity.ErrInput) {
 		t.Fatalf("cursor must reject another actor: %v", err)
 	}
 	other := r
 	other.ID = "cccccccccccccccccccccccccccccccc"
-	if _, err := store.List(ctx, other, "actor-a", first.NextCursor); !errors.Is(err, object.ErrInput) {
+	if _, err := store.List(ctx, other, "actor-a", first.NextCursor); !errors.Is(err, objectDomainEntity.ErrInput) {
 		t.Fatalf("cursor must reject another repository: %v", err)
 	}
-	if _, err := store.Get(ctx, other, got.ID); !errors.Is(err, object.ErrNotFound) {
+	if _, err := store.Get(ctx, other, got.ID); !errors.Is(err, objectDomainEntity.ErrNotFound) {
 		t.Fatalf("get must not leak another repository: %v", err)
 	}
 }

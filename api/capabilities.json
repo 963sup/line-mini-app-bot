@@ -165,8 +165,8 @@
     },
     "object": {
       "contract": "object/objects.yaml",
-      "adapter": "backend/internal/business/object/http/routes.go",
-      "core": "backend/internal/business/object/object.go",
+      "adapter": "backend/internal/business/object/adapter/http/routes.go",
+      "core": "backend/internal/business/object/domain/entity/object.go",
       "specification": "docs/domains/repository/objects.md"
     },
     "objectimport": {
@@ -1115,9 +1115,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/objects",
       "owner": "object",
-      "adapter": "backend/internal/business/object/http/routes.go",
+      "adapter": "backend/internal/business/object/adapter/http/routes.go",
       "handler": "ListObjects",
-      "core": "backend/internal/business/object/object.go",
+      "core": "backend/internal/business/object/domain/entity/object.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx",
@@ -1130,9 +1130,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/objects",
       "owner": "object",
-      "adapter": "backend/internal/business/object/http/routes.go",
+      "adapter": "backend/internal/business/object/adapter/http/routes.go",
       "handler": "CreateObject",
-      "core": "backend/internal/business/object/object.go",
+      "core": "backend/internal/business/object/domain/entity/object.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx"
@@ -1144,9 +1144,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/objects/{id}",
       "owner": "object",
-      "adapter": "backend/internal/business/object/http/routes.go",
+      "adapter": "backend/internal/business/object/adapter/http/routes.go",
       "handler": "GetObject",
-      "core": "backend/internal/business/object/object.go",
+      "core": "backend/internal/business/object/domain/entity/object.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx"
@@ -1158,9 +1158,9 @@
       "method": "PATCH",
       "path": "/api/v1/repositories/{repositoryId}/objects/{id}",
       "owner": "object",
-      "adapter": "backend/internal/business/object/http/routes.go",
+      "adapter": "backend/internal/business/object/adapter/http/routes.go",
       "handler": "UpdateObject",
-      "core": "backend/internal/business/object/object.go",
+      "core": "backend/internal/business/object/domain/entity/object.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx"
