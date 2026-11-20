@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/963sup/line-mini-app-bot/internal/business/organization"
-	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 	"io"
 	"net/http"
+
+	"github.com/963sup/line-mini-app-bot/internal/business/organization"
+	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 )
 
 type Authenticator interface {
