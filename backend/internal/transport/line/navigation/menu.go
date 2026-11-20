@@ -1,5 +1,5 @@
-// Package lineui renders the public feature menu shared by the bot and CLI.
-package lineui
+// Package navigation renders the public feature menu shared by the bot and CLI.
+package navigation
 
 import (
 	"net/url"

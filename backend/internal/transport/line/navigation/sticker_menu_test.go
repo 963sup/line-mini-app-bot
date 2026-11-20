@@ -1,4 +1,4 @@
-package line
+package navigation
 
 import (
 	"testing"

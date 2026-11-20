@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/navigation/lineui"
+	"github.com/963sup/line-mini-app-bot/internal/transport/line/navigation"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 )
 
@@ -54,10 +54,10 @@ func run(args []string) error {
 	if parsed.User != nil || parsed.Fragment != "" {
 		return errors.New("-app-url must not contain credentials or a fragment")
 	}
-	menu := lineui.RichMenu(parsed.String())
+	menu := navigation.RichMenu(parsed.String())
 	if *alias != "" {
 		var ok bool
-		menu, ok = lineui.AttendanceRichMenus(parsed.String())[*alias]
+		menu, ok = navigation.AttendanceRichMenus(parsed.String())[*alias]
 		if !ok {
 			return errors.New("-alias must be attendance-in or attendance-out")
 		}
@@ -66,7 +66,7 @@ func run(args []string) error {
 		if *apply {
 			return errors.New("attendance prototype supports preview only")
 		}
-		return json.NewEncoder(os.Stdout).Encode(lineui.AttendanceRichMenus(parsed.String()))
+		return json.NewEncoder(os.Stdout).Encode(navigation.AttendanceRichMenus(parsed.String()))
 	}
 	if !*apply {
 		return json.NewEncoder(os.Stdout).Encode(struct {
