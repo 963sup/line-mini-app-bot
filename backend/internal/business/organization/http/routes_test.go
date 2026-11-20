@@ -3,14 +3,15 @@ package organizationhttp
 import (
 	"context"
 	"encoding/json"
-	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/http"
-	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/http"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/http"
+	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/http"
 
 	"cloud.google.com/go/firestore"
 	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/firestore"
