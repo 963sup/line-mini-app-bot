@@ -155,17 +155,6 @@ func RegisterSubobjects(public *http.ServeMux, handler SubobjectServer, wrap fun
 	public.Handle("PATCH /api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}", routes)
 }
 
-func RegisterObjectImports(public *http.ServeMux, handler ObjectImportServer, wrap func(http.Handler) http.Handler) {
-	routes := withMiddleware(routeHandler(contractServer{ObjectImportServer: handler}), wrap)
-	public.Handle("POST /api/v1/repositories/{repositoryId}/object-import-runs", routes)
-	public.Handle("GET /api/v1/repositories/{repositoryId}/object-import-runs/{id}", routes)
-	public.Handle("POST /api/v1/repositories/{repositoryId}/object-imports", routes)
-	public.Handle("POST /api/v1/repositories/{repositoryId}/object-imports/parse", routes)
-	public.Handle("GET /api/v1/repositories/{repositoryId}/object-imports/{id}", routes)
-	public.Handle("POST /api/v1/repositories/{repositoryId}/object-imports/{id}/review", routes)
-	public.Handle("POST /api/v1/repositories/{repositoryId}/object-imports/{id}/confirm", routes)
-}
-
 func RegisterRepositorySpaces(public *http.ServeMux, handler RepositorySpaceServer, wrap func(http.Handler) http.Handler) {
 	routes := withMiddleware(routeHandler(contractServer{RepositorySpaceServer: handler}), wrap)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/spaces", routes)

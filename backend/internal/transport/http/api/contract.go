@@ -39,7 +39,6 @@ type contractServer struct {
 	ObjectServer
 	RepositorySpaceServer
 	SubobjectServer
-	ObjectImportServer
 	DiscussionServer
 	WikiServer
 	LabelServer
@@ -164,16 +163,6 @@ type SubobjectServer interface {
 	CreateSubobject(w http.ResponseWriter, r *http.Request, repositoryId string, objectId string, params generated.CreateSubobjectParams)
 	GetSubobject(w http.ResponseWriter, r *http.Request, repositoryId string, objectId string, id string)
 	UpdateSubobject(w http.ResponseWriter, r *http.Request, repositoryId string, objectId string, id string, params generated.UpdateSubobjectParams)
-}
-
-type ObjectImportServer interface {
-	CreateObjectImportRun(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.CreateObjectImportRunParams)
-	GetObjectImportRun(w http.ResponseWriter, r *http.Request, repositoryId string, id string)
-	ParseObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ParseObjectImportParams)
-	CreateObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.CreateObjectImportParams)
-	GetObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, id string)
-	ReviewObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params generated.ReviewObjectImportParams)
-	ConfirmObjectImport(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params generated.ConfirmObjectImportParams)
 }
 
 // RepositorySpaceServer owns real business spaces; GroupServer handles Project-owning LINE groups.

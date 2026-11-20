@@ -2,7 +2,7 @@
 
 <a id="domain-matrix"></a>
 
-## 19 個業務領域的追蹤矩陣
+## 18 個業務領域的追蹤矩陣
 
 沿用六邊形架構：從入口適配器追到使用案例或既有實作，再核對輸出介面、儲存適配器及業務判定。各列連到代表路徑；實作連結與提案驗收均不代表已執行測試。
 
@@ -17,7 +17,6 @@
 | [journal](journal/README.md) | 已有實作 | [核心流程](journal/README.md#decision-flow) | [測試](../../backend/internal/business/journal/domain/entity/entry_test.go) |
 | [knowledge](knowledge/README.md) | 提案 | [核心流程](../proposals/knowledge.md#design-diagram) | [驗收條件](../proposals/domain-collaboration.md) |
 | [object](object/README.md) | 已有實作 | [核心流程](object/README.md#decision-flow) | [測試](../../backend/internal/business/object/application/progress_test.go) |
-| [objectimport](objectimport/README.md) | 已有實作 | [核心流程](objectimport/README.md#decision-flow) | [測試](../../backend/internal/business/objectimport/adapter/firestore/automatic_test.go) |
 | [operations](operations/README.md) | 提案 | [核心流程](../proposals/operations.md#design-diagram) | [驗收條件](../proposals/domain-collaboration.md) |
 | [organization](organization/README.md) | 已有實作 | [核心流程](organization/README.md#decision-flow) | [實作](../../backend/internal/business/organization/adapter/firestore/store.go) |
 | [project](project/README.md) | 已有實作 | [核心流程](project/README.md#decision-flow) | [測試](../../backend/internal/business/project/application/reference_source_test.go) |
@@ -50,7 +49,6 @@
 - [issue · 議題](issue/README.md)
 - [journal · 日誌](journal/README.md)
 - [object · 工項](object/README.md)
-- [objectimport · 工項匯入](objectimport/README.md)
 - [organization · 組織](organization/README.md)
 - [project · 專案](project/README.md)
 - [repository · 儲存庫](repository/README.md)
@@ -161,7 +159,6 @@
 
 [Repository 共用資源編號基礎](repository/numbering.md)
 
-[物件自動匯入](objectimport/design.md)
 
 儲存庫物件 · 父子歸屬圖
 

@@ -2,7 +2,7 @@
 
 初次接手可從[六張核心圖](README.md#日常開發看哪張圖)開始。以下按圖的用途列出原文章節；實作狀態依儲存庫內容判定，部署與裝置驗收依各頁紀錄。
 
-[19 個領域的核心流程與狀態](domains/README.md#domain-matrix) · [四領域協作提案與 PDF 匯入時序](proposals/domain-collaboration.md)
+[18 個領域的核心流程與狀態](domains/README.md#domain-matrix) · [四領域協作提案](proposals/domain-collaboration.md)
 
 ## 現行實作
 
@@ -21,7 +21,6 @@
 - [空間討論與單層留言 · 最小實作邊界與驗證](domains/discussion/design.md#最小實作邊界與驗證)
 - [里程碑](domains/repository/milestones.md#里程碑)
 - [Repository 共用資源編號基礎 · 內部接入方式](domains/repository/numbering.md#內部接入方式)
-- [物件自動匯入 · 自動匯入操作契約](domains/objectimport/design.md#自動匯入操作契約)
 - [儲存庫物件 · 物件與子物件歸屬](architecture/contracts/object-subobject-ownership.md#物件與子物件歸屬)
 - [個人與群組 Repository · 空間載入時序](domains/repository/README.md#空間載入時序)
 - [基礎群聊摘要 · 資料與可靠性](domains/summary/summary.md#資料與可靠性)
@@ -75,7 +74,3 @@
 ## 現況與提案對照
 
 - [Cloud Run 部署 · 建置入口](guides/release/cloud-run.md#建置入口)
-
-[多格式文件架構與手動解析呼叫時序](proposals/domain-collaboration.md#document-ingestion)
-
-[Firestore 與 Cloud Storage 接線及授權](proposals/domain-collaboration.md#storage-boundaries)

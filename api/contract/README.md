@@ -97,6 +97,5 @@ OpenAPI 拆分不等同 runtime 完整驗證，也不代表資料庫交易的原
 
 - [group](group/README.md)
 - [journal](journal/README.md)
-- [object-import](object-import/README.md)
 - [object](object/README.md)
 - [subobject](subobject/README.md)

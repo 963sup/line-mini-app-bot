@@ -55,7 +55,6 @@ Next.js 正式建置採靜態匯出，由 Go 在 Cloud Run 提供網頁與 HTTP 
 | `google.golang.org/api`、`golang.org/x/oauth2` | Google API 與身分驗證支援 |
 | `github.com/getkin/kin-openapi`、`github.com/oapi-codegen/nethttp-middleware`、`github.com/oapi-codegen/runtime` | OpenAPI 契約處理、請求驗證與 Go 產生碼支援 |
 | `openapi-fetch` | TypeScript API client |
-| `pdfjs-dist` | 前端 PDF 解析 |
 
 技術基準與契約歸屬見[依賴與契約維護位置](docs/architecture/runtime/dependencies.md)。
 本節描述技術組成，不代表外部服務或正式環境已完成端到端驗收。首版功能範圍仍以[已接受的基線](docs/decisions/0002-baseline.md)為準。

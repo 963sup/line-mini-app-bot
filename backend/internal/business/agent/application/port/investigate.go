@@ -14,7 +14,7 @@ type Evidence struct {
 	Quote string
 }
 
-// Investigator returns supporting evidence; objectimport decides whether to accept it.
+// Investigator returns supporting evidence; the caller decides whether to accept it.
 type Investigator interface {
 	Investigate(context.Context, Investigation) ([]Evidence, error)
 }

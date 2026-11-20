@@ -7,9 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/objectimport/adapter/workbook"
-	workflow "github.com/963sup/line-mini-app-bot/internal/business/workflow/application"
-
 	"cloud.google.com/go/firestore"
 	discussiondb "github.com/963sup/line-mini-app-bot/internal/business/discussion/adapter/firestore"
 	discussionapp "github.com/963sup/line-mini-app-bot/internal/business/discussion/application"
@@ -17,13 +14,6 @@ import (
 	issueapplication "github.com/963sup/line-mini-app-bot/internal/business/issue/application"
 	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/firestore"
 	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
-	importdb "github.com/963sup/line-mini-app-bot/internal/business/objectimport/adapter/firestore"
-	parseropenai "github.com/963sup/line-mini-app-bot/internal/business/objectimport/adapter/openai/parsing"
-	objectimportApplication "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application"
-	objectimportApplicationAutomatic "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/automatic"
-	objectimportApplicationParsing "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/parsing"
-	objectimportApplicationPortAutomatic "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/port/automatic"
-	objectimportApplicationPortParsing "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/port/parsing"
 	repositorydb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 	businessspacedb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore/space"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
@@ -94,39 +84,6 @@ func newObjects(r *repositoryApplication.Service, store *repositorydb.Store) *ob
 		return nil
 	}
 	return &objectApplication.Service{Repositories: r, Store: &objectdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
-}
-
-func newObjectImports(r *repositoryApplication.Service, store *repositorydb.Store) *objectimportApplication.Service {
-	if store == nil {
-		return nil
-	}
-	return &objectimportApplication.Service{Repositories: r, Objects: newObjects(r, store), Store: &importdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
-}
-
-func newObjectParser(r *repositoryApplication.Service) workflow.PDF {
-	return workflow.PDF{Extract: newCandidateService(r).Parse}
-}
-
-func newCandidateService(r *repositoryApplication.Service) *objectimportApplicationParsing.Service {
-	if r == nil {
-		return nil
-	}
-	var producer objectimportApplicationPortParsing.Producer
-	if key := os.Getenv("OPENAI_API_KEY"); key != "" {
-		producer = &parseropenai.Producer{Key: key, Model: os.Getenv("OBJECT_IMPORT_MODEL")}
-	}
-	return &objectimportApplicationParsing.Service{Repositories: r, Producer: producer}
-}
-
-func newAutomaticObjectImports(r *repositoryApplication.Service, store *repositorydb.Store) *objectimportApplicationAutomatic.Service {
-	if store == nil {
-		return nil
-	}
-	var producer objectimportApplicationPortAutomatic.Producer
-	if key := os.Getenv("OPENAI_API_KEY"); key != "" {
-		producer = &parseropenai.Producer{Key: key, Model: os.Getenv("OBJECT_IMPORT_MODEL")}
-	}
-	return &objectimportApplicationAutomatic.Service{PDF: workbook.ReadPDF, Workbook: workbook.Read, TextTable: workbook.ReadText, Repositories: r, Objects: newObjects(r, store), Store: &importdb.AutomaticStore{Store: importdb.Store{Client: store.Client, ChannelID: store.ChannelID}}, Producer: producer}
 }
 
 func newSubobjects(r *repositoryApplication.Service, store *repositorydb.Store) *subobjectApplication.Service {
