@@ -20,7 +20,7 @@ type OpenAI struct {
 func (o *OpenAI) Summarize(ctx context.Context, messages []messagecollection.Message) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 45*time.Second)
 	defer cancel()
-	input, sources := summarization.Input(messages)
+	input, _ := summarization.Input(messages)
 	config := openai.DefaultConfig(o.Key)
 	if o.HTTP != nil {
 		config.HTTPClient = o.HTTP
@@ -40,5 +40,5 @@ func (o *OpenAI) Summarize(ctx context.Context, messages []messagecollection.Mes
 	if len(response.Choices) != 1 || response.Choices[0].FinishReason != openai.FinishReasonStop || response.Choices[0].Message.Refusal != "" || len(response.Choices[0].Message.ToolCalls) != 0 {
 		return "", errors.New("model did not finish summary")
 	}
-	return validateSummary(response.Choices[0].Message.Content, len(sources))
+	return response.Choices[0].Message.Content, nil
 }
