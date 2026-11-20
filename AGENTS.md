@@ -55,7 +55,7 @@ reuse it for follow-ups and provide the goal, existing changes and deliverable.
 
 角色能力與設定由 [.codex/agents](.codex/agents) 維護；角色選用、交接欄位、一檔一寫入者及整合責任依 [shared workflow](docs/development/workflow.md#delegation-depth-and-role-selection)。角色是可選能力，不是每個任務都必須經過的階段；主機限制優先，委派不增加外部寫入權限。
 
-架構、資料關係、流程或狀態用圖更清楚時，主動使用 Mermaid MCP 驗證並渲染圖表。連線與本機備援見 [.codex/README.md](.codex/README.md#mermaid)。
+架構、資料關係、流程或狀態用圖更清楚時，主動使用專案鎖定的本機 Mermaid v13 CLI 驗證並渲染圖表。操作方式見 [.codex/README.md](.codex/README.md#mermaid)。
 
 ## graphify
 
