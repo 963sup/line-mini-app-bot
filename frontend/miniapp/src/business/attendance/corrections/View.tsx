@@ -13,12 +13,11 @@ import type { components } from "@repo/api-client";
 import { useSession } from "../../../identity/Session";
 import { useLatestRequest, errorMessage } from "../../../shared/http/lifecycle";
 import { taiwan, displayTime, timestamp } from "../../../shared/time/time";
-import { Requests, correctionStatus } from "./Requests";
+import { Requests } from "./Requests";
 type S = components["schemas"];
 export function View() {
   const { user, request } = useSession(),
     recordRead = useLatestRequest(),
-    statusRead = useLatestRequest(),
     submissionRequest = useLatestRequest(),
     groupsRead = useLatestRequest();
   const [selected, setSelected] = useState<S["AttendanceRecord"] | null>(null),
@@ -32,9 +31,8 @@ export function View() {
     [reason, setReason] = useState(""),
     [confirmed, setConfirmed] = useState(false),
     [busy, setBusy] = useState(false),
-    [id, setID] = useState(""),
+    [refreshVersion, setRefreshVersion] = useState(0),
     [status, setStatus] = useState("請先完成身分驗證。"),
-    [application, setApplication] = useState(""),
     [back, setBack] = useState("/miniapp/history");
   const lock = useRef(false),
     attempt = useRef<{ serialized: string; key: string } | null>(null);
@@ -130,11 +128,9 @@ export function View() {
         (data) => {
           lock.current = false;
           setBusy(false);
-          statusRead.cancel();
-          setApplication("");
-          setID(data.id);
+          setRefreshVersion((value) => value + 1);
           setStatus(
-            `申請已受理。編號：${data.id}。請保存編號並提供給授權審核者，可在下方查詢目前結果。`,
+            `申請已受理。編號：${data.id}。可在下方「查看申請結果」查看進度與審核理由。`,
           );
         },
         (error) => {
@@ -148,32 +144,6 @@ export function View() {
     } catch (error) {
       setStatus(errorMessage(error));
     }
-  }
-  function checkCorrectionStatus() {
-    const correctionID = id.trim();
-    if (!validID(correctionID)) {
-      setApplication("請輸入有效的申請編號。");
-      return;
-    }
-    setApplication("正在查詢申請……");
-    void statusRead.run(
-      (signal) =>
-        request(
-          (c, s) =>
-            c.GET("/api/v1/attendance/corrections/{id}", {
-              signal: s,
-              params: { path: { id: correctionID } },
-            }),
-          { signal },
-        ),
-      (data) =>
-        setApplication(
-          correctionStatus(data.status) +
-            (data.decisionReason ? `：${data.decisionReason}` : "") +
-            (data.status === "approved" ? "，請重新查詢月紀錄。" : ""),
-        ),
-      (error) => setApplication(errorMessage(error)),
-    );
   }
   function loadGroups(append = false) {
     void groupsRead.run(
@@ -366,36 +336,7 @@ export function View() {
           {status}
         </Status>
       </PagePanel>
-      <Requests />
-      <PagePanel heading="查看申請結果">
-        <p>輸入送出申請時取得的編號；核准前工時不變。</p>
-        <FieldSet
-          className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
-          id="status-controls"
-          disabled={!user}
-        >
-          <FormField>
-            申請編號
-            <Input
-              id="correction-id"
-              maxLength={128}
-              autoComplete="off"
-              value={id}
-              onChange={(e) => {
-                statusRead.cancel();
-                setApplication("");
-                setID(e.target.value);
-              }}
-            />
-          </FormField>
-          <Button id="check-correction" onClick={checkCorrectionStatus}>
-            查詢本人申請
-          </Button>
-        </FieldSet>
-        <Status id="application-status" role="status">
-          {application}
-        </Status>
-      </PagePanel>
+      <Requests refreshVersion={refreshVersion} />
     </>
   );
 }

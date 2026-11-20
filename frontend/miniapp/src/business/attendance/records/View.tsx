@@ -25,6 +25,7 @@ export function View() {
     [group, setGroup] = useState(""),
     [month, setMonth] = useState(""),
     [groupCursor, setGroupCursor] = useState(""),
+    [membershipGroups, setMembershipGroups] = useState(false),
     [groupsBusy, setGroupsBusy] = useState(false);
   const [records, setRecords] = useState<S["AttendanceRecord"][]>([]),
     [summary, setSummary] = useState<S["MonthlySummary"] | null>(null),
@@ -111,8 +112,9 @@ export function View() {
     }
     setGroupsBusy(true);
     void groupsRead.run(
-      (signal) =>
-        request(
+      async (signal) => {
+        const fromMembership = append && membershipGroups;
+        const history = fromMembership ? null : await request(
           (c, s) =>
             c.GET("/api/v1/attendance/groups/page", {
               signal: s,
@@ -121,7 +123,23 @@ export function View() {
               },
             }),
           { signal },
-        ),
+        );
+        if (history && (desired || append || history.items.length || history.nextCursor)) {
+          return { ...history, fromMembership: false };
+        }
+        const available = await request(
+          (c, s) => c.GET("/api/v1/groups", {
+            signal: s,
+            params: { query: { cursor: fromMembership ? groupCursor : undefined } },
+          }),
+          { signal },
+        );
+        return {
+          items: available.items.map((item) => ({ id: item.groupId, name: item.name || item.groupId })),
+          nextCursor: available.nextCursor,
+          fromMembership: true,
+        };
+      },
       (data) => {
         setGroups((previous) => {
           const all = new Map((append ? previous : []).map((g) => [g.id, g]));
@@ -131,9 +149,10 @@ export function View() {
           return [...all.values()];
         });
         setGroupCursor(data.nextCursor || "");
+        setMembershipGroups(data.fromMembership);
         setGroupsBusy(false);
         setStatus(!append && !desired && !data.items?.length
-          ? "目前沒有出勤紀錄可供選擇。"
+          ? "目前沒有出勤群組或可存取的 LINE 群組。請先在原 LINE 群組與機器人互動後重新載入。"
           : "請選擇群組與月份後查詢。");
         if (!append && desired) loadRecords({selected:desired,selectedMonth,withSummary:true,cursor:""});
       },
@@ -199,6 +218,8 @@ export function View() {
             群組
             <NativeSelect
               id="history-group"
+              disabled={groupsBusy || !groups.length}
+              aria-busy={groupsBusy}
               value={group}
               onChange={(e) => {
                 clear();
@@ -206,7 +227,7 @@ export function View() {
                 setStatus("條件已變更，請重新查詢。");
               }}
             >
-              <NativeSelectOption value="">請選擇群組</NativeSelectOption>
+              <NativeSelectOption value="">{groupsBusy ? "正在載入群組……" : groups.length ? "請選擇群組" : "目前沒有可選群組"}</NativeSelectOption>
               {groups.map((g) => (
                 <NativeSelectOption key={g.id} value={g.id}>
                   {g.name}
