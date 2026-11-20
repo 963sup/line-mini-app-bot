@@ -1,3 +1,9 @@
 {
-  "firestore": { "indexes": "deploy/firestore/indexes.json" }
+  "firestore": {
+    "indexes": "deploy/firestore/indexes.json",
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
 }
