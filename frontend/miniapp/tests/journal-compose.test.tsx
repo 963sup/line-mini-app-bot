@@ -10,11 +10,13 @@ const flush = async () => {
   for (let i = 0; i < 12; i++) await new Promise<void>(resolve => setImmediate(resolve));
 };
 
-for (const scenario of ["cancel", "publish", "publish with reference"]) test("dedicated journal composer: " + scenario, async () => {
+for (const scenario of ["cancel", "publish", "publish with reference", "space deferred", "space unknown", "space limit"]) test("dedicated journal composer: " + scenario, async () => {
   document.body.innerHTML = '<div id="root"></div>';
   const originalFetch = globalThis.fetch;
   const requests: string[] = [];
   const writes: {body: string; key: string | null}[] = [];
+  const spaceWrites: {body:string;key:string|null}[] = [];
+  let finishSpace!: (response:Response)=>void;
   const firstGroup = "C" + "1".repeat(32), secondGroup = "C" + "2".repeat(32);
   let closes = 0;
   globalThis.fetch = async (input, init) => {
@@ -23,6 +25,15 @@ for (const scenario of ["cancel", "publish", "publish with reference"]) test("de
     requests.push(url.pathname + url.search);
     if (url.pathname.endsWith("/config")) return Response.json({ liffId: "test" });
     if (url.pathname.endsWith("/session")) return Response.json({ user: { userId: "u1", displayName: "Tester" }, csrfToken: "c".repeat(43), expiresAt: new Date(Date.now() + 1800000).toISOString() });
+    if (url.pathname.endsWith("/spaces") && request.method === "POST") {
+      spaceWrites.push({body:await request.text(),key:request.headers.get("Idempotency-Key")});
+      if(scenario === "space deferred")return new Promise(resolve=>{finishSpace=resolve;});
+      if(scenario === "space limit")return Response.json({id:"s1",name:"現場空間"});
+      if(spaceWrites.length === 1)throw new Error("response lost");
+      if(spaceWrites.length === 2)return Response.json({error:{code:"forbidden",message:"permission changed"}},{status:403});
+      return Response.json({id:"s1",name:"現場空間"});
+    }
+    if(url.pathname.endsWith("/spaces") && scenario === "space limit")return Response.json({items:Array.from({length:20},(_,i)=>({id:"pre"+i,name:"既有空間"+i})),nextCursor:""});
     if (url.pathname === "/api/v1/journals" && request.method === "POST") {
       writes.push({body: await request.text(), key: request.headers.get("Idempotency-Key")});
       return writes.length === 1 ? Response.json({message: "請重試"}, {status: 503}) : Response.json({id: "published"});
@@ -71,6 +82,51 @@ for (const scenario of ["cancel", "publish", "publish with reference"]) test("de
       assert.equal(document.querySelector("[data-active] legend")?.textContent, "今日工作");
       input("firstname").value = "施作";
       input("firstpercent").value = "35";
+      if (scenario.startsWith("space ")) {
+        const search=document.querySelector<HTMLInputElement>("#firstref")!;
+        await act(async()=>{search.focus();search.dispatchEvent(new window.KeyboardEvent("keydown",{key:"ArrowDown",bubbles:true}));await flush();});
+        await act(async()=>{[...document.querySelectorAll<HTMLElement>('[role="option"]')].find(item=>item.textContent==="儲存庫 · 工程甲")!.click();await flush();});
+        if(scenario === "space limit")for(let i=0;i<19;i++){
+          const spaces=document.querySelector<HTMLInputElement>("#firstspaces")!;
+          await act(async()=>{spaces.focus();spaces.dispatchEvent(new window.KeyboardEvent("keydown",{key:"ArrowDown",bubbles:true}));await flush();});
+          await act(async()=>{[...document.querySelectorAll<HTMLElement>('[role="option"]')].find(item=>item.textContent==="既有空間"+i)!.click();await flush();});
+        }
+        const name=[...document.querySelectorAll("label")].find(label=>label.textContent?.includes("新增空間"))!.querySelector<HTMLInputElement>("input")!;
+        await act(async()=>{Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,"value")!.set!.call(name,"現場空間");name.dispatchEvent(new Event("input",{bubbles:true}));await flush();});
+        await act(async()=>{
+          [...document.querySelectorAll<HTMLButtonElement>("button")].find(button=>button.textContent==="建立並選用")!.click();
+          [...document.querySelectorAll<HTMLButtonElement>("button")].find(button=>button.textContent==="取消填寫")!.click();
+          await flush();
+        });
+        const assertLocked=()=>{
+          assert.equal(name.disabled,true);
+          assert.equal(search.disabled,true);
+          assert.equal([...document.querySelectorAll<HTMLButtonElement>("button")].find(button=>button.textContent==="移除第 1 項")!.disabled,true);
+          const cancel=[...document.querySelectorAll<HTMLButtonElement>("button")].find(button=>button.textContent==="取消填寫")!;
+          assert.equal(cancel.disabled,true);cancel.click();assert.equal(closes,0);
+        };
+        if(scenario !== "space limit"){
+          assertLocked();
+          await act(async()=>{document.querySelector("form")!.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));await flush();});
+          assert.equal(writes.length,0,"pending space cannot publish or advance the draft");
+        }
+        if(scenario === "space deferred")await act(async()=>{finishSpace(Response.json({id:"s1",name:"現場空間"}));await flush();});
+        else if(scenario === "space unknown") {
+          await click("重試原空間建立請求");assertLocked();
+          await click("重試原空間建立請求");
+          assert.equal(spaceWrites.length,3);assert.ok(spaceWrites[0].key);
+          assert.deepEqual(spaceWrites,[spaceWrites[0],spaceWrites[0],spaceWrites[0]]);
+        }
+        assert.equal(search.disabled,false);
+        assert.equal([...document.querySelectorAll<HTMLButtonElement>("button")].find(button=>button.textContent==="取消填寫")!.disabled,false);
+        const expectedSpaces=scenario === "space limit" ? [...Array.from({length:19},(_,i)=>"pre"+i),"s1"] : ["s1"];
+        assert.deepEqual([...document.querySelectorAll<HTMLInputElement>('input[name="firstspace"]')].map(value=>value.value),expectedSpaces);
+        if(scenario === "space limit"){
+          await act(async()=>{Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,"value")!.set!.call(name,"第21個空間");name.dispatchEvent(new Event("input",{bubbles:true}));await flush();});
+          const create=[...document.querySelectorAll<HTMLButtonElement>("button")].find(button=>button.textContent==="建立並選用")!;
+          assert.equal(create.disabled,true);create.click();assert.equal(spaceWrites.length,1);
+        }
+      }
       if (scenario === "publish with reference") {
         const search = document.querySelector<HTMLInputElement>("#firstref")!;
         const count = requests.length;
@@ -104,7 +160,7 @@ for (const scenario of ["cancel", "publish", "publish with reference"]) test("de
       assert.ok(writes[0].key);
       assert.deepEqual(writes[1], writes[0]);
       const draft = JSON.parse(writes[0].body);
-      assert.deepEqual(draft.todayItems, [{name: "施作", completionPercent: 35, ...(scenario === "publish with reference" ? {reference: {type: "project", id: "p1"}} : {})}]);
+      assert.deepEqual(draft.todayItems, [{name: "施作", completionPercent: 35, ...(scenario === "publish with reference" ? {reference: {type: "project", id: "p1"}} : scenario.startsWith("space ") ? {reference:{type:"repository",id:"r1"},spaceIds:scenario === "space limit" ? [...Array.from({length:19},(_,i)=>"pre"+i),"s1"] : ["s1"]} : {})}]);
       assert.deepEqual(draft.tomorrowItems, []);
       assert.deepEqual(draft.personnel.workers, ["甲", "乙"]);
       assert.equal(draft.groupId, secondGroup);

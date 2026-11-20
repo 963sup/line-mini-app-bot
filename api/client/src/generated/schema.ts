@@ -1982,11 +1982,21 @@ export interface components {
             name: string;
             completionPercent: number;
             reference?: components["schemas"]["JournalReference"];
+            objectId?: string;
+            subobjectId?: string;
+            spaceIds?: string[];
+            readonly objectName?: string;
+            readonly spaceNames?: string[];
         };
         JournalTomorrowItem: {
             name: string;
             expectedCompletionPercent: number;
             reference?: components["schemas"]["JournalReference"];
+            objectId?: string;
+            subobjectId?: string;
+            spaceIds?: string[];
+            readonly objectName?: string;
+            readonly spaceNames?: string[];
         };
         JournalCreation: {
             groupId: string;
