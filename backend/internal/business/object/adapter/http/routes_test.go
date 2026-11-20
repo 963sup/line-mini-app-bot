@@ -1,6 +1,7 @@
 package objecthttp
 
 import (
+	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
@@ -162,5 +163,35 @@ func TestHTTPSpaceAssignmentOmissionAndClear(t *testing.T) {
 				t.Fatal("patch omission/clear mapping lost")
 			}
 		})
+	}
+}
+
+type candidateProbe struct{ calls int }
+
+func (p *candidateProbe) ExtractCandidates(_ context.Context, d operations.Document) (operations.Extraction, error) {
+	p.calls++
+	return operations.Extraction{Candidates: []operations.Candidate{{Name: d.Filename, Quote: string(d.Data)}}}, nil
+}
+
+func TestCandidateRouteChecksScopeAndDoesNotCreate(t *testing.T) {
+	for _, deny := range []bool{true, false} {
+		probe := &candidateProbe{}
+		st := &store{}
+		mux := http.NewServeMux()
+		Register(mux, &objectApplication.Service{Repositories: repositories{deny: deny}, Store: st, CandidateExtractor: probe}, auth{})
+		r := httptest.NewRequest("POST", "/api/v1/repositories/"+strings.Repeat("a", 32)+"/objects/candidates", strings.NewReader(`{"filename":"test.txt","data":"YWJj"}`))
+		r.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		mux.ServeHTTP(w, r)
+		if deny {
+			if w.Code != 404 || probe.calls != 0 {
+				t.Fatalf("denied: %d %s", w.Code, w.Body.String())
+			}
+		} else if w.Code != 200 || probe.calls != 1 || !strings.Contains(w.Body.String(), `"quote":"abc"`) {
+			t.Fatalf("extraction: %d %s", w.Code, w.Body.String())
+		}
+		if st.calls != 0 {
+			t.Fatal("extraction touched object store")
+		}
 	}
 }

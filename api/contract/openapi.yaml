@@ -220,6 +220,9 @@
     },
     "/api/v1/groups/{groupId}/journal-reference-targets": {
       "$ref": "./journal/journals.yaml#/paths/~1api~1v1~1groups~1{groupId}~1journal-reference-targets"
+    },
+    "/api/v1/repositories/{repositoryId}/objects/candidates": {
+      "$ref": "./object/objects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects~1candidates"
     }
   },
   "components": {
@@ -433,6 +436,15 @@
       },
       "JournalReferenceTargetPage": {
         "$ref": "./journal/journals.yaml#/components/schemas/JournalReferenceTargetPage"
+      },
+      "ObjectCandidateDocument": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectCandidateDocument"
+      },
+      "ObjectCandidate": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectCandidate"
+      },
+      "ObjectCandidateResult": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectCandidateResult"
       }
     },
     "securitySchemes": {

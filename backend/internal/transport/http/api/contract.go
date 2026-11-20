@@ -152,6 +152,7 @@ type OwnerProjectServer interface {
 }
 
 type ObjectServer interface {
+	ExtractObjectCandidates(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ExtractObjectCandidatesParams)
 	ListObjects(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ListObjectsParams)
 	CreateObject(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.CreateObjectParams)
 	GetObject(w http.ResponseWriter, r *http.Request, repositoryId string, id string)

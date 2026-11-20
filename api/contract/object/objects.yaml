@@ -299,6 +299,82 @@
           }
         }
       }
+    },
+    "/api/v1/repositories/{repositoryId}/objects/candidates": {
+      "post": {
+        "operationId": "extractObjectCandidates",
+        "summary": "Extract candidate objects from a document for member review",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; validated by the existing session authenticator."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectCandidateResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObjectCandidateDocument"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -608,6 +684,82 @@
           "nextCursor": {
             "type": "string",
             "description": "Empty when finished; at most twenty objects per page in document-ID ascending order."
+          }
+        }
+      },
+      "ObjectCandidateDocument": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "filename",
+          "data"
+        ],
+        "properties": {
+          "filename": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "data": {
+            "type": "string",
+            "format": "byte",
+            "minLength": 4,
+            "maxLength": 11184812
+          }
+        }
+      },
+      "ObjectCandidate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "quote"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "quote": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          }
+        }
+      },
+      "ObjectCandidateResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "candidates",
+          "rawResponse"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "refused",
+              "incomplete",
+              "invalid_output",
+              "provider_error"
+            ]
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObjectCandidate"
+            }
+          },
+          "rawResponse": {
+            "type": "string"
           }
         }
       }

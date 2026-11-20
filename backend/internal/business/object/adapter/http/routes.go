@@ -8,6 +8,7 @@ import (
 import (
 	"context"
 	"errors"
+	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
 	"mime"
 	"net/http"
 	"time"
@@ -65,19 +66,26 @@ func Register(mux *http.ServeMux, service *objectApplication.Service, auth Authe
 			if !transport.ValidateUniqueQuery(w, r) {
 				return
 			}
+			extraction := r.Pattern == "POST /api/v1/repositories/{repositoryId}/objects/candidates"
+			timeout := 12 * time.Second
 			if r.Method == http.MethodPost || r.Method == http.MethodPatch {
 				media, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 				if err != nil || media != "application/json" {
 					transport.WriteAPIError(w, 415, "invalid_content_type", "請使用 JSON。")
 					return
 				}
-				r.Body = http.MaxBytesReader(w, r.Body, 65536)
-				if r.Method == http.MethodPost && len(r.Header.Values("Idempotency-Key")) != 1 {
+				limit := int64(65536)
+				if extraction {
+					limit = 12 << 20 // JSON envelope for an 8 MiB base64 file.
+					timeout = 75 * time.Second
+				}
+				r.Body = http.MaxBytesReader(w, r.Body, limit)
+				if r.Method == http.MethodPost && !extraction && len(r.Header.Values("Idempotency-Key")) != 1 {
 					transport.WriteAPIError(w, 400, "invalid_input", "請提供唯一的重試識別碼。")
 					return
 				}
 			}
-			ctx, cancel := context.WithTimeout(r.Context(), 12*time.Second)
+			ctx, cancel := context.WithTimeout(r.Context(), timeout)
 			defer cancel()
 			validate.ServeHTTP(w, r.WithContext(identity.WithUser(ctx, identity.User{ID: user, Name: name})))
 		}))
@@ -177,4 +185,41 @@ func statusValue(status *generated.ObjectUpdateStatus) string {
 		return ""
 	}
 	return string(*status)
+}
+
+func (s *objectServer) ExtractObjectCandidates(w http.ResponseWriter, r *http.Request, rid string, _ generated.ExtractObjectCandidatesParams) {
+	var in generated.ObjectCandidateDocument
+	if !transport.ReadJSON(w, r, &in, "文件資料無效。") {
+		return
+	}
+	if len(in.Data) == 0 || len(in.Data) > 8<<20 {
+		transport.WriteAPIError(w, 400, "invalid_document", "請選擇 8 MiB 以內的非空文件。")
+		return
+	}
+	result, err := s.service.ExtractCandidates(r.Context(), identity.UserID(r.Context()), rid, operations.Document{Filename: in.Filename, Data: in.Data})
+	out := generated.ObjectCandidateResult{Status: "completed", Candidates: []generated.ObjectCandidate{}, RawResponse: string(result.RawResponse)}
+	switch {
+	case err == nil:
+		for _, c := range result.Candidates {
+			out.Candidates = append(out.Candidates, generated.ObjectCandidate{Name: c.Name, Quantity: c.Quantity, Unit: c.Unit, Quote: c.Quote, Location: c.Location})
+		}
+	case errors.Is(err, operations.ErrInvalidDocument):
+		transport.WriteAPIError(w, 400, "invalid_document", "不支援此文件格式。")
+		return
+	case errors.Is(err, objectDomainEntity.ErrUnavailable):
+		transport.WriteAPIError(w, 503, "not_configured", "文件辨識尚未啟用。")
+		return
+	case errors.Is(err, operations.ErrIncomplete):
+		out.Status = "incomplete"
+	case errors.Is(err, operations.ErrRefused):
+		out.Status = "refused"
+	case errors.Is(err, operations.ErrInvalidOutput):
+		out.Status = "invalid_output"
+	case errors.Is(err, operations.ErrProvider):
+		out.Status = "provider_error"
+	default:
+		writeError(w, err)
+		return
+	}
+	transport.WriteJSON(w, 200, out)
 }

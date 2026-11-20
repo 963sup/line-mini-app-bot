@@ -1617,6 +1617,20 @@
       "consumers": [
         "frontend/miniapp/src/business/journal/Workspace.tsx"
       ]
+    },
+    {
+      "operationId": "extractObjectCandidates",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/objects/candidates",
+      "owner": "object",
+      "adapter": "backend/internal/business/object/adapter/http/routes.go",
+      "handler": "ExtractObjectCandidates",
+      "core": "backend/internal/business/object/domain/entity/object.go",
+      "specification": "docs/domains/object/design.md",
+      "consumers": [
+        "frontend/miniapp/src/business/object/Candidates.tsx"
+      ]
     }
   ],
   "events": [
