@@ -10,8 +10,8 @@ import (
 
 	db "cloud.google.com/go/firestore"
 	correctionsmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/corrections"
+	"github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/worktime"
 	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/records"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/worktime"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 )
 

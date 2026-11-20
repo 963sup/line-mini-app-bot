@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/worktime"
 	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/records"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/worktime"
 )
 
 func TestCorrectionIsVersionedAndDoesNotMutateOriginal(t *testing.T) {

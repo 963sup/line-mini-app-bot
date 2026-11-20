@@ -16,9 +16,9 @@ import (
 
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance"
 	correctionsmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/corrections"
+	"github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/worktime"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/punch"
 	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/records"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/worktime"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
