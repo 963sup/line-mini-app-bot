@@ -121,7 +121,7 @@ flowchart LR
   h --- n3["欄位：Result<br/>現有實作對照：套用補卡結果、增加 revision、<br/>更新申請狀態；原始事件不改寫"]
   h --- n4["欄位：重送／併發<br/>現有實作對照：交易內讀取狀態；已存在核准 <br/>audit 的再次核准返回成功；不同終態決定被拒絕"]
   h --- n5["欄位：Event / Audit<br/>現有實作對照：核准交易建立 proposal、before<br/>、after、reviewerKey 與 approvedAt 證據"]
-  h --- n6["欄位：實作與證據<br/>現有實作對照：<br/>backend/internal/business/attendance/adapter/firestore/attendance_correction.go<br/> 的 decideCorrection 與 <br/>backend/internal/business/attendance/domain/corrections/correction.go<br/> 的 ApplyCorrection 靜態核對；本次未執行應用<br/>測試、正式資料操作或部署"]
+  h --- n6["欄位：實作與證據<br/>現有實作對照：<br/>backend/internal/business/attendance/adapter/firestore/attendance_correction.go<br/> 的 decideCorrection 與 <br/>backend/internal/business/attendance/domain/service/correction.go<br/> 的 ApplyCorrection 靜態核對；本次未執行應用<br/>測試、正式資料操作或部署"]
 ```
 
 ```mermaid

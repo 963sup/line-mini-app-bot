@@ -7,13 +7,13 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-var ErrExpiredLaunch = attendance.ErrExpiredLaunch
+var ErrExpiredLaunch = attendanceport.ErrExpiredLaunch
 
 type launch struct {
 	GroupID   string    `firestore:"groupID"`

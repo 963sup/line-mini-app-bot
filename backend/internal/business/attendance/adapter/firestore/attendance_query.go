@@ -9,7 +9,8 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/records"
+	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -34,15 +35,15 @@ func decodeCursor(value, scope string) (pageCursor, error) {
 		return pageCursor{}, nil
 	}
 	if len(value) > 1024 {
-		return pageCursor{}, recordmodel.ErrInvalidCursor
+		return pageCursor{}, attendancedto.ErrInvalidCursor
 	}
 	b, err := base64.RawURLEncoding.DecodeString(value)
 	if err != nil {
-		return pageCursor{}, recordmodel.ErrInvalidCursor
+		return pageCursor{}, attendancedto.ErrInvalidCursor
 	}
 	var c pageCursor
 	if json.Unmarshal(b, &c) != nil || c.Version != 1 || c.Scope != scope || !validSegment(c.ID) {
-		return pageCursor{}, recordmodel.ErrInvalidCursor
+		return pageCursor{}, attendancedto.ErrInvalidCursor
 	}
 	return c, nil
 }
@@ -76,10 +77,10 @@ func readQuery(ctx context.Context, q db.Query) ([]*db.DocumentSnapshot, error) 
 	}
 }
 
-func decodeAttendance(docs []*db.DocumentSnapshot) ([]recordmodel.Record, error) {
-	records := make([]recordmodel.Record, 0, len(docs))
+func decodeAttendance(docs []*db.DocumentSnapshot) ([]attendanceentity.Record, error) {
+	records := make([]attendanceentity.Record, 0, len(docs))
 	for _, doc := range docs {
-		var record recordmodel.Record
+		var record attendanceentity.Record
 		if err := decodeRecord(doc, &record); err != nil {
 			return nil, err
 		}
@@ -89,11 +90,11 @@ func decodeAttendance(docs []*db.DocumentSnapshot) ([]recordmodel.Record, error)
 	return records, nil
 }
 
-func overlapsMonth(r recordmodel.Record, start time.Time) bool {
+func overlapsMonth(r attendanceentity.Record, start time.Time) bool {
 	return r.ClockInAt.Before(start.AddDate(0, 1, 0)) && (r.ClockOutAt.IsZero() || r.ClockOutAt.After(start))
 }
 
-func sortRecords(records []recordmodel.Record) {
+func sortRecords(records []attendanceentity.Record) {
 	sort.Slice(records, func(i, j int) bool {
 		if records[i].ClockInAt.Equal(records[j].ClockInAt) {
 			if !records[i].ClockOutAt.Equal(records[j].ClockOutAt) {
@@ -125,8 +126,8 @@ func (s *Attendance) monthQueries(user, group string, start time.Time, c pageCur
 	return []db.Query{closed, open}
 }
 
-func (s *Attendance) monthCandidates(ctx context.Context, user, group string, start time.Time) ([]recordmodel.Record, error) {
-	records := []recordmodel.Record{}
+func (s *Attendance) monthCandidates(ctx context.Context, user, group string, start time.Time) ([]attendanceentity.Record, error) {
+	records := []attendanceentity.Record{}
 	seen := map[string]bool{}
 	for _, q := range s.monthQueries(user, group, start, pageCursor{}) {
 		docs, err := readQuery(ctx, q)
@@ -148,11 +149,11 @@ func (s *Attendance) monthCandidates(ctx context.Context, user, group string, st
 	return records, nil
 }
 
-func (s *Attendance) GroupsPage(ctx context.Context, user, cursor string, size int) (_ recordmodel.GroupPage, err error) {
+func (s *Attendance) GroupsPage(ctx context.Context, user, cursor string, size int) (_ attendancedto.GroupPage, err error) {
 	defer func() { err = translateError(err, nil) }()
-	page := recordmodel.GroupPage{Items: []string{}}
+	page := attendancedto.GroupPage{Items: []string{}}
 	if !validPageSize(size) {
-		return page, recordmodel.ErrInvalidCursor
+		return page, attendancedto.ErrInvalidCursor
 	}
 	scope := s.cursorScope("groups", user, "", time.Time{})
 	c, err := decodeCursor(cursor, scope)
@@ -172,7 +173,7 @@ func (s *Attendance) GroupsPage(ctx context.Context, user, cursor string, size i
 	for _, doc := range docs {
 		group, ok := doc.Data()["groupID"].(string)
 		if !ok || !validSegment(group) {
-			return page, recordmodel.ErrInvalidCursor
+			return page, attendancedto.ErrInvalidCursor
 		}
 		groups = append(groups, group)
 	}
@@ -184,19 +185,19 @@ func (s *Attendance) GroupsPage(ctx context.Context, user, cursor string, size i
 	return page, nil
 }
 
-func (s *Attendance) RecordsPage(ctx context.Context, user, group string, start time.Time, cursor string, size int) (_ recordmodel.RecordPage, err error) {
+func (s *Attendance) RecordsPage(ctx context.Context, user, group string, start time.Time, cursor string, size int) (_ attendancedto.RecordPage, err error) {
 	defer func() { err = translateError(err, nil) }()
-	page := recordmodel.RecordPage{Items: []recordmodel.Record{}}
+	page := attendancedto.RecordPage{Items: []attendanceentity.Record{}}
 	if !validPageSize(size) {
-		return page, recordmodel.ErrInvalidCursor
+		return page, attendancedto.ErrInvalidCursor
 	}
 	scope := s.cursorScope("records", user, group, start)
 	c, err := decodeCursor(cursor, scope)
 	if err != nil || (cursor != "" && c.Time.IsZero()) {
-		return page, recordmodel.ErrInvalidCursor
+		return page, attendancedto.ErrInvalidCursor
 	}
 	page.QueryMode = "indexed"
-	records := []recordmodel.Record{}
+	records := []attendanceentity.Record{}
 	seen := map[string]bool{}
 	for _, q := range s.monthQueries(user, group, start, c) {
 		docs, e := q.Limit(size + 1).Documents(ctx).GetAll()
@@ -224,28 +225,28 @@ func (s *Attendance) RecordsPage(ctx context.Context, user, group string, start 
 	return page, err
 }
 
-func (s *Attendance) Record(ctx context.Context, user, group, id string) (_ recordmodel.Record, err error) {
+func (s *Attendance) Record(ctx context.Context, user, group, id string) (_ attendanceentity.Record, err error) {
 	defer func() { err = translateError(err, nil) }()
 	if !validSegment(id) {
-		return recordmodel.Record{}, recordmodel.ErrRecordNotFound
+		return attendanceentity.Record{}, attendanceentity.ErrRecordNotFound
 	}
 	doc, err := s.user(user).Collection("attendance").Doc(id).Get(ctx)
 	if status.Code(err) == codes.NotFound {
-		return recordmodel.Record{}, recordmodel.ErrRecordNotFound
+		return attendanceentity.Record{}, attendanceentity.ErrRecordNotFound
 	}
 	if err != nil {
-		return recordmodel.Record{}, err
+		return attendanceentity.Record{}, err
 	}
 	records, err := decodeAttendance([]*db.DocumentSnapshot{doc})
 	if err != nil {
-		return recordmodel.Record{}, err
+		return attendanceentity.Record{}, err
 	}
 	if records[0].GroupID != group {
-		return recordmodel.Record{}, recordmodel.ErrRecordNotFound
+		return attendanceentity.Record{}, attendanceentity.ErrRecordNotFound
 	}
 	records, err = s.verifyAndRebuildRecords(ctx, user, group, records)
 	if err != nil {
-		return recordmodel.Record{}, err
+		return attendanceentity.Record{}, err
 	}
 	return records[0], nil
 }

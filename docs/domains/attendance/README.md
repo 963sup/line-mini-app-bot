@@ -49,9 +49,9 @@
 
 ## 分層現況與下一個設計決策
 
-已實作的 [工時領域套件](../../../backend/internal/business/attendance/domain/worktime/worktime.go) 擁有區間、班次、事件重播及工時計算。[補正規則](../../../backend/internal/business/attendance/domain/corrections/correction.go) 與 [審核資格](../../../backend/internal/business/attendance/domain/approvals/approval.go) 已可獨立測試；由 [Firestore 交易](../../../backend/internal/business/attendance/adapter/firestore/attendance_correction.go) 原子保存審核決定與核准證據。
+領域層依 [entity](../../../backend/internal/business/attendance/domain/entity/README.md)、[valueobject](../../../backend/internal/business/attendance/domain/valueobject/README.md)、[service](../../../backend/internal/business/attendance/domain/service/README.md)、[event](../../../backend/internal/business/attendance/domain/event/README.md) 與 [policy](../../../backend/internal/business/attendance/domain/policy/README.md) 分工。班次與出勤紀錄維護身分和狀態；區間與定位提供值驗證；工時計算、補正套用與證據核對為領域運算；審核資格與重送衝突由政策判定。[Firestore 交易](../../../backend/internal/business/attendance/adapter/firestore/attendance_correction.go) 原子保存審核決定與核准證據。
 
-[審核用例](../../../backend/internal/business/attendance/application/review.go) 透過交易內的 port 核對授權、重送與補正結果。HTTP 與 LINE 共用[月報用例](../../../backend/internal/business/attendance/application/monthly.go)。排班、加班與薪資政策若納入產品，需另行確認其規則與歸屬。
+[審核用例](../../../backend/internal/business/attendance/application/command/review.go) 透過交易內的 port 核對授權、重送與補正結果。HTTP 與 LINE 共用[月報用例](../../../backend/internal/business/attendance/application/query/monthly.go)。排班、加班與薪資政策若納入產品，需另行確認其規則與歸屬。
 
 ## 相關規格
 

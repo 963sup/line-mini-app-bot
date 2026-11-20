@@ -6,8 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
-	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/records"
+	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
+	attendancequery "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/query"
+	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
+	attendanceservice "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/service"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 )
@@ -15,9 +18,9 @@ import (
 // List and correction-detail responses omit the persisted location and event evidence.
 type attendanceRecordView = generated.AttendanceRecord
 
-func recordView(r recordmodel.Record) attendanceRecordView {
+func recordView(r attendanceentity.Record) attendanceRecordView {
 	breaks := intervalViews(r.Breaks)
-	work := recordmodel.CalculateRecordAttendance(r)
+	work := attendanceservice.CalculateRecordAttendance(r)
 	status := "confirmed"
 	if work.Uncalculable > 0 {
 		status = "invalid"
@@ -27,7 +30,7 @@ func recordView(r recordmodel.Record) attendanceRecordView {
 	return generated.AttendanceRecord{AttendanceMinutes: &work.AttendanceMinutes, EstimatedMinutes: &work.EstimatedTotalMinutes, WorktimeStatus: &status, RecordID: r.RecordID, GroupID: r.GroupID, ClockInAt: r.ClockInAt, ClockOutAt: r.ClockOutAt, Revision: r.Revision, EventSequence: r.EventSequence, Breaks: &breaks, BreakStartedAt: r.BreakStartedAt, RestConfirmed: r.RestConfirmed, RebuildIssues: &r.RebuildIssues}
 }
 
-func (s *attendanceServer) query(w http.ResponseWriter, r *http.Request, serve func(context.Context, attendance.RecordQueries, string)) {
+func (s *attendanceServer) query(w http.ResponseWriter, r *http.Request, serve func(context.Context, attendanceport.RecordQueries, string)) {
 	bot, app := s.bot, s.app
 	if bot == nil {
 		transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")
@@ -37,7 +40,7 @@ func (s *attendanceServer) query(w http.ResponseWriter, r *http.Request, serve f
 	if !ok {
 		return
 	}
-	store, ok := bot.store.(attendance.RecordQueries)
+	store, ok := bot.store.(attendanceport.RecordQueries)
 	if !ok {
 		transport.WriteAPIError(w, 503, "not_configured", "出勤查詢尚未啟用。")
 		return
@@ -48,7 +51,7 @@ func (s *attendanceServer) query(w http.ResponseWriter, r *http.Request, serve f
 }
 
 func (s *attendanceServer) ListAttendanceGroupPage(w http.ResponseWriter, r *http.Request, params generated.ListAttendanceGroupPageParams) {
-	s.query(w, r, func(ctx context.Context, store attendance.RecordQueries, user string) {
+	s.query(w, r, func(ctx context.Context, store attendanceport.RecordQueries, user string) {
 		size, cursor, ok := attendancePageInput(w, params.PageSize, params.Cursor)
 		if !ok {
 			return
@@ -66,7 +69,7 @@ func (s *attendanceServer) ListAttendanceGroupPage(w http.ResponseWriter, r *htt
 }
 
 func (s *attendanceServer) ListAttendanceRecords(w http.ResponseWriter, r *http.Request, params generated.ListAttendanceRecordsParams) {
-	s.query(w, r, func(ctx context.Context, store attendance.RecordQueries, user string) {
+	s.query(w, r, func(ctx context.Context, store attendanceport.RecordQueries, user string) {
 		group, month, ok := attendanceMonthInput(w, params.Group, params.Month, s.bot)
 		if !ok {
 			return
@@ -88,12 +91,12 @@ func (s *attendanceServer) ListAttendanceRecords(w http.ResponseWriter, r *http.
 }
 
 func (s *attendanceServer) GetAttendanceMonthlySummary(w http.ResponseWriter, r *http.Request, params generated.GetAttendanceMonthlySummaryParams) {
-	s.query(w, r, func(ctx context.Context, store attendance.RecordQueries, user string) {
+	s.query(w, r, func(ctx context.Context, store attendanceport.RecordQueries, user string) {
 		group, month, ok := attendanceMonthInput(w, params.Group, params.Month, s.bot)
 		if !ok {
 			return
 		}
-		report, err := attendance.ReadMonthlyReport(ctx, store, user, group, month)
+		report, err := attendancequery.ReadMonthlyReport(ctx, store, user, group, month)
 		if attendanceQueryError(w, err) {
 			return
 		}
@@ -104,7 +107,7 @@ func (s *attendanceServer) GetAttendanceMonthlySummary(w http.ResponseWriter, r 
 }
 
 func (s *attendanceServer) GetAttendanceRecord(w http.ResponseWriter, r *http.Request, id string, params generated.GetAttendanceRecordParams) {
-	s.query(w, r, func(ctx context.Context, store attendance.RecordQueries, user string) {
+	s.query(w, r, func(ctx context.Context, store attendanceport.RecordQueries, user string) {
 		group := params.Group
 
 		if !validAttendanceGroup(group) || !correctionIDPattern.MatchString(id) {
@@ -163,9 +166,9 @@ func attendanceQueryError(w http.ResponseWriter, err error) bool {
 		return false
 	}
 	switch {
-	case errors.Is(err, recordmodel.ErrInvalidCursor):
+	case errors.Is(err, attendancedto.ErrInvalidCursor):
 		transport.WriteServiceError(w, 400, "invalid_cursor", "分頁已失效，請重新查詢。", err)
-	case errors.Is(err, recordmodel.ErrRecordNotFound):
+	case errors.Is(err, attendanceentity.ErrRecordNotFound):
 		transport.WriteServiceError(w, 404, "not_found", "找不到此班次。", err)
 	default:
 		transport.WriteServiceError(w, 503, "unavailable", "暫時無法讀取出勤，請重試。", err)

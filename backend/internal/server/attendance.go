@@ -10,11 +10,11 @@ import (
 
 	"cloud.google.com/go/firestore"
 	storage "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/firestore"
-	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
 )
 
 type attendanceDependencies struct {
-	store attendance.Store
+	store attendanceport.Store
 	zone  *time.Location
 }
 

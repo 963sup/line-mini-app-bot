@@ -5,19 +5,19 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/presentation"
-	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
+	"github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line/presentation"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
 )
 
 // Attendance contains the dependencies needed by browser attendance handlers.
 type Attendance struct {
-	membership attendance.Membership
-	store      attendance.Store
+	membership attendanceport.Membership
+	store      attendanceport.Store
 	zone       *time.Location
 	groupName  func(context.Context, string) string
 }
 
-func NewAttendance(store attendance.Store, zone *time.Location, membership attendance.Membership, groupName func(context.Context, string) string) *Attendance {
+func NewAttendance(store attendanceport.Store, zone *time.Location, membership attendanceport.Membership, groupName func(context.Context, string) string) *Attendance {
 	return &Attendance{membership: membership, store: store, zone: zone, groupName: groupName}
 }
 

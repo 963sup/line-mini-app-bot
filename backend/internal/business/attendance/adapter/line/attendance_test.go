@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/application/punch"
-	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/records"
+	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
+	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
@@ -24,7 +24,7 @@ type attendanceStub struct {
 	queriedUser        string
 	queriedGroup       string
 	groups             []string
-	records            []recordmodel.Record
+	records            []attendanceentity.Record
 	punchCalls         int
 }
 
@@ -33,21 +33,21 @@ func (s *attendanceStub) Groups(_ context.Context, user string) ([]string, error
 	return s.groups, s.err
 }
 
-func (s *attendanceStub) RecentGroup(_ context.Context, user, group string) ([]recordmodel.Record, error) {
+func (s *attendanceStub) RecentGroup(_ context.Context, user, group string) ([]attendanceentity.Record, error) {
 	s.queriedUser = user
 	s.queriedGroup = group
 	return nil, s.err
 }
 
-func (s *attendanceStub) Punch(_ context.Context, group, user, event, action string, now time.Time, _ int64) (punch.Result, error) {
+func (s *attendanceStub) Punch(_ context.Context, group, user, event, action string, now time.Time, _ int64) (attendancedto.PunchResult, error) {
 	s.punchCalls++
 	s.calls++
 	s.group, s.user, s.event = group, user, event
 	s.action = action
-	return punch.Result{Code: "clocked_in", Record: recordmodel.Record{ClockInAt: now}}, s.err
+	return attendancedto.PunchResult{Code: "clocked_in", Record: attendanceentity.Record{ClockInAt: now}}, s.err
 }
 
-func (s *attendanceStub) Recent(_ context.Context, user string) ([]recordmodel.Record, error) {
+func (s *attendanceStub) Recent(_ context.Context, user string) ([]attendanceentity.Record, error) {
 	s.queriedUser = user
 	return s.records, s.err
 }
@@ -59,17 +59,17 @@ func TestAttendanceLegacyHistory(t *testing.T) {
 	}
 	for _, tc := range []struct {
 		name    string
-		records []recordmodel.Record
+		records []attendanceentity.Record
 		want    string
 	}{
 		{"empty", nil, "目前沒有出勤紀錄。"},
-		{"active shift", []recordmodel.Record{{GroupID: "g", ClockInAt: time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC)}}, "本人最近出勤紀錄（最多五筆）：\n群組 g\n上班 2026-01-02 08:00:00\n下班 尚未下班"},
-		{"completed shift", []recordmodel.Record{{GroupID: "g", ClockInAt: time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC), ClockOutAt: time.Date(2026, 1, 2, 9, 0, 0, 0, time.UTC)}}, "本人最近出勤紀錄（最多五筆）：\n群組 g\n上班 2026-01-02 08:00:00\n下班 2026-01-02 17:00:00"},
+		{"active shift", []attendanceentity.Record{{GroupID: "g", ClockInAt: time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC)}}, "本人最近出勤紀錄（最多五筆）：\n群組 g\n上班 2026-01-02 08:00:00\n下班 尚未下班"},
+		{"completed shift", []attendanceentity.Record{{GroupID: "g", ClockInAt: time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC), ClockOutAt: time.Date(2026, 1, 2, 9, 0, 0, 0, time.UTC)}}, "本人最近出勤紀錄（最多五筆）：\n群組 g\n上班 2026-01-02 08:00:00\n下班 2026-01-02 17:00:00"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			s := &attendanceStub{records: tc.records}
 			// Expose the legacy Store contract without the optional GroupHistoryReader methods.
-			b := &Attendance{Store: struct{ attendance.Store }{s}, Zone: zone}
+			b := &Attendance{Store: struct{ attendanceport.Store }{s}, Zone: zone}
 			e := webhook.MessageEvent{Mode: "active", ReplyToken: "reply", Source: webhook.UserSource{UserId: "actor"}, Message: webhook.TextMessageContent{Text: "出勤紀錄"}}
 			reply, handled, err := b.Reply(context.Background(), e)
 			text, ok := reply.Message.(*messaging_api.TextMessage)
@@ -144,7 +144,7 @@ func TestHistorySingleGroupAndPostbackAuthorization(t *testing.T) {
 	}
 }
 
-func (s *attendanceStub) RecordsOverlappingMonth(_ context.Context, user, group string, _ time.Time) ([]recordmodel.Record, error) {
+func (s *attendanceStub) RecordsOverlappingMonth(_ context.Context, user, group string, _ time.Time) ([]attendanceentity.Record, error) {
 	s.queriedUser = user
 	s.queriedGroup = group
 	return s.records, s.err

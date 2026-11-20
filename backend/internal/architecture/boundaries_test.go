@@ -17,33 +17,34 @@ func TestDependencyBoundaries(t *testing.T) {
 		t.Fatal(err)
 	}
 	core := map[string][]string{
-		"business/group":                         {},
-		"business/repository":                    {"identity"},
-		"business/repository/space":              {"business/repository"},
-		"business/repository/milestones":         {"business/repository"},
-		"business/repository/statistics":         {"business/repository"},
-		"business/project":                       {"business/group", "identity"},
-		"business/repository/labels":             {"business/repository"},
-		"business/discussion":                    {"business/repository", "business/repository/labels"},
-		"business/issue":                         {"business/repository", "business/repository/labels"},
-		"business/objectimport/automatic":        {"business/objectimport", "business/object", "business/repository"},
-		"business/objectimport/parsing":          {"business/objectimport", "business/repository"},
-		"business/objectimport":                  {"business/object", "business/repository"},
-		"business/object":                        {"business/repository"},
-		"business/subobject":                     {"business/object", "business/repository"},
-		"business/attendance/application":        {"business/attendance/application/punch", "business/attendance/domain/records", "business/attendance/domain/board", "business/attendance/domain/leave", "business/attendance/domain/corrections", "business/attendance/domain/approvals"},
-		"business/attendance/application/punch":  {"business/attendance/domain/records"},
-		"business/attendance/domain/records":     {"business/attendance/domain/worktime"},
-		"business/attendance/domain/worktime":    {},
-		"business/attendance/domain/corrections": {"business/attendance/domain/records", "business/attendance/domain/worktime"},
-		"business/attendance/domain/approvals":   {"business/attendance/domain/corrections", "business/attendance/domain/records"},
-		"business/attendance/domain/leave":       {},
-		"business/attendance/domain/board":       {"business/attendance/domain/records"},
-		"business/summary":                       {},
-		"business/summary/messagecollection":     {},
-		"business/summary/summarization":         {"business/summary/messagecollection"},
-		"business/weather/forecast":              {},
-		"identity":                               {},
+		"business/group":                          {},
+		"business/repository":                     {"identity"},
+		"business/repository/space":               {"business/repository"},
+		"business/repository/milestones":          {"business/repository"},
+		"business/repository/statistics":          {"business/repository"},
+		"business/project":                        {"business/group", "identity"},
+		"business/repository/labels":              {"business/repository"},
+		"business/discussion":                     {"business/repository", "business/repository/labels"},
+		"business/issue":                          {"business/repository", "business/repository/labels"},
+		"business/objectimport/automatic":         {"business/objectimport", "business/object", "business/repository"},
+		"business/objectimport/parsing":           {"business/objectimport", "business/repository"},
+		"business/objectimport":                   {"business/object", "business/repository"},
+		"business/object":                         {"business/repository"},
+		"business/subobject":                      {"business/object", "business/repository"},
+		"business/attendance/domain/valueobject":  {},
+		"business/attendance/domain/event":        {},
+		"business/attendance/domain/entity":       {"business/attendance/domain/valueobject"},
+		"business/attendance/domain/policy":       {"business/attendance/domain/entity", "business/attendance/domain/valueobject"},
+		"business/attendance/domain/service":      {"business/attendance/domain/entity", "business/attendance/domain/valueobject", "business/attendance/domain/event"},
+		"business/attendance/application/dto":     {"business/attendance/domain/entity", "business/attendance/domain/service", "business/attendance/domain/valueobject"},
+		"business/attendance/application/port":    {"business/attendance/application/dto", "business/attendance/domain/entity", "business/attendance/domain/valueobject", "business/attendance/domain/policy"},
+		"business/attendance/application/command": {"business/attendance/application/port", "business/attendance/application/dto", "business/attendance/domain/entity", "business/attendance/domain/policy", "business/attendance/domain/service", "business/attendance/domain/valueobject"},
+		"business/attendance/application/query":   {"business/attendance/application/port", "business/attendance/application/dto", "business/attendance/domain/entity", "business/attendance/domain/service"},
+		"business/summary":                        {},
+		"business/summary/messagecollection":      {},
+		"business/summary/summarization":          {"business/summary/messagecollection"},
+		"business/weather/forecast":               {},
+		"identity":                                {},
 	}
 	const module = "github.com/963sup/line-mini-app-bot/internal/"
 	err = filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
@@ -71,6 +72,9 @@ func TestDependencyBoundaries(t *testing.T) {
 				inside := dir == attendance+layer || strings.HasPrefix(dir, attendance+layer+"/")
 				if !inside {
 					continue
+				}
+				if _, known := core[dir]; !known {
+					t.Errorf("unclassified attendance %s package: %s", layer, dir)
 				}
 				internal := strings.HasPrefix(dependency, module+attendance+"domain/")
 				if layer == "application" {

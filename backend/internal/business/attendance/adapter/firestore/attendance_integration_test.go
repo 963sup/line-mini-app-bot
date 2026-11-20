@@ -9,9 +9,10 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	correctionsmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/corrections"
-	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/records"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/worktime"
+	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
+	attendanceservice "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/service"
+	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 )
 
@@ -51,7 +52,7 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 		t.Fatalf("records=%v err=%v", records, err)
 	}
 	record := records[0]
-	c := correctionsmodel.Correction{RecordID: record.RecordID, GroupID: "group", ExpectedEventSequence: record.EventSequence, Reason: "漏下班及確認休息", Start: start, End: start.Add(8 * time.Hour), RestConfirmed: true}
+	c := attendanceentity.Correction{RecordID: record.RecordID, GroupID: "group", ExpectedEventSequence: record.EventSequence, Reason: "漏下班及確認休息", Start: start, End: start.Add(8 * time.Hour), RestConfirmed: true}
 	key := "f6ed3cb6-5dc6-4a43-ae34-984d673299bf"
 	type submission struct {
 		id  string
@@ -72,13 +73,13 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	// Timestamp offsets and empty break representations are the same payload.
 	replay := c
 	replay.Start, replay.End = c.Start.UTC(), c.End.UTC()
-	replay.Breaks = []worktime.Interval{}
+	replay.Breaks = []attendancevalueobject.Interval{}
 	if again, err := s.ProposeCorrectionOnce(ctx, "employee", key, replay, start.Add(10*time.Hour)); err != nil || again != id {
 		t.Fatalf("submission replay: id=%s err=%v", again, err)
 	}
 	changedPayload := c
 	changedPayload.Reason = "different proposal"
-	if _, err := s.ProposeCorrectionOnce(ctx, "employee", key, changedPayload, start.Add(10*time.Hour)); !errors.Is(err, correctionsmodel.ErrIdempotencyConflict) {
+	if _, err := s.ProposeCorrectionOnce(ctx, "employee", key, changedPayload, start.Add(10*time.Hour)); !errors.Is(err, attendanceentity.ErrIdempotencyConflict) {
 		t.Fatalf("changed payload reused key: %v", err)
 	}
 	if _, err := s.ProposeCorrectionOnce(ctx, "stranger", key, c, start.Add(10*time.Hour)); err == nil {
@@ -116,7 +117,7 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	report := recordmodel.CalculateMonthlyAttendance(records, month)
+	report := attendanceservice.CalculateMonthlyAttendance(records, month)
 	if report.Calculation.ConfirmedNetMinutes != 480 || report.Calculation.Pending != 0 || records[0].Revision != 1 {
 		t.Fatalf("%+v", report)
 	}
@@ -132,11 +133,11 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if report := recordmodel.CalculateMonthlyAttendance(records, month); report.Calculation.ConfirmedNetMinutes != 0 || report.Calculation.Pending != 1 {
+	if report := attendanceservice.CalculateMonthlyAttendance(records, month); report.Calculation.ConfirmedNetMinutes != 0 || report.Calculation.Pending != 1 {
 		t.Fatalf("corrupt approval counted: %+v", report)
 	}
 	sameTime := month.Add(10 * time.Hour)
-	fixtures := map[string]recordmodel.Record{
+	fixtures := map[string]attendanceentity.Record{
 		"legacy-a":          {GroupID: "group", SchemaVersion: 2, ClockInAt: sameTime, ClockOutAt: sameTime.Add(time.Hour), RestConfirmed: true},
 		"legacy-b":          {GroupID: "group", SchemaVersion: 2, ClockInAt: sameTime, ClockOutAt: sameTime.Add(2 * time.Hour), RestConfirmed: true},
 		"legacy-c":          {GroupID: "group", SchemaVersion: 2, ClockInAt: sameTime, ClockOutAt: sameTime.Add(time.Hour), RestConfirmed: true},
@@ -182,7 +183,7 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if len(seen) != 7 || !seen["legacy-a"] || !seen["legacy-b"] || !seen["cross-month"] || !seen["open-before-month"] || seen["old-closed"] {
 		t.Fatalf("incorrect month page set: %v", seen)
 	}
-	if _, err := s.RecordsPage(ctx, "another-employee", "group", month, cursor, 1); err != recordmodel.ErrInvalidCursor {
+	if _, err := s.RecordsPage(ctx, "another-employee", "group", month, cursor, 1); err != attendancedto.ErrInvalidCursor {
 		t.Fatalf("cross-user cursor accepted: %v", err)
 	}
 	indexed, err := s.RecordsOverlappingMonth(ctx, "employee", "group", month)
@@ -193,12 +194,12 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if err != nil || len(recent) != 5 {
 		t.Fatalf("indexed recent: %d %v", len(recent), err)
 	}
-	if _, err := s.Record(ctx, "employee", "group-b", "legacy-a"); err != recordmodel.ErrRecordNotFound {
+	if _, err := s.Record(ctx, "employee", "group-b", "legacy-a"); err != attendanceentity.ErrRecordNotFound {
 		t.Fatalf("cross-group detail accepted: %v", err)
 	}
 
 	// Continue the same round trip with a user who has no original shift or events.
-	missing := correctionsmodel.Correction{GroupID: "group", Reason: "漏上班與下班，整班補登", Start: start.Add(48 * time.Hour), End: start.Add(56 * time.Hour), RestConfirmed: true}
+	missing := attendanceentity.Correction{GroupID: "group", Reason: "漏上班與下班，整班補登", Start: start.Add(48 * time.Hour), End: start.Add(56 * time.Hour), RestConfirmed: true}
 	submittedAt := start.Add(120 * time.Hour)
 	missingKey := "4d683b22-0bee-4f5d-9477-37edbe3b8c7e"
 	missingID, err := s.ProposeCorrectionOnce(ctx, "missing-employee", missingKey, missing, submittedAt)
@@ -227,7 +228,7 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if err != nil || len(effective) != 1 || effective[0].Revision != 1 || effective[0].CorrectionID != missingID || len(effective[0].SourceEventIDs) != 0 || len(effective[0].RebuildIssues) != 0 {
 		t.Fatalf("missing record evidence: %v %v", effective, err)
 	}
-	if got := recordmodel.CalculateMonthlyAttendance(effective, month); got.Calculation.ConfirmedNetMinutes != 480 {
+	if got := attendanceservice.CalculateMonthlyAttendance(effective, month); got.Calculation.ConfirmedNetMinutes != 480 {
 		t.Fatalf("missing month: %+v", got)
 	}
 	raw, err := s.user("missing-employee").Collection("attendanceRawEvents").Documents(ctx).GetAll()
@@ -283,7 +284,7 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 		err := <-outcomes
 		if err == nil {
 			successes++
-		} else if !errors.Is(err, correctionsmodel.ErrCorrection) {
+		} else if !errors.Is(err, attendanceentity.ErrCorrection) {
 			t.Fatal(err)
 		}
 	}
@@ -294,14 +295,14 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if err != nil || len(ownPage.Items) != 2 || ownPage.NextCursor == "" {
 		t.Fatalf("own requests: %+v %v", ownPage, err)
 	}
-	if _, err := s.CorrectionsPage(ctx, "stranger", "", ownPage.NextCursor, false, 2); !errors.Is(err, recordmodel.ErrInvalidCursor) {
+	if _, err := s.CorrectionsPage(ctx, "stranger", "", ownPage.NextCursor, false, 2); !errors.Is(err, attendancedto.ErrInvalidCursor) {
 		t.Fatal("cross-actor request cursor", err)
 	}
 	reviewPage, err := s.CorrectionsPage(ctx, "reviewer", "group", "", true, 100)
 	if err != nil || len(reviewPage.Items) == 0 {
 		t.Fatalf("review requests: %+v %v", reviewPage, err)
 	}
-	if _, err := s.CorrectionsPage(ctx, "stranger", "group", "", true, 20); !errors.Is(err, correctionsmodel.ErrCorrection) {
+	if _, err := s.CorrectionsPage(ctx, "stranger", "group", "", true, 20); !errors.Is(err, attendanceentity.ErrCorrection) {
 		t.Fatal("unauthorized request list", err)
 	}
 }

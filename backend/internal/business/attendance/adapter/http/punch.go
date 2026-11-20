@@ -9,10 +9,10 @@ import (
 	"net/http"
 	"time"
 
-	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/application/punch"
-	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/records"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/worktime"
+	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
+	attendanceservice "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/service"
+	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 )
@@ -24,7 +24,7 @@ func (s *attendanceServer) SubmitAttendancePunch(w http.ResponseWriter, r *http.
 		transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")
 		return
 	}
-	store, ok := bot.store.(punch.PunchSubmitter)
+	store, ok := bot.store.(attendanceport.PunchSubmitter)
 	if !ok {
 		transport.WriteAPIError(w, 503, "not_configured", "定位打卡尚未啟用。")
 		return
@@ -56,11 +56,11 @@ func (s *attendanceServer) SubmitAttendancePunch(w http.ResponseWriter, r *http.
 		transport.WriteAPIError(w, 400, "invalid_position", "位置資料無效或過期，請重新取得位置。")
 		return
 	}
-	position := recordmodel.Position{Latitude: input.Latitude, Longitude: input.Longitude, AccuracyMeters: input.AccuracyMeters, CapturedAt: input.CapturedAt}
+	position := attendancevalueobject.Position{Latitude: input.Latitude, Longitude: input.Longitude, AccuracyMeters: input.AccuracyMeters, CapturedAt: input.CapturedAt}
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 	result, err := store.SubmitPunch(ctx, input.RequestId, user, position, now)
-	if errors.Is(err, attendance.ErrInvalidRequest) {
+	if errors.Is(err, attendanceport.ErrInvalidRequest) {
 		transport.WriteAPIError(w, 403, "invalid_request", "此打卡連結已過期或不屬於本人，請回原群組重新操作。")
 		return
 	}
@@ -72,13 +72,13 @@ func (s *attendanceServer) SubmitAttendancePunch(w http.ResponseWriter, r *http.
 }
 
 func validAttendanceLocation(input locationInput, now time.Time) bool {
-	return input.Latitude != nil && input.Longitude != nil && input.AccuracyMeters != nil && input.CapturedAt != nil &&
-		locationNumberInRange(*input.Latitude, -90, 90) && locationNumberInRange(*input.Longitude, -180, 180) &&
-		locationNumberInRange(*input.AccuracyMeters, 0, 1.7976931348623157e308) &&
-		!input.CapturedAt.Before(now.Add(-5*time.Minute)) && !input.CapturedAt.After(now.Add(time.Minute))
+	if input.Latitude == nil || input.Longitude == nil || input.AccuracyMeters == nil || input.CapturedAt == nil {
+		return false
+	}
+	return (attendancevalueobject.Position{Latitude: *input.Latitude, Longitude: *input.Longitude, AccuracyMeters: *input.AccuracyMeters, CapturedAt: *input.CapturedAt}).ValidAt(now)
 }
 
-func (bot *Attendance) punchResponse(result punch.Result) generated.PunchResponse {
+func (bot *Attendance) punchResponse(result attendancedto.PunchResult) generated.PunchResponse {
 	message := "尚無未完成的上班紀錄，未新增打卡。"
 	switch result.Code {
 	case "needs_position":
@@ -104,5 +104,5 @@ func (bot *Attendance) punchResponse(result punch.Result) generated.PunchRespons
 	case "stale_event":
 		message = "較早的打卡請求未變更出勤，請回群組重新操作。"
 	}
-	return generated.PunchResponse{Code: result.Code, Message: message, Accepted: worktime.AcceptedCode(result.Code)}
+	return generated.PunchResponse{Code: result.Code, Message: message, Accepted: attendanceservice.AcceptedCode(result.Code)}
 }

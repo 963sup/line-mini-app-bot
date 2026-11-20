@@ -9,8 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/application/punch"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 )
@@ -22,7 +21,7 @@ func (s *attendanceServer) PreflightAttendancePunch(w http.ResponseWriter, r *ht
 		transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")
 		return
 	}
-	store, ok := bot.store.(punch.PunchResolver)
+	store, ok := bot.store.(attendanceport.PunchResolver)
 	if !ok {
 		transport.WriteAPIError(w, 503, "not_configured", "打卡狀態確認尚未啟用。")
 		return
@@ -47,7 +46,7 @@ func (s *attendanceServer) PreflightAttendancePunch(w http.ResponseWriter, r *ht
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 	result, err := store.ResolvePunchAttempt(ctx, input.RequestId, user, time.Now().UTC())
-	if errors.Is(err, attendance.ErrInvalidRequest) {
+	if errors.Is(err, attendanceport.ErrInvalidRequest) {
 		transport.WriteAPIError(w, 403, "invalid_request", "此打卡連結已過期或不屬於本人，請回原群組重新操作。")
 		return
 	}

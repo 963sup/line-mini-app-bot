@@ -6,9 +6,9 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
-	boardmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/board"
-	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/records"
+	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
+	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
@@ -21,7 +21,7 @@ const (
 )
 
 // currentShift reads only the trusted user's group state and validates its target.
-func currentShift(tx *db.Transaction, employee *db.DocumentRef, group string) (*recordmodel.Record, error) {
+func currentShift(tx *db.Transaction, employee *db.DocumentRef, group string) (*attendanceentity.Record, error) {
 	snap, err := tx.Get(employee.Collection("attendanceStates").Doc(firestorekey.Encode(group)))
 	if status.Code(err) == codes.NotFound {
 		return nil, nil
@@ -45,7 +45,7 @@ func currentShift(tx *db.Transaction, employee *db.DocumentRef, group string) (*
 	if err != nil {
 		return nil, err
 	}
-	var record recordmodel.Record
+	var record attendanceentity.Record
 	if err := decodeRecord(snap, &record); err != nil {
 		return nil, err
 	}
@@ -56,8 +56,8 @@ func currentShift(tx *db.Transaction, employee *db.DocumentRef, group string) (*
 	return &record, nil
 }
 
-func (s *Attendance) CurrentShift(ctx context.Context, group, user string) (*recordmodel.Record, error) {
-	var result *recordmodel.Record
+func (s *Attendance) CurrentShift(ctx context.Context, group, user string) (*attendanceentity.Record, error) {
+	var result *attendanceentity.Record
 	err := s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		var err error
 		result, err = currentShift(tx, s.user(user), group)
@@ -66,7 +66,7 @@ func (s *Attendance) CurrentShift(ctx context.Context, group, user string) (*rec
 	return result, translateError(err, nil)
 }
 
-func (s *Attendance) GroupBoard(ctx context.Context, group string, start, now time.Time) (_ boardmodel.Board, err error) {
+func (s *Attendance) GroupBoard(ctx context.Context, group string, start, now time.Time) (_ attendancedto.Board, err error) {
 	defer func() { err = translateError(err, nil) }()
 	// Historical user parents may not exist: DocumentRefs includes these parents.
 	refs := s.Client.Collection("channels").Doc(s.ChannelID).Collection("users").DocumentRefs(ctx)
@@ -77,16 +77,16 @@ func (s *Attendance) GroupBoard(ctx context.Context, group string, start, now ti
 			break
 		}
 		if err != nil {
-			return boardmodel.Board{}, err
+			return attendancedto.Board{}, err
 		}
 		if len(employees) >= boardUserLimit {
-			return boardmodel.Board{}, boardmodel.ErrBoardLimit
+			return attendancedto.Board{}, attendancedto.ErrBoardLimit
 		}
 		employees = append(employees, ref)
 	}
-	var result boardmodel.Board
+	var result attendancedto.Board
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		result = boardmodel.Board{}
+		result = attendancedto.Board{}
 		for _, employee := range employees {
 			active, err := currentShift(tx, employee, group)
 			if err != nil {
@@ -107,7 +107,7 @@ func (s *Attendance) GroupBoard(ctx context.Context, group string, start, now ti
 				return err
 			}
 			if len(snaps) > boardDailyRecordLimit {
-				return boardmodel.ErrBoardLimit
+				return attendancedto.ErrBoardLimit
 			}
 			for _, snap := range snaps {
 				var r recordDocument
@@ -123,10 +123,10 @@ func (s *Attendance) GroupBoard(ctx context.Context, group string, start, now ti
 		return nil
 	}, db.ReadOnly)
 	if err != nil {
-		return boardmodel.Board{}, err
+		return attendancedto.Board{}, err
 	}
 	result.AsOf = time.Now().UTC()
 	return result, nil
 }
 
-var _ attendance.BoardStore = (*Attendance)(nil)
+var _ attendanceport.BoardStore = (*Attendance)(nil)

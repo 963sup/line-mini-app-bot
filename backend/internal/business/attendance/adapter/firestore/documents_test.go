@@ -12,19 +12,18 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/application/punch"
-	correctionsmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/corrections"
-	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/records"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/worktime"
+	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
+	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func legacyHash(c correctionsmodel.Correction) string {
+func legacyHash(c attendanceentity.Correction) string {
 	c.ID, c.UserKey, c.CreatedAt = "", "", time.Time{}
 	c.Start, c.End = c.Start.UTC(), c.End.UTC()
-	c.Breaks = append([]worktime.Interval{}, c.Breaks...)
+	c.Breaks = append([]attendancevalueobject.Interval{}, c.Breaks...)
 	for i := range c.Breaks {
 		c.Breaks[i].Start, c.Breaks[i].End = c.Breaks[i].Start.UTC(), c.Breaks[i].End.UTC()
 	}
@@ -37,8 +36,8 @@ func legacyHash(c correctionsmodel.Correction) string {
 
 func TestReceiptHashRetainsLegacyEncoding(t *testing.T) {
 	start := time.Date(2026, 11, 1, 8, 0, 0, 0, time.FixedZone("Taipei", 8*3600))
-	c := correctionsmodel.Correction{ID: "ignored", UserKey: "private", CreatedAt: start, GroupID: "g", RecordID: "r", Reason: "reason", Start: start, End: start.Add(time.Hour), RestConfirmed: true, ExpectedRevision: 7}
-	for _, breaks := range [][]worktime.Interval{nil, {}, {{Start: start.Add(time.Minute), End: start.Add(2 * time.Minute)}}} {
+	c := attendanceentity.Correction{ID: "ignored", UserKey: "private", CreatedAt: start, GroupID: "g", RecordID: "r", Reason: "reason", Start: start, End: start.Add(time.Hour), RestConfirmed: true, ExpectedRevision: 7}
+	for _, breaks := range [][]attendancevalueobject.Interval{nil, {}, {{Start: start.Add(time.Minute), End: start.Add(2 * time.Minute)}}} {
 		c.Breaks = breaks
 		got, err := correctionPayloadHash(c)
 		if err != nil {
@@ -52,7 +51,7 @@ func TestReceiptHashRetainsLegacyEncoding(t *testing.T) {
 
 func TestTechnicalErrorsPassThroughStorage(t *testing.T) {
 	raw := status.Error(codes.NotFound, "private document details")
-	if !errors.Is(translateError(raw, correctionsmodel.ErrCorrection), correctionsmodel.ErrCorrection) {
+	if !errors.Is(translateError(raw, attendanceentity.ErrCorrection), attendanceentity.ErrCorrection) {
 		t.Fatal("missing correction not translated")
 	}
 	got := translateError(raw, nil)
@@ -86,16 +85,16 @@ func TestFirestoreDocumentsRemainCompatible(t *testing.T) {
 		}
 	}()
 	now := time.Date(2026, 11, 1, 8, 0, 0, 123000000, time.UTC)
-	record := recordmodel.Record{RecordID: "r1", GroupID: "g", ClockInAt: now, IsOpen: true, ClockInPosition: &recordmodel.Position{Latitude: 25.1234567890123, Longitude: 121.9876543210123, CapturedAt: now, AccuracyMeters: 1}, Breaks: []worktime.Interval{{Start: now, End: now.Add(time.Minute)}}, SourceEventIDs: []string{"event"}, SchemaVersion: 3}
+	record := attendanceentity.Record{RecordID: "r1", GroupID: "g", ClockInAt: now, IsOpen: true, ClockInPosition: &attendancevalueobject.Position{Latitude: 25.1234567890123, Longitude: 121.9876543210123, CapturedAt: now, AccuracyMeters: 1}, Breaks: []attendancevalueobject.Interval{{Start: now, End: now.Add(time.Minute)}}, SourceEventIDs: []string{"event"}, SchemaVersion: 3}
 	oldRecord := legacyRecord{RecordID: record.RecordID, GroupID: record.GroupID, ClockInAt: record.ClockInAt, IsOpen: record.IsOpen, ClockInPosition: &legacyPosition{Latitude: record.ClockInPosition.Latitude, Longitude: record.ClockInPosition.Longitude, CapturedAt: now, AccuracyMeters: 1}, Breaks: record.Breaks, SourceEventIDs: record.SourceEventIDs, SchemaVersion: 3}
-	correction := correctionsmodel.Correction{ID: "c1", UserKey: firestorekey.Encode("u"), GroupID: "g", RecordID: "r1", Start: now, End: now.Add(time.Hour), Reason: "reason", RestConfirmed: true, CreatedAt: now}
+	correction := attendanceentity.Correction{ID: "c1", UserKey: firestorekey.Encode("u"), GroupID: "g", RecordID: "r1", Start: now, End: now.Add(time.Hour), Reason: "reason", RestConfirmed: true, CreatedAt: now}
 	request := requestDocument{GroupID: "g", UserID: firestorekey.Encode("u"), EventID: "e", Action: "clock-in", EventTime: now.UnixMilli(), ExpiresAt: now.Add(time.Hour)}
 	cases := []struct {
 		name     string
 		old, new any
 	}{
 		{"record", oldRecord, recordDocumentFrom(record)},
-		{"result", legacyResult{Code: "clocked_in", Record: oldRecord}, resultDocumentFrom(punch.Result{Code: "clocked_in", Record: record})},
+		{"result", legacyResult{Code: "clocked_in", Record: oldRecord}, resultDocumentFrom(attendancedto.PunchResult{Code: "clocked_in", Record: record})},
 		{"request", legacyRequest(request), request},
 		{"correction", legacyCorrectionFrom(correction), correctionDocumentFrom(correction)},
 	}
@@ -122,7 +121,7 @@ func TestFirestoreDocumentsRemainCompatible(t *testing.T) {
 			}
 			switch tc.name {
 			case "record":
-				var got recordmodel.Record
+				var got attendanceentity.Record
 				if err := decodeRecord(a, &got); err != nil {
 					t.Fatal(err)
 				}
@@ -130,12 +129,12 @@ func TestFirestoreDocumentsRemainCompatible(t *testing.T) {
 					t.Fatalf("legacy record decode changed: %#v", got)
 				}
 			case "result":
-				var got punch.Result
+				var got attendancedto.PunchResult
 				if err := decodeResult(a, &got); err != nil || got.Record.RecordID != "r1" {
 					t.Fatal("legacy receipt decode failed", err)
 				}
 			case "correction":
-				var got correctionsmodel.Correction
+				var got attendanceentity.Correction
 				if err := decodeCorrection(a, &got); err != nil || !reflect.DeepEqual(got, correction) {
 					t.Fatal("legacy correction decode failed", err)
 				}
@@ -156,6 +155,6 @@ func TestFirestoreDocumentsRemainCompatible(t *testing.T) {
 	}
 }
 
-func legacyCorrectionFrom(c correctionsmodel.Correction) legacyCorrection {
+func legacyCorrectionFrom(c attendanceentity.Correction) legacyCorrection {
 	return legacyCorrection{ID: c.ID, UserKey: c.UserKey, GroupID: c.GroupID, RecordID: c.RecordID, ExpectedEventSequence: c.ExpectedEventSequence, ExpectedRevision: c.ExpectedRevision, Reason: c.Reason, Start: c.Start, End: c.End, Breaks: c.Breaks, RestConfirmed: c.RestConfirmed, CreatedAt: c.CreatedAt}
 }

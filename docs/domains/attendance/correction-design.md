@@ -9,7 +9,7 @@
 | Domain Policy | 審核者須有該群組授權且不能是申請人。取消則由申請人本人執行。 |
 | 一致性邊界 | 核准時在同一交易核對資格、最新班次與提案是否相容，再更新紀錄及核准證據。交易涉及多份資料；現有實作並未據此宣告它們都是同一個 Aggregate Root。 |
 
-**目前實作。** 審核資格與補正計算已有純 Go 規則，交易內讀取先前決定與核准證據後，由 [Decision.NeedsDecision](../../../backend/internal/business/attendance/domain/approvals/approval.go) 判斷是否繼續。已有核准證據時，再次核准成功，改為取消或拒絕則衝突；若只有已保存的決定，狀態與理由都須一致才視為成功重送。Firestore 負責取得最新事實與寫入。[應用層用例](../../../backend/internal/business/attendance/application/review.go) 透過 ReviewTransaction 取得最新資料，交易重試時重新執行決策。HTTP 層負責轉換請求與回應；用例不應拿交易外讀到的舊紀錄直接覆寫現況。
+**目前實作。** 審核資格與補正計算已有純 Go 規則，交易內讀取先前決定與核准證據後，由 [Decision.NeedsDecision](../../../backend/internal/business/attendance/domain/policy/review.go) 判斷是否繼續。已有核准證據時，再次核准成功，改為取消或拒絕則衝突；若只有已保存的決定，狀態與理由都須一致才視為成功重送。Firestore 負責取得最新事實與寫入。[應用層用例](../../../backend/internal/business/attendance/application/command/review.go) 透過 ReviewTransaction 取得最新資料，交易重試時重新執行決策。HTTP 層負責轉換請求與回應；用例不應拿交易外讀到的舊紀錄直接覆寫現況。
 
 | 驗收情境 | 應觀察到的結果 |
 |---|---|
@@ -18,4 +18,4 @@
 | 提案之後，原班次的事件序列已改變 | 過期提案不得覆寫較新的紀錄。 |
 | 讀取月報時，核准證據無法對應當前紀錄 | 反映待確認狀態，不計為已確認淨工時。 |
 
-[審核資格](../../../backend/internal/business/attendance/domain/approvals/approval.go) · [補正計算](../../../backend/internal/business/attendance/domain/corrections/correction.go) · [交易整合測試](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go)
+[審核資格](../../../backend/internal/business/attendance/domain/policy/review.go) · [補正計算](../../../backend/internal/business/attendance/domain/service/correction.go) · [交易整合測試](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go)

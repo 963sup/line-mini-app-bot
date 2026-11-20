@@ -10,9 +10,11 @@ import (
 	"regexp"
 	"time"
 
-	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
-	correctionsmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/corrections"
-	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/records"
+	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
+	attendancequery "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/query"
+	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
+	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 )
@@ -34,7 +36,7 @@ func (s *attendanceServer) correct(w http.ResponseWriter, r *http.Request, id st
 		transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")
 		return
 	}
-	store, ok := bot.store.(attendance.CorrectionStore)
+	store, ok := bot.store.(attendanceport.CorrectionStore)
 	if !ok {
 		transport.WriteAPIError(w, 503, "not_configured", "更正尚未啟用。")
 		return
@@ -82,11 +84,11 @@ func (s *attendanceServer) correct(w http.ResponseWriter, r *http.Request, id st
 			// Existing clients remain compatible; they have no cross-request retry guarantee.
 			id, err = store.ProposeCorrection(ctx, user, c, time.Now().UTC())
 		} else {
-			if len(r.Header.Values("Idempotency-Key")) != 1 || !correctionsmodel.ValidCorrectionKey(key) {
+			if len(r.Header.Values("Idempotency-Key")) != 1 || !attendancevalueobject.ValidCorrectionKey(key) {
 				transport.WriteAPIError(w, 400, "invalid_idempotency_key", "重試識別碼無效。")
 				return
 			}
-			once, ok := bot.store.(attendance.IdempotentCorrectionStore)
+			once, ok := bot.store.(attendanceport.IdempotentCorrectionStore)
 			if !ok {
 				transport.WriteAPIError(w, 503, "not_configured", "安全重試尚未啟用。")
 				return
@@ -98,7 +100,7 @@ func (s *attendanceServer) correct(w http.ResponseWriter, r *http.Request, id st
 			return
 		}
 	}
-	if errors.Is(err, correctionsmodel.ErrIdempotencyConflict) {
+	if errors.Is(err, attendanceentity.ErrIdempotencyConflict) {
 		transport.WriteAPIError(w, 409, "idempotency_conflict", "此重試識別碼已用於不同內容，請確認原申請後重新送出。")
 		return
 	}
@@ -119,7 +121,7 @@ func (s *attendanceServer) GetAttendanceMonthlyReport(w http.ResponseWriter, r *
 	if !ok {
 		return
 	}
-	store, ok := bot.store.(attendance.MonthlyReader)
+	store, ok := bot.store.(attendanceport.MonthlyReader)
 	if !ok {
 		transport.WriteAPIError(w, 503, "not_configured", "月查詢尚未啟用。")
 		return
@@ -136,7 +138,7 @@ func (s *attendanceServer) GetAttendanceMonthlyReport(w http.ResponseWriter, r *
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
-	report, err := attendance.ReadMonthlyReport(ctx, store, user, group, month)
+	report, err := attendancequery.ReadMonthlyReport(ctx, store, user, group, month)
 	if err != nil {
 		transport.WriteAPIError(w, 503, "unavailable", "暫時無法讀取紀錄。")
 		return
@@ -156,7 +158,7 @@ func (s *attendanceServer) ListAttendanceGroups(w http.ResponseWriter, r *http.R
 	if !ok {
 		return
 	}
-	store, ok := bot.store.(attendance.GroupHistoryReader)
+	store, ok := bot.store.(attendanceport.GroupHistoryReader)
 	if !ok {
 		transport.WriteAPIError(w, 503, "not_configured", "查詢尚未啟用。")
 		return
@@ -180,9 +182,9 @@ func correctionHTTPError(w http.ResponseWriter, err error) bool {
 	if err == nil {
 		return false
 	}
-	if errors.Is(err, correctionsmodel.ErrCorrection) {
+	if errors.Is(err, attendanceentity.ErrCorrection) {
 		transport.WriteServiceError(w, 403, "invalid_correction", "無權限、申請已結案、時段重疊或紀錄已變動。", err)
-	} else if errors.Is(err, recordmodel.ErrInvalidCursor) {
+	} else if errors.Is(err, attendancedto.ErrInvalidCursor) {
 		transport.WriteServiceError(w, 400, "invalid_cursor", "分頁已失效，請重新查詢。", err)
 	} else {
 		transport.WriteServiceError(w, 503, "unavailable", "暫時無法處理申請，請稍後重試。", err)
@@ -223,7 +225,7 @@ func (s *attendanceServer) getCorrectionDetails(w http.ResponseWriter, r *http.R
 	s.correction(w, r, id, func(ctx context.Context, user string) {
 		bot := s.bot
 
-		store, ok := bot.store.(attendance.CorrectionReader)
+		store, ok := bot.store.(attendanceport.CorrectionReader)
 		if !ok {
 			transport.WriteAPIError(w, 503, "not_configured", "申請查詢尚未啟用。")
 			return
@@ -248,7 +250,7 @@ func (s *attendanceServer) ListAttendanceReviewerGroups(w http.ResponseWriter, r
 	s.correction(w, r, "", func(ctx context.Context, user string) {
 		bot := s.bot
 
-		store, ok := bot.store.(attendance.ReviewerGroupReader)
+		store, ok := bot.store.(attendanceport.ReviewerGroupReader)
 		if !ok {
 			transport.WriteAPIError(w, 503, "not_configured", "審核尚未啟用。")
 			return
@@ -269,7 +271,7 @@ func (s *attendanceServer) ListAttendanceCorrections(w http.ResponseWriter, r *h
 	s.correction(w, r, "", func(ctx context.Context, user string) {
 		bot := s.bot
 
-		store, ok := bot.store.(attendance.CorrectionPageReader)
+		store, ok := bot.store.(attendanceport.CorrectionPageReader)
 		if !ok {
 			transport.WriteAPIError(w, 503, "not_configured", "申請查詢尚未啟用。")
 			return
@@ -310,7 +312,7 @@ func (s *attendanceServer) decideCorrection(w http.ResponseWriter, r *http.Reque
 
 		var err error
 		if action == "reject" {
-			store, ok := bot.store.(attendance.CorrectionRejecter)
+			store, ok := bot.store.(attendanceport.CorrectionRejecter)
 			if !ok {
 				transport.WriteAPIError(w, 503, "not_configured", "駁回尚未啟用。")
 				return
@@ -324,7 +326,7 @@ func (s *attendanceServer) decideCorrection(w http.ResponseWriter, r *http.Reque
 			}
 			err = store.RejectCorrection(ctx, user, id, input.Reason, time.Now().UTC())
 		} else {
-			store, ok := bot.store.(attendance.CorrectionCanceller)
+			store, ok := bot.store.(attendanceport.CorrectionCanceller)
 			if !ok {
 				transport.WriteAPIError(w, 503, "not_configured", "撤回尚未啟用。")
 				return

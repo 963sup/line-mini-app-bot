@@ -10,11 +10,12 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/approvals"
-	correctionsmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/corrections"
-	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/records"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/worktime"
+	attendancecommand "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/command"
+	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
+	attendancepolicy "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/policy"
+	attendanceservice "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/service"
+	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -23,15 +24,15 @@ import (
 
 // ProposeCorrection preserves the existing internal caller contract. New Web
 // submissions use ProposeCorrectionOnce so a lost response can be retried safely.
-func (s *Attendance) ProposeCorrection(ctx context.Context, user string, c correctionsmodel.Correction, now time.Time) (_ string, err error) {
-	defer func() { err = translateError(err, correctionsmodel.ErrCorrection) }()
+func (s *Attendance) ProposeCorrection(ctx context.Context, user string, c attendanceentity.Correction, now time.Time) (_ string, err error) {
+	defer func() { err = translateError(err, attendanceentity.ErrCorrection) }()
 	return s.proposeCorrection(ctx, user, "", c, now)
 }
 
-func (s *Attendance) ProposeCorrectionOnce(ctx context.Context, user, key string, c correctionsmodel.Correction, now time.Time) (_ string, err error) {
-	defer func() { err = translateError(err, correctionsmodel.ErrCorrection) }()
-	if !correctionsmodel.ValidCorrectionKey(key) {
-		return "", correctionsmodel.ErrCorrection
+func (s *Attendance) ProposeCorrectionOnce(ctx context.Context, user, key string, c attendanceentity.Correction, now time.Time) (_ string, err error) {
+	defer func() { err = translateError(err, attendanceentity.ErrCorrection) }()
+	if !attendancevalueobject.ValidCorrectionKey(key) {
+		return "", attendanceentity.ErrCorrection
 	}
 	return s.proposeCorrection(ctx, user, key, c, now)
 }
@@ -44,10 +45,10 @@ type correctionReceipt struct {
 
 // correctionPayloadHash excludes server-owned fields and normalizes equivalent
 // timestamp offsets and empty break lists before encoding the versioned payload.
-func correctionPayloadHash(c correctionsmodel.Correction) (string, error) {
+func correctionPayloadHash(c attendanceentity.Correction) (string, error) {
 	c.ID, c.UserKey, c.CreatedAt = "", "", time.Time{}
 	c.Start, c.End = c.Start.UTC(), c.End.UTC()
-	c.Breaks = append([]worktime.Interval{}, c.Breaks...)
+	c.Breaks = append([]attendancevalueobject.Interval{}, c.Breaks...)
 	for i := range c.Breaks {
 		c.Breaks[i].Start, c.Breaks[i].End = c.Breaks[i].Start.UTC(), c.Breaks[i].End.UTC()
 	}
@@ -56,19 +57,19 @@ func correctionPayloadHash(c correctionsmodel.Correction) (string, error) {
 		Payload correctionDocument
 	}{1, correctionDocumentFrom(c)})
 	if err != nil {
-		return "", correctionsmodel.ErrCorrection
+		return "", attendanceentity.ErrCorrection
 	}
 	sum := sha256.Sum256(body)
 	return hex.EncodeToString(sum[:]), nil
 }
 
-func (s *Attendance) proposeCorrection(ctx context.Context, user, key string, c correctionsmodel.Correction, now time.Time) (string, error) {
+func (s *Attendance) proposeCorrection(ctx context.Context, user, key string, c attendanceentity.Correction, now time.Time) (string, error) {
 	hash, err := correctionPayloadHash(c)
 	if err != nil {
 		return "", err
 	}
 	if user == "" || !validSegment(c.GroupID) || len(c.GroupID) > 128 {
-		return "", correctionsmodel.ErrCorrection
+		return "", attendanceentity.ErrCorrection
 	}
 	c.NewRecord = c.RecordID == ""
 	c.UserKey, c.CreatedAt = firestorekey.Encode(user), now
@@ -89,10 +90,10 @@ func (s *Attendance) proposeCorrection(ctx context.Context, user, key string, c 
 					return err
 				}
 				if stored.Version != 1 || stored.PayloadHash != hash {
-					return correctionsmodel.ErrIdempotencyConflict
+					return attendanceentity.ErrIdempotencyConflict
 				}
 				if stored.CorrectionID == "" {
-					return correctionsmodel.ErrCorrection
+					return attendanceentity.ErrCorrection
 				}
 				c.ID = stored.CorrectionID
 				// A committed receipt remains replayable after the record is revised or
@@ -120,9 +121,9 @@ func (s *Attendance) proposeCorrection(ctx context.Context, user, key string, c 
 		}
 
 		if c.End.After(now) {
-			return correctionsmodel.ErrCorrection
+			return attendanceentity.ErrCorrection
 		}
-		if _, err := correctionsmodel.ApplyCorrection(before, c); err != nil {
+		if _, err := attendanceservice.ApplyCorrection(before, c); err != nil {
 			return err
 		}
 		if err := correctionOverlap(tx, s.user(user), c); err != nil {
@@ -150,7 +151,7 @@ func (s *Attendance) ApproveCorrection(ctx context.Context, reviewer, id string,
 func (s *Attendance) RejectCorrection(ctx context.Context, reviewer, id, reason string, now time.Time) error {
 	reason = strings.TrimSpace(reason)
 	if reason == "" || len([]rune(reason)) > 500 {
-		return correctionsmodel.ErrCorrection
+		return attendanceentity.ErrCorrection
 	}
 	return s.decideCorrection(ctx, reviewer, id, "rejected", reason, now)
 }
@@ -166,21 +167,21 @@ type correctionDecision struct {
 	ReviewedAt  time.Time `firestore:"reviewedAt"`
 }
 
-func correctionBefore(tx *db.Transaction, employee *db.DocumentRef, c correctionsmodel.Correction) (recordmodel.Record, error) {
+func correctionBefore(tx *db.Transaction, employee *db.DocumentRef, c attendanceentity.Correction) (attendanceentity.Record, error) {
 	snapshot, err := tx.Get(employee.Collection("attendance").Doc(c.RecordID))
 	if c.NewRecord {
 		if isMissingCorrection(err) {
-			return recordmodel.Record{}, nil
+			return attendanceentity.Record{}, nil
 		}
 		if err == nil {
-			return recordmodel.Record{}, correctionsmodel.ErrCorrection
+			return attendanceentity.Record{}, attendanceentity.ErrCorrection
 		}
-		return recordmodel.Record{}, err
+		return attendanceentity.Record{}, err
 	}
 	if err != nil {
-		return recordmodel.Record{}, err
+		return attendanceentity.Record{}, err
 	}
-	var before recordmodel.Record
+	var before attendanceentity.Record
 	if err := decodeRecord(snapshot, &before); err != nil {
 		return before, err
 	}
@@ -190,24 +191,24 @@ func correctionBefore(tx *db.Transaction, employee *db.DocumentRef, c correction
 
 // Bound the equality-only scan and fail closed. The shared group state document
 // serializes approvals with each other and with live punches, including inserts.
-func correctionOverlap(tx *db.Transaction, employee *db.DocumentRef, c correctionsmodel.Correction) error {
+func correctionOverlap(tx *db.Transaction, employee *db.DocumentRef, c attendanceentity.Correction) error {
 	docs, err := tx.Documents(employee.Collection("attendance").Where("groupID", "==", c.GroupID).Limit(1001)).GetAll()
 	if err != nil {
 		return err
 	}
 	if len(docs) > 1000 {
-		return correctionsmodel.ErrCorrection
+		return attendanceentity.ErrCorrection
 	}
 	for _, doc := range docs {
 		if doc.Ref.ID == c.RecordID {
 			continue
 		}
-		var other recordmodel.Record
+		var other attendanceentity.Record
 		if err := decodeRecord(doc, &other); err != nil {
 			return err
 		}
 		if other.ClockInAt.IsZero() || (other.ClockInAt.Before(c.End) && (other.ClockOutAt.IsZero() || other.ClockOutAt.After(c.Start))) {
-			return correctionsmodel.ErrCorrection
+			return attendanceentity.ErrCorrection
 		}
 	}
 	return nil
@@ -217,7 +218,7 @@ func (s *Attendance) reviewerGroups(tx *db.Transaction, reviewer string) ([]stri
 	channel := s.Client.Collection("channels").Doc(s.ChannelID)
 	role, err := tx.Get(channel.Collection("attendanceReviewers").Doc(firestorekey.Encode(reviewer)))
 	if isMissingCorrection(err) {
-		return nil, correctionsmodel.ErrCorrection
+		return nil, attendanceentity.ErrCorrection
 	}
 	if err != nil {
 		return nil, err
@@ -232,9 +233,9 @@ func (s *Attendance) reviewerGroups(tx *db.Transaction, reviewer string) ([]stri
 }
 
 func (s *Attendance) decideCorrection(ctx context.Context, actor, id, decision, reason string, now time.Time) (err error) {
-	defer func() { err = translateError(err, correctionsmodel.ErrCorrection) }()
+	defer func() { err = translateError(err, attendanceentity.ErrCorrection) }()
 	if actor == "" || !validSegment(id) {
-		return correctionsmodel.ErrCorrection
+		return attendanceentity.ErrCorrection
 	}
 	channel := s.Client.Collection("channels").Doc(s.ChannelID)
 	return s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
@@ -243,12 +244,12 @@ func (s *Attendance) decideCorrection(ctx context.Context, actor, id, decision, 
 		if err != nil {
 			return err
 		}
-		var c correctionsmodel.Correction
+		var c attendanceentity.Correction
 		if err := decodeCorrection(proposal, &c); err != nil {
 			return err
 		}
 		t := reviewTransaction{store: s, tx: tx, proposal: proposal, audit: channel.Collection("attendanceCorrections").Doc(id), employee: channel.Collection("users").Doc(c.UserKey), actor: actor}
-		return application.ReviewCorrection(t, firestorekey.Encode(actor), c, approvals.Decision{Status: decision, Reason: reason}, now)
+		return attendancecommand.ReviewCorrection(t, firestorekey.Encode(actor), c, attendancepolicy.Decision{Status: decision, Reason: reason}, now)
 	})
 }
 
@@ -264,23 +265,23 @@ func (t reviewTransaction) ReviewerGroups() ([]string, error) {
 	return t.store.reviewerGroups(t.tx, t.actor)
 }
 
-func (t reviewTransaction) PreviousDecision() (approvals.Decision, bool, error) {
+func (t reviewTransaction) PreviousDecision() (attendancepolicy.Decision, bool, error) {
 	var prior correctionDecision
 	if err := t.proposal.DataTo(&prior); err != nil {
-		return approvals.Decision{}, false, err
+		return attendancepolicy.Decision{}, false, err
 	}
 	approved, err := t.tx.Get(t.audit)
 	if err != nil && !isMissingCorrection(err) {
-		return approvals.Decision{}, false, err
+		return attendancepolicy.Decision{}, false, err
 	}
-	return approvals.Decision{Status: prior.Status, Reason: prior.Reason}, err == nil && approved.Exists(), nil
+	return attendancepolicy.Decision{Status: prior.Status, Reason: prior.Reason}, err == nil && approved.Exists(), nil
 }
 
-func (t reviewTransaction) Original(c correctionsmodel.Correction) (recordmodel.Record, error) {
+func (t reviewTransaction) Original(c attendanceentity.Correction) (attendanceentity.Record, error) {
 	return correctionBefore(t.tx, t.employee, c)
 }
 
-func (t reviewTransaction) SaveApproval(c correctionsmodel.Correction, before, after recordmodel.Record, actorKey string, now time.Time) error {
+func (t reviewTransaction) SaveApproval(c attendanceentity.Correction, before, after attendanceentity.Record, actorKey string, now time.Time) error {
 	employee := t.employee
 	state := employee.Collection("attendanceStates").Doc(firestorekey.Encode(c.GroupID))
 	stateSnapshot, err := t.tx.Get(state)
@@ -322,7 +323,7 @@ func (t reviewTransaction) SaveApproval(c correctionsmodel.Correction, before, a
 	return nil
 }
 
-func (t reviewTransaction) SaveDecision(d approvals.Decision, actorKey string, now time.Time) error {
+func (t reviewTransaction) SaveDecision(d attendancepolicy.Decision, actorKey string, now time.Time) error {
 	return t.tx.Update(t.proposal.Ref, []db.Update{{Path: "status", Value: d.Status}, {Path: "decisionReason", Value: d.Reason}, {Path: "reviewerKey", Value: actorKey}, {Path: "reviewedAt", Value: now}})
 }
 func isMissingCorrection(err error) bool { return status.Code(err) == codes.NotFound }
@@ -332,8 +333,8 @@ func (s *Attendance) CorrectionStatus(ctx context.Context, user, id string) (str
 	return details.Status, err
 }
 
-func (s *Attendance) correctionDetails(tx *db.Transaction, proposal *db.DocumentSnapshot, c correctionsmodel.Correction) (correctionsmodel.CorrectionDetails, error) {
-	result := correctionsmodel.CorrectionDetails{Correction: c, Status: "pending"}
+func (s *Attendance) correctionDetails(tx *db.Transaction, proposal *db.DocumentSnapshot, c attendanceentity.Correction) (attendancedto.CorrectionDetails, error) {
+	result := attendancedto.CorrectionDetails{Correction: c, Status: "pending"}
 	var decision correctionDecision
 	if err := proposal.DataTo(&decision); err != nil {
 		return result, err
@@ -344,14 +345,14 @@ func (s *Attendance) correctionDetails(tx *db.Transaction, proposal *db.Document
 	if err == nil {
 		evidence, err := decodeCorrectionAudit(audit, c.UserKey, c.ID)
 		if err != nil {
-			if err == correctionsmodel.ErrCorrection {
+			if err == attendanceentity.ErrCorrection {
 				result.Status = "invalid"
 				return result, nil
 			}
 			return result, err
 		}
 		result.Before, result.ReviewedAt, result.Status = &evidence.Before, evidence.ApprovedAt, "approved"
-		if !approvals.VerifyCorrection(evidence.Before, evidence.Proposal, evidence.After, evidence.After) {
+		if !attendanceservice.VerifyCorrection(evidence.Before, evidence.Proposal, evidence.After, evidence.After) {
 			result.Status = "invalid"
 		}
 		return result, nil
@@ -370,7 +371,7 @@ func (s *Attendance) correctionDetails(tx *db.Transaction, proposal *db.Document
 	employee := channel.Collection("users").Doc(c.UserKey)
 	before, err := correctionBefore(tx, employee, c)
 	if err != nil {
-		if err == correctionsmodel.ErrCorrection || isMissingCorrection(err) {
+		if err == attendanceentity.ErrCorrection || isMissingCorrection(err) {
 			result.Status = "stale"
 			return result, nil
 		}
@@ -379,21 +380,21 @@ func (s *Attendance) correctionDetails(tx *db.Transaction, proposal *db.Document
 	if !c.NewRecord {
 		result.Before = &before
 	}
-	if _, err := correctionsmodel.ApplyCorrection(before, c); err != nil {
+	if _, err := attendanceservice.ApplyCorrection(before, c); err != nil {
 		result.Status = "stale"
 	}
 	return result, nil
 }
 
-func (s *Attendance) CorrectionDetails(ctx context.Context, actor, id string, review bool) (_ correctionsmodel.CorrectionDetails, err error) {
-	defer func() { err = translateError(err, correctionsmodel.ErrCorrection) }()
-	var result correctionsmodel.CorrectionDetails
+func (s *Attendance) CorrectionDetails(ctx context.Context, actor, id string, review bool) (_ attendancedto.CorrectionDetails, err error) {
+	defer func() { err = translateError(err, attendanceentity.ErrCorrection) }()
+	var result attendancedto.CorrectionDetails
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		proposal, err := tx.Get(s.Client.Collection("channels").Doc(s.ChannelID).Collection("attendanceCorrectionRequests").Doc(id))
 		if err != nil {
 			return err
 		}
-		var c correctionsmodel.Correction
+		var c attendanceentity.Correction
 		if err := decodeCorrection(proposal, &c); err != nil {
 			return err
 		}
@@ -402,11 +403,11 @@ func (s *Attendance) CorrectionDetails(ctx context.Context, actor, id string, re
 			if err != nil {
 				return err
 			}
-			if !approvals.CanReview(groups, firestorekey.Encode(actor), c.UserKey, c.GroupID) {
-				return correctionsmodel.ErrCorrection
+			if !attendancepolicy.CanReview(groups, firestorekey.Encode(actor), c.UserKey, c.GroupID) {
+				return attendanceentity.ErrCorrection
 			}
 		} else if c.UserKey != firestorekey.Encode(actor) {
-			return correctionsmodel.ErrCorrection
+			return attendanceentity.ErrCorrection
 		}
 		result, err = s.correctionDetails(tx, proposal, c)
 		return err
@@ -414,11 +415,11 @@ func (s *Attendance) CorrectionDetails(ctx context.Context, actor, id string, re
 	return result, err
 }
 
-func (s *Attendance) CorrectionsPage(ctx context.Context, actor, group, cursor string, review bool, size int) (_ correctionsmodel.CorrectionPage, err error) {
-	defer func() { err = translateError(err, correctionsmodel.ErrCorrection) }()
-	result := correctionsmodel.CorrectionPage{Items: []correctionsmodel.CorrectionDetails{}}
+func (s *Attendance) CorrectionsPage(ctx context.Context, actor, group, cursor string, review bool, size int) (_ attendancedto.CorrectionPage, err error) {
+	defer func() { err = translateError(err, attendanceentity.ErrCorrection) }()
+	result := attendancedto.CorrectionPage{Items: []attendancedto.CorrectionDetails{}}
 	if !validPageSize(size) || (review && !validSegment(group)) {
-		return result, recordmodel.ErrInvalidCursor
+		return result, attendancedto.ErrInvalidCursor
 	}
 	scope := s.cursorScope("corrections-own", actor, "", time.Time{})
 	if review {
@@ -429,7 +430,7 @@ func (s *Attendance) CorrectionsPage(ctx context.Context, actor, group, cursor s
 		return result, err
 	}
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		result = correctionsmodel.CorrectionPage{Items: []correctionsmodel.CorrectionDetails{}}
+		result = attendancedto.CorrectionPage{Items: []attendancedto.CorrectionDetails{}}
 		q := s.Client.Collection("channels").Doc(s.ChannelID).Collection("attendanceCorrectionRequests").Where("userKey", "==", firestorekey.Encode(actor))
 		if review {
 			groups, err := s.reviewerGroups(tx, actor)
@@ -437,7 +438,7 @@ func (s *Attendance) CorrectionsPage(ctx context.Context, actor, group, cursor s
 				return err
 			}
 			if !slices.Contains(groups, group) {
-				return correctionsmodel.ErrCorrection
+				return attendanceentity.ErrCorrection
 			}
 			q = s.Client.Collection("channels").Doc(s.ChannelID).Collection("attendanceCorrectionRequests").Where("groupID", "==", group)
 		}
@@ -454,7 +455,7 @@ func (s *Attendance) CorrectionsPage(ctx context.Context, actor, group, cursor s
 			docs = docs[:size]
 		}
 		for _, doc := range docs {
-			var proposal correctionsmodel.Correction
+			var proposal attendanceentity.Correction
 			if err := decodeCorrection(doc, &proposal); err != nil {
 				return err
 			}
@@ -472,7 +473,7 @@ func (s *Attendance) CorrectionsPage(ctx context.Context, actor, group, cursor s
 	return result, err
 }
 
-func (s *Attendance) verifyCorrection(ctx context.Context, user string, current recordmodel.Record) (bool, error) {
+func (s *Attendance) verifyCorrection(ctx context.Context, user string, current attendanceentity.Record) (bool, error) {
 	if current.CorrectionID == "" {
 		return false, nil
 	}
@@ -485,18 +486,18 @@ func (s *Attendance) verifyCorrection(ctx context.Context, user string, current 
 	}
 	audit, err := decodeCorrectionAudit(snapshot, firestorekey.Encode(user), current.CorrectionID)
 	if err != nil {
-		if err == correctionsmodel.ErrCorrection {
+		if err == attendanceentity.ErrCorrection {
 			return false, nil
 		}
 		return false, err
 	}
-	return approvals.VerifyCorrection(audit.Before, audit.Proposal, audit.After, current), nil
+	return attendanceservice.VerifyCorrection(audit.Before, audit.Proposal, audit.After, current), nil
 }
 
 type correctionAudit struct {
-	Proposal    correctionsmodel.Correction `firestore:"proposal"`
-	Before      recordmodel.Record          `firestore:"before"`
-	After       recordmodel.Record          `firestore:"after"`
+	Proposal    attendanceentity.Correction `firestore:"proposal"`
+	Before      attendanceentity.Record     `firestore:"before"`
+	After       attendanceentity.Record     `firestore:"after"`
 	ReviewerKey string                      `firestore:"reviewerKey"`
 	ApprovedAt  time.Time                   `firestore:"approvedAt"`
 }
@@ -515,13 +516,13 @@ func decodeCorrectionAudit(snapshot *db.DocumentSnapshot, userKey, id string) (c
 	}
 	audit = correctionAudit{Proposal: stored.Proposal.domain(), Before: stored.Before.domain(), After: stored.After.domain(), ReviewerKey: stored.ReviewerKey, ApprovedAt: stored.ApprovedAt}
 	if audit.Proposal.UserKey != userKey || audit.Proposal.ID != id || audit.ReviewerKey == "" || audit.ReviewerKey == audit.Proposal.UserKey || audit.ApprovedAt.IsZero() {
-		return audit, correctionsmodel.ErrCorrection
+		return audit, attendanceentity.ErrCorrection
 	}
 	return audit, nil
 }
 
 func (s *Attendance) ReviewerGroups(ctx context.Context, actor string) (_ []string, err error) {
-	defer func() { err = translateError(err, correctionsmodel.ErrCorrection) }()
+	defer func() { err = translateError(err, attendanceentity.ErrCorrection) }()
 	var groups []string
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		var err error

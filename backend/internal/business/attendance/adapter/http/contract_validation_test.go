@@ -14,11 +14,11 @@ import (
 	"testing"
 	"time"
 
-	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/application/punch"
-	correctionsmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/corrections"
-	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/records"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/worktime"
+	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
+	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
+	attendanceservice "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/service"
+	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
@@ -31,31 +31,31 @@ type contractStore struct {
 	conflict      bool
 }
 
-func (s *contractStore) GroupsPage(context.Context, string, string, int) (recordmodel.GroupPage, error) {
+func (s *contractStore) GroupsPage(context.Context, string, string, int) (attendancedto.GroupPage, error) {
 	s.reads++
-	return recordmodel.GroupPage{}, nil
+	return attendancedto.GroupPage{}, nil
 }
 
-func (s *contractStore) RecordsPage(context.Context, string, string, time.Time, string, int) (recordmodel.RecordPage, error) {
+func (s *contractStore) RecordsPage(context.Context, string, string, time.Time, string, int) (attendancedto.RecordPage, error) {
 	s.reads++
-	return recordmodel.RecordPage{}, nil
+	return attendancedto.RecordPage{}, nil
 }
 
-func (s *contractStore) Record(context.Context, string, string, string) (recordmodel.Record, error) {
+func (s *contractStore) Record(context.Context, string, string, string) (attendanceentity.Record, error) {
 	s.reads++
-	return recordmodel.Record{RecordID: "r1", GroupID: "g"}, nil
+	return attendanceentity.Record{RecordID: "r1", GroupID: "g"}, nil
 }
 
-func (s *contractStore) ProposeCorrection(context.Context, string, correctionsmodel.Correction, time.Time) (string, error) {
+func (s *contractStore) ProposeCorrection(context.Context, string, attendanceentity.Correction, time.Time) (string, error) {
 	s.writes++
 	return "c1", nil
 }
 
-func (s *contractStore) ProposeCorrectionOnce(_ context.Context, _ string, key string, _ correctionsmodel.Correction, _ time.Time) (string, error) {
+func (s *contractStore) ProposeCorrectionOnce(_ context.Context, _ string, key string, _ attendanceentity.Correction, _ time.Time) (string, error) {
 	s.writes++
 	s.key = key
 	if s.conflict {
-		return "", correctionsmodel.ErrIdempotencyConflict
+		return "", attendanceentity.ErrIdempotencyConflict
 	}
 	return "c1", nil
 }
@@ -65,16 +65,16 @@ func (s *contractStore) ApproveCorrection(context.Context, string, string, time.
 	return nil
 }
 
-func (s *contractStore) CorrectionDetails(_ context.Context, _ string, _ string, review bool) (correctionsmodel.CorrectionDetails, error) {
+func (s *contractStore) CorrectionDetails(_ context.Context, _ string, _ string, review bool) (attendancedto.CorrectionDetails, error) {
 	s.reads++
-	return correctionsmodel.CorrectionDetails{Correction: correctionsmodel.Correction{ID: "c1", RecordID: "r1", GroupID: "g"}, Status: "pending"}, nil
+	return attendancedto.CorrectionDetails{Correction: attendanceentity.Correction{ID: "c1", RecordID: "r1", GroupID: "g"}, Status: "pending"}, nil
 }
 
 func (s *contractStore) CreateLaunch(context.Context, string, string) (string, error) { return "", nil }
 
 func (s *contractStore) LaunchGroup(context.Context, string) (string, error) {
 	s.reads++
-	return "", attendance.ErrExpiredLaunch
+	return "", attendanceport.ErrExpiredLaunch
 }
 
 func (s *contractStore) ExchangeLaunch(context.Context, string, string) (string, error) {
@@ -82,12 +82,12 @@ func (s *contractStore) ExchangeLaunch(context.Context, string, string) (string,
 	return "", nil
 }
 
-func (s *contractStore) ResolvePunchAttempt(context.Context, string, string, time.Time) (punch.Result, error) {
-	return punch.Result{Code: "needs_position"}, nil
+func (s *contractStore) ResolvePunchAttempt(context.Context, string, string, time.Time) (attendancedto.PunchResult, error) {
+	return attendancedto.PunchResult{Code: "needs_position"}, nil
 }
 
-func (s *contractStore) SubmitPunch(context.Context, string, string, recordmodel.Position, time.Time) (punch.Result, error) {
-	return punch.Result{Code: "break_started"}, nil
+func (s *contractStore) SubmitPunch(context.Context, string, string, attendancevalueobject.Position, time.Time) (attendancedto.PunchResult, error) {
+	return attendancedto.PunchResult{Code: "break_started"}, nil
 }
 
 func contractTestHandler(t *testing.T, store *contractStore) (http.Handler, *int) {
@@ -248,13 +248,13 @@ func TestAttendanceResponsesConformToContract(t *testing.T) {
 func TestContractDTOPreservesLegacyWireValues(t *testing.T) {
 	now := time.Date(2026, 11, 1, 8, 30, 0, 123, time.UTC)
 	for _, empty := range []bool{false, true} {
-		record := recordmodel.Record{RecordID: "r1", GroupID: "g", ClockInAt: now, ClockOutAt: now.Add(time.Hour), ClockInPosition: &recordmodel.Position{Latitude: 25.1234567890123, Longitude: 121.9876543210123, AccuracyMeters: 1.123456789, CapturedAt: now}, RestConfirmed: true, Revision: 7, EventSequence: 9, SchemaVersion: 2}
+		record := attendanceentity.Record{RecordID: "r1", GroupID: "g", ClockInAt: now, ClockOutAt: now.Add(time.Hour), ClockInPosition: &attendancevalueobject.Position{Latitude: 25.1234567890123, Longitude: 121.9876543210123, AccuracyMeters: 1.123456789, CapturedAt: now}, RestConfirmed: true, Revision: 7, EventSequence: 9, SchemaVersion: 2}
 		if empty {
-			record.Breaks = []worktime.Interval{}
+			record.Breaks = []attendancevalueobject.Interval{}
 			record.RebuildIssues = []string{}
 			record.SourceEventIDs = []string{}
 		}
-		report := recordmodel.CalculateMonthlyAttendance([]recordmodel.Record{record}, now)
+		report := attendanceservice.CalculateMonthlyAttendance([]attendanceentity.Record{record}, now)
 		name := "nil"
 		if empty {
 			name = "empty"
@@ -263,7 +263,7 @@ func TestContractDTOPreservesLegacyWireValues(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		converted, err := json.Marshal(monthlyView(report))
+		converted, err := json.Marshal(monthlyView(attendancedto.MonthlyReport(report)))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -282,7 +282,7 @@ func TestContractDTOPreservesLegacyWireValues(t *testing.T) {
 			}
 			delete(afterCalc, key)
 		}
-		beforeCalc["Version"] = worktime.Version
+		beforeCalc["Version"] = attendanceservice.Version
 		if !reflect.DeepEqual(before, after) {
 			t.Fatalf("DTO changed legacy JSON or location precision:\n%s\n%s", original, converted)
 		}

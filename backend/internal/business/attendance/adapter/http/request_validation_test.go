@@ -13,7 +13,9 @@ import (
 	"testing"
 	"time"
 
-	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/records"
+	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
+	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
 )
 
 func TestLocationNumberInRange(t *testing.T) {
@@ -84,28 +86,28 @@ func BenchmarkRequestIDValidation(b *testing.B) {
 // queryStoreStub exercises HTTP contracts without contacting LINE or Firestore.
 type queryStoreStub struct{ attendanceStub }
 
-func (s *queryStoreStub) GroupsPage(_ context.Context, user, _ string, _ int) (recordmodel.GroupPage, error) {
+func (s *queryStoreStub) GroupsPage(_ context.Context, user, _ string, _ int) (attendancedto.GroupPage, error) {
 	s.queriedUser = user
-	return recordmodel.GroupPage{Items: []string{"group"}, QueryMode: "legacy"}, s.err
+	return attendancedto.GroupPage{Items: []string{"group"}, QueryMode: "legacy"}, s.err
 }
 
-func (s *queryStoreStub) RecordsPage(_ context.Context, user, group string, _ time.Time, _ string, _ int) (recordmodel.RecordPage, error) {
+func (s *queryStoreStub) RecordsPage(_ context.Context, user, group string, _ time.Time, _ string, _ int) (attendancedto.RecordPage, error) {
 	s.queriedUser = user
 	s.queriedGroup = group
-	return recordmodel.RecordPage{Items: s.records, QueryMode: "legacy"}, s.err
+	return attendancedto.RecordPage{Items: s.records, QueryMode: "legacy"}, s.err
 }
 
-func (s *queryStoreStub) Record(_ context.Context, user, group, _ string) (recordmodel.Record, error) {
+func (s *queryStoreStub) Record(_ context.Context, user, group, _ string) (attendanceentity.Record, error) {
 	s.queriedUser = user
 	s.queriedGroup = group
 	if len(s.records) == 0 {
-		return recordmodel.Record{}, recordmodel.ErrRecordNotFound
+		return attendanceentity.Record{}, attendanceentity.ErrRecordNotFound
 	}
 	return s.records[0], s.err
 }
 
 func TestAttendanceQueryContracts(t *testing.T) {
-	store := &queryStoreStub{attendanceStub: attendanceStub{records: []recordmodel.Record{{RecordID: "record", GroupID: "group", ClockInAt: time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC), ClockInPosition: &recordmodel.Position{Latitude: 25, Longitude: 121}}}}}
+	store := &queryStoreStub{attendanceStub: attendanceStub{records: []attendanceentity.Record{{RecordID: "record", GroupID: "group", ClockInAt: time.Date(2026, 11, 1, 0, 0, 0, 0, time.UTC), ClockInPosition: &attendancevalueobject.Position{Latitude: 25, Longitude: 121}}}}}
 	app := testAuthenticator(&http.Client{Transport: memberTransport(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(fmt.Sprintf(`{"iss":"https://access.line.me","sub":"actor","aud":"123","exp":%d}`, time.Now().Add(time.Hour).Unix())))}, nil
 	})})
@@ -120,7 +122,7 @@ func TestAttendanceQueryContracts(t *testing.T) {
 		{"/api/v1/attendance/groups/page", 401, false, nil},
 		{"/api/v1/attendance/groups/page?pageSize=101", 400, true, nil},
 		{"/api/v1/attendance/records?group=group&month=bad", 400, true, nil},
-		{"/api/v1/attendance/records?group=group&month=2026-11&cursor=invalid", 400, true, recordmodel.ErrInvalidCursor},
+		{"/api/v1/attendance/records?group=group&month=2026-11&cursor=invalid", 400, true, attendancedto.ErrInvalidCursor},
 		{"/api/v1/attendance/records?group=group&month=2026-11", 200, true, nil},
 		{"/api/v1/attendance/records/record?group=group", 200, true, nil},
 		{"/api/v1/attendance/monthly/summary?group=group&month=2026-11", 200, true, nil},

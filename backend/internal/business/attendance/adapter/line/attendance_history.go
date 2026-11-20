@@ -7,8 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/presentation"
-	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/records"
+	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+
+	"github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line/presentation"
+	attendanceservice "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/service"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 )
 
@@ -60,7 +62,7 @@ func (b *Attendance) historyGroups(ctx context.Context, groups []string, page in
 	return historyCard("選擇出勤群組", text.String(), buttons)
 }
 
-func (b *Attendance) historyResult(ctx context.Context, group string, report recordmodel.MonthlyReport, page int) messaging_api.MessageInterface {
+func (b *Attendance) historyResult(ctx context.Context, group string, report attendancedto.MonthlyReport, page int) messaging_api.MessageInterface {
 	records, start := report.Records, report.Start
 	zone := start.Location()
 	const size = 7
@@ -84,7 +86,7 @@ func (b *Attendance) historyResult(ctx context.Context, group string, report rec
 			out = r.ClockOutAt.In(zone).Format("01/02 15:04")
 		}
 		fmt.Fprintf(&text, "\n%s 上班 %s\n下班 %s\n", r.ClockInAt.In(zone).Format("01/02"), r.ClockInAt.In(zone).Format("15:04"), out)
-		work := recordmodel.CalculateRecordAttendance(r)
+		work := attendanceservice.CalculateRecordAttendance(r)
 		if work.Uncalculable > 0 {
 			if work.AttendanceMinutes > 0 {
 				fmt.Fprintf(&text, "出勤 %d小時%d分・", work.AttendanceMinutes/60, work.AttendanceMinutes%60)

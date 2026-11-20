@@ -8,16 +8,16 @@ import (
 	"strings"
 	"time"
 
-	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/application/punch"
-	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/records"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
+	attendancequery "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/query"
+	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
 type Attendance struct {
-	Store     attendance.Store
+	Store     attendanceport.Store
 	Zone      *time.Location
 	AppURL    string
 	GroupName func(context.Context, string) string
@@ -111,7 +111,7 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 		if user.UserId == "" {
 			return respond("無法確認本人身分。")
 		}
-		if store, ok := b.Store.(attendance.GroupHistoryReader); ok {
+		if store, ok := b.Store.(attendanceport.GroupHistoryReader); ok {
 			groups, err := store.Groups(ctx, user.UserId)
 			if err != nil {
 				return transport.Reply{}, true, err
@@ -151,11 +151,11 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 			if month == "" {
 				return transport.Reply{Token: token, Message: b.historyMonths(ctx, selectedGroup, page)}, true, nil
 			}
-			monthly, ok := b.Store.(attendance.MonthlyReader)
+			monthly, ok := b.Store.(attendanceport.MonthlyReader)
 			if !ok {
 				return respond("月度出勤查詢尚未啟用。")
 			}
-			report, err := attendance.ReadMonthlyReport(ctx, monthly, user.UserId, selectedGroup, start)
+			report, err := attendancequery.ReadMonthlyReport(ctx, monthly, user.UserId, selectedGroup, start)
 			if err != nil {
 				return transport.Reply{}, true, err
 			}
@@ -195,7 +195,7 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 		return b.replyGroupStatus(ctx, group.GroupId, group.UserId, command, token)
 	}
 	if command == "請假" {
-		store, ok := b.Store.(attendance.LeaveStore)
+		store, ok := b.Store.(attendanceport.LeaveStore)
 		if !ok || b.AppURL == "" {
 			return respond("請假尚未啟用。")
 		}
@@ -212,7 +212,7 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 	if command != "打卡" {
 		return respond("請重新輸入「打卡」取得最新操作選單。")
 	}
-	store, ok := b.Store.(punch.LaunchStore)
+	store, ok := b.Store.(attendanceport.LaunchStore)
 	if !ok || b.AppURL == "" || eventID == "" {
 		return respond("定位打卡頁尚未設定，未執行打卡。")
 	}
@@ -228,7 +228,7 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 	return transport.Reply{Token: token, Message: AttendanceMenu(links)}, true, nil
 }
 
-func (b *Attendance) recordsText(records []recordmodel.Record) string {
+func (b *Attendance) recordsText(records []attendanceentity.Record) string {
 	text := "本人最近出勤紀錄（最多五筆）："
 	for _, record := range records {
 		out := "尚未下班"

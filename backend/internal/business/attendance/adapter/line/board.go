@@ -7,16 +7,15 @@ import (
 	"net/url"
 	"time"
 
-	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/application/punch"
-	boardmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/board"
+	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 )
 
 func (b *Attendance) groupStatus(ctx context.Context, group, user, command string) (messaging_api.MessageInterface, error) {
 	text := func(value string) messaging_api.MessageInterface { return &messaging_api.TextMessage{Text: value} }
-	store, ok := b.Store.(attendance.BoardStore)
+	store, ok := b.Store.(attendanceport.BoardStore)
 	if !ok {
 		return text("出勤查詢與漏下班檢查尚未啟用。"), nil
 	}
@@ -31,7 +30,7 @@ func (b *Attendance) groupStatus(ctx context.Context, group, user, command strin
 		day := now.In(zone)
 		start := time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, zone)
 		board, err := store.GroupBoard(ctx, group, start, now)
-		if errors.Is(err, boardmodel.ErrBoardLimit) {
+		if errors.Is(err, attendancedto.ErrBoardLimit) {
 			return text("資料超出目前看板讀取上限，無法取得完整人數；本次不顯示不完整統計。"), nil
 		}
 		if err != nil {
@@ -46,7 +45,7 @@ func (b *Attendance) groupStatus(ctx context.Context, group, user, command strin
 	if active == nil {
 		return text("本次查詢者在本群沒有未結束班次。"), nil
 	}
-	launchStore, ok := b.Store.(punch.LaunchStore)
+	launchStore, ok := b.Store.(attendanceport.LaunchStore)
 	if !ok || b.AppURL == "" {
 		return text("本次查詢者仍有未結束班次。現在下班請回群組輸入「打卡」；過去漏打請私訊「出勤紀錄」提出更正。"), nil
 	}

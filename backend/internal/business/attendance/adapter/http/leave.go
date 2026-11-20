@@ -8,13 +8,15 @@ import (
 	"net/http"
 	"time"
 
-	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/leave"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
+	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
+	attendancepolicy "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/policy"
+	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 )
 
-func leaveView(l leave.Leave) generated.LeaveRecord {
+func leaveView(l attendanceentity.Leave) generated.LeaveRecord {
 	return generated.LeaveRecord{Id: l.ID, GroupId: l.GroupID, Kind: generated.LeaveRecordKind(l.Kind), Start: l.Start, End: l.End, Reason: l.Reason, CreatedAt: l.CreatedAt, Status: generated.Registered}
 }
 
@@ -33,7 +35,7 @@ func (s *attendanceServer) leave(w http.ResponseWriter, r *http.Request, submit 
 		transport.WriteAPIError(w, 503, "not_configured", "請假尚未啟用。")
 		return
 	}
-	store, ok := bot.store.(attendance.LeaveStore)
+	store, ok := bot.store.(attendanceport.LeaveStore)
 	if !ok {
 		transport.WriteAPIError(w, 503, "not_configured", "請假尚未啟用。")
 		return
@@ -61,17 +63,17 @@ func (s *attendanceServer) leave(w http.ResponseWriter, r *http.Request, submit 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	var input generated.LeaveSubmission
-	if decoder.Decode(&input) != nil || decoder.Decode(new(any)) != io.EOF || !launchTokenPattern.MatchString(input.Launch) || !leave.ValidLeaveKey(input.RequestKey) {
+	if decoder.Decode(&input) != nil || decoder.Decode(new(any)) != io.EOF || !launchTokenPattern.MatchString(input.Launch) || !attendancevalueobject.ValidLeaveKey(input.RequestKey) {
 		transport.WriteAPIError(w, 400, "invalid_input", "請假資料無效。")
 		return
 	}
-	proposal, err := leave.NormalizeLeave(leave.Leave{Kind: string(input.Kind), Start: input.Start, End: input.End, Reason: input.Reason})
+	proposal, err := attendancepolicy.NormalizeLeave(attendanceentity.Leave{Kind: string(input.Kind), Start: input.Start, End: input.End, Reason: input.Reason})
 	if err != nil {
 		transport.WriteAPIError(w, 400, "invalid_input", "請確認假別、起訖時間及500字以內的理由；結束須晚於開始，期間最多366天。")
 		return
 	}
 	group, err := store.LeaveGroup(ctx, input.Launch)
-	if errors.Is(err, attendance.ErrExpiredLaunch) {
+	if errors.Is(err, attendanceport.ErrExpiredLaunch) {
 		transport.WriteAPIError(w, 403, "expired_launch", "請假連結已過期；請先查詢本人紀錄，或回原群組輸入「請假」。")
 		return
 	}
@@ -85,11 +87,11 @@ func (s *attendanceServer) leave(w http.ResponseWriter, r *http.Request, submit 
 	proposal.GroupID = group
 	result, err := store.SubmitLeave(ctx, input.Launch, user, input.RequestKey, proposal)
 	switch {
-	case errors.Is(err, leave.ErrLeaveConflict):
+	case errors.Is(err, attendanceentity.ErrLeaveConflict):
 		transport.WriteAPIError(w, 409, "idempotency_conflict", "同一重試識別碼已使用於不同內容，請先查詢原申請。")
-	case errors.Is(err, attendance.ErrExpiredLaunch):
+	case errors.Is(err, attendanceport.ErrExpiredLaunch):
 		transport.WriteAPIError(w, 403, "expired_launch", "請假連結已過期，請回原群組重新操作。")
-	case errors.Is(err, leave.ErrInvalidLeave):
+	case errors.Is(err, attendanceentity.ErrInvalidLeave):
 		transport.WriteAPIError(w, 400, "invalid_input", "請假內容無效。")
 	case err != nil:
 		transport.WriteAPIError(w, 503, "unavailable", "請假結果尚未確認；請查詢本人紀錄，重試時沿用原內容。")

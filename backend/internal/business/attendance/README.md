@@ -1,24 +1,36 @@
-# backend/internal/business/attendance 目錄導覽
+# Attendance 套件分工
 
-## 用途與範圍
+管理打卡、出勤紀錄、補正審核、請假與出勤查詢。依賴由適配器及應用層指向領域層，外部實作由 `internal/server` 組裝。
 
-管理打卡、出勤紀錄、補卡、請假、審核與出勤看板。工時計算與事件狀態放在 `domain/worktime/`。
+## 現行結構
 
-## 架構與責任邊界
-
-此目錄維護本領域或子能力的行為。HTTP、LINE 與 Firestore 依需要提供適配，授權和狀態規則歸資源所屬領域。
-
-## 閱讀與修改入口
-
-先查閱[errors.go](application/errors.go)、[ports.go](application/ports.go)、[本目錄工作指引](AGENTS.md)。
-
-## 相關規格
-
-[現行實作圖：定位前預檢、狀態與時序](../../../../docs/domains/attendance/README.md#定位前預檢狀態與時序)
+```text
+attendance/
+├── domain/
+│   ├── entity/
+│   ├── valueobject/
+│   ├── service/
+│   ├── event/
+│   └── policy/
+├── application/
+│   ├── command/
+│   ├── query/
+│   ├── port/
+│   └── dto/
+└── adapter/
+    ├── http/
+    ├── line/
+    ├── firestore/
+    ├── messaging/
+    └── scheduler/
+```
 
 ## 閱讀入口
 
-[domain](domain) 維護工時、補正、審核與出勤紀錄規則。[application](application) 定義使用端需要的能力、補正審核與月報用例。[adapter](adapter) 負責 HTTP、LINE 與 Firestore 的協定和交易。瀏覽器依預檢結果取得定位，依後端回傳的紀錄與工時呈現畫面。
+[領域模型](domain/README.md) 區分實體、業務值、運算、事件與政策；[應用層](application/README.md) 分開寫入、查詢、輸出介面與 DTO；[適配器](adapter/README.md) 處理協定及持久化。`messaging` 與 `scheduler` 是保留入口，目前沒有佇列或排程實作。
 
+補正審核由 [command](application/command/review.go) 協調，[交易 port](application/port/review.go) 取得最新事實。Firestore 在同一交易內執行用例、核對版本及保存核准證據；交易重試時重新判斷。HTTP 與 LINE 共用 [月報 query](application/query/monthly.go)。
 
-[現行實作圖：定位前預檢、狀態與時序](../../../../docs/domains/attendance/README.md#定位前預檢狀態與時序) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
+## 規格與驗證
+
+[出勤規格](../../../../docs/domains/attendance/README.md) · [工作指引](AGENTS.md) · [驗收矩陣](../../../../docs/development/acceptance.md)。Go 檢查在根目錄透過 `bash scripts/tooling/tool-exec.sh mise run check` 執行；Firestore 整合測試另需 `FIRESTORE_EMULATOR_HOST`。

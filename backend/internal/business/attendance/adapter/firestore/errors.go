@@ -4,11 +4,9 @@ import (
 	"context"
 	"errors"
 
-	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
-	boardmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/board"
-	correctionsmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/corrections"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/leave"
-	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/records"
+	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
+	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -17,7 +15,7 @@ func translateError(err, missing error) error {
 	if err == nil {
 		return nil
 	}
-	for _, known := range []error{boardmodel.ErrBoardLimit, leave.ErrInvalidLeave, leave.ErrLeaveConflict, correctionsmodel.ErrCorrection, correctionsmodel.ErrIdempotencyConflict, attendance.ErrInvalidRequest, attendance.ErrExpiredLaunch, recordmodel.ErrInvalidCursor, recordmodel.ErrRecordNotFound, attendance.ErrUnavailable} {
+	for _, known := range []error{attendancedto.ErrBoardLimit, attendanceentity.ErrInvalidLeave, attendanceentity.ErrLeaveConflict, attendanceentity.ErrCorrection, attendanceentity.ErrIdempotencyConflict, attendanceport.ErrInvalidRequest, attendanceport.ErrExpiredLaunch, attendancedto.ErrInvalidCursor, attendanceentity.ErrRecordNotFound, attendanceport.ErrUnavailable} {
 		if errors.Is(err, known) {
 			return err
 		}

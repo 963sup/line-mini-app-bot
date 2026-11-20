@@ -7,8 +7,10 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/leave"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
+	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
+	attendancepolicy "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/policy"
+	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -26,11 +28,11 @@ type leaveDocument struct {
 	CreatedAt time.Time `firestore:"createdAt"`
 }
 
-func (d leaveDocument) domain(id string) leave.Leave {
+func (d leaveDocument) domain(id string) attendanceentity.Leave {
 	if d.ID != "" {
 		id = d.ID
 	}
-	return leave.Leave{ID: id, GroupID: d.GroupID, Kind: d.Kind, Start: d.Start, End: d.End, Reason: d.Reason, CreatedAt: d.CreatedAt}
+	return attendanceentity.Leave{ID: id, GroupID: d.GroupID, Kind: d.Kind, Start: d.Start, End: d.End, Reason: d.Reason, CreatedAt: d.CreatedAt}
 }
 
 func (s *Attendance) leaveLaunches() *db.CollectionRef {
@@ -52,7 +54,7 @@ func (s *Attendance) LeaveGroup(ctx context.Context, launchToken string) (_ stri
 	defer func() { err = translateError(err, nil) }()
 	snap, err := s.leaveLaunches().Doc(firestorekey.Encode(launchToken)).Get(ctx)
 	if status.Code(err) == codes.NotFound {
-		return "", attendance.ErrExpiredLaunch
+		return "", attendanceport.ErrExpiredLaunch
 	}
 	if err != nil {
 		return "", err
@@ -62,22 +64,22 @@ func (s *Attendance) LeaveGroup(ctx context.Context, launchToken string) (_ stri
 		return "", err
 	}
 	if !time.Now().Before(l.ExpiresAt) {
-		return "", attendance.ErrExpiredLaunch
+		return "", attendanceport.ErrExpiredLaunch
 	}
 	return l.GroupID, nil
 }
 
-func (s *Attendance) SubmitLeave(ctx context.Context, launchToken, userID, requestKey string, proposal leave.Leave) (_ leave.Leave, err error) {
+func (s *Attendance) SubmitLeave(ctx context.Context, launchToken, userID, requestKey string, proposal attendanceentity.Leave) (_ attendanceentity.Leave, err error) {
 	defer func() { err = translateError(err, nil) }()
-	if !leave.ValidLeaveKey(requestKey) || userID == "" || proposal.GroupID == "" {
-		return leave.Leave{}, leave.ErrInvalidLeave
+	if !attendancevalueobject.ValidLeaveKey(requestKey) || userID == "" || proposal.GroupID == "" {
+		return attendanceentity.Leave{}, attendanceentity.ErrInvalidLeave
 	}
-	proposal, err = leave.NormalizeLeave(proposal)
+	proposal, err = attendancepolicy.NormalizeLeave(proposal)
 	if err != nil {
-		return leave.Leave{}, err
+		return attendanceentity.Leave{}, err
 	}
 	ref := s.user(userID).Collection("leaveRequests").Doc(firestorekey.Encode(requestKey))
-	var result leave.Leave
+	var result attendanceentity.Leave
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		snap, err := tx.Get(ref)
 		if err == nil {
@@ -86,7 +88,7 @@ func (s *Attendance) SubmitLeave(ctx context.Context, launchToken, userID, reque
 				return err
 			}
 			if old.LaunchKey != firestorekey.Encode(launchToken) || old.GroupID != proposal.GroupID || old.Kind != proposal.Kind || !old.Start.Equal(proposal.Start) || !old.End.Equal(proposal.End) || old.Reason != proposal.Reason {
-				return leave.ErrLeaveConflict
+				return attendanceentity.ErrLeaveConflict
 			}
 			result = old.domain(ref.ID)
 			return nil
@@ -96,7 +98,7 @@ func (s *Attendance) SubmitLeave(ctx context.Context, launchToken, userID, reque
 		}
 		snap, err = tx.Get(s.leaveLaunches().Doc(firestorekey.Encode(launchToken)))
 		if status.Code(err) == codes.NotFound {
-			return attendance.ErrExpiredLaunch
+			return attendanceport.ErrExpiredLaunch
 		}
 		if err != nil {
 			return err
@@ -106,7 +108,7 @@ func (s *Attendance) SubmitLeave(ctx context.Context, launchToken, userID, reque
 			return err
 		}
 		if !time.Now().Before(l.ExpiresAt) || l.GroupID != proposal.GroupID {
-			return attendance.ErrExpiredLaunch
+			return attendanceport.ErrExpiredLaunch
 		}
 		id, err := uuid.NewRandom()
 		if err != nil {
@@ -119,13 +121,13 @@ func (s *Attendance) SubmitLeave(ctx context.Context, launchToken, userID, reque
 	return result, err
 }
 
-func (s *Attendance) RecentLeaves(ctx context.Context, user string) (_ []leave.Leave, err error) {
+func (s *Attendance) RecentLeaves(ctx context.Context, user string) (_ []attendanceentity.Leave, err error) {
 	defer func() { err = translateError(err, nil) }()
 	snaps, err := s.user(user).Collection("leaveRequests").OrderBy("createdAt", db.Desc).Limit(20).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
 	}
-	result := make([]leave.Leave, 0, len(snaps))
+	result := make([]attendanceentity.Leave, 0, len(snaps))
 	for _, snap := range snaps {
 		var d leaveDocument
 		if err := snap.DataTo(&d); err != nil {
@@ -136,4 +138,4 @@ func (s *Attendance) RecentLeaves(ctx context.Context, user string) (_ []leave.L
 	return result, nil
 }
 
-var _ attendance.LeaveStore = (*Attendance)(nil)
+var _ attendanceport.LeaveStore = (*Attendance)(nil)
