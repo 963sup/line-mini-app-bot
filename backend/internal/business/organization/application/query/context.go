@@ -35,7 +35,7 @@ func BuildContext(visible []organizationApplicationDto.VisibleOrganization, pref
 		}
 		g.Organizations = append(g.Organizations, o)
 		if i == 0 || r.ID == preference {
-			result.Selected = &organizationApplicationDto.Selected{r.ID, r.Name, g.Label}
+			result.Selected = &organizationApplicationDto.Selected{ID: r.ID, Name: r.Name, GroupLabel: g.Label}
 		}
 	}
 	return result
