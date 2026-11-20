@@ -11,7 +11,9 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
+
+	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/business/journal"
 	"github.com/963sup/line-mini-app-bot/internal/business/project"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
@@ -23,7 +25,7 @@ import (
 type Store struct {
 	Client       *db.Client
 	Channel      string
-	Groups       *groupdomain.Service
+	Groups       *groupquery.Service
 	Repositories *repository.Service
 	Projects     *project.Service
 }
@@ -42,7 +44,7 @@ func (s *Store) entries(group string) *db.CollectionRef {
 }
 
 func missing(e error) error {
-	if status.Code(e) == codes.NotFound || errors.Is(e, groupdomain.ErrNotFound) || errors.Is(e, repository.ErrNotFound) || errors.Is(e, project.ErrNotFound) {
+	if status.Code(e) == codes.NotFound || errors.Is(e, groupentity.ErrNotFound) || errors.Is(e, repository.ErrNotFound) || errors.Is(e, project.ErrNotFound) {
 		return journal.ErrNotFound
 	}
 	return e

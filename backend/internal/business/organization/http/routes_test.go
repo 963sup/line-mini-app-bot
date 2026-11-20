@@ -10,13 +10,15 @@ import (
 	"testing"
 	"time"
 
-	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/http"
+	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/http"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/http"
 
 	"cloud.google.com/go/firestore"
-	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/group"
-	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/firestore"
+	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
+
+	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
+	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
+	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
 	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/firestore"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
@@ -52,7 +54,7 @@ func TestWorkspaceLifecycle(t *testing.T) {
 	owner := actor("U" + strings.Repeat("a", 32))
 	other := "U" + strings.Repeat("b", 32)
 	store := &groupdb.Store{Client: db, ChannelID: channel}
-	groups := &group.Service{Store: store, Membership: member(true)}
+	groups := &groupquery.Service{Store: store, Membership: member(true)}
 	mux := http.NewServeMux()
 	httpapi.RegisterOrganizations(mux, Handler{Auth: &owner, Store: orgdb.Store{DB: db, Channel: channel}})
 	httpapi.RegisterEnterprises(mux, enterprisehttp.Handler{Auth: &owner, Store: enterprisedb.Store{DB: db, Channel: channel, Groups: groups}})
@@ -120,7 +122,7 @@ func TestWorkspaceLifecycle(t *testing.T) {
 	if !strings.Contains(string(call("GET", "me/organization-context", "", 200)), `"groupLabel":"HQ"`) {
 		t.Fatal("missing selected enterprise")
 	}
-	event := group.Observation{GroupID: gid, EventID: "join", At: time.Now(), Name: "Team", Status: "ACTIVE"}
+	event := groupevent.Observation{GroupID: gid, EventID: "join", At: time.Now(), Name: "Team", Status: "ACTIVE"}
 	if err = store.Observe(ctx, event); err != nil {
 		t.Fatal(err)
 	}

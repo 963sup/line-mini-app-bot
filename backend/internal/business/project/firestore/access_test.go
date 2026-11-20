@@ -15,8 +15,10 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	sp "github.com/963sup/line-mini-app-bot/internal/business/group"
-	spaceDB "github.com/963sup/line-mini-app-bot/internal/business/group/firestore"
+
+	spaceDB "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
+	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
+	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
 	p "github.com/963sup/line-mini-app-bot/internal/business/project"
 	projectDB "github.com/963sup/line-mini-app-bot/internal/business/project/firestore"
 	projectHTTP "github.com/963sup/line-mini-app-bot/internal/business/project/http"
@@ -87,7 +89,7 @@ func TestSourceHydrationFailurePreservesProjectMetadata(t *testing.T) {
 	root := client.Collection("channels").Doc(channel)
 	gid, rid, iid := "C"+strings.Repeat("a", 32), strings.Repeat("b", 32), strings.Repeat("c", 32)
 	groups := &spaceDB.Store{Client: client, ChannelID: channel}
-	if err = groups.Observe(ctx, sp.Observation{GroupID: gid, Status: "ACTIVE", EventID: "join", At: time.Now().UTC(), Users: []string{"owner"}}); err != nil {
+	if err = groups.Observe(ctx, groupevent.Observation{GroupID: gid, Status: "ACTIVE", EventID: "join", At: time.Now().UTC(), Users: []string{"owner"}}); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = root.Collection("repositories").Doc(rid).Set(ctx, map[string]any{"id": rid, "ownerId": gid, "status": "ACTIVE", "version": int64(1)}); err != nil {
@@ -99,7 +101,7 @@ func TestSourceHydrationFailurePreservesProjectMetadata(t *testing.T) {
 		t.Fatal(err)
 	}
 	store := &projectDB.Store{Client: client, ChannelID: channel}
-	svc := &p.Service{Groups: &sp.Service{Store: groups, Membership: membership{}}, Sources: &sourceAccess{root: root}, Store: store}
+	svc := &p.Service{Groups: &groupquery.Service{Store: groups, Membership: membership{}}, Sources: &sourceAccess{root: root}, Store: store}
 	created, err := svc.Create(ctx, "owner", gid, "source-failure-key-001", p.Content{Title: "owned metadata", SourceRepositoryID: rid})
 	if err != nil {
 		t.Fatal(err)
@@ -170,7 +172,7 @@ func TestOwnerProjectStorageRightsAndLegacyAlias(t *testing.T) {
 	rid := strings.Repeat("b", 32)
 	iid := strings.Repeat("c", 32)
 	ss := &spaceDB.Store{Client: client, ChannelID: channel}
-	if err = ss.Observe(ctx, sp.Observation{GroupID: gid, Status: "ACTIVE", EventID: "join", At: time.Now().UTC(), Users: []string{"owner", "member"}}); err != nil {
+	if err = ss.Observe(ctx, groupevent.Observation{GroupID: gid, Status: "ACTIVE", EventID: "join", At: time.Now().UTC(), Users: []string{"owner", "member"}}); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = root.Collection("repositories").Doc(rid).Set(ctx, map[string]any{"id": rid, "ownerId": gid, "status": "ACTIVE", "version": int64(1)}); err != nil {
@@ -183,7 +185,7 @@ func TestOwnerProjectStorageRightsAndLegacyAlias(t *testing.T) {
 	}
 	source := &sourceAccess{root: root}
 	store := &projectDB.Store{Client: client, ChannelID: channel}
-	svc := &p.Service{Groups: &sp.Service{Store: ss, Membership: membership{}}, Sources: source, Store: store}
+	svc := &p.Service{Groups: &groupquery.Service{Store: ss, Membership: membership{}}, Sources: source, Store: store}
 	content := p.Content{Title: "Group project", SourceRepositoryID: rid}
 	key := "stable-create-key-0001"
 	if _, err = svc.Create(ctx, "outsider", gid, key, content); !errors.Is(err, p.ErrNotFound) {
@@ -369,7 +371,7 @@ func TestPersonalRepositoryAndProject(t *testing.T) {
 		t.Fatal("foreign repository read", err)
 	}
 	access := &sourceAccess{root: root}
-	svc := p.Service{Groups: &sp.Service{}, Sources: access, Store: &projectDB.Store{Client: client, ChannelID: channel}}
+	svc := p.Service{Groups: &groupquery.Service{}, Sources: access, Store: &projectDB.Store{Client: client, ChannelID: channel}}
 	value, err := svc.Create(ctx, owner, owner, "personal-project-0001", p.Content{Title: "工程", SourceRepositoryID: rid})
 	if err != nil {
 		t.Fatal(err)

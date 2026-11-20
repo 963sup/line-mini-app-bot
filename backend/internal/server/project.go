@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
-	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/firestore"
+	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
+	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 	"github.com/963sup/line-mini-app-bot/internal/business/project"
 	projectdb "github.com/963sup/line-mini-app-bot/internal/business/project/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
@@ -30,7 +30,7 @@ func (s projectSources) Authorize(ctx context.Context, actor, id, expectedOwnerI
 	return project.Source{ID: r.ID, OwnerID: r.OwnerID}, nil
 }
 
-func newProjects(groups *groupdomain.Service, repositories *repository.Service) *project.Service {
+func newProjects(groups *groupquery.Service, repositories *repository.Service) *project.Service {
 	if groups == nil {
 		return nil
 	}

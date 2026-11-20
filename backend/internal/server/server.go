@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/firestore"
-	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/http"
+	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
+	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/http"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/firestore"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/http"
 
@@ -29,9 +29,9 @@ import (
 	attendancehttp "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/http"
 	attendanceline "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line/presentation"
-	discussionhttp "github.com/963sup/line-mini-app-bot/internal/business/discussion/http"
-	grouphttp "github.com/963sup/line-mini-app-bot/internal/business/group/http"
-	groupline "github.com/963sup/line-mini-app-bot/internal/business/group/line"
+	discussionhttp "github.com/963sup/line-mini-app-bot/internal/business/discussion/adapter/http"
+	grouphttp "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/http"
+	groupline "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/line"
 	issuehttp "github.com/963sup/line-mini-app-bot/internal/business/issue/http"
 	objecthttp "github.com/963sup/line-mini-app-bot/internal/business/object/http"
 	objectimporthttp "github.com/963sup/line-mini-app-bot/internal/business/objectimport/http"

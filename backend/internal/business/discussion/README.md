@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[discussion.go](discussion.go)、[本目錄工作指引](AGENTS.md)。
+先查閱[應用服務](application/service.go)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 

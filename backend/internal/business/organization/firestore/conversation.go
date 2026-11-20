@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/internal/orgstore"
+	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
+	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
 
 	"cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/organization"

@@ -49,7 +49,7 @@ flowchart LR
   h["最小實作邊界與驗證"]
   h --- n0["後端 business/discussion 核心及其 HTTP、<br/>Firestore adapters，由 server 注入既有身分、<br/>Repository client 與編號能力。前端 <br/>business/discussion 由正式空間「討論」入口組<br/>合既有官方 UI；不修改 primitives、既有出勤或<br/>事項模型。 前端分開取消列表、主題、留言與寫<br/>入請求，切換空間／主題或身分時隔離資料。編輯<br/>失敗先重新讀取。"]
   n0 --- n0l0["business/discussion"]
-  click n0l0 "../../../backend/internal/business/discussion/discussion.go"
+  click n0l0 "../../../backend/internal/business/discussion/application/service.go"
   n0 --- n0l1["business/discussion"]
   click n0l1 "../../../frontend/miniapp/src/business/discussion/View.tsx"
   h --- n1["現行實作"]

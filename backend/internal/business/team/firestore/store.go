@@ -7,8 +7,12 @@ import (
 	"strings"
 
 	"cloud.google.com/go/firestore"
-	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
-	"github.com/963sup/line-mini-app-bot/internal/business/internal/orgstore"
+
+	groupport "github.com/963sup/line-mini-app-bot/internal/business/group/application/port"
+	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
+	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/business/group/domain/valueobject"
+	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/organization"
 	"github.com/963sup/line-mini-app-bot/internal/business/team"
 	"github.com/google/uuid"
@@ -19,12 +23,12 @@ import (
 type Store struct {
 	DB      *firestore.Client
 	Channel string
-	Groups  *groupdomain.Service
+	Groups  *groupquery.Service
 }
 
 func (s Store) Manage(ctx context.Context, user string, teamId, scope, managementId string) error {
 	_, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*struct{}, error) {
-		if !groupdomain.ValidID(teamId) || uuid.Validate(managementId) != nil || (scope != "organization" && scope != "enterprise") {
+		if !groupvalueobject.ValidID(teamId) || uuid.Validate(managementId) != nil || (scope != "organization" && scope != "enterprise") {
 			return nil, organization.ErrInvalid
 		}
 		target, e := orgstore.Read(tx, root.Collection(scope+"s").Doc(managementId))
@@ -56,7 +60,7 @@ func (s Store) Manage(ctx context.Context, user string, teamId, scope, managemen
 
 func (s Store) Assign(ctx context.Context, user string, id, teamId string, add bool) error {
 	_, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*struct{}, error) {
-		if uuid.Validate(id) != nil || !groupdomain.ValidID(teamId) {
+		if uuid.Validate(id) != nil || !groupvalueobject.ValidID(teamId) {
 			return nil, organization.ErrInvalid
 		}
 		ref := root.Collection("organizations").Doc(id)
@@ -134,10 +138,10 @@ func (s Store) List(ctx context.Context, user string, organizationId string) (*t
 		result := team.Listing{Teams: []team.Option{}}
 		for id, scope := range ids {
 			if s.Groups == nil {
-				return nil, groupdomain.ErrUnavailable
+				return nil, groupport.ErrUnavailable
 			}
 			g, e := s.Groups.Get(ctx, user, id)
-			if errors.Is(e, groupdomain.ErrNotFound) {
+			if errors.Is(e, groupentity.ErrNotFound) {
 				continue
 			}
 			if e != nil {

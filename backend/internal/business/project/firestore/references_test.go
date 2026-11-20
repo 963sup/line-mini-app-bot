@@ -17,8 +17,10 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	sp "github.com/963sup/line-mini-app-bot/internal/business/group"
-	spaceDB "github.com/963sup/line-mini-app-bot/internal/business/group/firestore"
+
+	spaceDB "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
+	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
+	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
 	p "github.com/963sup/line-mini-app-bot/internal/business/project"
 	projectDB "github.com/963sup/line-mini-app-bot/internal/business/project/firestore"
 	projectHTTP "github.com/963sup/line-mini-app-bot/internal/business/project/http"
@@ -47,7 +49,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	root := client.Collection("channels").Doc("isolated-refs")
 	gid, rid := "C"+strings.Repeat("a", 32), strings.Repeat("b", 32)
 	groups := &spaceDB.Store{Client: client, ChannelID: root.ID}
-	if e = groups.Observe(ctx, sp.Observation{GroupID: gid, Status: "ACTIVE", EventID: "synthetic-join", At: time.Now().UTC(), Users: []string{"owner"}}); e != nil {
+	if e = groups.Observe(ctx, groupevent.Observation{GroupID: gid, Status: "ACTIVE", EventID: "synthetic-join", At: time.Now().UTC(), Users: []string{"owner"}}); e != nil {
 		t.Fatal(e)
 	}
 	repository := root.Collection("repositories").Doc(rid)
@@ -70,7 +72,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	}
 	access := &sourceAccess{root: root}
 	store := &projectDB.Store{Client: client, ChannelID: root.ID}
-	svc := &p.Service{Groups: &sp.Service{Store: groups, Membership: membership{}}, Sources: access, Store: store}
+	svc := &p.Service{Groups: &groupquery.Service{Store: groups, Membership: membership{}}, Sources: access, Store: store}
 	project, e := svc.Create(ctx, "owner", gid, "typed-reference-project", p.Content{Title: "Existing project", SourceRepositoryID: rid})
 	if e != nil {
 		t.Fatal(e)
