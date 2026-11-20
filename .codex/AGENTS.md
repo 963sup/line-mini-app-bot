@@ -1,5 +1,22 @@
 # .codex 工作指引
 
+## 用途與範圍
+
+保存 Codex 角色、MCP 與 hooks 設定。
+
+## 架構與責任邊界
+
+此處定義專案的代理配置，工具版本與任務由根目錄 mise 設定管理。
+
+## 閱讀與修改入口
+
+先查閱[config.toml](config.toml)、[agents](agents)、[hooks.json](hooks.json)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+
+## 相關規格
+
+[文件索引](../docs/README.md) · [操作模型](../docs/architecture/contracts/business-operations.md)
+
+
 適用於本目錄及其子目錄；先遵循 [根目錄 AGENTS.md](../AGENTS.md)，再套用較近的子目錄補充。使用者及主機指令優先；本檔不增加外部寫入授權。
 
 ## 職責與邊界

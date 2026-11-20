@@ -1,8 +1,20 @@
 # frontend/miniapp 目錄導覽
 
-## 目錄用途
+## 用途與範圍
 
 保存 LINE MINI App 的 Next.js 應用、建置設定與測試。
+
+## 架構與責任邊界
+
+依層級維護本目錄的共用能力；功能畫面由 business 組織，頁面入口由 pages 接入。
+
+## 閱讀與修改入口
+
+先查閱[components.json](components.json)、[next-env.d.ts](next-env.d.ts)、[next.config.ts](next.config.ts)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[現行實作圖：頁面與身分生命週期](../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
 
 從 [components.json](components.json)、[next-env.d.ts](next-env.d.ts)、[next.config.ts](next.config.ts)、[package.json](package.json)、[postcss.config.mjs](postcss.config.mjs)、[src](src) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 

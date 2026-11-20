@@ -1,8 +1,20 @@
 # Summary 既有入口契約
 
-## 目錄用途
+## 用途與範圍
 
 記錄群組訊息摘要的 LINE 互動與內部工作入口。
+
+## 架構與責任邊界
+
+此處描述 LINE 訊息蒐集、摘要與內部 worker 的契約。worker 由內部 OpenAPI 組合，LINE 事件入口由既有 Webhook 接入。
+
+## 閱讀與修改入口
+
+先查閱[worker.yaml](worker.yaml)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[群聊摘要](../../../docs/domains/summary.md) · [現行實作圖：資料與可靠性](../../../docs/domains/summary.md#資料與可靠性)
 
 本文件描述既有 LINE／內部工作入口，不加入公開 OpenAPI、不產生瀏覽器 client。
 完整產品規則與資料保存方式見 [群聊摘要](../../../docs/domains/summary.md)。

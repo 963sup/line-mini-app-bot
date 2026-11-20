@@ -6,6 +6,13 @@ Root instructions apply throughout the repository. Before changing a subtree, re
 
 涉及跨目錄任務時，讀取所有相關目錄的指引。保留既有變更與上游技能；巢狀指引不增加外部寫入授權。
 
+## 巢狀文件維護標準
+
+- **README.md** 至少交代目錄用途、主要入口與相關規格。有需要時補上實際架構、資料流、執行方式和測試命令。
+- **AGENTS.md** 至少交代適用範圍、上層指引、局部修改規則與驗證方式。涉及授權、資料相容、交易或產生碼時，指出責任歸屬及需要同步的項目。
+- 目錄有明確責任且需要導覽時建立 README。有上層未涵蓋的局部規則時補 AGENTS，其餘規則由上層繼承。更新對應行為時，順手核對文件中的入口、連結及驗證命令。
+- 明確區分現行結構、必須遵守的規則和按需採用的參考範本。只有實際需要的章節或子目錄才建立。驗證需特殊環境時，列明前置條件。
+
 ## Mandatory documentation verification
 
 Repository-wide rule for every role and task, subject to higher-priority host instructions:

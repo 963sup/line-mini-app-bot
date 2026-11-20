@@ -1,8 +1,20 @@
 # HTTP API 契約
 
-## 目錄用途
+## 用途與範圍
 
 管理 API 契約、產生設定與 TypeScript client。修改 API 輸入或輸出時，先更新契約，再重新產生 Go 與 TypeScript 檔案。
+
+## 架構與責任邊界
+
+契約是介面來源；client 與產生設定供消費端使用，依契約重新產生型別。
+
+## 閱讀與修改入口
+
+先查閱[capabilities.json](capabilities.json)、[redocly.yaml](redocly.yaml)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[獨立Project](../docs/domains/project.md) · [React 前端生命週期](../docs/architecture/runtime/react-lifecycle.md)
 
 工程群組／Project新增獨立入口；既有Repository-scoped Project路由由相容adapter呼叫同一用例，來源識別不再代表專案擁有權。資料與授權／相容界線見 [獨立Project](../docs/domains/project.md)，契約及生成碼仍遵循本頁流程，不手改generated檔。
 

@@ -1,8 +1,20 @@
 # Weather / Forecast 既有入口契約
 
-## 目錄用途
+## 用途與範圍
 
 記錄天氣預報的 LINE 互動入口。
+
+## 架構與責任邊界
+
+此處描述 LINE 天氣預報的事件入口。預報來源與回覆邏輯由後端 weather 套件維護。
+
+## 閱讀與修改入口
+
+先查閱[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[群組位置天氣](../../../docs/domains/weather.md) · [現行實作圖：基礎入口](../../../docs/architecture/contracts/http.md#基礎入口)
 
 本文件描述既有 LINE 入口，不加入公開 OpenAPI、不產生瀏覽器 client。
 完整產品規則見 [群組位置天氣](../../../docs/domains/weather.md)。

@@ -1,5 +1,22 @@
 # MCP tool selection
 
+## 用途與範圍
+
+保存各 MCP 工具的連線、用途與驗證說明。
+
+## 架構與責任邊界
+
+文件描述能力與診斷方式，實際連線配置由專案的 Codex 設定維護。
+
+## 閱讀與修改入口
+
+先查閱[graphify.md](graphify.md)、[repomix.md](repomix.md)、[context7.md](context7.md)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[graphify](graphify.md) · [openaiDeveloperDocs](openai-docs.md)
+
+
 | Service | Primary roles |
 | --- | --- |
 | [graphify](graphify.md) | Graphify；Explorer、Architect 亦可使用 |

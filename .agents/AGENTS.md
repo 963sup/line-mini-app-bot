@@ -1,5 +1,22 @@
 # .agents 工作指引
 
+## 用途與範圍
+
+管理專案的技能來源與代理工作流程。
+
+## 架構與責任邊界
+
+技能來源在此維護，角色與 MCP 連線由 `.codex/` 管理。
+
+## 閱讀與修改入口
+
+先查閱[skills-sources.json](skills-sources.json)、[go-workflow.md](go-workflow.md)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+
+## 相關規格
+
+[文件索引](../docs/README.md)
+
+
 適用於本目錄及其子目錄；先遵循 [根目錄 AGENTS.md](../AGENTS.md)，再套用較近的子目錄補充。使用者及主機指令優先；本檔不增加外部寫入授權。
 
 ## 職責與邊界

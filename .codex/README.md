@@ -1,5 +1,22 @@
 # Codex 專案配置
 
+## 用途與範圍
+
+保存 Codex 角色、MCP 與 hooks 設定。
+
+## 架構與責任邊界
+
+此處定義專案的代理配置，工具版本與任務由根目錄 mise 設定管理。
+
+## 閱讀與修改入口
+
+先查閱[config.toml](config.toml)、[agents](agents)、[hooks.json](hooks.json)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[操作模型](../docs/architecture/contracts/business-operations.md) · [符合性流程](../docs/development/workflow.md#business-operation-compliance)
+
+
 ## 目錄導覽與維護
 
 config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json 保存 hooks；skills/ 為安裝產物。

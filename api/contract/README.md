@@ -1,8 +1,20 @@
 # 契約能力索引
 
-## 目錄用途
+## 用途與範圍
 
-採用 **按領域拆分 OpenAPI 契約（modular OpenAPI）**。各領域維護自己負責的操作與 schema，公開入口 `openapi.yaml` 與內部入口 `internal-openapi.yaml` 透過 `$ref` 組合。依操作責任決定契約歸屬，調整來源檔後透過既有流程產生 Go 與 TypeScript 程式碼。
+採用 **按領域拆分 OpenAPI 契約（modular OpenAPI）**。各領域維護自己負責的操作與 schema，公開入口 `openapi.yaml` 與內部入口 `internal-openapi.yaml` 透過 `$ref` 組合。依操作責任決定契約歸屬，調整來源檔後透過既有流程產生 Go 與 TypeScript 程式碼。 **契約按需分檔。** 小型領域可用一份規格承載相關操作與 schema，有明確的能力邊界或獨立維護需求時再拆分。
+
+## 架構與責任邊界
+
+維護本能力的操作與 schema；根規格負責組合，公開格式由契約產生。
+
+## 閱讀與修改入口
+
+先查閱[internal-openapi.yaml](internal-openapi.yaml)、[openapi.yaml](openapi.yaml)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[Project規格](../../docs/domains/project.md) · [標籤](../../docs/domains/repository/labels.md)
 
 本目錄以能力歸屬組織契約。公開 HTTP、事件與內部工作入口有不同形式，不能因歸類而新增公開 API。功能授權與業務規則仍由對應功能文件定義。
 

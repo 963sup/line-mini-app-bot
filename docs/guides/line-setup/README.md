@@ -1,5 +1,22 @@
 # Go LINE 接入：啟動
 
+## 用途與範圍
+
+保存 LINE 平台與 MINI App 的設定步驟。
+
+## 架構與責任邊界
+
+此處說明外部平台設定，程式端整合與身分驗證由後端套件負責。
+
+## 閱讀與修改入口
+
+先查閱[references.md](references.md)、[rich-menu.md](rich-menu.md)、[session.md](session.md)。
+
+## 相關規格
+
+[本層規格與指引](../README.md)
+
+
 ```mermaid
 flowchart LR
   h["Go LINE 接入：啟動"]

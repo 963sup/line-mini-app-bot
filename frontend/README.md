@@ -1,8 +1,20 @@
 # MINI App 前端
 
-## 目錄用途
+## 用途與範圍
 
 保存瀏覽器前端，MINI App 位於 `miniapp/`，透過共用 API client 呼叫後端。
+
+## 架構與責任邊界
+
+依層級維護本目錄的共用能力；功能畫面由 business 組織，頁面入口由 pages 接入。
+
+## 閱讀與修改入口
+
+先查閱[miniapp](miniapp)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[Project 契約](../docs/domains/project.md) · [Components／AI Elements 本機參考庫](../docs/development/tooling/shadcn-reference/README.md)
 
 專案與儲存庫在側欄同層。專案頁自行管理工程群組與 Project 選取；來源選擇的讀取資格及舊入口轉接規則見 [Project 契約](../docs/domains/project.md)。
 

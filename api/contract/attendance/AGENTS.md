@@ -1,8 +1,20 @@
 # 出勤契約
 
-## 目錄用途
+## 用途與範圍
 
 定義打卡、出勤紀錄、工時、請假、補卡及審核的 API 契約。
+
+## 架構與責任邊界
+
+維護本能力的操作與 schema；根規格負責組合，公開格式由契約產生。
+
+## 閱讀與修改入口
+
+先查閱[approvals.yaml](approvals.yaml)、[corrections.yaml](corrections.yaml)、[leave.yaml](leave.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+
+## 相關規格
+
+[出勤](../../../docs/domains/attendance/README.md) · [查詢與更正](../../../docs/domains/attendance/queries.md)
 
 適用於本目錄及其子目錄；繼承 [上層指引](../AGENTS.md)，並遵循其引用的根目錄規則。此處只補充本範圍責任；使用者與主機指令優先，不增加外部寫入授權。
 

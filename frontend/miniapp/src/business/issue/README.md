@@ -1,8 +1,20 @@
 # 空間問題
 
-## 目錄用途
+## 用途與範圍
 
 組合 Repository 事項及其狀態與留言操作。
+
+## 架構與責任邊界
+
+在本功能就近維護畫面與互動，路由由 pages 組合，權限與結果以後端 API 為準。
+
+## 閱讀與修改入口
+
+先查閱[View.tsx](View.tsx)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[問題規格](../../../../../docs/domains/repository/issues.md) · [現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
 
 操作權限、狀態、API、資料與驗收依 [問題規格](../../../../../docs/domains/repository/issues.md) 維護；本模組只保存對應業務實作。
 
