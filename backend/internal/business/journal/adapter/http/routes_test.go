@@ -8,7 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/journal"
+	journaldto "github.com/963sup/line-mini-app-bot/internal/business/journal/application/dto"
+	journalentity "github.com/963sup/line-mini-app-bot/internal/business/journal/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 )
@@ -24,25 +25,25 @@ func (testAuth) Authenticate(w http.ResponseWriter, r *http.Request) (string, st
 }
 
 type fixture struct {
-	saved  journal.Entry
-	filter journal.Filter
+	saved  journalentity.Entry
+	filter journaldto.Filter
 	key    string
 }
 
-func (f *fixture) Create(_ context.Context, actor, key string, d journal.Draft) (journal.Entry, error) {
+func (f *fixture) Create(_ context.Context, actor, key string, d journalentity.Draft) (journalentity.Entry, error) {
 	f.key = key
-	f.saved = journal.Entry{Draft: d, ID: strings.Repeat("a", 32), CreatorID: actor, CreatedAt: d.WorkDate}
+	f.saved = journalentity.Entry{Draft: d, ID: strings.Repeat("a", 32), CreatorID: actor, CreatedAt: d.WorkDate}
 	return f.saved, nil
 }
 
-func (f *fixture) List(_ context.Context, actor string, filter journal.Filter) (journal.Page, error) {
+func (f *fixture) List(_ context.Context, actor string, filter journaldto.Filter) (journaldto.Page, error) {
 	f.filter = filter
-	return journal.Page{Items: []journal.Entry{f.saved}}, nil
+	return journaldto.Page{Items: []journalentity.Entry{f.saved}}, nil
 }
 
-func (f *fixture) Get(_ context.Context, actor, id string) (journal.Entry, error) {
+func (f *fixture) Get(_ context.Context, actor, id string) (journalentity.Entry, error) {
 	if id != f.saved.ID || actor != f.saved.CreatorID {
-		return journal.Entry{}, journal.ErrNotFound
+		return journalentity.Entry{}, journalentity.ErrNotFound
 	}
 	return f.saved, nil
 }

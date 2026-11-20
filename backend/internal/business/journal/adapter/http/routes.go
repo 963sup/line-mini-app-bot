@@ -11,7 +11,9 @@ import (
 
 	types "github.com/oapi-codegen/runtime/types"
 
-	feature "github.com/963sup/line-mini-app-bot/internal/business/journal"
+	journaldto "github.com/963sup/line-mini-app-bot/internal/business/journal/application/dto"
+	journalport "github.com/963sup/line-mini-app-bot/internal/business/journal/application/port"
+	journalentity "github.com/963sup/line-mini-app-bot/internal/business/journal/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/identity"
@@ -24,12 +26,12 @@ type (
 	Authenticator interface {
 		Authenticate(http.ResponseWriter, *http.Request) (string, string, bool)
 	}
-	journalServer struct{ service feature.Operations }
+	journalServer struct{ service journalport.Operations }
 )
 
 var _ httpapi.JournalServer = (*journalServer)(nil)
 
-func Register(mux *http.ServeMux, service feature.Operations, auth Authenticator) {
+func Register(mux *http.ServeMux, service journalport.Operations, auth Authenticator) {
 	spec, err := httpapi.Spec()
 	if err != nil {
 		panic(err)
@@ -88,11 +90,11 @@ func replyError(w http.ResponseWriter, err error) bool {
 		return false
 	}
 	switch {
-	case errors.Is(err, feature.ErrInput):
+	case errors.Is(err, journalentity.ErrInput):
 		transport.WriteServiceError(w, 400, "invalid_input", "日誌資料無效。", err)
-	case errors.Is(err, feature.ErrNotFound):
+	case errors.Is(err, journalentity.ErrNotFound):
 		transport.WriteServiceError(w, 404, "not_found", "找不到日誌或關聯來源。", err)
-	case errors.Is(err, feature.ErrConflict):
+	case errors.Is(err, journalentity.ErrConflict):
 		transport.WriteServiceError(w, 409, "idempotency_conflict", "重試識別碼已用於不同內容。", err)
 	default:
 		transport.WriteServiceError(w, 503, "unavailable", "日誌服務暫時無法使用。", err)
@@ -108,21 +110,21 @@ func (s *journalServer) enabled(w http.ResponseWriter) bool {
 	return false
 }
 
-func source(r *generated.JournalReference) *feature.Reference {
+func source(r *generated.JournalReference) *journalentity.Reference {
 	if r == nil {
 		return nil
 	}
-	return &feature.Reference{Kind: string(r.Type), ID: r.Id}
+	return &journalentity.Reference{Kind: string(r.Type), ID: r.Id}
 }
 
-func refView(r *feature.Reference) *generated.JournalReference {
+func refView(r *journalentity.Reference) *generated.JournalReference {
 	if r == nil {
 		return nil
 	}
 	return &generated.JournalReference{Type: generated.JournalReferenceType(r.Kind), Id: r.ID}
 }
 func names(values []string) []string { return append([]string{}, values...) }
-func view(e feature.Entry) generated.Journal {
+func view(e journalentity.Entry) generated.Journal {
 	j := generated.Journal{Id: e.ID, CreatorId: e.CreatorID, CreatedAt: e.CreatedAt, GroupId: e.GroupID, WorkDate: types.Date{Time: e.WorkDate}, Personnel: generated.JournalPersonnel{Management: names(e.Personnel.Management), Control: names(e.Personnel.Control), Workers: names(e.Personnel.Workers)}, TodayItems: []generated.JournalTodayItem{}, TomorrowItems: []generated.JournalTomorrowItem{}}
 	for _, i := range e.Today {
 		j.TodayItems = append(j.TodayItems, generated.JournalTodayItem{Name: i.Name, CompletionPercent: i.Percent, Reference: refView(i.Reference), ObjectId: i.ObjectID, SubobjectId: i.SubobjectID, SpaceIds: i.SpaceIDs, ObjectName: i.ObjectName, SpaceNames: i.SpaceNames})
@@ -138,18 +140,18 @@ func (s *journalServer) CreateJournal(w http.ResponseWriter, r *http.Request, p 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	if decoder.Decode(&b) != nil || decoder.Decode(new(any)) != io.EOF || len(b.TodayItems)+len(b.TomorrowItems) == 0 {
-		replyError(w, feature.ErrInput)
+		replyError(w, journalentity.ErrInput)
 		return
 	}
 	if !s.enabled(w) {
 		return
 	}
-	d := feature.Draft{GroupID: b.GroupId, WorkDate: b.WorkDate.Time, Personnel: feature.Personnel{Control: b.Personnel.Control, Management: b.Personnel.Management, Workers: b.Personnel.Workers}}
+	d := journalentity.Draft{GroupID: b.GroupId, WorkDate: b.WorkDate.Time, Personnel: journalentity.Personnel{Control: b.Personnel.Control, Management: b.Personnel.Management, Workers: b.Personnel.Workers}}
 	for _, i := range b.TodayItems {
-		d.Today = append(d.Today, feature.Work{Name: i.Name, Percent: i.CompletionPercent, Reference: source(i.Reference), ObjectID: i.ObjectId, SubobjectID: i.SubobjectId, SpaceIDs: i.SpaceIds})
+		d.Today = append(d.Today, journalentity.Work{Name: i.Name, Percent: i.CompletionPercent, Reference: source(i.Reference), ObjectID: i.ObjectId, SubobjectID: i.SubobjectId, SpaceIDs: i.SpaceIds})
 	}
 	for _, i := range b.TomorrowItems {
-		d.Tomorrow = append(d.Tomorrow, feature.Work{Name: i.Name, Percent: i.ExpectedCompletionPercent, Reference: source(i.Reference), ObjectID: i.ObjectId, SubobjectID: i.SubobjectId, SpaceIDs: i.SpaceIds})
+		d.Tomorrow = append(d.Tomorrow, journalentity.Work{Name: i.Name, Percent: i.ExpectedCompletionPercent, Reference: source(i.Reference), ObjectID: i.ObjectId, SubobjectID: i.SubobjectId, SpaceIDs: i.SpaceIds})
 	}
 	e, err := s.service.Create(r.Context(), identity.UserID(r.Context()), p.IdempotencyKey, d)
 	if !replyError(w, err) {
@@ -171,7 +173,7 @@ func (s *journalServer) ListJournals(w http.ResponseWriter, r *http.Request, p g
 	if !s.enabled(w) {
 		return
 	}
-	var f feature.Filter
+	var f journaldto.Filter
 	if p.GroupId != nil {
 		f.GroupID = *p.GroupId
 	}

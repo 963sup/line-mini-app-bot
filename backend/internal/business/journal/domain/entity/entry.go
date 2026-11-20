@@ -1,8 +1,6 @@
-// Package journal defines the operations shared by Feed and Dashboard.
-package journal
+package entity
 
 import (
-	"context"
 	"errors"
 	"time"
 )
@@ -68,21 +66,4 @@ type Entry struct {
 	Draft
 	ID, CreatorID string
 	CreatedAt     time.Time
-}
-type (
-	Filter struct{ GroupID, WorkDate, Cursor string }
-	Page   struct {
-		Items      []Entry
-		NextCursor string
-	}
-)
-
-// Operations is implemented by the membership-aware persistent service.
-// Actor is always supplied by the authenticated transport. Implementations
-// authorize each read, redact inaccessible references and scope create retries
-// by actor and key before returning data.
-type Operations interface {
-	Create(ctx context.Context, actor, key string, draft Draft) (Entry, error)
-	Get(ctx context.Context, actor, id string) (Entry, error)
-	List(ctx context.Context, actor string, filter Filter) (Page, error)
 }

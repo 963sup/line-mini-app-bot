@@ -14,7 +14,9 @@ import (
 
 	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/business/journal"
+
+	journaldto "github.com/963sup/line-mini-app-bot/internal/business/journal/application/dto"
+	journalentity "github.com/963sup/line-mini-app-bot/internal/business/journal/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/business/project"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
@@ -45,7 +47,7 @@ func (s *Store) entries(group string) *db.CollectionRef {
 
 func missing(e error) error {
 	if status.Code(e) == codes.NotFound || errors.Is(e, groupentity.ErrNotFound) || errors.Is(e, repository.ErrNotFound) || errors.Is(e, project.ErrNotFound) {
-		return journal.ErrNotFound
+		return journalentity.ErrNotFound
 	}
 	return e
 }
@@ -55,7 +57,7 @@ func (s *Store) group(ctx context.Context, actor, group string) error {
 	return missing(e)
 }
 
-func (s *Store) reference(ctx context.Context, actor, group string, r journal.Reference) error {
+func (s *Store) reference(ctx context.Context, actor, group string, r journalentity.Reference) error {
 	switch r.Kind {
 	case "repository":
 		item, e := s.Repositories.Get(ctx, actor, r.ID)
@@ -74,11 +76,11 @@ func (s *Store) reference(ctx context.Context, actor, group string, r journal.Re
 			return nil
 		}
 	}
-	return journal.ErrNotFound
+	return journalentity.ErrNotFound
 }
 
-func (s *Store) checkRefs(ctx context.Context, actor string, d journal.Draft, redact bool, cache map[journal.Reference]error) error {
-	return d.CheckReferences(redact, func(r journal.Reference) error {
+func (s *Store) checkRefs(ctx context.Context, actor string, d journalentity.Draft, redact bool, cache map[journalentity.Reference]error) error {
+	return d.CheckReferences(redact, func(r journalentity.Reference) error {
 		e, ok := cache[r]
 		if !ok {
 			e = s.reference(ctx, actor, d.GroupID, r)
@@ -89,12 +91,12 @@ func (s *Store) checkRefs(ctx context.Context, actor string, d journal.Draft, re
 }
 
 // snapshotWork checks repository-scoped sources and captures names in the publish transaction.
-func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journal.Work) error {
+func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journalentity.Work) error {
 	if w.ObjectID == "" && w.SubobjectID == "" && len(w.SpaceIDs) == 0 {
 		return nil
 	}
 	if w.Reference == nil || w.Reference.Kind != "repository" || (w.SubobjectID != "" && w.ObjectID == "") || len(w.SpaceIDs) > 20 {
-		return journal.ErrInput
+		return journalentity.ErrInput
 	}
 	repo := s.root().Collection("repositories").Doc(w.Reference.ID)
 	snap, err := tx.Get(repo)
@@ -102,7 +104,7 @@ func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journal.Work) 
 		return missing(err)
 	}
 	if snap.Data()["ownerId"] != group || snap.Data()["status"] != "ACTIVE" {
-		return journal.ErrNotFound
+		return journalentity.ErrNotFound
 	}
 	readName := func(ref *db.DocumentRef, parent string) (string, error) {
 		snap, err := tx.Get(ref)
@@ -111,17 +113,17 @@ func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journal.Work) 
 		}
 		data := snap.Data()
 		if data["id"] != ref.ID || data["repositoryId"] != w.Reference.ID || (parent != "" && data["parentObjectId"] != parent) {
-			return "", journal.ErrNotFound
+			return "", journalentity.ErrNotFound
 		}
 		name, ok := data["name"].(string)
 		if !ok || name == "" {
-			return "", journal.ErrNotFound
+			return "", journalentity.ErrNotFound
 		}
 		return name, nil
 	}
 	if w.ObjectID != "" {
 		if !repository.ValidID(w.ObjectID) {
-			return journal.ErrInput
+			return journalentity.ErrInput
 		}
 		object := repo.Collection("objects").Doc(w.ObjectID)
 		w.ObjectName, err = readName(object, "")
@@ -130,7 +132,7 @@ func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journal.Work) 
 		}
 		if w.SubobjectID != "" {
 			if !repository.ValidID(w.SubobjectID) {
-				return journal.ErrInput
+				return journalentity.ErrInput
 			}
 			name, err := readName(object.Collection("subobjects").Doc(w.SubobjectID), w.ObjectID)
 			if err != nil {
@@ -143,7 +145,7 @@ func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journal.Work) 
 	seen := map[string]bool{}
 	for _, id := range w.SpaceIDs {
 		if !repository.ValidID(id) || seen[id] {
-			return journal.ErrInput
+			return journalentity.ErrInput
 		}
 		seen[id] = true
 		name, err := readName(repo.Collection("spaces").Doc(id), "")
@@ -155,20 +157,20 @@ func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journal.Work) 
 	return nil
 }
 
-func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d journal.Draft) (journal.Entry, error) {
+func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d journalentity.Draft) (journalentity.Entry, error) {
 	if e := s.group(ctx, actorID, d.GroupID); e != nil {
-		return journal.Entry{}, e
+		return journalentity.Entry{}, e
 	}
-	if e := s.checkRefs(ctx, actorID, d, false, map[journal.Reference]error{}); e != nil {
-		return journal.Entry{}, e
+	if e := s.checkRefs(ctx, actorID, d, false, map[journalentity.Reference]error{}); e != nil {
+		return journalentity.Entry{}, e
 	}
 	entryID := firestorekey.Digest([]byte(actorID + "\x00" + idempotencyKey))[:32]
 	body, e := json.Marshal(d)
 	if e != nil {
-		return journal.Entry{}, e
+		return journalentity.Entry{}, e
 	}
 	claim := receipt{Group: d.GroupID, Hash: firestorekey.Digest(body)}
-	entry := journal.Entry{Draft: d, ID: entryID, CreatorID: actorID, CreatedAt: time.Now().UTC().Truncate(time.Microsecond)}
+	entry := journalentity.Entry{Draft: d, ID: entryID, CreatorID: actorID, CreatedAt: time.Now().UTC().Truncate(time.Microsecond)}
 	order := d.WorkDate.Format(time.DateOnly) + "/" + entry.CreatedAt.Format("20060102T150405.000000Z") + "/" + entryID
 	target := s.entries(d.GroupID).Doc(entryID)
 	locator := s.root().Collection("journalReceipts").Doc(entryID)
@@ -180,7 +182,7 @@ func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d jo
 				return e
 			}
 			if saved != claim {
-				return journal.ErrConflict
+				return journalentity.ErrConflict
 			}
 			snap, e := tx.Get(target)
 			if e != nil {
@@ -193,9 +195,9 @@ func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d jo
 			return e
 		}
 		// Copy rows so retries never mutate the caller's draft or its request hash.
-		entry.Today = append([]journal.Work(nil), d.Today...)
-		entry.Tomorrow = append([]journal.Work(nil), d.Tomorrow...)
-		for _, rows := range [][]journal.Work{entry.Today, entry.Tomorrow} {
+		entry.Today = append([]journalentity.Work(nil), d.Today...)
+		entry.Tomorrow = append([]journalentity.Work(nil), d.Tomorrow...)
+		for _, rows := range [][]journalentity.Work{entry.Today, entry.Tomorrow} {
 			for i := range rows {
 				if e = s.snapshotWork(tx, d.GroupID, &rows[i]); e != nil {
 					return e
@@ -214,9 +216,9 @@ func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d jo
 	return entry, e
 }
 
-func decode(snap *db.DocumentSnapshot) (journal.Entry, string, error) {
+func decode(snap *db.DocumentSnapshot) (journalentity.Entry, string, error) {
 	var row record
-	var item journal.Entry
+	var item journalentity.Entry
 	if e := snap.DataTo(&row); e != nil {
 		return item, "", e
 	}
@@ -224,44 +226,44 @@ func decode(snap *db.DocumentSnapshot) (journal.Entry, string, error) {
 	return item, row.Order, e
 }
 
-func (s *Store) Get(ctx context.Context, actor, id string) (journal.Entry, error) {
+func (s *Store) Get(ctx context.Context, actor, id string) (journalentity.Entry, error) {
 	locator, e := s.root().Collection("journalReceipts").Doc(id).Get(ctx)
 	if e != nil {
-		return journal.Entry{}, missing(e)
+		return journalentity.Entry{}, missing(e)
 	}
 	var r receipt
 	if e = locator.DataTo(&r); e != nil {
-		return journal.Entry{}, e
+		return journalentity.Entry{}, e
 	}
 	if e = s.group(ctx, actor, r.Group); e != nil {
-		return journal.Entry{}, e
+		return journalentity.Entry{}, e
 	}
 	snap, e := s.entries(r.Group).Doc(id).Get(ctx)
 	if e != nil {
-		return journal.Entry{}, missing(e)
+		return journalentity.Entry{}, missing(e)
 	}
 	item, _, e := decode(snap)
 	if e == nil {
-		e = s.checkRefs(ctx, actor, item.Draft, true, map[journal.Reference]error{})
+		e = s.checkRefs(ctx, actor, item.Draft, true, map[journalentity.Reference]error{})
 	}
 	return item, e
 }
 
-func (s *Store) List(ctx context.Context, actor string, f journal.Filter) (journal.Page, error) {
+func (s *Store) List(ctx context.Context, actor string, f journaldto.Filter) (journaldto.Page, error) {
 	const size = 20
 	scope := firestorekey.Digest([]byte(actor+"\x00"+f.GroupID+"\x00"+f.WorkDate)) + "/"
 	after := ""
 	if f.Cursor != "" {
 		raw, e := base64.RawURLEncoding.DecodeString(f.Cursor)
 		if e != nil || !strings.HasPrefix(string(raw), scope) {
-			return journal.Page{}, journal.ErrInput
+			return journaldto.Page{}, journalentity.ErrInput
 		}
 		after = strings.TrimPrefix(string(raw), scope)
 	}
 	groups := []string{}
 	if f.GroupID != "" {
 		if e := s.group(ctx, actor, f.GroupID); e != nil {
-			return journal.Page{}, e
+			return journaldto.Page{}, e
 		}
 		groups = append(groups, f.GroupID)
 	} else {
@@ -269,7 +271,7 @@ func (s *Store) List(ctx context.Context, actor string, f journal.Filter) (journ
 		for {
 			p, e := s.Groups.List(ctx, actor, cursor)
 			if e != nil {
-				return journal.Page{}, e
+				return journaldto.Page{}, e
 			}
 			for _, g := range p.Items {
 				groups = append(groups, g.ID)
@@ -281,7 +283,7 @@ func (s *Store) List(ctx context.Context, actor string, f journal.Filter) (journ
 		}
 	}
 	type ordered struct {
-		item  journal.Entry
+		item  journalentity.Entry
 		order string
 	}
 	rows := []ordered{}
@@ -295,12 +297,12 @@ func (s *Store) List(ctx context.Context, actor string, f journal.Filter) (journ
 		}
 		snaps, e := q.Documents(ctx).GetAll()
 		if e != nil {
-			return journal.Page{}, e
+			return journaldto.Page{}, e
 		}
 		for _, snap := range snaps {
 			item, order, e := decode(snap)
 			if e != nil {
-				return journal.Page{}, e
+				return journaldto.Page{}, e
 			}
 			rows = append(rows, ordered{item, order})
 		}
@@ -309,19 +311,19 @@ func (s *Store) List(ctx context.Context, actor string, f journal.Filter) (journ
 			rows = rows[:size+1]
 		}
 	}
-	page := journal.Page{}
+	page := journaldto.Page{}
 	if len(rows) > size {
 		page.NextCursor = base64.RawURLEncoding.EncodeToString([]byte(scope + rows[size-1].order))
 		rows = rows[:size]
 	}
-	caches := map[string]map[journal.Reference]error{}
+	caches := map[string]map[journalentity.Reference]error{}
 	for _, r := range rows {
 		g := r.item.GroupID
 		if caches[g] == nil {
-			caches[g] = map[journal.Reference]error{}
+			caches[g] = map[journalentity.Reference]error{}
 		}
 		if e := s.checkRefs(ctx, actor, r.item.Draft, true, caches[g]); e != nil {
-			return journal.Page{}, e
+			return journaldto.Page{}, e
 		}
 		page.Items = append(page.Items, r.item)
 	}

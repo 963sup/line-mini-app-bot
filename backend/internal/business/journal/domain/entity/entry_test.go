@@ -1,4 +1,4 @@
-package journal
+package entity
 
 import (
 	"errors"

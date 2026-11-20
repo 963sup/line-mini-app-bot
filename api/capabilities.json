@@ -87,8 +87,8 @@
     },
     "issue": {
       "contract": "issue/issues.yaml",
-      "adapter": "backend/internal/business/issue/http/routes.go",
-      "core": "backend/internal/business/issue/issue.go",
+      "adapter": "backend/internal/business/issue/adapter/http/routes.go",
+      "core": "backend/internal/business/issue/domain/entity/issue.go",
       "specification": "docs/domains/repository/issues.md"
     },
     "issue.types": {
@@ -195,8 +195,8 @@
     },
     "journal": {
       "contract": "journal/journals.yaml",
-      "adapter": "backend/internal/business/journal/http/routes.go",
-      "core": "backend/internal/business/journal/service.go",
+      "adapter": "backend/internal/business/journal/adapter/http/routes.go",
+      "core": "backend/internal/business/journal/application/port/operations.go",
       "specification": "docs/domains/journal/journal.md"
     },
     "project.inspections": {
@@ -640,9 +640,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/issues",
       "owner": "issue",
-      "adapter": "backend/internal/business/issue/http/routes.go",
+      "adapter": "backend/internal/business/issue/adapter/http/routes.go",
       "handler": "ListIssues",
-      "core": "backend/internal/business/issue/issue.go",
+      "core": "backend/internal/business/issue/domain/entity/issue.go",
       "specification": "docs/domains/repository/issues.md",
       "consumers": [
         "frontend/miniapp/src/business/issue/View.tsx",
@@ -655,9 +655,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/issues",
       "owner": "issue",
-      "adapter": "backend/internal/business/issue/http/routes.go",
+      "adapter": "backend/internal/business/issue/adapter/http/routes.go",
       "handler": "CreateIssue",
-      "core": "backend/internal/business/issue/issue.go",
+      "core": "backend/internal/business/issue/domain/entity/issue.go",
       "specification": "docs/domains/repository/issues.md",
       "consumers": [
         "frontend/miniapp/src/business/issue/View.tsx"
@@ -669,9 +669,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/issues/{id}",
       "owner": "issue",
-      "adapter": "backend/internal/business/issue/http/routes.go",
+      "adapter": "backend/internal/business/issue/adapter/http/routes.go",
       "handler": "GetIssue",
-      "core": "backend/internal/business/issue/issue.go",
+      "core": "backend/internal/business/issue/domain/entity/issue.go",
       "specification": "docs/domains/repository/issues.md",
       "consumers": [
         "frontend/miniapp/src/business/issue/View.tsx"
@@ -683,9 +683,9 @@
       "method": "PATCH",
       "path": "/api/v1/repositories/{repositoryId}/issues/{id}",
       "owner": "issue",
-      "adapter": "backend/internal/business/issue/http/routes.go",
+      "adapter": "backend/internal/business/issue/adapter/http/routes.go",
       "handler": "UpdateIssue",
-      "core": "backend/internal/business/issue/issue.go",
+      "core": "backend/internal/business/issue/domain/entity/issue.go",
       "specification": "docs/domains/repository/issues.md",
       "consumers": [
         "frontend/miniapp/src/business/issue/View.tsx"
@@ -1392,9 +1392,9 @@
       "method": "GET",
       "path": "/api/v1/journals",
       "owner": "journal",
-      "adapter": "backend/internal/business/journal/http/routes.go",
+      "adapter": "backend/internal/business/journal/adapter/http/routes.go",
       "handler": "ListJournals",
-      "core": "backend/internal/business/journal/service.go",
+      "core": "backend/internal/business/journal/application/port/operations.go",
       "specification": "docs/domains/journal/journal.md",
       "consumers": [
         "frontend/miniapp/src/business/journal/Workspace.tsx"
@@ -1406,9 +1406,9 @@
       "method": "POST",
       "path": "/api/v1/journals",
       "owner": "journal",
-      "adapter": "backend/internal/business/journal/http/routes.go",
+      "adapter": "backend/internal/business/journal/adapter/http/routes.go",
       "handler": "CreateJournal",
-      "core": "backend/internal/business/journal/service.go",
+      "core": "backend/internal/business/journal/application/port/operations.go",
       "specification": "docs/domains/journal/journal.md",
       "consumers": [
         "frontend/miniapp/src/business/journal/Workspace.tsx"
@@ -1420,9 +1420,9 @@
       "method": "GET",
       "path": "/api/v1/journals/{journalId}",
       "owner": "journal",
-      "adapter": "backend/internal/business/journal/http/routes.go",
+      "adapter": "backend/internal/business/journal/adapter/http/routes.go",
       "handler": "GetJournal",
-      "core": "backend/internal/business/journal/service.go",
+      "core": "backend/internal/business/journal/application/port/operations.go",
       "specification": "docs/domains/journal/journal.md",
       "consumers": [
         "frontend/miniapp/src/business/journal/Workspace.tsx"

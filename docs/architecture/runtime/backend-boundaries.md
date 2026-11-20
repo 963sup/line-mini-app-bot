@@ -15,7 +15,7 @@ flowchart LR
   click n0 "code-layout.md"
   h --- n1["目錄：business/attendance/adapter/http<br/>責任與允許依賴：出勤 HTTP、生成 DTO 轉換、認<br/>證後的契約驗證；依賴消費端 Authenticator 介<br/>面"]
   h --- n2["目錄：business/issue<br/>責任與允許依賴：事項用例、建立者權限與生命週期<br/>規則；只依賴標準庫與 Repository 核心契約"]
-  h --- n3["目錄：business/issue/http、<br/>business/issue/firestore<br/>責任與允許依賴：分別擁有 HTTP DTO／契約驗證<br/>與文件／交易；server 注入既有身分、<br/>Repository client 及共用編號"]
+  h --- n3["目錄：business/issue/adapter/http、<br/>business/issue/adapter/firestore<br/>責任與允許依賴：分別擁有 HTTP DTO／契約驗證<br/>與文件／交易；server 注入既有身分、<br/>Repository client 及共用編號"]
   h --- n4["目錄：business/discussion<br/>責任與允許依賴：主題、單層留言及各自作者編輯<br/>規則；只依賴標準庫與 Repository 核心"]
   h --- n5["目錄：business/discussion/adapter/http、<br/>business/discussion/adapter/firestore<br/>責任與允許依賴：分別擁有主題／留言 HTTP 契約<br/>及文件／交易；討論配置共用 number，留言不配<br/>置 number"]
   h --- n6["目錄：business/repository/labels、<br/>business/repository/labels/http<br/>責任與允許依賴：標籤目錄列出／建立與 HTTP 轉<br/>換；Firestore 實作保留於既有 <br/>repository/firestore，重用 client；共享 ID <br/>正規化及交易內引用核驗，實際分類寫入仍由 <br/>Issue／Discussion 負責"]

@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/issue"
+	issueapplication "github.com/963sup/line-mini-app-bot/internal/business/issue/application"
+	issuedto "github.com/963sup/line-mini-app-bot/internal/business/issue/application/dto"
+	issueentity "github.com/963sup/line-mini-app-bot/internal/business/issue/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/identity"
@@ -21,12 +23,12 @@ type (
 	Authenticator interface {
 		Authenticate(http.ResponseWriter, *http.Request) (string, string, bool)
 	}
-	issueServer struct{ service *issue.Service }
+	issueServer struct{ service *issueapplication.Service }
 )
 
 var _ httpapi.IssueServer = (*issueServer)(nil)
 
-func Register(mux *http.ServeMux, service *issue.Service, auth Authenticator) {
+func Register(mux *http.ServeMux, service *issueapplication.Service, auth Authenticator) {
 	spec, err := httpapi.Spec()
 	if err != nil {
 		panic(err)
@@ -81,7 +83,7 @@ func Register(mux *http.ServeMux, service *issue.Service, auth Authenticator) {
 	})
 }
 
-func view(i issue.Issue) generated.Issue {
+func view(i issueentity.Issue) generated.Issue {
 	ids := append([]string{}, i.LabelIDs...)
 	var milestone *string
 	if i.MilestoneID != "" {
@@ -97,15 +99,15 @@ func writeError(w http.ResponseWriter, err error) bool {
 	}
 	code, status, message := "unavailable", 503, "問題結果尚未確認，請重新讀取；建立重試請沿用原識別碼。"
 	switch {
-	case errors.Is(err, issue.ErrNotFound):
+	case errors.Is(err, issueentity.ErrNotFound):
 		code, status, message = "not_found", 404, "找不到此空間或問題。"
-	case errors.Is(err, issue.ErrForbidden):
+	case errors.Is(err, issueentity.ErrForbidden):
 		code, status, message = "forbidden", 403, "只有建立者可以修改此問題。"
-	case errors.Is(err, issue.ErrInput):
+	case errors.Is(err, issueentity.ErrInput):
 		code, status, message = "invalid_input", 400, "請確認標題、內容、標籤與合法狀態轉換。"
-	case errors.Is(err, issue.ErrConflict):
+	case errors.Is(err, issueentity.ErrConflict):
 		code, status, message = "version_conflict", 409, "問題已更新，請重新讀取後再操作。"
-	case errors.Is(err, issue.ErrCreationConflict):
+	case errors.Is(err, issueentity.ErrCreationConflict):
 		code, status, message = "idempotency_conflict", 409, "重試識別碼已用於不同內容，請先確認原問題。"
 	}
 	transport.WriteServiceError(w, status, code, message, err)
@@ -113,7 +115,7 @@ func writeError(w http.ResponseWriter, err error) bool {
 }
 
 func (s *issueServer) ListIssues(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ListIssuesParams) {
-	f := issue.Filter{}
+	f := issuedto.Filter{}
 	if params.Cursor != nil {
 		f.Cursor = *params.Cursor
 	}
@@ -146,7 +148,7 @@ func (s *issueServer) CreateIssue(w http.ResponseWriter, r *http.Request, reposi
 	if !transport.ReadJSON(w, r, &input, "問題資料無效。") {
 		return
 	}
-	i, err := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryId, params.IdempotencyKey, issue.Content{Title: input.Title, Body: input.Body})
+	i, err := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryId, params.IdempotencyKey, issueentity.Content{Title: input.Title, Body: input.Body})
 	if !writeError(w, err) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -169,7 +171,7 @@ func (s *issueServer) UpdateIssue(w http.ResponseWriter, r *http.Request, reposi
 		}
 		milestone = &v
 	}
-	i, err := s.service.Update(r.Context(), identity.UserID(r.Context()), repositoryId, id, issue.Update{Content: issue.Content{Title: input.Title, Body: input.Body}, State: string(input.State), ExpectedVersion: input.ExpectedVersion, LabelIDs: input.LabelIds, MilestoneID: milestone})
+	i, err := s.service.Update(r.Context(), identity.UserID(r.Context()), repositoryId, id, issueentity.Update{Content: issueentity.Content{Title: input.Title, Body: input.Body}, State: string(input.State), ExpectedVersion: input.ExpectedVersion, LabelIDs: input.LabelIds, MilestoneID: milestone})
 	if !writeError(w, err) {
 		transport.WriteJSON(w, 200, view(i))
 	}
