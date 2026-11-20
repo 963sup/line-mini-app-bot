@@ -43,7 +43,7 @@ flowchart LR
   n0 --- n0l1["Session"]
   click n0l1 "../identity/browser-session.md"
   n0 --- n0l2["群聊摘要"]
-  click n0l2 "../../domains/summary.md"
+  click n0l2 "../../domains/summary/summary.md"
 ```
 
 <a id="業務與共用系統基礎"></a>
@@ -53,7 +53,7 @@ flowchart LR
   h["業務與共用系統基礎"]
   h --- n0["個人與群組可以擁有 Repository 和 Project。<br/>Space 是庫內工區；Project 透過引用跨庫收錄物<br/>件、子物件、問題與討論，讀取時核驗各來源庫的<br/>權限。Project 規格 · 庫內工區"]
   n0 --- n0l0["Project 規格"]
-  click n0l0 "../../domains/project.md"
+  click n0l0 "../../domains/project/project.md"
   n0 --- n0l1["庫內工區"]
   click n0l1 "../../domains/repository/spaces.md"
   h --- n1["出勤、日誌、群聊摘要與天氣各自維護操作規格與<br/>驗收條件。持久 Inbox、通用 Outbox、租約 <br/>worker 與管理後台的構想另存於平台規劃。功能<br/>索引 · 平台規劃圖"]

@@ -14,9 +14,9 @@
 
 ## 相關規格
 
-[Project 契約](../docs/domains/project.md) · [Components／AI Elements 本機參考庫](../docs/development/tooling/shadcn-reference/README.md)
+[Project 契約](../docs/domains/project/project.md) · [Components／AI Elements 本機參考庫](../docs/development/tooling/shadcn-reference/README.md)
 
-專案與儲存庫在側欄同層。專案頁自行管理工程群組與 Project 選取；來源選擇的讀取資格及舊入口轉接規則見 [Project 契約](../docs/domains/project.md)。
+專案與儲存庫在側欄同層。專案頁自行管理工程群組與 Project 選取；來源選擇的讀取資格及舊入口轉接規則見 [Project 契約](../docs/domains/project/project.md)。
 
 ## 目錄導覽與維護
 
@@ -52,10 +52,10 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 | 業務 | 既有前端實作 | 其他入口 |
 | --- | --- | --- |
-| 工程日誌 | `/miniapp/dashboard` 與 `/miniapp/feed` 共用 JournalWorkspace | [日誌設計](../docs/domains/journal.md) |
+| 工程日誌 | `/miniapp/dashboard` 與 `/miniapp/feed` 共用 JournalWorkspace | [日誌設計](../docs/domains/journal/journal.md) |
 | 出勤 | 打卡、紀錄、更正、審核、請假；工時由紀錄頁呈現 | [出勤功能](../docs/domains/attendance/README.md) |
 | Repository | `/miniapp/repositories` 提供庫內工區、物件與協作功能 | [儲存庫功能索引](../docs/domains/README.md#儲存庫) |
-| Project | `/miniapp/projects` 提供獨立的跨庫專案頁 | [Project 契約](../docs/domains/project.md) |
+| Project | `/miniapp/projects` 提供獨立的跨庫專案頁 | [Project 契約](../docs/domains/project/project.md) |
 | 摘要與天氣 | 使用 LINE 入口，摘要背景工作由內部端點處理 | [摘要](../api/contract/summary/README.md) · [天氣](../api/contract/weather/README.md) |
 
 ## shadcn 頁內組合

@@ -10,7 +10,26 @@
 
 ## 閱讀與修改入口
 
-先查閱[attendance](attendance/README.md)、[repository](repository/README.md)、[project.md](project.md)、[本目錄工作指引](AGENTS.md)。
+[DDD 戰略設計概念、上下文映射與設計流程](../architecture/ddd/README.md)
+
+各目錄入口如下。文件維護方式見[工作指引](AGENTS.md)。
+
+- [attendance · 出勤](attendance/README.md)
+- [discussion · 討論](discussion/README.md)
+- [enterprise · 企業](enterprise/README.md)
+- [group · 群組](group/README.md)
+- [internal · 共用實作](internal/README.md)
+- [issue · 議題](issue/README.md)
+- [journal · 日誌](journal/README.md)
+- [object · 工項](object/README.md)
+- [objectimport · 工項匯入](objectimport/README.md)
+- [organization · 組織](organization/README.md)
+- [project · 專案](project/README.md)
+- [repository · 儲存庫](repository/README.md)
+- [subobject · 子工項](subobject/README.md)
+- [summary · 群聊摘要](summary/README.md)
+- [team · 團隊](team/README.md)
+- [weather · 天氣](weather/README.md)
 
 ## 相關規格
 
@@ -74,7 +93,7 @@
 
 ## 日誌
 
-[獨立日誌：Feed 與 Dashboard 雛型](journal.md)
+[獨立日誌：Feed 與 Dashboard 雛型](journal/journal.md)
 
 現行實作圖索引 · 未來設計圖。
 
@@ -86,7 +105,7 @@
 
 ## 專案
 
-[個人或群組擁有的獨立 Project](project.md)
+[個人或群組擁有的獨立 Project](project/project.md)
 
 現行實作圖索引 · 未來設計圖。
 
@@ -140,7 +159,7 @@
 
 ## 群聊摘要
 
-[基礎群聊摘要](summary.md)
+[基礎群聊摘要](summary/summary.md)
 
 現行實作圖索引 · 未來設計圖。
 
@@ -152,7 +171,7 @@
 
 ## 天氣
 
-[群組位置天氣](weather.md)
+[群組位置天氣](weather/weather.md)
 
 現行實作圖索引 · 未來設計圖。
 

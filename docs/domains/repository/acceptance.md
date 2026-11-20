@@ -58,7 +58,7 @@ flowchart LR
   n0 --- n0l0["里程碑"]
   click n0l0 "milestones.md"
   n0 --- n0l1["Project"]
-  click n0l1 "../project.md"
+  click n0l1 "../project/project.md"
   n0 --- n0l2["洞察（Insights）"]
   click n0l2 "insights.md"
 ```

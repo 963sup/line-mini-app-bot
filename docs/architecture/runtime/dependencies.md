@@ -31,7 +31,7 @@ flowchart LR
 flowchart LR
   h["契約與不變條件的維護位置"]
   h --- n0["契約：Project 所有權、群組資格與來源授權<br/>權威維護位置：Project 規格<br/>導航時的界線：不從來源 Repository 推導 <br/>Project 所有權"]
-  click n0 "../../domains/project.md"
+  click n0 "../../domains/project/project.md"
   h --- n1["契約：Repository 內資源、編號與交易防重<br/>權威維護位置：Repository 功能索引<br/>導航時的界線：各功能保存自己的規則與相容例外"]
   click n1 "../../domains/README.md#儲存庫"
   h --- n2["契約：出勤狀態、工時與重送<br/>權威維護位置：出勤功能索引<br/>導航時的界線：依具體操作契約判定，不另維護通<br/>用業務狀態"]

@@ -23,7 +23,7 @@ flowchart LR
 flowchart LR
   h["身分與相容邊界"]
   h --- n0["庫內工區使用 Repository 的 spaces 路徑及 <br/>spaceId。跨庫收錄工程對象的規則見 Project 功<br/>能規格。"]
-  click n0 "../project.md"
+  click n0 "../project/project.md"
   h --- n1["LINE 規則核對官方 User IDs，官方 source main<br/> revision <br/>259d1fa7698d597f95a7f044f2592379a63defbe，<br/>2026-11-18。不同 provider 的 User ID 不得僅<br/>憑同一真人自行合併。"]
   click n1 "https://developers.line.biz/en/docs/messaging-api/getting-user-ids/"
 ```

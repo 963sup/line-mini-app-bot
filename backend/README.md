@@ -14,10 +14,10 @@
 
 ## 相關規格
 
-[獨立Project](../docs/domains/project.md) · [工程日誌與群組發布](../docs/domains/journal.md)
+[獨立Project](../docs/domains/project/project.md) · [工程日誌與群組發布](../docs/domains/journal/journal.md)
 
 
-工程群組及Project各自保存核心、用例與adapters。Project不依賴Repository核心模型作父容器，只透過使用端定義的來源讀取port查事項；工程群組成員及來源資格分開核驗。現行邊界與遷移見 [獨立Project](../docs/domains/project.md)。
+工程群組及Project各自保存核心、用例與adapters。Project不依賴Repository核心模型作父容器，只透過使用端定義的來源讀取port查事項；工程群組成員及來源資格分開核驗。現行邊界與遷移見 [獨立Project](../docs/domains/project/project.md)。
 
 `cmd/projectmigrate` 是明確namespace的dry-run／apply／受限rollback工具，旗標與writer部署前提見 [遷移指南](cmd/projectmigrate/README.md)；不由server啟動時自動搬正式資料。
 
@@ -33,7 +33,7 @@ cmd/ 保存 server、richmenu、firestorecheck 入口；internal/business/ 按 a
 
 ## 相關文件
 
-- [工程日誌與群組發布](../docs/domains/journal.md)
+- [工程日誌與群組發布](../docs/domains/journal/journal.md)
 
 - [文件索引：Backend](../docs/README.md#按模組閱讀)
 - [Go browser Session 與滑動續期](../docs/architecture/identity/browser-session.md)
@@ -62,7 +62,7 @@ Weather 既有實作集中在 business/weather/forecast/{cwa,line}。
 - [空間事項第一階段](../docs/domains/repository/issues.md)：核心、HTTP 與 Firestore 分層實作；正式環境待驗收。
 - [Repository 共用資源編號基礎](../docs/domains/repository/numbering.md)：內部交易介面，已由事項建立使用，不提供獨立公開分配 API。
 
-- [里程碑](../docs/domains/repository/milestones.md)、[Project](../docs/domains/project.md)與[洞察（Insights）](../docs/domains/repository/insights.md)
+- [里程碑](../docs/domains/repository/milestones.md)、[Project](../docs/domains/project/project.md)與[洞察（Insights）](../docs/domains/repository/insights.md)
 
 ## 協作能力分佈與交付狀態
 

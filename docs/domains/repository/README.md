@@ -26,7 +26,7 @@ flowchart LR
   n0 --- n0l0["庫內工區"]
   click n0l0 "spaces.md"
   n0 --- n0l1["Project 功能規格"]
-  click n0l1 "../project.md"
+  click n0l1 "../project/project.md"
 ```
 
 [Repository Insights 與 Pulse](insights.md) · [工程知識庫 Wiki](wiki.md)
@@ -129,7 +129,7 @@ flowchart LR
   n0 --- n0l3["里程碑"]
   click n0l3 "milestones.md"
   n0 --- n0l4["Project"]
-  click n0l4 "../project.md"
+  click n0l4 "../project/project.md"
   n0 --- n0l5["洞察（Insights）"]
   click n0l5 "insights.md"
   n0 --- n0l6["基礎雛形"]

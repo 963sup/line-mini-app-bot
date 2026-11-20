@@ -53,19 +53,19 @@
       "contract": "summary/worker.yaml",
       "adapter": "backend/internal/business/summary/summarization/http/summary.go",
       "core": "backend/internal/business/summary/summarization/summary.go",
-      "specification": "docs/domains/summary.md"
+      "specification": "docs/domains/summary/summary.md"
     },
     "summary.messagecollection": {
       "kind": "event",
       "document": "api/contract/summary/README.md",
       "core": "backend/internal/business/summary/messagecollection/message.go",
-      "specification": "docs/domains/summary.md"
+      "specification": "docs/domains/summary/summary.md"
     },
     "weather.forecast": {
       "kind": "event",
       "document": "api/contract/weather/README.md",
       "core": "backend/internal/business/weather/forecast/forecast.go",
-      "specification": "docs/domains/weather.md"
+      "specification": "docs/domains/weather/weather.md"
     },
     "attendance.board": {
       "kind": "event",
@@ -125,13 +125,13 @@
       "contract": "project/projects.yaml",
       "adapter": "backend/internal/business/project/http/routes.go",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md"
+      "specification": "docs/domains/project/project.md"
     },
     "project.items": {
       "contract": "project/items.yaml",
       "adapter": "backend/internal/business/project/http/routes.go",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md"
+      "specification": "docs/domains/project/project.md"
     },
     "project.fields": {
       "kind": "scaffold",
@@ -155,13 +155,13 @@
       "contract": "group/groups.yaml",
       "adapter": "backend/internal/business/group/http/routes.go",
       "core": "backend/internal/business/group/group.go",
-      "specification": "docs/domains/project.md"
+      "specification": "docs/domains/project/project.md"
     },
     "project.group": {
       "contract": "project/owner-projects.yaml",
       "adapter": "backend/internal/business/project/http/routes.go",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md"
+      "specification": "docs/domains/project/project.md"
     },
     "object": {
       "contract": "object/objects.yaml",
@@ -185,7 +185,7 @@
       "contract": "project/references.yaml",
       "adapter": "backend/internal/business/project/http/references.go",
       "core": "backend/internal/business/project/references.go",
-      "specification": "docs/domains/project.md"
+      "specification": "docs/domains/project/project.md"
     },
     "repository.spaces": {
       "contract": "repository/spaces.yaml",
@@ -197,13 +197,13 @@
       "contract": "journal/journals.yaml",
       "adapter": "backend/internal/business/journal/http/routes.go",
       "core": "backend/internal/business/journal/service.go",
-      "specification": "docs/domains/journal.md"
+      "specification": "docs/domains/journal/journal.md"
     },
     "project.inspections": {
       "contract": "project/inspection-submissions.yaml",
       "adapter": "backend/internal/business/project/http/inspections.go",
       "core": "backend/internal/business/project/inspections.go",
-      "specification": "docs/domains/project.md"
+      "specification": "docs/domains/project/project.md"
     },
     "repository.wiki": {
       "contract": "repository/wiki.yaml",
@@ -628,7 +628,7 @@
       "adapter": "backend/internal/business/summary/summarization/http/summary.go",
       "handler": "SummaryWorker",
       "core": "backend/internal/business/summary/summarization/summary.go",
-      "specification": "docs/domains/summary.md",
+      "specification": "docs/domains/summary/summary.md",
       "consumers": [
         "backend/internal/business/summary/summarization/cloudtasks/queue.go"
       ],
@@ -898,7 +898,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "ListProjects",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": []
     },
     {
@@ -910,7 +910,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "CreateProject",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": []
     },
     {
@@ -922,7 +922,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "GetProject",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": []
     },
     {
@@ -934,7 +934,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "UpdateProject",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": []
     },
     {
@@ -946,7 +946,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "ListProjectItems",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": []
     },
     {
@@ -958,7 +958,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "AddProjectItem",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": []
     },
     {
@@ -970,7 +970,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "RemoveProjectItem",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": []
     },
     {
@@ -996,7 +996,7 @@
       "adapter": "backend/internal/business/group/http/routes.go",
       "handler": "ListGroups",
       "core": "backend/internal/business/group/group.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/View.tsx",
         "frontend/miniapp/src/business/journal/Workspace.tsx",
@@ -1013,7 +1013,7 @@
       "adapter": "backend/internal/business/group/http/routes.go",
       "handler": "GetGroup",
       "core": "backend/internal/business/group/group.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Workspace.tsx"
       ]
@@ -1027,7 +1027,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "ListOwnerProjects",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/View.tsx"
       ]
@@ -1041,7 +1041,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "CreateOwnerProject",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/View.tsx"
       ]
@@ -1055,7 +1055,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "GetOwnerProject",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/View.tsx"
       ]
@@ -1069,7 +1069,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "UpdateOwnerProject",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/View.tsx"
       ]
@@ -1083,7 +1083,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "ListOwnerProjectItems",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": []
     },
     {
@@ -1095,7 +1095,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "AddOwnerProjectItem",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": []
     },
     {
@@ -1107,7 +1107,7 @@
       "adapter": "backend/internal/business/project/http/routes.go",
       "handler": "RemoveOwnerProjectItem",
       "core": "backend/internal/business/project/project.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": []
     },
     {
@@ -1312,7 +1312,7 @@
       "adapter": "backend/internal/business/project/http/references.go",
       "handler": "ListProjectReferences",
       "core": "backend/internal/business/project/references.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Items.tsx"
       ]
@@ -1326,7 +1326,7 @@
       "adapter": "backend/internal/business/project/http/references.go",
       "handler": "AddProjectReference",
       "core": "backend/internal/business/project/references.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Items.tsx"
       ]
@@ -1340,7 +1340,7 @@
       "adapter": "backend/internal/business/project/http/references.go",
       "handler": "RemoveProjectReference",
       "core": "backend/internal/business/project/references.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Items.tsx"
       ]
@@ -1396,7 +1396,7 @@
       "adapter": "backend/internal/business/journal/http/routes.go",
       "handler": "ListJournals",
       "core": "backend/internal/business/journal/service.go",
-      "specification": "docs/domains/journal.md",
+      "specification": "docs/domains/journal/journal.md",
       "consumers": [
         "frontend/miniapp/src/business/journal/Workspace.tsx"
       ]
@@ -1410,7 +1410,7 @@
       "adapter": "backend/internal/business/journal/http/routes.go",
       "handler": "CreateJournal",
       "core": "backend/internal/business/journal/service.go",
-      "specification": "docs/domains/journal.md",
+      "specification": "docs/domains/journal/journal.md",
       "consumers": [
         "frontend/miniapp/src/business/journal/Workspace.tsx"
       ]
@@ -1424,7 +1424,7 @@
       "adapter": "backend/internal/business/journal/http/routes.go",
       "handler": "GetJournal",
       "core": "backend/internal/business/journal/service.go",
-      "specification": "docs/domains/journal.md",
+      "specification": "docs/domains/journal/journal.md",
       "consumers": [
         "frontend/miniapp/src/business/journal/Workspace.tsx"
       ]
@@ -1438,7 +1438,7 @@
       "adapter": "backend/internal/business/project/http/inspections.go",
       "handler": "ListInspectionSubmissions",
       "core": "backend/internal/business/project/inspections.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Inspections.tsx"
       ]
@@ -1452,7 +1452,7 @@
       "adapter": "backend/internal/business/project/http/inspections.go",
       "handler": "SubmitInspection",
       "core": "backend/internal/business/project/inspections.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Inspections.tsx"
       ]
@@ -1536,7 +1536,7 @@
       "adapter": "backend/internal/business/project/http/references.go",
       "handler": "GetProjectReferenceState",
       "core": "backend/internal/business/project/references.go",
-      "specification": "docs/domains/project.md",
+      "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Items.tsx"
       ]

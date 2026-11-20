@@ -47,7 +47,7 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 
 | 圖表目的 | 必讀來源與邊界 |
 | --- | --- |
-| 儲存庫與專案關係 | [Project](../docs/domains/project.md)：個人或群組擁有 Project，引用可跨庫，來源讀權逐庫核驗 |
+| 儲存庫與專案關係 | [Project](../docs/domains/project/project.md)：個人或群組擁有 Project，引用可跨庫，來源讀權逐庫核驗 |
 | 物件與子工序 | [Object](../docs/domains/repository/objects.md)、[Subobject](../docs/domains/repository/objects.md)：單層子項，數量／單位／進度獨立 |
 | 問題與討論 | [Issue](../docs/domains/repository/issues.md)、[Discussion](../docs/domains/repository/discussions.md)：各自狀態與資料，不自動推進物件進度 |
 | 授權與寫入流程 | [操作模型](../docs/architecture/contracts/business-operations.md)：區分主體、資源、權限、領域規則、交易與結果 |
