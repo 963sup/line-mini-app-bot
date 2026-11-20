@@ -141,7 +141,10 @@ test("canonical create retries retain source, payload and key after an unknown r
 test("a source deep link from another Group cannot become a creation source", async () => {
   const f = await fixture(`/miniapp/projects?owner=${sa}&source=${rid}&project=new`, async request => {
     const path = new URL(request.url).pathname;
-    if (path === "/api/v1/repositories") return Response.json({ items: [{ ...repository, ownerId: sb }], nextCursor: "" });
+    if (path === "/api/v1/repositories") {
+      assert.equal(new URL(request.url).searchParams.get("ownerId"), sa);
+      return Response.json({ items: [], nextCursor: "" });
+    }
     if (path === "/api/v1/repositories/" + rid) return Response.json({ ...repository, ownerId: sb });
     return normal(request);
   });

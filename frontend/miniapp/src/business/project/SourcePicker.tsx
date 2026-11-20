@@ -18,10 +18,9 @@ export function SourcePicker({ ownerId, initialSource, value, onChange, disabled
   const load = useCallback((next = "") => {
     setBusy(true); setCursor("");
     void list.run(signal => request((client, s) => client.GET("/api/v1/repositories", {
-      signal: s, params: { query: { cursor: next || undefined } },
+      signal: s, params: { query: { cursor: next || undefined, ownerId: ownerId || undefined } },
     }), { signal }), page => {
-      const allowed = page.items.filter(item => (!ownerId || item.ownerId === ownerId) && item.status === "ACTIVE");
-      setItems(previous => [...new Map([...previous, ...allowed].map(item => [item.id, item])).values()]);
+      setItems(previous => [...new Map([...previous, ...page.items].map(item => [item.id, item])).values()]);
       setCursor(page.nextCursor); setBusy(false); setStatus(page.nextCursor ? "可繼續查詢有權讀取的來源。" : "已讀取可用來源。");
     }, error => { setBusy(false); setStatus(errorMessage(error)); });
   }, [ownerId, request, list.run]);

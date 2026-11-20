@@ -25,7 +25,7 @@ func MyEngineering(ctx context.Context, event webhook.EventInterface, appURL str
 	if catalog == nil {
 		return transport.Reply{}, true, repositoryDomainEntity.ErrUnavailable
 	}
-	page, err := catalog.List(ctx, user.UserId, "")
+	page, err := catalog.List(ctx, user.UserId, "", "")
 	if err != nil {
 		return transport.Reply{}, true, err
 	}

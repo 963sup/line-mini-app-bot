@@ -15,6 +15,15 @@
         "parameters": [
           {
             "in": "query",
+            "name": "ownerId",
+            "description": "Restrict the authorized discovery results to this owner. Continue with nextCursor even when a page is empty.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[UC][a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
             "name": "cursor",
             "schema": {
               "type": "string",
@@ -175,6 +184,11 @@
           "ownerId": {
             "type": "string",
             "pattern": "^[UC][a-f0-9]{32}$"
+          },
+          "groupId": {
+            "type": "string",
+            "pattern": "^C[a-f0-9]{32}$",
+            "description": "LINE group ID for group-owned repositories. Omitted for personal repositories."
           },
           "name": {
             "type": "string"

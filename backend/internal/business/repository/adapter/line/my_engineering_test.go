@@ -17,7 +17,7 @@ type engineeringCatalog struct {
 	repositoryApplicationPort.Store
 }
 
-func (engineeringCatalog) Candidates(_ context.Context, user, cursor string) (repositoryApplicationDto.Page, error) {
+func (engineeringCatalog) Candidates(_ context.Context, user, cursor, _ string) (repositoryApplicationDto.Page, error) {
 	if user != "member" {
 		return repositoryApplicationDto.Page{}, repositoryDomainEntity.ErrNotFound
 	}

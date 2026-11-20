@@ -1362,6 +1362,8 @@ export interface components {
         Repository: {
             id: string;
             ownerId: string;
+            /** @description LINE group ID for group-owned repositories. Omitted for personal repositories. */
+            groupId?: string;
             name: string;
             /** @enum {string} */
             status: "ACTIVE" | "INACTIVE";
@@ -4362,6 +4364,8 @@ export interface operations {
     listRepositories: {
         parameters: {
             query?: {
+                /** @description Restrict the authorized discovery results to this owner. Continue with nextCursor even when a page is empty. */
+                ownerId?: string;
                 cursor?: string;
             };
             header?: never;
