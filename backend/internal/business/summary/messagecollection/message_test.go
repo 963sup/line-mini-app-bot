@@ -11,8 +11,10 @@ func TestCollectionWindow(t *testing.T) {
 		offset time.Duration
 		want   bool
 	}{
-		{-24*time.Hour - time.Nanosecond, false}, {-24 * time.Hour, true},
-		{time.Minute, true}, {time.Minute + time.Nanosecond, false},
+		{-24*time.Hour - time.Nanosecond, false},
+		{-24 * time.Hour, true},
+		{time.Minute, true},
+		{time.Minute + time.Nanosecond, false},
 	} {
 		m := Message{ID: "m", UserID: "u", OccurredAt: now.Add(tc.offset)}
 		if m.CanCollect(now) != tc.want {
