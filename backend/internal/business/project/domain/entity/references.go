@@ -9,6 +9,10 @@ type Reference struct {
 	SourceTitle, SourceState, Quantity, Unit, CompletedQuantity, Type string
 }
 
+func (r Reference) SupportsInspection() bool {
+	return r.SourceType == "object" || r.SourceType == "subobject"
+}
+
 func ValidReference(r Reference) bool {
 	if !ValidID(r.SourceID) {
 		return false
