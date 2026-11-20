@@ -263,6 +263,7 @@ type reviewTransaction struct {
 func (t reviewTransaction) ReviewerGroups() ([]string, error) {
 	return t.store.reviewerGroups(t.tx, t.actor)
 }
+
 func (t reviewTransaction) PreviousDecision() (approvals.Decision, bool, error) {
 	var prior correctionDecision
 	if err := t.proposal.DataTo(&prior); err != nil {
@@ -274,9 +275,11 @@ func (t reviewTransaction) PreviousDecision() (approvals.Decision, bool, error) 
 	}
 	return approvals.Decision{Status: prior.Status, Reason: prior.Reason}, err == nil && approved.Exists(), nil
 }
+
 func (t reviewTransaction) Original(c correctionsmodel.Correction) (recordmodel.Record, error) {
 	return correctionBefore(t.tx, t.employee, c)
 }
+
 func (t reviewTransaction) SaveApproval(c correctionsmodel.Correction, before, after recordmodel.Record, actorKey string, now time.Time) error {
 	employee := t.employee
 	state := employee.Collection("attendanceStates").Doc(firestorekey.Encode(c.GroupID))
@@ -318,6 +321,7 @@ func (t reviewTransaction) SaveApproval(c correctionsmodel.Correction, before, a
 	}
 	return nil
 }
+
 func (t reviewTransaction) SaveDecision(d approvals.Decision, actorKey string, now time.Time) error {
 	return t.tx.Update(t.proposal.Ref, []db.Update{{Path: "status", Value: d.Status}, {Path: "decisionReason", Value: d.Reason}, {Path: "reviewerKey", Value: actorKey}, {Path: "reviewedAt", Value: now}})
 }
