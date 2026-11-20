@@ -177,8 +177,8 @@
     },
     "subobject": {
       "contract": "subobject/subobjects.yaml",
-      "adapter": "backend/internal/business/subobject/http/routes.go",
-      "core": "backend/internal/business/subobject/subobject.go",
+      "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
+      "core": "backend/internal/business/subobject/domain/entity/subobject.go",
       "specification": "docs/domains/repository/objects.md"
     },
     "project.references": {
@@ -1258,9 +1258,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects",
       "owner": "subobject",
-      "adapter": "backend/internal/business/subobject/http/routes.go",
+      "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
       "handler": "ListSubobjects",
-      "core": "backend/internal/business/subobject/subobject.go",
+      "core": "backend/internal/business/subobject/domain/entity/subobject.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": [
         "frontend/miniapp/src/business/journal/WorkContext.tsx"
@@ -1272,9 +1272,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects",
       "owner": "subobject",
-      "adapter": "backend/internal/business/subobject/http/routes.go",
+      "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
       "handler": "CreateSubobject",
-      "core": "backend/internal/business/subobject/subobject.go",
+      "core": "backend/internal/business/subobject/domain/entity/subobject.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": []
     },
@@ -1284,9 +1284,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}",
       "owner": "subobject",
-      "adapter": "backend/internal/business/subobject/http/routes.go",
+      "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
       "handler": "GetSubobject",
-      "core": "backend/internal/business/subobject/subobject.go",
+      "core": "backend/internal/business/subobject/domain/entity/subobject.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": []
     },
@@ -1296,9 +1296,9 @@
       "method": "PATCH",
       "path": "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}",
       "owner": "subobject",
-      "adapter": "backend/internal/business/subobject/http/routes.go",
+      "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
       "handler": "UpdateSubobject",
-      "core": "backend/internal/business/subobject/subobject.go",
+      "core": "backend/internal/business/subobject/domain/entity/subobject.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": []
     },

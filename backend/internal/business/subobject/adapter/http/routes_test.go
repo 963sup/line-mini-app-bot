@@ -1,6 +1,12 @@
 package subobjecthttp
 
 import (
+	subobjectApplication "github.com/963sup/line-mini-app-bot/internal/business/subobject/application"
+	subobjectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/subobject/application/dto"
+	subobjectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/subobject/domain/entity"
+)
+
+import (
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
@@ -16,7 +22,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	feature "github.com/963sup/line-mini-app-bot/internal/business/subobject"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 )
 
@@ -40,38 +45,38 @@ func (r repos) Get(_ context.Context, _, id string) (repositoryDomainEntity.Repo
 }
 
 type memory struct {
-	child feature.Subobject
+	child subobjectDomainEntity.Subobject
 	calls int
 	pid   string
 }
 
-func (m *memory) List(_ context.Context, _ repositoryDomainEntity.Repository, _, pid, _ string) (feature.Page, error) {
+func (m *memory) List(_ context.Context, _ repositoryDomainEntity.Repository, _, pid, _ string) (subobjectApplicationDto.Page, error) {
 	m.calls++
 	m.pid = pid
-	return feature.Page{Items: []feature.Subobject{m.child}}, nil
+	return subobjectApplicationDto.Page{Items: []subobjectDomainEntity.Subobject{m.child}}, nil
 }
 
-func (m *memory) Get(_ context.Context, _ repositoryDomainEntity.Repository, _, pid, _ string) (feature.Subobject, error) {
+func (m *memory) Get(_ context.Context, _ repositoryDomainEntity.Repository, _, pid, _ string) (subobjectDomainEntity.Subobject, error) {
 	m.calls++
 	m.pid = pid
 	return m.child, nil
 }
 
-func (m *memory) Create(_ context.Context, r repositoryDomainEntity.Repository, actor, pid, _ string, c feature.Content) (feature.Subobject, error) {
+func (m *memory) Create(_ context.Context, r repositoryDomainEntity.Repository, actor, pid, _ string, c subobjectDomainEntity.Content) (subobjectDomainEntity.Subobject, error) {
 	m.calls++
 	m.pid = pid
-	status, e := feature.Status(c)
+	status, e := subobjectDomainEntity.Status(c)
 	if e != nil {
-		return feature.Subobject{}, e
+		return subobjectDomainEntity.Subobject{}, e
 	}
-	m.child = feature.Subobject{Content: c, ID: strings.Repeat("c", 32), RepositoryID: r.ID, ParentObjectID: pid, CreatorID: actor, Status: status, Version: 1, CreatedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC()}
+	m.child = subobjectDomainEntity.Subobject{Content: c, ID: strings.Repeat("c", 32), RepositoryID: r.ID, ParentObjectID: pid, CreatorID: actor, Status: status, Version: 1, CreatedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC()}
 	return m.child, nil
 }
 
-func (m *memory) Update(_ context.Context, _ repositoryDomainEntity.Repository, actor, pid, _ string, input feature.Update) (feature.Subobject, error) {
+func (m *memory) Update(_ context.Context, _ repositoryDomainEntity.Repository, actor, pid, _ string, input subobjectDomainEntity.Update) (subobjectDomainEntity.Subobject, error) {
 	m.calls++
 	m.pid = pid
-	next, e := feature.ApplyUpdate(m.child, actor, input)
+	next, e := subobjectDomainEntity.ApplyUpdate(m.child, actor, input)
 	if e == nil {
 		m.child = next
 	}
@@ -84,7 +89,7 @@ func TestHTTPSubobjectContractAndIndependentScope(t *testing.T) {
 	base := `{"name":"Lay","type":"work","quantity":"140.000001","unit":"M"}`
 	m := &memory{}
 	mux := http.NewServeMux()
-	Register(mux, &feature.Service{Repositories: repos{}, Store: m}, auth{})
+	Register(mux, &subobjectApplication.Service{Repositories: repos{}, Store: m}, auth{})
 	request := func(method, path, body, key string) *httptest.ResponseRecorder {
 		r := httptest.NewRequest(method, path, strings.NewReader(body))
 		r.Header.Set("Content-Type", "application/json")
@@ -133,7 +138,7 @@ func TestHTTPSubobjectContractAndIndependentScope(t *testing.T) {
 	}
 	for _, deny := range []bool{true, false} {
 		denied := http.NewServeMux()
-		Register(denied, &feature.Service{Repositories: repos{deny: true}, Store: &memory{}}, auth{deny: deny})
+		Register(denied, &subobjectApplication.Service{Repositories: repos{deny: true}, Store: &memory{}}, auth{deny: deny})
 		req := httptest.NewRequest("GET", path, nil)
 		out := httptest.NewRecorder()
 		denied.ServeHTTP(out, req)
@@ -156,7 +161,7 @@ func (r unavailableRepositories) Get(context.Context, string, string) (repositor
 func TestRepositoryFailureDetails(t *testing.T) {
 	failure := status.Error(codes.PermissionDenied, "repository read denied")
 	mux := http.NewServeMux()
-	Register(mux, &feature.Service{Repositories: unavailableRepositories{failure}, Store: &memory{}}, auth{})
+	Register(mux, &subobjectApplication.Service{Repositories: unavailableRepositories{failure}, Store: &memory{}}, auth{})
 	path := "/api/v1/repositories/" + strings.Repeat("a", 32) + "/objects/" + strings.Repeat("b", 32) + "/subobjects"
 	for _, mode := range []string{"1", "0"} {
 		t.Setenv("DEV_ERROR_DETAILS", mode)

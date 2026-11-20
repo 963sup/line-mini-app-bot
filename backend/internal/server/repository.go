@@ -1,6 +1,10 @@
 package server
 
 import (
+	subobjectApplication "github.com/963sup/line-mini-app-bot/internal/business/subobject/application"
+)
+
+import (
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
 	repositoryApplicationLabels "github.com/963sup/line-mini-app-bot/internal/business/repository/application/labels"
 	repositoryApplicationMilestones "github.com/963sup/line-mini-app-bot/internal/business/repository/application/milestones"
@@ -44,8 +48,7 @@ import (
 
 	businessspacedb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore/space"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/subobject"
-	subobjectdb "github.com/963sup/line-mini-app-bot/internal/business/subobject/firestore"
+	subobjectdb "github.com/963sup/line-mini-app-bot/internal/business/subobject/adapter/firestore"
 	linetransport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 )
 
@@ -168,7 +171,7 @@ func newAutomaticObjectImports(r *repositoryApplication.Service) *objectimportAp
 	return &objectimportApplicationAutomatic.Service{Repositories: r, Objects: newObjects(r), Store: &importdb.AutomaticStore{Store: importdb.Store{Client: store.Client, ChannelID: store.ChannelID}}, Producer: producer}
 }
 
-func newSubobjects(r *repositoryApplication.Service) *subobject.Service {
+func newSubobjects(r *repositoryApplication.Service) *subobjectApplication.Service {
 	if r == nil {
 		return nil
 	}
@@ -176,7 +179,7 @@ func newSubobjects(r *repositoryApplication.Service) *subobject.Service {
 	if !ok {
 		return nil
 	}
-	return &subobject.Service{Repositories: r, Store: &subobjectdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
+	return &subobjectApplication.Service{Repositories: r, Store: &subobjectdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
 }
 
 func newRepositorySpaces(r *repositoryApplication.Service) *repositoryApplicationSpace.Service {

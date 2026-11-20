@@ -1,13 +1,17 @@
 package subobjecthttp
 
 import (
+	subobjectApplication "github.com/963sup/line-mini-app-bot/internal/business/subobject/application"
+	subobjectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/subobject/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 	"mime"
 	"net/http"
 	"time"
 
-	object "github.com/963sup/line-mini-app-bot/internal/business/subobject"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/identity"
@@ -20,12 +24,12 @@ type (
 	Authenticator interface {
 		Authenticate(http.ResponseWriter, *http.Request) (string, string, bool)
 	}
-	subobjectServer struct{ service *object.Service }
+	subobjectServer struct{ service *subobjectApplication.Service }
 )
 
 var _ httpapi.SubobjectServer = (*subobjectServer)(nil)
 
-func Register(mux *http.ServeMux, service *object.Service, auth Authenticator) {
+func Register(mux *http.ServeMux, service *subobjectApplication.Service, auth Authenticator) {
 	spec, err := httpapi.Spec()
 	if err != nil {
 		panic(err)
@@ -80,7 +84,7 @@ func Register(mux *http.ServeMux, service *object.Service, auth Authenticator) {
 	})
 }
 
-func view(i object.Subobject) generated.Subobject {
+func view(i subobjectDomainEntity.Subobject) generated.Subobject {
 	var completed *string
 	if i.CompletedQuantity != "" {
 		completed = &i.CompletedQuantity
@@ -94,17 +98,17 @@ func writeError(w http.ResponseWriter, e error) bool {
 	}
 	code, httpStatus, message := "unavailable", 503, "子物件結果尚未確認，請重新讀取；建立重試請沿用原識別碼。"
 	switch {
-	case errors.Is(e, object.ErrNotFound):
+	case errors.Is(e, subobjectDomainEntity.ErrNotFound):
 		code, httpStatus, message = "not_found", 404, "找不到此空間或子物件。"
-	case errors.Is(e, object.ErrForbidden):
+	case errors.Is(e, subobjectDomainEntity.ErrForbidden):
 		code, httpStatus, message = "forbidden", 403, "只有父物件建立者可以管理子物件。"
-	case errors.Is(e, object.ErrProgressRemoval):
+	case errors.Is(e, subobjectDomainEntity.ErrProgressRemoval):
 		code, httpStatus, message = "progress_removal", 400, "已有完成數量的施作不能改為非施作，請先確認並調整完成數量。"
-	case errors.Is(e, object.ErrInput):
+	case errors.Is(e, subobjectDomainEntity.ErrInput):
 		code, httpStatus, message = "invalid_input", 400, "請確認名稱、類型、總數量、單位與完成數量。"
-	case errors.Is(e, object.ErrConflict):
+	case errors.Is(e, subobjectDomainEntity.ErrConflict):
 		code, httpStatus, message = "version_conflict", 409, "子物件已更新，請重新讀取。"
-	case errors.Is(e, object.ErrCreationConflict):
+	case errors.Is(e, subobjectDomainEntity.ErrCreationConflict):
 		code, httpStatus, message = "idempotency_conflict", 409, "重試識別碼已用於不同內容，請先確認原子物件。"
 	}
 	transport.WriteServiceError(w, httpStatus, code, message, e)
@@ -146,7 +150,7 @@ func (s *subobjectServer) CreateSubobject(w http.ResponseWriter, r *http.Request
 	if !transport.ReadJSON(w, r, &in, "子物件資料無效。") {
 		return
 	}
-	c := object.Content{Name: in.Name, Type: string(in.Type), Quantity: in.Quantity, Unit: in.Unit, CompletedQuantity: value(in.CompletedQuantity)}
+	c := subobjectDomainEntity.Content{Name: in.Name, Type: string(in.Type), Quantity: in.Quantity, Unit: in.Unit, CompletedQuantity: value(in.CompletedQuantity)}
 	i, e := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryID, parentObjectID, p.IdempotencyKey, c)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
@@ -158,7 +162,7 @@ func (s *subobjectServer) UpdateSubobject(w http.ResponseWriter, r *http.Request
 	if !transport.ReadJSON(w, r, &in, "子物件資料無效。") {
 		return
 	}
-	u := object.Update{Content: object.Content{Name: in.Name, Type: string(in.Type), Quantity: in.Quantity, Unit: in.Unit}, CompletedQuantity: in.CompletedQuantity, ExpectedVersion: in.ExpectedVersion}
+	u := subobjectDomainEntity.Update{Content: subobjectDomainEntity.Content{Name: in.Name, Type: string(in.Type), Quantity: in.Quantity, Unit: in.Unit}, CompletedQuantity: in.CompletedQuantity, ExpectedVersion: in.ExpectedVersion}
 	i, e := s.service.Update(r.Context(), identity.UserID(r.Context()), repositoryID, parentObjectID, subobjectID, u)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))

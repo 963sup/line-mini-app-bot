@@ -42,7 +42,7 @@ import (
 	businessgrouphttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/space"
 	statisticshttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/statistics"
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/line"
-	subobjecthttp "github.com/963sup/line-mini-app-bot/internal/business/subobject/http"
+	subobjecthttp "github.com/963sup/line-mini-app-bot/internal/business/subobject/adapter/http"
 	"github.com/963sup/line-mini-app-bot/internal/diagnostics/geolocation"
 )
 

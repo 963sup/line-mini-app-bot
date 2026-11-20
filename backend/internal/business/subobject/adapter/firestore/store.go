@@ -1,6 +1,12 @@
 package firestore
 
 import (
+	subobjectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/subobject/application/dto"
+	subobjectApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/subobject/application/port"
+	subobjectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/subobject/domain/entity"
+)
+
+import (
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
@@ -13,7 +19,6 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
-	feature "github.com/963sup/line-mini-app-bot/internal/business/subobject"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -26,7 +31,7 @@ type Store struct {
 	ChannelID string
 }
 
-var _ feature.Store = (*Store)(nil)
+var _ subobjectApplicationPort.Store = (*Store)(nil)
 
 type document struct {
 	SchemaVersion     int64     `firestore:"schemaVersion"`
@@ -45,28 +50,28 @@ type document struct {
 	UpdatedAt         time.Time `firestore:"updatedAt"`
 }
 
-func encode(j feature.Subobject) document {
+func encode(j subobjectDomainEntity.Subobject) document {
 	return document{SchemaVersion: 1, ID: j.ID, RepositoryID: j.RepositoryID, ParentObjectID: j.ParentObjectID, CreatorID: j.CreatorID, Name: j.Name, Type: j.Type, Quantity: j.Quantity, Unit: j.Unit, CompletedQuantity: j.CompletedQuantity, Status: j.Status, Version: j.Version, CreatedAt: j.CreatedAt, UpdatedAt: j.UpdatedAt}
 }
 
-func decode(snap *db.DocumentSnapshot, e error, repositoryID, parentObjectID, parentCreatorID string) (feature.Subobject, error) {
+func decode(snap *db.DocumentSnapshot, e error, repositoryID, parentObjectID, parentCreatorID string) (subobjectDomainEntity.Subobject, error) {
 	if status.Code(e) == codes.NotFound {
-		return feature.Subobject{}, feature.ErrNotFound
+		return subobjectDomainEntity.Subobject{}, subobjectDomainEntity.ErrNotFound
 	}
 	if e != nil {
-		return feature.Subobject{}, e
+		return subobjectDomainEntity.Subobject{}, e
 	}
 	var d document
 	if e = snap.DataTo(&d); e != nil {
-		return feature.Subobject{}, e
+		return subobjectDomainEntity.Subobject{}, e
 	}
-	c := feature.Content{Name: d.Name, Type: d.Type, Quantity: d.Quantity, Unit: d.Unit, CompletedQuantity: d.CompletedQuantity}
-	normalized, e := feature.Normalize(c)
-	derived, se := feature.Status(c)
+	c := subobjectDomainEntity.Content{Name: d.Name, Type: d.Type, Quantity: d.Quantity, Unit: d.Unit, CompletedQuantity: d.CompletedQuantity}
+	normalized, e := subobjectDomainEntity.Normalize(c)
+	derived, se := subobjectDomainEntity.Status(c)
 	if e != nil || se != nil || normalized != c || derived != d.Status || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !repositoryDomainEntity.ValidID(d.ID) || d.RepositoryID != repositoryID || d.ParentObjectID != parentObjectID || d.CreatorID != parentCreatorID || parentCreatorID == "" || d.Version < 1 || d.Version > repositoryDomainEntity.MaxResourceNumber || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) {
-		return feature.Subobject{}, feature.ErrUnavailable
+		return subobjectDomainEntity.Subobject{}, subobjectDomainEntity.ErrUnavailable
 	}
-	return feature.Subobject{Content: c, ID: d.ID, RepositoryID: repositoryID, ParentObjectID: parentObjectID, CreatorID: d.CreatorID, Status: d.Status, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
+	return subobjectDomainEntity.Subobject{Content: c, ID: d.ID, RepositoryID: repositoryID, ParentObjectID: parentObjectID, CreatorID: d.CreatorID, Status: d.Status, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
 }
 func (s *Store) ready() bool { return s != nil && s.Client != nil && s.ChannelID != "" }
 func (s *Store) repositoryRef(repositoryID string) *db.DocumentRef {
@@ -81,7 +86,7 @@ func (s *Store) parentObjectRef(repositoryID, parentObjectID string) *db.Documen
 func (s *Store) authorizeParentObject(tx *db.Transaction, r repositoryDomainEntity.Repository, parentObjectID, actor string, requireCreator bool) (string, error) {
 	snap, e := tx.Get(s.repositoryRef(r.ID))
 	if status.Code(e) == codes.NotFound {
-		return "", feature.ErrNotFound
+		return "", subobjectDomainEntity.ErrNotFound
 	}
 	if e != nil {
 		return "", e
@@ -95,11 +100,11 @@ func (s *Store) authorizeParentObject(tx *db.Transaction, r repositoryDomainEnti
 		return "", e
 	}
 	if !r.MatchesActive(repo.ID, repo.OwnerID, repo.Status) {
-		return "", feature.ErrNotFound
+		return "", subobjectDomainEntity.ErrNotFound
 	}
 	snap, e = tx.Get(s.parentObjectRef(r.ID, parentObjectID))
 	if status.Code(e) == codes.NotFound {
-		return "", feature.ErrNotFound
+		return "", subobjectDomainEntity.ErrNotFound
 	}
 	if e != nil {
 		return "", e
@@ -114,21 +119,21 @@ func (s *Store) authorizeParentObject(tx *db.Transaction, r repositoryDomainEnti
 		return "", e
 	}
 	if parent.ID != parentObjectID || parent.RepositoryID != r.ID || parent.CreatorID == "" || parent.SchemaVersion != 1 {
-		return "", feature.ErrNotFound
+		return "", subobjectDomainEntity.ErrNotFound
 	}
 	if requireCreator && parent.CreatorID != actor {
-		return "", feature.ErrForbidden
+		return "", subobjectDomainEntity.ErrForbidden
 	}
 	return parent.CreatorID, nil
 }
 
-func (s *Store) Get(ctx context.Context, r repositoryDomainEntity.Repository, actor, parentObjectID, subobjectID string) (result feature.Subobject, err error) {
+func (s *Store) Get(ctx context.Context, r repositoryDomainEntity.Repository, actor, parentObjectID, subobjectID string) (result subobjectDomainEntity.Subobject, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
-		return result, feature.ErrUnavailable
+		return result, subobjectDomainEntity.ErrUnavailable
 	}
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		result = feature.Subobject{}
+		result = subobjectDomainEntity.Subobject{}
 		parentCreatorID, e := s.authorizeParentObject(tx, r, parentObjectID, actor, false)
 		if e != nil {
 			return e
@@ -138,28 +143,28 @@ func (s *Store) Get(ctx context.Context, r repositoryDomainEntity.Repository, ac
 		return e
 	})
 	if err != nil {
-		return feature.Subobject{}, err
+		return subobjectDomainEntity.Subobject{}, err
 	}
 	return result, nil
 }
 
 type cursor struct{ Scope, ID string }
 
-func (s *Store) List(ctx context.Context, r repositoryDomainEntity.Repository, actor, parentObjectID, token string) (result feature.Page, err error) {
+func (s *Store) List(ctx context.Context, r repositoryDomainEntity.Repository, actor, parentObjectID, token string) (result subobjectApplicationDto.Page, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
-		return result, feature.ErrUnavailable
+		return result, subobjectDomainEntity.ErrUnavailable
 	}
 	scope := firestorekey.JSONDigest([]string{"subobject-cursor-v1", s.ChannelID, r.ID, parentObjectID, actor})
 	c := cursor{}
 	if token != "" {
 		b, e := base64.RawURLEncoding.DecodeString(token)
 		if e != nil || json.Unmarshal(b, &c) != nil || c.Scope != scope || !repositoryDomainEntity.ValidID(c.ID) {
-			return result, feature.ErrInput
+			return result, subobjectDomainEntity.ErrInput
 		}
 	}
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		result = feature.Page{Items: []feature.Subobject{}}
+		result = subobjectApplicationDto.Page{Items: []subobjectDomainEntity.Subobject{}}
 		parentCreatorID, e := s.authorizeParentObject(tx, r, parentObjectID, actor, false)
 		if e != nil {
 			return e
@@ -190,7 +195,7 @@ func (s *Store) List(ctx context.Context, r repositoryDomainEntity.Repository, a
 		return nil
 	})
 	if err != nil {
-		return feature.Page{}, err
+		return subobjectApplicationDto.Page{}, err
 	}
 	return result, nil
 }
@@ -201,10 +206,10 @@ type receipt struct {
 	PayloadHash   string `firestore:"payloadHash"`
 }
 
-func (s *Store) Create(ctx context.Context, r repositoryDomainEntity.Repository, actor, parentObjectID, key string, c feature.Content) (result feature.Subobject, err error) {
+func (s *Store) Create(ctx context.Context, r repositoryDomainEntity.Repository, actor, parentObjectID, key string, c subobjectDomainEntity.Content) (result subobjectDomainEntity.Subobject, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
-		return result, feature.ErrUnavailable
+		return result, subobjectDomainEntity.ErrUnavailable
 	}
 	parent := s.parentObjectRef(r.ID, parentObjectID)
 	ref := parent.Collection("subobjects").NewDoc() // IDs follow the same opaque 32-hex convention as Object.
@@ -217,7 +222,7 @@ func (s *Store) Create(ctx context.Context, r repositoryDomainEntity.Repository,
 	}{1, c.Name, c.Type, c.Quantity, c.Unit, c.CompletedQuantity})
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		result = feature.Subobject{}
+		result = subobjectDomainEntity.Subobject{}
 		parentCreatorID, e := s.authorizeParentObject(tx, r, parentObjectID, actor, true)
 		if e != nil {
 			return e
@@ -229,10 +234,10 @@ func (s *Store) Create(ctx context.Context, r repositoryDomainEntity.Repository,
 				return e
 			}
 			if old.SchemaVersion != 1 || !repositoryDomainEntity.ValidID(old.ID) || len(old.PayloadHash) != 64 {
-				return feature.ErrUnavailable
+				return subobjectDomainEntity.ErrUnavailable
 			}
 			if old.PayloadHash != payload {
-				return feature.ErrCreationConflict
+				return subobjectDomainEntity.ErrCreationConflict
 			}
 			snap, e = tx.Get(parent.Collection("subobjects").Doc(old.ID))
 			result, e = decode(snap, e, r.ID, parentObjectID, parentCreatorID)
@@ -241,30 +246,30 @@ func (s *Store) Create(ctx context.Context, r repositoryDomainEntity.Repository,
 		if status.Code(e) != codes.NotFound {
 			return e
 		}
-		derived, e := feature.Status(c)
+		derived, e := subobjectDomainEntity.Status(c)
 		if e != nil {
 			return e
 		}
-		result = feature.Subobject{Content: c, ID: subobjectID, RepositoryID: r.ID, ParentObjectID: parentObjectID, CreatorID: parentCreatorID, Status: derived, Version: 1, CreatedAt: now, UpdatedAt: now}
+		result = subobjectDomainEntity.Subobject{Content: c, ID: subobjectID, RepositoryID: r.ID, ParentObjectID: parentObjectID, CreatorID: parentCreatorID, Status: derived, Version: 1, CreatedAt: now, UpdatedAt: now}
 		if e = tx.Create(ref, encode(result)); e != nil {
 			return e
 		}
 		return tx.Create(rec, receipt{1, subobjectID, payload})
 	})
 	if err != nil {
-		return feature.Subobject{}, err
+		return subobjectDomainEntity.Subobject{}, err
 	}
 	return result, nil
 }
 
-func (s *Store) Update(ctx context.Context, r repositoryDomainEntity.Repository, actor, parentObjectID, subobjectID string, input feature.Update) (result feature.Subobject, err error) {
+func (s *Store) Update(ctx context.Context, r repositoryDomainEntity.Repository, actor, parentObjectID, subobjectID string, input subobjectDomainEntity.Update) (result subobjectDomainEntity.Subobject, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
-		return result, feature.ErrUnavailable
+		return result, subobjectDomainEntity.ErrUnavailable
 	}
 	ref := s.parentObjectRef(r.ID, parentObjectID).Collection("subobjects").Doc(subobjectID)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		result = feature.Subobject{}
+		result = subobjectDomainEntity.Subobject{}
 		parentCreatorID, e := s.authorizeParentObject(tx, r, parentObjectID, actor, true)
 		if e != nil {
 			return e
@@ -274,7 +279,7 @@ func (s *Store) Update(ctx context.Context, r repositoryDomainEntity.Repository,
 		if e != nil {
 			return e
 		}
-		result, e = feature.ApplyUpdate(old, actor, input)
+		result, e = subobjectDomainEntity.ApplyUpdate(old, actor, input)
 		if e != nil {
 			return e
 		}
@@ -291,7 +296,7 @@ func (s *Store) Update(ctx context.Context, r repositoryDomainEntity.Repository,
 		return tx.Create(ref.Collection("changes").Doc(strconv.FormatInt(result.Version, 10)), map[string]any{"actorId": actor, "version": result.Version, "at": result.UpdatedAt, "before": encode(old), "after": encode(result)})
 	})
 	if err != nil {
-		return feature.Subobject{}, err
+		return subobjectDomainEntity.Subobject{}, err
 	}
 	return result, nil
 }

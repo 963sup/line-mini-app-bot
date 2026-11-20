@@ -1,6 +1,10 @@
 package firestore
 
 import (
+	subobjectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/subobject/domain/entity"
+)
+
+import (
 	projectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/project/application/dto"
 	projectApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/project/application/port"
 	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
@@ -19,7 +23,6 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
-	child "github.com/963sup/line-mini-app-bot/internal/business/subobject"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -142,11 +145,11 @@ func (s *Store) sourceReference(tx *db.Transaction, source projectDomainEntity.S
 		}
 	}
 	if ref.SourceType == "subobject" {
-		c := child.Content{Name: d.Name, Type: d.Type, Quantity: d.Quantity, Unit: d.Unit, CompletedQuantity: d.CompletedQuantity}
-		if _, e := child.Normalize(c); e != nil {
+		c := subobjectDomainEntity.Content{Name: d.Name, Type: d.Type, Quantity: d.Quantity, Unit: d.Unit, CompletedQuantity: d.CompletedQuantity}
+		if _, e := subobjectDomainEntity.Normalize(c); e != nil {
 			return projectDomainEntity.Reference{}, projectDomainEntity.ErrSourceUnavailable
 		}
-		derived, e := child.Status(c)
+		derived, e := subobjectDomainEntity.Status(c)
 		if e != nil || derived != d.Status {
 			return projectDomainEntity.Reference{}, projectDomainEntity.ErrSourceUnavailable
 		}

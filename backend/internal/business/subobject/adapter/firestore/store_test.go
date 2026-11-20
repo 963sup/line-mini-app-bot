@@ -1,6 +1,11 @@
 package firestore
 
 import (
+	subobjectApplication "github.com/963sup/line-mini-app-bot/internal/business/subobject/application"
+	subobjectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/subobject/domain/entity"
+)
+
+import (
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
@@ -25,8 +30,6 @@ import (
 	db "cloud.google.com/go/firestore"
 
 	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/firestore"
-
-	feature "github.com/963sup/line-mini-app-bot/internal/business/subobject"
 )
 
 type repos struct {
@@ -40,7 +43,7 @@ func (r repos) Get(_ context.Context, actor, id string) (repositoryDomainEntity.
 	return r.r, nil
 }
 
-func setup(t *testing.T) (context.Context, *Store, *feature.Service, repositoryDomainEntity.Repository, objectDomainEntity.Object) {
+func setup(t *testing.T) (context.Context, *Store, *subobjectApplication.Service, repositoryDomainEntity.Repository, objectDomainEntity.Object) {
 	t.Helper()
 	host := os.Getenv("FIRESTORE_EMULATOR_HOST")
 	if host == "" {
@@ -71,7 +74,7 @@ func setup(t *testing.T) (context.Context, *Store, *feature.Service, repositoryD
 	if e != nil {
 		t.Fatal(e)
 	}
-	return ctx, store, &feature.Service{Repositories: repos{r}, Store: store}, r, parent
+	return ctx, store, &subobjectApplication.Service{Repositories: repos{r}, Store: store}, r, parent
 }
 
 func TestEmulatorSubobjectAuthorityReceiptsAndParentIsolation(t *testing.T) {
@@ -81,9 +84,9 @@ func TestEmulatorSubobjectAuthorityReceiptsAndParentIsolation(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	c := feature.Content{Name: "Lay", Type: "work", Quantity: "1000.000001", Unit: "M"}
+	c := subobjectDomainEntity.Content{Name: "Lay", Type: "work", Quantity: "1000.000001", Unit: "M"}
 	const callers = 4
-	results := make([]feature.Subobject, callers)
+	results := make([]subobjectDomainEntity.Subobject, callers)
 	errs := make([]error, callers)
 	var wg sync.WaitGroup
 	for i := range callers {
@@ -102,30 +105,30 @@ func TestEmulatorSubobjectAuthorityReceiptsAndParentIsolation(t *testing.T) {
 	}
 	changed := c
 	changed.Unit = "SET"
-	if _, e = s.Create(ctx, "owner", r.ID, parent.ID, "stable-child-key", changed); !errors.Is(e, feature.ErrCreationConflict) {
+	if _, e = s.Create(ctx, "owner", r.ID, parent.ID, "stable-child-key", changed); !errors.Is(e, subobjectDomainEntity.ErrCreationConflict) {
 		t.Fatal(e)
 	}
-	if _, e = s.Create(ctx, "member", r.ID, parent.ID, "member-child-key", c); !errors.Is(e, feature.ErrForbidden) {
+	if _, e = s.Create(ctx, "member", r.ID, parent.ID, "member-child-key", c); !errors.Is(e, subobjectDomainEntity.ErrForbidden) {
 		t.Fatal(e)
 	}
 	if _, e = s.Get(ctx, "member", r.ID, parent.ID, child.ID); e != nil {
 		t.Fatal("member read", e)
 	}
-	if _, e = s.Get(ctx, "outsider", r.ID, parent.ID, child.ID); !errors.Is(e, feature.ErrNotFound) {
+	if _, e = s.Get(ctx, "outsider", r.ID, parent.ID, child.ID); !errors.Is(e, subobjectDomainEntity.ErrNotFound) {
 		t.Fatal(e)
 	}
-	if _, e = s.Get(ctx, "owner", r.ID, strings.Repeat("c", 32), child.ID); !errors.Is(e, feature.ErrNotFound) {
+	if _, e = s.Get(ctx, "owner", r.ID, strings.Repeat("c", 32), child.ID); !errors.Is(e, subobjectDomainEntity.ErrNotFound) {
 		t.Fatal("cross parent", e)
 	}
-	if _, e = s.Get(ctx, "owner", strings.Repeat("d", 32), parent.ID, child.ID); !errors.Is(e, feature.ErrNotFound) {
+	if _, e = s.Get(ctx, "owner", strings.Repeat("d", 32), parent.ID, child.ID); !errors.Is(e, subobjectDomainEntity.ErrNotFound) {
 		t.Fatal("cross repository", e)
 	}
 	done := "40.000001"
-	u := feature.Update{Content: child.Content, CompletedQuantity: &done, ExpectedVersion: 1}
-	if _, e = s.Update(ctx, "member", r.ID, parent.ID, child.ID, u); !errors.Is(e, feature.ErrForbidden) {
+	u := subobjectDomainEntity.Update{Content: child.Content, CompletedQuantity: &done, ExpectedVersion: 1}
+	if _, e = s.Update(ctx, "member", r.ID, parent.ID, child.ID, u); !errors.Is(e, subobjectDomainEntity.ErrForbidden) {
 		t.Fatal(e)
 	}
-	changedRows := make([]feature.Subobject, 2)
+	changedRows := make([]subobjectDomainEntity.Subobject, 2)
 	updateErrors := make([]error, 2)
 	for i := range 2 {
 		wg.Go(func() { changedRows[i], updateErrors[i] = s.Update(ctx, "owner", r.ID, parent.ID, child.ID, u) })
@@ -135,7 +138,7 @@ func TestEmulatorSubobjectAuthorityReceiptsAndParentIsolation(t *testing.T) {
 	for _, e := range updateErrors {
 		if e == nil {
 			success++
-		} else if errors.Is(e, feature.ErrConflict) {
+		} else if errors.Is(e, subobjectDomainEntity.ErrConflict) {
 			conflicts++
 		} else {
 			t.Fatal(e)
@@ -160,7 +163,7 @@ func TestEmulatorSubobjectAuthorityReceiptsAndParentIsolation(t *testing.T) {
 	if _, e = store.repositoryRef(r.ID).Update(ctx, []db.Update{{Path: "status", Value: "ARCHIVED"}}); e != nil {
 		t.Fatal(e)
 	}
-	if _, e = s.Update(ctx, "owner", r.ID, parent.ID, child.ID, u); !errors.Is(e, feature.ErrNotFound) {
+	if _, e = s.Update(ctx, "owner", r.ID, parent.ID, child.ID, u); !errors.Is(e, subobjectDomainEntity.ErrNotFound) {
 		t.Fatal("inactive", e)
 	}
 }
@@ -168,7 +171,7 @@ func TestEmulatorSubobjectAuthorityReceiptsAndParentIsolation(t *testing.T) {
 func TestEmulatorSubobjectPaginationScope(t *testing.T) {
 	ctx, store, s, r, parent := setup(t)
 	for i := range 21 {
-		_, e := s.Create(ctx, "owner", r.ID, parent.ID, "pagination-key-"+strings.Repeat("x", i+1), feature.Content{Name: "Install", Type: "work", Quantity: "1", Unit: "M"})
+		_, e := s.Create(ctx, "owner", r.ID, parent.ID, "pagination-key-"+strings.Repeat("x", i+1), subobjectDomainEntity.Content{Name: "Install", Type: "work", Quantity: "1", Unit: "M"})
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -181,16 +184,16 @@ func TestEmulatorSubobjectPaginationScope(t *testing.T) {
 	if e != nil || len(last.Items) != 1 || last.NextCursor != "" {
 		t.Fatal(last, e)
 	}
-	if _, e = s.List(ctx, "member", r.ID, parent.ID, page.NextCursor); !errors.Is(e, feature.ErrInput) {
+	if _, e = s.List(ctx, "member", r.ID, parent.ID, page.NextCursor); !errors.Is(e, subobjectDomainEntity.ErrInput) {
 		t.Fatal("actor cursor", e)
 	}
-	if _, e = s.List(ctx, "owner", r.ID, strings.Repeat("c", 32), page.NextCursor); !errors.Is(e, feature.ErrInput) {
+	if _, e = s.List(ctx, "owner", r.ID, strings.Repeat("c", 32), page.NextCursor); !errors.Is(e, subobjectDomainEntity.ErrInput) {
 		t.Fatal("parent cursor", e)
 	}
 	if _, e = store.parentObjectRef(r.ID, parent.ID).Update(ctx, []db.Update{{Path: "creatorId", Value: "member"}}); e != nil {
 		t.Fatal(e)
 	}
-	if _, e = s.Create(ctx, "owner", r.ID, parent.ID, "stale-owner-key-01", feature.Content{Name: "new", Type: "non_work", Quantity: "1", Unit: "SET"}); !errors.Is(e, feature.ErrForbidden) {
+	if _, e = s.Create(ctx, "owner", r.ID, parent.ID, "stale-owner-key-01", subobjectDomainEntity.Content{Name: "new", Type: "non_work", Quantity: "1", Unit: "SET"}); !errors.Is(e, subobjectDomainEntity.ErrForbidden) {
 		t.Fatal("current parent owner", e)
 	}
 }
