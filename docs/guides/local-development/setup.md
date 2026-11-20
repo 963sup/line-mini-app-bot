@@ -38,7 +38,7 @@ flowchart TB
   b1 --- n1_1["前端與契約：從根目錄執行；pnpm 使用 workspace 鎖檔"]
   b1 --- n1_2["Go race 需 C 編譯器；container-build 需 Docker daemon"]
   root --- b2["Codex Cloud"]
-  b2 --- n2_0["主機從 /workspace/line-mini-app-bot 載入 .codex/config.toml；依受支援的信任設定啟用"]
+  b2 --- n2_0["從 checkout 根目錄開啟 Codex 並載入 .codex/config.toml；依受支援的信任設定啟用"]
   b2 --- n2_1["套件下載與遠端 MCP 均需網路。GITHUB_MCP_TOKEN 由主機於執行期安全注入"]
   b2 --- n2_2["本機 codex mcp list 只驗本機設定；重載 host 後在新對話實際呼叫"]
   root --- b3["編輯器與工具"]
