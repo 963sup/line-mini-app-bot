@@ -7,6 +7,7 @@ import { RepositoryNavigationContext, useRepositoryNavigation } from "./Navigati
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useRepositories } from "./RepositoryContext";
+import { Spaces } from "./Spaces";
 import { navigation } from "./navigation";
 import { displayTime } from "../../shared/time/time";
 import { View as Objects } from "../object/View";
@@ -85,6 +86,7 @@ function Content() {
               </PagePanel>}
             </div>
             </TabsContent>
+            <TabsContent value="業務空間"><Spaces repositoryId={selected.id} /></TabsContent>
             <TabsContent value="物件"><Objects repositoryId={selected.id} /></TabsContent>
             <TabsContent value="問題"><Issues repositoryId={selected.id} /></TabsContent>
             <TabsContent value="討論"><Discussions repositoryId={selected.id} /></TabsContent>

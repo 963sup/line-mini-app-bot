@@ -1338,7 +1338,7 @@
       "core": "backend/internal/business/repository/space/space.go",
       "specification": "docs/domains/repository/spaces.md",
       "consumers": [
-        "frontend/miniapp/src/business/object/View.tsx"
+        "frontend/miniapp/src/business/repository/useSpaces.ts"
       ]
     },
     {
@@ -1352,7 +1352,7 @@
       "core": "backend/internal/business/repository/space/space.go",
       "specification": "docs/domains/repository/spaces.md",
       "consumers": [
-        "frontend/miniapp/src/business/object/View.tsx"
+        "frontend/miniapp/src/business/repository/Spaces.tsx"
       ]
     },
     {

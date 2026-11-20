@@ -4,13 +4,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import "./sidebar-dom";
 import { Shell } from "../src/shell/Shell";
+import { Spaces } from "../src/business/repository/Spaces";
 import { View } from "../src/business/object/View";
 
 const rid = "a".repeat(32), sid = "b".repeat(32), oid = "c".repeat(32);
 const item = (spaceId?: string) => ({ id: oid, repositoryId: rid, name: "光纖", description: "", type: "work", completedQuantity: "0", quantity: "140", unit: "SET", status: "not_started", sourceDocument: "", sourceRevision: "", sourceItemNo: "", sourcePages: "", materialCode: "", creatorId: "A", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", ...(spaceId === undefined ? {} : { spaceId }) });
 const space = { id: sid, repositoryId: rid, name: "機房", creatorId: "A", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" };
 const flush = async () => { for (let i = 0; i < 10; i++) await new Promise<void>(resolve => setImmediate(resolve)); };
-async function fixture(handle: (request: Request) => Promise<Response>) {
+async function fixture(handle: (request: Request) => Promise<Response>, Panel = View) {
   document.body.innerHTML = '<div id="root"></div>';
   window.history.replaceState(null, "", "/miniapp/projects");
   const oldFetch = globalThis.fetch, oldSDK = window.liff;
@@ -24,7 +25,7 @@ async function fixture(handle: (request: Request) => Promise<Response>) {
     return handle(request);
   };
   const root = createRoot(document.getElementById("root")!);
-  await act(async () => { root.render(<Shell title="測試" workflow="projects"><View repositoryId={rid} /></Shell>); await flush(); });
+  await act(async () => { root.render(<Shell title="測試" workflow="projects"><Panel repositoryId={rid} /></Shell>); await flush(); });
   return {
     async click(text: string) { await act(async () => { const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === text || node.getAttribute("aria-label") === text); assert.ok(node, `missing ${text}`); node.click(); await flush(); }); },
     async fill(label: string, value: string) { await act(async () => { const node = [...document.querySelectorAll("label")].find(node => node.textContent === label)?.querySelector<HTMLInputElement>("input"); assert.ok(node, `missing ${label}`); Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!.call(node, value); node.dispatchEvent(new window.Event("input", { bubbles: true })); await flush(); }); },
@@ -45,6 +46,7 @@ test("business spaces are lazy, paginate, and preserve or explicitly clear an ob
   try {
     assert.equal(reads.length, 0, "no space request for each list item");
     await f.click("光纖");
+    assert.ok(!document.body.textContent?.includes("新增業務空間"));
     await f.click("載入更多業務空間");
     assert.deepEqual(reads, ["", "?cursor=next"]);
     await f.fill("物件名稱", "光纖更新"); await f.click("儲存物件");
@@ -54,7 +56,7 @@ test("business spaces are lazy, paginate, and preserve or explicitly clear an ob
   } finally { await f.dispose(); }
 });
 
-test("unknown space creation keeps its key and blocks object submission until the same intent succeeds", async () => {
+test("repository space creation retries the original key and lists the new space", async () => {
   const posts: { key: string | null; body: unknown }[] = [];
   const f = await fixture(async request => {
     if (request.method === "POST" && new URL(request.url).pathname.endsWith("/spaces")) {
@@ -63,14 +65,13 @@ test("unknown space creation keeps its key and blocks object submission until th
       return Response.json(space);
     }
     return Response.json({ items: [], nextCursor: "" });
-  });
+  }, Spaces);
   try {
-    await f.click("新增物件"); await f.fill("新業務空間名稱", "機房"); await f.click("新增業務空間");
-    for (const label of ["建立物件", "取消"]) assert.equal([...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === label)?.disabled, true);
+    await f.fill("空間名稱", "機房"); await f.click("新增業務空間");
+    assert.equal(document.querySelector<HTMLInputElement>("form input")?.disabled, true);
     await f.click("重試原空間建立請求");
     assert.equal(posts.length, 2); assert.deepEqual(posts[0], posts[1]);
-    const select = [...document.querySelectorAll("label")].find(node => node.textContent?.startsWith("業務空間"))?.querySelector("select");
-    assert.equal(select?.value, sid);
+    assert.ok([...document.querySelectorAll("li")].some(row => row.textContent === "機房"));
     assert.match(document.body.textContent!, /已建立業務空間/);
   } finally { await f.dispose(); }
 });
