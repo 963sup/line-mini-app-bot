@@ -20,7 +20,7 @@ type Gemini struct {
 }
 
 func (g *Gemini) Summarize(ctx context.Context, messages []messagecollection.Message) (string, error) {
-	input, sources := summarization.Input(messages)
+	input, _ := summarization.Input(messages)
 	body, _ := json.Marshal(map[string]any{
 		"systemInstruction": map[string]any{"parts": []map[string]string{{"text": summaryInstruction}}},
 		"contents":          []any{map[string]any{"role": "user", "parts": []map[string]string{{"text": input}}}},
@@ -65,5 +65,5 @@ func (g *Gemini) Summarize(ctx context.Context, messages []messagecollection.Mes
 			text.WriteString(p.Text)
 		}
 	}
-	return validateSummary(text.String(), len(sources))
+	return text.String(), nil
 }
