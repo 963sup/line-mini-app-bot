@@ -1,6 +1,6 @@
 # 專案文件入口
 
-[19 個業務領域：設計、流程與驗收](domains/README.md#domain-matrix)
+[18 個業務領域：設計、流程與驗收](domains/README.md#domain-matrix)
 
 ## 用途與範圍
 
@@ -55,7 +55,7 @@
 | 文件分類 | 單一維護位置與讀法 |
 |---|---|
 | [架構](architecture/README.md) | 跨領域契約、外部整合、儲存與執行架構。 |
-| [領域](domains/README.md) | 從 19 個領域查規則、核心流程與驗收依據。 |
+| [領域](domains/README.md) | 從 18 個領域查規則、核心流程與驗收依據。 |
 | [決策](decisions/README.md) | 查已採用 ADR 的背景與理由，依編號引用。 |
 | [開發](development/README.md) | 查變更流程、工具、除錯與驗收。 |
 | [指南](guides/README.md) | 按任務執行環境設定、發布與復原步驟。 |

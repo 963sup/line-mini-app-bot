@@ -169,12 +169,6 @@
       "core": "backend/internal/business/object/domain/entity/object.go",
       "specification": "docs/domains/object/design.md"
     },
-    "objectimport": {
-      "contract": "object-import/object-imports.yaml",
-      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
-      "core": "backend/internal/business/objectimport/domain/entity/object_import.go",
-      "specification": "docs/domains/objectimport/design.md"
-    },
     "subobject": {
       "contract": "subobject/subobjects.yaml",
       "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
@@ -1165,92 +1159,6 @@
       ]
     },
     {
-      "operationId": "createObjectImport",
-      "audience": "public",
-      "method": "POST",
-      "path": "/api/v1/repositories/{repositoryId}/object-imports",
-      "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
-      "handler": "CreateObjectImport",
-      "core": "backend/internal/business/objectimport/domain/entity/object_import.go",
-      "specification": "docs/domains/objectimport/design.md",
-      "consumers": []
-    },
-    {
-      "operationId": "getObjectImport",
-      "audience": "public",
-      "method": "GET",
-      "path": "/api/v1/repositories/{repositoryId}/object-imports/{id}",
-      "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
-      "handler": "GetObjectImport",
-      "core": "backend/internal/business/objectimport/domain/entity/object_import.go",
-      "specification": "docs/domains/objectimport/design.md",
-      "consumers": []
-    },
-    {
-      "operationId": "reviewObjectImport",
-      "audience": "public",
-      "method": "POST",
-      "path": "/api/v1/repositories/{repositoryId}/object-imports/{id}/review",
-      "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
-      "handler": "ReviewObjectImport",
-      "core": "backend/internal/business/objectimport/domain/entity/object_import.go",
-      "specification": "docs/domains/objectimport/design.md",
-      "consumers": []
-    },
-    {
-      "operationId": "confirmObjectImport",
-      "audience": "public",
-      "method": "POST",
-      "path": "/api/v1/repositories/{repositoryId}/object-imports/{id}/confirm",
-      "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
-      "handler": "ConfirmObjectImport",
-      "core": "backend/internal/business/objectimport/domain/entity/object_import.go",
-      "specification": "docs/domains/objectimport/design.md",
-      "consumers": []
-    },
-    {
-      "operationId": "parseObjectImport",
-      "audience": "public",
-      "method": "POST",
-      "path": "/api/v1/repositories/{repositoryId}/object-imports/parse",
-      "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
-      "handler": "ParseObjectImport",
-      "core": "backend/internal/business/objectimport/domain/entity/parsing/parsing.go",
-      "specification": "docs/domains/objectimport/design.md",
-      "consumers": []
-    },
-    {
-      "operationId": "createObjectImportRun",
-      "audience": "public",
-      "method": "POST",
-      "path": "/api/v1/repositories/{repositoryId}/object-import-runs",
-      "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/adapter/http/automatic.go",
-      "handler": "CreateObjectImportRun",
-      "core": "backend/internal/business/objectimport/domain/entity/automatic/automatic.go",
-      "specification": "docs/domains/objectimport/design.md",
-      "consumers": [
-        "frontend/miniapp/src/business/object/Import.tsx"
-      ]
-    },
-    {
-      "operationId": "getObjectImportRun",
-      "audience": "public",
-      "method": "GET",
-      "path": "/api/v1/repositories/{repositoryId}/object-import-runs/{id}",
-      "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/adapter/http/automatic.go",
-      "handler": "GetObjectImportRun",
-      "core": "backend/internal/business/objectimport/domain/entity/automatic/automatic.go",
-      "specification": "docs/domains/objectimport/design.md",
-      "consumers": []
-    },
-    {
       "operationId": "listSubobjects",
       "audience": "public",
       "method": "GET",
@@ -1841,16 +1749,6 @@
       "entity": "Object",
       "collection": "objects",
       "path": "/api/v1/repositories/{repositoryId}/objects"
-    },
-    {
-      "entity": "ObjectImport",
-      "collection": "object-imports",
-      "path": "/api/v1/repositories/{repositoryId}/object-imports"
-    },
-    {
-      "entity": "ObjectImportRun",
-      "collection": "object-import-runs",
-      "path": "/api/v1/repositories/{repositoryId}/object-import-runs"
     },
     {
       "entity": "Subobject",

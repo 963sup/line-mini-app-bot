@@ -11,7 +11,7 @@ import { View as RepositoryView } from "../src/business/repository/View";
 const rid = "a".repeat(32), other = "b".repeat(32), oid = "c".repeat(32);
 const resource = (overrides = {}) => ({ id: oid, repositoryId: rid, name: "測試物件", description: "完整工作說明", type: "work", completedQuantity: "0", quantity: "11", unit: "SET", status: "not_started", sourceDocument: "sample-contract", sourceRevision: "v0", sourceItemNo: "40", sourcePages: "2-3", materialCode: "sample", canEdit: true, creatorId: "A", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", ...overrides });
 const flush = async () => { for (let i = 0; i < 10; i++) await new Promise<void>(resolve => setImmediate(resolve)); };
-async function fixture(handle: (request: Request, actor: string) => Promise<Response>, integrated = false, prepare?: React.ComponentProps<typeof Objects>["prepare"]) {
+async function fixture(handle: (request: Request, actor: string) => Promise<Response>, integrated = false) {
   document.body.innerHTML = '<div id="root"></div>';
   window.history.replaceState(null, "", integrated ? `/miniapp/repositories?selected=${rid}` : "/miniapp/projects");
   let actor = "A", repository = rid;
@@ -28,7 +28,7 @@ async function fixture(handle: (request: Request, actor: string) => Promise<Resp
     return handle(request, actor);
   };
   const root = createRoot(document.getElementById("root")!);
-  const render = async () => { await act(async () => { root.render(<Shell title="測試" workflow={integrated ? "repositories" : "projects"}>{integrated ? <RepositoryView /> : <Objects repositoryId={repository} prepare={prepare} />}</Shell>); await flush(); }); };
+  const render = async () => { await act(async () => { root.render(<Shell title="測試" workflow={integrated ? "repositories" : "projects"}>{integrated ? <RepositoryView /> : <Objects repositoryId={repository} />}</Shell>); await flush(); }); };
   await render();
   return {
     async click(text: string) { await act(async () => { const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === text || node.getAttribute("aria-label") === text); assert.ok(node, `missing ${text}`); pressButton(node); await flush(); }); },
@@ -181,29 +181,6 @@ for (const direction of ["create-to-detail", "detail-to-create"] as const) {
   });
 }
 
-
-test("manual/import navigation synchronously invalidates old form", async () => {
-  let writes = 0;
-  const f = await fixture(async request => { if (request.method === "POST") writes++; return Response.json({items: [], nextCursor: ""}); });
-  try {
-    await f.click("新增物件"); await f.fill("物件名稱", "舊表單"); const oldForm = document.querySelector("form")!;
-    await act(async () => { [...document.querySelectorAll<HTMLButtonElement>("button")].find(button => button.textContent === "文件匯入")!.click(); oldForm.dispatchEvent(new window.Event("submit", {bubbles: true, cancelable: true})); await flush(); });
-    assert.equal(writes, 0);
-  } finally { await f.dispose(); }
-});
-
-for (const scope of ["repository", "identity"]) {
-  test(`PDF upload preparation aborts and clears text after ${scope} changes`, async () => {
-    let aborted = false;
-    const f = await fixture(async () => Response.json({ items: [], nextCursor: "" }), false, async (_file, signal) => new Promise((_resolve, reject) => { signal.addEventListener("abort", () => { aborted = true; reject(new Error("cancelled")); }); }));
-    try {
-      await f.click("文件匯入");
-      await act(async () => { const input = document.querySelector<HTMLInputElement>('input[type="file"]')!; Object.defineProperty(input, "files", { value: [new File(["%PDF-1.7"], "test.pdf", { type: "application/pdf" })], configurable: true }); input.dispatchEvent(new window.Event("change", { bubbles: true })); await flush(); });
-      if (scope === "repository") await f.switchRepository(); else await f.verifyAs("B");
-      assert.equal(aborted, true); assert.equal(document.querySelector("textarea"), null); assert.match(document.body.textContent!, /物件/);
-    } finally { await f.dispose(); }
-  });
-}
 
 test("object list displays five labeled lines and omits source item metadata", async () => {
  const name="ExtremelyLongUnbrokenObjectNameWithoutSpacesThatMustRemainComplete1234567890";

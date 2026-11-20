@@ -2,7 +2,7 @@
 
 ## 用途與範圍
 
-提供工程物件清單、詳情、編輯與 PDF 匯入畫面。
+提供工程物件清單、詳情與編輯畫面。
 
 ## 架構與責任邊界
 
@@ -10,13 +10,13 @@
 
 ## 閱讀與修改入口
 
-先查閱[Import.tsx](Import.tsx)、[View.tsx](View.tsx)、[本目錄工作指引](AGENTS.md)。
+先查閱[View.tsx](View.tsx)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 
-[物件規格](../../../../../docs/domains/object/design.md) · [PDF匯入規格](../../../../../docs/domains/objectimport/design.md)
+[物件規格](../../../../../docs/domains/object/design.md)
 
-提供物件清單、詳情、手動新增及建立者編輯；欄位、權限與狀態依 [物件規格](../../../../../docs/domains/object/design.md)。另提供文字型 PDF 上傳、伺服器擷取明細、逐列確認及續跑；規則依 [PDF匯入規格](../../../../../docs/domains/objectimport/design.md)。亦支援 XLSX、CSV、TSV、Tab 分欄 TXT 與 Markdown 表格，由後端依欄名解析；掃描 OCR 尚未支援。
+提供物件清單、詳情、手動新增及建立者編輯；欄位、權限與狀態依 [物件規格](../../../../../docs/domains/object/design.md)。
 
 `View` 依儲存庫及身分世代重設狀態，未知建立結果保留原請求鍵及內容；父層導覽在建立結果未確認時保持目前表單。沿用既有 typed client、請求取消及官方 UI 元件組合。
 

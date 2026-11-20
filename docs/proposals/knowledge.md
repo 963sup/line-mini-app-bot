@@ -2,7 +2,7 @@
 
 狀態：提案。[領域導覽](../../backend/internal/business/knowledge/README.md)
 
-Knowledge 管理知識從提出到撤回的過程。每個版本保存條目識別碼、內容、來源、所屬組織、適用範圍及審核紀錄。以 PDF 匯入為例，「某版型應讀契約數量欄」可以成為條目；單張文件中的數量仍屬該次匯入。規則的業務意義由 objectimport 判定。
+Knowledge 管理知識從提出到撤回的過程。每個版本保存條目識別碼、內容、來源、所屬組織、適用範圍及審核紀錄。以 PDF 匯入為例，「某版型應讀契約數量欄」可以成為條目；單張文件中的數量仍屬該次匯入。規則的業務意義由 呼叫端 判定。
 
 <a id="design-diagram"></a>
 
@@ -45,4 +45,4 @@ flowchart TD
 
 後端以同一筆唯讀用途的交易讀取組織與發布投影，先檢查 actor 是該組織的 owner 或成員。投影路徑為 `channels/{channel}/organizations/{organization}/publishedKnowledge/{templateDigest}`，其中 templateDigest 使用專案既有的 firestorekey.Digest。文件保存 templateVersion 與 rules 陣列；每條規則包含 ID、Version、Source、Text。授權通過但找不到投影時回傳空集合。實作見[讀取 adapter](../../backend/internal/business/knowledge/adapter/firestore/rules.go)。
 
-這次只接讀取端。未來發布操作應在核准時建立或取代投影，撤回時移除相應規則。現有匯入路徑沒有可信的組織與版型識別時，不會推測組織或自動套用規則。
+這次只接讀取端。未來發布操作應在核准時建立或取代投影，撤回時移除相應規則。查詢缺少可信的組織與版型識別時，不會推測組織或自動套用規則。

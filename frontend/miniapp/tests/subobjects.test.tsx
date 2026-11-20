@@ -10,7 +10,7 @@ import { View as RepositoryView } from "../src/business/repository/View";
 const rid = "a".repeat(32), other = "b".repeat(32), oid = "c".repeat(32);
 const resource = (overrides = {}) => ({ id: oid, repositoryId: rid, name: "測試物件", description: "完整工作說明", type: "work", completedQuantity: "0", quantity: "11", unit: "SET", status: "not_started", sourceDocument: "sample-contract", sourceRevision: "v0", sourceItemNo: "40", sourcePages: "2-3", materialCode: "sample", canEdit: true, creatorId: "A", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", ...overrides });
 const flush = async () => { for (let i = 0; i < 10; i++) await new Promise<void>(resolve => setImmediate(resolve)); };
-async function fixture(handle: (request: Request, actor: string) => Promise<Response>, integrated = false, prepare?: React.ComponentProps<typeof Objects>["prepare"]) {
+async function fixture(handle: (request: Request, actor: string) => Promise<Response>, integrated = false) {
   document.body.innerHTML = '<div id="root"></div>';
   window.history.replaceState(null, "", integrated ? `/miniapp/repositories?selected=${rid}` : "/miniapp/projects");
   let actor = "A", repository = rid;
@@ -27,7 +27,7 @@ async function fixture(handle: (request: Request, actor: string) => Promise<Resp
     return handle(request, actor);
   };
   const root = createRoot(document.getElementById("root")!);
-  const render = async () => { await act(async () => { root.render(<Shell title="測試" workflow={integrated ? "repositories" : "projects"}>{integrated ? <RepositoryView /> : <Objects repositoryId={repository} prepare={prepare} />}</Shell>); await flush(); }); };
+  const render = async () => { await act(async () => { root.render(<Shell title="測試" workflow={integrated ? "repositories" : "projects"}>{integrated ? <RepositoryView /> : <Objects repositoryId={repository} />}</Shell>); await flush(); }); };
   await render();
   return {
     async click(text: string) { await act(async () => { const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === text || node.getAttribute("aria-label") === text); assert.ok(node, `missing ${text}`); pressButton(node); await flush(); }); },
@@ -73,7 +73,7 @@ test("unknown child create freezes exact identity, blocks parent navigation and 
   try{
     await f.click("子物件：測試物件");await f.click("新增子物件");await f.fill("子物件名稱","測試工序");await f.fill("子物件數量","9007199254740993.123456");await f.fill("子物件單位","M2");await f.click("建立子物件");
     assert.equal(posts.length,1);for(const label of ['子物件：測試物件','子物件：另一父物件','另一父物件'])assert.equal(document.querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!.disabled,true);
-    for(const text of ['新增物件','文件匯入','重新載入物件']) assert.equal([...document.querySelectorAll<HTMLButtonElement>('button')].find(button=>button.textContent===text)!.disabled,true);
+    for(const text of ['新增物件','重新載入物件']) assert.equal([...document.querySelectorAll<HTMLButtonElement>('button')].find(button=>button.textContent===text)!.disabled,true);
     await f.click("子物件：測試物件");assert.ok(document.querySelector('[aria-label="子物件"]'));
     await f.click("重試原子物件建立請求");assert.equal(posts.length,2);assert.deepEqual(posts[0],posts[1]);assert.equal((posts[0].body as {quantity:string}).quantity,"9007199254740993.123456");assert.equal(parentWrites,0);assert.match(document.body.textContent!,/父物件進度不變/);
   }finally{await f.dispose();}

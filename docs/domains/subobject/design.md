@@ -30,7 +30,7 @@ flowchart LR
   h --- n1["GET／POST /api/v1/repositories/{repositoryId<br/>}/objects/{objectId}/subobjects。"]
   h --- n2["GET／PATCH /api/v1/repositories/{<br/>repositoryId}/objects/{objectId}/subobjects/<br/>{id}。"]
   h --- n3["POST只收內容及建立鍵；PATCH收內容、可選完成<br/>數與expectedVersion，不接受獨立status。"]
-  h --- n4["資料位於 channels/{channelId}/repositories/{<br/>repositoryId}/objects/{objectId}/subobjects/<br/>{id}；同父的 subobjectCreationReceipts 保存<br/>建立收據，不使用父物件收據或共享編號。子物件<br/>沒有再向下建立子項的入口。現有Object API、列<br/>表與AI匯入不變，舊物件不自動生成或遷移成子層<br/>。"]
+  h --- n4["資料位於 channels/{channelId}/repositories/{<br/>repositoryId}/objects/{objectId}/subobjects/<br/>{id}；同父的 subobjectCreationReceipts 保存<br/>建立收據，不使用父物件收據或共享編號。子物件<br/>沒有再向下建立子項的入口。舊物件不自動生成或遷移成子層<br/>。"]
   h --- n5["Firestore刪父文件不會自動清子集合；本功能沒<br/>有父刪除或cascade操作。未來清除任務必須另行<br/>盤點並取得子項、收據及變更紀錄的精確授權。"]
 ```
 
@@ -40,7 +40,7 @@ flowchart LR
 flowchart LR
   h["畫面與驗收"]
   h --- n0["物件詳情與展開工序使用同層的兩個互動控制，不<br/>在按鈕內嵌按鈕；用既有shadcn公共props組合，<br/>不更動官方primitives。展開後才載入單一父的子<br/>列表，保留完整長名稱、鍵盤操作及載入失敗重試<br/>；不在首頁逐物件查子資料。"]
-  h --- n1["子項新增／編修只包含必要業務欄位。待寫入或建<br/>立結果未知時阻止切父或收合卸載，未知POST用原<br/>內容與原鍵重試；身份／儲存庫切換取消舊請求並<br/>隔離回應。父既有手動建立與自動匯入阻擋不因新<br/>增子項而放寬。"]
+  h --- n1["子項新增／編修只包含必要業務欄位。待寫入或建<br/>立結果未知時阻止切父或收合卸載，未知POST用原<br/>內容與原鍵重試；身份／儲存庫切換取消舊請求並<br/>隔離回應。父物件建立期間也會阻止切換。"]
   h --- n2["驗收包含精確數量／非法轉換、跨儲存庫／跨父／<br/>非父建立者拒絕、停用容器、父子版本與scope、<br/>同鍵併發及未知重試、防止子更新改父完成數、<br/>lazy載入及身份切換。正式LINE真機與雲端驗收不<br/>由DOM替身、local emulator或build代替。"]
   h --- n3["功能索引 · 文件索引 · 操作模型"]
   n3 --- n3l0["功能索引"]

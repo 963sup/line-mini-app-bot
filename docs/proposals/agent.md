@@ -32,6 +32,6 @@ flowchart TD
 | 操作 | 結果、副作用與失敗語意 |
 |---|---|
 | Investigate(task, resourceScope, allowedOperations, stepLimit) | 回傳有頁碼的候選修訂或明確的人工處理原因。每次工具呼叫由執行端重新驗證；失敗嘗試亦消耗預算。 |
-| AssessEvidence(candidate, pages)（由 objectimport 擁有） | 核對引用頁屬於選取範圍且支持數量、單位與項次。有矛盾或無法驗證時保留待確認。採納修訂後產生新版，再由使用者確認。 |
+| AssessEvidence(candidate, pages)（由 呼叫端 擁有） | 核對引用頁屬於選取範圍且支持數量、單位與項次。有矛盾或無法驗證時保留待確認。採納修訂後產生新版，再由使用者確認。 |
 
 [共用架構、時序與驗收](domain-collaboration.md)

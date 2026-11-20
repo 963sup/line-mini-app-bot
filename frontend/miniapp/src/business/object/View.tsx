@@ -7,7 +7,6 @@ import { useDiscardChanges } from "@/shared/useDiscardChanges";
 import { View as Subobjects } from "../subobject/View";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/shared/ui/collapsible";
 import { useSpaces } from "../repository/useSpaces";
-import { Import } from "./Import";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
 import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
@@ -23,7 +22,7 @@ import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/em
 
 type Resource = components["schemas"]["Object"];
 type Creation = components["schemas"]["ObjectCreation"];
-type Props = { repositoryId: string; prepare?: React.ComponentProps<typeof Import>["prepare"] };
+type Props = { repositoryId: string };
 const states = { not_started: "未開始", in_progress: "進行中", completed: "已完成" };
 const empty: Creation = { name: "", description: "", type: "work", completedQuantity: "0", quantity: "1", unit: "SET", sourceDocument: "", sourceRevision: "" };
 const typeLabel = (type: string) => type === "work" ? "施作" : type === "non_work" ? "非施作" : `${type}（待確認）`;
@@ -38,7 +37,7 @@ export function View(props: Props) {
   return <Content key={`${props.repositoryId}:${epoch}:${user?.userId || ""}`} {...props} />;
 }
 
-function Content({ repositoryId, prepare }: Props) {
+function Content({ repositoryId }: Props) {
   const { user, request } = useSession();
   const read = useLatestRequest(), detail = useLatestRequest(), write = useLatestRequest();
   const [items, setItems] = useState<Resource[]>([]), [cursor, setCursor] = useState("");
@@ -58,18 +57,14 @@ function Content({ repositoryId, prepare }: Props) {
   const repositoryGuard = useRepositoryGuard(dirty, focusEditor);
   const [activeId, setActiveId] = useState("");
   const [busy, setBusy] = useState(false), [detailBusy, setDetailBusy] = useState(false), [uncertain, setUncertain] = useState(false), [needsRefresh, setNeedsRefresh] = useState(false), [status, setStatus] = useState("");
-  const [importing, setImporting] = useState(false), [importBlocked, setImportBlocked] = useState(false);
-  useEffect(() => { repositoryGuard.block(busy || uncertain || needsRefresh || importBlocked); }, [busy, uncertain, needsRefresh, importBlocked]);
+  useEffect(() => { repositoryGuard.block(busy || uncertain || needsRefresh); }, [busy, uncertain, needsRefresh]);
   const [expanded, setExpanded] = useState("");
   const [subBlocked, setSubBlocked] = useState(false);
   const subLock = useRef(false);
   const subBlock = useCallback((value: boolean) => { subLock.current = value; setSubBlocked(value); }, []);
-  const importLock = useRef(false);
-  const importBlock = useCallback((value: boolean) => { repositoryGuard.block(value); importLock.current = value; setImportBlocked(value); }, [repositoryGuard.block]);
   const lock = useRef(false), formNavigation = useRef(false), objectCreateAttempt = useRef<{ idempotencyKey: string; body: Creation } | null>(null);
   useEffect(() => { formNavigation.current = false; });
   const canSubWrite = useCallback(() => !formNavigation.current && !lock.current && !busy && !uncertain && !listBusy && !detailBusy && !needsRefresh && !dirty && !discard.isConfirming() && repositoryGuard.canWrite(), [repositoryGuard.canWrite, busy, uncertain, listBusy, detailBusy, needsRefresh, dirty]);
-  const canImportWrite = useCallback(() => !formNavigation.current && repositoryGuard.canWrite(), [repositoryGuard.canWrite]);
   const canEdit = selected?.canEdit === true;
 
   const load = useCallback((next = "") => {
@@ -126,7 +121,7 @@ function Content({ repositoryId, prepare }: Props) {
   }
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (discard.isConfirming() || !user || subLock.current || importing || importLock.current || lock.current || formNavigation.current || needsRefresh || !repositoryGuard.canWrite() || (mode === "detail" && !canEdit)) return;
+    if (discard.isConfirming() || !user || subLock.current || lock.current || formNavigation.current || needsRefresh || !repositoryGuard.canWrite() || (mode === "detail" && !canEdit)) return;
     const body = Object.fromEntries(Object.entries(content).map(([key, value]) => [key, value?.trim() || ""])) as Creation;
     setInvalidField(null);
     if (!body.name || !body.type || !body.unit) {
@@ -219,16 +214,11 @@ function Content({ repositoryId, prepare }: Props) {
       </FieldGroup></form>}
       <Button type="button" variant="outline" disabled={busy || uncertain || needsRefresh || subBlocked} onClick={close}>{canEdit || mode === "create" ? "取消" : "關閉"}</Button>
     </section>;
-  if (importing) return <>
-    <Button variant="outline" disabled={importBlocked} onClick={() => { if (!importLock.current) { formNavigation.current = true; setImporting(false); load(); } }}>返回物件清單</Button>
-    <Import repositoryId={repositoryId} onBlocked={importBlock} canWrite={canImportWrite} prepare={prepare} />
-  </>;
   return <>
     <PagePanel heading="物件" className="w-full min-w-0">
       <p className="mb-4 text-sm text-muted-foreground">每個清單項次是一筆物件，數量不拆成單件。成員可新增，僅建立者可編輯；完成不代表驗收或付款。</p>
       <div className="mb-4 flex flex-wrap gap-2">
         <Button disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={event => openCreateForm(event.currentTarget)}>新增物件</Button>
-        <Button variant="outline" disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={() => { if (!subLock.current && !lock.current && !uncertain && !needsRefresh) discard.navigate(() => { formNavigation.current = true; clearEditor(); setImporting(true); }); }}>文件匯入</Button>
         <Button variant="outline" disabled={!user || busy || listBusy || subBlocked || uncertain || !!mode} onClick={() => load()}>重新載入物件</Button>
       </div>
       <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取物件……" />
@@ -256,7 +246,7 @@ function Content({ repositoryId, prepare }: Props) {
         </Item>
         <CollapsibleContent className="min-w-0 ps-6 pt-3 sm:ps-10">{expanded === item.id && <Subobjects repositoryId={repositoryId} objectId={item.id} canEdit={item.canEdit} parentEditing={!!mode} onEdit={() => { opener.current = null; clearEditor(); }} onBlocked={subBlock} canWrite={canSubWrite}/>}</CollapsibleContent>
       </Collapsible>)}</ItemGroup>
-      {loaded && !items.length && <Empty><EmptyHeader><EmptyTitle>尚無物件</EmptyTitle><EmptyDescription>可手動建立清單項目；選擇PDF可自動匯入支援的明細表。</EmptyDescription></EmptyHeader></Empty>}
+      {loaded && !items.length && <Empty><EmptyHeader><EmptyTitle>尚無物件</EmptyTitle><EmptyDescription>選擇「新增物件」建立第一筆物件。</EmptyDescription></EmptyHeader></Empty>}
       {cursor && <Button variant="outline" disabled={busy || listBusy || subBlocked || !!mode} onClick={() => load(cursor)}>載入更多物件</Button>}
     </PagePanel>
     {discard.dialog}

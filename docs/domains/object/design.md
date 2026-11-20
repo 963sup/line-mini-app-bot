@@ -13,7 +13,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["範圍與欄位"]
-  h --- n0["儲存庫內提供「物件」列表、詳情、手動新增與編<br/>輯。新類型為施作／非施作，由使用者選擇，建立<br/>者可調整；核心不負責分類目錄、AI 模型、檔案<br/>解析、附件、價格／稅／付款／驗收、庫存、任意<br/>階層、問題關聯或刪除。文字型 PDF 入口由獨立<br/>自動匯入流程提供，結果可編修。單層工序見下方<br/>子物件規格，父進度不由子項合算。"]
+  h --- n0["儲存庫內提供「物件」列表、詳情、手動新增與編<br/>輯。新類型為施作／非施作，由使用者選擇，建立<br/>者可調整；核心不負責分類目錄、AI 模型、檔案<br/>解析、附件、價格／稅／付款／驗收、庫存、任意<br/>階層、問題關聯或刪除。單層工序見下方<br/>子物件規格，父進度不由子項合算。"]
 ```
 
 ```mermaid
@@ -24,7 +24,6 @@ flowchart LR
   h --- n2["欄位：quantity<br/>規則：精確正十進位字串，最多 18 位整數及 6 <br/>位小數；不用浮點數。拒絕零、負數、指數、千分<br/>位，整數前導零只允許單一 0，小數尾零正規化後<br/>保存"]
   h --- n3["欄位：completedQuantity<br/>規則：可選精確非負十進位字串，精度同quantity<br/>；施作已知完成量須介於0與總量，非施作不保存<br/>完成量。缺值不是0"]
   h --- n4["欄位：status<br/>規則：施作有完成量時由後端switch衍生：0為<br/>not_started、中間為in_progress、等總量為<br/>completed；新UI不可另選狀態。非施作在UI顯示<br/>不適用，底層三值僅相容保留；完成不代表驗收／<br/>付款"]
-  h --- n5["欄位：sourceDocument、sourceRevision、<br/>sourceItemNo、sourcePages、materialCode<br/>規則：可選來源追溯文字，各上限 200／80／80／<br/>80／120 字元；不儲存原件、個資或價格。來源文<br/>件與 revision 分開，頁碼可記跨頁範圍"]
   h --- n6["欄位：id、repositoryId、creatorId、version、<br/>createdAt、updatedAt<br/>規則：後端可信來源，建立不可自行指定；不提供<br/>額外 #number"]
 ```
 
@@ -65,8 +64,6 @@ flowchart LR
   h --- n2["GET／PATCH /api/v1/repositories/{<br/>repositoryId}/objects/{id}。"]
   h --- n3["建立只收內容與可選來源欄位；新施作未提供完成<br/>量預設0，新非施作初始technical status為<br/>not_started。PATCH收完整內容、<br/>expectedVersion及可選completedQuantity／<br/>status；可選來源欄位省略時保留現值，明確空字<br/>串才清除；不做文件版本自動合併。"]
   h --- n4["資料位於 channels/{channelId}/repositories/{<br/>repositoryId}/objects/{id}；不改 Issue、共用<br/>編號計數器或既有資料。建立資源與防重收據同交<br/>易提交；交易 callback 不呼叫外部服務或發通知<br/>。"]
-  h --- n5["結構化候選的獨立 自動匯入流程 另外協調模型候<br/>選驗證／安全續跑，仍只呼叫本物件建立使用案例<br/>；不讓核心依賴匯入或 AI。"]
-  click n5 "../objectimport/design.md"
 ```
 
 <a id="畫面與驗收"></a>
