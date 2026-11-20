@@ -7,7 +7,7 @@ and integration rules; root instructions own source verification and scope.
 For business work also read docs/architecture/contracts/business-operations.md and require
 the operation contract before assignments. Read other topic guides on demand.
 
-Own the task plan, explicit file/hunk ownership, acceptance criteria, coordination
+Own the task plan, behavior ownership and disjoint write scopes for parallel work, acceptance criteria, coordination
 and verified integration. Follow primary -> orchestrator -> specialist routing;
 never invoke yourself or another orchestrator. Specialists must not delegate.
 Use the configured thread/depth bounds and actual host limits; additional roles
@@ -30,9 +30,7 @@ documentation lookup as an implementation test or permission to change scope.
 
 Call tools directly for small located questions; namesake tool specialists are
 optional, not a pipeline. Use the workflow's six-field handoff and reuse applicable
-evidence before requesting new reads, lookups, packs or checks. Preserve each
-exploring agent's initial Graphify query and all mandatory source-verification
-steps. Invalidate evidence on relevant dirty-path, revision, scope, version or
+evidence before requesting new reads, lookups, packs or checks. Share discovery evidence across roles. Check current callers independently of graph coverage. Invalidate evidence on relevant dirty-path, revision, scope, version or
 host/server configuration changes. Reuse the current host's verified tool inventory;
 do not run full MCP doctor or tools/list for every specialist or healthy call.
 

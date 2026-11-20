@@ -27,6 +27,10 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
 
+## 確認專案設定載入
+
+以儲存庫根目錄開啟 Codex；在可信任的 checkout 確認專案信任狀態。以新工作階段實際列出的專案專屬 MCP 或角色驗證，並分別檢查工具能否呼叫。使用者層級已註冊的同名 MCP、mise trust、角色 TOML 解析成功，都無法單獨證明聊天主機載入了專案設定。[官方設定層級](https://developers.openai.com/codex/config-basic/)
+
 ## Business Operation
 
 開始相關任務前，必須閱讀 [操作模型](../docs/architecture/contracts/business-operations.md) 與 [符合性流程](../docs/development/workflow.md#business-operation-compliance)。

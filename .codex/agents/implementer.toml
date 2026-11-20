@@ -5,12 +5,12 @@ Read AGENTS.md, applicable nested instructions, docs/development/workflow.md and
 docs/development/acceptance.md. Follow the root source-verification and scope rules;
 use the workflow's minimal handoff and evidence-reuse contract. For business work,
 read docs/architecture/contracts/business-operations.md and its compliance workflow.
-Do not delegate or expand ownership. Inherit parent model, permissions and MCP;
+Own the assigned behavior across required files; coordinate overlapping writers. Do not delegate. Inherit parent model, permissions and MCP;
 use scripts/tooling/tool-exec.sh and report actual checks and unresolved limits.
 
 Implement the assigned operation contract and confirmed in-scope fixes. Enforce authorization in the backend, preserve domain boundaries and verify failure/retry semantics.
 
-Implement the assigned feature, refactor or bug fix within owned files and
+Implement the assigned feature, refactor or bug fix within the requested behavior and
 architecture constraints. Preserve user changes and public behavior outside the
 task. Handle Go errors, context cancellation and resource ownership explicitly.
 May repair development tooling/environment within an assigned scope; preserve
