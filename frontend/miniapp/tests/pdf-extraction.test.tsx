@@ -2,14 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { extractPdf, PDF_LIMITS } from "../src/business/object/pdf";
 const pdf = () => new File(["%PDF-1.7\nlocal-test"], "sample.pdf", { type: "application/pdf" });
-function library(options: { pageCount?: number; text?: string; stall?: boolean; password?: boolean } = {}) {
+function library(options: { pageCount?: number; text?: string; annotations?: string[]; stall?: boolean; password?: boolean } = {}) {
   let destroyed = 0, terminated = 0, cleaned = 0; const requests: Record<string, unknown>[] = [];
   const fake = {
     GlobalWorkerOptions: { workerSrc: "" },
     PDFWorker: class { destroy() { terminated++; } },
     getDocument(input: Record<string, unknown>) {
       requests.push(input);
-      return { destroy: async () => { destroyed++; }, promise: options.password ? Promise.reject(Object.assign(new Error("private"), { name: "PasswordException" })) : options.stall ? new Promise(() => {}) : Promise.resolve({ numPages: options.pageCount || 1, getPage: async () => ({ cleanup() { cleaned++; }, getTextContent: async () => ({ items: [["項次",10,100],["料號/品名",50,100],["數量",250,100],["單位",300,100],["單價",380,100],[options.text ?? "10 測試物件",10,80],["1",250,80],["SET",300,80],["9999",380,80],["未稅總計",10,50]].map(([str,x,y]) => ({str, transform: [1,0,0,1,x,y], width: 15})) }) }) }) };
+      return { destroy: async () => { destroyed++; }, promise: options.password ? Promise.reject(Object.assign(new Error("private"), { name: "PasswordException" })) : options.stall ? new Promise(() => {}) : Promise.resolve({ numPages: options.pageCount || 1, getPage: async () => ({ cleanup() { cleaned++; }, getTextContent: async () => ({ items: [["項次",10,100],["料號/品名",50,100],["數量",250,100],["單位",300,100],["單價",380,100],[options.text ?? "10 測試物件",10,80],["1",250,80],["SET",300,80],["9999",380,80],...(options.annotations || []).map((text,index) => [text,10,70-index*5]),["未稅總計",10,50]].map(([str,x,y]) => ({str, transform: [1,0,0,1,x,y], width: 15})) }) }) }) };
     },
   };
   return { fake, load: async () => fake as never, requests, counts: () => ({ destroyed, terminated, cleaned }) };
@@ -42,4 +42,17 @@ test("aborting a blocked PDF load destroys its loading task and worker", { timeo
   await ready;
   assert.equal(lib.requests.length, 1); controller.abort(); await assert.rejects(pending, /取消/);
   assert.ok(lib.counts().destroyed >= 1); assert.ok(lib.counts().terminated >= 1);
+});
+
+test("PDF row markers ignore known left-column annotations without hiding malformed detail rows", async () => {
+  const signal = new AbortController().signal;
+  const lib = library({ annotations: ["(Cost Ref: ABC-123)", "(Customer PO: PO-456)"] });
+  const result = await extractPdf(pdf(), signal, lib.load);
+  assert.equal(result.pages[0].text, "[[item:10]] 10 測試物件 1 SET");
+  for (const text of ["(Cost Ref ABC-123)", "(Customer PO PO-456)", "(Other: ABC-123)", "(Cost Reference: ABC-123)"]) {
+    const malformed = library({ text });
+    await assert.rejects(extractPdf(pdf(), signal, malformed.load), /項次無法辨識/);
+  }
+  const spoofed = library({ annotations: ["(Cost Ref: [[item:fake]])"] });
+  await assert.rejects(extractPdf(pdf(), signal, spoofed.load), /項次標記/);
 });
