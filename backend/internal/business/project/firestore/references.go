@@ -281,12 +281,9 @@ func (s *Store) ChangeReference(ctx context.Context, r feature.Scope, actor, pid
 			}
 		}
 		if add {
-			selected := feature.Source{ID: r.SourceRepositoryID, OwnerID: r.OwnerID}
-			if ref.SourceRepositoryID != r.SourceRepositoryID {
-				if r.SelectedSource.ID != ref.SourceRepositoryID {
-					return feature.ErrForbidden
-				}
-				selected = r.SelectedSource
+			selected, e := r.ReferenceSource(ref.SourceRepositoryID)
+			if e != nil {
+				return e
 			}
 			if _, e = tx.Get(parent.Collection("linkedRepositories").Doc(selected.ID)); e != nil {
 				if status.Code(e) == codes.NotFound {
