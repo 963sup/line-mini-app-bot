@@ -1,8 +1,20 @@
 # frontend/miniapp/src/pages/miniapp 目錄導覽
 
-## 目錄用途
+## 用途與範圍
 
 保存 MINI App 各功能的 Next.js 路由入口。
+
+## 架構與責任邊界
+
+解析路由並組合功能畫面；業務狀態與請求邏輯由對應功能模組維護。
+
+## 閱讀與修改入口
+
+先查閱[correction.tsx](correction.tsx)、[dashboard.tsx](dashboard.tsx)、[feed.tsx](feed.tsx)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
 
 從 [correction.tsx](correction.tsx)、[dashboard.tsx](dashboard.tsx)、[feed.tsx](feed.tsx)、[history.tsx](history.tsx)、[index.tsx](index.tsx) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 

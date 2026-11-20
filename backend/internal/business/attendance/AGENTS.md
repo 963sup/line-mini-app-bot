@@ -1,8 +1,20 @@
 # backend/internal/business/attendance 工作指引
 
-## 目錄用途
+## 用途與範圍
 
 管理打卡、出勤紀錄、補卡、請假、審核與出勤看板。工時計算與事件狀態放在 `worktime/`。
+
+## 架構與責任邊界
+
+此目錄維護本領域或子能力的行為。HTTP、LINE 與 Firestore 依需要提供適配，授權和狀態規則歸資源所屬領域。
+
+## 閱讀與修改入口
+
+先查閱[errors.go](errors.go)、[ports.go](ports.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+
+## 相關規格
+
+[現行實作圖：定位前預檢、狀態與時序](../../../../docs/domains/attendance/README.md#定位前預檢狀態與時序)
 
 ## 工作方式
 

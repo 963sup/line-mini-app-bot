@@ -1,5 +1,22 @@
 # tooling 工作指引
 
+## 用途與範圍
+
+保存工具鏈、版本管理、分析與 MCP 入口。
+
+## 架構與責任邊界
+
+工具使用方式放在此處，版本和可執行任務由 mise 維護。
+
+## 閱讀與修改入口
+
+先查閱[mise.md](mise.md)、[analysis-scope.md](analysis-scope.md)、[mcp](mcp)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+
+## 相關規格
+
+[父層指引](../AGENTS.md) · [本目錄索引](README.md)
+
+
 適用於本目錄及其子目錄。先遵循 [父層指引](../AGENTS.md) 與 [根指引](../../../AGENTS.md)，較近的子目錄指引再補充；使用者與主機指令優先。
 
 ## 職責與邊界

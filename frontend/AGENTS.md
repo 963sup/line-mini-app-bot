@@ -1,8 +1,20 @@
 # frontend 工作指引
 
-## 目錄用途
+## 用途與範圍
 
 保存瀏覽器前端，MINI App 位於 `miniapp/`，透過共用 API client 呼叫後端。
+
+## 架構與責任邊界
+
+依層級維護本目錄的共用能力；功能畫面由 business 組織，頁面入口由 pages 接入。
+
+## 閱讀與修改入口
+
+先查閱[miniapp](miniapp)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+
+## 相關規格
+
+[文件索引](../docs/README.md) · [模組閱讀入口](../docs/README.md#按模組閱讀)
 
 適用於本目錄及其子目錄；先遵循 [根目錄 AGENTS.md](../AGENTS.md)，再套用較近的子目錄補充。使用者及主機指令優先；本檔不增加外部寫入授權。
 

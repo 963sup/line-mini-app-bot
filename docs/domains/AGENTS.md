@@ -1,5 +1,22 @@
 # features 工作指引
 
+## 用途與範圍
+
+保存各業務領域的行為、權限與驗收規格。
+
+## 架構與責任邊界
+
+領域文件維護產品規則，公開的請求與回應由 OpenAPI 契約定義。
+
+## 閱讀與修改入口
+
+先查閱[attendance](attendance)、[repository](repository)、[project.md](project.md)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+
+## 相關規格
+
+[父層指引](../AGENTS.md) · [本目錄索引](README.md)
+
+
 適用於本目錄及其子目錄。先遵循 [父層指引](../AGENTS.md) 與 [根指引](../../AGENTS.md)，較近的子目錄指引再補充；使用者與主機指令優先。
 
 ## 職責與邊界

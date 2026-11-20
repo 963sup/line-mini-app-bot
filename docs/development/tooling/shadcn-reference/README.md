@@ -1,5 +1,22 @@
 # shadcn 本機參考庫
 
+## 用途與範圍
+
+保存 shadcn 官方文件的本機參考入口。
+
+## 架構與責任邊界
+
+快照與索引依既有流程產生，專案的元件規則由前端 UI 指引維護。
+
+## 閱讀與修改入口
+
+先查閱[snapshot/INDEX.md](snapshot/INDEX.md)。
+
+## 相關規格
+
+[生成索引](snapshot/INDEX.md) · [MIT 授權](LICENSE.md)
+
+
 此處保存官方 [Components](https://ui.shadcn.com/docs/components) 與 [AI Elements](https://ui.shadcn.com/docs/ai-elements) 入口列出的全部項目文件，供 Codex 搜尋選用。完整清單、用途、Base UI／Radix 連結及棄用提醒只由 [生成索引](snapshot/INDEX.md) 維護；不再手工複製元件目錄。
 
 ## 搜尋與選用

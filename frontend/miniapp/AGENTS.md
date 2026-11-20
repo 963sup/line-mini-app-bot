@@ -10,9 +10,21 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-## 目錄用途
+## 用途與範圍
 
 保存 LINE MINI App 的 Next.js 應用、建置設定與測試。
+
+## 架構與責任邊界
+
+依層級維護本目錄的共用能力；功能畫面由 business 組織，頁面入口由 pages 接入。
+
+## 閱讀與修改入口
+
+先查閱[components.json](components.json)、[next-env.d.ts](next-env.d.ts)、[next.config.ts](next.config.ts)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+
+## 相關規格
+
+[現行實作圖：頁面與身分生命週期](../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
 
 ## shadcn 與 sidebar-07 保護
 

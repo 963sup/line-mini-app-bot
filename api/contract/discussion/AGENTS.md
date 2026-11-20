@@ -1,8 +1,20 @@
 # Discussion 契約指引
 
-## 目錄用途
+## 用途與範圍
 
 定義 Repository 討論、分類與留言的 API 契約。
+
+## 架構與責任邊界
+
+維護本能力的操作與 schema；根規格負責組合，公開格式由契約產生。
+
+## 閱讀與修改入口
+
+先查閱[categories.yaml](categories.yaml)、[comments.yaml](comments.yaml)、[discussions.yaml](discussions.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+
+## 相關規格
+
+[討論操作規格](../../../docs/domains/repository/discussions.md) · [現行實作圖：最小實作邊界與驗證](../../../docs/domains/repository/discussions.md#最小實作邊界與驗證)
 
 適用於本目錄及其子目錄；繼承 [上層指引](../AGENTS.md)，並遵循其引用的根目錄規則。此處只補充本範圍責任；使用者與主機指令優先，不增加外部寫入授權。
 

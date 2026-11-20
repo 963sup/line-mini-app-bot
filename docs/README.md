@@ -1,5 +1,22 @@
 # 專案文件入口
 
+## 用途與範圍
+
+集中維護架構、領域規格、開發流程、操作指南與提案。
+
+## 架構與責任邊界
+
+實作現況由程式與契約驗證，文件按主題維護。
+
+## 閱讀與修改入口
+
+先查閱[architecture](architecture)、[domains](domains)、[development](development)、[guides](guides)、[proposals](proposals)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[系統執行入口](architecture/runtime/overview.md#執行入口) · [頁面與身分生命週期](architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+
 先依任務選一個入口，讀相關規格與局部指引後再查程式碼；不需要依序讀完所有分類。文件與設定存在不代表已完成部署或真實環境驗收。
 
 ## 日常開發看哪張圖

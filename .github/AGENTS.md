@@ -1,5 +1,22 @@
 # .github 工作指引
 
+## 用途與範圍
+
+保存 GitHub 協作模板與 CI 工作流程。
+
+## 架構與責任邊界
+
+CI 執行儲存庫檢查，Cloud Run 部署流程另由部署設定管理。
+
+## 閱讀與修改入口
+
+先查閱[workflows/check.yml](workflows/check.yml)、[pull_request_template.md](pull_request_template.md)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+
+## 相關規格
+
+[文件索引](../docs/README.md)
+
+
 適用於本目錄及其子目錄；先遵循 [根目錄 AGENTS.md](../AGENTS.md)，再套用較近的子目錄補充。使用者及主機指令優先；本檔不增加外部寫入授權。
 
 ## 職責與邊界

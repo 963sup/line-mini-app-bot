@@ -1,5 +1,22 @@
 # GitHub 協作與 CI
 
+## 用途與範圍
+
+保存 GitHub 協作模板與 CI 工作流程。
+
+## 架構與責任邊界
+
+CI 執行儲存庫檢查，Cloud Run 部署流程另由部署設定管理。
+
+## 閱讀與修改入口
+
+先查閱[workflows/check.yml](workflows/check.yml)、[pull_request_template.md](pull_request_template.md)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[本層規格與指引](../CONTRIBUTING.md)
+
+
 ## 目錄導覽與維護
 
 workflows/check.yml 管理設定、分析範圍、Shell、Go、前端與 API 檢查；ISSUE_TEMPLATE/、pull_request_template.md 與 SECURITY.md 管理協作入口。
