@@ -322,7 +322,8 @@
           "authorId",
           "version",
           "createdAt",
-          "updatedAt"
+          "updatedAt",
+          "canEdit"
         ],
         "properties": {
           "id": {
@@ -375,6 +376,10 @@
               "pattern": "^[a-f0-9]{32}$"
             },
             "description": "Same-repository label IDs. Update omission preserves existing references; [] clears them. Requires the existing resource author and expectedVersion."
+          },
+          "canEdit": {
+            "type": "boolean",
+            "description": "Whether the authenticated actor may edit the content. Writes recheck authorization."
           }
         }
       },

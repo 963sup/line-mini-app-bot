@@ -275,7 +275,8 @@
           "authorId",
           "version",
           "createdAt",
-          "updatedAt"
+          "updatedAt",
+          "canEdit"
         ],
         "properties": {
           "id": {
@@ -312,6 +313,10 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "canEdit": {
+            "type": "boolean",
+            "description": "Whether the authenticated actor may edit the content. Writes recheck authorization."
           }
         }
       },

@@ -27,11 +27,17 @@ type Discussion struct {
 	CreatedAt, UpdatedAt                    time.Time
 	LabelIDs                                []string
 }
+
+func (v Discussion) CanEdit(actor string) bool { return actor != "" && actor == v.AuthorID }
+
 type Comment struct {
 	ID, RepositoryID, DiscussionID, Body, AuthorID string
 	Version                                        int64
 	CreatedAt, UpdatedAt                           time.Time
 }
+
+func (v Comment) CanEdit(actor string) bool { return actor != "" && actor == v.AuthorID }
+
 type (
 	Content struct{ Title, Body string }
 	Update  struct {
@@ -58,7 +64,7 @@ func NormalizeComment(body string) (string, error) {
 }
 
 func ApplyUpdate(current Discussion, actor string, input Update) (Discussion, error) {
-	if actor == "" || (actor != current.AuthorID && (input.Title != current.Title || input.Body != current.Body || input.LabelIDs == nil)) {
+	if actor == "" || (!current.CanEdit(actor) && (input.Title != current.Title || input.Body != current.Body || input.LabelIDs == nil)) {
 		return Discussion{}, ErrForbidden
 	}
 	c, err := Normalize(input.Content)
@@ -88,7 +94,7 @@ func ApplyUpdate(current Discussion, actor string, input Update) (Discussion, er
 }
 
 func ApplyCommentUpdate(current Comment, actor, body string, version int64) (Comment, error) {
-	if actor == "" || actor != current.AuthorID {
+	if !current.CanEdit(actor) {
 		return Comment{}, ErrForbidden
 	}
 	body, err := NormalizeComment(body)

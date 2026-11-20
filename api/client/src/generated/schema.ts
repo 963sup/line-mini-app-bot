@@ -1439,6 +1439,8 @@ export interface components {
             updatedAt: string;
             /** @description Same-repository label IDs. Update omission preserves existing references; [] clears them. Requires the existing resource author and expectedVersion. */
             labelIds?: string[];
+            /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
+            canEdit: boolean;
         };
         DiscussionCreation: {
             title: string;
@@ -1469,6 +1471,8 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
+            canEdit: boolean;
         };
         DiscussionCommentCreation: {
             body: string;

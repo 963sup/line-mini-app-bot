@@ -48,7 +48,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
     return true;
   }, []);
   const createAttempt = useRef<{ idempotencyKey: string; body: Creation } | null>(null);
-  const mine = !!selected && selected.authorId === user?.userId;
+  const canEdit = selected?.canEdit === true;
   const [activeId, setActiveId] = useState("");
   const baseline = useRef(JSON.stringify(["", "", []]));
   const dirty = !!mode && JSON.stringify([title, body, labelIDs]) !== baseline.current;
@@ -177,13 +177,13 @@ export function View({ repositoryId }: { repositoryId: string }) {
       </div>}
       {(mode === "create" || selected) && <form onSubmit={submit}>
         <FieldGroup>
-          <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh || (mode === "detail" && !mine)}>
+          <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh || (mode === "detail" && !canEdit)}>
             <FormField>標題<Input ref={titleInput} required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} /></FormField>
             <FormField>內容<Textarea maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} /></FormField>
           </FieldSet>
           {selected && <LabelPicker repositoryId={repositoryId} value={labelIDs} onChange={setLabelIDs} disabled={busy || detailBusy || createOutcomeUnknown || needsRefresh} />}
           {(mode === "create" || selected) && <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={busy || needsRefresh}>{mode === "create" ? createOutcomeUnknown ? "重試原建立請求" : "建立討論" : mine ? "儲存內容" : "儲存分類"}</Button>
+            <Button type="submit" disabled={busy || needsRefresh}>{mode === "create" ? createOutcomeUnknown ? "重試原建立請求" : "建立討論" : canEdit ? "儲存內容" : "儲存分類"}</Button>
           </div>}
         </FieldGroup>
       </form>}

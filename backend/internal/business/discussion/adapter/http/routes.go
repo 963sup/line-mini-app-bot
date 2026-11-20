@@ -83,9 +83,9 @@ func Register(mux *http.ServeMux, service *discussionapp.Service, auth Authentic
 	})
 }
 
-func view(i discussionentity.Discussion) generated.Discussion {
+func view(i discussionentity.Discussion, actor string) generated.Discussion {
 	ids := append([]string{}, i.LabelIDs...)
-	return generated.Discussion{Id: i.ID, RepositoryId: i.RepositoryID, Number: i.Number, Title: i.Title, Body: i.Body, AuthorId: i.AuthorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, LabelIds: &ids}
+	return generated.Discussion{CanEdit: i.CanEdit(actor), Id: i.ID, RepositoryId: i.RepositoryID, Number: i.Number, Title: i.Title, Body: i.Body, AuthorId: i.AuthorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, LabelIds: &ids}
 }
 
 func writeError(w http.ResponseWriter, err error) bool {
@@ -123,7 +123,7 @@ func (s *discussionServer) ListDiscussions(w http.ResponseWriter, r *http.Reques
 	}
 	items := make([]generated.Discussion, 0, len(page.Items))
 	for _, i := range page.Items {
-		items = append(items, view(i))
+		items = append(items, view(i, identity.UserID(r.Context())))
 	}
 	transport.WriteJSON(w, 200, generated.DiscussionPage{Items: items, NextCursor: page.NextCursor})
 }
@@ -131,7 +131,7 @@ func (s *discussionServer) ListDiscussions(w http.ResponseWriter, r *http.Reques
 func (s *discussionServer) GetDiscussion(w http.ResponseWriter, r *http.Request, repositoryId string, id string) {
 	i, err := s.service.Get(r.Context(), identity.UserID(r.Context()), repositoryId, id)
 	if !writeError(w, err) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }
 
@@ -142,7 +142,7 @@ func (s *discussionServer) CreateDiscussion(w http.ResponseWriter, r *http.Reque
 	}
 	i, err := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryId, params.IdempotencyKey, discussionentity.Content{Title: input.Title, Body: input.Body})
 	if !writeError(w, err) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }
 
@@ -153,12 +153,12 @@ func (s *discussionServer) UpdateDiscussion(w http.ResponseWriter, r *http.Reque
 	}
 	i, err := s.service.Update(r.Context(), identity.UserID(r.Context()), repositoryId, id, discussionentity.Update{Content: discussionentity.Content{Title: input.Title, Body: input.Body}, ExpectedVersion: input.ExpectedVersion, LabelIDs: input.LabelIds})
 	if !writeError(w, err) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }
 
-func commentView(c discussionentity.Comment) generated.DiscussionComment {
-	return generated.DiscussionComment{Id: c.ID, RepositoryId: c.RepositoryID, DiscussionId: c.DiscussionID, Body: c.Body, AuthorId: c.AuthorID, Version: c.Version, CreatedAt: c.CreatedAt, UpdatedAt: c.UpdatedAt}
+func commentView(c discussionentity.Comment, actor string) generated.DiscussionComment {
+	return generated.DiscussionComment{CanEdit: c.CanEdit(actor), Id: c.ID, RepositoryId: c.RepositoryID, DiscussionId: c.DiscussionID, Body: c.Body, AuthorId: c.AuthorID, Version: c.Version, CreatedAt: c.CreatedAt, UpdatedAt: c.UpdatedAt}
 }
 
 func (s *discussionServer) ListDiscussionComments(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params generated.ListDiscussionCommentsParams) {
@@ -172,7 +172,7 @@ func (s *discussionServer) ListDiscussionComments(w http.ResponseWriter, r *http
 	}
 	items := make([]generated.DiscussionComment, 0, len(page.Items))
 	for _, item := range page.Items {
-		items = append(items, commentView(item))
+		items = append(items, commentView(item, identity.UserID(r.Context())))
 	}
 	transport.WriteJSON(w, 200, generated.DiscussionCommentPage{Items: items, NextCursor: page.NextCursor})
 }
@@ -184,7 +184,7 @@ func (s *discussionServer) CreateDiscussionComment(w http.ResponseWriter, r *htt
 	}
 	item, err := s.service.CreateComment(r.Context(), identity.UserID(r.Context()), repositoryId, id, params.IdempotencyKey, input.Body)
 	if !writeError(w, err) {
-		transport.WriteJSON(w, 200, commentView(item))
+		transport.WriteJSON(w, 200, commentView(item, identity.UserID(r.Context())))
 	}
 }
 
@@ -195,6 +195,6 @@ func (s *discussionServer) UpdateDiscussionComment(w http.ResponseWriter, r *htt
 	}
 	item, err := s.service.UpdateComment(r.Context(), identity.UserID(r.Context()), repositoryId, id, commentId, input.Body, input.ExpectedVersion)
 	if !writeError(w, err) {
-		transport.WriteJSON(w, 200, commentView(item))
+		transport.WriteJSON(w, 200, commentView(item, identity.UserID(r.Context())))
 	}
 }
