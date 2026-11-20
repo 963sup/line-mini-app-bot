@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[workflow.md](workflow.md)、[acceptance.md](acceptance.md)、[tooling](tooling)、[本目錄工作指引](AGENTS.md)。
+先查閱[workflow.md](workflow.md)、[acceptance.md](acceptance.md)、[tooling](tooling/README.md)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 
