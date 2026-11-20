@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generatedinternal"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generatedinternal"
 )
 
 var requestIDPattern = regexp.MustCompile(`^[0-9a-f]{64}$`)

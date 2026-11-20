@@ -73,9 +73,9 @@ function functions(tokens: string[]) {
 }
 
 export function checkDispatch(source: Source, operations: DispatchOperation[]) {
-  const contract = tokens(source("backend/internal/httpapi/contract.go"));
-  const routes = functions(tokens(source("backend/internal/httpapi/routes.go")));
-  const generated = methods(declaration(tokens(source("backend/internal/httpapi/generated/api.gen.go")), "ServerInterface", "interface"));
+  const contract = tokens(source("backend/internal/transport/http/api/contract.go"));
+  const routes = functions(tokens(source("backend/internal/transport/http/api/routes.go")));
+  const generated = methods(declaration(tokens(source("backend/internal/transport/http/api/generated/api.gen.go")), "ServerInterface", "interface"));
   const embedded = declaration(contract, "contractServer", "struct");
   assert(embedded.length && embedded.every(name => /^[A-Za-z_]\w*$/.test(name)),
     "contractServer must embed named capability interfaces");

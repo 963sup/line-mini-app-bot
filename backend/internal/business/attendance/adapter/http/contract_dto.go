@@ -5,7 +5,7 @@ import (
 	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	attendanceservice "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/service"
 	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 func intervalViews(source []attendancevalueobject.Interval) []generated.Interval {

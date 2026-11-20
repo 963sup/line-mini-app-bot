@@ -5,7 +5,7 @@ import (
 )
 
 import (
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 func organizationResponse(value *organizationDomainEntity.Organization, err error) (any, error) {

@@ -50,10 +50,10 @@ Go 檢查與測試方式見[後端工作指引](../AGENTS.md#驗證)。涉及 Fi
 
 ## 閱讀入口
 
-從 [architecture](architecture)、[靜態頁面](transport/http/browser)、[business](business)、[定位診斷](transport/http/geolocation)、[httpapi](httpapi)、[identity](identity) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
+從 [architecture](architecture)、[靜態頁面](transport/http/browser)、[business](business)、[定位診斷](transport/http/geolocation)、[httpapi](transport/http/api)、[identity](identity) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：格式與資料相容](../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../../docs/diagrams.md#未來設計)
 
 ## 共用技術與入口
 
-[platform](platform) 提供文件鍵、分頁游標與 gRPC 錯誤轉換。[bootstrap](bootstrap) 建立 client 並接線。[navigation](transport/line/navigation) 組裝跨功能選單。[httpapi](httpapi) 維護 OpenAPI 生成契約與路由分派。
+[platform](platform) 提供文件鍵、分頁游標與 gRPC 錯誤轉換。[bootstrap](bootstrap) 建立 client 並接線。[navigation](transport/line/navigation) 組裝跨功能選單。[httpapi](transport/http/api) 維護 OpenAPI 生成契約與路由分派。

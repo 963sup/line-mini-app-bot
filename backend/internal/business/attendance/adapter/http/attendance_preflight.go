@@ -10,8 +10,8 @@ import (
 	"time"
 
 	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 func (s *attendanceServer) PreflightAttendancePunch(w http.ResponseWriter, r *http.Request, _ generated.PreflightAttendancePunchParams) {

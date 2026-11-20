@@ -9,10 +9,10 @@ import (
 
 	"github.com/963sup/line-mini-app-bot/internal/identity/session"
 
-	"github.com/963sup/line-mini-app-bot/internal/httpapi"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 type Authenticator struct {

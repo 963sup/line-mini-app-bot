@@ -10,9 +10,9 @@ import (
 	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
 	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/business/group/domain/valueobject"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 type Authenticator interface {

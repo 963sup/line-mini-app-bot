@@ -12,8 +12,8 @@ import (
 	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	attendancepolicy "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/policy"
 	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 func leaveView(l attendanceentity.Leave) generated.LeaveRecord {

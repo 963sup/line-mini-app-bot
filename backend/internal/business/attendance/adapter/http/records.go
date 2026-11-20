@@ -11,8 +11,8 @@ import (
 	attendancequery "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/query"
 	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	attendanceservice "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/service"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 // List and correction-detail responses omit the persisted location and event evidence.

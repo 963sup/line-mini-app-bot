@@ -19,7 +19,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 type automaticMemory struct {

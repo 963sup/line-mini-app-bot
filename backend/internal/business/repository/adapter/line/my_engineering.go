@@ -6,8 +6,8 @@ import (
 
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/transport/line/navigation"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
+	"github.com/963sup/line-mini-app-bot/internal/transport/line/navigation"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )

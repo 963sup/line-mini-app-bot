@@ -37,7 +37,7 @@ import (
 	subobjecthttp "github.com/963sup/line-mini-app-bot/internal/business/subobject/adapter/http"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/browser"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/geolocation"
 )

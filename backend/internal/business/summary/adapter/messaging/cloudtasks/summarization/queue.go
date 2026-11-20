@@ -13,7 +13,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generatedinternal"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generatedinternal"
 )
 
 type Queue struct {

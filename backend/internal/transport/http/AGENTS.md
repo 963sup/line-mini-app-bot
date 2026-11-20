@@ -2,7 +2,7 @@
 
 ## 用途與範圍
 
-提供 HTTP JSON 請求讀取與回應寫入工具，供各領域的 HTTP 轉接器共用。
+提供共用 HTTP JSON 讀寫工具。[api](api) 接線 OpenAPI 契約，[browser](browser) 供應靜態頁面，[geolocation](geolocation) 處理定位診斷。
 
 ## 架構與責任邊界
 

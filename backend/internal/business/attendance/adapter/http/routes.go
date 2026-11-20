@@ -3,7 +3,7 @@ package attendancehttp
 import (
 	"net/http"
 
-	"github.com/963sup/line-mini-app-bot/internal/httpapi"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
 )
 
 type attendanceServer struct {

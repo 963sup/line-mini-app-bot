@@ -9,8 +9,8 @@ import (
 
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 func referenceView(ref projectDomainEntity.Reference) generated.ProjectReference {

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
@@ -28,6 +28,13 @@ func routeHandler(server contractServer) http.Handler {
 	}})
 }
 
+func withMiddleware(handler http.Handler, wrap func(http.Handler) http.Handler) http.Handler {
+	if wrap != nil {
+		return wrap(handler)
+	}
+	return handler
+}
+
 func RegisterIdentity(public *http.ServeMux, handler IdentityServer) {
 	routes := routeHandler(contractServer{IdentityServer: handler})
 	public.Handle("GET /api/v1/miniapp/config", routes)
@@ -44,20 +51,14 @@ func RegisterRepositories(public *http.ServeMux, handler RepositoryServer) {
 }
 
 func RegisterLabels(public *http.ServeMux, handler LabelServer, wrap func(http.Handler) http.Handler) {
-	routes := routeHandler(contractServer{LabelServer: handler})
-	if wrap != nil {
-		routes = wrap(routes)
-	}
+	routes := withMiddleware(routeHandler(contractServer{LabelServer: handler}), wrap)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/labels", routes)
 	public.Handle("POST /api/v1/repositories/{repositoryId}/labels", routes)
 	public.Handle("PATCH /api/v1/repositories/{repositoryId}/labels/{id}", routes)
 }
 
 func RegisterIssues(public *http.ServeMux, handler IssueServer, wrap func(http.Handler) http.Handler) {
-	routes := routeHandler(contractServer{IssueServer: handler})
-	if wrap != nil {
-		routes = wrap(routes)
-	}
+	routes := withMiddleware(routeHandler(contractServer{IssueServer: handler}), wrap)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/issues", routes)
 	public.Handle("POST /api/v1/repositories/{repositoryId}/issues", routes)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/issues/{id}", routes)
@@ -65,10 +66,7 @@ func RegisterIssues(public *http.ServeMux, handler IssueServer, wrap func(http.H
 }
 
 func RegisterDiscussions(public *http.ServeMux, handler DiscussionServer, wrap func(http.Handler) http.Handler) {
-	routes := routeHandler(contractServer{DiscussionServer: handler})
-	if wrap != nil {
-		routes = wrap(routes)
-	}
+	routes := withMiddleware(routeHandler(contractServer{DiscussionServer: handler}), wrap)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/discussions", routes)
 	public.Handle("POST /api/v1/repositories/{repositoryId}/discussions", routes)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/discussions/{id}", routes)
@@ -83,10 +81,7 @@ func RegisterAttendance(public *http.ServeMux, handler AttendanceServer, wrap fu
 	if err != nil {
 		panic(err)
 	}
-	routes := routeHandler(contractServer{AttendanceServer: handler})
-	if wrap != nil {
-		routes = wrap(routes)
-	}
+	routes := withMiddleware(routeHandler(contractServer{AttendanceServer: handler}), wrap)
 	for path, item := range spec.Paths.Map() {
 		if !strings.HasPrefix(path, "/api/v1/attendance/") {
 			continue
@@ -98,10 +93,7 @@ func RegisterAttendance(public *http.ServeMux, handler AttendanceServer, wrap fu
 }
 
 func RegisterMilestones(public *http.ServeMux, handler MilestoneServer, wrap func(http.Handler) http.Handler) {
-	routes := routeHandler(contractServer{MilestoneServer: handler})
-	if wrap != nil {
-		routes = wrap(routes)
-	}
+	routes := withMiddleware(routeHandler(contractServer{MilestoneServer: handler}), wrap)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/milestones", routes)
 	public.Handle("POST /api/v1/repositories/{repositoryId}/milestones", routes)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/milestones/{id}", routes)
@@ -109,10 +101,7 @@ func RegisterMilestones(public *http.ServeMux, handler MilestoneServer, wrap fun
 }
 
 func RegisterProjects(public *http.ServeMux, handler ProjectServer, wrap func(http.Handler) http.Handler) {
-	routes := routeHandler(contractServer{ProjectServer: handler})
-	if wrap != nil {
-		routes = wrap(routes)
-	}
+	routes := withMiddleware(routeHandler(contractServer{ProjectServer: handler}), wrap)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/projects", routes)
 	public.Handle("POST /api/v1/repositories/{repositoryId}/projects", routes)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/projects/{id}", routes)
@@ -123,10 +112,7 @@ func RegisterProjects(public *http.ServeMux, handler ProjectServer, wrap func(ht
 }
 
 func RegisterStatistics(public *http.ServeMux, handler StatisticsServer, wrap func(http.Handler) http.Handler) {
-	routes := routeHandler(contractServer{StatisticsServer: handler})
-	if wrap != nil {
-		routes = wrap(routes)
-	}
+	routes := withMiddleware(routeHandler(contractServer{StatisticsServer: handler}), wrap)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/statistics", routes)
 }
 
@@ -137,10 +123,7 @@ func RegisterGroups(public *http.ServeMux, handler GroupServer) {
 }
 
 func RegisterOwnerProjects(public *http.ServeMux, handler OwnerProjectServer, wrap func(http.Handler) http.Handler) {
-	routes := routeHandler(contractServer{OwnerProjectServer: handler})
-	if wrap != nil {
-		routes = wrap(routes)
-	}
+	routes := withMiddleware(routeHandler(contractServer{OwnerProjectServer: handler}), wrap)
 	public.Handle("GET /api/v1/owners/{ownerId}/projects", routes)
 	public.Handle("POST /api/v1/owners/{ownerId}/projects", routes)
 	public.Handle("GET /api/v1/owners/{ownerId}/projects/{id}", routes)
@@ -157,10 +140,7 @@ func RegisterOwnerProjects(public *http.ServeMux, handler OwnerProjectServer, wr
 }
 
 func RegisterObjects(public *http.ServeMux, handler ObjectServer, wrap func(http.Handler) http.Handler) {
-	routes := routeHandler(contractServer{ObjectServer: handler})
-	if wrap != nil {
-		routes = wrap(routes)
-	}
+	routes := withMiddleware(routeHandler(contractServer{ObjectServer: handler}), wrap)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/objects", routes)
 	public.Handle("POST /api/v1/repositories/{repositoryId}/objects", routes)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/objects/{id}", routes)
@@ -168,10 +148,7 @@ func RegisterObjects(public *http.ServeMux, handler ObjectServer, wrap func(http
 }
 
 func RegisterSubobjects(public *http.ServeMux, handler SubobjectServer, wrap func(http.Handler) http.Handler) {
-	routes := routeHandler(contractServer{SubobjectServer: handler})
-	if wrap != nil {
-		routes = wrap(routes)
-	}
+	routes := withMiddleware(routeHandler(contractServer{SubobjectServer: handler}), wrap)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects", routes)
 	public.Handle("POST /api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects", routes)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}", routes)
@@ -179,10 +156,7 @@ func RegisterSubobjects(public *http.ServeMux, handler SubobjectServer, wrap fun
 }
 
 func RegisterObjectImports(public *http.ServeMux, handler ObjectImportServer, wrap func(http.Handler) http.Handler) {
-	routes := routeHandler(contractServer{ObjectImportServer: handler})
-	if wrap != nil {
-		routes = wrap(routes)
-	}
+	routes := withMiddleware(routeHandler(contractServer{ObjectImportServer: handler}), wrap)
 	public.Handle("POST /api/v1/repositories/{repositoryId}/object-import-runs", routes)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/object-import-runs/{id}", routes)
 	public.Handle("POST /api/v1/repositories/{repositoryId}/object-imports", routes)
@@ -193,10 +167,7 @@ func RegisterObjectImports(public *http.ServeMux, handler ObjectImportServer, wr
 }
 
 func RegisterRepositorySpaces(public *http.ServeMux, handler RepositorySpaceServer, wrap func(http.Handler) http.Handler) {
-	routes := routeHandler(contractServer{RepositorySpaceServer: handler})
-	if wrap != nil {
-		routes = wrap(routes)
-	}
+	routes := withMiddleware(routeHandler(contractServer{RepositorySpaceServer: handler}), wrap)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/spaces", routes)
 	public.Handle("POST /api/v1/repositories/{repositoryId}/spaces", routes)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/spaces/{id}", routes)
@@ -211,10 +182,7 @@ func RegisterJournals(public *http.ServeMux, handler JournalServer, wrap func(ht
 }
 
 func RegisterWiki(public *http.ServeMux, handler WikiServer, wrap func(http.Handler) http.Handler) {
-	routes := routeHandler(contractServer{WikiServer: handler})
-	if wrap != nil {
-		routes = wrap(routes)
-	}
+	routes := withMiddleware(routeHandler(contractServer{WikiServer: handler}), wrap)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/wiki-pages", routes)
 	public.Handle("POST /api/v1/repositories/{repositoryId}/wiki-pages", routes)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/wiki-pages/{id}", routes)
