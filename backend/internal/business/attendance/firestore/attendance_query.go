@@ -17,26 +17,6 @@ import (
 
 const queryBatchSize = 200
 
-// QueryMode is explicit so callers can disclose historical-read costs during rollout.
-func (s *Attendance) QueryMode(ctx context.Context) (string, error) {
-	snap, err := s.queryState().Get(ctx)
-	if status.Code(err) == codes.NotFound {
-		return "legacy", nil
-	}
-	if err != nil {
-		return "", err
-	}
-	ready, ok := snap.Data()["ready"].(bool)
-	if ok && ready {
-		return "indexed", nil
-	}
-	return "legacy", nil
-}
-
-func (s *Attendance) queryState() *db.DocumentRef {
-	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("attendanceQueryState").Doc("v1")
-}
-
 type pageCursor struct {
 	Version int       `json:"v"`
 	Scope   string    `json:"s"`
@@ -179,40 +159,22 @@ func (s *Attendance) GroupsPage(ctx context.Context, user, cursor string, size i
 	if err != nil {
 		return page, err
 	}
-	mode, err := s.QueryMode(ctx)
-	page.QueryMode = mode
-	if err != nil {
-		return page, err
-	}
+	page.QueryMode = "indexed"
 	groups := []string{}
-	if mode == "legacy" {
-		groups, err = s.legacyGroups(ctx, user)
-		if err != nil {
-			return page, err
+	q := s.user(user).Collection("attendanceGroups").OrderBy("groupID", db.Asc)
+	if c.ID != "" {
+		q = q.StartAfter(c.ID)
+	}
+	docs, e := q.Limit(size + 1).Documents(ctx).GetAll()
+	if e != nil {
+		return page, e
+	}
+	for _, doc := range docs {
+		group, ok := doc.Data()["groupID"].(string)
+		if !ok || !validSegment(group) {
+			return page, recordmodel.ErrInvalidCursor
 		}
-		at := sort.SearchStrings(groups, c.ID)
-		if c.ID != "" {
-			for at < len(groups) && groups[at] <= c.ID {
-				at++
-			}
-		}
-		groups = groups[at:]
-	} else {
-		q := s.user(user).Collection("attendanceGroups").OrderBy("groupID", db.Asc)
-		if c.ID != "" {
-			q = q.StartAfter(c.ID)
-		}
-		docs, e := q.Limit(size + 1).Documents(ctx).GetAll()
-		if e != nil {
-			return page, e
-		}
-		for _, doc := range docs {
-			group, ok := doc.Data()["groupID"].(string)
-			if !ok || !validSegment(group) {
-				return page, recordmodel.ErrInvalidCursor
-			}
-			groups = append(groups, group)
-		}
+		groups = append(groups, group)
 	}
 	if len(groups) > size {
 		page.NextCursor = encodeCursor(scope, time.Time{}, groups[size-1])
@@ -233,41 +195,22 @@ func (s *Attendance) RecordsPage(ctx context.Context, user, group string, start 
 	if err != nil || (cursor != "" && c.Time.IsZero()) {
 		return page, recordmodel.ErrInvalidCursor
 	}
-	mode, err := s.QueryMode(ctx)
-	page.QueryMode = mode
-	if err != nil {
-		return page, err
-	}
+	page.QueryMode = "indexed"
 	records := []recordmodel.Record{}
-	if mode == "legacy" {
-		records, err = s.legacyGroupRecords(ctx, user, group)
-		if err != nil {
-			return page, err
+	seen := map[string]bool{}
+	for _, q := range s.monthQueries(user, group, start, c) {
+		docs, e := q.Limit(size + 1).Documents(ctx).GetAll()
+		if e != nil {
+			return page, e
 		}
-		filtered := []recordmodel.Record{}
-		for _, r := range records {
-			after := c.ID == "" || r.ClockInAt.Before(c.Time) || (r.ClockInAt.Equal(c.Time) && (r.ClockOutAt.Before(c.End) || (r.ClockOutAt.Equal(c.End) && r.RecordID < c.ID)))
-			if after && overlapsMonth(r, start) {
-				filtered = append(filtered, r)
-			}
+		batch, e := decodeAttendance(docs)
+		if e != nil {
+			return page, e
 		}
-		records = filtered
-	} else {
-		seen := map[string]bool{}
-		for _, q := range s.monthQueries(user, group, start, c) {
-			docs, e := q.Limit(size + 1).Documents(ctx).GetAll()
-			if e != nil {
-				return page, e
-			}
-			batch, e := decodeAttendance(docs)
-			if e != nil {
-				return page, e
-			}
-			for _, r := range batch {
-				if !seen[r.RecordID] {
-					records = append(records, r)
-					seen[r.RecordID] = true
-				}
+		for _, r := range batch {
+			if !seen[r.RecordID] {
+				records = append(records, r)
+				seen[r.RecordID] = true
 			}
 		}
 	}
