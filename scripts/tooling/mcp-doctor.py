@@ -51,6 +51,16 @@ def probe_server(name, config, call=None, arguments=None):
         if not os.environ.get(token_var):
             raise RuntimeError(f'missing runtime credential: {token_var}')
         headers['Authorization'] = 'Bearer ' + os.environ[token_var]
+    if name in {'cloud-run', 'toolbox'}:
+        credential = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+        if credential and not (Path(credential).is_file() and os.access(credential, os.R_OK)):
+            raise RuntimeError('GOOGLE_APPLICATION_CREDENTIALS must reference a readable file')
+        adc = subprocess.run(
+            ['bash', str(ROOT / 'scripts/tooling/tool-exec.sh'), 'gcloud', 'auth',
+             'application-default', 'print-access-token', '--quiet'],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=45)
+        if adc.returncode:
+            raise RuntimeError('Google ADC unavailable; provision a runtime identity for this environment')
     if 'command' in config:
         process = subprocess.Popen([config['command'], *config.get('args', [])], cwd=ROOT,
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -169,8 +179,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.call and not args.server:
         parser.error('--call requires --server')
-    if args.call and (args.server != 'openaiDeveloperDocs' or args.call not in {'search_openai_docs', 'fetch_openai_doc'}):
-        parser.error('--call currently supports only OpenAI Docs search/fetch')
+    if args.call and args.call not in {'openaiDeveloperDocs': {'search_openai_docs', 'fetch_openai_doc'},
+                                       'repomix': {'file_system_read_file'}}.get(args.server, set()):
+        parser.error('--call supports OpenAI Docs search/fetch or Repomix file_system_read_file')
     arguments = json.loads(args.arguments)
     if not isinstance(arguments, dict):
         parser.error('--arguments must be a JSON object')
