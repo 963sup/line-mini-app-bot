@@ -1,3 +1,4 @@
+import { listMemberGroups } from "@/business/group/memberGroups";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
@@ -61,9 +62,7 @@ function AuthenticatedWorkspace() {
     if (blocked.current) return;
     setBusy(true); setCursor(""); setStatus("正在核驗可開啟的群組……");
     if (!next) setGroups([]);
-    void list.run(signal => request((client, s) => client.GET("/api/v1/groups", {
-      signal: s, params: { query: { cursor: next || undefined } },
-    }), { signal }), page => {
+    void list.run(signal => listMemberGroups(request, signal, next || undefined), page => {
       setGroups(previous => [...new Map([...(next ? previous : []), ...page.items].map(item => [item.id, item])).values()]);
       setCursor(page.nextCursor); setBusy(false);
       setStatus(page.nextCursor ? "可繼續載入群組。" : "已讀取可開啟的群組。");
