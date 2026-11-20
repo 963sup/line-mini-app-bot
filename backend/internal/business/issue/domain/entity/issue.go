@@ -31,6 +31,8 @@ type Issue struct {
 	LabelIDs                                        []string
 }
 
+func (v Issue) CanEdit(actor string) bool { return actor != "" && actor == v.CreatorID }
+
 type (
 	Content struct{ Title, Body string }
 	Update  struct {
@@ -52,7 +54,7 @@ func Normalize(c Content) (Content, error) {
 
 // ApplyUpdate runs inside the storage transaction against the current item.
 func ApplyUpdate(current Issue, actor string, input Update) (Issue, error) {
-	if actor == "" || (actor != current.CreatorID && (input.Title != current.Title || input.Body != current.Body || input.State != current.State || (input.LabelIDs == nil && input.MilestoneID == nil))) {
+	if actor == "" || (!current.CanEdit(actor) && (input.Title != current.Title || input.Body != current.Body || input.State != current.State || (input.LabelIDs == nil && input.MilestoneID == nil))) {
 		return Issue{}, ErrForbidden
 	}
 	content, err := Normalize(input.Content)

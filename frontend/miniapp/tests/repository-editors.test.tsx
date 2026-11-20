@@ -7,7 +7,7 @@ import { Shell } from "../src/shell/Shell";
 import { View } from "../src/business/repository/View";
 
 const rid = "a".repeat(32), id = "b".repeat(32);
-const item = (overrides = {}) => ({ id, repositoryId: rid, number: 1, title: "測試項目", body: "原內容", dueDate: "2026-12-01", state: "open", creatorId: "A", authorId: "A", version: 2, labelIds: [], milestoneId: null, issueCount: 0, completedIssueCount: 0, ...overrides });
+const item = (overrides = {}) => ({ id, repositoryId: rid, number: 1, title: "測試項目", body: "原內容", dueDate: "2026-12-01", state: "open", canEdit: true, creatorId: "A", authorId: "A", version: 2, labelIds: [], milestoneId: null, issueCount: 0, completedIssueCount: 0, ...overrides });
 const flush = async () => { for (let i = 0; i < 10; i++) await new Promise<void>(resolve => setImmediate(resolve)); };
 async function fixture(handle: (request: Request) => Promise<Response | undefined> = async () => undefined) {
   document.body.innerHTML = '<div id="root"></div>';
@@ -178,7 +178,7 @@ test("object create retains its original retry after unknown then forbidden unde
  }finally{await f.dispose();}
 });
 
-const comment = (overrides = {}) => ({id:"c".repeat(32),authorId:"A",body:"原留言",version:1,createdAt:"2026-11-01T00:00:00Z",...overrides});
+const comment = (overrides = {}) => ({id:"c".repeat(32),canEdit: true, authorId:"A",body:"原留言",version:1,createdAt:"2026-11-01T00:00:00Z",...overrides});
 
 test("comment pagination preserves an edit and failed-page retry; switching comments confirms discarding",async()=>{
  let fail=true, reads=0, writes=0;

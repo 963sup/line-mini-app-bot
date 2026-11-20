@@ -1399,6 +1399,8 @@ export interface components {
             labelIds?: string[];
             /** @description Same repository milestone; omitted on update preserves, null clears */
             milestoneId?: string | null;
+            /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
+            canEdit: boolean;
         };
         IssueCreation: {
             title: string;
