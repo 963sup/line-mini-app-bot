@@ -10,8 +10,8 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/repository/wiki"
 
 	"cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/discussion"
-	discussiondb "github.com/963sup/line-mini-app-bot/internal/business/discussion/firestore"
+	discussiondb "github.com/963sup/line-mini-app-bot/internal/business/discussion/adapter/firestore"
+	discussionapp "github.com/963sup/line-mini-app-bot/internal/business/discussion/application"
 	"github.com/963sup/line-mini-app-bot/internal/business/issue"
 	issuedb "github.com/963sup/line-mini-app-bot/internal/business/issue/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/object"
@@ -55,7 +55,7 @@ func newLabels(repositories *repository.Service) *labels.Service {
 	return &labels.Service{Repositories: repositories, Store: store}
 }
 
-func newDiscussions(repositories *repository.Service) *discussion.Service {
+func newDiscussions(repositories *repository.Service) *discussionapp.Service {
 	if repositories == nil {
 		return nil
 	}
@@ -63,7 +63,7 @@ func newDiscussions(repositories *repository.Service) *discussion.Service {
 	if !ok {
 		return nil
 	}
-	return &discussion.Service{Repositories: repositories, Store: &discussiondb.Store{Client: store.Client, ChannelID: store.ChannelID, Numbers: store, Labels: store}}
+	return discussionapp.New(repositories, &discussiondb.Store{Client: store.Client, ChannelID: store.ChannelID, Numbers: store, Labels: store})
 }
 
 func newRepositories(ctx context.Context) (*repository.Service, func() error, error) {

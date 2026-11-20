@@ -29,7 +29,7 @@ import (
 	attendancehttp "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/http"
 	attendanceline "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line/presentation"
-	discussionhttp "github.com/963sup/line-mini-app-bot/internal/business/discussion/http"
+	discussionhttp "github.com/963sup/line-mini-app-bot/internal/business/discussion/adapter/http"
 	grouphttp "github.com/963sup/line-mini-app-bot/internal/business/group/http"
 	groupline "github.com/963sup/line-mini-app-bot/internal/business/group/line"
 	issuehttp "github.com/963sup/line-mini-app-bot/internal/business/issue/http"

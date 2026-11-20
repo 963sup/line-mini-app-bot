@@ -105,8 +105,8 @@
     },
     "discussion": {
       "contract": "discussion/discussions.yaml",
-      "adapter": "backend/internal/business/discussion/http/routes.go",
-      "core": "backend/internal/business/discussion/discussion.go",
+      "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
+      "core": "backend/internal/business/discussion/application/service.go",
       "specification": "docs/domains/repository/discussions.md"
     },
     "discussion.categories": {
@@ -117,8 +117,8 @@
     },
     "discussion.comments": {
       "contract": "discussion/comments.yaml",
-      "adapter": "backend/internal/business/discussion/http/routes.go",
-      "core": "backend/internal/business/discussion/discussion.go",
+      "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
+      "core": "backend/internal/business/discussion/application/service.go",
       "specification": "docs/domains/repository/discussions.md"
     },
     "project": {
@@ -697,9 +697,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/discussions",
       "owner": "discussion",
-      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "handler": "ListDiscussions",
-      "core": "backend/internal/business/discussion/discussion.go",
+      "core": "backend/internal/business/discussion/application/service.go",
       "specification": "docs/domains/repository/discussions.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/View.tsx"
@@ -711,9 +711,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/discussions",
       "owner": "discussion",
-      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "handler": "CreateDiscussion",
-      "core": "backend/internal/business/discussion/discussion.go",
+      "core": "backend/internal/business/discussion/application/service.go",
       "specification": "docs/domains/repository/discussions.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/View.tsx"
@@ -725,9 +725,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/discussions/{id}",
       "owner": "discussion",
-      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "handler": "GetDiscussion",
-      "core": "backend/internal/business/discussion/discussion.go",
+      "core": "backend/internal/business/discussion/application/service.go",
       "specification": "docs/domains/repository/discussions.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/View.tsx"
@@ -739,9 +739,9 @@
       "method": "PATCH",
       "path": "/api/v1/repositories/{repositoryId}/discussions/{id}",
       "owner": "discussion",
-      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "handler": "UpdateDiscussion",
-      "core": "backend/internal/business/discussion/discussion.go",
+      "core": "backend/internal/business/discussion/application/service.go",
       "specification": "docs/domains/repository/discussions.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/View.tsx"
@@ -753,9 +753,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/discussions/{id}/comments",
       "owner": "discussion.comments",
-      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "handler": "ListDiscussionComments",
-      "core": "backend/internal/business/discussion/discussion.go",
+      "core": "backend/internal/business/discussion/application/service.go",
       "specification": "docs/domains/repository/discussions.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/Comments.tsx"
@@ -767,9 +767,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/discussions/{id}/comments",
       "owner": "discussion.comments",
-      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "handler": "CreateDiscussionComment",
-      "core": "backend/internal/business/discussion/discussion.go",
+      "core": "backend/internal/business/discussion/application/service.go",
       "specification": "docs/domains/repository/discussions.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/Comments.tsx"
@@ -781,9 +781,9 @@
       "method": "PATCH",
       "path": "/api/v1/repositories/{repositoryId}/discussions/{id}/comments/{commentId}",
       "owner": "discussion.comments",
-      "adapter": "backend/internal/business/discussion/http/routes.go",
+      "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "handler": "UpdateDiscussionComment",
-      "core": "backend/internal/business/discussion/discussion.go",
+      "core": "backend/internal/business/discussion/application/service.go",
       "specification": "docs/domains/repository/discussions.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/Comments.tsx"

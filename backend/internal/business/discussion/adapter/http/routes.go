@@ -7,7 +7,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/discussion"
+	discussionapp "github.com/963sup/line-mini-app-bot/internal/business/discussion/application"
+	discussiondto "github.com/963sup/line-mini-app-bot/internal/business/discussion/application/dto"
+	discussionentity "github.com/963sup/line-mini-app-bot/internal/business/discussion/domain/entity"
+
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/identity"
@@ -20,12 +23,12 @@ type (
 	Authenticator interface {
 		Authenticate(http.ResponseWriter, *http.Request) (string, string, bool)
 	}
-	discussionServer struct{ service *discussion.Service }
+	discussionServer struct{ service *discussionapp.Service }
 )
 
 var _ httpapi.DiscussionServer = (*discussionServer)(nil)
 
-func Register(mux *http.ServeMux, service *discussion.Service, auth Authenticator) {
+func Register(mux *http.ServeMux, service *discussionapp.Service, auth Authenticator) {
 	spec, err := httpapi.Spec()
 	if err != nil {
 		panic(err)
@@ -80,7 +83,7 @@ func Register(mux *http.ServeMux, service *discussion.Service, auth Authenticato
 	})
 }
 
-func view(i discussion.Discussion) generated.Discussion {
+func view(i discussionentity.Discussion) generated.Discussion {
 	ids := append([]string{}, i.LabelIDs...)
 	return generated.Discussion{Id: i.ID, RepositoryId: i.RepositoryID, Number: i.Number, Title: i.Title, Body: i.Body, AuthorId: i.AuthorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, LabelIds: &ids}
 }
@@ -91,15 +94,15 @@ func writeError(w http.ResponseWriter, err error) bool {
 	}
 	code, status, message := "unavailable", 503, "討論結果尚未確認，請重新讀取；建立重試請沿用原識別碼。"
 	switch {
-	case errors.Is(err, discussion.ErrNotFound):
+	case errors.Is(err, discussionentity.ErrNotFound):
 		code, status, message = "not_found", 404, "找不到此空間或討論。"
-	case errors.Is(err, discussion.ErrForbidden):
+	case errors.Is(err, discussionentity.ErrForbidden):
 		code, status, message = "forbidden", 403, "只有作者可以修改此討論或留言。"
-	case errors.Is(err, discussion.ErrInput):
+	case errors.Is(err, discussionentity.ErrInput):
 		code, status, message = "invalid_input", 400, "請確認標題、內容或標籤資料。"
-	case errors.Is(err, discussion.ErrConflict):
+	case errors.Is(err, discussionentity.ErrConflict):
 		code, status, message = "version_conflict", 409, "討論已更新，請重新讀取後再操作。"
-	case errors.Is(err, discussion.ErrCreationConflict):
+	case errors.Is(err, discussionentity.ErrCreationConflict):
 		code, status, message = "idempotency_conflict", 409, "重試識別碼已用於不同內容，請先確認原討論。"
 	}
 	transport.WriteServiceError(w, status, code, message, err)
@@ -107,7 +110,7 @@ func writeError(w http.ResponseWriter, err error) bool {
 }
 
 func (s *discussionServer) ListDiscussions(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ListDiscussionsParams) {
-	f := discussion.Filter{}
+	f := discussiondto.Filter{}
 	if params.Cursor != nil {
 		f.Cursor = *params.Cursor
 	}
@@ -137,7 +140,7 @@ func (s *discussionServer) CreateDiscussion(w http.ResponseWriter, r *http.Reque
 	if !transport.ReadJSON(w, r, &input, "討論資料無效。") {
 		return
 	}
-	i, err := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryId, params.IdempotencyKey, discussion.Content{Title: input.Title, Body: input.Body})
+	i, err := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryId, params.IdempotencyKey, discussionentity.Content{Title: input.Title, Body: input.Body})
 	if !writeError(w, err) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -148,13 +151,13 @@ func (s *discussionServer) UpdateDiscussion(w http.ResponseWriter, r *http.Reque
 	if !transport.ReadJSON(w, r, &input, "討論資料無效。") {
 		return
 	}
-	i, err := s.service.Update(r.Context(), identity.UserID(r.Context()), repositoryId, id, discussion.Update{Content: discussion.Content{Title: input.Title, Body: input.Body}, ExpectedVersion: input.ExpectedVersion, LabelIDs: input.LabelIds})
+	i, err := s.service.Update(r.Context(), identity.UserID(r.Context()), repositoryId, id, discussionentity.Update{Content: discussionentity.Content{Title: input.Title, Body: input.Body}, ExpectedVersion: input.ExpectedVersion, LabelIDs: input.LabelIds})
 	if !writeError(w, err) {
 		transport.WriteJSON(w, 200, view(i))
 	}
 }
 
-func commentView(c discussion.Comment) generated.DiscussionComment {
+func commentView(c discussionentity.Comment) generated.DiscussionComment {
 	return generated.DiscussionComment{Id: c.ID, RepositoryId: c.RepositoryID, DiscussionId: c.DiscussionID, Body: c.Body, AuthorId: c.AuthorID, Version: c.Version, CreatedAt: c.CreatedAt, UpdatedAt: c.UpdatedAt}
 }
 

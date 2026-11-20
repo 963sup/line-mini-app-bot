@@ -9,8 +9,12 @@ import (
 	"strconv"
 	"time"
 
+	discussiondto "github.com/963sup/line-mini-app-bot/internal/business/discussion/application/dto"
+	discussionport "github.com/963sup/line-mini-app-bot/internal/business/discussion/application/port"
+	discussionentity "github.com/963sup/line-mini-app-bot/internal/business/discussion/domain/entity"
+
 	db "cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/discussion"
+
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/grpc/codes"
@@ -29,26 +33,26 @@ type commentDocument struct {
 	UpdatedAt     time.Time `firestore:"updatedAt"`
 }
 
-func encodeComment(c discussion.Comment) commentDocument {
+func encodeComment(c discussionentity.Comment) commentDocument {
 	return commentDocument{1, c.ID, c.RepositoryID, c.DiscussionID, c.Body, c.AuthorID, c.Version, c.CreatedAt, c.UpdatedAt}
 }
 
-func decodeComment(snap *db.DocumentSnapshot, err error, repositoryID, discussionID string) (discussion.Comment, error) {
+func decodeComment(snap *db.DocumentSnapshot, err error, repositoryID, discussionID string) (discussionentity.Comment, error) {
 	if status.Code(err) == codes.NotFound {
-		return discussion.Comment{}, discussion.ErrNotFound
+		return discussionentity.Comment{}, discussionentity.ErrNotFound
 	}
 	if err != nil {
-		return discussion.Comment{}, err
+		return discussionentity.Comment{}, err
 	}
 	var d commentDocument
 	if err := snap.DataTo(&d); err != nil {
-		return discussion.Comment{}, err
+		return discussionentity.Comment{}, err
 	}
-	body, err := discussion.NormalizeComment(d.Body)
+	body, err := discussionentity.NormalizeComment(d.Body)
 	if err != nil || body != d.Body || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !repository.ValidID(d.ID) || d.RepositoryID != repositoryID || d.DiscussionID != discussionID || d.AuthorID == "" || d.Version < 1 || d.Version > repository.MaxResourceNumber || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) {
-		return discussion.Comment{}, discussion.ErrUnavailable
+		return discussionentity.Comment{}, discussionport.ErrUnavailable
 	}
-	return discussion.Comment{ID: d.ID, RepositoryID: d.RepositoryID, DiscussionID: d.DiscussionID, Body: d.Body, AuthorID: d.AuthorID, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
+	return discussionentity.Comment{ID: d.ID, RepositoryID: d.RepositoryID, DiscussionID: d.DiscussionID, Body: d.Body, AuthorID: d.AuthorID, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
 }
 
 func (s *Store) topic(scope repository.Repository, id string) *db.DocumentRef {
@@ -59,7 +63,7 @@ func (s *Store) topic(scope repository.Repository, id string) *db.DocumentRef {
 func (s *Store) checkThread(tx *db.Transaction, scope repository.Repository, id string) error {
 	snap, err := tx.Get(s.repositoryRef(scope.ID))
 	if status.Code(err) == codes.NotFound {
-		return discussion.ErrNotFound
+		return discussionentity.ErrNotFound
 	}
 	if err != nil {
 		return err
@@ -73,7 +77,7 @@ func (s *Store) checkThread(tx *db.Transaction, scope repository.Repository, id 
 		return err
 	}
 	if !scope.MatchesActive(container.ID, container.OwnerID, container.Status) {
-		return discussion.ErrNotFound
+		return discussionentity.ErrNotFound
 	}
 	snap, err = tx.Get(s.topic(scope, id))
 	_, err = decode(snap, err, scope.ID)
@@ -85,11 +89,11 @@ type commentCursor struct {
 	At        time.Time
 }
 
-func (s *Store) ListComments(ctx context.Context, scope repository.Repository, actor, id, value string) (result discussion.CommentPage, err error) {
+func (s *Store) ListComments(ctx context.Context, scope repository.Repository, actor, id, value string) (result discussiondto.CommentPage, err error) {
 	defer func() { err = translate(err) }()
-	result.Items = []discussion.Comment{}
+	result.Items = []discussionentity.Comment{}
 	if !s.ready() {
-		return result, discussion.ErrUnavailable
+		return result, discussionport.ErrUnavailable
 	}
 	if _, err := s.Get(ctx, scope, id); err != nil {
 		return result, err
@@ -103,7 +107,7 @@ func (s *Store) ListComments(ctx context.Context, scope repository.Repository, a
 	if value != "" {
 		b, e := base64.RawURLEncoding.DecodeString(value)
 		if e != nil || json.Unmarshal(b, &c) != nil || c.Scope != scopeKey || !repository.ValidID(c.ID) || c.At.IsZero() {
-			return result, discussion.ErrInput
+			return result, discussionentity.ErrInput
 		}
 	}
 	q := s.topic(scope, id).Collection("comments").OrderBy("createdAt", db.Asc).OrderBy(db.DocumentID, db.Asc)
@@ -121,7 +125,7 @@ func (s *Store) ListComments(ctx context.Context, scope repository.Repository, a
 	for _, snap := range docs {
 		item, err := decodeComment(snap, nil, scope.ID, id)
 		if err != nil {
-			return discussion.CommentPage{}, err
+			return discussiondto.CommentPage{}, err
 		}
 		result.Items = append(result.Items, item)
 		c = commentCursor{Scope: scopeKey, ID: item.ID, At: item.CreatedAt}
@@ -129,7 +133,7 @@ func (s *Store) ListComments(ctx context.Context, scope repository.Repository, a
 	if more {
 		b, err := json.Marshal(c)
 		if err != nil {
-			return discussion.CommentPage{}, err
+			return discussiondto.CommentPage{}, err
 		}
 		result.NextCursor = base64.RawURLEncoding.EncodeToString(b)
 	}
@@ -142,10 +146,10 @@ type commentReceipt struct {
 	CommentID     string `firestore:"commentId"`
 }
 
-func (s *Store) CreateComment(ctx context.Context, scope repository.Repository, actor, id, key, body string) (result discussion.Comment, err error) {
+func (s *Store) CreateComment(ctx context.Context, scope repository.Repository, actor, id, key, body string) (result discussionentity.Comment, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
-		return result, discussion.ErrUnavailable
+		return result, discussionport.ErrUnavailable
 	}
 	var random [16]byte
 	if _, err := rand.Read(random[:]); err != nil {
@@ -167,7 +171,7 @@ func (s *Store) CreateComment(ctx context.Context, scope repository.Repository, 
 	parent := s.topic(scope, id)
 	receipt := parent.Collection("commentCreationReceipts").Doc(firestorekey.Digest(keyScope))
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		result = discussion.Comment{}
+		result = discussionentity.Comment{}
 		if err := s.checkThread(tx, scope, id); err != nil {
 			return err
 		}
@@ -178,48 +182,48 @@ func (s *Store) CreateComment(ctx context.Context, scope repository.Repository, 
 				return err
 			}
 			if prior.SchemaVersion != 1 || !repository.ValidID(prior.CommentID) {
-				return discussion.ErrUnavailable
+				return discussionport.ErrUnavailable
 			}
 			if prior.PayloadHash != firestorekey.Digest(payload) {
-				return discussion.ErrCreationConflict
+				return discussionentity.ErrCreationConflict
 			}
 			snap, err := tx.Get(parent.Collection("comments").Doc(prior.CommentID))
 			result, err = decodeComment(snap, err, scope.ID, id)
-			if err == discussion.ErrNotFound {
-				return discussion.ErrUnavailable
+			if err == discussionentity.ErrNotFound {
+				return discussionport.ErrUnavailable
 			}
 			if err != nil {
 				return err
 			}
 			if result.AuthorID != actor {
-				return discussion.ErrUnavailable
+				return discussionport.ErrUnavailable
 			}
 			return nil
 		}
 		if status.Code(err) != codes.NotFound {
 			return err
 		}
-		result = discussion.Comment{ID: newID, RepositoryID: scope.ID, DiscussionID: id, Body: body, AuthorID: actor, Version: 1, CreatedAt: now, UpdatedAt: now}
+		result = discussionentity.Comment{ID: newID, RepositoryID: scope.ID, DiscussionID: id, Body: body, AuthorID: actor, Version: 1, CreatedAt: now, UpdatedAt: now}
 		if err := tx.Create(parent.Collection("comments").Doc(newID), encodeComment(result)); err != nil {
 			return err
 		}
 		return tx.Create(receipt, commentReceipt{1, firestorekey.Digest(payload), newID})
 	})
 	if err != nil {
-		return discussion.Comment{}, err
+		return discussionentity.Comment{}, err
 	}
 	return result, nil
 }
 
-func (s *Store) UpdateComment(ctx context.Context, scope repository.Repository, actor, id, commentID, body string, version int64) (result discussion.Comment, err error) {
+func (s *Store) UpdateComment(ctx context.Context, scope repository.Repository, actor, id, commentID, body string, version int64) (result discussionentity.Comment, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
-		return result, discussion.ErrUnavailable
+		return result, discussionport.ErrUnavailable
 	}
 	ref := s.topic(scope, id).Collection("comments").Doc(commentID)
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		result = discussion.Comment{}
+		result = discussionentity.Comment{}
 		if err := s.checkThread(tx, scope, id); err != nil {
 			return err
 		}
@@ -228,7 +232,7 @@ func (s *Store) UpdateComment(ctx context.Context, scope repository.Repository, 
 		if err != nil {
 			return err
 		}
-		result, err = discussion.ApplyCommentUpdate(current, actor, body, version)
+		result, err = discussionentity.ApplyCommentUpdate(current, actor, body, version)
 		if err != nil {
 			return err
 		}
@@ -242,7 +246,7 @@ func (s *Store) UpdateComment(ctx context.Context, scope repository.Repository, 
 		return tx.Create(ref.Collection("changes").Doc(strconv.FormatInt(result.Version, 10)), change{ActorID: actor, Version: result.Version, At: result.UpdatedAt})
 	})
 	if err != nil {
-		return discussion.Comment{}, err
+		return discussionentity.Comment{}, err
 	}
 	return result, nil
 }
