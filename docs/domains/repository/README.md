@@ -1,5 +1,7 @@
 # 個人與群組-repository
 
+**已有實作** · [領域設計](#領域設計) · [核心流程](#decision-flow) · [判定實作](../../../backend/internal/business/repository/domain/entity/repository.go) · [程式目錄](../../../backend/internal/business/repository/README.md) · [維護指引](../../../backend/internal/business/repository/AGENTS.md)
+
 ## 領域設計
 
 **子域定位**　工程資源管理的核心候選。
@@ -22,7 +24,7 @@ Repository 範圍及功能授權在此說明，各子能力細節由對應文件
 
 ## 閱讀與修改入口
 
-先查閱[spaces.md](spaces.md)、[issues.md](issues.md)、[organization.md](organization.md)。
+先查閱[spaces.md](spaces.md)、[議題規格](../issue/design.md)、[組織與團隊歸屬契約](../../architecture/contracts/organization-team-ownership.md)。
 
 ## 相關規格
 
@@ -133,9 +135,9 @@ flowchart LR
   h["正式空間 UI 基礎雛形"]
   h --- n0["正式空間沿用上述 List / Get 操作契約與身分隔<br/>離，以寬版卡片呈現已授權空間的基本資料與本人<br/>出勤入口。 正式頁內導覽由 <br/>frontend/miniapp/src/business/repository/navigation.ts<br/> 定義；Repository內容維持原有問題、討論、標<br/>籤及里程碑。專案改走獨立側欄／<br/>/miniapp/projects，舊入口僅導向帶明確Space／<br/>來源識別的新頁，不再在Repository View掛載<br/>Project業務。 總覽使用真實空間資料，問題已接<br/>入 問題第一階段，討論已接入 討論與留言，標籤<br/>目錄已接入 標籤規格；里程碑、專案及洞察<br/>依里程碑、Project 與 Insights 規格接入；公開稽核仍明<br/>示尚未開放，不回填示範資料。載入、核驗失敗、<br/>登出時不呈現空間內容。 既有 API、Bot 管理、<br/>成員核驗及共用編號規則不變。問題與討論／留言<br/>依各自獨立規格接入；標籤已接入問題／討論作者<br/>的分類操作；完成界線依 基礎雛形，里程碑、專<br/>案及洞察依本次授權另完成最小切片，不自動展開<br/>其他管理功能。 總覽為讀取畫面基礎整合；問題<br/>驗證另依功能規格，不代表其他協作業務或真實 <br/>LINE 裝置已驗收。"]
   n0 --- n0l0["問題第一階段"]
-  click n0l0 "issues.md"
+  click n0l0 "../issue/design.md"
   n0 --- n0l1["討論與留言"]
-  click n0l1 "discussions.md"
+  click n0l1 "../discussion/design.md"
   n0 --- n0l2["標籤規格"]
   click n0l2 "labels.md"
   n0 --- n0l3["里程碑"]
@@ -171,7 +173,7 @@ flowchart LR
   h --- n7["群組空間入口由可信 groupId 查得 Repository <br/>ID，連結帶 repositories=1&amp;repository=&lt;id&gt;。<br/>一般 query 與 liff.state 均保留目標 ID；專用<br/>入口只查詳情，重新載入仍查同一 ID，失敗不退<br/>回列表。私訊入口維持本人列表。個人庫比對本人<br/>，群組庫以 ownerId 即時核驗成員；連結不是授<br/>權憑證，修改 ID 不授予其他群組權限。"]
   h --- n8["群組專用入口本機驗證：以實際 Go 靜態頁路由、<br/>受控 LINE SDK／API 回應檢查一般 query、<br/>liff.state 與 404 情境；三者均只請求指定 <br/>Repository 詳情，重新載入不切換到列表，390px<br/> 無水平溢出。這不取代 LINE 裝置驗收。"]
   h --- n9["工程項目新增與追蹤依 Objects 規格，與「問題<br/>」業務分開；不自動匯入 PDF 或授予他人編輯權<br/>。"]
-  click n9 "objects.md"
+  click n9 "../object/design.md"
 ```
 
 <a id="後續模型設計"></a>
@@ -184,3 +186,18 @@ flowchart LR
   h --- n1["Repository 的實體、查詢、集合與 Connection <br/>分頁命名，以及 Issue／Discussion 的歸屬規劃<br/>，見 業務模型設計。該頁為後續開發參考，不變<br/>更本頁既有 REST、成員核驗與 Bot 管理模式。"]
   click n1 "../../proposals/platform/domain-model.md"
 ```
+
+<a id="decision-flow"></a>
+
+## 寫入庫內受限資源的判定流程
+
+```mermaid
+flowchart TD
+    start["寫入庫內受限資源"] --> gate{"目前擁有者與啟用狀態符合？"}
+    gate -->|是| ok["允許繼續資源操作"]
+    gate -->|否| stop["拒絕沿用舊授權"]
+```
+
+[入口適配器](../../../backend/internal/business/repository/adapter/http/routes.go) · [判定依據](../../../backend/internal/business/repository/domain/entity/repository.go) · [應用層輸出介面](../../../backend/internal/business/repository/application/port/repository.go) · [相關測試](../../../backend/internal/business/repository/adapter/firestore/labels_test.go)
+
+[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)

@@ -3,7 +3,7 @@ import { BookOpen, ChartNoAxesCombined, LayoutDashboard, CircleDot, MessagesSqua
 export const navigation = [
   { title: "總覽", icon: LayoutDashboard },
   { title: "問題", icon: CircleDot },
-  { title: "業務空間", icon: Layers },
+  { title: "空間", icon: Layers },
   { title: "物件", icon: Package },
   { title: "討論", icon: MessagesSquare },
   { title: "標籤", icon: Tags },

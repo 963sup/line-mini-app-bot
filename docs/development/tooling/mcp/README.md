@@ -119,3 +119,5 @@ References: [OpenAI MCP configuration](https://developers.openai.com/codex/mcp)
 and Context7 `/openai/codex` stdio environment configuration.
 
 [開發與維運指引圖索引](../../../diagrams.md#開發與維運指引) · [未來設計圖](../../../diagrams.md#未來設計)。
+
+[上層導覽](../README.md)

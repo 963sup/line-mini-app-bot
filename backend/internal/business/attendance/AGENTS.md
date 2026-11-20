@@ -25,3 +25,9 @@
 ## 分層約束
 
 本模組採用 domain/entity、valueobject、service、event、policy，以及 application/command、query、port、dto。新增 Go 檔必須放入對應職責套件，不能恢復舊的功能混合套件或用別名套件繞過拆分。依賴允許範圍由 `internal/architecture/boundaries_test.go` 檢查。領域層不持有查詢分頁與外部序列化標籤。`adapter/messaging`、`adapter/scheduler` 目前僅保留入口，不代表已實作。
+
+## 群組打卡的維護與驗收
+
+驗證同一人的不同群組班次分開維護，並覆蓋無法接受打卡的班次狀態。
+
+修改此規則時，核對[判定流程](../../../../docs/domains/attendance/README.md#decision-flow)與[代表測試](adapter/firestore/attendance_integration_test.go)。

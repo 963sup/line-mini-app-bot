@@ -51,7 +51,7 @@ func TestOpenAISummaryContract(t *testing.T) {
 				if strings.Contains(body.Messages[1].Content, "raw-user-id") || !strings.Contains(body.Messages[1].Content, "成員1") {
 					t.Fatal("must alias participant IDs")
 				}
-				return &http.Response{StatusCode: tc.status, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(tc.body))}, nil
+				return &http.Response{StatusCode: tc.status, Header: http.Header{"Content-Type": []string{"application/json"}}, Body: io.NopCloser(strings.NewReader(tc.body))}, nil
 			})}}
 			_, err := g.Summarize(context.Background(), []summaryDomainEntityMessagecollection.Message{{ID: "source", UserID: "raw-user-id", Text: "聊天"}})
 			if (err == nil) != tc.valid {

@@ -1,30 +1,4 @@
-# Organization 所有權與 Team 歸屬
-
-實作範圍：組織與 Team API、Firestore 寫入、側欄切換及團隊清單。文件路徑均位於 channels/{channelId} 下。現行群組資料與授權行為見[儲存庫規格](README.md)。
-
-![Enterprise 與 Organization 分別管理 Team，Enterprise Team 可指派至多個旗下組織](diagrams/organization-team.svg)
-
-[Mermaid 原始檔](diagrams/organization-team.mermaid)
-
-## Enterprise（企業帳戶）
-
-| 資料或操作 | 規則與驗收條件 |
-|---|---|
-| `enterprises/{enterpriseId}` | 企業集中管理旗下組織與 Enterprise Team。Organization 可獨立存在，加入企業後以 enterpriseId 指向一個 Enterprise。 |
-| 指派企業 Team | 具企業 Team 指派權的管理者指定旗下 Organization。後端核對 Team 的管理企業與目標組織的企業相同，再依組織與 Team 的組合鍵寫入；跨企業一律拒絕，重送不產生第二份名單。 |
-| 移除指派 | 刪除指定組織的指派。依賴這筆指派的授權即失效，其他組織的指派與企業成員名單維持有效。 |
-
-### 企業自助開通與共用頁面
-
-| 操作 | 後端規則與前端呈現 |
-|---|---|
-| 顯示入口 | 組織 context 一併回傳 enterprises 與 canCreateEnterprise；空企業也對其 Owner 顯示。側欄直接使用回應。 |
-| POST /api/v1/enterprises | 名稱為 1–120 字。後端於交易內核對登入者資格、建立企業、加入第一位 Owner 並記錄 enterpriseId。重送同一開通請求回傳既有企業。 |
-| GET /api/v1/enterprises/{enterpriseId} | 企業 Owner 與管理者可看旗下組織及企業團隊清單；一般組織成員只看本人可見組織及已指派且通過 LINE 成員核驗的 Team。只有 Owner 收到 canManage=true。 |
-| POST /api/v1/enterprises/{enterpriseId}/owners | 現任企業 Owner 可新增另一位 Owner；交易保留原有 Owner，支援既有 ownerUserId。 |
-| POST /api/v1/enterprises/{enterpriseId}/organizations | 操作者須同時擁有企業與目標組織；已屬其他企業回 409。獨立組織可繼續單獨運作。 |
-
-開通資格由服務端配置於同一渠道下的 `enterpriseEntitlements/{SHA-256(userId)}`（文件鍵使用專案 firestorekey.Digest）。設定 `enabled: true` 提供一次企業開通資格。建立成功後由後端保存 enterpriseId；缺少資格時直接呼叫建立 API 也回 403。頁面使用 OpenAPI 生成的型別，顯示後端回傳的清單與管理操作。
+# 組織與工作區選擇
 
 ## Organization（組織）
 
@@ -33,18 +7,6 @@
 | `organizations/{organizationId}` | 建立時由後端產生 UUID。每個組織恰有一位現任 Owner，唯一判定欄位為 `ownerUserId`。`name` 可修改，`createdBy` 保存建立者。 |
 | 建立組織 | 已登入使用者建立 Organization，後端從已驗證身分填入 ownerUserId 與 createdBy。同一位使用者可建立多個組織。 |
 | 移轉所有權 | 只有現任 Owner 能指定有效的現有成員為新 Owner。交易內重新核對現任 Owner 並更新 ownerUserId；舊 Owner 隨即失去 Owner 權限，createdBy 與 Team 歸屬維持原值。 |
-
-## Team（團隊）
-
-| 資料或操作 | 規則與驗收條件 |
-|---|---|
-| `teams/{teamId}` | 文件 ID 等於 LINE groupId。首次綁定時成對寫入 managementScope（organization 或 enterprise）及 managementId（對應層級的 ID）。每個 Team 只有一個管理歸屬，舊群組可暫未綁定。 |
-| 綁定群組 | 指定管理歸屬須具目標管理範圍的管理權及該群組的管理授權。交易內確認原歸屬；同一綁定可重送，不同管理者競爭時只有一方成功。可信 LINE 群組事件沿用既有流程自動建立 Team，不需人工核准；管理歸屬另行設定。 |
-| `organizations/{organizationId}/enterpriseTeams/{teamId}` | 記錄一個 Enterprise Team 在此組織的指派。同一 Team 可指派給同企業的多個組織；成員名單由企業集中維護。 |
-
-例如總部「資安組」可以用同一個 teamId 指派至台灣與日本兩個組織，各組織分別授予 Repository 權限。「台灣排班組」由台灣組織管理，只在台灣使用。後端判定資源存取時須核對目前的組織歸屬或有效指派、使用者資格及個別資源授權；既有 LINE 資料仍遵循原功能的成員核驗規則。
-
-既有出勤與摘要繼續以原 groupId 查詢。既有群組在明確綁定前維持未歸屬；組織所有權本身不授予 LINE 群組資料讀取權。
 
 ## 側欄切換組織（目標規格）
 
@@ -89,21 +51,5 @@
 - 失敗時顯示錯誤並重新取得後端狀態；若成員資格已撤銷，依最新清單更新畫面。驗收涵蓋空清單、同名組織、鍵盤與手機切換、重新整理、失去資格與舊回應晚到。
 
 
-### 管理操作與既有資料
 
-| HTTP 操作 | 用途 |
-|---|---|
-| POST /api/v1/organizations | 登入者建立獨立組織。 |
-| PUT /api/v1/organizations/{organizationId}/owner | 現任 Owner 移轉給組織現有成員。 |
-| PUT /api/v1/teams/{teamId}/management | 為已自動建立的 Team 指定管理歸屬。 |
-| PUT 或 DELETE /api/v1/organizations/{organizationId}/enterprise-teams/{teamId} | 新增或移除同企業內的 Team 指派。 |
-
-組織的 memberUserIds 代表有效成員；管理歸屬操作讀取服務端維護的 managerUserIds。企業自助開通與組織加入流程見上方企業規格。既有 LINE 群組在下一筆可信事件時以 groupId 補齊 Team；事件只更新群組名稱與狀態，保留既有管理範圍與權限。
-
-
-### LINE 一對一建立入口
-![LINE 私訊建立流程](diagrams/private-chat-creation.svg)
-
-[Mermaid 原始檔](diagrams/private-chat-creation.mermaid)
-
-在私訊輸入「建立組織」或「建立企業」，五分鐘內回覆名稱即可建立；輸入「取消」結束。建立企業時，詢問名稱及實際建立時都檢查開通資格。已驗證的 webhook 決定建立者身分。成功回覆附上對應 MINI App 入口。對話狀態依渠道與使用者隔離；資源建立、結束對話及事件回覆紀錄在同一個 Firestore 交易完成，重送同一事件會取得原結果。群組事件沿用原有 Team 流程。
+[跨領域歸屬契約](../../architecture/contracts/organization-team-ownership.md) · [領域入口](README.md)

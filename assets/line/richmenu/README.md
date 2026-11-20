@@ -66,3 +66,5 @@ bash scripts/tooling/go-tool.sh run ./cmd/richmenu -app-url https://miniapp.line
 LINE 文件來源 main 090500a12f9777995006d9fb5cafab8d83a792b2。
 
 [開發與維運指引圖索引](../../../docs/diagrams.md#開發與維運指引) · [未來設計圖](../../../docs/diagrams.md#未來設計)。
+
+[上層導覽](../../README.md)

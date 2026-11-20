@@ -103,5 +103,5 @@ flowchart LR
   click n3l1 "https://docs.cloud.google.com/tasks/docs/reference/rest/v2/projects.locations.queues.tasks/create"
   h --- n4["Firestore TTL。Developer Knowledge MCP 未連<br/>線，本輪使用 Context7 取得官方文件。"]
   click n4 "https://docs.cloud.google.com/firestore/native/docs/ttl"
-  h --- n5["OpenAI adapter 使用 <br/>github.com/sashabaranov/go-openai（版本以 <br/>go.mod 為準）。兩個 provider 共用匿名化輸入<br/>、指令與引用檢查；截斷、拒絕、空結果或無效引<br/>用不發送。沿用現有 Cloud Tasks 重試，不在模<br/>型 adapter 另外重試。部署預設 OpenAI／<br/>gpt-4.1-mini，可用 substitutions 切回 Gemini<br/> 並同步設定對應模型。模型存取權、Secret 版本<br/>及實際呼叫仍需線上驗收。"]
+  h --- n5["OpenAI adapter 使用 <br/>github.com/openai/openai-go/v3（版本以 <br/>go.mod 為準）。兩個 provider 共用匿名化輸入<br/>、指令與引用檢查；截斷、拒絕、空結果或無效引<br/>用不發送。沿用現有 Cloud Tasks 重試，不在模<br/>型 adapter 另外重試。部署預設 OpenAI／<br/>gpt-4.1-mini，可用 substitutions 切回 Gemini<br/> 並同步設定對應模型。模型存取權、Secret 版本<br/>及實際呼叫仍需線上驗收。"]
 ```

@@ -57,3 +57,5 @@ Go 檢查與測試方式見[後端工作指引](../AGENTS.md#驗證)。涉及 Fi
 ## 共用技術與入口
 
 [platform](platform) 提供文件鍵、分頁游標與 gRPC 錯誤轉換。[bootstrap](bootstrap) 建立 client 並接線。[navigation](transport/line/navigation) 組裝跨功能選單。[httpapi](transport/http/api) 維護 OpenAPI 生成契約與路由分派。
+
+[上層導覽](../README.md)

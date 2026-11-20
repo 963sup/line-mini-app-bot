@@ -14,7 +14,7 @@ flowchart LR
 flowchart LR
   h["前置查核與範圍"]
   h --- n0["先以 Graphify CLI、Repomix CLI 核對 事項切片<br/> 的契約、核心、adapter、畫面與組裝；來源與先<br/>前驗證包一致。 查核發現事項 Firestore 未保留<br/>未知 SDK 錯誤的內部原因，已依既有分層規範改<br/>用私有錯誤包裝，對外仍只公開領域錯誤；受影響<br/>套件與分層檢查通過後，才進入本階段。"]
-  click n0 "issues.md"
+  click n0 "../issue/design.md"
   h --- n1["使用者確認：目前核驗的空間成員可讀取、發起討<br/>論及留言；主題、留言只能由各自作者編輯。留言<br/>為單層，不支援留言的子留言。 討論使用既有空<br/>間共用 number，留言只使用不透明 ID，不消耗共<br/>用編號。首版沒有關閉狀態、刪除、分類、標記解<br/>答、Reaction 或轉換事項。 Discussion 與 <br/>Issue 保持獨立業務，不因畫面或欄位相似而共用<br/>狀態模型或引入萬用資源引擎。"]
 ```
 
@@ -24,7 +24,7 @@ flowchart LR
 flowchart LR
   h["操作契約"]
   h --- n0["讀取、建立與編輯依問題、討論與留言操作圖。討<br/>論與留言各自判定作者；留言只有一層，建立或編<br/>輯留言不會改變主題內容版本。各自的建立收據、<br/>查詢順序與保存位置見下節。"]
-  click n0 "issues.md#操作契約"
+  click n0 "../issue/design.md#操作契約"
   h --- n1["主題 title 去除首尾空白後 1–120 字元，body <br/>最多 8000 字元；留言 body 去除首尾空白後 1–<br/>4000 字元。以 Unicode 字元計算。JSON 上限 <br/>65536 bytes，不接受未知欄位；作者、ID、<br/>number、時間由伺服器取得。所有建立操作必須提<br/>供 Idempotency-Key，所有編輯操作必須提供 <br/>expectedVersion。"]
 ```
 
@@ -87,5 +87,5 @@ flowchart LR
   h --- n0["Graphify CLI 定位事項核心、編號與 adapter 關<br/>係，Repomix CLI 限定打包核對原文；圖譜的同名<br/>符號與動態 JSX 仍須由來源及實際行為核對。 錯<br/>誤包裝依 Context7 /websites/go_dev_doc 的官<br/>方 errors.Is／Unwrap 語意及既有 adapter 模式<br/>，對照 Go 1.27.4；未知 SDK 原因保留於私有值<br/>，不暴露在 HTTP 或領域錯誤鏈。 Google skills<br/>／Developer Knowledge MCP 在此對話不可用；交<br/>易依本對話已查閱的官方 Go client 契約及本機 <br/>firestore v1.29.2，留言游標另核對 query.go <br/>與 Context7 <br/>/websites/cloud_google_firestore_native 的 <br/>Standard 索引文件：同方向的 createdAt、<br/>__name__ 排序可沿用自動單欄索引，不新增複合<br/>索引或操作正式資源。 UI 沿用本對話已查閱的固<br/>定 shadcn 官方範例與 Next.js 16.4.5 Pages <br/>Router 文件，不新增套件、SSR 或 App Router。"]
   h --- n1["本機 API 能力／生成同步／向後相容、Go 格式／<br/>lint／vet／完整既有 race suite／build、前端<br/>型別／23 個既有測試／靜態輸出、設定及文件路<br/>徑檢查通過。govulncheck 未發現應用可達漏洞，<br/>另報三筆未被呼叫的 required-module 項目。 隔<br/>離 Firestore emulator 的暫存 overlay race <br/>smoke 確認 Issue／Discussion 共用編號、留言<br/>不占號、各自作者權限、防重收據、併發留言只建<br/>立一次、編輯衝突、相同建立時間的 ID 排序與分<br/>頁、跨主題／空間／身分游標拒絕、更新 <br/>metadata、HTTP 契約／CSRF、停用容器交易拒絕<br/>及取消語義。 暫存 React smoke 確認正式空間入<br/>口、發起主題及留言的連點鎖與原鍵重試、主題作<br/>者不能代改他人留言、編輯衝突後重新讀取、切換<br/>主題隔離及登出後拒收遲到留言。驗證檔案與 <br/>Java runtime 僅放 /tmp；不代表真實 LINE 裝置<br/>、正式資料庫或部署已驗收。"]
   h --- n2["標籤分類透過既有更新的可選 labelIds 接入，目前成員可套用或移除；省略欄位保留、空陣列<br/>清除、同空間及版本規則依 標籤引用切片。既有<br/>建立防重雜湊不變。"]
-  click n2 "labels.md#標籤引用切片"
+  click n2 "../repository/labels.md#標籤引用切片"
 ```

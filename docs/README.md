@@ -1,5 +1,7 @@
 # 專案文件入口
 
+[19 個業務領域：設計、流程與驗收](domains/README.md#domain-matrix)
+
 ## 用途與範圍
 
 集中維護架構、領域規格、開發流程、操作指南與提案。
@@ -50,14 +52,15 @@
 
 ## 目錄責任
 
-| 任務 | 文件入口 |
-| --- | --- |
-| 操作、驗收與回復 | [開發操作](guides/README.md) · [發布與回復](guides/release/release-acceptance.md) |
-| 業務規則與授權 | [功能索引](domains/README.md) |
-| 跨功能機制與契約 | [系統架構](architecture/README.md) |
-| 修改程式與文件 | [命名](standards/naming.md) · [Go](standards/go.md) · [文件規範](standards/documentation.md) |
-| 查已採用決策或未來設計 | [ADR](architecture/README.md#architecture-decision-records) · [提案](proposals/README.md) |
-| 工具與代理協作 | [開發工作流程與工具](development/README.md) |
+| 文件分類 | 單一維護位置與讀法 |
+|---|---|
+| [架構](architecture/README.md) | 跨領域契約、外部整合、儲存與執行架構。 |
+| [領域](domains/README.md) | 從 19 個領域查規則、核心流程與驗收依據。 |
+| [決策](decisions/README.md) | 查已採用 ADR 的背景與理由，依編號引用。 |
+| [開發](development/README.md) | 查變更流程、工具、除錯與驗收。 |
+| [指南](guides/README.md) | 按任務執行環境設定、發布與復原步驟。 |
+| [提案](proposals/README.md) | 查待評估的設計與落地條件。 |
+| [規範](standards/README.md) | 查命名、程式、文件及交付準則。 |
 
 ## 按模組閱讀
 
@@ -65,6 +68,8 @@
 
 ## 文件歸屬與維護
 
-功能規則維護於 domains，共用機制維護於 architecture；已接受的重大架構決策維護於 [ADR](architecture/README.md#architecture-decision-records)。規劃不覆蓋現行契約；舊報告不再保存在 docs，歷史變更透過 Git 查閱。其他入口以連結引用完整規則，不複製政策或版本。
+功能規則維護於 domains，共用機制維護於 architecture；已接受的重大架構決策維護於 [ADR](decisions/README.md)。規劃不覆蓋現行契約；舊報告不再保存在 docs，歷史變更透過 Git 查閱。其他入口以連結引用完整規則，不複製政策或版本。
 
 新增或搬移頁面時，同步更新所屬索引、引用、相對路徑與錨點；依[文件規範](standards/documentation.md)驗證。工具版本與命令以 [mise.toml](../mise.toml)及工作區設定為準。
+
+[上層導覽](../README.md)

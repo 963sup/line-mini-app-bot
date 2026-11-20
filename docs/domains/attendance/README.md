@@ -1,5 +1,7 @@
 # 基礎出勤
 
+**已有實作** · [設計規格](strategy.md) · [核心流程](#decision-flow) · [代表測試](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) · [程式目錄](../../../backend/internal/business/attendance/README.md) · [維護指引](../../../backend/internal/business/attendance/AGENTS.md)
+
 ## 用途與範圍
 
 保存出勤、打卡、補卡、請假與審核的規格。
@@ -237,3 +239,18 @@ flowchart LR
   h --- n0["定位前的 HTTP /punches/preflight 由 <br/>PunchResolver.ResolvePunchAttempt 處理：它會<br/>讀取既有收據，或保存本次拒絕結果，因此不是純<br/>查詢。PunchSubmitter.SubmitPunch 接收定位後<br/>的提交；兩者共用 executePunch 的同一套交易與<br/> ApplyEvent，不複製狀態機。"]
   h --- n1["交易以私有 punchCommand 明列使用者、群組、事<br/>件、ReceivedAt（伺服器接收時間）、<br/>EventTimeMillis（排序用毫秒時間）、位置與請<br/>求 ID，並以 Mode 明確區分 resolvePunch／<br/>recordPunch，不以缺少位置推測模式。 <br/>GroupHistoryReader 單獨提供本人歷史讀取，查<br/>詢不再要求同時具備定位提交能力。 <br/>RecordsOverlappingMonth 包含跨月及未結束班次<br/>；verifyAndRebuildRecords 會驗證事件／更正證<br/>據並重建回傳班次，不寫回資料庫。事件重播函數<br/>為 worktime.RebuildSessions。"]
 ```
+
+<a id="decision-flow"></a>
+
+## 群組打卡的判定流程
+
+```mermaid
+flowchart TD
+    start["群組打卡"] --> gate{"目前班次可接受這次打卡？"}
+    gate -->|是| ok["記錄班次事件"]
+    gate -->|否| stop["回報狀態衝突"]
+```
+
+[入口適配器](../../../backend/internal/business/attendance/adapter/http/routes.go) · [判定依據](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) · [應用層輸出介面](../../../backend/internal/business/attendance/application/port/errors.go) · [相關測試](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go)
+
+[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)
