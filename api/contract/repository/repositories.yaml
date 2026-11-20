@@ -176,6 +176,11 @@
             "type": "string",
             "pattern": "^[UC][a-f0-9]{32}$"
           },
+          "groupId": {
+            "type": "string",
+            "pattern": "^C[a-f0-9]{32}$",
+            "description": "LINE group ID for group-owned repositories. Omitted for personal repositories."
+          },
           "name": {
             "type": "string"
           },

@@ -7,7 +7,7 @@ import { Shell } from "../src/shell/Shell";
 import { View as RepositoryView } from "../src/business/repository/View";
 
 const a = "a".repeat(32), b = "b".repeat(32);
-const space = (id: string, name = "同名空間", status = "ACTIVE") => ({ id, name, status, ownerId: "C" + id, version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" });
+const space = (id: string, name = "同名空間", status = "ACTIVE") => ({ id, name, status, ownerId: "C" + id, groupId: "C" + id, version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" });
 const flush = async () => { for (let i = 0; i < 10; i++) await new Promise<void>((resolve) => setImmediate(resolve)); };
 async function fixture(path: string, handle: (request: Request, actor: string) => Promise<Response>, width = 1024) {
   Object.defineProperty(window, "innerWidth", { value: width, configurable: true });
@@ -83,6 +83,15 @@ test("sidebar selection retains general catalog but reauthorizes the selected re
     assert.ok(document.querySelector(`a[href="/miniapp/repositories?selected=${a}"]`));
     assert.ok(document.querySelector(`a[href="/miniapp/history?group=C${b}"]`));
     assert.equal(document.querySelectorAll('a[href*="selected="]').length, 2, "detail page must not duplicate sidebar list");
+  } finally { await f.dispose(); }
+});
+
+test("repository without a group ID has no attendance entry", async () => {
+  const f = await fixture(`/miniapp/repositories?id=${a}`, async () =>
+    Response.json({ ...space(a), groupId: undefined }));
+  try {
+    assert.match(document.body.textContent!, /空間資料/);
+    assert.equal(document.querySelector('a[href*="/miniapp/history?group="]'), null);
   } finally { await f.dispose(); }
 });
 

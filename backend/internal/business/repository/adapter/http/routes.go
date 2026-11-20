@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/963sup/line-mini-app-bot/internal/identity"
+
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
@@ -21,7 +23,11 @@ type Authenticator interface {
 }
 
 func view(r repositoryDomainEntity.Repository) generated.Repository {
-	return generated.Repository{Id: r.ID, OwnerId: r.OwnerID, Name: r.Name, Status: generated.RepositoryStatus(r.Status), Version: r.Version, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
+	response := generated.Repository{Id: r.ID, OwnerId: r.OwnerID, Name: r.Name, Status: generated.RepositoryStatus(r.Status), Version: r.Version, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
+	if identity.IsGroupOwnerID(r.OwnerID) {
+		response.GroupId = &r.OwnerID
+	}
+	return response
 }
 
 type repositoryServer struct {

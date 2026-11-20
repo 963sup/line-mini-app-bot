@@ -1362,6 +1362,8 @@ export interface components {
         Repository: {
             id: string;
             ownerId: string;
+            /** @description LINE group ID for group-owned repositories. Omitted for personal repositories. */
+            groupId?: string;
             name: string;
             /** @enum {string} */
             status: "ACTIVE" | "INACTIVE";
