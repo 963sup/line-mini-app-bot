@@ -1,5 +1,22 @@
 # Agent configuration ownership
 
+## 用途與範圍
+
+管理專案的技能來源與代理工作流程。
+
+## 架構與責任邊界
+
+技能來源在此維護，角色與 MCP 連線由 `.codex/` 管理。
+
+## 閱讀與修改入口
+
+先查閱[skills-sources.json](skills-sources.json)、[go-workflow.md](go-workflow.md)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[本層規格與指引](../docs/development/tooling/skills.md)
+
+
 The project roles are registered in .codex/config.toml and defined under
 .codex/agents. AGENTS.md defines their orchestration and authorization boundaries.
 

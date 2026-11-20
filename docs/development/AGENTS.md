@@ -1,5 +1,22 @@
 # development 工作指引
 
+## 用途與範圍
+
+保存開發工作流程、驗收與工具使用指引。
+
+## 架構與責任邊界
+
+流程文件管理如何修改與驗證，業務行為由架構和領域文件說明。
+
+## 閱讀與修改入口
+
+先查閱[workflow.md](workflow.md)、[acceptance.md](acceptance.md)、[tooling](tooling/README.md)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+
+## 相關規格
+
+[父層指引](../AGENTS.md) · [本目錄索引](README.md)
+
+
 適用於本目錄及其子目錄。先遵循 [父層指引](../AGENTS.md) 與 [根指引](../../AGENTS.md)，較近的子目錄指引再補充；使用者與主機指令優先。
 
 ## 職責與邊界

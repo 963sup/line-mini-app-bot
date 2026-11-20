@@ -1,5 +1,22 @@
 # 部署設定與 Firestore 索引
 
+## 用途與範圍
+
+保存 Cloud Build 設定與 Firestore 索引。
+
+## 架構與責任邊界
+
+此處定義部署設定與索引，容器組裝由根目錄 Dockerfile 管理。
+
+## 閱讀與修改入口
+
+先查閱[cloudbuild.yaml](cloudbuild.yaml)、[firestore/indexes.json](firestore/indexes.json)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[文件索引：Deploy](../docs/README.md#按模組閱讀) · [Cloud Run 部署流程](../docs/guides/release/cloud-run.md)
+
+
 ## 目錄導覽與維護
 
 cloudbuild.yaml 為手動提交或自訂 trigger 的建置部署流程；firestore/indexes.json 保存索引設定。現有 GitHub managed trigger 使用 Dockerfile，不執行此 YAML。

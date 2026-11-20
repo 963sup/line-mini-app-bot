@@ -1,5 +1,21 @@
 # Issue 契約指引
 
+## 用途與範圍
+
+定義 Repository 事項、事項類型與留言的 API 契約。
+
+## 架構與責任邊界
+
+維護本能力的操作與 schema；根規格負責組合，公開格式由契約產生。
+
+## 閱讀與修改入口
+
+先查閱[comments.yaml](comments.yaml)、[issues.yaml](issues.yaml)、[types.yaml](types.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+
+## 相關規格
+
+[事項操作規格](../../../docs/domains/repository/issues.md) · [業務模型設計](../../../docs/proposals/platform/domain-model.md)
+
 適用於本目錄及其子目錄；繼承 [上層指引](../AGENTS.md)，並遵循其引用的根目錄規則。此處只補充本範圍責任；使用者與主機指令優先，不增加外部寫入授權。
 
 ## 職責與邊界

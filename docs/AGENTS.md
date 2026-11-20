@@ -1,5 +1,22 @@
 # docs 工作指引
 
+## 用途與範圍
+
+集中維護架構、領域規格、開發流程、操作指南與提案。
+
+## 架構與責任邊界
+
+實作現況由程式與契約驗證，文件按主題維護。
+
+## 閱讀與修改入口
+
+先查閱[architecture](architecture/README.md)、[domains](domains/README.md)、[development](development/README.md)、[guides](guides/README.md)、[proposals](proposals/README.md)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+
+## 相關規格
+
+[README.md](README.md#目錄責任) · [文件索引](README.md)
+
+
 適用於本目錄及其子目錄；先遵循 [根目錄 AGENTS.md](../AGENTS.md)，再套用較近的子目錄補充。使用者及主機指令優先；本檔不增加外部寫入授權。
 
 ## 職責與邊界

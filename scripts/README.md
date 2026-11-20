@@ -1,5 +1,22 @@
 # Repository scripts
 
+## 用途與範圍
+
+保存建置、檢查、分析與發布的工具腳本。
+
+## 架構與責任邊界
+
+腳本負責開發與維護流程，應用程式規則由前後端套件維護。
+
+## 閱讀與修改入口
+
+先查閱[tooling](tooling)、[api](api)、[analysis](analysis)、[release](release)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[local reference usage and refresh](../docs/development/tooling/shadcn-reference/README.md) · [MCP 診斷期限與清理](../docs/development/tooling/mcp/README.md)
+
+
 Run commands from the repository root. Scripts resolve repository files from
 their own location; `tool-exec.sh` also switches to the repository root.
 

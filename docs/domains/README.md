@@ -1,5 +1,22 @@
 # 業務功能
 
+## 用途與範圍
+
+保存各業務領域的行為、權限與驗收規格。
+
+## 架構與責任邊界
+
+領域文件維護產品規則，公開的請求與回應由 OpenAPI 契約定義。
+
+## 閱讀與修改入口
+
+先查閱[attendance](attendance/README.md)、[repository](repository/README.md)、[project.md](project.md)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[Organization 所有權與 Team 歸屬（目標規格）](repository/organization.md) · [功能規格的歸屬與維護方式見功能文件指引。](AGENTS.md)
+
+
 <a id="業務功能"></a>
 
 ## 業務功能

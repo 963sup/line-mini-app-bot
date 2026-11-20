@@ -1,5 +1,22 @@
 # 個人與群組-repository
 
+## 用途與範圍
+
+保存 Repository 及其空間、標籤、事項、討論與其他子能力的規格。
+
+## 架構與責任邊界
+
+Repository 範圍及功能授權在此說明，各子能力細節由對應文件維護。
+
+## 閱讀與修改入口
+
+先查閱[spaces.md](spaces.md)、[issues.md](issues.md)、[organization.md](organization.md)。
+
+## 相關規格
+
+[Repository Insights 與 Pulse](insights.md) · [工程知識庫 Wiki](wiki.md)
+
+
 <a id="個人與群組-repository"></a>
 
 ```mermaid

@@ -1,5 +1,22 @@
 # 舊版 Space 格式的 Project 離線遷移
 
+## 用途與範圍
+
+執行專案資料遷移的 Go 指令入口。
+
+## 架構與責任邊界
+
+指令負責解析輸入、組裝依賴與執行指定工作；共用服務與業務規則由 internal 套件維護。 執行會寫入資料的遷移前，先依本指令說明確認目標與模式。
+
+## 閱讀與修改入口
+
+先查閱[main.go](main.go)、[本目錄工作指引](AGENTS.md)。
+
+## 相關規格
+
+[Project 規格](../../../docs/domains/project.md#保存路徑與顯示範圍) · [現行實作圖：格式與資料相容](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+
 本命令只支援已退役的 Space 儲存格式。現行服務依個人或群組保存 Project，執行 apply／rollback 前須停止相關 writer，審閱 dry-run manifest 並保留備份。現行資料位置見 [Project 規格](../../../docs/domains/project.md#保存路徑與顯示範圍)。
 
 此命令只處理明確指定的單一 channel／Repository 範圍。預設 dry-run，沒有隱含環境或預設資料庫，不會部署、取得新憑證或自動執行正式資料遷移。執行者必須另外具備所選資料庫權限；本次實作只在本機 emulator 驗證。

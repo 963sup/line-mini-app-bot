@@ -1,5 +1,21 @@
 # shadcn 官方元件指引與目錄
 
+## 用途與範圍
+
+保存 shadcn 的共用 UI 元件，對應 `@/shared/ui`。業務專用的畫面組合放在各功能模組。
+
+## 架構與責任邊界
+
+提供跨功能重用的元件或工具；特定業務流程留在使用它的功能模組。
+
+## 閱讀與修改入口
+
+先查閱[LICENSE.md](LICENSE.md)、[accordion.tsx](accordion.tsx)、[alert-dialog.tsx](alert-dialog.tsx)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+
+## 相關規格
+
+[本機參考庫](../../../../../docs/development/tooling/shadcn-reference/README.md) · [生成索引](../../../../../docs/development/tooling/shadcn-reference/snapshot/INDEX.md)
+
 適用於本目錄及子目錄；遵循 [MINI App 指引](../../../AGENTS.md) 與 [根指引](../../../../../AGENTS.md)。本目錄是 `components.json` 的 `aliases.ui`（`@/shared/ui`）解析位置，保存官方 shadcn 元件；業務組合放在本目錄之外。
 
 ## 官方元件禁止修改
