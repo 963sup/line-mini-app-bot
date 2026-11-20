@@ -174,8 +174,8 @@ function Content({ repositoryId, extract }: Props) {
           <FormField>類型<NativeSelect value={content.type} onChange={event => {
             const type = event.target.value;
             setContent(previous => {
-              let completedQuantity: string | undefined;
-              if (type === "work") {
+              let completedQuantity = previous.completedQuantity;
+              if (type === "work" && completedQuantity === undefined) {
                 completedQuantity = "";
                 if (selected?.type === "work") completedQuantity = selected.completedQuantity || "";
                 else if (selected && selected.type !== "non_work") {

@@ -31,7 +31,7 @@ export function Inspections({canSubmit, ownerId, projectId, itemId}: {canSubmit:
         return [entry];
       }
       return request((client,s)=>client.GET(endpoint,{signal:s,params}),{signal});
-    },entries=>{lock.current=false;setBusy(false);setRows(entries);setNote("");},
+    },entries=>{lock.current=false;setBusy(false);setRows(entries);if(submit) setNote("");},
     error=>{lock.current=false;setBusy(false);setRows(null);setStatus(errorMessage(error));});
   }
   return <div>

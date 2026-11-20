@@ -373,6 +373,8 @@ test("inspection on a SubObject submits once and reads the saved pending result"
       Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype,"value")!.set!.call(field,saved.note);
       field.dispatchEvent(new window.Event("input",{bubbles:true}));await flush();
     });
+    await f.click("查看驗收紀錄");
+    assert.equal(field.value,saved.note);
     await f.click("提交驗收");
     assert.equal(writes,1);
     await f.click("查看驗收紀錄");
@@ -392,4 +394,23 @@ test("personal projects use the signed-in owner without looking up a group", asy
   } finally {
     await f.dispose();
   }
+});
+
+test("temporary pagination failure preserves references and retries the same cursor", async () => {
+  const cursors: (string | null)[] = [];
+  const f = await fixture(`/miniapp/projects?owner=${sa}&project=${pid}`, async request => {
+    const url = new URL(request.url);
+    if (!url.pathname.endsWith("/references")) return sourceCatalog(request);
+    cursors.push(url.searchParams.get("cursor"));
+    if (cursors.length === 2) throw new TypeError("network offline");
+    if (!url.searchParams.has("cursor")) return Response.json({items:[reference()],nextCursor:"next"});
+    return Response.json({items:[reference({id:"2".repeat(32),sourceTitle:"第二頁問題"})],nextCursor:""});
+  });
+  try {
+    await f.click("載入更多專案引用");
+    assert.match(document.body.textContent!, /最新問題/);
+    await f.click("載入更多專案引用");
+    assert.deepEqual(cursors,[null,"next","next"]);
+    assert.match(document.body.textContent!, /第二頁問題/);
+  } finally { await f.dispose(); }
 });
