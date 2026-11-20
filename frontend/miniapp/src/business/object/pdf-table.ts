@@ -18,14 +18,15 @@ export function orderTable(number: number, items: PositionedText[], markRows = f
   const text = lines.map(line => {
     const cells = line.items.sort((a, b) => a.x - b.x);
     const content = cells.map(value => value.str).join(" ").trim();
+    if (markRows && content.includes("[[item:")) throw new Error("明細含有無法辨識的項次標記。");
+    if (/^\((?:Cost Ref|Customer PO):/i.test(content)) return "";
     if (!markRows) return content;
-    if (content.includes("[[item:")) throw new Error("明細含有無法辨識的項次標記。");
     const first = cells[0];
     if (first.x >= name.x - 2) return content;
     const id = first.str.trim().split(/\s+/)[0];
     if (!/^[A-Za-z0-9][A-Za-z0-9._/-]*$/.test(id)) throw new Error(`第 ${number} 頁項次無法辨識。`);
     return `[[item:${id}]] ${content}`;
-  }).filter(value => !/^\((?:Cost Ref|Customer PO):/i.test(value)).join("\n");
+  }).filter(Boolean).join("\n");
   if (!text) throw new Error("此PDF沒有可辨識的工程明細。");
   return { number, text };
 }
