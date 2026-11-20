@@ -1,5 +1,9 @@
 # frontend/miniapp/src/business/repository/insights 工作指引
 
+## 目錄用途
+
+呈現所選 Repository 的統計資料。
+
 遵循[上層指引](../AGENTS.md)。修改互動時，核對使用此模組的頁面與 miniapp 測試。 實作入口見[本目錄導覽](README.md)。
 
 [現行實作圖：空間載入時序](../../../../../../docs/domains/repository/README.md#空間載入時序) · [未來設計圖](../../../../../../docs/diagrams.md#未來設計)

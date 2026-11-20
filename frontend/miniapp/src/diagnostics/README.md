@@ -1,5 +1,9 @@
 # frontend/miniapp/src/diagnostics 目錄導覽
 
+## 目錄用途
+
+保存診斷頁面使用的功能模組，目前包含瀏覽器定位診斷。
+
 從 [geolocation](geolocation) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：頁面與身分生命週期](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期) · [未來設計圖](../../../../docs/diagrams.md#未來設計)

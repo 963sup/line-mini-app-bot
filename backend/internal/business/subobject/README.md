@@ -1,5 +1,11 @@
 # backend/internal/business/subobject 目錄導覽
 
+## 目錄用途
+
+管理工程物件下的子物件，維護它與上層 Object 的歸屬關係。
+
+## 閱讀入口
+
 從 [firestore](firestore)、[http](http)、[subobject.go](subobject.go)、[subobject_test.go](subobject_test.go) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：物件與子物件歸屬](../../../../docs/domains/repository/objects.md#物件與子物件歸屬) · [未來設計圖](../../../../docs/diagrams.md#未來設計)

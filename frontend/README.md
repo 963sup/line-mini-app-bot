@@ -1,5 +1,9 @@
 # MINI App 前端
 
+## 目錄用途
+
+保存瀏覽器前端，MINI App 位於 `miniapp/`，透過共用 API client 呼叫後端。
+
 專案與儲存庫在側欄同層。專案頁自行管理工程群組與 Project 選取；來源選擇的讀取資格及舊入口轉接規則見 [Project 契約](../docs/domains/project.md)。
 
 ## 目錄導覽與維護

@@ -1,5 +1,9 @@
 # frontend/miniapp/tests 目錄導覽
 
+## 目錄用途
+
+保存 MINI App 的互動、請求生命週期與資料處理測試，以及測試用 DOM 設定。
+
 從 [dom-setup.ts](dom-setup.ts)、[lifecycle.test.tsx](lifecycle.test.tsx)、[object-import.test.tsx](object-import.test.tsx)、[object-spaces.test.tsx](object-spaces.test.tsx)、[objects.test.tsx](objects.test.tsx)、[pdf-extraction.test.tsx](pdf-extraction.test.tsx) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：頁面與身分生命週期](../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期) · [未來設計圖](../../../docs/diagrams.md#未來設計)

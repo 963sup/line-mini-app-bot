@@ -1,5 +1,9 @@
 # frontend/miniapp/src/shared/ui 目錄導覽
 
+## 目錄用途
+
+保存 shadcn 的共用 UI 元件，對應 `@/shared/ui`。業務專用的畫面組合放在各功能模組。
+
 從 [LICENSE.md](LICENSE.md)、[alert.tsx](alert.tsx)、[avatar.tsx](avatar.tsx)、[badge.tsx](badge.tsx)、[breadcrumb.tsx](breadcrumb.tsx)、[button.tsx](button.tsx) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 ## 已安裝元件

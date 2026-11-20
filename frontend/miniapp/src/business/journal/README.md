@@ -1,5 +1,9 @@
 # frontend/miniapp/src/business/journal 目錄導覽
 
+## 目錄用途
+
+組合工作日誌的工作區、輸入與查閱互動。
+
 從 [Workspace.tsx](Workspace.tsx) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 - 側欄「快捷入口」：按「寫日誌」→ 選擇發布群組 → 填寫並發布。工作牆的群組篩選與發布群組分開。
