@@ -1,0 +1,150 @@
+package teamdb
+
+import (
+	"cloud.google.com/go/firestore"
+	"context"
+	"errors"
+	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
+	"github.com/963sup/line-mini-app-bot/internal/business/internal/orgstore"
+	"github.com/963sup/line-mini-app-bot/internal/business/organization"
+	"github.com/963sup/line-mini-app-bot/internal/business/team"
+	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"slices"
+	"strings"
+)
+
+type Store struct {
+	DB      *firestore.Client
+	Channel string
+	Groups  *groupdomain.Service
+}
+
+func (s Store) Manage(ctx context.Context, user string, teamId, scope, managementId string) error {
+	_, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*struct{}, error) {
+		if !groupdomain.ValidID(teamId) || uuid.Validate(managementId) != nil || (scope != "organization" && scope != "enterprise") {
+			return nil, organization.ErrInvalid
+		}
+		target, e := orgstore.Read(tx, root.Collection(scope+"s").Doc(managementId))
+		if e != nil {
+			return nil, e
+		}
+		owner := target.Owner == user
+		if scope == "enterprise" {
+			owner = target.IsOwner(user)
+		}
+		if !owner && !slices.Contains(target.Managers, user) {
+			return nil, organization.ErrNotFound
+		}
+		ref := root.Collection("teams").Doc(teamId)
+		team, e := orgstore.Read(tx, ref)
+		if e != nil {
+			return nil, e
+		}
+		if !slices.Contains(team.Managers, user) {
+			return nil, organization.ErrNotFound
+		}
+		if team.Scope != "" && (team.Scope != scope || team.Manager != managementId) {
+			return nil, organization.ErrConflict
+		}
+		return nil, tx.Update(ref, []firestore.Update{{Path: "managementScope", Value: scope}, {Path: "managementId", Value: managementId}})
+	})
+	return err
+}
+
+func (s Store) Assign(ctx context.Context, user string, id, teamId string, add bool) error {
+	_, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*struct{}, error) {
+		if uuid.Validate(id) != nil || !groupdomain.ValidID(teamId) {
+			return nil, organization.ErrInvalid
+		}
+		ref := root.Collection("organizations").Doc(id)
+		o, e := orgstore.Read(tx, ref)
+		if e != nil {
+			return nil, e
+		}
+		team, e := orgstore.Read(tx, root.Collection("teams").Doc(teamId))
+		if e != nil {
+			return nil, e
+		}
+		if o.Enterprise == "" || team.Scope != "enterprise" || team.Manager != o.Enterprise {
+			return nil, organization.ErrNotFound
+		}
+		ent, e := orgstore.Read(tx, root.Collection("enterprises").Doc(o.Enterprise))
+		if e != nil {
+			return nil, e
+		}
+		if !ent.IsOwner(user) && !slices.Contains(ent.Managers, user) {
+			return nil, organization.ErrNotFound
+		}
+		link := ref.Collection("enterpriseTeams").Doc(teamId)
+		if add {
+			return nil, tx.Set(link, map[string]any{"teamId": teamId})
+		}
+		return nil, tx.Delete(link)
+	})
+	return err
+}
+
+func (s Store) List(ctx context.Context, user string, organizationId string) (*team.Listing, error) {
+	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*team.Listing, error) {
+		if uuid.Validate(organizationId) != nil {
+			return nil, organization.ErrInvalid
+		}
+		ref := root.Collection("organizations").Doc(organizationId)
+		org, e := orgstore.Read(tx, ref)
+		if e != nil {
+			return nil, e
+		}
+		if org.Owner != user && !slices.Contains(org.Members, user) {
+			return nil, organization.ErrNotFound
+		}
+		teams := root.Collection("teams")
+		local, e := tx.Documents(teams.Where("managementId", "==", organizationId)).GetAll()
+		if e != nil {
+			return nil, e
+		}
+		ids := map[string]string{}
+		for _, doc := range local {
+			var team orgstore.Document
+			if e := doc.DataTo(&team); e != nil {
+				return nil, e
+			}
+			if team.Scope == "organization" {
+				ids[doc.Ref.ID] = "organization"
+			}
+		}
+		links, e := tx.Documents(ref.Collection("enterpriseTeams").Query).GetAll()
+		if e != nil {
+			return nil, e
+		}
+		for _, doc := range links {
+			team, e := orgstore.Read(tx, teams.Doc(doc.Ref.ID))
+			if status.Code(e) == codes.NotFound {
+				continue
+			}
+			if e != nil {
+				return nil, e
+			}
+			if org.Enterprise != "" && team.Scope == "enterprise" && team.Manager == org.Enterprise {
+				ids[doc.Ref.ID] = "enterprise"
+			}
+		}
+		result := team.Listing{Teams: []team.Option{}}
+		for id, scope := range ids {
+			if s.Groups == nil {
+				return nil, groupdomain.ErrUnavailable
+			}
+			g, e := s.Groups.Get(ctx, user, id)
+			if errors.Is(e, groupdomain.ErrNotFound) {
+				continue
+			}
+			if e != nil {
+				return nil, e
+			}
+			result.Teams = append(result.Teams, team.Option{ID: id, Name: g.Name, ManagementScope: scope})
+		}
+		slices.SortFunc(result.Teams, func(a, b team.Option) int { return strings.Compare(a.ID, b.ID) })
+		return &result, nil
+	})
+}

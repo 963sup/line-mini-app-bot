@@ -3,6 +3,8 @@ package organizationdb
 import (
 	"context"
 	"errors"
+	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/firestore"
+	"github.com/963sup/line-mini-app-bot/internal/business/internal/orgstore"
 	"strings"
 	"time"
 
@@ -28,7 +30,7 @@ func (s Store) Conversation(ctx context.Context, user, eventID, text string, at 
 	text = strings.TrimSpace(text)
 	now := time.Now()
 	id := uuid.NewString()
-	return run(s, ctx, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*CreationReply, error) {
+	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*CreationReply, error) {
 		state := root.Collection("creationConversations").Doc(firestorekey.Digest([]byte(user)))
 		receipt := state.Collection("events").Doc(firestorekey.Digest([]byte(eventID)))
 		var pending pendingCreation
@@ -69,7 +71,7 @@ func (s Store) Conversation(ctx context.Context, user, eventID, text string, at 
 				break
 			}
 			if kind == "enterprise" {
-				g, _, err := provisioning(tx, root, user)
+				g, _, err := enterprisedb.Provisioning(tx, root, user)
 				if err != nil {
 					return nil, err
 				}
@@ -96,7 +98,7 @@ func (s Store) Conversation(ctx context.Context, user, eventID, text string, at 
 			reply.ID = id
 			name := text
 			if kind == "enterprise" {
-				v, err := createEnterprise(tx, root, user, id, text, false)
+				v, err := enterprisedb.CreateInTransaction(tx, root, user, id, text, false)
 				if errors.Is(err, organization.ErrForbidden) {
 					reply = CreationReply{Text: "帳號目前沒有可用的企業開通資格。"}
 					pending.Kind = ""
@@ -105,7 +107,7 @@ func (s Store) Conversation(ctx context.Context, user, eventID, text string, at 
 				if err != nil {
 					return nil, err
 				}
-				reply.ID = v.Id
+				reply.ID = v.ID
 				name = v.Name
 			} else {
 				if _, err := createOrganization(tx, root, user, id, text); err != nil {
