@@ -6,9 +6,14 @@ import (
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"slices"
+	"strings"
 	"time"
+
+	knowledge "github.com/963sup/line-mini-app-bot/internal/business/knowledge/application/port"
 
 	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
 	objectimportApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/port"
@@ -18,6 +23,10 @@ import (
 )
 
 type Service struct {
+	Knowledge    knowledge.Reader
+	Sources      objectimportApplicationPortAutomatic.SourceStore
+	TextTable    func(string, []byte) ([]objectimportDomainEntityAutomatic.Row, error)
+	Workbook     func([]byte) ([]objectimportDomainEntityAutomatic.Row, error)
 	Repositories objectimportApplicationPort.Repositories
 	Objects      objectimportApplicationPort.Objects
 	Store        objectimportApplicationPortAutomatic.Store
@@ -111,6 +120,45 @@ func (s *Service) create(ctx context.Context, actor, rid, key string, input obje
 	if e != nil {
 		return objectimportDomainEntityAutomatic.Run{}, e
 	}
+	return s.run(ctx, actor, rid, key, source, digest, selectedType, decisions, nil, nil)
+}
+
+// ImportTable validates the file after repository authorization. Its rows are
+// deterministic; only the user's work/non-work classification remains pending.
+func (s *Service) ImportTable(ctx context.Context, actor, rid, key, document string, file []byte, decisions map[string]string) (objectimportDomainEntityAutomatic.Run, error) {
+	if _, err := s.scope(ctx, actor, rid); err != nil {
+		return objectimportDomainEntityAutomatic.Run{}, err
+	}
+	sum := sha256.Sum256(file)
+	digest := hex.EncodeToString(sum[:])
+	format, _, _ := strings.Cut(document, ":")
+	if !validKey(key) || len(file) == 0 || len(file) > 300*1024 || document != format+":"+digest {
+		return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrInput
+	}
+	var rows []objectimportDomainEntityAutomatic.Row
+	var err error
+	switch format {
+	case "xlsx":
+		if s.Workbook == nil {
+			return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrUnavailable
+		}
+		rows, err = s.Workbook(file)
+	case "csv", "tsv", "txt", "md":
+		if s.TextTable == nil {
+			return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrUnavailable
+		}
+		rows, err = s.TextTable(format, file)
+		file = nil // Text sources are not archived.
+	default:
+		return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrInput
+	}
+	if err != nil {
+		return objectimportDomainEntityAutomatic.Run{}, err
+	}
+	return s.run(ctx, actor, rid, key, objectimportDomainEntity.Source{SourceDocument: document}, digest, "per_item", decisions, rows, file)
+}
+
+func (s *Service) run(ctx context.Context, actor, rid, key string, source objectimportDomainEntity.Source, digest, selectedType string, decisions map[string]string, structured []objectimportDomainEntityAutomatic.Row, file []byte) (objectimportDomainEntityAutomatic.Run, error) {
 	if selectedType != "" && selectedType != "per_item" && selectedType != objectDomainEntity.TypeWork && selectedType != objectDomainEntity.TypeNonWork {
 		return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntityAutomatic.ErrTypeRequired
 	}
@@ -165,29 +213,42 @@ func (s *Service) create(ctx context.Context, actor, rid, key string, input obje
 		return objectimportDomainEntityAutomatic.Run{}, e
 	}
 	if j.Status == "pending" {
-		if s.Producer == nil {
-			return s.reason(ctx, actor, rid, j, "model_unavailable")
+		if file != nil && s.Sources != nil {
+			if err := s.Sources.Put(ctx, rid, actor, j.SourceHash, file); err != nil {
+				return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrUnavailable
+			}
 		}
-		produce := s.Producer.Rows
-		if selectedType == "per_item" {
-			classifier, ok := s.Producer.(interface {
-				ClassifiedRows(context.Context, objectimportDomainEntity.Source) ([]objectimportDomainEntityAutomatic.Candidate, error)
-			})
-			if !ok {
+
+		rows := structured
+		if rows == nil {
+			if s.Producer == nil {
 				return s.reason(ctx, actor, rid, j, "model_unavailable")
 			}
-			produce = classifier.ClassifiedRows
-		}
-		candidates, err := produce(ctx, source)
-		if err != nil {
-			if errors.Is(err, objectimportDomainEntityAutomatic.ErrOutput) {
+			produce := s.Producer.Rows
+			if selectedType == "per_item" {
+				classifier, ok := s.Producer.(interface {
+					ClassifiedRows(context.Context, objectimportDomainEntity.Source) ([]objectimportDomainEntityAutomatic.Candidate, error)
+				})
+				if !ok {
+					return s.reason(ctx, actor, rid, j, "model_unavailable")
+				}
+				produce = classifier.ClassifiedRows
+			}
+			candidates, err := produce(ctx, source)
+			if err != nil {
+				if errors.Is(err, objectimportDomainEntityAutomatic.ErrOutput) {
+					return s.reason(ctx, actor, rid, j, "output_rejected")
+				}
+				return s.reason(ctx, actor, rid, j, "model_unavailable")
+			}
+			rows, err = objectimportDomainEntityAutomatic.Prepare(j, source, candidates, selectedType)
+			if err != nil {
 				return s.reason(ctx, actor, rid, j, "output_rejected")
 			}
-			return s.reason(ctx, actor, rid, j, "model_unavailable")
-		}
-		rows, err := objectimportDomainEntityAutomatic.Prepare(j, source, candidates, selectedType)
-		if err != nil {
-			return s.reason(ctx, actor, rid, j, "output_rejected")
+		} else {
+			for i := range rows {
+				rows[i].ID = objectimportDomainEntity.Hash([]string{"workbook-row-v1", j.ID, rows[i].SourceItemNo})[:32]
+			}
 		}
 		j, e = s.update(ctx, actor, rid, id, func(current *objectimportDomainEntityAutomatic.Run) (objectimportDomainEntityAutomatic.Run, error) {
 			if current == nil {
@@ -253,4 +314,37 @@ func (s *Service) create(ctx context.Context, actor, rid, key string, input obje
 		}
 	}
 	return j, nil
+}
+
+// ReadSourceCell rechecks current run ownership before resolving a frozen source location.
+func (s *Service) ReadSourceCell(ctx context.Context, actor, repository, runID, location string) (string, error) {
+	j, err := s.Get(ctx, actor, repository, runID)
+	if err != nil {
+		return "", err
+	}
+	if s.Sources == nil || s.Workbook == nil {
+		return "", objectimportDomainEntity.ErrUnavailable
+	}
+	if j.CreatorID != actor || j.RepositoryID != repository || j.SourceDocument != "xlsx:"+j.SourceHash {
+		return "", objectimportDomainEntity.ErrNotFound
+	}
+	for _, row := range j.Rows {
+		if row.SourcePages == location {
+			data, err := s.Sources.Read(ctx, repository, actor, j.SourceHash)
+			if err != nil {
+				return "", err
+			}
+			rows, err := s.Workbook(data)
+			if err != nil {
+				return "", err
+			}
+			for _, source := range rows {
+				if source.SourcePages == location && source.SourceItemNo == row.SourceItemNo {
+					return source.Quantity, nil
+				}
+			}
+			break
+		}
+	}
+	return "", objectimportDomainEntity.ErrNotFound
 }

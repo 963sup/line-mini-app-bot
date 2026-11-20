@@ -75,3 +75,7 @@
 ## 現況與提案對照
 
 - [Cloud Run 部署 · 建置入口](guides/release/cloud-run.md#建置入口)
+
+[多格式文件架構與手動解析呼叫時序](proposals/domain-collaboration.md#document-ingestion)
+
+[Firestore 與 Cloud Storage 接線及授權](proposals/domain-collaboration.md#storage-boundaries)

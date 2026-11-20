@@ -7,6 +7,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/963sup/line-mini-app-bot/internal/business/objectimport/adapter/workbook"
+	workflow "github.com/963sup/line-mini-app-bot/internal/business/workflow/application"
+
 	"cloud.google.com/go/firestore"
 	discussiondb "github.com/963sup/line-mini-app-bot/internal/business/discussion/adapter/firestore"
 	discussionapp "github.com/963sup/line-mini-app-bot/internal/business/discussion/application"
@@ -100,7 +103,11 @@ func newObjectImports(r *repositoryApplication.Service, store *repositorydb.Stor
 	return &objectimportApplication.Service{Repositories: r, Objects: newObjects(r, store), Store: &importdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
 }
 
-func newObjectParser(r *repositoryApplication.Service) *objectimportApplicationParsing.Service {
+func newObjectParser(r *repositoryApplication.Service) workflow.PDF {
+	return workflow.PDF{Extract: newCandidateService(r).Parse}
+}
+
+func newCandidateService(r *repositoryApplication.Service) *objectimportApplicationParsing.Service {
 	if r == nil {
 		return nil
 	}
@@ -119,7 +126,7 @@ func newAutomaticObjectImports(r *repositoryApplication.Service, store *reposito
 	if key := os.Getenv("OPENAI_API_KEY"); key != "" {
 		producer = &parseropenai.Producer{Key: key, Model: os.Getenv("OBJECT_IMPORT_MODEL")}
 	}
-	return &objectimportApplicationAutomatic.Service{Repositories: r, Objects: newObjects(r, store), Store: &importdb.AutomaticStore{Store: importdb.Store{Client: store.Client, ChannelID: store.ChannelID}}, Producer: producer}
+	return &objectimportApplicationAutomatic.Service{Workbook: workbook.Read, TextTable: workbook.ReadText, Repositories: r, Objects: newObjects(r, store), Store: &importdb.AutomaticStore{Store: importdb.Store{Client: store.Client, ChannelID: store.ChannelID}}, Producer: producer}
 }
 
 func newSubobjects(r *repositoryApplication.Service, store *repositorydb.Store) *subobjectApplication.Service {

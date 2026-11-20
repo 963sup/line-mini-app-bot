@@ -229,7 +229,7 @@ function Content({ repositoryId, extract }: Props) {
       <p className="mb-4 text-sm text-muted-foreground">每個清單項次是一筆物件，數量不拆成單件。成員可新增，僅建立者可編輯；完成不代表驗收或付款。</p>
       <div className="mb-4 flex flex-wrap gap-2">
         <Button disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={event => openCreateForm(event.currentTarget)}>新增物件</Button>
-        <Button variant="outline" disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={() => { if (!subLock.current && !lock.current && !uncertain && !needsRefresh) discard.navigate(() => { formNavigation.current = true; clearEditor(); setImporting(true); }); }}>PDF匯入</Button>
+        <Button variant="outline" disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={() => { if (!subLock.current && !lock.current && !uncertain && !needsRefresh) discard.navigate(() => { formNavigation.current = true; clearEditor(); setImporting(true); }); }}>文件匯入</Button>
         <Button variant="outline" disabled={!user || busy || listBusy || subBlocked || uncertain || !!mode} onClick={() => load()}>重新載入物件</Button>
       </div>
       <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取物件……" />

@@ -187,7 +187,7 @@ test("manual/import navigation synchronously invalidates old form", async () => 
   const f = await fixture(async request => { if (request.method === "POST") writes++; return Response.json({items: [], nextCursor: ""}); });
   try {
     await f.click("新增物件"); await f.fill("物件名稱", "舊表單"); const oldForm = document.querySelector("form")!;
-    await act(async () => { [...document.querySelectorAll<HTMLButtonElement>("button")].find(button => button.textContent === "PDF匯入")!.click(); oldForm.dispatchEvent(new window.Event("submit", {bubbles: true, cancelable: true})); await flush(); });
+    await act(async () => { [...document.querySelectorAll<HTMLButtonElement>("button")].find(button => button.textContent === "文件匯入")!.click(); oldForm.dispatchEvent(new window.Event("submit", {bubbles: true, cancelable: true})); await flush(); });
     assert.equal(writes, 0);
   } finally { await f.dispose(); }
 });
@@ -197,7 +197,7 @@ for (const scope of ["repository", "identity"]) {
     let aborted = false;
     const f = await fixture(async () => Response.json({ items: [], nextCursor: "" }), false, async (_file, signal) => new Promise((_resolve, reject) => { signal.addEventListener("abort", () => { aborted = true; reject(new Error("cancelled")); }); }));
     try {
-      await f.click("PDF匯入");
+      await f.click("文件匯入");
       await act(async () => { const input = document.querySelector<HTMLInputElement>('input[type="file"]')!; Object.defineProperty(input, "files", { value: [new File(["%PDF-1.7"], "test.pdf", { type: "application/pdf" })], configurable: true }); input.dispatchEvent(new window.Event("change", { bubbles: true })); await flush(); });
       if (scope === "repository") await f.switchRepository(); else await f.verifyAs("B");
       assert.equal(aborted, true); assert.equal(document.querySelector("textarea"), null); assert.match(document.body.textContent!, /物件/);
