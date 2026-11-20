@@ -30,7 +30,7 @@ async function fixture(handle: (request: Request, blocked: boolean) => Promise<R
   return {
     blocked: () => blocked,
     async selectType(value: string) { await act(async () => { batchRadio(value).click(); await flush(); }); },
-    async file() { await act(async () => { const input = document.querySelector<HTMLInputElement>('input[type="file"]')!; Object.defineProperty(input, "files", { value: [new File(["%PDF-1.7"], "local.pdf", { type: "application/pdf" })], configurable: true }); input.dispatchEvent(new window.Event("change", { bubbles: true })); await flush(); }); },
+    async file(file = new File(["%PDF-1.7"], "local.pdf", { type: "application/pdf" })) { await act(async () => { const input = document.querySelector<HTMLInputElement>('input[type="file"]')!; Object.defineProperty(input, "files", { value: [file], configurable: true }); input.dispatchEvent(new window.Event("change", { bubbles: true })); await flush(); }); },
     async click(text: string) { await act(async () => { const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === text); assert.ok(node, `missing ${text}`); node.click(); await flush(); }); },
     async check(text: string) { await act(async () => { const label = [...document.querySelectorAll("label")].find(label => label.textContent?.includes(text)); assert.ok(label, `missing ${text}`); label.querySelector<HTMLElement>('[role="checkbox"]')!.click(); await flush(); }); },
     async fill(label: string, value: string) { await act(async () => { const input = [...document.querySelectorAll("label")].find(node => node.textContent?.startsWith(label))?.querySelector<HTMLInputElement>("input,textarea"); assert.ok(input, `missing ${label}`); const proto = input.tagName === "TEXTAREA" ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(proto, "value")!.set!.call(input, value); input.dispatchEvent(new window.Event("input", { bubbles: true })); await flush(); }); },
@@ -77,9 +77,9 @@ for (const unknown of [false, true]) {
   });
   try {
    await f.file(); if(unknown) await f.click("重試原匯入");
-   const change=[...document.querySelectorAll<HTMLButtonElement>("button")].find(b=>b.textContent==="更換PDF");
+   const change=[...document.querySelectorAll<HTMLButtonElement>("button")].find(b=>b.textContent==="更換檔案");
    if(unknown) {assert.equal(change,undefined);assert.equal(f.blocked(),true);assert.deepEqual(calls[0],calls[1]);}
-   else {assert.ok(change);await f.click("更換PDF");assert.equal(f.blocked(),false);await f.file();assert.notEqual(calls[0].key,calls[1].key);assert.equal((calls[1].body as {classification:string}).classification,"per_item");}
+   else {assert.ok(change);await f.click("更換檔案");assert.equal(f.blocked(),false);await f.file();assert.notEqual(calls[0].key,calls[1].key);assert.equal((calls[1].body as {classification:string}).classification,"per_item");}
   } finally {await f.dispose();}
  });
 }
@@ -97,4 +97,22 @@ test("only ambiguous items prompt for a type, using the same import key", async 
     await f.click("確認為非施作"); assert.equal(calls.length,2);
     await f.click("重試原匯入"); assert.deepEqual(calls[2],calls[1]);
     assert.equal(calls[0].key,calls[1].key);assert.deepEqual(calls[1].body.decisions,{[rowid]:"work"});assert.equal(f.blocked(),false);} finally {await f.dispose();}
+});
+
+test("workbook uploads original bytes to the authorized endpoint and lets the user replace rejected input", async () => {
+  let calls = 0;
+  const f = await fixture(async request => {
+    const body = await request.json();
+    assert.equal(body.workbook, "UEsDBA==");
+    assert.equal(body.pages, undefined);
+    assert.match(body.sourceDocument, /^xlsx:[0-9a-f]{64}$/);
+    calls++;
+    return Response.json({error:{code:"invalid_input",message:"invalid workbook"}},{status:400});
+  });
+  try {
+    await f.file(new File(["%PDF-1.7"], "wrong.xlsx"));
+    assert.equal(calls,0);
+    await f.file(new File([new Uint8Array([80,75,3,4])],"invalid.xlsx"));
+    assert.equal(calls,1); assert.equal(f.blocked(),false);
+  } finally { await f.dispose(); }
 });

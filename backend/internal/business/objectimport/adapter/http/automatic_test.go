@@ -13,11 +13,16 @@ import (
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/963sup/line-mini-app-bot/internal/business/objectimport/adapter/workbook"
+	"github.com/xuri/excelize/v2"
 
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
@@ -154,5 +159,71 @@ func TestReplaceSourceRequiresKnownEmptyPendingRun(t *testing.T) {
 	run.Reason = ""
 	if automaticView(run).CanReplaceSource {
 		t.Fatal("pending without known failure must keep source")
+	}
+}
+
+func TestWorkbookRunUsesContractQuantityAndRequiresConfirmation(t *testing.T) {
+	f := excelize.NewFile()
+	defer func() { _ = f.Close() }()
+	for i, row := range [][]interface{}{{"項次", "品名", "累計完成數量", "單位", "契約數量"}, {"10", "Pump", 30, "SET", 20}} {
+		if err := f.SetSheetRow("Sheet1", fmt.Sprintf("A%d", i+1), &row); err != nil {
+			t.Fatal(err)
+		}
+	}
+	b, err := f.WriteToBuffer()
+	if err != nil {
+		t.Fatal(err)
+	}
+	body := map[string]any{"classification": "per_item", "sourceDocument": fmt.Sprintf("xlsx:%x", sha256.Sum256(b.Bytes())), "sourceRevision": "", "workbook": b.Bytes()}
+	o := &objects{}
+	mux := http.NewServeMux()
+	Register(mux, &objectimportApplication.Service{}, auth{}, &objectimportApplicationAutomatic.Service{Repositories: repos{}, Store: &automaticMemory{runs: map[string]objectimportDomainEntityAutomatic.Run{}}, Objects: o, Workbook: workbook.Read}, nil)
+	post := func() generated.ObjectImportRun {
+		data, err := json.Marshal(body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req := httptest.NewRequest("POST", "/api/v1/repositories/"+strings.Repeat("a", 32)+"/object-import-runs", strings.NewReader(string(data)))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Idempotency-Key", "workbook-replay-test")
+		w := httptest.NewRecorder()
+		mux.ServeHTTP(w, req)
+		var result generated.ObjectImportRun
+		if w.Code != 200 || json.Unmarshal(w.Body.Bytes(), &result) != nil {
+			t.Fatal(w.Code, w.Body.String())
+		}
+		return result
+	}
+	j := post()
+	if len(j.Rows) != 1 || o.calls != 0 {
+		t.Fatal(j, o.calls)
+	}
+	row := j.Rows[0]
+	if row.Quantity != "20" || row.SourcePages != "'Sheet1'!E2" || row.Type != "needs_review" {
+		t.Fatal(row)
+	}
+	body["decisions"] = map[string]string{row.Id: "work"}
+	first, replay := post(), post()
+	if first.Status != "completed" || replay.Status != "completed" || o.calls != 1 {
+		t.Fatal(o.calls)
+	}
+}
+
+func TestTextTableRunHTTP(t *testing.T) {
+	data := []byte("項次,名稱,契約數量,累計完成數量,單位\n01,Pump,20,30,SET")
+	payload, err := json.Marshal(map[string]any{"sourceDocument": fmt.Sprintf("csv:%x", sha256.Sum256(data)), "sourceRevision": "", "classification": "per_item", "textFile": data})
+	if err != nil {
+		t.Fatal(err)
+	}
+	mux := http.NewServeMux()
+	Register(mux, &objectimportApplication.Service{}, auth{}, &objectimportApplicationAutomatic.Service{Repositories: repos{}, Store: &automaticMemory{runs: map[string]objectimportDomainEntityAutomatic.Run{}}, TextTable: workbook.ReadText}, nil)
+	req := httptest.NewRequest("POST", "/api/v1/repositories/"+strings.Repeat("a", 32)+"/object-import-runs", strings.NewReader(string(payload)))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Idempotency-Key", "text-table-http-intent")
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	var j generated.ObjectImportRun
+	if w.Code != 200 || json.Unmarshal(w.Body.Bytes(), &j) != nil || len(j.Rows) != 1 || j.Rows[0].Quantity != "20" || j.Rows[0].SourcePages != "L2" || j.NeedsReviewCount != 1 || j.CreatedCount != 0 {
+		t.Fatal(w.Code, w.Body.String())
 	}
 }

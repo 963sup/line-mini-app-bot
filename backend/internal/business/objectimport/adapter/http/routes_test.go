@@ -2,6 +2,7 @@ package objectimporthttp
 
 import (
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+	workflow "github.com/963sup/line-mini-app-bot/internal/business/workflow/application"
 )
 
 import (
@@ -230,7 +231,7 @@ func TestHTTPParseProducesOnlyValidatedCandidates(t *testing.T) {
 			}
 			parser := &objectimportApplicationParsing.Service{Repositories: repos{deny: tc.denyRepo}, Producer: producer}
 			mux := http.NewServeMux()
-			Register(mux, &objectimportApplication.Service{Repositories: repos{}, Store: drafts, Objects: writer}, auth{deny: tc.denyAuth}, nil, parser)
+			Register(mux, &objectimportApplication.Service{Repositories: repos{}, Store: drafts, Objects: writer}, auth{deny: tc.denyAuth}, nil, workflow.PDF{Extract: parser.Parse})
 			text := body
 			if tc.noConsent {
 				text = strings.Replace(text, `"consent":true`, `"consent":false`, 1)

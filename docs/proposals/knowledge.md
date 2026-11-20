@@ -40,3 +40,9 @@ flowchart TD
 | Withdraw(reviewer, entryVersion) | 檢查撤回權限；停止新引用並保留歷史紀錄。重複撤回同版維持已撤回狀態。 |
 
 [共用架構、時序與驗收](domain-collaboration.md)
+
+## 已發布規則的 Firestore 讀取接線
+
+後端以同一筆唯讀用途的交易讀取組織與發布投影，先檢查 actor 是該組織的 owner 或成員。投影路徑為 `channels/{channel}/organizations/{organization}/publishedKnowledge/{templateDigest}`，其中 templateDigest 使用專案既有的 firestorekey.Digest。文件保存 templateVersion 與 rules 陣列；每條規則包含 ID、Version、Source、Text。授權通過但找不到投影時回傳空集合。實作見[讀取 adapter](../../backend/internal/business/knowledge/adapter/firestore/rules.go)。
+
+這次只接讀取端。未來發布操作應在核准時建立或取代投影，撤回時移除相應規則。現有匯入路徑沒有可信的組織與版型識別時，不會推測組織或自動套用規則。
