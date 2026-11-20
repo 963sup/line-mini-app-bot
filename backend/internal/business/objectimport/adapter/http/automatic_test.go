@@ -164,7 +164,7 @@ func TestReplaceSourceRequiresKnownEmptyPendingRun(t *testing.T) {
 
 func TestWorkbookRunUsesContractQuantityAndRequiresConfirmation(t *testing.T) {
 	f := excelize.NewFile()
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	for i, row := range [][]interface{}{{"項次", "品名", "累計完成數量", "單位", "契約數量"}, {"10", "Pump", 30, "SET", 20}} {
 		if err := f.SetSheetRow("Sheet1", fmt.Sprintf("A%d", i+1), &row); err != nil {
 			t.Fatal(err)
@@ -203,7 +203,8 @@ func TestWorkbookRunUsesContractQuantityAndRequiresConfirmation(t *testing.T) {
 		t.Fatal(row)
 	}
 	body["decisions"] = map[string]string{row.Id: "work"}
-	if post().Status != "completed" || post().Status != "completed" || o.calls != 1 {
+	first, replay := post(), post()
+	if first.Status != "completed" || replay.Status != "completed" || o.calls != 1 {
 		t.Fatal(o.calls)
 	}
 }

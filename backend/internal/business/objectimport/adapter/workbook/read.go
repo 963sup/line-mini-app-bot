@@ -16,7 +16,7 @@ func Read(data []byte) ([]run.Row, error) {
 	if err != nil {
 		return nil, imp.ErrInput
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	sheets := f.GetSheetList()
 	if len(sheets) != 1 {
 		return nil, imp.ErrInput
@@ -26,7 +26,7 @@ func Read(data []byte) ([]run.Row, error) {
 	if err != nil {
 		return nil, imp.ErrInput
 	}
-	defer it.Close()
+	defer func() { _ = it.Close() }()
 	if !it.Next() {
 		return nil, imp.ErrInput
 	}
