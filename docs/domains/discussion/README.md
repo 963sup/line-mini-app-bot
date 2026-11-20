@@ -29,6 +29,6 @@ flowchart TD
     gate -->|否| stop["依授權更新分類"]
 ```
 
-[操作入口與適配器](../../../backend/internal/business/discussion/adapter) · [判定依據](../../../backend/internal/business/discussion/domain/entity/classification_test.go) · [應用層輸出介面](../../../backend/internal/business/discussion/application/port/store.go) · [相關測試](../../../backend/internal/business/discussion/domain/entity/classification_test.go)
+[入口適配器](../../../backend/internal/business/discussion/adapter/http/routes.go) · [判定依據](../../../backend/internal/business/discussion/domain/entity/classification_test.go) · [應用層輸出介面](../../../backend/internal/business/discussion/application/port/store.go) · [相關測試](../../../backend/internal/business/discussion/domain/entity/classification_test.go)
 
 [適用工作指引](../AGENTS.md) · [上層導覽](../README.md)

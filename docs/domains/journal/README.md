@@ -29,6 +29,6 @@ flowchart TD
     gate -->|否| stop["遮蔽來源並保留工作名稱與進度"]
 ```
 
-[操作入口與適配器](../../../backend/internal/business/journal/adapter) · [判定依據](../../../backend/internal/business/journal/domain/entity/entry_test.go) · [應用層輸出介面](../../../backend/internal/business/journal/application/port/operations.go) · [相關測試](../../../backend/internal/business/journal/domain/entity/entry_test.go)
+[入口適配器](../../../backend/internal/business/journal/adapter/http/routes.go) · [判定依據](../../../backend/internal/business/journal/domain/entity/entry_test.go) · [應用層輸出介面](../../../backend/internal/business/journal/application/port/operations.go) · [相關測試](../../../backend/internal/business/journal/domain/entity/entry_test.go)
 
 [適用工作指引](../AGENTS.md) · [上層導覽](../README.md)

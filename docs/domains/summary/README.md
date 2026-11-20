@@ -29,6 +29,6 @@ flowchart TD
     gate -->|否| stop["拒絕輸出"]
 ```
 
-[操作入口與適配器](../../../backend/internal/business/summary/adapter) · [判定依據](../../../backend/internal/business/summary/application/summarization/validation.go) · [應用層輸出介面](../../../backend/internal/business/summary/application/port/errors.go) · [相關測試](../../../backend/internal/business/summary/adapter/firestore/documents_test.go)
+[入口適配器](../../../backend/internal/business/summary/adapter/http/summarization/summary.go) · [判定依據](../../../backend/internal/business/summary/application/summarization/validation.go) · [應用層輸出介面](../../../backend/internal/business/summary/application/port/errors.go) · [相關測試](../../../backend/internal/business/summary/adapter/firestore/documents_test.go)
 
 [適用工作指引](../AGENTS.md) · [上層導覽](../README.md)

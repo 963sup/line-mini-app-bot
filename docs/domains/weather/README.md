@@ -29,6 +29,6 @@ flowchart TD
     gate -->|否| stop["回報無可用預報"]
 ```
 
-[操作入口與適配器](../../../backend/internal/business/weather/adapter) · [判定依據](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go) · [相關測試](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go)
+[入口適配器](../../../backend/internal/business/weather/adapter/cwa/forecast/cwa.go) · [判定依據](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go) · [相關測試](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go)
 
 [適用工作指引](../AGENTS.md) · [上層導覽](../README.md)

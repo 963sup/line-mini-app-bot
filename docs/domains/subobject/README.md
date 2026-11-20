@@ -29,6 +29,6 @@ flowchart TD
     gate -->|否| stop["拒絕修改"]
 ```
 
-[操作入口與適配器](../../../backend/internal/business/subobject/adapter) · [判定依據](../../../backend/internal/business/subobject/adapter/firestore/store.go) · [應用層輸出介面](../../../backend/internal/business/subobject/application/port/subobject.go) · [相關測試](../../../backend/internal/business/subobject/adapter/firestore/store_test.go)
+[入口適配器](../../../backend/internal/business/subobject/adapter/http/routes.go) · [判定依據](../../../backend/internal/business/subobject/adapter/firestore/store.go) · [應用層輸出介面](../../../backend/internal/business/subobject/application/port/subobject.go) · [相關測試](../../../backend/internal/business/subobject/adapter/firestore/store_test.go)
 
 [適用工作指引](../AGENTS.md) · [上層導覽](../README.md)
