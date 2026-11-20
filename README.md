@@ -51,7 +51,7 @@ Next.js 正式建置採靜態匯出，由 Go 在 Cloud Run 提供網頁與 HTTP 
 | --- | --- |
 | `github.com/line/line-bot-sdk-go/v8` | LINE Messaging API 與 Webhook 整合 |
 | `cloud.google.com/go/firestore` | Firestore 存取 |
-| `github.com/sashabaranov/go-openai` | OpenAI 整合，使用第三方 Go SDK |
+| `github.com/openai/openai-go/v3` | OpenAI 整合，使用官方 Go SDK |
 | `google.golang.org/api`、`golang.org/x/oauth2` | Google API 與身分驗證支援 |
 | `github.com/getkin/kin-openapi`、`github.com/oapi-codegen/nethttp-middleware`、`github.com/oapi-codegen/runtime` | OpenAPI 契約處理、請求驗證與 Go 產生碼支援 |
 | `openapi-fetch` | TypeScript API client |
