@@ -1143,7 +1143,10 @@
           "rows",
           "createdAt",
           "updatedAt",
-          "reason"
+          "reason",
+          "createdCount",
+          "needsReviewCount",
+          "canReplaceSource"
         ],
         "properties": {
           "id": {
@@ -1202,6 +1205,18 @@
               "output_rejected",
               "creation_unavailable"
             ]
+          },
+          "createdCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "needsReviewCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "canReplaceSource": {
+            "type": "boolean",
+            "description": "The run is pending with a reported reason and has no frozen rows. Clients with an uncertain previous attempt must still retry the original source."
           }
         }
       }

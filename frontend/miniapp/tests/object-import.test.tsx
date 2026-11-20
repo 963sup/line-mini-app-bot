@@ -44,7 +44,7 @@ test("choosing PDF automatically imports; ambiguous retry preserves exact body a
     assert.match(new URL(request.url).pathname, /object-import-runs$/);
     calls.push({key: request.headers.get("Idempotency-Key"), body: await request.json()});
     if (calls.length === 1) throw new TypeError("network interrupted");
-    return Response.json({ id: jid, status: "completed", rows: [{ id: rowid, name: "測試物件", quantity: "1", unit: "SET", resultObjectId: "f".repeat(32) }], reason: "" });
+    return Response.json({ id: jid, status: "completed", createdCount: 1, needsReviewCount: 0, canReplaceSource:false, rows: [{ id: rowid, name: "測試物件", quantity: "1", unit: "SET", resultObjectId: "f".repeat(32) }], reason: "" });
   });
   try {
     await f.file(); assert.equal(calls.length, 1); assert.equal(f.blocked(), true);
@@ -58,7 +58,7 @@ test("choosing PDF automatically imports; ambiguous retry preserves exact body a
 });
 test("partial results report actual successes and retry frozen run", async () => {
   let count = 0; const calls: {key: string | null; body: unknown}[] = [];
-  const f = await fixture(async request => { calls.push({key: request.headers.get("Idempotency-Key"), body: await request.json()}); return Response.json({id: jid, status: ++count === 1 ? "processing" : "completed", reason: "creation_unavailable", rows: [{id: rowid, name: "測試物件", quantity: "1", unit: "SET", resultObjectId: count === 1 ? "" : "f".repeat(32)}]}); });
+  const f = await fixture(async request => { calls.push({key: request.headers.get("Idempotency-Key"), body: await request.json()}); return Response.json({id: jid, status: ++count === 1 ? "processing" : "completed", createdCount: count === 1 ? 0 : 1, needsReviewCount:0, canReplaceSource:false, reason: "creation_unavailable", rows: [{id: rowid, name: "測試物件", quantity: "1", unit: "SET", resultObjectId: count === 1 ? "" : "f".repeat(32)}]}); });
   try {  await f.file(); assert.equal(f.blocked(), true); assert.equal(batchRadio("non_work"), null); assert.match(document.body.textContent!, /已建立 0\/1/);  await f.click("重試原匯入"); assert.deepEqual(calls[0], calls[1]); assert.equal(f.blocked(), false); } finally { await f.dispose(); }
 });
 test("PDF extraction cancellation aborts without API transmission", async () => {
@@ -73,7 +73,7 @@ for (const unknown of [false, true]) {
   const f=await fixture(async request=>{
    calls.push({key:request.headers.get("Idempotency-Key"),body:await request.json()});
    if(unknown&&calls.length===1) throw new TypeError("reply lost");
-   return Response.json({id:jid,status:"pending",rows:[],reason:"model_unavailable"});
+   return Response.json({id:jid,status:"pending",createdCount:0,needsReviewCount:0,canReplaceSource:true,rows:[],reason:"model_unavailable"});
   });
   try {
    await f.file(); if(unknown) await f.click("重試原匯入");
@@ -91,7 +91,7 @@ test("only ambiguous items prompt for a type, using the same import key", async 
     calls.push({key:request.headers.get("Idempotency-Key"),body:await request.json()});
     if (calls.length===2) throw new TypeError("confirmation reply lost");
     const done=calls.length===3;
-    return Response.json({id:jid,status:done?"completed":"processing",reason:"",rows:[{id:rowid,type:done?"work":"needs_review",name:"燈具",quantity:"10",unit:"盞",sourceItemNo:"10",sourcePages:"1",resultObjectId:done?"f".repeat(32):""}]});
+    return Response.json({id:jid,status:done?"completed":"processing",createdCount:done?1:0,needsReviewCount:done?0:1,canReplaceSource:false,reason:"",rows:[{id:rowid,type:done?"work":"needs_review",name:"燈具",quantity:"10",unit:"盞",sourceItemNo:"10",sourcePages:"1",resultObjectId:done?"f".repeat(32):""}]});
   });
   try {assert.equal(batchRadio("work"),null);await f.file();await f.click("確認為施作");
     await f.click("確認為非施作"); assert.equal(calls.length,2);

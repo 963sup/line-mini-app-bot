@@ -1896,6 +1896,10 @@ export interface components {
             updatedAt: string;
             /** @enum {string} */
             reason: "" | "model_unavailable" | "output_rejected" | "creation_unavailable";
+            createdCount: number;
+            needsReviewCount: number;
+            /** @description The run is pending with a reported reason and has no frozen rows. Clients with an uncertain previous attempt must still retry the original source. */
+            canReplaceSource: boolean;
         };
         Subobject: {
             name: string;
