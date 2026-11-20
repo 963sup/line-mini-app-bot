@@ -14,9 +14,9 @@
 
 ## 相關規格
 
-[獨立Project](../docs/domains/project.md) · [React 前端生命週期](../docs/architecture/runtime/react-lifecycle.md)
+[獨立Project](../docs/domains/project/project.md) · [React 前端生命週期](../docs/architecture/runtime/react-lifecycle.md)
 
-工程群組／Project新增獨立入口；既有Repository-scoped Project路由由相容adapter呼叫同一用例，來源識別不再代表專案擁有權。資料與授權／相容界線見 [獨立Project](../docs/domains/project.md)，契約及生成碼仍遵循本頁流程，不手改generated檔。
+工程群組／Project新增獨立入口；既有Repository-scoped Project路由由相容adapter呼叫同一用例，來源識別不再代表專案擁有權。資料與授權／相容界線見 [獨立Project](../docs/domains/project/project.md)，契約及生成碼仍遵循本頁流程，不手改generated檔。
 
 [contract/openapi.yaml](contract/openapi.yaml) 是公開 HTTP 契約的唯一組合入口。各能力維護自己的操作與格式，共用錯誤與認證位於 `contract/common/`；歸屬見[契約能力索引](contract/README.md)。不手改產生檔，業務核心不 import 生成套件。
 
@@ -116,7 +116,7 @@ Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄
 
 - [Repository、Issue 與 Discussion 模型及 Connection 分頁規劃](../docs/proposals/platform/domain-model.md)：未來設計參考，現行 OpenAPI 契約維持原狀。
 
-- [里程碑](../docs/domains/repository/milestones.md)、[Project](../docs/domains/project.md)與[洞察（Insights）](../docs/domains/repository/insights.md)：正式契約與三層接線。
+- [里程碑](../docs/domains/repository/milestones.md)、[Project](../docs/domains/project/project.md)與[洞察（Insights）](../docs/domains/repository/insights.md)：正式契約與三層接線。
 
 ## 協作能力分佈與交付狀態
 

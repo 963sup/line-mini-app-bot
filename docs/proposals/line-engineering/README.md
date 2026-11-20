@@ -23,7 +23,7 @@
 flowchart LR
   h["LINE 工程管理平台目標架構（提案）"]
   h --- n0["以下保存架構討論提出的目標模型。Project 由建<br/>立它的個人或工程群組擁有，Space 表示 <br/>Repository 內的工區，見現行 Project 設計。平<br/>台能力與逐庫授權仍須在實作時驗證。"]
-  click n0 "../../domains/project.md"
+  click n0 "../../domains/project/project.md"
   h --- n1["建議採用：LINE Group 1:1 對應 Repository、<br/>Repository 管理工區、Object 與 SubObject；個<br/>人或工程群組擁有 Project，一個 Project 可連<br/>結多個 Repository；LINE 1:1 私訊則作為使用者<br/>的個人入口，已驗簽的 follow 事件建立個人 <br/>Repository。"]
   h --- n2["底層維持一個 Cloud Run Go 服務、Firestore 資<br/>料庫與 Cloud Storage for Firebase（以下簡稱 <br/>Firebase Storage）。LINE Messaging API 負責<br/>訊息與事件，LINE MINI App 負責操作介面。"]
   h --- n3["以下以這個目標設計重新整理，並區分 LINE 官方<br/>能力與應用程式自行管理的資源。"]
@@ -415,7 +415,7 @@ flowchart LR
 flowchart LR
   h["九、現有 Repository 與目標設計的差距"]
   h --- n0["現行 Project 的擁有者、來源庫連結與儲存路徑<br/>見 Project 功能規格。以下對照現況與目標。"]
-  click n0 "../../domains/project.md"
+  click n0 "../../domains/project/project.md"
 ```
 
 ```mermaid

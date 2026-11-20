@@ -10,7 +10,7 @@ flowchart LR
 
 ## 現況總覽與 Pulse 規劃
 
-Mini App 的 Repository 分析入口命名為「洞察（Insights）」。選取「洞察」時才載入統計資料。既有 statistics 是其中的「現況總覽」：回答現在有多少問題、討論與里程碑，保留既有 API 與計數定義。「近期動態（Pulse）」是 Insights 下的期間報告。Owner Project 的跨庫看板進度由 [Project](../project.md) 定義。
+Mini App 的 Repository 分析入口命名為「洞察（Insights）」。選取「洞察」時才載入統計資料。既有 statistics 是其中的「現況總覽」：回答現在有多少問題、討論與里程碑，保留既有 API 與計數定義。「近期動態（Pulse）」是 Insights 下的期間報告。Owner Project 的跨庫看板進度由 [Project](../project/project.md) 定義。
 
 | 視圖 | 問題 | 資料來源 |
 |---|---|---|
@@ -44,7 +44,7 @@ flowchart LR
   n1 --- n1l0["OpenAPI 來源"]
   click n1l0 "../../../api/contract/repository/statistics.yaml"
   n1 --- n1l1["Project 規格"]
-  click n1l1 "../project.md"
+  click n1l1 "../project/project.md"
   n1 --- n1l2["驗收矩陣"]
   click n1l2 "../../development/acceptance.md"
 ```
