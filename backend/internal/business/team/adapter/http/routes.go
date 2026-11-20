@@ -10,7 +10,7 @@ import (
 
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/http"
 
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 type Store interface {

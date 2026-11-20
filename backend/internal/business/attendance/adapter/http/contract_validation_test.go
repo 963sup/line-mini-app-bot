@@ -19,7 +19,7 @@ import (
 	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	attendanceservice "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/service"
 	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
 )

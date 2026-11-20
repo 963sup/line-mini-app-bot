@@ -32,7 +32,7 @@ flowchart LR
   h --- n17["目錄：identity/http<br/>責任與允許依賴：Bearer 輸入、身分回應、HTTP <br/>錯誤與 MINI App 設定入口"]
   h --- n18["目錄：identity/line、identity/google<br/>責任與允許依賴：LINE 本人身分與 Google 工作<br/>身分驗證的外部整合"]
   h --- n19["目錄：transport/http/browser、transport/http/geolocation<br/>責任與允許依賴：靜態頁面／CSP，以及獨立定位<br/>診斷"]
-  h --- n20["目錄：httpapi<br/>責任與允許依賴：生成介面接線與 spec，不 <br/>import 功能實作"]
+  h --- n20["目錄：transport/http/api<br/>責任與允許依賴：生成介面接線與 spec，不 <br/>import 功能實作"]
   h --- n21["目錄：transport/http、transport/line<br/>責任與允許依賴：共用 HTTP 格式與 LINE 傳輸；<br/>不依賴功能"]
   h --- n22["目錄：bootstrap<br/>責任與允許依賴：設定、外部 client 建立、手動<br/>注入、路由與生命週期"]
 ```

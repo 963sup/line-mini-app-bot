@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/identity/session"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 const sessionCookie = "__Host-session"

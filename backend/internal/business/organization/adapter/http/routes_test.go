@@ -21,9 +21,9 @@ import (
 	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
 	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 	"github.com/google/uuid"
 )
 

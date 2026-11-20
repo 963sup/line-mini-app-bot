@@ -5,9 +5,9 @@ import { test } from "node:test";
 import { checkDispatch, type DispatchOperation } from "./check-dispatch.mts";
 
 const root = resolve(import.meta.dirname, "../..");
-const contract = "backend/internal/httpapi/contract.go";
-const routes = "backend/internal/httpapi/routes.go";
-const generated = "backend/internal/httpapi/generated/api.gen.go";
+const contract = "backend/internal/transport/http/api/contract.go";
+const routes = "backend/internal/transport/http/api/routes.go";
+const generated = "backend/internal/transport/http/api/generated/api.gen.go";
 const operations: DispatchOperation[] = JSON.parse(readFileSync(resolve(root, "api/capabilities.json"), "utf8")).operations;
 const original = new Map([...new Set([contract, routes, generated, ...operations.map(op => op.adapter)])]
   .map(path => [path, readFileSync(resolve(root, path), "utf8")]));

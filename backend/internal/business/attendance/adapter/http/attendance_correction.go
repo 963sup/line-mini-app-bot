@@ -15,8 +15,8 @@ import (
 	attendancequery "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/query"
 	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 var correctionIDPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{1,128}$`)

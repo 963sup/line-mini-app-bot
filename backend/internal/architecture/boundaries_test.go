@@ -85,6 +85,7 @@ func TestDependencyBoundaries(t *testing.T) {
 		"identity": {},
 	}
 	allowedTransport := map[string][]string{
+		"transport/http/api":         {"transport/http", "transport/http/api/generated"},
 		"transport/http/geolocation": {"transport/http/browser"},
 		"transport/line/navigation":  {"transport/line"},
 	}
@@ -164,9 +165,6 @@ func TestDependencyBoundaries(t *testing.T) {
 						t.Errorf("HTTP adapter %s depends directly on SDK %s", rel, dependency)
 					}
 				}
-			}
-			if dir == "httpapi" && strings.HasPrefix(dependency, module) && dependency != module+"httpapi/generated" && dependency != module+"transport/http" {
-				t.Errorf("OpenAPI wiring depends on feature implementation: %s", dependency)
 			}
 			if strings.HasPrefix(dir, "platform/") && strings.HasPrefix(dependency, module) && !strings.HasPrefix(dependency, module+"platform/") {
 				t.Errorf("platform %s imports %s", rel, dependency)

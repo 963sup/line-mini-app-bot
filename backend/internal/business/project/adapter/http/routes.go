@@ -13,10 +13,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/httpapi"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	middleware "github.com/oapi-codegen/nethttp-middleware"
 )

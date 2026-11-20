@@ -14,8 +14,8 @@ import (
 	summary "github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/line"
 	"github.com/963sup/line-mini-app-bot/internal/business/weather/adapter/cwa/forecast"
 	weather "github.com/963sup/line-mini-app-bot/internal/business/weather/adapter/line/forecast"
-	navigation "github.com/963sup/line-mini-app-bot/internal/transport/line/navigation"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
+	navigation "github.com/963sup/line-mini-app-bot/internal/transport/line/navigation"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 

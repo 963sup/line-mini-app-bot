@@ -11,8 +11,8 @@ import (
 
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 func automaticView(j objectimportDomainEntityAutomatic.Run) generated.ObjectImportRun {

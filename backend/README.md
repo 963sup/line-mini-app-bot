@@ -23,7 +23,7 @@
 
 ## 目錄導覽與維護
 
-可執行入口位於 [cmd](cmd)。[business](internal/business) 依業務領域分工，[bootstrap](internal/bootstrap) 組裝服務，[identity](internal/identity) 處理身分與 Session，[httpapi](internal/httpapi) 保存 OpenAPI 契約接線與生成碼。
+可執行入口位於 [cmd](cmd)。[business](internal/business) 依業務領域分工，[bootstrap](internal/bootstrap) 組裝服務，[identity](internal/identity) 處理身分與 Session，[httpapi](internal/transport/http/api) 保存 OpenAPI 契約接線與生成碼。
 
 業務核心、HTTP/LINE adapter 與 Firestore adapter 分層；共享組裝在 internal/bootstrap。修改 HTTP 格式先走 ../api 契約流程，不手改產生碼。憑證不得寫入 .env.example。
 

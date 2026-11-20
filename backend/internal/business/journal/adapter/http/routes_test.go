@@ -10,8 +10,8 @@ import (
 
 	journaldto "github.com/963sup/line-mini-app-bot/internal/business/journal/application/dto"
 	journalentity "github.com/963sup/line-mini-app-bot/internal/business/journal/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/identity"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 type testAuth struct{}

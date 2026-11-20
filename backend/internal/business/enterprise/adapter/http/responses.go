@@ -2,7 +2,7 @@ package enterprisehttp
 
 import (
 	"github.com/963sup/line-mini-app-bot/internal/business/enterprise/application/dto"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 func enterpriseLink(value dto.Link) generated.EnterpriseLink {

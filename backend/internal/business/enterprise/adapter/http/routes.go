@@ -8,7 +8,7 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/enterprise/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/business/enterprise/application/query"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/http"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 type Handler struct {

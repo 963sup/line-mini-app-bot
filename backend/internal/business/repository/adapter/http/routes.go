@@ -11,9 +11,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/httpapi"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 type Authenticator interface {

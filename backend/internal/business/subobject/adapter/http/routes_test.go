@@ -22,7 +22,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 type auth struct{ deny bool }

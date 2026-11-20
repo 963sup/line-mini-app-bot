@@ -20,7 +20,7 @@ import (
 	repoDB "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 
 	wikihttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/wiki"
-	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
+	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 type actorAuth struct{ actor string }
