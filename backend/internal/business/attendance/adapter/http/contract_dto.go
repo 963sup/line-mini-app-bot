@@ -80,8 +80,13 @@ func monthlyView(source attendancedto.MonthlyReport) generated.MonthlyReport {
 
 func pointerInt64(value int) *int64 { converted := int64(value); return &converted }
 
-func correctionDetailsView(source attendancedto.CorrectionDetails) generated.CorrectionReview {
+func correctionDetailsView(source attendancedto.CorrectionDetails, review bool) generated.CorrectionReview {
 	view := correctionView(source.Correction)
+	pending := source.Status == "pending"
+	undecided := pending || source.Status == "stale"
+	view.CanApprove = review && pending
+	view.CanReject = review && undecided
+	view.CanCancel = !review && undecided
 	view.ApplicantName = &source.ApplicantName
 	state := generated.CorrectionLifecycleState(source.Status)
 	view.Status, view.DecisionReason, view.NewRecord = &state, &source.DecisionReason, &source.NewRecord

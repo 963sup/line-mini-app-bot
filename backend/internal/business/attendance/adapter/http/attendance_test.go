@@ -70,3 +70,19 @@ func (s *attendanceStub) RecordsOverlappingMonth(_ context.Context, user, group 
 	s.queriedGroup = group
 	return s.records, s.err
 }
+
+func TestCorrectionActionsForAuthorizedScope(t *testing.T) {
+	for _, tc := range []struct {
+		status                  string
+		approve, reject, cancel bool
+	}{
+		{"pending", true, true, true}, {"stale", false, true, true}, {"approved", false, false, false}, {"rejected", false, false, false}, {"cancelled", false, false, false}, {"invalid", false, false, false}, {"", false, false, false},
+	} {
+		details := attendancedto.CorrectionDetails{Status: tc.status}
+		reviewer := correctionDetailsView(details, true)
+		own := correctionDetailsView(details, false)
+		if reviewer.CanApprove != tc.approve || reviewer.CanReject != tc.reject || reviewer.CanCancel || own.CanReject || own.CanApprove || own.CanCancel != tc.cancel {
+			t.Errorf("wrong actions for %q: review=%+v own=%+v", tc.status, reviewer, own)
+		}
+	}
+}

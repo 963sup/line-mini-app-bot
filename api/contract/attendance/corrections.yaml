@@ -604,6 +604,15 @@
           "applicantName": {
             "type": "string",
             "description": "Verified session display name captured at submission; older requests may omit it."
+          },
+          "canApprove": {
+            "type": "boolean"
+          },
+          "canReject": {
+            "type": "boolean"
+          },
+          "canCancel": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -616,7 +625,10 @@
           "start",
           "end",
           "breaks",
-          "restConfirmed"
+          "restConfirmed",
+          "canApprove",
+          "canReject",
+          "canCancel"
         ]
       },
       "CorrectionDecisionResult": {

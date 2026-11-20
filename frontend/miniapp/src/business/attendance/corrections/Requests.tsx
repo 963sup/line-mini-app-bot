@@ -216,7 +216,7 @@ export function Requests({
                 {review ? (
                   <Button onClick={() => onSelect?.(item)}>查看申請與審核</Button>
                 ) : (
-                  (item.status === "pending" || item.status === "stale") && (
+                  item.canCancel && (
                     <Button variant="outline" onClick={() => cancel(item.id)}>撤回申請</Button>
                   )
                 )}

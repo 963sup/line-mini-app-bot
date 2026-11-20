@@ -63,6 +63,7 @@ export function View() {
   function submitReviewDecision(decision: "approve" | "reject") {
     const reject = decision === "reject";
     if (lock.current || !user || !reviewed || reviewed !== id.trim()) return;
+    if (!(reject ? proposal?.canReject : proposal?.canApprove)) return;
     if (reject && !reason.trim()) {
       setStatus("請填寫駁回理由。");
       return;
@@ -177,7 +178,7 @@ export function View() {
             disabled={
               !reviewed ||
               reviewed !== id.trim() ||
-              (proposal?.status !== "pending")
+              !proposal?.canApprove
             }
             onClick={() => submitReviewDecision("approve")}
           >
@@ -198,7 +199,7 @@ export function View() {
               !reviewed ||
               reviewed !== id.trim() ||
               !reason.trim() ||
-              (proposal?.status !== "pending" && proposal?.status !== "stale")
+              !proposal?.canReject
             }
             onClick={() => submitReviewDecision("reject")}
           >

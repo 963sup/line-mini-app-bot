@@ -585,7 +585,7 @@ test("editing review ID rejects a late proposal and prevents approval of another
       0,
     );
     await f.click("review-correction");
-    await act(async()=>{resolve(Response.json({id:"c2",reason:"漏下班",start:record.ClockInAt,end:record.ClockOutAt,breaks:[],restConfirmed:true,status:"pending"}));await flush();});
+    await act(async()=>{resolve(Response.json({id:"c2",reason:"漏下班",start:record.ClockInAt,end:record.ClockOutAt,breaks:[],restConfirmed:true,status:"pending",canApprove:true,canReject:true,canCancel:false}));await flush();});
     await f.input("rejection-reason","請提供出勤佐證");
     const original=f.setHandler(async r=>r.url.endsWith("/reject") ? (decision = "rejected", Response.json({status:"rejected"})) : original(r));
     await f.click("reject-correction");
