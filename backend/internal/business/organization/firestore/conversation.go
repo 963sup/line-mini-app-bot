@@ -3,10 +3,11 @@ package organizationdb
 import (
 	"context"
 	"errors"
-	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/internal/orgstore"
 	"strings"
 	"time"
+
+	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/firestore"
+	"github.com/963sup/line-mini-app-bot/internal/business/internal/orgstore"
 
 	"cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/organization"

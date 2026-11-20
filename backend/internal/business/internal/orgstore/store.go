@@ -1,13 +1,14 @@
 package orgstore
 
 import (
-	"cloud.google.com/go/firestore"
 	"context"
+	"regexp"
+	"slices"
+
+	"cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/organization"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"regexp"
-	"slices"
 )
 
 func Run[T any](ctx context.Context, db *firestore.Client, channel string, op func(*firestore.Transaction, *firestore.DocumentRef) (*T, error)) (*T, error) {
