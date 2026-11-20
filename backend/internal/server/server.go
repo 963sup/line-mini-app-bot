@@ -16,8 +16,8 @@ import (
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/firestore"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/http"
 
-	organizationdb "github.com/963sup/line-mini-app-bot/internal/business/organization/firestore"
-	organizationhttp "github.com/963sup/line-mini-app-bot/internal/business/organization/http"
+	organizationdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
+	organizationhttp "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/http"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	sessiondb "github.com/963sup/line-mini-app-bot/internal/identity/session/firestore"
 

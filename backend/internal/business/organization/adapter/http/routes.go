@@ -1,18 +1,23 @@
 package organizationhttp
 
 import (
+	organizationApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/organization/application/dto"
+	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
+)
+
+import (
 	"context"
 	"net/http"
 
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/http"
-	"github.com/963sup/line-mini-app-bot/internal/business/organization"
+
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 )
 
 type Store interface {
-	Context(ctx context.Context, user string, preference string, write bool) (*organization.Context, error)
-	Create(ctx context.Context, user string, name string) (*organization.Organization, error)
-	Transfer(ctx context.Context, user string, organizationId, target string) (*organization.Organization, error)
+	Context(ctx context.Context, user string, preference string, write bool) (*organizationApplicationDto.Context, error)
+	Create(ctx context.Context, user string, name string) (*organizationDomainEntity.Organization, error)
+	Transfer(ctx context.Context, user string, organizationId, target string) (*organizationDomainEntity.Organization, error)
 }
 
 type Handler struct {

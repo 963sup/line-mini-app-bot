@@ -19,7 +19,7 @@ import (
 	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
 	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
-	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/firestore"
+	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"

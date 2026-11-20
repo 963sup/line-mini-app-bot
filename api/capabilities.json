@@ -213,8 +213,8 @@
     },
     "organization": {
       "contract": "organization/context.yaml",
-      "adapter": "backend/internal/business/organization/http/routes.go",
-      "core": "backend/internal/business/organization/context.go",
+      "adapter": "backend/internal/business/organization/adapter/http/routes.go",
+      "core": "backend/internal/business/organization/application/dto/context.go",
       "specification": "docs/domains/repository/organization.md"
     },
     "enterprise": {
@@ -1546,9 +1546,9 @@
       "method": "GET",
       "path": "/api/v1/me/organization-context",
       "owner": "organization",
-      "adapter": "backend/internal/business/organization/http/routes.go",
+      "adapter": "backend/internal/business/organization/adapter/http/routes.go",
       "handler": "GetOrganizationContext",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/organization/application/dto/context.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
         "frontend/miniapp/src/business/organization/useOrganizationSelection.ts",
@@ -1561,9 +1561,9 @@
       "method": "PUT",
       "path": "/api/v1/me/organization-context",
       "owner": "organization",
-      "adapter": "backend/internal/business/organization/http/routes.go",
+      "adapter": "backend/internal/business/organization/adapter/http/routes.go",
       "handler": "SelectOrganization",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/organization/application/dto/context.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
         "frontend/miniapp/src/business/organization/useOrganizationSelection.ts"
@@ -1575,9 +1575,9 @@
       "method": "POST",
       "path": "/api/v1/organizations",
       "owner": "organization",
-      "adapter": "backend/internal/business/organization/http/routes.go",
+      "adapter": "backend/internal/business/organization/adapter/http/routes.go",
       "handler": "CreateOrganization",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/organization/application/dto/context.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": []
     },
@@ -1587,9 +1587,9 @@
       "method": "PUT",
       "path": "/api/v1/organizations/{organizationId}/owner",
       "owner": "organization",
-      "adapter": "backend/internal/business/organization/http/routes.go",
+      "adapter": "backend/internal/business/organization/adapter/http/routes.go",
       "handler": "TransferOrganization",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/organization/application/dto/context.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": []
     },

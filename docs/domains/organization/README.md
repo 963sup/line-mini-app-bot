@@ -10,8 +10,8 @@
 
 **驗收案例**　將組織移轉給他人時，在同一交易以目前擁有者與成員資料判斷；非擁有者或非成員受讓者不能完成移轉。
 
-[對照實作或測試](../../../backend/internal/business/organization/firestore/store.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
+[對照實作或測試](../../../backend/internal/business/organization/adapter/firestore/store.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
 
 組織所有權、移轉及團隊歸屬的目標規格集中於此入口。
 
-[相關業務規格](../repository/organization.md) · [後端organization 實作說明](../../../backend/internal/business/organization/model.go)
+[相關業務規格](../repository/organization.md) · [後端organization 實作說明](../../../backend/internal/business/organization/domain/entity/model.go)

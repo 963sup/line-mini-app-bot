@@ -1,6 +1,12 @@
 package organizationdb
 
 import (
+	organizationApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/organization/application/dto"
+	organizationApplicationQuery "github.com/963sup/line-mini-app-bot/internal/business/organization/application/query"
+	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
+)
+
+import (
 	"context"
 	"slices"
 	"strings"
@@ -8,7 +14,6 @@ import (
 	"cloud.google.com/go/firestore"
 	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/organization"
 
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"github.com/google/uuid"
@@ -21,10 +26,10 @@ type Store struct {
 	Channel string
 }
 
-func (s Store) Context(ctx context.Context, user string, preference string, write bool) (*organization.Context, error) {
-	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*organization.Context, error) {
+func (s Store) Context(ctx context.Context, user string, preference string, write bool) (*organizationApplicationDto.Context, error) {
+	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*organizationApplicationDto.Context, error) {
 		if write && uuid.Validate(preference) != nil {
-			return nil, organization.ErrInvalid
+			return nil, organizationDomainEntity.ErrInvalid
 		}
 		orgs := root.Collection("organizations")
 		pref := root.Collection("organizationPreferences").Doc(firestorekey.Digest([]byte(user)))
@@ -35,7 +40,7 @@ func (s Store) Context(ctx context.Context, user string, preference string, writ
 		if err != nil {
 			return nil, err
 		}
-		rows := make([]organization.VisibleOrganization, 0, len(docs))
+		rows := make([]organizationApplicationDto.VisibleOrganization, 0, len(docs))
 		labels := map[string]string{}
 		for _, d := range docs {
 			var o orgstore.Document
@@ -49,7 +54,7 @@ func (s Store) Context(ctx context.Context, user string, preference string, writ
 				}
 				labels[o.Enterprise] = ent.Name
 			}
-			rows = append(rows, organization.VisibleOrganization{ID: d.Ref.ID, Name: o.Name, EnterpriseID: o.Enterprise, EnterpriseName: labels[o.Enterprise]})
+			rows = append(rows, organizationApplicationDto.VisibleOrganization{ID: d.Ref.ID, Name: o.Name, EnterpriseID: o.Enterprise, EnterpriseName: labels[o.Enterprise]})
 		}
 		selected := preference
 		if !write {
@@ -64,13 +69,13 @@ func (s Store) Context(ctx context.Context, user string, preference string, writ
 				return nil, err
 			}
 		}
-		result := organization.BuildContext(rows, selected)
+		result := organizationApplicationQuery.BuildContext(rows, selected)
 		if err := enterprisedb.PopulateNavigation(tx, root, user, labels, &result); err != nil {
 			return nil, err
 		}
 		if write {
 			if result.Selected == nil || result.Selected.ID != selected {
-				return nil, organization.ErrNotFound
+				return nil, organizationDomainEntity.ErrNotFound
 			}
 			return &result, tx.Set(pref, map[string]any{"organizationId": selected})
 		}
@@ -78,24 +83,24 @@ func (s Store) Context(ctx context.Context, user string, preference string, writ
 	})
 }
 
-func (s Store) Create(ctx context.Context, user string, name string) (*organization.Organization, error) {
+func (s Store) Create(ctx context.Context, user string, name string) (*organizationDomainEntity.Organization, error) {
 	id := uuid.NewString()
-	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*organization.Organization, error) {
+	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*organizationDomainEntity.Organization, error) {
 		return createOrganization(tx, root, user, id, strings.TrimSpace(name))
 	})
 }
 
-func createOrganization(tx *firestore.Transaction, root *firestore.DocumentRef, user, id, name string) (*organization.Organization, error) {
+func createOrganization(tx *firestore.Transaction, root *firestore.DocumentRef, user, id, name string) (*organizationDomainEntity.Organization, error) {
 	if name == "" || len([]rune(name)) > 120 {
-		return nil, organization.ErrInvalid
+		return nil, organizationDomainEntity.ErrInvalid
 	}
-	return &organization.Organization{ID: id, OwnerUserID: user, Name: name}, tx.Create(root.Collection("organizations").Doc(id), map[string]any{"ownerUserId": user, "createdBy": user, "name": name})
+	return &organizationDomainEntity.Organization{ID: id, OwnerUserID: user, Name: name}, tx.Create(root.Collection("organizations").Doc(id), map[string]any{"ownerUserId": user, "createdBy": user, "name": name})
 }
 
-func (s Store) Transfer(ctx context.Context, user string, organizationId, target string) (*organization.Organization, error) {
-	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*organization.Organization, error) {
+func (s Store) Transfer(ctx context.Context, user string, organizationId, target string) (*organizationDomainEntity.Organization, error) {
+	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*organizationDomainEntity.Organization, error) {
 		if uuid.Validate(organizationId) != nil || !orgstore.UserID.MatchString(target) {
-			return nil, organization.ErrInvalid
+			return nil, organizationDomainEntity.ErrInvalid
 		}
 		ref := root.Collection("organizations").Doc(organizationId)
 		org, e := orgstore.Read(tx, ref)
@@ -103,11 +108,11 @@ func (s Store) Transfer(ctx context.Context, user string, organizationId, target
 			return nil, e
 		}
 		if org.Owner != user {
-			return nil, organization.ErrNotFound
+			return nil, organizationDomainEntity.ErrNotFound
 		}
 		if target != user && !slices.Contains(org.Members, target) {
-			return nil, organization.ErrInvalid
+			return nil, organizationDomainEntity.ErrInvalid
 		}
-		return &organization.Organization{ID: organizationId, Name: org.Name, OwnerUserID: target}, tx.Update(ref, []firestore.Update{{Path: "ownerUserId", Value: target}})
+		return &organizationDomainEntity.Organization{ID: organizationId, Name: org.Name, OwnerUserID: target}, tx.Update(ref, []firestore.Update{{Path: "ownerUserId", Value: target}})
 	})
 }

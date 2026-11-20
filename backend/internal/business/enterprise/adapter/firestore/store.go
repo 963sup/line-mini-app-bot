@@ -1,6 +1,11 @@
 package enterprisedb
 
 import (
+	organizationApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/organization/application/dto"
+	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 	"slices"
@@ -15,7 +20,7 @@ import (
 	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/organization"
+
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -46,7 +51,7 @@ func Provisioning(tx *firestore.Transaction, root *firestore.DocumentRef, user s
 	return g, ref, e
 }
 
-func PopulateNavigation(tx *firestore.Transaction, root *firestore.DocumentRef, user string, labels map[string]string, c *organization.Context) error {
+func PopulateNavigation(tx *firestore.Transaction, root *firestore.DocumentRef, user string, labels map[string]string, c *organizationApplicationDto.Context) error {
 	g, _, e := Provisioning(tx, root, user)
 	if e != nil {
 		return e
@@ -66,11 +71,11 @@ func PopulateNavigation(tx *firestore.Transaction, root *firestore.DocumentRef, 
 			labels[doc.Ref.ID] = ent.Name
 		}
 	}
-	c.Enterprises = []organization.EnterpriseLink{}
+	c.Enterprises = []organizationApplicationDto.EnterpriseLink{}
 	for id, name := range labels {
-		c.Enterprises = append(c.Enterprises, organization.EnterpriseLink{ID: id, Name: name})
+		c.Enterprises = append(c.Enterprises, organizationApplicationDto.EnterpriseLink{ID: id, Name: name})
 	}
-	slices.SortFunc(c.Enterprises, func(a, b organization.EnterpriseLink) int {
+	slices.SortFunc(c.Enterprises, func(a, b organizationApplicationDto.EnterpriseLink) int {
 		if a.Name == b.Name {
 			return strings.Compare(a.ID, b.ID)
 		}
@@ -88,14 +93,14 @@ func (s Store) CreateEnterprise(ctx context.Context, user, name string) (*dto.Li
 
 func CreateInTransaction(tx *firestore.Transaction, root *firestore.DocumentRef, user, id, name string, allowExisting bool) (*dto.Link, error) {
 	if name == "" || len([]rune(name)) > 120 {
-		return nil, organization.ErrInvalid
+		return nil, organizationDomainEntity.ErrInvalid
 	}
 	g, ref, e := Provisioning(tx, root, user)
 	if e != nil {
 		return nil, e
 	}
 	if !policy.CanProvision(g.Enabled, g.EnterpriseID, allowExisting) {
-		return nil, organization.ErrForbidden
+		return nil, organizationDomainEntity.ErrForbidden
 	}
 	if g.EnterpriseID != "" {
 		existing, e := orgstore.Read(tx, root.Collection("enterprises").Doc(g.EnterpriseID))
@@ -103,7 +108,7 @@ func CreateInTransaction(tx *firestore.Transaction, root *firestore.DocumentRef,
 			return nil, e
 		}
 		if !existing.IsOwner(user) {
-			return nil, organization.ErrForbidden
+			return nil, organizationDomainEntity.ErrForbidden
 		}
 		return &dto.Link{ID: g.EnterpriseID, Name: existing.Name}, nil
 	}
@@ -115,7 +120,7 @@ func CreateInTransaction(tx *firestore.Transaction, root *firestore.DocumentRef,
 
 func (s Store) Enterprise(ctx context.Context, user, id string) (*dto.Detail, error) {
 	if uuid.Validate(id) != nil {
-		return nil, organization.ErrInvalid
+		return nil, organizationDomainEntity.ErrInvalid
 	}
 	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*dto.Detail, error) {
 		ent, e := orgstore.Read(tx, root.Collection("enterprises").Doc(id))
@@ -139,7 +144,7 @@ func (s Store) Enterprise(ctx context.Context, user, id string) (*dto.Detail, er
 			}
 		}
 		if !admin && len(view.Organizations) == 0 {
-			return nil, organization.ErrNotFound
+			return nil, organizationDomainEntity.ErrNotFound
 		}
 		assigned := map[string]bool{}
 		if !admin {
@@ -188,7 +193,7 @@ func (s Store) Enterprise(ctx context.Context, user, id string) (*dto.Detail, er
 
 func (s Store) UpdateEnterprise(ctx context.Context, user, id, target string, addOwner bool) (*dto.Link, error) {
 	if uuid.Validate(id) != nil || (addOwner && !orgstore.UserID.MatchString(target)) || (!addOwner && uuid.Validate(target) != nil) {
-		return nil, organization.ErrInvalid
+		return nil, organizationDomainEntity.ErrInvalid
 	}
 	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*dto.Link, error) {
 		ref := root.Collection("enterprises").Doc(id)
@@ -197,7 +202,7 @@ func (s Store) UpdateEnterprise(ctx context.Context, user, id, target string, ad
 			return nil, e
 		}
 		if !ent.IsOwner(user) {
-			return nil, organization.ErrNotFound
+			return nil, organizationDomainEntity.ErrNotFound
 		}
 		link := &dto.Link{ID: id, Name: ent.Name}
 		if addOwner {
@@ -209,10 +214,10 @@ func (s Store) UpdateEnterprise(ctx context.Context, user, id, target string, ad
 			return nil, e
 		}
 		if org.Owner != user {
-			return nil, organization.ErrNotFound
+			return nil, organizationDomainEntity.ErrNotFound
 		}
 		if org.Enterprise != "" && org.Enterprise != id {
-			return nil, organization.ErrConflict
+			return nil, organizationDomainEntity.ErrConflict
 		}
 		return link, tx.Update(orgRef, []firestore.Update{{Path: "enterpriseId", Value: id}})
 	})

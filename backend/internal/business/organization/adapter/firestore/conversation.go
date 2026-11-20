@@ -1,6 +1,10 @@
 package organizationdb
 
 import (
+	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 	"strings"
@@ -10,7 +14,7 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
 
 	"cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/organization"
+
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -100,7 +104,7 @@ func (s Store) Conversation(ctx context.Context, user, eventID, text string, at 
 			name := text
 			if kind == "enterprise" {
 				v, err := enterprisedb.CreateInTransaction(tx, root, user, id, text, false)
-				if errors.Is(err, organization.ErrForbidden) {
+				if errors.Is(err, organizationDomainEntity.ErrForbidden) {
 					reply = CreationReply{Text: "帳號目前沒有可用的企業開通資格。"}
 					pending.Kind = ""
 					break

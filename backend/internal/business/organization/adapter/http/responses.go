@@ -1,11 +1,14 @@
 package organizationhttp
 
 import (
-	"github.com/963sup/line-mini-app-bot/internal/business/organization"
+	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
+)
+
+import (
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 )
 
-func organizationResponse(value *organization.Organization, err error) (any, error) {
+func organizationResponse(value *organizationDomainEntity.Organization, err error) (any, error) {
 	if err != nil || value == nil {
 		return nil, err
 	}

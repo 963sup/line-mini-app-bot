@@ -1,4 +1,4 @@
-package organization
+package entity
 
 type Organization struct {
 	Name        string
