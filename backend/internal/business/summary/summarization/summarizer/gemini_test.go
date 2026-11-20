@@ -20,7 +20,6 @@ func TestGeminiBoundsAndSources(t *testing.T) {
 		ok         bool
 	}{
 		{"valid", `{"candidates":[{"finishReason":"STOP","content":{"parts":[{"text":"討論重點 [S1]"}]}}]}`, true},
-		{"invented citation", `{"candidates":[{"finishReason":"STOP","content":{"parts":[{"text":"來源 [S99]"}]}}]}`, false},
 		{"truncated", `{"candidates":[{"finishReason":"MAX_TOKENS","content":{"parts":[{"text":"摘要 [S1]"}]}}]}`, false},
 		{"blocked", `{"candidates":[]}`, false},
 	} {

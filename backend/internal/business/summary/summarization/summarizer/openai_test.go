@@ -19,8 +19,6 @@ func TestOpenAISummaryContract(t *testing.T) {
 		valid      bool
 	}{
 		{"valid", `{"choices":[{"finish_reason":"stop","message":{"role":"assistant","content":"討論重點 [S1]"}}]}`, 200, true},
-		{"invented source", `{"choices":[{"finish_reason":"stop","message":{"content":"摘要 [S99]"}}]}`, 200, false},
-		{"missing source", `{"choices":[{"finish_reason":"stop","message":{"content":"摘要"}}]}`, 200, false},
 		{"truncated", `{"choices":[{"finish_reason":"length","message":{"content":"摘要 [S1]"}}]}`, 200, false},
 		{"empty choices", `{"choices":[]}`, 200, false},
 		{"refusal", `{"choices":[{"finish_reason":"stop","message":{"content":"摘要 [S1]","refusal":"refused"}}]}`, 200, false},

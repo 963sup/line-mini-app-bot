@@ -118,3 +118,18 @@ func TestInputPreservesActorAndSourcesWithoutRawIDs(t *testing.T) {
 		t.Fatal("input budget must be bounded")
 	}
 }
+
+type uncitedModel struct{}
+
+func (uncitedModel) Summarize(context.Context, []messagecollection.Message) (string, error) {
+	return "摘要 [S2]", nil
+}
+
+func TestRunRejectsUnknownSourceBeforeSaveOrSend(t *testing.T) {
+	store := &memoryStore{claimed: true, current: true, messages: []messagecollection.Message{{ID: "one", Text: "message"}}}
+	sender := &senderStub{}
+	s := Service{Store: store, Model: uncitedModel{}, Sender: sender}
+	if err := s.Run(context.Background(), "g", "job"); err == nil || store.saved != 0 || sender.calls != 0 || store.done != 0 {
+		t.Fatal("invalid citation must stop the job before persistence and delivery")
+	}
+}

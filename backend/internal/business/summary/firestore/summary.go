@@ -47,10 +47,9 @@ func (s *Summary) editOperation(ctx context.Context, g, id, text string, timesta
 		if err := decodeMessage(doc, &m); err != nil {
 			return err
 		}
-		if m.Deleted || m.Epoch != st.Epoch || !m.ExpireAt.After(time.Now()) || timestamp <= m.EditedAt || timestamp < m.OccurredAt.UnixMilli() {
+		if !m.ApplyEdit(text, timestamp, st.Epoch, time.Now()) {
 			return nil
 		}
-		m.Text, m.EditedAt = text, timestamp
 		st.Revision++
 		if err := tx.Set(root, st); err != nil {
 			return err
@@ -77,7 +76,7 @@ func state(tx *db.Transaction, r *db.DocumentRef) (chatState, error) {
 
 func (s *Summary) collectOperation(ctx context.Context, g string, m messagecollection.Message) error {
 	now := time.Now()
-	if m.ID == "" || m.UserID == "" || m.OccurredAt.Before(now.Add(-24*time.Hour)) || m.OccurredAt.After(now.Add(time.Minute)) {
+	if !m.CanCollect(now) {
 		return nil
 	}
 	root := s.group(g)
@@ -98,8 +97,7 @@ func (s *Summary) collectOperation(ctx context.Context, g string, m messagecolle
 		if m.OccurredAt.UnixMilli() < st.LastControl {
 			return nil
 		}
-		m.Epoch = st.Epoch
-		m.ExpireAt = m.OccurredAt.Add(24 * time.Hour)
+		m.Retain(st.Epoch)
 		return tx.Create(ref, messageDocument(m))
 	})
 }
