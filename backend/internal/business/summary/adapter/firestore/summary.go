@@ -1,0 +1,321 @@
+package firestore
+
+import (
+	summaryDomainEntityMessagecollection "github.com/963sup/line-mini-app-bot/internal/business/summary/domain/entity/messagecollection"
+	summaryDomainEntitySummarization "github.com/963sup/line-mini-app-bot/internal/business/summary/domain/entity/summarization"
+)
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	db "cloud.google.com/go/firestore"
+
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+type Summary struct {
+	Client    *db.Client
+	ChannelID string
+}
+type chatState struct {
+	Disabled                     bool
+	Epoch, Revision, LastControl int64
+}
+
+// Edit only updates a retained original, preserving its original expiry and
+// rejecting reordered edits. Revision invalidates in-flight summary results.
+func (s *Summary) editOperation(ctx context.Context, g, id, text string, timestamp int64) error {
+	if id == "" || timestamp <= 0 || timestamp > time.Now().Add(time.Minute).UnixMilli() {
+		return nil
+	}
+	root := s.group(g)
+	ref := root.Collection("summaryMessages").Doc(firestorekey.Encode(id))
+	return s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
+		st, err := state(tx, root)
+		if err != nil {
+			return err
+		}
+		doc, err := tx.Get(ref)
+		if status.Code(err) == codes.NotFound {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		var m summaryDomainEntityMessagecollection.Message
+		if err := decodeMessage(doc, &m); err != nil {
+			return err
+		}
+		if !m.ApplyEdit(text, timestamp, st.Epoch, time.Now()) {
+			return nil
+		}
+		st.Revision++
+		if err := tx.Set(root, st); err != nil {
+			return err
+		}
+		return tx.Set(ref, messageDocument(m))
+	})
+}
+
+func (s *Summary) group(g string) *db.DocumentRef {
+	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("summaryGroups").Doc(firestorekey.Encode(g))
+}
+
+func state(tx *db.Transaction, r *db.DocumentRef) (chatState, error) {
+	var st chatState
+	d, e := tx.Get(r)
+	if status.Code(e) == codes.NotFound {
+		return st, nil
+	}
+	if e != nil {
+		return st, e
+	}
+	return st, d.DataTo(&st)
+}
+
+func (s *Summary) collectOperation(ctx context.Context, g string, m summaryDomainEntityMessagecollection.Message) error {
+	now := time.Now()
+	if !m.CanCollect(now) {
+		return nil
+	}
+	root := s.group(g)
+	ref := root.Collection("summaryMessages").Doc(firestorekey.Encode(m.ID))
+	return s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
+		st, e := state(tx, root)
+		if e != nil {
+			return e
+		}
+
+		_, e = tx.Get(ref)
+		if e == nil {
+			return nil
+		}
+		if status.Code(e) != codes.NotFound {
+			return e
+		}
+		if m.OccurredAt.UnixMilli() < st.LastControl {
+			return nil
+		}
+		m.Retain(st.Epoch)
+		return tx.Create(ref, messageDocument(m))
+	})
+}
+
+func (s *Summary) unsendOperation(ctx context.Context, g, id string) error {
+	if id == "" {
+		return nil
+	}
+	root := s.group(g)
+	err := s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
+		st, e := state(tx, root)
+		if e != nil {
+			return e
+		}
+		st.Revision++
+		if e := tx.Set(root, st); e != nil {
+			return e
+		}
+		// A tombstone prevents a delayed original message from restoring content.
+		return tx.Set(root.Collection("summaryMessages").Doc(firestorekey.Encode(id)), messageDocument{ID: id, Deleted: true, Epoch: st.Epoch, ExpireAt: time.Now().Add(48 * time.Hour)})
+	})
+	if err != nil {
+		return err
+	}
+	// Drop any cached result containing the withdrawn source. Generation checks
+	// in mutate also prevent an in-flight model call from restoring the result.
+	for {
+		docs, e := root.Collection("summaryJobs").Where("Sources", "array-contains", id).Limit(100).Documents(ctx).GetAll()
+		if e != nil {
+			return e
+		}
+		if len(docs) == 0 {
+			return nil
+		}
+		// Keep each page atomic without the deprecated WriteBatch API.
+		e = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+			for _, d := range docs {
+				if err := tx.Update(d.Ref, []db.Update{{Path: "Result", Value: ""}, {Path: "Sources", Value: []string{}}, {Path: "Status", Value: "done"}}); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+		if e != nil {
+			return e
+		}
+	}
+}
+
+func (s *Summary) commandOperation(ctx context.Context, g, event, command string, timestamp int64) (summaryDomainEntitySummarization.Job, error) {
+	root := s.group(g)
+	id := firestorekey.Encode(event)
+	ref := root.Collection("summaryJobs").Doc(id)
+	var job summaryDomainEntitySummarization.Job
+	now := time.Now().UTC()
+	retry := summaryDomainEntitySummarization.RandomID()
+	err := s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
+		old, e := tx.Get(ref)
+		if e == nil {
+			return decodeJob(old, &job)
+		}
+		if status.Code(e) != codes.NotFound {
+			return e
+		}
+		st, e := state(tx, root)
+		if e != nil {
+			return e
+		}
+		job = summaryDomainEntitySummarization.Job{ID: id, GroupID: g, Kind: "summary", Status: "pending", Cutoff: now, ExpireAt: now.Add(24 * time.Hour), RetryKey: retry}
+		job.Epoch, job.Revision = st.Epoch, st.Revision
+		if e := tx.Set(root, st); e != nil {
+			return e
+		}
+		return tx.Create(ref, jobDocument(job))
+	})
+	return job, err
+}
+
+func (s *Summary) claimOperation(ctx context.Context, g, id string) (summaryDomainEntitySummarization.Job, bool, error) {
+	var j summaryDomainEntitySummarization.Job
+	claimed := false
+	root := s.group(g)
+	ref := root.Collection("summaryJobs").Doc(id)
+	now := time.Now()
+	lease := summaryDomainEntitySummarization.RandomID()
+	err := s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
+		claimed = false
+		d, e := tx.Get(ref)
+		if status.Code(e) == codes.NotFound {
+			return nil
+		}
+		if e != nil {
+			return e
+		}
+		if e = decodeJob(d, &j); e != nil {
+			return e
+		}
+		if j.Status == "done" || j.Status == "disabled" {
+			return nil
+		}
+		if !j.ExpireAt.After(now) {
+			return tx.Update(ref, []db.Update{{Path: "Status", Value: "done"}, {Path: "Result", Value: ""}})
+		}
+		if j.LeaseUntil.After(now) {
+			return errors.New("summary job busy")
+		}
+		j.Lease = lease
+		j.LeaseUntil = now.Add(2 * time.Minute)
+		claimed = true
+		return tx.Set(ref, jobDocument(j))
+	})
+	return j, claimed, err
+}
+
+func (s *Summary) messagesOperation(ctx context.Context, j summaryDomainEntitySummarization.Job) ([]summaryDomainEntityMessagecollection.Message, error) {
+	// One range/order field: no composite index required. Filter epochs and TTL in code.
+	docs, e := s.group(j.GroupID).Collection("summaryMessages").Where("OccurredAt", ">=", j.Cutoff.Add(-24*time.Hour)).Where("OccurredAt", "<=", j.Cutoff).OrderBy("OccurredAt", db.Desc).Limit(100).Documents(ctx).GetAll()
+	if e != nil {
+		return nil, e
+	}
+	result := make([]summaryDomainEntityMessagecollection.Message, 0, len(docs))
+	now := time.Now()
+	for i := len(docs) - 1; i >= 0; i-- {
+		var m summaryDomainEntityMessagecollection.Message
+		if e := decodeMessage(docs[i], &m); e != nil {
+			return nil, e
+		}
+		if m.Epoch == j.Epoch && !m.Deleted && m.ExpireAt.After(now) {
+			result = append(result, m)
+		}
+	}
+	return result, nil
+}
+
+func (s *Summary) mutate(ctx context.Context, j summaryDomainEntitySummarization.Job, update func(*summaryDomainEntitySummarization.Job)) error {
+	ref := s.group(j.GroupID).Collection("summaryJobs").Doc(j.ID)
+	return s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
+		st, e := state(tx, s.group(j.GroupID))
+		if e != nil {
+			return e
+		}
+		d, e := tx.Get(ref)
+		if e != nil {
+			return e
+		}
+		var current summaryDomainEntitySummarization.Job
+		if e = decodeJob(d, &current); e != nil {
+			return e
+		}
+		if current.Lease != j.Lease {
+			return fmt.Errorf("summary lease changed")
+		}
+		if current.Kind == "summary" && (st.Epoch != current.Epoch || st.Revision != current.Revision) {
+			current.Status = "done"
+			current.Result = ""
+			current.Sources = nil
+		} else {
+			update(&current)
+		}
+		return tx.Set(ref, jobDocument(current))
+	})
+}
+
+func (s *Summary) saveResultOperation(ctx context.Context, j summaryDomainEntitySummarization.Job, text string, sources []string) error {
+	return s.mutate(ctx, j, func(v *summaryDomainEntitySummarization.Job) {
+		v.Result = text
+		v.Sources = sources
+		v.ExpireAt = j.ExpireAt
+	})
+}
+
+func (s *Summary) doneOperation(ctx context.Context, j summaryDomainEntitySummarization.Job) error {
+	return s.mutate(ctx, j, func(v *summaryDomainEntitySummarization.Job) {
+		v.Status = "done"
+		v.LeaseUntil = time.Time{}
+		v.Result = ""
+	})
+}
+
+func (s *Summary) currentOperation(ctx context.Context, j summaryDomainEntitySummarization.Job) (bool, error) {
+	d, e := s.group(j.GroupID).Get(ctx)
+	if e != nil {
+		return false, e
+	}
+	var st chatState
+	if e = d.DataTo(&st); e != nil {
+		return false, e
+	}
+	return st.Epoch == j.Epoch && st.Revision == j.Revision && j.ExpireAt.After(time.Now()), nil
+}
+
+func (s *Summary) purgeOperation(ctx context.Context, j summaryDomainEntitySummarization.Job) error {
+	root := s.group(j.GroupID)
+	for _, collection := range []string{"summaryMessages", "summaryJobs"} {
+		for {
+			docs, e := root.Collection(collection).Where("Epoch", "<", j.Epoch).Limit(200).Documents(ctx).GetAll()
+			if e != nil {
+				return e
+			}
+			if len(docs) == 0 {
+				break
+			}
+			e = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+				for _, d := range docs {
+					if err := tx.Delete(d.Ref); err != nil {
+						return err
+					}
+				}
+				return nil
+			})
+			if e != nil {
+				return e
+			}
+		}
+	}
+	return nil
+}

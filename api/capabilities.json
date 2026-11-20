@@ -51,14 +51,14 @@
     },
     "summary.summarization": {
       "contract": "summary/worker.yaml",
-      "adapter": "backend/internal/business/summary/summarization/http/summary.go",
-      "core": "backend/internal/business/summary/summarization/summary.go",
+      "adapter": "backend/internal/business/summary/adapter/http/summarization/summary.go",
+      "core": "backend/internal/business/summary/domain/entity/summarization/summary.go",
       "specification": "docs/domains/summary/summary.md"
     },
     "summary.messagecollection": {
       "kind": "event",
       "document": "api/contract/summary/README.md",
-      "core": "backend/internal/business/summary/messagecollection/message.go",
+      "core": "backend/internal/business/summary/domain/entity/messagecollection/message.go",
       "specification": "docs/domains/summary/summary.md"
     },
     "weather.forecast": {
@@ -625,12 +625,12 @@
       "method": "POST",
       "path": "/internal/summary",
       "owner": "summary.summarization",
-      "adapter": "backend/internal/business/summary/summarization/http/summary.go",
+      "adapter": "backend/internal/business/summary/adapter/http/summarization/summary.go",
       "handler": "SummaryWorker",
-      "core": "backend/internal/business/summary/summarization/summary.go",
+      "core": "backend/internal/business/summary/domain/entity/summarization/summary.go",
       "specification": "docs/domains/summary/summary.md",
       "consumers": [
-        "backend/internal/business/summary/summarization/cloudtasks/queue.go"
+        "backend/internal/business/summary/adapter/messaging/cloudtasks/summarization/queue.go"
       ],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
@@ -1713,7 +1713,7 @@
       "owner": "summary.messagecollection",
       "action": "Collect/Edit/Recall",
       "contract": "api/contract/summary/README.md",
-      "adapter": "backend/internal/business/summary/messagecollection/line/collection.go",
+      "adapter": "backend/internal/business/summary/adapter/line/messagecollection/collection.go",
       "handler": "Observe",
       "note": "LINE event contract, not a browser HTTP operation."
     },
@@ -1721,7 +1721,7 @@
       "owner": "summary.summarization",
       "action": "Request summary",
       "contract": "api/contract/summary/README.md",
-      "adapter": "backend/internal/business/summary/summarization/line/commands.go",
+      "adapter": "backend/internal/business/summary/adapter/line/summarization/commands.go",
       "handler": "Reply",
       "note": "LINE command schedules the internal HTTP operation."
     },

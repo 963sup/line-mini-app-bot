@@ -15,7 +15,7 @@ import (
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/line"
 
 	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line"
-	summary "github.com/963sup/line-mini-app-bot/internal/business/summary/line"
+	summary "github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/line"
 	"github.com/963sup/line-mini-app-bot/internal/business/weather/forecast/cwa"
 	weather "github.com/963sup/line-mini-app-bot/internal/business/weather/forecast/line"
 	navigation "github.com/963sup/line-mini-app-bot/internal/navigation/line"
