@@ -33,7 +33,7 @@ COPY --from=build /server /server
 COPY --from=build /richmenu /richmenu
 COPY --from=frontend /src/frontend/miniapp/out/ /app/frontend/
 COPY --from=build /assets/ /assets/
-ENV PORT=8080 FRONTEND_DIR=/app/frontend
+ENV PORT=8080 FRONTEND_DIR=/app/frontend AI_DOCUMENT_MODEL=gpt-4.1-mini
 EXPOSE 8080
 USER 65532:65532
 ENTRYPOINT ["/server"]
