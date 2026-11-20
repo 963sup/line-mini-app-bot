@@ -10,8 +10,8 @@
 
 **驗收案例**　團隊已有管理方時，改掛另一管理方應回傳衝突；即使操作者有目標組織管理權，也需要通過團隊端的管理者檢查。
 
-[對照實作或測試](../../../backend/internal/business/team/firestore/store.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
+[對照實作或測試](../../../backend/internal/business/team/adapter/firestore/store.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
 
 團隊與組織的歸屬及管理範圍見組織所有權目標規格。
 
-[相關業務規格](../repository/organization.md) · [後端team 實作說明](../../../backend/internal/business/team/model.go)
+[相關業務規格](../repository/organization.md) · [後端team 實作說明](../../../backend/internal/business/team/application/dto/model.go)

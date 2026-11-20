@@ -1,6 +1,10 @@
 package server
 
 import (
+	summaryApplicationSummarization "github.com/963sup/line-mini-app-bot/internal/business/summary/application/summarization"
+)
+
+import (
 	"context"
 	"fmt"
 	"net/http"
@@ -10,13 +14,13 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	storage "github.com/963sup/line-mini-app-bot/internal/business/summary/firestore"
-	lineadapter "github.com/963sup/line-mini-app-bot/internal/business/summary/line"
-	"github.com/963sup/line-mini-app-bot/internal/business/summary/summarization"
-	"github.com/963sup/line-mini-app-bot/internal/business/summary/summarization/cloudtasks"
-	httpadapter "github.com/963sup/line-mini-app-bot/internal/business/summary/summarization/http"
-	delivery "github.com/963sup/line-mini-app-bot/internal/business/summary/summarization/line"
-	"github.com/963sup/line-mini-app-bot/internal/business/summary/summarization/summarizer"
+	storage "github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/firestore"
+	lineadapter "github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/line"
+
+	httpadapter "github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/http/summarization"
+	delivery "github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/line/summarization"
+	"github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/messaging/cloudtasks/summarization"
+	"github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/summarizer/summarization"
 	identitygoogle "github.com/963sup/line-mini-app-bot/internal/identity/google"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"golang.org/x/oauth2/google"
@@ -67,7 +71,7 @@ func registerSummary(ctx context.Context, mux *http.ServeMux) (*lineadapter.Summ
 		return nil, nil, e
 	}
 	store := &storage.Summary{Client: db, ChannelID: channel}
-	service := &summarization.Service{Store: store, Model: modelAdapter, Sender: delivery.SummaryDelivery{Bot: line}}
+	service := &summaryApplicationSummarization.Service{Store: store, Model: modelAdapter, Sender: delivery.SummaryDelivery{Bot: line}}
 	mux.HandleFunc("POST /internal/summary", httpadapter.SummaryWorker(service, &identitygoogle.Verifier{Audience: target, Email: email}))
 	return &lineadapter.Summary{Store: store, Queue: &cloudtasks.Queue{Client: auth, Name: queue, URL: target, ServiceAccount: email}}, db.Close, nil
 }

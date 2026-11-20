@@ -10,7 +10,7 @@
 
 **驗收案例**　更換模型後仍須檢查引用；結果缺少引用或引用超出來源範圍時，拒絕儲存與發送。
 
-[對照實作或測試](../../../backend/internal/business/summary/summarization/validation.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
+[對照實作或測試](../../../backend/internal/business/summary/application/summarization/validation.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
 
 摘要規格涵蓋訊息收錄、產生摘要及來源引用。
 

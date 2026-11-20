@@ -51,20 +51,20 @@
     },
     "summary.summarization": {
       "contract": "summary/worker.yaml",
-      "adapter": "backend/internal/business/summary/summarization/http/summary.go",
-      "core": "backend/internal/business/summary/summarization/summary.go",
+      "adapter": "backend/internal/business/summary/adapter/http/summarization/summary.go",
+      "core": "backend/internal/business/summary/domain/entity/summarization/summary.go",
       "specification": "docs/domains/summary/summary.md"
     },
     "summary.messagecollection": {
       "kind": "event",
       "document": "api/contract/summary/README.md",
-      "core": "backend/internal/business/summary/messagecollection/message.go",
+      "core": "backend/internal/business/summary/domain/entity/messagecollection/message.go",
       "specification": "docs/domains/summary/summary.md"
     },
     "weather.forecast": {
       "kind": "event",
       "document": "api/contract/weather/README.md",
-      "core": "backend/internal/business/weather/forecast/forecast.go",
+      "core": "backend/internal/business/weather/domain/entity/forecast/forecast.go",
       "specification": "docs/domains/weather/weather.md"
     },
     "attendance.board": {
@@ -229,8 +229,8 @@
     },
     "team": {
       "contract": "team/teams.yaml",
-      "adapter": "backend/internal/business/team/http/routes.go",
-      "core": "backend/internal/business/team/firestore/store.go",
+      "adapter": "backend/internal/business/team/adapter/http/routes.go",
+      "core": "backend/internal/business/team/adapter/firestore/store.go",
       "specification": "docs/domains/repository/organization.md"
     }
   },
@@ -625,12 +625,12 @@
       "method": "POST",
       "path": "/internal/summary",
       "owner": "summary.summarization",
-      "adapter": "backend/internal/business/summary/summarization/http/summary.go",
+      "adapter": "backend/internal/business/summary/adapter/http/summarization/summary.go",
       "handler": "SummaryWorker",
-      "core": "backend/internal/business/summary/summarization/summary.go",
+      "core": "backend/internal/business/summary/domain/entity/summarization/summary.go",
       "specification": "docs/domains/summary/summary.md",
       "consumers": [
-        "backend/internal/business/summary/summarization/cloudtasks/queue.go"
+        "backend/internal/business/summary/adapter/messaging/cloudtasks/summarization/queue.go"
       ],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
@@ -1599,9 +1599,9 @@
       "method": "PUT",
       "path": "/api/v1/teams/{teamId}/management",
       "owner": "team",
-      "adapter": "backend/internal/business/team/http/routes.go",
+      "adapter": "backend/internal/business/team/adapter/http/routes.go",
       "handler": "SetTeamManagement",
-      "core": "backend/internal/business/team/firestore/store.go",
+      "core": "backend/internal/business/team/adapter/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": []
     },
@@ -1611,9 +1611,9 @@
       "method": "GET",
       "path": "/api/v1/organizations/{organizationId}/teams",
       "owner": "team",
-      "adapter": "backend/internal/business/team/http/routes.go",
+      "adapter": "backend/internal/business/team/adapter/http/routes.go",
       "handler": "ListOrganizationTeams",
-      "core": "backend/internal/business/team/firestore/store.go",
+      "core": "backend/internal/business/team/adapter/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
         "frontend/miniapp/src/business/team/OrganizationTeams.tsx"
@@ -1625,9 +1625,9 @@
       "method": "PUT",
       "path": "/api/v1/organizations/{organizationId}/enterprise-teams/{teamId}",
       "owner": "team",
-      "adapter": "backend/internal/business/team/http/routes.go",
+      "adapter": "backend/internal/business/team/adapter/http/routes.go",
       "handler": "AssignEnterpriseTeam",
-      "core": "backend/internal/business/team/firestore/store.go",
+      "core": "backend/internal/business/team/adapter/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": []
     },
@@ -1637,9 +1637,9 @@
       "method": "DELETE",
       "path": "/api/v1/organizations/{organizationId}/enterprise-teams/{teamId}",
       "owner": "team",
-      "adapter": "backend/internal/business/team/http/routes.go",
+      "adapter": "backend/internal/business/team/adapter/http/routes.go",
       "handler": "RemoveEnterpriseTeam",
-      "core": "backend/internal/business/team/firestore/store.go",
+      "core": "backend/internal/business/team/adapter/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": []
     },
@@ -1713,7 +1713,7 @@
       "owner": "summary.messagecollection",
       "action": "Collect/Edit/Recall",
       "contract": "api/contract/summary/README.md",
-      "adapter": "backend/internal/business/summary/messagecollection/line/collection.go",
+      "adapter": "backend/internal/business/summary/adapter/line/messagecollection/collection.go",
       "handler": "Observe",
       "note": "LINE event contract, not a browser HTTP operation."
     },
@@ -1721,7 +1721,7 @@
       "owner": "summary.summarization",
       "action": "Request summary",
       "contract": "api/contract/summary/README.md",
-      "adapter": "backend/internal/business/summary/summarization/line/commands.go",
+      "adapter": "backend/internal/business/summary/adapter/line/summarization/commands.go",
       "handler": "Reply",
       "note": "LINE command schedules the internal HTTP operation."
     },
@@ -1729,7 +1729,7 @@
       "owner": "weather.forecast",
       "action": "Forecast",
       "contract": "api/contract/weather/README.md",
-      "adapter": "backend/internal/business/weather/forecast/line/forecast.go",
+      "adapter": "backend/internal/business/weather/adapter/line/forecast/forecast.go",
       "handler": "ReplyForEvent",
       "note": "LINE location event; no public HTTP operation."
     },

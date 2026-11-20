@@ -11,7 +11,7 @@ import (
 	"time"
 
 	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/http"
-	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/http"
+	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http"
 
 	"cloud.google.com/go/firestore"
 	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
@@ -20,7 +20,7 @@ import (
 	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
 	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
-	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/firestore"
+	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
