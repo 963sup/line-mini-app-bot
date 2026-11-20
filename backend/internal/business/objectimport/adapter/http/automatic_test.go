@@ -133,6 +133,9 @@ func TestMixedImportResumesOnlyConfirmedRow(t *testing.T) {
 	if j.Status != "processing" || o.calls != 2 || j.Rows[2].ResultObjectID != "" {
 		t.Fatal(j)
 	}
+	if view := automaticView(j); view.CreatedCount != 2 || view.NeedsReviewCount != 1 || view.CanReplaceSource {
+		t.Fatalf("unexpected progress: %+v", view)
+	}
 	d := map[string]string{j.Rows[2].ID: "work"}
 	if j = run(d); j.Status != "completed" || j.Rows[2].Type != "work" {
 		t.Fatal(j)
@@ -140,5 +143,16 @@ func TestMixedImportResumesOnlyConfirmedRow(t *testing.T) {
 	run(d)
 	if p.calls != 1 || o.calls != 3 {
 		t.Fatal(p.calls, o.calls)
+	}
+}
+
+func TestReplaceSourceRequiresKnownEmptyPendingRun(t *testing.T) {
+	run := objectimportDomainEntityAutomatic.Run{Status: "pending", Reason: "model_unavailable"}
+	if !automaticView(run).CanReplaceSource {
+		t.Fatal("expected replacement after failure before rows were frozen")
+	}
+	run.Reason = ""
+	if automaticView(run).CanReplaceSource {
+		t.Fatal("pending without known failure must keep source")
 	}
 }

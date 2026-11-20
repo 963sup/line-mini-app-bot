@@ -39,10 +39,10 @@ export function Import({ repositoryId, onBlocked, canWrite, extract = extractPdf
     lock.current = true; setBusy(true); block(true); setMessage("正在解析明細並建立物件……");
     void rpc.run(signal => request((client, s) => client.POST("/api/v1/repositories/{repositoryId}/object-import-runs", { signal: s, params: { path: { repositoryId }, header: { "Idempotency-Key": pending.key } }, body: pending.body }), { signal, timeoutMs: 90000 }), value => {
       retryOnly.current = false; lock.current = false; setBusy(false); setJob(value);
-      const count = value.rows.filter(row => row.resultObjectId).length;
+      const count = value.createdCount;
       block(value.status !== "completed");
       if (value.status === "completed") forget(pending.body.sourceDocument, pending.key);
-      const ambiguous = value.rows.filter(row => row.type === "needs_review").length;
+      const ambiguous = value.needsReviewCount;
       if (ambiguous && !value.reason) { setMessage(`已建立 ${count} 筆物件，另有 ${ambiguous} 筆需要確認類型。`); return; }
       setMessage(value.status === "completed" ? `已建立 ${count} 筆物件。可返回清單查看及修改。` : `${reasons[value.reason] || "匯入尚未完成"}；已建立 ${count}/${value.rows.length} 筆物件。請重試繼續原匯入。`);
     }, error => {
@@ -73,12 +73,12 @@ export function Import({ repositoryId, onBlocked, canWrite, extract = extractPdf
     <Status role="status">{message}</Status>
     {busy && !attempt.current && <Button variant="outline" onClick={() => extraction.current?.abort()}>取消擷取</Button>}
     {attempt.current && blocked && <Button disabled={busy} onClick={send}>重試原匯入</Button>}
-    {job?.status === "pending" && job.rows.length === 0 && !!job.reason && !everUnknown.current && <Button variant="outline" disabled={busy} onClick={() => {
+    {job?.canReplaceSource && !everUnknown.current && <Button variant="outline" disabled={busy} onClick={() => {
       if (lock.current) return;
       if (attempt.current) forget(attempt.current.body.sourceDocument, attempt.current.key);
       attempt.current = null; setJob(null); block(false); if (fileInput.current) fileInput.current.value = ""; setMessage("尚未建立物件，請重新選擇PDF。");
     }}>更換PDF</Button>}
-    {job && <><p>已建立 {job.rows.filter(row => row.resultObjectId).length}/{job.rows.length} 筆物件。</p>{job.rows.map(row => <p key={row.id} className="min-w-0 whitespace-normal [overflow-wrap:anywhere]">項次 {row.sourceItemNo} · {row.name} · {row.quantity} {row.unit}（第 {row.sourcePages} 頁）{row.description && <span>「{row.description}」</span>}
+    {job && <><p>已建立 {job.createdCount}/{job.rows.length} 筆物件。</p>{job.rows.map(row => <p key={row.id} className="min-w-0 whitespace-normal [overflow-wrap:anywhere]">項次 {row.sourceItemNo} · {row.name} · {row.quantity} {row.unit}（第 {row.sourcePages} 頁）{row.description && <span>「{row.description}」</span>}
       {row.type === "needs_review" ? (["work","non_work"] as const).map(t => <Button key={t} disabled={busy || retryOnly.current} onClick={() => {
         const pending = attempt.current;
         if (!pending || lock.current || retryOnly.current) return;

@@ -17,10 +17,17 @@ import (
 
 func automaticView(j objectimportDomainEntityAutomatic.Run) generated.ObjectImportRun {
 	rows := make([]generated.ObjectImportRunRow, 0, len(j.Rows))
+	var created, needsReview int
 	for _, r := range j.Rows {
+		if r.ResultObjectID != "" {
+			created++
+		}
+		if r.Type == "needs_review" {
+			needsReview++
+		}
 		rows = append(rows, generated.ObjectImportRunRow{Id: r.ID, Name: r.Name, Description: r.Description, Type: r.Type, Quantity: r.Quantity, Unit: r.Unit, MaterialCode: r.MaterialCode, SourceItemNo: r.SourceItemNo, SourcePages: r.SourcePages, ResultObjectId: r.ResultObjectID})
 	}
-	return generated.ObjectImportRun{Id: j.ID, RepositoryId: j.RepositoryID, CreatorId: j.CreatorID, Status: generated.ObjectImportRunStatus(j.Status), Reason: generated.ObjectImportRunReason(j.Reason), SourceDocument: j.SourceDocument, SourceRevision: j.SourceRevision, SourceHash: j.SourceHash, Rows: rows, CreatedAt: j.CreatedAt, UpdatedAt: j.UpdatedAt}
+	return generated.ObjectImportRun{CreatedCount: created, NeedsReviewCount: needsReview, CanReplaceSource: j.Status == "pending" && j.Reason != "" && len(j.Rows) == 0, Id: j.ID, RepositoryId: j.RepositoryID, CreatorId: j.CreatorID, Status: generated.ObjectImportRunStatus(j.Status), Reason: generated.ObjectImportRunReason(j.Reason), SourceDocument: j.SourceDocument, SourceRevision: j.SourceRevision, SourceHash: j.SourceHash, Rows: rows, CreatedAt: j.CreatedAt, UpdatedAt: j.UpdatedAt}
 }
 
 func (s *importServer) CreateObjectImportRun(w http.ResponseWriter, r *http.Request, rid string, p generated.CreateObjectImportRunParams) {

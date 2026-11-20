@@ -128,3 +128,5 @@ flowchart LR
   n1 --- n1l2["操作模型"]
   click n1l2 "../../architecture/contracts/business-operations.md"
 ```
+
+自動匯入作業回傳 `createdCount`、`needsReviewCount` 與 `canReplaceSource`，供畫面呈現進度及更換來源操作。瀏覽器曾遺失回應時仍須沿用原始請求重試。PDF 表頭、座標與項次欄的辨識在本機完成，以免上傳原檔與單價欄。
