@@ -1551,8 +1551,7 @@
       "core": "backend/internal/business/organization/application/dto/context.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
-        "frontend/miniapp/src/business/organization/useOrganizationSelection.ts",
-        "frontend/miniapp/src/business/enterprise/Enterprise.tsx"
+        "frontend/miniapp/src/business/organization/OrganizationSelection.tsx"
       ]
     },
     {
@@ -1566,7 +1565,7 @@
       "core": "backend/internal/business/organization/application/dto/context.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
-        "frontend/miniapp/src/business/organization/useOrganizationSelection.ts"
+        "frontend/miniapp/src/business/organization/OrganizationSelection.tsx"
       ]
     },
     {

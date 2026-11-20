@@ -1,5 +1,5 @@
 import React from "react";
-import { useOrganizationSelection } from "@/business/organization/useOrganizationSelection";
+import { useOrganizationSelection } from "@/business/organization/OrganizationSelection";
 import { Building2, ChevronsUpDown } from "lucide-react";
 import { useOptionalSession } from "@/identity/Session";
 import {
@@ -41,12 +41,13 @@ export function OrganizationSwitcher() {
 
 function Switcher() {
   const { isMobile, setOpenMobile } = useSidebar();
-  const { context, error, saving, select } = useOrganizationSelection((organizationId) => {
+  const { context, error, saving, select } = useOrganizationSelection();
+  function onSelected(organizationId: string) {
     setOpenMobile(false);
     window.location.assign(
       "/miniapp?" + new URLSearchParams({ organization: organizationId }),
     );
-  });
+  }
   const label = (
     <>
       <Building2 />
@@ -81,7 +82,7 @@ function Switcher() {
               <DropdownMenuLabel>切換組織</DropdownMenuLabel>
               <DropdownMenuRadioGroup
                 value={context.selected?.organizationId}
-                onValueChange={select}
+                onValueChange={id => select(id, onSelected)}
               >
                 {context.groups.map((group) => (
                   <React.Fragment key={group.enterpriseId ?? "independent"}>
