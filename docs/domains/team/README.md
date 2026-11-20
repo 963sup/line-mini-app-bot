@@ -29,7 +29,7 @@ flowchart TD
     gate -->|否| stop["拒絕未授權操作或回報歸屬衝突"]
 ```
 
-[操作入口與適配器](../../../backend/internal/business/team/adapter) · [判定依據](../../../backend/internal/business/team/adapter/firestore/store.go) · 本領域目錄未見獨立 Go 測試；以上述驗收案例核對實作
+[入口適配器](../../../backend/internal/business/team/adapter/http/routes.go) · [判定依據](../../../backend/internal/business/team/adapter/firestore/store.go) · 本領域目錄未見獨立 Go 測試；以上述驗收案例核對實作
 
 [三領域授權邊界](../../architecture/contracts/organization-team-ownership.md#ownership-boundaries)
 

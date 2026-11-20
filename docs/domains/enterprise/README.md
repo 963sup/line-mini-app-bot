@@ -29,7 +29,7 @@ flowchart TD
     gate -->|否| stop["拒絕建立"]
 ```
 
-[操作入口與適配器](../../../backend/internal/business/enterprise/adapter) · [判定依據](../../../backend/internal/business/enterprise/adapter/firestore/store.go) · [應用層輸出介面](../../../backend/internal/business/enterprise/application/port/store.go) · 本領域目錄未見獨立 Go 測試；以上述驗收案例核對實作
+[入口適配器](../../../backend/internal/business/enterprise/adapter/http/routes.go) · [判定依據](../../../backend/internal/business/enterprise/adapter/firestore/store.go) · [應用層輸出介面](../../../backend/internal/business/enterprise/application/port/store.go) · 本領域目錄未見獨立 Go 測試；以上述驗收案例核對實作
 
 [三領域授權邊界](../../architecture/contracts/organization-team-ownership.md#ownership-boundaries)
 

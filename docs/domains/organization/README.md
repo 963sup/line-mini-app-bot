@@ -29,7 +29,7 @@ flowchart TD
     gate -->|否| stop["拒絕移轉"]
 ```
 
-[操作入口與適配器](../../../backend/internal/business/organization/adapter) · [判定依據](../../../backend/internal/business/organization/adapter/firestore/store.go) · [相關測試](../../../backend/internal/business/organization/adapter/firestore/conversation_test.go)
+[入口適配器](../../../backend/internal/business/organization/adapter/http/routes.go) · [判定依據](../../../backend/internal/business/organization/adapter/firestore/store.go) · [相關測試](../../../backend/internal/business/organization/adapter/firestore/conversation_test.go)
 
 [三領域授權邊界](../../architecture/contracts/organization-team-ownership.md#ownership-boundaries)
 
