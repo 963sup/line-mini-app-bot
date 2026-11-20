@@ -1666,6 +1666,8 @@ export interface components {
             completedQuantity?: string;
             /** @description Optional repository-owned business Space ID, never a LINE Group ID. Empty means unassigned; omitted update preserves the current assignment. The server verifies the same repository and channel. */
             spaceId?: string;
+            /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
+            canEdit: boolean;
         };
         ObjectCreation: {
             name: string;

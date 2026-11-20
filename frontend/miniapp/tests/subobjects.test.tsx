@@ -8,7 +8,7 @@ import { View as Objects } from "../src/business/object/View";
 import { View as RepositoryView } from "../src/business/repository/View";
 
 const rid = "a".repeat(32), other = "b".repeat(32), oid = "c".repeat(32);
-const resource = (overrides = {}) => ({ id: oid, repositoryId: rid, name: "測試物件", description: "完整工作說明", type: "work", completedQuantity: "0", quantity: "11", unit: "SET", status: "not_started", sourceDocument: "sample-contract", sourceRevision: "v0", sourceItemNo: "40", sourcePages: "2-3", materialCode: "sample", creatorId: "A", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", ...overrides });
+const resource = (overrides = {}) => ({ id: oid, repositoryId: rid, name: "測試物件", description: "完整工作說明", type: "work", completedQuantity: "0", quantity: "11", unit: "SET", status: "not_started", sourceDocument: "sample-contract", sourceRevision: "v0", sourceItemNo: "40", sourcePages: "2-3", materialCode: "sample", canEdit: true, creatorId: "A", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", ...overrides });
 const flush = async () => { for (let i = 0; i < 10; i++) await new Promise<void>(resolve => setImmediate(resolve)); };
 async function fixture(handle: (request: Request, actor: string) => Promise<Response>, integrated = false, extractor?: typeof import("../src/business/object/pdf").extractPdf) {
   document.body.innerHTML = '<div id="root"></div>';
@@ -80,7 +80,7 @@ test("unknown child create freezes exact identity, blocks parent navigation and 
 });
 
 test("non-owner may read children but has no child write controls",async()=>{
- const f=await fixture(async request=>Response.json(new URL(request.url).pathname.endsWith('/subobjects')?{items:[child()],nextCursor:""}:{items:[resource({creatorId:"B"})],nextCursor:""}));
+ const f=await fixture(async request=>Response.json(new URL(request.url).pathname.endsWith('/subobjects')?{items:[child()],nextCursor:""}:{items:[resource({canEdit:false,creatorId:"B"})],nextCursor:""}));
  try{await f.click("子物件：測試物件");assert.match(document.body.textContent!,/測試工序/);assert.equal([...document.querySelectorAll('button')].some(button=>button.textContent?.includes('新增子物件')||button.textContent?.includes('編輯子物件')),false);}finally{await f.dispose();}
 });
 
