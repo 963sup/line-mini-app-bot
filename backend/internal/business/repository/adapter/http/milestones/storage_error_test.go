@@ -2,10 +2,11 @@ package milestonehttp
 
 import (
 	"encoding/json"
-	milestoneentity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity/milestones"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	milestoneentity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity/milestones"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -24,7 +25,7 @@ func TestStorageFailureResponse(t *testing.T) {
 }
 
 func TestMilestoneCompletionPercent(t *testing.T) {
-	if view((milestoneentity.Milestone{}), "actor").CompletionPercent != nil {
+	if view(milestoneentity.Milestone{}, "actor").CompletionPercent != nil {
 		t.Fatal("empty milestone has no progress percentage")
 	}
 	for _, tc := range []struct {
