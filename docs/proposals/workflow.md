@@ -37,3 +37,5 @@ flowchart TD
 | Resume(actor, runID) | 讀取等待點。若寫入結果未定，以原碼重送；若版本衝突回到確認，遇權限拒絕則停止。 |
 
 [共用架構、時序與驗收](domain-collaboration.md)
+
+[多格式文件架構與手動解析呼叫時序](domain-collaboration.md#document-ingestion)

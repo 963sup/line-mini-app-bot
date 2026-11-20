@@ -1,6 +1,11 @@
 package objectimporthttp
 
 import (
+	"encoding/base64"
+	"strings"
+
+	workflow "github.com/963sup/line-mini-app-bot/internal/business/workflow/application"
+
 	objectimportDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity"
 	objectimportDomainEntityAutomatic "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity/automatic"
 )
@@ -40,26 +45,42 @@ func (s *importServer) CreateObjectImportRun(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	source := objectimportDomainEntity.Source{SourceDocument: input.SourceDocument, SourceRevision: input.SourceRevision}
-	for _, p := range input.Pages {
-		source.Pages = append(source.Pages, objectimportDomainEntity.Page{Number: p.Number, Text: p.Text})
+	if input.Pages != nil {
+		for _, p := range *input.Pages {
+			source.Pages = append(source.Pages, objectimportDomainEntity.Page{Number: p.Number, Text: p.Text})
+		}
 	}
-	var j objectimportDomainEntityAutomatic.Run
-	var e error
+	request := workflow.ImportRequest{Source: source, BatchType: selectedType(input.Type)}
 	if input.Classification != nil {
 		if string(*input.Classification) != "per_item" || input.Type != nil {
 			writeAutomaticError(w, objectimportDomainEntity.ErrInput)
 			return
 		}
-		var decisions map[string]string
-		if input.Decisions != nil {
-			decisions = *input.Decisions
-		}
-		j, e = s.automatic.Classify(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, source, decisions)
-	} else if input.Decisions != nil {
-		e = objectimportDomainEntity.ErrInput
-	} else {
-		j, e = s.automatic.Create(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, source, selectedType(input.Type))
+		request.PerItem = true
 	}
+	if input.Decisions != nil {
+		request.Decisions = *input.Decisions
+	}
+	payload := input.Workbook
+	if input.TextFile != nil {
+		if payload != nil || strings.HasPrefix(input.SourceDocument, "xlsx:") {
+			writeAutomaticError(w, objectimportDomainEntity.ErrInput)
+			return
+		}
+		payload = input.TextFile
+	} else if payload != nil && !strings.HasPrefix(input.SourceDocument, "xlsx:") {
+		writeAutomaticError(w, objectimportDomainEntity.ErrInput)
+		return
+	}
+	if payload != nil {
+		data, err := base64.StdEncoding.DecodeString(*payload)
+		if err != nil || len(data) == 0 || input.Pages != nil {
+			writeAutomaticError(w, objectimportDomainEntity.ErrInput)
+			return
+		}
+		request.TableFile = data
+	}
+	j, e := workflow.Import(r.Context(), s.automatic, identity.UserID(r.Context()), rid, p.IdempotencyKey, request)
 	if !writeAutomaticError(w, e) {
 		transport.WriteJSON(w, 200, automaticView(j))
 	}

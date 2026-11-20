@@ -24,19 +24,25 @@ import (
 )
 
 type (
+	candidateParser interface {
+		Parse(context.Context, string, string, objectimportDomainEntityParsing.Input) (objectimportDomainEntityParsing.Result, error)
+	}
 	Authenticator interface {
 		Authenticate(http.ResponseWriter, *http.Request) (string, string, bool)
 	}
 	importServer struct {
 		service   *objectimportApplication.Service
-		parser    *objectimportApplicationParsing.Service
+		parser    candidateParser
 		automatic *objectimportApplicationAutomatic.Service
 	}
 )
 
 var _ httpapi.ObjectImportServer = (*importServer)(nil)
 
-func Register(mux *http.ServeMux, service *objectimportApplication.Service, auth Authenticator, auto *objectimportApplicationAutomatic.Service, parser *objectimportApplicationParsing.Service) {
+func Register(mux *http.ServeMux, service *objectimportApplication.Service, auth Authenticator, auto *objectimportApplicationAutomatic.Service, parser candidateParser) {
+	if parser == nil {
+		parser = (*objectimportApplicationParsing.Service)(nil)
+	}
 	spec, err := httpapi.Spec()
 	if err != nil {
 		panic(err)

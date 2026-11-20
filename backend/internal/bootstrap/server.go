@@ -154,7 +154,16 @@ func Run() (resultErr error) {
 	businessgrouphttp.Register(mux, newRepositorySpaces(repositories, repositoryStore), auth)
 	objecthttp.Register(mux, newObjects(repositories, repositoryStore), auth)
 	subobjecthttp.Register(mux, newSubobjects(repositories, repositoryStore), auth)
-	objectimporthttp.Register(mux, newObjectImports(repositories, repositoryStore), auth, newAutomaticObjectImports(repositories, repositoryStore), newObjectParser(repositories))
+	imports := newAutomaticObjectImports(repositories, repositoryStore)
+	if imports != nil {
+		storagePorts, err := NewImportStorage(context.Background(), repositoryStore.Client, repositoryStore.ChannelID, os.Getenv("OBJECT_IMPORT_SOURCE_BUCKET"))
+		if err != nil {
+			return err
+		}
+		imports.Sources = storagePorts.Sources
+		imports.Knowledge = storagePorts.Knowledge
+	}
+	objectimporthttp.Register(mux, newObjectImports(repositories, repositoryStore), auth, imports, newObjectParser(repositories))
 	discussionhttp.Register(mux, newDiscussions(repositories, repositoryStore), auth)
 	var repositoryObserver *repositoryline.Observer
 	if repositories != nil {

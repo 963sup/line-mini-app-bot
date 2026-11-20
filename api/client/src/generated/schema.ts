@@ -1849,7 +1849,7 @@ export interface components {
         ObjectImportRunCreation: {
             sourceDocument: string;
             sourceRevision: string;
-            pages: {
+            pages?: {
                 number: number;
                 text: string;
             }[];
@@ -1867,7 +1867,11 @@ export interface components {
             decisions?: {
                 [key: string]: string;
             };
-        };
+            /** @description Base64 XLSX, up to 300 KiB. Uses per_item classification with manual type confirmation. Supply either workbook or pages. */
+            workbook?: string;
+            /** @description Base64 UTF-8 CSV, TSV, tab-delimited TXT or Markdown table; format is the sourceDocument prefix. */
+            textFile?: string;
+        } & (unknown | unknown | unknown);
         ObjectImportRunRow: {
             name: string;
             description: string;
