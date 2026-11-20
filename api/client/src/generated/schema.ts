@@ -1234,6 +1234,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/repositories/{repositoryId}/objects/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Extract candidate objects from a document for member review */
+        post: operations["extractObjectCandidates"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1869,6 +1886,24 @@ export interface components {
         JournalReferenceTargetPage: {
             items: components["schemas"]["JournalReferenceTarget"][];
             nextCursor: string;
+        };
+        ObjectCandidateDocument: {
+            filename: string;
+            /** Format: byte */
+            data: string;
+        };
+        ObjectCandidate: {
+            name: string;
+            quote: string;
+            location?: string;
+            quantity?: string;
+            unit?: string;
+        };
+        ObjectCandidateResult: {
+            /** @enum {string} */
+            status: "completed" | "refused" | "incomplete" | "invalid_output" | "provider_error";
+            candidates: components["schemas"]["ObjectCandidate"][];
+            rawResponse: string;
         };
         GroupItem: {
             id: string;
@@ -7399,6 +7434,42 @@ export interface operations {
                     "application/json": components["schemas"]["APIError"];
                 };
             };
+        };
+    };
+    extractObjectCandidates: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObjectCandidateDocument"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectCandidateResult"];
+                };
+            };
+            400: components["responses"]["ObjectError"];
+            401: components["responses"]["ObjectError"];
+            403: components["responses"]["ObjectForbidden"];
+            404: components["responses"]["ObjectError"];
+            409: components["responses"]["ObjectError"];
+            415: components["responses"]["ObjectError"];
+            503: components["responses"]["ObjectError"];
         };
     };
 }

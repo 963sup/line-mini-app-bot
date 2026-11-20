@@ -293,3 +293,30 @@ test("object editor stays in its row, cancel preserves a draft until confirmed, 
     assert.equal(document.querySelector("form"), null); assert.equal(writes, 1);
   } finally { await f.dispose(); }
 });
+
+test("document candidates require review and use the object creation form", async () => {
+  const writes: unknown[] = [];
+  const f = await fixture(async request => {
+    if (new URL(request.url).pathname.endsWith("/candidates")) {
+      assert.deepEqual(await request.json(), {filename: "list.txt", data: "YWJj"});
+      return Response.json({status: "completed", rawResponse: "test response", candidates: [{name:"電纜", quantity:"2.50", location:"第 1 行", quote:"電纜 2.50"}]});
+    }
+    if (request.method === "POST") { writes.push(await request.json()); return Response.json(resource()); }
+    return Response.json({items: [], nextCursor: ""});
+  });
+  try {
+    await act(async () => {
+      const input = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+      Object.defineProperty(input, "files", {value: [new window.File(["abc"], "list.txt")]});
+      input.dispatchEvent(new window.Event("change", {bubbles:true}));
+    });
+    await f.click("辨識候選");
+    await f.click("覆核並填入新增表單");
+    assert.equal(writes.length, 0);
+    await f.fill("單位", "公尺");
+    await f.selectType("work"); await f.click("建立物件");
+    assert.equal(writes.length, 1);
+    assert.deepEqual(writes[0], {name:"電纜", quantity:"2.50", unit:"公尺", type:"work", completedQuantity:"0", description:"電纜 2.50", sourceDocument:"list.txt", sourcePages:"第 1 行", sourceRevision:""});
+    assert.ok([...document.querySelectorAll("button")].find(b=>b.textContent==="已建立")?.disabled);
+  } finally { await f.dispose(); }
+});

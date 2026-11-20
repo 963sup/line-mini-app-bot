@@ -82,3 +82,11 @@ flowchart LR
 
 
 [跨領域歸屬契約](../../architecture/contracts/object-subobject-ownership.md) · [領域入口](README.md)
+
+## 從文件辨識候選
+
+成員可在物件清單選取 PDF、DOCX、TXT、CSV 或 XLSX，確認將文件傳送至 OpenAI 後執行辨識。每份原檔上限 8 MiB。物件 API 核對儲存庫權限，再透過 Operations 呼叫模型；沒有配置辨識模型時，手動建立仍可使用。
+
+辨識只回傳候選、引文、來源位置與模型回應。畫面列出每筆候選，讓使用者核對原件、補正數量與單位、選擇類型，再透過既有物件建立操作確認寫入。試算表每張工作表最多處理前 1,000 列，其他文件也可能漏列。候選留在當前畫面，重新辨識會產生新的結果。
+
+[文件辨識能力與領域分工](../../proposals/domain-collaboration.md)

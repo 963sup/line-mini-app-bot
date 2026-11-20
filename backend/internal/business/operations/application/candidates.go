@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	ErrProvider        = errors.New("model request failed")
 	ErrRefused         = errors.New("candidate extraction refused")
 	ErrIncomplete      = errors.New("candidate extraction incomplete")
 	ErrInvalidOutput   = errors.New("invalid candidate response")
