@@ -1,6 +1,12 @@
 package firestore_test
 
 import (
+	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
+	projectApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/project/application/port"
+	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
+)
+
+import (
 	"context"
 	"encoding/json"
 	"errors"
@@ -19,9 +25,9 @@ import (
 	spaceDB "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
 	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
-	p "github.com/963sup/line-mini-app-bot/internal/business/project"
-	projectDB "github.com/963sup/line-mini-app-bot/internal/business/project/firestore"
-	projectHTTP "github.com/963sup/line-mini-app-bot/internal/business/project/http"
+
+	projectDB "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/firestore"
+	projectHTTP "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/http"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	repoDB "github.com/963sup/line-mini-app-bot/internal/business/repository/firestore"
 	"google.golang.org/grpc/codes"
@@ -40,23 +46,23 @@ type sourceAccess struct {
 	deniedRepositoryID string
 }
 
-func (s *sourceAccess) Authorize(ctx context.Context, actor, id, expectedOwnerID string) (p.Source, error) {
+func (s *sourceAccess) Authorize(ctx context.Context, actor, id, expectedOwnerID string) (projectDomainEntity.Source, error) {
 	if s.denied || id == s.deniedRepositoryID || actor == "outsider" {
-		return p.Source{}, p.ErrNotFound
+		return projectDomainEntity.Source{}, projectDomainEntity.ErrNotFound
 	}
 	snap, err := s.root.Collection("repositories").Doc(id).Get(ctx)
 	if status.Code(err) == codes.NotFound {
-		return p.Source{}, p.ErrNotFound
+		return projectDomainEntity.Source{}, projectDomainEntity.ErrNotFound
 	}
 	if err != nil {
-		return p.Source{}, err
+		return projectDomainEntity.Source{}, err
 	}
 	d := snap.Data()
 	owner, _ := d["ownerId"].(string)
 	if d["id"] != id || d["status"] != "ACTIVE" || expectedOwnerID != "" && expectedOwnerID != owner {
-		return p.Source{}, p.ErrNotFound
+		return projectDomainEntity.Source{}, projectDomainEntity.ErrNotFound
 	}
-	return p.Source{ID: id, OwnerID: owner}, nil
+	return projectDomainEntity.Source{ID: id, OwnerID: owner}, nil
 }
 
 type auth struct{}
@@ -101,8 +107,8 @@ func TestSourceHydrationFailurePreservesProjectMetadata(t *testing.T) {
 		t.Fatal(err)
 	}
 	store := &projectDB.Store{Client: client, ChannelID: channel}
-	svc := &p.Service{Groups: &groupquery.Service{Store: groups, Membership: membership{}}, Sources: &sourceAccess{root: root}, Store: store}
-	created, err := svc.Create(ctx, "owner", gid, "source-failure-key-001", p.Content{Title: "owned metadata", SourceRepositoryID: rid})
+	svc := &projectApplication.Service{Groups: &groupquery.Service{Store: groups, Membership: membership{}}, Sources: &sourceAccess{root: root}, Store: store}
+	created, err := svc.Create(ctx, "owner", gid, "source-failure-key-001", projectDomainEntity.Content{Title: "owned metadata", SourceRepositoryID: rid})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,19 +127,19 @@ func TestSourceHydrationFailurePreservesProjectMetadata(t *testing.T) {
 	if err != nil || len(page.Items) != 1 || page.Items[0].SourceAvailable {
 		t.Fatalf("source failure hid Group list: %+v %v", page, err)
 	}
-	updated, err := svc.Update(ctx, "owner", gid, created.ID, p.Update{Content: p.Content{Title: "updated metadata"}, ExpectedVersion: added.Version})
+	updated, err := svc.Update(ctx, "owner", gid, created.ID, projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: "updated metadata"}, ExpectedVersion: added.Version})
 	if err != nil || updated.Version != added.Version+1 || updated.SourceAvailable {
 		t.Fatalf("committed own metadata update failed hydration: %+v %v", updated, err)
 	}
-	if _, err = svc.Get(ctx, "owner", rid, created.ID); !errors.Is(err, p.ErrInput) {
+	if _, err = svc.Get(ctx, "owner", rid, created.ID); !errors.Is(err, projectDomainEntity.ErrInput) {
 		t.Fatalf("legacy source error changed: %v", err)
 	}
-	if _, err = svc.ListItems(ctx, "owner", gid, created.ID, ""); !errors.Is(err, p.ErrInput) {
+	if _, err = svc.ListItems(ctx, "owner", gid, created.ID, ""); !errors.Is(err, projectDomainEntity.ErrInput) {
 		t.Fatalf("source item read must still fail: %v", err)
 	}
 	value := updated
-	err = store.Progress(ctx, p.Scope{OwnerID: gid, Actor: "owner"}, &value)
-	if !errors.Is(err, p.ErrSourceUnavailable) || errors.Is(err, p.ErrInput) {
+	err = store.Progress(ctx, projectApplicationPort.Scope{OwnerID: gid, Actor: "owner"}, &value)
+	if !errors.Is(err, projectDomainEntity.ErrSourceUnavailable) || errors.Is(err, projectDomainEntity.ErrInput) {
 		t.Fatalf("source classification must expose only its domain categories: %v", err)
 	}
 	if _, err = issue.Set(ctx, issueData); err != nil {
@@ -146,7 +152,7 @@ func TestSourceHydrationFailurePreservesProjectMetadata(t *testing.T) {
 	if _, err = items[0].Ref.Update(ctx, []db.Update{{Path: "schemaVersion", Value: int64(0)}}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = svc.Get(ctx, "owner", gid, created.ID); !errors.Is(err, p.ErrUnavailable) || errors.Is(err, p.ErrSourceUnavailable) {
+	if _, err = svc.Get(ctx, "owner", gid, created.ID); !errors.Is(err, projectDomainEntity.ErrUnavailable) || errors.Is(err, projectDomainEntity.ErrSourceUnavailable) {
 		t.Fatalf("own item corruption must fail closed: %v", err)
 	}
 }
@@ -185,10 +191,10 @@ func TestOwnerProjectStorageRightsAndLegacyAlias(t *testing.T) {
 	}
 	source := &sourceAccess{root: root}
 	store := &projectDB.Store{Client: client, ChannelID: channel}
-	svc := &p.Service{Groups: &groupquery.Service{Store: ss, Membership: membership{}}, Sources: source, Store: store}
-	content := p.Content{Title: "Group project", SourceRepositoryID: rid}
+	svc := &projectApplication.Service{Groups: &groupquery.Service{Store: ss, Membership: membership{}}, Sources: source, Store: store}
+	content := projectDomainEntity.Content{Title: "Group project", SourceRepositoryID: rid}
 	key := "stable-create-key-0001"
-	if _, err = svc.Create(ctx, "outsider", gid, key, content); !errors.Is(err, p.ErrNotFound) {
+	if _, err = svc.Create(ctx, "outsider", gid, key, content); !errors.Is(err, projectDomainEntity.ErrNotFound) {
 		t.Fatalf("Group outsider create: %v", err)
 	}
 	created, err := svc.Create(ctx, "owner", gid, key, content)
@@ -210,12 +216,12 @@ func TestOwnerProjectStorageRightsAndLegacyAlias(t *testing.T) {
 		t.Fatalf("statistics must count new canonical project without legacy copy: %+v %v", counts, err)
 	}
 	// Old and new endpoints share the exact creation receipt and aggregate identity.
-	replay, err := svc.Create(ctx, "owner", rid, key, p.Content{Title: content.Title})
+	replay, err := svc.Create(ctx, "owner", rid, key, projectDomainEntity.Content{Title: content.Title})
 	if err != nil || replay.ID != created.ID {
 		t.Fatalf("legacy receipt replay: %+v %v", replay, err)
 	}
 	var wg sync.WaitGroup
-	results := make(chan p.Project, 3)
+	results := make(chan projectDomainEntity.Project, 3)
 	failures := make(chan error, 3)
 	for range 3 {
 		wg.Add(1)
@@ -240,10 +246,10 @@ func TestOwnerProjectStorageRightsAndLegacyAlias(t *testing.T) {
 			t.Fatal("same creation key produced another identity")
 		}
 	}
-	if _, err = svc.Create(ctx, "owner", gid, key, p.Content{Title: "different", SourceRepositoryID: rid}); !errors.Is(err, p.ErrCreationConflict) {
+	if _, err = svc.Create(ctx, "owner", gid, key, projectDomainEntity.Content{Title: "different", SourceRepositoryID: rid}); !errors.Is(err, projectDomainEntity.ErrCreationConflict) {
 		t.Fatalf("key conflict: %v", err)
 	}
-	if _, err = svc.Update(ctx, "member", gid, created.ID, p.Update{Content: p.Content{Title: "forbidden"}, ExpectedVersion: 1}); !errors.Is(err, p.ErrForbidden) {
+	if _, err = svc.Update(ctx, "member", gid, created.ID, projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: "forbidden"}, ExpectedVersion: 1}); !errors.Is(err, projectDomainEntity.ErrForbidden) {
 		t.Fatalf("membership does not grant Project management: %v", err)
 	}
 	added, err := svc.ChangeItem(ctx, "owner", gid, created.ID, iid, true, 1)
@@ -253,7 +259,7 @@ func TestOwnerProjectStorageRightsAndLegacyAlias(t *testing.T) {
 	if added.Version != 2 || added.IssueCount != 1 || !added.SourceAvailable {
 		t.Fatalf("mutation result must preserve live source progress: %+v", added)
 	}
-	if _, err = svc.ChangeItem(ctx, "owner", rid, created.ID, iid, true, 1); !errors.Is(err, p.ErrConflict) {
+	if _, err = svc.ChangeItem(ctx, "owner", rid, created.ID, iid, true, 1); !errors.Is(err, projectDomainEntity.ErrConflict) {
 		t.Fatalf("legacy CAS must share new version: %v", err)
 	}
 	page, err := svc.ListItems(ctx, "member", gid, created.ID, "")
@@ -304,16 +310,16 @@ func TestOwnerProjectStorageRightsAndLegacyAlias(t *testing.T) {
 	if err != nil || metadata.Title != content.Title || metadata.SourceAvailable {
 		t.Fatalf("own metadata must survive revoked source rights: %+v %v", metadata, err)
 	}
-	if _, err = svc.ListItems(ctx, "owner", gid, created.ID, ""); !errors.Is(err, p.ErrNotFound) {
+	if _, err = svc.ListItems(ctx, "owner", gid, created.ID, ""); !errors.Is(err, projectDomainEntity.ErrNotFound) {
 		t.Fatalf("source revoke must hide source issues: %v", err)
 	}
-	if _, err = svc.ChangeItem(ctx, "owner", gid, created.ID, iid, false, 2); !errors.Is(err, p.ErrNotFound) {
+	if _, err = svc.ChangeItem(ctx, "owner", gid, created.ID, iid, false, 2); !errors.Is(err, projectDomainEntity.ErrNotFound) {
 		t.Fatalf("source revoke must stop source-linked actions: %v", err)
 	}
-	if _, err = svc.Get(ctx, "owner", rid, created.ID); !errors.Is(err, p.ErrNotFound) {
+	if _, err = svc.Get(ctx, "owner", rid, created.ID); !errors.Is(err, projectDomainEntity.ErrNotFound) {
 		t.Fatalf("legacy source-scoped read retains denial: %v", err)
 	}
-	updated, err := svc.Update(ctx, "owner", gid, created.ID, p.Update{Content: p.Content{Title: "Own edit"}, ExpectedVersion: 2})
+	updated, err := svc.Update(ctx, "owner", gid, created.ID, projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: "Own edit"}, ExpectedVersion: 2})
 	if err != nil || updated.Version != 3 {
 		t.Fatalf("own metadata edit independent of source: %+v %v", updated, err)
 	}
@@ -332,7 +338,7 @@ func TestOwnerProjectStorageRightsAndLegacyAlias(t *testing.T) {
 	if _, err = root.Collection("groups").Doc(gid).Update(ctx, []db.Update{{Path: "status", Value: "INACTIVE"}}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = store.Update(ctx, p.Scope{OwnerID: gid, Actor: "owner"}, "owner", created.ID, p.Update{Content: p.Content{Title: "denied"}, ExpectedVersion: updated.Version}); !errors.Is(err, p.ErrNotFound) {
+	if _, err = store.Update(ctx, projectApplicationPort.Scope{OwnerID: gid, Actor: "owner"}, "owner", created.ID, projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: "denied"}, ExpectedVersion: updated.Version}); !errors.Is(err, projectDomainEntity.ErrNotFound) {
 		t.Fatal("inactive Group allowed write", err)
 	}
 }
@@ -371,8 +377,8 @@ func TestPersonalRepositoryAndProject(t *testing.T) {
 		t.Fatal("foreign repository read", err)
 	}
 	access := &sourceAccess{root: root}
-	svc := p.Service{Groups: &groupquery.Service{}, Sources: access, Store: &projectDB.Store{Client: client, ChannelID: channel}}
-	value, err := svc.Create(ctx, owner, owner, "personal-project-0001", p.Content{Title: "工程", SourceRepositoryID: rid})
+	svc := projectApplication.Service{Groups: &groupquery.Service{}, Sources: access, Store: &projectDB.Store{Client: client, ChannelID: channel}}
+	value, err := svc.Create(ctx, owner, owner, "personal-project-0001", projectDomainEntity.Content{Title: "工程", SourceRepositoryID: rid})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -380,7 +386,7 @@ func TestPersonalRepositoryAndProject(t *testing.T) {
 	if err != nil || doc.Data()["ownerId"] != owner {
 		t.Fatal("personal project storage", err)
 	}
-	if _, err = svc.Get(ctx, other, owner, value.ID); !errors.Is(err, p.ErrNotFound) {
+	if _, err = svc.Get(ctx, other, owner, value.ID); !errors.Is(err, projectDomainEntity.ErrNotFound) {
 		t.Fatal("foreign project read", err)
 	}
 	group := "C" + strings.Repeat("c", 32)
@@ -393,11 +399,11 @@ func TestPersonalRepositoryAndProject(t *testing.T) {
 	if _, err = groupDoc.Collection("issues").Doc(issue).Set(ctx, map[string]any{"schemaVersion": 1, "id": issue, "repositoryId": groupRepo, "title": "Group issue", "state": "open"}); err != nil {
 		t.Fatal(err)
 	}
-	value, err = svc.Update(ctx, owner, owner, value.ID, p.Update{Content: p.Content{Title: value.Title}, ExpectedVersion: value.Version, LinkRepositoryID: groupRepo})
+	value, err = svc.Update(ctx, owner, owner, value.ID, projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: value.Title}, ExpectedVersion: value.Version, LinkRepositoryID: groupRepo})
 	if err != nil {
 		t.Fatal(err)
 	}
-	value, err = svc.AddReference(ctx, owner, owner, value.ID, p.Reference{SourceRepositoryID: groupRepo, SourceType: "issue", SourceID: issue}, value.Version)
+	value, err = svc.AddReference(ctx, owner, owner, value.ID, projectDomainEntity.Reference{SourceRepositoryID: groupRepo, SourceType: "issue", SourceID: issue}, value.Version)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,6 +1,11 @@
 package firestore_test
 
 import (
+	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
+	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
+)
+
+import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -21,9 +26,9 @@ import (
 	spaceDB "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
 	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
-	p "github.com/963sup/line-mini-app-bot/internal/business/project"
-	projectDB "github.com/963sup/line-mini-app-bot/internal/business/project/firestore"
-	projectHTTP "github.com/963sup/line-mini-app-bot/internal/business/project/http"
+
+	projectDB "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/firestore"
+	projectHTTP "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/http"
 )
 
 func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
@@ -72,8 +77,8 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	}
 	access := &sourceAccess{root: root}
 	store := &projectDB.Store{Client: client, ChannelID: root.ID}
-	svc := &p.Service{Groups: &groupquery.Service{Store: groups, Membership: membership{}}, Sources: access, Store: store}
-	project, e := svc.Create(ctx, "owner", gid, "typed-reference-project", p.Content{Title: "Existing project", SourceRepositoryID: rid})
+	svc := &projectApplication.Service{Groups: &groupquery.Service{Store: groups, Membership: membership{}}, Sources: access, Store: store}
+	project, e := svc.Create(ctx, "owner", gid, "typed-reference-project", projectDomainEntity.Content{Title: "Existing project", SourceRepositoryID: rid})
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -86,7 +91,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 		t.Fatal(e)
 	}
 	oldIssueID := oldItems.Items[0].ID
-	refs := []p.Reference{{SourceType: "issue", SourceID: iid}, {SourceType: "object", SourceID: oid}, {SourceType: "subobject", SourceID: sid, ParentObjectID: oid}, {SourceType: "discussion", SourceID: did}}
+	refs := []projectDomainEntity.Reference{{SourceType: "issue", SourceID: iid}, {SourceType: "object", SourceID: oid}, {SourceType: "subobject", SourceID: sid, ParentObjectID: oid}, {SourceType: "discussion", SourceID: did}}
 	for _, ref := range refs {
 		priorVersion := project.Version
 		project, e = svc.AddReference(ctx, "owner", gid, project.ID, ref, project.Version)
@@ -157,13 +162,13 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	if e != nil || !reflect.DeepEqual(before.Data(), after.Data()) || !before.UpdateTime.Equal(after.UpdateTime) {
 		t.Fatal("read wrote Project", e)
 	}
-	if _, e = svc.AddReference(ctx, "member", gid, project.ID, refs[0], 1); !errors.Is(e, p.ErrForbidden) {
+	if _, e = svc.AddReference(ctx, "member", gid, project.ID, refs[0], 1); !errors.Is(e, projectDomainEntity.ErrForbidden) {
 		t.Fatal("duplicate owner bypass", e)
 	}
-	if _, e = svc.AddReference(ctx, "owner", gid, project.ID, p.Reference{SourceType: "subobject", SourceID: sid, ParentObjectID: strings.Repeat("1", 32)}, project.Version); e == nil {
+	if _, e = svc.AddReference(ctx, "owner", gid, project.ID, projectDomainEntity.Reference{SourceType: "subobject", SourceID: sid, ParentObjectID: strings.Repeat("1", 32)}, project.Version); e == nil {
 		t.Fatal("cross parent")
 	}
-	if _, e = svc.AddReference(ctx, "owner", gid, project.ID, p.Reference{SourceType: "object", SourceID: strings.Repeat("1", 32)}, project.Version); e == nil {
+	if _, e = svc.AddReference(ctx, "owner", gid, project.ID, projectDomainEntity.Reference{SourceType: "object", SourceID: strings.Repeat("1", 32)}, project.Version); e == nil {
 		t.Fatal("foreign source")
 	}
 
@@ -173,7 +178,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 		if _, e = repository.Collection("objects").Doc(sourceID).Set(ctx, map[string]any{"schemaVersion": 1, "id": sourceID, "repositoryId": rid, "name": "Extra", "type": "non_work", "quantity": "1", "unit": "SET", "status": "not_started"}); e != nil {
 			t.Fatal(e)
 		}
-		project, e = svc.AddReference(ctx, "owner", gid, project.ID, p.Reference{SourceType: "object", SourceID: sourceID}, project.Version)
+		project, e = svc.AddReference(ctx, "owner", gid, project.ID, projectDomainEntity.Reference{SourceType: "object", SourceID: sourceID}, project.Version)
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -261,11 +266,11 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	if _, e = second.Collection("issues").Doc(iid).Set(ctx, map[string]any{"schemaVersion": 1, "id": iid, "repositoryId": secondID, "title": "Second group issue", "state": "open"}); e != nil {
 		t.Fatal(e)
 	}
-	secondRef := p.Reference{SourceRepositoryID: secondID, SourceType: "issue", SourceID: iid}
-	if _, e = svc.AddReference(ctx, "owner", gid, project.ID, secondRef, project.Version); !errors.Is(e, p.ErrForbidden) {
+	secondRef := projectDomainEntity.Reference{SourceRepositoryID: secondID, SourceType: "issue", SourceID: iid}
+	if _, e = svc.AddReference(ctx, "owner", gid, project.ID, secondRef, project.Version); !errors.Is(e, projectDomainEntity.ErrForbidden) {
 		t.Fatalf("unlinked source: %v", e)
 	}
-	project, e = svc.Update(ctx, "owner", gid, project.ID, p.Update{Content: p.Content{Title: project.Title, Body: project.Body}, ExpectedVersion: project.Version, LinkRepositoryID: secondID})
+	project, e = svc.Update(ctx, "owner", gid, project.ID, projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: project.Title, Body: project.Body}, ExpectedVersion: project.Version, LinkRepositoryID: secondID})
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -286,11 +291,11 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	if secondItem == "" || secondItem == oldIssueID {
 		t.Fatal("distinct second issue missing", page)
 	}
-	other, e := svc.Create(ctx, "owner", gid, "independent-issue-board", p.Content{Title: "Audit", SourceRepositoryID: rid})
+	other, e := svc.Create(ctx, "owner", gid, "independent-issue-board", projectDomainEntity.Content{Title: "Audit", SourceRepositoryID: rid})
 	if e != nil {
 		t.Fatal(e)
 	}
-	other, e = svc.Update(ctx, "owner", gid, other.ID, p.Update{Content: p.Content{Title: other.Title}, ExpectedVersion: other.Version, LinkRepositoryID: secondID})
+	other, e = svc.Update(ctx, "owner", gid, other.ID, projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: other.Title}, ExpectedVersion: other.Version, LinkRepositoryID: secondID})
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -298,7 +303,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	project, e = svc.Update(ctx, "owner", gid, project.ID, p.Update{Content: p.Content{Title: project.Title, Body: project.Body}, ExpectedVersion: project.Version, ItemID: secondItem, ItemStatus: "done"})
+	project, e = svc.Update(ctx, "owner", gid, project.ID, projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: project.Title, Body: project.Body}, ExpectedVersion: project.Version, ItemID: secondItem, ItemStatus: "done"})
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -320,7 +325,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 			t.Fatal("missing issue on board", board)
 		}
 	}
-	project, e = svc.Update(ctx, "owner", gid, project.ID, p.Update{Content: p.Content{Title: project.Title, Body: project.Body}, ExpectedVersion: project.Version, UnlinkRepositoryID: secondID})
+	project, e = svc.Update(ctx, "owner", gid, project.ID, projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: project.Title, Body: project.Body}, ExpectedVersion: project.Version, UnlinkRepositoryID: secondID})
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -354,10 +359,10 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	if e != nil || len(retried) != 1 || retried[0].ID != sent[0].ID {
 		t.Fatal(retried, e)
 	}
-	if _, e = svc.Inspections(ctx, "owner", gid, project.ID, ids["subobject"], &note); !errors.Is(e, p.ErrInspectionPending) {
+	if _, e = svc.Inspections(ctx, "owner", gid, project.ID, ids["subobject"], &note); !errors.Is(e, projectDomainEntity.ErrInspectionPending) {
 		t.Fatal(e)
 	}
-	if _, e = svc.RemoveReference(ctx, "owner", gid, project.ID, ids["subobject"], project.Version); !errors.Is(e, p.ErrInspectionHistory) {
+	if _, e = svc.RemoveReference(ctx, "owner", gid, project.ID, ids["subobject"], project.Version); !errors.Is(e, projectDomainEntity.ErrInspectionHistory) {
 		t.Fatal(e)
 	}
 	afterSource, e := sub.Get(ctx)
@@ -375,7 +380,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 		t.Fatal("submitted on deleted source")
 	}
 	access.denied = true
-	if _, e = svc.Inspections(ctx, "member", gid, project.ID, ids["subobject"], nil); !errors.Is(e, p.ErrNotFound) {
+	if _, e = svc.Inspections(ctx, "member", gid, project.ID, ids["subobject"], nil); !errors.Is(e, projectDomainEntity.ErrNotFound) {
 		t.Fatal("revoked inspection readable", e)
 	}
 	page, e = svc.ListReferences(ctx, "owner", gid, project.ID, "")
@@ -387,7 +392,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 			t.Fatal("revoked preview leak", ref)
 		}
 	}
-	if _, e = svc.AddReference(ctx, "owner", gid, project.ID, refs[0], project.Version); !errors.Is(e, p.ErrNotFound) {
+	if _, e = svc.AddReference(ctx, "owner", gid, project.ID, refs[0], project.Version); !errors.Is(e, projectDomainEntity.ErrNotFound) {
 		t.Fatal("revoked duplicate", e)
 	}
 	version := project.Version

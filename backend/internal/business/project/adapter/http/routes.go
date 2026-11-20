@@ -1,6 +1,11 @@
 package projecthttp
 
 import (
+	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
+	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 	"mime"
@@ -8,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	feature "github.com/963sup/line-mini-app-bot/internal/business/project"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	"github.com/963sup/line-mini-app-bot/internal/identity"
@@ -21,12 +25,12 @@ type (
 	Authenticator interface {
 		Authenticate(http.ResponseWriter, *http.Request) (string, string, bool)
 	}
-	projectServer struct{ service *feature.Service }
+	projectServer struct{ service *projectApplication.Service }
 )
 
 var _ httpapi.ProjectServer = (*projectServer)(nil)
 
-func Register(mux *http.ServeMux, service *feature.Service, auth Authenticator) {
+func Register(mux *http.ServeMux, service *projectApplication.Service, auth Authenticator) {
 	spec, err := httpapi.Spec()
 	if err != nil {
 		panic(err)
@@ -83,7 +87,7 @@ func Register(mux *http.ServeMux, service *feature.Service, auth Authenticator) 
 	httpapi.RegisterOwnerProjects(mux, &projectServer{service}, wrap)
 }
 
-func view(i feature.Project) generated.Project {
+func view(i projectDomainEntity.Project) generated.Project {
 	if i.LinkedRepositoryIDs == nil {
 		i.LinkedRepositoryIDs = []string{}
 	}
@@ -96,19 +100,19 @@ func writeError(w http.ResponseWriter, e error) bool {
 	}
 	code, status, message := "unavailable", 503, "結果尚未確認，請重新讀取；建立請沿用原鍵重試。"
 	switch {
-	case errors.Is(e, feature.ErrInput):
+	case errors.Is(e, projectDomainEntity.ErrInput):
 		code, status, message = "invalid_input", 400, "輸入或來源引用無效。"
-	case errors.Is(e, feature.ErrNotFound):
+	case errors.Is(e, projectDomainEntity.ErrNotFound):
 		code, status, message = "not_found", 404, "找不到此資源。"
-	case errors.Is(e, feature.ErrForbidden):
+	case errors.Is(e, projectDomainEntity.ErrForbidden):
 		code, status, message = "forbidden", 403, "只有建立者可以修改。"
-	case errors.Is(e, feature.ErrInspectionPending):
+	case errors.Is(e, projectDomainEntity.ErrInspectionPending):
 		code, status, message = "conflict", 409, "已有待審送件，請查看驗收紀錄。"
-	case errors.Is(e, feature.ErrInspectionHistory):
+	case errors.Is(e, projectDomainEntity.ErrInspectionHistory):
 		code, status, message = "conflict", 409, "此引用有驗收紀錄，無法移除。"
-	case errors.Is(e, feature.ErrConflict):
+	case errors.Is(e, projectDomainEntity.ErrConflict):
 		code, status, message = "version_conflict", 409, "版本已更新，請重新讀取。"
-	case errors.Is(e, feature.ErrCreationConflict):
+	case errors.Is(e, projectDomainEntity.ErrCreationConflict):
 		code, status, message = "idempotency_conflict", 409, "建立識別碼已用於不同內容，請確認原紀錄。"
 	}
 	transport.WriteServiceError(w, status, code, message, e)
@@ -143,7 +147,7 @@ func (s *projectServer) CreateProject(w http.ResponseWriter, r *http.Request, re
 	if !transport.ReadJSON(w, r, &input, "資料無效。") {
 		return
 	}
-	i, e := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryId, p.IdempotencyKey, feature.Content{Title: input.Title, Body: input.Body})
+	i, e := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryId, p.IdempotencyKey, projectDomainEntity.Content{Title: input.Title, Body: input.Body})
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i))
 	}
@@ -154,7 +158,7 @@ func (s *projectServer) UpdateProject(w http.ResponseWriter, r *http.Request, re
 	if !transport.ReadJSON(w, r, &input, "資料無效。") {
 		return
 	}
-	update := feature.Update{Content: feature.Content{Title: input.Title, Body: input.Body}, ExpectedVersion: input.ExpectedVersion}
+	update := projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: input.Title, Body: input.Body}, ExpectedVersion: input.ExpectedVersion}
 	if input.ItemProgress != nil {
 		update.ItemID, update.ItemStatus = input.ItemProgress.ItemId, string(input.ItemProgress.Status)
 	}
@@ -217,7 +221,7 @@ func (s *projectServer) CreateOwnerProject(w http.ResponseWriter, r *http.Reques
 	if !transport.ReadJSON(w, r, &input, "資料無效。") {
 		return
 	}
-	value, e := s.service.Create(r.Context(), identity.UserID(r.Context()), ownerId, p.IdempotencyKey, feature.Content{Title: input.Title, Body: input.Body, SourceRepositoryID: input.DefaultRepositoryId})
+	value, e := s.service.Create(r.Context(), identity.UserID(r.Context()), ownerId, p.IdempotencyKey, projectDomainEntity.Content{Title: input.Title, Body: input.Body, SourceRepositoryID: input.DefaultRepositoryId})
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(value))
 	}

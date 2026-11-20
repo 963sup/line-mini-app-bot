@@ -1,6 +1,11 @@
 package firestore
 
 import (
+	projectApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/project/application/port"
+	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 	"time"
@@ -8,7 +13,7 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
 
 	db "cloud.google.com/go/firestore"
-	feature "github.com/963sup/line-mini-app-bot/internal/business/project"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -27,14 +32,14 @@ type inspectionDocument struct {
 
 const submissions = "inspectionSubmissions"
 
-func (s *Store) Inspections(ctx context.Context, r feature.Scope, pid, itemID, note string) (result []feature.InspectionSubmission, err error) {
+func (s *Store) Inspections(ctx context.Context, r projectApplicationPort.Scope, pid, itemID, note string) (result []projectDomainEntity.InspectionSubmission, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	root := s.ownerDoc(r.OwnerID)
 	project := root.Collection("projects").Doc(pid)
 	item := project.Collection("items").Doc(itemID)
 	snap, err := item.Get(ctx)
 	if status.Code(err) == codes.NotFound {
-		return nil, feature.ErrNotFound
+		return nil, projectDomainEntity.ErrNotFound
 	}
 	if err != nil {
 		return nil, err
@@ -44,7 +49,7 @@ func (s *Store) Inspections(ctx context.Context, r feature.Scope, pid, itemID, n
 		return nil, err
 	}
 	if d.SourceType != "object" && d.SourceType != "subobject" {
-		return nil, feature.ErrInput
+		return nil, projectDomainEntity.ErrInput
 	}
 	source, err := r.Sources.Authorize(ctx, r.Actor, d.SourceRepositoryID, "")
 	if err != nil {
@@ -54,7 +59,7 @@ func (s *Store) Inspections(ctx context.Context, r feature.Scope, pid, itemID, n
 	newID := collection.NewDoc().ID
 	now := time.Now().UTC()
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		result = []feature.InspectionSubmission{}
+		result = []projectDomainEntity.InspectionSubmission{}
 		if err := s.checkProjectOwner(tx, r, root); err != nil {
 			return err
 		}
@@ -64,7 +69,7 @@ func (s *Store) Inspections(ctx context.Context, r feature.Scope, pid, itemID, n
 		}
 		snap, err = tx.Get(item)
 		if status.Code(err) == codes.NotFound {
-			return feature.ErrNotFound
+			return projectDomainEntity.ErrNotFound
 		}
 		if err != nil {
 			return err
@@ -74,11 +79,11 @@ func (s *Store) Inspections(ctx context.Context, r feature.Scope, pid, itemID, n
 			return err
 		}
 		if current.SourceRepositoryID != source.ID {
-			return feature.ErrForbidden
+			return projectDomainEntity.ErrForbidden
 		}
 		if err = requireProjectLink(tx, project, source.ID); err != nil {
-			if errors.Is(err, feature.ErrSourceUnavailable) {
-				return feature.ErrForbidden
+			if errors.Is(err, projectDomainEntity.ErrSourceUnavailable) {
+				return projectDomainEntity.ErrForbidden
 			}
 			return err
 		}
@@ -95,7 +100,7 @@ func (s *Store) Inspections(ctx context.Context, r feature.Scope, pid, itemID, n
 				if err := row.DataTo(&stored); err != nil {
 					return err
 				}
-				result = append(result, feature.InspectionSubmission(stored))
+				result = append(result, projectDomainEntity.InspectionSubmission(stored))
 			}
 			return nil
 		}
@@ -106,7 +111,7 @@ func (s *Store) Inspections(ctx context.Context, r feature.Scope, pid, itemID, n
 		if latestID, exists := snap.Data()["latestInspectionId"]; exists {
 			id, ok := latestID.(string)
 			if !ok || id == "" {
-				return feature.ErrUnavailable
+				return projectDomainEntity.ErrUnavailable
 			}
 			last, err := tx.Get(collection.Doc(id))
 			if err != nil {
@@ -118,17 +123,17 @@ func (s *Store) Inspections(ctx context.Context, r feature.Scope, pid, itemID, n
 			}
 			if stored.Status == "pending" {
 				if stored.Note != note || stored.SubmittedBy != r.Actor {
-					return feature.ErrInspectionPending
+					return projectDomainEntity.ErrInspectionPending
 				}
-				result = []feature.InspectionSubmission{feature.InspectionSubmission(stored)}
+				result = []projectDomainEntity.InspectionSubmission{projectDomainEntity.InspectionSubmission(stored)}
 				return nil
 			}
 		}
 		if ref.SourceVersion < 1 {
-			return feature.ErrSourceUnavailable
+			return projectDomainEntity.ErrSourceUnavailable
 		}
-		entry := feature.InspectionSubmission{ID: newID, Note: note, Status: "pending", SubmittedBy: r.Actor, SubmittedAt: now, SourceRepositoryID: source.ID, SourceType: ref.SourceType, SourceID: ref.SourceID, SourceVersion: ref.SourceVersion}
-		result = []feature.InspectionSubmission{entry}
+		entry := projectDomainEntity.InspectionSubmission{ID: newID, Note: note, Status: "pending", SubmittedBy: r.Actor, SubmittedAt: now, SourceRepositoryID: source.ID, SourceType: ref.SourceType, SourceID: ref.SourceID, SourceVersion: ref.SourceVersion}
+		result = []projectDomainEntity.InspectionSubmission{entry}
 		// Writing the reference serializes competing submissions and reference removal.
 		if err := tx.Update(item, []db.Update{{Path: "latestInspectionId", Value: newID}}); err != nil {
 			return err

@@ -1,16 +1,19 @@
 package projecthttp
 
 import (
+	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
+)
+
+import (
 	"net/http"
 
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 
-	feature "github.com/963sup/line-mini-app-bot/internal/business/project"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 )
 
-func inspectionView(v feature.InspectionSubmission) generated.InspectionSubmission {
+func inspectionView(v projectDomainEntity.InspectionSubmission) generated.InspectionSubmission {
 	return generated.InspectionSubmission{Id: v.ID, Note: v.Note, SubmittedAt: v.SubmittedAt, SubmittedBy: v.SubmittedBy, SourceId: v.SourceID, SourceType: v.SourceType, SourceRepositoryId: v.SourceRepositoryID, SourceVersion: v.SourceVersion, Status: generated.InspectionSubmissionStatus(v.Status)}
 }
 

@@ -1,6 +1,12 @@
 package firestore
 
 import (
+	projectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/project/application/dto"
+	projectApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/project/application/port"
+	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
+)
+
+import (
 	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
 )
 
@@ -13,7 +19,6 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
-	feature "github.com/963sup/line-mini-app-bot/internal/business/project"
 	child "github.com/963sup/line-mini-app-bot/internal/business/subobject"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -21,18 +26,18 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 )
 
-func itemReference(d itemDocument) feature.Reference {
+func itemReference(d itemDocument) projectDomainEntity.Reference {
 	if d.ItemStatus == "" {
 		d.ItemStatus = "todo"
 	}
-	return feature.Reference{ItemStatus: d.ItemStatus, ID: d.ID, SourceRepositoryID: d.SourceRepositoryID, SourceType: d.SourceType, SourceID: d.SourceID, ParentObjectID: d.ParentObjectID}
+	return projectDomainEntity.Reference{ItemStatus: d.ItemStatus, ID: d.ID, SourceRepositoryID: d.SourceRepositoryID, SourceType: d.SourceType, SourceID: d.SourceID, ParentObjectID: d.ParentObjectID}
 }
 
-func referenceID(pid string, r feature.Reference) string {
+func referenceID(pid string, r projectDomainEntity.Reference) string {
 	return firestorekey.JSONDigest([]string{"project-repository-reference", pid, r.SourceRepositoryID, r.SourceType, r.ParentObjectID, r.SourceID})[:32]
 }
 
-func (s *Store) checkSourceRepository(tx *db.Transaction, source feature.Source) error {
+func (s *Store) checkSourceRepository(tx *db.Transaction, source projectDomainEntity.Source) error {
 	repository, e := tx.Get(s.repositoryRef(source.ID))
 	if e != nil {
 		return e
@@ -42,30 +47,30 @@ func (s *Store) checkSourceRepository(tx *db.Transaction, source feature.Source)
 		return e
 	}
 	if repo.ID != source.ID || repo.OwnerID != source.OwnerID || repo.Status != "ACTIVE" {
-		return feature.ErrNotFound
+		return projectDomainEntity.ErrNotFound
 	}
 	return nil
 }
 
-func (s *Store) sourceReference(tx *db.Transaction, source feature.Source, ref feature.Reference) (feature.Reference, error) {
+func (s *Store) sourceReference(tx *db.Transaction, source projectDomainEntity.Source, ref projectDomainEntity.Reference) (projectDomainEntity.Reference, error) {
 	ref.SourceRepositoryID = source.ID
 	root := s.repositoryRef(source.ID)
 	if ref.SourceType == "issue" {
 		i, e := s.sourceIssue(tx, source, ref.SourceID)
 		if e != nil {
-			return feature.Reference{}, e
+			return projectDomainEntity.Reference{}, e
 		}
 		ref.SourceTitle = i.Title
 		ref.SourceState = i.State
 		return ref, nil
 	}
 	if err := s.checkSourceRepository(tx, source); err != nil {
-		return feature.Reference{}, err
+		return projectDomainEntity.Reference{}, err
 	}
 	if ref.SourceType == "discussion" {
 		snap, e := tx.Get(root.Collection("discussions").Doc(ref.SourceID))
 		if e != nil {
-			return feature.Reference{}, e
+			return projectDomainEntity.Reference{}, e
 		}
 		var d struct {
 			SchemaVersion int64  `firestore:"schemaVersion"`
@@ -74,10 +79,10 @@ func (s *Store) sourceReference(tx *db.Transaction, source feature.Source, ref f
 			Title         string `firestore:"title"`
 		}
 		if e = snap.DataTo(&d); e != nil {
-			return feature.Reference{}, e
+			return projectDomainEntity.Reference{}, e
 		}
 		if d.SchemaVersion != 1 || d.ID != ref.SourceID || d.RepositoryID != source.ID || d.Title == "" {
-			return feature.Reference{}, feature.ErrSourceUnavailable
+			return projectDomainEntity.Reference{}, projectDomainEntity.ErrSourceUnavailable
 		}
 		ref.SourceTitle = d.Title
 		return ref, nil
@@ -86,7 +91,7 @@ func (s *Store) sourceReference(tx *db.Transaction, source feature.Source, ref f
 	if ref.SourceType == "subobject" {
 		parent, e := tx.Get(collection.Doc(ref.ParentObjectID))
 		if e != nil {
-			return feature.Reference{}, e
+			return projectDomainEntity.Reference{}, e
 		}
 		var p struct {
 			ID            string `firestore:"id"`
@@ -94,16 +99,16 @@ func (s *Store) sourceReference(tx *db.Transaction, source feature.Source, ref f
 			SchemaVersion int64  `firestore:"schemaVersion"`
 		}
 		if e = parent.DataTo(&p); e != nil {
-			return feature.Reference{}, e
+			return projectDomainEntity.Reference{}, e
 		}
 		if p.ID != ref.ParentObjectID || p.RepositoryID != source.ID || p.SchemaVersion != 1 {
-			return feature.Reference{}, feature.ErrSourceUnavailable
+			return projectDomainEntity.Reference{}, projectDomainEntity.ErrSourceUnavailable
 		}
 		collection = collection.Doc(ref.ParentObjectID).Collection("subobjects")
 	}
 	snap, e := tx.Get(collection.Doc(ref.SourceID))
 	if e != nil {
-		return feature.Reference{}, e
+		return projectDomainEntity.Reference{}, e
 	}
 	var d struct {
 		SchemaVersion     int64  `firestore:"schemaVersion"`
@@ -119,31 +124,31 @@ func (s *Store) sourceReference(tx *db.Transaction, source feature.Source, ref f
 		Status            string `firestore:"status"`
 	}
 	if e = snap.DataTo(&d); e != nil {
-		return feature.Reference{}, e
+		return projectDomainEntity.Reference{}, e
 	}
 	if d.SchemaVersion != 1 || d.ID != ref.SourceID || d.RepositoryID != source.ID || d.Name == "" || d.Quantity == "" || d.Unit == "" || (ref.SourceType == "subobject" && d.ParentObjectID != ref.ParentObjectID) {
-		return feature.Reference{}, feature.ErrSourceUnavailable
+		return projectDomainEntity.Reference{}, projectDomainEntity.ErrSourceUnavailable
 	}
 
 	raw := objectDomainEntity.Content{Name: d.Name, Type: d.Type, Quantity: d.Quantity, Unit: d.Unit, CompletedQuantity: d.CompletedQuantity}
 	normalized, normalizeError := objectDomainEntity.Normalize(raw)
 	if normalizeError != nil || normalized != raw || !objectDomainEntity.ValidStatus(d.Status) {
-		return feature.Reference{}, feature.ErrSourceUnavailable
+		return projectDomainEntity.Reference{}, projectDomainEntity.ErrSourceUnavailable
 	}
 	if d.Type == objectDomainEntity.TypeWork && d.CompletedQuantity != "" {
 		derived, e := objectDomainEntity.WorkStatus(d.Quantity, d.CompletedQuantity)
 		if e != nil || derived != d.Status {
-			return feature.Reference{}, feature.ErrSourceUnavailable
+			return projectDomainEntity.Reference{}, projectDomainEntity.ErrSourceUnavailable
 		}
 	}
 	if ref.SourceType == "subobject" {
 		c := child.Content{Name: d.Name, Type: d.Type, Quantity: d.Quantity, Unit: d.Unit, CompletedQuantity: d.CompletedQuantity}
 		if _, e := child.Normalize(c); e != nil {
-			return feature.Reference{}, feature.ErrSourceUnavailable
+			return projectDomainEntity.Reference{}, projectDomainEntity.ErrSourceUnavailable
 		}
 		derived, e := child.Status(c)
 		if e != nil || derived != d.Status {
-			return feature.Reference{}, feature.ErrSourceUnavailable
+			return projectDomainEntity.Reference{}, projectDomainEntity.ErrSourceUnavailable
 		}
 	}
 	ref.SourceVersion = d.Version
@@ -156,10 +161,10 @@ func (s *Store) sourceReference(tx *db.Transaction, source feature.Source, ref f
 	return ref, nil
 }
 
-func (s *Store) ListReferences(ctx context.Context, r feature.Scope, actor, pid, token string, hydrate bool) (result feature.ReferencePage, err error) {
+func (s *Store) ListReferences(ctx context.Context, r projectApplicationPort.Scope, actor, pid, token string, hydrate bool) (result projectApplicationDto.ReferencePage, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
-		return result, feature.ErrUnavailable
+		return result, projectDomainEntity.ErrUnavailable
 	}
 	root := s.ownerDoc(r.OwnerID)
 	parent := root.Collection("projects").Doc(pid)
@@ -168,9 +173,9 @@ func (s *Store) ListReferences(ctx context.Context, r feature.Scope, actor, pid,
 	if e != nil {
 		return result, e
 	}
-	authorized := make(map[string]feature.Source)
+	authorized := make(map[string]projectDomainEntity.Source)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		result = feature.ReferencePage{Items: []feature.Reference{}}
+		result = projectApplicationDto.ReferencePage{Items: []projectDomainEntity.Reference{}}
 		if e := s.checkProjectOwner(tx, r, root); e != nil {
 			return e
 		}
@@ -192,7 +197,7 @@ func (s *Store) ListReferences(ctx context.Context, r feature.Scope, actor, pid,
 				return e
 			}
 			ref := itemReference(d)
-			selected := feature.Source{ID: r.SourceRepositoryID, OwnerID: r.OwnerID}
+			selected := projectDomainEntity.Source{ID: r.SourceRepositoryID, OwnerID: r.OwnerID}
 			allowed := hydrate
 			if ref.SourceRepositoryID != r.SourceRepositoryID {
 				allowed = false
@@ -204,7 +209,7 @@ func (s *Store) ListReferences(ctx context.Context, r feature.Scope, actor, pid,
 						return authErr
 					}
 					if authErr != nil {
-						source = feature.Source{}
+						source = projectDomainEntity.Source{}
 					}
 					authorized[ref.SourceRepositoryID] = source
 				}
@@ -240,15 +245,15 @@ func (s *Store) ListReferences(ctx context.Context, r feature.Scope, actor, pid,
 		return nil
 	}, db.ReadOnly)
 	if err != nil {
-		return feature.ReferencePage{}, err
+		return projectApplicationDto.ReferencePage{}, err
 	}
 	return result, nil
 }
 
-func (s *Store) ChangeReference(ctx context.Context, r feature.Scope, actor, pid string, ref feature.Reference, add bool, version int64) (result feature.Project, err error) {
+func (s *Store) ChangeReference(ctx context.Context, r projectApplicationPort.Scope, actor, pid string, ref projectDomainEntity.Reference, add bool, version int64) (result projectDomainEntity.Project, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
-		return result, feature.ErrUnavailable
+		return result, projectDomainEntity.ErrUnavailable
 	}
 	root := s.ownerDoc(r.OwnerID)
 	parent := root.Collection("projects").Doc(pid)
@@ -268,7 +273,7 @@ func (s *Store) ChangeReference(ctx context.Context, r feature.Scope, actor, pid
 			return e
 		}
 		if actor == "" || actor != current.CreatorID {
-			return feature.ErrForbidden
+			return projectDomainEntity.ErrForbidden
 		}
 		snap, e = tx.Get(item)
 		exists := e == nil
@@ -281,7 +286,7 @@ func (s *Store) ChangeReference(ctx context.Context, r feature.Scope, actor, pid
 				return e
 			}
 			if add && referenceID(pid, itemReference(d)) != itemID {
-				return feature.ErrUnavailable
+				return projectDomainEntity.ErrUnavailable
 			}
 		}
 		if add {
@@ -291,13 +296,13 @@ func (s *Store) ChangeReference(ctx context.Context, r feature.Scope, actor, pid
 			}
 			if _, e = tx.Get(parent.Collection("linkedRepositories").Doc(selected.ID)); e != nil {
 				if status.Code(e) == codes.NotFound {
-					return feature.ErrForbidden
+					return projectDomainEntity.ErrForbidden
 				}
 				return e
 			}
 			if _, e = s.sourceReference(tx, selected, ref); e != nil {
 				if status.Code(e) == codes.NotFound {
-					return feature.ErrInput
+					return projectDomainEntity.ErrInput
 				}
 				return e
 			}
@@ -306,11 +311,11 @@ func (s *Store) ChangeReference(ctx context.Context, r feature.Scope, actor, pid
 		if exists == add {
 			return nil
 		}
-		if e = feature.CheckUpdate(current, actor, version); e != nil {
+		if e = projectDomainEntity.CheckUpdate(current, actor, version); e != nil {
 			return e
 		}
-		if current.Version >= feature.MaxVersion {
-			return feature.ErrConflict
+		if current.Version >= projectDomainEntity.MaxVersion {
+			return projectDomainEntity.ErrConflict
 		}
 		updated := current
 		updated.Version++
@@ -323,7 +328,7 @@ func (s *Store) ChangeReference(ctx context.Context, r feature.Scope, actor, pid
 			}
 		} else {
 			if _, exists := snap.Data()["latestInspectionId"]; exists {
-				return feature.ErrInspectionHistory
+				return projectDomainEntity.ErrInspectionHistory
 			}
 			if e = tx.Delete(item); e != nil {
 				return e
@@ -338,10 +343,10 @@ func (s *Store) ChangeReference(ctx context.Context, r feature.Scope, actor, pid
 }
 
 // ReferencePresent rechecks owner and creator in the same read transaction.
-func (s *Store) ReferencePresent(ctx context.Context, r feature.Scope, actor, pid string, ref feature.Reference) (present bool, err error) {
+func (s *Store) ReferencePresent(ctx context.Context, r projectApplicationPort.Scope, actor, pid string, ref projectDomainEntity.Reference) (present bool, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
-		return false, feature.ErrUnavailable
+		return false, projectDomainEntity.ErrUnavailable
 	}
 	root := s.ownerDoc(r.OwnerID)
 	parent := root.Collection("projects").Doc(pid)
@@ -360,7 +365,7 @@ func (s *Store) ReferencePresent(ctx context.Context, r feature.Scope, actor, pi
 			return e
 		}
 		if actor == "" || current.CreatorID != actor {
-			return feature.ErrForbidden
+			return projectDomainEntity.ErrForbidden
 		}
 		snap, e = tx.Get(parent.Collection("items").Doc(id))
 		if status.Code(e) == codes.NotFound {
@@ -374,7 +379,7 @@ func (s *Store) ReferencePresent(ctx context.Context, r feature.Scope, actor, pi
 			return e
 		}
 		if ref.ID == "" && referenceID(pid, itemReference(d)) != id {
-			return feature.ErrUnavailable
+			return projectDomainEntity.ErrUnavailable
 		}
 		present = true
 		return nil

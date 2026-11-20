@@ -1,16 +1,19 @@
 package projecthttp
 
 import (
+	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
+)
+
+import (
 	"net/http"
 
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 
-	feature "github.com/963sup/line-mini-app-bot/internal/business/project"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 )
 
-func referenceView(ref feature.Reference) generated.ProjectReference {
+func referenceView(ref projectDomainEntity.Reference) generated.ProjectReference {
 	out := generated.ProjectReference{Id: ref.ID, SourceType: generated.ProjectReferenceSourceType(ref.SourceType), SourceId: ref.SourceID, SourceRepositoryId: ref.SourceRepositoryID, SourceUnavailable: ref.SourceUnavailable, SourceTitle: ref.SourceTitle, SourceState: ref.SourceState}
 	status := generated.ProjectItemStatus(ref.ItemStatus)
 	out.ItemStatus = &status
@@ -55,7 +58,7 @@ func (s *projectServer) AddProjectReference(w http.ResponseWriter, r *http.Reque
 	if !transport.ReadJSON(w, r, &input, "資料無效。") {
 		return
 	}
-	ref := feature.Reference{SourceType: string(input.SourceType), SourceID: input.SourceId}
+	ref := projectDomainEntity.Reference{SourceType: string(input.SourceType), SourceID: input.SourceId}
 	if input.SourceRepositoryId != nil {
 		ref.SourceRepositoryID = *input.SourceRepositoryId
 	}
@@ -76,7 +79,7 @@ func (s *projectServer) RemoveProjectReference(w http.ResponseWriter, r *http.Re
 }
 
 func (s *projectServer) GetProjectReferenceState(w http.ResponseWriter, r *http.Request, ownerID, pid string, p generated.GetProjectReferenceStateParams) {
-	ref := feature.Reference{}
+	ref := projectDomainEntity.Reference{}
 	if p.ItemId != nil {
 		ref.ID = *p.ItemId
 	}

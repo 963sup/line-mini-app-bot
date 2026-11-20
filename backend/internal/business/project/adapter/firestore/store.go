@@ -1,6 +1,12 @@
 package firestore
 
 import (
+	projectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/project/application/dto"
+	projectApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/project/application/port"
+	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
+)
+
+import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -12,7 +18,6 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 
 	db "cloud.google.com/go/firestore"
-	feature "github.com/963sup/line-mini-app-bot/internal/business/project"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -40,33 +45,33 @@ type (
 	}
 )
 
-func encodeProject(i feature.Project) projectDocument {
+func encodeProject(i projectDomainEntity.Project) projectDocument {
 	return projectDocument{SchemaVersion: 1, ID: i.ID, OwnerID: i.OwnerID, DefaultRepositoryID: i.DefaultRepositoryID, Title: i.Title, Body: i.Body, CreatorID: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
 }
 
 // Repository-scoped API callers additionally
 // restrict results to projects created with that default repository.
-func (d projectDocument) belongsTo(scope feature.Scope) bool {
-	return identity.ValidOwner(d.OwnerID) && d.OwnerID == scope.OwnerID && feature.ValidID(d.DefaultRepositoryID) &&
+func (d projectDocument) belongsTo(scope projectApplicationPort.Scope) bool {
+	return identity.ValidOwner(d.OwnerID) && d.OwnerID == scope.OwnerID && projectDomainEntity.ValidID(d.DefaultRepositoryID) &&
 		(!scope.Legacy || scope.SourceRepositoryID == "" || scope.SourceRepositoryID == d.DefaultRepositoryID)
 }
 
-func decodeProject(snap *db.DocumentSnapshot, err error, scope feature.Scope) (feature.Project, error) {
+func decodeProject(snap *db.DocumentSnapshot, err error, scope projectApplicationPort.Scope) (projectDomainEntity.Project, error) {
 	if status.Code(err) == codes.NotFound {
-		return feature.Project{}, feature.ErrNotFound
+		return projectDomainEntity.Project{}, projectDomainEntity.ErrNotFound
 	}
 	if err != nil {
-		return feature.Project{}, err
+		return projectDomainEntity.Project{}, err
 	}
 	var d projectDocument
 	if e := snap.DataTo(&d); e != nil {
-		return feature.Project{}, e
+		return projectDomainEntity.Project{}, e
 	}
-	c, e := feature.Normalize(feature.Content{Title: d.Title, Body: d.Body})
-	if e != nil || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !feature.ValidID(d.ID) || !d.belongsTo(scope) || c.Title != d.Title || c.Body != d.Body || d.CreatorID == "" || d.Version < 1 || d.Version > feature.MaxVersion || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) {
-		return feature.Project{}, feature.ErrUnavailable
+	c, e := projectDomainEntity.Normalize(projectDomainEntity.Content{Title: d.Title, Body: d.Body})
+	if e != nil || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !projectDomainEntity.ValidID(d.ID) || !d.belongsTo(scope) || c.Title != d.Title || c.Body != d.Body || d.CreatorID == "" || d.Version < 1 || d.Version > projectDomainEntity.MaxVersion || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) {
+		return projectDomainEntity.Project{}, projectDomainEntity.ErrUnavailable
 	}
-	return feature.Project{ID: d.ID, DefaultRepositoryID: d.DefaultRepositoryID, OwnerID: d.OwnerID, Title: d.Title, Body: d.Body, CreatorID: d.CreatorID, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
+	return projectDomainEntity.Project{ID: d.ID, DefaultRepositoryID: d.DefaultRepositoryID, OwnerID: d.OwnerID, Title: d.Title, Body: d.Body, CreatorID: d.CreatorID, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
 }
 
 func (s *Store) ownerDoc(id string) *db.DocumentRef {
@@ -82,17 +87,17 @@ func (s *Store) repositoryRef(id string) *db.DocumentRef {
 }
 
 func (s *Store) ready() bool { return s != nil && s.Client != nil && s.ChannelID != "" }
-func (s *Store) checkProjectOwner(tx *db.Transaction, r feature.Scope, parent *db.DocumentRef) error {
+func (s *Store) checkProjectOwner(tx *db.Transaction, r projectApplicationPort.Scope, parent *db.DocumentRef) error {
 	if identity.IsUserOwnerID(r.OwnerID) {
 		if r.OwnerID != r.Actor {
-			return feature.ErrForbidden
+			return projectDomainEntity.ErrForbidden
 		}
 		return nil
 	}
 	snap, e := tx.Get(parent)
 	if e != nil {
 		if status.Code(e) == codes.NotFound {
-			return feature.ErrNotFound
+			return projectDomainEntity.ErrNotFound
 		}
 		return e
 	}
@@ -104,10 +109,10 @@ func (s *Store) checkProjectOwner(tx *db.Transaction, r feature.Scope, parent *d
 		return e
 	}
 	if d.Status != "ACTIVE" || d.Version < 1 {
-		return feature.ErrNotFound
+		return projectDomainEntity.ErrNotFound
 	}
 	if d.ID != r.OwnerID || d.GroupID != r.OwnerID {
-		return feature.ErrNotFound
+		return projectDomainEntity.ErrNotFound
 	}
 	return nil
 }
@@ -115,18 +120,18 @@ func (s *Store) checkProjectOwner(tx *db.Transaction, r feature.Scope, parent *d
 func applyListCursor(q db.Query, token string, scope any) (db.Query, error) {
 	if token != "" {
 		last, ok := firestorekey.DecodeCursor(token, scope)
-		if !ok || !feature.ValidID(last) {
-			return q, feature.ErrInput
+		if !ok || !projectDomainEntity.ValidID(last) {
+			return q, projectDomainEntity.ErrInput
 		}
 		q = q.StartAfter(last)
 	}
 	return q.Limit(21), nil
 }
 
-func (s *Store) Get(ctx context.Context, r feature.Scope, id string) (result feature.Project, err error) {
+func (s *Store) Get(ctx context.Context, r projectApplicationPort.Scope, id string) (result projectDomainEntity.Project, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
-		return result, feature.ErrUnavailable
+		return result, projectDomainEntity.ErrUnavailable
 	}
 	parent := s.ownerDoc(r.OwnerID)
 	snap, e := parent.Collection("projects").Doc(id).Get(ctx)
@@ -145,11 +150,11 @@ func (s *Store) Get(ctx context.Context, r feature.Scope, id string) (result fea
 	return
 }
 
-func (s *Store) List(ctx context.Context, r feature.Scope, actor, token string) (result feature.Page, err error) {
+func (s *Store) List(ctx context.Context, r projectApplicationPort.Scope, actor, token string) (result projectApplicationDto.Page, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
-	result.Items = []feature.Project{}
+	result.Items = []projectDomainEntity.Project{}
 	if !s.ready() {
-		return result, feature.ErrUnavailable
+		return result, projectDomainEntity.ErrUnavailable
 	}
 	parent := s.ownerDoc(r.OwnerID)
 	scope := []string{s.ChannelID, r.OwnerID, actor}
@@ -173,7 +178,7 @@ func (s *Store) List(ctx context.Context, r feature.Scope, actor, token string) 
 		decodeScope.SourceRepositoryID = ""
 		i, e := decodeProject(snap, nil, decodeScope)
 		if e != nil {
-			return feature.Page{}, e
+			return projectApplicationDto.Page{}, e
 		}
 		if r.Legacy && i.DefaultRepositoryID != r.SourceRepositoryID {
 			continue
@@ -192,10 +197,10 @@ type projectReceipt struct {
 	SchemaVersion int64  `firestore:"schemaVersion"`
 }
 
-func (s *Store) Create(ctx context.Context, r feature.Scope, actor, key string, c feature.Content) (result feature.Project, err error) {
+func (s *Store) Create(ctx context.Context, r projectApplicationPort.Scope, actor, key string, c projectDomainEntity.Content) (result projectDomainEntity.Project, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
-		return result, feature.ErrUnavailable
+		return result, projectDomainEntity.ErrUnavailable
 	}
 	var random [16]byte
 	if _, e := rand.Read(random[:]); e != nil {
@@ -214,7 +219,7 @@ func (s *Store) Create(ctx context.Context, r feature.Scope, actor, key string, 
 		if e := s.checkProjectOwner(tx, r, parent); e != nil {
 			return e
 		}
-		if e := s.checkSourceRepository(tx, feature.Source{ID: r.SourceRepositoryID, OwnerID: r.OwnerID}); e != nil {
+		if e := s.checkSourceRepository(tx, projectDomainEntity.Source{ID: r.SourceRepositoryID, OwnerID: r.OwnerID}); e != nil {
 			return e
 		}
 		snap, e := tx.Get(receipt)
@@ -223,11 +228,11 @@ func (s *Store) Create(ctx context.Context, r feature.Scope, actor, key string, 
 			if e := snap.DataTo(&d); e != nil {
 				return e
 			}
-			if d.SchemaVersion != 1 || !feature.ValidID(d.ID) {
-				return feature.ErrUnavailable
+			if d.SchemaVersion != 1 || !projectDomainEntity.ValidID(d.ID) {
+				return projectDomainEntity.ErrUnavailable
 			}
 			if d.PayloadHash != payload {
-				return feature.ErrCreationConflict
+				return projectDomainEntity.ErrCreationConflict
 			}
 			id = d.ID
 			return nil
@@ -235,7 +240,7 @@ func (s *Store) Create(ctx context.Context, r feature.Scope, actor, key string, 
 		if status.Code(e) != codes.NotFound {
 			return e
 		}
-		i := feature.Project{ID: id, DefaultRepositoryID: r.SourceRepositoryID, OwnerID: r.OwnerID, Title: c.Title, Body: c.Body, CreatorID: actor, Version: 1, CreatedAt: now, UpdatedAt: now}
+		i := projectDomainEntity.Project{ID: id, DefaultRepositoryID: r.SourceRepositoryID, OwnerID: r.OwnerID, Title: c.Title, Body: c.Body, CreatorID: actor, Version: 1, CreatedAt: now, UpdatedAt: now}
 		if e := tx.Create(parent.Collection("projects").Doc(id), encodeProject(i)); e != nil {
 			return e
 		}
@@ -257,7 +262,7 @@ type projectChange struct {
 	Action  string    `firestore:"action"`
 }
 
-func writeProjectChange(tx *db.Transaction, ref *db.DocumentRef, current, result feature.Project, actor, action string) error {
+func writeProjectChange(tx *db.Transaction, ref *db.DocumentRef, current, result projectDomainEntity.Project, actor, action string) error {
 	if result.Version == current.Version {
 		return nil
 	}
@@ -271,10 +276,10 @@ func writeProjectChange(tx *db.Transaction, ref *db.DocumentRef, current, result
 	return tx.Create(ref.Collection("changes").Doc(strconv.FormatInt(result.Version, 10)), projectChange{actor, result.Version, result.UpdatedAt, action})
 }
 
-func (s *Store) Update(ctx context.Context, r feature.Scope, actor, id string, input feature.Update) (result feature.Project, err error) {
+func (s *Store) Update(ctx context.Context, r projectApplicationPort.Scope, actor, id string, input projectDomainEntity.Update) (result projectDomainEntity.Project, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
-		return result, feature.ErrUnavailable
+		return result, projectDomainEntity.ErrUnavailable
 	}
 	if r.SourceRepositoryID == "" {
 		value, e := s.Get(ctx, r, id)
@@ -294,7 +299,7 @@ func (s *Store) Update(ctx context.Context, r feature.Scope, actor, id string, i
 		if e != nil {
 			return e
 		}
-		updated, e := feature.ApplyUpdate(current, actor, input)
+		updated, e := projectDomainEntity.ApplyUpdate(current, actor, input)
 		if e != nil {
 			return e
 		}
@@ -302,7 +307,7 @@ func (s *Store) Update(ctx context.Context, r feature.Scope, actor, id string, i
 			item := ref.Collection("items").Doc(input.ItemID)
 			snap, err := tx.Get(item)
 			if status.Code(err) == codes.NotFound {
-				return feature.ErrNotFound
+				return projectDomainEntity.ErrNotFound
 			}
 			if err != nil {
 				return err
@@ -312,8 +317,8 @@ func (s *Store) Update(ctx context.Context, r feature.Scope, actor, id string, i
 				return err
 			}
 			if itemReference(doc).ItemStatus != input.ItemStatus {
-				if current.Version >= feature.MaxVersion {
-					return feature.ErrConflict
+				if current.Version >= projectDomainEntity.MaxVersion {
+					return projectDomainEntity.ErrConflict
 				}
 				if err := tx.Update(item, []db.Update{{Path: "itemStatus", Value: input.ItemStatus}}); err != nil {
 					return err
@@ -333,8 +338,8 @@ func (s *Store) Update(ctx context.Context, r feature.Scope, actor, id string, i
 				return err
 			}
 			if exists != add {
-				if current.Version >= feature.MaxVersion {
-					return feature.ErrConflict
+				if current.Version >= projectDomainEntity.MaxVersion {
+					return projectDomainEntity.ErrConflict
 				}
 				if add {
 					repo, err := tx.Get(s.repositoryRef(linkID))
@@ -346,7 +351,7 @@ func (s *Store) Update(ctx context.Context, r feature.Scope, actor, id string, i
 						return err
 					}
 					if src.ID != linkID || src.OwnerID != r.SelectedSource.OwnerID || src.Status != "ACTIVE" {
-						return feature.ErrForbidden
+						return projectDomainEntity.ErrForbidden
 					}
 					if err := tx.Create(link, map[string]string{"repositoryId": linkID}); err != nil {
 						return err
