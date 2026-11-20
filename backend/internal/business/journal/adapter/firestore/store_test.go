@@ -14,7 +14,9 @@ import (
 	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
 	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
-	"github.com/963sup/line-mini-app-bot/internal/business/journal"
+
+	journaldto "github.com/963sup/line-mini-app-bot/internal/business/journal/application/dto"
+	journalentity "github.com/963sup/line-mini-app-bot/internal/business/journal/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	repodb "github.com/963sup/line-mini-app-bot/internal/business/repository/firestore"
 )
@@ -47,7 +49,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 		t.Fatal(e)
 	}
 	store := Store{Client: client, Channel: channel, Groups: &groupquery.Service{Store: groups, Membership: membership{}}}
-	draft := journal.Draft{GroupID: g, WorkDate: time.Date(2026, 11, 18, 0, 0, 0, 0, time.UTC), Today: []journal.Work{{Name: "鋪設", Percent: 40}}}
+	draft := journalentity.Draft{GroupID: g, WorkDate: time.Date(2026, 11, 18, 0, 0, 0, 0, time.UTC), Today: []journalentity.Work{{Name: "鋪設", Percent: 40}}}
 	entry, e := store.Create(ctx, "writer", "key", draft)
 	if e != nil {
 		t.Fatal(e)
@@ -57,13 +59,13 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 		t.Fatalf("replay: %v", e)
 	}
 	draft.Today[0].Percent = 41
-	if _, e := store.Create(ctx, "writer", "key", draft); !errors.Is(e, journal.ErrConflict) {
+	if _, e := store.Create(ctx, "writer", "key", draft); !errors.Is(e, journalentity.ErrConflict) {
 		t.Fatalf("expected conflict: %v", e)
 	}
-	if _, e := store.Get(ctx, "outsider", entry.ID); !errors.Is(e, journal.ErrNotFound) {
+	if _, e := store.Get(ctx, "outsider", entry.ID); !errors.Is(e, journalentity.ErrNotFound) {
 		t.Fatalf("unauthorized detail: %v", e)
 	}
-	if _, e := store.Create(ctx, "outsider", "other", draft); !errors.Is(e, journal.ErrNotFound) {
+	if _, e := store.Create(ctx, "outsider", "other", draft); !errors.Is(e, journalentity.ErrNotFound) {
 		t.Fatalf("unauthorized write: %v", e)
 	}
 	for i := 0; i < 20; i++ {
@@ -71,7 +73,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 			t.Fatal(e)
 		}
 	}
-	f := journal.Filter{WorkDate: "2026-11-18"}
+	f := journaldto.Filter{WorkDate: "2026-11-18"}
 	p, e := store.List(ctx, "writer", f)
 	if e != nil || len(p.Items) != 20 || p.NextCursor == "" {
 		t.Fatalf("page: %d %v", len(p.Items), e)
@@ -82,7 +84,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 		t.Fatalf("continuation: %d %v", len(p.Items), e)
 	}
 	f.GroupID = g
-	if _, e := store.List(ctx, "writer", f); !errors.Is(e, journal.ErrInput) {
+	if _, e := store.List(ctx, "writer", f); !errors.Is(e, journalentity.ErrInput) {
 		t.Fatalf("filter changed: %v", e)
 	}
 
@@ -94,7 +96,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 		t.Fatal(e)
 	}
 	store.Repositories = &repository.Service{Store: &repodb.Store{Client: client, ChannelID: channel}, Membership: membership{}}
-	draft.Today[0].Reference = &journal.Reference{Kind: "repository", ID: rid}
+	draft.Today[0].Reference = &journalentity.Reference{Kind: "repository", ID: rid}
 	objectID, childID, spaceID := strings.Repeat("c", 32), strings.Repeat("d", 32), strings.Repeat("e", 32)
 	object := repo.Collection("objects").Doc(objectID)
 	child := object.Collection("subobjects").Doc(childID)
@@ -109,12 +111,12 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 		}
 	}
 	draft.Today[0].ObjectID, draft.Today[0].SubobjectID, draft.Today[0].SpaceIDs = objectID, childID, []string{spaceID}
-	draft.Tomorrow = []journal.Work{{Name: "明日工作", Percent: 60, Reference: &journal.Reference{Kind: "repository", ID: rid}, ObjectID: objectID, SpaceIDs: []string{spaceID}}}
+	draft.Tomorrow = []journalentity.Work{{Name: "明日工作", Percent: 60, Reference: &journalentity.Reference{Kind: "repository", ID: rid}, ObjectID: objectID, SpaceIDs: []string{spaceID}}}
 	linked, e := store.Create(ctx, "writer", "linked", draft)
 	if e != nil {
 		t.Fatal(e)
 	}
-	assertSnapshot := func(entry journal.Entry) {
+	assertSnapshot := func(entry journalentity.Entry) {
 		t.Helper()
 		if len(entry.Today) != 1 || len(entry.Tomorrow) != 1 {
 			t.Fatalf("missing work rows: %+v", entry)
@@ -164,16 +166,16 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	}
 	for _, tc := range []struct {
 		name string
-		row  journal.Work
+		row  journalentity.Work
 		want error
 	}{
-		{"wrong-group", journal.Work{Reference: &journal.Reference{Kind: "repository", ID: otherRepo.ID}, ObjectID: objectID}, journal.ErrNotFound},
-		{"wrong-parent", journal.Work{Reference: &journal.Reference{Kind: "repository", ID: rid}, ObjectID: objectID, SubobjectID: wrongParent.ID}, journal.ErrNotFound},
-		{"duplicate-spaces", journal.Work{Reference: &journal.Reference{Kind: "repository", ID: rid}, SpaceIDs: []string{spaceID, spaceID}}, journal.ErrInput},
-		{"missing-space", journal.Work{Reference: &journal.Reference{Kind: "repository", ID: rid}, ObjectID: objectID, SpaceIDs: []string{strings.Repeat("4", 32)}}, journal.ErrNotFound},
+		{"wrong-group", journalentity.Work{Reference: &journalentity.Reference{Kind: "repository", ID: otherRepo.ID}, ObjectID: objectID}, journalentity.ErrNotFound},
+		{"wrong-parent", journalentity.Work{Reference: &journalentity.Reference{Kind: "repository", ID: rid}, ObjectID: objectID, SubobjectID: wrongParent.ID}, journalentity.ErrNotFound},
+		{"duplicate-spaces", journalentity.Work{Reference: &journalentity.Reference{Kind: "repository", ID: rid}, SpaceIDs: []string{spaceID, spaceID}}, journalentity.ErrInput},
+		{"missing-space", journalentity.Work{Reference: &journalentity.Reference{Kind: "repository", ID: rid}, ObjectID: objectID, SpaceIDs: []string{strings.Repeat("4", 32)}}, journalentity.ErrNotFound},
 	} {
 		invalid := draft
-		invalid.Today = []journal.Work{tc.row}
+		invalid.Today = []journalentity.Work{tc.row}
 		if _, e := store.Create(ctx, "writer", tc.name, invalid); !errors.Is(e, tc.want) {
 			t.Fatalf("%s: got %v, want %v", tc.name, e, tc.want)
 		}
@@ -199,7 +201,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 			t.Fatalf("unreadable source leaked selection or names: %+v", row)
 		}
 	}
-	if _, e := store.Create(ctx, "writer", "denied-source", draft); !errors.Is(e, journal.ErrNotFound) {
+	if _, e := store.Create(ctx, "writer", "denied-source", draft); !errors.Is(e, journalentity.ErrNotFound) {
 		t.Fatalf("inactive source: %v", e)
 	}
 }

@@ -33,7 +33,7 @@ flowchart LR
 | Context／Decision | 發布交易讀取所選資料與儲存庫狀態；缺少來源或跨庫引用拒絕整篇發布，不新增日誌及收據。 |
 | Result | 保存選取的 ID 與當時的工作對象名稱、空間名稱。日後改名或移動不改寫歷史；來源失權時連同這些欄位一併隱藏。日誌不更新來源進度。 |
 | 重送／併發 | 原發布鍵與輸入內容決定收據；重試回原日誌，不重新計算名稱快照。空間建立沿用既有防重 API。 |
-| Audit／實作 | 日誌保留作者及時間；[後端交易](../../../backend/internal/business/journal/firestore/store.go)、[前端選取](../../../frontend/miniapp/src/business/journal/WorkContext.tsx)及[API 契約](../../../api/contract/journal/journals.yaml)。 |
+| Audit／實作 | 日誌保留作者及時間；[後端交易](../../../backend/internal/business/journal/adapter/firestore/store.go)、[前端選取](../../../frontend/miniapp/src/business/journal/WorkContext.tsx)及[API 契約](../../../api/contract/journal/journals.yaml)。 |
 
 驗證沿用既有前端、Go 與 API 檢查。正式 Firestore 與 LINE 裝置驗收另行記錄。
 

@@ -23,7 +23,7 @@ import (
 
 	wikihttp "github.com/963sup/line-mini-app-bot/internal/business/repository/wiki/http"
 
-	journalhttp "github.com/963sup/line-mini-app-bot/internal/business/journal/http"
+	journalhttp "github.com/963sup/line-mini-app-bot/internal/business/journal/adapter/http"
 
 	"github.com/963sup/line-mini-app-bot/internal/browser"
 	attendancehttp "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/http"

@@ -3,13 +3,14 @@ package server
 import (
 	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
 	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
-	"github.com/963sup/line-mini-app-bot/internal/business/journal"
-	journaldb "github.com/963sup/line-mini-app-bot/internal/business/journal/firestore"
+
+	journaldb "github.com/963sup/line-mini-app-bot/internal/business/journal/adapter/firestore"
+	journalport "github.com/963sup/line-mini-app-bot/internal/business/journal/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/business/project"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
-func newJournals(groups *groupquery.Service, repositories *repository.Service, projects *project.Service) journal.Operations {
+func newJournals(groups *groupquery.Service, repositories *repository.Service, projects *project.Service) journalport.Operations {
 	if groups == nil || repositories == nil || projects == nil {
 		return nil
 	}
