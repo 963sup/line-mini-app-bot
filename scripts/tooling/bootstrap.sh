@@ -30,11 +30,11 @@ if [[ "$mode" != mcp ]]; then
   mise exec -- pnpm install --frozen-lockfile
   mise run doctor
 fi
+mise run install-mermaid
 if [[ "$mode" == cloud ]]; then
   bash scripts/tooling/go-tool.sh mod download
   exit 0
 fi
-mise run install-mermaid
 if [[ "$mode" == mcp || "$mode" == all ]]; then
   mise run install-mcp
   mise run install-cloud

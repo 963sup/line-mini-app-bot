@@ -2,7 +2,7 @@
 
 ## Codex Cloud 環境設定
 
-在環境編輯頁，將 **Setup script** 和 **Maintenance script** 都設為以下命令。首次建立容器時會安裝固定版本的 Go 與 Web 工具、依鎖檔安裝 pnpm 套件並下載後端 Go modules。恢復快取時，同一命令會依目前 checkout 重新核對依賴，沿用已下載的工具和套件。圖表、MCP 與部署工具按任務另行安裝。
+在環境編輯頁，將 **Setup script** 和 **Maintenance script** 都設為以下命令。首次建立容器時會安裝固定版本的 Go 與 Web 工具、依鎖檔安裝 pnpm 套件並下載後端 Go modules。恢復快取時，同一命令會依目前 checkout 重新核對依賴，沿用已下載的工具和套件。初始化也會安裝本機 Mermaid v13 CLI；MCP 與部署工具按任務另行安裝。
 
 ```bash
 bash scripts/tooling/bootstrap.sh cloud

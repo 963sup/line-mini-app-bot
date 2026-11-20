@@ -96,7 +96,7 @@ config_file = "agents/mermaid.toml"
 [mcp_servers.mermaid]
 url = "https://mcp.mermaid.ai/mcp"
 bearer_token_env_var = "MERMAID_TOKEN"
-enabled = true
+enabled = false
 required = false
 startup_timeout_sec = 30
 tool_timeout_sec = 60
