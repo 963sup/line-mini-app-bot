@@ -7,7 +7,7 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/enterprise/application/command"
 	"github.com/963sup/line-mini-app-bot/internal/business/enterprise/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/business/enterprise/application/query"
-	"github.com/963sup/line-mini-app-bot/internal/business/internal/orghttp"
+	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/http"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 )
 

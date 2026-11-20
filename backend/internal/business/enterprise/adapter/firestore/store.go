@@ -14,7 +14,7 @@ import (
 	groupport "github.com/963sup/line-mini-app-bot/internal/business/group/application/port"
 	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/business/internal/orgstore"
+	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/organization"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"github.com/google/uuid"

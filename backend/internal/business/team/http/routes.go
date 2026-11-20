@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/internal/orghttp"
+	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/http"
 	"github.com/963sup/line-mini-app-bot/internal/business/team"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 )
