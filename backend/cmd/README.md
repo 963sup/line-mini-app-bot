@@ -10,13 +10,13 @@
 
 ## 閱讀與修改入口
 
-先查閱[attendancemigrate](attendancemigrate)、[firestorecheck](firestorecheck)、[projectmigrate](projectmigrate)、[richmenu](richmenu)、[本目錄工作指引](AGENTS.md)。
+先查閱[firestorecheck](firestorecheck)、[projectmigrate](projectmigrate)、[richmenu](richmenu)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 
 [現行實作圖：格式與資料相容](../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
 
 
-從 [attendancemigrate](attendancemigrate)、[firestorecheck](firestorecheck)、[projectmigrate](projectmigrate)、[richmenu](richmenu)、[server](server) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
+從 [firestorecheck](firestorecheck)、[projectmigrate](projectmigrate)、[richmenu](richmenu)、[server](server) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：格式與資料相容](../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../../docs/diagrams.md#未來設計)

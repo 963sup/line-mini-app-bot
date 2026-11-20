@@ -3,7 +3,6 @@ package firestore
 import (
 	"context"
 	"fmt"
-	"sort"
 	"time"
 
 	db "cloud.google.com/go/firestore"
@@ -213,16 +212,8 @@ func (s *Attendance) executePunchRequest(ctx context.Context, command punchComma
 	return s.executePunch(ctx, command)
 }
 
-// Groups retains legacy reads until the offline query migration completes.
 func (s *Attendance) Groups(ctx context.Context, user string) (_ []string, err error) {
 	defer func() { err = translateError(err, nil) }()
-	mode, err := s.QueryMode(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if mode == "legacy" {
-		return s.legacyGroups(ctx, user)
-	}
 	groups := []string{}
 	cursor := ""
 	for {
@@ -238,71 +229,21 @@ func (s *Attendance) Groups(ctx context.Context, user string) (_ []string, err e
 	}
 }
 
-// legacyGroups is the explicitly temporary compatibility path, with historical read cost.
-func (s *Attendance) legacyGroups(ctx context.Context, user string) ([]string, error) {
-	docs, err := s.user(user).Collection("attendance").Select("groupID").Documents(ctx).GetAll()
-	if err != nil {
-		return nil, err
-	}
-	seen := map[string]bool{}
-	for _, doc := range docs {
-		if group, ok := doc.Data()["groupID"].(string); ok && group != "" {
-			seen[group] = true
-		}
-	}
-	groups := make([]string, 0, len(seen))
-	for group := range seen {
-		groups = append(groups, group)
-	}
-	sort.Strings(groups)
-	return groups, nil
-}
-
 func (s *Attendance) RecentGroup(ctx context.Context, user, group string) (_ []recordmodel.Record, err error) {
 	defer func() { err = translateError(err, nil) }()
-	mode, err := s.QueryMode(ctx)
+	docs, err := s.user(user).Collection("attendance").Where("groupID", "==", group).OrderBy("clockInAt", db.Desc).OrderBy(db.DocumentID, db.Desc).Limit(5).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, err
 	}
-	if mode == "indexed" {
-		docs, err := s.user(user).Collection("attendance").Where("groupID", "==", group).OrderBy("clockInAt", db.Desc).OrderBy(db.DocumentID, db.Desc).Limit(5).Documents(ctx).GetAll()
-		if err != nil {
-			return nil, err
-		}
-		return decodeAttendance(docs)
-	}
-	records, err := s.legacyGroupRecords(ctx, user, group)
-	if len(records) > 5 {
-		records = records[:5]
-	}
-	return records, err
+	return decodeAttendance(docs)
 }
 
 // RecordsOverlappingMonth includes every shift overlapping the reporting period, including open shifts.
 func (s *Attendance) RecordsOverlappingMonth(ctx context.Context, user, group string, start time.Time) (_ []recordmodel.Record, err error) {
 	defer func() { err = translateError(err, nil) }()
-	mode, err := s.QueryMode(ctx)
+	records, err := s.monthCandidates(ctx, user, group, start)
 	if err != nil {
 		return nil, err
-	}
-	var records []recordmodel.Record
-	if mode == "legacy" {
-		records, err = s.legacyGroupRecords(ctx, user, group)
-		if err != nil {
-			return nil, err
-		}
-		relevant := []recordmodel.Record{}
-		for _, r := range records {
-			if overlapsMonth(r, start) {
-				relevant = append(relevant, r)
-			}
-		}
-		records = relevant
-	} else {
-		records, err = s.monthCandidates(ctx, user, group, start)
-		if err != nil {
-			return nil, err
-		}
 	}
 	records, err = s.verifyAndRebuildRecords(ctx, user, group, records)
 	if err != nil {
@@ -389,27 +330,6 @@ func (s *Attendance) verifyAndRebuildRecords(ctx context.Context, user, group st
 		record.SourceEventIDs = rebuilt.EventIDs
 		record.BreakStartedAt = time.Time{}
 	}
-	return records, nil
-}
-
-func (s *Attendance) legacyGroupRecords(ctx context.Context, user, group string) ([]recordmodel.Record, error) {
-	// Equality-only query preserves existing data without a new composite index.
-	docs, err := readQuery(ctx, s.user(user).Collection("attendance").Where("groupID", "==", group).OrderBy(db.DocumentID, db.Asc))
-	if err != nil {
-		return nil, err
-	}
-	records := make([]recordmodel.Record, 0, len(docs))
-	for _, doc := range docs {
-		var record recordmodel.Record
-		if err := decodeRecord(doc, &record); err != nil {
-			return nil, err
-		}
-		if record.RecordID == "" {
-			record.RecordID = doc.Ref.ID
-		}
-		records = append(records, record)
-	}
-	sort.Slice(records, func(i, j int) bool { return records[i].ClockInAt.After(records[j].ClockInAt) })
 	return records, nil
 }
 

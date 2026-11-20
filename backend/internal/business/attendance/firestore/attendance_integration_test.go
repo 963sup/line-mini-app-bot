@@ -32,10 +32,18 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 		}
 	}()
 	s := &Attendance{Client: client, ChannelID: fmt.Sprintf("closure-%d", time.Now().UnixNano())}
+	empty, err := s.GroupsPage(ctx, "employee", "", 10)
+	if err != nil || empty.QueryMode != "indexed" || len(empty.Items) != 0 {
+		t.Fatalf("fresh channel: %+v %v", empty, err)
+	}
 	zone := time.FixedZone("Taipei", 28800)
 	start := time.Date(2026, 11, 2, 9, 0, 0, 0, zone)
 	if _, err := s.Punch(ctx, "group", "employee", "in", "clock-in", start, 1); err != nil {
 		t.Fatal(err)
+	}
+	groups, err := s.Groups(ctx, "employee")
+	if err != nil || len(groups) != 1 || groups[0] != "group" {
+		t.Fatalf("first punch groups: %v %v", groups, err)
 	}
 	month := time.Date(2026, 11, 1, 0, 0, 0, 0, zone)
 	records, err := s.RecordsOverlappingMonth(ctx, "employee", "group", month)
@@ -127,8 +135,6 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if report := recordmodel.CalculateMonthlyAttendance(records, month); report.Calculation.ConfirmedNetMinutes != 0 || report.Calculation.Pending != 1 {
 		t.Fatalf("corrupt approval counted: %+v", report)
 	}
-	// Extend the existing round trip through the staged legacy-to-indexed rollout.
-	// These fixtures deliberately have missing parent user documents and legacy query metadata.
 	sameTime := month.Add(10 * time.Hour)
 	fixtures := map[string]recordmodel.Record{
 		"legacy-a":          {GroupID: "group", SchemaVersion: 2, ClockInAt: sameTime, ClockOutAt: sameTime.Add(time.Hour), RestConfirmed: true},
@@ -141,48 +147,12 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 		"other-group":       {GroupID: "group-b", SchemaVersion: 2, ClockInAt: sameTime, ClockOutAt: sameTime.Add(time.Hour)},
 	}
 	for id, r := range fixtures {
+		r.IsOpen = r.ClockOutAt.IsZero()
 		if _, err := s.user("employee").Collection("attendance").Doc(id).Set(ctx, recordDocumentFrom(r)); err != nil {
 			t.Fatal(err)
 		}
 	}
-	var dry QueryMigration
-	for !dry.Complete {
-		dry, err = s.MigrateQueryBatch(ctx, dry, false)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-	mode, err := s.QueryMode(ctx)
-	if err != nil || mode != "legacy" {
-		t.Fatalf("dry-run activated reads: %s %v", mode, err)
-	}
-	var applied QueryMigration
-	for !applied.Complete {
-		applied, err = s.MigrateQueryBatch(ctx, applied, true)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-	mode, err = s.QueryMode(ctx)
-	if err != nil || mode != "legacy" {
-		t.Fatalf("backfill activated reads without confirmation: %s %v", mode, err)
-	}
-	legacyIDs := []string{}
-	legacyCursor := ""
-	for {
-		page, e := s.RecordsPage(ctx, "employee", "group", month, legacyCursor, 1)
-		if e != nil {
-			t.Fatal(e)
-		}
-		for _, r := range page.Items {
-			legacyIDs = append(legacyIDs, r.RecordID)
-		}
-		if page.NextCursor == "" {
-			break
-		}
-		legacyCursor = page.NextCursor
-	}
-	if err := s.ActivateQueries(ctx, applied); err != nil {
+	if _, err := s.user("employee").Collection("attendanceGroups").Doc(firestorekey.Encode("group-b")).Set(ctx, map[string]any{"groupID": "group-b"}); err != nil {
 		t.Fatal(err)
 	}
 	page, err := s.GroupsPage(ctx, "employee", "", 1)
@@ -194,7 +164,6 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 		t.Fatalf("groups next page: %+v %v", next, err)
 	}
 	seen := map[string]bool{}
-	indexedIDs := []string{}
 	cursor := ""
 	for {
 		page, err := s.RecordsPage(ctx, "employee", "group", month, cursor, 1)
@@ -205,7 +174,6 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 			t.Fatalf("repeated or missing record: %+v", page)
 		}
 		seen[page.Items[0].RecordID] = true
-		indexedIDs = append(indexedIDs, page.Items[0].RecordID)
 		if page.NextCursor == "" {
 			break
 		}
@@ -216,9 +184,6 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	}
 	if _, err := s.RecordsPage(ctx, "another-employee", "group", month, cursor, 1); err != recordmodel.ErrInvalidCursor {
 		t.Fatalf("cross-user cursor accepted: %v", err)
-	}
-	if fmt.Sprint(legacyIDs) != fmt.Sprint(indexedIDs) {
-		t.Fatalf("legacy/indexed order mismatch: %v / %v", legacyIDs, indexedIDs)
 	}
 	indexed, err := s.RecordsOverlappingMonth(ctx, "employee", "group", month)
 	if err != nil || len(indexed) != len(seen) {
