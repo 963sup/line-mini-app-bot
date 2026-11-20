@@ -3,6 +3,8 @@ package server
 import (
 	"context"
 	"errors"
+	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/firestore"
+	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/firestore"
 	"log/slog"
 	"net"
 	"net/http"
@@ -128,9 +130,12 @@ func Run() (resultErr error) {
 	organizationHandler := organizationhttp.Handler{Auth: auth}
 	if sessions != nil {
 		if db, ok := sessions.Store.(*sessiondb.Store); ok && os.Getenv("LINE_MESSAGING_API_CHANNEL_ID") != "" {
-			store := organizationdb.Store{DB: db.Client, Channel: os.Getenv("LINE_MESSAGING_API_CHANNEL_ID"), Groups: groups}
-			organizationHandler.Store = store
-			creation = store
+			channel := os.Getenv("LINE_MESSAGING_API_CHANNEL_ID")
+			organizationStore := organizationdb.Store{DB: db.Client, Channel: channel}
+			organizationHandler.OrganizationStore = organizationStore
+			organizationHandler.EnterpriseStore = enterprisedb.Store{DB: db.Client, Channel: channel, Groups: groups}
+			organizationHandler.TeamStore = teamdb.Store{DB: db.Client, Channel: channel, Groups: groups}
+			creation = organizationStore
 		}
 	}
 	httpapi.RegisterOrganizations(mux, organizationHandler)

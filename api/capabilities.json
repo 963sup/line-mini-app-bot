@@ -216,6 +216,22 @@
       "adapter": "backend/internal/business/organization/http/routes.go",
       "core": "backend/internal/business/organization/context.go",
       "specification": "docs/domains/repository/organization.md"
+    },
+    "enterprise": {
+      "contract": "enterprise/enterprises.yaml",
+      "adapter": "backend/internal/business/organization/http/routes.go",
+      "core": "backend/internal/business/enterprise/firestore/store.go",
+      "specification": "docs/domains/repository/organization.md"
+    },
+    "enterprise.types": {
+      "contract": "enterprise/types.yaml",
+      "specification": "docs/domains/repository/organization.md"
+    },
+    "team": {
+      "contract": "team/teams.yaml",
+      "adapter": "backend/internal/business/organization/http/routes.go",
+      "core": "backend/internal/business/team/firestore/store.go",
+      "specification": "docs/domains/repository/organization.md"
     }
   },
   "operations": [
@@ -1536,8 +1552,8 @@
       "core": "backend/internal/business/organization/context.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
-        "frontend/miniapp/src/shell/OrganizationSwitcher.tsx",
-        "frontend/miniapp/src/shell/Enterprise.tsx"
+        "frontend/miniapp/src/business/organization/useOrganizationSelection.ts",
+        "frontend/miniapp/src/business/enterprise/Enterprise.tsx"
       ]
     },
     {
@@ -1551,7 +1567,7 @@
       "core": "backend/internal/business/organization/context.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
-        "frontend/miniapp/src/shell/OrganizationSwitcher.tsx"
+        "frontend/miniapp/src/business/organization/useOrganizationSelection.ts"
       ]
     },
     {
@@ -1583,10 +1599,10 @@
       "audience": "public",
       "method": "PUT",
       "path": "/api/v1/teams/{teamId}/management",
-      "owner": "organization",
+      "owner": "team",
       "adapter": "backend/internal/business/organization/http/routes.go",
       "handler": "SetTeamManagement",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/team/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": []
     },
@@ -1595,13 +1611,13 @@
       "audience": "public",
       "method": "GET",
       "path": "/api/v1/organizations/{organizationId}/teams",
-      "owner": "organization",
+      "owner": "team",
       "adapter": "backend/internal/business/organization/http/routes.go",
       "handler": "ListOrganizationTeams",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/team/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
-        "frontend/miniapp/src/shell/OrganizationTeams.tsx"
+        "frontend/miniapp/src/business/team/OrganizationTeams.tsx"
       ]
     },
     {
@@ -1609,10 +1625,10 @@
       "audience": "public",
       "method": "PUT",
       "path": "/api/v1/organizations/{organizationId}/enterprise-teams/{teamId}",
-      "owner": "organization",
+      "owner": "team",
       "adapter": "backend/internal/business/organization/http/routes.go",
       "handler": "AssignEnterpriseTeam",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/team/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": []
     },
@@ -1621,10 +1637,10 @@
       "audience": "public",
       "method": "DELETE",
       "path": "/api/v1/organizations/{organizationId}/enterprise-teams/{teamId}",
-      "owner": "organization",
+      "owner": "team",
       "adapter": "backend/internal/business/organization/http/routes.go",
       "handler": "RemoveEnterpriseTeam",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/team/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": []
     },
@@ -1633,13 +1649,13 @@
       "audience": "public",
       "method": "POST",
       "path": "/api/v1/enterprises",
-      "owner": "organization",
+      "owner": "enterprise",
       "adapter": "backend/internal/business/organization/http/routes.go",
       "handler": "CreateEnterprise",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/enterprise/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
-        "frontend/miniapp/src/shell/Enterprise.tsx"
+        "frontend/miniapp/src/business/enterprise/Enterprise.tsx"
       ]
     },
     {
@@ -1647,13 +1663,13 @@
       "audience": "public",
       "method": "GET",
       "path": "/api/v1/enterprises/{enterpriseId}",
-      "owner": "organization",
+      "owner": "enterprise",
       "adapter": "backend/internal/business/organization/http/routes.go",
       "handler": "GetEnterprise",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/enterprise/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
-        "frontend/miniapp/src/shell/Enterprise.tsx"
+        "frontend/miniapp/src/business/enterprise/Enterprise.tsx"
       ]
     },
     {
@@ -1661,13 +1677,13 @@
       "audience": "public",
       "method": "POST",
       "path": "/api/v1/enterprises/{enterpriseId}/owners",
-      "owner": "organization",
+      "owner": "enterprise",
       "adapter": "backend/internal/business/organization/http/routes.go",
       "handler": "AddEnterpriseOwner",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/enterprise/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
-        "frontend/miniapp/src/shell/Enterprise.tsx"
+        "frontend/miniapp/src/business/enterprise/Enterprise.tsx"
       ]
     },
     {
@@ -1675,13 +1691,13 @@
       "audience": "public",
       "method": "POST",
       "path": "/api/v1/enterprises/{enterpriseId}/organizations",
-      "owner": "organization",
+      "owner": "enterprise",
       "adapter": "backend/internal/business/organization/http/routes.go",
       "handler": "AttachEnterpriseOrganization",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/enterprise/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
-        "frontend/miniapp/src/shell/Enterprise.tsx"
+        "frontend/miniapp/src/business/enterprise/Enterprise.tsx"
       ]
     }
   ],
