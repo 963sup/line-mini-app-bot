@@ -5,11 +5,11 @@
 ```mermaid
 flowchart LR
   h["LINE 平台架構總覽"]
-  h --- n0["Cloud Run 執行一個 Go HTTP 服務。Next.js 在<br/>建置階段匯出 MINI App，映像將靜態檔案放在 <br/>/app/frontend/，由 Go 提供頁面與 API。服務從<br/> backend/cmd/server 啟動，功能接線集中在 <br/>backend/internal/server。建置流程 · 服務組裝<br/> · 部署決策"]
+  h --- n0["Cloud Run 執行一個 Go HTTP 服務。Next.js 在<br/>建置階段匯出 MINI App，映像將靜態檔案放在 <br/>/app/frontend/，由 Go 提供頁面與 API。服務從<br/> backend/cmd/server 啟動，功能接線集中在 <br/>backend/internal/bootstrap。建置流程 · 服務組裝<br/> · 部署決策"]
   n0 --- n0l0["建置流程"]
   click n0l0 "../../../Dockerfile"
   n0 --- n0l1["服務組裝"]
-  click n0l1 "../../../backend/internal/server/server.go"
+  click n0l1 "../../../backend/internal/bootstrap/server.go"
   n0 --- n0l2["部署決策"]
   click n0l2 "../../decisions/0003-cloud-run-primary.md"
 ```

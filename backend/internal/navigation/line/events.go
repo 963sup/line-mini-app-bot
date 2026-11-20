@@ -1,6 +1,7 @@
 package line
 
 import (
+	"context"
 	"net/url"
 	"os"
 	"strings"
@@ -85,4 +86,30 @@ func ReplyForEvent(event webhook.EventInterface, appURL, endpointURL string, rep
 		}
 		return transport.Reply{Token: token, Message: lineui.Help(false, appURL, endpointURL)}
 	}
+}
+
+func Handler(appURL, endpointURL string, lookup func(context.Context, string) (string, error)) transport.Handler {
+	return transport.Handler{Handle: func(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
+		reply := ReplyForEvent(event, appURL, endpointURL)
+		if reply.Message == nil || lookup == nil {
+			return reply, true, nil
+		}
+		var source webhook.SourceInterface
+		switch e := event.(type) {
+		case webhook.JoinEvent:
+			source = e.Source
+		case webhook.MessageEvent:
+			source = e.Source
+		case webhook.PostbackEvent:
+			source = e.Source
+		}
+		if group, ok := source.(webhook.GroupSource); ok {
+			id, err := lookup(ctx, group.GroupId)
+			if err != nil {
+				return transport.Reply{}, false, err
+			}
+			reply = ReplyForEvent(event, appURL, endpointURL, id)
+		}
+		return reply, true, nil
+	}}
 }

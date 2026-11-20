@@ -44,7 +44,7 @@ flowchart LR
 flowchart LR
   h["示範 API"]
   h --- n0["範例時間請替換為目前時間。四欄皆必填，不接受<br/> null、額外欄位或多個 JSON 值。 示範僅接受採<br/>樣時間在伺服器時間前 5 分鐘至後 1 分鐘之間；<br/>這是輸入新鮮度檢查， 不是出勤業務規則，不限<br/>制定位精度上限。0,0 是合法座標，缺欄不視為 0<br/>。 成功回應 200 {#quot;valid#quot;:true,#quot;receivedAt#quot;:#quot;<br/>...#quot;}；錯誤回應為 {#quot;error#quot;:#quot;...#quot;}。 無效欄位<br/>／JSON 為 400、body 過大為 413、不支援的 <br/>Content-Type 為 415。 跨來源拒絕由 Go <br/>middleware 回應 403 純文字，錯誤 method 為 <br/>405。"]
-  h --- n1["實作位於 <br/>backend/internal/diagnostics/geolocation/geolocation.go<br/> 與 <br/>frontend/miniapp/src/diagnostics/geolocation/<br/>{View.tsx,style.css}。 以下為加入定位業務時<br/>的完整邊界；不是示範已完成登入或出勤的宣告。"]
+  h --- n1["實作位於 <br/>backend/internal/transport/http/geolocation/geolocation.go<br/> 與 <br/>frontend/miniapp/src/diagnostics/geolocation/<br/>{View.tsx,style.css}。 以下為加入定位業務時<br/>的完整邊界；不是示範已完成登入或出勤的宣告。"]
 ```
 
 <a id="邊界"></a>
@@ -102,7 +102,7 @@ flowchart LR
   h --- n1["frontend/miniapp/src/business/attendance/punch/View.tsx<br/>：由 MINI App 取得單次定位並提交；只負責採樣<br/>、UI 與請求，不決定授權。"]
   h --- n2["backend/internal/identity/http/identity.go：<br/>提供可共用的 LINE 身分驗證；後端不信任前端自<br/>行傳入的 user ID。"]
   h --- n3["backend/internal/business/attendance/adapter/firestore/attendance.go<br/>：在交易中驗證短效打卡請求，隔離群組狀態並保<br/>存單次定位。"]
-  h --- n4["backend/internal/diagnostics/geolocation/geolocation.go<br/> 與 <br/>frontend/miniapp/src/diagnostics/geolocation/<br/>{View.tsx,style.css}：保留獨立定位示範，不寫<br/>入出勤資料。"]
+  h --- n4["backend/internal/transport/http/geolocation/geolocation.go<br/> 與 <br/>frontend/miniapp/src/diagnostics/geolocation/<br/>{View.tsx,style.css}：保留獨立定位示範，不寫<br/>入出勤資料。"]
   h --- n5["現行實作"]
 ```
 

@@ -102,6 +102,16 @@ func TestDependencyBoundaries(t *testing.T) {
 			if err != nil {
 				return err
 			}
+			parts := strings.Split(dir, "/")
+			if len(parts) >= 3 && parts[0] == "business" && (parts[2] == "application" || parts[2] == "domain") {
+				if !strings.HasPrefix(dependency, module) && (strings.Contains(strings.Split(dependency, "/")[0], ".") || dependency == "net/http" || dependency == "database/sql") {
+					t.Errorf("%s imports infrastructure %s", rel, dependency)
+				}
+				target := strings.TrimPrefix(dependency, module)
+				if strings.HasPrefix(dependency, module) && (strings.Contains(target, "/adapter/") || strings.HasPrefix(target, "transport/") || parts[2] == "domain" && strings.Contains(target+"/", "/application/")) {
+					t.Errorf("%s imports outer layer %s", rel, dependency)
+				}
+			}
 			// Every attendance package, including a newly introduced subdomain, must
 			// keep framework and adapter dependencies outside the inner layers.
 			attendance := "business/attendance/"
@@ -134,7 +144,7 @@ func TestDependencyBoundaries(t *testing.T) {
 					t.Errorf("core %s imports non-core implementation %s", rel, dependency)
 				}
 			}
-			if strings.HasPrefix(dir, "business/summary/messagecollection") && strings.HasPrefix(dependency, module+"business/summary/summarization") {
+			if strings.HasPrefix(dir, "business/summary/application/messagecollection") && strings.HasPrefix(dependency, module+"business/summary/application/summarization") {
 				t.Errorf("message collection %s depends on summarization %s", rel, dependency)
 			}
 			if strings.HasSuffix(dir, "/http") && dir != "transport/http" {
@@ -152,7 +162,13 @@ func TestDependencyBoundaries(t *testing.T) {
 			if dir == "httpapi" && strings.HasPrefix(dependency, module) && dependency != module+"httpapi/generated" && dependency != module+"transport/http" {
 				t.Errorf("OpenAPI wiring depends on feature implementation: %s", dependency)
 			}
-			if strings.HasPrefix(dir, "transport/") && strings.HasPrefix(dependency, module) {
+			if strings.HasPrefix(dir, "platform/") && strings.HasPrefix(dependency, module) && !strings.HasPrefix(dependency, module+"platform/") {
+				t.Errorf("platform %s imports %s", rel, dependency)
+			}
+			if strings.HasPrefix(dependency, module+"bootstrap") {
+				t.Errorf("%s imports composition root", rel)
+			}
+			if strings.HasPrefix(dir, "transport/") && strings.HasPrefix(dependency, module) && (dir != "transport/http/geolocation" || dependency != module+"transport/http/browser") {
 				t.Errorf("transport depends on application feature: %s", dependency)
 			}
 		}

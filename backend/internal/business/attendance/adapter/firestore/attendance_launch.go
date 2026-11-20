@@ -8,7 +8,7 @@ import (
 
 	db "cloud.google.com/go/firestore"
 	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
-	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

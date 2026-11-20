@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
+	"github.com/963sup/line-mini-app-bot/internal/platform/grpcstatus"
 
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 
@@ -22,7 +22,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
 )
 
 type (

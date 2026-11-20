@@ -72,7 +72,7 @@ flowchart LR
   click n0 "../../../backend/internal/business/issue/domain/entity/issue.go"
   h --- n1["HTTP：生成路由與 DTO，沿用既有身份／CSRF，認<br/>證後驗證契約，再進用例。"]
   click n1 "../../../backend/internal/business/issue/adapter/http/routes.go"
-  h --- n2["Firestore：文件轉換、查詢、建立防重與交易；<br/>由 server 注入既有 Repository client 及編號<br/>介面，不另建連線。"]
+  h --- n2["Firestore：文件轉換、查詢、建立防重與交易；<br/>由 bootstrap 注入既有 Repository client 及編號<br/>介面，不另建連線。"]
   click n2 "../../../backend/internal/business/issue/adapter/firestore/store.go"
   h --- n3["問題畫面：由正式空間入口組合，透過既有 <br/>Session client 載入；不將 API 或規則放進 <br/>Shell／shared/ui。"]
   click n3 "../../../frontend/miniapp/src/business/issue/View.tsx"

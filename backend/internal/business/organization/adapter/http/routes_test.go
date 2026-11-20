@@ -23,7 +23,7 @@ import (
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
-	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
 	"github.com/google/uuid"
 )
 

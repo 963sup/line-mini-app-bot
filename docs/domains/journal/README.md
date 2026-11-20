@@ -10,7 +10,7 @@
 
 **驗收案例**　發布後讀者失去來源權限時，仍能看到工作名稱與進度，但不能透過日誌取得來源名稱與識別碼。
 
-[對照實作或測試](../../../backend/internal/business/journal/service_test.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
+[對照實作或測試](../../../backend/internal/business/journal/domain/entity/entry_test.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
 
 日誌規格說明工作內容、引用與可見範圍。
 

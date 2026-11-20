@@ -6,7 +6,7 @@
 
 ## 架構與責任邊界
 
-依目錄用途提供後端入口或共用能力；服務接線由 server 負責，資源授權與使用案例歸各業務領域。
+依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
 
 ## 閱讀與修改入口
 
@@ -25,7 +25,7 @@
 
 cmd/ 保存 server、richmenu、firestorecheck 入口；internal/business/ 按 attendance、summary、weather 及其子功能分工；identity 等共用能力保留於 internal/。httpapi/ 保存契約接線與產生碼。
 
-業務核心、HTTP/LINE adapter 與 Firestore adapter 分層；共享組裝在 internal/server。修改 HTTP 格式先走 ../api 契約流程，不手改產生碼。憑證不得寫入 .env.example。
+業務核心、HTTP/LINE adapter 與 Firestore adapter 分層；共享組裝在 internal/bootstrap。修改 HTTP 格式先走 ../api 契約流程，不手改產生碼。憑證不得寫入 .env.example。
 
 使用根目錄 scripts/tooling/tool-exec.sh；Go 修改依 ../docs/development/acceptance.md 執行 fmt-check、lint、check、build 與相關既有測試。純文件修改不冒稱應用測試已執行。
 
@@ -66,6 +66,6 @@ Weather 既有實作集中在 business/weather/forecast/{cwa,line}。
 
 ## 協作能力分佈與交付狀態
 
-業務模組位於 [internal/business](internal/business)，服務組裝見 [server](internal/server)，各功能行為見[功能索引](../docs/domains/README.md)。
+業務模組位於 [internal/business](internal/business)，服務組裝見 [server](internal/bootstrap)，各功能行為見[功能索引](../docs/domains/README.md)。
 
 [現行實作圖：格式與資料相容](../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../docs/diagrams.md#未來設計)
