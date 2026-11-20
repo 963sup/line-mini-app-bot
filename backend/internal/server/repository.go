@@ -12,8 +12,8 @@ import (
 	"cloud.google.com/go/firestore"
 	discussiondb "github.com/963sup/line-mini-app-bot/internal/business/discussion/adapter/firestore"
 	discussionapp "github.com/963sup/line-mini-app-bot/internal/business/discussion/application"
-	"github.com/963sup/line-mini-app-bot/internal/business/issue"
-	issuedb "github.com/963sup/line-mini-app-bot/internal/business/issue/firestore"
+	issuedb "github.com/963sup/line-mini-app-bot/internal/business/issue/adapter/firestore"
+	issueapplication "github.com/963sup/line-mini-app-bot/internal/business/issue/application"
 	"github.com/963sup/line-mini-app-bot/internal/business/object"
 	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/objectimport"
@@ -33,7 +33,7 @@ import (
 	linetransport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 )
 
-func newIssues(repositories *repository.Service) *issue.Service {
+func newIssues(repositories *repository.Service) *issueapplication.Service {
 	if repositories == nil {
 		return nil
 	}
@@ -41,7 +41,7 @@ func newIssues(repositories *repository.Service) *issue.Service {
 	if !ok {
 		return nil
 	}
-	return &issue.Service{Repositories: repositories, Store: &issuedb.Store{Client: store.Client, ChannelID: store.ChannelID, Numbers: store, Labels: store, Milestones: store}}
+	return issueapplication.New(repositories, &issuedb.Store{Client: store.Client, ChannelID: store.ChannelID, Numbers: store, Labels: store, Milestones: store})
 }
 
 func newLabels(repositories *repository.Service) *labels.Service {

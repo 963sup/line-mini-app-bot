@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[issue.go](issue.go)、[本目錄工作指引](AGENTS.md)。
+先查閱[issue.go](domain/entity/issue.go)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 
