@@ -21,7 +21,7 @@
 
 ## 職責與邊界
 
-cmd/ 保存 server、richmenu、firestorecheck 入口；internal/business/ 按 attendance、summary、weather 及其子功能分工；identity 等共用能力保留於 internal/。httpapi/ 保存契約接線與產生碼。
+可執行入口位於 [cmd](cmd)。[business](internal/business) 依業務領域分工，[bootstrap](internal/bootstrap) 組裝服務，[identity](internal/identity) 處理身分與 Session，[httpapi](internal/httpapi) 保存 OpenAPI 契約接線與生成碼。
 
 業務核心、HTTP/LINE adapter 與 Firestore adapter 分層；共享組裝在 internal/bootstrap。修改 HTTP 格式先走 ../api 契約流程，不手改產生碼。憑證不得寫入 .env.example。
 
