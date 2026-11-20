@@ -42,3 +42,24 @@ func Validate(title, body string) (string, error) {
 	}
 	return title, nil
 }
+
+// CheckCreationReplay compares a retried create with the immutable first revision.
+func (p Page) CheckCreationReplay(actor, title, body string) error {
+	if p.AuthorID != actor || p.Title != title || p.Body != body {
+		return ErrConflict
+	}
+	return nil
+}
+
+func (p Page) NeedsRevision(expected int64, title, body string) (bool, error) {
+	if expected != p.Version {
+		return false, ErrConflict
+	}
+	if title == p.Title && body == p.Body {
+		return false, nil
+	}
+	if p.Version >= repository.MaxResourceNumber {
+		return false, ErrConflict
+	}
+	return true, nil
+}
