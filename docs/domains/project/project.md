@@ -6,7 +6,7 @@
 
 ## 專案項目進度
 
-每個 Project item 各自保存待辦、進行中或完成。缺少欄位的既有項目讀為待辦。來源狀態依[問題生命週期](repository/issues.md#issue-lifecycle)、工程物件或巡檢規則讀取。畫面分別標示「本專案進度」與「來源狀態」。更新進度沿用 Project 編輯權、版本檢查與交易；來源讀權仍由來源庫核驗。
+每個 Project item 各自保存待辦、進行中或完成。缺少欄位的既有項目讀為待辦。來源狀態依[問題生命週期](../repository/issues.md#issue-lifecycle)、工程物件或巡檢規則讀取。畫面分別標示「本專案進度」與「來源狀態」。更新進度沿用 Project 編輯權、版本檢查與交易；來源讀權仍由來源庫核驗。
 
 驗收時，將同一 Issue 加入維修與稽核兩個 Project。完成維修項目後重新載入兩個看板，只有維修項目顯示完成，稽核項目保留原進度，來源 Issue 仍為開啟。關閉來源 Issue 後，兩個看板的來源狀態都應反映關閉，各自的專案進度保留。
 
@@ -139,4 +139,4 @@ flowchart LR
 
 這是唯讀操作，不新增業務事件、不寫入資料；回應禁止快取。前端在符合預期後解除待確認狀態並重新讀取專案，不再逐頁掃描引用推斷原操作結果。未符合或查詢失敗時保留原請求供重試。
 
-契約見 [references.yaml](../../api/contract/project/references.yaml)，核心見 [references.go](../../backend/internal/business/project/references.go)。既有引用授權、HTTP 與前端流程檢查涵蓋此路徑；真實 Firestore 交易與 LINE 裝置驗收仍需另行執行。
+契約見 [references.yaml](../../../api/contract/project/references.yaml)，核心見 [references.go](../../../backend/internal/business/project/references.go)。既有引用授權、HTTP 與前端流程檢查涵蓋此路徑；真實 Firestore 交易與 LINE 裝置驗收仍需另行執行。

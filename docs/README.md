@@ -10,6 +10,8 @@
 
 ## 閱讀與修改入口
 
+[DDD 戰略設計概念、上下文映射與設計流程](architecture/ddd/README.md)
+
 先查閱[architecture](architecture/README.md)、[domains](domains/README.md)、[development](development/README.md)、[guides](guides/README.md)、[proposals](proposals/README.md)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
@@ -30,7 +32,7 @@
 | MINI App 的 LINE token 如何換成 Session，資源操作在哪裡授權？ | [MINI App 信任流程](architecture/contracts/http.md#mini-app-信任流程) |
 | LINE Webhook 何時回成功、何時要求重送？ | [Webhook 事件處理](architecture/contracts/http.md#基礎入口) |
 | 改 API 或 Firestore 欄位時，格式在哪一層轉換？ | [後端資料邊界](architecture/runtime/backend-boundaries.md#格式與資料相容) |
-| 專案如何收錄多個 Repository的來源項目？ | [Project 與來源引用](domains/project.md#最小來源引用骨架) |
+| 專案如何收錄多個 Repository的來源項目？ | [Project 與來源引用](domains/project/project.md#最小來源引用骨架) |
 
 出勤、請假、送件等流程從[功能索引](domains/README.md)進入。評估未來設計時才讀[平台規劃](proposals/README.md)；[Inbox、Outbox 與 Webhook 時序](proposals/webhook-delivery/design.md)描述規劃中的持久接收機制。
 

@@ -33,7 +33,7 @@ flowchart LR
 | Context／Decision | 發布交易讀取所選資料與儲存庫狀態；缺少來源或跨庫引用拒絕整篇發布，不新增日誌及收據。 |
 | Result | 保存選取的 ID 與當時的工作對象名稱、空間名稱。日後改名或移動不改寫歷史；來源失權時連同這些欄位一併隱藏。日誌不更新來源進度。 |
 | 重送／併發 | 原發布鍵與輸入內容決定收據；重試回原日誌，不重新計算名稱快照。空間建立沿用既有防重 API。 |
-| Audit／實作 | 日誌保留作者及時間；[後端交易](../../backend/internal/business/journal/firestore/store.go)、[前端選取](../../frontend/miniapp/src/business/journal/WorkContext.tsx)及[API 契約](../../api/contract/journal/journals.yaml)。 |
+| Audit／實作 | 日誌保留作者及時間；[後端交易](../../../backend/internal/business/journal/firestore/store.go)、[前端選取](../../../frontend/miniapp/src/business/journal/WorkContext.tsx)及[API 契約](../../../api/contract/journal/journals.yaml)。 |
 
 驗證沿用既有前端、Go 與 API 檢查。正式 Firestore 與 LINE 裝置驗收另行記錄。
 
@@ -74,6 +74,6 @@ flowchart LR
 flowchart LR
   h["資源名稱與 API 骨架"]
   h --- n0["此契約的 groupId 指發布用的 LINE 群組上下文<br/>。人員名單記錄當日配置；creatorId 與 <br/>createdAt 由服務端產生。工作列可省略 <br/>reference。原關聯失權後，讀取端省略該列的 <br/>reference。今日與明日清單合計至少一項。完整<br/>欄位見 Journal 契約。"]
-  click n0 "../../api/contract/journal/journals.yaml"
+  click n0 "../../../api/contract/journal/journals.yaml"
   h --- n1["後端沿用既有群組、儲存庫、專案及 Firestore <br/>設定。日誌明細與建立收據在同一交易保存。跨群<br/>組 Feed 依當下可讀群組分別查詢，再合併排序。<br/>單頁最多 20 篇，成本隨可讀群組數增加。缺少必<br/>要服務設定時回 503。"]
 ```

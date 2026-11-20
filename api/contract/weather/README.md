@@ -14,10 +14,10 @@
 
 ## 相關規格
 
-[群組位置天氣](../../../docs/domains/weather.md) · [現行實作圖：基礎入口](../../../docs/architecture/contracts/http.md#基礎入口)
+[群組位置天氣](../../../docs/domains/weather/weather.md) · [現行實作圖：基礎入口](../../../docs/architecture/contracts/http.md#基礎入口)
 
 本文件描述既有 LINE 入口，不加入公開 OpenAPI、不產生瀏覽器 client。
-完整產品規則見 [群組位置天氣](../../../docs/domains/weather.md)。
+完整產品規則見 [群組位置天氣](../../../docs/domains/weather/weather.md)。
 
 - Actor／Context：共用 webhook 驗證簽章後，群組來源的位置訊息；沿用 active、reply token 與非重送條件。
 - Resource／Action：以該訊息的經緯度、地址查詢目前有效的區域預報；不保存位置。

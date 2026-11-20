@@ -6,7 +6,7 @@
 flowchart LR
   h["Repository、Issue 與 Discussion 業務模型設計"]
   h --- n0["已確認的新邊界：Project 由個人或工程群組擁有<br/>，可跨庫收錄引用；預設來源庫、來源唯讀及相容<br/>／遷移規則見 獨立Project。本頁後方GitHub <br/>Projects素材與未定完整產品功能仍是參考，不能<br/>覆蓋已接受的工程群組身份、當下成員核驗與作者<br/>管理規則。"]
-  click n0 "../../domains/project.md"
+  click n0 "../../domains/project/project.md"
   h --- n1["狀態：後續開發設計參考，尚未核定完整產品規則<br/>；不構成現在實作、部署或資料遷移的要求。 整<br/>理日期：2026-11-12。"]
 ```
 
@@ -77,7 +77,7 @@ flowchart LR
 flowchart LR
   h["日誌與專案的歸屬設計"]
   h --- n0["Journal 為獨立業務，每篇以發布群組界定可見範<br/>圍。Feed 與 Dashboard 共用日誌資料。儲存庫或<br/>專案為工作明細上的可選引用。人員名單屬於當日<br/>整篇日誌。日誌設計與雛型範圍"]
-  click n0 "../../domains/journal.md"
+  click n0 "../../domains/journal/journal.md"
 ```
 
 <a id="rest-分頁與契約邊界"></a>

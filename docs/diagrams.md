@@ -4,6 +4,8 @@
 
 ## 現行實作
 
+- [DDD 上下文映射圖 · 日誌引用](architecture/ddd/context-map.md)
+
 - [基礎出勤 · 定位前預檢、狀態與時序](domains/attendance/README.md#定位前預檢狀態與時序)
 - [群組出勤看板與本人漏下班檢查 · 計數語意](domains/attendance/board.md#計數語意)
 - [群組請假登記 · 最小流程](domains/attendance/leave.md#最小流程)
@@ -12,15 +14,15 @@
 - [工時計算第一階段 · 共用狀態規則與事件重建](domains/attendance/worktime.md#共用狀態規則與事件重建)
 - [工時計算第一階段 · 補卡與人工審核](domains/attendance/worktime.md#補卡與人工審核)
 - [工時計算第一階段 · 休息未確認與暫估工時](domains/attendance/worktime.md#休息未確認與暫估工時)
-- [個人或工程群組擁有的 Project · 最小來源引用骨架](domains/project.md#最小來源引用骨架)
-- [個人或工程群組擁有的 Project · 工程驗收送件](domains/project.md#工程驗收送件)
+- [個人或工程群組擁有的 Project · 最小來源引用骨架](domains/project/project.md#最小來源引用骨架)
+- [個人或工程群組擁有的 Project · 工程驗收送件](domains/project/project.md#工程驗收送件)
 - [空間討論與單層留言 · 最小實作邊界與驗證](domains/repository/discussions.md#最小實作邊界與驗證)
 - [里程碑](domains/repository/milestones.md#里程碑)
 - [Repository 共用資源編號基礎 · 內部接入方式](domains/repository/numbering.md#內部接入方式)
 - [物件自動匯入 · 自動匯入操作契約](domains/repository/object-imports.md#自動匯入操作契約)
 - [儲存庫物件 · 物件與子物件歸屬](domains/repository/objects.md#物件與子物件歸屬)
 - [個人與群組 Repository · 空間載入時序](domains/repository/README.md#空間載入時序)
-- [基礎群聊摘要 · 資料與可靠性](domains/summary.md#資料與可靠性)
+- [基礎群聊摘要 · 資料與可靠性](domains/summary/summary.md#資料與可靠性)
 - [HTTP 與身分契約 · 基礎入口](architecture/contracts/http.md#基礎入口)
 - [HTTP 與身分契約 · MINI App 信任流程](architecture/contracts/http.md#mini-app-信任流程)
 - [後端功能邊界 · 格式與資料相容](architecture/runtime/backend-boundaries.md#格式與資料相容)

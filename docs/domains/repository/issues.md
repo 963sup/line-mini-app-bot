@@ -13,7 +13,7 @@ flowchart LR
 
 ## 問題生命週期
 
-Repository 擁有 Issue 的開啟與關閉狀態。問題建立者可以直接關閉開啟中的問題，也可以重新開啟；Go 核驗操作權與版本。專案內的操作與驗收見[專案項目進度](../project.md#project-item-progress)。
+Repository 擁有 Issue 的開啟與關閉狀態。問題建立者可以直接關閉開啟中的問題，也可以重新開啟；Go 核驗操作權與版本。專案內的操作與驗收見[專案項目進度](../project/project.md#project-item-progress)。
 
 相容實作沿用 API 的 `completed` 表示已關閉，保留既有 `in_progress` 與變更紀錄。新版入口直接關閉或重開，舊客戶端仍可送出原有轉換。
 

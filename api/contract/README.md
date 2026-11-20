@@ -14,7 +14,7 @@
 
 ## 相關規格
 
-[Project規格](../../docs/domains/project.md) · [標籤](../../docs/domains/repository/labels.md)
+[Project規格](../../docs/domains/project/project.md) · [標籤](../../docs/domains/repository/labels.md)
 
 本目錄以能力歸屬組織契約。公開 HTTP、事件與內部工作入口有不同形式，不能因歸類而新增公開 API。功能授權與業務規則仍由對應功能文件定義。
 
@@ -29,7 +29,7 @@
 | Team | [teams.yaml](team/teams.yaml) | 團隊管理、組織團隊查詢與企業團隊指派 |
 | Group | [group/groups.yaml](group/groups.yaml) | 工程群組列表、詳情與當下成員資格 |
 | Repository / Space | [repository/spaces.yaml](repository/spaces.yaml) | 庫內工區，沿用所屬 Repository 的授權 |
-| Project | [project/owner-projects.yaml](project/owner-projects.yaml) | 個人或工程群組擁有的專案與items，來源唯讀；[Project規格](../../docs/domains/project.md) |
+| Project | [project/owner-projects.yaml](project/owner-projects.yaml) | 個人或工程群組擁有的專案與items，來源唯讀；[Project規格](../../docs/domains/project/project.md) |
 | Project legacy | [project/projects.yaml](project/projects.yaml)、[items.yaml](project/items.yaml) | 原Repository-scoped路由與DTO相容轉接；同一用例，不構成新擁有權 |
 | Repository / Labels | [repository/labels.yaml](repository/labels.yaml) | 標籤目錄列出與建立，規格見 [標籤](../../docs/domains/repository/labels.md) |
 | Issue | [issue/issues.yaml](issue/issues.yaml) | 空間事項列表、詳情、建立及建立者修改；操作規格見 [事項](../../docs/domains/repository/issues.md) |
@@ -73,7 +73,7 @@
 
 ### 最小契約雛形
 
-Repository milestones／statistics 與 Project／items 已依 [里程碑](../../docs/domains/repository/milestones.md)、[Project](../../docs/domains/project.md)與[洞察（Insights）](../../docs/domains/repository/insights.md) 接入。以下檔案目前以 `x-status: scaffold` 標記，只有空的 `paths` 與 `components.schemas`，尚未定義端點或資料欄位，也不由公開／內部組合入口引用。能力清單登記其擁有者，不表示功能已實作。
+Repository milestones／statistics 與 Project／items 已依 [里程碑](../../docs/domains/repository/milestones.md)、[Project](../../docs/domains/project/project.md)與[洞察（Insights）](../../docs/domains/repository/insights.md) 接入。以下檔案目前以 `x-status: scaffold` 標記，只有空的 `paths` 與 `components.schemas`，尚未定義端點或資料欄位，也不由公開／內部組合入口引用。能力清單登記其擁有者，不表示功能已實作。
 
 - Issue：[types.yaml](issue/types.yaml)（IssueType）、[comments.yaml](issue/comments.yaml)。
 - Discussion：[categories.yaml](discussion/categories.yaml)。
@@ -89,6 +89,6 @@ OpenAPI 拆分不等同 runtime 完整驗證，也不代表資料庫交易的原
 
 ## 工作日誌
 
-[Journal 契約](journal/journals.yaml) 定義發布、列表與單篇讀取。Feed 與 Dashboard 使用同一資源；兩者的查詢方式與正式啟用條件見 [日誌設計](../../docs/domains/journal.md)。
+[Journal 契約](journal/journals.yaml) 定義發布、列表與單篇讀取。Feed 與 Dashboard 使用同一資源；兩者的查詢方式與正式啟用條件見 [日誌設計](../../docs/domains/journal/journal.md)。
 
 [現行實作圖：基礎入口](../../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../../docs/diagrams.md#未來設計)
