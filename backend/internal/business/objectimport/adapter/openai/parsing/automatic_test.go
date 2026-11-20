@@ -50,3 +50,27 @@ func TestAutomaticProviderNoQuoteSchemaAndPhysicalPages(t *testing.T) {
 		}
 	}
 }
+
+func TestTextOnlyPDFUsesOneStructuredRequest(t *testing.T) {
+	calls := 0
+	p := Producer{Key: "fake", HTTP: &http.Client{Transport: transport(func(r *http.Request) (*http.Response, error) {
+		calls++
+		var request struct {
+			Messages       []struct{ Content string }
+			ResponseFormat json.RawMessage `json:"response_format"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			t.Fatal(err)
+		}
+		if len(request.Messages) != 2 || !strings.Contains(request.Messages[1].Content, "B-20 Lamp") ||
+			!strings.Contains(string(request.ResponseFormat), `"strict":true`) ||
+			!strings.Contains(string(request.ResponseFormat), `"enum":["needs_review"]`) {
+			t.Fatal("expected one structured request using page text")
+		}
+		return response(`{"rows":[{"name":"Lamp","quantity":"","unit":"","sourceItemNo":"B-20","pages":[2],"type":"needs_review","quote":"B-20 Lamp"}]}`, "stop", "", nil), nil
+	})}}
+	rows, err := p.ClassifiedRows(t.Context(), objectimportDomainEntity.Source{Pages: []objectimportDomainEntity.Page{{Number: 2, Text: "B-20 Lamp", PDFTextOnly: true}}})
+	if err != nil || calls != 1 || len(rows) != 1 || rows[0].Type != "needs_review" {
+		t.Fatal(rows, calls, err)
+	}
+}

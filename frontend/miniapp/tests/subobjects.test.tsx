@@ -10,7 +10,7 @@ import { View as RepositoryView } from "../src/business/repository/View";
 const rid = "a".repeat(32), other = "b".repeat(32), oid = "c".repeat(32);
 const resource = (overrides = {}) => ({ id: oid, repositoryId: rid, name: "測試物件", description: "完整工作說明", type: "work", completedQuantity: "0", quantity: "11", unit: "SET", status: "not_started", sourceDocument: "sample-contract", sourceRevision: "v0", sourceItemNo: "40", sourcePages: "2-3", materialCode: "sample", canEdit: true, creatorId: "A", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", ...overrides });
 const flush = async () => { for (let i = 0; i < 10; i++) await new Promise<void>(resolve => setImmediate(resolve)); };
-async function fixture(handle: (request: Request, actor: string) => Promise<Response>, integrated = false, extractor?: typeof import("../src/business/object/pdf").extractPdf) {
+async function fixture(handle: (request: Request, actor: string) => Promise<Response>, integrated = false, prepare?: React.ComponentProps<typeof Objects>["prepare"]) {
   document.body.innerHTML = '<div id="root"></div>';
   window.history.replaceState(null, "", integrated ? `/miniapp/repositories?selected=${rid}` : "/miniapp/projects");
   let actor = "A", repository = rid;
@@ -27,7 +27,7 @@ async function fixture(handle: (request: Request, actor: string) => Promise<Resp
     return handle(request, actor);
   };
   const root = createRoot(document.getElementById("root")!);
-  const render = async () => { await act(async () => { root.render(<Shell title="測試" workflow={integrated ? "repositories" : "projects"}>{integrated ? <RepositoryView /> : <Objects repositoryId={repository} extract={extractor} />}</Shell>); await flush(); }); };
+  const render = async () => { await act(async () => { root.render(<Shell title="測試" workflow={integrated ? "repositories" : "projects"}>{integrated ? <RepositoryView /> : <Objects repositoryId={repository} prepare={prepare} />}</Shell>); await flush(); }); };
   await render();
   return {
     async click(text: string) { await act(async () => { const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === text || node.getAttribute("aria-label") === text); assert.ok(node, `missing ${text}`); pressButton(node); await flush(); }); },

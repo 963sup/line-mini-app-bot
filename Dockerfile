@@ -27,12 +27,13 @@ RUN --mount=type=secret,id=build-ca \
     CGO_ENABLED=0 go build -trimpath -o /richmenu ./cmd/richmenu && \
     chmod 644 /assets/line/richmenu/*.jpg
 
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends poppler-utils poppler-data ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY --from=build /server /server
 COPY --from=build /richmenu /richmenu
 COPY --from=frontend /src/frontend/miniapp/out/ /app/frontend/
 COPY --from=build /assets/ /assets/
 ENV PORT=8080 FRONTEND_DIR=/app/frontend
 EXPOSE 8080
-USER nonroot:nonroot
+USER 65532:65532
 ENTRYPOINT ["/server"]

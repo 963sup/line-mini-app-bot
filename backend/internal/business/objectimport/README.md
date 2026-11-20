@@ -21,7 +21,7 @@
 ## 閱讀入口
 
 驗證不可信候選與來源引用，保存人工審核快照，確認後沿用 Object 建立使用案例逐行建立。
-沒有 AI／PDF 解析或背景工作；重送、權限、限制與驗收依 [匯入草稿規格](../../../../docs/domains/objectimport/design.md)。
+文字型 PDF 由伺服器擷取，再交由模型提出逐項分類。Excel 與文字表格由後端依欄位解析。重送、權限、限制與驗收依 [匯入草稿規格](../../../../docs/domains/objectimport/design.md)。
 
 [現行實作圖：自動匯入操作契約](../../../../docs/domains/objectimport/design.md#自動匯入操作契約) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
 

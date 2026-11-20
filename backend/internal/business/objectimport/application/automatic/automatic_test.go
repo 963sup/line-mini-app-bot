@@ -46,3 +46,47 @@ func TestMixedOrderRequiresItemScopedEvidence(t *testing.T) {
 		t.Fatal("accepted missing source item")
 	}
 }
+
+func TestPDFUsesSourceFieldsAndRequiresUnambiguousClassification(t *testing.T) {
+	source := objectimportDomainEntity.Source{SourceDocument: "pdf:test", Pages: []objectimportDomainEntity.Page{{
+		Number: 1,
+		Text:   "[[item:1]] Pump supply only 2 EA\n[[item:2]] Lamp including installation 3 EA\nwithout installation\n[[item:3]] Fan supply only",
+		PDFItems: []objectimportDomainEntity.PDFItem{
+			{ItemNo: "1", Name: "Pump", Quantity: "2", Unit: "EA"},
+			{ItemNo: "2", Name: "Lamp", Quantity: "3", Unit: "EA"},
+			{ItemNo: "3", Name: "Fan", Unit: "EA"},
+		},
+	}}}
+	candidates := []objectimportDomainEntityAutomatic.Candidate{
+		{Name: "Pump", Quantity: "99", Unit: "BOX", SourceItemNo: "1", Type: "non_work", Quote: "supply only", Pages: []int{1}},
+		{Name: "Lamp", Quantity: "1", Unit: "BOX", SourceItemNo: "2", Type: "work", Quote: "including installation", Pages: []int{1}},
+		{Name: "Fan", Quantity: "10", Unit: "BOX", SourceItemNo: "3", Type: "non_work", Quote: "supply only", Pages: []int{1}},
+	}
+	rows, err := objectimportDomainEntityAutomatic.Prepare(objectimportDomainEntityAutomatic.Run{SourceDocument: source.SourceDocument}, source, candidates, "per_item")
+	if err != nil || len(rows) != 3 {
+		t.Fatal(rows, err)
+	}
+	if rows[0].Quantity != "2" || rows[0].Unit != "EA" || rows[0].Type != "non_work" ||
+		rows[1].Type != "needs_review" || rows[2].Quantity != "" || rows[2].Type != "needs_review" {
+		t.Fatal(rows)
+	}
+}
+
+func TestTextOnlyPDFRequiresReviewEvenWithModelClassification(t *testing.T) {
+	source := objectimportDomainEntity.Source{SourceDocument: "pdf:test", Pages: []objectimportDomainEntity.Page{{
+		Number: 2, Text: "A-10 Pump supply only\n2 EA", PDFTextOnly: true,
+	}}}
+	candidate := objectimportDomainEntityAutomatic.Candidate{
+		Name: "Pump", Quantity: "2", Unit: "EA", SourceItemNo: "A-10",
+		Type: "non_work", Quote: "Pump supply only 2 EA", Pages: []int{2},
+	}
+	run := objectimportDomainEntityAutomatic.Run{SourceDocument: source.SourceDocument}
+	rows, err := objectimportDomainEntityAutomatic.Prepare(run, source, []objectimportDomainEntityAutomatic.Candidate{candidate}, "per_item")
+	if err != nil || len(rows) != 1 || rows[0].Type != "needs_review" {
+		t.Fatal(rows, err)
+	}
+	candidate.Quote = "not in source"
+	if _, err := objectimportDomainEntityAutomatic.Prepare(run, source, []objectimportDomainEntityAutomatic.Candidate{candidate}, "per_item"); err == nil {
+		t.Fatal("accepted an unverified quotation")
+	}
+}

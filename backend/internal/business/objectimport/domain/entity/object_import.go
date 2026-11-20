@@ -51,9 +51,15 @@ type Evidence struct {
 	Quote string
 }
 
+type PDFItem struct {
+	ItemNo, Name, Quantity, Unit string
+}
+
 type Page struct {
-	Number int
-	Text   string
+	Number      int
+	Text        string
+	PDFItems    []PDFItem // Populated only by the server-side PDF reader.
+	PDFTextOnly bool      // Layout could not be independently verified.
 }
 
 type Candidate struct {
@@ -197,7 +203,7 @@ func ValidateSource(input Source) (Source, string, error) {
 	}
 	pagesV1 := make([]sourcePageV1, 0, len(canonicalPages))
 	for _, p := range canonicalPages {
-		pagesV1 = append(pagesV1, sourcePageV1(p))
+		pagesV1 = append(pagesV1, sourcePageV1{Number: p.Number, Text: p.Text})
 	}
 	digest := Hash(struct {
 		Version int
