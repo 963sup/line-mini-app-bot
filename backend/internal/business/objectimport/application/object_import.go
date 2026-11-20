@@ -1,6 +1,10 @@
 package application
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 	"regexp"
@@ -8,7 +12,6 @@ import (
 
 	objectimportApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/port"
 	objectimportDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
 var keyPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
@@ -19,22 +22,22 @@ type Service struct {
 	Store        objectimportApplicationPort.Store
 }
 
-func (s *Service) scope(ctx context.Context, actor, rid string) (repository.Repository, error) {
+func (s *Service) scope(ctx context.Context, actor, rid string) (repositoryDomainEntity.Repository, error) {
 	if s == nil || s.Store == nil || s.Repositories == nil {
-		return repository.Repository{}, objectimportDomainEntity.ErrUnavailable
+		return repositoryDomainEntity.Repository{}, objectimportDomainEntity.ErrUnavailable
 	}
-	if actor == "" || !repository.ValidID(rid) {
-		return repository.Repository{}, objectimportDomainEntity.ErrNotFound
+	if actor == "" || !repositoryDomainEntity.ValidID(rid) {
+		return repositoryDomainEntity.Repository{}, objectimportDomainEntity.ErrNotFound
 	}
 	r, e := s.Repositories.Get(ctx, actor, rid)
-	if errors.Is(e, repository.ErrNotFound) {
-		return repository.Repository{}, objectimportDomainEntity.ErrNotFound
+	if errors.Is(e, repositoryDomainEntity.ErrNotFound) {
+		return repositoryDomainEntity.Repository{}, objectimportDomainEntity.ErrNotFound
 	}
 	if e != nil {
-		return repository.Repository{}, objectimportDomainEntity.ErrUnavailable
+		return repositoryDomainEntity.Repository{}, objectimportDomainEntity.ErrUnavailable
 	}
-	if r.ID != rid || r.Status != "ACTIVE" || !repository.ValidOwner(r.OwnerID) {
-		return repository.Repository{}, objectimportDomainEntity.ErrNotFound
+	if r.ID != rid || r.Status != "ACTIVE" || !repositoryDomainEntity.ValidOwner(r.OwnerID) {
+		return repositoryDomainEntity.Repository{}, objectimportDomainEntity.ErrNotFound
 	}
 	return r, nil
 }
@@ -76,7 +79,7 @@ func (s *Service) Get(ctx context.Context, actor, rid, id string) (objectimportD
 	if e != nil {
 		return objectimportDomainEntity.Job{}, e
 	}
-	if !repository.ValidID(id) {
+	if !repositoryDomainEntity.ValidID(id) {
 		return objectimportDomainEntity.Job{}, objectimportDomainEntity.ErrNotFound
 	}
 	return s.Store.Get(ctx, r, actor, id)
@@ -87,7 +90,7 @@ func (s *Service) Review(ctx context.Context, actor, rid, id string, input objec
 	if e != nil {
 		return objectimportDomainEntity.Job{}, e
 	}
-	if !repository.ValidID(id) {
+	if !repositoryDomainEntity.ValidID(id) {
 		return objectimportDomainEntity.Job{}, objectimportDomainEntity.ErrNotFound
 	}
 	return s.Store.Review(ctx, r, actor, id, input)
@@ -98,7 +101,7 @@ func (s *Service) Confirm(ctx context.Context, actor, rid, id string, expected i
 	if e != nil {
 		return objectimportDomainEntity.Job{}, e
 	}
-	if !repository.ValidID(id) {
+	if !repositoryDomainEntity.ValidID(id) {
 		return objectimportDomainEntity.Job{}, objectimportDomainEntity.ErrNotFound
 	}
 	if s.Objects == nil {
@@ -117,7 +120,7 @@ func (s *Service) Confirm(ctx context.Context, actor, rid, id string, expected i
 		if e != nil {
 			return j, objectimportDomainEntity.ErrUnavailable
 		}
-		if !repository.ValidID(created.ID) {
+		if !repositoryDomainEntity.ValidID(created.ID) {
 			return j, objectimportDomainEntity.ErrUnavailable
 		}
 		j, e = s.Store.RecordResult(ctx, r, actor, id, row.ID, created.ID, expected)

@@ -1,6 +1,10 @@
 package firestore
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	objectimportApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/port"
 	objectimportDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity"
 )
@@ -13,7 +17,6 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -77,7 +80,7 @@ func (s *Store) repositoryRef(rid string) *db.DocumentRef {
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("repositories").Doc(rid)
 }
 
-func checkActiveRepository(tx *db.Transaction, parent *db.DocumentRef, r repository.Repository) error {
+func checkActiveRepository(tx *db.Transaction, parent *db.DocumentRef, r repositoryDomainEntity.Repository) error {
 	snap, e := tx.Get(parent)
 	if status.Code(e) == codes.NotFound {
 		return objectimportDomainEntity.ErrNotFound
@@ -111,7 +114,7 @@ func translate(e error) error {
 	return grpcstatus.NormalizeContextError(e)
 }
 
-func (s *Store) Create(ctx context.Context, r repository.Repository, actor, key, payload string, j objectimportDomainEntity.Job) (result objectimportDomainEntity.Job, err error) {
+func (s *Store) Create(ctx context.Context, r repositoryDomainEntity.Repository, actor, key, payload string, j objectimportDomainEntity.Job) (result objectimportDomainEntity.Job, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
 		return result, objectimportDomainEntity.ErrUnavailable
@@ -136,7 +139,7 @@ func (s *Store) Create(ctx context.Context, r repository.Repository, actor, key,
 			if e = snap.DataTo(&old); e != nil {
 				return e
 			}
-			if old.SchemaVersion != 1 || !repository.ValidID(old.ID) || len(old.PayloadHash) != 64 {
+			if old.SchemaVersion != 1 || !repositoryDomainEntity.ValidID(old.ID) || len(old.PayloadHash) != 64 {
 				return objectimportDomainEntity.ErrUnavailable
 			}
 			if old.PayloadHash != payload {
@@ -164,11 +167,11 @@ func (s *Store) Create(ctx context.Context, r repository.Repository, actor, key,
 	return result, nil
 }
 
-func (s *Store) Get(ctx context.Context, r repository.Repository, actor, id string) (result objectimportDomainEntity.Job, err error) {
+func (s *Store) Get(ctx context.Context, r repositoryDomainEntity.Repository, actor, id string) (result objectimportDomainEntity.Job, err error) {
 	return s.mutate(ctx, r, actor, id, func(j objectimportDomainEntity.Job) (objectimportDomainEntity.Job, error) { return j, nil })
 }
 
-func (s *Store) mutate(ctx context.Context, r repository.Repository, actor, id string, apply func(objectimportDomainEntity.Job) (objectimportDomainEntity.Job, error)) (result objectimportDomainEntity.Job, err error) {
+func (s *Store) mutate(ctx context.Context, r repositoryDomainEntity.Repository, actor, id string, apply func(objectimportDomainEntity.Job) (objectimportDomainEntity.Job, error)) (result objectimportDomainEntity.Job, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
 		return result, objectimportDomainEntity.ErrUnavailable
@@ -212,19 +215,19 @@ func nowAfter(j objectimportDomainEntity.Job) time.Time {
 	return now
 }
 
-func (s *Store) Review(ctx context.Context, r repository.Repository, actor, id string, input objectimportDomainEntity.Review) (objectimportDomainEntity.Job, error) {
+func (s *Store) Review(ctx context.Context, r repositoryDomainEntity.Repository, actor, id string, input objectimportDomainEntity.Review) (objectimportDomainEntity.Job, error) {
 	return s.mutate(ctx, r, actor, id, func(j objectimportDomainEntity.Job) (objectimportDomainEntity.Job, error) {
 		return objectimportDomainEntity.ApplyReview(j, actor, input, nowAfter(j))
 	})
 }
 
-func (s *Store) BeginConfirm(ctx context.Context, r repository.Repository, actor, id string, version int64) (objectimportDomainEntity.Job, error) {
+func (s *Store) BeginConfirm(ctx context.Context, r repositoryDomainEntity.Repository, actor, id string, version int64) (objectimportDomainEntity.Job, error) {
 	return s.mutate(ctx, r, actor, id, func(j objectimportDomainEntity.Job) (objectimportDomainEntity.Job, error) {
 		return objectimportDomainEntity.Begin(j, actor, version, nowAfter(j))
 	})
 }
 
-func (s *Store) RecordResult(ctx context.Context, r repository.Repository, actor, id, rowID, objectID string, reviewVersion int64) (objectimportDomainEntity.Job, error) {
+func (s *Store) RecordResult(ctx context.Context, r repositoryDomainEntity.Repository, actor, id, rowID, objectID string, reviewVersion int64) (objectimportDomainEntity.Job, error) {
 	return s.mutate(ctx, r, actor, id, func(j objectimportDomainEntity.Job) (objectimportDomainEntity.Job, error) {
 		return objectimportDomainEntity.Record(j, actor, rowID, objectID, reviewVersion, nowAfter(j))
 	})

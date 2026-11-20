@@ -1,6 +1,10 @@
 package parsing
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 	"strings"
@@ -8,7 +12,6 @@ import (
 
 	objectimportDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity"
 	objectimportDomainEntityParsing "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity/parsing"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
 type repos struct {
@@ -16,12 +19,12 @@ type repos struct {
 	calls int
 }
 
-func (r *repos) Get(_ context.Context, _, id string) (repository.Repository, error) {
+func (r *repos) Get(_ context.Context, _, id string) (repositoryDomainEntity.Repository, error) {
 	r.calls++
 	if r.deny {
-		return repository.Repository{}, repository.ErrNotFound
+		return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrNotFound
 	}
-	return repository.Repository{ID: id, OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}, nil
+	return repositoryDomainEntity.Repository{ID: id, OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}, nil
 }
 
 type producer struct {

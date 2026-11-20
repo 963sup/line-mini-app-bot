@@ -1,6 +1,10 @@
 package firestore
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
 	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
 )
@@ -21,20 +25,22 @@ import (
 	db "cloud.google.com/go/firestore"
 
 	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
+
 	feature "github.com/963sup/line-mini-app-bot/internal/business/subobject"
 )
 
-type repos struct{ r repository.Repository }
+type repos struct {
+	r repositoryDomainEntity.Repository
+}
 
-func (r repos) Get(_ context.Context, actor, id string) (repository.Repository, error) {
+func (r repos) Get(_ context.Context, actor, id string) (repositoryDomainEntity.Repository, error) {
 	if (actor != "owner" && actor != "member") || r.r.ID != id {
-		return repository.Repository{}, repository.ErrNotFound
+		return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrNotFound
 	}
 	return r.r, nil
 }
 
-func setup(t *testing.T) (context.Context, *Store, *feature.Service, repository.Repository, objectDomainEntity.Object) {
+func setup(t *testing.T) (context.Context, *Store, *feature.Service, repositoryDomainEntity.Repository, objectDomainEntity.Object) {
 	t.Helper()
 	host := os.Getenv("FIRESTORE_EMULATOR_HOST")
 	if host == "" {
@@ -56,7 +62,7 @@ func setup(t *testing.T) (context.Context, *Store, *feature.Service, repository.
 	}
 	t.Cleanup(func() { _ = client.Close() })
 	store := &Store{Client: client, ChannelID: "subobject-tests"}
-	r := repository.Repository{ID: strings.Repeat("a", 32), OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
+	r := repositoryDomainEntity.Repository{ID: strings.Repeat("a", 32), OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
 	if _, e = store.repositoryRef(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": r.Status}); e != nil {
 		t.Fatal(e)
 	}

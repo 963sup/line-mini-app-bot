@@ -1,6 +1,10 @@
 package firestore
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	objectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
 	objectApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/object/application/port"
 	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
@@ -18,7 +22,6 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -73,7 +76,7 @@ func decode(snap *db.DocumentSnapshot, err error, rid string) (objectDomainEntit
 	}
 	raw := objectDomainEntity.Content{SpaceID: d.SpaceID, CompletedQuantity: d.CompletedQuantity, Name: d.Name, Description: d.Description, Type: d.Type, Quantity: d.Quantity, Unit: d.Unit, SourceDocument: d.SourceDocument, SourceRevision: d.SourceRevision, SourceItemNo: d.SourceItemNo, SourcePages: d.SourcePages, MaterialCode: d.MaterialCode}
 	c, e := objectDomainEntity.Normalize(raw)
-	if e != nil || c != raw || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !repository.ValidID(d.ID) || d.RepositoryID != rid || d.CreatorID == "" || !objectDomainEntity.ValidStatus(d.Status) || d.Version < 1 || d.Version > repository.MaxResourceNumber || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) {
+	if e != nil || c != raw || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !repositoryDomainEntity.ValidID(d.ID) || d.RepositoryID != rid || d.CreatorID == "" || !objectDomainEntity.ValidStatus(d.Status) || d.Version < 1 || d.Version > repositoryDomainEntity.MaxResourceNumber || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) {
 		return objectDomainEntity.Object{}, objectDomainEntity.ErrUnavailable
 	}
 	if c.Type == objectDomainEntity.TypeWork && c.CompletedQuantity != "" {
@@ -101,7 +104,7 @@ func translate(e error) error {
 	return grpcstatus.NormalizeContextError(e)
 }
 
-func (s *Store) Get(ctx context.Context, r repository.Repository, id string) (result objectDomainEntity.Object, err error) {
+func (s *Store) Get(ctx context.Context, r repositoryDomainEntity.Repository, id string) (result objectDomainEntity.Object, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
 		return result, objectDomainEntity.ErrUnavailable
@@ -112,7 +115,7 @@ func (s *Store) Get(ctx context.Context, r repository.Repository, id string) (re
 
 type cursor struct{ Scope, ID string }
 
-func (s *Store) List(ctx context.Context, r repository.Repository, actor, token string) (result objectApplicationDto.Page, err error) {
+func (s *Store) List(ctx context.Context, r repositoryDomainEntity.Repository, actor, token string) (result objectApplicationDto.Page, err error) {
 	defer func() { err = translate(err) }()
 	result.Items = []objectDomainEntity.Object{}
 	if !s.ready() {
@@ -122,7 +125,7 @@ func (s *Store) List(ctx context.Context, r repository.Repository, actor, token 
 	c := cursor{}
 	if token != "" {
 		b, e := base64.RawURLEncoding.DecodeString(token)
-		if e != nil || json.Unmarshal(b, &c) != nil || c.Scope != scope || !repository.ValidID(c.ID) {
+		if e != nil || json.Unmarshal(b, &c) != nil || c.Scope != scope || !repositoryDomainEntity.ValidID(c.ID) {
 			return result, objectDomainEntity.ErrInput
 		}
 	}
@@ -153,7 +156,7 @@ func (s *Store) List(ctx context.Context, r repository.Repository, actor, token 
 	return result, nil
 }
 
-func container(tx *db.Transaction, parent *db.DocumentRef, r repository.Repository) error {
+func container(tx *db.Transaction, parent *db.DocumentRef, r repositoryDomainEntity.Repository) error {
 	snap, e := tx.Get(parent)
 	if status.Code(e) == codes.NotFound {
 		return objectDomainEntity.ErrNotFound
@@ -181,7 +184,7 @@ type receipt struct {
 	PayloadHash   string `firestore:"payloadHash"`
 }
 
-func (s *Store) Create(ctx context.Context, r repository.Repository, actor, key string, c objectDomainEntity.Content) (result objectDomainEntity.Object, err error) {
+func (s *Store) Create(ctx context.Context, r repositoryDomainEntity.Repository, actor, key string, c objectDomainEntity.Content) (result objectDomainEntity.Object, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
 		return result, objectDomainEntity.ErrUnavailable
@@ -211,7 +214,7 @@ func (s *Store) Create(ctx context.Context, r repository.Repository, actor, key 
 			if e = prior.DataTo(&old); e != nil {
 				return e
 			}
-			if old.SchemaVersion != 1 || !repository.ValidID(old.ID) || len(old.PayloadHash) != 64 {
+			if old.SchemaVersion != 1 || !repositoryDomainEntity.ValidID(old.ID) || len(old.PayloadHash) != 64 {
 				return objectDomainEntity.ErrUnavailable
 			}
 			if old.PayloadHash != payload {
@@ -239,7 +242,7 @@ func (s *Store) Create(ctx context.Context, r repository.Repository, actor, key 
 	return result, nil
 }
 
-func (s *Store) Update(ctx context.Context, r repository.Repository, actor, id string, u objectDomainEntity.Update) (result objectDomainEntity.Object, err error) {
+func (s *Store) Update(ctx context.Context, r repositoryDomainEntity.Repository, actor, id string, u objectDomainEntity.Update) (result objectDomainEntity.Object, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
 		return result, objectDomainEntity.ErrUnavailable
@@ -296,7 +299,7 @@ func validateSpace(tx *db.Transaction, parent *db.DocumentRef, rid, id string) e
 	if id == "" {
 		return nil
 	}
-	if !repository.ValidID(id) {
+	if !repositoryDomainEntity.ValidID(id) {
 		return objectDomainEntity.ErrInput
 	}
 	snap, err := tx.Get(parent.Collection("spaces").Doc(id))

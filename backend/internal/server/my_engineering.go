@@ -1,17 +1,21 @@
 package server
 
 import (
+	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
 	"strings"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	"github.com/963sup/line-mini-app-bot/internal/navigation/lineui"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
-func myEngineering(ctx context.Context, event webhook.EventInterface, appURL string, catalog *repository.Service) (transport.Reply, bool, error) {
+func myEngineering(ctx context.Context, event webhook.EventInterface, appURL string, catalog *repositoryApplication.Service) (transport.Reply, bool, error) {
 	msg, ok := event.(webhook.MessageEvent)
 	if !ok || !transport.CanReply(msg.Mode, msg.ReplyToken, msg.DeliveryContext) {
 		return transport.Reply{}, false, nil
@@ -22,7 +26,7 @@ func myEngineering(ctx context.Context, event webhook.EventInterface, appURL str
 		return transport.Reply{}, false, nil
 	}
 	if catalog == nil {
-		return transport.Reply{}, true, repository.ErrUnavailable
+		return transport.Reply{}, true, repositoryDomainEntity.ErrUnavailable
 	}
 	page, err := catalog.List(ctx, user.UserId, "")
 	if err != nil {

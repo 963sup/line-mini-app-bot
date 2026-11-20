@@ -2,6 +2,10 @@
 package subobject
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
 )
 
@@ -11,8 +15,6 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
 var (
@@ -102,7 +104,7 @@ func ApplyUpdate(current Subobject, actor string, input Update) (Subobject, erro
 	if current.Content == normalized && current.Status == status {
 		return current, nil
 	}
-	if current.Version >= repository.MaxResourceNumber {
+	if current.Version >= repositoryDomainEntity.MaxResourceNumber {
 		return Subobject{}, ErrConflict
 	}
 	current.Content = normalized
@@ -113,13 +115,13 @@ func ApplyUpdate(current Subobject, actor string, input Update) (Subobject, erro
 
 type (
 	Repositories interface {
-		Get(context.Context, string, string) (repository.Repository, error)
+		Get(context.Context, string, string) (repositoryDomainEntity.Repository, error)
 	}
 	Store interface {
-		List(context.Context, repository.Repository, string, string, string) (Page, error)
-		Get(context.Context, repository.Repository, string, string, string) (Subobject, error)
-		Create(context.Context, repository.Repository, string, string, string, Content) (Subobject, error)
-		Update(context.Context, repository.Repository, string, string, string, Update) (Subobject, error)
+		List(context.Context, repositoryDomainEntity.Repository, string, string, string) (Page, error)
+		Get(context.Context, repositoryDomainEntity.Repository, string, string, string) (Subobject, error)
+		Create(context.Context, repositoryDomainEntity.Repository, string, string, string, Content) (Subobject, error)
+		Update(context.Context, repositoryDomainEntity.Repository, string, string, string, Update) (Subobject, error)
 	}
 	Service struct {
 		Repositories Repositories
@@ -127,22 +129,22 @@ type (
 	}
 )
 
-func (s *Service) scope(ctx context.Context, actor, repositoryID, parentObjectID string) (repository.Repository, error) {
+func (s *Service) scope(ctx context.Context, actor, repositoryID, parentObjectID string) (repositoryDomainEntity.Repository, error) {
 	if s == nil || s.Store == nil || s.Repositories == nil {
-		return repository.Repository{}, ErrUnavailable
+		return repositoryDomainEntity.Repository{}, ErrUnavailable
 	}
-	if actor == "" || !repository.ValidID(repositoryID) || !repository.ValidID(parentObjectID) {
-		return repository.Repository{}, ErrNotFound
+	if actor == "" || !repositoryDomainEntity.ValidID(repositoryID) || !repositoryDomainEntity.ValidID(parentObjectID) {
+		return repositoryDomainEntity.Repository{}, ErrNotFound
 	}
 	r, e := s.Repositories.Get(ctx, actor, repositoryID)
-	if errors.Is(e, repository.ErrNotFound) {
-		return repository.Repository{}, ErrNotFound
+	if errors.Is(e, repositoryDomainEntity.ErrNotFound) {
+		return repositoryDomainEntity.Repository{}, ErrNotFound
 	}
 	if e != nil {
-		return repository.Repository{}, e
+		return repositoryDomainEntity.Repository{}, e
 	}
-	if r.ID != repositoryID || r.Status != "ACTIVE" || !repository.ValidOwner(r.OwnerID) {
-		return repository.Repository{}, ErrNotFound
+	if r.ID != repositoryID || r.Status != "ACTIVE" || !repositoryDomainEntity.ValidOwner(r.OwnerID) {
+		return repositoryDomainEntity.Repository{}, ErrNotFound
 	}
 	return r, nil
 }
@@ -163,7 +165,7 @@ func (s *Service) Get(ctx context.Context, actor, repositoryID, parentObjectID, 
 	if e != nil {
 		return Subobject{}, e
 	}
-	if !repository.ValidID(subobjectID) {
+	if !repositoryDomainEntity.ValidID(subobjectID) {
 		return Subobject{}, ErrNotFound
 	}
 	return s.Store.Get(ctx, r, actor, parentObjectID, subobjectID)
@@ -192,7 +194,7 @@ func (s *Service) Update(ctx context.Context, actor, repositoryID, parentObjectI
 	if e != nil {
 		return Subobject{}, e
 	}
-	if !repository.ValidID(subobjectID) {
+	if !repositoryDomainEntity.ValidID(subobjectID) {
 		return Subobject{}, ErrNotFound
 	}
 	return s.Store.Update(ctx, r, actor, parentObjectID, subobjectID, input)

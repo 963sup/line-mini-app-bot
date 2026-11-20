@@ -1,14 +1,16 @@
 package entity
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"errors"
 	"math/big"
 	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
-
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
 var ErrProgressRemoval = errors.New("completed work cannot become non-work")
@@ -111,7 +113,7 @@ func canonicalDecimal(s string) string {
 
 func Normalize(c Content) (Content, error) {
 	c.SpaceID = strings.TrimSpace(c.SpaceID)
-	if c.SpaceID != "" && !repository.ValidID(c.SpaceID) {
+	if c.SpaceID != "" && !repositoryDomainEntity.ValidID(c.SpaceID) {
 		return Content{}, ErrInput
 	}
 	fields := []struct {
@@ -217,7 +219,7 @@ func ApplyUpdate(current Object, actor string, input Update) (Object, error) {
 	if current.Content == c && current.Status == status {
 		return current, nil
 	}
-	if current.Version >= repository.MaxResourceNumber {
+	if current.Version >= repositoryDomainEntity.MaxResourceNumber {
 		return Object{}, ErrConflict
 	}
 	current.Content = c

@@ -2,6 +2,11 @@
 package firestore
 
 import (
+	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
 )
@@ -23,7 +28,6 @@ import (
 	journaldto "github.com/963sup/line-mini-app-bot/internal/business/journal/application/dto"
 	journalentity "github.com/963sup/line-mini-app-bot/internal/business/journal/domain/entity"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -33,7 +37,7 @@ type Store struct {
 	Client       *db.Client
 	Channel      string
 	Groups       *groupquery.Service
-	Repositories *repository.Service
+	Repositories *repositoryApplication.Service
 	Projects     *projectApplication.Service
 }
 type record struct {
@@ -51,7 +55,7 @@ func (s *Store) entries(group string) *db.CollectionRef {
 }
 
 func missing(e error) error {
-	if status.Code(e) == codes.NotFound || errors.Is(e, groupentity.ErrNotFound) || errors.Is(e, repository.ErrNotFound) || errors.Is(e, projectDomainEntity.ErrNotFound) {
+	if status.Code(e) == codes.NotFound || errors.Is(e, groupentity.ErrNotFound) || errors.Is(e, repositoryDomainEntity.ErrNotFound) || errors.Is(e, projectDomainEntity.ErrNotFound) {
 		return journalentity.ErrNotFound
 	}
 	return e
@@ -127,7 +131,7 @@ func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journalentity.
 		return name, nil
 	}
 	if w.ObjectID != "" {
-		if !repository.ValidID(w.ObjectID) {
+		if !repositoryDomainEntity.ValidID(w.ObjectID) {
 			return journalentity.ErrInput
 		}
 		object := repo.Collection("objects").Doc(w.ObjectID)
@@ -136,7 +140,7 @@ func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journalentity.
 			return err
 		}
 		if w.SubobjectID != "" {
-			if !repository.ValidID(w.SubobjectID) {
+			if !repositoryDomainEntity.ValidID(w.SubobjectID) {
 				return journalentity.ErrInput
 			}
 			name, err := readName(object.Collection("subobjects").Doc(w.SubobjectID), w.ObjectID)
@@ -149,7 +153,7 @@ func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journalentity.
 	w.SpaceNames = nil
 	seen := map[string]bool{}
 	for _, id := range w.SpaceIDs {
-		if !repository.ValidID(id) || seen[id] {
+		if !repositoryDomainEntity.ValidID(id) || seen[id] {
 			return journalentity.ErrInput
 		}
 		seen[id] = true

@@ -1,6 +1,10 @@
 package objectimporthttp
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	objectimportApplication "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application"
 	objectimportApplicationParsing "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/parsing"
 	objectimportApplicationPortParsing "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/port/parsing"
@@ -20,7 +24,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 )
 
@@ -36,11 +39,11 @@ func (a auth) Authenticate(w http.ResponseWriter, _ *http.Request) (string, stri
 
 type repos struct{ deny bool }
 
-func (r repos) Get(_ context.Context, _, id string) (repository.Repository, error) {
+func (r repos) Get(_ context.Context, _, id string) (repositoryDomainEntity.Repository, error) {
 	if r.deny {
-		return repository.Repository{}, repository.ErrNotFound
+		return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrNotFound
 	}
-	return repository.Repository{ID: id, OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}, nil
+	return repositoryDomainEntity.Repository{ID: id, OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}, nil
 }
 
 type memory struct {
@@ -49,7 +52,7 @@ type memory struct {
 	calls        int
 }
 
-func (m *memory) Create(_ context.Context, _ repository.Repository, _, key, payload string, j objectimportDomainEntity.Job) (objectimportDomainEntity.Job, error) {
+func (m *memory) Create(_ context.Context, _ repositoryDomainEntity.Repository, _, key, payload string, j objectimportDomainEntity.Job) (objectimportDomainEntity.Job, error) {
 	m.calls++
 	if m.key == key {
 		if m.payload != payload {
@@ -63,12 +66,12 @@ func (m *memory) Create(_ context.Context, _ repository.Repository, _, key, payl
 	return j, nil
 }
 
-func (m *memory) Get(context.Context, repository.Repository, string, string) (objectimportDomainEntity.Job, error) {
+func (m *memory) Get(context.Context, repositoryDomainEntity.Repository, string, string) (objectimportDomainEntity.Job, error) {
 	m.calls++
 	return m.job, nil
 }
 
-func (m *memory) Review(_ context.Context, _ repository.Repository, actor, _ string, input objectimportDomainEntity.Review) (objectimportDomainEntity.Job, error) {
+func (m *memory) Review(_ context.Context, _ repositoryDomainEntity.Repository, actor, _ string, input objectimportDomainEntity.Review) (objectimportDomainEntity.Job, error) {
 	j, e := objectimportDomainEntity.ApplyReview(m.job, actor, input, time.Now().UTC())
 	if e == nil {
 		m.job = j
@@ -76,7 +79,7 @@ func (m *memory) Review(_ context.Context, _ repository.Repository, actor, _ str
 	return j, e
 }
 
-func (m *memory) BeginConfirm(_ context.Context, _ repository.Repository, actor, _ string, v int64) (objectimportDomainEntity.Job, error) {
+func (m *memory) BeginConfirm(_ context.Context, _ repositoryDomainEntity.Repository, actor, _ string, v int64) (objectimportDomainEntity.Job, error) {
 	j, e := objectimportDomainEntity.Begin(m.job, actor, v, time.Now().UTC())
 	if e == nil {
 		m.job = j
@@ -84,7 +87,7 @@ func (m *memory) BeginConfirm(_ context.Context, _ repository.Repository, actor,
 	return j, e
 }
 
-func (m *memory) RecordResult(_ context.Context, _ repository.Repository, actor, _, row, id string, v int64) (objectimportDomainEntity.Job, error) {
+func (m *memory) RecordResult(_ context.Context, _ repositoryDomainEntity.Repository, actor, _, row, id string, v int64) (objectimportDomainEntity.Job, error) {
 	j, e := objectimportDomainEntity.Record(m.job, actor, row, id, v, time.Now().UTC())
 	if e == nil {
 		m.job = j

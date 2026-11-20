@@ -1,6 +1,10 @@
 package firestore
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
@@ -15,7 +19,6 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -49,18 +52,18 @@ func decodeComment(snap *db.DocumentSnapshot, err error, repositoryID, discussio
 		return discussionentity.Comment{}, err
 	}
 	body, err := discussionentity.NormalizeComment(d.Body)
-	if err != nil || body != d.Body || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !repository.ValidID(d.ID) || d.RepositoryID != repositoryID || d.DiscussionID != discussionID || d.AuthorID == "" || d.Version < 1 || d.Version > repository.MaxResourceNumber || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) {
+	if err != nil || body != d.Body || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !repositoryDomainEntity.ValidID(d.ID) || d.RepositoryID != repositoryID || d.DiscussionID != discussionID || d.AuthorID == "" || d.Version < 1 || d.Version > repositoryDomainEntity.MaxResourceNumber || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) {
 		return discussionentity.Comment{}, discussionport.ErrUnavailable
 	}
 	return discussionentity.Comment{ID: d.ID, RepositoryID: d.RepositoryID, DiscussionID: d.DiscussionID, Body: d.Body, AuthorID: d.AuthorID, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
 }
 
-func (s *Store) topic(scope repository.Repository, id string) *db.DocumentRef {
+func (s *Store) topic(scope repositoryDomainEntity.Repository, id string) *db.DocumentRef {
 	return s.repositoryRef(scope.ID).Collection("discussions").Doc(id)
 }
 
 // Every comment write rechecks the container and topic within the same transaction.
-func (s *Store) checkThread(tx *db.Transaction, scope repository.Repository, id string) error {
+func (s *Store) checkThread(tx *db.Transaction, scope repositoryDomainEntity.Repository, id string) error {
 	snap, err := tx.Get(s.repositoryRef(scope.ID))
 	if status.Code(err) == codes.NotFound {
 		return discussionentity.ErrNotFound
@@ -89,7 +92,7 @@ type commentCursor struct {
 	At        time.Time
 }
 
-func (s *Store) ListComments(ctx context.Context, scope repository.Repository, actor, id, value string) (result discussiondto.CommentPage, err error) {
+func (s *Store) ListComments(ctx context.Context, scope repositoryDomainEntity.Repository, actor, id, value string) (result discussiondto.CommentPage, err error) {
 	defer func() { err = translate(err) }()
 	result.Items = []discussionentity.Comment{}
 	if !s.ready() {
@@ -106,7 +109,7 @@ func (s *Store) ListComments(ctx context.Context, scope repository.Repository, a
 	var c commentCursor
 	if value != "" {
 		b, e := base64.RawURLEncoding.DecodeString(value)
-		if e != nil || json.Unmarshal(b, &c) != nil || c.Scope != scopeKey || !repository.ValidID(c.ID) || c.At.IsZero() {
+		if e != nil || json.Unmarshal(b, &c) != nil || c.Scope != scopeKey || !repositoryDomainEntity.ValidID(c.ID) || c.At.IsZero() {
 			return result, discussionentity.ErrInput
 		}
 	}
@@ -146,7 +149,7 @@ type commentReceipt struct {
 	CommentID     string `firestore:"commentId"`
 }
 
-func (s *Store) CreateComment(ctx context.Context, scope repository.Repository, actor, id, key, body string) (result discussionentity.Comment, err error) {
+func (s *Store) CreateComment(ctx context.Context, scope repositoryDomainEntity.Repository, actor, id, key, body string) (result discussionentity.Comment, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
 		return result, discussionport.ErrUnavailable
@@ -181,7 +184,7 @@ func (s *Store) CreateComment(ctx context.Context, scope repository.Repository, 
 			if err := snap.DataTo(&prior); err != nil {
 				return err
 			}
-			if prior.SchemaVersion != 1 || !repository.ValidID(prior.CommentID) {
+			if prior.SchemaVersion != 1 || !repositoryDomainEntity.ValidID(prior.CommentID) {
 				return discussionport.ErrUnavailable
 			}
 			if prior.PayloadHash != firestorekey.Digest(payload) {
@@ -215,7 +218,7 @@ func (s *Store) CreateComment(ctx context.Context, scope repository.Repository, 
 	return result, nil
 }
 
-func (s *Store) UpdateComment(ctx context.Context, scope repository.Repository, actor, id, commentID, body string, version int64) (result discussionentity.Comment, err error) {
+func (s *Store) UpdateComment(ctx context.Context, scope repositoryDomainEntity.Repository, actor, id, commentID, body string, version int64) (result discussionentity.Comment, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
 		return result, discussionport.ErrUnavailable

@@ -1,6 +1,10 @@
 package objecthttp
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
 	objectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
 	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
@@ -12,8 +16,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
 type auth struct{ deny bool }
@@ -28,11 +30,11 @@ func (a auth) Authenticate(w http.ResponseWriter, _ *http.Request) (string, stri
 
 type repositories struct{ deny bool }
 
-func (r repositories) Get(_ context.Context, _, id string) (repository.Repository, error) {
+func (r repositories) Get(_ context.Context, _, id string) (repositoryDomainEntity.Repository, error) {
 	if r.deny {
-		return repository.Repository{}, repository.ErrNotFound
+		return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrNotFound
 	}
-	return repository.Repository{ID: id, OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}, nil
+	return repositoryDomainEntity.Repository{ID: id, OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}, nil
 }
 
 type store struct {
@@ -41,23 +43,23 @@ type store struct {
 	update objectDomainEntity.Update
 }
 
-func (s *store) List(context.Context, repository.Repository, string, string) (objectApplicationDto.Page, error) {
+func (s *store) List(context.Context, repositoryDomainEntity.Repository, string, string) (objectApplicationDto.Page, error) {
 	s.calls++
 	return objectApplicationDto.Page{Items: []objectDomainEntity.Object{}}, nil
 }
 
-func (s *store) Get(context.Context, repository.Repository, string) (objectDomainEntity.Object, error) {
+func (s *store) Get(context.Context, repositoryDomainEntity.Repository, string) (objectDomainEntity.Object, error) {
 	s.calls++
 	return objectDomainEntity.Object{}, objectDomainEntity.ErrNotFound
 }
 
-func (s *store) Create(_ context.Context, r repository.Repository, actor, _ string, c objectDomainEntity.Content) (objectDomainEntity.Object, error) {
+func (s *store) Create(_ context.Context, r repositoryDomainEntity.Repository, actor, _ string, c objectDomainEntity.Content) (objectDomainEntity.Object, error) {
 	s.calls++
 	s.input = c
 	return objectDomainEntity.Object{Content: c, RepositoryID: r.ID, CreatorID: actor, Status: "not_started", Version: 1}, nil
 }
 
-func (s *store) Update(_ context.Context, _ repository.Repository, _, _ string, u objectDomainEntity.Update) (objectDomainEntity.Object, error) {
+func (s *store) Update(_ context.Context, _ repositoryDomainEntity.Repository, _, _ string, u objectDomainEntity.Update) (objectDomainEntity.Object, error) {
 	s.calls++
 	s.update = u
 	return objectDomainEntity.Object{}, objectDomainEntity.ErrConflict

@@ -1,6 +1,10 @@
 package firestore
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
 	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
 )
@@ -12,15 +16,15 @@ import (
 	"testing"
 
 	db "cloud.google.com/go/firestore"
-
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
-type progressRepos struct{ r repository.Repository }
+type progressRepos struct {
+	r repositoryDomainEntity.Repository
+}
 
-func (p progressRepos) Get(_ context.Context, actor, rid string) (repository.Repository, error) {
+func (p progressRepos) Get(_ context.Context, actor, rid string) (repositoryDomainEntity.Repository, error) {
 	if actor != "actor-a" && actor != "actor-b" || rid != p.r.ID {
-		return repository.Repository{}, repository.ErrNotFound
+		return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrNotFound
 	}
 	return p.r, nil
 }

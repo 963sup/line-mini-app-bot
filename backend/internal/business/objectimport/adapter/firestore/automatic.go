@@ -1,6 +1,10 @@
 package firestore
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	objectimportApplicationPortAutomatic "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/port/automatic"
 	objectimportDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity"
 	objectimportDomainEntityAutomatic "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity/automatic"
@@ -16,7 +20,6 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -94,7 +97,7 @@ type AutomaticStore struct{ Store }
 
 var _ objectimportApplicationPortAutomatic.Store = (*AutomaticStore)(nil)
 
-func (s *AutomaticStore) Update(ctx context.Context, r repository.Repository, actor, id string, apply func(*objectimportDomainEntityAutomatic.Run) (objectimportDomainEntityAutomatic.Run, error)) (result objectimportDomainEntityAutomatic.Run, err error) {
+func (s *AutomaticStore) Update(ctx context.Context, r repositoryDomainEntity.Repository, actor, id string, apply func(*objectimportDomainEntityAutomatic.Run) (objectimportDomainEntityAutomatic.Run, error)) (result objectimportDomainEntityAutomatic.Run, err error) {
 	defer func() {
 		if !errors.Is(err, objectimportDomainEntityAutomatic.ErrTypeRequired) {
 			err = translate(err)
@@ -103,7 +106,7 @@ func (s *AutomaticStore) Update(ctx context.Context, r repository.Repository, ac
 	if !s.ready() {
 		return result, objectimportDomainEntity.ErrUnavailable
 	}
-	if actor == "" || !repository.ValidID(id) {
+	if actor == "" || !repositoryDomainEntity.ValidID(id) {
 		return result, objectimportDomainEntity.ErrNotFound
 	}
 	parent := s.repositoryRef(r.ID)

@@ -1,6 +1,10 @@
 package automatic
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"encoding/hex"
 	"errors"
 	"slices"
@@ -10,7 +14,6 @@ import (
 
 	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
 	objectimportDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
 var ErrOutput = errors.New("automatic model output rejected")
@@ -152,7 +155,7 @@ func ValidateStored(j Run) error {
 	if err != nil || source.SourceDocument != j.SourceDocument || source.SourceRevision != j.SourceRevision {
 		return objectimportDomainEntity.ErrUnavailable
 	}
-	if !repository.ValidID(j.ID) || !repository.ValidID(j.RepositoryID) || j.CreatorID == "" || len(j.IntentHash) != 64 || len(j.SourceHash) != 64 || j.CreatedAt.IsZero() || j.UpdatedAt.Before(j.CreatedAt) {
+	if !repositoryDomainEntity.ValidID(j.ID) || !repositoryDomainEntity.ValidID(j.RepositoryID) || j.CreatorID == "" || len(j.IntentHash) != 64 || len(j.SourceHash) != 64 || j.CreatedAt.IsZero() || j.UpdatedAt.Before(j.CreatedAt) {
 		return objectimportDomainEntity.ErrUnavailable
 	}
 	if j.Reason != "" && j.Reason != "model_unavailable" && j.Reason != "output_rejected" && j.Reason != "creation_unavailable" {
@@ -172,12 +175,12 @@ func ValidateStored(j Run) error {
 	all := true
 	for _, r := range j.Rows {
 		n, e := objectDomainEntity.Normalize(ObjectContent(j, r))
-		if e != nil || n != ObjectContent(j, r) || !repository.ValidID(r.ID) || ids[r.ID] || items[r.SourceItemNo] || r.SourceItemNo == "" || r.SourcePages == "" {
+		if e != nil || n != ObjectContent(j, r) || !repositoryDomainEntity.ValidID(r.ID) || ids[r.ID] || items[r.SourceItemNo] || r.SourceItemNo == "" || r.SourcePages == "" {
 			return objectimportDomainEntity.ErrUnavailable
 		}
 		ids[r.ID] = true
 		items[r.SourceItemNo] = true
-		if r.ResultObjectID != "" && !repository.ValidID(r.ResultObjectID) {
+		if r.ResultObjectID != "" && !repositoryDomainEntity.ValidID(r.ResultObjectID) {
 			return objectimportDomainEntity.ErrUnavailable
 		}
 		all = all && r.ResultObjectID != ""

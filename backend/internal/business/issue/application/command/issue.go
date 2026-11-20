@@ -1,11 +1,15 @@
 package command
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
+	"regexp"
+
 	"github.com/963sup/line-mini-app-bot/internal/business/issue/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/business/issue/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
-	"regexp"
 )
 
 var creationKey = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
@@ -29,7 +33,7 @@ func (s *Operations) Update(ctx context.Context, actor, repositoryID, id string,
 	if err != nil {
 		return entity.Issue{}, err
 	}
-	if !repository.ValidID(id) {
+	if !repositoryDomainEntity.ValidID(id) {
 		return entity.Issue{}, entity.ErrNotFound
 	}
 	return s.Store.Update(ctx, r, actor, id, input)

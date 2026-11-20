@@ -1,14 +1,18 @@
 package entity
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+	repositoryDomainEntityLabels "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity/labels"
+)
+
+import (
 	"errors"
-	"github.com/963sup/line-mini-app-bot/internal/business/issue/domain/policy"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository/labels"
 	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/963sup/line-mini-app-bot/internal/business/issue/domain/policy"
 )
 
 var (
@@ -64,7 +68,7 @@ func ApplyUpdate(current Issue, actor string, input Update) (Issue, error) {
 	}
 	ids := current.LabelIDs
 	if input.LabelIDs != nil {
-		ids, err = labels.NormalizeIDs(*input.LabelIDs)
+		ids, err = repositoryDomainEntityLabels.NormalizeIDs(*input.LabelIDs)
 		if err != nil {
 			return Issue{}, ErrInput
 		}
@@ -72,14 +76,14 @@ func ApplyUpdate(current Issue, actor string, input Update) (Issue, error) {
 	milestoneID := current.MilestoneID
 	if input.MilestoneID != nil {
 		milestoneID = *input.MilestoneID
-		if milestoneID != "" && !repository.ValidID(milestoneID) {
+		if milestoneID != "" && !repositoryDomainEntity.ValidID(milestoneID) {
 			return Issue{}, ErrInput
 		}
 	}
 	if milestoneID == current.MilestoneID && current.Title == content.Title && current.Body == content.Body && current.State == input.State && slices.Equal(current.LabelIDs, ids) {
 		return current, nil
 	}
-	if current.Version >= repository.MaxResourceNumber {
+	if current.Version >= repositoryDomainEntity.MaxResourceNumber {
 		return Issue{}, ErrConflict
 	}
 	current.Title, current.Body, current.State = content.Title, content.Body, input.State

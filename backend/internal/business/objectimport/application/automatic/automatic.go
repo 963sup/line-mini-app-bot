@@ -1,6 +1,10 @@
 package automatic
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 	"slices"
@@ -11,7 +15,6 @@ import (
 	objectimportApplicationPortAutomatic "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/port/automatic"
 	objectimportDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity"
 	objectimportDomainEntityAutomatic "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity/automatic"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
 type Service struct {
@@ -21,22 +24,22 @@ type Service struct {
 	Producer     objectimportApplicationPortAutomatic.Producer
 }
 
-func (s *Service) scope(ctx context.Context, actor, rid string) (repository.Repository, error) {
+func (s *Service) scope(ctx context.Context, actor, rid string) (repositoryDomainEntity.Repository, error) {
 	if s == nil || s.Repositories == nil || s.Store == nil {
-		return repository.Repository{}, objectimportDomainEntity.ErrUnavailable
+		return repositoryDomainEntity.Repository{}, objectimportDomainEntity.ErrUnavailable
 	}
-	if actor == "" || !repository.ValidID(rid) {
-		return repository.Repository{}, objectimportDomainEntity.ErrNotFound
+	if actor == "" || !repositoryDomainEntity.ValidID(rid) {
+		return repositoryDomainEntity.Repository{}, objectimportDomainEntity.ErrNotFound
 	}
 	r, e := s.Repositories.Get(ctx, actor, rid)
-	if errors.Is(e, repository.ErrNotFound) {
-		return repository.Repository{}, objectimportDomainEntity.ErrNotFound
+	if errors.Is(e, repositoryDomainEntity.ErrNotFound) {
+		return repositoryDomainEntity.Repository{}, objectimportDomainEntity.ErrNotFound
 	}
 	if e != nil {
-		return repository.Repository{}, objectimportDomainEntity.ErrUnavailable
+		return repositoryDomainEntity.Repository{}, objectimportDomainEntity.ErrUnavailable
 	}
-	if r.ID != rid || r.Status != "ACTIVE" || !repository.ValidOwner(r.OwnerID) {
-		return repository.Repository{}, objectimportDomainEntity.ErrNotFound
+	if r.ID != rid || r.Status != "ACTIVE" || !repositoryDomainEntity.ValidOwner(r.OwnerID) {
+		return repositoryDomainEntity.Repository{}, objectimportDomainEntity.ErrNotFound
 	}
 	return r, nil
 }
@@ -50,7 +53,7 @@ func (s *Service) update(ctx context.Context, actor, rid, id string, apply func(
 }
 
 func (s *Service) Get(ctx context.Context, actor, rid, id string) (objectimportDomainEntityAutomatic.Run, error) {
-	if !repository.ValidID(id) {
+	if !repositoryDomainEntity.ValidID(id) {
 		return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrNotFound
 	}
 	return s.update(ctx, actor, rid, id, func(r *objectimportDomainEntityAutomatic.Run) (objectimportDomainEntityAutomatic.Run, error) {
@@ -214,7 +217,7 @@ func (s *Service) create(ctx context.Context, actor, rid, key string, input obje
 			return s.reason(ctx, actor, rid, j, "creation_unavailable")
 		}
 		created, err := s.Objects.Create(ctx, actor, rid, objectimportDomainEntity.Hash([]string{"automatic-object-v1", j.ID, row.ID}), objectimportDomainEntityAutomatic.ObjectContent(j, row))
-		if err != nil || !repository.ValidID(created.ID) {
+		if err != nil || !repositoryDomainEntity.ValidID(created.ID) {
 			return s.reason(ctx, actor, rid, j, "creation_unavailable")
 		}
 		j, e = s.update(ctx, actor, rid, id, func(current *objectimportDomainEntityAutomatic.Run) (objectimportDomainEntityAutomatic.Run, error) {

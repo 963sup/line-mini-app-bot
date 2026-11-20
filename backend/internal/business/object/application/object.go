@@ -1,6 +1,10 @@
 package application
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 	"regexp"
@@ -9,7 +13,6 @@ import (
 	objectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
 	objectApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/object/application/port"
 	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
 var creationKey = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
@@ -19,23 +22,23 @@ type Service struct {
 	Store        objectApplicationPort.Store
 }
 
-func (s *Service) scope(ctx context.Context, actor, id string) (repository.Repository, error) {
+func (s *Service) scope(ctx context.Context, actor, id string) (repositoryDomainEntity.Repository, error) {
 	if s == nil || s.Store == nil || s.Repositories == nil {
-		return repository.Repository{}, objectDomainEntity.ErrUnavailable
+		return repositoryDomainEntity.Repository{}, objectDomainEntity.ErrUnavailable
 	}
-	if actor == "" || !repository.ValidID(id) {
-		return repository.Repository{}, objectDomainEntity.ErrNotFound
+	if actor == "" || !repositoryDomainEntity.ValidID(id) {
+		return repositoryDomainEntity.Repository{}, objectDomainEntity.ErrNotFound
 	}
 	r, err := s.Repositories.Get(ctx, actor, id)
-	if errors.Is(err, repository.ErrNotFound) {
-		return repository.Repository{}, objectDomainEntity.ErrNotFound
+	if errors.Is(err, repositoryDomainEntity.ErrNotFound) {
+		return repositoryDomainEntity.Repository{}, objectDomainEntity.ErrNotFound
 	}
 	if err != nil {
-		return repository.Repository{}, err
+		return repositoryDomainEntity.Repository{}, err
 	}
 	// Membership is checked by Repositories.Get; active identity/scope is still explicit here.
-	if r.ID != id || r.Status != "ACTIVE" || !repository.ValidOwner(r.OwnerID) {
-		return repository.Repository{}, objectDomainEntity.ErrNotFound
+	if r.ID != id || r.Status != "ACTIVE" || !repositoryDomainEntity.ValidOwner(r.OwnerID) {
+		return repositoryDomainEntity.Repository{}, objectDomainEntity.ErrNotFound
 	}
 	return r, nil
 }
@@ -56,7 +59,7 @@ func (s *Service) Get(ctx context.Context, actor, rid, id string) (objectDomainE
 	if e != nil {
 		return objectDomainEntity.Object{}, e
 	}
-	if !repository.ValidID(id) {
+	if !repositoryDomainEntity.ValidID(id) {
 		return objectDomainEntity.Object{}, objectDomainEntity.ErrNotFound
 	}
 	return s.Store.Get(ctx, r, id)
@@ -82,7 +85,7 @@ func (s *Service) Update(ctx context.Context, actor, rid, id string, u objectDom
 	if e != nil {
 		return objectDomainEntity.Object{}, e
 	}
-	if !repository.ValidID(id) {
+	if !repositoryDomainEntity.ValidID(id) {
 		return objectDomainEntity.Object{}, objectDomainEntity.ErrNotFound
 	}
 	return s.Store.Update(ctx, r, actor, id, u)

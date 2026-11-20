@@ -1,6 +1,10 @@
 package firestore
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
 )
 
@@ -18,14 +22,12 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
-
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 )
 
 // These tests require an explicitly selected loopback emulator, never ADC or a
 // production project. Each fixture owns a random project and an expiring context.
-func emulatorStore(t *testing.T) (context.Context, *Store, repository.Repository) {
+func emulatorStore(t *testing.T) (context.Context, *Store, repositoryDomainEntity.Repository) {
 	t.Helper()
 	host := os.Getenv("FIRESTORE_EMULATOR_HOST")
 	if host == "" {
@@ -51,7 +53,7 @@ func emulatorStore(t *testing.T) (context.Context, *Store, repository.Repository
 		}
 	})
 	store := &Store{Client: client, ChannelID: "isolated-object-tests"}
-	r := repository.Repository{ID: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", OwnerID: "Cbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", Status: "ACTIVE"}
+	r := repositoryDomainEntity.Repository{ID: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", OwnerID: "Cbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", Status: "ACTIVE"}
 	if _, err := store.repositoryRef(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": r.Status}); err != nil {
 		t.Fatal(err)
 	}

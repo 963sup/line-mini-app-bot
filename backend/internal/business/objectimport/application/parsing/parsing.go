@@ -1,13 +1,16 @@
 package parsing
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 
 	objectimportApplicationPortParsing "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/port/parsing"
 	objectimportDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity"
 	objectimportDomainEntityParsing "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity/parsing"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
 type Service struct {
@@ -22,17 +25,17 @@ func (s *Service) Parse(ctx context.Context, actor, rid string, input objectimpo
 	if s == nil || s.Repositories == nil {
 		return objectimportDomainEntityParsing.Result{}, objectimportDomainEntity.ErrUnavailable
 	}
-	if actor == "" || !repository.ValidID(rid) {
+	if actor == "" || !repositoryDomainEntity.ValidID(rid) {
 		return objectimportDomainEntityParsing.Result{}, objectimportDomainEntity.ErrNotFound
 	}
 	r, e := s.Repositories.Get(ctx, actor, rid)
-	if errors.Is(e, repository.ErrNotFound) {
+	if errors.Is(e, repositoryDomainEntity.ErrNotFound) {
 		return objectimportDomainEntityParsing.Result{}, objectimportDomainEntity.ErrNotFound
 	}
 	if e != nil {
 		return objectimportDomainEntityParsing.Result{}, objectimportDomainEntity.ErrUnavailable
 	}
-	if r.ID != rid || r.Status != "ACTIVE" || !repository.ValidOwner(r.OwnerID) {
+	if r.ID != rid || r.Status != "ACTIVE" || !repositoryDomainEntity.ValidOwner(r.OwnerID) {
 		return objectimportDomainEntityParsing.Result{}, objectimportDomainEntity.ErrNotFound
 	}
 	source, _, e := objectimportDomainEntity.ValidateSource(input.Source)

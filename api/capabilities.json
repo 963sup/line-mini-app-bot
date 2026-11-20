@@ -9,8 +9,8 @@
     },
     "repository": {
       "contract": "repository/repositories.yaml",
-      "adapter": "backend/internal/business/repository/http/routes.go",
-      "core": "backend/internal/business/repository/repository.go",
+      "adapter": "backend/internal/business/repository/adapter/http/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/repository.go",
       "specification": "docs/domains/repository/README.md"
     },
     "attendance.punch": {
@@ -75,14 +75,14 @@
     },
     "repository.labels": {
       "contract": "repository/labels.yaml",
-      "adapter": "backend/internal/business/repository/labels/http/routes.go",
-      "core": "backend/internal/business/repository/labels/labels.go",
+      "adapter": "backend/internal/business/repository/adapter/http/labels/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/labels/labels.go",
       "specification": "docs/domains/repository/labels.md"
     },
     "repository.milestones": {
       "contract": "repository/milestones.yaml",
-      "adapter": "backend/internal/business/repository/milestones/http/routes.go",
-      "core": "backend/internal/business/repository/milestones/milestone.go",
+      "adapter": "backend/internal/business/repository/adapter/http/milestones/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/milestones/milestone.go",
       "specification": "docs/domains/repository/milestones.md"
     },
     "issue": {
@@ -147,8 +147,8 @@
     },
     "repository.statistics": {
       "contract": "repository/statistics.yaml",
-      "adapter": "backend/internal/business/repository/statistics/http/routes.go",
-      "core": "backend/internal/business/repository/statistics/statistics.go",
+      "adapter": "backend/internal/business/repository/adapter/http/statistics/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/statistics/statistics.go",
       "specification": "docs/domains/repository/insights.md"
     },
     "group": {
@@ -189,8 +189,8 @@
     },
     "repository.spaces": {
       "contract": "repository/spaces.yaml",
-      "adapter": "backend/internal/business/repository/space/http/routes.go",
-      "core": "backend/internal/business/repository/space/space.go",
+      "adapter": "backend/internal/business/repository/adapter/http/space/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/space/space.go",
       "specification": "docs/domains/repository/spaces.md"
     },
     "journal": {
@@ -207,8 +207,8 @@
     },
     "repository.wiki": {
       "contract": "repository/wiki.yaml",
-      "core": "backend/internal/business/repository/wiki/wiki.go",
-      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
       "specification": "docs/domains/repository/wiki.md"
     },
     "organization": {
@@ -314,9 +314,9 @@
       "method": "GET",
       "path": "/api/v1/repositories",
       "owner": "repository",
-      "adapter": "backend/internal/business/repository/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/routes.go",
       "handler": "ListRepositories",
-      "core": "backend/internal/business/repository/repository.go",
+      "core": "backend/internal/business/repository/domain/entity/repository.go",
       "specification": "docs/domains/repository/README.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/RepositoryContext.tsx"
@@ -329,9 +329,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{id}",
       "owner": "repository",
-      "adapter": "backend/internal/business/repository/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/routes.go",
       "handler": "GetRepository",
-      "core": "backend/internal/business/repository/repository.go",
+      "core": "backend/internal/business/repository/domain/entity/repository.go",
       "specification": "docs/domains/repository/README.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/RepositoryContext.tsx"
@@ -795,9 +795,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/labels",
       "owner": "repository.labels",
-      "adapter": "backend/internal/business/repository/labels/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/labels/routes.go",
       "handler": "ListLabels",
-      "core": "backend/internal/business/repository/labels/labels.go",
+      "core": "backend/internal/business/repository/domain/entity/labels/labels.go",
       "specification": "docs/domains/repository/labels.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/labels/View.tsx",
@@ -810,9 +810,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/labels",
       "owner": "repository.labels",
-      "adapter": "backend/internal/business/repository/labels/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/labels/routes.go",
       "handler": "CreateLabel",
-      "core": "backend/internal/business/repository/labels/labels.go",
+      "core": "backend/internal/business/repository/domain/entity/labels/labels.go",
       "specification": "docs/domains/repository/labels.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/labels/View.tsx"
@@ -824,9 +824,9 @@
       "method": "PATCH",
       "path": "/api/v1/repositories/{repositoryId}/labels/{id}",
       "owner": "repository.labels",
-      "adapter": "backend/internal/business/repository/labels/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/labels/routes.go",
       "handler": "RenameLabel",
-      "core": "backend/internal/business/repository/labels/labels.go",
+      "core": "backend/internal/business/repository/domain/entity/labels/labels.go",
       "specification": "docs/domains/repository/labels.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/labels/View.tsx"
@@ -838,9 +838,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/milestones",
       "owner": "repository.milestones",
-      "adapter": "backend/internal/business/repository/milestones/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/milestones/routes.go",
       "handler": "ListMilestones",
-      "core": "backend/internal/business/repository/milestones/milestone.go",
+      "core": "backend/internal/business/repository/domain/entity/milestones/milestone.go",
       "specification": "docs/domains/repository/milestones.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx",
@@ -853,9 +853,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/milestones",
       "owner": "repository.milestones",
-      "adapter": "backend/internal/business/repository/milestones/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/milestones/routes.go",
       "handler": "CreateMilestone",
-      "core": "backend/internal/business/repository/milestones/milestone.go",
+      "core": "backend/internal/business/repository/domain/entity/milestones/milestone.go",
       "specification": "docs/domains/repository/milestones.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx"
@@ -867,9 +867,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/milestones/{id}",
       "owner": "repository.milestones",
-      "adapter": "backend/internal/business/repository/milestones/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/milestones/routes.go",
       "handler": "GetMilestone",
-      "core": "backend/internal/business/repository/milestones/milestone.go",
+      "core": "backend/internal/business/repository/domain/entity/milestones/milestone.go",
       "specification": "docs/domains/repository/milestones.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx"
@@ -881,9 +881,9 @@
       "method": "PATCH",
       "path": "/api/v1/repositories/{repositoryId}/milestones/{id}",
       "owner": "repository.milestones",
-      "adapter": "backend/internal/business/repository/milestones/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/milestones/routes.go",
       "handler": "UpdateMilestone",
-      "core": "backend/internal/business/repository/milestones/milestone.go",
+      "core": "backend/internal/business/repository/domain/entity/milestones/milestone.go",
       "specification": "docs/domains/repository/milestones.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx"
@@ -979,9 +979,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/statistics",
       "owner": "repository.statistics",
-      "adapter": "backend/internal/business/repository/statistics/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/statistics/routes.go",
       "handler": "GetRepositoryStatistics",
-      "core": "backend/internal/business/repository/statistics/statistics.go",
+      "core": "backend/internal/business/repository/domain/entity/statistics/statistics.go",
       "specification": "docs/domains/repository/insights.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/insights/View.tsx"
@@ -1350,9 +1350,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/spaces",
       "owner": "repository.spaces",
-      "adapter": "backend/internal/business/repository/space/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/space/routes.go",
       "handler": "ListRepositorySpaces",
-      "core": "backend/internal/business/repository/space/space.go",
+      "core": "backend/internal/business/repository/domain/entity/space/space.go",
       "specification": "docs/domains/repository/spaces.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/useSpaces.ts",
@@ -1365,9 +1365,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/spaces",
       "owner": "repository.spaces",
-      "adapter": "backend/internal/business/repository/space/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/space/routes.go",
       "handler": "CreateRepositorySpace",
-      "core": "backend/internal/business/repository/space/space.go",
+      "core": "backend/internal/business/repository/domain/entity/space/space.go",
       "specification": "docs/domains/repository/spaces.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/Spaces.tsx",
@@ -1380,9 +1380,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/spaces/{id}",
       "owner": "repository.spaces",
-      "adapter": "backend/internal/business/repository/space/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/space/routes.go",
       "handler": "GetRepositorySpace",
-      "core": "backend/internal/business/repository/space/space.go",
+      "core": "backend/internal/business/repository/domain/entity/space/space.go",
       "specification": "docs/domains/repository/spaces.md",
       "consumers": []
     },
@@ -1466,8 +1466,8 @@
       "consumers": [
         "frontend/miniapp/src/business/repository/wiki/View.tsx"
       ],
-      "core": "backend/internal/business/repository/wiki/wiki.go",
-      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
       "specification": "docs/domains/repository/wiki.md"
     },
     {
@@ -1480,8 +1480,8 @@
       "consumers": [
         "frontend/miniapp/src/business/repository/wiki/View.tsx"
       ],
-      "core": "backend/internal/business/repository/wiki/wiki.go",
-      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
       "specification": "docs/domains/repository/wiki.md"
     },
     {
@@ -1494,8 +1494,8 @@
       "consumers": [
         "frontend/miniapp/src/business/repository/wiki/View.tsx"
       ],
-      "core": "backend/internal/business/repository/wiki/wiki.go",
-      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
       "specification": "docs/domains/repository/wiki.md"
     },
     {
@@ -1508,8 +1508,8 @@
       "consumers": [
         "frontend/miniapp/src/business/repository/wiki/View.tsx"
       ],
-      "core": "backend/internal/business/repository/wiki/wiki.go",
-      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
       "specification": "docs/domains/repository/wiki.md"
     },
     {
@@ -1522,8 +1522,8 @@
       "consumers": [
         "frontend/miniapp/src/business/repository/wiki/View.tsx"
       ],
-      "core": "backend/internal/business/repository/wiki/wiki.go",
-      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
       "specification": "docs/domains/repository/wiki.md"
     },
     {
@@ -1705,7 +1705,7 @@
       "owner": "repository",
       "action": "Observe",
       "contract": "docs/domains/repository/README.md",
-      "adapter": "backend/internal/business/repository/line/observer.go",
+      "adapter": "backend/internal/business/repository/adapter/line/observer.go",
       "handler": "Observe",
       "note": "Verified webhook drives the container lifecycle; no public create/update API."
     },

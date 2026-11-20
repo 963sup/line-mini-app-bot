@@ -1,6 +1,10 @@
 package subobjecthttp
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
 	"encoding/json"
 	"net/http"
@@ -12,7 +16,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/subobject"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 )
@@ -29,11 +32,11 @@ func (a auth) Authenticate(w http.ResponseWriter, _ *http.Request) (string, stri
 
 type repos struct{ deny bool }
 
-func (r repos) Get(_ context.Context, _, id string) (repository.Repository, error) {
+func (r repos) Get(_ context.Context, _, id string) (repositoryDomainEntity.Repository, error) {
 	if r.deny {
-		return repository.Repository{}, repository.ErrNotFound
+		return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrNotFound
 	}
-	return repository.Repository{ID: id, OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}, nil
+	return repositoryDomainEntity.Repository{ID: id, OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}, nil
 }
 
 type memory struct {
@@ -42,19 +45,19 @@ type memory struct {
 	pid   string
 }
 
-func (m *memory) List(_ context.Context, _ repository.Repository, _, pid, _ string) (feature.Page, error) {
+func (m *memory) List(_ context.Context, _ repositoryDomainEntity.Repository, _, pid, _ string) (feature.Page, error) {
 	m.calls++
 	m.pid = pid
 	return feature.Page{Items: []feature.Subobject{m.child}}, nil
 }
 
-func (m *memory) Get(_ context.Context, _ repository.Repository, _, pid, _ string) (feature.Subobject, error) {
+func (m *memory) Get(_ context.Context, _ repositoryDomainEntity.Repository, _, pid, _ string) (feature.Subobject, error) {
 	m.calls++
 	m.pid = pid
 	return m.child, nil
 }
 
-func (m *memory) Create(_ context.Context, r repository.Repository, actor, pid, _ string, c feature.Content) (feature.Subobject, error) {
+func (m *memory) Create(_ context.Context, r repositoryDomainEntity.Repository, actor, pid, _ string, c feature.Content) (feature.Subobject, error) {
 	m.calls++
 	m.pid = pid
 	status, e := feature.Status(c)
@@ -65,7 +68,7 @@ func (m *memory) Create(_ context.Context, r repository.Repository, actor, pid, 
 	return m.child, nil
 }
 
-func (m *memory) Update(_ context.Context, _ repository.Repository, actor, pid, _ string, input feature.Update) (feature.Subobject, error) {
+func (m *memory) Update(_ context.Context, _ repositoryDomainEntity.Repository, actor, pid, _ string, input feature.Update) (feature.Subobject, error) {
 	m.calls++
 	m.pid = pid
 	next, e := feature.ApplyUpdate(m.child, actor, input)
@@ -146,8 +149,8 @@ func TestHTTPSubobjectContractAndIndependentScope(t *testing.T) {
 
 type unavailableRepositories struct{ err error }
 
-func (r unavailableRepositories) Get(context.Context, string, string) (repository.Repository, error) {
-	return repository.Repository{}, r.err
+func (r unavailableRepositories) Get(context.Context, string, string) (repositoryDomainEntity.Repository, error) {
+	return repositoryDomainEntity.Repository{}, r.err
 }
 
 func TestRepositoryFailureDetails(t *testing.T) {

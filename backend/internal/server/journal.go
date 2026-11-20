@@ -1,6 +1,10 @@
 package server
 
 import (
+	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
+)
+
+import (
 	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 )
 
@@ -10,11 +14,9 @@ import (
 
 	journaldb "github.com/963sup/line-mini-app-bot/internal/business/journal/adapter/firestore"
 	journalport "github.com/963sup/line-mini-app-bot/internal/business/journal/application/port"
-
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
-func newJournals(groups *groupquery.Service, repositories *repository.Service, projects *projectApplication.Service) journalport.Operations {
+func newJournals(groups *groupquery.Service, repositories *repositoryApplication.Service, projects *projectApplication.Service) journalport.Operations {
 	if groups == nil || repositories == nil || projects == nil {
 		return nil
 	}

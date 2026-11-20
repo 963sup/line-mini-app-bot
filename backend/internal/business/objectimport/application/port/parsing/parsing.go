@@ -1,10 +1,13 @@
 package parsing
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
 
 	objectimportDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
 type Producer interface {
@@ -12,5 +15,5 @@ type Producer interface {
 }
 
 type Repositories interface {
-	Get(context.Context, string, string) (repository.Repository, error)
+	Get(context.Context, string, string) (repositoryDomainEntity.Repository, error)
 }

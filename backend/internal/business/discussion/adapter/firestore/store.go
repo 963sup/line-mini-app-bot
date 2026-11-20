@@ -1,6 +1,11 @@
 package firestore
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+	repositoryDomainEntityLabels "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity/labels"
+)
+
+import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -15,8 +20,6 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository/labels"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
 	"google.golang.org/grpc/codes"
@@ -24,7 +27,7 @@ import (
 )
 
 type Numberer interface {
-	CreateNumberedResource(context.Context, repository.NumberedCreation, func(context.Context, *db.Transaction, repository.NumberedResource) error) (repository.NumberedResource, error)
+	CreateNumberedResource(context.Context, repositoryDomainEntity.NumberedCreation, func(context.Context, *db.Transaction, repositoryDomainEntity.NumberedResource) error) (repositoryDomainEntity.NumberedResource, error)
 }
 type Store struct {
 	Client    *db.Client
@@ -34,7 +37,7 @@ type Store struct {
 }
 
 type LabelValidator interface {
-	ValidateLabelIDs(context.Context, *db.Transaction, repository.Repository, []string) error
+	ValidateLabelIDs(context.Context, *db.Transaction, repositoryDomainEntity.Repository, []string) error
 }
 
 var _ discussionport.Store = (*Store)(nil)
@@ -69,11 +72,11 @@ func decode(snap *db.DocumentSnapshot, err error, repositoryID string) (discussi
 		return discussionentity.Discussion{}, err
 	}
 	c, err := discussionentity.Normalize(discussionentity.Content{Title: d.Title, Body: d.Body})
-	ids, idErr := labels.NormalizeIDs(d.LabelIDs)
+	ids, idErr := repositoryDomainEntityLabels.NormalizeIDs(d.LabelIDs)
 	if idErr != nil {
 		return discussionentity.Discussion{}, discussionport.ErrUnavailable
 	}
-	if err != nil || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !repository.ValidID(d.ID) || d.RepositoryID != repositoryID || d.Number < 1 || d.Number > repository.MaxResourceNumber || d.Version < 1 || d.Version > repository.MaxResourceNumber || d.AuthorID == "" || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) || c.Title != d.Title || c.Body != d.Body {
+	if err != nil || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !repositoryDomainEntity.ValidID(d.ID) || d.RepositoryID != repositoryID || d.Number < 1 || d.Number > repositoryDomainEntity.MaxResourceNumber || d.Version < 1 || d.Version > repositoryDomainEntity.MaxResourceNumber || d.AuthorID == "" || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) || c.Title != d.Title || c.Body != d.Body {
 		return discussionentity.Discussion{}, discussionport.ErrUnavailable
 	}
 	return discussionentity.Discussion{ID: d.ID, RepositoryID: d.RepositoryID, Number: d.Number, Title: d.Title, Body: d.Body, AuthorID: d.AuthorID, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt, LabelIDs: ids}, nil
@@ -96,16 +99,16 @@ func translate(err error) error {
 		}
 	}
 	switch {
-	case errors.Is(err, repository.ErrNotFound):
+	case errors.Is(err, repositoryDomainEntity.ErrNotFound):
 		return discussionentity.ErrNotFound
-	case errors.Is(err, repository.ErrCreationConflict):
+	case errors.Is(err, repositoryDomainEntity.ErrCreationConflict):
 		return discussionentity.ErrCreationConflict
 	default:
 		return grpcstatus.NormalizeContextError(err)
 	}
 }
 
-func (s *Store) Get(ctx context.Context, scope repository.Repository, id string) (result discussionentity.Discussion, err error) {
+func (s *Store) Get(ctx context.Context, scope repositoryDomainEntity.Repository, id string) (result discussionentity.Discussion, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
 		return result, discussionport.ErrUnavailable
@@ -119,7 +122,7 @@ type cursor struct {
 	Number int64
 }
 
-func (s *Store) List(ctx context.Context, scope repository.Repository, actor string, f discussiondto.Filter) (result discussiondto.Page, err error) {
+func (s *Store) List(ctx context.Context, scope repositoryDomainEntity.Repository, actor string, f discussiondto.Filter) (result discussiondto.Page, err error) {
 	defer func() { err = translate(err) }()
 	result.Items = []discussionentity.Discussion{}
 	if !s.ready() {
@@ -133,7 +136,7 @@ func (s *Store) List(ctx context.Context, scope repository.Repository, actor str
 	var c cursor
 	if f.Cursor != "" {
 		b, decodeErr := base64.RawURLEncoding.DecodeString(f.Cursor)
-		if decodeErr != nil || json.Unmarshal(b, &c) != nil || c.Scope != scopeKey || c.Number < 1 || c.Number > repository.MaxResourceNumber {
+		if decodeErr != nil || json.Unmarshal(b, &c) != nil || c.Scope != scopeKey || c.Number < 1 || c.Number > repositoryDomainEntity.MaxResourceNumber {
 			return result, discussionentity.ErrInput
 		}
 	}
@@ -169,7 +172,7 @@ func (s *Store) List(ctx context.Context, scope repository.Repository, actor str
 	return result, nil
 }
 
-func (s *Store) Create(ctx context.Context, repo repository.Repository, actorID, idempotencyKey string, content discussionentity.Content) (result discussionentity.Discussion, err error) {
+func (s *Store) Create(ctx context.Context, repo repositoryDomainEntity.Repository, actorID, idempotencyKey string, content discussionentity.Content) (result discussionentity.Discussion, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() || s.Numbers == nil {
 		return result, discussionport.ErrUnavailable
@@ -183,7 +186,7 @@ func (s *Store) Create(ctx context.Context, repo repository.Repository, actorID,
 	if err != nil {
 		return result, err
 	}
-	reference, err := s.Numbers.CreateNumberedResource(ctx, repository.NumberedCreation{RepositoryID: repo.ID, OwnerID: repo.OwnerID, ActorID: actorID, ResourceType: "discussion", IdempotencyKey: idempotencyKey, PayloadHash: firestorekey.Digest(payload)}, func(_ context.Context, tx *db.Transaction, ref repository.NumberedResource) error {
+	reference, err := s.Numbers.CreateNumberedResource(ctx, repositoryDomainEntity.NumberedCreation{RepositoryID: repo.ID, OwnerID: repo.OwnerID, ActorID: actorID, ResourceType: "discussion", IdempotencyKey: idempotencyKey, PayloadHash: firestorekey.Digest(payload)}, func(_ context.Context, tx *db.Transaction, ref repositoryDomainEntity.NumberedResource) error {
 		i := discussionentity.Discussion{ID: ref.ResourceID, RepositoryID: repo.ID, Number: ref.Number, Title: content.Title, Body: content.Body, AuthorID: actorID, Version: 1, CreatedAt: ref.CreatedAt, UpdatedAt: ref.CreatedAt}
 		return tx.Create(s.repositoryRef(repo.ID).Collection("discussions").Doc(i.ID), encode(i))
 	})
@@ -200,7 +203,7 @@ type change struct {
 	At      time.Time `firestore:"at"`
 }
 
-func (s *Store) Update(ctx context.Context, scope repository.Repository, actor, id string, input discussionentity.Update) (result discussionentity.Discussion, err error) {
+func (s *Store) Update(ctx context.Context, scope repositoryDomainEntity.Repository, actor, id string, input discussionentity.Update) (result discussionentity.Discussion, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
 		return result, discussionport.ErrUnavailable
@@ -245,7 +248,7 @@ func (s *Store) Update(ctx context.Context, scope repository.Repository, actor, 
 				return discussionport.ErrUnavailable
 			}
 			if err := s.Labels.ValidateLabelIDs(ctx, tx, scope, result.LabelIDs); err != nil {
-				if errors.Is(err, repository.ErrNotFound) {
+				if errors.Is(err, repositoryDomainEntity.ErrNotFound) {
 					return discussionentity.ErrInput
 				}
 				return err

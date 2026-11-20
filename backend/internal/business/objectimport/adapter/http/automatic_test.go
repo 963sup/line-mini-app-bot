@@ -1,6 +1,10 @@
 package objectimporthttp
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	objectimportApplication "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application"
 	objectimportApplicationAutomatic "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/automatic"
 	objectimportDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity"
@@ -15,7 +19,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 )
 
@@ -23,7 +26,7 @@ type automaticMemory struct {
 	runs map[string]objectimportDomainEntityAutomatic.Run
 }
 
-func (m *automaticMemory) Update(_ context.Context, r repository.Repository, a, id string, apply func(*objectimportDomainEntityAutomatic.Run) (objectimportDomainEntityAutomatic.Run, error)) (objectimportDomainEntityAutomatic.Run, error) {
+func (m *automaticMemory) Update(_ context.Context, r repositoryDomainEntity.Repository, a, id string, apply func(*objectimportDomainEntityAutomatic.Run) (objectimportDomainEntityAutomatic.Run, error)) (objectimportDomainEntityAutomatic.Run, error) {
 	var old *objectimportDomainEntityAutomatic.Run
 	if j, ok := m.runs[id]; ok {
 		if j.CreatorID != a || j.RepositoryID != r.ID {

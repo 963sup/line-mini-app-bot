@@ -1,6 +1,11 @@
 package firestore_test
 
 import (
+	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	projectApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/project/application/port"
 	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
@@ -28,8 +33,8 @@ import (
 
 	projectDB "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/firestore"
 	projectHTTP "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/http"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
-	repoDB "github.com/963sup/line-mini-app-bot/internal/business/repository/firestore"
+
+	repoDB "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -211,7 +216,7 @@ func TestOwnerProjectStorageRightsAndLegacyAlias(t *testing.T) {
 		t.Fatal(err)
 	}
 	repoStore := &repoDB.Store{Client: client, ChannelID: channel}
-	counts, err := repoStore.Statistics(ctx, repository.Repository{ID: rid, OwnerID: gid, Status: "ACTIVE"})
+	counts, err := repoStore.Statistics(ctx, repositoryDomainEntity.Repository{ID: rid, OwnerID: gid, Status: "ACTIVE"})
 	if err != nil || counts.Projects != 1 {
 		t.Fatalf("statistics must count new canonical project without legacy copy: %+v %v", counts, err)
 	}
@@ -361,19 +366,19 @@ func TestPersonalRepositoryAndProject(t *testing.T) {
 	root := client.Collection("channels").Doc(channel)
 	owner, other := "U"+strings.Repeat("a", 32), "U"+strings.Repeat("b", 32)
 	repos := &repoDB.Store{Client: client, ChannelID: channel}
-	seen := repository.Observation{OwnerID: owner, Name: "個人儲存庫", Status: "ACTIVE", EventID: "follow", At: time.Now(), Users: []string{owner}}
+	seen := repositoryDomainEntity.Observation{OwnerID: owner, Name: "個人儲存庫", Status: "ACTIVE", EventID: "follow", At: time.Now(), Users: []string{owner}}
 	for range 2 {
 		if err := repos.Observe(ctx, seen); err != nil {
 			t.Fatal(err)
 		}
 	}
-	catalog := repository.Service{Store: repos}
+	catalog := repositoryApplication.Service{Store: repos}
 	page, err := catalog.List(ctx, owner, "")
 	if err != nil || len(page.Items) != 1 || page.Items[0].OwnerID != owner {
 		t.Fatalf("personal list: %+v %v", page, err)
 	}
 	rid := page.Items[0].ID
-	if _, err = catalog.Get(ctx, other, rid); !errors.Is(err, repository.ErrNotFound) {
+	if _, err = catalog.Get(ctx, other, rid); !errors.Is(err, repositoryDomainEntity.ErrNotFound) {
 		t.Fatal("foreign repository read", err)
 	}
 	access := &sourceAccess{root: root}

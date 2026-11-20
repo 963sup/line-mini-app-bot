@@ -1,6 +1,10 @@
 package firestore
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	objectimportApplication "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application"
 	objectimportDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity"
 )
@@ -27,11 +31,9 @@ import (
 	db "cloud.google.com/go/firestore"
 
 	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/firestore"
-
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
-func importEmulator(t *testing.T) (context.Context, *db.Client, repository.Repository, *db.DocumentRef) {
+func importEmulator(t *testing.T) (context.Context, *db.Client, repositoryDomainEntity.Repository, *db.DocumentRef) {
 	t.Helper()
 	host := os.Getenv("FIRESTORE_EMULATOR_HOST")
 	if host == "" {
@@ -56,7 +58,7 @@ func importEmulator(t *testing.T) (context.Context, *db.Client, repository.Repos
 			t.Error(err)
 		}
 	})
-	r := repository.Repository{ID: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", OwnerID: "Cbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", Status: "ACTIVE"}
+	r := repositoryDomainEntity.Repository{ID: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", OwnerID: "Cbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", Status: "ACTIVE"}
 	parent := client.Collection("channels").Doc("isolated-import-tests").Collection("repositories").Doc(r.ID)
 	if _, err := parent.Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": "ACTIVE"}); err != nil {
 		t.Fatal(err)
@@ -66,16 +68,18 @@ func importEmulator(t *testing.T) (context.Context, *db.Client, repository.Repos
 
 // Only external membership observation is substituted; both draft and Object
 // writes use the real SDK and emulator transaction implementation.
-type importRepositories struct{ repository repository.Repository }
+type importRepositories struct {
+	repository repositoryDomainEntity.Repository
+}
 
-func (r importRepositories) Get(_ context.Context, actor, id string) (repository.Repository, error) {
+func (r importRepositories) Get(_ context.Context, actor, id string) (repositoryDomainEntity.Repository, error) {
 	if (actor != "actor-a" && actor != "actor-b") || id != r.repository.ID {
-		return repository.Repository{}, repository.ErrNotFound
+		return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrNotFound
 	}
 	return r.repository, nil
 }
 
-func importServices(client *db.Client, r repository.Repository) (*objectimportApplication.Service, *Store, *objectApplication.Service) {
+func importServices(client *db.Client, r repositoryDomainEntity.Repository) (*objectimportApplication.Service, *Store, *objectApplication.Service) {
 	repositories := importRepositories{r}
 	objects := &objectApplication.Service{Repositories: repositories, Store: &objectdb.Store{Client: client, ChannelID: "isolated-import-tests"}}
 	store := &Store{Client: client, ChannelID: "isolated-import-tests"}

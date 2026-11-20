@@ -1,6 +1,11 @@
 package server
 
 import (
+	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
 )
@@ -13,17 +18,18 @@ import (
 	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 
 	projectdb "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
-type projectSources struct{ repositories *repository.Service }
+type projectSources struct {
+	repositories *repositoryApplication.Service
+}
 
 func (s projectSources) Authorize(ctx context.Context, actor, id, expectedOwnerID string) (projectDomainEntity.Source, error) {
 	if s.repositories == nil {
 		return projectDomainEntity.Source{}, projectDomainEntity.ErrUnavailable
 	}
 	r, e := s.repositories.Get(ctx, actor, id)
-	if errors.Is(e, repository.ErrNotFound) {
+	if errors.Is(e, repositoryDomainEntity.ErrNotFound) {
 		return projectDomainEntity.Source{}, projectDomainEntity.ErrNotFound
 	}
 	if e != nil {
@@ -35,7 +41,7 @@ func (s projectSources) Authorize(ctx context.Context, actor, id, expectedOwnerI
 	return projectDomainEntity.Source{ID: r.ID, OwnerID: r.OwnerID}, nil
 }
 
-func newProjects(groups *groupquery.Service, repositories *repository.Service) *projectApplication.Service {
+func newProjects(groups *groupquery.Service, repositories *repositoryApplication.Service) *projectApplication.Service {
 	if groups == nil {
 		return nil
 	}

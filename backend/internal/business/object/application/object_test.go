@@ -1,6 +1,10 @@
 package application
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 	"strings"
@@ -8,7 +12,6 @@ import (
 
 	objectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
 	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
 func content() objectDomainEntity.Content {
@@ -78,11 +81,11 @@ func TestUpdateAuthorityVersionAndProvenance(t *testing.T) {
 }
 
 type repositories struct {
-	r repository.Repository
+	r repositoryDomainEntity.Repository
 	e error
 }
 
-func (r repositories) Get(context.Context, string, string) (repository.Repository, error) {
+func (r repositories) Get(context.Context, string, string) (repositoryDomainEntity.Repository, error) {
 	return r.r, r.e
 }
 
@@ -91,25 +94,25 @@ type stubStore struct {
 	scope string
 }
 
-func (s *stubStore) List(_ context.Context, r repository.Repository, _, _ string) (objectApplicationDto.Page, error) {
+func (s *stubStore) List(_ context.Context, r repositoryDomainEntity.Repository, _, _ string) (objectApplicationDto.Page, error) {
 	s.calls++
 	s.scope = r.ID
 	return objectApplicationDto.Page{}, nil
 }
 
-func (s *stubStore) Get(_ context.Context, r repository.Repository, _ string) (objectDomainEntity.Object, error) {
+func (s *stubStore) Get(_ context.Context, r repositoryDomainEntity.Repository, _ string) (objectDomainEntity.Object, error) {
 	s.calls++
 	s.scope = r.ID
 	return objectDomainEntity.Object{}, nil
 }
 
-func (s *stubStore) Create(_ context.Context, r repository.Repository, _, _ string, _ objectDomainEntity.Content) (objectDomainEntity.Object, error) {
+func (s *stubStore) Create(_ context.Context, r repositoryDomainEntity.Repository, _, _ string, _ objectDomainEntity.Content) (objectDomainEntity.Object, error) {
 	s.calls++
 	s.scope = r.ID
 	return objectDomainEntity.Object{}, nil
 }
 
-func (s *stubStore) Update(_ context.Context, r repository.Repository, _, _ string, _ objectDomainEntity.Update) (objectDomainEntity.Object, error) {
+func (s *stubStore) Update(_ context.Context, r repositoryDomainEntity.Repository, _, _ string, _ objectDomainEntity.Update) (objectDomainEntity.Object, error) {
 	s.calls++
 	s.scope = r.ID
 	return objectDomainEntity.Object{}, nil
@@ -117,7 +120,7 @@ func (s *stubStore) Update(_ context.Context, r repository.Repository, _, _ stri
 
 func TestServiceScopesEveryOperation(t *testing.T) {
 	id := strings.Repeat("a", 32)
-	r := repository.Repository{ID: id, OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
+	r := repositoryDomainEntity.Repository{ID: id, OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
 	store := &stubStore{}
 	s := Service{Repositories: repositories{r: r}, Store: store}
 	ctx := context.Background()
@@ -127,7 +130,7 @@ func TestServiceScopesEveryOperation(t *testing.T) {
 	if store.scope != id || store.calls != 1 {
 		t.Fatal(store)
 	}
-	for _, rr := range []repositories{{r: r, e: repository.ErrNotFound}, {r: repository.Repository{ID: id, Status: "INACTIVE"}}, {r: repository.Repository{ID: strings.Repeat("b", 32), OwnerID: r.OwnerID, Status: "ACTIVE"}}} {
+	for _, rr := range []repositories{{r: r, e: repositoryDomainEntity.ErrNotFound}, {r: repositoryDomainEntity.Repository{ID: id, Status: "INACTIVE"}}, {r: repositoryDomainEntity.Repository{ID: strings.Repeat("b", 32), OwnerID: r.OwnerID, Status: "ACTIVE"}}} {
 		s.Repositories = rr
 		before := store.calls
 		_, e1 := s.List(ctx, "A", id, "")

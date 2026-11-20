@@ -1,14 +1,18 @@
 package server
 
 import (
+	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
+)
+
+import (
 	"context"
 	"net/http"
 	"os"
 	"time"
 
 	groupline "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/line"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
-	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/line"
+
+	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/line"
 
 	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line"
 	summary "github.com/963sup/line-mini-app-bot/internal/business/summary/line"
@@ -19,7 +23,7 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
-func registerLINE(mux *http.ServeMux, appURL, endpointURL string, punches *attendance.Attendance, summaries *summary.Summary, repositories *repositoryline.Observer, groups *groupline.Observer, catalog *repository.Service, creation creationConversation) (func(context.Context, string) string, error) {
+func registerLINE(mux *http.ServeMux, appURL, endpointURL string, punches *attendance.Attendance, summaries *summary.Summary, repositories *repositoryline.Observer, groups *groupline.Observer, catalog *repositoryApplication.Service, creation creationConversation) (func(context.Context, string) string, error) {
 	var client weather.ForecastLookup
 	if key := os.Getenv("CWA_API_KEY"); key != "" {
 		client = &cwa.Client{APIKey: key, HTTP: &http.Client{Timeout: 3 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}

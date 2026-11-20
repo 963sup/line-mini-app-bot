@@ -1,6 +1,10 @@
 package entity
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -14,7 +18,6 @@ import (
 	"unicode/utf8"
 
 	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
 var ErrInput = errors.New("invalid object import")
@@ -148,8 +151,8 @@ func ProjectedBytes(j Job) (int, error) {
 	j.ID = strings.Repeat("f", 32)
 	j.RepositoryID = strings.Repeat("f", 32)
 	j.Status = "completed"
-	j.Version = repository.MaxResourceNumber
-	j.ConfirmedFromReviewVersion = repository.MaxResourceNumber
+	j.Version = repositoryDomainEntity.MaxResourceNumber
+	j.ConfirmedFromReviewVersion = repositoryDomainEntity.MaxResourceNumber
 	stamp := time.Date(2026, 1, 1, 0, 0, 0, 999999999, time.UTC)
 	j.CreatedAt = stamp
 	j.UpdatedAt = stamp
@@ -243,7 +246,7 @@ func ApplyReview(j Job, actor string, input Review, now time.Time) (Job, error) 
 	if actor == "" || actor != j.CreatorID {
 		return Job{}, ErrForbidden
 	}
-	if (j.Status != "draft" && j.Status != "reviewed") || j.Version != input.ExpectedVersion || j.Version >= repository.MaxResourceNumber {
+	if (j.Status != "draft" && j.Status != "reviewed") || j.Version != input.ExpectedVersion || j.Version >= repositoryDomainEntity.MaxResourceNumber {
 		return Job{}, ErrConflict
 	}
 	if len(input.Rows) != len(j.Rows) {
@@ -290,7 +293,7 @@ func Begin(j Job, actor string, expected int64, now time.Time) (Job, error) {
 		}
 		return j, nil
 	}
-	if j.Status != "reviewed" || j.Version != expected || j.Version > repository.MaxResourceNumber-1-int64(len(j.Rows)) {
+	if j.Status != "reviewed" || j.Version != expected || j.Version > repositoryDomainEntity.MaxResourceNumber-1-int64(len(j.Rows)) {
 		return Job{}, ErrConflict
 	}
 	for _, r := range j.Rows {
@@ -309,7 +312,7 @@ func Record(j Job, actor, rowID, objectID string, reviewVersion int64, now time.
 	if actor == "" || actor != j.CreatorID {
 		return Job{}, ErrForbidden
 	}
-	if (j.Status != "confirming" && j.Status != "completed") || j.ConfirmedFromReviewVersion != reviewVersion || !repository.ValidID(objectID) {
+	if (j.Status != "confirming" && j.Status != "completed") || j.ConfirmedFromReviewVersion != reviewVersion || !repositoryDomainEntity.ValidID(objectID) {
 		return Job{}, ErrConflict
 	}
 	j.Rows = append([]Row{}, j.Rows...)
@@ -331,7 +334,7 @@ func Record(j Job, actor, rowID, objectID string, reviewVersion int64, now time.
 	if !found {
 		return Job{}, ErrInput
 	}
-	if j.Version >= repository.MaxResourceNumber {
+	if j.Version >= repositoryDomainEntity.MaxResourceNumber {
 		return Job{}, ErrConflict
 	}
 	j.Version++
@@ -349,7 +352,7 @@ func ValidateStored(j Job) error {
 	if j.Status != "draft" && (j.ReviewedAt == nil || j.ReviewedAt.Before(j.CreatedAt) || j.ReviewedAt.After(j.UpdatedAt)) {
 		return ErrUnavailable
 	}
-	if !repository.ValidID(j.ID) || !repository.ValidID(j.RepositoryID) || j.CreatorID == "" || len(j.Rows) < 1 || len(j.Rows) > 100 || j.Version < 1 || j.Version > repository.MaxResourceNumber || j.CreatedAt.IsZero() || j.UpdatedAt.Before(j.CreatedAt) || !WithinSizeLimit(j) {
+	if !repositoryDomainEntity.ValidID(j.ID) || !repositoryDomainEntity.ValidID(j.RepositoryID) || j.CreatorID == "" || len(j.Rows) < 1 || len(j.Rows) > 100 || j.Version < 1 || j.Version > repositoryDomainEntity.MaxResourceNumber || j.CreatedAt.IsZero() || j.UpdatedAt.Before(j.CreatedAt) || !WithinSizeLimit(j) {
 		return ErrUnavailable
 	}
 	switch j.Status {
@@ -368,7 +371,7 @@ func ValidateStored(j Job) error {
 	items := map[string]bool{}
 	all := true
 	for _, r := range j.Rows {
-		if !repository.ValidID(r.ID) || ids[r.ID] || items[r.SourceItemNo] || r.SourceItemNo == "" || len(r.Evidence) < 1 || len(r.Evidence) > 4 {
+		if !repositoryDomainEntity.ValidID(r.ID) || ids[r.ID] || items[r.SourceItemNo] || r.SourceItemNo == "" || len(r.Evidence) < 1 || len(r.Evidence) > 4 {
 			return ErrUnavailable
 		}
 		ids[r.ID] = true
@@ -382,7 +385,7 @@ func ValidateStored(j Job) error {
 				return ErrUnavailable
 			}
 		}
-		if r.ResultObjectID != "" && !repository.ValidID(r.ResultObjectID) {
+		if r.ResultObjectID != "" && !repositoryDomainEntity.ValidID(r.ResultObjectID) {
 			return ErrUnavailable
 		}
 		if r.ResultObjectID != "" && (j.Status == "draft" || j.Status == "reviewed") {

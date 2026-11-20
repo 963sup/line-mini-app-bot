@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[statistics.go](statistics.go)。
+先查閱[statistics.go](../domain/entity/statistics/statistics.go)。
 
 ## 相關規格
 

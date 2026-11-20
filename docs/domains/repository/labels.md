@@ -53,9 +53,9 @@ flowchart LR
   h --- n3["資料位於既有 channels/{channelId}<br/>/repositories/{repositoryId} 下的 labels/{id<br/>}；labelNames/{hash} 保存名稱唯一綁定，<br/>labelCreationReceipts/{hash} 保存本空間、本<br/>人及建立鍵的收據。建立以同一交易保存標籤、名<br/>稱綁定與收據，所有讀取先於寫入。 Bot 停用保<br/>留資料、拒絕新讀寫；再次啟用沿用標籤。LINE <br/>成員核驗是外部資格觀察，不宣稱與 Firestore <br/>原子一致。錯誤只公開領域分類，SDK 原因保留在<br/> adapter 私有值。"]
   h --- n4["核心位於 repository/labels，HTTP 在其 http <br/>子目錄；Firestore 使用既有 Repository Store<br/>，不新增 client。前端 由正式空間「標籤」入口<br/>組合現有 UI，不改 primitives 或 Shell 業務責<br/>任。 失敗語義：400 輸入／游標、401 身分、403<br/> CSRF、404 無權或不存在空間、409 同名／建立<br/>鍵衝突、415 非 JSON、503 未配置／不可用／結<br/>果不明。 前端分開取消讀寫請求，離開空間或身<br/>分變更時丟棄舊回應；同步鎖阻擋連點，建立結果<br/>不明時鎖定原名稱並沿用鍵重試。鍵僅保留本次畫<br/>面，離頁或重新整理前應先確認結果。"]
   n4 --- n4l0["repository/labels"]
-  click n4l0 "../../../backend/internal/business/repository/labels/labels.go"
+  click n4l0 "../../../backend/internal/business/repository/domain/entity/labels/labels.go"
   n4 --- n4l1["Firestore"]
-  click n4l1 "../../../backend/internal/business/repository/firestore/labels.go"
+  click n4l1 "../../../backend/internal/business/repository/adapter/firestore/labels.go"
   n4 --- n4l2["前端"]
   click n4l2 "../../../frontend/miniapp/src/business/repository/labels/View.tsx"
 ```

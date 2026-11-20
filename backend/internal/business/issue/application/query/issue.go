@@ -1,14 +1,18 @@
 package query
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
+	"strings"
+	"unicode/utf8"
+
 	"github.com/963sup/line-mini-app-bot/internal/business/issue/application/dto"
 	"github.com/963sup/line-mini-app-bot/internal/business/issue/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/business/issue/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/business/issue/domain/policy"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
-	"strings"
-	"unicode/utf8"
 )
 
 type Operations struct{ port.Access }
@@ -30,7 +34,7 @@ func (s *Operations) Get(ctx context.Context, actor, repositoryID, id string) (e
 	if err != nil {
 		return entity.Issue{}, err
 	}
-	if !repository.ValidID(id) {
+	if !repositoryDomainEntity.ValidID(id) {
 		return entity.Issue{}, entity.ErrNotFound
 	}
 	return s.Store.Get(ctx, r, id)

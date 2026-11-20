@@ -1,6 +1,10 @@
 package application
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 	"strings"
@@ -8,7 +12,6 @@ import (
 	"time"
 
 	objectimportDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/objectimport/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
 func creation() objectimportDomainEntity.Creation {
@@ -162,33 +165,33 @@ func TestReviewAggregateAndStoredCorruption(t *testing.T) {
 
 type noRepositories struct{}
 
-func (noRepositories) Get(context.Context, string, string) (repository.Repository, error) {
-	return repository.Repository{}, repository.ErrNotFound
+func (noRepositories) Get(context.Context, string, string) (repositoryDomainEntity.Repository, error) {
+	return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrNotFound
 }
 
 type storeCalls struct{ calls int }
 
-func (s *storeCalls) Create(context.Context, repository.Repository, string, string, string, objectimportDomainEntity.Job) (objectimportDomainEntity.Job, error) {
+func (s *storeCalls) Create(context.Context, repositoryDomainEntity.Repository, string, string, string, objectimportDomainEntity.Job) (objectimportDomainEntity.Job, error) {
 	s.calls++
 	return objectimportDomainEntity.Job{}, nil
 }
 
-func (s *storeCalls) Get(context.Context, repository.Repository, string, string) (objectimportDomainEntity.Job, error) {
+func (s *storeCalls) Get(context.Context, repositoryDomainEntity.Repository, string, string) (objectimportDomainEntity.Job, error) {
 	s.calls++
 	return objectimportDomainEntity.Job{}, nil
 }
 
-func (s *storeCalls) Review(context.Context, repository.Repository, string, string, objectimportDomainEntity.Review) (objectimportDomainEntity.Job, error) {
+func (s *storeCalls) Review(context.Context, repositoryDomainEntity.Repository, string, string, objectimportDomainEntity.Review) (objectimportDomainEntity.Job, error) {
 	s.calls++
 	return objectimportDomainEntity.Job{}, nil
 }
 
-func (s *storeCalls) BeginConfirm(context.Context, repository.Repository, string, string, int64) (objectimportDomainEntity.Job, error) {
+func (s *storeCalls) BeginConfirm(context.Context, repositoryDomainEntity.Repository, string, string, int64) (objectimportDomainEntity.Job, error) {
 	s.calls++
 	return objectimportDomainEntity.Job{}, nil
 }
 
-func (s *storeCalls) RecordResult(context.Context, repository.Repository, string, string, string, string, int64) (objectimportDomainEntity.Job, error) {
+func (s *storeCalls) RecordResult(context.Context, repositoryDomainEntity.Repository, string, string, string, string, int64) (objectimportDomainEntity.Job, error) {
 	s.calls++
 	return objectimportDomainEntity.Job{}, nil
 }
@@ -261,7 +264,7 @@ func TestConfirmationReservesResultSpaceAndVersionBudget(t *testing.T) {
 	j = draft(t)
 	j.Status = "reviewed"
 	j.ReviewedAt = &now
-	j.Version = repository.MaxResourceNumber - 1
+	j.Version = repositoryDomainEntity.MaxResourceNumber - 1
 	if _, e = objectimportDomainEntity.Begin(j, "A", j.Version, now); !errors.Is(e, objectimportDomainEntity.ErrConflict) {
 		t.Fatal("accepted insufficient version budget", e)
 	}

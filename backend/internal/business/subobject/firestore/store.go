@@ -1,6 +1,10 @@
 package firestore
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -8,7 +12,7 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
+
 	feature "github.com/963sup/line-mini-app-bot/internal/business/subobject"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
 	"google.golang.org/grpc/codes"
@@ -59,7 +63,7 @@ func decode(snap *db.DocumentSnapshot, e error, repositoryID, parentObjectID, pa
 	c := feature.Content{Name: d.Name, Type: d.Type, Quantity: d.Quantity, Unit: d.Unit, CompletedQuantity: d.CompletedQuantity}
 	normalized, e := feature.Normalize(c)
 	derived, se := feature.Status(c)
-	if e != nil || se != nil || normalized != c || derived != d.Status || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !repository.ValidID(d.ID) || d.RepositoryID != repositoryID || d.ParentObjectID != parentObjectID || d.CreatorID != parentCreatorID || parentCreatorID == "" || d.Version < 1 || d.Version > repository.MaxResourceNumber || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) {
+	if e != nil || se != nil || normalized != c || derived != d.Status || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !repositoryDomainEntity.ValidID(d.ID) || d.RepositoryID != repositoryID || d.ParentObjectID != parentObjectID || d.CreatorID != parentCreatorID || parentCreatorID == "" || d.Version < 1 || d.Version > repositoryDomainEntity.MaxResourceNumber || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) {
 		return feature.Subobject{}, feature.ErrUnavailable
 	}
 	return feature.Subobject{Content: c, ID: d.ID, RepositoryID: repositoryID, ParentObjectID: parentObjectID, CreatorID: d.CreatorID, Status: d.Status, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
@@ -74,7 +78,7 @@ func (s *Store) parentObjectRef(repositoryID, parentObjectID string) *db.Documen
 }
 
 // authorizeParentObject returns the parent creator ID and restricts writes to that creator.
-func (s *Store) authorizeParentObject(tx *db.Transaction, r repository.Repository, parentObjectID, actor string, requireCreator bool) (string, error) {
+func (s *Store) authorizeParentObject(tx *db.Transaction, r repositoryDomainEntity.Repository, parentObjectID, actor string, requireCreator bool) (string, error) {
 	snap, e := tx.Get(s.repositoryRef(r.ID))
 	if status.Code(e) == codes.NotFound {
 		return "", feature.ErrNotFound
@@ -118,7 +122,7 @@ func (s *Store) authorizeParentObject(tx *db.Transaction, r repository.Repositor
 	return parent.CreatorID, nil
 }
 
-func (s *Store) Get(ctx context.Context, r repository.Repository, actor, parentObjectID, subobjectID string) (result feature.Subobject, err error) {
+func (s *Store) Get(ctx context.Context, r repositoryDomainEntity.Repository, actor, parentObjectID, subobjectID string) (result feature.Subobject, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
 		return result, feature.ErrUnavailable
@@ -141,7 +145,7 @@ func (s *Store) Get(ctx context.Context, r repository.Repository, actor, parentO
 
 type cursor struct{ Scope, ID string }
 
-func (s *Store) List(ctx context.Context, r repository.Repository, actor, parentObjectID, token string) (result feature.Page, err error) {
+func (s *Store) List(ctx context.Context, r repositoryDomainEntity.Repository, actor, parentObjectID, token string) (result feature.Page, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
 		return result, feature.ErrUnavailable
@@ -150,7 +154,7 @@ func (s *Store) List(ctx context.Context, r repository.Repository, actor, parent
 	c := cursor{}
 	if token != "" {
 		b, e := base64.RawURLEncoding.DecodeString(token)
-		if e != nil || json.Unmarshal(b, &c) != nil || c.Scope != scope || !repository.ValidID(c.ID) {
+		if e != nil || json.Unmarshal(b, &c) != nil || c.Scope != scope || !repositoryDomainEntity.ValidID(c.ID) {
 			return result, feature.ErrInput
 		}
 	}
@@ -197,7 +201,7 @@ type receipt struct {
 	PayloadHash   string `firestore:"payloadHash"`
 }
 
-func (s *Store) Create(ctx context.Context, r repository.Repository, actor, parentObjectID, key string, c feature.Content) (result feature.Subobject, err error) {
+func (s *Store) Create(ctx context.Context, r repositoryDomainEntity.Repository, actor, parentObjectID, key string, c feature.Content) (result feature.Subobject, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
 		return result, feature.ErrUnavailable
@@ -224,7 +228,7 @@ func (s *Store) Create(ctx context.Context, r repository.Repository, actor, pare
 			if e = snap.DataTo(&old); e != nil {
 				return e
 			}
-			if old.SchemaVersion != 1 || !repository.ValidID(old.ID) || len(old.PayloadHash) != 64 {
+			if old.SchemaVersion != 1 || !repositoryDomainEntity.ValidID(old.ID) || len(old.PayloadHash) != 64 {
 				return feature.ErrUnavailable
 			}
 			if old.PayloadHash != payload {
@@ -253,7 +257,7 @@ func (s *Store) Create(ctx context.Context, r repository.Repository, actor, pare
 	return result, nil
 }
 
-func (s *Store) Update(ctx context.Context, r repository.Repository, actor, parentObjectID, subobjectID string, input feature.Update) (result feature.Subobject, err error) {
+func (s *Store) Update(ctx context.Context, r repositoryDomainEntity.Repository, actor, parentObjectID, subobjectID string, input feature.Update) (result feature.Subobject, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
 		return result, feature.ErrUnavailable
