@@ -89,12 +89,84 @@ func (s *Store) checkRefs(ctx context.Context, actor string, d journal.Draft, re
 			}
 			if redact && errors.Is(e, journal.ErrNotFound) {
 				rows[i].Reference = nil
+				rows[i].ObjectID = ""
+				rows[i].SubobjectID = ""
+				rows[i].SpaceIDs = nil
+				rows[i].ObjectName = ""
+				rows[i].SpaceNames = nil
 				continue
 			}
 			if e != nil {
 				return e
 			}
 		}
+	}
+	return nil
+}
+
+// snapshotWork checks repository-scoped sources and captures names in the publish transaction.
+func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journal.Work) error {
+	if w.ObjectID == "" && w.SubobjectID == "" && len(w.SpaceIDs) == 0 {
+		return nil
+	}
+	if w.Reference == nil || w.Reference.Kind != "repository" || (w.SubobjectID != "" && w.ObjectID == "") || len(w.SpaceIDs) > 20 {
+		return journal.ErrInput
+	}
+	repo := s.root().Collection("repositories").Doc(w.Reference.ID)
+	snap, err := tx.Get(repo)
+	if err != nil {
+		return missing(err)
+	}
+	if snap.Data()["ownerId"] != group || snap.Data()["status"] != "ACTIVE" {
+		return journal.ErrNotFound
+	}
+	readName := func(ref *db.DocumentRef, parent string) (string, error) {
+		snap, err := tx.Get(ref)
+		if err != nil {
+			return "", missing(err)
+		}
+		data := snap.Data()
+		if data["id"] != ref.ID || data["repositoryId"] != w.Reference.ID || (parent != "" && data["parentObjectId"] != parent) {
+			return "", journal.ErrNotFound
+		}
+		name, ok := data["name"].(string)
+		if !ok || name == "" {
+			return "", journal.ErrNotFound
+		}
+		return name, nil
+	}
+	if w.ObjectID != "" {
+		if !repository.ValidID(w.ObjectID) {
+			return journal.ErrInput
+		}
+		object := repo.Collection("objects").Doc(w.ObjectID)
+		w.ObjectName, err = readName(object, "")
+		if err != nil {
+			return err
+		}
+		if w.SubobjectID != "" {
+			if !repository.ValidID(w.SubobjectID) {
+				return journal.ErrInput
+			}
+			name, err := readName(object.Collection("subobjects").Doc(w.SubobjectID), w.ObjectID)
+			if err != nil {
+				return err
+			}
+			w.ObjectName += " › " + name
+		}
+	}
+	w.SpaceNames = nil
+	seen := map[string]bool{}
+	for _, id := range w.SpaceIDs {
+		if !repository.ValidID(id) || seen[id] {
+			return journal.ErrInput
+		}
+		seen[id] = true
+		name, err := readName(repo.Collection("spaces").Doc(id), "")
+		if err != nil {
+			return err
+		}
+		w.SpaceNames = append(w.SpaceNames, name)
 	}
 	return nil
 }
@@ -113,10 +185,6 @@ func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d jo
 	}
 	claim := receipt{Group: d.GroupID, Hash: firestorekey.Digest(body)}
 	entry := journal.Entry{Draft: d, ID: entryID, CreatorID: actorID, CreatedAt: time.Now().UTC().Truncate(time.Microsecond)}
-	payload, e := json.Marshal(entry)
-	if e != nil {
-		return journal.Entry{}, e
-	}
 	order := d.WorkDate.Format(time.DateOnly) + "/" + entry.CreatedAt.Format("20060102T150405.000000Z") + "/" + entryID
 	target := s.entries(d.GroupID).Doc(entryID)
 	locator := s.root().Collection("journalReceipts").Doc(entryID)
@@ -138,6 +206,20 @@ func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d jo
 			return e
 		}
 		if status.Code(e) != codes.NotFound {
+			return e
+		}
+		// Copy rows so retries never mutate the caller's draft or its request hash.
+		entry.Today = append([]journal.Work(nil), d.Today...)
+		entry.Tomorrow = append([]journal.Work(nil), d.Tomorrow...)
+		for _, rows := range [][]journal.Work{entry.Today, entry.Tomorrow} {
+			for i := range rows {
+				if e = s.snapshotWork(tx, d.GroupID, &rows[i]); e != nil {
+					return e
+				}
+			}
+		}
+		payload, e := json.Marshal(entry)
+		if e != nil {
 			return e
 		}
 		if e = tx.Create(locator, claim); e != nil {

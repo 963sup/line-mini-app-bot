@@ -1105,7 +1105,8 @@
       "core": "backend/internal/business/object/object.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": [
-        "frontend/miniapp/src/business/object/View.tsx"
+        "frontend/miniapp/src/business/object/View.tsx",
+        "frontend/miniapp/src/business/journal/WorkContext.tsx"
       ]
     },
     {
@@ -1246,7 +1247,9 @@
       "handler": "ListSubobjects",
       "core": "backend/internal/business/subobject/subobject.go",
       "specification": "docs/domains/repository/objects.md",
-      "consumers": []
+      "consumers": [
+        "frontend/miniapp/src/business/journal/WorkContext.tsx"
+      ]
     },
     {
       "operationId": "createSubobject",
@@ -1337,7 +1340,8 @@
       "core": "backend/internal/business/repository/space/space.go",
       "specification": "docs/domains/repository/spaces.md",
       "consumers": [
-        "frontend/miniapp/src/business/repository/useSpaces.ts"
+        "frontend/miniapp/src/business/repository/useSpaces.ts",
+        "frontend/miniapp/src/business/journal/WorkContext.tsx"
       ]
     },
     {
@@ -1351,7 +1355,8 @@
       "core": "backend/internal/business/repository/space/space.go",
       "specification": "docs/domains/repository/spaces.md",
       "consumers": [
-        "frontend/miniapp/src/business/repository/Spaces.tsx"
+        "frontend/miniapp/src/business/repository/Spaces.tsx",
+        "frontend/miniapp/src/business/journal/WorkContext.tsx"
       ]
     },
     {

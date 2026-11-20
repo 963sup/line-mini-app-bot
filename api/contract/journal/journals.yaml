@@ -383,6 +383,39 @@
           },
           "reference": {
             "$ref": "#/components/schemas/JournalReference"
+          },
+          "objectId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "x-go-type-skip-optional-pointer": true
+          },
+          "subobjectId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "x-go-type-skip-optional-pointer": true
+          },
+          "spaceIds": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "x-go-type-skip-optional-pointer": true
+          },
+          "objectName": {
+            "type": "string",
+            "readOnly": true,
+            "x-go-type-skip-optional-pointer": true
+          },
+          "spaceNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "x-go-type-skip-optional-pointer": true
           }
         }
       },
@@ -407,6 +440,39 @@
           },
           "reference": {
             "$ref": "#/components/schemas/JournalReference"
+          },
+          "objectId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "x-go-type-skip-optional-pointer": true
+          },
+          "subobjectId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "x-go-type-skip-optional-pointer": true
+          },
+          "spaceIds": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "x-go-type-skip-optional-pointer": true
+          },
+          "objectName": {
+            "type": "string",
+            "readOnly": true,
+            "x-go-type-skip-optional-pointer": true
+          },
+          "spaceNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "x-go-type-skip-optional-pointer": true
           }
         }
       },
