@@ -24,7 +24,7 @@ flowchart TD
 
 ## PDF 操作與驗收
 
-將「擷取候選工項」與「確認寫入」定為兩個操作。擷取接受[前端取得的選定頁面](../../frontend/miniapp/src/business/object/pdf.ts)，由 objectimport 驗證項次、數量、單位及來源頁碼。以同一份去識別化 PDF 比對[既有解析結果](../../backend/internal/business/objectimport/adapter/openai/parsing/automatic.go)。寫入操作應驗證授權與已確認的候選版本；使用同一執行識別碼重試時應取得同一次結果。
+將「擷取候選工項」與「確認寫入」定為兩個操作。擷取接受原始 PDF，並由[後端取得逐頁文字及明細](../../backend/internal/business/objectimport/adapter/workbook/pdf.go)，由 objectimport 驗證項次、數量、單位及來源頁碼。以同一份去識別化 PDF 比對[既有解析結果](../../backend/internal/business/objectimport/adapter/openai/parsing/automatic.go)。寫入操作應驗證授權與已確認的候選版本；使用同一執行識別碼重試時應取得同一次結果。
 
 ## 對外契約草案
 

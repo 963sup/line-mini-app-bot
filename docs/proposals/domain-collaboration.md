@@ -138,7 +138,7 @@ sequenceDiagram
 
 ## 落地與觀測
 
-1. 先對照[前端擷取測試](../../frontend/miniapp/tests/pdf-extraction.test.tsx)、[表格測試](../../frontend/miniapp/tests/pdf-table.test.tsx)與[匯入測試](../../frontend/miniapp/tests/object-import.test.tsx)，從現有入口跑通擷取、確認、重送。以實際儲存的工項數與來源頁驗收。
+1. 先對照[後端 PDF 擷取測試](../../backend/internal/business/objectimport/adapter/workbook/pdf_test.go)與[匯入測試](../../frontend/miniapp/tests/object-import.test.tsx)，從現有入口跑通擷取、確認、重送。以實際儲存的工項數與來源頁驗收。
 2. 接入知識查詢後，以同一批樣本比較每百筆候選的人工修正數與錯誤自動採納數；另測撤回、跨組織隔離及新版取代舊版。
 3. 只對仍需動態補查的案例接入 Agent，記錄找到證據、證據不足、越權拒絕及步數耗盡的結果。以相同樣本對照固定流程的正確率、耗時與模型呼叫數。
 4. 用匯入 ID 關聯候選版本、執行識別碼、來源頁、知識版本、模型與提示版本及結果。日誌記錄識別資訊與計數，避免記錄整頁原文。上線時保留停用補查、撤回知識版本及回到人工確認的路徑。
