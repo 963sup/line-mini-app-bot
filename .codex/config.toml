@@ -95,9 +95,8 @@ config_file = "agents/mermaid.toml"
 
 [mcp_servers.mermaid]
 url = "https://mcp.mermaid.ai/mcp"
-env_http_headers = { Authorization = "MERMAID_TOKEN" }
-# Local rendering uses mise's render-mermaid task.
-enabled = false
+bearer_token_env_var = "MERMAID_TOKEN"
+enabled = true
 required = false
 startup_timeout_sec = 30
 tool_timeout_sec = 60
