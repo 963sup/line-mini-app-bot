@@ -38,7 +38,7 @@ func (v *Verifier) Verify(ctx context.Context, token string) (identity.User, err
 	// The response is read-only; closing cannot commit application state.
 	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode == http.StatusBadRequest || response.StatusCode == http.StatusUnauthorized {
-		return identity.User{}, identity.ErrRejectedToken
+		return identity.User{}, &identity.TokenRejection{HTTPStatus: response.StatusCode}
 	}
 	if response.StatusCode != http.StatusOK {
 		return identity.User{}, identity.ErrUnavailable
