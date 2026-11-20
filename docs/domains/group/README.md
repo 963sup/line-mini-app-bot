@@ -1,5 +1,7 @@
 # 群組
 
+**已有實作** · [領域設計](#領域設計) · [核心流程](#decision-flow) · [代表測試](../../../backend/internal/business/group/application/query/group_test.go) · [程式目錄](../../../backend/internal/business/group/README.md) · [維護指引](../../../backend/internal/business/group/AGENTS.md)
+
 ## 領域設計
 
 **子域定位**　群組身分與探索的支援能力。
@@ -15,3 +17,18 @@
 管理群組狀態與 LINE 群組事件。
 
 [後端group 實作說明](../../../backend/internal/business/group/README.md)
+
+<a id="decision-flow"></a>
+
+## 查閱受限群組資料的判定流程
+
+```mermaid
+flowchart TD
+    start["查閱受限群組資料"] --> gate{"已核實群組成員資格？"}
+    gate -->|是| ok["允許查閱"]
+    gate -->|否| stop["拒絕查閱"]
+```
+
+[操作入口與適配器](../../../backend/internal/business/group/adapter) · [判定依據](../../../backend/internal/business/group/application/query/group_test.go) · [應用層輸出介面](../../../backend/internal/business/group/application/port/store.go) · [相關測試](../../../backend/internal/business/group/application/query/group_test.go)
+
+[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)

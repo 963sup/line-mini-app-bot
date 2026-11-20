@@ -23,3 +23,5 @@
 - Dashboard 圖表採用 shadcn 官方 [Bar](https://ui.shadcn.com/charts/bar#charts) 與 [Tooltip](https://ui.shadcn.com/charts/tooltip#charts) 的組合，提示顯示完整工作名稱和百分比。
 
 [現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期) · [未來設計圖](../../../../../docs/diagrams.md#未來設計)
+
+[上層導覽](../README.md)

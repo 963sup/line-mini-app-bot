@@ -1,5 +1,7 @@
 # 天氣
 
+**已有實作** · [設計規格](weather.md) · [核心流程](#decision-flow) · [代表測試](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go) · [程式目錄](../../../backend/internal/business/weather/README.md) · [維護指引](../../../backend/internal/business/weather/AGENTS.md)
+
 ## 領域設計
 
 **子域定位**　外部預報屬通用能力；群組查詢是產品支援能力。
@@ -15,3 +17,18 @@
 天氣功能的查詢與 LINE 互動見天氣規格。
 
 [相關業務規格](weather.md) · [後端weather 實作說明](../../../backend/internal/business/weather/README.md)
+
+<a id="decision-flow"></a>
+
+## 收到可回覆的群組位置的判定流程
+
+```mermaid
+flowchart TD
+    start["收到可回覆的群組位置"] --> gate{"取得有效且符合位置條件的預報？"}
+    gate -->|是| ok["回覆官方預報"]
+    gate -->|否| stop["回報無可用預報"]
+```
+
+[操作入口與適配器](../../../backend/internal/business/weather/adapter) · [判定依據](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go) · [相關測試](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go)
+
+[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)

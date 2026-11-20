@@ -7,9 +7,9 @@ flowchart LR
   h["Repository 共用資源編號基礎"]
   h --- n0["狀態：內部共用基礎，已接入 事項建立 與 討論<br/>建立，留言不消耗共用編號。初期先完成編號基礎<br/>；目前事項契約、畫面與資料保存依事項規格，不<br/>由編號基礎自行決定。"]
   n0 --- n0l0["事項建立"]
-  click n0l0 "issues.md"
+  click n0l0 "../issue/design.md"
   n0 --- n0l1["討論建立"]
-  click n0l1 "discussions.md"
+  click n0l1 "../discussion/design.md"
 ```
 
 <a id="範圍與識別"></a>

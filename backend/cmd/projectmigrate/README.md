@@ -59,3 +59,5 @@ FIRESTORE_EMULATOR_HOST=127.0.0.1:8787 bash scripts/tooling/tool-exec.sh bash -c
 交易與先讀後寫依Context7 `/googleapis/google-cloud-go` 官方transaction.go及本機Firestore v1.29.2核對；`DocumentRefs`包含缺少父文件的子集合入口，遷移遇到孤兒來源拒絕而非默默省略。Google Developer Knowledge工具未在此host提供；未宣稱實際IAM、正式資料規模、部署或live回退驗收。
 
 [現行實作圖：格式與資料相容](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+
+[上層導覽](../README.md)

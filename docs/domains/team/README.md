@@ -1,5 +1,7 @@
 # 團隊
 
+**已有實作** · [設計規格](design.md) · [核心流程](#decision-flow) · [判定實作](../../../backend/internal/business/team/adapter/firestore/store.go) · [程式目錄](../../../backend/internal/business/team/README.md) · [維護指引](../../../backend/internal/business/team/AGENTS.md)
+
 ## 領域設計
 
 **子域定位**　團隊治理的支援候選。
@@ -14,4 +16,21 @@
 
 團隊與組織的歸屬及管理範圍見組織所有權目標規格。
 
-[相關業務規格](../repository/organization.md) · [後端team 實作說明](../../../backend/internal/business/team/application/dto/model.go)
+[領域設計與操作契約](design.md) · [後端實作入口](../../../backend/internal/business/team/README.md)
+
+<a id="decision-flow"></a>
+
+## 指定團隊管理方的判定流程
+
+```mermaid
+flowchart TD
+    start["指定團隊管理方"] --> gate{"雙端授權通過且無不同的既有管理方？"}
+    gate -->|是| ok["設定管理歸屬"]
+    gate -->|否| stop["拒絕未授權操作或回報歸屬衝突"]
+```
+
+[操作入口與適配器](../../../backend/internal/business/team/adapter) · [判定依據](../../../backend/internal/business/team/adapter/firestore/store.go) · 本領域目錄未見獨立 Go 測試；以上述驗收案例核對實作
+
+[三領域授權邊界](../../architecture/contracts/organization-team-ownership.md#ownership-boundaries)
+
+[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)

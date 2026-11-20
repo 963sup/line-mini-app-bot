@@ -21,3 +21,9 @@
 遵循[上層指引](../AGENTS.md)。修改套件行為時，檢查呼叫端與受影響的 Go 測試。 實作入口見[本目錄導覽](README.md)。
 
 [現行實作圖：資料與可靠性](../../../../docs/domains/summary/summary.md#資料與可靠性) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
+
+## 驗證模型摘要的維護與驗收
+
+更換模型後仍須檢查引用；結果缺少引用或引用超出來源範圍時，拒絕儲存與發送。
+
+修改此規則時，核對[判定流程](../../../../docs/domains/summary/README.md#decision-flow)與[判定實作](application/summarization/validation.go)。

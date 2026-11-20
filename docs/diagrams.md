@@ -2,6 +2,8 @@
 
 初次接手可從[六張核心圖](README.md#日常開發看哪張圖)開始。以下按圖的用途列出原文章節；實作狀態依儲存庫內容判定，部署與裝置驗收依各頁紀錄。
 
+[19 個領域的核心流程與狀態](domains/README.md#domain-matrix) · [四領域協作提案與 PDF 匯入時序](proposals/domain-collaboration.md)
+
 ## 現行實作
 
 - [DDD 上下文映射圖 · 日誌引用](architecture/ddd/context-map.md)
@@ -16,11 +18,11 @@
 - [工時計算第一階段 · 休息未確認與暫估工時](domains/attendance/worktime.md#休息未確認與暫估工時)
 - [個人或工程群組擁有的 Project · 最小來源引用骨架](domains/project/project.md#最小來源引用骨架)
 - [個人或工程群組擁有的 Project · 工程驗收送件](domains/project/project.md#工程驗收送件)
-- [空間討論與單層留言 · 最小實作邊界與驗證](domains/repository/discussions.md#最小實作邊界與驗證)
+- [空間討論與單層留言 · 最小實作邊界與驗證](domains/discussion/design.md#最小實作邊界與驗證)
 - [里程碑](domains/repository/milestones.md#里程碑)
 - [Repository 共用資源編號基礎 · 內部接入方式](domains/repository/numbering.md#內部接入方式)
-- [物件自動匯入 · 自動匯入操作契約](domains/repository/object-imports.md#自動匯入操作契約)
-- [儲存庫物件 · 物件與子物件歸屬](domains/repository/objects.md#物件與子物件歸屬)
+- [物件自動匯入 · 自動匯入操作契約](domains/objectimport/design.md#自動匯入操作契約)
+- [儲存庫物件 · 物件與子物件歸屬](architecture/contracts/object-subobject-ownership.md#物件與子物件歸屬)
 - [個人與群組 Repository · 空間載入時序](domains/repository/README.md#空間載入時序)
 - [基礎群聊摘要 · 資料與可靠性](domains/summary/summary.md#資料與可靠性)
 - [HTTP 與身分契約 · 基礎入口](architecture/contracts/http.md#基礎入口)
@@ -32,7 +34,7 @@
 - [Web Geolocation API 整合契約 · 現有出勤整合檔案與責任](architecture/integrations/web-geolocation.md#現有出勤整合檔案與責任)
 
 ## 未來設計
-- [Organization 所有權與 Team 歸屬](domains/repository/organization.md)
+- [Organization 所有權與 Team 歸屬](architecture/contracts/organization-team-ownership.md)
 
 - [套件依賴與圖譜 · 允許方向](architecture/runtime/dependencies.md#允許方向)
 - [LINE 整合：能力與邊界 · 3. Webhook 事件與可靠性](architecture/integrations/line.md#3-webhook-事件與可靠性)

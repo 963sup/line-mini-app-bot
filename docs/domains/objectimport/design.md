@@ -77,7 +77,7 @@ flowchart LR
 flowchart LR
   h["自動匯入操作契約"]
   h --- n0["候選遵循 物件欄位規則：正十進位數量字串、原<br/>單位不換算、類型只能由使用者此次選擇灌入、同<br/>執行項次不可重複。施作初始完成數0與<br/>not_started僅由後端物件建立服務設定；非施作<br/>不給完成數，畫面狀態／進度不適用。AI不再依費<br/>用、章節或內容推斷類型；新列description／<br/>materialCode留空，不刪改舊凍結列的既有資料。<br/>舊人工草稿自由type保持相容。模型或輸入失敗不<br/>建立無效物件；不同建立鍵仍可能重複同份文件，<br/>不宣稱全文件去重。"]
-  click n0 "objects.md"
+  click n0 "../object/design.md"
   h --- n1["現行實作"]
 ```
 
@@ -122,7 +122,7 @@ flowchart LR
   h --- n0["以脫敏資料與 fake HTTP provider 驗證候選有效<br/>性、權限／跨儲存庫、同鍵內容衝突、候選凍結競<br/>爭、部分成功與未知結果重試；以真本機 <br/>Firestore emulator 驗交易與結果映射。真 PDF <br/>只做本機擷取驗證，不將商業內容放入 repo／公<br/>開 fixture 或傳至模型。正式 OpenAI、LINE 與<br/>手機驗收另列，不能用替身、emulator 或 build <br/>冒稱通過。"]
   h --- n1["物件規格 · 功能索引 · 操作模型"]
   n1 --- n1l0["物件規格"]
-  click n1l0 "objects.md"
+  click n1l0 "../object/design.md"
   n1 --- n1l1["功能索引"]
   click n1l1 "../README.md"
   n1 --- n1l2["操作模型"]

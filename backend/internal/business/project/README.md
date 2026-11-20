@@ -1,5 +1,7 @@
 # 專案基礎
 
+[領域文件](../../../../docs/domains/project/README.md) · [全域索引](../../../../docs/domains/README.md#domain-matrix)
+
 ## 用途與範圍
 
 管理工程專案、來源引用及檢查紀錄，負責專案歸屬與引用來源的授權規則。
@@ -21,3 +23,9 @@
 操作、權限、資料與驗收依 [基礎規格](../../../../docs/domains/project/project.md)。不擴充未授權功能；核心、HTTP 與 Firestore 各自保留責任，前端組合既有元件。
 
 [現行實作圖：最小來源引用骨架](../../../../docs/domains/project/project.md#最小來源引用骨架) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
+
+## 領域追蹤入口
+
+[領域規格](../../../../docs/domains/project/README.md) · [判定流程](../../../../docs/domains/project/README.md#decision-flow) · [代表測試](application/reference_source_test.go)
+
+[上層導覽](../README.md)

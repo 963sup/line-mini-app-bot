@@ -42,7 +42,7 @@ flowchart LR
   n5 --- n5l0["資產準備腳本"]
   click n5l0 "../../../scripts/tooling/prepare-miniapp-assets.mts"
   n5 --- n5l1["PDF 匯入限制"]
-  click n5l1 "../../domains/repository/object-imports.md"
+  click n5l1 "../../domains/objectimport/design.md"
   h --- n6["執行 pnpm test 包含真實 React StrictMode 的 <br/>DOM 測試；pnpm check 包含應用與測試 <br/>TypeScript 檢查。測試替換原本依賴 DOM VM 的<br/>控制器檢查，涵蓋原打卡重試／取消案例及跨功能<br/>競態。裝置權限與 LINE 真實登入另做實機驗收。"]
   h --- n7["查證：Context7 /reactjs/react.dev 的 Effects<br/> cleanup／過期回應指引、Next.js v16.4.5 的 <br/>Pages Router 靜態輸出與 Strict Mode；LINE 官<br/>方文件來源 main <br/>dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54 的 <br/>LIFF 初始化與 ID token 驗證契約。套件依賴精<br/>確版本見 package.json／pnpm-lock.yaml。"]
 ```

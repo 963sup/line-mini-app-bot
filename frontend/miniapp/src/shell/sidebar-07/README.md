@@ -40,3 +40,5 @@ LINE 頭像經伺服器身分驗證成功後，以 LIFF `getProfile()` 取得，
 來源：LINE 官方 docs source main `dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54` 的 LIFF getProfile 參考，以及 Context7 `/shadcn-ui/ui` AvatarImage／AvatarFallback 文件；shadcn CLI 維持 4.23.0。
 
 [現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期) · [未來設計圖](../../../../../docs/diagrams.md#未來設計)
+
+[上層導覽](../README.md)

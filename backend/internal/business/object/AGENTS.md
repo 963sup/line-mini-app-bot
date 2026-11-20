@@ -14,10 +14,16 @@
 
 ## 相關規格
 
-[現行實作圖：物件與子物件歸屬](../../../../docs/domains/repository/objects.md#物件與子物件歸屬)
+[現行實作圖：物件與子物件歸屬](../../../../docs/architecture/contracts/object-subobject-ownership.md#物件與子物件歸屬)
 
 ## 工作方式
 
 遵循[上層指引](../AGENTS.md)。修改套件行為時，檢查呼叫端與受影響的 Go 測試。 實作入口見[本目錄導覽](README.md)。
 
-[現行實作圖：物件與子物件歸屬](../../../../docs/domains/repository/objects.md#物件與子物件歸屬) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
+[現行實作圖：物件與子物件歸屬](../../../../docs/architecture/contracts/object-subobject-ownership.md#物件與子物件歸屬) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
+
+## 變更工項進度的維護與驗收
+
+總量為 5、完成量為 8 的工項應被拒絕；等值十進位表示不應產生不同的完成狀態。
+
+修改此規則時，核對[判定流程](../../../../docs/domains/object/README.md#decision-flow)與[代表測試](application/progress_test.go)。

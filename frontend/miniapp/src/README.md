@@ -23,3 +23,9 @@ MINI App 採用 **依功能組織（feature-based architecture）**。`pages/` �
 ## 驗證入口
 
 從儲存庫根目錄執行 `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check` 做型別檢查。修改流程或互動時，執行相同命令並以 `test` 取代 `check`，核對受影響的登入狀態、請求失敗或重試行為。需要 LINE WebView 的流程另在對應環境驗證。
+
+[上層導覽](../README.md)
+
+## 下層文件入口
+
+- [styles](styles/README.md)

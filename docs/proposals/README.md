@@ -1,5 +1,7 @@
 # 規劃與提案
 
+[平台能力提案](platform/README.md) · [Webhook 可靠交付提案](webhook-delivery/README.md)
+
 ## 用途與範圍
 
 保存待評估或演進中的設計提案。
@@ -78,3 +80,11 @@ flowchart LR
   n2 --- n2l1["對照現行實作"]
   click n2l1 "../diagrams.md#現行實作"
 ```
+
+## 規劃中的業務領域
+
+[Operations 設計](operations.md) · [Workflow 設計](workflow.md) · [Agent 設計](agent.md) · [Knowledge 設計](knowledge.md)
+
+[四領域架構、共用詞條與落地驗收](domain-collaboration.md)
+
+[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)
