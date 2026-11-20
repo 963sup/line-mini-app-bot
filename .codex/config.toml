@@ -95,8 +95,7 @@ config_file = "agents/mermaid.toml"
 
 [mcp_servers.mermaid]
 url = "https://mcp.mermaid.ai/mcp"
-env_http_headers = { Authorization = "MERMAID_TOKEN" }
-# Local rendering uses mise's render-mermaid task.
+bearer_token_env_var = "MERMAID_TOKEN"
 enabled = false
 required = false
 startup_timeout_sec = 30
@@ -106,8 +105,10 @@ enabled_tools = ["validate_and_render_mermaid_diagram", "get_diagram_title", "ge
 [mcp_servers.graphify]
 # Forward runtime network settings by name; never store credential values.
 env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
+# Resolve paths from the Codex checkout, including worktrees.
+cwd = "."
 command = "bash"
-args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "graphify-mcp", "/workspace/line-mini-app-bot/graphify-out/graph.json"]
+args = ["scripts/tooling/tool-exec.sh", "graphify-mcp", "graphify-out/graph.json"]
 enabled = true
 required = false
 startup_timeout_sec = 45
@@ -133,8 +134,10 @@ tool_timeout_sec = 45
 [mcp_servers.repomix_skills]
 # Forward runtime network settings by name; never store credential values.
 env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
+# Resolve paths from the Codex checkout, including worktrees.
+cwd = "."
 command = "bash"
-args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "repomix", "--mcp"]
+args = ["scripts/tooling/tool-exec.sh", "repomix", "--mcp"]
 enabled_tools = ["generate_skill"]
 default_tools_approval_mode = "prompt"
 enabled = true
@@ -146,8 +149,10 @@ tool_timeout_sec = 120
 [mcp_servers.repomix]
 # Forward runtime network settings by name; never store credential values.
 env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
+# Resolve paths from the Codex checkout, including worktrees.
+cwd = "."
 command = "bash"
-args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "repomix", "--mcp", "--sandbox", "/workspace/line-mini-app-bot"]
+args = ["scripts/tooling/tool-exec.sh", "bash", "-c", 'exec repomix --mcp --sandbox "$PWD"']
 enabled_tools = ["pack_codebase", "read_repomix_output", "grep_repomix_output", "file_system_read_file", "file_system_read_directory"]
 enabled = true
 required = false
@@ -157,8 +162,10 @@ tool_timeout_sec = 120
 [mcp_servers.gopls]
 # Forward runtime network settings by name; never store credential values.
 env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS", "GOPROXY", "GOPRIVATE", "GONOPROXY", "GONOSUMDB", "GOSUMDB"]
+# Resolve paths from the Codex checkout, including worktrees.
+cwd = "."
 command = "bash"
-args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "gopls", "mcp"]
+args = ["scripts/tooling/tool-exec.sh", "gopls", "mcp"]
 enabled = true
 required = false
 startup_timeout_sec = 120
@@ -182,8 +189,10 @@ tool_timeout_sec = 60
 
 [mcp_servers.gcloud]
 # Official server: https://github.com/googleapis/gcloud-mcp
+# Resolve paths from the Codex checkout, including worktrees.
+cwd = "."
 command = "bash"
-args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "npx", "-y", "@google-cloud/gcloud-mcp"]
+args = ["scripts/tooling/tool-exec.sh", "npx", "-y", "@google-cloud/gcloud-mcp@0.5.3"]
 env_vars = ["CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "CLOUDSDK_CORE_PROJECT", "CLOUDSDK_CORE_ACCOUNT", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
 enabled_tools = ["run_gcloud_command"]
 default_tools_approval_mode = "prompt"
@@ -194,8 +203,10 @@ tool_timeout_sec = 120
 
 [mcp_servers.cloud-run]
 # Official local stdio server: https://github.com/GoogleCloudPlatform/cloud-run-mcp
+# Resolve paths from the Codex checkout, including worktrees.
+cwd = "."
 command = "bash"
-args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "npx", "-y", "@google-cloud/cloud-run-mcp"]
+args = ["scripts/tooling/tool-exec.sh", "npx", "-y", "@google-cloud/cloud-run-mcp@1.12.0"]
 env_vars = ["CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_REGION", "DEFAULT_SERVICE_NAME", "SKIP_IAM_CHECK", "RUN_INGRESS_POLICY", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
 default_tools_approval_mode = "prompt"
 enabled = true
@@ -206,8 +217,10 @@ tool_timeout_sec = 120
 [mcp_servers.gke]
 # Official Go stdio server: https://github.com/GoogleCloudPlatform/gke-mcp
 # Upstream reads DK_API_KEY; reuse the host's Developer Knowledge key at launch.
+# Resolve paths from the Codex checkout, including worktrees.
+cwd = "."
 command = "bash"
-args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "bash", "-c", 'export DK_API_KEY="${DEVELOPERKNOWLEDGE_API_KEY:-}"; exec gke-mcp']
+args = ["scripts/tooling/tool-exec.sh", "bash", "-c", 'export DK_API_KEY="${DEVELOPERKNOWLEDGE_API_KEY:-}"; exec gke-mcp']
 env_vars = ["DEVELOPERKNOWLEDGE_API_KEY", "CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "CLOUDSDK_CORE_PROJECT", "CLOUDSDK_CORE_ACCOUNT", "CLOUDSDK_COMPUTE_REGION", "CLOUDSDK_COMPUTE_ZONE", "KUBECONFIG", "GKE_MCP_PROVIDER", "GKE_MCP_MODEL", "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_LOCATION", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
 default_tools_approval_mode = "prompt"
 enabled = false
@@ -218,8 +231,10 @@ tool_timeout_sec = 120
 [mcp_servers.toolbox]
 # Official MCP Toolbox; use the project's existing Firestore integration.
 # Requires FIRESTORE_PROJECT and ADC; FIRESTORE_DATABASE is optional.
+# Resolve paths from the Codex checkout, including worktrees.
+cwd = "."
 command = "bash"
-args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "npx", "-y", "@toolbox-sdk/server", "--prebuilt", "firestore", "--stdio"]
+args = ["scripts/tooling/tool-exec.sh", "npx", "-y", "@toolbox-sdk/server@1.17.0", "--prebuilt", "firestore", "--stdio"]
 env_vars = ["FIRESTORE_PROJECT", "FIRESTORE_DATABASE", "CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
 default_tools_approval_mode = "prompt"
 enabled = true
@@ -230,8 +245,10 @@ tool_timeout_sec = 120
 [mcp_servers.shadcn]
 # Forward runtime network settings by name; values remain host-owned.
 env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
+# Resolve paths from the Codex checkout, including worktrees.
+cwd = "."
 command = "bash"
-args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "bash", "-c", "cd /workspace/line-mini-app-bot/frontend/miniapp && exec shadcn mcp"]
+args = ["scripts/tooling/tool-exec.sh", "bash", "-c", "cd frontend/miniapp && exec shadcn mcp"]
 enabled = true
 required = false
 startup_timeout_sec = 45
@@ -240,8 +257,10 @@ tool_timeout_sec = 60
 [mcp_servers.next-devtools]
 # Runtime inspection is task-specific; use the installed Next.js dev server.
 env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS", "NEXT_TELEMETRY_DISABLED"]
+# Resolve paths from the Codex checkout, including worktrees.
+cwd = "."
 command = "bash"
-args = ["/workspace/line-mini-app-bot/scripts/tooling/tool-exec.sh", "bash", "-c", "cd /workspace/line-mini-app-bot/frontend/miniapp && exec next-devtools-mcp"]
+args = ["scripts/tooling/tool-exec.sh", "bash", "-c", "cd frontend/miniapp && exec next-devtools-mcp"]
 enabled_tools = ["nextjs_index", "nextjs_call", "nextjs_docs", "browser_eval"]
 default_tools_approval_mode = "writes"
 enabled = true
