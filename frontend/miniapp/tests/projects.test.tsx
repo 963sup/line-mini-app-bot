@@ -8,7 +8,7 @@ import { Workspace } from "../src/business/project/Workspace";
 
 const sa = "C" + "a".repeat(32), sb = "C" + "b".repeat(32), rid = "c".repeat(32), pid = "d".repeat(32);
 const group = (id: string) => ({ id, groupId: id, name: id === sa ? "Group A" : "Group B", status: "ACTIVE", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" });
-const project = { id: pid, ownerId: sa, defaultRepositoryId: rid, title: "Project A", body: "Project body", creatorId: "A", version: 3, issueCount: 0, completedIssueCount: 0, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" };
+const project = { id: pid, ownerId: sa, defaultRepositoryId: rid, title: "Project A", body: "Project body", canEdit: true, creatorId: "A", version: 3, issueCount: 0, completedIssueCount: 0, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" };
 const repository = { id: rid, ownerId: sa, name: "Source A", status: "ACTIVE", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" };
 const flush = async () => { for (let i = 0; i < 10; i++) await new Promise<void>(resolve => setImmediate(resolve)); };
 
@@ -245,7 +245,7 @@ test("reference source-kind change synchronously invalidates old selected source
 
 test("member reads references while only Project creator receives source selection and removal controls",async()=>{
  const f=await fixture(`/miniapp/projects?owner=${sa}&project=${pid}`,async request=>{
-  const path=new URL(request.url).pathname;if(path.endsWith('/projects/'+pid))return Response.json({...project,creatorId:'B'});if(path.endsWith('/references'))return Response.json({items:[reference()],nextCursor:""});return normal(request);
+  const path=new URL(request.url).pathname;if(path.endsWith('/projects/'+pid))return Response.json({...project,canEdit:false,creatorId:'B'});if(path.endsWith('/references'))return Response.json({items:[reference()],nextCursor:""});return normal(request);
  });
  try{assert.match(document.body.textContent!,/最新問題/);assert.ok(![...document.querySelectorAll('label')].some(node=>node.textContent?.startsWith('選擇既有')));assert.ok(![...document.querySelectorAll('button')].some(node=>node.textContent?.startsWith('移出專案')));}finally{await f.dispose();}
 });

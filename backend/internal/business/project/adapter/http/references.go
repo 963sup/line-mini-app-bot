@@ -67,14 +67,14 @@ func (s *projectServer) AddProjectReference(w http.ResponseWriter, r *http.Reque
 	}
 	value, e := s.service.AddReference(r.Context(), identity.UserID(r.Context()), sid, pid, ref, input.ExpectedVersion)
 	if !writeError(w, e) {
-		transport.WriteJSON(w, 200, view(value))
+		transport.WriteJSON(w, 200, view(value, identity.UserID(r.Context())))
 	}
 }
 
 func (s *projectServer) RemoveProjectReference(w http.ResponseWriter, r *http.Request, sid, pid, itemID string, p generated.RemoveProjectReferenceParams) {
 	value, e := s.service.RemoveReference(r.Context(), identity.UserID(r.Context()), sid, pid, itemID, p.ExpectedVersion)
 	if !writeError(w, e) {
-		transport.WriteJSON(w, 200, view(value))
+		transport.WriteJSON(w, 200, view(value, identity.UserID(r.Context())))
 	}
 }
 

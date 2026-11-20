@@ -37,7 +37,7 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
   const lock = useRef(false), unknown = useRef(false), selecting = useRef(false);
   const pending = useRef<{ body: Addition } | { itemId: string; version: number } | null>(null);
   const linked = (project.linkedRepositoryIds ?? [initialRepositoryId]).includes(sourceRepositoryId);
-  const mine = project.creatorId === user?.userId, sourceAvailable = linked && !!sourceRepositoryId && (sourceRepositoryId !== initialRepositoryId || project.sourceAvailable !== false);
+  const canEdit = project.canEdit, sourceAvailable = linked && !!sourceRepositoryId && (sourceRepositoryId !== initialRepositoryId || project.sourceAvailable !== false);
   useEffect(() => { selecting.current = false; });
   useEffect(() => () => onBlocked(false), [onBlocked]);
   function block(value: boolean) { unknown.current = value; setUncertain(value); onBlocked(value); }
@@ -62,14 +62,14 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
     });
   }, [user, request, read.run, ownerId, project.id]);
   const loadParents = useCallback((next = "") => {
-    if (!user || !mine || !sourceAvailable || kind !== "subobject") return;
+    if (!user || !canEdit || !sourceAvailable || kind !== "subobject") return;
     setParentBusy(true); if (!next) {setObjects([]);setParent("");setChoice("");setOptions([]);catalog.cancel();} setParentCursor(""); setParentStatus("正在讀取父物件……");
     void parents.run(signal => request((client,s) => client.GET("/api/v1/repositories/{repositoryId}/objects", {signal:s,params:{path:{repositoryId:sourceRepositoryId},query:{cursor:next || undefined}}}),{signal}), page => {
       setObjects(previous => [...new Map([...(next ? previous : []), ...page.items.map(item => ({id:item.id,title:`${item.name} · ${item.quantity} ${item.unit}`}))].map(item => [item.id,item])).values()]); setParentCursor(page.nextCursor); setParentBusy(false); setParentStatus("");
     }, error => {setObjects([]);setParent("");setChoice("");setOptions([]);catalog.cancel();setParentBusy(false);setParentStatus(errorMessage(error));});
-  }, [user,mine,sourceAvailable,kind,parents.run,request,sourceRepositoryId,catalog.cancel]);
+  }, [user,canEdit,sourceAvailable,kind,parents.run,request,sourceRepositoryId,catalog.cancel]);
   const loadCatalog = useCallback((next = "") => {
-    if (!user || !mine || !sourceAvailable || (kind === "subobject" && !parent)) return;
+    if (!user || !canEdit || !sourceAvailable || (kind === "subobject" && !parent)) return;
     setCatalogBusy(true); if (!next) { setOptions([]); setChoice(""); } setCatalogCursor(""); setCatalogStatus(`正在讀取可收錄${kinds[kind]}……`);
     void catalog.run(async signal => {
       const query = {cursor:next || undefined}, repositoryId=sourceRepositoryId;
@@ -88,12 +88,12 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
       const page=await request((client,s)=>client.GET("/api/v1/repositories/{repositoryId}/issues",{signal:s,params:{path:{repositoryId},query}}),{signal});
       return {items:page.items.map(item=>({id:item.id,title:`#${item.number} ${item.title}`})),nextCursor:page.nextCursor};
     }, page => {setOptions(previous=>[...new Map([...(next?previous:[]),...page.items].map(item=>[item.id,item])).values()]);setCatalogCursor(page.nextCursor);setCatalogBusy(false);setCatalogStatus("");}, error=>{setOptions([]);setChoice("");setCatalogBusy(false);setCatalogStatus(errorMessage(error));});
-  }, [user,mine,sourceAvailable,kind,parent,catalog.run,request,sourceRepositoryId]);
+  }, [user,canEdit,sourceAvailable,kind,parent,catalog.run,request,sourceRepositoryId]);
   useEffect(()=>{load();return read.cancel;},[load,read.cancel]);
   useEffect(()=>{loadParents();return parents.cancel;},[loadParents,parents.cancel]);
   useEffect(()=>{loadCatalog();return catalog.cancel;},[loadCatalog,catalog.cancel]);
   function change(itemId?: string) {
-    if (!user || !mine || lock.current || selecting.current || needsRefresh || !canWrite() || (disabled && !unknown.current)) return;
+    if (!user || !canEdit || lock.current || selecting.current || needsRefresh || !canWrite() || (disabled && !unknown.current)) return;
     if (!pending.current) {
       if (!itemId && (!choice || !sourceAvailable || (kind === "subobject" && !parent))) return;
       pending.current = itemId ? {itemId,version:project.version} : {body:{sourceRepositoryId,sourceType:kind,sourceId:choice,...(kind === "subobject" ? {parentObjectId:parent} : {}),expectedVersion:project.version}};
@@ -110,7 +110,7 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
     });
   }
   function updateProject(itemProgress?: ItemProgress) {
-    if (!mine || (!itemProgress && !sourceRepositoryId) || !canWrite() || disabled || lock.current || unknown.current) return;
+    if (!canEdit || (!itemProgress && !sourceRepositoryId) || !canWrite() || disabled || lock.current || unknown.current) return;
     lock.current = true; setBusy(true); onBlocked(true);
     void write.run(signal => request((client, s) => client.PATCH("/api/v1/owners/{ownerId}/projects/{id}", {
       signal: s, params: { path: { ownerId, id: project.id } },
@@ -157,16 +157,16 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
           {item.quantity !== undefined && <p className="whitespace-normal [overflow-wrap:anywhere]">數量：{item.quantity} {item.unit}</p>}
           {item.type === "non_work" ? <p>進度：不適用</p> : item.completedQuantity !== undefined && <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{item.completedQuantity}/{item.quantity} {item.unit}</p>}
         </>}
-        <FormField>本專案進度<NativeSelect value={item.itemStatus ?? "todo"} disabled={!mine || disabled || needsRefresh || busy || uncertain} onChange={e=>updateProject({itemId:item.id,status:e.target.value as ItemProgress["status"]})}>{Object.entries(progressLabels).map(([value,label])=><NativeSelectOption key={value} value={value}>{label}</NativeSelectOption>)}</NativeSelect></FormField>
+        <FormField>本專案進度<NativeSelect value={item.itemStatus ?? "todo"} disabled={!canEdit || disabled || needsRefresh || busy || uncertain} onChange={e=>updateProject({itemId:item.id,status:e.target.value as ItemProgress["status"]})}>{Object.entries(progressLabels).map(([value,label])=><NativeSelectOption key={value} value={value}>{label}</NativeSelectOption>)}</NativeSelect></FormField>
         {(item.sourceType === "object" || item.sourceType === "subobject") && <Inspections key={String(item.sourceUnavailable)} canSubmit={!item.sourceUnavailable} ownerId={ownerId} projectId={project.id} itemId={item.id}/>}
-        {mine&&<Button type="button" variant="outline" aria-label={`移出專案：${title}`} disabled={disabled||needsRefresh||busy||uncertain} onClick={()=>change(item.id)}>移出專案</Button>}
+        {canEdit&&<Button type="button" variant="outline" aria-label={`移出專案：${title}`} disabled={disabled||needsRefresh||busy||uncertain} onClick={()=>change(item.id)}>移出專案</Button>}
       </ItemContent></Item>;
     })}</ItemGroup></section>;})}
-    {loaded&&!items.length&&<Empty><EmptyHeader><EmptyTitle>尚未收錄來源。</EmptyTitle>{mine && <EmptyDescription>請從下方選擇來源儲存庫與項目。</EmptyDescription>}</EmptyHeader></Empty>}
+    {loaded&&!items.length&&<Empty><EmptyHeader><EmptyTitle>尚未收錄來源。</EmptyTitle>{canEdit && <EmptyDescription>請從下方選擇來源儲存庫與項目。</EmptyDescription>}</EmptyHeader></Empty>}
     {cursor&&<Button type="button" variant="outline" disabled={readBusy||busy||uncertain} onClick={()=>load(cursor)}>載入更多專案引用</Button>}
-    {mine && <SourcePicker ownerId="" initialSource="" value={sourceRepositoryId} disabled={disabled||needsRefresh||busy||uncertain} onChange={id => { catalog.cancel(); parents.cancel(); setChoice(""); setParent(""); setOptions([]); setObjects([]); setSourceRepositoryId(id); }} />}
-    {mine && sourceRepositoryId && <Button type="button" variant="outline" disabled={disabled||needsRefresh||busy||uncertain} onClick={()=>updateProject()}>{linked ? "解除儲存庫連結" : "連結此儲存庫"}</Button>}
-    {mine && (sourceAvailable ? <FieldGroup>
+    {canEdit && <SourcePicker ownerId="" initialSource="" value={sourceRepositoryId} disabled={disabled||needsRefresh||busy||uncertain} onChange={id => { catalog.cancel(); parents.cancel(); setChoice(""); setParent(""); setOptions([]); setObjects([]); setSourceRepositoryId(id); }} />}
+    {canEdit && sourceRepositoryId && <Button type="button" variant="outline" disabled={disabled||needsRefresh||busy||uncertain} onClick={()=>updateProject()}>{linked ? "解除儲存庫連結" : "連結此儲存庫"}</Button>}
+    {canEdit && (sourceAvailable ? <FieldGroup>
       <FieldSet><FieldLegend>來源種類</FieldLegend>
         <RadioGroup aria-label="來源種類" className="grid-cols-2 sm:grid-cols-4" value={kind}
           disabled={disabled || needsRefresh || busy || uncertain}

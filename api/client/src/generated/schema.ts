@@ -1562,6 +1562,8 @@ export interface components {
             sourceAvailable?: boolean;
             linkedRepositoryIds?: string[];
             defaultRepositoryId: string;
+            /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
+            canEdit: boolean;
         };
         ProjectCreation: {
             title: string;

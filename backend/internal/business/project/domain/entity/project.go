@@ -31,6 +31,8 @@ type Project struct {
 	IssueCount, CompletedIssueCount                          int64
 }
 
+func (v Project) CanEdit(actor string) bool { return actor != "" && actor == v.CreatorID }
+
 type Content struct{ Title, Body, SourceRepositoryID string }
 
 type Update struct {
@@ -50,7 +52,7 @@ func Normalize(c Content) (Content, error) {
 }
 
 func CheckUpdate(current Project, actor string, version int64) error {
-	if actor == "" || actor != current.CreatorID {
+	if !current.CanEdit(actor) {
 		return ErrForbidden
 	}
 	if version < 1 {

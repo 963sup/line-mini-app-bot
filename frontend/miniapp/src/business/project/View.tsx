@@ -44,7 +44,7 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
     window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn);
   }, [busy, uncertain, referencesBlocked]);
   const attempt = useRef<{ key: string; body: Creation } | null>(null);
-  const mine = !!selected && selected.creatorId === user?.userId;
+  const canEdit = selected?.canEdit === true;
 
   const load = useCallback((nextCursor = "") => {
     if (!user || referenceLock.current) return;
@@ -119,7 +119,7 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
     );
   }
   function save() {
-    if (!user || !selected || !mine || lock.current || unknown.current || referenceLock.current || navigation.current || needsRefresh || !canWrite()) return;
+    if (!user || !selected || !canEdit || lock.current || unknown.current || referenceLock.current || navigation.current || needsRefresh || !canWrite()) return;
     const id = selected.id;
     lock.current = true; block(true); setBusy(true); setStatus("正在更新專案……");
     void write.run(
@@ -164,12 +164,12 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
       {(mode === "create" || selected) && <form onSubmit={submit}>
         <FieldGroup>
           {mode === "create" && <SourcePicker key={ownerId} ownerId={ownerId} initialSource={initialSource} value={sourceRepositoryId} onChange={setSourceRepositoryId} disabled={busy || uncertain} />}
-          <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || referencesBlocked || uncertain || needsRefresh || (mode === "detail" && !mine)}>
+          <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || referencesBlocked || uncertain || needsRefresh || (mode === "detail" && !canEdit)}>
             <FormField>標題<Input required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} /></FormField>
             <FormField>內容<Textarea maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} /></FormField>
           </FieldSet>
 
-          {(mode === "create" || mine) && <div className="flex flex-wrap gap-2">
+          {(mode === "create" || canEdit) && <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={busy || needsRefresh || referencesBlocked}>{mode === "create" ? uncertain ? "重試原建立請求" : "建立專案" : "儲存內容"}</Button>
           </div>}
         </FieldGroup>
