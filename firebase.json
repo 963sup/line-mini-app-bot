@@ -1,0 +1,3 @@
+{
+  "firestore": { "indexes": "deploy/firestore/indexes.json" }
+}
