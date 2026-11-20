@@ -1,17 +1,20 @@
 package line
 
 import (
+	weatherDomainEntityForecast "github.com/963sup/line-mini-app-bot/internal/business/weather/domain/entity/forecast"
+)
+
+import (
 	"context"
 	"errors"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/weather/forecast"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
 type ForecastLookup interface {
-	Lookup(context.Context, float64, float64, string) (forecast.Forecast, error)
+	Lookup(context.Context, float64, float64, string) (weatherDomainEntityForecast.Forecast, error)
 }
 
 func ReplyForEvent(ctx context.Context, event webhook.EventInterface, client ForecastLookup) (transport.Reply, bool) {
@@ -35,7 +38,7 @@ func ReplyForEvent(ctx context.Context, event webhook.EventInterface, client For
 	f, err := client.Lookup(ctx, m.Latitude, m.Longitude, m.Address)
 	if err != nil {
 		text := "暫時無法取得天氣，請稍後再分享位置。"
-		if errors.Is(err, forecast.ErrOutsideCoverage) {
+		if errors.Is(err, weatherDomainEntityForecast.ErrOutsideCoverage) {
 			text = "此位置不在目前支援的臺灣區域預報範圍內。"
 		}
 		reply.Message = &messaging_api.TextMessage{Text: text}

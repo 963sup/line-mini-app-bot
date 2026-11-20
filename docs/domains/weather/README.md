@@ -10,7 +10,7 @@
 
 **驗收案例**　以群組位置事件測試預報入口；非群組或無法回覆的事件不得觸發同一群組回覆流程。
 
-[對照實作或測試](../../../backend/internal/business/weather/forecast/line/forecast.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
+[對照實作或測試](../../../backend/internal/business/weather/adapter/line/forecast/forecast.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
 
 天氣功能的查詢與 LINE 互動見天氣規格。
 

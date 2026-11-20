@@ -80,8 +80,8 @@ func TestDependencyBoundaries(t *testing.T) {
 		"business/summary/application/port/summarization":     {"business/summary/application/port/messagecollection", "business/summary/application/summarization", "business/summary/domain/entity/messagecollection", "business/summary/domain/entity/summarization"},
 		"business/summary/application/summarization":          {"business/summary/application/port/messagecollection", "business/summary/application/port/summarization", "business/summary/domain/entity/messagecollection", "business/summary/domain/entity/summarization"},
 		"business/summary/domain/entity/summarization":        {"business/summary/domain/entity/messagecollection"},
-		"business/weather/forecast":                           {},
-		"identity":                                            {},
+		"business/weather/domain/entity/forecast":             {},
+		"identity": {},
 	}
 	const module = "github.com/963sup/line-mini-app-bot/internal/"
 	err = filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {

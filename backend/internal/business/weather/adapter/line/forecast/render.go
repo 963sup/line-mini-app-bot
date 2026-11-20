@@ -1,14 +1,17 @@
 package line
 
 import (
+	weatherDomainEntityForecast "github.com/963sup/line-mini-app-bot/internal/business/weather/domain/entity/forecast"
+)
+
+import (
 	"fmt"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/weather/forecast"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 )
 
-func Weather(f forecast.Forecast) messaging_api.MessageInterface {
+func Weather(f weatherDomainEntityForecast.Forecast) messaging_api.MessageInterface {
 	label := "縣市預報"
 	if f.Nearby {
 		label = "鄰近縣市預報"

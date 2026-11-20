@@ -2,6 +2,10 @@
 package cwa
 
 import (
+	weatherDomainEntityForecast "github.com/963sup/line-mini-app-bot/internal/business/weather/domain/entity/forecast"
+)
+
+import (
 	"context"
 	"encoding/json"
 	"errors"
@@ -12,8 +16,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/963sup/line-mini-app-bot/internal/business/weather/forecast"
 )
 
 type Client struct {
@@ -39,38 +41,38 @@ type response struct {
 	}
 }
 
-func (c *Client) Lookup(ctx context.Context, lat, lon float64, address string) (forecast.Forecast, error) {
+func (c *Client) Lookup(ctx context.Context, lat, lon float64, address string) (weatherDomainEntityForecast.Forecast, error) {
 	if !(lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
-		return forecast.Forecast{}, forecast.ErrOutsideCoverage
+		return weatherDomainEntityForecast.Forecast{}, weatherDomainEntityForecast.ErrOutsideCoverage
 	}
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 	q := url.Values{"Authorization": {c.APIKey}, "format": {"JSON"}}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-D0047-091?"+q.Encode(), nil)
 	if err != nil {
-		return forecast.Forecast{}, errors.New("cannot create forecast request")
+		return weatherDomainEntityForecast.Forecast{}, errors.New("cannot create forecast request")
 	}
 	res, err := c.HTTP.Do(req)
 	if err != nil {
-		return forecast.Forecast{}, errors.New("forecast service unavailable")
+		return weatherDomainEntityForecast.Forecast{}, errors.New("forecast service unavailable")
 	}
 	// The response is read-only; closing cannot commit application state.
 	defer func() { _ = res.Body.Close() }()
 	if res.StatusCode != http.StatusOK {
-		return forecast.Forecast{}, errors.New("forecast service rejected request")
+		return weatherDomainEntityForecast.Forecast{}, errors.New("forecast service rejected request")
 	}
 	body, err := io.ReadAll(io.LimitReader(res.Body, (4<<20)+1))
 	if err != nil || len(body) > 4<<20 {
-		return forecast.Forecast{}, errors.New("invalid forecast response size")
+		return weatherDomainEntityForecast.Forecast{}, errors.New("invalid forecast response size")
 	}
 	var data response
 	if err := json.Unmarshal(body, &data); err != nil || data.Success != "true" {
-		return forecast.Forecast{}, errors.New("invalid forecast response")
+		return weatherDomainEntityForecast.Forecast{}, errors.New("invalid forecast response")
 	}
 	return selectForecast(data, lat, lon, address, time.Now())
 }
 
-func selectForecast(data response, lat, lon float64, address string, now time.Time) (forecast.Forecast, error) {
+func selectForecast(data response, lat, lon float64, address string, now time.Time) (weatherDomainEntityForecast.Forecast, error) {
 	address = strings.ReplaceAll(address, "台", "臺")
 	var nearest, matched *location
 	best := math.Inf(1)
@@ -95,7 +97,7 @@ func selectForecast(data response, lat, lon float64, address string, now time.Ti
 	chosen := matched
 	if chosen == nil {
 		if nearest == nil || best > 60 {
-			return forecast.Forecast{}, forecast.ErrOutsideCoverage
+			return weatherDomainEntityForecast.Forecast{}, weatherDomainEntityForecast.ErrOutsideCoverage
 		}
 		chosen = nearest
 	}
@@ -111,12 +113,12 @@ func selectForecast(data response, lat, lon float64, address string, now time.Ti
 			}
 			for _, value := range p.ElementValue {
 				if strings.TrimSpace(value.WeatherDescription) != "" {
-					return forecast.Forecast{Region: chosen.LocationName, Description: value.WeatherDescription, Start: start, End: end, Nearby: matched == nil}, nil
+					return weatherDomainEntityForecast.Forecast{Region: chosen.LocationName, Description: value.WeatherDescription, Start: start, End: end, Nearby: matched == nil}, nil
 				}
 			}
 		}
 	}
-	return forecast.Forecast{}, errors.New("no current forecast available")
+	return weatherDomainEntityForecast.Forecast{}, errors.New("no current forecast available")
 }
 
 func distance(lat, lon, x, y float64) float64 {

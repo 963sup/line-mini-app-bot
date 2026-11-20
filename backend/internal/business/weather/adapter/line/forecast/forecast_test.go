@@ -1,12 +1,15 @@
 package line
 
 import (
+	weatherDomainEntityForecast "github.com/963sup/line-mini-app-bot/internal/business/weather/domain/entity/forecast"
+)
+
+import (
 	"context"
 	"errors"
 	"testing"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/weather/forecast"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
@@ -16,10 +19,10 @@ type weatherStub struct {
 	err      error
 }
 
-func (s *weatherStub) Lookup(_ context.Context, lat, lon float64, _ string) (forecast.Forecast, error) {
+func (s *weatherStub) Lookup(_ context.Context, lat, lon float64, _ string) (weatherDomainEntityForecast.Forecast, error) {
 	s.calls++
 	s.lat, s.lon = lat, lon
-	return forecast.Forecast{Region: "臺北市", Description: "多雲", Start: time.Now(), End: time.Now().Add(time.Hour)}, s.err
+	return weatherDomainEntityForecast.Forecast{Region: "臺北市", Description: "多雲", Start: time.Now(), End: time.Now().Add(time.Hour)}, s.err
 }
 
 func TestWeatherOnlyGroupLocation(t *testing.T) {

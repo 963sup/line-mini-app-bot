@@ -1,14 +1,16 @@
 package cwa
 
 import (
+	weatherDomainEntityForecast "github.com/963sup/line-mini-app-bot/internal/business/weather/domain/entity/forecast"
+)
+
+import (
 	"context"
 	"encoding/json"
 	"errors"
 	"math"
 	"testing"
 	"time"
-
-	"github.com/963sup/line-mini-app-bot/internal/business/weather/forecast"
 )
 
 func TestLookupRejectsInvalidCoordinates(t *testing.T) {
@@ -30,7 +32,7 @@ func TestLookupRejectsInvalidCoordinates(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// No HTTP client: invalid coordinates must return before attempting I/O.
 			client := Client{}
-			if _, err := client.Lookup(context.Background(), tc.lat, tc.lon, ""); !errors.Is(err, forecast.ErrOutsideCoverage) {
+			if _, err := client.Lookup(context.Background(), tc.lat, tc.lon, ""); !errors.Is(err, weatherDomainEntityForecast.ErrOutsideCoverage) {
 				t.Fatalf("expected coverage error, got %v", err)
 			}
 		})
@@ -62,7 +64,7 @@ func TestSelectRegionalForecast(t *testing.T) {
 			}
 		})
 	}
-	if _, err := selectForecast(data, 35, 139, "", now); !errors.Is(err, forecast.ErrOutsideCoverage) {
+	if _, err := selectForecast(data, 35, 139, "", now); !errors.Is(err, weatherDomainEntityForecast.ErrOutsideCoverage) {
 		t.Fatal("foreign location must not use Taiwan forecast")
 	}
 	if _, err := selectForecast(data, 25.03, 121.56, "", now.Add(24*time.Hour)); err == nil {

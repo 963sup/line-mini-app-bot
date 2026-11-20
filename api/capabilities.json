@@ -64,7 +64,7 @@
     "weather.forecast": {
       "kind": "event",
       "document": "api/contract/weather/README.md",
-      "core": "backend/internal/business/weather/forecast/forecast.go",
+      "core": "backend/internal/business/weather/domain/entity/forecast/forecast.go",
       "specification": "docs/domains/weather/weather.md"
     },
     "attendance.board": {
@@ -1729,7 +1729,7 @@
       "owner": "weather.forecast",
       "action": "Forecast",
       "contract": "api/contract/weather/README.md",
-      "adapter": "backend/internal/business/weather/forecast/line/forecast.go",
+      "adapter": "backend/internal/business/weather/adapter/line/forecast/forecast.go",
       "handler": "ReplyForEvent",
       "note": "LINE location event; no public HTTP operation."
     },
