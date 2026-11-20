@@ -47,7 +47,7 @@ flowchart LR
   n3 --- n3l0["平台交付階段"]
   click n3l0 "platform/delivery.md"
   n3 --- n3l1["驗收矩陣"]
-  click n3l1 "../agents/acceptance.md"
+  click n3l1 "../development/acceptance.md"
 ```
 
 <a id="相鄰的設計參考"></a>

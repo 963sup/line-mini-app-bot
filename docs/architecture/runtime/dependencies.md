@@ -115,7 +115,7 @@ flowchart LR
 flowchart LR
   h["Graphify 與 Repomix 工作流"]
   h --- n0["共用的定位、核對與驗收順序見業務操作符合性流<br/>程。Graphify 查不到節點時查當前程式，再以 go<br/> list -deps ./... 或 gopls 核對 import。程式<br/>改動後執行 mise run graphify-update。AST 可<br/>能遺漏 Go 隱式介面、動態 dispatch、TOML 與 <br/>Markdown。上方 Mermaid 描述尚未實作的目標架<br/>構。"]
-  click n0 "../../agents/workflow.md#business-operation-compliance"
+  click n0 "../../development/workflow.md#business-operation-compliance"
   h --- n1["全局審查使用完整 Repomix 包。日常審查限定所<br/>需文件與 Go 原始碼，排除生成技能與 binary。<br/>保持安全掃描開啟，逐項核對排除提示及敏感內容<br/>。"]
   h --- n2["Graphify 統計不等同架構合規，Repomix token <br/>減少不等同功能最佳化。目錄調整應以責任與依賴<br/>為依據，不以圖形美觀作為驗收。"]
 ```

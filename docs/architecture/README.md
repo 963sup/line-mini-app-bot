@@ -113,7 +113,7 @@ flowchart LR
   n0 --- n0l0["依任務選讀"]
   click n0l0 "../README.md#按任務開始"
   n0 --- n0l1["驗收矩陣"]
-  click n0l1 "../agents/acceptance.md#變更驗收矩陣"
+  click n0l1 "../development/acceptance.md#變更驗收矩陣"
   n0 --- n0l2["架構基線"]
   click n0l2 "../decisions/0002-baseline.md"
   h --- n1["實作契約與待決策：保留早期切片與決策閘門；個<br/>別功能以最新功能契約為準，不將舊待決策表當作<br/>目前完成狀態。"]
@@ -160,7 +160,7 @@ flowchart LR
   n0 --- n0l4["前端"]
   click n0l4 "#共用前端"
   n0 --- n0l5["驗收矩陣"]
-  click n0l5 "../agents/acceptance.md"
+  click n0l5 "../development/acceptance.md"
   h --- n1["本目錄指引 · 父層指引 · 文件總入口"]
   n1 --- n1l0["本目錄指引"]
   click n1l0 "AGENTS.md#architecture"
@@ -344,7 +344,7 @@ flowchart LR
   click n1 "../proposals/webhook-delivery/design.md"
   h --- n2["只在任務涉及持久工作、重試或平台設計時載入；<br/>目前必要檢查見驗收矩陣。規劃入口"]
   n2 --- n2l0["驗收矩陣"]
-  click n2l0 "../agents/acceptance.md"
+  click n2l0 "../development/acceptance.md"
   n2 --- n2l1["規劃入口"]
   click n2l1 "../proposals/README.md"
   h --- n3["未來設計圖索引 · 對照現行實作。"]

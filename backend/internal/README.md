@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[architecture](architecture)、[browser](transport/http/browser)、[business](business)、[diagnostics](transport/http/geolocation)、[本目錄工作指引](AGENTS.md)。
+先查閱[architecture](architecture)、[靜態頁面](transport/http/browser)、[business](business)、[定位診斷](transport/http/geolocation)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 
@@ -21,7 +21,7 @@
 以下是單一 Bounded Context 的**標準參考結構，實際按需採用**。此倉庫的業務 Context 位於 `backend/internal/business/<context>/`。簡單功能可維持較少的套件，只有出現明確的分工需求時才新增對應分層或子目錄。無須補齊整棵目錄樹，也無須僅為符合範本而搬移既有程式。
 
 ```text
-internal/
+internal/business/
 └── <Bounded Context>/
     ├── domain/                  # 領域層
     │   ├── entity/              # Entity / Aggregate Root
@@ -50,7 +50,7 @@ Go 檢查與測試方式見[後端工作指引](../AGENTS.md#驗證)。涉及 Fi
 
 ## 閱讀入口
 
-從 [architecture](architecture)、[browser](transport/http/browser)、[business](business)、[diagnostics](transport/http/geolocation)、[httpapi](httpapi)、[identity](identity) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
+從 [architecture](architecture)、[靜態頁面](transport/http/browser)、[business](business)、[定位診斷](transport/http/geolocation)、[httpapi](httpapi)、[identity](identity) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：格式與資料相容](../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../../docs/diagrams.md#未來設計)
 

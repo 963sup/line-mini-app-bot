@@ -23,7 +23,7 @@
 
 ## 目錄導覽與維護
 
-cmd/ 保存 server、richmenu、firestorecheck 入口；internal/business/ 按 attendance、summary、weather 及其子功能分工；identity 等共用能力保留於 internal/。httpapi/ 保存契約接線與產生碼。
+可執行入口位於 [cmd](cmd)。[business](internal/business) 依業務領域分工，[bootstrap](internal/bootstrap) 組裝服務，[identity](internal/identity) 處理身分與 Session，[httpapi](internal/httpapi) 保存 OpenAPI 契約接線與生成碼。
 
 業務核心、HTTP/LINE adapter 與 Firestore adapter 分層；共享組裝在 internal/bootstrap。修改 HTTP 格式先走 ../api 契約流程，不手改產生碼。憑證不得寫入 .env.example。
 
@@ -49,10 +49,8 @@ cmd/ 保存 server、richmenu、firestorecheck 入口；internal/business/ 按 a
 
 - [目前模組與責任](../docs/architecture/runtime/code-layout.md)
 
-Summary 的共用 LINE 組合入口在 business/summary/line；訊息收集位於
-messagecollection/line，摘要指令與排程位於 summarization/line。
-收集、指令、worker 使用各自需要的 Store 介面，共用 Firestore 交易保留在 summary/firestore。
-Weather 既有實作集中在 business/weather/forecast/{cwa,line}。
+摘要的 [LINE 入口](internal/business/summary/adapter/line) 串接訊息收集與摘要指令。[Cloud Tasks 適配器](internal/business/summary/adapter/messaging/cloudtasks/summarization) 排程工作，[Firestore 適配器](internal/business/summary/adapter/firestore) 保存訊息與工作狀態。
+天氣預報由 [CWA 適配器](internal/business/weather/adapter/cwa/forecast) 取得資料，再由 [LINE 適配器](internal/business/weather/adapter/line/forecast) 組裝回覆。
 入口契約見 [Summary](../api/contract/summary/README.md) 與 [Weather](../api/contract/weather/README.md)。
 
 - [群組 Repository](../docs/domains/repository/README.md)
@@ -66,6 +64,6 @@ Weather 既有實作集中在 business/weather/forecast/{cwa,line}。
 
 ## 協作能力分佈與交付狀態
 
-業務模組位於 [internal/business](internal/business)，服務組裝見 [server](internal/bootstrap)，各功能行為見[功能索引](../docs/domains/README.md)。
+業務模組位於 [internal/business](internal/business)，服務組裝見 [bootstrap](internal/bootstrap)，各功能行為見[功能索引](../docs/domains/README.md)。
 
 [現行實作圖：格式與資料相容](../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../docs/diagrams.md#未來設計)
