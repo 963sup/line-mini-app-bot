@@ -160,7 +160,7 @@ func TestDependencyBoundaries(t *testing.T) {
 						t.Errorf("HTTP adapter %s constructs outgoing adapter %s", rel, dependency)
 					}
 				}
-				for _, sdk := range []string{"cloud.google.com/", "google.golang.org/", "github.com/line/line-bot-sdk", "github.com/sashabaranov/"} {
+				for _, sdk := range []string{"cloud.google.com/", "google.golang.org/", "github.com/line/line-bot-sdk", "github.com/openai/"} {
 					if strings.HasPrefix(dependency, sdk) {
 						t.Errorf("HTTP adapter %s depends directly on SDK %s", rel, dependency)
 					}

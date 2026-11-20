@@ -18,7 +18,9 @@ import (
 	"time"
 	"unicode/utf8"
 
-	sdk "github.com/sashabaranov/go-openai"
+	sdk "github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/option"
+	"github.com/openai/openai-go/v3/shared"
 )
 
 const (
@@ -124,10 +126,14 @@ func (p *Producer) complete(ctx context.Context, source objectimportDomainEntity
 		client = *p.HTTP
 	}
 	client.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
-	config := sdk.DefaultConfig(p.Key)
-	config.HTTPClient = limitedDoer{client: &client}
+	options := []option.RequestOption{
+		option.WithAPIKey(p.Key),
+		option.WithBaseURL("https://api.openai.com/v1/"),
+		option.WithHTTPClient(limitedDoer{client: &client}),
+		option.WithMaxRetries(0),
+	}
 	if p.BaseURL != "" {
-		config.BaseURL = p.BaseURL
+		options = append(options, option.WithBaseURL(p.BaseURL))
 	}
 	pages := make([]inputPage, 0, len(source.Pages))
 	for _, page := range source.Pages {
@@ -136,12 +142,28 @@ func (p *Producer) complete(ctx context.Context, source objectimportDomainEntity
 	input, _ := json.Marshal(struct {
 		Pages []inputPage `json:"pages"`
 	}{pages})
-	response, e := sdk.NewClientWithConfig(config).CreateChatCompletion(ctx, sdk.ChatCompletionRequest{Model: model, MaxCompletionTokens: 16000, Temperature: 0, Messages: []sdk.ChatCompletionMessage{{Role: sdk.ChatMessageRoleSystem, Content: instruction}, {Role: sdk.ChatMessageRoleUser, Content: string(input)}}, ResponseFormat: &sdk.ChatCompletionResponseFormat{Type: sdk.ChatCompletionResponseFormatTypeJSONSchema, JSONSchema: &sdk.ChatCompletionResponseFormatJSONSchema{Name: "engineering_line_items", Strict: true, Schema: schema}}})
+	provider := sdk.NewClient(options...)
+	response, e := provider.Chat.Completions.New(ctx, sdk.ChatCompletionNewParams{
+		Model:               model,
+		MaxCompletionTokens: sdk.Int(16000),
+		Temperature:         sdk.Float(0),
+		Messages: []sdk.ChatCompletionMessageParamUnion{
+			sdk.SystemMessage(instruction),
+			sdk.UserMessage(string(input)),
+		},
+		ResponseFormat: sdk.ChatCompletionNewParamsResponseFormatUnion{
+			OfJSONSchema: &shared.ResponseFormatJSONSchemaParam{
+				JSONSchema: shared.ResponseFormatJSONSchemaJSONSchemaParam{
+					Name: "engineering_line_items", Strict: sdk.Bool(true), Schema: schema,
+				},
+			},
+		},
+	})
 	if e != nil {
 		statusCode := 0
-		var apiError *sdk.APIError
+		var apiError *sdk.Error
 		if errors.As(e, &apiError) {
-			statusCode = apiError.HTTPStatusCode
+			statusCode = apiError.StatusCode
 		}
 		slog.WarnContext(ctx, "object import model request failed", "reason", "model_unavailable", "http_status", statusCode, "canceled", ctx.Err() != nil)
 		if ctx.Err() != nil {
@@ -153,7 +175,7 @@ func (p *Producer) complete(ctx context.Context, source objectimportDomainEntity
 		return "", objectimportDomainEntityParsing.ErrOutput
 	}
 	choice := response.Choices[0]
-	if choice.FinishReason != sdk.FinishReasonStop || choice.Message.Role != sdk.ChatMessageRoleAssistant || choice.Message.Refusal != "" || len(choice.Message.ToolCalls) != 0 || choice.Message.FunctionCall != nil {
+	if choice.FinishReason != "stop" || choice.Message.Role != "assistant" || choice.Message.Refusal != "" || len(choice.Message.ToolCalls) != 0 || choice.Message.JSON.FunctionCall.Valid() {
 		return "", objectimportDomainEntityParsing.ErrOutput
 	}
 	return choice.Message.Content, nil
