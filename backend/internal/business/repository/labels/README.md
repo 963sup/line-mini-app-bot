@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[labels.go](labels.go)。
+先查閱[labels.go](../domain/entity/labels/labels.go)。
 
 ## 相關規格
 

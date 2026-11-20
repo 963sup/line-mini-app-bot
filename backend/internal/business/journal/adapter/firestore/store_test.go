@@ -1,6 +1,10 @@
 package firestore
 
 import (
+	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
+)
+
+import (
 	"context"
 	"errors"
 	"fmt"
@@ -17,8 +21,8 @@ import (
 
 	journaldto "github.com/963sup/line-mini-app-bot/internal/business/journal/application/dto"
 	journalentity "github.com/963sup/line-mini-app-bot/internal/business/journal/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
-	repodb "github.com/963sup/line-mini-app-bot/internal/business/repository/firestore"
+
+	repodb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 )
 
 type membership struct{}
@@ -95,7 +99,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	store.Repositories = &repository.Service{Store: &repodb.Store{Client: client, ChannelID: channel}, Membership: membership{}}
+	store.Repositories = &repositoryApplication.Service{Store: &repodb.Store{Client: client, ChannelID: channel}, Membership: membership{}}
 	draft.Today[0].Reference = &journalentity.Reference{Kind: "repository", ID: rid}
 	objectID, childID, spaceID := strings.Repeat("c", 32), strings.Repeat("d", 32), strings.Repeat("e", 32)
 	object := repo.Collection("objects").Doc(objectID)

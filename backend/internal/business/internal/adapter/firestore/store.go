@@ -1,12 +1,16 @@
 package orgstore
 
 import (
+	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
+)
+
+import (
 	"context"
 	"regexp"
 	"slices"
 
 	"cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/organization"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -19,7 +23,7 @@ func Run[T any](ctx context.Context, db *firestore.Client, channel string, op fu
 		return e
 	})
 	if status.Code(err) == codes.NotFound {
-		return nil, organization.ErrNotFound
+		return nil, organizationDomainEntity.ErrNotFound
 	}
 	return result, err
 }

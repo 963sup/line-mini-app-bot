@@ -1,14 +1,16 @@
 package entity
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+	repositoryDomainEntityLabels "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity/labels"
+)
+
+import (
 	"errors"
 	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
-
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository/labels"
 )
 
 var (
@@ -68,7 +70,7 @@ func ApplyUpdate(current Discussion, actor string, input Update) (Discussion, er
 	}
 	ids := current.LabelIDs
 	if input.LabelIDs != nil {
-		ids, err = labels.NormalizeIDs(*input.LabelIDs)
+		ids, err = repositoryDomainEntityLabels.NormalizeIDs(*input.LabelIDs)
 		if err != nil {
 			return Discussion{}, ErrInput
 		}
@@ -76,7 +78,7 @@ func ApplyUpdate(current Discussion, actor string, input Update) (Discussion, er
 	if c.Title == current.Title && c.Body == current.Body && slices.Equal(current.LabelIDs, ids) {
 		return current, nil
 	}
-	if current.Version >= repository.MaxResourceNumber {
+	if current.Version >= repositoryDomainEntity.MaxResourceNumber {
 		return Discussion{}, ErrConflict
 	}
 	current.Title, current.Body = c.Title, c.Body
@@ -99,7 +101,7 @@ func ApplyCommentUpdate(current Comment, actor, body string, version int64) (Com
 	if body == current.Body {
 		return current, nil
 	}
-	if current.Version >= repository.MaxResourceNumber {
+	if current.Version >= repositoryDomainEntity.MaxResourceNumber {
 		return Comment{}, ErrConflict
 	}
 	current.Body = body

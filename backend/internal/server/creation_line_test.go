@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/firestore"
+	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )

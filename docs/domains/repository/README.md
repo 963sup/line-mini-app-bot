@@ -10,7 +10,7 @@
 
 **驗收案例**　即使庫 ID 相符，只要擁有者已變更或狀態不再是 ACTIVE，就不能沿用舊授權完成受限操作。
 
-[對照實作或測試](../../../backend/internal/business/repository/repository.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
+[對照實作或測試](../../../backend/internal/business/repository/domain/entity/repository.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
 
 ## 用途與範圍
 

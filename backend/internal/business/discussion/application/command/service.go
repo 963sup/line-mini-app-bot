@@ -1,12 +1,15 @@
 package command
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
 	"regexp"
 
 	"github.com/963sup/line-mini-app-bot/internal/business/discussion/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/business/discussion/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
 var creationKey = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
@@ -30,7 +33,7 @@ func (s *Service) Update(ctx context.Context, actor, repositoryID, id string, in
 	if err != nil {
 		return entity.Discussion{}, err
 	}
-	if !repository.ValidID(id) {
+	if !repositoryDomainEntity.ValidID(id) {
 		return entity.Discussion{}, entity.ErrNotFound
 	}
 	return s.Store.Update(ctx, r, actor, id, input)
@@ -41,7 +44,7 @@ func (s *Service) CreateComment(ctx context.Context, actor, repositoryID, id, ke
 	if err != nil {
 		return entity.Comment{}, err
 	}
-	if !repository.ValidID(id) {
+	if !repositoryDomainEntity.ValidID(id) {
 		return entity.Comment{}, entity.ErrNotFound
 	}
 	body, err = entity.NormalizeComment(body)
@@ -56,7 +59,7 @@ func (s *Service) UpdateComment(ctx context.Context, actor, repositoryID, id, co
 	if err != nil {
 		return entity.Comment{}, err
 	}
-	if !repository.ValidID(id) || !repository.ValidID(commentID) {
+	if !repositoryDomainEntity.ValidID(id) || !repositoryDomainEntity.ValidID(commentID) {
 		return entity.Comment{}, entity.ErrNotFound
 	}
 	return s.Store.UpdateComment(ctx, r, actor, id, commentID, body, version)

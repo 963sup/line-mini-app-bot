@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[milestone.go](milestone.go)。
+先查閱[milestone.go](../domain/entity/milestones/milestone.go)。
 
 ## 相關規格
 

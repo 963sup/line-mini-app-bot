@@ -1,6 +1,11 @@
 package firestore
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+	repositoryDomainEntityLabels "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity/labels"
+)
+
+import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -14,8 +19,7 @@ import (
 	issueport "github.com/963sup/line-mini-app-bot/internal/business/issue/application/port"
 	issueentity "github.com/963sup/line-mini-app-bot/internal/business/issue/domain/entity"
 	issuepolicy "github.com/963sup/line-mini-app-bot/internal/business/issue/domain/policy"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository/labels"
+
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
 	"google.golang.org/grpc/codes"
@@ -23,7 +27,7 @@ import (
 )
 
 type Numberer interface {
-	CreateNumberedResource(context.Context, repository.NumberedCreation, func(context.Context, *db.Transaction, repository.NumberedResource) error) (repository.NumberedResource, error)
+	CreateNumberedResource(context.Context, repositoryDomainEntity.NumberedCreation, func(context.Context, *db.Transaction, repositoryDomainEntity.NumberedResource) error) (repositoryDomainEntity.NumberedResource, error)
 }
 type Store struct {
 	Client     *db.Client
@@ -34,11 +38,11 @@ type Store struct {
 }
 
 type MilestoneValidator interface {
-	ValidateMilestoneID(context.Context, *db.Transaction, repository.Repository, string) error
+	ValidateMilestoneID(context.Context, *db.Transaction, repositoryDomainEntity.Repository, string) error
 }
 
 type LabelValidator interface {
-	ValidateLabelIDs(context.Context, *db.Transaction, repository.Repository, []string) error
+	ValidateLabelIDs(context.Context, *db.Transaction, repositoryDomainEntity.Repository, []string) error
 }
 
 var _ issueport.Store = (*Store)(nil)
@@ -75,11 +79,11 @@ func decode(snap *db.DocumentSnapshot, err error, repositoryID string) (issueent
 		return issueentity.Issue{}, err
 	}
 	c, err := issueentity.Normalize(issueentity.Content{Title: d.Title, Body: d.Body})
-	ids, idErr := labels.NormalizeIDs(d.LabelIDs)
-	if idErr != nil || (d.MilestoneID != "" && !repository.ValidID(d.MilestoneID)) {
+	ids, idErr := repositoryDomainEntityLabels.NormalizeIDs(d.LabelIDs)
+	if idErr != nil || (d.MilestoneID != "" && !repositoryDomainEntity.ValidID(d.MilestoneID)) {
 		return issueentity.Issue{}, issueport.ErrUnavailable
 	}
-	if err != nil || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !repository.ValidID(d.ID) || d.RepositoryID != repositoryID || d.Number < 1 || d.Number > repository.MaxResourceNumber || d.Version < 1 || d.Version > repository.MaxResourceNumber || !issuepolicy.ValidState(d.State) || d.CreatorID == "" || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) || c.Title != d.Title || c.Body != d.Body {
+	if err != nil || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !repositoryDomainEntity.ValidID(d.ID) || d.RepositoryID != repositoryID || d.Number < 1 || d.Number > repositoryDomainEntity.MaxResourceNumber || d.Version < 1 || d.Version > repositoryDomainEntity.MaxResourceNumber || !issuepolicy.ValidState(d.State) || d.CreatorID == "" || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) || c.Title != d.Title || c.Body != d.Body {
 		return issueentity.Issue{}, issueport.ErrUnavailable
 	}
 	return issueentity.Issue{ID: d.ID, RepositoryID: d.RepositoryID, Number: d.Number, Title: d.Title, Body: d.Body, State: d.State, CreatorID: d.CreatorID, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt, LabelIDs: ids, MilestoneID: d.MilestoneID}, nil
@@ -102,16 +106,16 @@ func translate(err error) error {
 		}
 	}
 	switch {
-	case errors.Is(err, repository.ErrNotFound):
+	case errors.Is(err, repositoryDomainEntity.ErrNotFound):
 		return issueentity.ErrNotFound
-	case errors.Is(err, repository.ErrCreationConflict):
+	case errors.Is(err, repositoryDomainEntity.ErrCreationConflict):
 		return issueentity.ErrCreationConflict
 	default:
 		return grpcstatus.NormalizeContextError(err)
 	}
 }
 
-func (s *Store) Get(ctx context.Context, scope repository.Repository, id string) (result issueentity.Issue, err error) {
+func (s *Store) Get(ctx context.Context, scope repositoryDomainEntity.Repository, id string) (result issueentity.Issue, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
 		return result, issueport.ErrUnavailable
@@ -125,7 +129,7 @@ type cursor struct {
 	Number int64
 }
 
-func (s *Store) List(ctx context.Context, scope repository.Repository, actor string, f issuedto.Filter) (result issuedto.Page, err error) {
+func (s *Store) List(ctx context.Context, scope repositoryDomainEntity.Repository, actor string, f issuedto.Filter) (result issuedto.Page, err error) {
 	defer func() { err = translate(err) }()
 	result.Items = []issueentity.Issue{}
 	if !s.ready() {
@@ -139,7 +143,7 @@ func (s *Store) List(ctx context.Context, scope repository.Repository, actor str
 	var c cursor
 	if f.Cursor != "" {
 		b, decodeErr := base64.RawURLEncoding.DecodeString(f.Cursor)
-		if decodeErr != nil || json.Unmarshal(b, &c) != nil || c.Scope != scopeKey || c.Number < 1 || c.Number > repository.MaxResourceNumber {
+		if decodeErr != nil || json.Unmarshal(b, &c) != nil || c.Scope != scopeKey || c.Number < 1 || c.Number > repositoryDomainEntity.MaxResourceNumber {
 			return result, issueentity.ErrInput
 		}
 	}
@@ -175,7 +179,7 @@ func (s *Store) List(ctx context.Context, scope repository.Repository, actor str
 	return result, nil
 }
 
-func (s *Store) Create(ctx context.Context, repo repository.Repository, actorID, idempotencyKey string, c issueentity.Content) (result issueentity.Issue, err error) {
+func (s *Store) Create(ctx context.Context, repo repositoryDomainEntity.Repository, actorID, idempotencyKey string, c issueentity.Content) (result issueentity.Issue, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() || s.Numbers == nil {
 		return result, issueport.ErrUnavailable
@@ -189,7 +193,7 @@ func (s *Store) Create(ctx context.Context, repo repository.Repository, actorID,
 	if err != nil {
 		return result, err
 	}
-	reference, err := s.Numbers.CreateNumberedResource(ctx, repository.NumberedCreation{RepositoryID: repo.ID, OwnerID: repo.OwnerID, ActorID: actorID, ResourceType: "issue", IdempotencyKey: idempotencyKey, PayloadHash: firestorekey.Digest(payload)}, func(_ context.Context, tx *db.Transaction, ref repository.NumberedResource) error {
+	reference, err := s.Numbers.CreateNumberedResource(ctx, repositoryDomainEntity.NumberedCreation{RepositoryID: repo.ID, OwnerID: repo.OwnerID, ActorID: actorID, ResourceType: "issue", IdempotencyKey: idempotencyKey, PayloadHash: firestorekey.Digest(payload)}, func(_ context.Context, tx *db.Transaction, ref repositoryDomainEntity.NumberedResource) error {
 		i := issueentity.Issue{ID: ref.ResourceID, RepositoryID: repo.ID, Number: ref.Number, Title: c.Title, Body: c.Body, State: "open", CreatorID: actorID, Version: 1, CreatedAt: ref.CreatedAt, UpdatedAt: ref.CreatedAt}
 		return tx.Create(s.repositoryRef(repo.ID).Collection("issues").Doc(i.ID), encode(i))
 	})
@@ -208,7 +212,7 @@ type change struct {
 	At      time.Time `firestore:"at"`
 }
 
-func (s *Store) Update(ctx context.Context, scope repository.Repository, actor, id string, input issueentity.Update) (result issueentity.Issue, err error) {
+func (s *Store) Update(ctx context.Context, scope repositoryDomainEntity.Repository, actor, id string, input issueentity.Update) (result issueentity.Issue, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
 		return result, issueport.ErrUnavailable
@@ -253,7 +257,7 @@ func (s *Store) Update(ctx context.Context, scope repository.Repository, actor, 
 				return issueport.ErrUnavailable
 			}
 			if err := s.Labels.ValidateLabelIDs(ctx, tx, scope, result.LabelIDs); err != nil {
-				if errors.Is(err, repository.ErrNotFound) {
+				if errors.Is(err, repositoryDomainEntity.ErrNotFound) {
 					return issueentity.ErrInput
 				}
 				return err
@@ -264,7 +268,7 @@ func (s *Store) Update(ctx context.Context, scope repository.Repository, actor, 
 				return issueport.ErrUnavailable
 			}
 			if e := s.Milestones.ValidateMilestoneID(ctx, tx, scope, result.MilestoneID); e != nil {
-				if errors.Is(e, repository.ErrNotFound) {
+				if errors.Is(e, repositoryDomainEntity.ErrNotFound) {
 					return issueentity.ErrInput
 				}
 				return e

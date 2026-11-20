@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[object.go](object.go)、[本目錄工作指引](AGENTS.md)。
+先查閱[object.go](domain/entity/object.go)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 

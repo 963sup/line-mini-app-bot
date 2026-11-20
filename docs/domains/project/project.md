@@ -139,4 +139,4 @@ flowchart LR
 
 這是唯讀操作，不新增業務事件、不寫入資料；回應禁止快取。前端在符合預期後解除待確認狀態並重新讀取專案，不再逐頁掃描引用推斷原操作結果。未符合或查詢失敗時保留原請求供重試。
 
-契約見 [references.yaml](../../../api/contract/project/references.yaml)，核心見 [references.go](../../../backend/internal/business/project/references.go)。既有引用授權、HTTP 與前端流程檢查涵蓋此路徑；真實 Firestore 交易與 LINE 裝置驗收仍需另行執行。
+契約見 [references.yaml](../../../api/contract/project/references.yaml)，核心見 [references.go](../../../backend/internal/business/project/domain/entity/references.go)。既有引用授權、HTTP 與前端流程檢查涵蓋此路徑；真實 Firestore 交易與 LINE 裝置驗收仍需另行執行。

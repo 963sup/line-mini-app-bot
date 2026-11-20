@@ -16,12 +16,12 @@ import (
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/firestore"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/http"
 
-	organizationdb "github.com/963sup/line-mini-app-bot/internal/business/organization/firestore"
-	organizationhttp "github.com/963sup/line-mini-app-bot/internal/business/organization/http"
+	organizationdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
+	organizationhttp "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/http"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	sessiondb "github.com/963sup/line-mini-app-bot/internal/identity/session/firestore"
 
-	wikihttp "github.com/963sup/line-mini-app-bot/internal/business/repository/wiki/http"
+	wikihttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/wiki"
 
 	journalhttp "github.com/963sup/line-mini-app-bot/internal/business/journal/adapter/http"
 
@@ -33,16 +33,16 @@ import (
 	grouphttp "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/http"
 	groupline "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/line"
 	issuehttp "github.com/963sup/line-mini-app-bot/internal/business/issue/adapter/http"
-	objecthttp "github.com/963sup/line-mini-app-bot/internal/business/object/http"
-	objectimporthttp "github.com/963sup/line-mini-app-bot/internal/business/objectimport/http"
-	projecthttp "github.com/963sup/line-mini-app-bot/internal/business/project/http"
-	repositoryhttp "github.com/963sup/line-mini-app-bot/internal/business/repository/http"
-	labelhttp "github.com/963sup/line-mini-app-bot/internal/business/repository/labels/http"
-	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/line"
-	milestonehttp "github.com/963sup/line-mini-app-bot/internal/business/repository/milestones/http"
-	businessgrouphttp "github.com/963sup/line-mini-app-bot/internal/business/repository/space/http"
-	statisticshttp "github.com/963sup/line-mini-app-bot/internal/business/repository/statistics/http"
-	subobjecthttp "github.com/963sup/line-mini-app-bot/internal/business/subobject/http"
+	objecthttp "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/http"
+	objectimporthttp "github.com/963sup/line-mini-app-bot/internal/business/objectimport/adapter/http"
+	projecthttp "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/http"
+	repositoryhttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http"
+	labelhttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/labels"
+	milestonehttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/milestones"
+	businessgrouphttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/space"
+	statisticshttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/statistics"
+	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/line"
+	subobjecthttp "github.com/963sup/line-mini-app-bot/internal/business/subobject/adapter/http"
 	"github.com/963sup/line-mini-app-bot/internal/diagnostics/geolocation"
 )
 

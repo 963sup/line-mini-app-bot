@@ -1,6 +1,10 @@
 package query
 
 import (
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+)
+
+import (
 	"context"
 	"strings"
 	"unicode/utf8"
@@ -8,7 +12,6 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/discussion/application/dto"
 	"github.com/963sup/line-mini-app-bot/internal/business/discussion/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/business/discussion/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
 type Service struct{ port.Access }
@@ -30,7 +33,7 @@ func (s *Service) Get(ctx context.Context, actor, repositoryID, id string) (enti
 	if err != nil {
 		return entity.Discussion{}, err
 	}
-	if !repository.ValidID(id) {
+	if !repositoryDomainEntity.ValidID(id) {
 		return entity.Discussion{}, entity.ErrNotFound
 	}
 	return s.Store.Get(ctx, r, id)
@@ -41,7 +44,7 @@ func (s *Service) ListComments(ctx context.Context, actor, repositoryID, id, cur
 	if err != nil {
 		return dto.CommentPage{}, err
 	}
-	if !repository.ValidID(id) {
+	if !repositoryDomainEntity.ValidID(id) {
 		return dto.CommentPage{}, entity.ErrNotFound
 	}
 	if len(cursor) > 1024 {

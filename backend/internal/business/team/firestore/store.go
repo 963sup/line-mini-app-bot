@@ -1,6 +1,10 @@
 package teamdb
 
 import (
+	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
+)
+
+import (
 	"context"
 	"errors"
 	"slices"
@@ -13,7 +17,7 @@ import (
 	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
 	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/business/group/domain/valueobject"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/organization"
+
 	"github.com/963sup/line-mini-app-bot/internal/business/team"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -29,7 +33,7 @@ type Store struct {
 func (s Store) Manage(ctx context.Context, user string, teamId, scope, managementId string) error {
 	_, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*struct{}, error) {
 		if !groupvalueobject.ValidID(teamId) || uuid.Validate(managementId) != nil || (scope != "organization" && scope != "enterprise") {
-			return nil, organization.ErrInvalid
+			return nil, organizationDomainEntity.ErrInvalid
 		}
 		target, e := orgstore.Read(tx, root.Collection(scope+"s").Doc(managementId))
 		if e != nil {
@@ -40,7 +44,7 @@ func (s Store) Manage(ctx context.Context, user string, teamId, scope, managemen
 			owner = target.IsOwner(user)
 		}
 		if !owner && !slices.Contains(target.Managers, user) {
-			return nil, organization.ErrNotFound
+			return nil, organizationDomainEntity.ErrNotFound
 		}
 		ref := root.Collection("teams").Doc(teamId)
 		team, e := orgstore.Read(tx, ref)
@@ -48,10 +52,10 @@ func (s Store) Manage(ctx context.Context, user string, teamId, scope, managemen
 			return nil, e
 		}
 		if !slices.Contains(team.Managers, user) {
-			return nil, organization.ErrNotFound
+			return nil, organizationDomainEntity.ErrNotFound
 		}
 		if team.Scope != "" && (team.Scope != scope || team.Manager != managementId) {
-			return nil, organization.ErrConflict
+			return nil, organizationDomainEntity.ErrConflict
 		}
 		return nil, tx.Update(ref, []firestore.Update{{Path: "managementScope", Value: scope}, {Path: "managementId", Value: managementId}})
 	})
@@ -61,7 +65,7 @@ func (s Store) Manage(ctx context.Context, user string, teamId, scope, managemen
 func (s Store) Assign(ctx context.Context, user string, id, teamId string, add bool) error {
 	_, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*struct{}, error) {
 		if uuid.Validate(id) != nil || !groupvalueobject.ValidID(teamId) {
-			return nil, organization.ErrInvalid
+			return nil, organizationDomainEntity.ErrInvalid
 		}
 		ref := root.Collection("organizations").Doc(id)
 		o, e := orgstore.Read(tx, ref)
@@ -73,14 +77,14 @@ func (s Store) Assign(ctx context.Context, user string, id, teamId string, add b
 			return nil, e
 		}
 		if o.Enterprise == "" || team.Scope != "enterprise" || team.Manager != o.Enterprise {
-			return nil, organization.ErrNotFound
+			return nil, organizationDomainEntity.ErrNotFound
 		}
 		ent, e := orgstore.Read(tx, root.Collection("enterprises").Doc(o.Enterprise))
 		if e != nil {
 			return nil, e
 		}
 		if !ent.IsOwner(user) && !slices.Contains(ent.Managers, user) {
-			return nil, organization.ErrNotFound
+			return nil, organizationDomainEntity.ErrNotFound
 		}
 		link := ref.Collection("enterpriseTeams").Doc(teamId)
 		if add {
@@ -94,7 +98,7 @@ func (s Store) Assign(ctx context.Context, user string, id, teamId string, add b
 func (s Store) List(ctx context.Context, user string, organizationId string) (*team.Listing, error) {
 	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*team.Listing, error) {
 		if uuid.Validate(organizationId) != nil {
-			return nil, organization.ErrInvalid
+			return nil, organizationDomainEntity.ErrInvalid
 		}
 		ref := root.Collection("organizations").Doc(organizationId)
 		org, e := orgstore.Read(tx, ref)
@@ -102,7 +106,7 @@ func (s Store) List(ctx context.Context, user string, organizationId string) (*t
 			return nil, e
 		}
 		if org.Owner != user && !slices.Contains(org.Members, user) {
-			return nil, organization.ErrNotFound
+			return nil, organizationDomainEntity.ErrNotFound
 		}
 		teams := root.Collection("teams")
 		local, e := tx.Documents(teams.Where("managementId", "==", organizationId)).GetAll()

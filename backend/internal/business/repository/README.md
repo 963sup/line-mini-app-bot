@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[numbering.go](numbering.go)、[repository.go](repository.go)、[本目錄工作指引](AGENTS.md)。
+先查閱[numbering.go](domain/entity/numbering.go)、[repository.go](domain/entity/repository.go)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 
@@ -18,6 +18,6 @@
 
 ## 閱讀入口
 
-從 [firestore](firestore)、[http](http)、[labels](labels)、[line](line)、[milestones](milestones)、[numbering.go](numbering.go) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
+從 [firestore](firestore)、[http](http)、[labels](labels)、[line](line)、[milestones](milestones)、[numbering.go](domain/entity/numbering.go) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：空間載入時序](../../../../docs/domains/repository/README.md#空間載入時序) · [未來設計圖](../../../../docs/diagrams.md#未來設計)

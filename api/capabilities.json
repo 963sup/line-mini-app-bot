@@ -9,8 +9,8 @@
     },
     "repository": {
       "contract": "repository/repositories.yaml",
-      "adapter": "backend/internal/business/repository/http/routes.go",
-      "core": "backend/internal/business/repository/repository.go",
+      "adapter": "backend/internal/business/repository/adapter/http/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/repository.go",
       "specification": "docs/domains/repository/README.md"
     },
     "attendance.punch": {
@@ -75,14 +75,14 @@
     },
     "repository.labels": {
       "contract": "repository/labels.yaml",
-      "adapter": "backend/internal/business/repository/labels/http/routes.go",
-      "core": "backend/internal/business/repository/labels/labels.go",
+      "adapter": "backend/internal/business/repository/adapter/http/labels/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/labels/labels.go",
       "specification": "docs/domains/repository/labels.md"
     },
     "repository.milestones": {
       "contract": "repository/milestones.yaml",
-      "adapter": "backend/internal/business/repository/milestones/http/routes.go",
-      "core": "backend/internal/business/repository/milestones/milestone.go",
+      "adapter": "backend/internal/business/repository/adapter/http/milestones/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/milestones/milestone.go",
       "specification": "docs/domains/repository/milestones.md"
     },
     "issue": {
@@ -123,14 +123,14 @@
     },
     "project": {
       "contract": "project/projects.yaml",
-      "adapter": "backend/internal/business/project/http/routes.go",
-      "core": "backend/internal/business/project/project.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md"
     },
     "project.items": {
       "contract": "project/items.yaml",
-      "adapter": "backend/internal/business/project/http/routes.go",
-      "core": "backend/internal/business/project/project.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md"
     },
     "project.fields": {
@@ -147,8 +147,8 @@
     },
     "repository.statistics": {
       "contract": "repository/statistics.yaml",
-      "adapter": "backend/internal/business/repository/statistics/http/routes.go",
-      "core": "backend/internal/business/repository/statistics/statistics.go",
+      "adapter": "backend/internal/business/repository/adapter/http/statistics/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/statistics/statistics.go",
       "specification": "docs/domains/repository/insights.md"
     },
     "group": {
@@ -159,38 +159,38 @@
     },
     "project.group": {
       "contract": "project/owner-projects.yaml",
-      "adapter": "backend/internal/business/project/http/routes.go",
-      "core": "backend/internal/business/project/project.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md"
     },
     "object": {
       "contract": "object/objects.yaml",
-      "adapter": "backend/internal/business/object/http/routes.go",
-      "core": "backend/internal/business/object/object.go",
+      "adapter": "backend/internal/business/object/adapter/http/routes.go",
+      "core": "backend/internal/business/object/domain/entity/object.go",
       "specification": "docs/domains/repository/objects.md"
     },
     "objectimport": {
       "contract": "object-import/object-imports.yaml",
-      "adapter": "backend/internal/business/objectimport/http/routes.go",
-      "core": "backend/internal/business/objectimport/object_import.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
+      "core": "backend/internal/business/objectimport/domain/entity/object_import.go",
       "specification": "docs/domains/repository/object-imports.md"
     },
     "subobject": {
       "contract": "subobject/subobjects.yaml",
-      "adapter": "backend/internal/business/subobject/http/routes.go",
-      "core": "backend/internal/business/subobject/subobject.go",
+      "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
+      "core": "backend/internal/business/subobject/domain/entity/subobject.go",
       "specification": "docs/domains/repository/objects.md"
     },
     "project.references": {
       "contract": "project/references.yaml",
-      "adapter": "backend/internal/business/project/http/references.go",
-      "core": "backend/internal/business/project/references.go",
+      "adapter": "backend/internal/business/project/adapter/http/references.go",
+      "core": "backend/internal/business/project/domain/entity/references.go",
       "specification": "docs/domains/project/project.md"
     },
     "repository.spaces": {
       "contract": "repository/spaces.yaml",
-      "adapter": "backend/internal/business/repository/space/http/routes.go",
-      "core": "backend/internal/business/repository/space/space.go",
+      "adapter": "backend/internal/business/repository/adapter/http/space/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/space/space.go",
       "specification": "docs/domains/repository/spaces.md"
     },
     "journal": {
@@ -201,20 +201,20 @@
     },
     "project.inspections": {
       "contract": "project/inspection-submissions.yaml",
-      "adapter": "backend/internal/business/project/http/inspections.go",
-      "core": "backend/internal/business/project/inspections.go",
+      "adapter": "backend/internal/business/project/adapter/http/inspections.go",
+      "core": "backend/internal/business/project/domain/entity/inspections.go",
       "specification": "docs/domains/project/project.md"
     },
     "repository.wiki": {
       "contract": "repository/wiki.yaml",
-      "core": "backend/internal/business/repository/wiki/wiki.go",
-      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
       "specification": "docs/domains/repository/wiki.md"
     },
     "organization": {
       "contract": "organization/context.yaml",
-      "adapter": "backend/internal/business/organization/http/routes.go",
-      "core": "backend/internal/business/organization/context.go",
+      "adapter": "backend/internal/business/organization/adapter/http/routes.go",
+      "core": "backend/internal/business/organization/application/dto/context.go",
       "specification": "docs/domains/repository/organization.md"
     },
     "enterprise": {
@@ -314,9 +314,9 @@
       "method": "GET",
       "path": "/api/v1/repositories",
       "owner": "repository",
-      "adapter": "backend/internal/business/repository/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/routes.go",
       "handler": "ListRepositories",
-      "core": "backend/internal/business/repository/repository.go",
+      "core": "backend/internal/business/repository/domain/entity/repository.go",
       "specification": "docs/domains/repository/README.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/RepositoryContext.tsx"
@@ -329,9 +329,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{id}",
       "owner": "repository",
-      "adapter": "backend/internal/business/repository/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/routes.go",
       "handler": "GetRepository",
-      "core": "backend/internal/business/repository/repository.go",
+      "core": "backend/internal/business/repository/domain/entity/repository.go",
       "specification": "docs/domains/repository/README.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/RepositoryContext.tsx"
@@ -795,9 +795,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/labels",
       "owner": "repository.labels",
-      "adapter": "backend/internal/business/repository/labels/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/labels/routes.go",
       "handler": "ListLabels",
-      "core": "backend/internal/business/repository/labels/labels.go",
+      "core": "backend/internal/business/repository/domain/entity/labels/labels.go",
       "specification": "docs/domains/repository/labels.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/labels/View.tsx",
@@ -810,9 +810,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/labels",
       "owner": "repository.labels",
-      "adapter": "backend/internal/business/repository/labels/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/labels/routes.go",
       "handler": "CreateLabel",
-      "core": "backend/internal/business/repository/labels/labels.go",
+      "core": "backend/internal/business/repository/domain/entity/labels/labels.go",
       "specification": "docs/domains/repository/labels.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/labels/View.tsx"
@@ -824,9 +824,9 @@
       "method": "PATCH",
       "path": "/api/v1/repositories/{repositoryId}/labels/{id}",
       "owner": "repository.labels",
-      "adapter": "backend/internal/business/repository/labels/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/labels/routes.go",
       "handler": "RenameLabel",
-      "core": "backend/internal/business/repository/labels/labels.go",
+      "core": "backend/internal/business/repository/domain/entity/labels/labels.go",
       "specification": "docs/domains/repository/labels.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/labels/View.tsx"
@@ -838,9 +838,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/milestones",
       "owner": "repository.milestones",
-      "adapter": "backend/internal/business/repository/milestones/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/milestones/routes.go",
       "handler": "ListMilestones",
-      "core": "backend/internal/business/repository/milestones/milestone.go",
+      "core": "backend/internal/business/repository/domain/entity/milestones/milestone.go",
       "specification": "docs/domains/repository/milestones.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx",
@@ -853,9 +853,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/milestones",
       "owner": "repository.milestones",
-      "adapter": "backend/internal/business/repository/milestones/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/milestones/routes.go",
       "handler": "CreateMilestone",
-      "core": "backend/internal/business/repository/milestones/milestone.go",
+      "core": "backend/internal/business/repository/domain/entity/milestones/milestone.go",
       "specification": "docs/domains/repository/milestones.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx"
@@ -867,9 +867,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/milestones/{id}",
       "owner": "repository.milestones",
-      "adapter": "backend/internal/business/repository/milestones/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/milestones/routes.go",
       "handler": "GetMilestone",
-      "core": "backend/internal/business/repository/milestones/milestone.go",
+      "core": "backend/internal/business/repository/domain/entity/milestones/milestone.go",
       "specification": "docs/domains/repository/milestones.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx"
@@ -881,9 +881,9 @@
       "method": "PATCH",
       "path": "/api/v1/repositories/{repositoryId}/milestones/{id}",
       "owner": "repository.milestones",
-      "adapter": "backend/internal/business/repository/milestones/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/milestones/routes.go",
       "handler": "UpdateMilestone",
-      "core": "backend/internal/business/repository/milestones/milestone.go",
+      "core": "backend/internal/business/repository/domain/entity/milestones/milestone.go",
       "specification": "docs/domains/repository/milestones.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx"
@@ -895,9 +895,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/projects",
       "owner": "project",
-      "adapter": "backend/internal/business/project/http/routes.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
       "handler": "ListProjects",
-      "core": "backend/internal/business/project/project.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md",
       "consumers": []
     },
@@ -907,9 +907,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/projects",
       "owner": "project",
-      "adapter": "backend/internal/business/project/http/routes.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
       "handler": "CreateProject",
-      "core": "backend/internal/business/project/project.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md",
       "consumers": []
     },
@@ -919,9 +919,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/projects/{id}",
       "owner": "project",
-      "adapter": "backend/internal/business/project/http/routes.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
       "handler": "GetProject",
-      "core": "backend/internal/business/project/project.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md",
       "consumers": []
     },
@@ -931,9 +931,9 @@
       "method": "PATCH",
       "path": "/api/v1/repositories/{repositoryId}/projects/{id}",
       "owner": "project",
-      "adapter": "backend/internal/business/project/http/routes.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
       "handler": "UpdateProject",
-      "core": "backend/internal/business/project/project.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md",
       "consumers": []
     },
@@ -943,9 +943,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/projects/{id}/items",
       "owner": "project.items",
-      "adapter": "backend/internal/business/project/http/routes.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
       "handler": "ListProjectItems",
-      "core": "backend/internal/business/project/project.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md",
       "consumers": []
     },
@@ -955,9 +955,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/projects/{id}/items",
       "owner": "project.items",
-      "adapter": "backend/internal/business/project/http/routes.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
       "handler": "AddProjectItem",
-      "core": "backend/internal/business/project/project.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md",
       "consumers": []
     },
@@ -967,9 +967,9 @@
       "method": "DELETE",
       "path": "/api/v1/repositories/{repositoryId}/projects/{id}/items/{itemId}",
       "owner": "project.items",
-      "adapter": "backend/internal/business/project/http/routes.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
       "handler": "RemoveProjectItem",
-      "core": "backend/internal/business/project/project.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md",
       "consumers": []
     },
@@ -979,9 +979,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/statistics",
       "owner": "repository.statistics",
-      "adapter": "backend/internal/business/repository/statistics/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/statistics/routes.go",
       "handler": "GetRepositoryStatistics",
-      "core": "backend/internal/business/repository/statistics/statistics.go",
+      "core": "backend/internal/business/repository/domain/entity/statistics/statistics.go",
       "specification": "docs/domains/repository/insights.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/insights/View.tsx"
@@ -1023,9 +1023,9 @@
       "method": "GET",
       "path": "/api/v1/owners/{ownerId}/projects",
       "owner": "project.group",
-      "adapter": "backend/internal/business/project/http/routes.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
       "handler": "ListOwnerProjects",
-      "core": "backend/internal/business/project/project.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/View.tsx"
@@ -1037,9 +1037,9 @@
       "method": "POST",
       "path": "/api/v1/owners/{ownerId}/projects",
       "owner": "project.group",
-      "adapter": "backend/internal/business/project/http/routes.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
       "handler": "CreateOwnerProject",
-      "core": "backend/internal/business/project/project.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/View.tsx"
@@ -1051,9 +1051,9 @@
       "method": "GET",
       "path": "/api/v1/owners/{ownerId}/projects/{id}",
       "owner": "project.group",
-      "adapter": "backend/internal/business/project/http/routes.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
       "handler": "GetOwnerProject",
-      "core": "backend/internal/business/project/project.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/View.tsx"
@@ -1065,9 +1065,9 @@
       "method": "PATCH",
       "path": "/api/v1/owners/{ownerId}/projects/{id}",
       "owner": "project.group",
-      "adapter": "backend/internal/business/project/http/routes.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
       "handler": "UpdateOwnerProject",
-      "core": "backend/internal/business/project/project.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/View.tsx"
@@ -1079,9 +1079,9 @@
       "method": "GET",
       "path": "/api/v1/owners/{ownerId}/projects/{id}/items",
       "owner": "project.group",
-      "adapter": "backend/internal/business/project/http/routes.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
       "handler": "ListOwnerProjectItems",
-      "core": "backend/internal/business/project/project.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md",
       "consumers": []
     },
@@ -1091,9 +1091,9 @@
       "method": "POST",
       "path": "/api/v1/owners/{ownerId}/projects/{id}/items",
       "owner": "project.group",
-      "adapter": "backend/internal/business/project/http/routes.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
       "handler": "AddOwnerProjectItem",
-      "core": "backend/internal/business/project/project.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md",
       "consumers": []
     },
@@ -1103,9 +1103,9 @@
       "method": "DELETE",
       "path": "/api/v1/owners/{ownerId}/projects/{id}/items/{itemId}",
       "owner": "project.group",
-      "adapter": "backend/internal/business/project/http/routes.go",
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
       "handler": "RemoveOwnerProjectItem",
-      "core": "backend/internal/business/project/project.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
       "specification": "docs/domains/project/project.md",
       "consumers": []
     },
@@ -1115,9 +1115,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/objects",
       "owner": "object",
-      "adapter": "backend/internal/business/object/http/routes.go",
+      "adapter": "backend/internal/business/object/adapter/http/routes.go",
       "handler": "ListObjects",
-      "core": "backend/internal/business/object/object.go",
+      "core": "backend/internal/business/object/domain/entity/object.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx",
@@ -1130,9 +1130,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/objects",
       "owner": "object",
-      "adapter": "backend/internal/business/object/http/routes.go",
+      "adapter": "backend/internal/business/object/adapter/http/routes.go",
       "handler": "CreateObject",
-      "core": "backend/internal/business/object/object.go",
+      "core": "backend/internal/business/object/domain/entity/object.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx"
@@ -1144,9 +1144,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/objects/{id}",
       "owner": "object",
-      "adapter": "backend/internal/business/object/http/routes.go",
+      "adapter": "backend/internal/business/object/adapter/http/routes.go",
       "handler": "GetObject",
-      "core": "backend/internal/business/object/object.go",
+      "core": "backend/internal/business/object/domain/entity/object.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx"
@@ -1158,9 +1158,9 @@
       "method": "PATCH",
       "path": "/api/v1/repositories/{repositoryId}/objects/{id}",
       "owner": "object",
-      "adapter": "backend/internal/business/object/http/routes.go",
+      "adapter": "backend/internal/business/object/adapter/http/routes.go",
       "handler": "UpdateObject",
-      "core": "backend/internal/business/object/object.go",
+      "core": "backend/internal/business/object/domain/entity/object.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx"
@@ -1172,9 +1172,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/object-imports",
       "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
       "handler": "CreateObjectImport",
-      "core": "backend/internal/business/objectimport/object_import.go",
+      "core": "backend/internal/business/objectimport/domain/entity/object_import.go",
       "specification": "docs/domains/repository/object-imports.md",
       "consumers": []
     },
@@ -1184,9 +1184,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/object-imports/{id}",
       "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
       "handler": "GetObjectImport",
-      "core": "backend/internal/business/objectimport/object_import.go",
+      "core": "backend/internal/business/objectimport/domain/entity/object_import.go",
       "specification": "docs/domains/repository/object-imports.md",
       "consumers": []
     },
@@ -1196,9 +1196,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/object-imports/{id}/review",
       "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
       "handler": "ReviewObjectImport",
-      "core": "backend/internal/business/objectimport/object_import.go",
+      "core": "backend/internal/business/objectimport/domain/entity/object_import.go",
       "specification": "docs/domains/repository/object-imports.md",
       "consumers": []
     },
@@ -1208,9 +1208,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/object-imports/{id}/confirm",
       "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
       "handler": "ConfirmObjectImport",
-      "core": "backend/internal/business/objectimport/object_import.go",
+      "core": "backend/internal/business/objectimport/domain/entity/object_import.go",
       "specification": "docs/domains/repository/object-imports.md",
       "consumers": []
     },
@@ -1220,9 +1220,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/object-imports/parse",
       "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
       "handler": "ParseObjectImport",
-      "core": "backend/internal/business/objectimport/parsing/parsing.go",
+      "core": "backend/internal/business/objectimport/domain/entity/parsing/parsing.go",
       "specification": "docs/domains/repository/object-imports.md",
       "consumers": []
     },
@@ -1232,9 +1232,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/object-import-runs",
       "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/http/automatic.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/automatic.go",
       "handler": "CreateObjectImportRun",
-      "core": "backend/internal/business/objectimport/automatic/automatic.go",
+      "core": "backend/internal/business/objectimport/domain/entity/automatic/automatic.go",
       "specification": "docs/domains/repository/object-imports.md",
       "consumers": [
         "frontend/miniapp/src/business/object/Import.tsx"
@@ -1246,9 +1246,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/object-import-runs/{id}",
       "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/http/automatic.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/automatic.go",
       "handler": "GetObjectImportRun",
-      "core": "backend/internal/business/objectimport/automatic/automatic.go",
+      "core": "backend/internal/business/objectimport/domain/entity/automatic/automatic.go",
       "specification": "docs/domains/repository/object-imports.md",
       "consumers": []
     },
@@ -1258,9 +1258,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects",
       "owner": "subobject",
-      "adapter": "backend/internal/business/subobject/http/routes.go",
+      "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
       "handler": "ListSubobjects",
-      "core": "backend/internal/business/subobject/subobject.go",
+      "core": "backend/internal/business/subobject/domain/entity/subobject.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": [
         "frontend/miniapp/src/business/journal/WorkContext.tsx"
@@ -1272,9 +1272,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects",
       "owner": "subobject",
-      "adapter": "backend/internal/business/subobject/http/routes.go",
+      "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
       "handler": "CreateSubobject",
-      "core": "backend/internal/business/subobject/subobject.go",
+      "core": "backend/internal/business/subobject/domain/entity/subobject.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": []
     },
@@ -1284,9 +1284,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}",
       "owner": "subobject",
-      "adapter": "backend/internal/business/subobject/http/routes.go",
+      "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
       "handler": "GetSubobject",
-      "core": "backend/internal/business/subobject/subobject.go",
+      "core": "backend/internal/business/subobject/domain/entity/subobject.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": []
     },
@@ -1296,9 +1296,9 @@
       "method": "PATCH",
       "path": "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}",
       "owner": "subobject",
-      "adapter": "backend/internal/business/subobject/http/routes.go",
+      "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
       "handler": "UpdateSubobject",
-      "core": "backend/internal/business/subobject/subobject.go",
+      "core": "backend/internal/business/subobject/domain/entity/subobject.go",
       "specification": "docs/domains/repository/objects.md",
       "consumers": []
     },
@@ -1308,9 +1308,9 @@
       "method": "GET",
       "path": "/api/v1/owners/{ownerId}/projects/{id}/references",
       "owner": "project.references",
-      "adapter": "backend/internal/business/project/http/references.go",
+      "adapter": "backend/internal/business/project/adapter/http/references.go",
       "handler": "ListProjectReferences",
-      "core": "backend/internal/business/project/references.go",
+      "core": "backend/internal/business/project/domain/entity/references.go",
       "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Items.tsx"
@@ -1322,9 +1322,9 @@
       "method": "POST",
       "path": "/api/v1/owners/{ownerId}/projects/{id}/references",
       "owner": "project.references",
-      "adapter": "backend/internal/business/project/http/references.go",
+      "adapter": "backend/internal/business/project/adapter/http/references.go",
       "handler": "AddProjectReference",
-      "core": "backend/internal/business/project/references.go",
+      "core": "backend/internal/business/project/domain/entity/references.go",
       "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Items.tsx"
@@ -1336,9 +1336,9 @@
       "method": "DELETE",
       "path": "/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}",
       "owner": "project.references",
-      "adapter": "backend/internal/business/project/http/references.go",
+      "adapter": "backend/internal/business/project/adapter/http/references.go",
       "handler": "RemoveProjectReference",
-      "core": "backend/internal/business/project/references.go",
+      "core": "backend/internal/business/project/domain/entity/references.go",
       "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Items.tsx"
@@ -1350,9 +1350,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/spaces",
       "owner": "repository.spaces",
-      "adapter": "backend/internal/business/repository/space/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/space/routes.go",
       "handler": "ListRepositorySpaces",
-      "core": "backend/internal/business/repository/space/space.go",
+      "core": "backend/internal/business/repository/domain/entity/space/space.go",
       "specification": "docs/domains/repository/spaces.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/useSpaces.ts",
@@ -1365,9 +1365,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/spaces",
       "owner": "repository.spaces",
-      "adapter": "backend/internal/business/repository/space/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/space/routes.go",
       "handler": "CreateRepositorySpace",
-      "core": "backend/internal/business/repository/space/space.go",
+      "core": "backend/internal/business/repository/domain/entity/space/space.go",
       "specification": "docs/domains/repository/spaces.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/Spaces.tsx",
@@ -1380,9 +1380,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/spaces/{id}",
       "owner": "repository.spaces",
-      "adapter": "backend/internal/business/repository/space/http/routes.go",
+      "adapter": "backend/internal/business/repository/adapter/http/space/routes.go",
       "handler": "GetRepositorySpace",
-      "core": "backend/internal/business/repository/space/space.go",
+      "core": "backend/internal/business/repository/domain/entity/space/space.go",
       "specification": "docs/domains/repository/spaces.md",
       "consumers": []
     },
@@ -1434,9 +1434,9 @@
       "method": "GET",
       "path": "/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions",
       "owner": "project.inspections",
-      "adapter": "backend/internal/business/project/http/inspections.go",
+      "adapter": "backend/internal/business/project/adapter/http/inspections.go",
       "handler": "ListInspectionSubmissions",
-      "core": "backend/internal/business/project/inspections.go",
+      "core": "backend/internal/business/project/domain/entity/inspections.go",
       "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Inspections.tsx"
@@ -1448,9 +1448,9 @@
       "method": "POST",
       "path": "/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions",
       "owner": "project.inspections",
-      "adapter": "backend/internal/business/project/http/inspections.go",
+      "adapter": "backend/internal/business/project/adapter/http/inspections.go",
       "handler": "SubmitInspection",
-      "core": "backend/internal/business/project/inspections.go",
+      "core": "backend/internal/business/project/domain/entity/inspections.go",
       "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Inspections.tsx"
@@ -1466,8 +1466,8 @@
       "consumers": [
         "frontend/miniapp/src/business/repository/wiki/View.tsx"
       ],
-      "core": "backend/internal/business/repository/wiki/wiki.go",
-      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
       "specification": "docs/domains/repository/wiki.md"
     },
     {
@@ -1480,8 +1480,8 @@
       "consumers": [
         "frontend/miniapp/src/business/repository/wiki/View.tsx"
       ],
-      "core": "backend/internal/business/repository/wiki/wiki.go",
-      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
       "specification": "docs/domains/repository/wiki.md"
     },
     {
@@ -1494,8 +1494,8 @@
       "consumers": [
         "frontend/miniapp/src/business/repository/wiki/View.tsx"
       ],
-      "core": "backend/internal/business/repository/wiki/wiki.go",
-      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
       "specification": "docs/domains/repository/wiki.md"
     },
     {
@@ -1508,8 +1508,8 @@
       "consumers": [
         "frontend/miniapp/src/business/repository/wiki/View.tsx"
       ],
-      "core": "backend/internal/business/repository/wiki/wiki.go",
-      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
       "specification": "docs/domains/repository/wiki.md"
     },
     {
@@ -1522,8 +1522,8 @@
       "consumers": [
         "frontend/miniapp/src/business/repository/wiki/View.tsx"
       ],
-      "core": "backend/internal/business/repository/wiki/wiki.go",
-      "adapter": "backend/internal/business/repository/wiki/http/routes.go",
+      "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
+      "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
       "specification": "docs/domains/repository/wiki.md"
     },
     {
@@ -1532,9 +1532,9 @@
       "method": "GET",
       "path": "/api/v1/owners/{ownerId}/projects/{id}/reference-state",
       "owner": "project.references",
-      "adapter": "backend/internal/business/project/http/references.go",
+      "adapter": "backend/internal/business/project/adapter/http/references.go",
       "handler": "GetProjectReferenceState",
-      "core": "backend/internal/business/project/references.go",
+      "core": "backend/internal/business/project/domain/entity/references.go",
       "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Items.tsx"
@@ -1546,9 +1546,9 @@
       "method": "GET",
       "path": "/api/v1/me/organization-context",
       "owner": "organization",
-      "adapter": "backend/internal/business/organization/http/routes.go",
+      "adapter": "backend/internal/business/organization/adapter/http/routes.go",
       "handler": "GetOrganizationContext",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/organization/application/dto/context.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
         "frontend/miniapp/src/business/organization/useOrganizationSelection.ts",
@@ -1561,9 +1561,9 @@
       "method": "PUT",
       "path": "/api/v1/me/organization-context",
       "owner": "organization",
-      "adapter": "backend/internal/business/organization/http/routes.go",
+      "adapter": "backend/internal/business/organization/adapter/http/routes.go",
       "handler": "SelectOrganization",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/organization/application/dto/context.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
         "frontend/miniapp/src/business/organization/useOrganizationSelection.ts"
@@ -1575,9 +1575,9 @@
       "method": "POST",
       "path": "/api/v1/organizations",
       "owner": "organization",
-      "adapter": "backend/internal/business/organization/http/routes.go",
+      "adapter": "backend/internal/business/organization/adapter/http/routes.go",
       "handler": "CreateOrganization",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/organization/application/dto/context.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": []
     },
@@ -1587,9 +1587,9 @@
       "method": "PUT",
       "path": "/api/v1/organizations/{organizationId}/owner",
       "owner": "organization",
-      "adapter": "backend/internal/business/organization/http/routes.go",
+      "adapter": "backend/internal/business/organization/adapter/http/routes.go",
       "handler": "TransferOrganization",
-      "core": "backend/internal/business/organization/context.go",
+      "core": "backend/internal/business/organization/application/dto/context.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": []
     },
@@ -1705,7 +1705,7 @@
       "owner": "repository",
       "action": "Observe",
       "contract": "docs/domains/repository/README.md",
-      "adapter": "backend/internal/business/repository/line/observer.go",
+      "adapter": "backend/internal/business/repository/adapter/line/observer.go",
       "handler": "Observe",
       "note": "Verified webhook drives the container lifecycle; no public create/update API."
     },

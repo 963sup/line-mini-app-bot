@@ -74,9 +74,9 @@ flowchart LR
 flowchart LR
   h["內部接入方式"]
   h --- n0["核心型別與錯誤：numbering.go，不依賴 <br/>Firestore／HTTP DTO。"]
-  click n0 "../../../backend/internal/business/repository/numbering.go"
+  click n0 "../../../backend/internal/business/repository/domain/entity/numbering.go"
   h --- n1["Firestore 實作：numbering.go。使用既有 Store<br/> 的 client 與 channel，不另建服務或連線。"]
-  click n1 "../../../backend/internal/business/repository/firestore/numbering.go"
+  click n1 "../../../backend/internal/business/repository/adapter/firestore/numbering.go"
   h --- n2["CreateNumberedResource(ctx, command, create)<br/>：command 包含已核驗的 Repository／群組／操<br/>作者、資源類型、防重鍵及正規化且帶版本的業務<br/>內容雜湊。雜湊不包含伺服器產生的 ID／number<br/>／時間。"]
   h --- n3["create(ctx, tx, reference)：未來業務 <br/>Firestore adapter 依 reference 的 ID／number<br/> 建立自己的資料，所有讀寫使用同一 tx。可先讀<br/>取額外資料檢查業務規則，再寫入；不得提交交易<br/>、開新交易、呼叫外部服務或發送通知。"]
   h --- n4["隨機 ID 與微秒精度 UTC 時間在交易 callback <br/>外產生，號碼在交易內決定。重試結果不更改原資<br/>源建立時間。"]

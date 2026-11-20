@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[subobject.go](subobject.go)、[本目錄工作指引](AGENTS.md)。
+先查閱[subobject.go](domain/entity/subobject.go)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 
@@ -18,6 +18,6 @@
 
 ## 閱讀入口
 
-從 [firestore](firestore)、[http](http)、[subobject.go](subobject.go)、[subobject_test.go](subobject_test.go) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
+從 [firestore](firestore)、[http](http)、[subobject.go](domain/entity/subobject.go)、[subobject_test.go](application/subobject_test.go) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：物件與子物件歸屬](../../../../docs/domains/repository/objects.md#物件與子物件歸屬) · [未來設計圖](../../../../docs/diagrams.md#未來設計)

@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[numbering.go](numbering.go)、[repository.go](repository.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+先查閱[numbering.go](domain/entity/numbering.go)、[repository.go](domain/entity/repository.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
 
 ## 相關規格
 

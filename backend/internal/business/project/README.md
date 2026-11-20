@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[inspections.go](inspections.go)、[project.go](project.go)、[references.go](references.go)、[本目錄工作指引](AGENTS.md)。
+先查閱[inspections.go](domain/entity/inspections.go)、[project.go](domain/entity/project.go)、[references.go](domain/entity/references.go)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 
