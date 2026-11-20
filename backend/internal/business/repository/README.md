@@ -1,5 +1,7 @@
 # backend/internal/business/repository 目錄導覽
 
+[領域文件](../../../../docs/domains/repository/README.md) · [全域索引](../../../../docs/domains/README.md#domain-matrix)
+
 ## 用途與範圍
 
 管理 Repository 的歸屬、查詢與編號，並承載 Space、標籤、里程碑、Wiki 與統計等子功能。
@@ -21,3 +23,13 @@
 從 [firestore](adapter/firestore)、[http](adapter/http)、[labels](labels)、[line](adapter/line)、[milestones](milestones)、[numbering.go](domain/entity/numbering.go) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：空間載入時序](../../../../docs/domains/repository/README.md#空間載入時序) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
+
+## 領域追蹤入口
+
+[領域規格](../../../../docs/domains/repository/README.md) · [判定流程](../../../../docs/domains/repository/README.md#decision-flow) · [判定實作](domain/entity/repository.go)
+
+[上層導覽](../README.md)
+
+## 下層文件入口
+
+- [statistics](statistics/README.md)

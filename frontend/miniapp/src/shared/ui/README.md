@@ -55,3 +55,5 @@ Data Table、Date Picker、Typography 是組合／樣式配方，沿用已安裝
 異動引用後可用 `rg -n 'from .*ui/' frontend/miniapp/src` 查找畫面與共用入口，再查元件本身的 import（含相對路徑）。更換控制項時核對操作語意：工作關聯在完整清單內搜尋，來源儲存庫仍採游標載入；Issue 狀態在套用篩選後查詢；儲存庫頁籤在使用者確認切換後載入。
 
 表單群組與標籤使用 FieldSet／FieldLegend／FieldLabel（含 FormField 包裝），載入與訊息沿用 ReadFeedback／Status，適用的可展開明細使用 Collapsible。日期、月份、數字、檔案輸入仍保留原生型別與驗證；表單、文字、連結、資料列表、圖表圖例及診斷結果的語意 HTML 不為增加元件數而替換。未登入頁面的說明可保留文字，避免與 Shell 的身分提示重複。
+
+[上層導覽](../README.md)

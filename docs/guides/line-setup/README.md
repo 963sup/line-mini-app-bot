@@ -41,3 +41,5 @@ flowchart LR
   a --- n4["歷史查證與環境限制"]
   click n4 "references.md"
 ```
+
+[適用工作指引](../AGENTS.md)

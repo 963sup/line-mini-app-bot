@@ -15,9 +15,9 @@ flowchart LR
   h --- n0["必要流程：真實空間入口<br/>完成條件與來源：Repository：沿用登入、群組成<br/>員核驗、列表／詳情及身分隔離，沒有假資料冒充<br/>正式內容"]
   click n0 "README.md"
   h --- n1["必要流程：事項<br/>完成條件與來源：Issue：建立、查詢、作者編輯<br/>及生命週期；防重、版本與交易規則一致"]
-  click n1 "issues.md"
+  click n1 "../issue/design.md"
   h --- n2["必要流程：討論與留言<br/>完成條件與來源：Discussion：主題、單層留言、<br/>各自作者編輯、分頁與重送處理；不加入事項狀態"]
-  click n2 "discussions.md"
+  click n2 "../discussion/design.md"
   h --- n3["必要流程：標籤分類<br/>完成條件與來源：Labels：目錄列出／建立，同名<br/>唯一；作者可對自己的事項／討論套用及移除同空<br/>間標籤，重新載入仍保存"]
   click n3 "labels.md"
   h --- n4["必要流程：三層接線<br/>完成條件與來源：OpenAPI 生成型別、後端核心／<br/>HTTP／Firestore、正式前端入口皆接入；不新增<br/>框架或改 primitives"]

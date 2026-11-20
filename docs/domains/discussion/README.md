@@ -1,5 +1,7 @@
 # 討論
 
+**已有實作** · [設計規格](design.md) · [核心流程](#decision-flow) · [代表測試](../../../backend/internal/business/discussion/domain/entity/classification_test.go) · [程式目錄](../../../backend/internal/business/discussion/README.md) · [維護指引](../../../backend/internal/business/discussion/AGENTS.md)
+
 ## 領域設計
 
 **子域定位**　協作支援候選。
@@ -14,4 +16,19 @@
 
 討論串、留言與分類的行為由討論規格定義。
 
-[相關業務規格](../repository/discussions.md) · [後端discussion 實作說明](../../../backend/internal/business/discussion/README.md)
+[領域設計與操作契約](design.md) · [後端實作入口](../../../backend/internal/business/discussion/README.md)
+
+<a id="decision-flow"></a>
+
+## 調整討論分類的判定流程
+
+```mermaid
+flowchart TD
+    start["調整討論分類"] --> gate{"同時修改內容且缺編輯資格？"}
+    gate -->|是| ok["拒絕修改"]
+    gate -->|否| stop["依授權更新分類"]
+```
+
+[操作入口與適配器](../../../backend/internal/business/discussion/adapter) · [判定依據](../../../backend/internal/business/discussion/domain/entity/classification_test.go) · [應用層輸出介面](../../../backend/internal/business/discussion/application/port/store.go) · [相關測試](../../../backend/internal/business/discussion/domain/entity/classification_test.go)
+
+[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)

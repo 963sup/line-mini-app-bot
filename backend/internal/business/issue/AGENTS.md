@@ -21,3 +21,9 @@
 遵循[上層指引](../AGENTS.md)。修改套件行為時，檢查呼叫端與受影響的 Go 測試。 實作入口見[本目錄導覽](README.md)。
 
 [現行實作圖：格式與資料相容](../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
+
+## 更新議題的維護與驗收
+
+建立者可關閉議題後重新開啟；只有分類權限的成員不能藉由分類操作修改內容。
+
+修改此規則時，核對[判定流程](../../../../docs/domains/issue/README.md#decision-flow)與[代表測試](domain/entity/issue_test.go)。

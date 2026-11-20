@@ -17,3 +17,5 @@
 | [上下文整合模式](context-mapping-patterns.md) | Context Mapping Patterns | 選擇符合模型差異、協作能力與維護成本的整合方式。 |
 
 [從領域探索到六角形架構的七階段流程](design-process.md)
+
+[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)

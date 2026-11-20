@@ -454,3 +454,5 @@ flowchart LR
   h --- n11["現行 Webhook、瀏覽器與 Cloud Tasks 的服務入<br/>口見執行架構。"]
   click n11 "../../architecture/runtime/overview.md#執行入口"
 ```
+
+[適用工作指引](../../AGENTS.md)
