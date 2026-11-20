@@ -2328,6 +2328,9 @@ export interface components {
             createdAt?: string;
             /** @description Verified session display name captured at submission; older requests may omit it. */
             applicantName?: string;
+            canApprove: boolean;
+            canReject: boolean;
+            canCancel: boolean;
         };
         CorrectionPage: {
             items: components["schemas"]["CorrectionReview"][];

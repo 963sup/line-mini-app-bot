@@ -235,7 +235,7 @@ func (s *attendanceServer) getCorrectionDetails(w http.ResponseWriter, r *http.R
 			return
 		}
 		if review {
-			transport.WriteJSON(w, 200, correctionDetailsView(details))
+			transport.WriteJSON(w, 200, correctionDetailsView(details, review))
 			return
 		}
 		view := generated.CorrectionStatus{Id: details.ID, Status: generated.CorrectionLifecycleState(details.Status), DecisionReason: &details.DecisionReason}
@@ -292,7 +292,7 @@ func (s *attendanceServer) ListAttendanceCorrections(w http.ResponseWriter, r *h
 		}
 		items := make([]generated.CorrectionReview, 0, len(page.Items))
 		for _, item := range page.Items {
-			items = append(items, correctionDetailsView(item))
+			items = append(items, correctionDetailsView(item, review))
 		}
 		transport.WriteJSON(w, 200, generated.CorrectionPage{Items: items, NextCursor: page.NextCursor})
 	})
