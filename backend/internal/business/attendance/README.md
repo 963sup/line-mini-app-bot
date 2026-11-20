@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[errors.go](errors.go)、[ports.go](ports.go)、[本目錄工作指引](AGENTS.md)。
+先查閱[errors.go](application/errors.go)、[ports.go](application/ports.go)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 
@@ -18,6 +18,7 @@
 
 ## 閱讀入口
 
-從 [approvals](approvals)、[board](board)、[corrections](corrections)、[errors.go](errors.go)、[firestore](firestore)、[http](http) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
+[domain](domain) 維護工時、補正、審核與出勤紀錄規則。[application](application) 定義使用端需要的能力、補正審核與月報用例。[adapter](adapter) 負責 HTTP、LINE 與 Firestore 的協定和交易。瀏覽器依預檢結果取得定位，依後端回傳的紀錄與工時呈現畫面。
+
 
 [現行實作圖：定位前預檢、狀態與時序](../../../../docs/domains/attendance/README.md#定位前預檢狀態與時序) · [未來設計圖](../../../../docs/diagrams.md#未來設計)

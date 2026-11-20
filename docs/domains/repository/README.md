@@ -1,5 +1,17 @@
 # 個人與群組-repository
 
+## 領域設計
+
+**子域定位**　工程資源管理的核心候選。
+
+**通用語言**　儲存庫具有識別碼、擁有者及啟用狀態；空間是庫內工作位置，與跨庫專案分開管理。
+
+**上下文與契約**　Issue、Discussion、Object 等能力使用 Repository 的範圍與狀態；各自在交易中以最新儲存庫資料確認能否寫入。
+
+**驗收案例**　即使庫 ID 相符，只要擁有者已變更或狀態不再是 ACTIVE，就不能沿用舊授權完成受限操作。
+
+[對照實作或測試](../../../backend/internal/business/repository/repository.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
+
 ## 用途與範圍
 
 保存 Repository 及其空間、標籤、事項、討論與其他子能力的規格。

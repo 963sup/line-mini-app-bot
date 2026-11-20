@@ -45,6 +45,17 @@ type (
 	}
 )
 
+// OtherNoticeCount excludes rest confirmation, which monthly reports display separately.
+func (r Result) OtherNoticeCount() int {
+	count := 0
+	for _, issue := range r.Issues {
+		if issue.Code != "rest_unconfirmed" {
+			count++
+		}
+	}
+	return count
+}
+
 // RebuildSessions preserves input, deduplicates event IDs and reports ambiguous sequences.
 func RebuildSessions(events []Event) ([]Session, []Issue) {
 	seen := map[string]Event{}

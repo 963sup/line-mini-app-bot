@@ -26,9 +26,9 @@ import (
 	journalhttp "github.com/963sup/line-mini-app-bot/internal/business/journal/http"
 
 	"github.com/963sup/line-mini-app-bot/internal/browser"
-	attendancehttp "github.com/963sup/line-mini-app-bot/internal/business/attendance/http"
-	attendanceline "github.com/963sup/line-mini-app-bot/internal/business/attendance/line"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/presentation"
+	attendancehttp "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/http"
+	attendanceline "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line"
+	"github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/presentation"
 	discussionhttp "github.com/963sup/line-mini-app-bot/internal/business/discussion/http"
 	grouphttp "github.com/963sup/line-mini-app-bot/internal/business/group/http"
 	groupline "github.com/963sup/line-mini-app-bot/internal/business/group/line"
@@ -96,7 +96,8 @@ func Run() (resultErr error) {
 	if attendance != nil {
 		punches = &attendanceline.Attendance{Store: attendance.store, Zone: attendance.zone, GroupName: lookup}
 		punches.AppURL = appURL
-		browserAttendance = attendancehttp.NewAttendance(attendance.store, attendance.zone, func(ctx context.Context, group string) string {
+		membership := attendanceline.Membership{Token: os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN"), Client: &http.Client{Timeout: 5 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}
+		browserAttendance = attendancehttp.NewAttendance(attendance.store, attendance.zone, membership, func(ctx context.Context, group string) string {
 			return presentation.GroupName(group, lookup(ctx, group))
 		})
 	}

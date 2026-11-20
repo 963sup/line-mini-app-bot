@@ -9,8 +9,8 @@ import (
 	_ "time/tzdata"
 
 	"cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance"
-	storage "github.com/963sup/line-mini-app-bot/internal/business/attendance/firestore"
+	storage "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/firestore"
+	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/application"
 )
 
 type attendanceDependencies struct {

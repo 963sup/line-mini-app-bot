@@ -118,7 +118,7 @@ flowchart LR
   h["基礎操作頁"]
   h --- n0["開啟 /miniapp/history 查本人月紀錄，由班次連<br/>結進入 /miniapp/correction 提出更正並查詢結<br/>果；沒有班次時使用補卡入口，首次無群組紀錄者<br/>從原 LINE 群組輸入「補卡」進入。 授權審核者<br/>在 /miniapp/review 選擇群組查看申請，或依申<br/>請編號讀取，核准或填寫理由駁回。時間以臺灣時<br/>間解讀。 尚無多級簽核或通知；詳見 操作與重試<br/>契約。"]
   click n0 "queries.md"
-  h --- n1["Firestore 閉環測試：設定僅供本地測試的 <br/>FIRESTORE_EMULATOR_HOST 後， 執行 go test <br/>./internal/business/attendance/firestore <br/>-run TestAttendanceCorrectionRoundTrip -v。 <br/>測試建立獨立 channel，覆蓋提案、他人查詢拒絕<br/>、自審拒絕、重複核准、 月報更新與損壞證據拒<br/>絕。未設定 emulator 時明確跳過，不能作為整合<br/>已通過的證據。"]
+  h --- n1["Firestore 閉環測試：設定僅供本地測試的 <br/>FIRESTORE_EMULATOR_HOST 後， 執行 go test <br/>./internal/business/attendance/adapter/firestore <br/>-run TestAttendanceCorrectionRoundTrip -v。 <br/>測試建立獨立 channel，覆蓋提案、他人查詢拒絕<br/>、自審拒絕、重複核准、 月報更新與損壞證據拒<br/>絕。未設定 emulator 時明確跳過，不能作為整合<br/>已通過的證據。"]
   h --- n2["整合驗證以各次交付紀錄為準；需要相容的 Java <br/>與 Firestore emulator。 未啟動 emulator 時，<br/>套件測試通過不代表資料庫閉環驗證已通過。"]
 ```
 

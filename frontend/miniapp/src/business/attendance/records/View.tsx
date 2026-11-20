@@ -1,3 +1,4 @@
+import { memberGroups } from "../memberGroups";
 import { FieldSet } from "@/shared/ui/field";
 import { ButtonGroup, ButtonGroupText } from "@/shared/ui/button-group";
 import { Badge } from "@/shared/ui/badge";
@@ -127,16 +128,9 @@ export function View() {
         if (history && (desired || append || history.items.length || history.nextCursor)) {
           return { ...history, fromMembership: false };
         }
-        const available = await request(
-          (c, s) => c.GET("/api/v1/groups", {
-            signal: s,
-            params: { query: { cursor: fromMembership ? groupCursor : undefined } },
-          }),
-          { signal },
-        );
+        const available = await memberGroups(request, signal, fromMembership ? groupCursor : undefined);
         return {
-          items: available.items.map((item) => ({ id: item.groupId, name: item.name || item.groupId })),
-          nextCursor: available.nextCursor,
+          ...available,
           fromMembership: true,
         };
       },
@@ -273,7 +267,7 @@ export function View() {
           </dl>
           <dl className="flex flex-wrap gap-3">
             {([["休息待確認", summary.Calculation.Unconfirmed], ["無法計算", summary.Calculation.Uncalculable],
-              ["其他異常／提醒", summary.Calculation.Issues?.filter(issue => issue.Code !== "rest_unconfirmed").length ?? 0]] as const)
+              ["其他異常／提醒", summary.Calculation.OtherNoticeCount]] as const)
               .map(([label, count]) => <div key={label} className="flex items-center gap-1">
                 <dt>{label}</dt><dd>{count ? <Badge variant="secondary">{count} 筆</Badge> : count ?? "—"}</dd>
               </div>)}

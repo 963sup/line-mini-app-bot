@@ -12,7 +12,7 @@
 
 [DDD 戰略設計概念、上下文映射與設計流程](../architecture/ddd/README.md)
 
-各目錄入口如下。文件維護方式見[工作指引](AGENTS.md)。
+各領域 README 說明通用語言、責任邊界與驗收案例。核心／支援分類是產品投資假設，應以客戶採用理由驗證；internal 記錄共用實作的技術邊界。各目錄入口如下。文件維護方式見[工作指引](AGENTS.md)。
 
 - [attendance · 出勤](attendance/README.md)
 - [discussion · 討論](discussion/README.md)

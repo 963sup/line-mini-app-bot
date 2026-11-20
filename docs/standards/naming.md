@@ -52,9 +52,9 @@ flowchart LR
 flowchart LR
   h["目前檔案命名"]
   h --- n0["Go 檔使用 snake_case；文件與 Shell／Python 腳本使用<br/>kebab-case；Web JS／CSS 使用 kebab-case。<br/>不要求不同語言共用同一分隔符，也不依檔案行數強制拆分。"]
-  h --- n1["-<br/>business/attendance/records/types.go：出勤資料型別；ports.go：使用端的儲存能力契約。"]
+  h --- n1["-<br/>business/attendance/domain/records/types.go：出勤資料型別；application/ports.go：使用端的儲存能力契約。"]
   h --- n2["- domain/worktime/event_stream.go：班次事件序列驗證。"]
-  h --- n3["-<br/>backend/internal/business/attendance/firestore/attendance_launch.go：打卡啟動憑證；business/summary/firestore/：摘要工作持久化。"]
+  h --- n3["-<br/>backend/internal/business/attendance/adapter/firestore/attendance_launch.go：打卡啟動憑證；business/summary/firestore/：摘要工作持久化。"]
   h --- n4["-<br/>backend/internal/business/summary/summarization/summarizer/client.go、gemini.go、openai.go：模型選擇與供應商整合。"]
   h --- n5["-<br/>frontend/miniapp/src/shell/Shell.tsx：共同版型；identity/Session.tsx：身分生命週期；shared/http/lifecycle.ts：取消與過期回應；business/attendance/：功能畫面與<br/>hooks。"]
   h --- n6["- cmd 的<br/>firestorecheck、richmenu<br/>保留既有命令名，避免無必要改變使用方式。"]
