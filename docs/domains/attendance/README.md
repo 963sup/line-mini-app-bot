@@ -22,7 +22,7 @@
 ```mermaid
 flowchart LR
   h["基礎出勤"]
-  h --- n0["首版處理群組定位上下班，以及 1:1 分群查詢本<br/>人紀錄。群組指令／Postback 建立短效請求，<br/>MINI App 先確認操作結果，需要新增時才取得位<br/>置並提交後寫入出勤；部署與真實 LINE／<br/>Firestore 驗收需另外執行。 目前已有打卡、月<br/>紀錄、分頁與更正流程的程式實作；雲端設定、索<br/>引／回填與渠道驗收須另外確認。 查詢、Web 分<br/>頁與更正重試 說明操作與啟用方式；工時計算與<br/>更正證據 說明計算規則。 基礎設施與接入 保留<br/>建置順序與環境限制，不代表功能尚未開始。 本<br/>次重構沿用既有檢查，不新增測試工程。"]
+  h --- n0["首版處理群組定位上下班，以及 1:1 分群查詢本<br/>人紀錄。群組指令／Postback 建立短效請求，<br/>MINI App 先確認操作結果，需要新增時才取得位<br/>置並提交後寫入出勤；部署與真實 LINE／<br/>Firestore 驗收需另外執行。 目前已有打卡、月<br/>紀錄、分頁與更正流程的程式實作；雲端設定、索<br/>引與渠道驗收須另外確認。 查詢、Web 分<br/>頁與更正重試 說明操作與啟用方式；工時計算與<br/>更正證據 說明計算規則。 基礎設施與接入 保留<br/>建置順序與環境限制，不代表功能尚未開始。 本<br/>次重構沿用既有檢查，不新增測試工程。"]
   n0 --- n0l0["查詢、Web 分頁與更正重試"]
   click n0l0 "queries.md"
   n0 --- n0l1["工時計算與更正證據"]
@@ -85,7 +85,7 @@ flowchart LR
   h --- n4["attendanceStates/{SHA256(groupID)}：recordID<br/>、lastEventTime。"]
   h --- n5["attendanceEvents/{SHA256([groupID,eventID,<br/>action])}：code、record（原操作結果快照）。"]
   h --- n6["定位打卡的 schemaVersion 為 2；上班／下班各<br/>自保存 clockInPosition／clockOutPosition（經<br/>緯度、精度、採樣時間）。舊版紀錄仍可讀取。 <br/>channels/{channelID}/punchRequests/{<br/>requestID} 保存原 groupID、userKey（雜湊）、<br/>eventID、action、eventTime、expiresAt；相同<br/>事件重送不延長原請求期限。同一請求重試讀取原<br/>交易結果，不能新增第二次打卡。未完成請求逾時<br/>不接受新的寫入。"]
-  h --- n7["複合 ID 使用 JSON array 編碼後雜湊。事件結果<br/>、出勤紀錄與狀態在同一交易提交；回覆在交易外<br/>發送。 查詢固定本人路徑。索引切換前沿用舊紀<br/>錄讀取與 Go 排序，仍有全歷史讀取成本；切換後<br/>使用群組投影、月份範圍查詢與游標分頁。切換、<br/>回填與新 API 契約見 出勤查詢與更正。LINE 訊<br/>息已有畫面分頁，不能視為資料庫已分頁。 不儲<br/>存 reply token、完整事件或姓名；位置只隨打卡<br/>與去重結果保存，不建立持續定位歷史、不寫一般<br/>日誌。資料保存期尚待營運決策；去重結果不能先<br/>於可能重送期間刪除。punchRequests 可另設 <br/>expiresAt TTL；TTL 並非即時到期機制，程式仍<br/>自行檢查到期時間。"]
+  h --- n7["複合 ID 使用 JSON array 編碼後雜湊。事件結果<br/>、出勤紀錄與狀態在同一交易提交；回覆在交易外<br/>發送。 查詢固定本人路徑。使用群組投影、月份範圍查詢與游標分頁。API 契約見 出勤查詢與更正。LINE 訊<br/>息已有畫面分頁，不能視為資料庫已分頁。 不儲<br/>存 reply token、完整事件或姓名；位置只隨打卡<br/>與去重結果保存，不建立持續定位歷史、不寫一般<br/>日誌。資料保存期尚待營運決策；去重結果不能先<br/>於可能重送期間刪除。punchRequests 可另設 <br/>expiresAt TTL；TTL 並非即時到期機制，程式仍<br/>自行檢查到期時間。"]
   click n7 "queries.md"
   h --- n8["官方契約核對：LINE 文件來源 <br/>line/line-developers-docs-source，main <br/>revision <br/>090500a12f9777995006d9fb5cafab8d83a792b2；<br/>LIFF 開啟與 query 傳遞、伺服器驗證身分、同 <br/>Provider 的使用者 ID。手機定位、Channel <br/>Provider 設定及真實 Firestore 交易仍需實機驗<br/>收。"]
   n8 --- n8l0["LIFF 開啟與 query 傳遞"]

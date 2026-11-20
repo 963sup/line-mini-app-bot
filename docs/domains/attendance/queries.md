@@ -47,10 +47,10 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["資料查詢切換"]
-  h --- n0["新寫入同交易維護 isOpen 與本人 <br/>attendanceGroups 群組投影。讀取舊schema仍相<br/>容，不能把缺少 isOpen 的舊班次誤當作不存在。"]
-  h --- n1["查詢索引模式僅在整個channel回填完成並明確切<br/>換後啟用；切換前新舊API皆以共用legacy reader<br/>維持可用，新API queryMode 明列 legacy。此時<br/>畫面分頁已可操作，但資料庫仍可能讀取完整歷史<br/>，不宣稱效能已改善。切換後 queryMode 為 <br/>indexed。"]
+  h --- n0["新寫入同交易維護 isOpen 與本人 <br/>attendanceGroups 群組投影。"]
+  h --- n1["新 Channel 直接使用索引查詢，API queryMode 為 indexed。"]
   h --- n2["索引模式以已下班的時間重疊條件與未下班集合查<br/>候選班次；完整月摘要仍須讀取相關班次原始事件<br/>與更正audit證據，不能為減少讀取而省略。資料<br/>依批次讀取不等於月摘要成本固定，多range索引<br/>仍需以官方Query Explain確認實際掃描量。"]
-  h --- n3["部署順序：先上新雙寫程式，建立專案索引並等待<br/>ready，再執行離線回填／核對，最後啟用query <br/>marker。回填工具預設只檢查；-apply <br/>-checkpoint /absolute/path/checkpoint.json <br/>僅回填，完成後另以相同命令加 -activate 明確<br/>確認索引ready與全部writer已升級，再切換。不<br/>能在一般HTTP請求中回填。回填可重跑、分批且以<br/>交易讀取最新班次，不能覆寫併發打卡或更正。命<br/>令細節以 backend/cmd/attendancemigrate 的 <br/>--help 為準。本次程式實作不代表遠端索引或回<br/>填已執行。"]
+  h --- n3["發布前依 deploy/firestore/indexes.json 建立出勤索引並等待 READY，再發布使用索引的版本。"]
 ```
 
 <a id="更正提交重試"></a>
@@ -90,7 +90,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["驗證邊界"]
-  h --- n0["沿用既有檢查，不新增測試基建。Firestore <br/>emulator缺席時整合測試skip必須明列；本機編譯<br/>或純函數通過不代表遠端索引、回填、LINE裝置或<br/>正式部署已驗收。"]
+  h --- n0["沿用既有檢查，不新增測試基建。Firestore <br/>emulator缺席時整合測試skip必須明列；本機編譯<br/>或純函數通過不代表遠端索引、LINE裝置或<br/>正式部署已驗收。"]
   h --- n1["依據：Google官方 多range與索引、游標、交易；<br/>使用官方Developer Knowledge查得，2026-11-10<br/>核對。瀏覽器取消語意以Context7 /mdn/content <br/>查證的 AbortController 為準；generation <br/>guard另負責拒收已完成的舊回應。"]
   n1 --- n1l0["多range與索引"]
   click n1l0 "https://firebase.google.com/docs/firestore/query-data/multiple-range-fields"
