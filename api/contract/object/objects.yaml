@@ -324,7 +324,8 @@
           "createdAt",
           "updatedAt",
           "status",
-          "canEdit"
+          "canEdit",
+          "requiresProgressReset"
         ],
         "properties": {
           "name": {
@@ -421,6 +422,10 @@
           "canEdit": {
             "type": "boolean",
             "description": "Whether the authenticated actor may edit the content. Writes recheck authorization."
+          },
+          "requiresProgressReset": {
+            "type": "boolean",
+            "description": "Whether stored progress must be reset before changing the type to non-work."
           }
         }
       },

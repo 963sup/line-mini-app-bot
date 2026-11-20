@@ -1693,6 +1693,8 @@ export interface components {
             spaceId?: string;
             /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
             canEdit: boolean;
+            /** @description Whether stored progress must be reset before changing the type to non-work. */
+            requiresProgressReset: boolean;
         };
         ObjectCreation: {
             name: string;
@@ -1925,6 +1927,8 @@ export interface components {
             /** @description Exact completed quantity for work; defaults to 0 on create, omission preserves on update. Non-work has no completed quantity; conversion to work requires explicit quantity. */
             completedQuantity?: string;
             parentObjectId: string;
+            /** @description Whether stored progress must be reset before changing the type to non-work. */
+            requiresProgressReset: boolean;
         };
         SubobjectCreation: {
             name: string;

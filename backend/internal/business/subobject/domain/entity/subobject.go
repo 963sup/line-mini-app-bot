@@ -62,6 +62,10 @@ func Status(c Content) (string, error) {
 	return status, nil
 }
 
+func (v Subobject) RequiresProgressReset() bool {
+	return v.Type == objectDomainEntity.TypeWork && v.CompletedQuantity != "0"
+}
+
 func ApplyUpdate(current Subobject, actor string, input Update) (Subobject, error) {
 	if actor == "" || actor != current.CreatorID {
 		return Subobject{}, ErrForbidden
@@ -75,7 +79,7 @@ func ApplyUpdate(current Subobject, actor string, input Update) (Subobject, erro
 	} else {
 		c.CompletedQuantity = ""
 	}
-	if current.Type == objectDomainEntity.TypeWork && c.Type == objectDomainEntity.TypeNonWork && current.CompletedQuantity != "0" {
+	if c.Type == objectDomainEntity.TypeNonWork && current.RequiresProgressReset() {
 		return Subobject{}, ErrProgressRemoval
 	}
 	if c.Type == objectDomainEntity.TypeWork && c.CompletedQuantity == "" {

@@ -1,3 +1,4 @@
+import { isPositiveQuantity, isValidCompletedQuantity } from "@/business/object/quantity";
 import React, { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 import { useRepositoryGuard } from "../repository/NavigationGuard";
@@ -26,8 +27,6 @@ type Creation = components["schemas"]["ObjectCreation"];
 type Props = { repositoryId: string; extract?: typeof extractPdf };
 const states = { not_started: "未開始", in_progress: "進行中", completed: "已完成" };
 const empty: Creation = { name: "", description: "", type: "work", completedQuantity: "0", quantity: "1", unit: "SET", sourceDocument: "", sourceRevision: "" };
-const decimal = /^(?:0|[1-9][0-9]{0,17})(?:\.[0-9]{1,6})?$/;
-const exact = (value: string) => { const [whole, fraction = ""] = value.split("."); return BigInt(whole + fraction.padEnd(6, "0")); };
 const typeLabel = (type: string) => type === "work" ? "施作" : type === "non_work" ? "非施作" : `${type}（待確認）`;
 const statusLabel = (item: Resource) => item.type === "non_work" ? "不適用" : states[item.status];
 const progressLabel = (item: Resource) => item.type === "non_work" ? "不適用" : item.type === "work" && item.completedQuantity !== undefined ? `${item.completedQuantity}/${item.quantity} ${item.unit}` : "待補／待確認";
@@ -134,17 +133,17 @@ function Content({ repositoryId, extract }: Props) {
     if (!body.name || !body.type || !body.unit) {
       setStatus("請填寫名稱、類型及單位。"); return;
     }
-    if (!decimal.test(body.quantity) || !/[1-9]/.test(body.quantity)) {
+    if (!isPositiveQuantity(body.quantity)) {
       setStatus(""); setInvalidField("quantity"); return;
     }
     if (body.type === "work") {
-      if (!decimal.test(body.completedQuantity || "") || exact(body.completedQuantity!) > exact(body.quantity)) {
+      if (!isValidCompletedQuantity(body.completedQuantity, body.quantity)) {
         setStatus(""); setInvalidField("completedQuantity"); return;
       }
     } else {
       delete body.completedQuantity;
     }
-    if (selected?.type === "work" && body.type === "non_work" && selected.completedQuantity !== undefined && decimal.test(selected.completedQuantity) && exact(selected.completedQuantity) > 0n) {
+    if (selected?.requiresProgressReset && body.type === "non_work") {
       setStatus("請先將完成數改為0並儲存，再將類型改為非施作。"); return;
     }
     if (mode === "detail" && selected) {

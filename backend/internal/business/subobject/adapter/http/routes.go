@@ -89,7 +89,7 @@ func view(i subobjectDomainEntity.Subobject) generated.Subobject {
 	if i.CompletedQuantity != "" {
 		completed = &i.CompletedQuantity
 	}
-	return generated.Subobject{Id: i.ID, ParentObjectId: i.ParentObjectID, RepositoryId: i.RepositoryID, CreatorId: i.CreatorID, Name: i.Name, Type: generated.SubobjectType(i.Type), Quantity: i.Quantity, Unit: i.Unit, CompletedQuantity: completed, Status: generated.SubobjectStatus(i.Status), Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
+	return generated.Subobject{RequiresProgressReset: i.RequiresProgressReset(), Id: i.ID, ParentObjectId: i.ParentObjectID, RepositoryId: i.RepositoryID, CreatorId: i.CreatorID, Name: i.Name, Type: generated.SubobjectType(i.Type), Quantity: i.Quantity, Unit: i.Unit, CompletedQuantity: completed, Status: generated.SubobjectStatus(i.Status), Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
 }
 
 func writeError(w http.ResponseWriter, e error) bool {

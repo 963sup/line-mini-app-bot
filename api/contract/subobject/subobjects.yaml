@@ -355,7 +355,8 @@
           "createdAt",
           "updatedAt",
           "status",
-          "parentObjectId"
+          "parentObjectId",
+          "requiresProgressReset"
         ],
         "properties": {
           "name": {
@@ -424,6 +425,10 @@
           "parentObjectId": {
             "type": "string",
             "pattern": "^[a-f0-9]{32}$"
+          },
+          "requiresProgressReset": {
+            "type": "boolean",
+            "description": "Whether stored progress must be reset before changing the type to non-work."
           }
         }
       },

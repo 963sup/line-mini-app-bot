@@ -1,3 +1,4 @@
+import { isPositiveQuantity, isValidCompletedQuantity } from "@/business/object/quantity";
 import React, { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useRepositoryGuard } from "../repository/NavigationGuard";
 import { ReadFeedback } from "@/shared/ReadFeedback";
@@ -16,8 +17,6 @@ import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 type Resource = components["schemas"]["Subobject"];
 type Creation = components["schemas"]["SubobjectCreation"];
 const initial: Creation = { name: "", type: "work", quantity: "1", unit: "SET", completedQuantity: "0" };
-const decimal = /^(?:0|[1-9][0-9]{0,17})(?:\.[0-9]{1,6})?$/;
-const exact = (value: string) => { const [whole, fraction = ""] = value.split("."); return BigInt(whole + fraction.padEnd(6, "0")); };
 const states = { not_started: "未開始", in_progress: "進行中", completed: "已完成" };
 type Props = { repositoryId: string; objectId: string; canEdit: boolean; parentEditing: boolean; onEdit: () => void; onBlocked: (value: boolean) => void; canWrite: () => boolean };
 
@@ -88,11 +87,11 @@ function Content({ repositoryId, objectId, canEdit, parentEditing, onEdit, onBlo
     event.preventDefault();
     if (discard.isConfirming() || !canEdit || lock.current || navigation.current || refresh || !repositoryGuard.canWrite() || !canWrite()) return;
     let body = pending.current && unknown.current ? pending.current.body : {...content, name:content.name.trim(), quantity:content.quantity.trim(), unit:content.unit.trim(), completedQuantity:content.completedQuantity?.trim()};
-    if (!body.name || !body.unit || !decimal.test(body.quantity) || exact(body.quantity) === 0n) {setStatus("請填寫名稱、單位及大於零的數量（最多18位整數及6位小數）。");return;}
+    if (!body.name || !body.unit || !isPositiveQuantity(body.quantity)) {setStatus("請填寫名稱、單位及大於零的數量（最多18位整數及6位小數）。");return;}
     if (body.type === "work") {
-      if (!decimal.test(body.completedQuantity || "") || exact(body.completedQuantity!) > exact(body.quantity)) {setStatus("完成數須介於0與子物件數量之間（最多18位整數及6位小數）。");return;}
+      if (!isValidCompletedQuantity(body.completedQuantity, body.quantity)) {setStatus("完成數須介於0與子物件數量之間（最多18位整數及6位小數）。");return;}
     } else {body = {...body}; delete body.completedQuantity;}
-    if (selected?.type === "work" && body.type === "non_work" && exact(selected.completedQuantity || "0") > 0n) {setStatus("請先將完成數改為0並儲存，再改為非施作。");return;}
+    if (selected?.requiresProgressReset && body.type === "non_work") {setStatus("請先將完成數改為0並儲存，再改為非施作。");return;}
     const wasUnknown = unknown.current;
     lock.current = true; setBusy(true); block(true); setStatus(selected ? "正在更新子物件……" : "正在建立子物件……");
     if (!selected && !pending.current) pending.current = {key:crypto.randomUUID(),body};
