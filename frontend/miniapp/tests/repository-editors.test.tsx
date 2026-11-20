@@ -313,3 +313,18 @@ test("Wiki creation retries the same request and conflicting edits preserve the 
     await f.click("儲存");assert.deepEqual(versions,[1,2]);
   }finally{await f.dispose();}
 });
+
+test("issue editing follows the response capability even when the displayed creator matches", async () => {
+  const f = await fixture(async request => {
+    if (new URL(request.url).pathname.endsWith("/issues")) {
+      return Response.json({items:[item({canEdit:false})], nextCursor:""});
+    }
+  });
+  try {
+    await f.click("問題");
+    assert.match(document.body.textContent!, /測試項目/);
+    assert.equal(document.querySelector('[aria-label="編輯問題：測試項目"]'), null);
+  } finally {
+    await f.dispose();
+  }
+});
