@@ -4,6 +4,8 @@
 
 ## 現行實作
 
+- [DDD 上下文映射圖 · 日誌引用](architecture/ddd/context-map.md)
+
 - [基礎出勤 · 定位前預檢、狀態與時序](domains/attendance/README.md#定位前預檢狀態與時序)
 - [群組出勤看板與本人漏下班檢查 · 計數語意](domains/attendance/board.md#計數語意)
 - [群組請假登記 · 最小流程](domains/attendance/leave.md#最小流程)
