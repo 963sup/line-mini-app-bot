@@ -18,6 +18,17 @@ type ReferencePage struct {
 	NextCursor string
 }
 
+// ReferenceSource resolves a reference against the default or explicitly authorized source.
+func (r Scope) ReferenceSource(repositoryID string) (Source, error) {
+	if repositoryID == r.SourceRepositoryID {
+		return Source{ID: repositoryID, OwnerID: r.OwnerID}, nil
+	}
+	if repositoryID != r.SelectedSource.ID {
+		return Source{}, ErrForbidden
+	}
+	return r.SelectedSource, nil
+}
+
 func ValidReference(r Reference) bool {
 	if !ValidID(r.SourceID) {
 		return false
