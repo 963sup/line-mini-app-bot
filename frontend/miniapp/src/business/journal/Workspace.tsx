@@ -22,12 +22,11 @@ const GroupCharts = dynamic(() => import("./GroupCharts"), {
 });
 type Journal = components["schemas"]["Journal"];
 type Draft = components["schemas"]["JournalCreation"];
-type Reference = components["schemas"]["JournalReference"];
 const roles = { management: "管理職", control: "管制人員", workers: "施作人員" } as const;
 const workDate = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Taipei" }).format(new Date());
 
 type Option = {id:string;name:string};
-type Target = Reference & {name:string};
+type Target = components["schemas"]["JournalReferenceTarget"];
 function Rows({title,rows,change,targets,request,onPending}:{title:string;rows:string[];change:(v:string[])=>void;targets:Target[];request:Request;onPending:(id:string,value:boolean)=>void}) {
   const options = React.useMemo(() => [
     {label: "無關聯", value: ""},
@@ -72,11 +71,10 @@ function Composer({request,group,saved,onPending,isBlocked}:{request:Request;gro
   const write=useLatestRequest();
   useEffect(()=>{
     const controller=new AbortController(), options={signal:controller.signal};
-    Promise.all([
-      collect(cursor=>request((c,signal)=>c.GET("/api/v1/repositories",{signal,params:{query:{cursor:cursor||undefined}}}),options)),
-      collect(cursor=>request((c,signal)=>c.GET("/api/v1/owners/{ownerId}/projects",{signal,params:{path:{ownerId:group},query:{cursor:cursor||undefined}}}),options))
-    ]).then(([repos,projects])=>{
-      if(!controller.signal.aborted)setTargets([...repos.filter(r=>r.ownerId===group).map(r=>({type:"repository" as const,id:r.id,name:r.name})),...projects.map(p=>({type:"project" as const,id:p.id,name:p.title}))]);
+    collect(cursor=>request((client,signal)=>client.GET("/api/v1/groups/{groupId}/journal-reference-targets", {
+      signal,params:{path:{groupId:group},query:{cursor:cursor||undefined}}
+    }),options)).then(items=>{
+      if(!controller.signal.aborted)setTargets(items);
     }).catch(e=>{if(!controller.signal.aborted)setNotice("關聯清單無法載入："+errorMessage(e));});
     return ()=>controller.abort();
   },[group,request]);

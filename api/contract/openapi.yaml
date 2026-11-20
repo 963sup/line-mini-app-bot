@@ -238,6 +238,9 @@
     },
     "/api/v1/enterprises/{enterpriseId}/organizations": {
       "$ref": "./enterprise/enterprises.yaml#/paths/~1api~1v1~1enterprises~1{enterpriseId}~1organizations"
+    },
+    "/api/v1/groups/{groupId}/journal-reference-targets": {
+      "$ref": "./journal/journals.yaml#/paths/~1api~1v1~1groups~1{groupId}~1journal-reference-targets"
     }
   },
   "components": {
@@ -484,6 +487,12 @@
       },
       "ProjectReferenceState": {
         "$ref": "./project/references.yaml#/components/schemas/ProjectReferenceState"
+      },
+      "JournalReferenceTarget": {
+        "$ref": "./journal/journals.yaml#/components/schemas/JournalReferenceTarget"
+      },
+      "JournalReferenceTargetPage": {
+        "$ref": "./journal/journals.yaml#/components/schemas/JournalReferenceTargetPage"
       }
     },
     "securitySchemes": {

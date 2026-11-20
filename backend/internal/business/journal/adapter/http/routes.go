@@ -193,3 +193,22 @@ func (s *journalServer) ListJournals(w http.ResponseWriter, r *http.Request, p g
 	}
 	transport.WriteJSON(w, 200, generated.JournalPage{Items: items, NextCursor: page.NextCursor})
 }
+
+func (s *journalServer) ListJournalReferenceTargets(w http.ResponseWriter, r *http.Request, groupId string, p generated.ListJournalReferenceTargetsParams) {
+	if !s.enabled(w) {
+		return
+	}
+	cursor := ""
+	if p.Cursor != nil {
+		cursor = *p.Cursor
+	}
+	page, err := s.service.ListReferenceTargets(r.Context(), identity.UserID(r.Context()), groupId, cursor)
+	if replyError(w, err) {
+		return
+	}
+	items := make([]generated.JournalReferenceTarget, 0, len(page.Items))
+	for _, v := range page.Items {
+		items = append(items, generated.JournalReferenceTarget{Type: generated.JournalReferenceTargetType(v.Kind), Id: v.ID, Name: v.Name})
+	}
+	transport.WriteJSON(w, 200, generated.JournalReferenceTargetPage{Items: items, NextCursor: page.NextCursor})
+}

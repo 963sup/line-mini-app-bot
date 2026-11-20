@@ -1,7 +1,12 @@
 package firestore
 
 import (
+	journalquery "github.com/963sup/line-mini-app-bot/internal/business/journal/application/query"
+	projectdb "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/firestore"
+	projectsources "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/repository"
+	projectapp "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
 )
 
 import (
@@ -52,7 +57,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	if e := groups.Observe(ctx, groupevent.Observation{GroupID: g, Status: "ACTIVE", At: time.Now(), EventID: "join", Users: []string{"writer"}}); e != nil {
 		t.Fatal(e)
 	}
-	store := Store{Client: client, Channel: channel, Groups: &groupquery.Service{Store: groups, Membership: membership{}}}
+	store := Store{Client: client, Channel: channel, ReferenceCatalog: journalquery.ReferenceCatalog{Groups: &groupquery.Service{Store: groups, Membership: membership{}}}}
 	draft := journalentity.Draft{GroupID: g, WorkDate: time.Date(2026, 11, 18, 0, 0, 0, 0, time.UTC), Today: []journalentity.Work{{Name: "鋪設", Percent: 40}}}
 	entry, e := store.Create(ctx, "writer", "key", draft)
 	if e != nil {
@@ -100,6 +105,30 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 		t.Fatal(e)
 	}
 	store.Repositories = &repositoryApplication.Service{Store: &repodb.Store{Client: client, ChannelID: channel}, Membership: membership{}}
+	if _, err := store.ListReferenceTargets(ctx, "outsider", g, ""); !errors.Is(err, journalentity.ErrNotFound) {
+		t.Fatalf("reference catalog visible to outsider: %v", err)
+	}
+	if _, err := store.ListReferenceTargets(ctx, "writer", g, "wrong"); !errors.Is(err, journalentity.ErrInput) {
+		t.Fatalf("invalid catalog cursor: %v", err)
+	}
+	targets, err := store.ListReferenceTargets(ctx, "writer", g, "")
+	if err != nil || targets.NextCursor != "p:" || len(targets.Items) != 0 {
+		t.Fatalf("empty repository page: %+v %v", targets, err)
+	}
+
+	store.Projects = &projectapp.Service{Groups: store.Groups, Store: &projectdb.Store{Client: client, ChannelID: channel}, Sources: projectsources.Sources{Repositories: store.Repositories}}
+	last, err := store.ListReferenceTargets(ctx, "writer", g, targets.NextCursor)
+	if err != nil || last.NextCursor != "" || len(last.Items) != 0 {
+		t.Fatalf("empty project page: %+v %v", last, err)
+	}
+	if _, err := store.root().Collection("repositoryUsers").Doc(firestorekey.Digest([]byte("writer"))).Collection("repositories").Doc(rid).Set(ctx, map[string]any{"id": rid}); err != nil {
+		t.Fatal(err)
+	}
+	targets, err = store.ListReferenceTargets(ctx, "writer", g, "")
+	if err != nil || len(targets.Items) != 1 || targets.Items[0].ID != rid || targets.Items[0].Kind != "repository" {
+		t.Fatalf("missing repository: %+v %v", targets, err)
+	}
+
 	draft.Today[0].Reference = &journalentity.Reference{Kind: "repository", ID: rid}
 	objectID, childID, spaceID := strings.Repeat("c", 32), strings.Repeat("d", 32), strings.Repeat("e", 32)
 	object := repo.Collection("objects").Doc(objectID)

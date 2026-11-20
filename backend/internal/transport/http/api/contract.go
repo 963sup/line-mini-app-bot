@@ -184,6 +184,7 @@ type RepositorySpaceServer interface {
 }
 
 type JournalServer interface {
+	ListJournalReferenceTargets(w http.ResponseWriter, r *http.Request, groupId string, params generated.ListJournalReferenceTargetsParams)
 	ListJournals(w http.ResponseWriter, r *http.Request, params generated.ListJournalsParams)
 	GetJournal(w http.ResponseWriter, r *http.Request, journalId string)
 	CreateJournal(w http.ResponseWriter, r *http.Request, params generated.CreateJournalParams)

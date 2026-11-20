@@ -73,6 +73,11 @@ func TestJournalRoutes(t *testing.T) {
 		}
 		return w.Body.String()
 	}
+	targetPath := "/api/v1/groups/" + group + "/journal-reference-targets"
+	call("GET", targetPath, "", false, 401)
+	if body := call("GET", targetPath+"?cursor=p%3A", "", true, 200); !strings.Contains(body, `"name":"Project"`) {
+		t.Fatalf("reference choices: %s", body)
+	}
 	call("GET", base, "", false, 401)
 	call("POST", base, strings.Replace(draft, "100", "101", 1), true, 400)
 	unselected := call("POST", base, draft, true, 201)
@@ -130,4 +135,11 @@ func TestJournalRoutes(t *testing.T) {
 	mux = http.NewServeMux()
 	Register(mux, nil, testAuth{})
 	call("POST", base, draft, true, 503)
+}
+
+func (f *fixture) ListReferenceTargets(_ context.Context, actor, groupID, cursor string) (journaldto.TargetPage, error) {
+	if actor != "actor" || groupID != "C11111111111111111111111111111111" || cursor != "p:" {
+		return journaldto.TargetPage{}, journalentity.ErrInput
+	}
+	return journaldto.TargetPage{Items: []journaldto.Target{{Kind: "project", ID: "one", Name: "Project"}}}, nil
 }

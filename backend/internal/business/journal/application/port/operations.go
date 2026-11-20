@@ -12,6 +12,7 @@ import (
 // authorize each read, redact inaccessible references and scope create retries
 // by actor and key before returning data.
 type Operations interface {
+	ListReferenceTargets(ctx context.Context, actor, groupID, cursor string) (dto.TargetPage, error)
 	Create(ctx context.Context, actor, key string, draft entity.Draft) (entity.Entry, error)
 	Get(ctx context.Context, actor, id string) (entity.Entry, error)
 	List(ctx context.Context, actor string, filter dto.Filter) (dto.Page, error)

@@ -1698,6 +1698,20 @@
       "consumers": [
         "frontend/miniapp/src/business/enterprise/Enterprise.tsx"
       ]
+    },
+    {
+      "operationId": "listJournalReferenceTargets",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/groups/{groupId}/journal-reference-targets",
+      "owner": "journal",
+      "adapter": "backend/internal/business/journal/adapter/http/routes.go",
+      "handler": "ListJournalReferenceTargets",
+      "core": "backend/internal/business/journal/application/query/references.go",
+      "specification": "docs/domains/journal/journal.md",
+      "consumers": [
+        "frontend/miniapp/src/business/journal/Workspace.tsx"
+      ]
     }
   ],
   "events": [

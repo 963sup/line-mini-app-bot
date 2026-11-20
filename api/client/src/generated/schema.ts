@@ -1336,6 +1336,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/groups/{groupId}/journal-reference-targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List readable repository and project references for a group journal */
+        get: operations["listJournalReferenceTargets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2099,6 +2116,16 @@ export interface components {
         ProjectReferenceState: {
             matches: boolean;
             present: boolean;
+        };
+        JournalReferenceTarget: {
+            /** @enum {string} */
+            type: "repository" | "project";
+            id: string;
+            name: string;
+        };
+        JournalReferenceTargetPage: {
+            items: components["schemas"]["JournalReferenceTarget"][];
+            nextCursor: string;
         };
         GroupItem: {
             id: string;
@@ -7806,6 +7833,66 @@ export interface operations {
             };
             /** @description Request failed */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    listJournalReferenceTargets: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                groupId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Journal reference choices for this actor and group */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JournalReferenceTargetPage"];
+                };
+            };
+            /** @description Request failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
