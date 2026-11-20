@@ -99,6 +99,9 @@ jobs:
       - name: Test frontend
         if: steps.module.outputs.present == 'true'
         run: bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp test
+      - name: Install PDF extraction dependencies
+        if: steps.module.outputs.present == 'true'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils poppler-data
       - name: Verify Go application
         if: steps.module.outputs.present == 'true'
         run: |

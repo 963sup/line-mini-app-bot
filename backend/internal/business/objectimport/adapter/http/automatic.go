@@ -2,8 +2,9 @@ package objectimporthttp
 
 import (
 	"encoding/base64"
-	application "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/automatic"
 	"strings"
+
+	application "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/automatic"
 
 	workflow "github.com/963sup/line-mini-app-bot/internal/business/workflow/application"
 

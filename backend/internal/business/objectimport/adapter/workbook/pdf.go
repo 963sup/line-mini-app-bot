@@ -42,7 +42,7 @@ func ReadPDF(ctx context.Context, file []byte) (imp.PDFInput, error) {
 	}
 	const limit = 8 << 20
 	data, err := io.ReadAll(io.LimitReader(stdout, limit+1))
-	stdout.Close()
+	_ = stdout.Close()
 	if wait := cmd.Wait(); err != nil || wait != nil || len(data) > limit {
 		return imp.PDFInput{}, imp.ErrInput
 	}
