@@ -1539,6 +1539,8 @@ export interface components {
             completedIssueCount: number;
             /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
             canEdit: boolean;
+            /** @description Rounded percent of completed issues. Omitted when there are no issues. */
+            completionPercent?: number;
         };
         MilestoneCreation: {
             title: string;

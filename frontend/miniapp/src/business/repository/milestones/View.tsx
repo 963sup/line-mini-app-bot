@@ -153,10 +153,10 @@ export function View({ repositoryId }: { repositoryId: string }) {
       (error) => { lock.current = false; setBusy(false); setNeedsRefresh(true); setStatus(errorMessage(error) + " 請重新讀取里程碑後再修改。"); },
     );
   }
-  const percent = selected?.issueCount ? Math.round(selected.completedIssueCount / selected.issueCount * 100) : null;
+  const percent = selected?.completionPercent;
   const editor = <section ref={editorPanel} tabIndex={-1} aria-label="里程碑編輯" className="flex w-full min-w-0 flex-col gap-3">
       <ReadFeedback busy={detailBusy} message={status} label="正在讀取里程碑……" />
-      {selected && (percent === null ? <p>尚無問題</p> : <>
+      {selected && (percent === undefined ? <p>尚無問題</p> : <>
         <p>已關閉 {selected.completedIssueCount}/{selected.issueCount} 個問題（{percent}%）</p>
         <Progress value={percent} aria-label="里程碑完成度" />
       </>)}

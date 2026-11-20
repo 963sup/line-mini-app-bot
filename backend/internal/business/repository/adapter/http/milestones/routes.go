@@ -87,7 +87,12 @@ func Register(mux *http.ServeMux, service *repositoryApplicationMilestones.Servi
 }
 
 func view(i repositoryDomainEntityMilestones.Milestone, actor string) generated.Milestone {
-	return generated.Milestone{CanEdit: i.CanEdit(actor), Id: i.ID, RepositoryId: i.RepositoryID, Title: i.Title, Body: i.Body, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, IssueCount: i.IssueCount, CompletedIssueCount: i.CompletedIssueCount, State: generated.MilestoneState(i.State), DueDate: i.DueDate}
+	var percent *int
+	if i.IssueCount > 0 {
+		rounded := int((i.CompletedIssueCount*100 + i.IssueCount/2) / i.IssueCount)
+		percent = &rounded
+	}
+	return generated.Milestone{CompletionPercent: percent, CanEdit: i.CanEdit(actor), Id: i.ID, RepositoryId: i.RepositoryID, Title: i.Title, Body: i.Body, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, IssueCount: i.IssueCount, CompletedIssueCount: i.CompletedIssueCount, State: generated.MilestoneState(i.State), DueDate: i.DueDate}
 }
 
 func writeError(w http.ResponseWriter, e error) bool {

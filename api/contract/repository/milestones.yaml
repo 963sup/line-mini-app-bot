@@ -385,6 +385,12 @@
           "canEdit": {
             "type": "boolean",
             "description": "Whether the authenticated actor may edit the content. Writes recheck authorization."
+          },
+          "completionPercent": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Rounded percent of completed issues. Omitted when there are no issues."
           }
         }
       },
