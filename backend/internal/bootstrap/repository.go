@@ -14,6 +14,7 @@ import (
 	issueapplication "github.com/963sup/line-mini-app-bot/internal/business/issue/application"
 	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/firestore"
 	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
+	candidateai "github.com/963sup/line-mini-app-bot/internal/business/operations/adapter/openai"
 	repositorydb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 	businessspacedb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore/space"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
@@ -25,6 +26,8 @@ import (
 	subobjectdb "github.com/963sup/line-mini-app-bot/internal/business/subobject/adapter/firestore"
 	subobjectApplication "github.com/963sup/line-mini-app-bot/internal/business/subobject/application"
 	linetransport "github.com/963sup/line-mini-app-bot/internal/transport/line"
+	"github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/option"
 )
 
 func newIssues(repositories *repositoryApplication.Service, store *repositorydb.Store) *issueapplication.Service {
@@ -83,7 +86,12 @@ func newObjects(r *repositoryApplication.Service, store *repositorydb.Store) *ob
 	if store == nil {
 		return nil
 	}
-	return &objectApplication.Service{Repositories: r, Store: &objectdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
+	service := &objectApplication.Service{Repositories: r, Store: &objectdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
+	if key, model := os.Getenv("OPENAI_API_KEY"), os.Getenv("AI_DOCUMENT_MODEL"); key != "" && model != "" {
+		client := openai.NewClient(option.WithAPIKey(key), option.WithBaseURL("https://api.openai.com/v1/"), option.WithMaxRetries(0), option.WithHTTPClient(&http.Client{Timeout: 2 * time.Minute, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}))
+		service.CandidateExtractor = &candidateai.Extractor{Responses: client.Responses, Model: model}
+	}
+	return service
 }
 
 func newSubobjects(r *repositoryApplication.Service, store *repositorydb.Store) *subobjectApplication.Service {

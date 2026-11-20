@@ -1,6 +1,7 @@
 package application
 
 import (
+	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
@@ -18,8 +19,9 @@ import (
 var creationKey = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
 
 type Service struct {
-	Repositories objectApplicationPort.Repositories
-	Store        objectApplicationPort.Store
+	CandidateExtractor operations.CandidateExtractor
+	Repositories       objectApplicationPort.Repositories
+	Store              objectApplicationPort.Store
 }
 
 func (s *Service) scope(ctx context.Context, actor, id string) (repositoryDomainEntity.Repository, error) {
@@ -41,6 +43,17 @@ func (s *Service) scope(ctx context.Context, actor, id string) (repositoryDomain
 		return repositoryDomainEntity.Repository{}, objectDomainEntity.ErrNotFound
 	}
 	return r, nil
+}
+
+// ExtractCandidates authorizes the document request without creating objects.
+func (s *Service) ExtractCandidates(ctx context.Context, actor, repositoryID string, document operations.Document) (operations.Extraction, error) {
+	if _, err := s.scope(ctx, actor, repositoryID); err != nil {
+		return operations.Extraction{}, err
+	}
+	if s.CandidateExtractor == nil {
+		return operations.Extraction{}, objectDomainEntity.ErrUnavailable
+	}
+	return s.CandidateExtractor.ExtractCandidates(ctx, document)
 }
 
 func (s *Service) List(ctx context.Context, actor, id, cursor string) (objectApplicationDto.Page, error) {
