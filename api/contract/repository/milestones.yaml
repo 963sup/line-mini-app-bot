@@ -318,7 +318,8 @@
           "dueDate",
           "state",
           "issueCount",
-          "completedIssueCount"
+          "completedIssueCount",
+          "canEdit"
         ],
         "properties": {
           "id": {
@@ -380,6 +381,10 @@
             "format": "int64",
             "minimum": 0,
             "maximum": 9007199254740991
+          },
+          "canEdit": {
+            "type": "boolean",
+            "description": "Whether the authenticated actor may edit the content. Writes recheck authorization."
           }
         }
       },

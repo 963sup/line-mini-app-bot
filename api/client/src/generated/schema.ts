@@ -1520,6 +1520,8 @@ export interface components {
             issueCount: number;
             /** Format: int64 */
             completedIssueCount: number;
+            /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
+            canEdit: boolean;
         };
         MilestoneCreation: {
             title: string;

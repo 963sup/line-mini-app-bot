@@ -38,7 +38,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
   const [status, setStatus] = useState("");
   const lock = useRef(false);
   const attempt = useRef<{ key: string; body: Creation } | null>(null);
-  const mine = !!selected && selected.creatorId === user?.userId;
+  const canEdit = selected?.canEdit === true;
   const [activeId, setActiveId] = useState("");
   const baseline = useRef(JSON.stringify(["", "", ""]));
   const dirty = !!mode && JSON.stringify([title, body, dueDate]) !== baseline.current;
@@ -141,7 +141,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
     );
   }
   function save(state: Milestone["state"]) {
-    if (!user || !selected || !mine || lock.current || navigating.current || needsRefresh || discard.isConfirming() || !guard.canWrite()) return;
+    if (!user || !selected || !canEdit || lock.current || navigating.current || needsRefresh || discard.isConfirming() || !guard.canWrite()) return;
     const id = selected.id;
     guard.block(true);
     lock.current = true; setBusy(true); setStatus("正在更新里程碑……");
@@ -165,19 +165,19 @@ export function View({ repositoryId }: { repositoryId: string }) {
       </div>}
       {(mode === "create" || selected) && <form onSubmit={submit}>
         <FieldGroup>
-          <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || uncertain || needsRefresh || (mode === "detail" && !mine)}>
+          <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || uncertain || needsRefresh || (mode === "detail" && !canEdit)}>
             <FormField>到期日<Input type="date" value={dueDate} onChange={(e)=>setDueDate(e.target.value)} /></FormField>
           <FormField>標題<Input ref={titleInput} required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} /></FormField>
             <FormField>內容<Textarea maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} /></FormField>
           </FieldSet>
 
-          {(mode === "create" || mine) && <div className="flex flex-wrap gap-2">
+          {(mode === "create" || canEdit) && <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={busy || needsRefresh}>{mode === "create" ? uncertain ? "重試原建立請求" : "建立里程碑" : "儲存內容"}</Button>
             {selected && <Button type="button" variant="outline" disabled={busy || needsRefresh} onClick={() => save(nextState[selected.state])}>{action[selected.state]}</Button>}
           </div>}
         </FieldGroup>
       </form>}
-      <Button type="button" variant="outline" disabled={busy || uncertain || needsRefresh} onClick={close}>{mine || mode === "create" ? "取消" : "關閉"}</Button>
+      <Button type="button" variant="outline" disabled={busy || uncertain || needsRefresh} onClick={close}>{canEdit || mode === "create" ? "取消" : "關閉"}</Button>
     </section>;
   return <>
     <PagePanel heading="里程碑">
@@ -194,7 +194,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
             <ItemTitle className="min-w-0 max-w-full"><Button variant="link" className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || detailBusy || uncertain || needsRefresh} onClick={event => open(item.id, event.currentTarget)}>{item.title}</Button></ItemTitle>
             <Badge variant="outline">{states[item.state]}</Badge>
           </ItemContent>
-          {item.creatorId === user?.userId && <ItemActions><Button variant="outline" aria-label={`編輯里程碑：${item.title}`} disabled={busy || detailBusy || uncertain || needsRefresh} onClick={event => open(item.id, event.currentTarget)}>編輯</Button></ItemActions>}
+          {item.canEdit && <ItemActions><Button variant="outline" aria-label={`編輯里程碑：${item.title}`} disabled={busy || detailBusy || uncertain || needsRefresh} onClick={event => open(item.id, event.currentTarget)}>編輯</Button></ItemActions>}
           {mode === "detail" && activeId === item.id && <ItemFooter>{editor}</ItemFooter>}
         </Item>)}
       </ItemGroup>
