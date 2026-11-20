@@ -56,11 +56,24 @@ type PDFItem struct {
 }
 
 type Page struct {
-	Number      int
-	Text        string
-	PDFItems    []PDFItem // Populated only by the server-side PDF reader.
-	PDFTextOnly bool      // Layout could not be independently verified.
+	Number int
+	Text   string
 }
+
+// PDFInput is the server reader output consumed by the automatic importer.
+type PDFInput struct {
+	Pages    []Page
+	Evidence PDFEvidence
+}
+
+// PDFEvidence describes what the server independently recovered from a PDF.
+type PDFEvidence interface{ pdfEvidence() }
+
+type LocatedPDFItems struct{ Items []PDFItem }
+type PDFPageText struct{}
+
+func (LocatedPDFItems) pdfEvidence() {}
+func (PDFPageText) pdfEvidence()     {}
 
 type Candidate struct {
 	Fields
@@ -173,13 +186,14 @@ func WithinSizeLimit(j Job) bool {
 }
 
 type Source struct {
+	PDF                            PDFEvidence // Nil for legacy requests supplying page text.
 	SourceDocument, SourceRevision string
 	Pages                          []Page
 }
 
 // ValidateSource is shared by manual candidates and model parsing; it does not retain text.
 func ValidateSource(input Source) (Source, string, error) {
-	j := Source{SourceDocument: strings.TrimSpace(input.SourceDocument), SourceRevision: strings.TrimSpace(input.SourceRevision), Pages: append([]Page{}, input.Pages...)}
+	j := Source{PDF: input.PDF, SourceDocument: strings.TrimSpace(input.SourceDocument), SourceRevision: strings.TrimSpace(input.SourceRevision), Pages: append([]Page{}, input.Pages...)}
 	if j.SourceDocument == "" || !utf8.ValidString(j.SourceDocument) || utf8.RuneCountInString(j.SourceDocument) > 200 || !utf8.ValidString(j.SourceRevision) || utf8.RuneCountInString(j.SourceRevision) > 80 || len(input.Pages) < 1 || len(input.Pages) > 50 {
 		return Source{}, "", ErrInput
 	}

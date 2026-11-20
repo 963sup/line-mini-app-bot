@@ -69,7 +69,7 @@ func TestTextOnlyPDFUsesOneStructuredRequest(t *testing.T) {
 		}
 		return response(`{"rows":[{"name":"Lamp","quantity":"","unit":"","sourceItemNo":"B-20","pages":[2],"type":"needs_review","quote":"B-20 Lamp"}]}`, "stop", "", nil), nil
 	})}}
-	rows, err := p.ClassifiedRows(t.Context(), objectimportDomainEntity.Source{Pages: []objectimportDomainEntity.Page{{Number: 2, Text: "B-20 Lamp", PDFTextOnly: true}}})
+	rows, err := p.ClassifiedRows(t.Context(), objectimportDomainEntity.Source{PDF: objectimportDomainEntity.PDFPageText{}, Pages: []objectimportDomainEntity.Page{{Number: 2, Text: "B-20 Lamp"}}})
 	if err != nil || calls != 1 || len(rows) != 1 || rows[0].Type != "needs_review" {
 		t.Fatal(rows, calls, err)
 	}

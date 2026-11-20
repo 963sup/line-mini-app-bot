@@ -23,7 +23,7 @@ import (
 )
 
 type Service struct {
-	PDF          func(context.Context, []byte) ([]objectimportDomainEntity.Page, error)
+	PDF          func(context.Context, []byte) (objectimportDomainEntity.PDFInput, error)
 	Knowledge    knowledge.Reader
 	Sources      objectimportApplicationPortAutomatic.SourceStore
 	TextTable    func(string, []byte) ([]objectimportDomainEntityAutomatic.Row, error)
@@ -159,11 +159,12 @@ func (s *Service) ImportTable(ctx context.Context, actor, rid, key, document str
 		if s.PDF == nil {
 			return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrUnavailable
 		}
-		pages, err := s.PDF(ctx, file)
+		parsed, err := s.PDF(ctx, file)
 		if err != nil {
 			return objectimportDomainEntityAutomatic.Run{}, err
 		}
-		return s.Classify(ctx, actor, rid, key, objectimportDomainEntity.Source{SourceDocument: document, Pages: pages}, decisions)
+		source := objectimportDomainEntity.Source{SourceDocument: document, Pages: parsed.Pages, PDF: parsed.Evidence}
+		return s.Classify(ctx, actor, rid, key, source, decisions)
 	case "xlsx":
 		if s.Workbook == nil {
 			return objectimportDomainEntityAutomatic.Run{}, objectimportDomainEntity.ErrUnavailable
