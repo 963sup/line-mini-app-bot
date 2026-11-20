@@ -1,9 +1,12 @@
 package teamdb
 
 import (
-	"cloud.google.com/go/firestore"
 	"context"
 	"errors"
+	"slices"
+	"strings"
+
+	"cloud.google.com/go/firestore"
 	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/orgstore"
 	"github.com/963sup/line-mini-app-bot/internal/business/organization"
@@ -11,8 +14,6 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"slices"
-	"strings"
 )
 
 type Store struct {

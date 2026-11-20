@@ -3,10 +3,6 @@ package server
 import (
 	"context"
 	"errors"
-	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/firestore"
-	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/http"
-	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/firestore"
-	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/http"
 	"log/slog"
 	"net"
 	"net/http"
@@ -14,6 +10,11 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/firestore"
+	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/http"
+	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/firestore"
+	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/http"
 
 	organizationdb "github.com/963sup/line-mini-app-bot/internal/business/organization/firestore"
 	organizationhttp "github.com/963sup/line-mini-app-bot/internal/business/organization/http"
