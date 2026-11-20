@@ -63,11 +63,8 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 ### 操作與驗收
 
 1. 核對來源並依[文件圖表規範](../docs/standards/documentation.md#獨立圖檔)維護內嵌區塊或獨立圖檔。
-2. 從專案根目錄安裝固定版 Mermaid v13 alpha，執行 `bash scripts/tooling/tool-exec.sh mise run install-mermaid`。
-3. 執行 `bash scripts/tooling/tool-exec.sh mise run render-mermaid -- render diagram.mmd --format svg > diagram.svg`。
-4. 核對圖中文字與箭頭符合來源，並記錄實際渲染結果。
-
-專案預設使用本機渲染。v13 alpha 由 Node 直接渲染，無須 Chromium。遠端 Mermaid MCP 預設停用。用法見 [Mermaid v13 alpha](https://mermaid.js.org/intro/v13-alpha.html)。
+2. 架構、資料關係、操作流程或狀態圖有助於說明時，主動呼叫 Mermaid MCP 的 `validate_and_render_mermaid_diagram`，核對圖中文字與箭頭符合來源。
+3. Codex Cloud 執行環境須提供 `MERMAID_TOKEN`（原始 token 值）。若遠端工具不可用，從專案根目錄執行 `bash scripts/tooling/tool-exec.sh mise run install-mermaid`，再執行 `bash scripts/tooling/tool-exec.sh mise run render-mermaid -- render diagram.mmd --format svg > diagram.svg`，記錄實際渲染結果。
 
 [開發與維運指引圖索引](../docs/diagrams.md#開發與維運指引) · [未來設計圖](../docs/diagrams.md#未來設計)。
 
