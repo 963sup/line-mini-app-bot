@@ -201,14 +201,14 @@ function Content({ repositoryId, extract }: Props) {
               {invalid && <FieldError id="object-quantity-error">請填寫大於零的數量（最多18位整數及6位小數）。</FieldError>}
             </React.Fragment>;
           })}
-          <FormField>業務空間<NativeSelect value={content.spaceId || ""} onChange={event => setContent(previous => ({ ...previous, spaceId: event.target.value }))}>
+          <FormField>空間<NativeSelect value={content.spaceId || ""} onChange={event => setContent(previous => ({ ...previous, spaceId: event.target.value }))}>
             <NativeSelectOption value="">未分配</NativeSelectOption>
             {content.spaceId && !spaces.some(value => value.id === content.spaceId) && <NativeSelectOption value={content.spaceId}>目前空間（未載入）</NativeSelectOption>}
             {spaces.map(space => <NativeSelectOption key={space.id} value={space.id}>{space.name}</NativeSelectOption>)}
           </NativeSelect></FormField>
-          <ReadFeedback busy={spacesBusy} message={spaceStatus} label="正在讀取業務空間……" />
+          <ReadFeedback busy={spacesBusy} message={spaceStatus} label="正在讀取空間……" />
           {spaceStatus && <Button type="button" variant="outline" disabled={spacesBusy} onClick={() => loadSpaces()}>重試讀取</Button>}
-          {spaceCursor && <Button type="button" variant="outline" disabled={spacesBusy} onClick={() => loadSpaces(spaceCursor)}>載入更多業務空間</Button>}
+          {spaceCursor && <Button type="button" variant="outline" disabled={spacesBusy} onClick={() => loadSpaces(spaceCursor)}>載入更多空間</Button>}
           <FormField>完整說明<Textarea maxLength={8000} value={content.description} onChange={event => setContent(previous => ({ ...previous, description: event.target.value }))} /></FormField>
           {content.type === "work" && <FormField data-invalid={invalidField === "completedQuantity" || undefined}>完成數<Input aria-invalid={invalidField === "completedQuantity" || undefined} aria-describedby={invalidField === "completedQuantity" ? "object-completed-error" : undefined} required inputMode="decimal" maxLength={25} value={content.completedQuantity || ""} onChange={event => setContent(previous => ({ ...previous, completedQuantity: event.target.value }))} /></FormField>}
           {invalidField === "completedQuantity" && <FieldError id="object-completed-error">請填寫0至數量之間的完成數（最多18位整數及6位小數）。</FieldError>}

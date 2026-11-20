@@ -47,7 +47,7 @@ func Register(mux *http.ServeMux, service *repositoryApplicationSpace.Service, a
 				return nil
 			}},
 			ErrorHandlerWithOpts: func(_ context.Context, _ error, w http.ResponseWriter, _ *http.Request, _ middleware.ErrorHandlerOpts) {
-				transport.WriteAPIError(w, 400, "invalid_input", "請求資料不符合業務空間契約。")
+				transport.WriteAPIError(w, 400, "invalid_input", "請求資料不符合空間契約。")
 			},
 		})(next)
 		return http.NewCrossOriginProtection().Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +57,7 @@ func Register(mux *http.ServeMux, service *repositoryApplicationSpace.Service, a
 				return
 			}
 			if service == nil {
-				transport.WriteAPIError(w, 503, "not_configured", "業務空間尚未啟用。")
+				transport.WriteAPIError(w, 503, "not_configured", "空間尚未啟用。")
 				return
 			}
 			if r.Method == http.MethodHead {
@@ -94,14 +94,14 @@ func writeError(w http.ResponseWriter, e error) bool {
 	if e == nil {
 		return false
 	}
-	code, httpStatus, message := "unavailable", 503, "業務空間結果尚未確認，請重新讀取；建立重試請沿用原識別碼。"
+	code, httpStatus, message := "unavailable", 503, "空間結果尚未確認，請重新讀取；建立重試請沿用原識別碼。"
 	switch {
 	case errors.Is(e, repositoryDomainEntitySpace.ErrNotFound):
-		code, httpStatus, message = "not_found", 404, "找不到此空間或業務空間。"
+		code, httpStatus, message = "not_found", 404, "找不到此儲存庫或空間。"
 	case errors.Is(e, repositoryDomainEntitySpace.ErrInput):
-		code, httpStatus, message = "invalid_input", 400, "請確認業務空間名稱。"
+		code, httpStatus, message = "invalid_input", 400, "請確認空間名稱。"
 	case errors.Is(e, repositoryDomainEntitySpace.ErrCreationConflict):
-		code, httpStatus, message = "idempotency_conflict", 409, "重試識別碼已用於不同內容，請先確認原業務空間。"
+		code, httpStatus, message = "idempotency_conflict", 409, "重試識別碼已用於不同內容，請先確認原空間。"
 	}
 	transport.WriteServiceError(w, httpStatus, code, message, e)
 	return true
@@ -132,7 +132,7 @@ func (s *spaceServer) GetRepositorySpace(w http.ResponseWriter, r *http.Request,
 
 func (s *spaceServer) CreateRepositorySpace(w http.ResponseWriter, r *http.Request, rid string, p generated.CreateRepositorySpaceParams) {
 	var in generated.RepositorySpaceCreation
-	if !transport.ReadJSON(w, r, &in, "業務空間資料無效。") {
+	if !transport.ReadJSON(w, r, &in, "空間資料無效。") {
 		return
 	}
 	item, err := s.service.Create(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, in.Name)
