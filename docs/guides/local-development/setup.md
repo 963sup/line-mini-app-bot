@@ -2,13 +2,17 @@
 
 ## Codex Cloud 環境設定
 
-在環境編輯頁，將 **Setup script** 和 **Maintenance script** 都設為以下命令。首次建立容器時會安裝固定版本的 Go 與 Web 工具、依鎖檔安裝 pnpm 套件並下載後端 Go modules。恢復快取時，同一命令會依目前 checkout 重新核對依賴，沿用已下載的工具和套件。初始化也會安裝本機 Mermaid v13 CLI；MCP 與部署工具按任務另行安裝。
+在 Codex Cloud 環境編輯頁，將 **Setup script** 與選用的 **Maintenance script** 設為以下命令。首次建立容器時安裝固定版本的 Go、Node、pnpm 與 API 產生器，依鎖檔安裝 workspace 套件並下載、驗證後端 Go modules。恢復快取時，Maintenance script 以同一命令重新核對目前 checkout，重用工具與套件快取；pnpm 使用 frozen lockfile 與 prefer-offline。Cloud 模式不執行測試，也不註冊使用者層 MCP。
+
+Go 分析工具、API 產生器、Mermaid 分別使用 mise 的 install-core、install-web、install-mermaid 任務，透過 scripts/tooling/tool-exec.sh 執行。MCP 與部署工具依各自任務安裝。一般 core 模式仍保留完整工具與 doctor 驗證。執行 pnpm check 前需先 install-core，因後端檢查包含格式與 lint；pnpm build／pnpm test 使用 Cloud 模式的工具即可。
+
+Cloud 必需工具由 mise.lock 鎖定 Linux x64／arm64 下載資訊，npm 工具的相依鎖保存於 .mise/locks；兩者依 [mise 官方鎖檔指引](https://mise.jdx.dev/dev-tools/mise-lock.html)一併提交。應用依賴由 pnpm-lock.yaml 與 backend/go.sum 驗證。Go 原始碼工具使用模組版本與 Go checksum database；選用工具須依各自安裝任務與鎖檔內容核對。
 
 ```bash
 bash scripts/tooling/bootstrap.sh cloud
 ```
 
-環境快取加速新任務與後續對話的啟動。驗收時，在 Cloud 新建任務並檢查 setup 日誌，再開啟使用快取的任務檢查 maintenance 日誌。[官方環境設定](https://developers.openai.com/codex/cloud/environments)
+若未設定 Maintenance script，工具設定或鎖檔變更時明確重跑初始化。Agent 階段從 checkout 根目錄使用 scripts/tooling/tool-exec.sh。驗收需分別記錄空工具／依賴快取的冷啟動與同一快取的再次執行；現有機器成功不代表已驗證全新環境。[官方環境設定](https://developers.openai.com/codex/cloud/environments)
 
 ## 一般開發與 MCP 安裝
 

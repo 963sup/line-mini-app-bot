@@ -82,6 +82,10 @@ run = "graphify extract . --force --code-only --allow-dedup-shrink --out . && gr
 description = "Build a separate docs heading/link graph without API credentials"
 run = "python3 scripts/analysis/docs-graph.py"
 
+[tasks.install-runtime]
+description = "Install locked application runtimes, package manager and API generator for Cloud setup"
+run = "mise install --locked go node npm:pnpm go:github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen"
+
 [tasks.install-web]
 description = "Install pinned Node and pnpm workspace tooling"
 run = "mise install node npm:pnpm go:github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen"
