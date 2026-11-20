@@ -183,9 +183,12 @@ func (s *Store) GetByGroupID(ctx context.Context, group string) (repositoryDomai
 
 type cursor struct{ Scope, ID string }
 
-func (s *Store) Candidates(ctx context.Context, user, value string) (repositoryApplicationDto.Page, error) {
+func (s *Store) Candidates(ctx context.Context, user, value, ownerID string) (repositoryApplicationDto.Page, error) {
 	page := repositoryApplicationDto.Page{Items: []repositoryDomainEntity.Repository{}}
 	scope := firestorekey.Digest([]byte(s.ChannelID + ":" + user))
+	if ownerID != "" {
+		scope = firestorekey.JSONDigest([]string{s.ChannelID, user, ownerID})
+	}
 	c := cursor{}
 	if value != "" {
 		b, err := base64.RawURLEncoding.DecodeString(value)

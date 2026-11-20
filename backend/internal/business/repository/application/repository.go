@@ -32,16 +32,19 @@ func (s *Service) Get(ctx context.Context, user, id string) (repositoryDomainEnt
 	return r, nil
 }
 
-func (s *Service) List(ctx context.Context, user, cursor string) (repositoryApplicationDto.Page, error) {
-	if user == "" {
+func (s *Service) List(ctx context.Context, user, cursor, ownerID string) (repositoryApplicationDto.Page, error) {
+	if user == "" || (ownerID != "" && !identity.ValidOwner(ownerID)) {
 		return repositoryApplicationDto.Page{}, repositoryDomainEntity.ErrNotFound
 	}
-	page, err := s.Store.Candidates(ctx, user, cursor)
+	page, err := s.Store.Candidates(ctx, user, cursor, ownerID)
 	if err != nil {
 		return repositoryApplicationDto.Page{}, err
 	}
 	items := make([]repositoryDomainEntity.Repository, 0, len(page.Items))
 	for _, r := range page.Items {
+		if ownerID != "" && r.OwnerID != ownerID {
+			continue
+		}
 		allowed, err := s.allowed(ctx, user, r)
 		if err != nil {
 			return repositoryApplicationDto.Page{}, err

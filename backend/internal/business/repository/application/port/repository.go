@@ -11,7 +11,7 @@ type Store interface {
 	Observe(context.Context, repositoryDomainEntity.Observation) error
 	GetByID(context.Context, string) (repositoryDomainEntity.Repository, error)
 	GetByGroupID(context.Context, string) (repositoryDomainEntity.Repository, error)
-	Candidates(context.Context, string, string) (repositoryApplicationDto.Page, error)
+	Candidates(context.Context, string, string, string) (repositoryApplicationDto.Page, error)
 }
 
 type Membership interface {

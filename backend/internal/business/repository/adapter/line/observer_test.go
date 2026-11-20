@@ -36,7 +36,7 @@ func (*observerStore) GetByID(context.Context, string) (repositoryDomainEntity.R
 	return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrNotFound
 }
 
-func (*observerStore) Candidates(context.Context, string, string) (repositoryApplicationDto.Page, error) {
+func (*observerStore) Candidates(context.Context, string, string, string) (repositoryApplicationDto.Page, error) {
 	return repositoryApplicationDto.Page{}, nil
 }
 

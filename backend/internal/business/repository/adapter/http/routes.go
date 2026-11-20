@@ -46,14 +46,14 @@ func (s *repositoryServer) ListRepositories(w http.ResponseWriter, r *http.Reque
 	if params.Cursor != nil {
 		cursor = *params.Cursor
 	}
-	s.read(w, r, "", cursor, false)
+	s.read(w, r, "", cursor, params.OwnerId, false)
 }
 
 func (s *repositoryServer) GetRepository(w http.ResponseWriter, r *http.Request, id string) {
-	s.read(w, r, id, "", true)
+	s.read(w, r, id, "", nil, true)
 }
 
-func (s *repositoryServer) read(w http.ResponseWriter, r *http.Request, id, cursor string, detail bool) {
+func (s *repositoryServer) read(w http.ResponseWriter, r *http.Request, id, cursor string, owner *string, detail bool) {
 	service, auth := s.service, s.auth
 
 	w.Header().Set("Cache-Control", "no-store")
@@ -85,7 +85,15 @@ func (s *repositoryServer) read(w http.ResponseWriter, r *http.Request, id, curs
 		writeError(w, repositoryDomainEntity.ErrCursor)
 		return
 	}
-	page, err := service.List(ctx, user, cursor)
+	ownerID := ""
+	if owner != nil {
+		if len(r.URL.Query()["ownerId"]) != 1 || !identity.ValidOwner(*owner) {
+			transport.WriteAPIError(w, 400, "invalid_input", "來源擁有者格式無效。")
+			return
+		}
+		ownerID = *owner
+	}
+	page, err := service.List(ctx, user, cursor, ownerID)
 	if writeError(w, err) {
 		return
 	}

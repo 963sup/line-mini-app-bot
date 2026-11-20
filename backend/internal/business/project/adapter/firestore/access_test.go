@@ -373,7 +373,7 @@ func TestPersonalRepositoryAndProject(t *testing.T) {
 		}
 	}
 	catalog := repositoryApplication.Service{Store: repos}
-	page, err := catalog.List(ctx, owner, "")
+	page, err := catalog.List(ctx, owner, "", "")
 	if err != nil || len(page.Items) != 1 || page.Items[0].OwnerID != owner {
 		t.Fatalf("personal list: %+v %v", page, err)
 	}
