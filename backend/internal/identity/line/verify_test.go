@@ -52,3 +52,19 @@ func TestIdentityVerifierPreservesClaimChecks(t *testing.T) {
 		})
 	}
 }
+
+func TestRejectedTokenExposesOnlyProviderStatus(t *testing.T) {
+	for _, status := range []int{400, 401} {
+		v := &Verifier{ChannelID: "123", Client: &http.Client{Transport: verifierTransport(func(*http.Request) (*http.Response, error) {
+			return &http.Response{StatusCode: status, Body: io.NopCloser(strings.NewReader(`{"error":"invalid_request","error_description":"private@example.com token%2Fencoded private-token"}`))}, nil
+		})}}
+		_, err := v.Verify(context.Background(), "private-token")
+		var rejected *identity.TokenRejection
+		if !errors.Is(err, identity.ErrRejectedToken) || !errors.As(err, &rejected) || rejected.HTTPStatus != status {
+			t.Fatalf("lost rejection status: %v", err)
+		}
+		if err.Error() != identity.ErrRejectedToken.Error() {
+			t.Fatal("provider body escaped error boundary")
+		}
+	}
+}
