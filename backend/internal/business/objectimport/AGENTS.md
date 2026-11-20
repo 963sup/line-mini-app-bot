@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[object_import.go](object_import.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+先查閱[object_import.go](domain/entity/object_import.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
 
 ## 相關規格
 

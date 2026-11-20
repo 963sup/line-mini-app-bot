@@ -1,6 +1,14 @@
 package server
 
 import (
+	objectimportApplication "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application"
+	objectimportApplicationAutomatic "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/automatic"
+	objectimportApplicationParsing "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/parsing"
+	objectimportApplicationPortAutomatic "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/port/automatic"
+	objectimportApplicationPortParsing "github.com/963sup/line-mini-app-bot/internal/business/objectimport/application/port/parsing"
+)
+
+import (
 	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
 )
 
@@ -20,11 +28,10 @@ import (
 	issueapplication "github.com/963sup/line-mini-app-bot/internal/business/issue/application"
 
 	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/objectimport"
-	"github.com/963sup/line-mini-app-bot/internal/business/objectimport/automatic"
-	importdb "github.com/963sup/line-mini-app-bot/internal/business/objectimport/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/objectimport/parsing"
-	parseropenai "github.com/963sup/line-mini-app-bot/internal/business/objectimport/parsing/openai"
+
+	importdb "github.com/963sup/line-mini-app-bot/internal/business/objectimport/adapter/firestore"
+
+	parseropenai "github.com/963sup/line-mini-app-bot/internal/business/objectimport/adapter/openai/parsing"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	repositorydb "github.com/963sup/line-mini-app-bot/internal/business/repository/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository/labels"
@@ -119,7 +126,7 @@ func newObjects(r *repository.Service) *objectApplication.Service {
 	return &objectApplication.Service{Repositories: r, Store: &objectdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
 }
 
-func newObjectImports(r *repository.Service) *objectimport.Service {
+func newObjectImports(r *repository.Service) *objectimportApplication.Service {
 	if r == nil {
 		return nil
 	}
@@ -127,21 +134,21 @@ func newObjectImports(r *repository.Service) *objectimport.Service {
 	if !ok {
 		return nil
 	}
-	return &objectimport.Service{Repositories: r, Objects: newObjects(r), Store: &importdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
+	return &objectimportApplication.Service{Repositories: r, Objects: newObjects(r), Store: &importdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
 }
 
-func newObjectParser(r *repository.Service) *parsing.Service {
+func newObjectParser(r *repository.Service) *objectimportApplicationParsing.Service {
 	if r == nil {
 		return nil
 	}
-	var producer parsing.Producer
+	var producer objectimportApplicationPortParsing.Producer
 	if key := os.Getenv("OPENAI_API_KEY"); key != "" {
 		producer = &parseropenai.Producer{Key: key, Model: os.Getenv("OBJECT_IMPORT_MODEL")}
 	}
-	return &parsing.Service{Repositories: r, Producer: producer}
+	return &objectimportApplicationParsing.Service{Repositories: r, Producer: producer}
 }
 
-func newAutomaticObjectImports(r *repository.Service) *automatic.Service {
+func newAutomaticObjectImports(r *repository.Service) *objectimportApplicationAutomatic.Service {
 	if r == nil {
 		return nil
 	}
@@ -149,11 +156,11 @@ func newAutomaticObjectImports(r *repository.Service) *automatic.Service {
 	if !ok {
 		return nil
 	}
-	var producer automatic.Producer
+	var producer objectimportApplicationPortAutomatic.Producer
 	if key := os.Getenv("OPENAI_API_KEY"); key != "" {
 		producer = &parseropenai.Producer{Key: key, Model: os.Getenv("OBJECT_IMPORT_MODEL")}
 	}
-	return &automatic.Service{Repositories: r, Objects: newObjects(r), Store: &importdb.AutomaticStore{Store: importdb.Store{Client: store.Client, ChannelID: store.ChannelID}}, Producer: producer}
+	return &objectimportApplicationAutomatic.Service{Repositories: r, Objects: newObjects(r), Store: &importdb.AutomaticStore{Store: importdb.Store{Client: store.Client, ChannelID: store.ChannelID}}, Producer: producer}
 }
 
 func newSubobjects(r *repository.Service) *subobject.Service {

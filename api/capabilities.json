@@ -171,8 +171,8 @@
     },
     "objectimport": {
       "contract": "object-import/object-imports.yaml",
-      "adapter": "backend/internal/business/objectimport/http/routes.go",
-      "core": "backend/internal/business/objectimport/object_import.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
+      "core": "backend/internal/business/objectimport/domain/entity/object_import.go",
       "specification": "docs/domains/repository/object-imports.md"
     },
     "subobject": {
@@ -1172,9 +1172,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/object-imports",
       "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
       "handler": "CreateObjectImport",
-      "core": "backend/internal/business/objectimport/object_import.go",
+      "core": "backend/internal/business/objectimport/domain/entity/object_import.go",
       "specification": "docs/domains/repository/object-imports.md",
       "consumers": []
     },
@@ -1184,9 +1184,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/object-imports/{id}",
       "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
       "handler": "GetObjectImport",
-      "core": "backend/internal/business/objectimport/object_import.go",
+      "core": "backend/internal/business/objectimport/domain/entity/object_import.go",
       "specification": "docs/domains/repository/object-imports.md",
       "consumers": []
     },
@@ -1196,9 +1196,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/object-imports/{id}/review",
       "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
       "handler": "ReviewObjectImport",
-      "core": "backend/internal/business/objectimport/object_import.go",
+      "core": "backend/internal/business/objectimport/domain/entity/object_import.go",
       "specification": "docs/domains/repository/object-imports.md",
       "consumers": []
     },
@@ -1208,9 +1208,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/object-imports/{id}/confirm",
       "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
       "handler": "ConfirmObjectImport",
-      "core": "backend/internal/business/objectimport/object_import.go",
+      "core": "backend/internal/business/objectimport/domain/entity/object_import.go",
       "specification": "docs/domains/repository/object-imports.md",
       "consumers": []
     },
@@ -1220,9 +1220,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/object-imports/parse",
       "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/http/routes.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/routes.go",
       "handler": "ParseObjectImport",
-      "core": "backend/internal/business/objectimport/parsing/parsing.go",
+      "core": "backend/internal/business/objectimport/domain/entity/parsing/parsing.go",
       "specification": "docs/domains/repository/object-imports.md",
       "consumers": []
     },
@@ -1232,9 +1232,9 @@
       "method": "POST",
       "path": "/api/v1/repositories/{repositoryId}/object-import-runs",
       "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/http/automatic.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/automatic.go",
       "handler": "CreateObjectImportRun",
-      "core": "backend/internal/business/objectimport/automatic/automatic.go",
+      "core": "backend/internal/business/objectimport/domain/entity/automatic/automatic.go",
       "specification": "docs/domains/repository/object-imports.md",
       "consumers": [
         "frontend/miniapp/src/business/object/Import.tsx"
@@ -1246,9 +1246,9 @@
       "method": "GET",
       "path": "/api/v1/repositories/{repositoryId}/object-import-runs/{id}",
       "owner": "objectimport",
-      "adapter": "backend/internal/business/objectimport/http/automatic.go",
+      "adapter": "backend/internal/business/objectimport/adapter/http/automatic.go",
       "handler": "GetObjectImportRun",
-      "core": "backend/internal/business/objectimport/automatic/automatic.go",
+      "core": "backend/internal/business/objectimport/domain/entity/automatic/automatic.go",
       "specification": "docs/domains/repository/object-imports.md",
       "consumers": []
     },

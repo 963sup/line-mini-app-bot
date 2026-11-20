@@ -10,7 +10,7 @@
 
 **驗收案例**　以其他使用者的身分操作已有的自動匯入紀錄時，回傳找不到，避免揭露該筆紀錄是否存在。
 
-[對照實作或測試](../../../backend/internal/business/objectimport/firestore/automatic.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
+[對照實作或測試](../../../backend/internal/business/objectimport/adapter/firestore/automatic.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
 
 工項匯入的輸入、解析及執行流程見匯入規格。
 
