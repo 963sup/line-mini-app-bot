@@ -1,3 +1,4 @@
+import { useOrganizationSelection } from "@/business/organization/OrganizationSelection";
 import React, { useEffect, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
@@ -9,41 +10,26 @@ export function Enterprise({ id }: { id: string }) {
   const { request, user } = useSession(),
     { run, cancel } = useLatestRequest();
   const [view, setView] = useState<components["schemas"]["Enterprise"]>(),
-    [eligible, setEligible] = useState(false),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
   const create = id === "new";
+  const { context, error } = useOrganizationSelection();
+  const eligibilityMessage = create && (context ? !context.canCreateEnterprise && "帳號尚無可用的企業開通資格。" : error);
   useEffect(() => {
-    if (!user) return;
-    if (create)
-      void run(
-        (signal) =>
-          request(
-            (api, s) =>
-              api.GET("/api/v1/me/organization-context", { signal: s }),
-            { signal },
-          ),
-        (v) => {
-          setEligible(v.canCreateEnterprise);
-          if (!v.canCreateEnterprise)
-            setMessage("帳號尚無可用的企業開通資格。");
-        },
-        (e) => setMessage(errorMessage(e)),
-      );
-    else
-      void run(
-        (signal) =>
-          request(
-            (api, s) =>
-              api.GET("/api/v1/enterprises/{enterpriseId}", {
-                params: { path: { enterpriseId: id } },
-                signal: s,
-              }),
-            { signal },
-          ),
-        setView,
-        (e) => setMessage(errorMessage(e)),
-      );
+    if (!user || create) return;
+    void run(
+      (signal) =>
+        request(
+          (api, s) =>
+            api.GET("/api/v1/enterprises/{enterpriseId}", {
+              params: { path: { enterpriseId: id } },
+              signal: s,
+            }),
+          { signal },
+        ),
+      setView,
+      (e) => setMessage(errorMessage(e)),
+    );
     return cancel;
   }, [id, create, user, request, run, cancel]);
   function form(
@@ -111,8 +97,8 @@ export function Enterprise({ id }: { id: string }) {
   if (!user) return null;
   return (
     <section className="grid gap-4">
-      {message && <p role="status">{message}</p>}
-      {create && eligible && form("create", "企業名稱", "建立企業")}
+      {(message || eligibilityMessage) && <p role="status">{message || eligibilityMessage}</p>}
+      {create && context?.canCreateEnterprise && form("create", "企業名稱", "建立企業")}
       {view && (
         <>
           <h2>{view.name}</h2>

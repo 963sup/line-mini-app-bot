@@ -2,6 +2,7 @@ import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { Enterprise } from "../src/business/enterprise/Enterprise";
 import { Shell } from "../src/shell/Shell";
 import { useSession } from "../src/identity/Session";
 
@@ -20,7 +21,7 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
   window.history.replaceState(null, "", "/miniapp/review");
   document.body.innerHTML = '<div id="root"></div>';
   const originalFetch = globalThis.fetch, originalSDK = window.liff;
-  let organizationRevoked = false;
+  let organizationRevoked = false, organizationReads = 0;
   let initialization = 0, login = 0, logout = 0, loggedIn = false, revocations = 0;
   let failInitialization: (() => void) | undefined;
   window.liff = {
@@ -41,6 +42,7 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
         organizationRevoked = true;
         return Response.json({error:{code:"not_found",message:"找不到組織。"}},{status:404});
       }
+      organizationReads++;
       const options = (organizationRevoked ? ["org1"] : ["org1","org2"]).map(id => ({organizationId:id,name:"台北營運",detail:id}));
       return Response.json({enterprises:[{id:"hq",name:"總公司"}],canCreateEnterprise:!organizationRevoked,groups:[{enterpriseId:"hq",label:"總公司",organizations:options}],selected:{organizationId:"org1",name:"台北營運",groupLabel:"總公司"},canSwitch:options.length>1});
     }
@@ -71,7 +73,7 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
     await act(async () => { document.getElementById(id)!.click(); await flush(); });
   };
   try {
-    await act(async () => { root.render(<Shell title="授權審核" workflow="review"><PrivateContent /></Shell>); await flush(); });
+    await act(async () => { root.render(<Shell title="授權審核" workflow="review"><PrivateContent /><Enterprise id="new" /></Shell>); await flush(); });
     const notice = () => document.querySelector<HTMLElement>('[aria-label="LINE 身分狀態"]');
     assert.equal(notice()!.getAttribute("role"), "status");
     assert.equal(notice()!.getAttribute("aria-busy"), "true");
@@ -113,12 +115,17 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
     });
     assert.ok(document.querySelector('a[href="/miniapp?enterprise=hq"]'));
     assert.ok(document.querySelector('a[href="/miniapp?enterprise=new"]'));
+    assert.equal(organizationReads, 1);
+    assert.match(document.body.textContent!, /建立企業/);
     const choices = [...document.querySelectorAll<HTMLElement>('[role="menuitemradio"]')];
     assert.equal(choices.length,2);
     assert.equal(choices[0].getAttribute("aria-checked"),"true");
     assert.match(choices[1].textContent!,/org2/);
     await act(async () => { choices[1].click(); await flush(); });
     assert.ok(organizationRevoked);
+    assert.equal(organizationReads, 2);
+    assert.match(document.body.textContent!, /帳號尚無可用的企業開通資格|找不到組織/);
+    assert.ok(![...document.querySelectorAll("button")].some(b => b.textContent === "建立企業"));
     assert.equal(document.querySelector('a[href="/miniapp?enterprise=new"]'),null);
     assert.equal(document.querySelector('[aria-label="切換組織"]'),null);
     await openMenu();
