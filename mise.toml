@@ -56,7 +56,7 @@ python = "3.12.14"
 "npm:repomix" = "1.18.1"
 "npm:shadcn" = "4.23.0"
 "npm:next-devtools-mcp" = "0.4.0"
-"npm:mermaid" = "13.0.0-alpha.3"
+"npm:mermaid" = { version = "13.0.0-alpha.3", trust_policy_excludes = ["mermaid@13.0.0-alpha.3"] }
 "npm:skills" = "1.7.6"
 gcloud = "592.0.0"
 "npm:firebase-tools" = "15.37.0"
@@ -150,7 +150,6 @@ run = [
 
 [tasks.install-mermaid]
 description = "Install the pinned Mermaid CLI"
-env = { MISE_NPM_SHELL_OUT = "true", MISE_NPM_PACKAGE_MANAGER = "npm" }
 run = "mise install node npm:mermaid"
 
 [tasks.render-mermaid]
