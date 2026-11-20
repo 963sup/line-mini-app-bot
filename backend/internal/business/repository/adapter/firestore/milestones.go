@@ -14,14 +14,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/persistence/grpcstatus"
+	"github.com/963sup/line-mini-app-bot/internal/platform/grpcstatus"
 
 	db "cloud.google.com/go/firestore"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
 )
 
 type milestoneDocument struct {

@@ -55,7 +55,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["目前實作"]
-  h --- n0["backend/cmd/server → internal/server → 各功<br/>能入口與整合實作。 核心只依賴標準庫與明確的<br/>純核心子套件。HTTP 使用生成 DTO 與所需能力介<br/>面，Firestore 使用獨立 document structs 並轉<br/>譯技術錯誤；HTTP 不依賴儲存 SDK。 共用傳輸不<br/> import 功能，OpenAPI 接線只依賴生成型別與 <br/>http.Handler。LINE 與 HTTP 共用由 server 注<br/>入的出勤 store／時區／群組名稱能力，HTTP 不<br/>再從 LINE handler 取得依賴。"]
+  h --- n0["backend/cmd/server → internal/bootstrap → 各功<br/>能入口與整合實作。 核心只依賴標準庫與明確的<br/>純核心子套件。HTTP 使用生成 DTO 與所需能力介<br/>面，Firestore 使用獨立 document structs 並轉<br/>譯技術錯誤；HTTP 不依賴儲存 SDK。 共用傳輸不<br/> import 功能，OpenAPI 接線只依賴生成型別與 <br/>http.Handler。LINE 與 HTTP 共用由 bootstrap 注<br/>入的出勤 store／時區／群組名稱能力，HTTP 不<br/>再從 LINE handler 取得依賴。"]
   h --- n1["規則與驗證見 後端功能邊界。Go 的隱式介面與直<br/>接依賴由編譯及架構檢查約束，Graphify 用於輔<br/>助探索而非動態正確性證明。"]
   click n1 "backend-boundaries.md"
   h --- n2["以下完整分層表與圖保留為未來平台規劃，並非目<br/>前檔案樹。"]

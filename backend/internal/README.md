@@ -2,15 +2,15 @@
 
 ## 用途與範圍
 
-保存 Go 後端的內部套件。業務功能放在 `business/`，服務組裝放在 `server/`，其餘套件提供身分驗證、請求傳輸、導覽及資料存取等共用基礎能力。
+保存 Go 後端的內部套件。業務功能放在 `business/`，服務組裝放在 `bootstrap/`，其餘套件提供身分驗證、請求傳輸、導覽及資料存取等共用基礎能力。
 
 ## 架構與責任邊界
 
-依目錄用途提供後端入口或共用能力；服務接線由 server 負責，資源授權與使用案例歸各業務領域。
+依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
 
 ## 閱讀與修改入口
 
-先查閱[architecture](architecture)、[browser](browser)、[business](business)、[diagnostics](diagnostics)、[本目錄工作指引](AGENTS.md)。
+先查閱[architecture](architecture)、[browser](transport/http/browser)、[business](business)、[diagnostics](transport/http/geolocation)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 
@@ -42,7 +42,7 @@ internal/
         └── scheduler/           # Scheduled Trigger
 ```
 
-閱讀一項功能時，可從適配器找到入口，再追到應用層的使用案例及領域層的規則。外部請求與資料格式由適配器轉換，跨層接線由 `server/` 負責。
+閱讀一項功能時，可從適配器找到入口，再追到應用層的使用案例及領域層的規則。外部請求與資料格式由適配器轉換，跨層接線由 `bootstrap/` 負責。
 
 ## 驗證入口
 
@@ -50,6 +50,10 @@ Go 檢查與測試方式見[後端工作指引](../AGENTS.md#驗證)。涉及 Fi
 
 ## 閱讀入口
 
-從 [architecture](architecture)、[browser](browser)、[business](business)、[diagnostics](diagnostics)、[httpapi](httpapi)、[identity](identity) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
+從 [architecture](architecture)、[browser](transport/http/browser)、[business](business)、[diagnostics](transport/http/geolocation)、[httpapi](httpapi)、[identity](identity) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：格式與資料相容](../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../../docs/diagrams.md#未來設計)
+
+## 共用技術與入口
+
+[platform](platform) 提供文件鍵、分頁游標與 gRPC 錯誤轉換。[bootstrap](bootstrap) 建立 client 並接線。[navigation](navigation) 組裝跨功能選單。[httpapi](httpapi) 維護 OpenAPI 生成契約與路由分派。

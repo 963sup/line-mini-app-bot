@@ -2,7 +2,7 @@
 
 ## 用途與範圍
 
-提供天氣預報功能。`forecast/` 內含預報流程、中央氣象署來源與 LINE 回覆呈現。
+提供天氣預報功能。預報模型位於 `domain/entity/forecast/`，中央氣象署與 LINE 整合分別位於 `adapter/cwa/forecast/` 和 `adapter/line/forecast/`。
 
 ## 架構與責任邊界
 
@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[forecast](forecast)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+先查閱[forecast](domain/entity/forecast)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
 
 ## 相關規格
 

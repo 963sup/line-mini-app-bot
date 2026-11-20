@@ -2,7 +2,7 @@
 
 ## 用途與範圍
 
-採用 **依業務領域拆分（package by domain）**。業務規則與使用案例放在負責該操作的套件，HTTP、LINE 與 Firestore 轉接器依領域分工。跨領域操作透過明確的介面協作；服務與路由的組裝由 `internal/server` 負責。
+採用 **依業務領域拆分（package by domain）**。業務規則與使用案例放在負責該操作的套件，HTTP、LINE 與 Firestore 轉接器依領域分工。跨領域操作透過明確的介面協作；服務與路由的組裝由 `internal/bootstrap` 負責。
 
 ## 架構與責任邊界
 

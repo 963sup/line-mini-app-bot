@@ -1,6 +1,6 @@
 # Attendance 適配器層
 
-適配器呼叫用例或實作 port，由 server 組裝。
+適配器呼叫用例或實作 port，由 bootstrap 組裝。
 
 ## 目錄與責任
 

@@ -15,7 +15,7 @@ import (
 	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
 
-	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

@@ -2,15 +2,15 @@
 
 ## 用途與範圍
 
-保存 Go 後端的內部套件。業務功能放在 `business/`，服務組裝放在 `server/`，其餘套件提供身分驗證、請求傳輸、導覽及資料存取等共用基礎能力。
+保存 Go 後端的內部套件。業務功能放在 `business/`，服務組裝放在 `bootstrap/`，其餘套件提供身分驗證、請求傳輸、導覽及資料存取等共用基礎能力。
 
 ## 架構與責任邊界
 
-依目錄用途提供後端入口或共用能力；服務接線由 server 負責，資源授權與使用案例歸各業務領域。
+依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
 
 ## 閱讀與修改入口
 
-先查閱[architecture](architecture)、[browser](browser)、[business](business)、[diagnostics](diagnostics)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+先查閱[architecture](architecture)、[browser](transport/http/browser)、[business](business)、[diagnostics](transport/http/geolocation)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
 
 ## 相關規格
 
@@ -42,7 +42,7 @@ internal/
         └── scheduler/           # Scheduled Trigger
 ```
 
-依賴由外向內。應用層協調領域規則並定義所需介面，適配器呼叫使用案例或實作輸出介面，領域層保持獨立於 HTTP、LINE 與 Firestore。由 `server/` 組裝依賴。
+依賴由外向內。應用層協調領域規則並定義所需介面，適配器呼叫使用案例或實作輸出介面，領域層保持獨立於 HTTP、LINE 與 Firestore。由 `bootstrap/` 組裝依賴。
 
 ## 修改與驗證
 

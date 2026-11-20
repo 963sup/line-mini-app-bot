@@ -7,7 +7,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
+	dto "github.com/963sup/line-mini-app-bot/internal/business/organization/application/dto"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
 	"github.com/google/uuid"
 )
 
@@ -29,7 +30,7 @@ func TestCreationConversation(t *testing.T) {
 	root := db.Collection("channels").Doc(s.Channel)
 	user := "U" + strings.Repeat("a", 32)
 	at := time.Now().Add(-time.Minute)
-	send := func(key, text string) *CreationReply {
+	send := func(key, text string) *dto.CreationReply {
 		t.Helper()
 		at = at.Add(time.Millisecond)
 		r, e := s.Conversation(ctx, user, key, text, at)
@@ -57,7 +58,7 @@ func TestCreationConversation(t *testing.T) {
 		t.Fatal("duplicate resource", e)
 	}
 	send("timeout", "建立組織")
-	ref := root.Collection("creationConversations").Doc(firestorekey.Digest([]byte(user)))
+	ref := root.Collection("Conversations").Doc(firestorekey.Digest([]byte(user)))
 	if _, e := ref.Update(ctx, []firestore.Update{{Path: "Expires", Value: time.Now().Add(-time.Second)}}); e != nil {
 		t.Fatal(e)
 	}

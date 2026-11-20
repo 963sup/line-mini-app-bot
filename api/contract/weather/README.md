@@ -26,7 +26,7 @@
 - 重送：位置事件不重查；回覆失敗不保證送達，使用者可重新分享。
 
 後端 core、CWA adapter、LINE adapter 分別位於 business/weather/forecast、其 cwa/、line/。
-組裝在 internal/server/line.go，與出勤、摘要資料層無依賴。
+組裝在 internal/bootstrap/line.go，與出勤、摘要資料層無依賴。
 沒有既有公開 Weather HTTP API 或 MINI App 天氣畫面。
 
 [現行實作圖：基礎入口](../../../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../../../docs/diagrams.md#未來設計)

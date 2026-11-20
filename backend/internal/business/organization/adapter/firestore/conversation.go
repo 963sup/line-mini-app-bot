@@ -1,28 +1,23 @@
 package organizationdb
 
 import (
-	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
-)
-
-import (
 	"context"
 	"errors"
 	"strings"
 	"time"
 
+	"cloud.google.com/go/firestore"
 	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
-
-	"cloud.google.com/go/firestore"
-
-	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
+	dto "github.com/963sup/line-mini-app-bot/internal/business/organization/application/dto"
+	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type (
-	CreationReply   struct{ Text, Kind, ID string }
 	pendingCreation struct {
 		Kind    string
 		Started int64
@@ -31,12 +26,12 @@ type (
 )
 
 // Conversation commits the resource, prompt state and replay receipt together.
-func (s Store) Conversation(ctx context.Context, user, eventID, text string, at time.Time) (*CreationReply, error) {
+func (s Store) Conversation(ctx context.Context, user, eventID, text string, at time.Time) (*dto.CreationReply, error) {
 	text = strings.TrimSpace(text)
 	now := time.Now()
 	id := uuid.NewString()
-	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*CreationReply, error) {
-		state := root.Collection("creationConversations").Doc(firestorekey.Digest([]byte(user)))
+	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*dto.CreationReply, error) {
+		state := root.Collection("Conversations").Doc(firestorekey.Digest([]byte(user)))
 		receipt := state.Collection("events").Doc(firestorekey.Digest([]byte(eventID)))
 		var pending pendingCreation
 		snap, e := tx.Get(state)
@@ -51,7 +46,7 @@ func (s Store) Conversation(ctx context.Context, user, eventID, text string, at 
 		}
 		snap, e = tx.Get(receipt)
 		if e == nil {
-			var reply CreationReply
+			var reply dto.CreationReply
 			e = snap.DataTo(&reply)
 			return &reply, e
 		}
@@ -61,7 +56,7 @@ func (s Store) Conversation(ctx context.Context, user, eventID, text string, at 
 		if at.UnixMilli() < pending.Started {
 			return nil, nil
 		}
-		reply := CreationReply{}
+		reply := dto.CreationReply{}
 		switch {
 		case text == "建立組織" || text == "建立企業":
 			kind := "organization"
@@ -105,7 +100,7 @@ func (s Store) Conversation(ctx context.Context, user, eventID, text string, at 
 			if kind == "enterprise" {
 				v, err := enterprisedb.CreateInTransaction(tx, root, user, id, text, false)
 				if errors.Is(err, organizationDomainEntity.ErrForbidden) {
-					reply = CreationReply{Text: "帳號目前沒有可用的企業開通資格。"}
+					reply = dto.CreationReply{Text: "帳號目前沒有可用的企業開通資格。"}
 					pending.Kind = ""
 					break
 				}

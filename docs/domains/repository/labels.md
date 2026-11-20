@@ -103,5 +103,5 @@ flowchart LR
   h["標籤引用切片"]
   h --- n0["Mermaid 原始檔。問題與討論沿用既有 PATCH，留<br/>言不套用標籤。標籤建立者沒有因此取得修改他人<br/>內容的權限。過期版本回 409；任何引用驗證失敗<br/>都不提交更新。成功只改該資源與既有更新紀錄（<br/>操作者、版本、時間），標籤與共用編號不變，也<br/>不產生通知或公開稽核端點。"]
   click n0 "diagrams/resource-classification.mermaid"
-  h --- n1["既有未含 labelIds 的資料讀作空集合，HTTP 新<br/>回應提供陣列（可選欄位，不回 null），舊更新<br/>請求省略欄位時不清空關聯。既有建立收據 v1 雜<br/>湊與 ID／number 分配完全不變，不掃描或回填歷<br/>史資料。 核心只共用 labels.NormalizeIDs 這個<br/>實際跨業務需要的值驗證；各領域保留自己的用例<br/>及版本規則。Firestore adapters 透過小型 <br/>LabelValidator 介面，在同一交易的寫入前驗證<br/>引用，由 server 注入既有 Repository Store，<br/>不建立共通操作引擎或新 client。 前端共用 <br/>business/repository/labels/Picker，透過既有<br/>目錄 API 分頁讀取名稱；載入或失敗不清除目前<br/>選取，讀取更多頁不觸發表單送出。目前成員選取或移除分類後沿用資源版本與衝突處理。"]
+  h --- n1["既有未含 labelIds 的資料讀作空集合，HTTP 新<br/>回應提供陣列（可選欄位，不回 null），舊更新<br/>請求省略欄位時不清空關聯。既有建立收據 v1 雜<br/>湊與 ID／number 分配完全不變，不掃描或回填歷<br/>史資料。 核心只共用 labels.NormalizeIDs 這個<br/>實際跨業務需要的值驗證；各領域保留自己的用例<br/>及版本規則。Firestore adapters 透過小型 <br/>LabelValidator 介面，在同一交易的寫入前驗證<br/>引用，由 bootstrap 注入既有 Repository Store，<br/>不建立共通操作引擎或新 client。 前端共用 <br/>business/repository/labels/Picker，透過既有<br/>目錄 API 分頁讀取名稱；載入或失敗不清除目前<br/>選取，讀取更多頁不觸發表單送出。目前成員選取或移除分類後沿用資源版本與衝突處理。"]
 ```

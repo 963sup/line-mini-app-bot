@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/963sup/line-mini-app-bot/internal/identity"
-	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
 
 	db "cloud.google.com/go/firestore"
 
