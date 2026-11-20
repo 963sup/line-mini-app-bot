@@ -1,5 +1,9 @@
 # api/contract/identity 目錄導覽
 
+## 目錄用途
+
+定義前端登入與身分相關的 API 契約。
+
 從 [identity.yaml](identity.yaml) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：續期交易與前端觸發](../../../docs/architecture/identity/browser-session.md#續期交易與前端觸發) · [未來設計圖](../../../docs/diagrams.md#未來設計)

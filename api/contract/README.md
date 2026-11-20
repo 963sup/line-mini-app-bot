@@ -1,5 +1,9 @@
 # 契約能力索引
 
+## 目錄用途
+
+採用 **按領域拆分 OpenAPI 契約（modular OpenAPI）**。各領域維護自己負責的操作與 schema，公開入口 `openapi.yaml` 與內部入口 `internal-openapi.yaml` 透過 `$ref` 組合。依操作責任決定契約歸屬，調整來源檔後透過既有流程產生 Go 與 TypeScript 程式碼。
+
 本目錄以能力歸屬組織契約。公開 HTTP、事件與內部工作入口有不同形式，不能因歸類而新增公開 API。功能授權與業務規則仍由對應功能文件定義。
 
 | 能力／責任 | 來源 | 範圍 |
@@ -8,6 +12,9 @@
 | 共用傳輸契約 | [common/transport.yaml](common/transport.yaml) | APIError、Bearer 與 Cookie security schemes；不承載業務模型 |
 | Identity | [identity/identity.yaml](identity/identity.yaml) | MINI App 公開設定、本人、Session 建立／續期／撤銷及其 DTO |
 | Repository | [repository/repositories.yaml](repository/repositories.yaml) | 容器列表、詳情、分頁及容器 DTO；不提供手動建立或管理 API |
+| Enterprise | [enterprises.yaml](enterprise/enterprises.yaml)、[types.yaml](enterprise/types.yaml) | 企業開通、詳情、Owner 與組織連結 |
+| Organization | [context.yaml](organization/context.yaml) | 組織選取、建立及 Owner 移轉 |
+| Team | [teams.yaml](team/teams.yaml) | 團隊管理、組織團隊查詢與企業團隊指派 |
 | Group | [group/groups.yaml](group/groups.yaml) | 工程群組列表、詳情與當下成員資格 |
 | Repository / Space | [repository/spaces.yaml](repository/spaces.yaml) | 庫內工區，沿用所屬 Repository 的授權 |
 | Project | [project/owner-projects.yaml](project/owner-projects.yaml) | 個人或工程群組擁有的專案與items，來源唯讀；[Project規格](../../docs/domains/project.md) |

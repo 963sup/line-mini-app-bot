@@ -1,5 +1,9 @@
 # 空間問題
 
+## 目錄用途
+
+組合 Repository 事項及其狀態與留言操作。
+
 操作權限、狀態、API、資料與驗收依 [問題規格](../../../../../docs/domains/repository/issues.md) 維護；本模組只保存對應業務實作。
 
 [現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期) · [未來設計圖](../../../../../docs/diagrams.md#未來設計)

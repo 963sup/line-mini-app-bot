@@ -1,5 +1,9 @@
 # api/codegen 目錄導覽
 
+## 目錄用途
+
+配置公開與內部 Go API 的程式碼產生流程。
+
 從 [go.yaml](go.yaml)、[internal-go.yaml](internal-go.yaml) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：基礎入口](../../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../../docs/diagrams.md#未來設計)

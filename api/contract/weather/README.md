@@ -1,5 +1,9 @@
 # Weather / Forecast 既有入口契約
 
+## 目錄用途
+
+記錄天氣預報的 LINE 互動入口。
+
 本文件描述既有 LINE 入口，不加入公開 OpenAPI、不產生瀏覽器 client。
 完整產品規則見 [群組位置天氣](../../../docs/domains/weather.md)。
 

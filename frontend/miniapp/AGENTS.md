@@ -10,6 +10,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+## 目錄用途
+
+保存 LINE MINI App 的 Next.js 應用、建置設定與測試。
+
 ## shadcn 與 sidebar-07 保護
 
 任何 UI 任務先讀 [shared/ui/AGENTS.md](src/shared/ui/AGENTS.md) 的官方元件目錄、保護規則及 Skill／MCP 主動查詢流程；先探索、核對已安裝項目，再於應用層組合。
