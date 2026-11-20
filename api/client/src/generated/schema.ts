@@ -1399,6 +1399,8 @@ export interface components {
             labelIds?: string[];
             /** @description Same repository milestone; omitted on update preserves, null clears */
             milestoneId?: string | null;
+            /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
+            canEdit: boolean;
         };
         IssueCreation: {
             title: string;
@@ -1437,6 +1439,8 @@ export interface components {
             updatedAt: string;
             /** @description Same-repository label IDs. Update omission preserves existing references; [] clears them. Requires the existing resource author and expectedVersion. */
             labelIds?: string[];
+            /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
+            canEdit: boolean;
         };
         DiscussionCreation: {
             title: string;
@@ -1467,6 +1471,8 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
+            canEdit: boolean;
         };
         DiscussionCommentCreation: {
             body: string;
@@ -1514,6 +1520,8 @@ export interface components {
             issueCount: number;
             /** Format: int64 */
             completedIssueCount: number;
+            /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
+            canEdit: boolean;
         };
         MilestoneCreation: {
             title: string;
@@ -1556,6 +1564,8 @@ export interface components {
             sourceAvailable?: boolean;
             linkedRepositoryIds?: string[];
             defaultRepositoryId: string;
+            /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
+            canEdit: boolean;
         };
         ProjectCreation: {
             title: string;
@@ -1664,6 +1674,8 @@ export interface components {
             completedQuantity?: string;
             /** @description Optional repository-owned business Space ID, never a LINE Group ID. Empty means unassigned; omitted update preserves the current assignment. The server verifies the same repository and channel. */
             spaceId?: string;
+            /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
+            canEdit: boolean;
         };
         ObjectCreation: {
             name: string;

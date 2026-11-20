@@ -336,7 +336,8 @@
           "creatorId",
           "version",
           "createdAt",
-          "updatedAt"
+          "updatedAt",
+          "canEdit"
         ],
         "properties": {
           "id": {
@@ -403,6 +404,10 @@
             "pattern": "^[a-f0-9]{32}$",
             "nullable": true,
             "description": "Same repository milestone; omitted on update preserves, null clears"
+          },
+          "canEdit": {
+            "type": "boolean",
+            "description": "Whether the authenticated actor may edit the content. Writes recheck authorization."
           }
         }
       },

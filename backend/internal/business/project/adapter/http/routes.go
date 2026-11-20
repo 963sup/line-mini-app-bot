@@ -87,11 +87,11 @@ func Register(mux *http.ServeMux, service *projectApplication.Service, auth Auth
 	httpapi.RegisterOwnerProjects(mux, &projectServer{service}, wrap)
 }
 
-func view(i projectDomainEntity.Project) generated.Project {
+func view(i projectDomainEntity.Project, actor string) generated.Project {
 	if i.LinkedRepositoryIDs == nil {
 		i.LinkedRepositoryIDs = []string{}
 	}
-	return generated.Project{Id: i.ID, Title: i.Title, Body: i.Body, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, IssueCount: i.IssueCount, CompletedIssueCount: i.CompletedIssueCount, OwnerId: i.OwnerID, DefaultRepositoryId: i.DefaultRepositoryID, LinkedRepositoryIds: &i.LinkedRepositoryIDs, SourceAvailable: &i.SourceAvailable}
+	return generated.Project{CanEdit: i.CanEdit(actor), Id: i.ID, Title: i.Title, Body: i.Body, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, IssueCount: i.IssueCount, CompletedIssueCount: i.CompletedIssueCount, OwnerId: i.OwnerID, DefaultRepositoryId: i.DefaultRepositoryID, LinkedRepositoryIds: &i.LinkedRepositoryIDs, SourceAvailable: &i.SourceAvailable}
 }
 
 func writeError(w http.ResponseWriter, e error) bool {
@@ -130,7 +130,7 @@ func (s *projectServer) ListProjects(w http.ResponseWriter, r *http.Request, rep
 	}
 	items := make([]generated.Project, 0, len(page.Items))
 	for _, i := range page.Items {
-		items = append(items, view(i))
+		items = append(items, view(i, identity.UserID(r.Context())))
 	}
 	transport.WriteJSON(w, 200, generated.ProjectPage{Items: items, NextCursor: page.NextCursor})
 }
@@ -138,7 +138,7 @@ func (s *projectServer) ListProjects(w http.ResponseWriter, r *http.Request, rep
 func (s *projectServer) GetProject(w http.ResponseWriter, r *http.Request, repositoryId, id string) {
 	i, e := s.service.Get(r.Context(), identity.UserID(r.Context()), repositoryId, id)
 	if !writeError(w, e) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }
 
@@ -149,7 +149,7 @@ func (s *projectServer) CreateProject(w http.ResponseWriter, r *http.Request, re
 	}
 	i, e := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryId, p.IdempotencyKey, projectDomainEntity.Content{Title: input.Title, Body: input.Body})
 	if !writeError(w, e) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }
 
@@ -170,7 +170,7 @@ func (s *projectServer) UpdateProject(w http.ResponseWriter, r *http.Request, re
 	}
 	i, e := s.service.Update(r.Context(), identity.UserID(r.Context()), repositoryId, id, update)
 	if !writeError(w, e) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }
 
@@ -197,14 +197,14 @@ func (s *projectServer) AddProjectItem(w http.ResponseWriter, r *http.Request, r
 	}
 	i, e := s.service.ChangeItem(r.Context(), identity.UserID(r.Context()), repositoryId, id, input.IssueId, true, input.ExpectedVersion)
 	if !writeError(w, e) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }
 
 func (s *projectServer) RemoveProjectItem(w http.ResponseWriter, r *http.Request, repositoryId, id, itemId string, p generated.RemoveProjectItemParams) {
 	i, e := s.service.ChangeItem(r.Context(), identity.UserID(r.Context()), repositoryId, id, itemId, false, p.ExpectedVersion)
 	if !writeError(w, e) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }
 
@@ -223,7 +223,7 @@ func (s *projectServer) CreateOwnerProject(w http.ResponseWriter, r *http.Reques
 	}
 	value, e := s.service.Create(r.Context(), identity.UserID(r.Context()), ownerId, p.IdempotencyKey, projectDomainEntity.Content{Title: input.Title, Body: input.Body, SourceRepositoryID: input.DefaultRepositoryId})
 	if !writeError(w, e) {
-		transport.WriteJSON(w, 200, view(value))
+		transport.WriteJSON(w, 200, view(value, identity.UserID(r.Context())))
 	}
 }
 

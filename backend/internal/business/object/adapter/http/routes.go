@@ -84,7 +84,7 @@ func Register(mux *http.ServeMux, service *objectApplication.Service, auth Authe
 	})
 }
 
-func view(i objectDomainEntity.Object) generated.Object {
+func view(i objectDomainEntity.Object, actor string) generated.Object {
 	var completed, spaceID *string
 	if i.SpaceID != "" {
 		spaceID = &i.SpaceID
@@ -92,7 +92,7 @@ func view(i objectDomainEntity.Object) generated.Object {
 	if i.CompletedQuantity != "" {
 		completed = &i.CompletedQuantity
 	}
-	return generated.Object{SpaceId: spaceID, CompletedQuantity: completed, Id: i.ID, RepositoryId: i.RepositoryID, Name: i.Name, Description: i.Description, Type: i.Type, Quantity: i.Quantity, Unit: i.Unit, Status: generated.ObjectStatus(i.Status), SourceDocument: i.SourceDocument, SourceRevision: i.SourceRevision, SourceItemNo: i.SourceItemNo, SourcePages: i.SourcePages, MaterialCode: i.MaterialCode, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
+	return generated.Object{CanEdit: i.CanEdit(actor), SpaceId: spaceID, CompletedQuantity: completed, Id: i.ID, RepositoryId: i.RepositoryID, Name: i.Name, Description: i.Description, Type: i.Type, Quantity: i.Quantity, Unit: i.Unit, Status: generated.ObjectStatus(i.Status), SourceDocument: i.SourceDocument, SourceRevision: i.SourceRevision, SourceItemNo: i.SourceItemNo, SourcePages: i.SourcePages, MaterialCode: i.MaterialCode, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
 }
 
 func writeError(w http.ResponseWriter, e error) bool {
@@ -129,7 +129,7 @@ func (s *objectServer) ListObjects(w http.ResponseWriter, r *http.Request, rid s
 	}
 	items := make([]generated.Object, 0, len(page.Items))
 	for _, i := range page.Items {
-		items = append(items, view(i))
+		items = append(items, view(i, identity.UserID(r.Context())))
 	}
 	transport.WriteJSON(w, 200, generated.ObjectPage{Items: items, NextCursor: page.NextCursor})
 }
@@ -137,7 +137,7 @@ func (s *objectServer) ListObjects(w http.ResponseWriter, r *http.Request, rid s
 func (s *objectServer) GetObject(w http.ResponseWriter, r *http.Request, rid, id string) {
 	i, e := s.service.Get(r.Context(), identity.UserID(r.Context()), rid, id)
 	if !writeError(w, e) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }
 
@@ -156,7 +156,7 @@ func (s *objectServer) CreateObject(w http.ResponseWriter, r *http.Request, rid 
 	c := objectDomainEntity.Content{SpaceID: value(in.SpaceId), CompletedQuantity: value(in.CompletedQuantity), Name: in.Name, Description: in.Description, Type: in.Type, Quantity: in.Quantity, Unit: in.Unit, SourceDocument: value(in.SourceDocument), SourceRevision: value(in.SourceRevision), SourceItemNo: value(in.SourceItemNo), SourcePages: value(in.SourcePages), MaterialCode: value(in.MaterialCode)}
 	i, e := s.service.Create(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, c)
 	if !writeError(w, e) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }
 
@@ -168,7 +168,7 @@ func (s *objectServer) UpdateObject(w http.ResponseWriter, r *http.Request, rid,
 	u := objectDomainEntity.Update{SpaceID: in.SpaceId, Content: objectDomainEntity.Content{CompletedQuantity: value(in.CompletedQuantity), Name: in.Name, Description: in.Description, Type: in.Type, Quantity: in.Quantity, Unit: in.Unit, SourceDocument: value(in.SourceDocument), SourceRevision: value(in.SourceRevision), SourceItemNo: value(in.SourceItemNo), SourcePages: value(in.SourcePages), MaterialCode: value(in.MaterialCode)}, Status: statusValue(in.Status), CompletedQuantity: in.CompletedQuantity, ExpectedVersion: in.ExpectedVersion, Sources: objectDomainEntity.SourceUpdate{SourceDocument: in.SourceDocument, SourceRevision: in.SourceRevision, SourceItemNo: in.SourceItemNo, SourcePages: in.SourcePages, MaterialCode: in.MaterialCode}}
 	i, e := s.service.Update(r.Context(), identity.UserID(r.Context()), rid, id, u)
 	if !writeError(w, e) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }
 

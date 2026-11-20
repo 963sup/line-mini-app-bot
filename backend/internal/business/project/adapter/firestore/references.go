@@ -275,7 +275,7 @@ func (s *Store) ChangeReference(ctx context.Context, r projectApplicationPort.Sc
 		if e != nil {
 			return e
 		}
-		if actor == "" || actor != current.CreatorID {
+		if !current.CanEdit(actor) {
 			return projectDomainEntity.ErrForbidden
 		}
 		snap, e = tx.Get(item)
@@ -367,7 +367,7 @@ func (s *Store) ReferencePresent(ctx context.Context, r projectApplicationPort.S
 		if e != nil {
 			return e
 		}
-		if actor == "" || current.CreatorID != actor {
+		if !current.CanEdit(actor) {
 			return projectDomainEntity.ErrForbidden
 		}
 		snap, e = tx.Get(parent.Collection("items").Doc(id))

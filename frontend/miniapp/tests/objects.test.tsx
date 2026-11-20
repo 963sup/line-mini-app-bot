@@ -9,7 +9,7 @@ import { View as Objects } from "../src/business/object/View";
 import { View as RepositoryView } from "../src/business/repository/View";
 
 const rid = "a".repeat(32), other = "b".repeat(32), oid = "c".repeat(32);
-const resource = (overrides = {}) => ({ id: oid, repositoryId: rid, name: "測試物件", description: "完整工作說明", type: "work", completedQuantity: "0", quantity: "11", unit: "SET", status: "not_started", sourceDocument: "sample-contract", sourceRevision: "v0", sourceItemNo: "40", sourcePages: "2-3", materialCode: "sample", creatorId: "A", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", ...overrides });
+const resource = (overrides = {}) => ({ id: oid, repositoryId: rid, name: "測試物件", description: "完整工作說明", type: "work", completedQuantity: "0", quantity: "11", unit: "SET", status: "not_started", sourceDocument: "sample-contract", sourceRevision: "v0", sourceItemNo: "40", sourcePages: "2-3", materialCode: "sample", canEdit: true, creatorId: "A", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", ...overrides });
 const flush = async () => { for (let i = 0; i < 10; i++) await new Promise<void>(resolve => setImmediate(resolve)); };
 async function fixture(handle: (request: Request, actor: string) => Promise<Response>, integrated = false, extractor?: typeof import("../src/business/object/pdf").extractPdf) {
   document.body.innerHTML = '<div id="root"></div>';
@@ -63,9 +63,9 @@ test("Object creation preserves exact quantity and source fields and retries an 
 
 test("Object detail is read-only for other creators and version conflicts require an explicit fresh read", async () => {
   let conflict = true; const patches: unknown[] = [];
-  const f = await fixture(async request => {
+  const f = await fixture(async (request, actor) => {
     if (request.method === "PATCH") { patches.push(await request.json()); if (conflict) return Response.json({ error: { code: "version_conflict", message: "版本已變更" } }, { status: 409 }); return Response.json(resource({ version: 3, status: "completed" })); }
-    return Response.json(new URL(request.url).pathname.endsWith(oid) ? resource({ version: 2 }) : { items: [resource()], nextCursor: "" });
+    return Response.json(new URL(request.url).pathname.endsWith(oid) ? resource({ version: 2, canEdit: actor === "A" }) : { items: [resource({canEdit:actor === "A"})], nextCursor: "" });
   });
   try {
     await f.click("測試物件"); await f.click("儲存物件");

@@ -29,6 +29,8 @@ type Milestone struct {
 	State, DueDate                           string
 }
 
+func (v Milestone) CanEdit(actor string) bool { return actor != "" && actor == v.CreatorID }
+
 type Content struct {
 	Title, Body string
 	DueDate     string
@@ -55,7 +57,7 @@ func Normalize(c Content) (Content, error) {
 }
 
 func CheckUpdate(current Milestone, actor string, version int64) error {
-	if actor == "" || actor != current.CreatorID {
+	if !current.CanEdit(actor) {
 		return ErrForbidden
 	}
 	if version < 1 {

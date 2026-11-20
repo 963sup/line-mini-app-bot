@@ -19,20 +19,19 @@ const initial: Creation = { name: "", type: "work", quantity: "1", unit: "SET", 
 const decimal = /^(?:0|[1-9][0-9]{0,17})(?:\.[0-9]{1,6})?$/;
 const exact = (value: string) => { const [whole, fraction = ""] = value.split("."); return BigInt(whole + fraction.padEnd(6, "0")); };
 const states = { not_started: "未開始", in_progress: "進行中", completed: "已完成" };
-type Props = { repositoryId: string; objectId: string; ownerId: string; parentEditing: boolean; onEdit: () => void; onBlocked: (value: boolean) => void; canWrite: () => boolean };
+type Props = { repositoryId: string; objectId: string; canEdit: boolean; parentEditing: boolean; onEdit: () => void; onBlocked: (value: boolean) => void; canWrite: () => boolean };
 
 export function View(props: Props) {
   const { user, epoch } = useSession();
   return <Content key={`${props.repositoryId}:${props.objectId}:${user?.userId}:${epoch}`} {...props} />;
 }
-function Content({ repositoryId, objectId, ownerId, parentEditing, onEdit, onBlocked, canWrite }: Props) {
-  const { user, request } = useSession(), read = useLatestRequest(), write = useLatestRequest();
+function Content({ repositoryId, objectId, canEdit, parentEditing, onEdit, onBlocked, canWrite }: Props) {
+  const { request } = useSession(), read = useLatestRequest(), write = useLatestRequest();
   const [items, setItems] = useState<Resource[]>([]), [cursor, setCursor] = useState("");
   const [loading, setLoading] = useState(false), [readStatus, setReadStatus] = useState("");
   const [selected, setSelected] = useState<Resource | null>(null), [editing, setEditing] = useState(false), [content, setContent] = useState<Creation>(initial);
   const [busy, setBusy] = useState(false), [uncertain, setUncertain] = useState(false), [refresh, setRefresh] = useState(false), [status, setStatus] = useState("");
   const lock = useRef(false), unknown = useRef(false), navigation = useRef(false), pending = useRef<{ key: string; body: Creation } | null>(null);
-  const mine = user?.userId === ownerId;
   const baseline = useRef<Creation>(initial);
   const dirty = editing && JSON.stringify(content) !== JSON.stringify(baseline.current);
   const nameInput = useRef<HTMLInputElement>(null), editorPanel = useRef<HTMLFormElement>(null), opener = useRef<HTMLElement | null>(null);
@@ -69,7 +68,7 @@ function Content({ repositoryId, objectId, ownerId, parentEditing, onEdit, onBlo
     });
   }
   function edit(item: Resource | null, trigger: HTMLElement) {
-    if (!mine || lock.current || unknown.current || !repositoryGuard.canWrite() || !canWrite()) return;
+    if (!canEdit || lock.current || unknown.current || !repositoryGuard.canWrite() || !canWrite()) return;
     discard.navigate(() => {
       opener.current = trigger; onEdit(); read.cancel(); setLoading(false);
       navigation.current = true; setSelected(item); setEditing(true); setRefresh(false); setStatus(""); pending.current = null;
@@ -87,7 +86,7 @@ function Content({ repositoryId, objectId, ownerId, parentEditing, onEdit, onBlo
   }
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (discard.isConfirming() || !mine || lock.current || navigation.current || refresh || !repositoryGuard.canWrite() || !canWrite()) return;
+    if (discard.isConfirming() || !canEdit || lock.current || navigation.current || refresh || !repositoryGuard.canWrite() || !canWrite()) return;
     let body = pending.current && unknown.current ? pending.current.body : {...content, name:content.name.trim(), quantity:content.quantity.trim(), unit:content.unit.trim(), completedQuantity:content.completedQuantity?.trim()};
     if (!body.name || !body.unit || !decimal.test(body.quantity) || exact(body.quantity) === 0n) {setStatus("請填寫名稱、單位及大於零的數量（最多18位整數及6位小數）。");return;}
     if (body.type === "work") {
@@ -125,14 +124,14 @@ function Content({ repositoryId, objectId, ownerId, parentEditing, onEdit, onBlo
     <Button variant="outline" disabled={loading || busy || uncertain || editing} onClick={() => load()}>重新讀取子物件清單</Button>
     <ItemGroup className="min-w-0 gap-3">{items.map(item => <Item role="listitem" variant="outline" key={item.id} className="min-w-0">
       <ItemContent className="min-w-0">
-        <ItemTitle className="min-w-0 max-w-full">{mine ? <Button variant="link" aria-label={item.name} className="h-auto min-w-0 max-w-full whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || uncertain} onClick={event => edit(item, event.currentTarget)}>{item.name}</Button> : item.name}</ItemTitle>
+        <ItemTitle className="min-w-0 max-w-full">{canEdit ? <Button variant="link" aria-label={item.name} className="h-auto min-w-0 max-w-full whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || uncertain} onClick={event => edit(item, event.currentTarget)}>{item.name}</Button> : item.name}</ItemTitle>
       <p className="whitespace-normal [overflow-wrap:anywhere]">{item.quantity} {item.unit} · {item.type === "work" ? `施作 · ${states[item.status]} · ${item.completedQuantity}/${item.quantity} ${item.unit}` : "非施作 · 狀態與進度不適用"}</p>
       </ItemContent>
-      {mine && <ItemActions><Button variant="outline" aria-label={`編輯子物件：${item.name}`} disabled={busy || uncertain} onClick={event => edit(item, event.currentTarget)}>編輯</Button></ItemActions>}
+      {canEdit && <ItemActions><Button variant="outline" aria-label={`編輯子物件：${item.name}`} disabled={busy || uncertain} onClick={event => edit(item, event.currentTarget)}>編輯</Button></ItemActions>}
       {editing && selected?.id === item.id && <ItemFooter>{editor}</ItemFooter>}
     </Item>)}</ItemGroup>
     {cursor && <Button disabled={loading || busy || uncertain || editing} onClick={() => load(cursor)}>載入更多子物件</Button>}
-    {mine && <Button disabled={busy || uncertain} onClick={event => edit(null, event.currentTarget)}>新增子物件</Button>}
+    {canEdit && <Button disabled={busy || uncertain} onClick={event => edit(null, event.currentTarget)}>新增子物件</Button>}
     {editing && !selected && editor}
     {discard.dialog}
 

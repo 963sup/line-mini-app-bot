@@ -83,14 +83,14 @@ func Register(mux *http.ServeMux, service *issueapplication.Service, auth Authen
 	})
 }
 
-func view(i issueentity.Issue) generated.Issue {
+func view(i issueentity.Issue, actor string) generated.Issue {
 	ids := append([]string{}, i.LabelIDs...)
 	var milestone *string
 	if i.MilestoneID != "" {
 		v := i.MilestoneID
 		milestone = &v
 	}
-	return generated.Issue{MilestoneId: milestone, Id: i.ID, RepositoryId: i.RepositoryID, Number: i.Number, Title: i.Title, Body: i.Body, State: generated.IssueState(i.State), CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, LabelIds: &ids}
+	return generated.Issue{CanEdit: i.CanEdit(actor), MilestoneId: milestone, Id: i.ID, RepositoryId: i.RepositoryID, Number: i.Number, Title: i.Title, Body: i.Body, State: generated.IssueState(i.State), CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, LabelIds: &ids}
 }
 
 func writeError(w http.ResponseWriter, err error) bool {
@@ -131,7 +131,7 @@ func (s *issueServer) ListIssues(w http.ResponseWriter, r *http.Request, reposit
 	}
 	items := make([]generated.Issue, 0, len(page.Items))
 	for _, i := range page.Items {
-		items = append(items, view(i))
+		items = append(items, view(i, identity.UserID(r.Context())))
 	}
 	transport.WriteJSON(w, 200, generated.IssuePage{Items: items, NextCursor: page.NextCursor})
 }
@@ -139,7 +139,7 @@ func (s *issueServer) ListIssues(w http.ResponseWriter, r *http.Request, reposit
 func (s *issueServer) GetIssue(w http.ResponseWriter, r *http.Request, repositoryId string, id string) {
 	i, err := s.service.Get(r.Context(), identity.UserID(r.Context()), repositoryId, id)
 	if !writeError(w, err) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }
 
@@ -150,7 +150,7 @@ func (s *issueServer) CreateIssue(w http.ResponseWriter, r *http.Request, reposi
 	}
 	i, err := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryId, params.IdempotencyKey, issueentity.Content{Title: input.Title, Body: input.Body})
 	if !writeError(w, err) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }
 
@@ -173,6 +173,6 @@ func (s *issueServer) UpdateIssue(w http.ResponseWriter, r *http.Request, reposi
 	}
 	i, err := s.service.Update(r.Context(), identity.UserID(r.Context()), repositoryId, id, issueentity.Update{Content: issueentity.Content{Title: input.Title, Body: input.Body}, State: string(input.State), ExpectedVersion: input.ExpectedVersion, LabelIDs: input.LabelIds, MilestoneID: milestone})
 	if !writeError(w, err) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }

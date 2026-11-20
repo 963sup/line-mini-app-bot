@@ -317,7 +317,8 @@
           "issueCount",
           "completedIssueCount",
           "ownerId",
-          "defaultRepositoryId"
+          "defaultRepositoryId",
+          "canEdit"
         ],
         "properties": {
           "id": {
@@ -381,6 +382,10 @@
           "defaultRepositoryId": {
             "type": "string",
             "pattern": "^[a-f0-9]{32}$"
+          },
+          "canEdit": {
+            "type": "boolean",
+            "description": "Whether the authenticated actor may edit the content. Writes recheck authorization."
           }
         }
       },

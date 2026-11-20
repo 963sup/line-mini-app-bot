@@ -51,6 +51,8 @@ type Object struct {
 	CreatedAt, UpdatedAt                time.Time
 }
 
+func (v Object) CanEdit(actor string) bool { return actor != "" && actor == v.CreatorID }
+
 type SourceUpdate struct{ SourceDocument, SourceRevision, SourceItemNo, SourcePages, MaterialCode *string }
 
 type Update struct {
@@ -151,7 +153,7 @@ func Normalize(c Content) (Content, error) {
 }
 
 func ApplyUpdate(current Object, actor string, input Update) (Object, error) {
-	if actor == "" || actor != current.CreatorID {
+	if !current.CanEdit(actor) {
 		return Object{}, ErrForbidden
 	}
 	content := input.Content

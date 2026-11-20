@@ -46,7 +46,7 @@ func (s *Service) AddReference(ctx context.Context, actor, ownerID, pid string, 
 	if e != nil {
 		return projectDomainEntity.Project{}, e
 	}
-	if p.CreatorID != actor {
+	if !p.CanEdit(actor) {
 		return projectDomainEntity.Project{}, projectDomainEntity.ErrForbidden
 	}
 	if !projectDomainEntity.ValidReference(ref) || version < 1 {
@@ -77,7 +77,7 @@ func (s *Service) RemoveReference(ctx context.Context, actor, ownerID, pid, item
 	if e != nil {
 		return projectDomainEntity.Project{}, e
 	}
-	if p.CreatorID != actor {
+	if !p.CanEdit(actor) {
 		return projectDomainEntity.Project{}, projectDomainEntity.ErrForbidden
 	}
 	if !projectDomainEntity.ValidID(itemID) || version < 1 {
@@ -96,7 +96,7 @@ func (s *Service) ReferenceState(ctx context.Context, actor, ownerID, pid string
 	if err != nil {
 		return false, false, err
 	}
-	if p.CreatorID != actor {
+	if !p.CanEdit(actor) {
 		return false, false, projectDomainEntity.ErrForbidden
 	}
 	if ref.ID != "" {

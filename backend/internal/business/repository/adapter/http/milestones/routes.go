@@ -86,8 +86,8 @@ func Register(mux *http.ServeMux, service *repositoryApplicationMilestones.Servi
 	})
 }
 
-func view(i repositoryDomainEntityMilestones.Milestone) generated.Milestone {
-	return generated.Milestone{Id: i.ID, RepositoryId: i.RepositoryID, Title: i.Title, Body: i.Body, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, IssueCount: i.IssueCount, CompletedIssueCount: i.CompletedIssueCount, State: generated.MilestoneState(i.State), DueDate: i.DueDate}
+func view(i repositoryDomainEntityMilestones.Milestone, actor string) generated.Milestone {
+	return generated.Milestone{CanEdit: i.CanEdit(actor), Id: i.ID, RepositoryId: i.RepositoryID, Title: i.Title, Body: i.Body, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, IssueCount: i.IssueCount, CompletedIssueCount: i.CompletedIssueCount, State: generated.MilestoneState(i.State), DueDate: i.DueDate}
 }
 
 func writeError(w http.ResponseWriter, e error) bool {
@@ -122,7 +122,7 @@ func (s *milestoneServer) ListMilestones(w http.ResponseWriter, r *http.Request,
 	}
 	items := make([]generated.Milestone, 0, len(page.Items))
 	for _, i := range page.Items {
-		items = append(items, view(i))
+		items = append(items, view(i, identity.UserID(r.Context())))
 	}
 	transport.WriteJSON(w, 200, generated.MilestonePage{Items: items, NextCursor: page.NextCursor})
 }
@@ -130,7 +130,7 @@ func (s *milestoneServer) ListMilestones(w http.ResponseWriter, r *http.Request,
 func (s *milestoneServer) GetMilestone(w http.ResponseWriter, r *http.Request, repositoryId, id string) {
 	i, e := s.service.Get(r.Context(), identity.UserID(r.Context()), repositoryId, id)
 	if !writeError(w, e) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }
 
@@ -141,7 +141,7 @@ func (s *milestoneServer) CreateMilestone(w http.ResponseWriter, r *http.Request
 	}
 	i, e := s.service.Create(r.Context(), identity.UserID(r.Context()), repositoryId, p.IdempotencyKey, repositoryDomainEntityMilestones.Content{Title: input.Title, Body: input.Body, DueDate: input.DueDate})
 	if !writeError(w, e) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }
 
@@ -152,6 +152,6 @@ func (s *milestoneServer) UpdateMilestone(w http.ResponseWriter, r *http.Request
 	}
 	i, e := s.service.Update(r.Context(), identity.UserID(r.Context()), repositoryId, id, repositoryDomainEntityMilestones.Update{Content: repositoryDomainEntityMilestones.Content{Title: input.Title, Body: input.Body, DueDate: input.DueDate}, ExpectedVersion: input.ExpectedVersion, State: string(input.State)})
 	if !writeError(w, e) {
-		transport.WriteJSON(w, 200, view(i))
+		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
 }

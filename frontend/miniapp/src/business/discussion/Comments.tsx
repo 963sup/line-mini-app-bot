@@ -75,7 +75,7 @@ export function Comments({repositoryId,discussionId,onWriteStateChange}:{reposit
     );
   }
   function save(event:FormEvent){
-    event.preventDefault();if(!user||!editing||editing.authorId!==user.userId||lock.current||navigating.current||needsRefresh)return;
+    event.preventDefault();if(!user||!editing||!editing.canEdit||lock.current||navigating.current||needsRefresh)return;
     if(discard.isConfirming()||!guard.canWrite()||!onWriteStateChange(true))return;
     guard.block(true);
     const item=editing;lock.current=true;setBusy(true);setStatus("正在更新留言……");
@@ -99,7 +99,7 @@ export function Comments({repositoryId,discussionId,onWriteStateChange}:{reposit
       {items.map(item=><Item key={item.id} variant="outline" role="listitem"><ItemContent>
         <ItemTitle>{item.authorId===user?.userId?"本人":"空間成員"} · {displayTime(item.createdAt)}</ItemTitle>
         <p className="whitespace-pre-wrap break-words">{item.body}</p>
-        {item.authorId===user?.userId&&<Button variant="outline" disabled={busy||uncertain||needsRefresh} onClick={()=>discard.navigate(()=>{navigating.current=true;setBody("");setEditing(item);setEditBody(item.body);})}>編輯留言</Button>}
+        {item.canEdit&&<Button variant="outline" disabled={busy||uncertain||needsRefresh} onClick={()=>discard.navigate(()=>{navigating.current=true;setBody("");setEditing(item);setEditBody(item.body);})}>編輯留言</Button>}
       </ItemContent></Item>)}
     </ItemGroup>
     {loaded&&!items.length&&<Empty><EmptyHeader><EmptyTitle>目前沒有留言</EmptyTitle></EmptyHeader></Empty>}

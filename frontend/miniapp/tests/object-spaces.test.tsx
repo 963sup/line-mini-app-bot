@@ -8,7 +8,7 @@ import { Spaces } from "../src/business/repository/Spaces";
 import { View } from "../src/business/object/View";
 
 const rid = "a".repeat(32), sid = "b".repeat(32), oid = "c".repeat(32);
-const item = (spaceId?: string) => ({ id: oid, repositoryId: rid, name: "光纖", description: "", type: "work", completedQuantity: "0", quantity: "140", unit: "SET", status: "not_started", sourceDocument: "", sourceRevision: "", sourceItemNo: "", sourcePages: "", materialCode: "", creatorId: "A", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", ...(spaceId === undefined ? {} : { spaceId }) });
+const item = (spaceId?: string) => ({ id: oid, repositoryId: rid, name: "光纖", description: "", type: "work", completedQuantity: "0", quantity: "140", unit: "SET", status: "not_started", sourceDocument: "", sourceRevision: "", sourceItemNo: "", sourcePages: "", materialCode: "", canEdit: true, creatorId: "A", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", ...(spaceId === undefined ? {} : { spaceId }) });
 const space = { id: sid, repositoryId: rid, name: "機房", creatorId: "A", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" };
 const flush = async () => { for (let i = 0; i < 10; i++) await new Promise<void>(resolve => setImmediate(resolve)); };
 async function fixture(handle: (request: Request) => Promise<Response>, Panel = View) {

@@ -72,7 +72,7 @@ function Content({ repositoryId, extract }: Props) {
   useEffect(() => { formNavigation.current = false; });
   const canSubWrite = useCallback(() => !formNavigation.current && !lock.current && !busy && !uncertain && !listBusy && !detailBusy && !needsRefresh && !dirty && !discard.isConfirming() && repositoryGuard.canWrite(), [repositoryGuard.canWrite, busy, uncertain, listBusy, detailBusy, needsRefresh, dirty]);
   const canImportWrite = useCallback(() => !formNavigation.current && repositoryGuard.canWrite(), [repositoryGuard.canWrite]);
-  const mine = !!selected && selected.creatorId === user?.userId;
+  const canEdit = selected?.canEdit === true;
 
   const load = useCallback((next = "") => {
     if (!user || subLock.current) return;
@@ -128,7 +128,7 @@ function Content({ repositoryId, extract }: Props) {
   }
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (discard.isConfirming() || !user || subLock.current || importing || importLock.current || lock.current || formNavigation.current || needsRefresh || !repositoryGuard.canWrite() || (mode === "detail" && !mine)) return;
+    if (discard.isConfirming() || !user || subLock.current || importing || importLock.current || lock.current || formNavigation.current || needsRefresh || !repositoryGuard.canWrite() || (mode === "detail" && !canEdit)) return;
     const body = Object.fromEntries(Object.entries(content).map(([key, value]) => [key, value?.trim() || ""])) as Creation;
     setInvalidField(null);
     if (!body.name || !body.type || !body.unit) {
@@ -170,7 +170,7 @@ function Content({ repositoryId, extract }: Props) {
       <ReadFeedback busy={detailBusy} message={status} label="正在讀取物件……" />
       {mode === "detail" && <Button variant="outline" disabled={busy || detailBusy || subBlocked} onClick={() => open(activeId)}>重新讀取物件</Button>}
       {(mode === "create" || selected) && <form onSubmit={submit} onChange={() => setInvalidField(null)}><FieldGroup>
-        <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || subBlocked || uncertain || needsRefresh || (mode === "detail" && !mine)}>
+        <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || subBlocked || uncertain || needsRefresh || (mode === "detail" && !canEdit)}>
           <FormField>類型<NativeSelect value={content.type} onChange={event => {
             const type = event.target.value;
             setContent(previous => {
@@ -217,9 +217,9 @@ function Content({ repositoryId, extract }: Props) {
           <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{content.type === "non_work" ? "不適用" : selected ? progressLabel(selected) : "儲存後依完成數更新"}</p>
         </FieldSet>
 
-        {(mode === "create" || mine) && <Button type="submit" disabled={busy || detailBusy || needsRefresh || subBlocked}>{mode === "create" ? uncertain ? "重試原物件建立請求" : "建立物件" : "儲存物件"}</Button>}
+        {(mode === "create" || canEdit) && <Button type="submit" disabled={busy || detailBusy || needsRefresh || subBlocked}>{mode === "create" ? uncertain ? "重試原物件建立請求" : "建立物件" : "儲存物件"}</Button>}
       </FieldGroup></form>}
-      <Button type="button" variant="outline" disabled={busy || uncertain || needsRefresh || subBlocked} onClick={close}>{mine || mode === "create" ? "取消" : "關閉"}</Button>
+      <Button type="button" variant="outline" disabled={busy || uncertain || needsRefresh || subBlocked} onClick={close}>{canEdit || mode === "create" ? "取消" : "關閉"}</Button>
     </section>;
   if (importing) return <>
     <Button variant="outline" disabled={importBlocked} onClick={() => { if (!importLock.current) { formNavigation.current = true; setImporting(false); load(); } }}>返回物件清單</Button>
@@ -252,11 +252,11 @@ function Content({ repositoryId, extract }: Props) {
             <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{progressLabel(item)}</p>
           </ItemContent>
           <ItemActions className="flex-wrap">
-            {item.creatorId === user?.userId && <Button variant="outline" aria-label={`編輯物件：${item.name}`} disabled={busy || detailBusy || uncertain || needsRefresh || subBlocked} onClick={event => open(item.id, event.currentTarget)}>編輯</Button>}
+            {item.canEdit && <Button variant="outline" aria-label={`編輯物件：${item.name}`} disabled={busy || detailBusy || uncertain || needsRefresh || subBlocked} onClick={event => open(item.id, event.currentTarget)}>編輯</Button>}
           </ItemActions>
           {mode === "detail" && activeId === item.id && <ItemFooter>{editor}</ItemFooter>}
         </Item>
-        <CollapsibleContent className="min-w-0 ps-6 pt-3 sm:ps-10">{expanded === item.id && <Subobjects repositoryId={repositoryId} objectId={item.id} ownerId={item.creatorId} parentEditing={!!mode} onEdit={() => { opener.current = null; clearEditor(); }} onBlocked={subBlock} canWrite={canSubWrite}/>}</CollapsibleContent>
+        <CollapsibleContent className="min-w-0 ps-6 pt-3 sm:ps-10">{expanded === item.id && <Subobjects repositoryId={repositoryId} objectId={item.id} canEdit={item.canEdit} parentEditing={!!mode} onEdit={() => { opener.current = null; clearEditor(); }} onBlocked={subBlock} canWrite={canSubWrite}/>}</CollapsibleContent>
       </Collapsible>)}</ItemGroup>
       {loaded && !items.length && <Empty><EmptyHeader><EmptyTitle>尚無物件</EmptyTitle><EmptyDescription>可手動建立清單項目；選擇PDF可自動匯入支援的明細表。</EmptyDescription></EmptyHeader></Empty>}
       {cursor && <Button variant="outline" disabled={busy || listBusy || subBlocked || !!mode} onClick={() => load(cursor)}>載入更多物件</Button>}
