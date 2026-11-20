@@ -77,7 +77,7 @@ func Register(mux *http.ServeMux, service *objectApplication.Service, auth Authe
 				}
 				limit := int64(65536)
 				if extraction {
-					limit = 12 << 20 // JSON envelope for an 8 MiB base64 file.
+					limit = 4*((50_000_000+2)/3) + 65536 // Base64 plus JSON envelope for the Responses file limit.
 					timeout = 75 * time.Second
 				}
 				r.Body = http.MaxBytesReader(w, r.Body, limit)
