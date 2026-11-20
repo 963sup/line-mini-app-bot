@@ -2,6 +2,7 @@ package labels
 
 import (
 	"context"
+
 	repositoryApplicationDtoLabels "github.com/963sup/line-mini-app-bot/internal/business/repository/application/dto/labels"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 	repositoryDomainEntityLabels "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity/labels"

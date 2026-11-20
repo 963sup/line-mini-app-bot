@@ -2,6 +2,7 @@ package query
 
 import (
 	"context"
+
 	"github.com/963sup/line-mini-app-bot/internal/business/group/application/dto"
 	"github.com/963sup/line-mini-app-bot/internal/business/group/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"

@@ -2,6 +2,7 @@ package messagecollection
 
 import (
 	"context"
+
 	summaryDomainEntityMessagecollection "github.com/963sup/line-mini-app-bot/internal/business/summary/domain/entity/messagecollection"
 )
 

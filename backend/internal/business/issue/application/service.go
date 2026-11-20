@@ -6,12 +6,14 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/issue/application/query"
 )
 
-type Commands = command.Operations
-type Queries = query.Operations
-type Service struct {
-	Commands
-	Queries
-}
+type (
+	Commands = command.Operations
+	Queries  = query.Operations
+	Service  struct {
+		Commands
+		Queries
+	}
+)
 
 func New(repos port.Repositories, store port.Store) *Service {
 	a := port.Access{Repositories: repos, Store: store}

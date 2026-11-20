@@ -1,7 +1,5 @@
 package policy
 
-import ()
-
 func ValidState(state string) bool {
 	return state == "open" || state == "in_progress" || state == "completed"
 }
