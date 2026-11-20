@@ -13,7 +13,7 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/approvals"
 	correctionsmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/corrections"
 	recordmodel "github.com/963sup/line-mini-app-bot/internal/business/attendance/records"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/worktime"
+	"github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/worktime"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
