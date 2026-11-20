@@ -23,6 +23,12 @@ var (
 	ErrUnavailable     = errors.New("identity service unavailable")
 )
 
+// TokenRejection carries only a safe provider status, never its response body.
+type TokenRejection struct{ HTTPStatus int }
+
+func (e *TokenRejection) Error() string { return ErrRejectedToken.Error() }
+func (e *TokenRejection) Unwrap() error { return ErrRejectedToken }
+
 type userKey struct{}
 
 func WithUser(ctx context.Context, user User) context.Context {

@@ -54,6 +54,10 @@ func (a *Authenticator) verifyBearer(w http.ResponseWriter, r *http.Request) (id
 		switch {
 		case errors.Is(err, identity.ErrRejectedToken):
 			code, status, message = "unauthenticated", 401, "LINE 登入已失效，請重新登入。"
+			var rejected *identity.TokenRejection
+			if errors.As(err, &rejected) && (rejected.HTTPStatus == 400 || rejected.HTTPStatus == 401) {
+				message += fmt.Sprintf("（LINE HTTP %d）", rejected.HTTPStatus)
+			}
 		case errors.Is(err, identity.ErrInvalidClaims):
 			code, status, message = "unauthenticated", 401, "LINE 身分驗證未通過。"
 		case errors.Is(err, identity.ErrInvalidResponse):

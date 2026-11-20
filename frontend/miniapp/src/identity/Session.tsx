@@ -150,7 +150,10 @@ export function SessionProvider({
         }
       }).catch(() => { /* Missing profile permission must not block login. */ });
     } catch (error) {
-      if (current === generation.current) setStatus(errorMessage(error));
+      if (current === generation.current) {
+        const status = error instanceof Error && "httpStatus" in error ? error.httpStatus : undefined;
+        setStatus(status ? `HTTP ${status} · ${errorMessage(error)}` : errorMessage(error));
+      }
     } finally {
       clearTimeout(timer);
       active.current.delete(c);
@@ -308,7 +311,12 @@ export function SessionProvider({
       inClient,
       request,
       verify,
-      login: () => sdk.current?.login({ redirectUri: location.href }),
+      login: () => {
+        const liff = sdk.current;
+        if (!liff || liff.isInClient()) return;
+        if (liff.isLoggedIn()) liff.logout();
+        liff.login({ redirectUri: location.href });
+      },
       logout,
       close,
       autoPunch,

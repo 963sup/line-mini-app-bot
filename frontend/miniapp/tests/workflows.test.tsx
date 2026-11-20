@@ -47,6 +47,7 @@ async function fixture(
   let init = 0,
     close = 0,
     logout = 0;
+  const sdkEvents: string[] = [];
   const requests: Request[] = [],
     watchers: {
       ok: PositionCallback;
@@ -61,9 +62,10 @@ async function fixture(
     isInClient: () => client,
     getProfile: async () => ({ userId: "u1", pictureUrl: "https://profile.line-scdn.net/test-avatar" }),
     getIDToken: () => "token",
-    login: () => {},
+    login: () => { sdkEvents.push("login"); },
     logout: () => {
       logout++;
+      sdkEvents.push("logout");
     },
     closeWindow: () => {
       close++;
@@ -172,6 +174,7 @@ async function fixture(
     click,
     input,
     requests,
+    sdkEvents,
     watchers,
     get init() {
       return init;
@@ -710,6 +713,16 @@ test("failed server verification cannot enable a workflow; retry and external lo
   } finally {
     await f.dispose();
   }
+});
+for (const client of [false, true]) test("failed session login control respects LINE browser context: " + client, async () => {
+ const f=await fixture(<History/>,"",async(r,next)=>r.url.endsWith("/session")&&r.method==="POST" ? Response.json({error:{code:"unauthenticated",message:"LINE 登入已失效，請重新登入。（LINE HTTP 400）"}},{status:401}):next(r),client);
+ try {
+  assert.match(f.node("mini-status").textContent!,/HTTP 401.*LINE HTTP 400/);
+  const writes=f.requests.filter(r=>r.method!=="GET").length;
+  await f.click("login");
+  assert.deepEqual(f.sdkEvents,client?[]:["logout","login"]);
+  assert.equal(f.requests.filter(r=>r.method!=="GET").length,writes,"login redirect does not create another application session");
+ } finally {await f.dispose();}
 });
 test("pagehide rejects late identity responses; BFCache restoration verifies again", async () => {
   const f = await fixture(<History />);
