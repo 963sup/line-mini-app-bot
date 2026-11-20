@@ -38,8 +38,10 @@ for (const scenario of ["cancel", "publish", "publish with reference", "space de
       writes.push({body: await request.text(), key: request.headers.get("Idempotency-Key")});
       return writes.length === 1 ? Response.json({message: "請重試"}, {status: 503}) : Response.json({id: "published"});
     }
-    if (url.pathname.endsWith("/projects")) return Response.json({items: [{id: "p1", title: "工程甲"}], nextCursor: ""});
-    if (url.pathname.endsWith("/repositories")) return Response.json({items: [{id: "r1", ownerId: secondGroup, name: "工程甲"}], nextCursor: ""});
+    if (url.pathname.endsWith("/journal-reference-targets")) {
+      if (url.searchParams.has("cursor")) return Response.json({items:[{type:"project",id:"p1",name:"工程甲"}],nextCursor:""});
+      return Response.json({items:url.pathname.includes(secondGroup)?[{type:"repository",id:"r1",name:"工程甲"}]:[],nextCursor:"projects"});
+    }
     if (url.pathname === "/api/v1/groups") {
       const next = url.searchParams.has("cursor");
       const id = next ? secondGroup : firstGroup;

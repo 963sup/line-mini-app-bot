@@ -5,6 +5,7 @@ import (
 	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 	journaldb "github.com/963sup/line-mini-app-bot/internal/business/journal/adapter/firestore"
 	journalport "github.com/963sup/line-mini-app-bot/internal/business/journal/application/port"
+	journalquery "github.com/963sup/line-mini-app-bot/internal/business/journal/application/query"
 	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
 )
@@ -13,5 +14,5 @@ func newJournals(groups *groupquery.Service, store *groupdb.Store, repositories 
 	if store == nil || repositories == nil || projects == nil {
 		return nil
 	}
-	return &journaldb.Store{Client: store.Client, Channel: store.ChannelID, Groups: groups, Repositories: repositories, Projects: projects}
+	return &journaldb.Store{Client: store.Client, Channel: store.ChannelID, ReferenceCatalog: journalquery.ReferenceCatalog{Groups: groups, Repositories: repositories, Projects: projects}}
 }

@@ -77,3 +77,5 @@ flowchart LR
   click n0 "../../../api/contract/journal/journals.yaml"
   h --- n1["後端沿用既有群組、儲存庫、專案及 Firestore <br/>設定。日誌明細與建立收據在同一交易保存。跨群<br/>組 Feed 依當下可讀群組分別查詢，再合併排序。<br/>單頁最多 20 篇，成本隨可讀群組數增加。缺少必<br/>要服務設定時回 503。"]
 ```
+
+建立日誌時，前端透過 `GET /api/v1/groups/{groupId}/journal-reference-targets` 分頁讀取可引用的儲存庫與專案。後端核對群組資格，依序回傳兩種選項的類型、識別碼與名稱。前端依 `nextCursor` 讀到結尾，發布時由後端再次核對選取項目。

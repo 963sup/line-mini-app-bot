@@ -2,12 +2,11 @@
 package firestore
 
 import (
-	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
+	journalquery "github.com/963sup/line-mini-app-bot/internal/business/journal/application/query"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
 import (
-	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
 )
 
@@ -21,8 +20,6 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-
-	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
 
 	journaldto "github.com/963sup/line-mini-app-bot/internal/business/journal/application/dto"
@@ -34,11 +31,9 @@ import (
 )
 
 type Store struct {
-	Client       *db.Client
-	Channel      string
-	Groups       *groupquery.Service
-	Repositories *repositoryApplication.Service
-	Projects     *projectApplication.Service
+	Client  *db.Client
+	Channel string
+	journalquery.ReferenceCatalog
 }
 type record struct {
 	Payload string `firestore:"payload"`
