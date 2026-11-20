@@ -72,7 +72,7 @@ func (s *Store) checkThread(tx *db.Transaction, scope repository.Repository, id 
 	if err := snap.DataTo(&container); err != nil {
 		return err
 	}
-	if container.ID != scope.ID || container.OwnerID != scope.OwnerID || container.Status != "ACTIVE" {
+	if !scope.MatchesActive(container.ID, container.OwnerID, container.Status) {
 		return discussion.ErrNotFound
 	}
 	snap, err = tx.Get(s.topic(scope, id))

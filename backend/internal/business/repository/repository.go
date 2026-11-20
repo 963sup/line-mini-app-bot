@@ -26,6 +26,11 @@ type Repository struct {
 	CreatedAt, UpdatedAt      time.Time
 }
 
+// MatchesActive reports whether the current stored repository still matches this scope.
+func (r Repository) MatchesActive(id, ownerID, status string) bool {
+	return r.ID == id && r.OwnerID == ownerID && status == "ACTIVE"
+}
+
 // Observation is accepted only from the signature-verified webhook adapter.
 // Users are discovery candidates, never an authorization grant.
 type Observation struct {

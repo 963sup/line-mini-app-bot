@@ -116,8 +116,8 @@ func (s *Store) SaveWiki(ctx context.Context, r repository.Repository, actor, id
 			if e != nil {
 				return e
 			}
-			if first.AuthorID != actor || first.Title != title || first.Body != body {
-				return wiki.ErrConflict
+			if err := first.CheckCreationReplay(actor, title, body); err != nil {
+				return err
 			}
 			result = current
 			return nil
@@ -126,16 +126,14 @@ func (s *Store) SaveWiki(ctx context.Context, r repository.Repository, actor, id
 			if !exists {
 				return repository.ErrNotFound
 			}
-			if expected != current.Version {
-				return wiki.ErrConflict
+			changed, err := current.NeedsRevision(expected, title, body)
+			if err != nil {
+				return err
 			}
-			if current.Title == title && current.Body == body {
+			if !changed {
 				result = current
 				return nil
 			}
-		}
-		if current.Version >= repository.MaxResourceNumber {
-			return wiki.ErrConflict
 		}
 		oldName := names.Doc(firestorekey.Encode(strings.ToLower(current.Title)))
 		if !exists || oldName.ID != name.ID {
