@@ -2,7 +2,7 @@
 
 ## 用途與範圍
 
-管理打卡、出勤紀錄、補卡、請假、審核與出勤看板。工時計算與事件狀態放在 `domain/worktime/`。
+管理打卡、出勤紀錄、補卡、請假、審核與出勤看板。領域與應用層各依 [模組導覽](README.md#現行結構) 的職責套件分層。
 
 ## 架構與責任邊界
 
@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[errors.go](errors.go)、[ports.go](ports.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+先查閱[errors.go](application/port/errors.go)、[ports.go](application/port/store.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
 
 ## 相關規格
 
@@ -21,3 +21,7 @@
 遵循[上層指引](../AGENTS.md)。修改套件行為時，檢查呼叫端與受影響的 Go 測試。 實作入口見[本目錄導覽](README.md)。
 
 [現行實作圖：定位前預檢、狀態與時序](../../../../docs/domains/attendance/README.md#定位前預檢狀態與時序) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
+
+## 分層約束
+
+本模組採用 domain/entity、valueobject、service、event、policy，以及 application/command、query、port、dto。新增 Go 檔必須放入對應職責套件，不能恢復舊的功能混合套件或用別名套件繞過拆分。依賴允許範圍由 `internal/architecture/boundaries_test.go` 檢查。領域層不持有查詢分頁與外部序列化標籤。`adapter/messaging`、`adapter/scheduler` 目前僅保留入口，不代表已實作。

@@ -15,38 +15,38 @@
     },
     "attendance.punch": {
       "contract": "attendance/punch.yaml",
-      "adapter": "backend/internal/business/attendance/http/attendance_launch.go",
-      "core": "backend/internal/business/attendance/punch/ports.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/attendance_launch.go",
+      "core": "backend/internal/business/attendance/application/port/punch.go",
       "specification": "docs/domains/attendance/README.md"
     },
     "attendance.records": {
       "contract": "attendance/records.yaml",
-      "adapter": "backend/internal/business/attendance/http/records.go",
-      "core": "backend/internal/business/attendance/records/ports.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/records.go",
+      "core": "backend/internal/business/attendance/application/port/store.go",
       "specification": "docs/domains/attendance/queries.md"
     },
     "attendance.corrections": {
       "contract": "attendance/corrections.yaml",
-      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
-      "core": "backend/internal/business/attendance/corrections/correction.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
+      "core": "backend/internal/business/attendance/domain/service/correction.go",
       "specification": "docs/domains/attendance/queries.md"
     },
     "attendance.approvals": {
       "contract": "attendance/approvals.yaml",
-      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
-      "core": "backend/internal/business/attendance/approvals/approval.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
+      "core": "backend/internal/business/attendance/domain/policy/review.go",
       "specification": "docs/domains/attendance/queries.md"
     },
     "attendance.leave": {
       "contract": "attendance/leave.yaml",
-      "adapter": "backend/internal/business/attendance/http/leave.go",
-      "core": "backend/internal/business/attendance/leave/leave.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/leave.go",
+      "core": "backend/internal/business/attendance/domain/entity/leave.go",
       "specification": "docs/domains/attendance/leave.md"
     },
     "attendance.worktime": {
       "contract": "attendance/worktime.yaml",
-      "adapter": "backend/internal/business/attendance/http/records.go",
-      "core": "backend/internal/business/attendance/domain/worktime/worktime.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/records.go",
+      "core": "backend/internal/business/attendance/domain/service/worktime.go",
       "specification": "docs/domains/attendance/worktime.md"
     },
     "summary.summarization": {
@@ -70,7 +70,7 @@
     "attendance.board": {
       "kind": "event",
       "document": "docs/domains/attendance/board.md",
-      "core": "backend/internal/business/attendance/board/board.go",
+      "core": "backend/internal/business/attendance/application/dto/board.go",
       "specification": "docs/domains/attendance/board.md"
     },
     "repository.labels": {
@@ -344,9 +344,9 @@
       "method": "POST",
       "path": "/api/v1/attendance/launch",
       "owner": "attendance.punch",
-      "adapter": "backend/internal/business/attendance/http/attendance_launch.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/attendance_launch.go",
       "handler": "ExchangeAttendanceLaunch",
-      "core": "backend/internal/business/attendance/punch/ports.go",
+      "core": "backend/internal/business/attendance/application/port/punch.go",
       "specification": "docs/domains/attendance/README.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/punch/View.tsx"
@@ -359,9 +359,9 @@
       "method": "POST",
       "path": "/api/v1/attendance/punches",
       "owner": "attendance.punch",
-      "adapter": "backend/internal/business/attendance/http/punch.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/punch.go",
       "handler": "SubmitAttendancePunch",
-      "core": "backend/internal/business/attendance/punch/ports.go",
+      "core": "backend/internal/business/attendance/application/port/punch.go",
       "specification": "docs/domains/attendance/README.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/punch/View.tsx"
@@ -374,9 +374,9 @@
       "method": "POST",
       "path": "/api/v1/attendance/punches/preflight",
       "owner": "attendance.punch",
-      "adapter": "backend/internal/business/attendance/http/attendance_preflight.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/attendance_preflight.go",
       "handler": "PreflightAttendancePunch",
-      "core": "backend/internal/business/attendance/punch/ports.go",
+      "core": "backend/internal/business/attendance/application/port/punch.go",
       "specification": "docs/domains/attendance/README.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/punch/View.tsx"
@@ -389,9 +389,9 @@
       "method": "GET",
       "path": "/api/v1/attendance/groups",
       "owner": "attendance.records",
-      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "ListAttendanceGroups",
-      "core": "backend/internal/business/attendance/records/ports.go",
+      "core": "backend/internal/business/attendance/application/port/store.go",
       "specification": "docs/domains/attendance/queries.md",
       "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
@@ -402,9 +402,9 @@
       "method": "GET",
       "path": "/api/v1/attendance/groups/page",
       "owner": "attendance.records",
-      "adapter": "backend/internal/business/attendance/http/records.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/records.go",
       "handler": "ListAttendanceGroupPage",
-      "core": "backend/internal/business/attendance/records/ports.go",
+      "core": "backend/internal/business/attendance/application/port/store.go",
       "specification": "docs/domains/attendance/queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/records/View.tsx"
@@ -417,9 +417,9 @@
       "method": "GET",
       "path": "/api/v1/attendance/records",
       "owner": "attendance.records",
-      "adapter": "backend/internal/business/attendance/http/records.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/records.go",
       "handler": "ListAttendanceRecords",
-      "core": "backend/internal/business/attendance/records/ports.go",
+      "core": "backend/internal/business/attendance/application/port/store.go",
       "specification": "docs/domains/attendance/queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/records/View.tsx"
@@ -432,9 +432,9 @@
       "method": "GET",
       "path": "/api/v1/attendance/records/{id}",
       "owner": "attendance.records",
-      "adapter": "backend/internal/business/attendance/http/records.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/records.go",
       "handler": "GetAttendanceRecord",
-      "core": "backend/internal/business/attendance/records/ports.go",
+      "core": "backend/internal/business/attendance/application/port/store.go",
       "specification": "docs/domains/attendance/queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/View.tsx"
@@ -447,9 +447,9 @@
       "method": "GET",
       "path": "/api/v1/attendance/monthly",
       "owner": "attendance.records",
-      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "GetAttendanceMonthlyReport",
-      "core": "backend/internal/business/attendance/records/ports.go",
+      "core": "backend/internal/business/attendance/application/port/store.go",
       "specification": "docs/domains/attendance/queries.md",
       "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
@@ -460,9 +460,9 @@
       "method": "GET",
       "path": "/api/v1/attendance/monthly/summary",
       "owner": "attendance.records",
-      "adapter": "backend/internal/business/attendance/http/records.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/records.go",
       "handler": "GetAttendanceMonthlySummary",
-      "core": "backend/internal/business/attendance/records/ports.go",
+      "core": "backend/internal/business/attendance/application/port/store.go",
       "specification": "docs/domains/attendance/queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/records/View.tsx"
@@ -475,9 +475,9 @@
       "method": "POST",
       "path": "/api/v1/attendance/corrections",
       "owner": "attendance.corrections",
-      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "ProposeAttendanceCorrection",
-      "core": "backend/internal/business/attendance/corrections/correction.go",
+      "core": "backend/internal/business/attendance/domain/service/correction.go",
       "specification": "docs/domains/attendance/queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/Requests.tsx",
@@ -491,9 +491,9 @@
       "method": "GET",
       "path": "/api/v1/attendance/corrections",
       "owner": "attendance.corrections",
-      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "ListAttendanceCorrections",
-      "core": "backend/internal/business/attendance/corrections/correction.go",
+      "core": "backend/internal/business/attendance/domain/service/correction.go",
       "specification": "docs/domains/attendance/queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/Requests.tsx",
@@ -507,9 +507,9 @@
       "method": "GET",
       "path": "/api/v1/attendance/corrections/{id}",
       "owner": "attendance.corrections",
-      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "GetAttendanceCorrectionStatus",
-      "core": "backend/internal/business/attendance/corrections/correction.go",
+      "core": "backend/internal/business/attendance/domain/service/correction.go",
       "specification": "docs/domains/attendance/queries.md",
       "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
@@ -520,9 +520,9 @@
       "method": "POST",
       "path": "/api/v1/attendance/corrections/{id}/cancel",
       "owner": "attendance.corrections",
-      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "CancelAttendanceCorrection",
-      "core": "backend/internal/business/attendance/corrections/correction.go",
+      "core": "backend/internal/business/attendance/domain/service/correction.go",
       "specification": "docs/domains/attendance/queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/Requests.tsx"
@@ -535,9 +535,9 @@
       "method": "GET",
       "path": "/api/v1/attendance/corrections/{id}/review",
       "owner": "attendance.approvals",
-      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "GetAttendanceCorrectionReview",
-      "core": "backend/internal/business/attendance/approvals/approval.go",
+      "core": "backend/internal/business/attendance/domain/policy/review.go",
       "specification": "docs/domains/attendance/queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/approvals/View.tsx"
@@ -550,9 +550,9 @@
       "method": "POST",
       "path": "/api/v1/attendance/corrections/{id}/approve",
       "owner": "attendance.approvals",
-      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "ApproveAttendanceCorrection",
-      "core": "backend/internal/business/attendance/approvals/approval.go",
+      "core": "backend/internal/business/attendance/domain/policy/review.go",
       "specification": "docs/domains/attendance/queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/approvals/View.tsx"
@@ -565,9 +565,9 @@
       "method": "POST",
       "path": "/api/v1/attendance/corrections/{id}/reject",
       "owner": "attendance.approvals",
-      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "RejectAttendanceCorrection",
-      "core": "backend/internal/business/attendance/approvals/approval.go",
+      "core": "backend/internal/business/attendance/domain/policy/review.go",
       "specification": "docs/domains/attendance/queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/approvals/View.tsx"
@@ -580,9 +580,9 @@
       "method": "GET",
       "path": "/api/v1/attendance/corrections/reviewer-groups",
       "owner": "attendance.approvals",
-      "adapter": "backend/internal/business/attendance/http/attendance_correction.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "ListAttendanceReviewerGroups",
-      "core": "backend/internal/business/attendance/approvals/approval.go",
+      "core": "backend/internal/business/attendance/domain/policy/review.go",
       "specification": "docs/domains/attendance/queries.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/Requests.tsx"
@@ -595,9 +595,9 @@
       "method": "GET",
       "path": "/api/v1/attendance/leaves",
       "owner": "attendance.leave",
-      "adapter": "backend/internal/business/attendance/http/leave.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/leave.go",
       "handler": "ListOwnLeaveRequests",
-      "core": "backend/internal/business/attendance/leave/leave.go",
+      "core": "backend/internal/business/attendance/domain/entity/leave.go",
       "specification": "docs/domains/attendance/leave.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/leave/View.tsx"
@@ -610,9 +610,9 @@
       "method": "POST",
       "path": "/api/v1/attendance/leaves",
       "owner": "attendance.leave",
-      "adapter": "backend/internal/business/attendance/http/leave.go",
+      "adapter": "backend/internal/business/attendance/adapter/http/leave.go",
       "handler": "SubmitLeaveRequest",
-      "core": "backend/internal/business/attendance/leave/leave.go",
+      "core": "backend/internal/business/attendance/domain/entity/leave.go",
       "specification": "docs/domains/attendance/leave.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/leave/View.tsx"
@@ -998,10 +998,9 @@
       "core": "backend/internal/business/group/group.go",
       "specification": "docs/domains/project/project.md",
       "consumers": [
-        "frontend/miniapp/src/business/attendance/corrections/View.tsx",
+        "frontend/miniapp/src/business/attendance/memberGroups.ts",
         "frontend/miniapp/src/business/journal/Workspace.tsx",
-        "frontend/miniapp/src/business/project/Workspace.tsx",
-        "frontend/miniapp/src/business/attendance/records/View.tsx"
+        "frontend/miniapp/src/business/project/Workspace.tsx"
       ]
     },
     {
@@ -1738,7 +1737,7 @@
       "owner": "attendance.board",
       "action": "Board",
       "contract": "docs/domains/attendance/board.md",
-      "adapter": "backend/internal/business/attendance/line/board.go",
+      "adapter": "backend/internal/business/attendance/adapter/line/board.go",
       "handler": "replyGroupStatus",
       "note": "Existing LINE-only query; no public HTTP operation."
     },

@@ -1,0 +1,252 @@
+package firestore
+
+import (
+	"context"
+	"encoding/base64"
+	"encoding/json"
+	"sort"
+	"strings"
+	"time"
+
+	db "cloud.google.com/go/firestore"
+	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
+	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+const queryBatchSize = 200
+
+type pageCursor struct {
+	Version int       `json:"v"`
+	Scope   string    `json:"s"`
+	Time    time.Time `json:"t,omitempty"`
+	End     time.Time `json:"e,omitempty"`
+	ID      string    `json:"i"`
+}
+
+func (s *Attendance) cursorScope(kind, user, group string, start time.Time) string {
+	return firestorekey.Encode("attendance-query-v1-start-end-id-desc", s.ChannelID, user, kind, group, start.UTC().Format(time.RFC3339Nano))
+}
+
+func decodeCursor(value, scope string) (pageCursor, error) {
+	if value == "" {
+		return pageCursor{}, nil
+	}
+	if len(value) > 1024 {
+		return pageCursor{}, attendancedto.ErrInvalidCursor
+	}
+	b, err := base64.RawURLEncoding.DecodeString(value)
+	if err != nil {
+		return pageCursor{}, attendancedto.ErrInvalidCursor
+	}
+	var c pageCursor
+	if json.Unmarshal(b, &c) != nil || c.Version != 1 || c.Scope != scope || !validSegment(c.ID) {
+		return pageCursor{}, attendancedto.ErrInvalidCursor
+	}
+	return c, nil
+}
+
+func encodeCursor(scope string, at time.Time, id string) string {
+	return encodeRecordCursor(scope, at, time.Time{}, id)
+}
+
+func encodeRecordCursor(scope string, at, end time.Time, id string) string {
+	b, _ := json.Marshal(pageCursor{Version: 1, Scope: scope, Time: at.UTC(), End: end.UTC(), ID: id})
+	return base64.RawURLEncoding.EncodeToString(b)
+}
+
+func validSegment(id string) bool {
+	return id != "" && len(id) <= 1500 && id != "." && id != ".." && !strings.Contains(id, "/")
+}
+func validPageSize(size int) bool { return size >= 1 && size <= 100 }
+
+func readQuery(ctx context.Context, q db.Query) ([]*db.DocumentSnapshot, error) {
+	docs := []*db.DocumentSnapshot{}
+	for {
+		batch, err := q.Limit(queryBatchSize).Documents(ctx).GetAll()
+		if err != nil {
+			return nil, err
+		}
+		docs = append(docs, batch...)
+		if len(batch) < queryBatchSize {
+			return docs, nil
+		}
+		q = q.StartAfter(batch[len(batch)-1])
+	}
+}
+
+func decodeAttendance(docs []*db.DocumentSnapshot) ([]attendanceentity.Record, error) {
+	records := make([]attendanceentity.Record, 0, len(docs))
+	for _, doc := range docs {
+		var record attendanceentity.Record
+		if err := decodeRecord(doc, &record); err != nil {
+			return nil, err
+		}
+		record.RecordID = doc.Ref.ID
+		records = append(records, record)
+	}
+	return records, nil
+}
+
+func overlapsMonth(r attendanceentity.Record, start time.Time) bool {
+	return r.ClockInAt.Before(start.AddDate(0, 1, 0)) && (r.ClockOutAt.IsZero() || r.ClockOutAt.After(start))
+}
+
+func sortRecords(records []attendanceentity.Record) {
+	sort.Slice(records, func(i, j int) bool {
+		if records[i].ClockInAt.Equal(records[j].ClockInAt) {
+			if !records[i].ClockOutAt.Equal(records[j].ClockOutAt) {
+				return records[i].ClockOutAt.After(records[j].ClockOutAt)
+			}
+			return records[i].RecordID > records[j].RecordID
+		}
+		return records[i].ClockInAt.After(records[j].ClockInAt)
+	})
+}
+
+// monthQueries keep open shifts explicit: absent clockOutAt fields cannot satisfy inequalities.
+// Closed queries explicitly order both inequality fields before the document key.
+// The merged order is start DESC, end DESC (open shifts last), key DESC.
+func (s *Attendance) monthQueries(user, group string, start time.Time, c pageCursor) []db.Query {
+	base := s.user(user).Collection("attendance").Where("groupID", "==", group).Where("clockInAt", "<", start.AddDate(0, 1, 0))
+	closed := base.Where("clockOutAt", ">", start).OrderBy("clockInAt", db.Desc).OrderBy("clockOutAt", db.Desc).OrderBy(db.DocumentID, db.Desc)
+	open := base.Where("isOpen", "==", true).OrderBy("clockInAt", db.Desc).OrderBy(db.DocumentID, db.Desc)
+	if c.ID != "" {
+		if c.End.IsZero() {
+			// At a tied start every closed shift precedes every open shift.
+			closed = closed.Where("clockInAt", "<", c.Time)
+			open = open.StartAfter(c.Time, c.ID)
+		} else {
+			closed = closed.StartAfter(c.Time, c.End, c.ID)
+			open = open.Where("clockInAt", "<=", c.Time)
+		}
+	}
+	return []db.Query{closed, open}
+}
+
+func (s *Attendance) monthCandidates(ctx context.Context, user, group string, start time.Time) ([]attendanceentity.Record, error) {
+	records := []attendanceentity.Record{}
+	seen := map[string]bool{}
+	for _, q := range s.monthQueries(user, group, start, pageCursor{}) {
+		docs, err := readQuery(ctx, q)
+		if err != nil {
+			return nil, err
+		}
+		batch, err := decodeAttendance(docs)
+		if err != nil {
+			return nil, err
+		}
+		for _, r := range batch {
+			if !seen[r.RecordID] {
+				records = append(records, r)
+				seen[r.RecordID] = true
+			}
+		}
+	}
+	sortRecords(records)
+	return records, nil
+}
+
+func (s *Attendance) GroupsPage(ctx context.Context, user, cursor string, size int) (_ attendancedto.GroupPage, err error) {
+	defer func() { err = translateError(err, nil) }()
+	page := attendancedto.GroupPage{Items: []string{}}
+	if !validPageSize(size) {
+		return page, attendancedto.ErrInvalidCursor
+	}
+	scope := s.cursorScope("groups", user, "", time.Time{})
+	c, err := decodeCursor(cursor, scope)
+	if err != nil {
+		return page, err
+	}
+	page.QueryMode = "indexed"
+	groups := []string{}
+	q := s.user(user).Collection("attendanceGroups").OrderBy("groupID", db.Asc)
+	if c.ID != "" {
+		q = q.StartAfter(c.ID)
+	}
+	docs, e := q.Limit(size + 1).Documents(ctx).GetAll()
+	if e != nil {
+		return page, e
+	}
+	for _, doc := range docs {
+		group, ok := doc.Data()["groupID"].(string)
+		if !ok || !validSegment(group) {
+			return page, attendancedto.ErrInvalidCursor
+		}
+		groups = append(groups, group)
+	}
+	if len(groups) > size {
+		page.NextCursor = encodeCursor(scope, time.Time{}, groups[size-1])
+		groups = groups[:size]
+	}
+	page.Items = groups
+	return page, nil
+}
+
+func (s *Attendance) RecordsPage(ctx context.Context, user, group string, start time.Time, cursor string, size int) (_ attendancedto.RecordPage, err error) {
+	defer func() { err = translateError(err, nil) }()
+	page := attendancedto.RecordPage{Items: []attendanceentity.Record{}}
+	if !validPageSize(size) {
+		return page, attendancedto.ErrInvalidCursor
+	}
+	scope := s.cursorScope("records", user, group, start)
+	c, err := decodeCursor(cursor, scope)
+	if err != nil || (cursor != "" && c.Time.IsZero()) {
+		return page, attendancedto.ErrInvalidCursor
+	}
+	page.QueryMode = "indexed"
+	records := []attendanceentity.Record{}
+	seen := map[string]bool{}
+	for _, q := range s.monthQueries(user, group, start, c) {
+		docs, e := q.Limit(size + 1).Documents(ctx).GetAll()
+		if e != nil {
+			return page, e
+		}
+		batch, e := decodeAttendance(docs)
+		if e != nil {
+			return page, e
+		}
+		for _, r := range batch {
+			if !seen[r.RecordID] {
+				records = append(records, r)
+				seen[r.RecordID] = true
+			}
+		}
+	}
+	sortRecords(records)
+	if len(records) > size {
+		last := records[size-1]
+		page.NextCursor = encodeRecordCursor(scope, last.ClockInAt, last.ClockOutAt, last.RecordID)
+		records = records[:size]
+	}
+	page.Items, err = s.verifyAndRebuildRecords(ctx, user, group, records)
+	return page, err
+}
+
+func (s *Attendance) Record(ctx context.Context, user, group, id string) (_ attendanceentity.Record, err error) {
+	defer func() { err = translateError(err, nil) }()
+	if !validSegment(id) {
+		return attendanceentity.Record{}, attendanceentity.ErrRecordNotFound
+	}
+	doc, err := s.user(user).Collection("attendance").Doc(id).Get(ctx)
+	if status.Code(err) == codes.NotFound {
+		return attendanceentity.Record{}, attendanceentity.ErrRecordNotFound
+	}
+	if err != nil {
+		return attendanceentity.Record{}, err
+	}
+	records, err := decodeAttendance([]*db.DocumentSnapshot{doc})
+	if err != nil {
+		return attendanceentity.Record{}, err
+	}
+	if records[0].GroupID != group {
+		return attendanceentity.Record{}, attendanceentity.ErrRecordNotFound
+	}
+	records, err = s.verifyAndRebuildRecords(ctx, user, group, records)
+	if err != nil {
+		return attendanceentity.Record{}, err
+	}
+	return records[0], nil
+}

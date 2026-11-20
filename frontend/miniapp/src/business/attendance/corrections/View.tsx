@@ -1,3 +1,4 @@
+import { memberGroups } from "../memberGroups";
 import { FormField } from "@/shared/FormField";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
@@ -147,19 +148,9 @@ export function View() {
   }
   function loadGroups(append = false) {
     void groupsRead.run(
-      (signal) =>
-        request(
-          (c, s) =>
-            c.GET("/api/v1/groups", {
-              signal: s,
-              params: {
-                query: { cursor: append ? groupCursor : undefined },
-              },
-            }),
-          { signal },
-        ),
+      (signal) => memberGroups(request, signal, append ? groupCursor : undefined),
       (data) => {
-        const options = data.items.map(({ groupId, name }) => ({ id: groupId, name: name || groupId }));
+        const options = data.items;
         setGroups(previous => append ? [...previous, ...options] : options);
         if (!append && !options.length && !data.nextCursor && !group) {
           setStatus("目前沒有可選群組。請在原 LINE 群組輸入「補卡」開啟表單。");

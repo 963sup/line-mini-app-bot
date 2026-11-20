@@ -4,13 +4,15 @@
 
 保存出勤、打卡、補卡、請假與審核的規格。
 
+設計入口：[子域分類與投資假設](strategy.md) · [上下文映射與整合契約](context-map.md) · [補正審核的戰術設計](correction-design.md)。本頁維護出勤的通用語言與業務邊界。
+
 ## 限界上下文
 
 出勤（Attendance）回答三個問題：誰在某個群組的哪段時間出勤？這段時間有什麼證據？其中多少工時已可確認？同一人在不同群組的打卡狀態分開維護。一天可有多個班次，月報依班次與報表月份的重疊區間計算。
 
 | 邊界 | 出勤取得或提供的事實 | 責任歸屬 |
 |---|---|---|
-| 身分與群組 | 已驗證的操作者、此次操作綁定的群組、可審核的群組 | 身分驗證由入口及身分模組完成；出勤依操作者與群組判斷能否打卡、查詢或審核。群組成員身分本身不授予補正審核權。 |
+| 身分與群組 | 已驗證的操作者、此次操作綁定的群組 | 身分驗證由入口及身分模組完成；出勤依操作者與群組判斷能否打卡、查詢或審核。出勤自行讀取審核者的群組授權；群組成員身分本身不授予補正審核權。 |
 | LINE 與 MINI App | 群組操作、定位預檢、本人提交與結果顯示 | 入口將請求轉成交給出勤的操作。定位資料是一次打卡的證據；單純開啟頁面不成立打卡。 |
 | 排班與薪資 | 出勤提供已確認淨工時、暫估合計及待確認原因 | 現行出勤規格不定義應到班表、加班認定或薪資金額。 |
 
@@ -47,9 +49,9 @@
 
 ## 分層現況與下一個設計決策
 
-已實作的 [工時領域套件](../../../backend/internal/business/attendance/domain/worktime/worktime.go) 擁有區間、班次、事件重播及工時計算。[補正規則](../../../backend/internal/business/attendance/corrections/correction.go) 與 [審核資格](../../../backend/internal/business/attendance/approvals/approval.go) 已可獨立測試；目前仍由 [Firestore 交易](../../../backend/internal/business/attendance/firestore/attendance_correction.go) 協調審核。
+領域層依 [entity](../../../backend/internal/business/attendance/domain/entity/README.md)、[valueobject](../../../backend/internal/business/attendance/domain/valueobject/README.md)、[service](../../../backend/internal/business/attendance/domain/service/README.md)、[event](../../../backend/internal/business/attendance/domain/event/README.md) 與 [policy](../../../backend/internal/business/attendance/domain/policy/README.md) 分工。班次與出勤紀錄維護身分和狀態；區間與定位提供值驗證；工時計算、補正套用與證據核對為領域運算；審核資格與重送衝突由政策判定。[Firestore 交易](../../../backend/internal/business/attendance/adapter/firestore/attendance_correction.go) 原子保存審核決定與核准證據。
 
-下一批的設計目標是讓應用層表達「審核補正」用例，領域層根據交易內取得的事實做決定，Firestore 負責原子讀寫。設計 port 時須能通過上述重送與並行驗收，再決定介面形狀。排班、加班與薪資政策若納入產品，需另行確認其規則與歸屬。
+[審核用例](../../../backend/internal/business/attendance/application/command/review.go) 透過交易內的 port 核對授權、重送與補正結果。HTTP 與 LINE 共用[月報用例](../../../backend/internal/business/attendance/application/query/monthly.go)。排班、加班與薪資政策若納入產品，需另行確認其規則與歸屬。
 
 ## 相關規格
 

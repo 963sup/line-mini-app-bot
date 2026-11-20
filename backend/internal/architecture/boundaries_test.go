@@ -17,33 +17,34 @@ func TestDependencyBoundaries(t *testing.T) {
 		t.Fatal(err)
 	}
 	core := map[string][]string{
-		"business/group":                      {},
-		"business/repository":                 {"identity"},
-		"business/repository/space":           {"business/repository"},
-		"business/repository/milestones":      {"business/repository"},
-		"business/repository/statistics":      {"business/repository"},
-		"business/project":                    {"business/group", "identity"},
-		"business/repository/labels":          {"business/repository"},
-		"business/discussion":                 {"business/repository", "business/repository/labels"},
-		"business/issue":                      {"business/repository", "business/repository/labels"},
-		"business/objectimport/automatic":     {"business/objectimport", "business/object", "business/repository"},
-		"business/objectimport/parsing":       {"business/objectimport", "business/repository"},
-		"business/objectimport":               {"business/object", "business/repository"},
-		"business/object":                     {"business/repository"},
-		"business/subobject":                  {"business/object", "business/repository"},
-		"business/attendance":                 {"business/attendance/punch", "business/attendance/records"},
-		"business/attendance/punch":           {"business/attendance/records"},
-		"business/attendance/records":         {"business/attendance/domain/worktime"},
-		"business/attendance/domain/worktime": {},
-		"business/attendance/corrections":     {"business/attendance/records", "business/attendance/domain/worktime"},
-		"business/attendance/approvals":       {"business/attendance/corrections", "business/attendance/records"},
-		"business/attendance/leave":           {},
-		"business/attendance/board":           {"business/attendance/records"},
-		"business/summary":                    {},
-		"business/summary/messagecollection":  {},
-		"business/summary/summarization":      {"business/summary/messagecollection"},
-		"business/weather/forecast":           {},
-		"identity":                            {},
+		"business/group":                          {},
+		"business/repository":                     {"identity"},
+		"business/repository/space":               {"business/repository"},
+		"business/repository/milestones":          {"business/repository"},
+		"business/repository/statistics":          {"business/repository"},
+		"business/project":                        {"business/group", "identity"},
+		"business/repository/labels":              {"business/repository"},
+		"business/discussion":                     {"business/repository", "business/repository/labels"},
+		"business/issue":                          {"business/repository", "business/repository/labels"},
+		"business/objectimport/automatic":         {"business/objectimport", "business/object", "business/repository"},
+		"business/objectimport/parsing":           {"business/objectimport", "business/repository"},
+		"business/objectimport":                   {"business/object", "business/repository"},
+		"business/object":                         {"business/repository"},
+		"business/subobject":                      {"business/object", "business/repository"},
+		"business/attendance/domain/valueobject":  {},
+		"business/attendance/domain/event":        {},
+		"business/attendance/domain/entity":       {"business/attendance/domain/valueobject"},
+		"business/attendance/domain/policy":       {"business/attendance/domain/entity", "business/attendance/domain/valueobject"},
+		"business/attendance/domain/service":      {"business/attendance/domain/entity", "business/attendance/domain/valueobject", "business/attendance/domain/event"},
+		"business/attendance/application/dto":     {"business/attendance/domain/entity", "business/attendance/domain/service", "business/attendance/domain/valueobject"},
+		"business/attendance/application/port":    {"business/attendance/application/dto", "business/attendance/domain/entity", "business/attendance/domain/valueobject", "business/attendance/domain/policy"},
+		"business/attendance/application/command": {"business/attendance/application/port", "business/attendance/application/dto", "business/attendance/domain/entity", "business/attendance/domain/policy", "business/attendance/domain/service", "business/attendance/domain/valueobject"},
+		"business/attendance/application/query":   {"business/attendance/application/port", "business/attendance/application/dto", "business/attendance/domain/entity", "business/attendance/domain/service"},
+		"business/summary":                        {},
+		"business/summary/messagecollection":      {},
+		"business/summary/summarization":          {"business/summary/messagecollection"},
+		"business/weather/forecast":               {},
+		"identity":                                {},
 	}
 	const module = "github.com/963sup/line-mini-app-bot/internal/"
 	err = filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
@@ -63,6 +64,26 @@ func TestDependencyBoundaries(t *testing.T) {
 			dependency, err := strconv.Unquote(spec.Path.Value)
 			if err != nil {
 				return err
+			}
+			// Every attendance package, including a newly introduced subdomain, must
+			// keep framework and adapter dependencies outside the inner layers.
+			attendance := "business/attendance/"
+			for _, layer := range []string{"domain", "application"} {
+				inside := dir == attendance+layer || strings.HasPrefix(dir, attendance+layer+"/")
+				if !inside {
+					continue
+				}
+				if _, known := core[dir]; !known {
+					t.Errorf("unclassified attendance %s package: %s", layer, dir)
+				}
+				internal := strings.HasPrefix(dependency, module+attendance+"domain/")
+				if layer == "application" {
+					internal = internal || strings.HasPrefix(dependency, module+attendance+"application/")
+				}
+				external := strings.Contains(strings.Split(dependency, "/")[0], ".")
+				if external && !internal || dependency == "net/http" || dependency == "database/sql" {
+					t.Errorf("%s imports %s outside the attendance %s boundary", rel, dependency, layer)
+				}
 			}
 			if allowedDependencies, isCore := core[dir]; isCore {
 				allowed := false

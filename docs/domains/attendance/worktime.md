@@ -5,7 +5,7 @@
 ```mermaid
 flowchart LR
   h["工時計算第一階段"]
-  h --- n0["backend/internal/business/attendance/domain/worktime<br/> 是不依賴 LINE、Firestore 或薪資規則的純函數<br/>模組。"]
+  h --- n0["backend/internal/business/attendance/domain/service<br/> 是不依賴 LINE、Firestore 或薪資規則的純函數<br/>模組。"]
   h --- n1["RebuildSessions：依事件順序與時間重播、按事<br/>件 ID 去重，回傳班次 Session 與異常；不是單<br/>純建立 Interval。 衝突事件及不合法順序會列出<br/>異常，相關輸入不作已確認或暫估工時計算。"]
   h --- n2["Calculate：接受班次與查詢起訖，分開計算出勤<br/>時數、已確認淨工時與含已確認的暫估合計；扣除<br/>經確認休息，合併重疊區間， 只計算報表範圍內<br/>的時間。保留 duration 精度，總計最後才換算整<br/>分鐘。"]
   h --- n3["計算結果包含規則版本、有效區間、待確認筆數與<br/>原因，沒有正常／加班分類。"]
@@ -118,7 +118,7 @@ flowchart LR
   h["基礎操作頁"]
   h --- n0["開啟 /miniapp/history 查本人月紀錄，由班次連<br/>結進入 /miniapp/correction 提出更正並查詢結<br/>果；沒有班次時使用補卡入口，首次無群組紀錄者<br/>從原 LINE 群組輸入「補卡」進入。 授權審核者<br/>在 /miniapp/review 選擇群組查看申請，或依申<br/>請編號讀取，核准或填寫理由駁回。時間以臺灣時<br/>間解讀。 尚無多級簽核或通知；詳見 操作與重試<br/>契約。"]
   click n0 "queries.md"
-  h --- n1["Firestore 閉環測試：設定僅供本地測試的 <br/>FIRESTORE_EMULATOR_HOST 後， 執行 go test <br/>./internal/business/attendance/firestore <br/>-run TestAttendanceCorrectionRoundTrip -v。 <br/>測試建立獨立 channel，覆蓋提案、他人查詢拒絕<br/>、自審拒絕、重複核准、 月報更新與損壞證據拒<br/>絕。未設定 emulator 時明確跳過，不能作為整合<br/>已通過的證據。"]
+  h --- n1["Firestore 閉環測試：設定僅供本地測試的 <br/>FIRESTORE_EMULATOR_HOST 後， 執行 go test <br/>./internal/business/attendance/adapter/firestore <br/>-run TestAttendanceCorrectionRoundTrip -v。 <br/>測試建立獨立 channel，覆蓋提案、他人查詢拒絕<br/>、自審拒絕、重複核准、 月報更新與損壞證據拒<br/>絕。未設定 emulator 時明確跳過，不能作為整合<br/>已通過的證據。"]
   h --- n2["整合驗證以各次交付紀錄為準；需要相容的 Java <br/>與 Firestore emulator。 未啟動 emulator 時，<br/>套件測試通過不代表資料庫閉環驗證已通過。"]
 ```
 

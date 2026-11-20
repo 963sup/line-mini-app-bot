@@ -93,6 +93,12 @@
             "minimum": 0,
             "description": "Complete valid shifts awaiting rest confirmation, included in EstimatedMinutes."
           },
+          "OtherNoticeCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Number of calculation issues other than rest awaiting confirmation."
+          },
           "Uncalculable": {
             "type": "integer",
             "format": "int64",

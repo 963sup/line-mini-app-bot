@@ -2212,6 +2212,11 @@ export interface components {
             Unconfirmed?: number;
             /**
              * Format: int64
+             * @description Number of calculation issues other than rest awaiting confirmation.
+             */
+            OtherNoticeCount?: number;
+            /**
+             * Format: int64
              * @description Shifts excluded from work totals because times, breaks or evidence are invalid.
              */
             Uncalculable?: number;

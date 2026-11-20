@@ -98,10 +98,10 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["現有出勤整合檔案與責任"]
-  h --- n0["backend/internal/business/attendance/http/punch.go<br/>：註冊 POST /api/v1/attendance/punches，驗證<br/> LINE 身分、請求內容與原群組打卡請求。"]
+  h --- n0["backend/internal/business/attendance/adapter/http/punch.go<br/>：註冊 POST /api/v1/attendance/punches，驗證<br/> LINE 身分、請求內容與原群組打卡請求。"]
   h --- n1["frontend/miniapp/src/business/attendance/punch/View.tsx<br/>：由 MINI App 取得單次定位並提交；只負責採樣<br/>、UI 與請求，不決定授權。"]
   h --- n2["backend/internal/identity/http/identity.go：<br/>提供可共用的 LINE 身分驗證；後端不信任前端自<br/>行傳入的 user ID。"]
-  h --- n3["backend/internal/business/attendance/firestore/attendance.go<br/>：在交易中驗證短效打卡請求，隔離群組狀態並保<br/>存單次定位。"]
+  h --- n3["backend/internal/business/attendance/adapter/firestore/attendance.go<br/>：在交易中驗證短效打卡請求，隔離群組狀態並保<br/>存單次定位。"]
   h --- n4["backend/internal/diagnostics/geolocation/geolocation.go<br/> 與 <br/>frontend/miniapp/src/diagnostics/geolocation/<br/>{View.tsx,style.css}：保留獨立定位示範，不寫<br/>入出勤資料。"]
   h --- n5["現行實作"]
 ```

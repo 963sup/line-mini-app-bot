@@ -9,12 +9,12 @@ import (
 	_ "time/tzdata"
 
 	"cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance"
-	storage "github.com/963sup/line-mini-app-bot/internal/business/attendance/firestore"
+	storage "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/firestore"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
 )
 
 type attendanceDependencies struct {
-	store attendance.Store
+	store attendanceport.Store
 	zone  *time.Location
 }
 
