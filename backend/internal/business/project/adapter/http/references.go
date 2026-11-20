@@ -15,6 +15,13 @@ import (
 
 func referenceView(ref projectDomainEntity.Reference) generated.ProjectReference {
 	out := generated.ProjectReference{Id: ref.ID, SourceType: generated.ProjectReferenceSourceType(ref.SourceType), SourceId: ref.SourceID, SourceRepositoryId: ref.SourceRepositoryID, SourceUnavailable: ref.SourceUnavailable, SourceTitle: ref.SourceTitle, SourceState: ref.SourceState}
+	out.InspectionMode = "none"
+	if ref.SupportsInspection() {
+		out.InspectionMode = "history_only"
+		if !ref.SourceUnavailable {
+			out.InspectionMode = "submit_if_empty"
+		}
+	}
 	status := generated.ProjectItemStatus(ref.ItemStatus)
 	out.ItemStatus = &status
 	if ref.ParentObjectID != "" {

@@ -48,7 +48,7 @@ func (s *Store) Inspections(ctx context.Context, r projectApplicationPort.Scope,
 	if err != nil {
 		return nil, err
 	}
-	if d.SourceType != "object" && d.SourceType != "subobject" {
+	if !itemReference(d).SupportsInspection() {
 		return nil, projectDomainEntity.ErrInput
 	}
 	source, err := r.Sources.Authorize(ctx, r.Actor, d.SourceRepositoryID, "")

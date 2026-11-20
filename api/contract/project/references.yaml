@@ -385,7 +385,8 @@
           "sourceRepositoryId",
           "sourceUnavailable",
           "sourceTitle",
-          "sourceState"
+          "sourceState",
+          "inspectionMode"
         ],
         "properties": {
           "id": {
@@ -436,6 +437,15 @@
           },
           "itemStatus": {
             "$ref": "./projects.yaml#/components/schemas/ProjectItemStatus"
+          },
+          "inspectionMode": {
+            "type": "string",
+            "enum": [
+              "none",
+              "history_only",
+              "submit_if_empty"
+            ],
+            "description": "Inspection controls for this reference. A new submission requires an empty inspection history and the server rechecks source access at write time."
           }
         }
       },

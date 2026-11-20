@@ -1974,6 +1974,11 @@ export interface components {
             completedQuantity?: string;
             type?: string;
             itemStatus?: components["schemas"]["ProjectItemStatus"];
+            /**
+             * @description Inspection controls for this reference. A new submission requires an empty inspection history and the server rechecks source access at write time.
+             * @enum {string}
+             */
+            inspectionMode: "none" | "history_only" | "submit_if_empty";
         };
         ProjectReferencePage: {
             items: components["schemas"]["ProjectReference"][];

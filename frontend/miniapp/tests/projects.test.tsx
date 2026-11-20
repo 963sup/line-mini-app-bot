@@ -362,7 +362,7 @@ test("inspection on a SubObject submits once and reads the saved pending result"
   let writes=0;
   const f=await fixture(`/miniapp/projects?owner=${sa}&project=${pid}`,async req=>{
     const path=new URL(req.url).pathname;
-    if(path.endsWith("/references"))return Response.json({items:[reference({sourceType:"subobject",parentObjectId:parentId})],nextCursor:""});
+    if(path.endsWith("/references"))return Response.json({items:[reference({sourceType:"subobject",parentObjectId:parentId,inspectionMode:"submit_if_empty"})],nextCursor:""});
     if(path.endsWith("/inspection-submissions")){
       if(req.method==="POST"){assert.deepEqual(await req.json(),{note:saved.note});writes++;return Response.json(saved);}
       return Response.json(writes?[saved]:[]);

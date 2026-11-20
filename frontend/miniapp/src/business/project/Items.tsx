@@ -158,7 +158,7 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
           {item.type === "non_work" ? <p>進度：不適用</p> : item.completedQuantity !== undefined && <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{item.completedQuantity}/{item.quantity} {item.unit}</p>}
         </>}
         <FormField>本專案進度<NativeSelect value={item.itemStatus ?? "todo"} disabled={!canEdit || disabled || needsRefresh || busy || uncertain} onChange={e=>updateProject({itemId:item.id,status:e.target.value as ItemProgress["status"]})}>{Object.entries(progressLabels).map(([value,label])=><NativeSelectOption key={value} value={value}>{label}</NativeSelectOption>)}</NativeSelect></FormField>
-        {(item.sourceType === "object" || item.sourceType === "subobject") && <Inspections key={String(item.sourceUnavailable)} canSubmit={!item.sourceUnavailable} ownerId={ownerId} projectId={project.id} itemId={item.id}/>}
+        {(item.inspectionMode === "history_only" || item.inspectionMode === "submit_if_empty") && <Inspections key={item.inspectionMode} canSubmit={item.inspectionMode === "submit_if_empty"} ownerId={ownerId} projectId={project.id} itemId={item.id}/>}
         {canEdit&&<Button type="button" variant="outline" aria-label={`移出專案：${title}`} disabled={disabled||needsRefresh||busy||uncertain} onClick={()=>change(item.id)}>移出專案</Button>}
       </ItemContent></Item>;
     })}</ItemGroup></section>;})}
