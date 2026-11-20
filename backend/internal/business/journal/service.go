@@ -37,6 +37,33 @@ type (
 	}
 )
 
+// CheckReferences checks both days. On reads, redactMissing hides all details
+// derived from an inaccessible source while preserving the journaled work.
+func (d Draft) CheckReferences(redactMissing bool, check func(Reference) error) error {
+	for _, rows := range [][]Work{d.Today, d.Tomorrow} {
+		for i := range rows {
+			w := &rows[i]
+			if w.Reference == nil {
+				continue
+			}
+			err := check(*w.Reference)
+			if redactMissing && errors.Is(err, ErrNotFound) {
+				w.Reference = nil
+				w.ObjectID = ""
+				w.SubobjectID = ""
+				w.SpaceIDs = nil
+				w.ObjectName = ""
+				w.SpaceNames = nil
+				continue
+			}
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 type Entry struct {
 	Draft
 	ID, CreatorID string

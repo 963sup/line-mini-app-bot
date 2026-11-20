@@ -76,32 +76,14 @@ func (s *Store) reference(ctx context.Context, actor, group string, r journal.Re
 }
 
 func (s *Store) checkRefs(ctx context.Context, actor string, d journal.Draft, redact bool, cache map[journal.Reference]error) error {
-	for _, rows := range [][]journal.Work{d.Today, d.Tomorrow} {
-		for i := range rows {
-			r := rows[i].Reference
-			if r == nil {
-				continue
-			}
-			e, ok := cache[*r]
-			if !ok {
-				e = s.reference(ctx, actor, d.GroupID, *r)
-				cache[*r] = e
-			}
-			if redact && errors.Is(e, journal.ErrNotFound) {
-				rows[i].Reference = nil
-				rows[i].ObjectID = ""
-				rows[i].SubobjectID = ""
-				rows[i].SpaceIDs = nil
-				rows[i].ObjectName = ""
-				rows[i].SpaceNames = nil
-				continue
-			}
-			if e != nil {
-				return e
-			}
+	return d.CheckReferences(redact, func(r journal.Reference) error {
+		e, ok := cache[r]
+		if !ok {
+			e = s.reference(ctx, actor, d.GroupID, r)
+			cache[r] = e
 		}
-	}
-	return nil
+		return e
+	})
 }
 
 // snapshotWork checks repository-scoped sources and captures names in the publish transaction.
