@@ -51,12 +51,12 @@ func TestPDFUsesSourceFieldsAndRequiresUnambiguousClassification(t *testing.T) {
 	source := objectimportDomainEntity.Source{SourceDocument: "pdf:test", Pages: []objectimportDomainEntity.Page{{
 		Number: 1,
 		Text:   "[[item:1]] Pump supply only 2 EA\n[[item:2]] Lamp including installation 3 EA\nwithout installation\n[[item:3]] Fan supply only",
-		PDFItems: []objectimportDomainEntity.PDFItem{
-			{ItemNo: "1", Name: "Pump", Quantity: "2", Unit: "EA"},
-			{ItemNo: "2", Name: "Lamp", Quantity: "3", Unit: "EA"},
-			{ItemNo: "3", Name: "Fan", Unit: "EA"},
-		},
-	}}}
+	}}, PDF: objectimportDomainEntity.LocatedPDFItems{Items: []objectimportDomainEntity.PDFItem{
+		{ItemNo: "1", Name: "Pump", Quantity: "2", Unit: "EA"},
+		{ItemNo: "2", Name: "Lamp", Quantity: "3", Unit: "EA"},
+		{ItemNo: "3", Name: "Fan", Unit: "EA"},
+	},
+	}}
 	candidates := []objectimportDomainEntityAutomatic.Candidate{
 		{Name: "Pump", Quantity: "99", Unit: "BOX", SourceItemNo: "1", Type: "non_work", Quote: "supply only", Pages: []int{1}},
 		{Name: "Lamp", Quantity: "1", Unit: "BOX", SourceItemNo: "2", Type: "work", Quote: "including installation", Pages: []int{1}},
@@ -74,8 +74,8 @@ func TestPDFUsesSourceFieldsAndRequiresUnambiguousClassification(t *testing.T) {
 
 func TestTextOnlyPDFRequiresReviewEvenWithModelClassification(t *testing.T) {
 	source := objectimportDomainEntity.Source{SourceDocument: "pdf:test", Pages: []objectimportDomainEntity.Page{{
-		Number: 2, Text: "A-10 Pump supply only\n2 EA", PDFTextOnly: true,
-	}}}
+		Number: 2, Text: "A-10 Pump supply only\n2 EA",
+	}}, PDF: objectimportDomainEntity.PDFPageText{}}
 	candidate := objectimportDomainEntityAutomatic.Candidate{
 		Name: "Pump", Quantity: "2", Unit: "EA", SourceItemNo: "A-10",
 		Type: "non_work", Quote: "Pump supply only 2 EA", Pages: []int{2},

@@ -76,19 +76,17 @@ func Prepare(j Run, source objectimportDomainEntity.Source, candidates []Candida
 		return nil, objectimportDomainEntity.ErrInput
 	}
 	pages := map[int]string{}
-	textOnly := false
+	_, textOnly := source.PDF.(objectimportDomainEntity.PDFPageText)
 	for _, p := range source.Pages {
 		pages[p.Number] = p.Text
-		textOnly = textOnly || p.PDFTextOnly
 	}
 	rows := make([]Row, 0, len(candidates))
 	seen := map[string]bool{}
 	var evidence map[string]map[int]string
 	pdfItems := map[string]objectimportDomainEntity.PDFItem{}
-	pdf := false
-	for _, page := range source.Pages {
-		pdf = pdf || page.PDFItems != nil
-		for _, item := range page.PDFItems {
+	located, pdf := source.PDF.(objectimportDomainEntity.LocatedPDFItems)
+	if pdf {
+		for _, item := range located.Items {
 			if _, duplicate := pdfItems[item.ItemNo]; duplicate {
 				return nil, objectimportDomainEntity.ErrInput
 			}

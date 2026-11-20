@@ -25,9 +25,9 @@ type pdfWord struct {
 var itemID = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._/-]*$`)
 
 // ReadPDF bounds conversion time, pages and extracted bytes before decoding.
-func ReadPDF(ctx context.Context, file []byte) ([]imp.Page, error) {
+func ReadPDF(ctx context.Context, file []byte) (imp.PDFInput, error) {
 	if !bytes.HasPrefix(file, []byte("%PDF-")) {
-		return nil, imp.ErrInput
+		return imp.PDFInput{}, imp.ErrInput
 	}
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
@@ -35,16 +35,16 @@ func ReadPDF(ctx context.Context, file []byte) ([]imp.Page, error) {
 	cmd.Stdin = bytes.NewReader(file)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return nil, err
+		return imp.PDFInput{}, err
 	}
 	if err = cmd.Start(); err != nil {
-		return nil, err
+		return imp.PDFInput{}, err
 	}
 	const limit = 8 << 20
 	data, err := io.ReadAll(io.LimitReader(stdout, limit+1))
 	stdout.Close()
 	if wait := cmd.Wait(); err != nil || wait != nil || len(data) > limit {
-		return nil, imp.ErrInput
+		return imp.PDFInput{}, imp.ErrInput
 	}
 	var doc struct {
 		Pages []struct {
@@ -52,9 +52,10 @@ func ReadPDF(ctx context.Context, file []byte) ([]imp.Page, error) {
 		} `xml:"body>doc>page"`
 	}
 	if xml.Unmarshal(data, &doc) != nil || len(doc.Pages) > 50 {
-		return nil, imp.ErrInput
+		return imp.PDFInput{}, imp.ErrInput
 	}
 	var pages []imp.Page
+	var located []imp.PDFItem
 	var columns []pdfWord
 	var lastItem string
 	var fullText []imp.Page
@@ -69,14 +70,15 @@ func ReadPDF(ctx context.Context, file []byte) ([]imp.Page, error) {
 		}
 		text := strings.TrimSpace(raw.String())
 		if text != "" {
-			fullText = append(fullText, imp.Page{Number: i + 1, Text: pageText(page.Words), PDFTextOnly: true})
+			fullText = append(fullText, imp.Page{Number: i + 1, Text: pageText(page.Words)})
 		}
 		if !layoutVerified {
 			continue
 		}
 		detail, items, err := detailText(page.Words, &columns, &lastItem)
 		if err == nil && detail != "" {
-			pages = append(pages, imp.Page{Number: i + 1, Text: detail, PDFItems: items})
+			pages = append(pages, imp.Page{Number: i + 1, Text: detail})
+			located = append(located, items...)
 			continue
 		}
 		if err == nil && i == 0 && (strings.Contains(text, "封面") || strings.Contains(strings.ToLower(text), "cover")) {
@@ -85,12 +87,12 @@ func ReadPDF(ctx context.Context, file []byte) ([]imp.Page, error) {
 		layoutVerified = false
 	}
 	if !layoutVerified && len(fullText) > 0 {
-		return fullText, nil
+		return imp.PDFInput{Pages: fullText, Evidence: imp.PDFPageText{}}, nil
 	}
 	if len(pages) == 0 {
-		return nil, imp.ErrInput
+		return imp.PDFInput{}, imp.ErrInput
 	}
-	return pages, nil
+	return imp.PDFInput{Pages: pages, Evidence: imp.LocatedPDFItems{Items: located}}, nil
 }
 
 // Poppler returns words in reading order. Preserve line breaks inside each page.
