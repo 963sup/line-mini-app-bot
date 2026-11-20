@@ -52,7 +52,7 @@ func (s Sources) Read(ctx context.Context, repo, actor, digest string) ([]byte, 
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	data, err := io.ReadAll(io.LimitReader(response.Body, (300<<10)+1))
 	if err != nil {
 		return nil, err
