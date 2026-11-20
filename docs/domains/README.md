@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[attendance](attendance)、[repository](repository)、[project.md](project.md)、[本目錄工作指引](AGENTS.md)。
+先查閱[attendance](attendance/README.md)、[repository](repository/README.md)、[project.md](project.md)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 

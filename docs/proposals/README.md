@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[line-engineering](line-engineering)。
+先查閱[line-engineering](line-engineering/README.md)。
 
 ## 相關規格
 

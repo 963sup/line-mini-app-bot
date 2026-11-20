@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[architecture](architecture)、[domains](domains)、[development](development)、[guides](guides)、[proposals](proposals)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+先查閱[architecture](architecture/README.md)、[domains](domains/README.md)、[development](development/README.md)、[guides](guides/README.md)、[proposals](proposals/README.md)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
 
 ## 相關規格
 
