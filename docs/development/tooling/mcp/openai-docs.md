@@ -14,28 +14,29 @@ Tool versions are owned by `mise.toml`; never copy token values into documentati
 
 ## Operation
 
-Use `search_openai_docs` then `fetch_openai_doc`. Direct client examples appear below.
+Use the host’s `search_openai_docs` then `fetch_openai_doc`. From the repository root,
+the following task searches the official docs and registers the CLI server if missing:
+
+```bash
+bash scripts/tooling/tool-exec.sh mise run docs-openai
+```
+
+To fetch a search result by URL:
+
+```bash
+bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server openaiDeveloperDocs --call fetch_openai_doc --arguments '{"url":"https://developers.openai.com/codex/mcp"}'
+```
 
 ## Verification and failures
 
 ```bash
-bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server openaiDeveloperDocs
+bash scripts/tooling/tool-exec.sh mise run doctor-openai
 ```
 
-This checks initialize, tools/list and configured allowlists. Verify a representative
-operation separately. For failures distinguish missing binary, network, credential,
-workspace prerequisites and host loading; see [troubleshooting](../../../guides/release/troubleshooting.md).
-
-## Direct documentation client
-
-```bash
-bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server openaiDeveloperDocs --call search_openai_docs --arguments '{"query":"Codex MCP config.toml"}'
-bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server openaiDeveloperDocs --call fetch_openai_doc --arguments '{"url":"https://developers.openai.com/codex/mcp"}'
-```
-
-Prefer exposed host tools. The direct client is a fallback and does not register
-servers in the host. Search and fetch are the only direct tool calls allowed by
-this client. Report tool errors and do not treat a handshake as a successful query.
+This checks the endpoint handshake and tool allowlist without changing CLI registration.
+If the CLI lacks the server, run the `docs-openai` task for OpenAI alone or `ensure-remote-mcp` for OpenAI, Context7 and GitHub. Reopen the chat to
+refresh its tool inventory if needed. See [troubleshooting](../../../guides/release/troubleshooting.md)
+for transport and host-loading failures.
 
 ## Codex configuration policy
 

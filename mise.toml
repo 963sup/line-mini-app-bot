@@ -135,7 +135,12 @@ dir = "backend"
 description = "Profile one package: mise run profile ./path/to/package"
 run = "bash ../scripts/tooling/go-profile.sh"
 
+[tasks.ensure-remote-mcp]
+description = "Register missing OpenAI Docs, Context7 and GitHub servers in Codex"
+run = "python3 scripts/tooling/ensure-remote-mcp.py"
+
 [tasks.install-mcp]
+depends = ["ensure-remote-mcp"]
 description = "Install optional local MCP tools separately from Go"
 run = [
   "mise install node python uv npm:repomix",
@@ -223,7 +228,7 @@ run = "python3 scripts/analysis/analysis-scope.py --audit"
 
 [tasks.docs-openai]
 description = "Search official OpenAI docs through MCP; append --arguments JSON to override query"
-run = "python3 scripts/tooling/mcp-doctor.py --server openaiDeveloperDocs --call search_openai_docs"
+run = ["python3 scripts/tooling/ensure-remote-mcp.py --server openaiDeveloperDocs", "python3 scripts/tooling/mcp-doctor.py --server openaiDeveloperDocs --call search_openai_docs --arguments '{\"query\": \"Codex MCP configuration\", \"limit\": 2}'"]
 
 [tasks.doctor-openai]
 description = "Check OpenAI Docs MCP independently of optional GitHub credentials"

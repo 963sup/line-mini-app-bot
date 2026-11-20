@@ -1,7 +1,7 @@
 # Agent delivery workflow
 
 Registered roles are capabilities, not mandatory execution stages.
-The orchestrator can complete small work directly. Select the relevant specialist
+The primary agent completes single-owner work directly. Select the relevant specialist
 for substantial changes and use tester/reviewer when their checks add evidence.
 Add architect/researcher/explorer for a specific unresolved question and integrator
 when separate patches require it.
@@ -15,7 +15,7 @@ and acceptance ownership.
 
 ## Delegation depth and role selection
 
-The repository's delegation policy is primary agent (depth 0) → orchestrator
+When coordination is needed, the delegation topology is primary agent (depth 0) → orchestrator
 (depth 1) → specialist (depth 2). Specialists return results to orchestrator and
 MUST NOT spawn agents. Keep `agents.max_depth = 2` for V1 threads; the official
 schema says V2 ignores this setting, so routing instructions and actual host
@@ -45,7 +45,7 @@ adding specialist roles is not a reason to increase them.
 Use evidence specialists first when needed, then assign implementation to an
 explicit owner. For a mixed Next.js/TypeScript/shadcn task, choose one primary
 writer; the other specialists provide read-only advice. Parallel writers require
-disjoint file ownership. Return cross-scope changes to orchestrator for reassignment.
+disjoint file ownership. A single writer owns the requested behavior across all necessary layers. Coordinate reassignment when another writer owns a required file or the requested behavior changes.
 Tool operations and fallbacks remain in the [MCP guides](tooling/mcp/README.md).
 
 The orchestrator or current owner MAY call the relevant tools directly; a tool
