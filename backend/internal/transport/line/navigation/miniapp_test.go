@@ -1,6 +1,8 @@
 package navigation
 
 import (
+	"context"
+	"errors"
 	"testing"
 
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
@@ -32,5 +34,27 @@ func TestMiniAppPostbackValidation(t *testing.T) {
 	e := webhook.PostbackEvent{Mode: "standby", ReplyToken: "reply", Source: webhook.UserSource{UserId: "user"}, Postback: &webhook.PostbackContent{Data: "action=miniapp"}}
 	if ReplyForEvent(e, "https://miniapp.line.me/123-test", "https://app.example/miniapp").Message != nil {
 		t.Fatal("standby event must remain silent")
+	}
+}
+
+func TestGroupMenuLookup(t *testing.T) {
+	event := webhook.PostbackEvent{Mode: "active", ReplyToken: "reply", Source: webhook.GroupSource{GroupId: "group"}, Postback: &webhook.PostbackContent{Data: "action=miniapp"}}
+	unavailable := errors.New("repository unavailable")
+	calls := 0
+	handler := Handler("https://example.org/miniapp", "", func(_ context.Context, group string) (string, error) {
+		calls++
+		if group != "group" {
+			t.Fatalf("unexpected group %q", group)
+		}
+		return "", unavailable
+	})
+	reply, handled, err := handler.Handle(t.Context(), event)
+	if !errors.Is(err, unavailable) || handled || reply.Message != nil || calls != 1 {
+		t.Fatal("group lookup failure must be returned before replying")
+	}
+	event.Postback.Data = "action=unknown"
+	reply, _, err = handler.Handle(t.Context(), event)
+	if err != nil || reply.Message != nil || calls != 1 {
+		t.Fatal("ignored postback must not query repository")
 	}
 }

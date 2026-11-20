@@ -23,8 +23,10 @@ func journalURL(appURL string) string {
 	return u.String()
 }
 
+var repositoryIDPattern = regexp.MustCompile(`^[a-f0-9]{32}$`)
+
 func RepositoryURL(appURL string, group bool, ids ...string) string {
-	if group && (len(ids) != 1 || !regexp.MustCompile(`^[a-f0-9]{32}$`).MatchString(ids[0])) {
+	if group && (len(ids) != 1 || !repositoryIDPattern.MatchString(ids[0])) {
 		return ""
 	}
 	if appURL == "" {
