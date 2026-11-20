@@ -254,7 +254,7 @@ test("legacy progress requires an explicit value and cannot silently reclassify"
 
 test("work with progress cannot change to non-work before saving zero", async () => {
   let writes = 0;
-  const item = resource({ completedQuantity: "0.000001", status: "in_progress" });
+  const item = resource({ completedQuantity: "0.000001", status: "in_progress", requiresProgressReset: true });
   const f = await fixture(async request => {
     if (request.method === "PATCH") writes++;
     return Response.json(new URL(request.url).pathname.endsWith(oid) ? item : { items: [item], nextCursor: "" });

@@ -152,6 +152,14 @@ func Normalize(c Content) (Content, error) {
 	return c, nil
 }
 
+func (v Object) RequiresProgressReset() bool {
+	if v.Type != TypeWork || v.CompletedQuantity == "" {
+		return false
+	}
+	done, _ := new(big.Rat).SetString(v.CompletedQuantity)
+	return done == nil || done.Sign() > 0
+}
+
 func ApplyUpdate(current Object, actor string, input Update) (Object, error) {
 	if !current.CanEdit(actor) {
 		return Object{}, ErrForbidden
@@ -188,8 +196,7 @@ func ApplyUpdate(current Object, actor string, input Update) (Object, error) {
 		return Object{}, ErrInput
 	}
 	if current.Type == TypeWork && current.CompletedQuantity != "" && content.Type != TypeWork {
-		done, _ := new(big.Rat).SetString(current.CompletedQuantity)
-		if done == nil || done.Sign() > 0 {
+		if current.RequiresProgressReset() {
 			return Object{}, ErrProgressRemoval
 		}
 		content.CompletedQuantity = ""
