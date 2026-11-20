@@ -1,5 +1,16 @@
 # Codex 專案配置
 
+## Codex 環境初始化
+
+從儲存庫根目錄開啟 Codex。若環境提供 setup command，在儲存庫根目錄執行以下命令，重建 mise 和基礎開發工具：
+
+```bash
+bash scripts/tooling/bootstrap.sh core
+```
+
+需要 Google Cloud CLI、Firebase CLI 或本機 gcloud MCP 套件時，再執行 `bash scripts/tooling/tool-exec.sh mise run install-cloud`。初始化後，用 `bash scripts/tooling/tool-exec.sh mise ls --installed` 查看實際安裝版本。Codex 每次開啟專案時可依[根目錄指引](../AGENTS.md#cli-discovery)找到工具入口。
+
+
 ## 用途與範圍
 
 保存 Codex 角色、MCP 與 hooks 設定。
