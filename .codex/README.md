@@ -1,5 +1,18 @@
 # Codex 專案配置
 
+## Codex 環境初始化
+
+從儲存庫根目錄開啟 Codex。在 Codex Cloud 環境中，將 Setup script 和 Maintenance script 都設為下列命令。它會安裝鎖定的開發工具與依賴，並預先下載 Go modules。
+
+```bash
+bash scripts/tooling/bootstrap.sh cloud
+```
+
+就地開發可使用 `bash scripts/tooling/bootstrap.sh core`。從全新 Cloud 環境驗收時，確認 setup 成功，再從 checkout 根目錄執行 `bash scripts/tooling/tool-exec.sh mise run check` 與 `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check`。本機 MCP 以 checkout 根目錄為工作目錄，依任務安裝所需套件後，在新對話確認 MCP 已載入。詳見[本機與 Cloud 初始化](../docs/guides/local-development/setup.md)。
+
+需要 Google Cloud CLI、Firebase CLI 或本機 gcloud MCP 套件時，再執行 `bash scripts/tooling/tool-exec.sh mise run install-cloud`。初始化後，用 `bash scripts/tooling/tool-exec.sh mise ls --installed` 查看實際安裝版本。Codex 每次開啟專案時可依[根目錄指引](../AGENTS.md#cli-discovery)找到工具入口。
+
+
 ## 用途與範圍
 
 保存 Codex 角色、MCP 與 hooks 設定。
