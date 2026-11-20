@@ -163,7 +163,7 @@ func container(tx *db.Transaction, parent *db.DocumentRef, r repository.Reposito
 	if e = snap.DataTo(&d); e != nil {
 		return e
 	}
-	if d.ID != r.ID || d.OwnerID != r.OwnerID || d.Status != "ACTIVE" {
+	if !r.MatchesActive(d.ID, d.OwnerID, d.Status) {
 		return object.ErrNotFound
 	}
 	return nil

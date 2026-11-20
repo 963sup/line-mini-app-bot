@@ -90,7 +90,7 @@ func (s *Store) authorizeParentObject(tx *db.Transaction, r repository.Repositor
 	if e = snap.DataTo(&repo); e != nil {
 		return "", e
 	}
-	if repo.ID != r.ID || repo.OwnerID != r.OwnerID || repo.Status != "ACTIVE" {
+	if !r.MatchesActive(repo.ID, repo.OwnerID, repo.Status) {
 		return "", feature.ErrNotFound
 	}
 	snap, e = tx.Get(s.parentObjectRef(r.ID, parentObjectID))
