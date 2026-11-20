@@ -1,3 +1,4 @@
+import { listMemberGroups } from "@/business/group/memberGroups";
 import dynamic from "next/dynamic";
 import React, { useEffect, useState, useRef } from "react";
 import { useSession, type Request } from "@/identity/Session";
@@ -154,9 +155,7 @@ function ComposeView({request, close}: {request: Request; close: () => void}) {
   useEffect(() => {
     const controller = new AbortController();
     setError("");
-    collect(cursor => request((client, signal) => client.GET("/api/v1/groups", {
-      signal, params: {query: {cursor: cursor || undefined}},
-    }), {signal: controller.signal})).then(
+    collect(cursor => listMemberGroups(request, controller.signal, cursor || undefined)).then(
       items => { if (!controller.signal.aborted) setGroups(items); },
       reason => { if (!controller.signal.aborted) setError(errorMessage(reason)); },
     );
@@ -191,7 +190,7 @@ function View({dashboard,request,detail}:{dashboard:boolean;request:Request;deta
   const list=useLatestRequest();
   useEffect(()=>{
     const controller=new AbortController();setGroupError("");
-    collect(cursor=>request((c,s)=>c.GET("/api/v1/groups",{signal:s,params:{query:{cursor:cursor||undefined}}}),{signal:controller.signal}))
+    collect(cursor => listMemberGroups(request, controller.signal, cursor || undefined))
       .then(gs=>{if(!controller.signal.aborted)setGroups(gs);}).catch(e=>{if(!controller.signal.aborted)setGroupError(errorMessage(e));});
     return ()=>controller.abort();
   },[request,revision]);

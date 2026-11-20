@@ -998,9 +998,7 @@
       "core": "backend/internal/business/group/application/query/group.go",
       "specification": "docs/domains/project/project.md",
       "consumers": [
-        "frontend/miniapp/src/business/attendance/memberGroups.ts",
-        "frontend/miniapp/src/business/journal/Workspace.tsx",
-        "frontend/miniapp/src/business/project/Workspace.tsx"
+        "frontend/miniapp/src/business/group/memberGroups.ts"
       ]
     },
     {
