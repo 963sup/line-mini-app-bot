@@ -1867,17 +1867,32 @@ export interface components {
             decisions?: {
                 [key: string]: string;
             };
+            /**
+             * @description Continue a frozen run using the original key, without uploading the file.
+             * @enum {boolean}
+             */
+            resume?: true;
+            corrections?: {
+                [key: string]: {
+                    name: string;
+                    quantity: string;
+                    unit: string;
+                };
+            };
             /** @description Base64 XLSX, up to 300 KiB. Uses per_item classification with manual type confirmation. Supply either workbook or pages. */
             workbook?: string;
+            /** @description Base64 text PDF up to 10 MiB, parsed server-side. */
+            pdfFile?: string;
             /** @description Base64 UTF-8 CSV, TSV, tab-delimited TXT or Markdown table; format is the sourceDocument prefix. */
             textFile?: string;
-        } & (unknown | unknown | unknown);
+        } & (unknown | unknown | unknown | unknown | unknown);
         ObjectImportRunRow: {
             name: string;
             description: string;
             type: string;
-            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
+            /** @description Positive exact decimal. Empty only for a PDF row awaiting a corrected quantity. */
             quantity: string;
+            /** @description Empty only for a PDF row awaiting a corrected unit. */
             unit: string;
             materialCode: string;
             sourceItemNo: string;
