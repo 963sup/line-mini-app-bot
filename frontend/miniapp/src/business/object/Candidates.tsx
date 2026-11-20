@@ -40,9 +40,6 @@ export function Candidates({ repositoryId, disabled, created, choose }: {
 
   function extract() {
     if (!file || disabled || locked.current) return;
-    if (!file.size || file.size > 8 * 1024 * 1024) {
-      setMessage("請選擇 8 MiB 以內的非空文件。"); return;
-    }
     locked.current = true;
     setBusy(true); setMessage(""); setResult(undefined);
     void run(async signal => {
@@ -59,8 +56,8 @@ export function Candidates({ repositoryId, disabled, created, choose }: {
 
   return <details className="my-3">
     <summary>從文件辨識物件</summary>
-    <p>辨識時會將原檔送至 OpenAI。支援 PDF、DOCX、TXT、CSV 與 XLSX，每檔最多 8 MiB。試算表每張工作表最多處理前 1,000 列。</p>
-    <label>來源文件<Input type="file" accept=".pdf,.docx,.txt,.csv,.xlsx" disabled={disabled || busy} onChange={e => {
+    <p>辨識時會將原檔送至 OpenAI，格式依 Responses API 支援範圍判定，每檔須小於 50 MB。試算表每張工作表最多處理前 1,000 列。<a href="https://developers.openai.com/api/docs/guides/file-inputs" target="_blank" rel="noreferrer">官方文件格式與限制</a></p>
+    <label>來源文件<Input type="file" disabled={busy} onChange={e => {
       setFile(e.target.files?.[0]); setResult(undefined); setMessage("");
     }} /></label>
     <Button type="button" disabled={!file || disabled || busy} onClick={extract}>辨識候選</Button>

@@ -307,6 +307,8 @@ test("document candidates require review and use the object creation form", asyn
   try {
     await act(async () => {
       const input = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+      assert.equal(input.hasAttribute("accept"), false, "native picker must not filter document formats");
+      assert.equal(input.disabled, false);
       Object.defineProperty(input, "files", {value: [new window.File(["abc"], "list.txt")]});
       input.dispatchEvent(new window.Event("change", {bubbles:true}));
     });

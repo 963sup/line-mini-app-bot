@@ -15,14 +15,15 @@ import (
 func TestFileResponseContract(t *testing.T) {
 	for _, tc := range []struct {
 		name, status, kind, value string
+		filename, media           string
 		want                      error
 		count                     int
 	}{
-		{"candidate", "completed", "output_text", `{"candidates":[{"name":"電纜","quantity":"2.50","unit":"M","location":null,"quote":"電纜 2.50 M"}]}`, nil, 1},
-		{"empty", "completed", "output_text", `{"candidates":[]}`, nil, 0},
-		{"refused", "completed", "refusal", "refused", operations.ErrRefused, 0},
-		{"truncated", "incomplete", "output_text", "{", operations.ErrIncomplete, 0},
-		{"invalid", "completed", "output_text", "{}", operations.ErrInvalidOutput, 0},
+		{"candidate", "completed", "output_text", `{"candidates":[{"name":"電纜","quantity":"2.50","unit":"M","location":null,"quote":"電纜 2.50 M"}]}`, "工項.txt", "text/plain", nil, 1},
+		{"empty", "completed", "output_text", `{"candidates":[]}`, "工項.pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", nil, 0},
+		{"refused", "completed", "refusal", "refused", "工項.xls", "application/vnd.ms-excel", operations.ErrRefused, 0},
+		{"truncated", "incomplete", "output_text", "{", "工項.html", "text/html", operations.ErrIncomplete, 0},
+		{"invalid", "completed", "output_text", "{}", "工項.unknown-format", "application/octet-stream", operations.ErrInvalidOutput, 0},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +51,7 @@ func TestFileResponseContract(t *testing.T) {
 					return
 				}
 				file := body.Input[0].Content[0]
-				if file.Type != "input_file" || file.Filename != "工項.txt" || file.FileData != "data:text/plain;base64,YWJj" || body.Text.Format.Type != "json_schema" || !body.Text.Format.Strict || body.Text.Format.Schema["additionalProperties"] != false {
+				if file.Type != "input_file" || file.Filename != tc.filename || file.FileData != "data:"+tc.media+";base64,YWJj" || body.Text.Format.Type != "json_schema" || !body.Text.Format.Strict || body.Text.Format.Schema["additionalProperties"] != false {
 					t.Error("unexpected file or output format")
 				}
 				part := map[string]string{"type": tc.kind, "text": tc.value}
@@ -66,7 +67,7 @@ func TestFileResponseContract(t *testing.T) {
 			defer server.Close()
 			client := sdk.NewClient(option.WithAPIKey("test"), option.WithBaseURL(server.URL), option.WithMaxRetries(0))
 			extractor := Extractor{Responses: client.Responses, Model: "test"}
-			result, err := extractor.ExtractCandidates(t.Context(), operations.Document{Filename: "工項.txt", Data: []byte("abc")})
+			result, err := extractor.ExtractCandidates(t.Context(), operations.Document{Filename: tc.filename, Data: []byte("abc")})
 			if !errors.Is(err, tc.want) || len(result.Candidates) != tc.count || !json.Valid(result.RawResponse) {
 				t.Fatalf("candidates=%v error=%v", result.Candidates, err)
 			}

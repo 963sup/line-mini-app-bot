@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"mime"
 	"path/filepath"
 	"strings"
 
@@ -15,12 +16,6 @@ import (
 type Extractor struct {
 	Responses responses.ResponseService
 	Model     string
-}
-
-var mediaTypes = map[string]string{
-	".pdf": "application/pdf", ".txt": "text/plain", ".csv": "text/csv",
-	".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-	".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 }
 
 func candidateFormat() responses.ResponseTextConfigParam {
@@ -41,9 +36,15 @@ func candidateFormat() responses.ResponseTextConfigParam {
 }
 
 func (e *Extractor) ExtractCandidates(ctx context.Context, doc operations.Document) (operations.Extraction, error) {
-	media := mediaTypes[strings.ToLower(filepath.Ext(doc.Filename))]
-	if media == "" || len(doc.Data) == 0 || len(doc.Data) >= 50_000_000 {
+	if len(doc.Data) == 0 || len(doc.Data) >= 50_000_000 {
 		return operations.Extraction{}, operations.ErrInvalidDocument
+	}
+	// Format support belongs to Responses, not a local extension allowlist.
+	media := mime.TypeByExtension(strings.ToLower(filepath.Ext(doc.Filename)))
+	if media == "" {
+		media = "application/octet-stream"
+	} else if parsed, _, err := mime.ParseMediaType(media); err == nil {
+		media = parsed
 	}
 	file := responses.ResponseInputFileParam{Filename: sdk.String(doc.Filename), FileData: sdk.String("data:" + media + ";base64," + base64.StdEncoding.EncodeToString(doc.Data))}
 	message := responses.ResponseInputItemParamOfInputMessage(responses.ResponseInputMessageContentListParam{{OfInputFile: &file}}, "user")
