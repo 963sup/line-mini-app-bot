@@ -1,5 +1,5 @@
-// Package lineui renders the public feature menu shared by the bot and CLI.
-package lineui
+// Package navigation renders the public feature menu shared by the bot and CLI.
+package navigation
 
 import (
 	"net/url"
@@ -23,8 +23,10 @@ func journalURL(appURL string) string {
 	return u.String()
 }
 
+var repositoryIDPattern = regexp.MustCompile(`^[a-f0-9]{32}$`)
+
 func RepositoryURL(appURL string, group bool, ids ...string) string {
-	if group && (len(ids) != 1 || !regexp.MustCompile(`^[a-f0-9]{32}$`).MatchString(ids[0])) {
+	if group && (len(ids) != 1 || !repositoryIDPattern.MatchString(ids[0])) {
 		return ""
 	}
 	if appURL == "" {

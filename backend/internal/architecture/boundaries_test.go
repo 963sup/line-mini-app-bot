@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"io/fs"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -83,6 +84,11 @@ func TestDependencyBoundaries(t *testing.T) {
 		"business/weather/domain/entity/forecast":             {},
 		"identity": {},
 	}
+	allowedTransport := map[string][]string{
+		"transport/http/geolocation": {"transport/http/browser"},
+		"transport/line/navigation":  {"transport/line"},
+	}
+
 	const module = "github.com/963sup/line-mini-app-bot/internal/"
 	err = filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
@@ -168,7 +174,7 @@ func TestDependencyBoundaries(t *testing.T) {
 			if strings.HasPrefix(dependency, module+"bootstrap") {
 				t.Errorf("%s imports composition root", rel)
 			}
-			if strings.HasPrefix(dir, "transport/") && strings.HasPrefix(dependency, module) && (dir != "transport/http/geolocation" || dependency != module+"transport/http/browser") {
+			if strings.HasPrefix(dir, "transport/") && strings.HasPrefix(dependency, module) && !slices.Contains(allowedTransport[dir], strings.TrimPrefix(dependency, module)) {
 				t.Errorf("transport depends on application feature: %s", dependency)
 			}
 		}

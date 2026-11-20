@@ -15,7 +15,7 @@ import (
 
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 	identityline "github.com/963sup/line-mini-app-bot/internal/identity/line"
-	navigation "github.com/963sup/line-mini-app-bot/internal/navigation/line"
+	navigation "github.com/963sup/line-mini-app-bot/internal/transport/line/navigation"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )

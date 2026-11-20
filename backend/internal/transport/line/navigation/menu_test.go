@@ -1,4 +1,4 @@
-package lineui
+package navigation
 
 import (
 	"bytes"

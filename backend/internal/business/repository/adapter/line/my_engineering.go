@@ -6,7 +6,7 @@ import (
 
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/navigation/lineui"
+	"github.com/963sup/line-mini-app-bot/internal/transport/line/navigation"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
@@ -35,7 +35,7 @@ func MyEngineering(ctx context.Context, event webhook.EventInterface, appURL str
 		if name == "" {
 			name = "工程儲存庫"
 		}
-		if link := lineui.RepositoryURL(appURL, true, repo.ID); link != "" {
+		if link := navigation.RepositoryURL(appURL, true, repo.ID); link != "" {
 			name += "\n" + link
 		}
 		lines = append(lines, name)
@@ -44,7 +44,7 @@ func MyEngineering(ctx context.Context, event webhook.EventInterface, appURL str
 		lines = append(lines, "目前沒有可開啟的工程。")
 	}
 	if len(page.Items) > 5 || page.NextCursor != "" {
-		if link := lineui.RepositoryURL(appURL, false); link != "" {
+		if link := navigation.RepositoryURL(appURL, false); link != "" {
 			lines = append(lines, "查看完整清單："+link)
 		}
 	}

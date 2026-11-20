@@ -8,6 +8,8 @@
 
 依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
 
+[navigation](navigation) 處理選單指令、postback 與回覆呈現。業務專屬指令由各領域的 LINE 適配器處理。
+
 ## 閱讀與修改入口
 
 先查閱[group.go](group.go)、[membership.go](membership.go)、[reply.go](reply.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。

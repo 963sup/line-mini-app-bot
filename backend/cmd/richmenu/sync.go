@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/navigation/lineui"
+	"github.com/963sup/line-mini-app-bot/internal/transport/line/navigation"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 )
 
@@ -34,7 +34,7 @@ func syncMenus(args []string) error {
 		return errors.New("provide -app-url with an absolute HTTPS URL")
 	}
 	names := []string{"attendance-in", "attendance-out"}
-	menus := lineui.AttendanceRichMenus(*app)
+	menus := navigation.AttendanceRichMenus(*app)
 	images := map[string][]byte{}
 	for _, alias := range names {
 		data, _, err := readMenuImage(filepath.Join(*dir, alias+".jpg"))
