@@ -4,13 +4,19 @@
 
 需要補查證據時，[Agent](agent.md) 可在授權範圍內選擇操作。[Knowledge](knowledge.md) 提供已發布且適用於目前組織的規則版本。
 
-## 從文件建立物件（規劃中）
+## 物件呼叫文件辨識能力
 
-使用者在物件畫面選擇文件。Workflow 協調選檔、辨識、人工確認與建立，依序呼叫 Operations 提供的「從文件擷取候選」與「建立已確認物件」兩個操作。
+Object 的應用層先核對呼叫者與儲存庫，再呼叫 Operations 的文件候選擷取介面。Bootstrap 按 `AI_DOCUMENT_MODEL` 和既有 OpenAI 憑證注入適配器。這條內部接線只回傳候選；正式物件仍由 Object 建立。
 
-1. 擷取操作將使用者選擇的原檔交給模型，要求回傳候選名稱、數量、單位、來源位置與引文。來源未載明的欄位留空供補正。若需補查，由 Agent 在已授權的來源內取得證據；有適用的已發布分類規則時，從 Knowledge 取得規則與版本。
-2. Workflow 將候選與原文交給使用者核對，並區分模型拒答、回應不完整、欄位驗證失敗與確實沒有候選等結果。只有經使用者確認的列才進入建立步驟。
-3. 建立操作呼叫 Object 既有的建立能力，由 Object 核對儲存庫權限、數量與單位，並以建立鍵處理重試。Subobject 管理隸屬單一物件的子項；文件辨識的結果不會自動展開為子項。
+適配器透過 Responses API 在同一個請求中使用 `input_file` 傳送原檔，並以 `text.format` 指定嚴格的 JSON Schema。候選包含名稱、十進位數量字串、單位、來源位置與引文；數量、單位及位置允許 null。完成、拒答、截斷和無效輸出各有對應的結果，呼叫端可檢視模型回應。每次重送都會重新辨識且可能計費。[File inputs](https://developers.openai.com/api/docs/guides/file-inputs?api-mode=responses) · [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs#supported-schemas)
+
+### 後續實作順序
+
+1. 在物件 API 加入候選辨識操作，定義檔案類型、上傳大小、候選及錯誤回應的公開契約。測試無權限時不會呼叫模型，拒答與截斷可和零筆候選區分。
+2. 在物件畫面加入選檔與覆核。顯示原始數量、單位、位置與引文，讓使用者修正後透過既有建立操作逐筆送出。重送建立時沿用同一建立鍵。
+3. 以實際 PDF、段落文件及試算表驗收來源可追溯性、缺欄與漏列。試算表處理有列數及摘要限制，需用原件核對完整性。
+
+跨步驟續跑、補查外部證據及套用已發布規則分別由 Workflow、Agent 和 Knowledge 按需求承接。
 
 ## 驗收條件
 
