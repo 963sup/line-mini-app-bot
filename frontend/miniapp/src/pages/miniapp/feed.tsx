@@ -9,7 +9,7 @@ export default function Page() {
 
   return (
     <Shell title={composing ? "寫日誌" : "動態"} workflow="feed">
-      {router.isReady && <JournalWorkspace dashboard={false} journalId={typeof router.query.journalId === "string" ? router.query.journalId : ""} onCloseComposer={composing ? () => { void router.replace("/miniapp/feed"); } : undefined} />}
+      {router.isReady ? <JournalWorkspace dashboard={false} journalId={typeof router.query.journalId === "string" ? router.query.journalId : ""} onCloseComposer={composing ? () => { void router.replace("/miniapp/feed"); } : undefined} /> : <p role="status">請先登入以查閱群組日誌。</p>}
     </Shell>
   );
 }
