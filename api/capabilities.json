@@ -46,7 +46,7 @@
     "attendance.worktime": {
       "contract": "attendance/worktime.yaml",
       "adapter": "backend/internal/business/attendance/http/records.go",
-      "core": "backend/internal/business/attendance/worktime/worktime.go",
+      "core": "backend/internal/business/attendance/domain/worktime/worktime.go",
       "specification": "docs/domains/attendance/worktime.md"
     },
     "summary.summarization": {
