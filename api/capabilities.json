@@ -229,8 +229,8 @@
     },
     "team": {
       "contract": "team/teams.yaml",
-      "adapter": "backend/internal/business/team/http/routes.go",
-      "core": "backend/internal/business/team/firestore/store.go",
+      "adapter": "backend/internal/business/team/adapter/http/routes.go",
+      "core": "backend/internal/business/team/adapter/firestore/store.go",
       "specification": "docs/domains/repository/organization.md"
     }
   },
@@ -1599,9 +1599,9 @@
       "method": "PUT",
       "path": "/api/v1/teams/{teamId}/management",
       "owner": "team",
-      "adapter": "backend/internal/business/team/http/routes.go",
+      "adapter": "backend/internal/business/team/adapter/http/routes.go",
       "handler": "SetTeamManagement",
-      "core": "backend/internal/business/team/firestore/store.go",
+      "core": "backend/internal/business/team/adapter/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": []
     },
@@ -1611,9 +1611,9 @@
       "method": "GET",
       "path": "/api/v1/organizations/{organizationId}/teams",
       "owner": "team",
-      "adapter": "backend/internal/business/team/http/routes.go",
+      "adapter": "backend/internal/business/team/adapter/http/routes.go",
       "handler": "ListOrganizationTeams",
-      "core": "backend/internal/business/team/firestore/store.go",
+      "core": "backend/internal/business/team/adapter/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": [
         "frontend/miniapp/src/business/team/OrganizationTeams.tsx"
@@ -1625,9 +1625,9 @@
       "method": "PUT",
       "path": "/api/v1/organizations/{organizationId}/enterprise-teams/{teamId}",
       "owner": "team",
-      "adapter": "backend/internal/business/team/http/routes.go",
+      "adapter": "backend/internal/business/team/adapter/http/routes.go",
       "handler": "AssignEnterpriseTeam",
-      "core": "backend/internal/business/team/firestore/store.go",
+      "core": "backend/internal/business/team/adapter/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": []
     },
@@ -1637,9 +1637,9 @@
       "method": "DELETE",
       "path": "/api/v1/organizations/{organizationId}/enterprise-teams/{teamId}",
       "owner": "team",
-      "adapter": "backend/internal/business/team/http/routes.go",
+      "adapter": "backend/internal/business/team/adapter/http/routes.go",
       "handler": "RemoveEnterpriseTeam",
-      "core": "backend/internal/business/team/firestore/store.go",
+      "core": "backend/internal/business/team/adapter/firestore/store.go",
       "specification": "docs/domains/repository/organization.md",
       "consumers": []
     },

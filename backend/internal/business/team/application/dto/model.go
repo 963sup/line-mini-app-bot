@@ -1,4 +1,4 @@
-package team
+package dto
 
 type Option struct {
 	ID              string

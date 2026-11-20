@@ -1,11 +1,14 @@
 package teamhttp
 
 import (
-	"github.com/963sup/line-mini-app-bot/internal/business/team"
+	teamApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/team/application/dto"
+)
+
+import (
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 )
 
-func teamResponse(value *team.Listing, err error) (any, error) {
+func teamResponse(value *teamApplicationDto.Listing, err error) (any, error) {
 	if err != nil || value == nil {
 		return nil, err
 	}

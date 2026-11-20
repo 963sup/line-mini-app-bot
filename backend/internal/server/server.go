@@ -13,8 +13,8 @@ import (
 
 	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
 	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/http"
-	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/firestore"
-	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/http"
+	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
+	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http"
 
 	organizationdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
 	organizationhttp "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/http"

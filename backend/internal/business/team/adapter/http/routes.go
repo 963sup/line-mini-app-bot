@@ -1,18 +1,22 @@
 package teamhttp
 
 import (
+	teamApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/team/application/dto"
+)
+
+import (
 	"context"
 	"net/http"
 
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/http"
-	"github.com/963sup/line-mini-app-bot/internal/business/team"
+
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 )
 
 type Store interface {
 	Manage(ctx context.Context, user string, teamId, scope, managementId string) error
 	Assign(ctx context.Context, user string, id, teamId string, add bool) error
-	List(ctx context.Context, user string, organizationId string) (*team.Listing, error)
+	List(ctx context.Context, user string, organizationId string) (*teamApplicationDto.Listing, error)
 }
 
 type Handler struct {

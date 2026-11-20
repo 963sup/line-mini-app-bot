@@ -1,6 +1,10 @@
 package teamdb
 
 import (
+	teamApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/team/application/dto"
+)
+
+import (
 	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
 )
 
@@ -18,7 +22,6 @@ import (
 	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/business/group/domain/valueobject"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/team"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -95,8 +98,8 @@ func (s Store) Assign(ctx context.Context, user string, id, teamId string, add b
 	return err
 }
 
-func (s Store) List(ctx context.Context, user string, organizationId string) (*team.Listing, error) {
-	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*team.Listing, error) {
+func (s Store) List(ctx context.Context, user string, organizationId string) (*teamApplicationDto.Listing, error) {
+	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*teamApplicationDto.Listing, error) {
 		if uuid.Validate(organizationId) != nil {
 			return nil, organizationDomainEntity.ErrInvalid
 		}
@@ -139,7 +142,7 @@ func (s Store) List(ctx context.Context, user string, organizationId string) (*t
 				ids[doc.Ref.ID] = "enterprise"
 			}
 		}
-		result := team.Listing{Teams: []team.Option{}}
+		result := teamApplicationDto.Listing{Teams: []teamApplicationDto.Option{}}
 		for id, scope := range ids {
 			if s.Groups == nil {
 				return nil, groupport.ErrUnavailable
@@ -151,9 +154,9 @@ func (s Store) List(ctx context.Context, user string, organizationId string) (*t
 			if e != nil {
 				return nil, e
 			}
-			result.Teams = append(result.Teams, team.Option{ID: id, Name: g.Name, ManagementScope: scope})
+			result.Teams = append(result.Teams, teamApplicationDto.Option{ID: id, Name: g.Name, ManagementScope: scope})
 		}
-		slices.SortFunc(result.Teams, func(a, b team.Option) int { return strings.Compare(a.ID, b.ID) })
+		slices.SortFunc(result.Teams, func(a, b teamApplicationDto.Option) int { return strings.Compare(a.ID, b.ID) })
 		return &result, nil
 	})
 }
