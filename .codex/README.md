@@ -63,10 +63,18 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 ### 操作與驗收
 
 1. 核對來源並依[文件圖表規範](../docs/standards/documentation.md#獨立圖檔)維護內嵌區塊或獨立圖檔。
-2. 從專案根目錄安裝固定版 Mermaid v13 alpha，執行 `bash scripts/tooling/tool-exec.sh mise run install-mermaid`。
-3. 執行 `bash scripts/tooling/tool-exec.sh mise run render-mermaid -- render diagram.mmd --format svg > diagram.svg`。
-4. 核對圖中文字與箭頭符合來源，並記錄實際渲染結果。
-
-專案預設使用本機渲染。v13 alpha 由 Node 直接渲染，無須 Chromium。遠端 Mermaid MCP 預設停用。用法見 [Mermaid v13 alpha](https://mermaid.js.org/intro/v13-alpha.html)。
+2. 使用專案鎖定的本機 Mermaid v13 CLI。需要安裝時執行 `bash scripts/tooling/tool-exec.sh mise run install-mermaid`。
+3. 執行 `bash scripts/tooling/tool-exec.sh mise run render-mermaid -- render diagram.mmd --format svg > diagram.svg`，核對圖中文字與箭頭符合來源。
 
 [開發與維運指引圖索引](../docs/diagrams.md#開發與維運指引) · [未來設計圖](../docs/diagrams.md#未來設計)。
+
+### Codex Cloud 新環境驗收
+
+從目前 checkout 根目錄執行下列命令。第一個命令會依專案設定啟動 Repomix 並讀回本 checkout 的檔案，可在聊天未提供同名工具時使用。第二個會檢查已啟用的 MCP。
+
+```sh
+python3 scripts/tooling/mcp-doctor.py --server repomix --call file_system_read_file --arguments '{"path":"README.md"}'
+bash scripts/tooling/tool-exec.sh mise run doctor-mcp
+```
+
+使用 Cloud Run 或 Firestore Toolbox 的 Cloud 環境需由主機提供 ADC。若使用憑證檔，讓 GOOGLE_APPLICATION_CREDENTIALS 指向任務執行時可讀的檔案；若主機提供預設身分，移除指向不存在檔案的舊設定。doctor 會確認 ADC 能取得 token，資源 IAM 仍需以目標專案的唯讀操作驗收。新聊天的原生工具曝光須在該聊天內核對。
