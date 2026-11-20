@@ -221,7 +221,7 @@ func (s *Store) Update(ctx context.Context, scope repository.Repository, actor, 
 		if err := snap.DataTo(&container); err != nil {
 			return err
 		}
-		if container.ID != scope.ID || container.OwnerID != scope.OwnerID || container.Status != "ACTIVE" {
+		if !scope.MatchesActive(container.ID, container.OwnerID, container.Status) {
 			return discussion.ErrNotFound
 		}
 		currentSnap, err := tx.Get(ref)

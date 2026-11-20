@@ -88,7 +88,7 @@ func checkActiveRepository(tx *db.Transaction, parent *db.DocumentRef, r reposit
 	if e = snap.DataTo(&c); e != nil {
 		return e
 	}
-	if c.ID != r.ID || c.OwnerID != r.OwnerID || c.Status != "ACTIVE" {
+	if !r.MatchesActive(c.ID, c.OwnerID, c.Status) {
 		return feature.ErrNotFound
 	}
 	return nil
