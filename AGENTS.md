@@ -13,6 +13,12 @@ Root instructions apply throughout the repository. Before changing a subtree, re
 - 目錄有明確責任且需要導覽時建立 README。有上層未涵蓋的局部規則時補 AGENTS，其餘規則由上層繼承。更新對應行為時，順手核對文件中的入口、連結及驗證命令。
 - 明確區分現行結構、必須遵守的規則和按需採用的參考範本。只有實際需要的章節或子目錄才建立。驗證需特殊環境時，列明前置條件。
 
+## CLI discovery
+
+- When a task needs to find, list, or run a CLI, start at the repository root and read [mise.toml](mise.toml) for declared tools and versions. Run `bash scripts/tooling/tool-exec.sh mise ls --installed` to inventory installed versions. The wrapper loads the workspace tool paths even when the Codex shell starts without them.
+- Run project CLIs through `bash scripts/tooling/tool-exec.sh <command> [args...]`. If the wrapper cannot find mise, check `/workspace/tooling/bin/mise` and `/workspace/tooling/mise-data/installs` before reporting a tool missing.
+- For a fresh checkout, use the [Codex environment setup instructions](.codex/README.md#codex-環境初始化). Installed CLI packages and MCP servers exposed to the current Codex session are separate inventories.
+
 ## Mandatory documentation verification
 
 Repository-wide rule for every role and task, subject to higher-priority host instructions:
