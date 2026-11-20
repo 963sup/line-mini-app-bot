@@ -6,7 +6,10 @@ import (
 	"net/http"
 	"time"
 
-	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
+	groupport "github.com/963sup/line-mini-app-bot/internal/business/group/application/port"
+	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
+	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/business/group/domain/valueobject"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi"
 	"github.com/963sup/line-mini-app-bot/internal/httpapi/generated"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
@@ -16,18 +19,18 @@ type Authenticator interface {
 	Authenticate(http.ResponseWriter, *http.Request) (string, string, bool)
 }
 
-func view(r groupdomain.Group) generated.Group {
+func view(r groupentity.Group) generated.Group {
 	return generated.Group{Id: r.ID, GroupId: r.GroupID, Name: r.Name, Status: generated.GroupStatus(r.Status), Version: r.Version, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
 }
 
 type groupServer struct {
-	service *groupdomain.Service
+	service *groupquery.Service
 	auth    Authenticator
 }
 
 var _ httpapi.GroupServer = (*groupServer)(nil)
 
-func Register(mux *http.ServeMux, service *groupdomain.Service, auth Authenticator) {
+func Register(mux *http.ServeMux, service *groupquery.Service, auth Authenticator) {
 	httpapi.RegisterGroups(mux, &groupServer{service: service, auth: auth})
 }
 
@@ -59,8 +62,8 @@ func (s *groupServer) read(w http.ResponseWriter, r *http.Request, id, cursor st
 	defer cancel()
 	if detail {
 
-		if !groupdomain.ValidID(id) {
-			writeError(w, groupdomain.ErrNotFound)
+		if !groupvalueobject.ValidID(id) {
+			writeError(w, groupentity.ErrNotFound)
 			return
 		}
 		value, err := service.Get(ctx, user, id)
@@ -72,7 +75,7 @@ func (s *groupServer) read(w http.ResponseWriter, r *http.Request, id, cursor st
 	}
 	values := r.URL.Query()["cursor"]
 	if len(values) > 1 || len(cursor) > 1024 {
-		writeError(w, groupdomain.ErrCursor)
+		writeError(w, groupport.ErrCursor)
 		return
 	}
 	page, err := service.List(ctx, user, cursor)
@@ -91,9 +94,9 @@ func writeError(w http.ResponseWriter, err error) bool {
 		return false
 	}
 	switch {
-	case errors.Is(err, groupdomain.ErrNotFound):
+	case errors.Is(err, groupentity.ErrNotFound):
 		transport.WriteServiceError(w, 404, "not_found", "找不到此群組。", err)
-	case errors.Is(err, groupdomain.ErrCursor):
+	case errors.Is(err, groupport.ErrCursor):
 		transport.WriteServiceError(w, 400, "invalid_cursor", "分頁已失效，請重新查詢。", err)
 	default:
 		transport.WriteServiceError(w, 503, "unavailable", "暫時無法讀取群組，請重試。", err)

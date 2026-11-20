@@ -10,8 +10,10 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
-	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/firestore"
+
+	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
+	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
+	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
 	"github.com/963sup/line-mini-app-bot/internal/business/journal"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	repodb "github.com/963sup/line-mini-app-bot/internal/business/repository/firestore"
@@ -41,10 +43,10 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	channel := fmt.Sprintf("test-%d", time.Now().UnixNano())
 	groups := &groupdb.Store{Client: client, ChannelID: channel}
 	g := "C" + strings.Repeat("a", 32)
-	if e := groups.Observe(ctx, groupdomain.Observation{GroupID: g, Status: "ACTIVE", At: time.Now(), EventID: "join", Users: []string{"writer"}}); e != nil {
+	if e := groups.Observe(ctx, groupevent.Observation{GroupID: g, Status: "ACTIVE", At: time.Now(), EventID: "join", Users: []string{"writer"}}); e != nil {
 		t.Fatal(e)
 	}
-	store := Store{Client: client, Channel: channel, Groups: &groupdomain.Service{Store: groups, Membership: membership{}}}
+	store := Store{Client: client, Channel: channel, Groups: &groupquery.Service{Store: groups, Membership: membership{}}}
 	draft := journal.Draft{GroupID: g, WorkDate: time.Date(2026, 11, 18, 0, 0, 0, 0, time.UTC), Today: []journal.Work{{Name: "鋪設", Percent: 40}}}
 	entry, e := store.Create(ctx, "writer", "key", draft)
 	if e != nil {

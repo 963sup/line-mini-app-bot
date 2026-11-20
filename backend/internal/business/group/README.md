@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[group.go](group.go)、[本目錄工作指引](AGENTS.md)。
+先查閱[group.go](application/query/group.go)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 

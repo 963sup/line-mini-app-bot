@@ -8,13 +8,14 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
-	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/firestore"
+
+	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
+	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 
 	linetransport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 )
 
-func newGroups(ctx context.Context) (*groupdomain.Service, func() error, error) {
+func newGroups(ctx context.Context) (*groupquery.Service, func() error, error) {
 	cloud, channel, token := os.Getenv("GOOGLE_CLOUD_PROJECT"), os.Getenv("LINE_MESSAGING_API_CHANNEL_ID"), os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN")
 	if cloud == "" || channel == "" || token == "" {
 		return nil, func() error { return nil }, nil
@@ -27,5 +28,5 @@ func newGroups(ctx context.Context) (*groupdomain.Service, func() error, error) 
 	if e != nil {
 		return nil, nil, fmt.Errorf("cannot initialize group database")
 	}
-	return &groupdomain.Service{Store: &groupdb.Store{Client: client, ChannelID: channel}, Membership: &linetransport.Membership{Token: token, Client: &http.Client{Timeout: time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}}, client.Close, nil
+	return &groupquery.Service{Store: &groupdb.Store{Client: client, ChannelID: channel}, Membership: &linetransport.Membership{Token: token, Client: &http.Client{Timeout: time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}}, client.Close, nil
 }

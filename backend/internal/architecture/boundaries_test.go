@@ -22,7 +22,7 @@ func TestDependencyBoundaries(t *testing.T) {
 		"business/repository/space":               {"business/repository"},
 		"business/repository/milestones":          {"business/repository"},
 		"business/repository/statistics":          {"business/repository"},
-		"business/project":                        {"business/group", "identity"},
+		"business/project":                        {"business/group/domain/valueobject", "business/group/domain/entity", "business/group/application/query", "identity"},
 		"business/repository/labels":              {"business/repository"},
 		"business/discussion/domain/entity":       {"business/repository", "business/repository/labels"},
 		"business/discussion/application":         {"business/discussion/application/command", "business/discussion/application/query", "business/discussion/application/port"},

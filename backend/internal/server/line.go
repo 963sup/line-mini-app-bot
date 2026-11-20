@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	groupline "github.com/963sup/line-mini-app-bot/internal/business/group/line"
+	groupline "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/line"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/line"
 

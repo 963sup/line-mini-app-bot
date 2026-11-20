@@ -1,15 +1,15 @@
 package server
 
 import (
-	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
-	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/firestore"
+	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
+	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 	"github.com/963sup/line-mini-app-bot/internal/business/journal"
 	journaldb "github.com/963sup/line-mini-app-bot/internal/business/journal/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/project"
 	"github.com/963sup/line-mini-app-bot/internal/business/repository"
 )
 
-func newJournals(groups *groupdomain.Service, repositories *repository.Service, projects *project.Service) journal.Operations {
+func newJournals(groups *groupquery.Service, repositories *repository.Service, projects *project.Service) journal.Operations {
 	if groups == nil || repositories == nil || projects == nil {
 		return nil
 	}

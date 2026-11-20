@@ -11,7 +11,7 @@ import (
 
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 
-	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
 )
 
 var (
@@ -91,7 +91,7 @@ func ApplyUpdate(current Project, actor string, input Update) (Project, error) {
 
 type (
 	Groups interface {
-		Get(context.Context, string, string) (groupdomain.Group, error)
+		Get(context.Context, string, string) (groupentity.Group, error)
 	}
 	Sources interface {
 		Authorize(context.Context, string, string, string) (Source, error)
@@ -157,7 +157,7 @@ func (s *Service) resolveProjectScope(ctx context.Context, actor, id string) (Sc
 		return scope, nil
 	}
 	value, err := s.Groups.Get(ctx, actor, scope.OwnerID)
-	if errors.Is(err, groupdomain.ErrNotFound) {
+	if errors.Is(err, groupentity.ErrNotFound) {
 		return Scope{}, ErrNotFound
 	}
 	if err != nil {

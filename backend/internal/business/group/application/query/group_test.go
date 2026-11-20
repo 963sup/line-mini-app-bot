@@ -1,4 +1,4 @@
-package group_test
+package query_test
 
 import (
 	"context"
@@ -6,24 +6,28 @@ import (
 	"strings"
 	"testing"
 
-	sp "github.com/963sup/line-mini-app-bot/internal/business/group"
+	groupdto "github.com/963sup/line-mini-app-bot/internal/business/group/application/dto"
+	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
+	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
+	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/business/group/domain/valueobject"
 )
 
 type store struct {
-	current sp.Group
+	current groupentity.Group
 	missing bool
 }
 
-func (s *store) Observe(context.Context, sp.Observation) error { return nil }
-func (s *store) GetByID(context.Context, string) (sp.Group, error) {
+func (s *store) Observe(context.Context, groupevent.Observation) error { return nil }
+func (s *store) GetByID(context.Context, string) (groupentity.Group, error) {
 	if s.missing {
-		return sp.Group{}, sp.ErrNotFound
+		return groupentity.Group{}, groupentity.ErrNotFound
 	}
 	return s.current, nil
 }
 
-func (s *store) Candidates(context.Context, string, string) (sp.Page, error) {
-	return sp.Page{Items: []sp.Group{s.current}}, nil
+func (s *store) Candidates(context.Context, string, string) (groupdto.Page, error) {
+	return groupdto.Page{Items: []groupentity.Group{s.current}}, nil
 }
 
 type member struct {
@@ -51,15 +55,15 @@ func TestGroupMustExistAndMemberMustBeCurrent(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			s := &store{missing: tc.missing, current: sp.Group{ID: id, GroupID: id, Status: tc.status}}
+			s := &store{missing: tc.missing, current: groupentity.Group{ID: id, GroupID: id, Status: tc.status}}
 			m := &member{allowed: tc.allowed}
-			svc := &sp.Service{Store: s, Membership: m}
+			svc := &groupquery.Service{Store: s, Membership: m}
 			got, err := svc.Get(ctx, "actor", id)
 			if tc.want {
 				if err != nil || got.ID != id {
 					t.Fatalf("expected member Group, got %+v %v", got, err)
 				}
-			} else if !errors.Is(err, sp.ErrNotFound) {
+			} else if !errors.Is(err, groupentity.ErrNotFound) {
 				t.Fatalf("must deny rather than infer legacy permission: %+v %v", got, err)
 			}
 			if tc.status == "INACTIVE" && m.calls != 0 {
@@ -71,9 +75,9 @@ func TestGroupMustExistAndMemberMustBeCurrent(t *testing.T) {
 
 func TestSpaceCandidatesAreNotAuthorization(t *testing.T) {
 	id := "C" + strings.Repeat("1", 32)
-	s := &store{current: sp.Group{ID: id, GroupID: id, Status: "ACTIVE"}}
+	s := &store{current: groupentity.Group{ID: id, GroupID: id, Status: "ACTIVE"}}
 	m := &member{allowed: false}
-	svc := &sp.Service{Store: s, Membership: m}
+	svc := &groupquery.Service{Store: s, Membership: m}
 	page, err := svc.List(context.Background(), "actor", "")
 	if err != nil || len(page.Items) != 0 || m.calls != 1 {
 		t.Fatalf("candidate must be rechecked: %+v %v calls=%d", page, err, m.calls)
@@ -83,12 +87,12 @@ func TestSpaceCandidatesAreNotAuthorization(t *testing.T) {
 func TestLegacyGroupContextDoesNotAcceptBusinessGroupID(t *testing.T) {
 	groupID := "C" + strings.Repeat("1", 32)
 	businessGroupID := strings.Repeat("2", 32)
-	if !sp.ValidID(groupID) || sp.ValidID(businessGroupID) {
+	if !groupvalueobject.ValidID(groupID) || groupvalueobject.ValidID(businessGroupID) {
 		t.Fatal("legacy /groups identifiers must remain LINE GroupIDs")
 	}
 	m := &member{allowed: true}
-	svc := &sp.Service{Store: &store{missing: true}, Membership: m}
-	if _, err := svc.Get(context.Background(), "actor", businessGroupID); !errors.Is(err, sp.ErrNotFound) {
+	svc := &groupquery.Service{Store: &store{missing: true}, Membership: m}
+	if _, err := svc.Get(context.Background(), "actor", businessGroupID); !errors.Is(err, groupentity.ErrNotFound) {
 		t.Fatalf("business GroupID must not become a group authorization context: %v", err)
 	}
 	if m.calls != 0 {

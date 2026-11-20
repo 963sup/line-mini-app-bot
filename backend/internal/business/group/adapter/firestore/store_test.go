@@ -10,9 +10,11 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	sp "github.com/963sup/line-mini-app-bot/internal/business/group"
-	spaceDB "github.com/963sup/line-mini-app-bot/internal/business/group/firestore"
-	spaceLine "github.com/963sup/line-mini-app-bot/internal/business/group/line"
+
+	spaceDB "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
+	spaceLine "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/line"
+	groupport "github.com/963sup/line-mini-app-bot/internal/business/group/application/port"
+	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -38,7 +40,7 @@ func TestGroupIdentityAndLifecycleWithoutRepository(t *testing.T) {
 	store := &spaceDB.Store{Client: client, ChannelID: channel}
 	at := time.Now().UTC().Truncate(time.Millisecond)
 	gid := "C" + strings.Repeat("a", 32)
-	event := sp.Observation{GroupID: gid, Name: "Independent Group", Status: "ACTIVE", EventID: "join", At: at, Users: []string{"actor"}}
+	event := groupevent.Observation{GroupID: gid, Name: "Independent Group", Status: "ACTIVE", EventID: "join", At: at, Users: []string{"actor"}}
 	if err = store.Observe(ctx, event); err != nil {
 		t.Fatal(err)
 	}
@@ -101,13 +103,13 @@ func TestGroupIdentityAndLifecycleWithoutRepository(t *testing.T) {
 	if _, err = orphan.Set(ctx, map[string]any{"id": other, "groupId": gid, "name": "do not overwrite", "status": "ACTIVE", "version": int64(7), "createdAt": at, "updatedAt": at}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = store.GetByID(ctx, other); !errors.Is(err, sp.ErrUnavailable) {
+	if _, err = store.GetByID(ctx, other); !errors.Is(err, groupport.ErrUnavailable) {
 		t.Fatalf("stored group/Group mismatch must not authorize: %v", err)
 	}
 	event.GroupID = other
 	event.EventID = "orphan-collision"
 	event.At = at.Add(2 * time.Second)
-	if err = store.Observe(ctx, event); !errors.Is(err, sp.ErrUnavailable) {
+	if err = store.Observe(ctx, event); !errors.Is(err, groupport.ErrUnavailable) {
 		t.Fatalf("orphan identity collision must not overwrite: %v", err)
 	}
 	snapshot, err := orphan.Get(ctx)

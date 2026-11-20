@@ -7,7 +7,12 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
+
+	groupdto "github.com/963sup/line-mini-app-bot/internal/business/group/application/dto"
+	groupport "github.com/963sup/line-mini-app-bot/internal/business/group/application/port"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
+	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
+	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/business/group/domain/valueobject"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -30,17 +35,17 @@ type document struct {
 	EventID   string    `firestore:"eventId"`
 }
 
-func (d document) model() groupdomain.Group {
-	return groupdomain.Group{ID: d.ID, GroupID: d.GroupID, Name: d.Name, Status: d.Status, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}
+func (d document) model() groupentity.Group {
+	return groupentity.Group{ID: d.ID, GroupID: d.GroupID, Name: d.Name, Status: d.Status, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}
 }
 
 func (s *Store) channel() *db.DocumentRef { return s.Client.Collection("channels").Doc(s.ChannelID) }
 
 // The LINE group ID is the document key. Event
 // ordering prevents old deliveries from reactivating a departed group.
-func (s *Store) Observe(ctx context.Context, o groupdomain.Observation) error {
-	if !groupdomain.ValidID(o.GroupID) || o.At.IsZero() || o.EventID == "" || (o.Status != "ACTIVE" && o.Status != "INACTIVE") {
-		return groupdomain.ErrUnavailable
+func (s *Store) Observe(ctx context.Context, o groupevent.Observation) error {
+	if !groupvalueobject.ValidID(o.GroupID) || o.At.IsZero() || o.EventID == "" || (o.Status != "ACTIVE" && o.Status != "INACTIVE") {
+		return groupport.ErrUnavailable
 	}
 	id, now := o.GroupID, time.Now().UTC()
 	return s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
@@ -57,7 +62,7 @@ func (s *Store) Observe(ctx context.Context, o groupdomain.Observation) error {
 				return err
 			}
 			if d.ID != id || d.GroupID != o.GroupID || d.Version < 1 || (d.Status != "ACTIVE" && d.Status != "INACTIVE") {
-				return groupdomain.ErrUnavailable
+				return groupport.ErrUnavailable
 			}
 			// Equal timestamps prefer INACTIVE; an exact replay never changes version.
 			outdated := o.At.Before(d.EventAt)
@@ -98,40 +103,40 @@ func (s *Store) Observe(ctx context.Context, o groupdomain.Observation) error {
 	})
 }
 
-func decode(snap *db.DocumentSnapshot, err error) (groupdomain.Group, error) {
+func decode(snap *db.DocumentSnapshot, err error) (groupentity.Group, error) {
 	if status.Code(err) == codes.NotFound {
-		return groupdomain.Group{}, groupdomain.ErrNotFound
+		return groupentity.Group{}, groupentity.ErrNotFound
 	}
 	if err != nil {
-		return groupdomain.Group{}, err
+		return groupentity.Group{}, err
 	}
 	var d document
 	if err := snap.DataTo(&d); err != nil {
-		return groupdomain.Group{}, err
+		return groupentity.Group{}, err
 	}
-	if !groupdomain.ValidID(d.ID) || d.ID != d.GroupID || d.ID != snap.Ref.ID || d.Version < 1 {
-		return groupdomain.Group{}, groupdomain.ErrUnavailable
+	if !groupvalueobject.ValidID(d.ID) || d.ID != d.GroupID || d.ID != snap.Ref.ID || d.Version < 1 {
+		return groupentity.Group{}, groupport.ErrUnavailable
 	}
 	return d.model(), nil
 }
 
-func (s *Store) GetByID(ctx context.Context, id string) (groupdomain.Group, error) {
-	if !groupdomain.ValidID(id) {
-		return groupdomain.Group{}, groupdomain.ErrNotFound
+func (s *Store) GetByID(ctx context.Context, id string) (groupentity.Group, error) {
+	if !groupvalueobject.ValidID(id) {
+		return groupentity.Group{}, groupentity.ErrNotFound
 	}
 	return decode(s.channel().Collection("groups").Doc(id).Get(ctx))
 }
 
 type cursor struct{ Scope, ID string }
 
-func (s *Store) Candidates(ctx context.Context, user, value string) (groupdomain.Page, error) {
-	page := groupdomain.Page{Items: []groupdomain.Group{}}
+func (s *Store) Candidates(ctx context.Context, user, value string) (groupdto.Page, error) {
+	page := groupdto.Page{Items: []groupentity.Group{}}
 	scope := firestorekey.Digest([]byte(s.ChannelID + ":" + user))
 	c := cursor{}
 	if value != "" {
 		b, err := base64.RawURLEncoding.DecodeString(value)
-		if len(value) > 1024 || err != nil || json.Unmarshal(b, &c) != nil || c.Scope != scope || !groupdomain.ValidID(c.ID) {
-			return page, groupdomain.ErrCursor
+		if len(value) > 1024 || err != nil || json.Unmarshal(b, &c) != nil || c.Scope != scope || !groupvalueobject.ValidID(c.ID) {
+			return page, groupport.ErrCursor
 		}
 	}
 	q := s.channel().Collection("groupUsers").Doc(firestorekey.Digest([]byte(user))).Collection("groups").OrderBy(db.DocumentID, db.Asc)

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	groupdomain "github.com/963sup/line-mini-app-bot/internal/business/group"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
 	feature "github.com/963sup/line-mini-app-bot/internal/business/project"
 )
 
@@ -19,8 +19,8 @@ func (referenceAuth) Authenticate(http.ResponseWriter, *http.Request) (string, s
 
 type referenceGroups struct{ feature.Groups }
 
-func (referenceGroups) Get(_ context.Context, _, id string) (groupdomain.Group, error) {
-	return groupdomain.Group{ID: id}, nil
+func (referenceGroups) Get(_ context.Context, _, id string) (groupentity.Group, error) {
+	return groupentity.Group{ID: id}, nil
 }
 
 type referenceSources struct{}

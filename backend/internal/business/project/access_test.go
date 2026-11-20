@@ -6,20 +6,20 @@ import (
 	"strings"
 	"testing"
 
-	sp "github.com/963sup/line-mini-app-bot/internal/business/group"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
 	p "github.com/963sup/line-mini-app-bot/internal/business/project"
 )
 
 type groups struct{ denied bool }
 
-func (s *groups) Get(_ context.Context, a, id string) (sp.Group, error) {
+func (s *groups) Get(_ context.Context, a, id string) (groupentity.Group, error) {
 	if s.denied || a == "outsider" {
-		return sp.Group{}, sp.ErrNotFound
+		return groupentity.Group{}, groupentity.ErrNotFound
 	}
-	return sp.Group{ID: id, GroupID: id, Status: "ACTIVE"}, nil
+	return groupentity.Group{ID: id, GroupID: id, Status: "ACTIVE"}, nil
 }
 
-func (s *groups) LegacyGet(ctx context.Context, a, id string) (sp.Group, error) {
+func (s *groups) LegacyGet(ctx context.Context, a, id string) (groupentity.Group, error) {
 	return s.Get(ctx, a, id)
 }
 

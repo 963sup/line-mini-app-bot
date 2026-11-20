@@ -10,7 +10,10 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/enterprise/application/dto"
-	"github.com/963sup/line-mini-app-bot/internal/business/group"
+
+	groupport "github.com/963sup/line-mini-app-bot/internal/business/group/application/port"
+	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/orgstore"
 	"github.com/963sup/line-mini-app-bot/internal/business/organization"
 	"github.com/963sup/line-mini-app-bot/internal/persistence/firestorekey"
@@ -22,7 +25,7 @@ import (
 type Store struct {
 	DB      *firestore.Client
 	Channel string
-	Groups  *group.Service
+	Groups  *groupquery.Service
 }
 
 type grant struct {
@@ -167,11 +170,11 @@ func (s Store) Enterprise(ctx context.Context, user, id string) (*dto.Detail, er
 					continue
 				}
 				if s.Groups == nil {
-					return nil, group.ErrUnavailable
+					return nil, groupport.ErrUnavailable
 				}
 				_, e := s.Groups.Get(ctx, user, d.Ref.ID)
 				if e != nil {
-					if errors.Is(e, group.ErrNotFound) {
+					if errors.Is(e, groupentity.ErrNotFound) {
 						continue
 					}
 					return nil, e

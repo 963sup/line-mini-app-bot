@@ -10,7 +10,7 @@
 
 **驗收案例**　曾在事件中出現的使用者即使被列為候選，仍須通過群組成員核驗才能取得受限資料。
 
-[對照實作或測試](../../../backend/internal/business/group/group.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
+[對照實作或測試](../../../backend/internal/business/group/application/query/group.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
 
 管理群組狀態與 LINE 群組事件。
 
