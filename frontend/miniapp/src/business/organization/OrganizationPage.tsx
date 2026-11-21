@@ -57,17 +57,17 @@ export function OrganizationPage({ organizationId }: { organizationId: string })
           }), { signal }),
       () => {
         keys.current.delete(target);
-        setBusy(false);
         refresh();
-        if (memberId) void load(true);
+        if (memberId) void load(true).finally(() => setBusy(false));
         else {
+          setBusy(false);
           setSnapshot(undefined);
           void router.replace("/miniapp");
         }
       },
       cause => {
-        setBusy(false);
         setError(errorMessage(cause));
+        void load(true).finally(() => setBusy(false));
       },
     );
   }

@@ -29,6 +29,8 @@ func Run[T any](ctx context.Context, db *firestore.Client, channel string, op fu
 }
 
 type Document struct {
+	Disabled       bool   `firestore:"disabled"`
+	MembershipMode string `firestore:"membershipMode"`
 	Owners     []string `firestore:"ownerUserIds"`
 	Name       string   `firestore:"name"`
 	Owner      string   `firestore:"ownerUserId"`

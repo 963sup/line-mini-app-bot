@@ -68,7 +68,9 @@ func PopulateNavigation(tx *firestore.Transaction, root *firestore.DocumentRef, 
 			if e := doc.DataTo(&ent); e != nil {
 				return e
 			}
-			labels[doc.Ref.ID] = ent.Name
+			if legacyEnterpriseEnabled(ent) {
+				labels[doc.Ref.ID] = ent.Name
+			}
 		}
 	}
 	c.Enterprises = []organizationApplicationDto.EnterpriseLink{}
@@ -118,6 +120,10 @@ func CreateInTransaction(tx *firestore.Transaction, root *firestore.DocumentRef,
 	return &dto.Link{ID: id, Name: name}, tx.Update(ref, []firestore.Update{{Path: "enterpriseId", Value: id}})
 }
 
+func legacyEnterpriseEnabled(ent orgstore.Document) bool {
+	return !ent.Disabled && (ent.MembershipMode == "" || ent.MembershipMode == "legacy")
+}
+
 func (s Store) Enterprise(ctx context.Context, user, id string) (*dto.Detail, error) {
 	if uuid.Validate(id) != nil {
 		return nil, organizationDomainEntity.ErrInvalid
@@ -127,8 +133,12 @@ func (s Store) Enterprise(ctx context.Context, user, id string) (*dto.Detail, er
 		if e != nil {
 			return nil, e
 		}
-		owner := ent.IsOwner(user)
-		admin := owner || slices.Contains(ent.Managers, user)
+		if ent.Disabled || (ent.MembershipMode != "" && ent.MembershipMode != "legacy" && ent.MembershipMode != "membership") {
+			return nil, organizationDomainEntity.ErrNotFound
+		}
+		legacy := legacyEnterpriseEnabled(ent)
+		owner := legacy && ent.IsOwner(user)
+		admin := owner || (legacy && slices.Contains(ent.Managers, user))
 		view := dto.Detail{ID: id, Name: ent.Name, CanManage: owner, Organizations: []dto.Link{}, Teams: []dto.Link{}}
 		docs, e := tx.Documents(root.Collection("organizations").Where("enterpriseId", "==", id)).GetAll()
 		if e != nil {
@@ -201,7 +211,7 @@ func (s Store) UpdateEnterprise(ctx context.Context, user, id, target string, ad
 		if e != nil {
 			return nil, e
 		}
-		if !ent.IsOwner(user) {
+		if !legacyEnterpriseEnabled(ent) || !ent.IsOwner(user) {
 			return nil, organizationDomainEntity.ErrNotFound
 		}
 		link := &dto.Link{ID: id, Name: ent.Name}
