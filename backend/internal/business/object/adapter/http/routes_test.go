@@ -78,7 +78,7 @@ func TestHTTPBoundariesAndSourceOmission(t *testing.T) {
 		{name: "unauthenticated", method: "GET", path: path, status: 401, noAuth: true},
 		{name: "cross repository denied", method: "GET", path: path, status: 404, denied: true},
 		{name: "list", method: "GET", path: path, status: 200},
-		{name: "create", method: "POST", path: path, body: base, status: 200},
+		{name: "create", method: "POST", path: path, body: `{"name":"項目"}`, status: 200},
 		{name: "work initialized", method: "POST", path: path, body: strings.Replace(base, `"type":"工程"`, `"type":"work"`, 1), status: 200},
 		{name: "negative completed", method: "POST", path: path, body: strings.TrimSuffix(strings.Replace(base, `"type":"工程"`, `"type":"work"`, 1), "}") + `,"completedQuantity":"-1"}`, status: 400},
 		{name: "optional status", method: "PATCH", path: path + "/" + rid, body: strings.TrimSuffix(base, "}") + `,"completedQuantity":"0","expectedVersion":1}`, status: 409},
@@ -107,7 +107,7 @@ func TestHTTPBoundariesAndSourceOmission(t *testing.T) {
 			if c.status != 200 && c.status != 409 && s.calls != 0 {
 				t.Fatal("rejected request reached store")
 			}
-			if c.name == "create" && (s.input.Quantity != "11" || s.input.Name != "項目") {
+			if c.name == "create" && (s.input.Quantity != "" || s.input.Type != "" || s.input.Unit != "" || s.input.SpaceID != "" || s.input.CompletedQuantity != "" || s.input.Name != "項目") {
 				t.Fatalf("not normalized: %+v", s.input)
 			}
 			if c.name == "work initialized" && s.input.CompletedQuantity != "0" {

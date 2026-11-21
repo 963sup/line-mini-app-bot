@@ -1621,7 +1621,7 @@
       "core": "backend/internal/business/journal/application/query/references.go",
       "specification": "docs/domains/journal/journal.md",
       "consumers": [
-        "frontend/miniapp/src/business/journal/Workspace.tsx"
+        "frontend/miniapp/src/business/journal/Composer.tsx"
       ]
     },
     {

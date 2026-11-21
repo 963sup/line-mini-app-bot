@@ -40,21 +40,21 @@ async function fixture(handle: (request: Request, actor: string) => Promise<Resp
   };
 }
 
-test("Object creation preserves exact quantity and source fields and retries an unknown result with the original identity", async () => {
+test("Object creation needs only a name and retries an unknown result with the original identity", async () => {
   const posts: { key: string | null; body: unknown }[] = [];
   const f = await fixture(async request => {
     if (request.method === "POST") { posts.push({ key: request.headers.get("Idempotency-Key"), body: await request.json() }); if (posts.length === 1) throw new Error("network lost"); return Response.json(resource()); }
     return Response.json({ items: [], nextCursor: "" });
   });
   try {
-    await f.click("新增物件"); await f.fill("物件名稱", "測試物件"); await f.fill("數量", "9007199254740993.123400");
+    await f.click("新增物件"); await f.fill("物件名稱", "測試物件");
+    assert.equal(document.querySelectorAll("[aria-label=新增物件] input").length, 1);
     for (const label of ["來源項次", "來源頁碼", "料號"]) assert.ok(![...document.querySelectorAll("label")].some(node => node.textContent === label));
     await f.click("建立物件");
-    assert.equal(document.querySelector<HTMLInputElement>('input[inputmode="decimal"]')!.matches(':disabled'), true);
+    assert.equal(document.querySelector<HTMLInputElement>('[aria-label=新增物件] input')!.matches(':disabled'), true);
     await f.click("重試原物件建立請求");
     assert.equal(posts.length, 2); assert.deepEqual(posts[0], posts[1]);
-    assert.equal((posts[0].body as { quantity: string }).quantity, "9007199254740993.123400");
-    assert.equal((posts[0].body as { sourceRevision: string }).sourceRevision, "");
+    assert.deepEqual(posts[0].body, { name: "測試物件" });
     for (const key of ["sourceItemNo", "sourcePages", "materialCode"]) assert.ok(!(key in (posts[0].body as object)));
     assert.ok(!("status" in (posts[0].body as object)), "server owns initial tracking status");
     assert.match(document.body.textContent!, /已建立物件/);
@@ -196,21 +196,23 @@ test("object list displays five labeled lines and omits source item metadata", a
 });
 
 
-test("work completion uses exact decimals and non-work omits completion and status", async () => {
-  const posts: Record<string, unknown>[] = [];
+test("work completion editing uses exact decimals and non-work omits completion and status", async () => {
+  const writes: Record<string, unknown>[] = [];
+  let current = resource();
   const f = await fixture(async request => {
-    if (request.method === "POST") { posts.push(await request.json()); return Response.json(resource()); }
-    return Response.json({ items: [], nextCursor: "" });
+    if (request.method === "PATCH") { const body = await request.json(); writes.push(body); current = resource({...body,version:current.version+1}); return Response.json(current); }
+    return Response.json(new URL(request.url).pathname.endsWith(oid) ? current : {items:[current],nextCursor:""});
   });
   try {
-    await f.click("新增物件"); await f.fill("物件名稱", "精確進度");
+    await f.click("測試物件");
     await f.fill("數量", "9007199254740993.123455"); await f.fill("完成數", "9007199254740993.123456");
-    await f.click("建立物件"); assert.equal(posts.length, 0); assert.match(document.body.textContent!, /0至數量之間/);
-    await f.fill("完成數", "9007199254740993.123454"); await f.click("建立物件");
-    assert.equal(posts[0].completedQuantity, "9007199254740993.123454"); assert.ok(!("status" in posts[0]));
-    await f.click("新增物件"); await f.fill("物件名稱", "非工作項目"); await f.selectType("non_work");
+    await f.click("儲存物件"); assert.equal(writes.length, 0); assert.match(document.body.textContent!, /0至數量之間/);
+    await f.fill("完成數", "9007199254740993.123454"); await f.click("儲存物件");
+    assert.equal(writes[0].completedQuantity, "9007199254740993.123454"); assert.ok(!("status" in writes[0]));
+    await f.click("測試物件"); await f.fill("完成數", "0"); await f.click("儲存物件");
+    await f.click("測試物件"); await f.selectType("non_work");
     assert.equal([...document.querySelectorAll("label")].some(node => node.textContent === "完成數"), false);
-    await f.click("建立物件"); assert.equal(posts[1].type, "non_work"); assert.ok(!("completedQuantity" in posts[1]));
+    await f.click("儲存物件"); assert.equal(writes[2].type, "non_work"); assert.ok(!("completedQuantity" in writes[2]));
   } finally { await f.dispose(); }
 });
 
@@ -315,10 +317,9 @@ test("document candidates require review and use the object creation form", asyn
     await f.click("辨識候選");
     await f.click("覆核並填入新增表單");
     assert.equal(writes.length, 0);
-    await f.fill("單位", "公尺");
-    await f.selectType("work"); await f.click("建立物件");
+    await f.click("建立物件");
     assert.equal(writes.length, 1);
-    assert.deepEqual(writes[0], {name:"電纜", quantity:"2.50", unit:"公尺", type:"work", completedQuantity:"0", description:"電纜 2.50", sourceDocument:"list.txt", sourcePages:"第 1 行", sourceRevision:""});
+    assert.deepEqual(writes[0], {name:"電纜", description:"電纜 2.50", sourceDocument:"list.txt", sourcePages:"第 1 行"});
     assert.ok([...document.querySelectorAll("button")].find(b=>b.textContent==="已建立")?.disabled);
   } finally { await f.dispose(); }
 });

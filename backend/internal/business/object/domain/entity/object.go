@@ -122,7 +122,7 @@ func Normalize(c Content) (Content, error) {
 		v        *string
 		limit    int
 		required bool
-	}{{&c.Name, 120, true}, {&c.Description, 8000, false}, {&c.Type, 80, true}, {&c.Unit, 32, true}, {&c.SourceDocument, 200, false}, {&c.SourceRevision, 80, false}, {&c.SourceItemNo, 80, false}, {&c.SourcePages, 80, false}, {&c.MaterialCode, 120, false}}
+	}{{&c.Name, 120, true}, {&c.Description, 8000, false}, {&c.Type, 80, false}, {&c.Unit, 32, false}, {&c.SourceDocument, 200, false}, {&c.SourceRevision, 80, false}, {&c.SourceItemNo, 80, false}, {&c.SourcePages, 80, false}, {&c.MaterialCode, 120, false}}
 	for _, f := range fields {
 		*f.v = strings.TrimSpace(*f.v)
 		if !utf8.ValidString(*f.v) || utf8.RuneCountInString(*f.v) > f.limit || (f.required && *f.v == "") {
@@ -130,7 +130,7 @@ func Normalize(c Content) (Content, error) {
 		}
 	}
 	c.Quantity = strings.TrimSpace(c.Quantity)
-	if !decimal.MatchString(c.Quantity) {
+	if c.Quantity != "" && !decimal.MatchString(c.Quantity) {
 		return Content{}, ErrInput
 	}
 	if strings.Contains(c.Quantity, ".") {
@@ -141,7 +141,7 @@ func Normalize(c Content) (Content, error) {
 	}
 	if c.CompletedQuantity != "" {
 		c.CompletedQuantity = strings.TrimSpace(c.CompletedQuantity)
-		if c.Type != TypeWork {
+		if c.Type != TypeWork || c.Unit == "" {
 			return Content{}, ErrInput
 		}
 		if _, e := WorkStatus(c.Quantity, c.CompletedQuantity); e != nil {
@@ -189,7 +189,7 @@ func ApplyUpdate(current Object, actor string, input Update) (Object, error) {
 	} else {
 		content.CompletedQuantity = ""
 	}
-	if content.Type == TypeWork && current.Type != TypeWork && (input.CompletedQuantity == nil || strings.TrimSpace(*input.CompletedQuantity) == "") {
+	if content.Type == TypeWork && content.Quantity != "" && current.Type != TypeWork && (input.CompletedQuantity == nil || strings.TrimSpace(*input.CompletedQuantity) == "") {
 		return Object{}, ErrInput
 	}
 	if content.Type == TypeNonWork && input.CompletedQuantity != nil && strings.TrimSpace(*input.CompletedQuantity) != "" {
@@ -201,7 +201,7 @@ func ApplyUpdate(current Object, actor string, input Update) (Object, error) {
 		}
 		content.CompletedQuantity = ""
 	}
-	if content.Type == TypeWork && input.CompletedQuantity != nil && strings.TrimSpace(*input.CompletedQuantity) == "" {
+	if content.Type == TypeWork && input.CompletedQuantity != nil && strings.TrimSpace(*input.CompletedQuantity) == "" && (content.Quantity != "" || current.CompletedQuantity != "") {
 		return Object{}, ErrInput
 	}
 	c, err := Normalize(content)

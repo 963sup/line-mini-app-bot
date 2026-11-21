@@ -1580,7 +1580,7 @@ export interface components {
         Object: {
             name: string;
             description: string;
-            /** @description work or non_work for new classification; historical arbitrary strings remain supported. */
+            /** @description Empty means unclassified; work or non_work when known. Historical free-form values remain supported. */
             type: string;
             unit: string;
             sourceDocument: string;
@@ -1588,7 +1588,7 @@ export interface components {
             sourceItemNo: string;
             sourcePages: string;
             materialCode: string;
-            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
+            /** @description Empty means not yet specified; otherwise a positive exact decimal. No fabricated quantity. */
             quantity: string;
             id: string;
             repositoryId: string;
@@ -1613,19 +1613,20 @@ export interface components {
             /** @description Whether stored progress must be reset before changing the type to non-work. */
             requiresProgressReset: boolean;
         };
+        /** @description Create an object with its name only; classification, quantity, unit and space may be supplied later. No inferred defaults. */
         ObjectCreation: {
             name: string;
-            description: string;
-            /** @description work or non_work for new classification; historical arbitrary strings remain supported. */
-            type: string;
-            unit: string;
+            description?: string;
+            /** @description Empty means unclassified; work or non_work when known. Historical free-form values remain supported. */
+            type?: string;
+            unit?: string;
             sourceDocument?: string;
             sourceRevision?: string;
             sourceItemNo?: string;
             sourcePages?: string;
             materialCode?: string;
-            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
-            quantity: string;
+            /** @description Empty means not yet specified; otherwise a positive exact decimal. No fabricated quantity. */
+            quantity?: string;
             /** @description Exact absolute completed quantity for work only; 0 <= completedQuantity <= quantity. Absent for non_work and legacy objects; new work defaults to 0. Omitted update preserves current value; conversion to work requires explicit value. */
             completedQuantity?: string;
             /** @description Optional repository-owned business Space ID, never a LINE Group ID. Empty means unassigned; omitted update preserves the current assignment. The server verifies the same repository and channel. */
@@ -1635,7 +1636,7 @@ export interface components {
         ObjectUpdate: {
             name: string;
             description: string;
-            /** @description work or non_work for new classification; historical arbitrary strings remain supported. */
+            /** @description Empty means unclassified; work or non_work when known. Historical free-form values remain supported. */
             type: string;
             unit: string;
             /** @description Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key. */
@@ -1648,7 +1649,7 @@ export interface components {
             sourcePages?: string;
             /** @description Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key. */
             materialCode?: string;
-            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
+            /** @description Empty means not yet specified; otherwise a positive exact decimal. No fabricated quantity. */
             quantity: string;
             /**
              * @description Optional legacy status. Work status is derived from completedQuantity; explicit contradictory status is rejected. Omission preserves historical status.

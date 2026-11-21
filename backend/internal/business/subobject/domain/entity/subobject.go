@@ -45,7 +45,7 @@ func Normalize(c Content) (Content, error) {
 		return Content{}, ErrInput
 	}
 	n, e := objectDomainEntity.Normalize(objectDomainEntity.Content{Name: c.Name, Type: c.Type, Quantity: c.Quantity, Unit: c.Unit, CompletedQuantity: c.CompletedQuantity})
-	if e != nil {
+	if e != nil || n.Quantity == "" || n.Unit == "" {
 		return Content{}, ErrInput
 	}
 	return Content{Name: n.Name, Type: n.Type, Quantity: n.Quantity, Unit: n.Unit, CompletedQuantity: n.CompletedQuantity}, nil

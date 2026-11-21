@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
@@ -7,16 +8,19 @@ import { RepositoryNavigationContext, useRepositoryNavigation } from "./Navigati
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useRepositories } from "./RepositoryContext";
-import { Spaces } from "./Spaces";
 import { navigation } from "./navigation";
 import { displayTime } from "../../shared/time/time";
-import { View as Objects } from "../object/View";
-import { View as Issues } from "../issue/View";
-import { View as Discussions } from "../discussion/View";
-import { View as Milestones } from "./milestones/View";
-import { View as Insights } from "./insights/View";
-import { View as Wiki } from "./wiki/View";
-import { View as Labels } from "./labels/View";
+const Objects = dynamic(() => import("../object/View").then(module => module.View), { loading: Loading });
+const Issues = dynamic(() => import("../issue/View").then(module => module.View), { loading: Loading });
+const Discussions = dynamic(() => import("../discussion/View").then(module => module.View), { loading: Loading });
+const Milestones = dynamic(() => import("./milestones/View").then(module => module.View), { loading: Loading });
+const Insights = dynamic(() => import("./insights/View").then(module => module.View), { loading: Loading });
+const Wiki = dynamic(() => import("./wiki/View").then(module => module.View), { loading: Loading });
+const Labels = dynamic(() => import("./labels/View").then(module => module.View), { loading: Loading });
+
+const Spaces = dynamic(() => import("./Spaces").then(module => module.Spaces), { loading: Loading });
+
+function Loading() { return <ReadFeedback busy label="正在載入功能……" />; }
 
 export function View() {
   const { user, epoch } = useSession();

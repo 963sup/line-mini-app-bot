@@ -85,7 +85,7 @@ func (s *Service) Create(ctx context.Context, actor, rid, key string, c objectDo
 	if e != nil {
 		return objectDomainEntity.Object{}, e
 	}
-	if strings.TrimSpace(c.Type) == objectDomainEntity.TypeWork && c.CompletedQuantity == "" {
+	if strings.TrimSpace(c.Type) == objectDomainEntity.TypeWork && strings.TrimSpace(c.Quantity) != "" && c.CompletedQuantity == "" {
 		c.CompletedQuantity = "0"
 	}
 	c, e = objectDomainEntity.Normalize(c)

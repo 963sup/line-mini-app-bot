@@ -25,9 +25,9 @@ type Resource = components["schemas"]["Object"];
 type Creation = components["schemas"]["ObjectCreation"];
 type Props = { repositoryId: string };
 const states = { not_started: "未開始", in_progress: "進行中", completed: "已完成" };
-const empty: Creation = { name: "", description: "", type: "work", completedQuantity: "0", quantity: "1", unit: "SET", sourceDocument: "", sourceRevision: "" };
-const typeLabel = (type: string) => type === "work" ? "施作" : type === "non_work" ? "非施作" : `${type}（待確認）`;
-const statusLabel = (item: Resource) => item.type === "non_work" ? "不適用" : states[item.status];
+const empty: Creation = { name: "" };
+const typeLabel = (type: string) => !type ? "尚未分類" : type === "work" ? "施作" : type === "non_work" ? "非施作" : `${type}（待確認）`;
+const statusLabel = (item: Resource) => !item.type ? "尚未設定" : item.type === "non_work" ? "不適用" : states[item.status];
 const progressLabel = (item: Resource) => item.type === "non_work" ? "不適用" : item.type === "work" && item.completedQuantity !== undefined ? `${item.completedQuantity}/${item.quantity} ${item.unit}` : "待補／待確認";
 const fields = [
   ["name", "物件名稱", 120], ["quantity", "數量", 25], ["unit", "單位", 32],
@@ -44,7 +44,7 @@ function Content({ repositoryId }: Props) {
   const [items, setItems] = useState<Resource[]>([]), [cursor, setCursor] = useState("");
   const [listBusy, setListBusy] = useState(false), [loaded, setLoaded] = useState(false), [listStatus, setListStatus] = useState("");
   const [mode, setMode] = useState<"create" | "detail" | null>(null), [selected, setSelected] = useState<Resource | null>(null);
-  const { spaces, spaceCursor, spacesBusy, spaceStatus, loadSpaces } = useSpaces(repositoryId, !!mode);
+  const { spaces, spaceCursor, spacesBusy, spaceStatus, loadSpaces } = useSpaces(repositoryId, mode === "detail");
   const [invalidField, setInvalidField] = useState<"quantity" | "completedQuantity" | null>(null);
   const [content, setContent] = useState<Creation>(empty);
   const [review, setReview] = useState<Selection>();
@@ -124,24 +124,26 @@ function Content({ repositoryId }: Props) {
       setReview(selection);
       const candidate = selection?.candidate;
       setMode("create"); setContent(candidate ? {
-        ...empty, name: candidate.name, quantity: candidate.quantity ?? "", unit: candidate.unit ?? "",
-        type: "", description: candidate.quote, sourceDocument: selection!.filename, sourcePages: candidate.location ?? "",
+        ...empty, name: candidate.name, description: candidate.quote, sourceDocument: selection!.filename, sourcePages: candidate.location ?? "",
       } : { ...empty }); setNeedsRefresh(false); objectCreateAttempt.current = null;
     });
   }
   function submit(event: FormEvent) {
     event.preventDefault();
     if (discard.isConfirming() || !user || subLock.current || lock.current || formNavigation.current || needsRefresh || !repositoryGuard.canWrite() || (mode === "detail" && !canEdit)) return;
-    const body = Object.fromEntries(Object.entries(content).map(([key, value]) => [key, value?.trim() || ""])) as Creation;
+    const body = mode === "create"
+      ? { name: content.name.trim(), ...(review ? { description: content.description, sourceDocument: content.sourceDocument, sourcePages: content.sourcePages } : {}) }
+      : { name: content.name, description: "", type: "", quantity: "", unit: "", ...Object.fromEntries(Object.entries(content).map(([key, value]) => [key, value?.trim() || ""])) } as Creation;
     setInvalidField(null);
-    if (!body.name || !body.type || !body.unit) {
-      setStatus("請填寫名稱、類型及單位。"); return;
+    if (!body.name) {
+      setStatus("請填寫物件名稱。"); return;
     }
-    if (!isPositiveQuantity(body.quantity)) {
+    if (mode === "detail" && body.quantity && !isPositiveQuantity(body.quantity)) {
       setStatus(""); setInvalidField("quantity"); return;
     }
-    if (body.type === "work") {
-      if (!isValidCompletedQuantity(body.completedQuantity, body.quantity)) {
+    if (mode === "detail" && body.type === "work" && (body.quantity || body.completedQuantity)) {
+      if (!body.unit) { setStatus("追蹤進度時請補填單位。"); return; }
+      if (!isValidCompletedQuantity(body.completedQuantity, body.quantity || "")) {
         setStatus(""); setInvalidField("completedQuantity"); return;
       }
     } else {
@@ -152,7 +154,7 @@ function Content({ repositoryId }: Props) {
     }
     if (mode === "detail" && selected) {
       lock.current = true; setBusy(true); repositoryGuard.block(true); setStatus("正在更新物件……");
-      void write.run(signal => request((client, s) => client.PATCH("/api/v1/repositories/{repositoryId}/objects/{id}", { signal: s, params: { path: { repositoryId, id: selected.id } }, body: { ...body, expectedVersion: selected.version } }), { signal }), item => {
+      void write.run(signal => request((client, s) => client.PATCH("/api/v1/repositories/{repositoryId}/objects/{id}", { signal: s, params: { path: { repositoryId, id: selected.id } }, body: { ...body, description: body.description || "", type: body.type || "", quantity: body.quantity || "", unit: body.unit || "", expectedVersion: selected.version } }), { signal }), item => {
         lock.current = false; setBusy(false); saved(item, "已更新物件。");
       }, error => { lock.current = false; setBusy(false); repositoryGuard.block(true); setNeedsRefresh(true); setStatus(errorMessage(error) + " 請重新讀取物件後再修改。"); });
       return;
@@ -175,7 +177,7 @@ function Content({ repositoryId }: Props) {
       {mode === "detail" && <Button variant="outline" disabled={busy || detailBusy || subBlocked} onClick={() => open(activeId)}>重新讀取物件</Button>}
       {(mode === "create" || selected) && <form onSubmit={submit} onChange={() => setInvalidField(null)}><FieldGroup>
         <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || subBlocked || uncertain || needsRefresh || (mode === "detail" && !canEdit)}>
-          <FormField>類型<NativeSelect value={content.type} onChange={event => {
+          {mode === "detail" && <FormField>類型<NativeSelect value={content.type} onChange={event => {
             const type = event.target.value;
             setContent(previous => {
               let completedQuantity = previous.completedQuantity;
@@ -190,16 +192,16 @@ function Content({ repositoryId }: Props) {
               return { ...previous, type, completedQuantity };
             });
           }}>
-            {selected && selected.type !== "work" && selected.type !== "non_work" && <NativeSelectOption value={selected.type}>{typeLabel(selected.type)}</NativeSelectOption>}
-            {!content.type && <NativeSelectOption value="">請選擇類型</NativeSelectOption>}
+            {selected && selected.type && selected.type !== "work" && selected.type !== "non_work" && <NativeSelectOption value={selected.type}>{typeLabel(selected.type)}</NativeSelectOption>}
+            <NativeSelectOption value="">尚未分類</NativeSelectOption>
             <NativeSelectOption value="work">施作</NativeSelectOption><NativeSelectOption value="non_work">非施作</NativeSelectOption>
-          </NativeSelect></FormField>
-          {fields.map(([key, label, max]) => {
+          </NativeSelect></FormField>}
+          {fields.filter(([key]) => mode === "detail" || key === "name").map(([key, label, max]) => {
             const invalid = key === "quantity" && invalidField === key;
             return <React.Fragment key={key}>
               <FormField data-invalid={invalid || undefined}>{label}
                 <Input ref={key === "name" ? nameInput : undefined}
-                  required={["name", "type", "quantity", "unit"].includes(key)}
+                  required={key === "name"}
                   maxLength={max} inputMode={key === "quantity" ? "decimal" : undefined}
                   aria-invalid={invalid || undefined} aria-describedby={invalid ? "object-quantity-error" : undefined}
                   value={content[key] || ""} onChange={event => setContent(previous => ({ ...previous, [key]: event.target.value }))} />
@@ -207,6 +209,7 @@ function Content({ repositoryId }: Props) {
               {invalid && <FieldError id="object-quantity-error">請填寫大於零的數量（最多18位整數及6位小數）。</FieldError>}
             </React.Fragment>;
           })}
+          {mode === "detail" && <>
           <FormField>空間<NativeSelect value={content.spaceId || ""} onChange={event => setContent(previous => ({ ...previous, spaceId: event.target.value }))}>
             <NativeSelectOption value="">未分配</NativeSelectOption>
             {content.spaceId && !spaces.some(value => value.id === content.spaceId) && <NativeSelectOption value={content.spaceId}>目前空間（未載入）</NativeSelectOption>}
@@ -215,12 +218,14 @@ function Content({ repositoryId }: Props) {
           <ReadFeedback busy={spacesBusy} message={spaceStatus} label="正在讀取空間……" />
           {spaceStatus && <Button type="button" variant="outline" disabled={spacesBusy} onClick={() => loadSpaces()}>重試讀取</Button>}
           {spaceCursor && <Button type="button" variant="outline" disabled={spacesBusy} onClick={() => loadSpaces(spaceCursor)}>載入更多空間</Button>}
-          {mode === "create" && review && <FormField>來源位置<Input maxLength={80} value={content.sourcePages ?? ""} onChange={event => setContent(previous => ({ ...previous, sourcePages: event.target.value }))} /></FormField>}
+          </>}
+          {mode === "detail" && <>
           <FormField>完整說明<Textarea maxLength={8000} value={content.description} onChange={event => setContent(previous => ({ ...previous, description: event.target.value }))} /></FormField>
-          {content.type === "work" && <FormField data-invalid={invalidField === "completedQuantity" || undefined}>完成數<Input aria-invalid={invalidField === "completedQuantity" || undefined} aria-describedby={invalidField === "completedQuantity" ? "object-completed-error" : undefined} required inputMode="decimal" maxLength={25} value={content.completedQuantity || ""} onChange={event => setContent(previous => ({ ...previous, completedQuantity: event.target.value }))} /></FormField>}
+          {content.type === "work" && <FormField data-invalid={invalidField === "completedQuantity" || undefined}>完成數<Input aria-invalid={invalidField === "completedQuantity" || undefined} aria-describedby={invalidField === "completedQuantity" ? "object-completed-error" : undefined} required={!!content.quantity} inputMode="decimal" maxLength={25} value={content.completedQuantity || ""} onChange={event => setContent(previous => ({ ...previous, completedQuantity: event.target.value }))} /></FormField>}
           {invalidField === "completedQuantity" && <FieldError id="object-completed-error">請填寫0至數量之間的完成數（最多18位整數及6位小數）。</FieldError>}
           <p>狀態：{content.type === "non_work" ? "不適用" : selected ? statusLabel(selected) : "未開始"}</p>
           <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{content.type === "non_work" ? "不適用" : selected ? progressLabel(selected) : "儲存後依完成數更新"}</p>
+          </>}
         </FieldSet>
 
         {(mode === "create" || canEdit) && <Button type="submit" disabled={busy || detailBusy || needsRefresh || subBlocked}>{mode === "create" ? uncertain ? "重試原物件建立請求" : "建立物件" : "儲存物件"}</Button>}
@@ -229,7 +234,7 @@ function Content({ repositoryId }: Props) {
     </section>;
   return <>
     <PagePanel heading="物件" className="w-full min-w-0">
-      <p className="mb-4 text-sm text-muted-foreground">每個清單項次是一筆物件，數量不拆成單件。成員可新增，僅建立者可編輯；完成不代表驗收或付款。</p>
+      <p className="mb-4 text-sm text-muted-foreground">先記下物件名稱，其他資料確定後再補。成員可新增，僅建立者可編輯。</p>
       <div className="mb-4 flex flex-wrap gap-2">
         <Button disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={event => openCreateForm(event.currentTarget)}>新增物件</Button>
         <Button variant="outline" disabled={!user || busy || listBusy || subBlocked || uncertain || !!mode} onClick={() => load()}>重新載入物件</Button>
@@ -247,11 +252,11 @@ function Content({ repositoryId }: Props) {
               <CollapsibleTrigger asChild><Button variant="ghost" size="icon" disabled={busy || detailBusy || uncertain || needsRefresh || subBlocked} aria-label={`子物件：${item.name}`} title={expanded === item.id ? "收合子物件" : "展開子物件"}>{expanded === item.id ? <ChevronDownIcon aria-hidden="true" /> : <ChevronRightIcon aria-hidden="true" />}</Button></CollapsibleTrigger>
               <Button variant="link" aria-label={item.name} className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || detailBusy || uncertain || needsRefresh || subBlocked} onClick={event => open(item.id, event.currentTarget)}>名稱：{item.name}</Button>
             </ItemTitle>
-            <p className="whitespace-normal [overflow-wrap:anywhere]">數量：{item.quantity} {item.unit}</p>
-            <p className="whitespace-normal [overflow-wrap:anywhere]">類型：{typeLabel(item.type)}</p>
+            {item.quantity && <p className="whitespace-normal [overflow-wrap:anywhere]">數量：{item.quantity} {item.unit}</p>}
+            {item.type && <p className="whitespace-normal [overflow-wrap:anywhere]">類型：{typeLabel(item.type)}</p>}
             {invalidField === "completedQuantity" && <FieldError id="object-completed-error">請填寫0至數量之間的完成數（最多18位整數及6位小數）。</FieldError>}
-          <p>狀態：{statusLabel(item)}</p>
-            <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{progressLabel(item)}</p>
+          {item.type && <p>狀態：{statusLabel(item)}</p>}
+            {item.type && <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{progressLabel(item)}</p>}
           </ItemContent>
           <ItemActions className="flex-wrap">
             {item.canEdit && <Button variant="outline" aria-label={`編輯物件：${item.name}`} disabled={busy || detailBusy || uncertain || needsRefresh || subBlocked} onClick={event => open(item.id, event.currentTarget)}>編輯</Button>}

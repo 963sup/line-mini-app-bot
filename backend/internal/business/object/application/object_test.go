@@ -20,6 +20,11 @@ func content() objectDomainEntity.Content {
 }
 
 func TestQuantityAndContent(t *testing.T) {
+	minimal, err := objectDomainEntity.Normalize(objectDomainEntity.Content{Name: " 初步討論 "})
+	if err != nil || minimal.Name != "初步討論" || minimal.Type != "" || minimal.Quantity != "" || minimal.Unit != "" || minimal.SpaceID != "" || minimal.CompletedQuantity != "" {
+		t.Fatalf("name-only object: %+v %v", minimal, err)
+	}
+
 	c, e := objectDomainEntity.Normalize(content())
 	if e != nil || c.Quantity != "11" {
 		t.Fatalf("canonical: %+v %v", c, e)

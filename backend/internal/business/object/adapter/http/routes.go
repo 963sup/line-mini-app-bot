@@ -117,7 +117,7 @@ func writeError(w http.ResponseWriter, e error) bool {
 	case errors.Is(e, objectDomainEntity.ErrProgressRemoval):
 		code, httpStatus, message = "progress_removal", 400, "已有完成數量的施作不能改為非施作，請先確認並調整完成數量。"
 	case errors.Is(e, objectDomainEntity.ErrInput):
-		code, httpStatus, message = "invalid_input", 400, "請確認名稱、類型、正數數量、單位與狀態。"
+		code, httpStatus, message = "invalid_input", 400, "請填寫名稱；數量若有填寫須為正數，追蹤進度時需補齊數量、單位與完成數。"
 	case errors.Is(e, objectDomainEntity.ErrConflict):
 		code, httpStatus, message = "version_conflict", 409, "物件已更新，請重新讀取。"
 	case errors.Is(e, objectDomainEntity.ErrCreationConflict):
@@ -162,7 +162,7 @@ func (s *objectServer) CreateObject(w http.ResponseWriter, r *http.Request, rid 
 	if !transport.ReadJSON(w, r, &in, "物件資料無效。") {
 		return
 	}
-	c := objectDomainEntity.Content{SpaceID: value(in.SpaceId), CompletedQuantity: value(in.CompletedQuantity), Name: in.Name, Description: in.Description, Type: in.Type, Quantity: in.Quantity, Unit: in.Unit, SourceDocument: value(in.SourceDocument), SourceRevision: value(in.SourceRevision), SourceItemNo: value(in.SourceItemNo), SourcePages: value(in.SourcePages), MaterialCode: value(in.MaterialCode)}
+	c := objectDomainEntity.Content{SpaceID: value(in.SpaceId), CompletedQuantity: value(in.CompletedQuantity), Name: in.Name, Description: value(in.Description), Type: value(in.Type), Quantity: value(in.Quantity), Unit: value(in.Unit), SourceDocument: value(in.SourceDocument), SourceRevision: value(in.SourceRevision), SourceItemNo: value(in.SourceItemNo), SourcePages: value(in.SourcePages), MaterialCode: value(in.MaterialCode)}
 	i, e := s.service.Create(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, c)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
