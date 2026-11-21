@@ -1,13 +1,5 @@
 # Project 契約指引
 
-## 用途與範圍
-
-定義工程專案、欄位、項目、來源引用與檢查送件的 API 契約。
-
-## 架構與責任邊界
-
-維護本能力的操作與 schema；根規格負責組合，公開格式由契約產生。
-
 ## 閱讀與修改入口
 
 先查閱[fields.yaml](fields.yaml)、[inspection-submissions.yaml](inspection-submissions.yaml)、[items.yaml](items.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。

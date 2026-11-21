@@ -38,4 +38,4 @@ flowchart TD
 
 [共用架構、時序與驗收](domain-collaboration.md)
 
-[多格式文件架構與手動解析呼叫時序](domain-collaboration.md#document-ingestion)
+[物件呼叫文件辨識能力與驗收](domain-collaboration.md#物件呼叫文件辨識能力)

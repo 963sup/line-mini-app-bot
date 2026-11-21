@@ -1,10 +1,6 @@
 # sidebar-07 專案整合
 
-## 用途與範圍
-
 保存 shadcn sidebar-07 版型，供應用程式外框組合側欄。
-
-## 架構與責任邊界
 
 維護共用版面與導覽；業務互動由功能模組提供。
 
@@ -13,8 +9,6 @@
 先查閱[app-sidebar.tsx](app-sidebar.tsx)、[nav-main.tsx](nav-main.tsx)、[nav-projects.tsx](nav-projects.tsx)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
-
-[現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
 
 來源為官方 `@shadcn/sidebar-07`，透過專案固定版本 CLI 的 `add` 安裝，再搬入本目錄。
 官方入口：https://ui.shadcn.com/blocks/sidebar 。版本與安裝方式由 mise 及專案 shadcn 指引管理。

@@ -1,10 +1,6 @@
 # line-工程管理平台目標架構提案
 
-## 用途與範圍
-
 保存 LINE 工程流程相關設計提案。
-
-## 架構與責任邊界
 
 此處記錄擬議流程，進入實作後由對應領域與契約維護。
 
@@ -15,7 +11,6 @@
 ## 相關規格
 
 [本層規格與指引](../README.md)
-
 
 <a id="line-工程管理平台目標架構提案"></a>
 
@@ -237,7 +232,6 @@ flowchart LR
 未來設計
 
 [流程 C：1:1 私訊查詢個人工程資訊（Mermaid 原始檔）](diagrams/direct-query.mermaid)
-
 
 [編輯 Mermaid 原始檔](diagrams/direct-query.mermaid)
 

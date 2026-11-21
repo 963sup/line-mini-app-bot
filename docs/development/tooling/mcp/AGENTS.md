@@ -1,22 +1,5 @@
 # MCP 與工具查證指引
 
-## 用途與範圍
-
-保存各 MCP 工具的連線、用途與驗證說明。
-
-## 架構與責任邊界
-
-文件描述能力與診斷方式，實際連線配置由專案的 Codex 設定維護。
-
-## 閱讀與修改入口
-
-先查閱[graphify.md](graphify.md)、[repomix.md](repomix.md)、[context7.md](context7.md)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
-
-## 相關規格
-
-[工具文件指引](../AGENTS.md) · [本目錄索引](README.md)
-
-
 遵循[工具文件指引](../AGENTS.md)。各工具的操作入口見[本目錄索引](README.md)。
 
 ## 官方來源

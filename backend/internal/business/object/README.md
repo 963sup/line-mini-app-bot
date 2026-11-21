@@ -2,11 +2,7 @@
 
 [領域文件](../../../../docs/domains/object/README.md) · [全域索引](../../../../docs/domains/README.md#domain-matrix)
 
-## 用途與範圍
-
 管理工程清單物件的類型、精確數量、單位與內部追蹤狀態。
-
-## 架構與責任邊界
 
 此目錄維護本領域或子能力的行為。HTTP、LINE 與 Firestore 依需要提供適配，授權和狀態規則歸資源所屬領域。
 

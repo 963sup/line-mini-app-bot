@@ -1,21 +1,8 @@
 # 工具與分析
 
-## 用途與範圍
-
 保存工具鏈、版本管理、分析與 MCP 入口。
 
-## 架構與責任邊界
-
 工具使用方式放在此處，版本和可執行任務由 mise 維護。
-
-## 閱讀與修改入口
-
-先查閱[mise.md](mise.md)、[analysis-scope.md](analysis-scope.md)、[mcp](mcp/README.md)、[本目錄工作指引](AGENTS.md)。
-
-## 相關規格
-
-[mise](mise.md) · [MCP 索引](mcp/README.md)
-
 
 遇到具體工具需求再讀對應頁面；工具已安裝、已設定、可連線與操作成功是不同證據。
 

@@ -2,11 +2,7 @@
 
 [領域文件](../../../../docs/domains/group/README.md) · [全域索引](../../../../docs/domains/README.md#domain-matrix)
 
-## 用途與範圍
-
 保存從已驗簽 LINE 事件取得的群組資料與成員候選資訊，提供群組查詢。
-
-## 架構與責任邊界
 
 此目錄維護本領域或子能力的行為。HTTP、LINE 與 Firestore 依需要提供適配，授權和狀態規則歸資源所屬領域。
 

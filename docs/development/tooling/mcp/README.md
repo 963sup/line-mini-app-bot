@@ -1,21 +1,6 @@
 # MCP tool selection
 
-## 用途與範圍
-
-保存各 MCP 工具的連線、用途與驗證說明。
-
-## 架構與責任邊界
-
-文件描述能力與診斷方式，實際連線配置由專案的 Codex 設定維護。
-
-## 閱讀與修改入口
-
-先查閱[graphify.md](graphify.md)、[repomix.md](repomix.md)、[context7.md](context7.md)、[本目錄工作指引](AGENTS.md)。
-
-## 相關規格
-
-[graphify](graphify.md) · [openaiDeveloperDocs](openai-docs.md)
-
+依任務選服務。角色對照是閱讀入口，實際連線設定以[專案 MCP 設定](../../../../.codex/config.toml)為準。原生工具缺少時先查[專案載入](#project-loading-check)；修改指引見[本層規則](AGENTS.md)。
 
 | Service | Primary roles |
 | --- | --- |
@@ -26,10 +11,11 @@
 | [next-devtools](next-devtools.md) | Next.js；按需檢查本機開發伺服器的 runtime 狀態 |
 | [repomix](repomix.md) | Repomix；Explorer、Reviewer 亦可使用 |
 | [mermaid](../../../../.codex/README.md#mermaid) | Mermaid；架構、資料關係、操作流程與狀態圖，來源與渲染分開驗證 |
-| [repomix_skills](repomix-skills.md) | Researcher, Implementer |
+| [repomix_skills](repomix-skills.md) | 交接主責代理；接手者需重用一組原始碼時自動產生參考包 |
 | [gopls](gopls.md) | Golang；Explorer、Tester、Reviewer 亦可使用 |
-| [github](github.md) | Orchestrator, Reviewer, Integrator |
-| [Google Developer Knowledge / gcloud](google.md) | Researcher, Implementer, Reviewer, Integrator |
+| [github](github.md) | GitHub、Orchestrator、Reviewer、Integrator |
+| [google-developer-knowledge、gcloud](google.md) | Researcher、Implementer、Reviewer、Integrator；查 Google 文件、核對 CLI 操作 |
+| [cloud-run、toolbox、gke](../../../../.codex/config.toml) | 依任務選 Cloud Run、Firestore 或 GKE。啟用狀態與允許的工具依左側設定，當前可用性依原生呼叫驗證。 |
 
 Roles share services; this mapping is guidance, not access control. Host tool
 exposure, server allowlists and user authorization determine actual access.
@@ -110,7 +96,7 @@ latency or a before/after performance claim.
 
 The source results were summarized as the workflow's six-field handoff with
 revision, relevant dirty paths and source locations. This verifies direct tools
-and evidence transfer; the current host has no `agent_type` selection parameter,
+and evidence transfer; the host used for that snapshot had no `agent_type` selection parameter,
 so native execution of all registered custom roles remains unverified. Configuration,
 direct MCP operation and host-exposed tools must still be reported separately.
 

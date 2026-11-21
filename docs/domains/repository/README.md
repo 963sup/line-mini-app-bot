@@ -14,11 +14,7 @@
 
 [對照實作或測試](../../../backend/internal/business/repository/domain/entity/repository.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
 
-## 用途與範圍
-
 保存 Repository 及其空間、標籤、事項、討論與其他子能力的規格。
-
-## 架構與責任邊界
 
 Repository 範圍及功能授權在此說明，各子能力細節由對應文件維護。
 
@@ -29,7 +25,6 @@ Repository 範圍及功能授權在此說明，各子能力細節由對應文件
 ## 相關規格
 
 [Repository Insights 與 Pulse](insights.md) · [工程知識庫 Wiki](wiki.md)
-
 
 <a id="個人與群組-repository"></a>
 

@@ -1,85 +1,25 @@
 # 規劃與提案
 
-[平台能力提案](platform/README.md) · [Webhook 可靠交付提案](webhook-delivery/README.md)
+這裡保存待評估的業務能力、平台目標與歷史交付設計。確認「今天做得到什麼」時，從[領域狀態](../domains/README.md#domain-matrix)、[實作位置](../architecture/runtime/code-layout.md#從需求定位修改範圍)及[已採用的 ADR](../decisions/README.md)查證。
 
-## 用途與範圍
+## 按問題查閱
 
-保存待評估或演進中的設計提案。
+| 設計問題 | 提案或對照 |
+| --- | --- |
+| 持久 Inbox、Outbox、Worker 與管理後台如何分工？ | [平台提案](platform/README.md) · [套件配置](platform/package-layout.md) · [Webhook 可靠交付](webhook-delivery/README.md) |
+| LINE 與跨業務能力的目標架構是什麼？ | [工程平台設計](line-engineering/README.md) |
+| Repository、Issue 與 Discussion 的目標模型有何差異？ | [平台資源模型](platform/domain-model.md) |
+| 如何看待早期平台切片的交付順序？ | [歷史交付階段](platform/delivery.md)；目前變更以[驗收矩陣](../development/acceptance.md)選擇檢查。 |
 
-## 架構與責任邊界
+## 相鄰的設計參考
 
-提案描述目標與取捨，現行行為以程式、契約與領域規格為準。
+[Firestore 資料契約](firestore-data-contracts.md)描述規劃中的技術基線。[可靠性設計](../architecture/README.md#可靠性設計參考)連到通用 Inbox／Outbox 模型與現行接收契約。
 
-## 閱讀與修改入口
+## 維護邊界
 
-先查閱[line-engineering](line-engineering/README.md)。
+每項提案標示狀態與現行契約來源。能力獲採用後，把生效規則寫入領域規格或 ADR，保留必要的提案背景與引用。變更公開契約、正式資料或部署仍依各自的流程。
 
-## 相關規格
-
-[本層規格與指引](../architecture/README.md)
-
-
-<a id="規劃與提案"></a>
-
-```mermaid
-flowchart LR
-  h["規劃與提案"]
-  h --- n0["本目錄保存未來能力、目標模型與歷史平台交付設<br/>計。這些文件不表示功能已實作，也不構成目前任<br/>務的必要前置條件。"]
-  h --- n1["現行功能先讀功能索引，實作位置見需求導航，已<br/>接受決策見 ADR。提案中已落地的部分以所連結的<br/>現行契約為準。"]
-  n1 --- n1l0["功能索引"]
-  click n1l0 "../domains/README.md"
-  n1 --- n1l1["需求導航"]
-  click n1l1 "../architecture/runtime/code-layout.md#從需求定位修改範圍"
-  n1 --- n1l2["ADR"]
-  click n1l2 "../architecture/README.md#architecture-decision-records"
-```
-
-<a id="按問題查閱"></a>
-
-```mermaid
-flowchart LR
-  h["按問題查閱"]
-  h --- n0["文件：未來平台目錄<br/>用途：評估持久 Inbox、Outbox、Worker 與管理<br/>後台的責任配置"]
-  click n0 "platform/package-layout.md"
-  h --- n1["文件：工程平台目標架構<br/>用途：查閱 LINE 平台與跨業務能力的提案模型"]
-  click n1 "line-engineering/README.md"
-  h --- n2["文件：Repository、Issue 與 Discussion 模型<br/>用途：比較後續資源模型與產品設計參考"]
-  click n2 "platform/domain-model.md"
-  h --- n3["文件：平台交付階段<br/>用途：查閱舊平台切片與未來驗收方向；目前檢查<br/>依驗收矩陣"]
-  n3 --- n3l0["平台交付階段"]
-  click n3l0 "platform/delivery.md"
-  n3 --- n3l1["驗收矩陣"]
-  click n3l1 "../development/acceptance.md"
-```
-
-<a id="相鄰的設計參考"></a>
-
-```mermaid
-flowchart LR
-  h["相鄰的設計參考"]
-  h --- n0["資料契約提案：尚未實作的技術基線。"]
-  click n0 "firestore-data-contracts.md"
-  h --- n1["可靠性設計參考：通用 Inbox／Outbox 與狀態機<br/>，與現行功能區分。"]
-  click n1 "../architecture/README.md#可靠性設計參考"
-```
-
-<a id="維護邊界"></a>
-
-```mermaid
-flowchart LR
-  h["維護邊界"]
-  h --- n0["提案須標示狀態與現行契約來源。能力被接受後，<br/>將有效規則落在功能規格或 ADR，保留必要的提案<br/>背景與引用；不以提案直接修改公開契約、資料或<br/>部署。"]
-  h --- n1["文件總入口 · 文件維護指引"]
-  n1 --- n1l0["文件總入口"]
-  click n1l0 "../README.md"
-  n1 --- n1l1["文件維護指引"]
-  click n1l1 "../AGENTS.md"
-  h --- n2["未來設計圖索引 · 對照現行實作。"]
-  n2 --- n2l0["未來設計圖索引"]
-  click n2l0 "../diagrams.md#未來設計"
-  n2 --- n2l1["對照現行實作"]
-  click n2l1 "../diagrams.md#現行實作"
-```
+圖表分為[未來設計](../diagrams.md#未來設計)與[現行實作](../diagrams.md#現行實作)。
 
 ## 規劃中的業務領域
 

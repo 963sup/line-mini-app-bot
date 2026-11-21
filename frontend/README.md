@@ -1,10 +1,6 @@
 # MINI App 前端
 
-## 用途與範圍
-
 保存瀏覽器前端，MINI App 位於 `miniapp/`，透過共用 API client 呼叫後端。
-
-## 架構與責任邊界
 
 依層級維護本目錄的共用能力；功能畫面由 business 組織，頁面入口由 pages 接入。
 

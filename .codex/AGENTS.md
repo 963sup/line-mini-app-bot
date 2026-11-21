@@ -1,35 +1,14 @@
 # .codex 工作指引
 
-## 用途與範圍
-
-保存 Codex 角色、MCP 與 hooks 設定。
-
-## 架構與責任邊界
-
-此處定義專案的代理配置，工具版本與任務由根目錄 mise 設定管理。
-
-## 閱讀與修改入口
-
-先查閱[config.toml](config.toml)、[角色設定](agents/README.md)、[hooks.json](hooks.json)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
-
-## 相關規格
-
-[文件索引](../docs/README.md) · [操作模型](../docs/architecture/contracts/business-operations.md)
-
-
-適用於本目錄及其子目錄；先遵循 [根目錄 AGENTS.md](../AGENTS.md)，再套用較近的子目錄補充。使用者及主機指令優先；本檔不增加外部寫入授權。
+本目錄沿用[根目錄指引](../AGENTS.md)。[config.toml](config.toml)登記角色與 MCP；[角色目錄](agents/README.md)維護分工，[hooks.json](hooks.json)定義 hooks。環境設定見[本層說明](README.md)。
 
 ## 職責與邊界
 
-config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json 保存 hooks；skills/ 為安裝產物。
-
-連線設定只在 config.toml 維護；工具版本、任務與非機密環境以 ../mise.toml 為準。不要手改上游技能或寫入憑證。
+連線設定只在 config.toml 維護；版本、任務與非機密環境依 [mise.toml](../mise.toml)。上游技能由安裝流程管理，憑證由執行環境提供。
 
 ## 驗證
 
-從根目錄執行 bash scripts/tooling/tool-exec.sh python3 scripts/check/check-config.py；MCP transport 與聊天主機曝光需分別驗證。
-
-命令除另有標示外均在儲存庫根目錄執行。閱讀 [本目錄 README](README.md) 與 [文件索引](../docs/README.md)；回報實際執行結果與限制。
+從根目錄執行 `bash scripts/tooling/tool-exec.sh python3 scripts/check/check-config.py`。涉及 MCP 時，分別驗證 CLI 配置、transport 及目前聊天的原生工具。[驗證步驟](README.md#codex-cloud-新環境驗收)
 
 ## Business Operation
 

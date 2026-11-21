@@ -59,7 +59,7 @@ codex plugin add ponytail@ponytail
 ```
 
 本次觀測 python-development 為 1.2.4、ponytail 為 5.3.3；這是安裝紀錄，不是重建版本鎖定。
-安裝不授權 plugin 自動進行對外操作，不取代專案八角色與文件查證規則。
+安裝不授權 plugin 自動進行對外操作，角色依[專案角色設定](../../../.codex/agents/README.md)選用，文件查證依根目錄指引。
 
 ## shadcn 官方 skill
 

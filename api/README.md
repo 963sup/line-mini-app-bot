@@ -1,10 +1,6 @@
 # HTTP API 契約
 
-## 用途與範圍
-
 管理 API 契約、產生設定與 TypeScript client。修改 API 輸入或輸出時，先更新契約，再重新產生 Go 與 TypeScript 檔案。
-
-## 架構與責任邊界
 
 契約是介面來源；client 與產生設定供消費端使用，依契約重新產生型別。
 
@@ -77,11 +73,7 @@ Redocly lint／bundle 設定位於 `api/codegen/redocly.yaml`；根目錄的生�
 
 ## 目錄導覽與維護
 
-contract/ 依能力維護來源契約，openapi.yaml 組合公開 HTTP API；client/、codegen/、compatibility/ 分別保存共用客戶端、生成設定及相容性基準，不按業務複製這些工具。
-
-先修改契約，再由根目錄 pnpm api:generate 更新 Go/TS 產生碼；不手改 generated 檔或任意刷新 baseline。業務核心不依賴 HTTP DTO。
-
-從根目錄執行 bash scripts/tooling/tool-exec.sh pnpm api:check。歷史比較依 README.md 指定 base revision；缺少 base 不宣稱通過。
+[契約來源](contract/README.md)按能力維護，[客戶端](client/README.md)與[生成設定](codegen/README.md)共用。契約變更依[生成流程](#契約生成流程)驗證。若須對歷史版本做相容性比較，明列比較的 revision 與差異；目前的 `api:check` 驗證工作樹內的契約與生成結果。
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
 
@@ -91,7 +83,7 @@ contract/ 依能力維護來源契約，openapi.yaml 組合公開 HTTP API；cli
 - [共用客戶端](client/AGENTS.md)。
 - [生成設定](codegen/AGENTS.md)。
 
-Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄已接入；Project／items 與 Repository milestones／statistics 已依基礎規格接入；Project fields／views 仍為雛形；既有 compatibility/ 及 baseline 保留。
+Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄已接入；Project／items 與 Repository milestones／statistics 已依基礎規格接入；Project fields／views 仍為雛形。
 
 ## 相關文件
 
@@ -107,7 +99,7 @@ Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄
 
 ## Business 入口分類
 
-公開 HTTP 能力為 Identity、Repository、Issue、Discussion、Attendance；Summary、Weather 描述既有事件／內部工作入口，不加入公開 codegen，也不新增 HTTP 端點。各能力來源與依賴見 [契約能力索引](contract/README.md)。
+公開 HTTP、事件與內部工作依[契約能力索引](contract/README.md)判定；Summary、Weather 的事件及內部工作維持原入口。
 
 - [群組 Repository](../docs/domains/repository/README.md)
 - [空間標籤目錄](../docs/domains/repository/labels.md)：目錄列出／建立，分類沿用 Issue／Discussion 更新；不含改名或刪除。

@@ -1,22 +1,16 @@
 # frontend/miniapp/src/shared/ui 目錄導覽
 
-## 用途與範圍
-
 保存 shadcn 的共用 UI 元件，對應 `@/shared/ui`。業務專用的畫面組合放在各功能模組。
-
-## 架構與責任邊界
 
 提供跨功能重用的元件或工具；特定業務流程留在使用它的功能模組。
 
 ## 閱讀與修改入口
 
-先查閱[LICENSE.md](LICENSE.md)、[accordion.tsx](accordion.tsx)、[alert-dialog.tsx](alert-dialog.tsx)、[本目錄工作指引](AGENTS.md)。
+從 [LICENSE.md](LICENSE.md)、[accordion.tsx](accordion.tsx)、[alert-dialog.tsx](alert-dialog.tsx)、[alert.tsx](alert.tsx)、[avatar.tsx](avatar.tsx)、[badge.tsx](badge.tsx)、[breadcrumb.tsx](breadcrumb.tsx)、[button.tsx](button.tsx) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 
 [官方文件參考庫](../../../../../docs/development/tooling/shadcn-reference/README.md) · [現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
-
-從 [LICENSE.md](LICENSE.md)、[alert.tsx](alert.tsx)、[avatar.tsx](avatar.tsx)、[badge.tsx](badge.tsx)、[breadcrumb.tsx](breadcrumb.tsx)、[button.tsx](button.tsx) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 ## 已安裝元件
 

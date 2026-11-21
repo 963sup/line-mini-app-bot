@@ -1,13 +1,5 @@
 # 摘要事件與內部工作契約
 
-## 用途與範圍
-
-記錄群組訊息摘要的 LINE 互動與內部工作入口。
-
-## 架構與責任邊界
-
-此處描述 LINE 訊息蒐集、摘要與內部 worker 的契約。worker 由內部 OpenAPI 組合，LINE 事件入口由既有 Webhook 接入。
-
 ## 閱讀與修改入口
 
 先查閱[worker.yaml](worker.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。

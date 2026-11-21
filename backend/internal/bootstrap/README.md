@@ -1,24 +1,14 @@
 # backend/internal/bootstrap 目錄導覽
 
-## 用途與範圍
-
 組裝後端服務、業務依賴與各功能路由，將 HTTP、LINE 與資料存取轉接器接到業務層。
-
-## 架構與責任邊界
 
 啟動入口在 [server.go](server.go)，負責設定、路由註冊、資源釋放及關機。修改 Webhook 處理順序時查閱 [line.go](line.go)；組織建立對話與工程清單回覆由各自的業務 LINE 適配器處理。
 
 ## 閱讀與修改入口
 
-先查閱[attendance.go](attendance.go)、[creation_line.go](../business/organization/adapter/line/creation_line.go)、[group.go](group.go)、[本目錄工作指引](AGENTS.md)。
-
-## 相關規格
-
-[現行實作圖：格式與資料相容](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+從 [attendance.go](attendance.go)、[creation_line.go](../business/organization/adapter/line/creation_line.go)、[group.go](group.go)、[miniapp.go](miniapp.go)、[miniapp_test.go](miniapp_test.go)、[journal.go](journal.go)、[line.go](line.go)、[my_engineering.go](../business/repository/adapter/line/my_engineering.go)、[my_engineering_test.go](../business/repository/adapter/line/my_engineering_test.go) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
 
 ## 閱讀入口
-
-從 [miniapp.go](miniapp.go)、[miniapp_test.go](miniapp_test.go)、[attendance.go](attendance.go)、[group.go](group.go)、[journal.go](journal.go)、[line.go](line.go)、[my_engineering.go](../business/repository/adapter/line/my_engineering.go)、[my_engineering_test.go](../business/repository/adapter/line/my_engineering_test.go) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：格式與資料相容](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../../../docs/diagrams.md#未來設計)
 
