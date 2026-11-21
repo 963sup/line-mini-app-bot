@@ -1,3 +1,22 @@
 {
-  "hooks": {}
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/scripts/tooling/repomix-prompt-hook.py\"",
+            "statusMessage": "Refreshing the Repomix skill",
+            "timeout": 60
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/scripts/tooling/graphify-prompt-hook.py\"",
+            "statusMessage": "Refreshing the Graphify subgraph",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
 }

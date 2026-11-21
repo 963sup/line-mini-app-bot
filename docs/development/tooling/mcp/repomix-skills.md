@@ -4,7 +4,7 @@ Owner: the primary agent preparing the handoff, or the assigned skill-generation
 
 ## When to use
 
-每次收到使用者訊息，開始實質回答或執行任務前，MUST 重新產生並讀取本次相關來源的參考技能；包含一般問答、後續追問與[側欄交接](../../workflow/handoff.md#sidebar-handoff)。
+每次送出使用者訊息時，專案 Hook 刷新開發入口技能。需要交接或反覆查閱一組程式時，再按任務選擇來源。
 
 ## Prerequisites and configuration
 
@@ -16,7 +16,13 @@ Tool versions are owned by `mise.toml`; never copy token values into documentati
 
 ## 每次交談前重新產生
 
-Codex 的來源參考技能使用固定版本 CLI 直接產生到 `.agents/skills/<skillName>/`。每次交談由主責代理先核對來源範圍與現有產物，再使用 `--force` 執行一條命令；即使來源未變，也重新產生；一般產生流程不另啟 MCP、跑全套 doctor 或先產生到 `.claude/` 再搬移。
+[專案 Hooks](../../../../.codex/hooks.json) 在 `UserPromptSubmit` 呼叫[刷新腳本](../../../../scripts/tooling/repomix-prompt-hook.py)。腳本使用固定版本 CLI 和 `--force`，將開發手冊入口打包到 `.agents/skills/repomix-reference-development-entry/`，並把 `SKILL.md` 路徑交給當輪 Codex。來源由腳本限定。使用者訊息不傳給 Repomix。
+
+在支援專案 Hooks 的宿主開啟並信任此 checkout。Codex 首次載入這項 Hook 時要審核其定義，CLI 可用 `/hooks`。驗收時在一個新聊天先後送出兩則訊息。兩次都應看到刷新，且 `SKILL.md` 的修改時間都應更新。生成失敗時由 Hook 顯示原因，聊天可繼續查原始文件。[OpenAI Hooks](https://developers.openai.com/codex/hooks/#userpromptsubmit)
+
+## 按需打包任務來源
+
+開發入口技能提供導覽。需要更深入或要[交接原始碼](../../workflow/handoff.md#sidebar-handoff)時，可另外產生限定於該任務的參考包。
 
 以下為 Codex Cloud 設定參考的範例；其他任務 MUST 同時調整技能名稱與 `--include`，只涵蓋本次問題需要的來源：
 
@@ -31,7 +37,7 @@ bash scripts/tooling/tool-exec.sh repomix . \
 
 - `--skill-output` 是技能目錄本身，MUST 包含個別技能子目錄；不要只傳 `.agents/skills/`，以免把 `SKILL.md` 與 `references/` 寫到共用根目錄。
 - `--skill-output` 跳過位置選擇；`--force` 跳過覆寫確認，不會縮小打包範圍。範圍由 `--include`／`--ignore` 控制，需核對實作時保留完整內容，不加壓縮。
-- `--force` 只可更新本任務擁有的生成目錄。MUST 先核對既有來源、版本與未提交內容；即使既有包仍有效也重新產生。需要保留的舊包則改用新技能名稱，不覆寫上游或其他工作的技能。
+- `--force` 只可更新本任務擁有的生成目錄。MUST 先核對既有來源、版本與未提交內容。需要保留的舊包則改用新技能名稱，不覆寫上游或其他工作的技能。
 - 成功後核對 `SKILL.md`、`references/project-structure.md` 與 `references/files.md`；Evidence 記錄來源版本、未提交狀態、範圍與可讀路徑。使用 `bash scripts/tooling/tool-exec.sh skills list --agent codex` 確認本機探索；當前聊天載入及自動觸發仍須另行驗證。
 - `.agents/skills/` 受 Git 忽略。另一個 checkout 或新環境須重新生成或明確保存產物；不因本機生成成功就宣稱已隨 Git 或發布環境提供。
 

@@ -29,6 +29,7 @@ UV_CACHE_DIR = "/workspace/tooling/cache/uv"
 UV_TOOL_DIR = "/workspace/tooling/data/uv/tools"
 UV_TOOL_BIN_DIR = "/workspace/tooling/bin"
 UV_PYTHON_DOWNLOADS = "never"
+GRAPHIFY_PACKAGE = "graphifyy[mcp,terraform]==0.9.103"
 PIP_CACHE_DIR = "/workspace/tooling/cache/pip"
 PYTHONPYCACHEPREFIX = "/workspace/tooling/cache/python"
 PLAYWRIGHT_BROWSERS_PATH = "/workspace/tooling/cache/ms-playwright"
@@ -207,7 +208,7 @@ run = "python3 scripts/mcp/mcp-doctor.py"
 description = "Install Graphify with uv using the mise Python interpreter"
 run = [
   "mise install python uv",
-  'uv tool install --python "$(mise which python)" --no-python-downloads "graphifyy[mcp,terraform]==0.9.103"',
+  'uv tool install --python "$(mise which python)" --no-python-downloads "$GRAPHIFY_PACKAGE"',
   "graphify install --platform agents --project",
 ]
 
