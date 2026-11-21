@@ -152,7 +152,7 @@ env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", 
 # Resolve paths from the Codex checkout, including worktrees.
 cwd = "."
 command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "bash", "-c", 'exec repomix --mcp --sandbox "$PWD"']
+args = ["scripts/tooling/tool-exec.sh", "--tool", "node", "--tool", "npm:repomix", "bash", "-c", 'exec repomix --mcp --sandbox "$PWD"']
 enabled_tools = ["pack_codebase", "read_repomix_output", "grep_repomix_output", "file_system_read_file", "file_system_read_directory"]
 enabled = true
 required = false
@@ -248,7 +248,7 @@ env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", 
 # Resolve paths from the Codex checkout, including worktrees.
 cwd = "."
 command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "bash", "-c", "cd frontend/miniapp && exec shadcn mcp"]
+args = ["scripts/tooling/tool-exec.sh", "--tool", "node", "--tool", "npm:shadcn", "bash", "-c", "cd frontend/miniapp && exec shadcn mcp"]
 enabled = true
 required = false
 startup_timeout_sec = 45
@@ -260,7 +260,7 @@ env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", 
 # Resolve paths from the Codex checkout, including worktrees.
 cwd = "."
 command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "bash", "-c", "cd frontend/miniapp && exec next-devtools-mcp"]
+args = ["scripts/tooling/tool-exec.sh", "--tool", "node", "--tool", "npm:next-devtools-mcp", "bash", "-c", "cd frontend/miniapp && exec next-devtools-mcp"]
 enabled_tools = ["nextjs_index", "nextjs_call", "nextjs_docs", "browser_eval"]
 default_tools_approval_mode = "writes"
 enabled = true
