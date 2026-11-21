@@ -14,17 +14,31 @@ import tomllib
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = tomllib.loads((ROOT / '.codex/config.toml').read_text())['mcp_servers']
 
-def check_servers(configs, server=None, call=None, arguments=None):
+READ_ONLY_CALLS = {
+    "openaiDeveloperDocs": {"search_openai_docs", "fetch_openai_doc"},
+    "repomix": {"file_system_read_file"},
+    "shadcn": {"get_project_registries", "list_items_in_registries",
+               "search_items_in_registries", "view_items_in_registries",
+               "get_item_examples_from_registries", "get_add_command_for_items",
+               "get_audit_checklist"},
+}
+
+
+def check_servers(configs, server=None, call=None, arguments=None, list_tools=False):
     counts = {"PASS": 0, "FAIL": 0, "SKIP": 0}
     for name, config in configs.items():
         if server and name != server:
             continue
         if config.get("enabled", True) is False:
-            counts["SKIP"] += 1
-            print(f"SKIP {name}: disabled", flush=True)
+            if call or list_tools:
+                counts["FAIL"] += 1
+                print(f"FAIL {name}: disabled; no explicit tool request performed", flush=True)
+            else:
+                counts["SKIP"] += 1
+                print(f"SKIP {name}: disabled", flush=True)
             continue
         try:
-            probe_server(name, config, call, arguments)
+            probe_server(name, config, call, arguments, list_tools)
             counts["PASS"] += 1
         except Exception as exc:
             counts["FAIL"] += 1
@@ -35,7 +49,11 @@ def check_servers(configs, server=None, call=None, arguments=None):
     return int(bool(counts["FAIL"]))
 
 
-def probe_server(name, config, call=None, arguments=None):
+def probe_server(name, config, call=None, arguments=None, list_tools=False):
+    if call and call not in READ_ONLY_CALLS.get(name, set()):
+        raise RuntimeError("tool call is not in the server read-only allowlist")
+    if call and "enabled_tools" in config and call not in config["enabled_tools"]:
+        raise RuntimeError("tool call is disabled by server configuration")
     process = None
     session = None
     protocol = '2025-03-26'
@@ -137,10 +155,12 @@ def probe_server(name, config, call=None, arguments=None):
         protocol = init['protocolVersion']
         send({'jsonrpc': '2.0', 'method': 'notifications/initialized'})
         names = set()
+        inventory = []
         params = {}
         for number in range(2, 102):
             result = request(number, 'tools/list', params)
             names.update(tool['name'] for tool in result['tools'])
+            inventory.extend(result['tools'])
             if not result.get('nextCursor'):
                 break
             params = {'cursor': result['nextCursor']}
@@ -151,6 +171,8 @@ def probe_server(name, config, call=None, arguments=None):
             raise RuntimeError('configured tools not offered: ' + ', '.join(sorted(missing)))
         if not names:
             raise RuntimeError('empty tools list')
+        if list_tools:
+            print(json.dumps({"server": name, "tools": inventory}), flush=True)
         if call:
             if call not in names:
                 raise RuntimeError('requested tool is not offered')
@@ -176,13 +198,15 @@ if __name__ == '__main__':
     parser.add_argument('--server', choices=sorted(CONFIG))
     parser.add_argument('--call', help='Explicit read-only tool call; requires --server')
     parser.add_argument('--arguments', default='{}', help='JSON tool arguments; never include credentials')
+    parser.add_argument('--list-tools', action='store_true', help='Print tool names and input schemas; requires --server')
     args = parser.parse_args()
+    if args.list_tools and not args.server:
+        parser.error('--list-tools requires --server')
     if args.call and not args.server:
         parser.error('--call requires --server')
-    if args.call and args.call not in {'openaiDeveloperDocs': {'search_openai_docs', 'fetch_openai_doc'},
-                                       'repomix': {'file_system_read_file'}}.get(args.server, set()):
-        parser.error('--call supports OpenAI Docs search/fetch or Repomix file_system_read_file')
+    if args.call and args.call not in READ_ONLY_CALLS.get(args.server, set()):
+        parser.error('--call must be in the selected server read-only allowlist; use --list-tools to discover names and schemas')
     arguments = json.loads(args.arguments)
     if not isinstance(arguments, dict):
         parser.error('--arguments must be a JSON object')
-    raise SystemExit(check_servers(CONFIG, args.server, args.call, arguments))
+    raise SystemExit(check_servers(CONFIG, args.server, args.call, arguments, args.list_tools))

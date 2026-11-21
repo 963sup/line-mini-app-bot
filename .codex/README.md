@@ -2,13 +2,13 @@
 
 ## Codex 環境初始化
 
-從儲存庫根目錄開啟 Codex。在 Codex Cloud 環境中，將 Setup script 與選用的 Maintenance script 設為下列命令。它會安裝鎖定的 Go／Node／pnpm／API 產生器、依鎖檔安裝依賴，並下載與驗證 Go modules；快取恢復時重用已安裝版本。
+從儲存庫根目錄開啟 Codex。在此 Codex Cloud 環境中，將 Install script 設為下列命令。它會安裝鎖定的 Go／Node／pnpm／API 產生器、依鎖檔安裝依賴，並下載與驗證 Go modules；快取恢復時重用已安裝版本。
 
 ```bash
 bash scripts/tooling/bootstrap.sh cloud
 ```
 
-快取恢復時，Codex 會執行已設定的 Maintenance script；若未設定，工具設定或依賴鎖檔變更後須明確重跑上方命令。Agent 階段從 checkout 根目錄使用 tool-exec.sh。環境快取與初始化生命週期依 [官方環境設定](https://developers.openai.com/codex/cloud/environments)。
+發布環境會保存已準備的檔案與快取，程序不會保留。Start skill 指引從 checkout 根目錄使用 tool-exec.sh；若工具設定或依賴鎖檔變更，明確重跑上方命令。此介面沒有獨立 Maintenance script 欄位。
 
 完整 Go 分析工具使用 `mise run install-core`；API 產生器使用 `mise run install-web`；Mermaid 使用 `mise run install-mermaid`，均透過 `bash scripts/tooling/tool-exec.sh` 執行。Cloud setup 不執行測試或註冊使用者層 MCP。
 

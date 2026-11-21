@@ -25,6 +25,7 @@ Root instructions apply throughout the repository. Before changing a subtree, re
 - 複合 shell 命令 MUST 明確宣告所需工具，例如 `bash scripts/tooling/tool-exec.sh --tool node --tool npm:repomix bash -c 'repomix --version'`。`--tool` 只使用 mise.toml 已宣告的工具，不另指定版本。
 - 缺少工具時 MUST 優先使用 wrapper 或既有 install-* 任務，驗證版本後繼續原任務；MUST NOT 自行升級版本、修改鎖檔或安裝未宣告套件。
 - `mise run` 已開啟任務自動安裝，可能準備任務環境的多個缺少工具；只需單一 CLI 時 MUST 使用 wrapper 的直接命令。
+- UI 任務遇到 shadcn MCP 未曝光或 CLI 缺少時，MUST 自行執行 `bash scripts/tooling/tool-exec.sh mise run ensure-shadcn`，依[自主接線流程](docs/development/tooling/mcp/shadcn.md#自主接線)使用直接 MCP，再按需退回 CLI；不等待使用者手動接線或重新開啟聊天。
 - MCP 缺少套件時按上述流程準備，再重試連線；憑證、網路、ADC 或主機未載入設定須分別處理。安裝完成不代表目前聊天已載入 MCP。
 - 新環境仍 MUST 先執行初始化以準備 mise、系統 Python 與網路；Graphify 使用既有 install-graphify 任務，不能只靠 mise 的工具宣告安裝。
 

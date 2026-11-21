@@ -243,3 +243,10 @@ run = "mise install node npm:skills"
 [tasks.skills-list]
 description = "List project skills available to Codex"
 run = "skills list --agent codex"
+
+[tasks.ensure-shadcn]
+description = "Prepare pinned shadcn CLI and verify a real registry MCP query without host reload"
+run = [
+  "bash scripts/tooling/tool-exec.sh shadcn info --json --cwd frontend/miniapp",
+  "python3 scripts/tooling/mcp-doctor.py --server shadcn --call get_project_registries",
+]
