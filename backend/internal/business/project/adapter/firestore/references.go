@@ -1,7 +1,5 @@
 package firestore
 
-import ()
-
 import (
 	projectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/project/application/dto"
 	projectApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/project/application/port"
