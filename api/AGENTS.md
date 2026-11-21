@@ -1,16 +1,6 @@
 # api 工作指引
 
-## 用途與範圍
-
-管理 API 契約、產生設定與 TypeScript client。修改 API 輸入或輸出時，先更新契約，再重新產生 Go 與 TypeScript 檔案。
-
-## 架構與責任邊界
-
-契約是介面來源；client 與產生設定供消費端使用，依契約重新產生型別。
-
-## 閱讀與修改入口
-
-先查閱[capabilities.json](capabilities.json)、[redocly.yaml](redocly.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+本目錄沿用[根目錄指引](../AGENTS.md)。目錄分工、生成與驗證命令見[API 工作流程](README.md)。
 
 ## 相關規格
 

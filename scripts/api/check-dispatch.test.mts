@@ -8,7 +8,7 @@ const root = resolve(import.meta.dirname, "../..");
 const contract = "backend/internal/transport/http/api/contract.go";
 const routes = "backend/internal/transport/http/api/routes.go";
 const generated = "backend/internal/transport/http/api/generated/api.gen.go";
-const operations: DispatchOperation[] = JSON.parse(readFileSync(resolve(root, "api/capabilities.json"), "utf8")).operations;
+const operations: DispatchOperation[] = JSON.parse(readFileSync(resolve(root, "api/contract/capabilities.json"), "utf8")).operations;
 const original = new Map([...new Set([contract, routes, generated, ...operations.map(op => op.adapter)])]
   .map(path => [path, readFileSync(resolve(root, path), "utf8")]));
 
