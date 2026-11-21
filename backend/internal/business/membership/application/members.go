@@ -6,6 +6,8 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	"github.com/963sup/line-mini-app-bot/internal/business/membership/domain"
 )
 
 var (
@@ -46,14 +48,14 @@ func (s Service) ListMembers(ctx context.Context, actor, organization string) (M
 			return ErrForbidden
 		}
 		result = Members{Name: roster.Name, CanLeave: !owner, CanRemove: owner}
-		result.People = append(result.People, Member{memberRef(organization, roster.OwnerID), true, owner})
+		result.People = append(result.People, Member{domain.MemberRef(organization, roster.OwnerID), true, owner})
 		seen := map[string]bool{roster.OwnerID: true}
 		for _, user := range roster.UserIDs {
 			if user == "" || seen[user] {
 				continue
 			}
 			seen[user] = true
-			result.People = append(result.People, Member{memberRef(organization, user), false, user == actor})
+			result.People = append(result.People, Member{domain.MemberRef(organization, user), false, user == actor})
 		}
 		return nil
 	})
@@ -72,7 +74,7 @@ func (s Service) EndMembership(ctx context.Context, actor, organization, targetR
 		if targetRef != "" && actor != roster.OwnerID {
 			return ErrForbidden
 		}
-		if targetRef != "" && targetRef == memberRef(organization, roster.OwnerID) {
+		if targetRef != "" && targetRef == domain.MemberRef(organization, roster.OwnerID) {
 			return ErrOwnerMustTransfer
 		}
 		prior, exists, err := w.Departure(organization, actor, requestID)
@@ -96,7 +98,7 @@ func (s Service) EndMembership(ctx context.Context, actor, organization, targetR
 		} else {
 			target = ""
 			for _, user := range roster.UserIDs {
-				if user != "" && memberRef(organization, user) == targetRef {
+				if user != "" && domain.MemberRef(organization, user) == targetRef {
 					target = user
 					break
 				}
@@ -108,5 +110,3 @@ func (s Service) EndMembership(ctx context.Context, actor, organization, targetR
 		return w.SaveDeparture(organization, target, Departure{actor, requestID, targetRef, time.Now()})
 	})
 }
-
-func memberRef(organization, user string) string { return digest(organization + ":" + user) }

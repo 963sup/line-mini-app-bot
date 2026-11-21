@@ -249,6 +249,9 @@
               }
             }
           },
+          "204": {
+            "description": "Ownership transferred using memberId."
+          },
           "400": {
             "description": "Request failed",
             "content": {
@@ -479,12 +482,14 @@
       },
       "TransferOrganizationRequest": {
         "type": "object",
-        "required": [
-          "userId"
-        ],
+        "description": "Provide exactly one of userId (legacy) or memberId (the organization-scoped ID from the member list).",
         "properties": {
           "userId": {
             "type": "string"
+          },
+          "memberId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
           }
         }
       }

@@ -57,6 +57,19 @@ func (h Handler) TransferOrganization(w http.ResponseWriter, r *http.Request, or
 		if err := orghttp.Decode(r, w, &input); err != nil {
 			return nil, err
 		}
-		return organizationResponse(h.Store.Transfer(ctx, user, organizationId, input.UserId))
+		if (input.UserId == nil) == (input.MemberId == nil) {
+			return nil, organizationDomainEntity.ErrInvalid
+		}
+		if input.MemberId != nil {
+			if len(*input.MemberId) != 64 {
+				return nil, organizationDomainEntity.ErrInvalid
+			}
+			_, err := h.Store.Transfer(ctx, user, organizationId, *input.MemberId)
+			return nil, err
+		}
+		if len(*input.UserId) != 33 {
+			return nil, organizationDomainEntity.ErrInvalid
+		}
+		return organizationResponse(h.Store.Transfer(ctx, user, organizationId, *input.UserId))
 	})
 }
