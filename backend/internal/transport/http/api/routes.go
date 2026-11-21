@@ -189,6 +189,13 @@ func RegisterOrganizations(public *http.ServeMux, handler OrganizationServer) {
 	public.Handle("PUT /api/v1/organizations/{organizationId}/owner", routes)
 }
 
+func RegisterMembership(public *http.ServeMux, handler MembershipServer) {
+	routes := routeHandler(contractServer{MembershipServer: handler})
+	public.Handle("GET /api/v1/organizations/{organizationId}/members", routes)
+	public.Handle("DELETE /api/v1/organizations/{organizationId}/membership", routes)
+	public.Handle("DELETE /api/v1/organizations/{organizationId}/members/{memberId}", routes)
+}
+
 func RegisterTeams(public *http.ServeMux, handler TeamServer) {
 	routes := routeHandler(contractServer{TeamServer: handler})
 	public.Handle("PUT /api/v1/teams/{teamId}/management", routes)

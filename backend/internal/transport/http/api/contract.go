@@ -27,6 +27,12 @@ type OrganizationServer interface {
 	SelectOrganization(w http.ResponseWriter, r *http.Request)
 }
 
+type MembershipServer interface {
+	ListOrganizationMembers(w http.ResponseWriter, r *http.Request, organizationId string)
+	LeaveOrganization(w http.ResponseWriter, r *http.Request, organizationId string, params generated.LeaveOrganizationParams)
+	RemoveOrganizationMember(w http.ResponseWriter, r *http.Request, organizationId string, memberId string, params generated.RemoveOrganizationMemberParams)
+}
+
 type PopplerServer interface {
 	ExtractPopplerText(w http.ResponseWriter, r *http.Request, params generated.ExtractPopplerTextParams)
 }
@@ -36,6 +42,7 @@ type contractServer struct {
 	EnterpriseServer
 	TeamServer
 	OrganizationServer
+	MembershipServer
 	JournalServer
 	IdentityServer
 	AttendanceServer

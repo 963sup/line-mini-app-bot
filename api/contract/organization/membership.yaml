@@ -1,0 +1,351 @@
+{
+  "paths": {
+    "/api/v1/organizations/{organizationId}/members": {
+      "get": {
+        "operationId": "listOrganizationMembers",
+        "summary": "listOrganizationMembers",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationMembers"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationId}/membership": {
+      "delete": {
+        "operationId": "leaveOrganization",
+        "summary": "leaveOrganization",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "in": "path"
+          },
+          {
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationId}/members/{memberId}": {
+      "delete": {
+        "operationId": "removeOrganizationMember",
+        "summary": "removeOrganizationMember",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "in": "path"
+          },
+          {
+            "name": "memberId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "in": "path"
+          },
+          {
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "OrganizationMember": {
+        "type": "object",
+        "required": [
+          "memberId",
+          "owner",
+          "self"
+        ],
+        "properties": {
+          "memberId": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "boolean"
+          },
+          "self": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OrganizationMembers": {
+        "type": "object",
+        "required": [
+          "organizationName",
+          "members",
+          "canLeave",
+          "canRemove"
+        ],
+        "properties": {
+          "organizationName": {
+            "type": "string"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrganizationMember"
+            }
+          },
+          "canLeave": {
+            "type": "boolean"
+          },
+          "canRemove": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

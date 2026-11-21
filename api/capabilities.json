@@ -232,6 +232,12 @@
       "adapter": "backend/internal/business/operations/adapter/http/poppler.go",
       "core": "backend/internal/business/operations/application/document.go",
       "specification": "backend/internal/business/operations/README.md"
+    },
+    "membership": {
+      "contract": "organization/membership.yaml",
+      "adapter": "backend/internal/business/membership/adapter/http/members.go",
+      "core": "backend/internal/business/membership/application/members.go",
+      "specification": "docs/proposals/membership.md"
     }
   },
   "operations": [
@@ -1650,6 +1656,48 @@
       "specification": "backend/internal/business/operations/README.md",
       "consumers": [
         "frontend/miniapp/src/business/operations/Poppler.tsx"
+      ]
+    },
+    {
+      "operationId": "listOrganizationMembers",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/organizations/{organizationId}/members",
+      "owner": "membership",
+      "adapter": "backend/internal/business/membership/adapter/http/members.go",
+      "handler": "ListOrganizationMembers",
+      "core": "backend/internal/business/membership/application/members.go",
+      "specification": "docs/proposals/membership.md",
+      "consumers": [
+        "frontend/miniapp/src/business/organization/OrganizationPage.tsx"
+      ]
+    },
+    {
+      "operationId": "leaveOrganization",
+      "audience": "public",
+      "method": "DELETE",
+      "path": "/api/v1/organizations/{organizationId}/membership",
+      "owner": "membership",
+      "adapter": "backend/internal/business/membership/adapter/http/members.go",
+      "handler": "LeaveOrganization",
+      "core": "backend/internal/business/membership/application/members.go",
+      "specification": "docs/proposals/membership.md",
+      "consumers": [
+        "frontend/miniapp/src/business/organization/OrganizationPage.tsx"
+      ]
+    },
+    {
+      "operationId": "removeOrganizationMember",
+      "audience": "public",
+      "method": "DELETE",
+      "path": "/api/v1/organizations/{organizationId}/members/{memberId}",
+      "owner": "membership",
+      "adapter": "backend/internal/business/membership/adapter/http/members.go",
+      "handler": "RemoveOrganizationMember",
+      "core": "backend/internal/business/membership/application/members.go",
+      "specification": "docs/proposals/membership.md",
+      "consumers": [
+        "frontend/miniapp/src/business/organization/OrganizationPage.tsx"
       ]
     }
   ],
