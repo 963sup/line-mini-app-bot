@@ -11,7 +11,7 @@ export function MiniAppProviders({ children }: { children: ReactNode }) {
 }
 
 export function MiniAppLayout({ pathname, children }: { pathname: string; children: ReactNode }) {
-  if (pathname === "/miniapp" || pathname.startsWith("/miniapp/"))
+  if (pathname === "/" || pathname === "/miniapp" || pathname.startsWith("/miniapp/"))
     return <MiniAppProviders>{children}</MiniAppProviders>;
 
   return children;
