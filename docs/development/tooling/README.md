@@ -29,6 +29,7 @@
 | 理解分析涵蓋與限制 | [分析範圍](analysis-scope.md) |
 | 查詢程式關係 | [Graphify](mcp/graphify.md) |
 | 打包限定原始碼 | [Repomix](mcp/repomix.md) |
+| 產生本次交談的來源參考技能 | [Repomix Skills](mcp/repomix-skills.md#每次交談前重新產生) |
 | 查 UI 元件與整合流程 | [shadcn 指南](mcp/shadcn.md)、[本機參考庫入口](shadcn-reference/README.md) |
 | 檢查 Next.js 開發執行狀態 | [Next DevTools](mcp/next-devtools.md) |
 

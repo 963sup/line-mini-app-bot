@@ -6,6 +6,8 @@
 - 日常命令從根目錄使用 `bash scripts/tooling/tool-exec.sh <命令>`。
 - 修改前讀取目標目錄的 README.md 與 AGENTS.md，根指引與各層補充一併適用。跨目錄搬移時核對來源、目的地與呼叫端，保留既有變更與上游技能。[巢狀導覽](README.md#巢狀目錄導覽)
 - 新增或搬移檔案時執行[工作區範圍檢查](docs/development/tooling/analysis-scope.md)，再按[驗收矩陣](docs/development/verification/commands.md#變更驗收矩陣)驗證行為。
+- 每次收到使用者訊息，開始實質回答或執行任務前，MUST 依 [Repomix Skills 流程](docs/development/tooling/mcp/repomix-skills.md#每次交談前重新產生)使用 CLI 重新產生本次相關來源的技能包，指定 `.agents/skills/<skillName>/` 並使用 `--force`，再讀取產物；即使來源未變也執行。主機限制優先，失敗時明確回報，不宣稱已更新或載入。
+- 使用者要求「交接」、「接手」或「交給另一個側欄聊天」時，直接採用[側欄交接流程](docs/development/workflow/handoff.md#sidebar-handoff)，輸出六欄摘要並引用本次生成的相關技能包。
 
 ## 巢狀文件維護標準
 
