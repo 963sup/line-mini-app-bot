@@ -4,7 +4,7 @@
 steps:
   - id: latest-before-build
     name: gcr.io/google.com/cloudsdktool/google-cloud-cli:592.0.0-slim
-    entrypoint: python3
+    entrypoint: /usr/lib/google-cloud-sdk/platform/bundledpythonunix/bin/python3
     args: ["scripts/tooling/cloud-build-latest.py", "--project=$PROJECT_ID", "--region=$LOCATION", "--build=$BUILD_ID"]
   - id: validate-settings
     name: gcr.io/google.com/cloudsdktool/google-cloud-cli:592.0.0-slim
@@ -65,7 +65,7 @@ steps:
 
   - id: latest-before-publication
     name: gcr.io/google.com/cloudsdktool/google-cloud-cli:592.0.0-slim
-    entrypoint: python3
+    entrypoint: /usr/lib/google-cloud-sdk/platform/bundledpythonunix/bin/python3
     args: ["scripts/tooling/cloud-build-latest.py", "--project=$PROJECT_ID", "--region=$LOCATION", "--build=$BUILD_ID"]
 
   - id: attendance-indexes

@@ -62,3 +62,9 @@ Node、Go 基底版本及 pnpm MUST 與 mise.toml 一致，由 check-config.py �
 LINE 同步既有 SHA-256 包含選單定義（含 MINI App 目標）與圖片，會核對遠端圖片、alias 與 default；一致時不重複寫入 LINE。仍保留讀取與 lease，才能偵測外部變更；不是看到 Git 沒改就無條件略過。此行為由 richmenu/publication_test.go 的重複同步測試驗證。
 
 依據：[Cloud Build 查詢與過濾](https://docs.cloud.google.com/build/docs/view-build-results) 及固定版 gcloud 的 builds list／cancel／triggers update github leaf help。
+
+## Cloud CLI 步驟的 Python 入口
+
+Google Cloud CLI 592.0.0 slim 映像的 Python 位於 /usr/lib/google-cloud-sdk/platform/bundledpythonunix/bin/python3，PATH 不提供 python3。managed inline Trigger 與 repository YAML 的 latest-before-* 步驟 MUST 使用這個已驗證的入口；Dockerfile 只負責應用映像，無法修正建置步驟映像的入口。
+
+修改步驟映像或 Python 路徑時，MUST 執行 `bash scripts/tooling/cloud-build-smoke.sh`，使用實際映像檢查腳本啟動與過期建置測試；container CI job 執行同一檢查。本測試不帶憑證、不連網、不部署，不能取代 build service account 的正式雲端權限驗證。

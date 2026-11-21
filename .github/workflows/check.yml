@@ -121,6 +121,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Verify Cloud Build guard in its actual step image
+        run: bash scripts/tooling/cloud-build-smoke.sh
       - name: Build runtime image
         run: docker build --build-arg VCS_REF="${{ github.sha }}" --tag miniapp:check .
       - name: Verify runtime contract without cloud credentials
