@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[capabilities.json](capabilities.json)、[redocly.yaml](redocly.yaml)、[本目錄工作指引](AGENTS.md)。
+先查閱[capabilities.json](contract/capabilities.json)、[redocly.yaml](codegen/redocly.yaml)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 
@@ -36,7 +36,7 @@ flowchart TB
   FRONT --> CHECK
 ```
 
-圖表示開發與生成順序，依據[生成腳本](../scripts/api/api-generate.mts)；不表示業務核心依賴 HTTP DTO。從儲存庫根目錄執行，前置工具安裝使用 `bash scripts/tooling/tool-exec.sh mise run install-web`：
+圖表示開發與生成順序，依據[生成腳本](../scripts/generate/api-generate.mts)；不表示業務核心依賴 HTTP DTO。從儲存庫根目錄執行，前置工具安裝使用 `bash scripts/tooling/tool-exec.sh mise run install-web`：
 
 ```bash
 bash scripts/tooling/tool-exec.sh pnpm api:generate
@@ -73,7 +73,7 @@ OpenAPI 驗證不取代班次版本、群組成員、審核權限、位置時效
 
 生成碼與通用接線保留於 backend/internal/transport/http/api；出勤 handlers／DTO 映射與 runtime 驗證位於 business/attendance/adapter/http，身分入口位於 identity/http。核心型別不含 JSON／Firestore tags，資料層負責文件編碼與錯誤轉譯。
 
-Redocly lint／bundle 設定位於 `api/redocly.yaml`；根目錄的生成腳本明確帶入 `--config`，不依賴工作目錄自動尋找。
+Redocly lint／bundle 設定位於 `api/codegen/redocly.yaml`；根目錄的生成腳本明確帶入 `--config`，不依賴工作目錄自動尋找。
 
 ## 目錄導覽與維護
 
@@ -120,6 +120,6 @@ Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄
 
 ## 協作能力分佈與交付狀態
 
-已接線與規劃中的操作以[能力清單](capabilities.json)為準，各操作的請求與回應見 [OpenAPI 契約](contract/openapi.yaml)。
+已接線與規劃中的操作以[能力清單](contract/capabilities.json)為準，各操作的請求與回應見 [OpenAPI 契約](contract/openapi.yaml)。
 
 [現行實作圖：基礎入口](../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../docs/diagrams.md#未來設計)

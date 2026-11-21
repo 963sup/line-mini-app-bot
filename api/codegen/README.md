@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[go.yaml](go.yaml)、[internal-go.yaml](internal-go.yaml)、[本目錄工作指引](AGENTS.md)。
+先查閱[Redocly lint／bundle 設定](redocly.yaml)、[go.yaml](go.yaml)、[internal-go.yaml](internal-go.yaml)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 

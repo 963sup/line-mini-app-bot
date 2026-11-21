@@ -70,7 +70,7 @@ function hasHandler(text: string, handler: string): boolean {
   return new RegExp(String.raw`func\s+(?:\([^)]*\)\s*)?${handler}\(`).test(text);
 }
 
-const inventory = JSON.parse(source("api/capabilities.json")) as Inventory;
+const inventory = JSON.parse(source("api/contract/capabilities.json")) as Inventory;
 assert.equal(inventory.schemaVersion, 1, "Unsupported inventory format");
 const docs = new Map<string, Json>();
 for (const entry of readdirSync(contract, { recursive: true, withFileTypes: true })) {
