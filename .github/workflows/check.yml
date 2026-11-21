@@ -115,3 +115,13 @@ jobs:
           bash scripts/tooling/tool-exec.sh mise run check
           bash scripts/tooling/tool-exec.sh mise run build
           bash scripts/tooling/tool-exec.sh mise run vuln
+
+  container:
+    timeout-minutes: 25
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Build runtime image
+        run: docker build --build-arg VCS_REF="${{ github.sha }}" --tag miniapp:check .
+      - name: Verify runtime contract without cloud credentials
+        run: bash scripts/tooling/container-smoke.sh miniapp:check

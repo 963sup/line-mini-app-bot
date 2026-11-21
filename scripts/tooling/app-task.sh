@@ -16,6 +16,12 @@ case "${1:?task required}" in
     mise exec -- go mod verify ;;
   container-build)
     [[ -f Dockerfile ]] || { echo "No Dockerfile; create application container definition first" >&2; exit 2; }
-    exec docker build -t "${LOCAL_IMAGE:-line-mini-app-bot:dev}" . ;;
+    build_options=()
+    if [[ -n ${BUILD_CA_FILE:-} ]]; then
+      [[ -r "$BUILD_CA_FILE" ]] || { echo "BUILD_CA_FILE must be readable" >&2; exit 2; }
+      build_options+=(--secret "id=build-ca,src=$BUILD_CA_FILE")
+    fi
+    docker build "${build_options[@]}" --build-arg VCS_REF="$(git rev-parse HEAD)" -t "${LOCAL_IMAGE:-line-mini-app-bot:dev}" .
+    exec bash scripts/tooling/container-smoke.sh "${LOCAL_IMAGE:-line-mini-app-bot:dev}" ;;
   *) echo "Unknown task" >&2; exit 2 ;;
 esac
