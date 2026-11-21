@@ -40,7 +40,7 @@ flowchart LR
   h --- n4["診斷定位需手動啟動；驗證成功才更新座標結果，<br/>失敗／更新中保留上次成功結果並標示。診斷端點<br/>仍不保存位置。"]
   h --- n5["開發與建置前，prepare-assets 會重建 <br/>public/assets/。歷史控制器 URL 回傳空操作腳<br/>本，舊快取頁面需重新整理。資產準備腳本"]
   n5 --- n5l0["資產準備腳本"]
-  click n5l0 "../../../scripts/tooling/prepare-miniapp-assets.mts"
+  click n5l0 "../../../scripts/generate/prepare-miniapp-assets.mts"
   h --- n6["執行 pnpm test 包含真實 React StrictMode 的 <br/>DOM 測試；pnpm check 包含應用與測試 <br/>TypeScript 檢查。測試替換原本依賴 DOM VM 的<br/>控制器檢查，涵蓋原打卡重試／取消案例及跨功能<br/>競態。裝置權限與 LINE 真實登入另做實機驗收。"]
   h --- n7["查證：Context7 /reactjs/react.dev 的 Effects<br/> cleanup／過期回應指引、Next.js v16.4.5 的 <br/>Pages Router 靜態輸出與 Strict Mode；LINE 官<br/>方文件來源 main <br/>dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54 的 <br/>LIFF 初始化與 ID token 驗證契約。套件依賴精<br/>確版本見 package.json／pnpm-lock.yaml。"]
 ```

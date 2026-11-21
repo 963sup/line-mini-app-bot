@@ -17,7 +17,7 @@ RUN --mount=type=cache,id=miniapp-pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile --store-dir=/pnpm/store
 COPY api/client/ ./api/client/
 COPY frontend/ ./frontend/
-COPY scripts/tooling/prepare-miniapp-assets.mts ./scripts/tooling/prepare-miniapp-assets.mts
+COPY scripts/generate/prepare-miniapp-assets.mts ./scripts/generate/prepare-miniapp-assets.mts
 RUN --mount=type=cache,id=miniapp-next,target=/src/frontend/miniapp/.next/cache \
     pnpm --filter @repo/miniapp build && chmod -R a+rX frontend/miniapp/out
 

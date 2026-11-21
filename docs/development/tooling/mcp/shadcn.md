@@ -69,7 +69,7 @@ Tailwind 4 的 `components.json` 不指定舊式 Tailwind config 檔案。
 `tool-exec.sh` 先切回儲存庫根目錄，因此 server 命令須在 wrapper 載入工具環境後再切到 `frontend/miniapp`，才能讀取正確的 `components.json`。
 
 ```bash
-bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server shadcn
+bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server shadcn
 ```
 
 分別驗證安裝、設定解析、initialize／tools/list，以及一個 registry 查詢等代表性唯讀操作。
@@ -82,19 +82,10 @@ MCP 可提供 registry 資訊及新增命令；若回傳命令使用浮動版本
 
 ## 自主接線
 
-Codex 在 UI 任務發現 shadcn 原生 MCP 未曝光、啟動失敗或 CLI 缺少時，自行執行以下流程。wrapper 依 `mise.toml` 和鎖檔補裝所需工具；不升級、不重裝已可用套件、不修改上游 skill 或既有 UI 元件。
-
-```bash
-bash scripts/tooling/tool-exec.sh mise run ensure-shadcn
-bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server shadcn --list-tools
-bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server shadcn --call search_items_in_registries --arguments '{"registries":["@shadcn"],"query":"button","limit":3}'
-```
-
-`ensure-shadcn` 驗證固定 CLI 的專案配置及 MCP 的 `get_project_registries` 操作。doctor 依唯一 `.codex/config.toml` 啟動 stdio server，完成 initialize、tools/list、tools/call，輸出結果後清理程序。先讀取本次工具 schema，再傳入符合 schema 的參數；`--call` 僅開放程式內列明的唯讀工具，取得 add command 不等於執行安裝。直接接線不需要聊天主機重載，也不會把 MCP 加入產品。
-
-若 `ensure-shadcn` 失敗，分別確認 CLI 與 MCP 錯誤。CLI 可用時繼續使用固定 `shadcn search`／`view`／`docs --base radix`；安裝、網路或權限受阻時回報實際原因，繼續不依賴該工具的工作。不得以重試繞過主機明確禁止的工具或權限政策。
-
-原生工具仍由聊天主機管理。主機有提供重載介面時可使用；沒有時保留直接 MCP／CLI 入口，不複製使用者層設定、不聲稱能用專案檔案熱載入本次聊天。
+1. 在目前聊天的工具目錄搜尋 shadcn。若找不到，核對 checkout 的 [.codex/config.toml](../../../../.codex/config.toml)、server 啟用狀態、專案信任與啟動錯誤。
+2. 執行 `bash scripts/tooling/tool-exec.sh mise run ensure-shadcn`，準備鎖定的啟動依賴並檢查 MCP 握手與工具清單。此檢查只用於定位本機啟動問題。
+3. 修復已確認的設定或依賴問題後，使用主機提供的重新探索或重載功能，再搜尋原生工具。從聊天原生工具呼叫唯讀 registry 查詢，成功後繼續依賴 MCP 的工作。
+4. 若主機沒有重載介面且重新搜尋仍找不到工具，記錄未曝光的 server、診斷結果與需由宿主完成的步驟。直接 transport 與 CLI 不可用來代辦該操作。
 
 ## 官方能力索引與適用範圍
 

@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[tooling](tooling)、[api](api)、[analysis](analysis)、[release](release)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+先由[腳本分類總覽](README.md)進入對應子目錄，閱讀該層 README.md 與 AGENTS.md，再依[上層工作指引](../AGENTS.md)驗證。
 
 ## 相關規格
 
@@ -21,7 +21,7 @@
 
 ## 職責與邊界
 
-依 [腳本分類](README.md) 將工具、分析、API 與發布腳本分別放入 tooling、analysis、api、release。
+依 [腳本分類](README.md) 按操作目的歸檔，每支 Shell 腳本只負責一項操作。
 工具版本、非機密環境與任務維持在 mise.toml；腳本實作任務，不複製機密或授予部署權限。
 
 ## 文件與驗證

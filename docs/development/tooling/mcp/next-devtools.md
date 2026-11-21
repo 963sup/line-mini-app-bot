@@ -6,7 +6,7 @@
 
 ```bash
 bash scripts/tooling/tool-exec.sh mise run install-next-devtools
-bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server next-devtools
+bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server next-devtools
 ```
 
 配置透過 `tool-exec.sh` 啟動固定 connector，再以 `frontend/miniapp` 為工作目錄；沿用 proxy、CA 及既有停用 telemetry 的環境。不要用浮動 `npx ...@latest` 另裝一份，也不改 HOME 或複製憑證。

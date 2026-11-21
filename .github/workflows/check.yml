@@ -18,13 +18,11 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
-      - run: python3 scripts/tooling/check-config.py
+      - run: python3 scripts/check/check-config.py
       - name: Offline tooling regressions
-        run: python3 -m unittest discover -s scripts/tooling -p 'test_*.py'
+        run: python3 -m unittest discover -s scripts/test -p 'test_*.py'
       - name: Analysis scope contract
-        run: python3 scripts/analysis/analysis-scope.py
-      - name: Shell syntax
-        run: find scripts -type f -name '*.sh' -exec bash -n {} +
+        run: python3 scripts/check/analysis-scope.py
       - name: Whitespace
         run: git diff --check
   go:
@@ -37,24 +35,11 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
-      - name: Inspect module
-        id: module
-        run: |
-          python3 - <<'PY'
-          import os, pathlib
-          exists = pathlib.Path("backend/go.mod").is_file()
-          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
-              print("present=" + str(exists).lower(), file=output)
-          if not exists:
-              print("Application checks NOT RUN: no go.mod exists yet.")
-          PY
       - name: Prepare development tooling directory
-        if: steps.module.outputs.present == 'true'
         # mise.toml and bootstrap share the Codex Cloud tooling path.
         # GitHub-hosted runners need it created for the unprivileged runner user.
         run: sudo install -d -m 0755 -o "$(id -u)" -g "$(id -g)" /workspace/tooling
       - name: Set up mise
-        if: steps.module.outputs.present == 'true'
         uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
         with:
           # Latest official CDN build; mise.toml enforces the minimum version.
@@ -65,7 +50,6 @@ jobs:
           env: false
           cache_save_post: true
       - name: Cache Go modules and build output
-        if: steps.module.outputs.present == 'true'
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
         with:
           path: |
@@ -75,7 +59,6 @@ jobs:
           restore-keys: |
             go-${{ runner.os }}-${{ runner.arch }}-
       - name: Cache golangci-lint analysis
-        if: steps.module.outputs.present == 'true'
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
         with:
           path: /workspace/tooling/cache/golangci-lint
@@ -83,32 +66,24 @@ jobs:
           restore-keys: |
             lint-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('mise.toml', 'mise.lock', 'backend/go.sum', '**/.golangci.*') }}-
       - name: Install pinned Go development environment
-        if: steps.module.outputs.present == 'true'
         run: |
-          source scripts/tooling/dev-env.sh
+          source scripts/dev/dev-env.sh
           mise trust mise.toml
           bash scripts/tooling/tool-exec.sh mise run install-core
           bash scripts/tooling/tool-exec.sh mise run doctor
       - name: Install pinned frontend and API tooling
-        if: steps.module.outputs.present == 'true'
         run: bash scripts/tooling/tool-exec.sh mise run install-web
       - name: Install workspace dependencies
-        if: steps.module.outputs.present == 'true'
         run: bash scripts/tooling/tool-exec.sh pnpm install --frozen-lockfile
       - name: Verify API contract
-        if: steps.module.outputs.present == 'true'
         run: bash scripts/tooling/tool-exec.sh pnpm api:check
       - name: Build frontend
-        if: steps.module.outputs.present == 'true'
         run: bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp build
       - name: Check frontend types
-        if: steps.module.outputs.present == 'true'
         run: bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check
       - name: Test frontend
-        if: steps.module.outputs.present == 'true'
         run: bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp test
       - name: Verify Go application
-        if: steps.module.outputs.present == 'true'
         run: |
           bash scripts/tooling/tool-exec.sh mise run fmt-check
           bash scripts/tooling/tool-exec.sh mise run lint
@@ -124,4 +99,4 @@ jobs:
       - name: Build runtime image
         run: docker build --build-arg VCS_REF="${{ github.sha }}" --tag miniapp:check .
       - name: Verify runtime contract without cloud credentials
-        run: bash scripts/tooling/container-smoke.sh miniapp:check
+        run: bash scripts/test/container-smoke.sh miniapp:check

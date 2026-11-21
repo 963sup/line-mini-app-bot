@@ -9,7 +9,7 @@ Go 分析工具、API 產生器、Mermaid 分別使用 mise 的 install-core、i
 Cloud 必需工具由 mise.lock 鎖定 Linux x64／arm64 下載資訊，pnpm CLI 的相依鎖保存於 .mise/locks；應用依賴由 pnpm-lock.yaml 與 backend/go.sum 驗證。Go 原始碼工具使用模組版本與 Go checksum database；選用工具不在這份最小工具鎖的保證範圍。
 
 ```bash
-bash scripts/tooling/bootstrap.sh cloud
+scripts/bootstrap.sh
 ```
 
 發布會保存已準備的檔案與快取，不保存執行中的程序。**Start skill** 應指示從 checkout 根目錄使用 scripts/tooling/tool-exec.sh；工具設定或鎖檔變更時明確重跑初始化。此介面沒有獨立 Maintenance script 欄位。驗收需分別記錄空工具／依賴快取的冷啟動與同一快取的再次執行；現有機器成功不代表已驗證新的發布快照。[官方環境設定](https://developers.openai.com/codex/cloud/environments)
@@ -34,7 +34,7 @@ flowchart TD
 flowchart TB
   root["開發環境與驗收"]
   root --- b0["從儲存庫根目錄執行"]
-  b0 --- n0_0["選擇一個模式：<br/>bash scripts/tooling/bootstrap.sh core<br/>bash scripts/tooling/bootstrap.sh mcp<br/>bash scripts/tooling/bootstrap.sh all"]
+  b0 --- n0_0["選擇一個模式：<br/>bash scripts/bootstrap.sh core<br/>bash scripts/bootstrap.sh mcp<br/>bash scripts/bootstrap.sh all"]
   b0 --- n0_1["bash scripts/tooling/tool-exec.sh mise run check-config"]
   b0 --- n0_2["bash scripts/tooling/tool-exec.sh mise run doctor-mcp"]
   root --- b1["工作目錄"]

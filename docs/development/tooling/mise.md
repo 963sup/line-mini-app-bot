@@ -2,7 +2,7 @@
 
 ## Go development loop
 
-Run `bash scripts/tooling/bootstrap.sh core` to install the pinned core tools. In a new
+Run `bash scripts/bootstrap.sh core` to install the pinned core tools. In a new
 shell use `bash scripts/tooling/tool-exec.sh mise run <task>`; installation alone does
 not activate the shell PATH. Use `install-debug` separately for Delve.
 

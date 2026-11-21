@@ -10,8 +10,8 @@
 !api/
 !api/**
 !scripts/
-!scripts/tooling/
-!scripts/tooling/prepare-miniapp-assets.mts
+!scripts/generate/
+!scripts/generate/prepare-miniapp-assets.mts
 !assets/
 !assets/line/
 !assets/line/richmenu/
@@ -40,5 +40,6 @@
 !deploy/firestore/
 !deploy/firestore/indexes.json
 
-!scripts/tooling/ensure-attendance-indexes.py
+!scripts/db/
+!scripts/db/ensure-attendance-indexes.py
 !firebase.json

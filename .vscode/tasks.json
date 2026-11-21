@@ -6,7 +6,7 @@
       "type": "process",
       "command": "bash",
       "args": [
-        "scripts/tooling/bootstrap.sh",
+        "scripts/bootstrap.sh",
         "core"
       ],
       "options": {
@@ -52,7 +52,7 @@
       "type": "process",
       "command": "python3",
       "args": [
-        "scripts/tooling/check-config.py"
+        "scripts/check/check-config.py"
       ],
       "options": {
         "cwd": "${workspaceFolder}"

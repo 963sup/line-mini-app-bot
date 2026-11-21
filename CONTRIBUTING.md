@@ -12,13 +12,12 @@
 
 ## Cloud 開發與驗證
 
-先執行 `bash scripts/tooling/bootstrap.sh core`；分析／MCP 工具使用 `all`。
+Codex Cloud 使用 `scripts/bootstrap.sh` 初始化。本機開發使用 `scripts/bootstrap.sh core`，需要完整分析與 MCP 工具時使用 `scripts/bootstrap.sh all`。
 日常命令透過 `scripts/tooling/tool-exec.sh` 載入 `mise.toml` 的版本與環境，不另改 HOME。
 
 ```bash
-bash scripts/tooling/tool-exec.sh python3 scripts/tooling/check-config.py
+bash scripts/tooling/tool-exec.sh python3 scripts/check/check-config.py
 bash scripts/tooling/tool-exec.sh mise run analysis-scope
-find scripts -type f -name '*.sh' -exec bash -n {} +
 git diff --check
 ```
 

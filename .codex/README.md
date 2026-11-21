@@ -5,14 +5,14 @@
 從儲存庫根目錄開啟 Codex。在此 Codex Cloud 環境中，將 Install script 設為下列命令。它會安裝鎖定的 Go／Node／pnpm／API 產生器、依鎖檔安裝依賴，並下載與驗證 Go modules；快取恢復時重用已安裝版本。
 
 ```bash
-bash scripts/tooling/bootstrap.sh cloud
+scripts/bootstrap.sh
 ```
 
 發布環境會保存已準備的檔案與快取，程序不會保留。Start skill 指引從 checkout 根目錄使用 tool-exec.sh；若工具設定或依賴鎖檔變更，明確重跑上方命令。此介面沒有獨立 Maintenance script 欄位。
 
 完整 Go 分析工具使用 `mise run install-core`；API 產生器使用 `mise run install-web`；Mermaid 使用 `mise run install-mermaid`，均透過 `bash scripts/tooling/tool-exec.sh` 執行。Cloud setup 不執行測試或註冊使用者層 MCP。
 
-就地開發可使用 `bash scripts/tooling/bootstrap.sh core`。從全新 Cloud 環境驗收時，確認 setup 成功，再從 checkout 根目錄執行 `bash scripts/tooling/tool-exec.sh mise run check` 與 `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check`。本機 MCP 以 checkout 根目錄為工作目錄，依任務安裝所需套件後，在新對話確認 MCP 已載入。詳見[本機與 Cloud 初始化](../docs/guides/local-development/setup.md)。
+就地開發可使用 `bash scripts/bootstrap.sh core`。從全新 Cloud 環境驗收時，確認 setup 成功，再從 checkout 根目錄執行 `bash scripts/tooling/tool-exec.sh mise run check` 與 `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check`。本機 MCP 以 checkout 根目錄為工作目錄，依任務安裝所需套件後，在新對話確認 MCP 已載入。詳見[本機與 Cloud 初始化](../docs/guides/local-development/setup.md)。
 
 需要 Google Cloud CLI、Firebase CLI 或本機 gcloud MCP 套件時，再執行 `bash scripts/tooling/tool-exec.sh mise run install-cloud`。初始化後，用 `bash scripts/tooling/tool-exec.sh mise ls --installed` 查看實際安裝版本。Codex 每次開啟專案時可依[根目錄指引](../AGENTS.md#cli-discovery)找到工具入口。
 
@@ -27,7 +27,7 @@ bash scripts/tooling/bootstrap.sh cloud
 
 ## 閱讀與修改入口
 
-先查閱[config.toml](config.toml)、[agents](agents)、[hooks.json](hooks.json)、[本目錄工作指引](AGENTS.md)。
+先查閱[config.toml](config.toml)、[角色設定](agents/README.md)、[hooks.json](hooks.json)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 
@@ -40,7 +40,7 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 
 連線設定只在 config.toml 維護；工具版本、任務與非機密環境以 ../mise.toml 為準。不要手改上游技能或寫入憑證。
 
-從根目錄執行 bash scripts/tooling/tool-exec.sh python3 scripts/tooling/check-config.py；MCP transport 與聊天主機曝光需分別驗證。
+從根目錄執行 bash scripts/tooling/tool-exec.sh python3 scripts/check/check-config.py；MCP transport 與聊天主機曝光需分別驗證。
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
 
@@ -98,7 +98,7 @@ Mermaid v13 的 `mermaid` 套件內建 `mermaid render`，與舊版 `@mermaid-js
 從目前 checkout 根目錄執行下列命令。第一個命令會依專案設定啟動 Repomix 並讀回本 checkout 的檔案，可在聊天未提供同名工具時使用。第二個會檢查已啟用的 MCP。
 
 ```sh
-python3 scripts/tooling/mcp-doctor.py --server repomix --call file_system_read_file --arguments '{"path":"README.md"}'
+python3 scripts/mcp/mcp-doctor.py --server repomix --call file_system_read_file --arguments '{"path":"README.md"}'
 bash scripts/tooling/tool-exec.sh mise run doctor-mcp
 ```
 

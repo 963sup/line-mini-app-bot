@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "prepare-assets": "node ../../scripts/tooling/prepare-miniapp-assets.mts",
+    "prepare-assets": "node ../../scripts/generate/prepare-miniapp-assets.mts",
     "dev": "pnpm prepare-assets && next dev --port 3000",
     "build": "pnpm prepare-assets && next build",
     "check": "tsc --noEmit",

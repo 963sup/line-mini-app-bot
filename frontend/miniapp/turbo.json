@@ -3,6 +3,9 @@
     "//"
   ],
   "tasks": {
+    "build": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/scripts/generate/prepare-miniapp-assets.mts"]
+    },
     "check": {
       "dependsOn": [
         "build"

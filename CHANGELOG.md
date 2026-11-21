@@ -24,6 +24,8 @@
 
 ### Changed
 
+- Codex Cloud 初始化入口改為 `scripts/bootstrap.sh`；自動化腳本依職責歸檔，API 能力清單與 Redocly 設定分別移至 `api/contract/` 與 `api/codegen/`。
+
 - LINE 群組選單加入出勤、請假與漏下班入口，簡化出勤選單與移除連線狀態。
 - Rich Menu 容器素材統一至 `/assets/line/richmenu`，並整理 nonroot 讀取權限。
 - 文件同步 Session、React 與部署設定，補齊故障排查、歷史快照標示及舊版本清理規則。

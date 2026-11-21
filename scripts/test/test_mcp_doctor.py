@@ -14,7 +14,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from unittest import mock
 
 
-SOURCE = pathlib.Path(__file__).with_name('mcp-doctor.py')
+SOURCE = pathlib.Path(__file__).resolve().parents[1] / 'mcp/mcp-doctor.py'
 spec = importlib.util.spec_from_file_location('mcp_doctor', SOURCE)
 doctor = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(doctor)

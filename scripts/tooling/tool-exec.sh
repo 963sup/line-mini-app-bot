@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-source "$(dirname "${BASH_SOURCE[0]}")/dev-env.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../dev/dev-env.sh"
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 # Name tools explicitly so mise does not install every missing project tool.
 tools=()

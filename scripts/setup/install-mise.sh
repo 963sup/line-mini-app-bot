@@ -1,13 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
-source scripts/tooling/dev-env.sh
-# Setup and explicit dependency refresh must never wait for terminal input.
-export MISE_YES=1
-export CI=true
-mode="${1:-core}"
-case "$mode" in core|cloud|mcp|all) ;; *) echo "Usage: $0 [core|cloud|mcp|all]" >&2; exit 2;; esac
-version="$(python3 scripts/tooling/render-env.py --mise-version)"
+source scripts/dev/dev-env.sh
+version="$(python3 scripts/setup/render-env.py --mise-version)"
 case "$(uname -m)" in x86_64) arch=x64;; aarch64) arch=arm64;; *) exit 1;; esac
 if [[ ! -x /workspace/tooling/bin/mise ]] || [[ "$(/workspace/tooling/bin/mise --version)" != "$version "* ]]; then
   stage="$(mktemp -d "$TMPDIR/mise-bootstrap.XXXXXX")"
@@ -25,27 +20,4 @@ if [[ ! -x /workspace/tooling/bin/mise ]] || [[ "$(/workspace/tooling/bin/mise -
   tar -xzf "$stage/$artifact" -C "$stage"
   mkdir -p /workspace/tooling/bin
   install -m 0755 "$stage/mise/bin/mise" /workspace/tooling/bin/mise
-fi
-mise trust mise.toml
-if [[ "$mode" == cloud ]]; then
-  # Keep cache restoration proportional to the runnable application.
-  # Analysis tools, Mermaid and MCPs remain explicit opt-in tasks.
-  mise run install-runtime
-  mise exec -- pnpm install --frozen-lockfile --prefer-offline
-  bash scripts/tooling/go-tool.sh mod download
-  bash scripts/tooling/go-tool.sh mod verify
-  exit 0
-fi
-mise run install-core
-if [[ "$mode" != mcp ]]; then
-  mise run install-web
-  mise exec -- pnpm install --frozen-lockfile --prefer-offline
-  mise run doctor
-fi
-mise run install-mermaid
-if [[ "$mode" == mcp || "$mode" == all ]]; then
-  mise run install-mcp
-  mise run install-cloud
-  mise run graphify-update
-  mise run doctor-mcp
 fi

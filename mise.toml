@@ -80,7 +80,7 @@ run = "graphify extract . --force --code-only --allow-dedup-shrink --out . && gr
 
 [tasks.graphify-docs]
 description = "Build a separate docs heading/link graph without API credentials"
-run = "python3 scripts/analysis/docs-graph.py"
+run = "python3 scripts/generate/docs-graph.py"
 
 [tasks.install-runtime]
 description = "Install locked application runtimes, package manager and API generator for Cloud setup"
@@ -136,14 +136,13 @@ run = "go test -run '^$' -bench . -benchmem ./..."
 [tasks.profile]
 dir = "backend"
 description = "Profile one package: mise run profile ./path/to/package"
-run = "bash ../scripts/tooling/go-profile.sh"
+run = "bash ../scripts/perf/go-profile.sh"
 
-[tasks.ensure-remote-mcp]
-description = "Register missing OpenAI Docs, Context7 and GitHub servers in Codex"
-run = "python3 scripts/tooling/ensure-remote-mcp.py"
+[tasks.check-mcp-config]
+description = "Compare repository MCP servers with effective Codex CLI configuration"
+run = "python3 scripts/mcp/check-host-config.py"
 
 [tasks.install-mcp]
-depends = ["ensure-remote-mcp"]
 description = "Install optional local MCP tools separately from Go"
 run = [
   "mise install node python uv npm:repomix",
@@ -174,11 +173,11 @@ run = "mise install node gcloud npm:firebase-tools npm:@google-cloud/gcloud-mcp"
 
 [tasks.doctor-google-knowledge]
 description = "Verify Google Developer Knowledge MCP using the host API key"
-run = "python3 scripts/tooling/mcp-doctor.py --server google-developer-knowledge"
+run = "python3 scripts/mcp/mcp-doctor.py --server google-developer-knowledge"
 
 [tasks.doctor-gcloud]
 description = "Verify local gcloud MCP discovery without changing cloud resources"
-run = "python3 scripts/tooling/mcp-doctor.py --server gcloud"
+run = "python3 scripts/mcp/mcp-doctor.py --server gcloud"
 
 [tasks.doctor]
 description = "Check local Go and Cloud development prerequisites"
@@ -186,23 +185,23 @@ run = "bash scripts/tooling/doctor.sh"
 
 [tasks.dev]
 description = "Run the Go application"
-run = "bash scripts/tooling/app-task.sh dev"
+run = "bash scripts/dev/run.sh"
 
 [tasks.deps]
 description = "Download and verify existing module dependencies"
-run = "bash scripts/tooling/app-task.sh deps"
+run = "bash scripts/setup/go-deps.sh"
 
 [tasks.container-build]
 description = "Build locally using the project's Dockerfile"
-run = "bash scripts/tooling/app-task.sh container-build"
+run = ["bash scripts/build/container.sh", 'bash scripts/test/container-smoke.sh "${LOCAL_IMAGE:-line-mini-app-bot:dev}"']
 
 [tasks.bootstrap]
 description = "Prepare Go, web dependencies, and local Mermaid without remote MCP credentials"
-run = "bash scripts/tooling/bootstrap.sh core"
+run = "bash scripts/bootstrap.sh core"
 
 [tasks.doctor-mcp]
 description = "Verify configured MCP handshakes and tool allowlists (requires network and GitHub token)"
-run = "python3 scripts/tooling/mcp-doctor.py"
+run = "python3 scripts/mcp/mcp-doctor.py"
 
 [tasks.install-graphify]
 description = "Install Graphify with uv using the mise Python interpreter"
@@ -214,27 +213,23 @@ run = [
 
 [tasks.check-config]
 description = "Validate repository tooling and agent configuration"
-run = "python3 scripts/tooling/check-config.py"
+run = "python3 scripts/check/check-config.py"
 
 [tasks.repomix]
 description = "Pack project sources with security checking and without generated skills"
-run = "python3 scripts/analysis/analysis-scope.py --pack"
+run = "python3 scripts/check/analysis-scope.py --pack"
 
 [tasks.analysis-scope]
 description = "Validate classification of all versioned sources"
-run = "python3 scripts/analysis/analysis-scope.py"
+run = "python3 scripts/check/analysis-scope.py"
 
 [tasks.analysis-audit]
 description = "Cross-check Graphify and Repomix against the source contract"
-run = "python3 scripts/analysis/analysis-scope.py --audit"
-
-[tasks.docs-openai]
-description = "Search official OpenAI docs through MCP; append --arguments JSON to override query"
-run = ["python3 scripts/tooling/ensure-remote-mcp.py --server openaiDeveloperDocs", "python3 scripts/tooling/mcp-doctor.py --server openaiDeveloperDocs --call search_openai_docs --arguments '{\"query\": \"Codex MCP configuration\", \"limit\": 2}'"]
+run = "python3 scripts/check/analysis-scope.py --audit"
 
 [tasks.doctor-openai]
 description = "Check OpenAI Docs MCP independently of optional GitHub credentials"
-run = "python3 scripts/tooling/mcp-doctor.py --server openaiDeveloperDocs"
+run = "python3 scripts/mcp/mcp-doctor.py --server openaiDeveloperDocs"
 
 [tasks.install-skills-cli]
 description = "Install the pinned skills.sh CLI without adding skills"
@@ -245,8 +240,8 @@ description = "List project skills available to Codex"
 run = "skills list --agent codex"
 
 [tasks.ensure-shadcn]
-description = "Prepare pinned shadcn CLI and verify a real registry MCP query without host reload"
+description = "Prepare shadcn and diagnose local MCP startup and tool discovery"
 run = [
   "bash scripts/tooling/tool-exec.sh shadcn info --json --cwd frontend/miniapp",
-  "python3 scripts/tooling/mcp-doctor.py --server shadcn --call get_project_registries",
+  "python3 scripts/mcp/mcp-doctor.py --server shadcn",
 ]

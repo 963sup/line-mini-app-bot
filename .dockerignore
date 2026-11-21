@@ -10,8 +10,8 @@
 !api/
 !api/**
 !scripts/
-!scripts/tooling/
-!scripts/tooling/prepare-miniapp-assets.mts
+!scripts/generate/
+!scripts/generate/prepare-miniapp-assets.mts
 !assets/
 !assets/line/
 !assets/line/richmenu/
