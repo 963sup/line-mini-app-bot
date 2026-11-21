@@ -1,15 +1,12 @@
 package line
 
 import (
-	"regexp"
 	"time"
+
+	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
 
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
-
-var groupID = regexp.MustCompile(`^C[0-9a-f]{32}$`)
-
-func ValidGroupID(id string) bool { return groupID.MatchString(id) }
 
 // GroupEvent contains protocol facts, not membership or domain authorization.
 type GroupEvent struct {
@@ -47,7 +44,7 @@ func DecodeGroupEvent(event webhook.EventInterface) (GroupEvent, bool) {
 		return GroupEvent{}, false
 	}
 	g, ok := source.(webhook.GroupSource)
-	if !ok || mode != "active" || at <= 0 || result.EventID == "" || !ValidGroupID(g.GroupId) {
+	if !ok || mode != "active" || at <= 0 || result.EventID == "" || !lineplatform.ValidGroupID(g.GroupId) {
 		return GroupEvent{}, false
 	}
 	result.GroupID = g.GroupId

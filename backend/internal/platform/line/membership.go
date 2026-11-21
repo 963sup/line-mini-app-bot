@@ -7,14 +7,21 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"time"
 )
+
+var groupID = regexp.MustCompile(`^C[0-9a-f]{32}$`)
+
+func ValidGroupID(id string) bool { return groupID.MatchString(id) }
 
 var ErrMembershipUnavailable = errors.New("group membership unavailable")
 
 type Membership struct {
 	Token  string
 	Client *http.Client
+	// Timeout bounds one lookup; zero uses one second.
+	Timeout time.Duration
 }
 
 // A historical interaction only helps discovery. Every response checks current
@@ -23,7 +30,11 @@ func (m *Membership) IsMember(ctx context.Context, group, user string) (bool, er
 	if m == nil || m.Client == nil || m.Token == "" || !ValidGroupID(group) || user == "" {
 		return false, ErrMembershipUnavailable
 	}
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	timeout := m.Timeout
+	if timeout <= 0 {
+		timeout = time.Second
+	}
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://api.line.me/v2/bot/group/"+url.PathEscape(group)+"/member/"+url.PathEscape(user), nil)
 	if err != nil {

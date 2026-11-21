@@ -23,6 +23,8 @@ func TestMembershipRequiresMatchingCurrentProfile(t *testing.T) {
 		failed     bool
 	}{
 		{"matching profile", `{"userId":"actor"}`, 200, true, false},
+		{"bad request is unavailable", ``, 400, false, true},
+		{"server failure", ``, 500, false, true},
 		{"not a member", ``, 404, false, false},
 		{"rate limited", `{}`, 429, false, true},
 		{"forbidden", `{}`, 403, false, true},
@@ -99,4 +101,34 @@ func TestMembershipCancellationAndRedirectStayUnavailable(t *testing.T) {
 			t.Fatalf("redirect membership allowed or followed: %v %v calls=%d", member, err, calls)
 		}
 	})
+}
+
+// A caller's deadline must win over the attendance-specific lookup budget.
+func TestMembershipLookupBudgets(t *testing.T) {
+	group := "C" + strings.Repeat("a", 32)
+	for _, budget := range []time.Duration{time.Second, 5 * time.Second} {
+		t.Run(budget.String(), func(t *testing.T) {
+			client := &http.Client{Transport: membershipTransport(func(r *http.Request) (*http.Response, error) {
+				deadline, ok := r.Context().Deadline()
+				if !ok || time.Until(deadline) > budget || time.Until(deadline) < budget-time.Second/2 {
+					t.Fatal("lookup did not preserve its configured budget")
+				}
+				return nil, errors.New("network unavailable")
+			})}
+			m := &Membership{Token: "credential", Client: client, Timeout: budget}
+			if member, err := m.IsMember(context.Background(), group, "actor"); member || !errors.Is(err, ErrMembershipUnavailable) {
+				t.Fatalf("network failure authorized: %v %v", member, err)
+			}
+		})
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancel()
+	client := &http.Client{Transport: membershipTransport(func(r *http.Request) (*http.Response, error) {
+		<-r.Context().Done()
+		return nil, r.Context().Err()
+	})}
+	m := &Membership{Token: "credential", Client: client, Timeout: 5 * time.Second}
+	if member, err := m.IsMember(ctx, group, "actor"); member || !errors.Is(err, ErrMembershipUnavailable) {
+		t.Fatalf("timeout authorized: %v %v", member, err)
+	}
 }

@@ -26,7 +26,7 @@ import (
 	repositoryApplicationWiki "github.com/963sup/line-mini-app-bot/internal/business/repository/application/wiki"
 	subobjectdb "github.com/963sup/line-mini-app-bot/internal/business/subobject/adapter/firestore"
 	subobjectApplication "github.com/963sup/line-mini-app-bot/internal/business/subobject/application"
-	linetransport "github.com/963sup/line-mini-app-bot/internal/transport/line"
+	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
 )
@@ -66,7 +66,7 @@ func newRepositories(ctx context.Context) (*repositoryApplication.Service, *repo
 		return nil, nil, nil, fmt.Errorf("cannot initialize repository database")
 	}
 	store := &repositorydb.Store{Client: client, ChannelID: channel}
-	return &repositoryApplication.Service{Store: store, Membership: &linetransport.Membership{Token: token, Client: &http.Client{Timeout: time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}}, store, client.Close, nil
+	return &repositoryApplication.Service{Store: store, Membership: &lineplatform.Membership{Token: token, Client: &http.Client{Timeout: time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}}, store, client.Close, nil
 }
 
 func newMilestones(r *repositoryApplication.Service, store *repositorydb.Store) *repositoryApplicationMilestones.Service {

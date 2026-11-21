@@ -80,6 +80,7 @@ func TestDependencyBoundaries(t *testing.T) {
 		"transport/http/api":         {"transport/http", "transport/http/api/generated"},
 		"transport/http/geolocation": {"transport/http/browser"},
 		"transport/line/navigation":  {"transport/line"},
+		"transport/line":             {"platform/line"},
 	}
 
 	const module = "github.com/963sup/line-mini-app-bot/internal/"

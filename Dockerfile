@@ -18,19 +18,17 @@ RUN pnpm --filter @repo/miniapp build && chmod -R a+rX frontend/miniapp/out
 FROM golang:1.27.4 AS build
 WORKDIR /src/backend
 COPY backend/go.mod backend/go.sum ./
-COPY backend/cmd/ ./cmd/
+COPY backend/main.go ./main.go
 COPY backend/internal/ ./internal/
 COPY --chmod=755 assets/line/richmenu/*.jpg /assets/line/richmenu/
 RUN --mount=type=secret,id=build-ca \
     if [ -f /run/secrets/build-ca ]; then export SSL_CERT_FILE=/run/secrets/build-ca; fi; \
-    CGO_ENABLED=0 go build -trimpath -o /server ./cmd/server && \
-    CGO_ENABLED=0 go build -trimpath -o /richmenu ./cmd/richmenu && \
+    CGO_ENABLED=0 go build -trimpath -o /server . && \
     chmod 644 /assets/line/richmenu/*.jpg
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates poppler-utils && rm -rf /var/lib/apt/lists/*
 COPY --from=build /server /server
-COPY --from=build /richmenu /richmenu
 COPY --from=frontend /src/frontend/miniapp/out/ /app/frontend/
 COPY --from=build /assets/ /assets/
 ENV PORT=8080 FRONTEND_DIR=/app/frontend AI_DOCUMENT_MODEL=gpt-4.1-mini

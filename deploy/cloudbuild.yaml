@@ -62,6 +62,34 @@ steps:
     entrypoint: python3
     args: ["scripts/tooling/ensure-attendance-indexes.py", "$PROJECT_ID"]
 
+  # A separate job publishes once per build, before exposing the new service.
+  # Each build has its own immutable job template; channel publications share a lease.
+  - id: sync-line-navigation
+    name: gcr.io/google.com/cloudsdktool/google-cloud-cli:592.0.0-slim
+    entrypoint: gcloud
+    args:
+      - run
+      - jobs
+      - deploy
+      - '${_SERVICE}-nav-$BUILD_ID'
+      - '--project=$PROJECT_ID'
+      - '--region=${_REGION}'
+      - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REPOSITORY}/${_SERVICE}:$BUILD_ID'
+      - '--service-account=${_RUNTIME_SERVICE_ACCOUNT}@$PROJECT_ID.iam.gserviceaccount.com'
+      - --command=/server
+      - --args=sync-line-navigation
+      - --tasks=1
+      - --parallelism=1
+      - --max-retries=1
+      - --task-timeout=600s
+      - --cpu=1
+      - --memory=512Mi
+      - '--set-env-vars=^|^GOOGLE_CLOUD_PROJECT=$PROJECT_ID|LINE_MESSAGING_API_CHANNEL_ID=${_MESSAGING_API_CHANNEL_ID}|LINE_MINI_APP_ENV=${_MINI_APP_ENV}|LINE_MINI_APP_DEVELOPING_CHANNEL_ID=${_MINI_APP_DEVELOPING_CHANNEL_ID}|LINE_MINI_APP_DEVELOPING_LIFF_ID=${_MINI_APP_DEVELOPING_LIFF_ID}|LINE_MINI_APP_DEVELOPING_ENDPOINT_URL=${_MINI_APP_DEVELOPING_ENDPOINT_URL}|LINE_MINI_APP_REVIEW_CHANNEL_ID=${_MINI_APP_REVIEW_CHANNEL_ID}|LINE_MINI_APP_REVIEW_LIFF_ID=${_MINI_APP_REVIEW_LIFF_ID}|LINE_MINI_APP_REVIEW_ENDPOINT_URL=${_MINI_APP_REVIEW_ENDPOINT_URL}|LINE_MINI_APP_PUBLISHED_CHANNEL_ID=${_MINI_APP_PUBLISHED_CHANNEL_ID}|LINE_MINI_APP_PUBLISHED_LIFF_ID=${_MINI_APP_PUBLISHED_LIFF_ID}|LINE_MINI_APP_PUBLISHED_ENDPOINT_URL=${_MINI_APP_PUBLISHED_ENDPOINT_URL}'
+      - '--set-secrets=LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN=${_CHANNEL_ACCESS_TOKEN_NAME}:${_CHANNEL_ACCESS_TOKEN_VERSION}'
+      - --execute-now
+      - --wait
+      - --quiet
+
   - id: deploy
     name: gcr.io/google.com/cloudsdktool/google-cloud-cli:592.0.0-slim
     entrypoint: gcloud
@@ -86,6 +114,18 @@ steps:
       - --deploy-health-check
       - '--set-env-vars=^|^GOOGLE_CLOUD_PROJECT=$PROJECT_ID|LINE_MESSAGING_API_CHANNEL_ID=${_MESSAGING_API_CHANNEL_ID}|LINE_MINI_APP_ENV=${_MINI_APP_ENV}|LINE_MINI_APP_DEVELOPING_CHANNEL_ID=${_MINI_APP_DEVELOPING_CHANNEL_ID}|LINE_MINI_APP_DEVELOPING_LIFF_ID=${_MINI_APP_DEVELOPING_LIFF_ID}|LINE_MINI_APP_DEVELOPING_ENDPOINT_URL=${_MINI_APP_DEVELOPING_ENDPOINT_URL}|LINE_MINI_APP_REVIEW_CHANNEL_ID=${_MINI_APP_REVIEW_CHANNEL_ID}|LINE_MINI_APP_REVIEW_LIFF_ID=${_MINI_APP_REVIEW_LIFF_ID}|LINE_MINI_APP_REVIEW_ENDPOINT_URL=${_MINI_APP_REVIEW_ENDPOINT_URL}|LINE_MINI_APP_PUBLISHED_CHANNEL_ID=${_MINI_APP_PUBLISHED_CHANNEL_ID}|LINE_MINI_APP_PUBLISHED_LIFF_ID=${_MINI_APP_PUBLISHED_LIFF_ID}|LINE_MINI_APP_PUBLISHED_ENDPOINT_URL=${_MINI_APP_PUBLISHED_ENDPOINT_URL}|AI_DOCUMENT_MODEL=gpt-4.1-mini|SUMMARY_PROVIDER=${_SUMMARY_PROVIDER}|SUMMARY_MODEL=${_SUMMARY_MODEL}|SUMMARY_TASK_QUEUE=${_SUMMARY_TASK_QUEUE}|SUMMARY_TASK_URL=${_SUMMARY_TASK_URL}|SUMMARY_TASK_SERVICE_ACCOUNT=${_SUMMARY_TASK_SERVICE_ACCOUNT}|LINE_MENU_STICKER_PACKAGE_ID=${_MENU_STICKER_PACKAGE_ID}|LINE_MENU_STICKER_ID=${_MENU_STICKER_ID}'
       - '--set-secrets=LINE_MINI_APP_CHANNEL_SECRET=line_mini_app_channel_secret:${_MINI_APP_CHANNEL_SECRET_VERSION},LINE_MESSAGING_API_CHANNEL_SECRET=${_CHANNEL_SECRET_NAME}:${_CHANNEL_SECRET_VERSION},LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN=${_CHANNEL_ACCESS_TOKEN_NAME}:${_CHANNEL_ACCESS_TOKEN_VERSION},GEMINI_API_KEY=gemini-api-key:${_GEMINI_API_KEY_VERSION},OPENAI_API_KEY=openai-api-key:${_OPENAI_API_KEY_VERSION},CWA_API_KEY=cwa-api-key:${_CWA_API_KEY_VERSION}'
+      - --quiet
+
+  - id: remove-completed-navigation-job
+    name: gcr.io/google.com/cloudsdktool/google-cloud-cli:592.0.0-slim
+    entrypoint: gcloud
+    args:
+      - run
+      - jobs
+      - delete
+      - '${_SERVICE}-nav-$BUILD_ID'
+      - '--project=$PROJECT_ID'
+      - '--region=${_REGION}'
       - --quiet
 
 images:
@@ -134,4 +174,4 @@ options:
   logging: CLOUD_LOGGING_ONLY
   dynamicSubstitutions: true
 
-timeout: 1200s
+timeout: 2400s

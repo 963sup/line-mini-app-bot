@@ -49,12 +49,11 @@ flowchart LR
 
 <a id="managed-trigger-的-rich-menu-圖片路徑"></a>
 
-```mermaid
-flowchart LR
-  h["Managed trigger 的 Rich Menu 圖片路徑"]
-  h --- n0["現行 managed trigger 的權威設定在 Cloud <br/>Build（global trigger <br/>4276bf03-26ee-4b4b-a206-0d7fc74a9862）的 <br/>inline build；repository <br/>deploy/cloudbuild.yaml 沒有 SyncRichMenus 步<br/>驟，不會覆寫該設定。 inline SyncRichMenus 以<br/>本次建置映像執行 /richmenu，必須傳入 sync <br/>-images /assets/line/richmenu -app-url &lt;MINI<br/> App URL&gt; -apply。 此絕對路徑對應 Dockerfile<br/> 的 runtime COPY 目的地；Go CLI 預設的相對路<br/>徑 只適合從 repository 根目錄執行，不能用來<br/>推定映像內位置。"]
-  h --- n1["搬移圖片時須同步檢查 Dockerfile、CLI 預設及<br/>實際 trigger 的 -images 參數。 2026-11-11 的<br/> cc82d1e build 已部署 Ready revision，卻因 <br/>trigger 仍傳舊路徑 而在後續 SyncRichMenus 報<br/> attendance-in: provide a readable -image <br/>file。 同日已將實際 trigger 的 -images 改為 <br/>/assets/line/richmenu，讀回核對其餘欄位不變<br/>。 後續 b417885 build 使用正確路徑仍失敗；下<br/>載實際映像的資產 layer 後確認， 兩張 JPEG 的<br/>權限為 0000，目錄為 0755，nonroot 無法讀取。<br/> Dockerfile 改在 build stage 以數字 COPY <br/>--chmod=755 建立可穿越目錄，再將 JPEG 設為 <br/>0644；runtime stage 複製已整理權限的 <br/>/assets/，避免符號權限處理結果。 Build 失敗<br/>不代表前面的部署已回滾；修正 trigger 後仍須<br/>以新 build 的同步步驟結果驗收。"]
-```
+## Managed trigger 的 Rich Menu 自動同步遷移
+
+原 inline Trigger 使用 /richmenu；新映像已移除此獨立執行檔，改由單一 /server 的部署工作模式執行。**先遷移 Trigger，再部署新映像。** Repository YAML 已包含部署前的單次 Job，不能假設修改 YAML 就會更新線上 inline 設定。接線、租約、權限與尚未完成的雲端驗收見 [Rich Menu 自動發布](../line-setup/rich-menu.md)。
+
+圖片仍位於映像的 /assets/line/richmenu/，目錄可穿越、JPEG 0644，供 nonroot Job 讀取。保留 Dockerfile 的權限整理，不將圖片載入失敗誤判成 LINE 平台問題。
 
 <a id="repository-deploycloudbuildyaml-預設配置"></a>
 
@@ -116,7 +115,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["兩種服務帳戶的權限"]
-  h --- n0["建置帳戶不需讀取 LINE 機密內容。執行帳戶不需<br/>要部署、建置或 registry 寫入權限。 Cloud Run<br/> 透過執行帳戶提供 ADC，不上傳 Google <br/>service-account key file。 出勤與群聊摘要已<br/>有 Firestore 讀寫實作；執行帳戶需具備目標資<br/>料庫所需權限，並以實際讀寫驗收。 <br/>cmd/firestorecheck 仍使用執行該工具之身分的 <br/>ADC，與 Cloud Run 服務是否部署成功分開驗證。"]
+  h --- n0["建置帳戶不需讀取 LINE 機密內容。執行帳戶不需<br/>要部署、建置或 registry 寫入權限。 Cloud Run<br/> 透過執行帳戶提供 ADC，不上傳 Google <br/>service-account key file。 出勤與群聊摘要已<br/>有 Firestore 讀寫實作；執行帳戶需具備目標資<br/>料庫所需權限，並以實際讀寫驗收。 <br/>check-firestore 子命令 仍使用執行該工具之身分的 <br/>ADC，與 Cloud Run 服務是否部署成功分開驗證。"]
 ```
 
 <a id="設定契約"></a>

@@ -19,11 +19,10 @@
 
 工程群組及Project各自保存核心、用例與adapters。Project不依賴Repository核心模型作父容器，只透過使用端定義的來源讀取port查事項；工程群組成員及來源資格分開核驗。現行邊界與遷移見 [獨立Project](../docs/domains/project/project.md)。
 
-`cmd/projectmigrate` 是明確namespace的dry-run／apply／受限rollback工具，旗標與writer部署前提見 [遷移指南](cmd/projectmigrate/README.md)；不由server啟動時自動搬正式資料。
 
 ## 目錄導覽與維護
 
-可執行入口位於 [cmd](cmd)。[business](internal/business) 依業務領域分工，[bootstrap](internal/bootstrap) 組裝服務，[identity](internal/identity) 處理身分與 Session，[httpapi](internal/transport/http/api) 保存 OpenAPI 契約接線與生成碼。
+唯一可執行入口為 [main.go](main.go)。[business](internal/business) 依業務領域分工，[bootstrap](internal/bootstrap) 組裝服務，[identity](internal/identity) 處理身分與 Session，[httpapi](internal/transport/http/api) 保存 OpenAPI 契約接線與生成碼。
 
 業務核心、HTTP/LINE adapter 與 Firestore adapter 分層；共享組裝在 internal/bootstrap。修改 HTTP 格式先走 ../api 契約流程，不手改產生碼。憑證不得寫入 .env.example。
 
@@ -67,3 +66,11 @@
 業務模組位於 [internal/business](internal/business)，服務組裝見 [bootstrap](internal/bootstrap)，各功能行為見[功能索引](../docs/domains/README.md)。
 
 [現行實作圖：格式與資料相容](../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../docs/diagrams.md#未來設計)
+
+## 單一執行入口
+
+在儲存庫根目錄使用 `bash scripts/tooling/tool-exec.sh go -C backend run .` 啟動 HTTP 服務。`sync-line-navigation` 供部署 Job 使用；`check-firestore -document COLLECTION/DOCUMENT` 執行既有的唯讀連線檢查。服務組裝仍由 internal/bootstrap 負責。
+
+開發階段的舊版 Project 遷移工具已退役，專用實作、測試與操作文件已刪除；啟動時不執行資料遷移。
+
+Go Browser 測試會驗證 Next.js 匯出頁面。首次測試或前端頁面更新後，先在儲存庫根目錄執行 `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp build`，再執行 `bash scripts/tooling/tool-exec.sh mise run check`；不手動維護或提交 out/ 中的 HTML 產物。

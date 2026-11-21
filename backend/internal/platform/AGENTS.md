@@ -2,7 +2,7 @@
 
 ## 用途與範圍
 
-集中資料存取的共用工具，包含 Firestore 鍵值與游標處理，以及 gRPC 錯誤對應。
+提供外部平台與資料存取的共用機制，包含 LINE 群組成員查詢、Firestore 鍵值與游標處理，以及 gRPC 錯誤對應。
 
 ## 架構與責任邊界
 
@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[firestorekey](firestorekey)、[grpcstatus](grpcstatus)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+先查閱[line](line/README.md)、[firestorekey](firestorekey)、[grpcstatus](grpcstatus)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
 
 ## 相關規格
 

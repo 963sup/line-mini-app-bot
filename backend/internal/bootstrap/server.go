@@ -39,6 +39,7 @@ import (
 	subobjecthttp "github.com/963sup/line-mini-app-bot/internal/business/subobject/adapter/http"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http"
+	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/browser"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/geolocation"
@@ -94,7 +95,7 @@ func Run() (resultErr error) {
 	if attendance != nil {
 		punches = &attendanceline.Attendance{Store: attendance.store, Zone: attendance.zone, GroupName: lookup}
 		punches.AppURL = appURL
-		membership := attendanceline.Membership{Token: os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN"), Client: &http.Client{Timeout: 5 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}
+		membership := &lineplatform.Membership{Timeout: 5 * time.Second, Token: os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN"), Client: &http.Client{Timeout: 5 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}
 		browserAttendance = attendancehttp.NewAttendance(attendance.store, attendance.zone, membership, func(ctx context.Context, group string) string {
 			return presentation.GroupName(group, lookup(ctx, group))
 		})
