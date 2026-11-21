@@ -223,6 +223,9 @@
     },
     "/api/v1/repositories/{repositoryId}/objects/candidates": {
       "$ref": "./object/objects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects~1candidates"
+    },
+    "/api/v1/tools/poppler/extractions": {
+      "$ref": "./operations/poppler.yaml#/paths/~1api~1v1~1tools~1poppler~1extractions"
     }
   },
   "components": {

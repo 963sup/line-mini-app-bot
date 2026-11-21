@@ -226,6 +226,12 @@
       "adapter": "backend/internal/business/team/adapter/http/routes.go",
       "core": "backend/internal/business/team/adapter/firestore/store.go",
       "specification": "docs/domains/team/design.md"
+    },
+    "operations.poppler": {
+      "contract": "operations/poppler.yaml",
+      "adapter": "backend/internal/business/operations/adapter/http/poppler.go",
+      "core": "backend/internal/business/operations/application/document.go",
+      "specification": "backend/internal/business/operations/README.md"
     }
   },
   "operations": [
@@ -1615,7 +1621,7 @@
       "core": "backend/internal/business/journal/application/query/references.go",
       "specification": "docs/domains/journal/journal.md",
       "consumers": [
-        "frontend/miniapp/src/business/journal/Workspace.tsx"
+        "frontend/miniapp/src/business/journal/Composer.tsx"
       ]
     },
     {
@@ -1630,6 +1636,20 @@
       "specification": "docs/domains/object/design.md",
       "consumers": [
         "frontend/miniapp/src/business/object/Candidates.tsx"
+      ]
+    },
+    {
+      "operationId": "ExtractPopplerText",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/tools/poppler/extractions",
+      "owner": "operations.poppler",
+      "adapter": "backend/internal/business/operations/adapter/http/poppler.go",
+      "handler": "ExtractPopplerText",
+      "core": "backend/internal/business/operations/application/document.go",
+      "specification": "backend/internal/business/operations/README.md",
+      "consumers": [
+        "frontend/miniapp/src/business/operations/Poppler.tsx"
       ]
     }
   ],
@@ -1788,6 +1808,11 @@
       "entity": "Enterprise",
       "collection": "enterprises",
       "path": "/api/v1/enterprises"
+    },
+    {
+      "entity": "PopplerText",
+      "collection": "extractions",
+      "path": "/api/v1/tools/poppler/extractions"
     }
   ],
   "namingExceptions": {

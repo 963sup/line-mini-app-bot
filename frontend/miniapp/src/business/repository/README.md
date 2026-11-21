@@ -25,3 +25,5 @@
 ## 下層文件入口
 
 - [insights](insights/README.md)
+
+各功能分頁使用 `next/dynamic`，開啟時才載入對應功能程式，沿用原本的未儲存表單保護與載入回饋。

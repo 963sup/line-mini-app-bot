@@ -22,6 +22,9 @@ import (
 	issuehttp "github.com/963sup/line-mini-app-bot/internal/business/issue/adapter/http"
 	journalhttp "github.com/963sup/line-mini-app-bot/internal/business/journal/adapter/http"
 	objecthttp "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/http"
+	operationshttp "github.com/963sup/line-mini-app-bot/internal/business/operations/adapter/http"
+	poppler "github.com/963sup/line-mini-app-bot/internal/business/operations/adapter/poppler"
+	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
 	organizationdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
 	organizationhttp "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/http"
 	organizationline "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/line"
@@ -98,6 +101,7 @@ func Run() (resultErr error) {
 	}
 
 	attendancehttp.RegisterAttendanceAPI(mux, browserAttendance, auth)
+	operationshttp.Register(mux, &operations.DocumentTextService{Extractor: &poppler.Extractor{}}, auth)
 	summaries, closeSummaries, err := registerSummary(context.Background(), mux)
 	if err != nil {
 		return err

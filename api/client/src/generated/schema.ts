@@ -1251,6 +1251,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tools/poppler/extractions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Extract standardized PDF text without saving */
+        post: operations["ExtractPopplerText"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1563,7 +1580,7 @@ export interface components {
         Object: {
             name: string;
             description: string;
-            /** @description work or non_work for new classification; historical arbitrary strings remain supported. */
+            /** @description Empty means unclassified; work or non_work when known. Historical free-form values remain supported. */
             type: string;
             unit: string;
             sourceDocument: string;
@@ -1571,7 +1588,7 @@ export interface components {
             sourceItemNo: string;
             sourcePages: string;
             materialCode: string;
-            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
+            /** @description Empty means not yet specified; otherwise a positive exact decimal. No fabricated quantity. */
             quantity: string;
             id: string;
             repositoryId: string;
@@ -1596,19 +1613,20 @@ export interface components {
             /** @description Whether stored progress must be reset before changing the type to non-work. */
             requiresProgressReset: boolean;
         };
+        /** @description Create an object with its name only; classification, quantity, unit and space may be supplied later. No inferred defaults. */
         ObjectCreation: {
             name: string;
-            description: string;
-            /** @description work or non_work for new classification; historical arbitrary strings remain supported. */
-            type: string;
-            unit: string;
+            description?: string;
+            /** @description Empty means unclassified; work or non_work when known. Historical free-form values remain supported. */
+            type?: string;
+            unit?: string;
             sourceDocument?: string;
             sourceRevision?: string;
             sourceItemNo?: string;
             sourcePages?: string;
             materialCode?: string;
-            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
-            quantity: string;
+            /** @description Empty means not yet specified; otherwise a positive exact decimal. No fabricated quantity. */
+            quantity?: string;
             /** @description Exact absolute completed quantity for work only; 0 <= completedQuantity <= quantity. Absent for non_work and legacy objects; new work defaults to 0. Omitted update preserves current value; conversion to work requires explicit value. */
             completedQuantity?: string;
             /** @description Optional repository-owned business Space ID, never a LINE Group ID. Empty means unassigned; omitted update preserves the current assignment. The server verifies the same repository and channel. */
@@ -1618,7 +1636,7 @@ export interface components {
         ObjectUpdate: {
             name: string;
             description: string;
-            /** @description work or non_work for new classification; historical arbitrary strings remain supported. */
+            /** @description Empty means unclassified; work or non_work when known. Historical free-form values remain supported. */
             type: string;
             unit: string;
             /** @description Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key. */
@@ -1631,7 +1649,7 @@ export interface components {
             sourcePages?: string;
             /** @description Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key. */
             materialCode?: string;
-            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
+            /** @description Empty means not yet specified; otherwise a positive exact decimal. No fabricated quantity. */
             quantity: string;
             /**
              * @description Optional legacy status. Work status is derived from completedQuantity; explicit contradictory status is rejected. Omission preserves historical status.
@@ -2243,6 +2261,14 @@ export interface components {
         };
         EnterpriseOwnerRequest: {
             userId: string;
+        };
+        PopplerDocument: {
+            filename: string;
+            /** Format: byte */
+            data: string;
+        };
+        PopplerText: {
+            text: string;
         };
     };
     responses: {
@@ -7470,6 +7496,114 @@ export interface operations {
             409: components["responses"]["ObjectError"];
             415: components["responses"]["ObjectError"];
             503: components["responses"]["ObjectError"];
+        };
+    };
+    ExtractPopplerText: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for cookie sessions. */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PopplerDocument"];
+            };
+        };
+        responses: {
+            /** @description Standardized text; empty text does not imply OCR is required. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PopplerText"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
         };
     };
 }

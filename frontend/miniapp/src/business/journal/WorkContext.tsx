@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { components } from "@repo/api-client";
 import type { Request } from "@/identity/Session";
 import { FormField } from "@/shared/FormField";
@@ -10,15 +10,51 @@ import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxCont
 import { errorMessage } from "@/shared/http/lifecycle";
 
 type Space = components["schemas"]["RepositorySpace"];
-type Object = components["schemas"]["Object"];
 type Choice = { id: string; objectId: string; subobjectId?: string; name: string; spaceId?: string };
-export async function collect<T>(fetch: (cursor: string) => Promise<{items:T[];nextCursor:string}>): Promise<T[]> {
-  const all:T[]=[]; let cursor="";
-  do { const page=await fetch(cursor); all.push(...page.items); cursor=page.nextCursor; } while(cursor);
-  return all;
+import { collect } from "./pagination";
+
+type WorkOptions = { choices: Choice[]; spaces: Space[] };
+export type WorkOptionsLoader = {
+  load: (repositoryId: string) => Promise<WorkOptions>;
+  invalidate: (repositoryId: string) => void;
+};
+
+// Shared only by rows of one composer, never across users or drafts.
+export function useWorkOptions(request: Request): WorkOptionsLoader {
+  const catalog = useMemo(() => {
+    const entries = new Map<string, { controller: AbortController; result: Promise<WorkOptions> }>();
+    return {
+      load(repositoryId: string) {
+        const existing = entries.get(repositoryId);
+        if (existing) return existing.result;
+        const controller = new AbortController(), options = { signal: controller.signal };
+        const result = Promise.all([
+          collect(cursor => request((c, signal) => c.GET("/api/v1/repositories/{repositoryId}/objects", {signal, params:{path:{repositoryId},query:{cursor:cursor || undefined}}}), options)),
+          collect(cursor => request((c, signal) => c.GET("/api/v1/repositories/{repositoryId}/spaces", {signal, params:{path:{repositoryId},query:{cursor:cursor || undefined}}}), options)),
+        ]).then(async ([objects, spaces]) => {
+          const nested = await Promise.all(objects.map(async object => {
+            const children = await collect(cursor => request((c, signal) => c.GET("/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects", {signal,params:{path:{repositoryId,objectId:object.id},query:{cursor:cursor || undefined}}}), options));
+            return [{id:object.id,objectId:object.id,name:object.name,spaceId:object.spaceId}, ...children.map(child => ({id:child.id,objectId:object.id,subobjectId:child.id,name:object.name+" › "+child.name,spaceId:object.spaceId}))];
+          }));
+          const choices = nested.flat();
+          return { choices, spaces };
+        }).catch(error => {
+          if (entries.get(repositoryId)?.controller === controller) entries.delete(repositoryId);
+          controller.abort();
+          throw error;
+        });
+        entries.set(repositoryId, { controller, result });
+        return result;
+      },
+      invalidate(repositoryId: string) { entries.delete(repositoryId); },
+      dispose() { for (const entry of entries.values()) entry.controller.abort(); entries.clear(); },
+    };
+  }, [request]);
+  useEffect(() => () => catalog.dispose(), [catalog]);
+  return catalog;
 }
 
-export function WorkContext({id, repositoryId, request, lock}: {id:string;repositoryId:string;request:Request;lock:(value:boolean)=>void}) {
+export function WorkContext({id, repositoryId, request, options, lock}: {id:string;repositoryId:string;request:Request;options:WorkOptionsLoader;lock:(value:boolean)=>void}) {
   const [choices, setChoices] = useState<Choice[]>([]), [spaces, setSpaces] = useState<Space[]>([]);
   const [target, setTarget] = useState<Choice | null>(null), [selected, setSelected] = useState<Space[]>([]);
   const [error, setError] = useState(""), [busy, setBusy] = useState(true), [revision, reload] = useState(0);
@@ -27,20 +63,13 @@ export function WorkContext({id, repositoryId, request, lock}: {id:string;reposi
   const alive = useRef(true);
   useEffect(() => { alive.current=true; return () => { alive.current=false; }; }, []);
   useEffect(() => {
-    const controller = new AbortController(), options = {signal:controller.signal};
+    let active = true;
     setBusy(true); setError("");
-    void Promise.all([
-      collect(cursor => request((c, signal) => c.GET("/api/v1/repositories/{repositoryId}/objects", {signal, params:{path:{repositoryId},query:{cursor:cursor || undefined}}}), options)),
-      collect(cursor => request((c, signal) => c.GET("/api/v1/repositories/{repositoryId}/spaces", {signal, params:{path:{repositoryId},query:{cursor:cursor || undefined}}}), options)),
-    ]).then(async ([objects, locations]) => {
-      const nested = await Promise.all(objects.map(async (object: Object) => {
-        const children = await collect(cursor => request((c, signal) => c.GET("/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects", {signal,params:{path:{repositoryId,objectId:object.id},query:{cursor:cursor || undefined}}}), options));
-        return [{id:object.id,objectId:object.id,name:object.name,spaceId:object.spaceId}, ...children.map(child => ({id:child.id,objectId:object.id,subobjectId:child.id,name:object.name+" › "+child.name,spaceId:object.spaceId}))];
-      }));
-      if (!controller.signal.aborted) { setChoices(nested.flat()); setSpaces(locations); setBusy(false); }
-    }).catch(reason => { if (!controller.signal.aborted) { setError(errorMessage(reason)); setBusy(false); } });
-    return () => controller.abort();
-  }, [repositoryId, request, revision]);
+    void options.load(repositoryId).then(data => {
+      if (active) { setChoices(data.choices); setSpaces(data.spaces); setBusy(false); }
+    }).catch(reason => { if (active) { setError(errorMessage(reason)); setBusy(false); } });
+    return () => { active = false; };
+  }, [repositoryId, options, revision]);
   async function create() {
     if (writing.current || !name.trim() || (!pending.current && selected.length >= 20)) return;
     const attempt = pending.current ?? {key:crypto.randomUUID(),name:name.trim(),unknown:false};
@@ -48,6 +77,7 @@ export function WorkContext({id, repositoryId, request, lock}: {id:string;reposi
     try {
       const space = await request((c, signal) => c.POST("/api/v1/repositories/{repositoryId}/spaces", {signal,params:{path:{repositoryId},header:{"Idempotency-Key":attempt.key}},body:{name:attempt.name}}));
       if (!alive.current) return;
+      options.invalidate(repositoryId);
       setSpaces(old => [...old.filter(s => s.id !== space.id), space]);
       setSelected(old => [...old.filter(s => s.id !== space.id), space]);
       pending.current=null; lock(false); setName("");

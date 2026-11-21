@@ -36,7 +36,7 @@ func Root() string {
 func ReadFile(name string) ([]byte, error) { return fs.ReadFile(os.DirFS(Root()), name) }
 
 func Validate() error {
-	for _, name := range []string{"miniapp.html", "miniapp/history.html", "miniapp/correction.html", "miniapp/review.html", "miniapp/punch.html", "miniapp/leave.html", "miniapp/repositories.html", "miniapp/projects.html", "miniapp/dashboard.html", "miniapp/feed.html", "location.html"} {
+	for _, name := range []string{"miniapp/poppler.html", "miniapp.html", "miniapp/history.html", "miniapp/correction.html", "miniapp/review.html", "miniapp/punch.html", "miniapp/leave.html", "miniapp/repositories.html", "miniapp/projects.html", "miniapp/dashboard.html", "miniapp/feed.html", "location.html"} {
 		if _, err := ReadFile(name); err != nil {
 			return err
 		}
@@ -72,7 +72,13 @@ func Assets() http.Handler {
 		}
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Referrer-Policy", "no-referrer")
-		w.Header().Set("Cache-Control", "no-store")
+		// Only immutable Next build assets are shared across navigations.
+		// HTML, public assets and manifests retain their existing policy.
+		if strings.HasPrefix(name, "_next/static/chunks/") && (strings.HasSuffix(name, ".js") || strings.HasSuffix(name, ".css")) {
+			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		} else {
+			w.Header().Set("Cache-Control", "no-store")
+		}
 		files.ServeHTTP(w, r)
 	})
 }

@@ -27,7 +27,12 @@ type OrganizationServer interface {
 	SelectOrganization(w http.ResponseWriter, r *http.Request)
 }
 
+type PopplerServer interface {
+	ExtractPopplerText(w http.ResponseWriter, r *http.Request, params generated.ExtractPopplerTextParams)
+}
+
 type contractServer struct {
+	PopplerServer
 	EnterpriseServer
 	TeamServer
 	OrganizationServer

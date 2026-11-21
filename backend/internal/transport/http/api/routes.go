@@ -204,3 +204,8 @@ func RegisterEnterprises(public *http.ServeMux, handler EnterpriseServer) {
 	public.Handle("POST /api/v1/enterprises/{enterpriseId}/owners", routes)
 	public.Handle("POST /api/v1/enterprises/{enterpriseId}/organizations", routes)
 }
+
+func RegisterPoppler(public *http.ServeMux, handler PopplerServer, wrap func(http.Handler) http.Handler) {
+	routes := withMiddleware(routeHandler(contractServer{PopplerServer: handler}), wrap)
+	public.Handle("POST /api/v1/tools/poppler/extractions", routes)
+}

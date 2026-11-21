@@ -30,3 +30,5 @@ Object 保存工程清單項的類型、精確數量、單位及內部追蹤狀�
 [領域規格](../../../../docs/domains/object/README.md) · [判定流程](../../../../docs/domains/object/README.md#decision-flow) · [代表測試](application/progress_test.go)
 
 [上層導覽](../README.md)
+
+物件可只含名稱，類型、數量、單位與空間允許未設定。未設定不是數量0或預設施作；已有完成量的施作仍受精確數量、單位與進度移除規則保護。Firestore 沿用原有欄位與 schemaVersion，既有資料保持可讀。
