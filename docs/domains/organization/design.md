@@ -63,6 +63,10 @@ Organization 查詢只組合可見組織、選擇偏好與 Enterprise 提供的�
 
 未來設計：建立新組織時，Organization、範圍狀態與首位 Owner 關係 MUST 原子建立。既有組織依 [Membership 切換契約](../../proposals/membership.md#儲存與遷移方案)準備關係並切換；不得只改模式欄位。切換前 MUST 接妥 Bot 邀請、People、Owner 移轉、退出／移除、組織選單及 Team／Enterprise 消費端的正向讀寫。切換後舊欄位不能補授權。
 
+首版沿用 Bot 和 MINI App 的現有入口。新組織開通獨立模式時，首位 Owner 取得有效關係和初始資格世代。已驗證使用者接受有效邀請後，由同一交易建立或恢復成員關係。退出或移除由原 People 入口執行，交易內重驗權限並結束關係。Owner 移轉只更新權威指標，原 Owner 仍是有效一般成員。重送、版本和世代沿用 Membership 共通契約。
+
+Team 透過交易內的資格讀取契約取得目前 Owner 判定、首任候選人的有效關係和資格世代。MINI App 從服務端提供的候選名單選人，請求使用組織成員代碼。Team 不寫入 Organization 關係，也不把現行 legacy 欄位當作獨立資格來源。驗收由管理者建立或切換一個測試組織，完成邀請、退出及重新加入後，再驗證 [Team 開通授權](../team/design.md#群組開通授權)。
+
 驗收須從正常入口完成建立、邀請、接受、名單、移轉及退出／移除，並核對重送不重新開權、移轉與退出併發仍有有效 Owner、撤權後選單及下層資格立即失效。切換後重新加入產生新世代，不能恢復舊 Team 資格。資料準備、切換執行入口及回復工具尚待實作與環境驗收；未完成前 MUST 維持 legacy 模式。
 
 [跨領域歸屬契約](../../architecture/contracts/organization-team-ownership.md) · [領域入口](README.md)
