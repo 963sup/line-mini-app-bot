@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import test from "node:test";
 import assert from "node:assert/strict";
 import "./sidebar-dom";
-import { Shell } from "../src/shell/Shell";
+import { Shell } from "./shell-fixture";
 import { Spaces } from "../src/business/repository/Spaces";
 import { View } from "../src/business/object/View";
 

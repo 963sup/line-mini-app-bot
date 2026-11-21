@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
+import Link from "next/link";
+import Router from "next/router";
 import { useOrganizationSelection } from "@/business/organization/OrganizationSelection";
 import { Building2, ChevronsUpDown } from "lucide-react";
 import { useOptionalSession } from "@/identity/Session";
@@ -18,35 +20,38 @@ import {
   DropdownMenuRadioItem,
 } from "@/shared/ui/dropdown-menu";
 
-import { TeamSwitcher } from "./sidebar-07/team-switcher";
-
 export function OrganizationSwitcher() {
   const session = useOptionalSession();
-  if (!session?.user)
+  if (!session?.user) {
     return (
-      <TeamSwitcher
-        teams={[
-          {
-            name: "LINE MINI App",
-            logo: Building2,
-            plan: "正式服務",
-            url: "/miniapp",
-            isActive: true,
-          },
-        ]}
-      />
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton size="lg" asChild>
+            <div role="status" aria-label="組織切換狀態" aria-busy={session?.busy ?? false}>
+              <Building2 aria-hidden="true" />
+              <span>{session?.busy ? "正在驗證身分…" : session?.status ?? "尚未驗證身分"}</span>
+            </div>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
     );
+  }
   return <Switcher key={session.epoch} />;
 }
 
 function Switcher() {
   const { isMobile, setOpenMobile } = useSidebar();
   const { context, error, saving, select } = useOrganizationSelection();
-  function onSelected(organizationId: string) {
+  const [failedHref, setFailedHref] = useState("");
+  async function onSelected(organizationId: string) {
+    const href = "/miniapp?" + new URLSearchParams({ organization: organizationId });
+    setFailedHref("");
     setOpenMobile(false);
-    window.location.assign(
-      "/miniapp?" + new URLSearchParams({ organization: organizationId }),
-    );
+    try {
+      if (!(await Router.push(href))) setFailedHref(href);
+    } catch {
+      setFailedHref(href);
+    }
   }
   const label = (
     <>
@@ -88,7 +93,7 @@ function Switcher() {
                   <React.Fragment key={group.enterpriseId ?? "independent"}>
                     {group.enterpriseId ? (
                       <DropdownMenuItem asChild>
-                        <a
+                        <Link
                           href={
                             "/miniapp?" +
                             new URLSearchParams({
@@ -97,7 +102,7 @@ function Switcher() {
                           }
                         >
                           {group.label}
-                        </a>
+                        </Link>
                       </DropdownMenuItem>
                     ) : (
                       <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
@@ -115,35 +120,35 @@ function Switcher() {
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-        ) : (
+        ) : context?.selected ? (
           <SidebarMenuButton size="lg" asChild>
-            <a
-              href={
-                context?.selected
-                  ? "/miniapp?" +
-                    new URLSearchParams({
-                      organization: context.selected.organizationId,
-                    })
-                  : undefined
-              }
+            <Link
+              href={"/miniapp?" + new URLSearchParams({
+                organization: context.selected.organizationId,
+              })}
             >
               {label}
-            </a>
+            </Link>
+          </SidebarMenuButton>
+        ) : (
+          <SidebarMenuButton size="lg" asChild>
+            <div role="status" aria-busy={!context && !error}>{label}</div>
           </SidebarMenuButton>
         )}
         {context?.enterprises?.map((ent) => (
           <SidebarMenuButton key={ent.id} asChild>
-            <a href={"/miniapp?" + new URLSearchParams({ enterprise: ent.id })}>
+            <Link href={"/miniapp?" + new URLSearchParams({ enterprise: ent.id })}>
               <Building2 />
               {ent.name}
-            </a>
+            </Link>
           </SidebarMenuButton>
         ))}
         {context?.canCreateEnterprise && (
           <SidebarMenuButton asChild>
-            <a href="/miniapp?enterprise=new">建立企業</a>
+            <Link href="/miniapp?enterprise=new">建立企業</Link>
           </SidebarMenuButton>
         )}
+        {failedHref && <Link href={failedHref}>重試開啟組織頁面</Link>}
         {error && <span role="alert">{error}</span>}
       </SidebarMenuItem>
     </SidebarMenu>

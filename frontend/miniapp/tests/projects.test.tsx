@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import test from "node:test";
 import assert from "node:assert/strict";
 import "./sidebar-dom";
-import { Shell } from "../src/shell/Shell";
+import { Shell } from "./shell-fixture";
 import { Workspace } from "../src/business/project/Workspace";
 
 const sa = "C" + "a".repeat(32), sb = "C" + "b".repeat(32), rid = "c".repeat(32), pid = "d".repeat(32);
