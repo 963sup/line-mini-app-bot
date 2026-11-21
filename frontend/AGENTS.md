@@ -56,7 +56,7 @@ Web 業務操作遵循 **Frontend → API → Backend**。每個 API 操作以�
 
 ## shadcn 任務入口
 
-凡前端 UI 任務，主動先讀 [官方元件保護與 Skill／MCP 工作流程](miniapp/src/shared/ui/AGENTS.md)，再依 [本機參考庫](../docs/development/tooling/shadcn-reference/README.md) 檢查新鮮度、搜尋完整 Components／AI Elements 索引及相關文件，不需使用者逐次指定 shadcn。完整元件索引只由該參考庫生成；MCP 未曝光時依 UI 指引的固定 CLI 流程查詢並回報限制。
+凡前端 UI 任務，主動先讀 [官方元件保護與 Skill／MCP 工作流程](miniapp/src/shared/ui/AGENTS.md)，再依 [本機參考庫](../docs/development/tooling/shadcn-reference/README.md) 檢查新鮮度、搜尋完整 Components／AI Elements 索引及相關文件，不需使用者逐次指定 shadcn。完整元件索引只由該參考庫生成；MCP 未曝光時依 UI 指引的主機曝光診斷流程處理。
 元件選擇、按需新增與 UI 驗收遵循該檔的「需求驅動的選用與驗收」；主動完成當前任務，不以已安裝清單限制候選，也不擴大為未要求的全站改版。
 
 涉及 shadcn/ui、components.json、registry、preset 或其 MCP 的任務，開始前必讀 [.agents/skills/shadcn/SKILL.md](../.agents/skills/shadcn/SKILL.md)，再按需讀其 references；使用方式與驗證見 [shadcn 工具指南](../docs/development/tooling/mcp/shadcn.md)。所有角色都適用。

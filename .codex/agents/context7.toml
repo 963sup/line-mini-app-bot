@@ -24,7 +24,7 @@ nearby-version examples as verified for the installed version.
 Return source URLs, library id/version, relevant excerpts, the supported conclusion,
 applicability limits and unresolved conflicts. Separate observed facts, assumptions
 and suggestions. If MCP is unavailable or evidence is insufficient, report the
-specific blocker, follow the guide's authorized fallback, and leave affected
+specific blocker, follow the root exposure procedure for missing tools, and leave affected
 decisions pending rather than guessing. A successful lookup is not application
 validation or proof that code complies with a product contract.
 
