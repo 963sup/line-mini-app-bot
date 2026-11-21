@@ -1,4 +1,3 @@
-import { useOrganizationSelection } from "@/business/organization/OrganizationSelection";
 import React, { useEffect, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
@@ -6,15 +5,21 @@ import { useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
 
-export function Enterprise({ id }: { id: string }) {
+export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
+  id: string;
+  canCreate?: boolean;
+  eligibilityError?: string;
+  onSaved: (enterpriseId: string) => void;
+}) {
   const { request, user } = useSession(),
     { run, cancel } = useLatestRequest();
   const [view, setView] = useState<components["schemas"]["Enterprise"]>(),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
   const create = id === "new";
-  const { context, error } = useOrganizationSelection();
-  const eligibilityMessage = create && (context ? !context.canCreateEnterprise && "帳號尚無可用的企業開通資格。" : error);
+  const eligibilityMessage = create && (canCreate === undefined
+    ? eligibilityError
+    : !canCreate && "帳號尚無可用的企業開通資格。");
   useEffect(() => {
     if (!user || create) return;
     void run(
@@ -74,10 +79,7 @@ export function Enterprise({ id }: { id: string }) {
                         ),
                 { signal },
               ),
-            (v) =>
-              window.location.assign(
-                "/miniapp?" + new URLSearchParams({ enterprise: v.id }),
-              ),
+            (v) => onSaved(v.id),
             (e) => {
               setBusy(false);
               setMessage(errorMessage(e));
@@ -98,7 +100,7 @@ export function Enterprise({ id }: { id: string }) {
   return (
     <section className="grid gap-4">
       {(message || eligibilityMessage) && <p role="status">{message || eligibilityMessage}</p>}
-      {create && context?.canCreateEnterprise && form("create", "企業名稱", "建立企業")}
+      {create && canCreate && form("create", "企業名稱", "建立企業")}
       {view && (
         <>
           <h2>{view.name}</h2>

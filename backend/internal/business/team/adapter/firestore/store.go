@@ -5,6 +5,7 @@ import (
 )
 
 import (
+	membershipapp "github.com/963sup/line-mini-app-bot/internal/business/membership/application"
 	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
 )
 
@@ -28,9 +29,12 @@ import (
 )
 
 type Store struct {
-	DB      *firestore.Client
-	Channel string
-	Groups  *groupquery.Service
+	DB                 *firestore.Client
+	Channel            string
+	Groups             *groupquery.Service
+	OrganizationMember func(*firestore.Transaction, *firestore.DocumentRef, string, string) (bool, error)
+	TeamMember         func(*firestore.Transaction, *firestore.DocumentRef, string, string, string, string) (bool, error)
+	OpenMembership     func(*firestore.Transaction, *firestore.DocumentRef, string, string, string, string, string, bool) error
 }
 
 func (s Store) Manage(ctx context.Context, user string, teamId, scope, managementId string) error {
@@ -41,6 +45,10 @@ func (s Store) Manage(ctx context.Context, user string, teamId, scope, managemen
 		target, e := orgstore.Read(tx, root.Collection(scope+"s").Doc(managementId))
 		if e != nil {
 			return nil, e
+		}
+		if target.Disabled || (target.MembershipMode != "" && target.MembershipMode != "legacy") ||
+			(scope == "organization" && !target.LegacyOrganizationEnabled()) {
+			return nil, organizationDomainEntity.ErrNotFound
 		}
 		owner := target.Owner == user
 		if scope == "enterprise" {
@@ -54,7 +62,7 @@ func (s Store) Manage(ctx context.Context, user string, teamId, scope, managemen
 		if e != nil {
 			return nil, e
 		}
-		if !slices.Contains(team.Managers, user) {
+		if team.Disabled || (team.MembershipMode != "" && team.MembershipMode != "legacy") || !slices.Contains(team.Managers, user) {
 			return nil, organizationDomainEntity.ErrNotFound
 		}
 		if team.Scope != "" && (team.Scope != scope || team.Manager != managementId) {
@@ -62,6 +70,52 @@ func (s Store) Manage(ctx context.Context, user string, teamId, scope, managemen
 		}
 		return nil, tx.Update(ref, []firestore.Update{{Path: "managementScope", Value: scope}, {Path: "managementId", Value: managementId}})
 	})
+	return err
+}
+
+// Activate opens an observed, unbound Team with independent Membership.
+func (s Store) Activate(ctx context.Context, actor, teamID, scope, managementID, maintainer string) error {
+	if !groupvalueobject.ValidID(teamID) || len(managementID) != 36 || uuid.Validate(managementID) != nil ||
+		(scope != "organization" && scope != "enterprise") || !orgstore.UserID.MatchString(maintainer) {
+		return organizationDomainEntity.ErrInvalid
+	}
+	if s.OpenMembership == nil {
+		return groupport.ErrUnavailable
+	}
+	_, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*struct{}, error) {
+		ref := root.Collection("teams").Doc(teamID)
+		team, err := orgstore.Read(tx, ref)
+		if err != nil {
+			return nil, err
+		}
+		if team.Disabled || team.Status != "ACTIVE" || !slices.Contains(team.Managers, actor) {
+			return nil, organizationDomainEntity.ErrNotFound
+		}
+		replay := team.MembershipMode == "membership" && team.Scope == scope &&
+			team.Manager == managementID && team.InitialMaintainer == maintainer
+		if !replay && (team.Scope != "" || team.Manager != "" ||
+			(team.MembershipMode != "" && team.MembershipMode != "legacy")) {
+			return nil, organizationDomainEntity.ErrConflict
+		}
+		if err := s.OpenMembership(tx, root, teamID, scope, managementID, actor, maintainer, replay); err != nil {
+			if errors.Is(err, membershipapp.ErrForbidden) {
+				return nil, organizationDomainEntity.ErrNotFound
+			}
+			return nil, err
+		}
+		if replay {
+			return nil, nil
+		}
+		return nil, tx.Update(ref, []firestore.Update{
+			{Path: "managementScope", Value: scope},
+			{Path: "managementId", Value: managementID},
+			{Path: "membershipMode", Value: "membership"},
+			{Path: "initialMaintainerUserId", Value: maintainer},
+		})
+	})
+	if status.Code(err) == codes.AlreadyExists {
+		return organizationDomainEntity.ErrConflict
+	}
 	return err
 }
 
@@ -79,14 +133,15 @@ func (s Store) Assign(ctx context.Context, user string, id, teamId string, add b
 		if e != nil {
 			return nil, e
 		}
-		if o.Enterprise == "" || team.Scope != "enterprise" || team.Manager != o.Enterprise {
+		if !o.LegacyOrganizationEnabled() || o.Enterprise == "" || team.Scope != "enterprise" || team.Manager != o.Enterprise {
 			return nil, organizationDomainEntity.ErrNotFound
 		}
 		ent, e := orgstore.Read(tx, root.Collection("enterprises").Doc(o.Enterprise))
 		if e != nil {
 			return nil, e
 		}
-		if !ent.IsOwner(user) && !slices.Contains(ent.Managers, user) {
+		if ent.Disabled || (ent.MembershipMode != "" && ent.MembershipMode != "legacy") ||
+			(!ent.IsOwner(user) && !slices.Contains(ent.Managers, user)) {
 			return nil, organizationDomainEntity.ErrNotFound
 		}
 		link := ref.Collection("enterpriseTeams").Doc(teamId)
@@ -108,7 +163,14 @@ func (s Store) List(ctx context.Context, user string, organizationId string) (*t
 		if e != nil {
 			return nil, e
 		}
-		if org.Owner != user && !slices.Contains(org.Members, user) {
+		visible := org.VisibleLegacyOrganization(user)
+		if org.MembershipMode == "membership" && !org.Disabled && s.OrganizationMember != nil {
+			visible, e = s.OrganizationMember(tx, root, organizationId, user)
+			if e != nil {
+				return nil, e
+			}
+		}
+		if !visible {
 			return nil, organizationDomainEntity.ErrNotFound
 		}
 		teams := root.Collection("teams")
@@ -116,14 +178,14 @@ func (s Store) List(ctx context.Context, user string, organizationId string) (*t
 		if e != nil {
 			return nil, e
 		}
-		ids := map[string]string{}
+		candidates := map[string]orgstore.Document{}
 		for _, doc := range local {
 			var team orgstore.Document
 			if e := doc.DataTo(&team); e != nil {
 				return nil, e
 			}
 			if team.Scope == "organization" {
-				ids[doc.Ref.ID] = "organization"
+				candidates[doc.Ref.ID] = team
 			}
 		}
 		links, e := tx.Documents(ref.Collection("enterpriseTeams").Query).GetAll()
@@ -139,11 +201,31 @@ func (s Store) List(ctx context.Context, user string, organizationId string) (*t
 				return nil, e
 			}
 			if org.Enterprise != "" && team.Scope == "enterprise" && team.Manager == org.Enterprise {
-				ids[doc.Ref.ID] = "enterprise"
+				candidates[doc.Ref.ID] = team
 			}
 		}
 		result := teamApplicationDto.Listing{Teams: []teamApplicationDto.Option{}}
-		for id, scope := range ids {
+		for id, team := range candidates {
+			switch team.MembershipMode {
+			case "membership":
+				if team.Disabled || team.Status != "ACTIVE" || s.TeamMember == nil {
+					continue
+				}
+				allowed, err := s.TeamMember(tx, root, id, team.Scope, team.Manager, user)
+				if err != nil {
+					return nil, err
+				}
+				if allowed {
+					result.Teams = append(result.Teams, teamApplicationDto.Option{ID: id, Name: team.Name, ManagementScope: team.Scope})
+				}
+				continue
+			case "", "legacy":
+				if team.Disabled {
+					continue
+				}
+			default:
+				continue
+			}
 			if s.Groups == nil {
 				return nil, groupport.ErrUnavailable
 			}
@@ -154,7 +236,7 @@ func (s Store) List(ctx context.Context, user string, organizationId string) (*t
 			if e != nil {
 				return nil, e
 			}
-			result.Teams = append(result.Teams, teamApplicationDto.Option{ID: id, Name: g.Name, ManagementScope: scope})
+			result.Teams = append(result.Teams, teamApplicationDto.Option{ID: id, Name: g.Name, ManagementScope: team.Scope})
 		}
 		slices.SortFunc(result.Teams, func(a, b teamApplicationDto.Option) int { return strings.Compare(a.ID, b.ID) })
 		return &result, nil

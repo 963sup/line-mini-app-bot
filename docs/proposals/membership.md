@@ -2,7 +2,7 @@
 
 狀態：Bot 私聊邀請已接入既有 Organization 授權模式，待真實 LINE／Firestore 驗收。下述獨立 Membership 儲存與切換仍屬未來設計。需求方向為新增 `membership` 業務領域，統一管理使用者與資源的成員關係；下列角色、API 與遷移方案為本次提出的設計基線，尚不改變現行契約。
 
-來源基準：2026-11-21，`work`／`fe571ab`。既有未提交變更限工具文件，不影響本次業務原碼核對。以 Graphify CLI 定位、Repomix 範圍封裝與直接讀碼交叉確認；不是線上資料盤點或功能驗收。
+原始來源基準：2026-11-21，`work`／`fe571ab`，下述圖譜與封裝結果屬當時查證。此次規格一致性修訂以 `b046fa5` 及目前工作區文件為準；工作區另有未提交業務變更，不將歷史原碼查證視為目前完整實作或環境驗收證據。
 
 ## 目標與範圍
 
@@ -74,7 +74,7 @@ flowchart TB
 | `ResourceRef` | `channelId`、`type`、`id`；三者共同識別範圍。Channel 由服務端設定取得，不能採信請求指定的租戶 |
 | `Membership` | `id`、`resource`、`userId`、`role`、`status`、`generation`、`version`、`joinedAt`、`updatedAt`、`endedAt`、`createdBy`、`updatedBy`、`dependencies` |
 | `Invitation` | `id`、`resource`、`role`、`status`、`expiresAt`、`createdBy`、`acceptedAt`、`acceptedMembershipGeneration`、`version`、建立時的資源政策版本、邀請者資格世代、邀請碼摘要及兌換後的 `acceptedBy` |
-| `ResourceMembershipState` | 每資源一筆，首版以 `ownerUserID` 保存唯一 Owner 指標，另保存 `version`、政策版本及授權模式；所有異動讀取適用的模式與政策版本；只有改變 Owner、模式或政策的異動寫入此狀態 |
+| `ResourceMembershipState` | 每資源一筆，保存 `version`、政策版本及授權模式；Organization 首版另以 `ownerUserID` 保存唯一 Owner 指標，Team 不使用此指標，Enterprise 多 Owner 權威格式待定；所有異動讀取適用的模式與政策版本；只有改變 Owner、模式或政策的異動寫入此狀態 |
 | `Audit` | `actorUserId`、`action`、`resource`、`targetUserId`、前後角色／狀態／版本、`requestId`、時間；不保存 token 或完整邀請連結 |
 
 `Membership` 使用由服務端對完整範圍與 userId 做無歧義編碼後產生的確定鍵，確保同一關係最多一筆。重新加入沿用關係識別碼、增加 `generation`，歷史由 Audit 保留。`version` 用於每次異動的併發控制，不能取代 `generation`。
@@ -85,7 +85,7 @@ Invitation 與 Membership 分開：待接受的邀請不是有效成員。Owner 
 
 1. 一個關係只對一個可信使用者與一個完整的 ResourceRef 成立。關係存在、狀態為 active、當下具備有效資格是三件事。有效資格是基於最新資源與依賴事實推導的結果。
 2. 邀請只允許一位已驗證且符合當下條件的使用者建立或重新啟用關係。邀請與成員關係各有獨立身分及生命週期。
-3. 可管理且要求 Owner 的資源，必須維持至少一位具有效管理資格的 Owner。第一階段提議只允許一位 Owner，該角色無上層資格依賴，且不得透過邀請或一般改角色取得。一般角色異動、停權及離開不得解除其 Owner 身分，須透過專用移轉命令。資源停用時先阻斷該資源授權，重新啟用須重新驗證 Owner。後續若允許 Owner 依賴上層資格，須先定義上層撤權與政策變更如何同時保護此規則；須重新證明範圍中的 Owner 仍有效。此承諾限 Membership 管轄的資格，不保證登入供應端始終可用。
+3. 可管理且要求 Owner 的資源，必須維持至少一位具有效管理資格的 Owner。第一階段的單一 Owner 指標只適用 Organization，該角色無上層資格依賴，且不得透過邀請或一般改角色取得。一般角色異動、停權及離開不得解除其 Owner 身分，須透過專用移轉命令。Enterprise 保留現行多 Owner 語意，其獨立模式須先依企業規格定案，不能套用 Organization 指標。Team 使用 maintainer 與上層管理政策，不要求 Owner。資源停用時先阻斷該資源授權，重新啟用須重新驗證適用的管理資格。後續若允許 Owner 依賴上層資格，須先定義上層撤權與政策變更如何同時保護此規則；須重新證明範圍中的 Owner 仍有效。此承諾限 Membership 管轄的資格，不保證登入供應端始終可用。
 
 `Invitation`、`Membership` 與 `ResourceMembershipState` 各自是異動入口。Invitation 保護接受與撤銷；Membership 保護角色及狀態轉換；資源狀態保護 Owner 指標、政策及模式。Application 取得當下授權事實並協調跨聚合交易。成員以識別引用資源與依賴，單筆操作只載入受影響的關係與必要依賴，不載入整份 People 名單。對首版 Organization，`ResourceMembershipState.ownerUserID` 是 Membership 模式下唯一的 Owner 權威。該指標必須指向同一範圍內一筆有效成員關係。首版關係及邀請的角色值只接受 `member`；People 和資格查詢在核對有效關係後依指標推導 `owner`。既有 Owner 欄位在切換後只可作相容投影，不能參與授權。指標缺漏或指向無效關係時，拒絕授權與一般異動並交由資料修復處理。
 
@@ -99,7 +99,7 @@ Invitation 與 Membership 分開：待接受的邀請不是有效成員。Owner 
 | --- | --- | --- |
 | Enterprise | `owner`、`manager`、`member` | Owner 管理企業角色；manager 維持核准的管理能力，不得自行升 Owner |
 | Organization | `owner`、`member` | Owner 邀請、移除、移轉；恰有一位有效 Owner |
-| Team | `maintainer`、`member` | 管理範圍的授權管理者指派 maintainer；maintainer 管理普通成員，不得自行改變管理歸屬 |
+| Team | `maintainer`、`member` | 授予、撤銷與首次開通的角色政策以 [Team 規格](../domains/team/design.md#授予撤銷與首次開通)為權威；不得自行改變管理歸屬 |
 | Repository | `admin`、`write`、`read` | admin 管理直接使用者存取與 Team Grant；資源擁有者保留管理能力，不能由成員異動變成無人可管理 |
 
 角色不是跨種類的數值大小。Organization member 不代表 Repository read；Team maintainer 不代表 Repository admin。Repository 內可定義 `admin ≥ write ≥ read`，由 Repository 政策解釋。
@@ -251,7 +251,7 @@ People 預設只回有效成員，每頁重新驗證目前可見性，跨頁允�
 1. **盤點與只讀比對**：收集 owner／manager／member 欄位、重複與無效 ID、沒有 Owner 的異常資源及所有寫入入口。先產生遷移差異報告，不因文件存在就推定正式資料可搬。
 2. **Organization 試點**：以舊 ownerUserId 初始化 Owner 指標；合併 ownerUserId 與 memberUserIds 後去重。為兩類使用者建立 `member` 關係，另建立 Owner 指標與來源版本；未存在的 joinedAt 保留 unknown，另記 importedAt，不捏造歷史。
 3. **受控切換**：封鎖該資源舊成員寫入，或令所有舊 writer 也讀取同一切換版本；在一致性邊界內比對來源版本與完整匯入結果後切換模式。HTTP、LINE、組織選單、Team 清單與企業導航同步改讀新來源。
-4. **Team／Enterprise**：企業 Owner 欄位取聯集，manager 不升 Owner；Team manager 僅候選映射 maintainer，先確認實際意義與上層資格。不從 LINE 群組推算完整 Team 成員；無明確紀錄的人須正式加入。孤兒資料隔離處理，不能自動補授權。
+4. **Enterprise／新 Team**：企業既有 Owner 欄位須先比對去重，manager 不升 Owner；多 Owner 獨立權威與切換契約須先定案。依目前沒有舊 Team 要匯入的範圍，新 Team 依 [首次開通](../domains/team/design.md#授予撤銷與首次開通)原子建立歸屬與首任資格，不做舊 Team manager 映射或名單匯入。不從 LINE 群組推算 Team 成員。若後續發現舊資料，先隔離並重新評估遷移範圍，不能自動補授權。
 5. **Repository**：新增組織庫模式，明確記錄所屬組織；現行只接受 LINE User／Group Owner 的驗證、查詢與子資源授權須一併調整。既有個人／LINE 群組庫保留原授權模式，沒有證據時不得批量轉成內部成員。
 6. **退役欄位**：確認無舊 reader／writer 後，移除成員陣列與適用的共用 document 欄位。OwnerUserID 等舊 API 表達單一 Owner，若改多 Owner 須先設計相容 DTO 與版本策略，不能任選一人掩蓋語意改變。
 
@@ -262,9 +262,22 @@ People 預設只回有效成員，每頁重新驗證目前可見性，跨頁允�
 | 階段 | 交付範圍 | 必須取得的證據 |
 | --- | --- | --- |
 | 一 | Membership 核心＋Organization People＋試點切換 | 無組織仍可登入；建立資源與 Owner 原子性；邀請、接受、名單、移除閉環 |
-| 二 | Team 成員、管理者接入與上層依賴 | 移除組織資格即拒絕；重新加入不恢復舊 Team 權；企業 Team 指派不自動授予組織資格 |
+| 二 A | Organization Team 首次開通與成員管理 | 先完成階段一及可信群組管理授權入口；開通、名單、授予與撤銷可由正常入口完成；上層退出再加入不恢復舊 Team 權 |
+| 二 B | Enterprise 直接資格與 Enterprise Team | 先定案多 Owner 權威及角色管理契約，完成企業資格建立、加入、撤權與世代查詢，再開通企業 Team；企業 Team 指派不自動授予組織資格 |
 | 三 | 組織 Repository 的直接角色與 Team Grant | read／write／admin 行為一致；列表、詳情、子資源、舊連結與併發寫入均服從撤權 |
-| 四 | Enterprise 直接成員與 People 聚合、舊欄位退役 | 直接與衍生資格可區分；管理角色不洩漏內容；原 API 與資料相容策略完成 |
+| 四 | Enterprise People 聚合與舊欄位退役 | 以階段二 B 的直接資格為基礎，區分直接與衍生資格；管理角色不洩漏內容；原 API 與資料相容策略完成 |
+
+### 閉環判定與待定規則
+
+每個流程 MUST 具備可信 Actor、可辨識目標、正常入口、授權與狀態規則、原子提交、失敗／重送結果，以及使用者可觀察的驗收條件。編譯、後端交易或列表接線只算進度。各資源的入口與政策以 [Organization](../domains/organization/design.md#獨立資格的交付邊界)、[Team](../domains/team/design.md#正常入口與開通阻塞條件)、[Enterprise](../domains/enterprise/design.md#獨立資格與治理的交付邊界)維護，本提案保存共通關係與一致性規則。
+
+| 尚未定案的規則 | 阻擋範圍與處理 |
+| --- | --- |
+| 群組管理授權審核人員與可採用的獨立委任證據 | [Team 首版提案](../domains/team/design.md#群組開通授權)已定義申請、審核、撤銷及交易消耗。正式開通前須確認渠道審核人員、可接受的獨立證據及效期。 |
+| Enterprise 多 Owner 權威、直接成員入口及 manager 管理動作 | 阻擋企業獨立資格與 Enterprise Team；不阻擋 Organization Team。 |
+| 獨立模式邀請效期、收據重送窗口與 Audit 保留期間 | 對應正式寫入能力啟用前須定案；不能將 legacy 的 24 小時直接當成獨立模式既定政策，也不能承諾無限重送。 |
+
+待定項目必須在對應操作實作前解決；未定案時維持未啟用，不以手動改資料代替正常入口。本次整理未將這些產品決策視為已獲確認，也未宣稱四領域已全部閉環。
 
 設計要求驗證：跨 channel／resourceType 的 ID 不能混用；未驗證的使用者或未持有效邀請碼者不能接受；撤銷、到期與接受併發只產生一個合法結果；同邀請重送不重新開權；唯一 Owner 退出被拒且移轉與接任者離開的併發不留下無 Owner 資源；資料庫失敗不放行；資源移轉後舊依賴失效；相同 requestId 不重複寫入；列表不因新模式候選來源遺漏有效成員。
 
@@ -290,6 +303,6 @@ People 預設只回有效成員，每頁重新驗證目前可見性，跨頁允�
 
 本次只依 repository 原碼設計契約，不宣稱外部 LINE 或 Firestore 新行為已查證。實作前仍須以屆時鎖定版官方文件確認交易工作單元、索引、取消、上限與身份有效期；真實資料遷移與線上資格待環境驗收。
 
-待產品確認的提案預設：獨立 Membership 模式的邀請效期、manager／maintainer 可管理的角色範圍、首版單一 Owner 與指標移轉的產品確認、後續多 Owner 的相容策略、收據重送窗口與 Audit 保留期間。這些不影響新增 Membership 領域的方向，但在對應操作實作前須定案。
+目前待定規則及其啟用阻塞範圍統一見 [閉環判定與待定規則](#閉環判定與待定規則)。Team 的角色管理政策以領域規格為準；Organization 單一 Owner 與 Enterprise 多 Owner 不混用。
 
 [提案索引](README.md) · [現行組織與 Team 契約](../architecture/contracts/organization-team-ownership.md) · [操作模型](../architecture/contracts/business-operations.md) · [圖表索引](../diagrams.md#未來設計)

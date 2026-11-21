@@ -1,3 +1,4 @@
+import { useOrganizationSelection } from "../src/business/organization/OrganizationSelection";
 import React, { act } from "react";
 import Router from "next/router";
 import { MiniAppLayout } from "../src/shell/MiniAppProviders";
@@ -76,7 +77,11 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
     await act(async () => { document.getElementById(id)!.click(); await flush(); });
   };
   try {
-    await act(async () => { root.render(<Shell title="授權審核" workflow="review"><PrivateContent /><Enterprise id="new" /></Shell>); await flush(); });
+    function EnterpriseCreation() {
+      const { context, error } = useOrganizationSelection();
+      return <Enterprise id="new" canCreate={context?.canCreateEnterprise} eligibilityError={error} onSaved={() => {}} />;
+    }
+    await act(async () => { root.render(<Shell title="授權審核" workflow="review"><PrivateContent /><EnterpriseCreation /></Shell>); await flush(); });
     const notice = () => document.querySelector<HTMLElement>('[aria-label="LINE 身分狀態"]');
     assert.equal(notice()!.getAttribute("role"), "status");
     assert.equal(notice()!.getAttribute("aria-busy"), "true");

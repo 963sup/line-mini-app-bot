@@ -21,4 +21,19 @@
 開通資格由服務端配置於同一渠道下的 `enterpriseEntitlements/{SHA-256(userId)}`（文件鍵使用專案 firestorekey.Digest）。設定 `enabled: true` 提供一次企業開通資格。建立成功後由後端保存 enterpriseId；缺少資格時直接呼叫建立 API 也回 403。頁面使用 OpenAPI 生成的型別，顯示後端回傳的清單與管理操作。
 
 
+## 獨立資格與治理的交付邊界
+
+現行 Enterprise 支援多位 Owner；Organization 的單一 Owner 指標 MUST NOT 直接套用至企業。獨立模式的 Owner 權威格式與交易保護須先定案，舊 Owner 欄位只能在完成切換後作相容投影。
+
+下列是未來設計必須補齊的操作契約，尚未定案者阻擋對應能力啟用，不影響既有 legacy 流程。
+
+| 能力 | 必須定義的閉環與完成條件 |
+| --- | --- |
+| 直接企業資格 | 建立企業時原子建立首位 Owner；直接成員的加入、接受、名單、退出、移除與重新加入須具正常入口。具體邀請政策及入口尚待定案，不能將旗下組織成員或 People 聚合自動轉成企業資格。 |
+| Owner／manager 管理 | 明定 Owner 新增與撤銷、manager 授予與撤銷、本人退出、最後有效 Owner 保護及預期版本。manager 可管理的具體動作須列舉，不能因角色名稱取得全部管理能力。多 Owner 的權威與變更契約尚待定案。 |
+| Enterprise Team 的前置資格 | 直接企業資格須先能建立、撤銷並提供世代，再允許企業 Team 開通。名單必須能辨識首任 maintainer；企業 Team 指派不建立組織或企業成員關係。 |
+| 組織離開或變更企業 | 須定義雙端授權、原指派與依賴授權何時失效、並行指派如何拒絕，以及成功後導覽如何更新。現階段未定義脫離或移轉命令，MUST NOT 以直接改 enterpriseId 代替。 |
+
+所有獨立資格寫入遵循 [Membership 交易與重送契約](../../proposals/membership.md#原子操作與重送契約)。切換須涵蓋企業詳情、導覽、Team 開通與指派的所有授權讀寫；未完成時不得啟用 membership 模式。驗收須證明直接與衍生資格可區分、最後 Owner 不可撤除、manager 不能自行升 Owner，以及企業撤權再加入不恢復舊 Team 資格。角色、入口與權威格式未定案的部分須保留為阻塞，不能以編譯或列表可見宣稱閉環。
+
 [跨領域歸屬契約](../../architecture/contracts/organization-team-ownership.md) · [領域入口](README.md)

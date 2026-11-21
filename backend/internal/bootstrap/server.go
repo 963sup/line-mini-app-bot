@@ -21,6 +21,7 @@ import (
 	groupline "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/line"
 	issuehttp "github.com/963sup/line-mini-app-bot/internal/business/issue/adapter/http"
 	journalhttp "github.com/963sup/line-mini-app-bot/internal/business/journal/adapter/http"
+	membershipdb "github.com/963sup/line-mini-app-bot/internal/business/membership/adapter/firestore"
 	membershiphttp "github.com/963sup/line-mini-app-bot/internal/business/membership/adapter/http"
 	membershipapp "github.com/963sup/line-mini-app-bot/internal/business/membership/application"
 	objecthttp "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/http"
@@ -139,10 +140,24 @@ func Run() (resultErr error) {
 	teamHandler := teamhttp.Handler{Auth: auth}
 	if sessionStore != nil && os.Getenv("LINE_MESSAGING_API_CHANNEL_ID") != "" {
 		channel := os.Getenv("LINE_MESSAGING_API_CHANNEL_ID")
-		organizationStore := organizationdb.Store{DB: sessionStore.Client, Channel: channel}
+		organizationStore := organizationdb.Store{
+			DB: sessionStore.Client, Channel: channel,
+			EnterpriseNavigation: enterprisedb.NavigationFacts,
+			CanCreateEnterprise:  enterprisedb.CanStartCreation,
+			CreateEnterprise:     enterprisedb.CreateFromConversation,
+		}
 		organizationHandler.Store = organizationStore
-		enterpriseHandler.Store = enterprisedb.Store{DB: sessionStore.Client, Channel: channel, Groups: groups}
-		teamHandler.Store = teamdb.Store{DB: sessionStore.Client, Channel: channel, Groups: groups}
+		enterpriseHandler.Store = enterprisedb.Store{
+			DB: sessionStore.Client, Channel: channel, Groups: groups,
+			OrganizationMember: membershipdb.OrganizationMember,
+			TeamMember:         membershipdb.TeamMember,
+		}
+		teamHandler.Store = teamdb.Store{
+			DB: sessionStore.Client, Channel: channel, Groups: groups,
+			OrganizationMember: membershipdb.OrganizationMember,
+			TeamMember:         membershipdb.TeamMember,
+			OpenMembership:     membershipdb.OpenTeamMembership,
+		}
 		creation = organizationStore
 		invitations = membershipInvitations(sessionStore.Client, channel, os.Getenv("LINE_MESSAGING_API_CHANNEL_SECRET"))
 	}

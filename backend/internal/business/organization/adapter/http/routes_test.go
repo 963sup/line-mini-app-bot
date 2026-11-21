@@ -65,7 +65,7 @@ func TestWorkspaceLifecycle(t *testing.T) {
 		Code:  func(_, eventID string) string { return eventID },
 	}
 	httpapi.RegisterMembership(mux, membershiphttp.Handler{Auth: &owner, Service: invitations})
-	httpapi.RegisterOrganizations(mux, Handler{Auth: &owner, Store: orgdb.Store{DB: db, Channel: channel}})
+	httpapi.RegisterOrganizations(mux, Handler{Auth: &owner, Store: orgdb.Store{DB: db, Channel: channel, EnterpriseNavigation: enterprisedb.NavigationFacts}})
 	httpapi.RegisterEnterprises(mux, enterprisehttp.Handler{Auth: &owner, Store: enterprisedb.Store{DB: db, Channel: channel, Groups: groups}})
 	httpapi.RegisterTeams(mux, teamhttp.Handler{Auth: &owner, Store: teamdb.Store{DB: db, Channel: channel, Groups: groups}})
 	call := func(method, path, body string, code int) []byte {

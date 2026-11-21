@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"cloud.google.com/go/firestore"
-	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
 	membership "github.com/963sup/line-mini-app-bot/internal/business/membership/domain"
 
@@ -25,6 +24,10 @@ import (
 type Store struct {
 	DB      *firestore.Client
 	Channel string
+	// EnterpriseNavigation reads facts using the current Firestore transaction.
+	EnterpriseNavigation func(*firestore.Transaction, *firestore.DocumentRef, string) (map[string]string, bool, error)
+	CanCreateEnterprise  func(*firestore.Transaction, *firestore.DocumentRef, string) (bool, error)
+	CreateEnterprise     func(*firestore.Transaction, *firestore.DocumentRef, string, string, string) error
 }
 
 func (s Store) Context(ctx context.Context, user string, preference string, write bool) (*organizationApplicationDto.Context, error) {
@@ -48,6 +51,9 @@ func (s Store) Context(ctx context.Context, user string, preference string, writ
 			if err := d.DataTo(&o); err != nil {
 				return nil, err
 			}
+			if !o.VisibleLegacyOrganization(user) {
+				continue
+			}
 			if _, ok := labels[o.Enterprise]; !ok && o.Enterprise != "" {
 				ent, err := orgstore.Read(tx, root.Collection("enterprises").Doc(o.Enterprise))
 				if err != nil {
@@ -70,10 +76,16 @@ func (s Store) Context(ctx context.Context, user string, preference string, writ
 				return nil, err
 			}
 		}
-		result := organizationApplicationQuery.BuildContext(rows, selected)
-		if err := enterprisedb.PopulateNavigation(tx, root, user, labels, &result); err != nil {
-			return nil, err
+		var enterprises map[string]string
+		var canCreateEnterprise bool
+		if s.EnterpriseNavigation != nil {
+			var err error
+			enterprises, canCreateEnterprise, err = s.EnterpriseNavigation(tx, root, user)
+			if err != nil {
+				return nil, err
+			}
 		}
+		result := organizationApplicationQuery.BuildContextWithNavigation(rows, selected, enterprises, canCreateEnterprise)
 		if write {
 			if result.Selected == nil || result.Selected.ID != selected {
 				return nil, organizationDomainEntity.ErrNotFound
@@ -120,7 +132,7 @@ func (s Store) Transfer(ctx context.Context, user string, organizationId, target
 		if e != nil {
 			return nil, e
 		}
-		if org.Owner != user || org.Disabled || (org.MembershipMode != "" && org.MembershipMode != "legacy") {
+		if org.Owner != user || !org.LegacyOrganizationEnabled() {
 			return nil, organizationDomainEntity.ErrNotFound
 		}
 		successor := target

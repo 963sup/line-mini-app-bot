@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
 	dto "github.com/963sup/line-mini-app-bot/internal/business/organization/application/dto"
 	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
@@ -71,11 +70,15 @@ func (s Store) Conversation(ctx context.Context, user, eventID, text string, at 
 				break
 			}
 			if kind == "enterprise" {
-				g, _, err := enterprisedb.Provisioning(tx, root, user)
+				if s.CanCreateEnterprise == nil || s.CreateEnterprise == nil {
+					reply.Text = "企業建立服務目前無法使用。"
+					break
+				}
+				allowed, err := s.CanCreateEnterprise(tx, root, user)
 				if err != nil {
 					return nil, err
 				}
-				if !g.Enabled || g.EnterpriseID != "" {
+				if !allowed {
 					reply.Text = "帳號目前沒有可用的企業開通資格。"
 					break
 				}
@@ -98,7 +101,12 @@ func (s Store) Conversation(ctx context.Context, user, eventID, text string, at 
 			reply.ID = id
 			name := text
 			if kind == "enterprise" {
-				v, err := enterprisedb.CreateInTransaction(tx, root, user, id, text, false)
+				if s.CreateEnterprise == nil {
+					reply = dto.CreationReply{Text: "企業建立服務目前無法使用。"}
+					pending.Kind = ""
+					break
+				}
+				err := s.CreateEnterprise(tx, root, user, id, text)
 				if errors.Is(err, organizationDomainEntity.ErrForbidden) {
 					reply = dto.CreationReply{Text: "帳號目前沒有可用的企業開通資格。"}
 					pending.Kind = ""
@@ -107,8 +115,6 @@ func (s Store) Conversation(ctx context.Context, user, eventID, text string, at 
 				if err != nil {
 					return nil, err
 				}
-				reply.ID = v.ID
-				name = v.Name
 			} else {
 				if _, err := createOrganization(tx, root, user, id, text); err != nil {
 					return nil, err

@@ -2,11 +2,13 @@
 
 ## Organization（組織）
 
+本頁保存 Organization 的資源與導覽規則；邀請、名單、退出與移除的操作契約統一維護於 [Membership 的組織入口](../../proposals/membership.md#首版-bot-私聊入口)。現行 legacy 流程與未來獨立 Membership 模式須分別驗收。
+
 | 資料或操作 | 規則與驗收條件 |
 |---|---|
 | `organizations/{organizationId}` | 建立時由後端產生 UUID。每個組織恰有一位現任 Owner，唯一判定欄位為 `ownerUserId`。`name` 可修改，`createdBy` 保存建立者。 |
 | 建立組織 | 已登入使用者建立 Organization，後端從已驗證身分填入 ownerUserId 與 createdBy。同一位使用者可建立多個組織。 |
-| 移轉所有權 | 只有現任 Owner 能指定有效的現有成員為新 Owner。交易內重新核對現任 Owner 並更新 ownerUserId；舊 Owner 隨即失去 Owner 權限，createdBy 與 Team 歸屬維持原值。 |
+| 移轉所有權 | 只有現任 Owner 能指定有效的現有成員為新 Owner。同一交易重新核對現任 Owner 與接任者的成員資格，更新 `ownerUserId`、Owner 版本，並保留舊 Owner 為一般成員。舊 Owner 失去管理權，`createdBy` 與 Team 歸屬維持原值。 |
 
 ## 側欄切換組織（目標規格）
 
@@ -42,6 +44,10 @@
 
 後端用例負責清單、排序、預設值、授權與偏好保存；HTTP adapter 轉成生成的 DTO。後續組織資源請求須明確帶目標 organizationId，後端逐次核對資源歸屬與操作權限。切換選單只更新個人偏好。
 
+Organization 查詢只組合可見組織、選擇偏好與 Enterprise 提供的導覽事實。Bootstrap 注入 Enterprise 的資料與開通能力；兩者仍參與呼叫端的同一 Firestore 交易。Organization、Team 與 Enterprise 對現行組織成員欄位的授權只適用於啟用的 legacy 組織。獨立 Membership 模式的正向讀寫須在切換前接妥。
+
+組織頁的「設定」提供 Owner 移轉。畫面從 People 名單選擇接任者，確認後以 `memberId` 呼叫 `PUT /api/v1/organizations/{organizationId}/owner`，成功回 204 並重讀名單與側欄。後端在指定組織的交易內解析成員代碼；既有使用 `userId` 的呼叫仍回 200。兩個目標欄位只能提供其一。
+
 組織頁另以 API `GET /api/v1/organizations/{organizationId}/teams` 讀取清單。後端先驗證組織存取資格，再合併本人可見的本地 Team 與有效企業指派，依 teamId 去重。成功回傳 `OrganizationTeamsResponse { teams: OrganizationTeamOption[] }`；每個選項含 `teamId`（LINE groupId 字串）、`name`、`managementScope`（organization 或 enterprise）。無可見 Team 時回空陣列。Go DTO 與前端型別同樣從 OpenAPI 生成。切換側欄只需帶入新 organizationId 重新查詢，前端不合併清單，也不從 Team 指派推算可切換的組織。
 
 ### 前端責任與驗收
@@ -52,5 +58,15 @@
 - 儲存失敗時顯示錯誤並重新取得後端狀態；若成員資格已撤銷，依最新清單更新畫面。驗收應確認單純展開不送 PUT，成功切換只送一次 PUT、無額外 POST /api/v1/session，且側欄直接顯示新組織名稱。其他驗收涵蓋空清單、同名組織、鍵盤與手機切換、重新整理、失去資格與舊回應晚到。
 
 
+
+## 獨立資格的交付邊界
+
+未來設計：建立新組織時，Organization、範圍狀態與首位 Owner 關係 MUST 原子建立。既有組織依 [Membership 切換契約](../../proposals/membership.md#儲存與遷移方案)準備關係並切換；不得只改模式欄位。切換前 MUST 接妥 Bot 邀請、People、Owner 移轉、退出／移除、組織選單及 Team／Enterprise 消費端的正向讀寫。切換後舊欄位不能補授權。
+
+首版沿用 Bot 和 MINI App 的現有入口。新組織開通獨立模式時，首位 Owner 取得有效關係和初始資格世代。已驗證使用者接受有效邀請後，由同一交易建立或恢復成員關係。退出或移除由原 People 入口執行，交易內重驗權限並結束關係。Owner 移轉只更新權威指標，原 Owner 仍是有效一般成員。重送、版本和世代沿用 Membership 共通契約。
+
+Team 透過交易內的資格讀取契約取得目前 Owner 判定、首任候選人的有效關係和資格世代。MINI App 從服務端提供的候選名單選人，請求使用組織成員代碼。Team 不寫入 Organization 關係，也不把現行 legacy 欄位當作獨立資格來源。驗收由管理者建立或切換一個測試組織，完成邀請、退出及重新加入後，再驗證 [Team 開通授權](../team/design.md#群組開通授權)。
+
+驗收須從正常入口完成建立、邀請、接受、名單、移轉及退出／移除，並核對重送不重新開權、移轉與退出併發仍有有效 Owner、撤權後選單及下層資格立即失效。切換後重新加入產生新世代，不能恢復舊 Team 資格。資料準備、切換執行入口及回復工具尚待實作與環境驗收；未完成前 MUST 維持 legacy 模式。
 
 [跨領域歸屬契約](../../architecture/contracts/organization-team-ownership.md) · [領域入口](README.md)

@@ -2,6 +2,7 @@ package query
 
 import (
 	"slices"
+	"strings"
 
 	organizationApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/organization/application/dto"
 )
@@ -38,5 +39,31 @@ func BuildContext(visible []organizationApplicationDto.VisibleOrganization, pref
 			result.Selected = &organizationApplicationDto.Selected{ID: r.ID, Name: r.Name, GroupLabel: g.Label}
 		}
 	}
+	return result
+}
+
+// BuildContextWithNavigation combines the linked and directly visible enterprises.
+func BuildContextWithNavigation(visible []organizationApplicationDto.VisibleOrganization, preference string, enterprises map[string]string, canCreate bool) organizationApplicationDto.Context {
+	result := BuildContext(visible, preference)
+	labels := make(map[string]string, len(enterprises))
+	for _, row := range visible {
+		if row.EnterpriseID != "" {
+			labels[row.EnterpriseID] = row.EnterpriseName
+		}
+	}
+	for id, name := range enterprises {
+		labels[id] = name
+	}
+	result.CanCreateEnterprise = canCreate
+	result.Enterprises = make([]organizationApplicationDto.EnterpriseLink, 0, len(labels))
+	for id, name := range labels {
+		result.Enterprises = append(result.Enterprises, organizationApplicationDto.EnterpriseLink{ID: id, Name: name})
+	}
+	slices.SortFunc(result.Enterprises, func(a, b organizationApplicationDto.EnterpriseLink) int {
+		if a.Name == b.Name {
+			return strings.Compare(a.ID, b.ID)
+		}
+		return strings.Compare(a.Name, b.Name)
+	})
 	return result
 }
