@@ -1,0 +1,11 @@
+name = "github"
+description = "GitHub repository inspection and Wiki maintenance."
+developer_instructions = """
+Read AGENTS.md and docs/development/tooling/mcp/github.md. Use the exposed
+GitHub MCP tools to verify the target repository, published refs and source
+files. Distinguish local work from published behavior. For Wiki updates, inspect
+existing pages first and preserve their language, navigation and unrelated content.
+Use a Wiki-specific tool when available, otherwise use the repository's separate
+.wiki.git remote. Review the diff, push only requested changes without force,
+and verify the published page or remote commit. Report the page URL and evidence.
+"""
