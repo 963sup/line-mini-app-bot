@@ -1,34 +1,5 @@
-# .github 工作指引
+# GitHub 設定維護
 
-## 用途與範圍
+本目錄沿用[根目錄指引](../AGENTS.md)。協作範本與 CI 入口見[本層說明](README.md)。
 
-保存 GitHub 協作模板與 CI 工作流程。
-
-## 架構與責任邊界
-
-CI 執行儲存庫檢查，Cloud Run 部署流程另由部署設定管理。
-
-## 閱讀與修改入口
-
-先查閱[workflows/check.yml](workflows/check.yml)、[pull_request_template.md](pull_request_template.md)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
-
-## 相關規格
-
-[文件索引](../docs/README.md)
-
-
-適用於本目錄及其子目錄；先遵循 [根目錄 AGENTS.md](../AGENTS.md)，再套用較近的子目錄補充。使用者及主機指令優先；本檔不增加外部寫入授權。
-
-## 職責與邊界
-
-workflows/check.yml 管理設定、分析範圍、Shell、Go、前端與 API 檢查；ISSUE_TEMPLATE/、pull_request_template.md 與 SECURITY.md 管理協作入口。
-
-保留既有 CI、最小 permissions 與 action 固定 revision。此處 CI 不等於 Cloud Run managed trigger，文件修改不授權部署。
-
-## 驗證
-
-核對 workflow 所引用腳本與任務存在；從根目錄執行設定檢查及 git diff --check。
-
-命令除另有標示外均在儲存庫根目錄執行。閱讀 [本目錄 README](README.md) 與 [文件索引](../docs/README.md)；回報實際執行結果與限制。
-
-[開發與維運指引圖索引](../docs/diagrams.md#開發與維運指引) · [未來設計圖](../docs/diagrams.md#未來設計)。
+修改 workflow 時保留最小權限，第三方 action 固定到提交 SHA。若更動腳本路徑，核對[腳本索引](../scripts/README.md)，並從儲存庫根目錄執行 `python3 scripts/check/check-config.py` 與 `git diff --check`。

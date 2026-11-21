@@ -1,30 +1,14 @@
 # VS Code 工作區設定
 
-## 用途與範圍
+從儲存庫根目錄開啟 VS Code。執行「Tasks: Run Task」可選擇以下[工作區任務](tasks.json)。
 
-保存共用 VS Code 設定與開發任務。
+| 任務 | 用途 |
+| --- | --- |
+| Go: setup | 以 core 模式初始化本機開發工具 |
+| Environment: doctor | 檢查開發環境 |
+| Go: check application | 驗證 Go 模組、執行 vet 與 race 測試 |
+| Repository: check configuration | 檢查儲存庫設定 |
 
-## 架構與責任邊界
+Codex Cloud 的 Install script 使用 `scripts/bootstrap.sh`，預設為 cloud 模式。[Cloud 初始化說明](../.codex/README.md#codex-環境初始化)
 
-編輯器任務呼叫儲存庫工具入口，工具版本由專案設定管理。
-
-## 閱讀與修改入口
-
-先查閱[settings.json](settings.json)、[tasks.json](tasks.json)、[extensions.json](extensions.json)、[本目錄工作指引](AGENTS.md)。
-
-## 相關規格
-
-[本層規格與指引](../docs/development/tooling/mise.md)
-
-
-## 目錄導覽與維護
-
-settings.json 指向 scripts/tooling 的 Go/gopls wrappers；tasks.json 提供 bootstrap、doctor、Go check 與設定檢查；extensions.json 列推薦擴充。
-
-所有任務以儲存庫根目錄為工作目錄；沿用工具 wrapper，不加入個人絕對路徑、token 或自動版本更新。
-
-解析三個 JSON，核對 task 的腳本與 cwd。Repomix 本次未收錄此目錄，須直接檢查。
-
-[本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
-
-[開發與維運指引圖索引](../docs/diagrams.md#開發與維運指引) · [未來設計圖](../docs/diagrams.md#未來設計)。
+[編輯器設定](settings.json) · [推薦擴充套件](extensions.json) · [本層維護指引](AGENTS.md)
