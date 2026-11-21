@@ -163,4 +163,3 @@ export function ComposeView({request, close}: {request: Request; close: () => vo
     {publishGroup && <Composer request={request} group={publishGroup} saved={close} onPending={onPending} isBlocked={isBlocked} />}
   </>;
 }
-

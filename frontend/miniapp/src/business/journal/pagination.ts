@@ -3,4 +3,3 @@ export async function collect<T>(fetch: (cursor: string) => Promise<{items:T[];n
   do { const page=await fetch(cursor); all.push(...page.items); cursor=page.nextCursor; } while(cursor);
   return all;
 }
-
