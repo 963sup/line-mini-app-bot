@@ -1319,6 +1319,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/repositories/{repositoryId}/object-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List immutable v1 templates, in document ID order */
+        get: operations["listObjectTemplates"];
+        put?: never;
+        /** Validate a tree and create an immediately usable immutable v1 template */
+        post: operations["createObjectTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/object-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read an immutable template snapshot */
+        get: operations["getObjectTemplate"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/repositories/{repositoryId}/object-templates/{id}/instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Atomically create an independent object tree; retry returns the original result */
+        post: operations["instantiateObjectTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1657,12 +1709,19 @@ export interface components {
             status: "not_started" | "in_progress" | "completed";
             /** @description Exact absolute completed quantity for work only; 0 <= completedQuantity <= quantity. Absent for non_work and legacy objects; new work defaults to 0. Omitted update preserves current value; conversion to work requires explicit value. */
             completedQuantity?: string;
+            /** @description Parent Object in the same repository. Omit for a root Object. The parent is set on creation and cannot be changed. */
+            parentId?: string;
             /** @description Optional repository-owned business Space ID, never a LINE Group ID. Empty means unassigned; omitted update preserves the current assignment. The server verifies the same repository and channel. */
             spaceId?: string;
             /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
             canEdit: boolean;
             /** @description Whether stored progress must be reset before changing the type to non-work. */
             requiresProgressReset: boolean;
+            /** @description Immutable template source, when instantiated. */
+            templateId?: string;
+            /** Format: int64 */
+            templateVersion?: number;
+            templateNodeId?: string;
         };
         /** @description Create an object with its name only; classification, quantity, unit and space may be supplied later. No inferred defaults. */
         ObjectCreation: {
@@ -1680,6 +1739,8 @@ export interface components {
             quantity?: string;
             /** @description Exact absolute completed quantity for work only; 0 <= completedQuantity <= quantity. Absent for non_work and legacy objects; new work defaults to 0. Omitted update preserves current value; conversion to work requires explicit value. */
             completedQuantity?: string;
+            /** @description Parent Object in the same repository. Omit for a root Object. The parent is set on creation and cannot be changed. */
+            parentId?: string;
             /** @description Optional repository-owned business Space ID, never a LINE Group ID. Empty means unassigned; omitted update preserves the current assignment. The server verifies the same repository and channel. */
             spaceId?: string;
         };
@@ -1973,6 +2034,56 @@ export interface components {
             status: "completed" | "refused" | "incomplete" | "invalid_output" | "provider_error";
             candidates: components["schemas"]["ObjectCandidate"][];
             rawResponse: string;
+        };
+        ObjectTemplateNode: {
+            id: string;
+            parentId?: string;
+            name: string;
+            description?: string;
+            type?: string;
+            quantity?: string;
+            unit?: string;
+        };
+        /** @description One root, connected acyclic tree, at most 100 nodes and 48,000 UTF-8 bytes of normalized content. Work defaults with a quantity require a unit; completion always starts at zero. Published immediately as immutable v1. */
+        ObjectTemplateCreation: {
+            name: string;
+            nodes: components["schemas"]["ObjectTemplateNode"][];
+        };
+        ObjectTemplate: {
+            id: string;
+            repositoryId: string;
+            name: string;
+            /**
+             * Format: int64
+             * @enum {integer}
+             */
+            version: 1;
+            nodes: components["schemas"]["ObjectTemplateNode"][];
+            creatorId: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ObjectTemplatePage: {
+            items: components["schemas"]["ObjectTemplate"][];
+            nextCursor: string;
+        };
+        /** @description Same Repository only. Optional parent must exist. All object writes, provenance and the actor/key receipt commit in one transaction. On an unknown response retry with the same Idempotency-Key and body. */
+        ObjectTemplateInstantiation: {
+            parentId?: string;
+        };
+        ObjectTemplateInstance: {
+            rootObjectId: string;
+            objectIds: string[];
+            templateId: string;
+            /** Format: int64 */
+            templateVersion: number;
+            /** @description Original committed tree, with assigned object IDs and parents. Replay returns the same creation result; read individual objects for current content. */
+            nodes: components["schemas"]["ObjectTemplateInstanceNode"][];
+        };
+        ObjectTemplateInstanceNode: {
+            objectId: string;
+            parentId: string;
+            name: string;
         };
         GroupItem: {
             id: string;
@@ -7895,6 +8006,144 @@ export interface operations {
                     "application/json": components["schemas"]["APIError"];
                 };
             };
+        };
+    };
+    listObjectTemplates: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectTemplatePage"];
+                };
+            };
+            400: components["responses"]["ObjectError"];
+            401: components["responses"]["ObjectError"];
+            403: components["responses"]["ObjectForbidden"];
+            404: components["responses"]["ObjectError"];
+            409: components["responses"]["ObjectError"];
+            415: components["responses"]["ObjectError"];
+            503: components["responses"]["ObjectError"];
+        };
+    };
+    createObjectTemplate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Scoped to actor, repository and this operation. Retry the original key and body after an unknown result. Same key with different normalized content returns idempotency_conflict (409). */
+                "Idempotency-Key": string;
+                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObjectTemplateCreation"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectTemplate"];
+                };
+            };
+            400: components["responses"]["ObjectError"];
+            401: components["responses"]["ObjectError"];
+            403: components["responses"]["ObjectForbidden"];
+            404: components["responses"]["ObjectError"];
+            409: components["responses"]["ObjectError"];
+            415: components["responses"]["ObjectError"];
+            503: components["responses"]["ObjectError"];
+        };
+    };
+    getObjectTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectTemplate"];
+                };
+            };
+            400: components["responses"]["ObjectError"];
+            401: components["responses"]["ObjectError"];
+            403: components["responses"]["ObjectForbidden"];
+            404: components["responses"]["ObjectError"];
+            409: components["responses"]["ObjectError"];
+            415: components["responses"]["ObjectError"];
+            503: components["responses"]["ObjectError"];
+        };
+    };
+    instantiateObjectTemplate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Scoped to actor, repository and this operation. Retry the original key and body after an unknown result. Same key with different normalized content returns idempotency_conflict (409). */
+                "Idempotency-Key": string;
+                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
+                "X-CSRF-Token"?: string;
+            };
+            path: {
+                repositoryId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObjectTemplateInstantiation"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectTemplateInstance"];
+                };
+            };
+            400: components["responses"]["ObjectError"];
+            401: components["responses"]["ObjectError"];
+            403: components["responses"]["ObjectForbidden"];
+            404: components["responses"]["ObjectError"];
+            409: components["responses"]["ObjectError"];
+            415: components["responses"]["ObjectError"];
+            503: components["responses"]["ObjectError"];
         };
     };
 }

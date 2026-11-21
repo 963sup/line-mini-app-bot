@@ -101,7 +101,11 @@ func view(i objectDomainEntity.Object, actor string) generated.Object {
 	if i.CompletedQuantity != "" {
 		completed = &i.CompletedQuantity
 	}
-	return generated.Object{RequiresProgressReset: i.RequiresProgressReset(), CanEdit: i.CanEdit(actor), SpaceId: spaceID, CompletedQuantity: completed, Id: i.ID, RepositoryId: i.RepositoryID, Name: i.Name, Description: i.Description, Type: i.Type, Quantity: i.Quantity, Unit: i.Unit, Status: generated.ObjectStatus(i.Status), SourceDocument: i.SourceDocument, SourceRevision: i.SourceRevision, SourceItemNo: i.SourceItemNo, SourcePages: i.SourcePages, MaterialCode: i.MaterialCode, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
+	var parentID *string
+	if i.ParentID != "" {
+		parentID = &i.ParentID
+	}
+	return generated.Object{TemplateId: optional(i.TemplateID), TemplateVersion: templateVersion(i.TemplateVersion), TemplateNodeId: optional(i.TemplateNodeID), ParentId: parentID, RequiresProgressReset: i.RequiresProgressReset(), CanEdit: i.CanEdit(actor), SpaceId: spaceID, CompletedQuantity: completed, Id: i.ID, RepositoryId: i.RepositoryID, Name: i.Name, Description: i.Description, Type: i.Type, Quantity: i.Quantity, Unit: i.Unit, Status: generated.ObjectStatus(i.Status), SourceDocument: i.SourceDocument, SourceRevision: i.SourceRevision, SourceItemNo: i.SourceItemNo, SourcePages: i.SourcePages, MaterialCode: i.MaterialCode, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
 }
 
 func writeError(w http.ResponseWriter, e error) bool {
@@ -162,7 +166,7 @@ func (s *objectServer) CreateObject(w http.ResponseWriter, r *http.Request, rid 
 	if !transport.ReadJSON(w, r, &in, "物件資料無效。") {
 		return
 	}
-	c := objectDomainEntity.Content{SpaceID: value(in.SpaceId), CompletedQuantity: value(in.CompletedQuantity), Name: in.Name, Description: value(in.Description), Type: value(in.Type), Quantity: value(in.Quantity), Unit: value(in.Unit), SourceDocument: value(in.SourceDocument), SourceRevision: value(in.SourceRevision), SourceItemNo: value(in.SourceItemNo), SourcePages: value(in.SourcePages), MaterialCode: value(in.MaterialCode)}
+	c := objectDomainEntity.Content{ParentID: value(in.ParentId), SpaceID: value(in.SpaceId), CompletedQuantity: value(in.CompletedQuantity), Name: in.Name, Description: value(in.Description), Type: value(in.Type), Quantity: value(in.Quantity), Unit: value(in.Unit), SourceDocument: value(in.SourceDocument), SourceRevision: value(in.SourceRevision), SourceItemNo: value(in.SourceItemNo), SourcePages: value(in.SourcePages), MaterialCode: value(in.MaterialCode)}
 	i, e := s.service.Create(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, c)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
@@ -223,4 +227,11 @@ func (s *objectServer) ExtractObjectCandidates(w http.ResponseWriter, r *http.Re
 		return
 	}
 	transport.WriteJSON(w, 200, out)
+}
+
+func templateVersion(n int64) *int64 {
+	if n == 0 {
+		return nil
+	}
+	return &n
 }

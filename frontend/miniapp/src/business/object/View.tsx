@@ -1,3 +1,4 @@
+import { Templates } from "./Templates";
 import { Candidates, type Selection } from "./Candidates";
 import { isPositiveQuantity, isValidCompletedQuantity } from "@/business/object/quantity";
 import React, { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
@@ -62,6 +63,7 @@ function Content({ repositoryId }: Props) {
   const [busy, setBusy] = useState(false), [detailBusy, setDetailBusy] = useState(false), [uncertain, setUncertain] = useState(false), [needsRefresh, setNeedsRefresh] = useState(false), [status, setStatus] = useState("");
   useEffect(() => { repositoryGuard.block(busy || uncertain || needsRefresh); }, [busy, uncertain, needsRefresh]);
   const [expanded, setExpanded] = useState("");
+  const [instance, setInstance] = useState<components["schemas"]["ObjectTemplateInstance"]>();
   const [subBlocked, setSubBlocked] = useState(false);
   const subLock = useRef(false);
   const subBlock = useCallback((value: boolean) => { subLock.current = value; setSubBlocked(value); }, []);
@@ -239,9 +241,16 @@ function Content({ repositoryId }: Props) {
         <Button disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={event => openCreateForm(event.currentTarget)}>新增物件</Button>
         <Button variant="outline" disabled={!user || busy || listBusy || subBlocked || uncertain || !!mode} onClick={() => load()}>重新載入物件</Button>
       </div>
+      <Templates repositoryId={repositoryId} disabled={!user || !!mode || busy || listBusy || uncertain || needsRefresh || subBlocked} onBlocked={subBlock} onApplied={result => {
+        // The API owns the result identity; no list scan is needed to find it.
+        subLock.current = false; formNavigation.current = false; setExpanded("");
+        setItems([]); setInstance(result); open(result.rootObjectId);
+      }} />
       <Candidates repositoryId={repositoryId} disabled={!user || !!mode || busy || uncertain || needsRefresh || subBlocked} created={createdCandidates} choose={(selection, trigger) => openCreateForm(trigger, selection)} />
+      {instance && <section aria-label="新物件樹" className="flex min-w-0 flex-col gap-2"><h3>已建立物件樹</h3><ul>{instance.nodes.map(node => <li key={node.objectId}><Button variant="link" disabled={busy || uncertain || needsRefresh || subBlocked} onClick={() => open(node.objectId)}>{node.name}</Button>{node.objectId === instance.rootObjectId ? "（根節點）" : `（父節點：${instance.nodes.find(parent => parent.objectId === node.parentId)?.name || "既有物件"}）`}</li>)}</ul></section>}
       <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取物件……" />
       {mode === "create" && <PagePanel heading="新增物件">{editor}</PagePanel>}
+      {mode === "detail" && !items.some(item => item.id === activeId) && <PagePanel heading="物件詳情">{editor}</PagePanel>}
       <ItemGroup className="w-full min-w-0 gap-3">{items.map(item => <Collapsible key={item.id} open={expanded === item.id} onOpenChange={value => {
         if (subLock.current || lock.current || uncertain || formNavigation.current || discard.isConfirming()) return;
         formNavigation.current = true; setExpanded(value ? item.id : "");

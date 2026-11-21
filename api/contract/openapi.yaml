@@ -147,10 +147,10 @@
       "$ref": "./object/objects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects~1{id}"
     },
     "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects": {
-      "$ref": "./subobject/subobjects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects~1{objectId}~1subobjects"
+      "$ref": "./object/subobjects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects~1{objectId}~1subobjects"
     },
     "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}": {
-      "$ref": "./subobject/subobjects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects~1{objectId}~1subobjects~1{id}"
+      "$ref": "./object/subobjects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects~1{objectId}~1subobjects~1{id}"
     },
     "/api/v1/owners/{ownerId}/projects/{id}/references": {
       "$ref": "./project/references.yaml#/paths/~1api~1v1~1owners~1{ownerId}~1projects~1{id}~1references"
@@ -235,6 +235,15 @@
     },
     "/api/v1/tools/poppler/extractions": {
       "$ref": "./operations/poppler.yaml#/paths/~1api~1v1~1tools~1poppler~1extractions"
+    },
+    "/api/v1/repositories/{repositoryId}/object-templates": {
+      "$ref": "./object/objects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-templates"
+    },
+    "/api/v1/repositories/{repositoryId}/object-templates/{id}": {
+      "$ref": "./object/objects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-templates~1{id}"
+    },
+    "/api/v1/repositories/{repositoryId}/object-templates/{id}/instances": {
+      "$ref": "./object/objects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-templates~1{id}~1instances"
     }
   },
   "components": {
@@ -360,16 +369,16 @@
         "$ref": "./object/objects.yaml#/components/schemas/ObjectPage"
       },
       "Subobject": {
-        "$ref": "./subobject/subobjects.yaml#/components/schemas/Subobject"
+        "$ref": "./object/subobjects.yaml#/components/schemas/Subobject"
       },
       "SubobjectCreation": {
-        "$ref": "./subobject/subobjects.yaml#/components/schemas/SubobjectCreation"
+        "$ref": "./object/subobjects.yaml#/components/schemas/SubobjectCreation"
       },
       "SubobjectUpdate": {
-        "$ref": "./subobject/subobjects.yaml#/components/schemas/SubobjectUpdate"
+        "$ref": "./object/subobjects.yaml#/components/schemas/SubobjectUpdate"
       },
       "SubobjectPage": {
-        "$ref": "./subobject/subobjects.yaml#/components/schemas/SubobjectPage"
+        "$ref": "./object/subobjects.yaml#/components/schemas/SubobjectPage"
       },
       "ProjectReference": {
         "$ref": "./project/references.yaml#/components/schemas/ProjectReference"
@@ -457,6 +466,27 @@
       },
       "ObjectCandidateResult": {
         "$ref": "./object/objects.yaml#/components/schemas/ObjectCandidateResult"
+      },
+      "ObjectTemplateNode": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectTemplateNode"
+      },
+      "ObjectTemplateCreation": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectTemplateCreation"
+      },
+      "ObjectTemplate": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectTemplate"
+      },
+      "ObjectTemplatePage": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectTemplatePage"
+      },
+      "ObjectTemplateInstantiation": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectTemplateInstantiation"
+      },
+      "ObjectTemplateInstance": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectTemplateInstance"
+      },
+      "ObjectTemplateInstanceNode": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectTemplateInstanceNode"
       }
     },
     "securitySchemes": {
