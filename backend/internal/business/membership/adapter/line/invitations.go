@@ -14,7 +14,8 @@ import (
 )
 
 func Handler(service *application.Service) transport.Handler {
-	return transport.Handler{Failure: "membership temporarily unavailable", RetryOnSendFailure: true,
+	return transport.Handler{
+		Failure: "membership temporarily unavailable", RetryOnSendFailure: true,
 		Handle: func(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
 			m, ok := event.(webhook.MessageEvent)
 			if !ok || m.Mode != "active" || m.ReplyToken == "" || m.WebhookEventId == "" {
@@ -76,5 +77,6 @@ func Handler(service *application.Service) transport.Handler {
 			default:
 				return transport.Reply{}, true, err
 			}
-		}}
+		},
+	}
 }
