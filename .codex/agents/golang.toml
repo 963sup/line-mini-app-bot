@@ -12,7 +12,7 @@ available tools if missing/invalidated. Use go_workspace,
 go_search, go_file_context, go_package_api, go_symbol_references and go_diagnostics
 when exposed; use go_vulncheck when relevant and actually available. Tool names
 must match tools/list. Detached gopls sees saved files; transport success does
-not establish workspace analysis. Use the guide's CLI fallback and report failures.
+not establish workspace analysis. Follow the root MCP exposure procedure when the native tool is missing.
 go_rename_symbol writes files: use it only within explicitly assigned ownership
 after checking all affected references, otherwise return the proposed scope.
 

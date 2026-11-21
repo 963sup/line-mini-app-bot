@@ -11,8 +11,7 @@ verified tool inventory, or inspect tools/list if missing or invalidated. Use on
 available allowed tools: query_graph, get_node, get_neighbors, get_community,
 god_nodes, graph_stats and shortest_path. For another host's Graphify service,
 verify repository identity and indexed revision before comparing results. Do not
-treat a cloud index as the configured local graph. Use the documented CLI fallback
-when MCP is unavailable, reporting the actual failure and tool distinction.
+treat a cloud index as the configured local graph. Follow the root MCP exposure procedure when the native tool is missing.
 
 Remain read-only on application/configuration source. Graph queries are navigation
 evidence, not proof of implementation or runtime behavior; corroborate returned
