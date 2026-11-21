@@ -9,7 +9,7 @@
 | 3. Bounded Context Design（限界上下文設計） | 誰提供可信身分？誰決定此人能否核准這筆班次？ | 畫出身分與出勤的責任邊界，列明各自擁有的規則。 |
 | 4. Ubiquitous Language（通用語言） | 「補正申請」「審核決定」「生效紀錄」分別指什麼？ | 用相同詞彙描述介面、領域行為與驗收案例。 |
 | 5. Context Mapping（上下文映射） | 出勤接收哪些身分事實？變更會影響哪一方？ | 畫出有方向及契約標籤的 Context Map，記錄整合方式。 |
-| 6. Tactical Design（戰術設計） | 哪個 Entity 有穩定身分？哪些值按內容相等？哪些規則需要同時成立？ | 區分紀錄實體與時間區間值物件，依核准時的一致性需求評估 Aggregate 邊界。 |
-| 7. Hexagonal Architecture（六角形架構） | 哪一層執行用例？如何在最新資料上做決策並原子寫回？ | 由應用層定義所需 port，讓領域規則可獨立測試，並由適配器測試並行核准與重送。 |
+| 6. Tactical Design（戰術設計） | 哪個 Entity 有穩定身分？哪些值按內容相等？哪些規則需要同時成立？複雜物件如何完整建立？ | 區分 [Entity](entity.md) 與 [Value Object](value-object.md)，依 [Invariant](invariant.md) 評估 [Aggregate](aggregate.md) 邊界；選擇 [Factory](factory.md)、[Repository](repository.md)、[Domain Service](domain-service.md) 與必要的 [Domain Event](domain-event.md)。 |
+| 7. Hexagonal Architecture（六角形架構） | 哪一層執行用例？如何在最新資料上做決策並原子寫回？ | 以 [Application Service](application-service.md) 協調用例，依[六邊形架構](hexagonal-architecture.md)定義 Port／Adapter 與依賴方向，並明列[一致性](consistency.md)、併發及重送的驗收需求。 |
 
-核對專案已實作的行為與下一批設計目標，見[出勤規格](../../domains/attendance/README.md)。[戰略設計索引](README.md)
+核對專案已實作的行為與下一批設計目標，見[出勤規格](../../domains/attendance/README.md)。[DDD 設計索引](README.md)

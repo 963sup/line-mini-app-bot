@@ -1,0 +1,15 @@
+# 限界上下文整合（Bounded Context Integration）
+
+透過公開能力交換事實或請求行為。
+
+## 設計時要確認
+
+先定契約擁有者、時效與失敗語意；同步查詢適合當下需要回答，非同步適合容許延遲的傳播。
+
+## 示例
+
+Team 查 Organization 資格時把不可用、查無資格與結果過期分開。
+
+## 延伸閱讀
+
+[context-map](context-map.md) · [anti-corruption-layer](anti-corruption-layer.md) · [integration-event](integration-event.md) · [DDD 設計索引](README.md)
