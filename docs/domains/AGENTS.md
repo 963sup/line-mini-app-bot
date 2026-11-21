@@ -1,23 +1,6 @@
-# features 工作指引
+# 領域規則及驗收工作指引
 
-## 用途與範圍
-
-保存各業務領域的行為、權限與驗收規格。
-
-## 架構與責任邊界
-
-領域文件維護產品規則，公開的請求與回應由 OpenAPI 契約定義。
-
-## 閱讀與修改入口
-
-先查閱[attendance](attendance/README.md)、[repository](repository/README.md)、[project.md](project/project.md)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
-
-## 相關規格
-
-[父層指引](../AGENTS.md) · [本目錄索引](README.md)
-
-
-適用於本目錄及其子目錄。先遵循 [父層指引](../AGENTS.md) 與 [根指引](../../AGENTS.md)，較近的子目錄指引再補充；使用者與主機指令優先。
+修改本目錄時沿用[上層指引](../AGENTS.md)，按任務查[本層索引](README.md)。
 
 ## 職責與邊界
 
@@ -26,8 +9,7 @@
 
 ## 維護與驗證
 
-先讀 [本目錄索引](README.md) 與 [文件總索引](../README.md)。索引更新依[文件維護指引](../AGENTS.md#主題子目錄)。
-純文件修改驗證本機路徑、標題錨點及 `git diff --check`；設定變更另依父層規定檢查。不把未執行的應用測試或外部驗收宣稱為通過。
+更新索引與驗證連結依[文件維護指引](../AGENTS.md#驗證)。
 
 新增或修改功能文件時，使用 [操作契約範本](../architecture/contracts/business-operations.md#功能操作契約範本)，區分既有證據、目標行為與待確認規則，不擅自改變產品範圍。
 

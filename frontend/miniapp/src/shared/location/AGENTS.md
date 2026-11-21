@@ -1,13 +1,5 @@
 # frontend/miniapp/src/shared/location 工作指引
 
-## 用途與範圍
-
-封裝瀏覽器定位操作，供診斷及業務功能共用。
-
-## 架構與責任邊界
-
-提供跨功能重用的元件或工具；特定業務流程留在使用它的功能模組。
-
 ## 閱讀與修改入口
 
 先查閱[position.ts](position.ts)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
@@ -15,8 +7,6 @@
 ## 相關規格
 
 [現行實作圖：現有出勤整合檔案與責任](../../../../../docs/architecture/integrations/web-geolocation.md#現有出勤整合檔案與責任) · [瀏覽器定位規格](../../../../../docs/architecture/integrations/web-geolocation.md)
-
-遵循[上層指引](../AGENTS.md)。修改互動時，核對使用此模組的頁面與 miniapp 測試。 實作入口見[本目錄導覽](README.md)。
 
 [現行實作圖：現有出勤整合檔案與責任](../../../../../docs/architecture/integrations/web-geolocation.md#現有出勤整合檔案與責任) · [未來設計圖](../../../../../docs/diagrams.md#未來設計)
 

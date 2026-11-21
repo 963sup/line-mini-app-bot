@@ -100,7 +100,7 @@ func (s *Service) ReferenceState(ctx context.Context, actor, ownerID, pid string
 		return false, false, projectDomainEntity.ErrForbidden
 	}
 	if ref.ID != "" {
-		if !projectDomainEntity.ValidID(ref.ID) || ref.SourceRepositoryID != "" || ref.SourceType != "" || ref.SourceID != "" || ref.ParentObjectID != "" {
+		if !projectDomainEntity.ValidID(ref.ID) || ref.SourceRepositoryID != "" || ref.SourceType != "" || ref.SourceID != "" {
 			return false, false, projectDomainEntity.ErrInput
 		}
 	} else if !projectDomainEntity.ValidReference(ref) || !projectDomainEntity.ValidID(ref.SourceRepositoryID) {

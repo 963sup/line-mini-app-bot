@@ -96,7 +96,7 @@ func TestReferenceInspectionModes(t *testing.T) {
 		unavailable bool
 		want        string
 	}{
-		{"object", false, "submit_if_empty"}, {"subobject", false, "submit_if_empty"}, {"object", true, "history_only"}, {"subobject", true, "history_only"}, {"discussion", false, "none"}, {"issue", false, "none"},
+		{"object", false, "submit_if_empty"}, {"object", true, "history_only"}, {"discussion", false, "none"}, {"issue", false, "none"},
 	} {
 		ref := projectDomainEntity.Reference{SourceType: tc.kind, SourceUnavailable: tc.unavailable}
 		if got := referenceView(ref).InspectionMode; string(got) != tc.want {

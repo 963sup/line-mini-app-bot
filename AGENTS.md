@@ -4,10 +4,10 @@
 
 - Codex Cloud 首次初始化使用 `scripts/bootstrap.sh`。詳見 [Cloud 環境設定](docs/development/environment/codex-cloud.md)。
 - 日常命令從根目錄使用 `bash scripts/tooling/tool-exec.sh <命令>`。
-- 修改前讀取目標目錄的 README.md 與 AGENTS.md，根指引與各層補充一併適用。跨目錄搬移時核對來源、目的地與呼叫端，保留既有變更與上游技能。[巢狀導覽](README.md#巢狀目錄導覽)
+- 修改前遵循從根目錄到目標目錄的 AGENTS.md；需要查入口、操作方式或領域背景時，再讀最近的 README.md。跨目錄搬移時核對來源、目的地與呼叫端，保留既有變更與上游技能。[巢狀導覽](README.md#巢狀目錄導覽)
 - 新增或搬移檔案時執行[工作區範圍檢查](docs/development/tooling/analysis-scope.md)，再按[驗收矩陣](docs/development/verification/commands.md#變更驗收矩陣)驗證行為。
-- 每次收到使用者訊息，開始實質回答或執行任務前，MUST 依 [Repomix Skills 流程](docs/development/tooling/mcp/repomix-skills.md#每次交談前重新產生)使用 CLI 重新產生本次相關來源的技能包，指定 `.agents/skills/<skillName>/` 並使用 `--force`，再讀取產物；即使來源未變也執行。主機限制優先，失敗時明確回報，不宣稱已更新或載入。
-- 使用者要求「交接」、「接手」或「交給另一個側欄聊天」時，直接採用[側欄交接流程](docs/development/workflow/handoff.md#sidebar-handoff)，輸出六欄摘要並引用本次生成的相關技能包。
+- 使用者送出訊息時，由 [Repomix Hook](docs/development/tooling/mcp/repomix-skills.md#每次交談前重新產生)刷新開發入口技能，並由 [Graphify Hook](docs/development/tooling/mcp/graphify.md#每則訊息的文件子圖)準備文件子圖。依 Hook 提供的路徑按任務選讀來源。Hook 失敗或未載入時，可直接查原始文件。
+- 使用者要求「交接」、「接手」或「交給另一個側欄聊天」時，直接採用[側欄交接流程](docs/development/workflow/handoff.md#sidebar-handoff)，輸出六欄摘要及接手所需的來源。
 
 ## 巢狀文件維護標準
 
@@ -80,7 +80,7 @@ reuse it for follow-ups and provide the goal, existing changes and deliverable.
 
 ## graphify
 
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+The code graph lives under `graphify-out/`. For Markdown headings and links, use the separate [docs-only graph](docs/development/tooling/mcp/graphify.md#docs-only-graph).
 
 When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
 
@@ -90,7 +90,7 @@ Rules:
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `bash scripts/tooling/tool-exec.sh mise run graphify-update` to refresh the code graph without API calls.
-- A committed graphify-out/graph.json is rewritten whole on every build, so a large diff to it in a pull request is expected. Do not flag it as churn or suggest skipping the graph rebuild or its hooks.
+- The code graph is generated locally and ignored by Git. Refresh it in the current checkout when the task needs updated code relationships.
 
 程式關係探索遵循上方 Graphify 規則；需跨檔來源核對時讀 `.agents/skills/repomix-explorer/SKILL.md`，以 Repomix CLI 打包所需範圍。純工具文件工作不要求每次全庫打包；圖譜過期須回報，不能把舊路徑當目前實作證據。
 

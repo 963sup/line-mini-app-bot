@@ -169,12 +169,6 @@
       "core": "backend/internal/business/object/domain/entity/object.go",
       "specification": "docs/domains/object/design.md"
     },
-    "subobject": {
-      "contract": "object/subobjects.yaml",
-      "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
-      "core": "backend/internal/business/subobject/domain/entity/subobject.go",
-      "specification": "docs/domains/subobject/design.md"
-    },
     "project.references": {
       "contract": "project/references.yaml",
       "adapter": "backend/internal/business/project/adapter/http/references.go",
@@ -1171,56 +1165,6 @@
       ]
     },
     {
-      "operationId": "listSubobjects",
-      "audience": "public",
-      "method": "GET",
-      "path": "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects",
-      "owner": "subobject",
-      "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
-      "handler": "ListSubobjects",
-      "core": "backend/internal/business/subobject/domain/entity/subobject.go",
-      "specification": "docs/domains/subobject/design.md",
-      "consumers": [
-        "frontend/miniapp/src/business/journal/WorkContext.tsx"
-      ]
-    },
-    {
-      "operationId": "createSubobject",
-      "audience": "public",
-      "method": "POST",
-      "path": "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects",
-      "owner": "subobject",
-      "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
-      "handler": "CreateSubobject",
-      "core": "backend/internal/business/subobject/domain/entity/subobject.go",
-      "specification": "docs/domains/subobject/design.md",
-      "consumers": []
-    },
-    {
-      "operationId": "getSubobject",
-      "audience": "public",
-      "method": "GET",
-      "path": "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}",
-      "owner": "subobject",
-      "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
-      "handler": "GetSubobject",
-      "core": "backend/internal/business/subobject/domain/entity/subobject.go",
-      "specification": "docs/domains/subobject/design.md",
-      "consumers": []
-    },
-    {
-      "operationId": "updateSubobject",
-      "audience": "public",
-      "method": "PATCH",
-      "path": "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}",
-      "owner": "subobject",
-      "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
-      "handler": "UpdateSubobject",
-      "core": "backend/internal/business/subobject/domain/entity/subobject.go",
-      "specification": "docs/domains/subobject/design.md",
-      "consumers": []
-    },
-    {
       "operationId": "listProjectReferences",
       "audience": "public",
       "method": "GET",
@@ -1887,11 +1831,6 @@
       "entity": "Object",
       "collection": "objects",
       "path": "/api/v1/repositories/{repositoryId}/objects"
-    },
-    {
-      "entity": "Subobject",
-      "collection": "subobjects",
-      "path": "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects"
     },
     {
       "entity": "Journal",

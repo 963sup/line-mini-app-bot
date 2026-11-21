@@ -1,10 +1,6 @@
 # Go 後端
 
-## 用途與範圍
-
 保存 Go 後端指令、套件與模組設定。
-
-## 架構與責任邊界
 
 依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
 
@@ -16,9 +12,7 @@
 
 [獨立Project](../docs/domains/project/project.md) · [工程日誌與群組發布](../docs/domains/journal/journal.md)
 
-
 工程群組及Project各自保存核心、用例與adapters。Project不依賴Repository核心模型作父容器，只透過使用端定義的來源讀取port查事項；工程群組成員及來源資格分開核驗。現行邊界與遷移見 [獨立Project](../docs/domains/project/project.md)。
-
 
 ## 目錄導覽與維護
 

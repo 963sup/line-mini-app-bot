@@ -4,13 +4,13 @@ package entity
 type Reference struct {
 	ItemStatus                                                        string
 	SourceVersion                                                     int64
-	ID, SourceType, SourceID, ParentObjectID, SourceRepositoryID      string
+	ID, SourceType, SourceID, SourceRepositoryID                      string
 	SourceUnavailable                                                 bool
 	SourceTitle, SourceState, Quantity, Unit, CompletedQuantity, Type string
 }
 
 func (r Reference) SupportsInspection() bool {
-	return r.SourceType == "object" || r.SourceType == "subobject"
+	return r.SourceType == "object"
 }
 
 func ValidReference(r Reference) bool {
@@ -18,10 +18,8 @@ func ValidReference(r Reference) bool {
 		return false
 	}
 	switch r.SourceType {
-	case "subobject":
-		return ValidID(r.ParentObjectID)
 	case "object", "issue", "discussion":
-		return r.ParentObjectID == ""
+		return true
 	default:
 		return false
 	}

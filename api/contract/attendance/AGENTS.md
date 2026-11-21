@@ -1,13 +1,5 @@
 # 出勤契約
 
-## 用途與範圍
-
-定義打卡、出勤紀錄、工時、請假、補卡及審核的 API 契約。
-
-## 架構與責任邊界
-
-維護本能力的操作與 schema；根規格負責組合，公開格式由契約產生。
-
 ## 閱讀與修改入口
 
 先查閱[approvals.yaml](approvals.yaml)、[corrections.yaml](corrections.yaml)、[leave.yaml](leave.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。

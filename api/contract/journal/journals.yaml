@@ -475,11 +475,6 @@
             "pattern": "^[a-f0-9]{32}$",
             "x-go-type-skip-optional-pointer": true
           },
-          "subobjectId": {
-            "type": "string",
-            "pattern": "^[a-f0-9]{32}$",
-            "x-go-type-skip-optional-pointer": true
-          },
           "spaceIds": {
             "type": "array",
             "maxItems": 20,
@@ -528,11 +523,6 @@
             "$ref": "#/components/schemas/JournalReference"
           },
           "objectId": {
-            "type": "string",
-            "pattern": "^[a-f0-9]{32}$",
-            "x-go-type-skip-optional-pointer": true
-          },
-          "subobjectId": {
             "type": "string",
             "pattern": "^[a-f0-9]{32}$",
             "x-go-type-skip-optional-pointer": true

@@ -136,7 +136,7 @@ func (s *objectServer) ListObjects(w http.ResponseWriter, r *http.Request, rid s
 	if p.Cursor != nil {
 		cursor = *p.Cursor
 	}
-	page, e := s.service.List(r.Context(), identity.UserID(r.Context()), rid, cursor)
+	page, e := s.service.List(r.Context(), identity.UserID(r.Context()), rid, cursor, value(p.ParentId))
 	if writeError(w, e) {
 		return
 	}

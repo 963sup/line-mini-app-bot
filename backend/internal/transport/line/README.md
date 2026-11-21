@@ -12,15 +12,9 @@
 
 ## 閱讀與修改入口
 
-先查閱[group.go](group.go)、[reply.go](reply.go)、[本目錄工作指引](AGENTS.md)。
-
-## 相關規格
-
-[現行實作圖：基礎入口](../../../../docs/architecture/contracts/http.md#基礎入口)
+從 [group.go](group.go)、[reply.go](reply.go)、[group_test.go](group_test.go)、[webhook.go](webhook.go) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
 
 ## 閱讀入口
-
-從 [group.go](group.go)、[group_test.go](group_test.go)、[reply.go](reply.go)、[webhook.go](webhook.go) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：基礎入口](../../../../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
 

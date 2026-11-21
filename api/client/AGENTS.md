@@ -1,20 +1,10 @@
 # 共用 API 客戶端
 
-## 用途與範圍
-
-封裝前端使用的 TypeScript API client 與公開型別。
-
-## 架構與責任邊界
-
-契約是介面來源；client 與產生設定供消費端使用，依契約重新產生型別。
-
 ## 閱讀與修改入口
 
 先查閱[package.json](package.json)、[tsconfig.json](tsconfig.json)、[turbo.json](turbo.json)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
 
 ## 相關規格
-
-[現行實作圖：基礎入口](../../docs/architecture/contracts/http.md#基礎入口)
 
 適用於本目錄及其子目錄；繼承 [上層指引](../AGENTS.md)，並遵循其引用的根目錄規則。此處只補充本範圍責任；使用者與主機指令優先，不增加外部寫入授權。
 

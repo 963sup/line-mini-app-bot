@@ -1,20 +1,12 @@
 # backend/internal 目錄導覽
 
-## 用途與範圍
-
 保存 Go 後端的內部套件。業務功能放在 `business/`，服務組裝放在 `bootstrap/`，其餘套件提供身分驗證、請求傳輸、導覽及資料存取等共用基礎能力。
-
-## 架構與責任邊界
 
 依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
 
 ## 閱讀與修改入口
 
-先查閱[architecture](architecture)、[靜態頁面](transport/http/browser)、[business](business)、[定位診斷](transport/http/geolocation)、[本目錄工作指引](AGENTS.md)。
-
-## 相關規格
-
-[現行實作圖：格式與資料相容](../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+從 [architecture](architecture)、[靜態頁面](transport/http/browser)、[business](business)、[定位診斷](transport/http/geolocation)、[httpapi](transport/http/api)、[identity](identity) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
 
 ## Bounded Context 分層範本
 
@@ -49,8 +41,6 @@ internal/business/
 Go 檢查與測試方式見[後端工作指引](../AGENTS.md#驗證)。涉及 Firestore 交易的整合測試，請查閱對應套件的測試與模擬器前置條件。
 
 ## 閱讀入口
-
-從 [architecture](architecture)、[靜態頁面](transport/http/browser)、[business](business)、[定位診斷](transport/http/geolocation)、[httpapi](transport/http/api)、[identity](identity) 開始閱讀。修改前請參考[本目錄工作指引](AGENTS.md)。
 
 [現行實作圖：格式與資料相容](../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../../docs/diagrams.md#未來設計)
 

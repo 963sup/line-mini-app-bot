@@ -35,6 +35,8 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 
 以儲存庫根目錄開啟 Codex；在可信任的 checkout 確認專案信任狀態。以新工作階段實際列出的專案專屬 MCP 或角色驗證，並分別檢查工具能否呼叫。使用者層級已註冊的同名 MCP、mise trust、角色 TOML 解析成功，都無法單獨證明聊天主機載入了專案設定。[官方設定層級](https://developers.openai.com/codex/config-basic/)
 
+每則訊息送出時，`UserPromptSubmit` 用 CLI 刷新 Repomix 技能與 Graphify 文件子圖。啟用及驗收方式見 [Repomix Hook](../docs/development/tooling/mcp/repomix-skills.md#每次交談前重新產生)與 [Graphify Hook](../docs/development/tooling/mcp/graphify.md#每則訊息的文件子圖)。
+
 ## Business Operation
 
 開始相關任務前，必須閱讀 [操作模型](../docs/architecture/contracts/business-operations.md) 與 [符合性流程](../docs/development/workflow/implementation.md#business-operation-compliance)。

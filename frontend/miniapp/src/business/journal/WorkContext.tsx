@@ -10,7 +10,7 @@ import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxCont
 import { errorMessage } from "@/shared/http/lifecycle";
 
 type Space = components["schemas"]["RepositorySpace"];
-type Choice = { id: string; objectId: string; subobjectId?: string; name: string; spaceId?: string };
+type Choice = { id: string; objectId: string; name: string; spaceId?: string };
 import { collect } from "./pagination";
 
 type WorkOptions = { choices: Choice[]; spaces: Space[] };
@@ -31,12 +31,17 @@ export function useWorkOptions(request: Request): WorkOptionsLoader {
         const result = Promise.all([
           collect(cursor => request((c, signal) => c.GET("/api/v1/repositories/{repositoryId}/objects", {signal, params:{path:{repositoryId},query:{cursor:cursor || undefined}}}), options)),
           collect(cursor => request((c, signal) => c.GET("/api/v1/repositories/{repositoryId}/spaces", {signal, params:{path:{repositoryId},query:{cursor:cursor || undefined}}}), options)),
-        ]).then(async ([objects, spaces]) => {
-          const nested = await Promise.all(objects.map(async object => {
-            const children = await collect(cursor => request((c, signal) => c.GET("/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects", {signal,params:{path:{repositoryId,objectId:object.id},query:{cursor:cursor || undefined}}}), options));
-            return [{id:object.id,objectId:object.id,name:object.name,spaceId:object.spaceId}, ...children.map(child => ({id:child.id,objectId:object.id,subobjectId:child.id,name:object.name+" › "+child.name,spaceId:object.spaceId}))];
-          }));
-          const choices = nested.flat();
+        ]).then(([objects, spaces]) => {
+          const byId = new Map(objects.map(object => [object.id, object]));
+          const choices = objects.map(object => {
+            const parent = object.parentId ? byId.get(object.parentId) : undefined;
+            return {
+              id: object.id,
+              objectId: object.id,
+              name: parent ? parent.name + " › " + object.name : object.name,
+              spaceId: object.spaceId,
+            };
+          });
           return { choices, spaces };
         }).catch(error => {
           if (entries.get(repositoryId)?.controller === controller) entries.delete(repositoryId);
@@ -100,7 +105,6 @@ export function WorkContext({id, repositoryId, request, options, lock}: {id:stri
         <ComboboxContent><ComboboxEmpty>沒有符合的工作對象</ComboboxEmpty><ComboboxList>{(item:Choice) => <ComboboxItem key={item.id} value={item}><span className="truncate" title={item.name}>{item.name}</span></ComboboxItem>}</ComboboxList></ComboboxContent>
       </Combobox>
       <input type="hidden" name={id+"object"} value={target?.objectId || ""}/>
-      <input type="hidden" name={id+"subobject"} value={target?.subobjectId || ""}/>
     </Field>
     <Field><FieldLabel htmlFor={id+"spaces"}>實際作業空間（選填，可複選）</FieldLabel>
       <Combobox<Space, true> multiple items={spaces} value={selected} onValueChange={value => { if (!pending.current && value.length <= 20) setSelected(value); }} itemToStringLabel={item => item.name} isItemEqualToValue={(a,b) => a.id === b.id} disabled={busy || !!error || !!pending.current}>

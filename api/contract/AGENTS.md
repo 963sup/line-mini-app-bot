@@ -1,13 +1,5 @@
 # 契約來源
 
-## 用途與範圍
-
-採用 **按領域拆分 OpenAPI 契約（modular OpenAPI）**。各領域維護自己負責的操作與 schema，公開入口 `openapi.yaml` 與內部入口 `internal-openapi.yaml` 透過 `$ref` 組合。依操作責任決定契約歸屬，調整來源檔後透過既有流程產生 Go 與 TypeScript 程式碼。 **契約按需分檔。** 小型領域可用一份規格承載相關操作與 schema，有明確的能力邊界或獨立維護需求時再拆分。
-
-## 架構與責任邊界
-
-維護本能力的操作與 schema；根規格負責組合，公開格式由契約產生。
-
 ## 閱讀與修改入口
 
 先查閱[internal-openapi.yaml](internal-openapi.yaml)、[openapi.yaml](openapi.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
@@ -25,6 +17,6 @@
 - 共通傳輸定義放 common；業務模型不因多處使用就移入 common。資料夾使用能力名稱，實體與 REST 資源命名遵循上層命名規範。
 - Issue 的 types／comments、Discussion categories 與 Project fields／views 保留 scaffold，空 paths／schemas 不接入組合入口。Project／items 與 Repository milestones／statistics 已依 [專案與來源引用](../../docs/domains/project/project.md)、[里程碑](../../docs/domains/repository/milestones.md)、[儲存庫洞察（Insights）](../../docs/domains/repository/insights.md) 接入；其餘能力先完成操作規格再新增契約及實作。
 - 新增操作同步維護 [能力清單](capabilities.json)、對應 adapter、消費端及功能規格；事件入口不為目錄一致而新增 HTTP API。
-- 契約變更由儲存庫根目錄執行 `bash scripts/tooling/tool-exec.sh pnpm api:check`；純指引變更檢查連結與 whitespace，不刷新相容性 baseline。
+- 契約變更由儲存庫根目錄執行 `bash scripts/tooling/tool-exec.sh pnpm api:check`；純指引變更檢查連結與 whitespace，歷史相容性比較另列 base revision。
 
 [現行實作圖：基礎入口](../../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../../docs/diagrams.md#未來設計)

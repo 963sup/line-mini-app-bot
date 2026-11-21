@@ -1,15 +1,18 @@
 # 資源導向的通用業務操作模型
 
-<a id="資源導向的通用業務操作模型"></a>
+新增或修改業務操作時，在所屬領域說清楚誰能對哪個資源做什麼，以及成功、拒絕、重送後的可觀察結果。本模型沿用[模組化單體與輕量 Hexagonal](../../standards/engineering.md)；個別既有操作的符合程度須循其契約與測試查證。
 
-```mermaid
-flowchart LR
-  h["資源導向的通用業務操作模型"]
-  h --- n0["狀態：採用於後續新增或修改的業務操作；不代表<br/>既有功能已全部符合或完成驗收。 本頁補充 開發<br/>原則，沿用模組化單體與輕量 Hexagonal，不擴大<br/>當前產品範圍。"]
-  click n0 "../../standards/engineering.md"
-```
+## 前端操作與業務契約
 
-<a id="模型與語意"></a>
+Web 業務操作遵循 **Frontend → API → Backend**。每個 API 操作以一個可驗證的業務結果為單位，優先沿用能完整表達該結果的既有契約。
+
+| 層級 | 責任 |
+| --- | --- |
+| Frontend | 收集輸入，處理瀏覽器互動與必要的本地狀態，透過產生的 API client 送出操作，依回應呈現載入、成功、拒絕或待確認狀態。 |
+| API | 在 OpenAPI 定義操作的輸入、成功結果與可辨識的錯誤。對可能重送或併發的寫入，明定回應遺失後的重試方式與版本衝突語意。契約變更後重新產生 Go 與 TypeScript 程式碼。 |
+| Backend | Go 依可信身分與目前資料執行授權、權威驗證、業務計算與狀態轉換，維護資料一致性，回傳操作結果。 |
+
+審查時，若前端必須掃描清單或拼接多個查詢才能推斷操作是否成功，應回頭檢查契約。例如「加入專案引用」的回應遺失時，UI 應顯示結果待確認，依契約重試或查詢原操作，由 Go 回覆結果。清單反映的是目前狀態，可能已被後續操作改變。
 
 ## 模型與語意
 
@@ -25,117 +28,58 @@ flowchart LR
   E --> R["回傳資料或合法狀態轉換，按風險留存 Event／Audit"]
 ```
 
-```mermaid
-flowchart LR
-  h["模型與語意"]
-  h --- n0["資源是管理對象，操作是行為單位，主體是責任來<br/>源。"]
-```
+| 概念 | 設計時要回答的問題 |
+| --- | --- |
+| Actor（Subject） | 操作者是誰？哪一層提供可信身分？ |
+| Resource | 對象歸誰所有？適用哪個租戶、群組或資源範圍？ |
+| Action | 使用者要完成哪個具名業務行為？ |
+| Context | 需要哪個時間、版本、環境與目前狀態？ |
+| Authority | 誰有執行、審核或決定權？權限範圍從何取得？ |
+| Policy | 哪些授權條件與領域規則必須成立？兩者分開描述。 |
+| Decision | 系統允許還是拒絕執行？有權駁回申請的審核者，可以成功完成「駁回」操作。 |
+| Result | 呼叫端取得哪些資料、狀態轉換與後續行為？讀取可只回傳資料。 |
 
-```mermaid
-flowchart LR
-  h["模型與語意"]
-  h --- n0["概念：Actor（Subject）<br/>必須回答：誰發起？可信身分從何而來？"]
-  h --- n1["概念：Resource<br/>必須回答：操作什麼？歸屬、租戶／群組及存取範<br/>圍是什麼？"]
-  h --- n2["概念：Action<br/>必須回答：執行哪個明確的業務行為？"]
-  h --- n3["概念：Context<br/>必須回答：依賴哪些時間、版本、環境及目前狀態<br/>？"]
-  h --- n4["概念：Authority<br/>必須回答：執行、審核與決定權從何取得？適用範<br/>圍是什麼？"]
-  h --- n5["概念：Policy<br/>必須回答：哪些授權條件與業務規則允許或限制操<br/>作？"]
-  h --- n6["概念：Decision<br/>必須回答：系統依上述條件允許或拒絕什麼？"]
-  h --- n7["概念：Result<br/>必須回答：回傳哪些資料？發生哪些合法狀態轉換<br/>與必要後續行為？"]
-```
+採納提案時才使用 Merge 作為操作或轉換。Event／Audit 依風險決定；寫明需要的證據或不適用原因。
 
-```mermaid
-flowchart LR
-  h["模型與語意"]
-  h --- n0["Authority 表達權限來源與範圍；Policy 包含授<br/>權政策及領域規則，實作時仍須區分兩者責任。 <br/>系統允許執行 Reject 與業務申請被駁回是不同決<br/>定：駁回可以是成功的操作。 Merge 僅在採納提<br/>案時作為 Action 或狀態轉換，不是固定 <br/>Decision 子項。 讀取結果可只有資料，不必改變<br/>狀態；Event／Audit 依風險補充，不強迫每次讀<br/>取產生事件。"]
-```
+## 實作邊界
 
-<a id="實作邊界"></a>
+- 後端取得可信 Actor，依 Resource 的實際歸屬與範圍授權，預設拒絕未授權操作。角色、審核權與畫面上按鈕的顯示不能由客戶端作證。
+- 使用案例協調授權與領域規則。不同入口執行同一操作時，共用必要的使用案例。各領域保有自己的狀態模型；有具體跨領域需求時才抽取共用機制，可沿用現有 identity。
+- HTTP、LINE 與資料庫由 adapter 隔離。必須與寫入一致的權限、版本及狀態檢查放入交易協調，避免檢查後無條件寫入。
+- 定義重要寫入的失敗、重送與併發語意。追溯資料按需要記錄操作者、對象、時間與結果，排除 token 及不必要個資。外部副作用須說明失敗處理；可重跑的交易 callback 不直接發送通知。
+- 這些概念不要求各建一個套件、固定七層、通用引擎、完整 RBAC 階層或事件平台。
 
-```mermaid
-flowchart LR
-  h["實作邊界"]
-  h --- n0["後端取得可信 Actor；不採信客戶端自行宣告的操<br/>作者、角色或審核權。"]
-  h --- n1["在使用案例協調授權與業務規則；不同入口的相同<br/>業務操作共用必要使用案例。"]
-  h --- n2["以實際 Resource 歸屬與範圍授權，預設拒絕未授<br/>權操作。前端顯示權限不能取代後端檢查。"]
-  h --- n3["各領域保留自己的規則與狀態模型；重用 <br/>identity 與既有規則，有實際跨領域需求才抽取<br/>共用機制。"]
-  h --- n4["HTTP、LINE 與資料庫 adapter 隔離外部技術。需<br/>與寫入一致的權限、版本及狀態檢查須與交易協調<br/>，不先檢查後無條件寫入。"]
-  h --- n5["重要寫入定義失敗、重送與併發語義；必要追溯記<br/>錄操作者、對象、時間與結果，不記錄 token 或<br/>不必要個資。"]
-  h --- n6["外部副作用定義失敗處理；不可在可能重跑的交易<br/> callback 中直接發送通知。"]
-  h --- n7["不強制每個概念各建模組，不為此建立萬用引擎、<br/>固定七層、完整 RBAC 階層或事件平台。"]
-```
+## 功能操作契約範本
 
-<a id="功能操作契約範本"></a>
+在對應的[領域規格](../../domains/README.md)填寫下表。既有頁面可涵蓋多個操作；規則尚未確定時列出待決問題。
 
-```mermaid
-flowchart LR
-  h["功能操作契約範本"]
-  h --- n0["在對應 docs/domains 文件填寫，每個操作可以<br/>使用一張表，不必另建程式檔案："]
-```
+| 欄位 | 要記錄的內容 |
+| --- | --- |
+| Actor、Resource、Action | 可信身分、資源歸屬與要執行的行為。 |
+| Context、Authority | 時間、版本、環境、權限來源及範圍。 |
+| Policy、Decision | 授權與業務規則分列，說明允許及拒絕條件。 |
+| Result | 回傳資料、合法狀態轉換、失敗時須保留的資料。 |
+| 重送與併發 | 重複請求與過期版本的行為，不適用時說明原因。 |
+| Event、Audit | 按風險記錄必要事件及稽核證據。 |
+| 實作與證據 | 連到檔案、符號、測試；分開記錄實際結果、略過項與待確認事項。 |
 
-```mermaid
-flowchart LR
-  h["功能操作契約範本"]
-  h --- n0["欄位：Actor / Resource / Action<br/>內容：可信身分、資源歸屬與行為"]
-  h --- n1["欄位：Context / Authority<br/>內容：時間、版本、環境；權限來源與範圍"]
-  h --- n2["欄位：Policy / Decision<br/>內容：授權與領域規則分列；允許及拒絕條件"]
-  h --- n3["欄位：Result<br/>內容：回傳資料、合法轉換與失敗時不應改變的資<br/>料"]
-  h --- n4["欄位：重送／併發<br/>內容：適用性、重複請求及過期版本語義"]
-  h --- n5["欄位：Event / Audit<br/>內容：依風險說明必要紀錄或不適用原因"]
-  h --- n6["欄位：實作與證據<br/>內容：檔案／符號、實際檢查結果、跳過項目與待<br/>確認事項"]
-```
+## 補卡核准對照範例
 
-```mermaid
-flowchart LR
-  h["功能操作契約範本"]
-  h --- n0["六個必答問題仍是：誰操作、操作什麼、做什麼、<br/>有沒有權限、符合哪些業務規則、成功後改變或回<br/>傳什麼。 資訊不明確時列為待確認，不自行發明<br/>產品規則。"]
-```
+| 契約問題 | 在程式哪裡核對 |
+| --- | --- |
+| 審核者能改誰的出勤？ | 交易讀取 channel 內的申請與審核群組，審核者須屬於該群組的審核範圍，且不能審核自己。[交易 adapter](../../../backend/internal/business/attendance/adapter/firestore/attendance_correction.go) · [CanReview](../../../backend/internal/business/attendance/domain/policy/review.go) |
+| 同一申請再次送出核准會怎樣？ | 使用案例先讀既有決定與核准證據。有核准紀錄時再送核准可成功；要求不同的終態會被拒絕。[ReviewCorrection](../../../backend/internal/business/attendance/application/command/review.go) · [NeedsDecision](../../../backend/internal/business/attendance/domain/policy/review.go) |
+| 成功與失敗各改變什麼？ | 比對版本及事件序列、時段與重疊，通過後更新投影與 revision，寫入決定。原始事件保留；交易失敗不提交部分結果。[ApplyCorrection](../../../backend/internal/business/attendance/domain/service/correction.go) · [SaveApproval](../../../backend/internal/business/attendance/adapter/firestore/attendance_correction.go) |
+| 稽核記錄包含什麼？ | 核准交易建立 proposal、before、after、reviewerKey 與 approvedAt。[Firestore 核准寫入](../../../backend/internal/business/attendance/adapter/firestore/attendance_correction.go) |
 
-<a id="持續檢查與修正"></a>
+這是原始碼對照，產品細節見[查詢與更正](../../domains/attendance/queries.md)與[工時計算](../../domains/attendance/worktime.md)。變更入口時，仍須從身分來源追到使用案例，依[代表整合測試](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go)及適用驗收確認。
 
-```mermaid
-flowchart LR
-  h["持續檢查與修正"]
-  h --- n0["依 代理工作流程 執行 Graphify → Repomix／原<br/>文核對 → Context7 技術查證 → 範圍內修正 → 驗<br/>證。 工具輸出是證據，不是正確性證明或擴大修<br/>改範圍的授權。"]
-  click n0 "../../development/workflow.md#business-operation-compliance"
-```
+## 功能契約範本
 
-<a id="補卡核准對照範例"></a>
+有明確需求才新增具名的用例文件。交代目標與非目標、actor、觸發來源、輸入限制、信任與授權、前置條件、狀態轉移、交易讀寫、外部副作用、冪等鍵、錯誤碼、成功與失敗範例、測試命令、驗收及待決策項目。描述函數時連回實作，列出 signature、參數可信度、回傳、錯誤、取消與期限。
 
-```mermaid
-flowchart LR
-  h["補卡核准對照範例"]
-  h --- n0["以下為 2026-11-11 本機原始碼的靜態對照，不是<br/>正式環境或整合驗收。產品細節以 查詢與更正 及<br/> 工時計算 為準。"]
-  n0 --- n0l0["查詢與更正"]
-  click n0l0 "../../domains/attendance/queries.md"
-  n0 --- n0l1["工時計算"]
-  click n0l1 "../../domains/attendance/worktime.md"
-```
+## 持續檢查與修正
 
-```mermaid
-flowchart LR
-  h["補卡核准對照範例"]
-  h --- n0["欄位：Actor / Resource / Action<br/>現有實作對照：後端傳入的 actor；channel 內的<br/>補卡申請、群組與申請人出勤；<br/>ApproveCorrection"]
-  h --- n1["欄位：Context / Authority<br/>現有實作對照：交易讀取申請與審核群組；審核者<br/>須有該群組權限，不能審核自己"]
-  h --- n2["欄位：Policy / Decision<br/>現有實作對照：檢查既有決定、版本／事件序列、<br/>時間與重疊；不符合則拒絕，不更新有效出勤"]
-  h --- n3["欄位：Result<br/>現有實作對照：套用補卡結果、增加 revision、<br/>更新申請狀態；原始事件不改寫"]
-  h --- n4["欄位：重送／併發<br/>現有實作對照：交易內讀取狀態；已存在核准 <br/>audit 的再次核准返回成功；不同終態決定被拒絕"]
-  h --- n5["欄位：Event / Audit<br/>現有實作對照：核准交易建立 proposal、before<br/>、after、reviewerKey 與 approvedAt 證據"]
-  h --- n6["欄位：實作與證據<br/>現有實作對照：<br/>backend/internal/business/attendance/adapter/firestore/attendance_correction.go<br/> 的 decideCorrection 與 <br/>backend/internal/business/attendance/domain/service/correction.go<br/> 的 ApplyCorrection 靜態核對；本次未執行應用<br/>測試、正式資料操作或部署"]
-```
+依[操作符合性流程](../../development/workflow.md#business-operation-compliance)用 Graphify 找關係、Repomix 與原文核對實作，涉及外部技術時用 Context7 查證，再修正並驗證任務範圍。工具輸出僅提供證據；授權仍依當次任務。
 
-```mermaid
-flowchart LR
-  h["補卡核准對照範例"]
-  h --- n0["此範例不宣稱所有入口已符合模型。後續修改時仍<br/>須追查 actor 的可信來源、完整呼叫路徑及適用<br/>驗證結果。"]
-  h --- n1["Codex 指引機制依據：經 Context7 <br/>/openai/codex 查得的 上游 AGENTS.md 規則。 <br/>2026-11-11 查證，來源為 main，未固定提交；根<br/>及巢狀指引按作用範圍適用，使用者與主機指令優<br/>先。文件連結不等於自動載入，角色必須明確閱讀<br/>。"]
-  click n1 "https://github.com/openai/codex/blob/main/codex-rs/protocol/src/prompts/base_instructions/default.md"
-```
-
-<a id="功能契約範本"></a>
-
-```mermaid
-flowchart LR
-  h["功能契約範本"]
-  h --- n0["每個使用案例在 docs/domains/ 下建立具名頁面<br/>，確定需求才新增。 必填：目標／非目標、actor<br/>、觸發來源、輸入欄位與限制、信任邊界、授權、<br/>前置條件、狀態轉移、交易讀寫、外部副作用、冪<br/>等鍵、錯誤碼、成功／失敗範例、測試命令、驗收<br/>、待決策。 每個函數列出所屬檔案、signature、<br/>參數可信度、回傳與錯誤、取消與期限，不只列函<br/>數名稱。"]
-```
+巢狀指引按目錄範圍適用，專題文件需透過連結明確讀取。歷史查證使用 2026-11-11 的 Context7 `/openai/codex` 與上游 main，未固定提交；目前操作遵循[專案根指引](../../../AGENTS.md)。[原查證來源](https://github.com/openai/codex/blob/main/codex-rs/protocol/src/prompts/base_instructions/default.md)

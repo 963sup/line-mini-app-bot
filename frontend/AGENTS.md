@@ -1,13 +1,5 @@
 # frontend 工作指引
 
-## 用途與範圍
-
-保存瀏覽器前端，MINI App 位於 `miniapp/`，透過共用 API client 呼叫後端。
-
-## 架構與責任邊界
-
-依層級維護本目錄的共用能力；功能畫面由 business 組織，頁面入口由 pages 接入。
-
 ## 閱讀與修改入口
 
 先查閱[miniapp](miniapp)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
@@ -25,6 +17,8 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 進入 miniapp/ 先讀其 AGENTS.md 與安裝版本的 Next.js 指引。HTTP 呼叫透過 @repo/api-client；位置由瀏覽器取得，後端驗證。不手改建置輸出。
 
 ## 驗證
+
+修改互動時，核對使用此模組的頁面與 miniapp 測試。
 
 從根目錄透過 tool-exec.sh 執行 pnpm --filter @repo/miniapp check 與相關既有 test；需要靜態輸出時執行 build。API 變更另走 ../api/README.md。
 
@@ -44,15 +38,7 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 ## 前端操作與業務契約
 
-Web 業務操作遵循 **Frontend → API → Backend**。每個 API 操作以一個可驗證的業務結果為單位，優先沿用能完整表達該結果的既有契約。
-
-| 層級 | 責任 |
-| --- | --- |
-| Frontend | 收集輸入，處理瀏覽器互動與必要的本地狀態，透過產生的 API client 送出操作，依回應呈現載入、成功、拒絕或待確認狀態。 |
-| API | 在 OpenAPI 定義操作的輸入、成功結果與可辨識的錯誤。對可能重送或併發的寫入，明定回應遺失後的重試方式與版本衝突語意。契約變更後重新產生 Go 與 TypeScript 程式碼。 |
-| Backend | Go 依可信身分與目前資料執行授權、權威驗證、業務計算與狀態轉換，維護資料一致性，回傳操作結果。 |
-
-審查時，若前端必須掃描清單或拼接多個查詢才能推斷操作是否成功，應回頭檢查契約。例如「加入專案引用」的回應遺失時，UI 應顯示結果待確認，依契約重試或查詢原操作，由 Go 回覆結果。清單反映的是目前狀態，可能已被後續操作改變。
+依[前端、API 與後端責任及重送範例](../docs/architecture/contracts/business-operations.md#前端操作與業務契約)審查操作結果。
 
 ## shadcn 任務入口
 

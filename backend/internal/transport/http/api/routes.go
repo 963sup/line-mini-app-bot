@@ -152,14 +152,6 @@ func RegisterObjects(public *http.ServeMux, handler ObjectServer, wrap func(http
 	public.Handle("PATCH /api/v1/repositories/{repositoryId}/objects/{id}", routes)
 }
 
-func RegisterSubobjects(public *http.ServeMux, handler SubobjectServer, wrap func(http.Handler) http.Handler) {
-	routes := withMiddleware(routeHandler(contractServer{SubobjectServer: handler}), wrap)
-	public.Handle("GET /api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects", routes)
-	public.Handle("POST /api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects", routes)
-	public.Handle("GET /api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}", routes)
-	public.Handle("PATCH /api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}", routes)
-}
-
 func RegisterRepositorySpaces(public *http.ServeMux, handler RepositorySpaceServer, wrap func(http.Handler) http.Handler) {
 	routes := withMiddleware(routeHandler(contractServer{RepositorySpaceServer: handler}), wrap)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/spaces", routes)

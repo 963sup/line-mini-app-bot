@@ -5,15 +5,15 @@ flowchart TD
   scope -->|物件| op["Repository → Object"]
   scope -->|子項| parent{"父 Object 存在且屬於同一 Repository？"}
   parent -->|否| deny
-  parent -->|是| child["Object → Subobject，僅一層"]
+  parent -->|是| child["Repository → Object，使用 parentId 連結父項"]
   op -->|讀取| read["回傳列表或詳情；無寫入副作用"]
   child -->|讀取| read
   op -->|建立| create["驗證內容與建立鍵"]
   op -->|修改| owner{"操作者是該 Object 建立者？"}
-  child -->|建立或修改| owner
+  child -->|建立| create
+  child -->|修改| owner
   owner -->|否| deny
-  owner -->|建立子項| create
-  owner -->|修改| version{"目標 Object 或 Subobject 的 expectedVersion 相符？"}
+  owner -->|修改| version{"目標 Object 的 expectedVersion 相符？"}
   version -->|否| conflict["409：重讀後再決定"]
   version -->|是| update["驗證內容；有效變更才更新目標與版本"]
   create --> key{"同範圍內的建立鍵？"}

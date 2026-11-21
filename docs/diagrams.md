@@ -55,17 +55,20 @@
 
 ## 開發與維運指引
 
-- [DDD 與六邊形架構概覽](architecture/ddd/README.md#mermaid-圖表)
+DDD 設計參考可依問題選圖：
 
-- [Aggregate · 邊界與存取入口](architecture/ddd/aggregate.md#邊界與存取入口)
-- [Outbox（按需） · 提交與失敗窗口](architecture/ddd/outbox-pattern.md#提交與失敗窗口圖)
-
-- [六邊形架構 · 執行時互動](architecture/ddd/hexagonal-architecture.md#執行時互動)
-- [六邊形架構 · 程式碼依賴](architecture/ddd/hexagonal-architecture.md#程式碼依賴)
+| 問題 | 圖表 |
+| --- | --- |
+| 如何從業務問題推導模型與用例？ | [設計流程、上下文、聚合與用例概覽](architecture/ddd/design-diagrams.md) |
+| 哪些狀態一起維護？跨上下文如何轉譯？ | [聚合邊界](architecture/ddd/aggregate.md#邊界與存取入口) · [防腐層](architecture/ddd/anti-corruption-layer.md#圖解) |
+| 執行呼叫和程式碼依賴各往哪裡？ | [執行時互動](architecture/ddd/hexagonal-architecture.md#執行時互動) · [程式碼依賴](architecture/ddd/hexagonal-architecture.md#程式碼依賴) |
+| 讀取模型何時反映寫入？ | [CQRS](architecture/ddd/cqrs.md#圖解) |
+| 如何區分版本衝突與同一次操作重送？ | [樂觀並行控制](architecture/ddd/optimistic-concurrency.md#圖解) · [冪等](architecture/ddd/idempotency.md#圖解) |
+| 交易提交後，發布在哪裡可能失敗？ | [提交與發布](architecture/ddd/transaction.md#提交與發布) · [Outbox 失敗窗口](architecture/ddd/outbox-pattern.md#提交與失敗窗口圖) |
+| 跨交易流程如何補償與續跑？ | [Saga](architecture/ddd/saga.md#圖解) · [Process Manager](architecture/ddd/process-manager.md#圖解) |
 
 - [HTTP API 契約 · 契約生成流程](../api/README.md#契約生成流程)
 
-- [專案文件入口 · 目錄責任](README.md#目錄責任)
 - [驗收矩陣與命令](development/verification/commands.md#變更驗收矩陣)
 - [系統化除錯 · Diagnostic loop](development/workflow/debugging.md#diagnostic-loop)
 - [交接與證據重用](development/workflow/handoff.md#minimal-handoff-and-evidence-reuse)

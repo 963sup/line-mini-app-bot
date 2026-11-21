@@ -24,6 +24,12 @@
           },
           {
             "in": "query",
+            "name": "parentId",
+            "description": "Filter to direct children of this object.",
+            "schema": { "type": "string", "pattern": "^[a-f0-9]{32}$" }
+          },
+          {
+            "in": "query",
             "name": "cursor",
             "schema": {
               "type": "string",

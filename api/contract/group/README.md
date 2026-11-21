@@ -1,10 +1,6 @@
 # 工程群組 API
 
-## 用途與範圍
-
 定義群組列表與群組詳情的 API 契約。
-
-## 架構與責任邊界
 
 維護本能力的操作與 schema；根規格負責組合，公開格式由契約產生。
 
@@ -13,8 +9,6 @@
 先查閱[groups.yaml](groups.yaml)、[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
-
-[現行實作圖：基礎入口](../../../docs/architecture/contracts/http.md#基礎入口)
 
 [groups.yaml](groups.yaml) 定義群組列表與詳情，由[公開入口](../openapi.yaml)組合。
 

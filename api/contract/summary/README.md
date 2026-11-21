@@ -1,10 +1,6 @@
 # Summary 既有入口契約
 
-## 用途與範圍
-
 記錄群組訊息摘要的 LINE 互動與內部工作入口。
-
-## 架構與責任邊界
 
 此處描述 LINE 訊息蒐集、摘要與內部 worker 的契約。worker 由內部 OpenAPI 組合，LINE 事件入口由既有 Webhook 接入。
 

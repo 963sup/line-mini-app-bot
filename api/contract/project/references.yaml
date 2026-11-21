@@ -313,7 +313,6 @@
               "type": "string",
               "enum": [
                 "object",
-                "subobject",
                 "issue",
                 "discussion"
               ]
@@ -322,14 +321,6 @@
           {
             "in": "query",
             "name": "sourceId",
-            "schema": {
-              "type": "string",
-              "pattern": "^[a-f0-9]{32}$"
-            }
-          },
-          {
-            "in": "query",
-            "name": "parentObjectId",
             "schema": {
               "type": "string",
               "pattern": "^[a-f0-9]{32}$"
@@ -369,7 +360,7 @@
             "$ref": "./items.yaml#/components/responses/ProjectError"
           }
         },
-        "description": "Creator-only read. Supply either itemId or sourceRepositoryId/sourceType/sourceId (parentObjectId required for subobject). Returns whether the current presence matches desiredPresent; this is not an operation receipt. No source content is returned."
+        "description": "Creator-only read. Supply either itemId or sourceRepositoryId/sourceType/sourceId. Returns whether the current presence matches desiredPresent; this is not an operation receipt. No source content is returned."
       }
     }
   },
@@ -397,7 +388,6 @@
             "type": "string",
             "enum": [
               "object",
-              "subobject",
               "issue",
               "discussion"
             ]
@@ -407,10 +397,6 @@
             "pattern": "^[a-f0-9]{32}$"
           },
           "sourceRepositoryId": {
-            "type": "string",
-            "pattern": "^[a-f0-9]{32}$"
-          },
-          "parentObjectId": {
             "type": "string",
             "pattern": "^[a-f0-9]{32}$"
           },
@@ -481,16 +467,11 @@
             "type": "string",
             "enum": [
               "object",
-              "subobject",
               "issue",
               "discussion"
             ]
           },
           "sourceId": {
-            "type": "string",
-            "pattern": "^[a-f0-9]{32}$"
-          },
-          "parentObjectId": {
             "type": "string",
             "pattern": "^[a-f0-9]{32}$"
           },
@@ -505,7 +486,7 @@
             "pattern": "^[a-f0-9]{32}$"
           }
         },
-        "description": "Reference only within the Project source repository. Subobject requires its parentObjectId. Duplicate source identity is a no-op after current authorization, including retries of an unknown successful add."
+        "description": "Reference only within the Project source repository. Child objects use their own sourceId. Duplicate source identity is a no-op after current authorization, including retries of an unknown successful add."
       },
       "ProjectReferenceState": {
         "type": "object",

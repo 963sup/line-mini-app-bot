@@ -87,7 +87,7 @@ function Composer({request,group,saved,onPending,isBlocked}:{request:Request;gro
     if (step === "today") { setStep("tomorrow"); return; }
     const form=new FormData(event.currentTarget),get=(k:string)=>String(form.get(k)??"").trim();
     const people=(k:string)=>get(k).split(/[、，,\n]/).map(s=>s.trim()).filter(Boolean);
-    const row=(id:string)=>{const t=targets.find(t=>t.type+t.id===get(id+"ref"));return {name:get(id+"name"),reference:t?{type:t.type,id:t.id}:undefined, ...(t?.type === "repository" ? {objectId:get(id+"object") || undefined,subobjectId:get(id+"subobject") || undefined,spaceIds:form.getAll(id+"space").map(String)} : {})};};
+    const row=(id:string)=>{const t=targets.find(t=>t.type+t.id===get(id+"ref"));return {name:get(id+"name"),reference:t?{type:t.type,id:t.id}:undefined, ...(t?.type === "repository" ? {objectId:get(id+"object") || undefined,spaceIds:form.getAll(id+"space").map(String)} : {})};};
     const body:Draft={groupId:group,workDate:get("date"), personnel:{management:people("management"),control:people("control"),workers:people("workers")},
       todayItems:today.map(id=>({...row(id),completionPercent:Number(get(id+"percent"))})),
       tomorrowItems:tomorrow.map(id=>({...row(id),expectedCompletionPercent:Number(get(id+"percent"))}))};

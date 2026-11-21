@@ -796,42 +796,6 @@ export interface paths {
         patch: operations["updateObject"];
         trace?: never;
     };
-    "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read repository member-accessible child data */
-        get: operations["listSubobjects"];
-        put?: never;
-        /** Create one child as parent owner without changing parent progress */
-        post: operations["createSubobject"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read repository member-accessible child data */
-        get: operations["getSubobject"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update child as current parent owner with expected version */
-        patch: operations["updateSubobject"];
-        trace?: never;
-    };
     "/api/v1/owners/{ownerId}/projects/{id}/references": {
         parameters: {
             query?: never;
@@ -1034,7 +998,7 @@ export interface paths {
         };
         /**
          * Check current reference state without inferring historical operation success
-         * @description Creator-only read. Supply either itemId or sourceRepositoryId/sourceType/sourceId (parentObjectId required for subobject). Returns whether the current presence matches desiredPresent; this is not an operation receipt. No source content is returned.
+         * @description Creator-only read. Supply either itemId or sourceRepositoryId/sourceType/sourceId. Returns whether the current presence matches desiredPresent; this is not an operation receipt. No source content is returned.
          */
         get: operations["getProjectReferenceState"];
         put?: never;
@@ -1780,67 +1744,12 @@ export interface components {
             /** @description Empty when finished; at most twenty objects per page in document-ID ascending order. */
             nextCursor: string;
         };
-        Subobject: {
-            name: string;
-            /** @enum {string} */
-            type: "work" | "non_work";
-            unit: string;
-            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
-            quantity: string;
-            id: string;
-            repositoryId: string;
-            creatorId: string;
-            /** Format: int64 */
-            version: number;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-            /**
-             * @description Derived from completedQuantity for managed work. For non_work this technical three-state value is retained only for compatibility; UI displays not applicable. Legacy records without progress retain their original status.
-             * @enum {string}
-             */
-            status: "not_started" | "in_progress" | "completed";
-            /** @description Exact completed quantity for work; defaults to 0 on create, omission preserves on update. Non-work has no completed quantity; conversion to work requires explicit quantity. */
-            completedQuantity?: string;
-            parentObjectId: string;
-            /** @description Whether stored progress must be reset before changing the type to non-work. */
-            requiresProgressReset: boolean;
-        };
-        SubobjectCreation: {
-            name: string;
-            /** @enum {string} */
-            type: "work" | "non_work";
-            unit: string;
-            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
-            quantity: string;
-            /** @description Exact completed quantity for work; defaults to 0 on create, omission preserves on update. Non-work has no completed quantity; conversion to work requires explicit quantity. */
-            completedQuantity?: string;
-        };
-        SubobjectUpdate: {
-            name: string;
-            /** @enum {string} */
-            type: "work" | "non_work";
-            unit: string;
-            /** @description Positive exact decimal; zero rejected. Server strips trailing fractional zeroes; no exponent or float conversion. */
-            quantity: string;
-            /** Format: int64 */
-            expectedVersion: number;
-            /** @description Exact completed quantity for work; defaults to 0 on create, omission preserves on update. Non-work has no completed quantity; conversion to work requires explicit quantity. */
-            completedQuantity?: string;
-        };
-        SubobjectPage: {
-            items: components["schemas"]["Subobject"][];
-            /** @description Empty when finished; at most twenty objects per page in document-ID ascending order. */
-            nextCursor: string;
-        };
         ProjectReference: {
             id: string;
             /** @enum {string} */
-            sourceType: "object" | "subobject" | "issue" | "discussion";
+            sourceType: "object" | "issue" | "discussion";
             sourceId: string;
             sourceRepositoryId: string;
-            parentObjectId?: string;
             sourceUnavailable: boolean;
             sourceTitle: string;
             sourceState: string;
@@ -1859,12 +1768,11 @@ export interface components {
             items: components["schemas"]["ProjectReference"][];
             nextCursor: string;
         };
-        /** @description Reference only within the Project source repository. Subobject requires its parentObjectId. Duplicate source identity is a no-op after current authorization, including retries of an unknown successful add. */
+        /** @description Reference only within the Project source repository. Child objects use their own sourceId. Duplicate source identity is a no-op after current authorization, including retries of an unknown successful add. */
         ProjectReferenceAddition: {
             /** @enum {string} */
-            sourceType: "object" | "subobject" | "issue" | "discussion";
+            sourceType: "object" | "issue" | "discussion";
             sourceId: string;
-            parentObjectId?: string;
             /** Format: int64 */
             expectedVersion: number;
             sourceRepositoryId?: string;
@@ -1904,7 +1812,6 @@ export interface components {
             completionPercent: number;
             reference?: components["schemas"]["JournalReference"];
             objectId?: string;
-            subobjectId?: string;
             spaceIds?: string[];
             readonly objectName?: string;
             readonly spaceNames?: string[];
@@ -1914,7 +1821,6 @@ export interface components {
             expectedCompletionPercent: number;
             reference?: components["schemas"]["JournalReference"];
             objectId?: string;
-            subobjectId?: string;
             spaceIds?: string[];
             readonly objectName?: string;
             readonly spaceNames?: string[];
@@ -2570,15 +2476,6 @@ export interface components {
             content: {
                 "application/json": components["schemas"]["APIError"];
                 "text/plain": string;
-            };
-        };
-        /** @description Rejected or unavailable. Writes require current parent ownership; parent progress is never changed. Retry creates with the original key and body. */
-        SubobjectError: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["APIError"];
             };
         };
         /** @description Request rejected or unavailable; errors never expose hidden resources. */
@@ -5704,6 +5601,8 @@ export interface operations {
     listObjects: {
         parameters: {
             query?: {
+                /** @description Filter to direct children of this object. */
+                parentId?: string;
                 cursor?: string;
             };
             header?: never;
@@ -5835,146 +5734,6 @@ export interface operations {
             409: components["responses"]["ObjectError"];
             415: components["responses"]["ObjectError"];
             503: components["responses"]["ObjectError"];
-        };
-    };
-    listSubobjects: {
-        parameters: {
-            query?: {
-                cursor?: string;
-            };
-            header?: never;
-            path: {
-                repositoryId: string;
-                objectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Authorized result; no-store */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubobjectPage"];
-                };
-            };
-            400: components["responses"]["SubobjectError"];
-            401: components["responses"]["SubobjectError"];
-            403: components["responses"]["SubobjectError"];
-            404: components["responses"]["SubobjectError"];
-            409: components["responses"]["SubobjectError"];
-            415: components["responses"]["SubobjectError"];
-            503: components["responses"]["SubobjectError"];
-        };
-    };
-    createSubobject: {
-        parameters: {
-            query?: never;
-            header: {
-                /** @description Scoped to actor and repository within Object creation only. Reuse the original key after an unknown result; same key with different normalized content conflicts. */
-                "Idempotency-Key": string;
-                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
-                "X-CSRF-Token"?: string;
-            };
-            path: {
-                repositoryId: string;
-                objectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SubobjectCreation"];
-            };
-        };
-        responses: {
-            /** @description Authorized result; no-store */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Subobject"];
-                };
-            };
-            400: components["responses"]["SubobjectError"];
-            401: components["responses"]["SubobjectError"];
-            403: components["responses"]["SubobjectError"];
-            404: components["responses"]["SubobjectError"];
-            409: components["responses"]["SubobjectError"];
-            415: components["responses"]["SubobjectError"];
-            503: components["responses"]["SubobjectError"];
-        };
-    };
-    getSubobject: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                repositoryId: string;
-                objectId: string;
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Authorized result; no-store */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Subobject"];
-                };
-            };
-            400: components["responses"]["SubobjectError"];
-            401: components["responses"]["SubobjectError"];
-            403: components["responses"]["SubobjectError"];
-            404: components["responses"]["SubobjectError"];
-            409: components["responses"]["SubobjectError"];
-            415: components["responses"]["SubobjectError"];
-            503: components["responses"]["SubobjectError"];
-        };
-    };
-    updateSubobject: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
-                "X-CSRF-Token"?: string;
-            };
-            path: {
-                repositoryId: string;
-                objectId: string;
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SubobjectUpdate"];
-            };
-        };
-        responses: {
-            /** @description Authorized result; no-store */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Subobject"];
-                };
-            };
-            400: components["responses"]["SubobjectError"];
-            401: components["responses"]["SubobjectError"];
-            403: components["responses"]["SubobjectError"];
-            404: components["responses"]["SubobjectError"];
-            409: components["responses"]["SubobjectError"];
-            415: components["responses"]["SubobjectError"];
-            503: components["responses"]["SubobjectError"];
         };
     };
     listProjectReferences: {
@@ -6665,9 +6424,8 @@ export interface operations {
                 desiredPresent: boolean;
                 itemId?: string;
                 sourceRepositoryId?: string;
-                sourceType?: "object" | "subobject" | "issue" | "discussion";
+                sourceType?: "object" | "issue" | "discussion";
                 sourceId?: string;
-                parentObjectId?: string;
             };
             header?: never;
             path: {
