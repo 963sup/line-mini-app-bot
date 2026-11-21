@@ -10,6 +10,7 @@ type Snapshot = {
   saving: boolean;
 };
 type Selection = Omit<Snapshot, "owner"> & {
+  refresh: () => void;
   select: (organizationId: string, onSelected: (id: string) => void) => void;
 };
 const SelectionContext = createContext<Selection | null>(null);
@@ -50,7 +51,7 @@ export function OrganizationSelectionProvider({ children }: { children: ReactNod
       },
     );
   }
-  return <SelectionContext.Provider value={{ ...current, select }}>{children}</SelectionContext.Provider>;
+  return <SelectionContext.Provider value={{ ...current, select, refresh: () => { void load(); } }}>{children}</SelectionContext.Provider>;
 }
 
 export function useOrganizationSelection() {

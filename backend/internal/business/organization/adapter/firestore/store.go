@@ -14,6 +14,7 @@ import (
 	"cloud.google.com/go/firestore"
 	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
+	membership "github.com/963sup/line-mini-app-bot/internal/business/membership/domain"
 
 	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
 	"github.com/google/uuid"
@@ -94,7 +95,19 @@ func createOrganization(tx *firestore.Transaction, root *firestore.DocumentRef, 
 	if name == "" || len([]rune(name)) > 120 {
 		return nil, organizationDomainEntity.ErrInvalid
 	}
-	return &organizationDomainEntity.Organization{ID: id, OwnerUserID: user, Name: name}, tx.Create(root.Collection("organizations").Doc(id), map[string]any{"ownerUserId": user, "createdBy": user, "name": name})
+	resource, err := membership.NewResourceRef(root.ID, "organization", id)
+	if err != nil {
+		return nil, organizationDomainEntity.ErrInvalid
+	}
+	opening, err := membership.OpenScope(resource, user)
+	if err != nil {
+		return nil, organizationDomainEntity.ErrInvalid
+	}
+	// Legacy mode stores the resource and its first owner in one document.
+	org := &organizationDomainEntity.Organization{ID: opening.Resource().ID(), OwnerUserID: opening.OwnerID(), Name: name}
+	return org, tx.Create(root.Collection("organizations").Doc(org.ID), map[string]any{
+		"ownerUserId": org.OwnerUserID, "createdBy": user, "name": name,
+	})
 }
 
 func (s Store) Transfer(ctx context.Context, user string, organizationId, target string) (*organizationDomainEntity.Organization, error) {
@@ -113,6 +126,13 @@ func (s Store) Transfer(ctx context.Context, user string, organizationId, target
 		if target != user && !slices.Contains(org.Members, target) {
 			return nil, organizationDomainEntity.ErrInvalid
 		}
-		return &organizationDomainEntity.Organization{ID: organizationId, Name: org.Name, OwnerUserID: target}, tx.Update(ref, []firestore.Update{{Path: "ownerUserId", Value: target}})
+		result := &organizationDomainEntity.Organization{ID: organizationId, Name: org.Name, OwnerUserID: target}
+		if target == user {
+			return result, nil
+		}
+		return result, tx.Update(ref, []firestore.Update{
+			{Path: "ownerUserId", Value: target},
+			{Path: "membershipOwnerVersion", Value: firestore.Increment(1)},
+		})
 	})
 }

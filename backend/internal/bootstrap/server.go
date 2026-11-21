@@ -21,6 +21,8 @@ import (
 	groupline "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/line"
 	issuehttp "github.com/963sup/line-mini-app-bot/internal/business/issue/adapter/http"
 	journalhttp "github.com/963sup/line-mini-app-bot/internal/business/journal/adapter/http"
+	membershiphttp "github.com/963sup/line-mini-app-bot/internal/business/membership/adapter/http"
+	membershipapp "github.com/963sup/line-mini-app-bot/internal/business/membership/application"
 	objecthttp "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/http"
 	operationshttp "github.com/963sup/line-mini-app-bot/internal/business/operations/adapter/http"
 	poppler "github.com/963sup/line-mini-app-bot/internal/business/operations/adapter/poppler"
@@ -131,6 +133,7 @@ func Run() (resultErr error) {
 		}
 	}()
 	var creation organizationline.Conversation
+	var invitations *membershipapp.Service
 	organizationHandler := organizationhttp.Handler{Auth: auth}
 	enterpriseHandler := enterprisehttp.Handler{Auth: auth}
 	teamHandler := teamhttp.Handler{Auth: auth}
@@ -141,8 +144,10 @@ func Run() (resultErr error) {
 		enterpriseHandler.Store = enterprisedb.Store{DB: sessionStore.Client, Channel: channel, Groups: groups}
 		teamHandler.Store = teamdb.Store{DB: sessionStore.Client, Channel: channel, Groups: groups}
 		creation = organizationStore
+		invitations = membershipInvitations(sessionStore.Client, channel, os.Getenv("LINE_MESSAGING_API_CHANNEL_SECRET"))
 	}
 	httpapi.RegisterOrganizations(mux, organizationHandler)
+	httpapi.RegisterMembership(mux, membershiphttp.Handler{Service: invitations, Auth: auth})
 	httpapi.RegisterEnterprises(mux, enterpriseHandler)
 	httpapi.RegisterTeams(mux, teamHandler)
 	projects := newProjects(groups, groupStore, repositories)
@@ -167,7 +172,7 @@ func Run() (resultErr error) {
 	if groups != nil {
 		groupObserver = &groupline.Observer{Store: groups.Store}
 	}
-	groupLookup, err = registerLINE(mux, appURL, endpointURL, punches, summaries, repositoryObserver, groupObserver, repositories, creation)
+	groupLookup, err = registerLINE(mux, appURL, endpointURL, punches, summaries, repositoryObserver, groupObserver, repositories, creation, invitations)
 	if err != nil {
 		return err
 	}

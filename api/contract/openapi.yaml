@@ -197,6 +197,15 @@
     "/api/v1/organizations/{organizationId}/owner": {
       "$ref": "./organization/context.yaml#/paths/~1api~1v1~1organizations~1{organizationId}~1owner"
     },
+    "/api/v1/organizations/{organizationId}/members": {
+      "$ref": "./organization/membership.yaml#/paths/~1api~1v1~1organizations~1{organizationId}~1members"
+    },
+    "/api/v1/organizations/{organizationId}/membership": {
+      "$ref": "./organization/membership.yaml#/paths/~1api~1v1~1organizations~1{organizationId}~1membership"
+    },
+    "/api/v1/organizations/{organizationId}/members/{memberId}": {
+      "$ref": "./organization/membership.yaml#/paths/~1api~1v1~1organizations~1{organizationId}~1members~1{memberId}"
+    },
     "/api/v1/teams/{teamId}/management": {
       "$ref": "./team/teams.yaml#/paths/~1api~1v1~1teams~1{teamId}~1management"
     },

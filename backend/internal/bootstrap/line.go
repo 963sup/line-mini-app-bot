@@ -8,6 +8,8 @@ import (
 
 	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line"
 	groupline "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/line"
+	membershipline "github.com/963sup/line-mini-app-bot/internal/business/membership/adapter/line"
+	membershipapp "github.com/963sup/line-mini-app-bot/internal/business/membership/application"
 	organizationline "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/line"
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/line"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
@@ -19,7 +21,7 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
-func registerLINE(mux *http.ServeMux, appURL, endpointURL string, punches *attendance.Attendance, summaries *summary.Summary, repositories *repositoryline.Observer, groups *groupline.Observer, catalog *repositoryApplication.Service, creation organizationline.Conversation) (func(context.Context, string) string, error) {
+func registerLINE(mux *http.ServeMux, appURL, endpointURL string, punches *attendance.Attendance, summaries *summary.Summary, repositories *repositoryline.Observer, groups *groupline.Observer, catalog *repositoryApplication.Service, creation organizationline.Conversation, invitations *membershipapp.Service) (func(context.Context, string) string, error) {
 	var client weather.ForecastLookup
 	if key := os.Getenv("CWA_API_KEY"); key != "" {
 		client = &cwa.Client{APIKey: key, HTTP: &http.Client{Timeout: 3 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}
@@ -32,6 +34,7 @@ func registerLINE(mux *http.ServeMux, appURL, endpointURL string, punches *atten
 		}
 	}
 	lookup, err := transport.RegisterWebhook(mux, []transport.Handler{
+		membershipline.Handler(invitations),
 		organizationline.CreationHandler(creation, appURL),
 		{Handle: func(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
 			return repositoryline.MyEngineering(ctx, event, appURL, catalog)

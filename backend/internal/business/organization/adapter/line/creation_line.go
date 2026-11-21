@@ -40,6 +40,9 @@ func CreationHandler(store Conversation, appURL string) transport.Handler {
 		}
 		message := &messaging_api.TextMessage{Text: res.Text}
 		if res.ID != "" {
+			if res.Kind == "organization" {
+				message.Text += "\n\n邀請成員時，請傳送：\n邀請加入 " + res.ID
+			}
 			link, e := url.Parse(appURL)
 			if e == nil && link.Scheme == "https" && link.Host != "" {
 				q := link.Query()

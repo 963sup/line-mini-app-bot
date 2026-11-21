@@ -29,14 +29,16 @@ func Run[T any](ctx context.Context, db *firestore.Client, channel string, op fu
 }
 
 type Document struct {
-	Owners     []string `firestore:"ownerUserIds"`
-	Name       string   `firestore:"name"`
-	Owner      string   `firestore:"ownerUserId"`
-	Members    []string `firestore:"memberUserIds"`
-	Enterprise string   `firestore:"enterpriseId"`
-	Managers   []string `firestore:"managerUserIds"`
-	Scope      string   `firestore:"managementScope"`
-	Manager    string   `firestore:"managementId"`
+	Disabled       bool     `firestore:"disabled"`
+	MembershipMode string   `firestore:"membershipMode"`
+	Owners         []string `firestore:"ownerUserIds"`
+	Name           string   `firestore:"name"`
+	Owner          string   `firestore:"ownerUserId"`
+	Members        []string `firestore:"memberUserIds"`
+	Enterprise     string   `firestore:"enterpriseId"`
+	Managers       []string `firestore:"managerUserIds"`
+	Scope          string   `firestore:"managementScope"`
+	Manager        string   `firestore:"managementId"`
 }
 
 var UserID = regexp.MustCompile("^U[0-9a-f]{32}$")
