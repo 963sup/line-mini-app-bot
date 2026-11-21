@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[skills-sources.json](skills-sources.json)、[go-workflow.md](go-workflow.md)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+先查閱[skills-lock.json](../skills-lock.json)、[go-workflow.md](go-workflow.md)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
 
 ## 相關規格
 
@@ -21,7 +21,7 @@
 
 ## 職責與邊界
 
-skills/ 保存上游技能；skills-sources.json 記錄來源，go-workflow.md 提供 Go 工作流程。角色註冊由 ../.codex/config.toml 與 ../.codex/agents/ 管理。
+skills/ 保存上游技能；skills-lock.json 記錄來源，go-workflow.md 提供 Go 工作流程。角色註冊由 ../.codex/config.toml 與 ../.codex/agents/ 管理。
 
 保留上游技能、授權與來源資訊；不要把專案政策複製進技能。角色數與可用性以配置及目前主機為準。
 

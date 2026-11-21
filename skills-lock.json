@@ -9,6 +9,14 @@
       "computedHash": "0c1323791e24cc34e977e7b4f41b016863c0faec9dc855a590db402dfb3ab7c5",
       "installMode": "copy"
     },
+    "context7-mcp": {
+      "source": "upstash/context7",
+      "ref": "078c0c731d19eb88d2391b236ab82a127dbabac3",
+      "sourceType": "github",
+      "skillPath": "skills/context7-mcp/SKILL.md",
+      "computedHash": "5b1f7f4121622f37aa342e592ff85faea5abf6993dc609f799c4856511e798b7",
+      "installMode": "copy"
+    },
     "gcloud": {
       "source": "google/skills",
       "ref": "2194d3b8b1f31975fef2f1a0ae6b9ab55bd7ceee",
@@ -292,6 +300,22 @@
       "sourceType": "github",
       "skillPath": "skills/golang-uber-fx/SKILL.md",
       "computedHash": "e08067cdc0bb745483dafe455d71b9f3172d5ef488be829bbce34b0526d3c541"
+    },
+    "openai-docs": {
+      "source": "openai/skills",
+      "ref": "49f948faa9258a0c61caceaf225e179651397431",
+      "sourceType": "github",
+      "skillPath": "skills/.curated/openai-docs/SKILL.md",
+      "computedHash": "0436b5a4e330b85cc5468c772b49f185daa6cd7a8d2b5ff9f6c97df10c5ab373",
+      "installMode": "copy"
+    },
+    "repomix-explorer": {
+      "source": "yamadashy/repomix",
+      "ref": "5becbb59429aa9d570ae7b7af710e98871721fca",
+      "sourceType": "github",
+      "skillPath": "skills/repomix-explorer/SKILL.md",
+      "computedHash": "ed075280e51e7a7175489ca10e7569ed497ca945e3d91b527d4ef70e9e97678b",
+      "installMode": "copy"
     },
     "retrieving-developer-knowledge": {
       "source": "google/skills",
