@@ -57,6 +57,10 @@ config_file = "agents/reviewer.toml"
 description = "Write, review and repair assigned Markdown while preserving meaning and verified sources."
 config_file = "agents/documentation.toml"
 
+[agents.github]
+description = "Verify GitHub repository evidence and maintain its Wiki."
+config_file = "agents/github.toml"
+
 [agents.integrator]
 description = "Change integration, conflict resolution and final acceptance."
 config_file = "agents/integrator.toml"
