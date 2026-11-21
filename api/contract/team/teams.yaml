@@ -406,6 +406,10 @@
           },
           "managementId": {
             "type": "string"
+          },
+          "initialMaintainerUserId": {
+            "type": "string",
+            "description": "When provided, activate independent Membership and grant this eligible parent member the initial maintainer role."
           }
         }
       },

@@ -14,6 +14,7 @@ import (
 )
 
 type Store interface {
+	Activate(ctx context.Context, actor, teamID, scope, managementID, maintainer string) error
 	Manage(ctx context.Context, user string, teamId, scope, managementId string) error
 	Assign(ctx context.Context, user string, id, teamId string, add bool) error
 	List(ctx context.Context, user string, organizationId string) (*teamApplicationDto.Listing, error)
@@ -29,6 +30,9 @@ func (h Handler) SetTeamManagement(w http.ResponseWriter, r *http.Request, teamI
 		var input generated.TeamManagement
 		if err := orghttp.Decode(r, w, &input); err != nil {
 			return nil, err
+		}
+		if input.InitialMaintainerUserId != nil {
+			return nil, h.Store.Activate(ctx, user, teamId, string(input.ManagementScope), input.ManagementId, *input.InitialMaintainerUserId)
 		}
 		return nil, h.Store.Manage(ctx, user, teamId, string(input.ManagementScope), input.ManagementId)
 	})

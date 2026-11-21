@@ -29,16 +29,18 @@ func Run[T any](ctx context.Context, db *firestore.Client, channel string, op fu
 }
 
 type Document struct {
-	Disabled       bool     `firestore:"disabled"`
-	MembershipMode string   `firestore:"membershipMode"`
-	Owners         []string `firestore:"ownerUserIds"`
-	Name           string   `firestore:"name"`
-	Owner          string   `firestore:"ownerUserId"`
-	Members        []string `firestore:"memberUserIds"`
-	Enterprise     string   `firestore:"enterpriseId"`
-	Managers       []string `firestore:"managerUserIds"`
-	Scope          string   `firestore:"managementScope"`
-	Manager        string   `firestore:"managementId"`
+	InitialMaintainer string   `firestore:"initialMaintainerUserId"`
+	Status            string   `firestore:"status"`
+	MembershipMode    string   `firestore:"membershipMode"`
+	Disabled          bool     `firestore:"disabled"`
+	Owners            []string `firestore:"ownerUserIds"`
+	Name              string   `firestore:"name"`
+	Owner             string   `firestore:"ownerUserId"`
+	Members           []string `firestore:"memberUserIds"`
+	Enterprise        string   `firestore:"enterpriseId"`
+	Managers          []string `firestore:"managerUserIds"`
+	Scope             string   `firestore:"managementScope"`
+	Manager           string   `firestore:"managementId"`
 }
 
 var UserID = regexp.MustCompile("^U[0-9a-f]{32}$")
@@ -55,4 +57,14 @@ func Read(tx *firestore.Transaction, ref *firestore.DocumentRef) (Document, erro
 
 func (e Document) IsOwner(user string) bool {
 	return e.Owner == user || slices.Contains(e.Owners, user)
+}
+
+// LegacyOrganizationEnabled prevents legacy fields from authorizing a resource
+// after it leaves the legacy mode. Existing documents have no mode field.
+func (d Document) LegacyOrganizationEnabled() bool {
+	return !d.Disabled && d.Owner != "" && (d.MembershipMode == "" || d.MembershipMode == "legacy")
+}
+
+func (d Document) VisibleLegacyOrganization(user string) bool {
+	return user != "" && d.LegacyOrganizationEnabled() && (d.Owner == user || slices.Contains(d.Members, user))
 }

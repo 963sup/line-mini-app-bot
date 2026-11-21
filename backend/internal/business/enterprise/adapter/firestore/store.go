@@ -1,7 +1,6 @@
 package enterprisedb
 
 import (
-	organizationApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/organization/application/dto"
 	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
 )
 
@@ -28,9 +27,11 @@ import (
 )
 
 type Store struct {
-	DB      *firestore.Client
-	Channel string
-	Groups  *groupquery.Service
+	DB                 *firestore.Client
+	Channel            string
+	Groups             *groupquery.Service
+	OrganizationMember func(*firestore.Transaction, *firestore.DocumentRef, string, string) (bool, error)
+	TeamMember         func(*firestore.Transaction, *firestore.DocumentRef, string, string, string, string) (bool, error)
 }
 
 type grant struct {
@@ -51,39 +52,47 @@ func Provisioning(tx *firestore.Transaction, root *firestore.DocumentRef, user s
 	return g, ref, e
 }
 
-func PopulateNavigation(tx *firestore.Transaction, root *firestore.DocumentRef, user string, labels map[string]string, c *organizationApplicationDto.Context) error {
-	g, _, e := Provisioning(tx, root, user)
-	if e != nil {
-		return e
+// CanStartCreation checks the same provisioning decision used by creation.
+func CanStartCreation(tx *firestore.Transaction, root *firestore.DocumentRef, actor string) (bool, error) {
+	g, _, err := Provisioning(tx, root, actor)
+	return policy.CanProvision(g.Enabled, g.EnterpriseID, false), err
+}
+
+// CreateFromConversation joins the caller's conversation transaction.
+func CreateFromConversation(tx *firestore.Transaction, root *firestore.DocumentRef, actor, id, name string) error {
+	_, err := CreateInTransaction(tx, root, actor, id, name, false)
+	return err
+}
+
+// NavigationFacts supplies Enterprise-owned visibility and provisioning facts
+// from the transaction used by the organization navigation query.
+func NavigationFacts(tx *firestore.Transaction, root *firestore.DocumentRef, user string) (map[string]string, bool, error) {
+	canCreate, err := CanStartCreation(tx, root, user)
+	if err != nil {
+		return nil, false, err
 	}
-	c.CanCreateEnterprise = policy.CanProvision(g.Enabled, g.EnterpriseID, false)
-	// Use individual indexed queries: Firestore does not support multiple array-contains filters in one disjunction in all deployments.
-	for _, q := range []firestore.Query{root.Collection("enterprises").Where("ownerUserId", "==", user), root.Collection("enterprises").Where("ownerUserIds", "array-contains", user), root.Collection("enterprises").Where("managerUserIds", "array-contains", user)} {
-		docs, e := tx.Documents(q).GetAll()
-		if e != nil {
-			return e
+	labels := map[string]string{}
+	// Keep the array-contains queries separate for Firestore compatibility.
+	for _, q := range []firestore.Query{
+		root.Collection("enterprises").Where("ownerUserId", "==", user),
+		root.Collection("enterprises").Where("ownerUserIds", "array-contains", user),
+		root.Collection("enterprises").Where("managerUserIds", "array-contains", user),
+	} {
+		docs, err := tx.Documents(q).GetAll()
+		if err != nil {
+			return nil, false, err
 		}
 		for _, doc := range docs {
 			var ent orgstore.Document
-			if e := doc.DataTo(&ent); e != nil {
-				return e
+			if err := doc.DataTo(&ent); err != nil {
+				return nil, false, err
 			}
 			if legacyEnterpriseEnabled(ent) {
 				labels[doc.Ref.ID] = ent.Name
 			}
 		}
 	}
-	c.Enterprises = []organizationApplicationDto.EnterpriseLink{}
-	for id, name := range labels {
-		c.Enterprises = append(c.Enterprises, organizationApplicationDto.EnterpriseLink{ID: id, Name: name})
-	}
-	slices.SortFunc(c.Enterprises, func(a, b organizationApplicationDto.EnterpriseLink) int {
-		if a.Name == b.Name {
-			return strings.Compare(a.ID, b.ID)
-		}
-		return strings.Compare(a.Name, b.Name)
-	})
-	return nil
+	return labels, canCreate, nil
 }
 
 func (s Store) CreateEnterprise(ctx context.Context, user, name string) (*dto.Link, error) {
@@ -149,7 +158,14 @@ func (s Store) Enterprise(ctx context.Context, user, id string) (*dto.Detail, er
 			if e := d.DataTo(&org); e != nil {
 				return nil, e
 			}
-			if admin || org.Owner == user || slices.Contains(org.Members, user) {
+			visible := admin || org.VisibleLegacyOrganization(user)
+			if !visible && org.MembershipMode == "membership" && !org.Disabled && s.OrganizationMember != nil {
+				visible, e = s.OrganizationMember(tx, root, d.Ref.ID, user)
+				if e != nil {
+					return nil, e
+				}
+			}
+			if visible {
 				view.Organizations = append(view.Organizations, dto.Link{ID: d.Ref.ID, Name: org.Name})
 			}
 		}
@@ -177,7 +193,24 @@ func (s Store) Enterprise(ctx context.Context, user, id string) (*dto.Detail, er
 			if e := d.DataTo(&team); e != nil {
 				return nil, e
 			}
-			if team.Scope != "enterprise" {
+			if team.Scope != "enterprise" || team.Disabled {
+				continue
+			}
+			switch team.MembershipMode {
+			case "membership":
+				if (!admin && !assigned[d.Ref.ID]) || team.Status != "ACTIVE" || s.TeamMember == nil {
+					continue
+				}
+				allowed, err := s.TeamMember(tx, root, d.Ref.ID, team.Scope, team.Manager, user)
+				if err != nil {
+					return nil, err
+				}
+				if allowed {
+					view.Teams = append(view.Teams, dto.Link{ID: d.Ref.ID, Name: team.Name})
+				}
+				continue
+			case "", "legacy":
+			default:
 				continue
 			}
 			if !admin {
@@ -223,7 +256,7 @@ func (s Store) UpdateEnterprise(ctx context.Context, user, id, target string, ad
 		if e != nil {
 			return nil, e
 		}
-		if org.Owner != user {
+		if !org.LegacyOrganizationEnabled() || org.Owner != user {
 			return nil, organizationDomainEntity.ErrNotFound
 		}
 		if org.Enterprise != "" && org.Enterprise != id {

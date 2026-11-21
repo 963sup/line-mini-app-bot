@@ -2418,6 +2418,8 @@ export interface components {
             /** @enum {string} */
             managementScope: "organization" | "enterprise";
             managementId: string;
+            /** @description When provided, activate independent Membership and grant this eligible parent member the initial maintainer role. */
+            initialMaintainerUserId?: string;
         };
         OrganizationTeamOption: {
             teamId: string;

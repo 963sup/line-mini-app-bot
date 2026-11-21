@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
 	dto "github.com/963sup/line-mini-app-bot/internal/business/organization/application/dto"
 	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
 	"github.com/google/uuid"
@@ -26,7 +27,7 @@ func TestCreationConversation(t *testing.T) {
 			t.Error(e)
 		}
 	})
-	s := Store{DB: db, Channel: uuid.NewString()}
+	s := Store{DB: db, Channel: uuid.NewString(), CanCreateEnterprise: enterprisedb.CanStartCreation, CreateEnterprise: enterprisedb.CreateFromConversation}
 	root := db.Collection("channels").Doc(s.Channel)
 	user := "U" + strings.Repeat("a", 32)
 	at := time.Now().Add(-time.Minute)

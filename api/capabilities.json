@@ -1506,9 +1506,11 @@
       "owner": "organization",
       "adapter": "backend/internal/business/organization/adapter/http/routes.go",
       "handler": "TransferOrganization",
-      "core": "backend/internal/business/organization/application/dto/context.go",
+      "core": "backend/internal/business/organization/domain/entity/ownership.go",
       "specification": "docs/domains/organization/design.md",
-      "consumers": []
+      "consumers": [
+        "frontend/miniapp/src/business/organization/OrganizationPage.tsx"
+      ]
     },
     {
       "operationId": "setTeamManagement",
