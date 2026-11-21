@@ -33,6 +33,10 @@
 - [Web Geolocation API 整合契約 · 現有出勤整合檔案與責任](architecture/integrations/web-geolocation.md#現有出勤整合檔案與責任)
 
 ## 未來設計
+
+- [Membership 統一成員關係 · 領域邊界](proposals/membership.md#領域邊界)
+- [Membership 統一成員關係 · 核心模型](proposals/membership.md#核心模型)
+- [Membership 統一成員關係 · 狀態與邀請流程](proposals/membership.md#狀態與邀請流程)
 - [Organization 所有權與 Team 歸屬](architecture/contracts/organization-team-ownership.md)
 
 - [套件依賴與圖譜 · 允許方向](architecture/runtime/dependencies.md#允許方向)
@@ -50,6 +54,14 @@
 - [LINE 工程管理平台目標架構（提案） · 八、通知與背景工作的完整閉環](proposals/line-engineering/README.md#八通知與背景工作的完整閉環)
 
 ## 開發與維運指引
+
+- [DDD 與六邊形架構概覽](architecture/ddd/README.md#mermaid-圖表)
+
+- [Aggregate · 邊界與存取入口](architecture/ddd/aggregate.md#邊界與存取入口)
+- [Outbox（按需） · 提交與失敗窗口](architecture/ddd/outbox-pattern.md#提交與失敗窗口圖)
+
+- [六邊形架構 · 執行時互動](architecture/ddd/hexagonal-architecture.md#執行時互動)
+- [六邊形架構 · 程式碼依賴](architecture/ddd/hexagonal-architecture.md#程式碼依賴)
 
 - [HTTP API 契約 · 契約生成流程](../api/README.md#契約生成流程)
 

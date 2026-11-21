@@ -12,7 +12,7 @@ DDD Repository 提供以 Aggregate 為單位的載入與保存能力，讓業務
 
 ## 讀取投影與例子
 
-People 清單可由 Reader Port 直接回傳投影，不必為顯示姓名載入完整 Aggregate；讀取仍須授權、分頁與租戶隔離。將來 MembershipScope 的 Repository 與 People Reader 可以共用儲存來源，但契約用途不同。
+People 清單可由 Reader Port 直接回傳投影，不必為顯示姓名載入完整 Aggregate；讀取仍須授權、分頁與租戶隔離。寫入側可依確認後的 Aggregate 邊界定義 Repository，與 People Reader 共用儲存來源。兩者契約用途不同；People 的畫面範圍也不能用來推定 Aggregate 的邊界。
 
 ## 設計產出與核對
 
