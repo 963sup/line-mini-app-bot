@@ -63,8 +63,8 @@ gcloud = "592.0.0"
 "npm:@google-cloud/gcloud-mcp" = "0.5.3"
 
 [settings]
-exec_auto_install = false
-task.run_auto_install = false
+exec_auto_install = true
+task.run_auto_install = true
 
 [tasks.check]
 dir = "backend"
