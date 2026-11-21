@@ -33,6 +33,10 @@
 - [Web Geolocation API 整合契約 · 現有出勤整合檔案與責任](architecture/integrations/web-geolocation.md#現有出勤整合檔案與責任)
 
 ## 未來設計
+
+- [Membership 統一成員關係 · 領域邊界](proposals/membership.md#領域邊界)
+- [Membership 統一成員關係 · 核心模型](proposals/membership.md#核心模型)
+- [Membership 統一成員關係 · 狀態與邀請流程](proposals/membership.md#狀態與邀請流程)
 - [Organization 所有權與 Team 歸屬](architecture/contracts/organization-team-ownership.md)
 
 - [套件依賴與圖譜 · 允許方向](architecture/runtime/dependencies.md#允許方向)

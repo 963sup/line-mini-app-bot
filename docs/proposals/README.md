@@ -83,6 +83,8 @@ flowchart LR
 
 ## 規劃中的業務領域
 
+[Membership 統一成員關係設計](membership.md)：使用者與資源的成員、邀請、角色及撤權生命週期。
+
 [Operations 設計](operations.md) · [Workflow 設計](workflow.md) · [Agent 設計](agent.md) · [Knowledge 設計](knowledge.md)
 
 [四領域架構、共用詞條與落地驗收](domain-collaboration.md)
