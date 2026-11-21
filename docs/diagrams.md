@@ -51,6 +51,12 @@
 
 ## 開發與維運指引
 
+- [Aggregate · 邊界與存取入口](architecture/ddd/aggregate.md#邊界與存取入口)
+- [Outbox（按需） · 提交與失敗窗口](architecture/ddd/outbox-pattern.md#提交與失敗窗口圖)
+
+- [六邊形架構 · 執行時互動](architecture/ddd/hexagonal-architecture.md#執行時互動)
+- [六邊形架構 · 程式碼依賴](architecture/ddd/hexagonal-architecture.md#程式碼依賴)
+
 - [HTTP API 契約 · 契約生成流程](../api/README.md#契約生成流程)
 
 - [專案文件入口 · 目錄責任](README.md#目錄責任)
