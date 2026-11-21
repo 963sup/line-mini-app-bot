@@ -2,24 +2,18 @@
 
 ## Codex Cloud 環境設定
 
-在此環境編輯頁，將 **Install script** 設為以下命令。首次建立容器時安裝固定版本的 Go、Node、pnpm 與 API 產生器，依鎖檔安裝 workspace 套件並下載、驗證後端 Go modules。恢復快取時，同一命令重新核對目前 checkout，重用工具與套件快取；pnpm 使用 frozen lockfile 與 prefer-offline。Cloud 模式不執行測試，也不註冊使用者層 MCP。
-
-Go 分析工具、API 產生器、Mermaid 分別使用 mise 的 install-core、install-web、install-mermaid 任務，透過 scripts/tooling/tool-exec.sh 執行。MCP 與部署工具依各自任務安裝。一般 core 模式仍保留完整工具與 doctor 驗證。執行 pnpm check 前需先 install-core，因後端檢查包含格式與 lint；pnpm build／pnpm test 使用 Cloud 模式的工具即可。
-
-Cloud 必需工具由 mise.lock 鎖定 Linux x64／arm64 下載資訊，pnpm CLI 的相依鎖保存於 .mise/locks；應用依賴由 pnpm-lock.yaml 與 backend/go.sum 驗證。Go 原始碼工具使用模組版本與 Go checksum database；選用工具不在這份最小工具鎖的保證範圍。
-
-```bash
-scripts/bootstrap.sh
-```
-
-發布會保存已準備的檔案與快取，不保存執行中的程序。**Start skill** 應指示從 checkout 根目錄使用 scripts/tooling/tool-exec.sh；工具設定或鎖檔變更時明確重跑初始化。此介面沒有獨立 Maintenance script 欄位。驗收需分別記錄空工具／依賴快取的冷啟動與同一快取的再次執行；現有機器成功不代表已驗證新的發布快照。[官方環境設定](https://developers.openai.com/codex/cloud/environments)
+Install script、Start skill、更新與新聊天驗收由 [Codex Cloud 環境手冊](../../development/environment/codex-cloud.md)維護。
 
 ## 一般開發與 MCP 安裝
+
+以下流程涵蓋明確指定的 `core`、`mcp` 或 `all`。省略模式時使用 `cloud`。
+
+**開發與維運指引**
 
 ```mermaid
 flowchart TD
   A["Linux x64／arm64：Bash、curl、tar、sha256sum、Python 3.11+"] --> B["核對固定版 mise，信任專案設定，安裝 core 工具"]
-  B --> W{"core（預設）或 all？"}
+  B --> W{"core 或 all？"}
   W -->|是| D["安裝 Web 工具與鎖定依賴，執行 doctor"]
   W -->|否| M["安裝 Mermaid"]
   D --> M

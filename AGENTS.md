@@ -2,10 +2,12 @@
 
 ## 從這裡開始
 
-- Codex Cloud 首次初始化使用 `scripts/bootstrap.sh`。詳見[環境設定](.codex/README.md#codex-環境初始化)。
+- Codex Cloud 首次初始化使用 `scripts/bootstrap.sh`。詳見 [Cloud 環境設定](docs/development/environment/codex-cloud.md)。
 - 日常命令從根目錄使用 `bash scripts/tooling/tool-exec.sh <命令>`。
 - 修改前讀取目標目錄的 README.md 與 AGENTS.md，根指引與各層補充一併適用。跨目錄搬移時核對來源、目的地與呼叫端，保留既有變更與上游技能。[巢狀導覽](README.md#巢狀目錄導覽)
-- 新增或搬移檔案時執行[工作區範圍檢查](docs/development/tooling/analysis-scope.md)，再按[驗收矩陣](docs/development/acceptance.md)驗證行為。
+- 新增或搬移檔案時執行[工作區範圍檢查](docs/development/tooling/analysis-scope.md)，再按[驗收矩陣](docs/development/verification/commands.md#變更驗收矩陣)驗證行為。
+- 每次收到使用者訊息，開始實質回答或執行任務前，MUST 依 [Repomix Skills 流程](docs/development/tooling/mcp/repomix-skills.md#每次交談前重新產生)使用 CLI 重新產生本次相關來源的技能包，指定 `.agents/skills/<skillName>/` 並使用 `--force`，再讀取產物；即使來源未變也執行。主機限制優先，失敗時明確回報，不宣稱已更新或載入。
+- 使用者要求「交接」、「接手」或「交給另一個側欄聊天」時，直接採用[側欄交接流程](docs/development/workflow/handoff.md#sidebar-handoff)，輸出六欄摘要並引用本次生成的相關技能包。
 
 ## 巢狀文件維護標準
 
@@ -18,7 +20,7 @@
 
 - When a task needs to find, list, or run a CLI, start at the repository root and read [mise.toml](mise.toml) for declared tools and versions. Run `bash scripts/tooling/tool-exec.sh mise ls --installed` to inventory installed versions. The wrapper loads the workspace tool paths even when the Codex shell starts without them.
 - Run project CLIs through `bash scripts/tooling/tool-exec.sh <command> [args...]`. If the wrapper cannot find mise, check `/workspace/tooling/bin/mise` and `/workspace/tooling/mise-data/installs` before reporting a tool missing.
-- For a fresh checkout, use the [Codex environment setup instructions](.codex/README.md#codex-環境初始化). Installed CLI packages and MCP servers exposed to the current Codex session are separate inventories.
+- For a fresh checkout, use the [Codex environment setup instructions](docs/development/environment/codex-cloud.md). Installed CLI packages and MCP servers exposed to the current Codex session are separate inventories.
 
 ## 按需安裝工具
 
@@ -55,7 +57,7 @@ reuse it for follow-ups and provide the goal, existing changes and deliverable.
   itself or another orchestrator.
 - Specialists receiving an assigned subtask execute that subtask and report to
   their orchestrator; they must not restart this routing rule or delegate further.
-- Orchestrator selects registered roles using the [shared workflow](docs/development/workflow.md#delegation-depth-and-role-selection).
+- Orchestrator selects registered roles using the [shared workflow](docs/development/workflow/task-start.md#delegation-depth-and-role-selection).
   Small tasks can be completed directly; roles are capabilities, not a required fan-out.
 - Assign one writer per file scope; parallelize only independent tasks. Respect
   the configured bounds and host's actual concurrency and depth limits.
@@ -72,7 +74,7 @@ reuse it for follow-ups and provide the goal, existing changes and deliverable.
 
 ### Registered roles
 
-角色能力與設定由 [角色設定說明](.codex/agents/README.md) 維護；角色選用、交接欄位、一檔一寫入者及整合責任依 [shared workflow](docs/development/workflow.md#delegation-depth-and-role-selection)。角色是可選能力，不是每個任務都必須經過的階段；主機限制優先，委派不增加外部寫入權限。
+角色能力與設定由 [角色設定說明](.codex/agents/README.md) 維護；角色選用、交接欄位、一檔一寫入者及整合責任依 [shared workflow](docs/development/workflow/task-start.md#delegation-depth-and-role-selection)。角色是可選能力，不是每個任務都必須經過的階段；主機限制優先，委派不增加外部寫入權限。
 
 架構、資料關係、流程或狀態用圖更清楚時，主動使用專案鎖定的本機 Mermaid v13 CLI 驗證並渲染圖表。操作方式見 [.codex/README.md](.codex/README.md#mermaid)。
 
@@ -96,16 +98,13 @@ Rules:
 
 新增、修改或審查任何自有 Markdown 前，MUST 讀取並遵守[文件規範](docs/standards/documentation.md)。協調者按需分派 documentation 角色並明確指派檔案所有權；所有角色均依該規範自主修正任務範圍內有證據的問題，不擴展為全庫重寫。
 
-Read docs/README.md for the document index. Follow docs/development/workflow.md and
-docs/development/acceptance.md for assignments and acceptance. Roles reference scoped
-documents in their developer_instructions; read relevant pages on demand, not all
-docs for every task. MCP selection and diagnosis: docs/development/tooling/mcp/README.md.
+依[開發手冊](docs/development/README.md#按任務開始)選擇環境、工作流程、配方與驗收。角色依 developer_instructions 選讀適用文件。工具選擇與診斷見 [MCP 指南](docs/development/tooling/mcp/README.md)。
 
 實作交接依[架構證據與用語](docs/architecture/README.md#接手時的證據與用語)與[命名規範](docs/standards/naming.md)。
 
 ## Repository publication default
 
-Publish verified changes through a pull request from work to main. Use squash merge so each main commit represents one independently revertible change. Synchronize work with the resulting main commit before starting the next change. Follow the [publication workflow](docs/development/workflow.md#repository-publication) and respect the user's requested scope and branch protections.
+Publish verified changes through a pull request from work to main. Use squash merge so each main commit represents one independently revertible change. Synchronize work with the resulting main commit before starting the next change. Follow the [publication workflow](docs/development/workflow/publication.md#repository-publication) and respect the user's requested scope and branch protections.
 
 ## 共通驗證與交付
 

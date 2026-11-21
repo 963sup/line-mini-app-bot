@@ -1,37 +1,29 @@
-# 開發工作流程與工具
+# 開發手冊
 
-## 用途與範圍
+先讀[根目錄指引](../../AGENTS.md)，再按目前的任務選入口。修改前讀取目標路徑上的巢狀 `AGENTS.md`，交付前按變更類型選檢查。
 
-保存開發工作流程、驗收與工具使用指引。
+## 按任務開始
 
-## 架構與責任邊界
+| 目前要做什麼 | 先讀 | 下一步 |
+| --- | --- | --- |
+| 準備本機或新的 Codex Cloud 環境 | [開發環境](environment/README.md) | 啟動所需服務或執行[新環境驗收](environment/codex-cloud.md#新環境驗收) |
+| 開始、接手或界定工作範圍 | [開始任務](workflow/task-start.md) | 找到工作樹、適用指引與完成條件 |
+| 修改 HTTP API | [API 操作配方](recipes/change-api.md) | 從契約追到生成碼與呼叫端 |
+| 修改領域行為 | [領域操作配方](recipes/change-domain.md) | 從規格追到授權、寫入與既有測試 |
+| 修改 MINI App 頁面 | [前端操作配方](recipes/change-frontend.md) | 從頁面入口追到 API 與瀏覽器驗收 |
+| 分析錯誤或部署紅燈 | [系統化除錯](workflow/debugging.md)或[部署診斷](recipes/diagnose-deployment.md) | 重現錯誤或定位雲端失敗階段 |
+| 選檢查、整理證據 | [驗收矩陣](verification/commands.md#變更驗收矩陣) | 按[證據限制](verification/evidence.md)記錄結果 |
+| 把工作交給另一個聊天或建立 PR | [交接規格](workflow/handoff.md#sidebar-handoff)或[發布流程](workflow/publication.md#repository-publication) | 記錄可重現狀態或核對已驗證的提交 |
+| 查 CLI、MCP、技能或來源分析 | [工具索引](tooling/README.md) | 選對應工具專頁 |
 
-流程文件管理如何修改與驗證，業務行為由架構和領域文件說明。
+[開發流程索引](workflow/README.md) · [驗收索引](verification/README.md) · [操作配方索引](recipes/README.md)
 
-## 閱讀與修改入口
-
-先查閱[workflow.md](workflow.md)、[acceptance.md](acceptance.md)、[tooling](tooling/README.md)、[本目錄工作指引](AGENTS.md)。
-
-## 相關規格
-
-[開發工具、MCP 與本機參考資料](tooling/README.md) · [變更驗收矩陣與證據限制](acceptance.md)
-
-
-協作分工、交付驗收、系統化除錯與開發工具。
-
-## 文件索引
-
-- [開發工具、MCP 與本機參考資料](tooling/README.md)
-
-- [變更驗收矩陣與證據限制](acceptance.md)
-- [Systematic debugging and root cause analysis](debugging.md)
-- [Agent delivery workflow](workflow.md) · [證據重用流程](workflow.md#minimal-handoff-and-evidence-reuse)
+舊書籤可透過[原流程](workflow.md)、[原驗收](acceptance.md)與[原除錯](debugging.md)的章節連到新位置。
 
 ## 歸屬與維護
 
-遵循根 AGENTS.md 與主機限制；此處不新增角色權限、發布或部署授權。
-新增或搬移文件時，依[文件維護指引](../AGENTS.md#主題子目錄)更新索引。
+開發手冊說明怎麼工作。[領域規格](../domains/README.md)定義應有行為，[架構文件](../architecture/README.md)定義邊界與契約，[腳本索引](../../scripts/README.md)指向可執行入口。工具版本與任務以 [mise.toml](../../mise.toml) 為準。
 
 [本目錄指引](AGENTS.md) · [父層指引](../AGENTS.md) · [文件總索引](../README.md)
 
-[開發與維運指引圖索引](../diagrams.md#開發與維運指引) · [未來設計圖](../diagrams.md#未來設計)。
+[開發與維運指引圖索引](../diagrams.md#開發與維運指引) · [未來設計圖](../diagrams.md#未來設計)
