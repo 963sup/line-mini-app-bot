@@ -2,7 +2,7 @@
 
 Use the three project-installed skills from [google/skills](https://github.com/google/skills):
 `gcloud`, `cloud-run-basics`, and `retrieving-developer-knowledge`.
-The exact source revision is recorded in `skills-lock.json` and `.agents/skills-sources.json`.
+The exact source revision is recorded in `skills-lock.json`.
 Other development skills remain installed. Do not install the entire Google catalog by default.
 
 ## Google Developer Knowledge

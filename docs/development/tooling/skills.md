@@ -1,6 +1,6 @@
 # 專案 Skills
 
-> 安裝範圍：本儲存庫 `.agents/skills/`。新安裝來源與固定 commit 見 `.agents/skills-sources.json`。
+> 安裝範圍：本儲存庫 `.agents/skills/`。新安裝來源與固定 commit 見 `skills-lock.json`。
 > 安裝檔案不代表當前聊天已重新載入，亦不代表 MCP 連線與實際操作已驗收。
 
 | Skill | 來源 | 用途 |
@@ -41,12 +41,12 @@ CLI 來源為 [vercel-labs/skills](https://github.com/vercel-labs/skills)，工�
 安裝：`mise run install-skills-cli`；列出 Codex 專案技能：`mise run skills-list`。
 也可 `mise exec -- skills --help` 或 `mise exec -- skills add owner/repo --list` 查詢候選。
 CLI 安裝不等於批次安裝網站技能；add/update/remove 會修改技能檔案，僅在任務授權範圍使用。
-既有 skills-sources.json 為本專案來源紀錄，不是假稱 CLI skills-lock.json，兩者不可混用。
+專案技能來源與內容雜湊由根目錄技能鎖檔維護。
 
 ## Samber 完整安裝與 Codex plugins
 
 Samber 使用 `npx skills add https://github.com/samber/cc-skills-golang --all` 安裝 46 個 skills。
-CLI 來源／內容 hash 記錄在根目錄 skills-lock.json；早期手動安裝來源保留於 skills-sources.json，Samber 後續以 CLI lock 記錄為準。
+CLI 來源／內容 hash 記錄在根目錄 skills-lock.json。golang-gopls 早期手動安裝的 revision 為 bb1d43d98a3f8ab639a0042f90d0ec524e39a477，現行安裝以鎖檔內容雜湊為準。
 `--all` 同時選擇其他 agent 目標；本 repo 提交 canonical .agents/skills，Claude/Eve 額外副本留在本機。
 
 本機使用者層已安裝（不隨 Git 複製；當前聊天載入與實際功能尚未驗收）：
