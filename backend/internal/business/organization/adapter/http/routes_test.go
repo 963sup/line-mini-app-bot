@@ -19,6 +19,10 @@ import (
 	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
 	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
 	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
+	membershipdb "github.com/963sup/line-mini-app-bot/internal/business/membership/adapter/firestore"
+	membershiphttp "github.com/963sup/line-mini-app-bot/internal/business/membership/adapter/http"
+	membershipapp "github.com/963sup/line-mini-app-bot/internal/business/membership/application"
+	membership "github.com/963sup/line-mini-app-bot/internal/business/membership/domain"
 	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
@@ -56,13 +60,20 @@ func TestWorkspaceLifecycle(t *testing.T) {
 	store := &groupdb.Store{Client: db, ChannelID: channel}
 	groups := &groupquery.Service{Store: store, Membership: member(true)}
 	mux := http.NewServeMux()
+	invitations := &membershipapp.Service{
+		Store: membershipdb.Store{DB: db, Channel: channel},
+		Code:  func(_, eventID string) string { return eventID },
+	}
+	httpapi.RegisterMembership(mux, membershiphttp.Handler{Auth: &owner, Service: invitations})
 	httpapi.RegisterOrganizations(mux, Handler{Auth: &owner, Store: orgdb.Store{DB: db, Channel: channel}})
 	httpapi.RegisterEnterprises(mux, enterprisehttp.Handler{Auth: &owner, Store: enterprisedb.Store{DB: db, Channel: channel, Groups: groups}})
 	httpapi.RegisterTeams(mux, teamhttp.Handler{Auth: &owner, Store: teamdb.Store{DB: db, Channel: channel, Groups: groups}})
 	call := func(method, path, body string, code int) []byte {
 		t.Helper()
 		w := httptest.NewRecorder()
-		mux.ServeHTTP(w, httptest.NewRequest(method, "/api/v1/"+path, strings.NewReader(body)))
+		r := httptest.NewRequest(method, "/api/v1/"+path, strings.NewReader(body))
+		r.Header.Set("Idempotency-Key", "workspace-lifecycle")
+		mux.ServeHTTP(w, r)
 		if w.Code != code {
 			t.Fatalf("%s %s: %d %s", method, path, w.Code, w.Body.String())
 		}
@@ -104,7 +115,13 @@ func TestWorkspaceLifecycle(t *testing.T) {
 	call("POST", ep+"/owners", `{"userId":"`+other+`"}`, 404)
 	owner = original
 	call("POST", ep+"/organizations", `{"organizationId":"`+id+`"}`, 200)
-	save(root.Collection("organizations").Doc(id), map[string]any{"memberUserIds": []string{other}})
+	code, err := invitations.Invite(ctx, string(owner), "join-organization", id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := invitations.Accept(ctx, other, "accept-organization", code); err != nil {
+		t.Fatal(err)
+	}
 	owner = actor(other)
 	if !strings.Contains(string(call("GET", ep, "", 200)), `"canManage":false`) {
 		t.Fatal("member acquired owner privileges")
@@ -167,6 +184,19 @@ func TestWorkspaceLifecycle(t *testing.T) {
 		t.Fatal("assignment not revoked")
 	}
 	transfer := "organizations/" + id + "/owner"
-	call("PUT", transfer, `{"userId":"`+other+`"}`, 200)
-	call("PUT", transfer, `{"userId":"`+string(owner)+`"}`, 404)
+	memberTarget := `{"memberId":"` + membership.MemberRef(id, other) + `"}`
+	call("PUT", transfer, `{"userId":"`+string(original)+`"}`, 200)
+	call("PUT", transfer, `{"memberId":"`+membership.MemberRef(foreignID, other)+`"}`, 400)
+	call("PUT", transfer, memberTarget, 204)
+	call("PUT", transfer, memberTarget, 404)
+	orgPath := "organizations/" + id
+	if !strings.Contains(string(call("GET", orgPath+"/members", "", 200)), `"canLeave":true`) {
+		t.Fatal("previous owner cannot leave as a member")
+	}
+	call("DELETE", orgPath+"/membership", "", 204)
+	call("GET", orgPath+"/members", "", 404)
+	owner = actor(other)
+	if !strings.Contains(string(call("GET", orgPath+"/members", "", 200)), `"canRemove":true`) {
+		t.Fatal("successor does not have owner capabilities")
+	}
 }

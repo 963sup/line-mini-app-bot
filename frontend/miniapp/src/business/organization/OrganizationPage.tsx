@@ -1,21 +1,22 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/router";
+import React, { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { components } from "@repo/api-client";
-import { OrganizationTeams } from "@/business/team/OrganizationTeams";
 import { useSession } from "@/identity/Session";
 import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
-import { useOrganizationSelection } from "./OrganizationSelection";
 
 const memberLabel = (id: string) => `成員 ${id.slice(0, 12)}`;
 
-export function OrganizationPage({ organizationId }: { organizationId: string }) {
-  const router = useRouter();
+export function OrganizationPage({ organizationId, children, onChanged, onLeave }: {
+  organizationId: string;
+  children: ReactNode;
+  onChanged: () => void;
+  onLeave: () => void;
+}) {
   const { epoch, user, request } = useSession();
-  const { refresh } = useOrganizationSelection();
   const { run, cancel } = useLatestRequest();
   const [snapshot, setSnapshot] = useState<{ epoch: number; roster: components["schemas"]["OrganizationMembers"] }>();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [successor, setSuccessor] = useState("");
   const keys = useRef(new Map<string, string>());
   const roster = user && snapshot?.epoch === epoch ? snapshot.roster : undefined;
 
@@ -33,6 +34,7 @@ export function OrganizationPage({ organizationId }: { organizationId: string })
   useEffect(() => {
     keys.current.clear();
     setBusy(false);
+    setSuccessor("");
     setError("");
     if (user) void load(true);
     return cancel;
@@ -57,13 +59,38 @@ export function OrganizationPage({ organizationId }: { organizationId: string })
           }), { signal }),
       () => {
         keys.current.delete(target);
-        refresh();
+        onChanged();
         if (memberId) void load(true).finally(() => setBusy(false));
         else {
           setBusy(false);
           setSnapshot(undefined);
-          void router.replace("/miniapp");
+          onLeave();
         }
+      },
+      cause => {
+        setError(errorMessage(cause));
+        void load(true).finally(() => setBusy(false));
+      },
+    );
+  }
+
+  const candidates = roster?.members.filter(member => !member.owner && !member.self) ?? [];
+  const selectedSuccessor = candidates.find(member => member.memberId === successor);
+
+  function transferOwnership() {
+    if (busy || !roster?.canRemove || !selectedSuccessor) return;
+    const memberId = selectedSuccessor.memberId;
+    if (!window.confirm(`要將「${roster.organizationName}」移轉給「${memberLabel(memberId)}」嗎？你將成為一般成員。請先與對方核對成員代碼。`)) return;
+    setBusy(true);
+    setError("");
+    void run(
+      signal => request((api, s) => api.PUT("/api/v1/organizations/{organizationId}/owner", {
+        signal: s, params: { path: { organizationId } }, body: { memberId },
+      }), { signal }),
+      () => {
+        setSuccessor("");
+        onChanged();
+        void load(true).finally(() => setBusy(false));
       },
       cause => {
         setError(errorMessage(cause));
@@ -95,7 +122,21 @@ export function OrganizationPage({ organizationId }: { organizationId: string })
         {roster.canRemove && <p>邀請新成員請使用 LINE 官方帳號。</p>}
       </>}
     </section>
-    <OrganizationTeams organizationId={organizationId} />
-    <section><h2>儲存庫</h2><p>尚未支援組織儲存庫。</p></section>
+    {children}
+    <section>
+      <h2>設定</h2>
+      {roster?.canRemove ? <>
+        {candidates.length ? <>
+          <label>
+            新擁有者
+            <select value={successor} disabled={busy} onChange={event => setSuccessor(event.target.value)}>
+              <option value="">選擇接任成員</option>
+              {candidates.map(member => <option key={member.memberId} value={member.memberId}>{memberLabel(member.memberId)}</option>)}
+            </select>
+          </label>
+          <button type="button" disabled={busy || !selectedSuccessor} onClick={transferOwnership}>移轉所有權</button>
+        </> : <p>組織有其他成員後，即可移轉所有權。</p>}
+      </> : roster && <p>只有擁有者可移轉所有權。</p>}
+    </section>
   </>;
 }

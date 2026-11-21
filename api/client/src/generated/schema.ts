@@ -2398,8 +2398,10 @@ export interface components {
             name: string;
             ownerUserId: string;
         };
+        /** @description Provide exactly one of userId (legacy) or memberId (the organization-scoped ID from the member list). */
         TransferOrganizationRequest: {
-            userId: string;
+            userId?: string;
+            memberId?: string;
         };
         OrganizationMember: {
             memberId: string;
@@ -6900,6 +6902,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Organization"];
                 };
+            };
+            /** @description Ownership transferred using memberId. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Request failed */
             400: {

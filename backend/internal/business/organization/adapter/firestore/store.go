@@ -112,7 +112,7 @@ func createOrganization(tx *firestore.Transaction, root *firestore.DocumentRef, 
 
 func (s Store) Transfer(ctx context.Context, user string, organizationId, target string) (*organizationDomainEntity.Organization, error) {
 	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*organizationDomainEntity.Organization, error) {
-		if uuid.Validate(organizationId) != nil || !orgstore.UserID.MatchString(target) {
+		if uuid.Validate(organizationId) != nil || len(organizationId) != 36 {
 			return nil, organizationDomainEntity.ErrInvalid
 		}
 		ref := root.Collection("organizations").Doc(organizationId)
@@ -120,18 +120,30 @@ func (s Store) Transfer(ctx context.Context, user string, organizationId, target
 		if e != nil {
 			return nil, e
 		}
-		if org.Owner != user {
+		if org.Owner != user || org.Disabled || (org.MembershipMode != "" && org.MembershipMode != "legacy") {
 			return nil, organizationDomainEntity.ErrNotFound
 		}
-		if target != user && !slices.Contains(org.Members, target) {
-			return nil, organizationDomainEntity.ErrInvalid
+		successor := target
+		if !orgstore.UserID.MatchString(successor) {
+			successor = ""
+			for _, member := range org.Members {
+				if orgstore.UserID.MatchString(member) && membership.MemberRef(organizationId, member) == target {
+					successor = member
+					break
+				}
+			}
 		}
-		result := &organizationDomainEntity.Organization{ID: organizationId, Name: org.Name, OwnerUserID: target}
-		if target == user {
-			return result, nil
+		current := organizationDomainEntity.Organization{ID: organizationId, Name: org.Name, OwnerUserID: org.Owner}
+		result, err := current.TransferOwnership(user, successor, slices.Contains(org.Members, successor))
+		if err != nil {
+			return nil, err
 		}
-		return result, tx.Update(ref, []firestore.Update{
-			{Path: "ownerUserId", Value: target},
+		if successor == user {
+			return &result, nil
+		}
+		return &result, tx.Update(ref, []firestore.Update{
+			{Path: "ownerUserId", Value: successor},
+			{Path: "memberUserIds", Value: firestore.ArrayUnion(user)},
 			{Path: "membershipOwnerVersion", Value: firestore.Increment(1)},
 		})
 	})
