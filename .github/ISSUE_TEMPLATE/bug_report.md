@@ -1,9 +1,6 @@
 ---
 name: 錯誤回報
 about: 回報可重現的程式或開發環境問題
-title: ""
-labels: ""
-assignees: ""
 ---
 
 ## 問題與預期行為
