@@ -21,7 +21,7 @@ for (const key of [
     configurable: true,
     writable: true,
   });
-Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
+Object.assign(globalThis, { self: dom.window, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(window, "isSecureContext", { value: true });
 
 // JSDOM has no layout engine. Radix Checkbox observes its hidden form input size.

@@ -1,9 +1,12 @@
 import React, { act } from "react";
+import Router from "next/router";
+import { MiniAppLayout } from "../src/shell/MiniAppProviders";
 import { createRoot } from "react-dom/client";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { Enterprise } from "../src/business/enterprise/Enterprise";
-import { Shell } from "../src/shell/Shell";
+import { Shell } from "./shell-fixture";
+import { Shell as ProductionShell } from "../src/shell/Shell";
 import { useSession } from "../src/identity/Session";
 
 import "./sidebar-dom";
@@ -83,17 +86,8 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
     assert.match(notice()!.textContent!, /初始化暫時失敗/);
     assert.match(notice()!.textContent!, /重試初始化/);
     await showSidebar();
-    await act(async () => {
-      document.querySelector<HTMLElement>('[aria-label="切換工作區"]')!.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
-      await flush();
-    });
-    assert.equal(!!document.querySelector('a[href="/miniapp/workspace-preview"]'), false, "retired preview must not remain in workspace navigation");
-    assert.ok(document.querySelector('[role="menu"] a[href="/miniapp"]'), "formal service must remain available");
-    await act(async () => {
-      document.querySelector<HTMLElement>('[role="menu"]')!.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-      await flush();
-    });
-    assert.match(document.getElementById("mini-status")!.textContent!, /初始化暫時失敗/);
+    assert.equal(document.querySelector('[aria-label="切換工作區"]'), null);
+    assert.match(document.querySelector('[aria-label="組織切換狀態"]')!.textContent!, /初始化暫時失敗/);
     await openMenu();
     assert.equal(document.getElementById("verify")!.textContent, "重試初始化");
     await click("verify");
@@ -148,4 +142,97 @@ for (const width of [1024, 375]) test(`production account menu at ${width}px ret
     globalThis.fetch = originalFetch;
     window.liff = originalSDK;
   }
+});
+
+test("changing organizations keeps the authenticated context across Next.js pages", async (t) => {
+  function ReviewPage() {
+    return <ProductionShell title="審核" workflow="review"><PrivateContent /></ProductionShell>;
+  }
+  function OrganizationPage() {
+    return <ProductionShell title="組織" workflow="home"><PrivateContent /></ProductionShell>;
+  }
+  Object.defineProperty(window, "innerWidth", { value: 1024, configurable: true });
+  window.history.replaceState(null, "", "/miniapp/review");
+  document.body.innerHTML = '<div id="root"></div>';
+  const root = createRoot(document.getElementById("root")!);
+  const originalFetch = globalThis.fetch, originalSDK = window.liff;
+  t.after(async () => {
+    await act(async () => root.unmount());
+    globalThis.fetch = originalFetch;
+    window.liff = originalSDK;
+  });
+
+  let startSession!: () => void;
+  const sessionPending = new Promise<void>(resolve => { startSession = resolve; });
+  let sessions = 0, reads = 0, writes = 0;
+  const organizations = [
+    { organizationId: "org1", name: "台北營運" },
+    { organizationId: "org2", name: "高雄營運" },
+  ];
+  const context = (index: number) => Response.json({
+    groups: [{ label: "獨立組織", organizations }],
+    selected: organizations[index],
+    canSwitch: true,
+  });
+  window.liff = {
+    init: async () => {},
+    isLoggedIn: () => true,
+    isInClient: () => true,
+    getProfile: async () => ({ userId: "u1" }),
+    getIDToken: () => "test-token",
+    login() {},
+    logout() {},
+    closeWindow() {},
+  };
+  globalThis.fetch = async (input, init) => {
+    const request = input instanceof Request ? input : new Request(new URL(String(input), location.origin), init);
+    switch (new URL(request.url).pathname) {
+      case "/api/v1/miniapp/config":
+        return Response.json({ liffId: "test-shell" });
+      case "/api/v1/session":
+        sessions++;
+        await sessionPending;
+        return Response.json({ user: { userId: "u1" }, csrfToken: "test", expiresAt: new Date(Date.now() + 1800000).toISOString() });
+      case "/api/v1/me/organization-context":
+        if (request.method === "PUT") {
+          writes++;
+          assert.deepEqual(await request.json(), { organizationId: "org2" });
+          return context(1);
+        }
+        reads++;
+        return context(0);
+      default:
+        throw new Error("unexpected request: " + request.url);
+    }
+  };
+
+  function render(Component: React.ComponentType, pathname: string) {
+    root.render(<MiniAppLayout pathname={pathname}><Component /></MiniAppLayout>);
+  }
+  const push = t.mock.method(Router, "push", async (href: string) => {
+    assert.equal(href, "/miniapp?organization=org2");
+    window.history.pushState(null, "", href);
+    render(OrganizationPage, "/miniapp");
+    return true;
+  });
+  await act(async () => { render(ReviewPage, "/miniapp/review"); await flush(); });
+  const loading = document.querySelector('[aria-label="組織切換狀態"]');
+  assert.equal(loading?.getAttribute("aria-busy"), "true");
+  assert.match(loading?.textContent ?? "", /正在驗證身分/);
+  await act(async () => { startSession(); await flush(); });
+  await act(async () => {
+    document.querySelector('[aria-label="切換組織"]')!.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    await flush();
+  });
+  assert.equal(writes, 0);
+  assert.equal(push.mock.callCount(), 0);
+  const choice = [...document.querySelectorAll<HTMLElement>('[role="menuitemradio"]')].find(node => node.textContent?.trim() === "高雄營運");
+  assert.ok(choice);
+  await act(async () => { choice.click(); await flush(); });
+  assert.equal(push.mock.callCount(), 1);
+  assert.equal(writes, 1);
+  assert.equal(sessions, 1);
+  assert.equal(reads, 1);
+  assert.match(document.querySelector('[aria-label="切換組織"]')!.textContent!, /高雄營運/);
+  assert.equal(document.querySelector('[aria-label="組織切換狀態"]'), null);
 });

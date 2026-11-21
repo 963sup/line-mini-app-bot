@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { pressButton } from "./sidebar-dom";
-import { Shell } from "../src/shell/Shell";
+import { Shell } from "./shell-fixture";
 import { View as Objects } from "../src/business/object/View";
 import { View as RepositoryView } from "../src/business/repository/View";
 

@@ -1,7 +1,6 @@
-import { OrganizationSelectionProvider } from "@/business/organization/OrganizationSelection";
 import React from "react";
 import type { ReactNode } from "react";
-import { SessionProvider, useSession } from "../identity/Session";
+import { useSession } from "../identity/Session";
 import { useEffect } from "react";
 import { RepositoryProvider, useRepositories } from "../business/repository/RepositoryContext";
 import { AppFrame } from "./AppFrame";
@@ -17,18 +16,13 @@ export function Shell({
   workflow: string;
   children: ReactNode;
 }) {
+  if (workflow === "projects")
+    return <Content title={title} workflow={workflow}>{children}</Content>;
+
   return (
-    <SessionProvider>
-      <OrganizationSelectionProvider>
-        {workflow === "projects" ? (
-          <Content title={title} workflow={workflow}>{children}</Content>
-        ) : (
-          <RepositoryProvider workflow={workflow}>
-            <RepositoryContent title={title} workflow={workflow}>{children}</RepositoryContent>
-          </RepositoryProvider>
-        )}
-      </OrganizationSelectionProvider>
-    </SessionProvider>
+    <RepositoryProvider workflow={workflow}>
+      <RepositoryContent title={title} workflow={workflow}>{children}</RepositoryContent>
+    </RepositoryProvider>
   );
 }
 function RepositoryContent(props: { title: string; workflow: string; children: ReactNode }) {
