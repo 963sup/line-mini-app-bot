@@ -20,8 +20,10 @@ var creationKey = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
 
 type Service struct {
 	CandidateExtractor operations.CandidateExtractor
-	Repositories       objectApplicationPort.Repositories
-	Store              objectApplicationPort.Store
+	// DocumentTextExtractor is reserved for a future PDF import use case.
+	DocumentTextExtractor operations.DocumentTextExtractor
+	Repositories          objectApplicationPort.Repositories
+	Store                 objectApplicationPort.Store
 }
 
 func (s *Service) scope(ctx context.Context, actor, id string) (repositoryDomainEntity.Repository, error) {

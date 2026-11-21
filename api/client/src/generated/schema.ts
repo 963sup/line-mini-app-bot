@@ -1251,6 +1251,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tools/poppler/extractions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Extract standardized PDF text without saving */
+        post: operations["ExtractPopplerText"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2243,6 +2260,14 @@ export interface components {
         };
         EnterpriseOwnerRequest: {
             userId: string;
+        };
+        PopplerDocument: {
+            filename: string;
+            /** Format: byte */
+            data: string;
+        };
+        PopplerText: {
+            text: string;
         };
     };
     responses: {
@@ -7470,6 +7495,114 @@ export interface operations {
             409: components["responses"]["ObjectError"];
             415: components["responses"]["ObjectError"];
             503: components["responses"]["ObjectError"];
+        };
+    };
+    ExtractPopplerText: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for cookie sessions. */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PopplerDocument"];
+            };
+        };
+        responses: {
+            /** @description Standardized text; empty text does not imply OCR is required. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PopplerText"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request rejected or extraction failed. */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
         };
     };
 }

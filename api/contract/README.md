@@ -22,6 +22,7 @@
 | --- | --- | --- |
 | 公開 HTTP 組合入口 | [openapi.yaml](openapi.yaml) | API metadata、既有路徑與 components 的 `$ref` 索引 |
 | 共用傳輸契約 | [common/transport.yaml](common/transport.yaml) | APIError、Bearer 與 Cookie security schemes；不承載業務模型 |
+| PDF 工具 | [operations/poppler.yaml](operations/poppler.yaml) | 已登入使用者的 PDF 文字擷取測試，不儲存資料 |
 | Identity | [identity/identity.yaml](identity/identity.yaml) | MINI App 公開設定、本人、Session 建立／續期／撤銷及其 DTO |
 | Repository | [repository/repositories.yaml](repository/repositories.yaml) | 容器列表、詳情、分頁及容器 DTO；不提供手動建立或管理 API |
 | Enterprise | [enterprises.yaml](enterprise/enterprises.yaml)、[types.yaml](enterprise/types.yaml) | 企業開通、詳情、Owner 與組織連結 |
@@ -49,6 +50,7 @@
 | 範圍 | 指引 | 狀態 |
 | --- | --- | --- |
 | Common | [AGENTS.md](common/AGENTS.md) | 共用傳輸契約 |
+| PDF 工具 | [operations/poppler.yaml](operations/poppler.yaml) | 已登入使用者的 PDF 文字擷取測試，不儲存資料 |
 | Identity | [AGENTS.md](identity/AGENTS.md) | 既有公開契約 |
 | Repository | [AGENTS.md](repository/AGENTS.md) | Bot 管理的群組空間 |
 | Issue | [AGENTS.md](issue/AGENTS.md) | 基礎事項 API；types／comments 仍為雛形 |

@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   List,
   MapPin,
+  FileText,
   SquarePen,
   ClipboardPenLine,
 } from "lucide-react";
@@ -103,6 +104,7 @@ function NavigationSidebar({ workflow, account, repositoryItem, ...props }: Serv
         <noscript><a href={repositoryItem?.url || "/miniapp/repositories"}>儲存庫（請啟用 JavaScript 載入清單）</a></noscript>
         <NavProjects
           projects={[
+            { name: "PDF 文字擷取", url: "/miniapp/poppler", icon: FileText, isActive: workflow === "poppler" },
             {
               name: "定位測試",
               url: "/location",

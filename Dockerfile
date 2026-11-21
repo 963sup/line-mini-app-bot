@@ -28,7 +28,7 @@ RUN --mount=type=secret,id=build-ca \
     chmod 644 /assets/line/richmenu/*.jpg
 
 FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates poppler-utils && rm -rf /var/lib/apt/lists/*
 COPY --from=build /server /server
 COPY --from=build /richmenu /richmenu
 COPY --from=frontend /src/frontend/miniapp/out/ /app/frontend/
