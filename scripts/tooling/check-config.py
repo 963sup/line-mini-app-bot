@@ -61,6 +61,17 @@ def check():
         raise ValueError("packageManager must match the pnpm version in mise.toml")
     if package.get("private") is not True:
         raise ValueError("The repository workspace must be private")
+    cloudbuild = (ROOT / "deploy/cloudbuild.yaml").read_text()
+    guard_python = "/usr/lib/google-cloud-sdk/platform/bundledpythonunix/bin/python3"
+    guard_smoke = (ROOT / "scripts/tooling/cloud-build-smoke.sh").read_text()
+    for block in cloudbuild.split("  - id: ")[1:]:
+        if not block.startswith("latest-before-"):
+            continue
+        if "entrypoint: " + guard_python not in block:
+            raise ValueError("Cloud Build latest guard must use the SDK bundled Python")
+        image = re.search(r"^    name: (\S+)$", block, re.M)
+        if not image or "image=" + image[1] not in guard_smoke or "python=" + guard_python not in guard_smoke:
+            raise ValueError("Cloud Build smoke must test the configured guard image/interpreter")
     dockerfile = (ROOT / "Dockerfile").read_text()
     for image, tool in (("node", "node"), ("golang", "go")):
         version = re.escape(mise["tools"][tool])
