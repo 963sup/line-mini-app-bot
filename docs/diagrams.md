@@ -55,6 +55,8 @@
 
 ## 開發與維運指引
 
+- [DDD 與六邊形架構概覽](architecture/ddd/README.md#mermaid-圖表)
+
 - [Aggregate · 邊界與存取入口](architecture/ddd/aggregate.md#邊界與存取入口)
 - [Outbox（按需） · 提交與失敗窗口](architecture/ddd/outbox-pattern.md#提交與失敗窗口圖)
 

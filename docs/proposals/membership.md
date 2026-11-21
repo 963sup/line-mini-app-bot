@@ -73,13 +73,23 @@ flowchart TB
 | --- | --- |
 | `ResourceRef` | `channelId`、`type`、`id`；三者共同識別範圍。Channel 由服務端設定取得，不能採信請求指定的租戶 |
 | `Membership` | `id`、`resource`、`userId`、`role`、`status`、`generation`、`version`、`joinedAt`、`updatedAt`、`endedAt`、`createdBy`、`updatedBy`、`dependencies` |
-| `Invitation` | `id`、`resource`、`inviteeUserId`、`role`、`status`、`expiresAt`、`createdBy`、`acceptedAt`、`acceptedMembershipGeneration`、`version`、建立時的資源政策版本 |
-| `ResourceMembershipState` | 每資源一筆，保存 `activeOwnerCount`、`version`、政策版本及授權模式；所有成員異動共同讀寫，協調最後 Owner 與併發 |
+| `Invitation` | `id`、`resource`、`inviteeUserId`、`role`、`status`、`expiresAt`、`createdBy`、`acceptedAt`、`acceptedMembershipGeneration`、`version`、建立時的資源政策版本、邀請者資格世代、受邀者當時的關係版本或無紀錄標記 |
+| `ResourceMembershipState` | 每資源一筆，保存 `activeOwnerCount`、`version`、政策版本及授權模式；所有異動讀取適用的模式與政策版本；只有改變 Owner、模式或政策的異動寫入此狀態 |
 | `Audit` | `actorUserId`、`action`、`resource`、`targetUserId`、前後角色／狀態／版本、`requestId`、時間；不保存 token 或完整邀請連結 |
 
 `Membership` 使用由服務端對完整範圍與 userId 做無歧義編碼後產生的確定鍵，確保同一關係最多一筆。重新加入沿用關係識別碼、增加 `generation`，歷史由 Audit 保留。`version` 用於每次異動的併發控制，不能取代 `generation`。
 
 Invitation 與 Membership 分開：待接受的邀請不是有效成員。第一版只支援指定可信 userId 的邀請；分享連結本身不授權，沒有指定使用者的公開加入連結不在此版。
+
+### 基本規則與模型責任
+
+1. 一個關係只對一個可信使用者與一個完整的 ResourceRef 成立。關係存在、狀態為 active、當下具備有效資格是三件事。有效資格是基於最新資源與依賴事實推導的結果。
+2. 邀請只允許指定受邀者在當下條件成立時建立或重新啟用關係。邀請與成員關係各有獨立身分及生命週期。
+3. 可管理且要求 Owner 的資源，必須維持至少一位具有效管理資格的 Owner。第一階段提議只允許一位 Owner，該角色無上層資格依賴，且不得透過邀請或一般改角色取得。一般角色異動、停權及離開不得解除其 Owner 身分，須透過專用移轉命令。資源停用時先阻斷該資源授權，重新啟用須重新驗證 Owner。後續若允許 Owner 依賴上層資格，須先定義上層撤權與政策變更如何同時保護此規則；只檢查 active 計數不充分。此承諾限 Membership 管轄的資格，不保證登入供應端始終可用。
+
+`Invitation`、`Membership` 與 `ResourceMembershipState` 各自是異動入口。Invitation 保護接受與撤銷；Membership 保護角色及狀態轉換；資源狀態保護 Owner 計數、政策及模式。Application 取得當下授權事實並協調跨聚合交易。成員以識別引用資源與依賴，單筆操作只載入受影響的關係與必要依賴，不載入整份 People 名單。既有 Owner 計數與關係不符時拒絕異動並交由資料修復處理。
+
+建立新關係時配置確定 ID、generation 1、version 1；重新加入或恢復沿用 ID 並增加 generation 與 version。一般角色或狀態變更增加 version。從儲存重建保留原 ID、時間及版本，檢查必要欄位與狀態相容性，損壞資料不可授權。JoinedAt 代表首次加入，歷史未知時保留 unknown；重新加入的時間另由稽核記錄。
 
 ## 角色與有效資格
 
@@ -118,11 +128,28 @@ flowchart LR
     R -->|新邀請接受且 generation 增加| A
 ```
 
-到期由服務端時間判定，不依賴背景清理是否已執行。suspended 不提供授權；恢復須增加 generation，避免下層資格在停權後自動復活。Owner 的移除、停權或降級均受最後有效 Owner 保護。
+### 邀請狀態
 
-接受邀請 MUST 在同一工作單元重新讀取邀請、資源狀態、邀請者目前管理資格、受邀者及必要上層資格。邀請者已失去管理資格、政策改變或資源已移轉時拒絕，須由目前管理者重新發邀請。不得只信任建立邀請時的快照。
+| 操作 | 前置條件 | 成功與拒絕 |
+| --- | --- | --- |
+| 發邀請 | 目前管理者可指派該角色，受邀者無關係紀錄或為 removed，且符合上層條件 | 建立 pending。同一對象可有多份邀請，各自綁定發出時的政策、邀請者資格世代及受邀者關係版本。 |
+| 接受 | pending、指定受邀人、未到期，且當前政策、邀請者授權及受邀者資格仍符合 | 轉 accepted 並建立或重新加入關係。若關係已 active，回已是成員且不改角色。若關係版本已變，回邀請失效並要求重新發邀。 |
+| 撤銷 | 目前管理者，邀請仍 pending 且未到期 | 轉 revoked；已撤銷可安全重送，已接受或到期則拒絕。 |
+| 到期 | pending 且服務端判定時間大於或等於 expiresAt | 視為 expired，拒絕接受與撤銷。背景清理只整理紀錄。 |
 
-邀請接受、Membership 寫入、Owner 計數、冪等收據與 Audit 必須原子提交。重複接受同一邀請回傳原接受結果，不可重新啟用後來被移除的 Membership。已是 active 成員的邀請接受不得覆蓋或提升現有角色；回報已存在，角色變更走獨立操作。
+每次持久狀態轉換增加邀請 version。同一人先接受其中一份邀請後，其他綁定同一舊關係版本的邀請即使未到期，也無法再改變該關係；即使之後退出，關係版本仍不會回到發邀時的值。邀請者離開後重加入亦不得讓舊邀請恢復有效，因其資格世代已改變。
+
+### 成員狀態
+
+| 操作 | 起始狀態與結果 | 版本與資格 |
+| --- | --- | --- |
+| 首次加入 | 無紀錄 → active | 建立 ID、version 1、generation 1。 |
+| 重新加入 | removed → active，須接受新邀請 | 沿用 ID，增加 version 與 generation。 |
+| 改角色 | active → active | 改角色才增加 version；generation 不變。 |
+| 移除／退出 | active 或 suspended → removed | 增加 version，立即停止授權。 |
+| 暫停／恢復 | active → suspended；suspended → active | 兩者增加 version，恢復另增加 generation，且重新核對依賴。 |
+
+suspended 關係只能經恢復流程重新生效。上層資格失效時下層關係可仍為 active，但有效資格立即失效。Owner 異動另需遵守資源狀態的保護規則。
 
 ## 操作契約與 API 草案
 
@@ -139,11 +166,12 @@ flowchart LR
 | 撤銷 | `DELETE /api/v1/membership-invitations/{id}` | 該資源目前管理者；僅 pending 可轉 revoked，重複撤銷冪等 |
 | 改角色 | `PATCH /api/v1/{resourceCollection}/{id}/members/{userId}` | 管理者、目標角色合法、版本匹配、Owner 保護；更新角色與版本 |
 | 移除／退出 | `DELETE /api/v1/{resourceCollection}/{id}/members/{userId}` | 管理者移除或本人退出；Owner 保護；removed 不做實體刪除 |
+| 移轉 Owner | 依資源定義具名命令 | 目前 Owner 將資格移轉給同資源另一位有效成員；同一交易交換角色。 |
 | 暫停／恢復 | 後續明確狀態命令 | 模型預留；第一切片不開放 API，待企業治理用例接入 |
 
 People 的 `Member` 是 Membership 與允許公開的個人資料投影，不新增 Member 業務領域。前端可在各資源下呈現 People／邀請頁面，共用操作能力，依伺服器 capabilities 顯示可用操作；畫面隱藏按鈕不是授權。
 
-所有寫入帶 requestId；需改變現有關係的操作另帶 expectedVersion。相同 Actor、資源、操作及 requestId、相同內容回原結果；同鍵不同內容為 conflict。錯誤分類為 invalid、unauthenticated、forbidden／not_found、conflict、invitation_expired、unavailable。預期版本過期、最後 Owner 或邀請已終結均拒絕並保持資料不變；傳輸層再映射至既有錯誤 envelope。
+所有寫入帶 requestId；需改變現有關係的操作另帶 expectedVersion。相同 Actor、資源、操作及 requestId 依下節的收據契約處理。錯誤分類為 invalid、unauthenticated、forbidden／not_found、conflict、invitation_expired、unavailable。預期版本過期、最後 Owner 或邀請已終結均拒絕並保持資料不變；傳輸層再映射至既有錯誤 envelope。
 
 ## 六邊形契約與一致性
 
@@ -164,9 +192,25 @@ Membership 查詢回傳資格事實，Repository 再判定具體 action；不能
 
 撤權承諾：撤權提交後開始的新授權不得成功；與撤權重疊的寫入須由共同交易的版本衝突重查。已回傳資料、已下載檔案與已完成操作不能追回。第一版不使用跨請求有效資格快取，Session 不保存角色。查詢大清單可分頁，分頁結果不構成整批操作的授權快照。
 
-建立資源與首位 Owner／資源擁有者資格須原子提交；失敗不能留下無人管理的可用資源。角色異動共用資源狀態文件，序列化最後 Owner 檢查。資源刪除或停用先阻斷授權，再按保留政策清理關係；不在一次交易刪除無上限成員。
+建立資源與首位 Owner／資源擁有者資格須原子提交；失敗不能留下無人管理的可用資源。涉及 Owner 的異動共用並更新資源狀態文件，序列化最後 Owner 檢查。資源刪除或停用先阻斷授權，再按保留政策清理關係；不在一次交易刪除無上限成員。
 
 邀請通知在提交後由既有可用機制發送，不在交易 callback 呼叫 LINE。通知失敗不撤回已建立邀請，操作者可複製連結或重送；第一版不以此要求新增通用 Outbox。
+
+### 原子操作與重送契約
+
+| 命令 | 同一工作單元讀取 | 成功時共同保存 |
+| --- | --- | --- |
+| 建立資源 | 建立者權限、資源識別占用情況、收據 | 資源、資源狀態、首位 Owner、收據、Audit。 |
+| 發邀請／撤銷 | 資源、政策、Actor 授權及其依賴；建立時讀目標及其依賴，撤銷時讀邀請 | 新邀請或更新後的邀請、收據、Audit。 |
+| 接受邀請 | 邀請、資源與政策、邀請者目前有效資格、受邀者關係及雙方必要依賴 | 邀請、成員關係、收據、Audit；Owner 計數若受影響則同時更新。 |
+| 改角色／移除／退出／暫停／恢復 | 資源與政策、Actor 與目標關係、受影響的資格依賴及預期版本 | 關係、收據、Audit；若會失去最後有效 Owner 則拒絕，保留原狀態。 |
+| 移轉 Owner | 資源狀態、現任 Owner 與接任者的有效資格及預期版本 | 兩筆角色、資源狀態版本、收據、Audit；Owner 數仍為一。 |
+
+每個命令都在同一交易先查收據。邀請只帶 ID 時，由服務端載入邀請辨認資源後再定位收據。收據鍵包含可信 Actor、完整 ResourceRef、命令種類、requestId；指紋包含規範化後的目標與業務輸入（含預期版本）。同鍵不同內容回 conflict。同鍵同內容重新核對身分及回放可見性，仍可見時只回原提交的最小結果；已失去可見性則依隱藏資源慣例拒絕。對已接受邀請送新 requestId，只能由原受邀者在仍有回放可見性時取得最小接受結果，不重做異動。結果是歷史收據，不能用來判斷現在的權限。
+
+每次交易嘗試重新讀取授權事實並以該次嘗試的服務端時間判斷到期，期限相等視為到期；已提交的接受結果不再套用到期判斷。命令 ID、收據鍵與請求指紋在重試間固定。逾時或取消可能發生在提交後，呼叫端應用原 requestId 查回。收據保留期限須覆蓋承諾的可重送窗口，期限及過期後的處理由 API 定案；不得承諾期限外仍可判定原請求是否成功。
+
+People 預設只回有效成員，每頁重新驗證目前可見性，跨頁允許因成員異動而改變，不承諾完整快照。失效原因只供本人或有權查閱的管理者。拒絕原因至少區分邀請到期、已終結或失效、已是成員、最後 Owner 及版本衝突；未通過可見性檢查時不揭露這些細節，儲存不可用則獨立回報。
 
 ## 儲存與遷移方案
 
@@ -192,9 +236,21 @@ Membership 查詢回傳資格事實，Repository 再判定具體 action；不能
 | 三 | 組織 Repository 的直接角色與 Team Grant | read／write／admin 行為一致；列表、詳情、子資源、舊連結與併發寫入均服從撤權 |
 | 四 | Enterprise 直接成員與 People 聚合、舊欄位退役 | 直接與衍生資格可區分；管理角色不洩漏內容；原 API 與資料相容策略完成 |
 
-設計要求驗證：跨 channel／resourceType 的 ID 不能混用；非受邀者不能接受；撤銷、到期與接受併發只產生一個合法結果；同邀請重送不重新開權；兩位 Owner 同時退出至少保留一位；資料庫失敗不放行；資源移轉後舊依賴失效；相同 requestId 不重複寫入；列表不因新模式候選來源遺漏有效成員。
+設計要求驗證：跨 channel／resourceType 的 ID 不能混用；非受邀者不能接受；撤銷、到期與接受併發只產生一個合法結果；同邀請重送不重新開權；唯一 Owner 退出被拒且移轉與接任者離開的併發不留下無 Owner 資源；資料庫失敗不放行；資源移轉後舊依賴失效；相同 requestId 不重複寫入；列表不因新模式候選來源遺漏有效成員。
 
 上述是未來行為的驗收條件，並非已執行測試。本庫[現行驗收基線](../development/acceptance.md)限制新增測試方案／案例，落地前須明確調整階段決策，或將現有檢查未涵蓋項目標為缺口；不能把只編譯通過當成授權驗收。
+
+### 設計反例
+
+| 情境 | 必須可觀察的結果 |
+| --- | --- |
+| 同一人並行接受兩份邀請 | 最多一份成功建立資格。另一份不能改角色，也不能在該成員日後退出時重新開權。 |
+| 接受與撤銷並行，或接受遇交易重試而跨過到期點 | 只有一個合法終態。尚未提交的接受依重試當下重新判斷；拒絕不寫入成員、成功收據或成功 Audit。 |
+| 唯一 Owner 退出，或移轉時接任者同時離開 | 直接退出被拒。移轉與接任者離開的衝突須重新判斷，資源不得落入沒有有效 Owner 的中間狀態。 |
+| 提交後回應逾時，操作者在重送前失去可見性 | 原寫入保留且不重做；重送不揭露已不可見的結果。 |
+| 上層移除後再加入 | 下層原紀錄可保留，但舊 generation 持續無效。重新授權須透過後續切片定義的明確操作。 |
+
+設計依據：[聚合與聚合根](../architecture/ddd/aggregate.md) · [不變條件](../architecture/ddd/invariant.md) · [一致性與交易](../architecture/ddd/consistency.md) · [冪等](../architecture/ddd/idempotency.md) · [六邊形架構](../architecture/ddd/hexagonal-architecture.md)
 
 ## 本次查證與待定事項
 
@@ -204,6 +260,6 @@ Membership 查詢回傳資格事實，Repository 再判定具體 action；不能
 
 本次只依 repository 原碼設計契約，不宣稱外部 LINE 或 Firestore 新行為已查證。實作前仍須以屆時鎖定版官方文件確認交易工作單元、索引、取消、上限與身份有效期；真實資料遷移與線上資格待環境驗收。
 
-待產品確認的提案預設：七天邀請效期、manager／maintainer 可管理的角色範圍、多 Owner 與舊 owner API 的相容策略、Audit 保留期間。這些不影響新增 Membership 領域的方向，但在對應操作實作前須定案。
+待產品確認的提案預設：七天邀請效期、manager／maintainer 可管理的角色範圍、第一階段單一 Owner 與原子移轉的產品確認、後續多 Owner 的相容策略、收據重送窗口與 Audit 保留期間。這些不影響新增 Membership 領域的方向，但在對應操作實作前須定案。
 
 [提案索引](README.md) · [現行組織與 Team 契約](../architecture/contracts/organization-team-ownership.md) · [操作模型](../architecture/contracts/business-operations.md) · [圖表索引](../diagrams.md#未來設計)
