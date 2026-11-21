@@ -26,7 +26,7 @@ flowchart LR
 flowchart LR
   h["API 與保存"]
   h --- n0["權威來源為子物件契約，同步生成既有Go／<br/>TypeScript client："]
-  click n0 "../../../api/contract/subobject/subobjects.yaml"
+  click n0 "../../../api/contract/object/subobjects.yaml"
   h --- n1["GET／POST /api/v1/repositories/{repositoryId<br/>}/objects/{objectId}/subobjects。"]
   h --- n2["GET／PATCH /api/v1/repositories/{<br/>repositoryId}/objects/{objectId}/subobjects/<br/>{id}。"]
   h --- n3["POST只收內容及建立鍵；PATCH收內容、可選完成<br/>數與expectedVersion，不接受獨立status。"]

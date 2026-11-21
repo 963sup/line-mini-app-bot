@@ -281,5 +281,28 @@ class HttpDeadlineTests(unittest.TestCase):
         self.assertEqual(result['error'], 'KeyboardInterrupt')
 
 
+class ReadOnlyBridgeTests(unittest.TestCase):
+    def test_disabled_server_cannot_report_an_explicit_request_as_success(self):
+        with mock.patch.object(doctor, 'probe_server') as probe:
+            self.assertEqual(doctor.check_servers({'shadcn': {'enabled': False}},
+                                                  'shadcn', 'get_project_registries'), 1)
+            probe.assert_not_called()
+
+    def test_non_allowlisted_calls_never_launch_a_process(self):
+        for name, call in [('shadcn', 'init_project'), ('shadcn', 'add_items'),
+                           ('github', 'create_issue')]:
+            with self.subTest(name=name, call=call):
+                with mock.patch.object(doctor.subprocess, 'Popen') as launch:
+                    with self.assertRaisesRegex(RuntimeError, 'read-only allowlist'):
+                        doctor.probe_server(name, {'command': 'unused'}, call, {})
+                    launch.assert_not_called()
+
+    def test_cli_rejects_write_calls_before_transport(self):
+        result = subprocess.run([sys.executable, str(SOURCE), '--server', 'shadcn',
+                                 '--call', 'init_project'], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('read-only allowlist', result.stderr)
+
+
 if __name__ == '__main__':
     unittest.main()

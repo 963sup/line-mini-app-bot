@@ -30,6 +30,7 @@ var ErrUnavailable = errors.New("object storage unavailable")
 var decimal = regexp.MustCompile(`^(0|[1-9][0-9]{0,17})(\.[0-9]{1,6})?$`)
 
 type Content struct {
+	ParentID          string
 	SpaceID           string
 	Name              string
 	Description       string
@@ -45,6 +46,8 @@ type Content struct {
 }
 
 type Object struct {
+	TemplateID, TemplateNodeID string
+	TemplateVersion            int64
 	Content
 	ID, RepositoryID, CreatorID, Status string
 	Version                             int64
@@ -114,6 +117,9 @@ func canonicalDecimal(s string) string {
 }
 
 func Normalize(c Content) (Content, error) {
+	if c.ParentID != "" && !repositoryDomainEntity.ValidID(c.ParentID) {
+		return Content{}, ErrInput
+	}
 	c.SpaceID = strings.TrimSpace(c.SpaceID)
 	if c.SpaceID != "" && !repositoryDomainEntity.ValidID(c.SpaceID) {
 		return Content{}, ErrInput
@@ -165,6 +171,7 @@ func ApplyUpdate(current Object, actor string, input Update) (Object, error) {
 		return Object{}, ErrForbidden
 	}
 	content := input.Content
+	content.ParentID = current.ParentID
 	content.SpaceID = current.SpaceID
 	if input.SpaceID != nil {
 		content.SpaceID = *input.SpaceID

@@ -37,6 +37,10 @@ type Store struct {
 var _ objectApplicationPort.Store = (*Store)(nil)
 
 type document struct {
+	TemplateID        string    `firestore:"templateId,omitempty"`
+	TemplateNodeID    string    `firestore:"templateNodeId,omitempty"`
+	TemplateVersion   int64     `firestore:"templateVersion,omitempty"`
+	ParentID          string    `firestore:"parentId,omitempty"`
 	SpaceID           string    `firestore:"spaceId,omitempty"`
 	CompletedQuantity string    `firestore:"completedQuantity,omitempty"`
 	Name              string    `firestore:"name"`
@@ -60,7 +64,7 @@ type document struct {
 }
 
 func encode(i objectDomainEntity.Object) document {
-	return document{SpaceID: i.SpaceID, CompletedQuantity: i.CompletedQuantity, Name: i.Name, Description: i.Description, Type: i.Type, Quantity: i.Quantity, Unit: i.Unit, SourceDocument: i.SourceDocument, SourceRevision: i.SourceRevision, SourceItemNo: i.SourceItemNo, SourcePages: i.SourcePages, MaterialCode: i.MaterialCode, SchemaVersion: 1, ID: i.ID, RepositoryID: i.RepositoryID, CreatorID: i.CreatorID, Status: i.Status, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
+	return document{TemplateID: i.TemplateID, TemplateNodeID: i.TemplateNodeID, TemplateVersion: i.TemplateVersion, ParentID: i.ParentID, SpaceID: i.SpaceID, CompletedQuantity: i.CompletedQuantity, Name: i.Name, Description: i.Description, Type: i.Type, Quantity: i.Quantity, Unit: i.Unit, SourceDocument: i.SourceDocument, SourceRevision: i.SourceRevision, SourceItemNo: i.SourceItemNo, SourcePages: i.SourcePages, MaterialCode: i.MaterialCode, SchemaVersion: 1, ID: i.ID, RepositoryID: i.RepositoryID, CreatorID: i.CreatorID, Status: i.Status, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
 }
 
 func decode(snap *db.DocumentSnapshot, err error, rid string) (objectDomainEntity.Object, error) {
@@ -74,9 +78,9 @@ func decode(snap *db.DocumentSnapshot, err error, rid string) (objectDomainEntit
 	if e := snap.DataTo(&d); e != nil {
 		return objectDomainEntity.Object{}, e
 	}
-	raw := objectDomainEntity.Content{SpaceID: d.SpaceID, CompletedQuantity: d.CompletedQuantity, Name: d.Name, Description: d.Description, Type: d.Type, Quantity: d.Quantity, Unit: d.Unit, SourceDocument: d.SourceDocument, SourceRevision: d.SourceRevision, SourceItemNo: d.SourceItemNo, SourcePages: d.SourcePages, MaterialCode: d.MaterialCode}
+	raw := objectDomainEntity.Content{ParentID: d.ParentID, SpaceID: d.SpaceID, CompletedQuantity: d.CompletedQuantity, Name: d.Name, Description: d.Description, Type: d.Type, Quantity: d.Quantity, Unit: d.Unit, SourceDocument: d.SourceDocument, SourceRevision: d.SourceRevision, SourceItemNo: d.SourceItemNo, SourcePages: d.SourcePages, MaterialCode: d.MaterialCode}
 	c, e := objectDomainEntity.Normalize(raw)
-	if e != nil || c != raw || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !repositoryDomainEntity.ValidID(d.ID) || d.RepositoryID != rid || d.CreatorID == "" || !objectDomainEntity.ValidStatus(d.Status) || d.Version < 1 || d.Version > repositoryDomainEntity.MaxResourceNumber || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) {
+	if e != nil || c != raw || d.SchemaVersion != 1 || d.ID == d.ParentID || d.ID != snap.Ref.ID || !repositoryDomainEntity.ValidID(d.ID) || d.RepositoryID != rid || d.CreatorID == "" || !objectDomainEntity.ValidStatus(d.Status) || d.Version < 1 || d.Version > repositoryDomainEntity.MaxResourceNumber || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) {
 		return objectDomainEntity.Object{}, objectDomainEntity.ErrUnavailable
 	}
 	if c.Type == objectDomainEntity.TypeWork && c.CompletedQuantity != "" {
@@ -85,7 +89,7 @@ func decode(snap *db.DocumentSnapshot, err error, rid string) (objectDomainEntit
 			return objectDomainEntity.Object{}, objectDomainEntity.ErrUnavailable
 		}
 	}
-	return objectDomainEntity.Object{Content: c, ID: d.ID, RepositoryID: d.RepositoryID, CreatorID: d.CreatorID, Status: d.Status, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
+	return objectDomainEntity.Object{TemplateID: d.TemplateID, TemplateNodeID: d.TemplateNodeID, TemplateVersion: d.TemplateVersion, Content: c, ID: d.ID, RepositoryID: d.RepositoryID, CreatorID: d.CreatorID, Status: d.Status, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
 }
 func (s *Store) ready() bool { return s != nil && s.Client != nil && s.ChannelID != "" }
 func (s *Store) repositoryRef(id string) *db.DocumentRef {
@@ -230,6 +234,13 @@ func (s *Store) Create(ctx context.Context, r repositoryDomainEntity.Repository,
 		if status.Code(e) != codes.NotFound {
 			return e
 		}
+		// Parent links are immutable and only point to existing objects in this repository.
+		if c.ParentID != "" {
+			snap, parentErr := tx.Get(parent.Collection("objects").Doc(c.ParentID))
+			if _, parentErr = decode(snap, parentErr, r.ID); parentErr != nil {
+				return parentErr
+			}
+		}
 		result = objectDomainEntity.Object{Content: c, ID: id, RepositoryID: r.ID, CreatorID: actor, Status: initialStatus(c), Version: 1, CreatedAt: now, UpdatedAt: now}
 		if e = tx.Create(ref, encode(result)); e != nil {
 			return e
@@ -325,6 +336,14 @@ func validateSpace(tx *db.Transaction, parent *db.DocumentRef, rid, id string) e
 
 // Preserve immutable v1 receipts for every legacy input; progress uses a new intent shape.
 func creationHash(c objectDomainEntity.Content) string {
+	if c.ParentID != "" {
+		parentID := c.ParentID
+		c.ParentID = ""
+		return firestorekey.JSONDigest(struct {
+			Version               int
+			ContentHash, ParentID string
+		}{4, creationHash(c), parentID})
+	}
 	if c.SpaceID != "" {
 		spaceID := c.SpaceID
 		c.SpaceID = ""

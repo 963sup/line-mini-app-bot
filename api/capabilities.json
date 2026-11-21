@@ -170,7 +170,7 @@
       "specification": "docs/domains/object/design.md"
     },
     "subobject": {
-      "contract": "subobject/subobjects.yaml",
+      "contract": "object/subobjects.yaml",
       "adapter": "backend/internal/business/subobject/adapter/http/routes.go",
       "core": "backend/internal/business/subobject/domain/entity/subobject.go",
       "specification": "docs/domains/subobject/design.md"
@@ -1698,6 +1698,60 @@
       "specification": "docs/proposals/membership.md",
       "consumers": [
         "frontend/miniapp/src/business/organization/OrganizationPage.tsx"
+      ]
+    },
+    {
+      "operationId": "listObjectTemplates",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/object-templates",
+      "owner": "object",
+      "adapter": "backend/internal/business/object/adapter/http/templates.go",
+      "handler": "ListObjectTemplates",
+      "core": "backend/internal/business/object/domain/template/version.go",
+      "specification": "docs/domains/object/template.md",
+      "consumers": [
+        "frontend/miniapp/src/business/object/Templates.tsx"
+      ]
+    },
+    {
+      "operationId": "createObjectTemplate",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/object-templates",
+      "owner": "object",
+      "adapter": "backend/internal/business/object/adapter/http/templates.go",
+      "handler": "CreateObjectTemplate",
+      "core": "backend/internal/business/object/domain/template/version.go",
+      "specification": "docs/domains/object/template.md",
+      "consumers": [
+        "frontend/miniapp/src/business/object/Templates.tsx"
+      ]
+    },
+    {
+      "operationId": "getObjectTemplate",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/object-templates/{id}",
+      "owner": "object",
+      "adapter": "backend/internal/business/object/adapter/http/templates.go",
+      "handler": "GetObjectTemplate",
+      "core": "backend/internal/business/object/domain/template/version.go",
+      "specification": "docs/domains/object/template.md",
+      "consumers": []
+    },
+    {
+      "operationId": "instantiateObjectTemplate",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/repositories/{repositoryId}/object-templates/{id}/instances",
+      "owner": "object",
+      "adapter": "backend/internal/business/object/adapter/http/templates.go",
+      "handler": "InstantiateObjectTemplate",
+      "core": "backend/internal/business/object/domain/template/version.go",
+      "specification": "docs/domains/object/template.md",
+      "consumers": [
+        "frontend/miniapp/src/business/object/Templates.tsx"
       ]
     }
   ],

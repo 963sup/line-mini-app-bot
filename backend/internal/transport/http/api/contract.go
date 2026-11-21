@@ -164,6 +164,10 @@ type OwnerProjectServer interface {
 }
 
 type ObjectServer interface {
+	CreateObjectTemplate(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.CreateObjectTemplateParams)
+	ListObjectTemplates(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ListObjectTemplatesParams)
+	GetObjectTemplate(w http.ResponseWriter, r *http.Request, repositoryId string, id string)
+	InstantiateObjectTemplate(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params generated.InstantiateObjectTemplateParams)
 	ExtractObjectCandidates(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ExtractObjectCandidatesParams)
 	ListObjects(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ListObjectsParams)
 	CreateObject(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.CreateObjectParams)

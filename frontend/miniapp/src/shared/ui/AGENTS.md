@@ -32,7 +32,7 @@
 1. 先讀官方 [Skills](https://ui.shadcn.com/docs/skills) 與專案已安裝的 [shadcn SKILL.md](../../../../../.agents/skills/shadcn/SKILL.md)，再按需求讀其 composition、forms、styling 等 references。保留上游 skill 原樣；本專案元件保護及固定工具規則優先於其中一般客製化／浮動版本範例。
 2. 以固定 CLI `info --json` 核對已安裝清單、base、aliases 與生成路徑；目前專案是 Radix、new-york、Pages Router、Tailwind v4、Lucide。實際值以 `components.json`、`info` 與套件檔案為準，不把本機參考庫視為已安裝清單。
 3. 開發前主動用已曝光的 shadcn MCP 查詢 registry、搜尋／查看元件及取得範例；依官方 [Registry MCP](https://ui.shadcn.com/docs/registry/mcp) 與 [MCP 使用說明](https://ui.shadcn.com/docs/mcp)。優先使用 `get_project_registries`、`search_items_in_registries`、`view_items_in_registries`、`get_item_examples_from_registries` 等實際可用工具；工具名稱以 host 的 tools/list 為準。
-4. MCP 未曝光或不可用時，明確回報限制並以固定 CLI `search`／`view`／`docs` 完成同一查詢；不要把設定存在、CLI 已安裝或先前 handshake 成功當作目前聊天已可呼叫 MCP。唯一 MCP 設定仍在根目錄 `.codex/config.toml`，不在 UI 目錄新增連線設定。
+4. MCP 未曝光或不可用時，依[自主接線流程](../../../../../docs/development/tooling/mcp/shadcn.md#自主接線)自行準備固定版 CLI、直接查詢 MCP，並在必要時改用 CLI。
 5. 執行 `docs <component> --base radix` 後讀取實際官方文件與範例，並依根指引用 Context7 查證；不要將 Base UI 的 `render` 或 React Aria API 套到 Radix 的 `asChild`。官方目錄可能先連到 Base UI，實作須回到當前專案 base。
 6. 已有元件直接 import／組合；確實缺少且在任務範圍內才預覽安裝。MCP 提供的 add command 只是建議，須換成固定 CLI，先核對 registryDependencies、npm dependencies、CSS 與每個檔案 diff；不因搜尋到元件便自動安裝。
 

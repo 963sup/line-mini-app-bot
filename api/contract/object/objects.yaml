@@ -375,6 +375,318 @@
           }
         }
       }
+    },
+    "/api/v1/repositories/{repositoryId}/object-templates": {
+      "get": {
+        "operationId": "listObjectTemplates",
+        "summary": "List immutable v1 templates, in document ID order",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectTemplatePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createObjectTemplate",
+        "summary": "Validate a tree and create an immediately usable immutable v1 template",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "description": "Scoped to actor, repository and this operation. Retry the original key and body after an unknown result. Same key with different normalized content returns idempotency_conflict (409)."
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; validated by the existing session authenticator."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectTemplate"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObjectTemplateCreation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/repositories/{repositoryId}/object-templates/{id}": {
+      "get": {
+        "operationId": "getObjectTemplate",
+        "summary": "Read an immutable template snapshot",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectTemplate"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectError"
+          }
+        }
+      }
+    },
+    "/api/v1/repositories/{repositoryId}/object-templates/{id}/instances": {
+      "post": {
+        "operationId": "instantiateObjectTemplate",
+        "summary": "Atomically create an independent object tree; retry returns the original result",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,128}$"
+            },
+            "description": "Scoped to actor, repository and this operation. Retry the original key and body after an unknown result. Same key with different normalized content returns idempotency_conflict (409)."
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; validated by the existing session authenticator."
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectTemplateInstance"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObjectTemplateInstantiation"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -488,6 +800,11 @@
             "pattern": "^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
             "description": "Exact absolute completed quantity for work only; 0 <= completedQuantity <= quantity. Absent for non_work and legacy objects; new work defaults to 0. Omitted update preserves current value; conversion to work requires explicit value."
           },
+          "parentId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "description": "Parent Object in the same repository. Omit for a root Object. The parent is set on creation and cannot be changed."
+          },
           "spaceId": {
             "type": "string",
             "pattern": "^([a-f0-9]{32})?$",
@@ -500,6 +817,17 @@
           "requiresProgressReset": {
             "type": "boolean",
             "description": "Whether stored progress must be reset before changing the type to non-work."
+          },
+          "templateId": {
+            "type": "string",
+            "description": "Immutable template source, when instantiated."
+          },
+          "templateVersion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "templateNodeId": {
+            "type": "string"
           }
         }
       },
@@ -559,6 +887,11 @@
             "maxLength": 25,
             "pattern": "^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
             "description": "Exact absolute completed quantity for work only; 0 <= completedQuantity <= quantity. Absent for non_work and legacy objects; new work defaults to 0. Omitted update preserves current value; conversion to work requires explicit value."
+          },
+          "parentId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "description": "Parent Object in the same repository. Omit for a root Object. The parent is set on creation and cannot be changed."
           },
           "spaceId": {
             "type": "string",
@@ -749,6 +1082,201 @@
             }
           },
           "rawResponse": {
+            "type": "string"
+          }
+        }
+      },
+      "ObjectTemplateNode": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,64}$"
+          },
+          "parentId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,64}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "quantity": {
+            "type": "string",
+            "maxLength": 25
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 32
+          }
+        }
+      },
+      "ObjectTemplateCreation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "nodes"
+        ],
+        "description": "One root, connected acyclic tree, at most 100 nodes and 48,000 UTF-8 bytes of normalized content. Work defaults with a quantity require a unit; completion always starts at zero. Published immediately as immutable v1.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "nodes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/ObjectTemplateNode"
+            }
+          }
+        }
+      },
+      "ObjectTemplate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "repositoryId",
+          "name",
+          "version",
+          "nodes",
+          "creatorId",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "repositoryId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "enum": [
+              1
+            ]
+          },
+          "nodes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/ObjectTemplateNode"
+            }
+          },
+          "creatorId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ObjectTemplatePage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObjectTemplate"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
+          }
+        }
+      },
+      "ObjectTemplateInstantiation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "parentId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          }
+        },
+        "description": "Same Repository only. Optional parent must exist. All object writes, provenance and the actor/key receipt commit in one transaction. On an unknown response retry with the same Idempotency-Key and body."
+      },
+      "ObjectTemplateInstance": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rootObjectId",
+          "objectIds",
+          "templateId",
+          "templateVersion",
+          "nodes"
+        ],
+        "properties": {
+          "rootObjectId": {
+            "type": "string"
+          },
+          "objectIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "templateId": {
+            "type": "string"
+          },
+          "templateVersion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObjectTemplateInstanceNode"
+            },
+            "description": "Original committed tree, with assigned object IDs and parents. Replay returns the same creation result; read individual objects for current content."
+          }
+        }
+      },
+      "ObjectTemplateInstanceNode": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "objectId",
+          "parentId",
+          "name"
+        ],
+        "properties": {
+          "objectId": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "string"
+          },
+          "name": {
             "type": "string"
           }
         }

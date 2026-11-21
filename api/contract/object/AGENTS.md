@@ -2,7 +2,7 @@
 
 ## 用途與範圍
 
-定義工程清單物件的 API 契約。
+定義工程清單物件與子物件的 API 契約。
 
 ## 架構與責任邊界
 
@@ -10,7 +10,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[objects.yaml](objects.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+先查閱[objects.yaml](objects.yaml)、[subobjects.yaml](subobjects.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
 
 ## 相關規格
 

@@ -32,3 +32,5 @@ flowchart TD
 [入口適配器](../../../backend/internal/business/object/adapter/http/routes.go) · [判定依據](../../../backend/internal/business/object/application/progress_test.go) · [應用層輸出介面](../../../backend/internal/business/object/application/port/object.go) · [相關測試](../../../backend/internal/business/object/application/progress_test.go)
 
 [適用工作指引](../AGENTS.md) · [上層導覽](../README.md)
+
+[ObjectTemplate 最小閉環](template.md)：建立不可變 v1、選用、原子套用並開啟獨立 Object 樹；草稿、改版與舊資料遷移留在後續範圍。
