@@ -53,18 +53,8 @@ Node、Go 基底版本及 pnpm MUST 與 mise.toml 一致，由 check-config.py �
 
 [Trigger 路徑政策](build-trigger-policy.json) 列出會影響映像或部署的檔案；純 docs、README、AGENTS 與 GitHub CI 文件變更不啟動 managed Trigger。混合程式與文件的提交仍會建置。新增建置輸入時 MUST 同步政策與雲端 includedFiles／ignoredFiles；只修改本檔不會套用雲端。
 
-[過期建置檢查](../scripts/tooling/cloud-build-latest.py) 比對同一 Trigger 的最新建置建立時間，在建置前與第一次部署／發布之前執行。過期流程僅取消自己，API 查詢或取消失敗會中止流程，不放行部署。手動無 Trigger 的建置維持可執行。較新建置即使失敗，也不讓舊建置自動回補部署；回復版本應明確另開建置。
-
-已在編譯的舊版本要等到下一個檢查點才取消；通過最後檢查點後不再取消，以免中止已開始的服務更新或 LINE 發布。檢查不是全域部署鎖；檢查後才抵達的新提交不會使已進入部署階段的流程停止。沒有新增排程器、worker、外部快取或 IAM 授權。
-
-2026-11-21 已將同一腳本內容嵌入 managed inline Trigger 的 latest-before-build／latest-before-deploy 步驟，並套用路徑政策；未執行正式部署。嵌入形式避免尚未推送的 repository 腳本使線上流程找不到檔案。更新腳本時 MUST 同步雲端嵌入內容；repository YAML 使用腳本路徑，不會自動更新 managed Trigger。
+建置依原流程執行，不查詢或自動取消其他建置。2026-11-21 已移除 managed inline Trigger 與 repository YAML 的過期建置檢查，不需要新增 Cloud Build 查詢／取消權限；文件路徑過濾維持啟用。
 
 LINE 同步既有 SHA-256 包含選單定義（含 MINI App 目標）與圖片，會核對遠端圖片、alias 與 default；一致時不重複寫入 LINE。仍保留讀取與 lease，才能偵測外部變更；不是看到 Git 沒改就無條件略過。此行為由 richmenu/publication_test.go 的重複同步測試驗證。
 
-依據：[Cloud Build 查詢與過濾](https://docs.cloud.google.com/build/docs/view-build-results) 及固定版 gcloud 的 builds list／cancel／triggers update github leaf help。
-
-## Cloud CLI 步驟的 Python 入口
-
-Google Cloud CLI 592.0.0 slim 映像的 Python 位於 /usr/lib/google-cloud-sdk/platform/bundledpythonunix/bin/python3，PATH 不提供 python3。managed inline Trigger 與 repository YAML 的 latest-before-* 步驟 MUST 使用這個已驗證的入口；Dockerfile 只負責應用映像，無法修正建置步驟映像的入口。
-
-修改步驟映像或 Python 路徑時，MUST 執行 `bash scripts/tooling/cloud-build-smoke.sh`，使用實際映像檢查腳本啟動與過期建置測試；container CI job 執行同一檢查。本測試不帶憑證、不連網、不部署，不能取代 build service account 的正式雲端權限驗證。
+依據：[Cloud Build 查詢與過濾](https://docs.cloud.google.com/build/docs/view-build-results) 及固定版 gcloud 的 triggers update github leaf help。
