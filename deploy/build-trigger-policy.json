@@ -1,0 +1,8 @@
+{
+  "includedFiles": [
+    "Dockerfile", ".dockerignore", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml",
+    "backend/**", "frontend/**", "api/**", "assets/line/richmenu/**", "deploy/**",
+    "scripts/tooling/prepare-miniapp-assets.mts", "scripts/tooling/cloud-build-latest.py"
+  ],
+  "ignoredFiles": ["docs/**", "**/README.md", "**/AGENTS.md", ".github/**"]
+}

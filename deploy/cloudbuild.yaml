@@ -2,6 +2,10 @@
 # trigger uses an inline build with Dockerfile and does not execute this file.
 # Runtime credentials are Secret Manager references, never build substitutions.
 steps:
+  - id: latest-before-build
+    name: gcr.io/google.com/cloudsdktool/google-cloud-cli:592.0.0-slim
+    entrypoint: python3
+    args: ["scripts/tooling/cloud-build-latest.py", "--project=$PROJECT_ID", "--region=$LOCATION", "--build=$BUILD_ID"]
   - id: validate-settings
     name: gcr.io/google.com/cloudsdktool/google-cloud-cli:592.0.0-slim
     entrypoint: bash
@@ -47,6 +51,8 @@ steps:
       - 'DOCKER_BUILDKIT=1'
     args:
       - build
+      - --build-arg
+      - VCS_REF=$COMMIT_SHA
       - --tag
       - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REPOSITORY}/${_SERVICE}:$BUILD_ID'
       - .
@@ -56,6 +62,11 @@ steps:
     args:
       - push
       - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REPOSITORY}/${_SERVICE}:$BUILD_ID'
+
+  - id: latest-before-publication
+    name: gcr.io/google.com/cloudsdktool/google-cloud-cli:592.0.0-slim
+    entrypoint: python3
+    args: ["scripts/tooling/cloud-build-latest.py", "--project=$PROJECT_ID", "--region=$LOCATION", "--build=$BUILD_ID"]
 
   - id: attendance-indexes
     name: python:3.12-slim

@@ -61,6 +61,13 @@ def check():
         raise ValueError("packageManager must match the pnpm version in mise.toml")
     if package.get("private") is not True:
         raise ValueError("The repository workspace must be private")
+    dockerfile = (ROOT / "Dockerfile").read_text()
+    for image, tool in (("node", "node"), ("golang", "go")):
+        version = re.escape(mise["tools"][tool])
+        if not re.search(r"^FROM " + image + ":" + version + r"-bookworm(?:-slim)?@sha256:[0-9a-f]{64}", dockerfile, re.M):
+            raise ValueError(f"Dockerfile {image} version/digest must match mise.toml")
+    if "npm install --global pnpm@" + mise["tools"]["npm:pnpm"] not in dockerfile:
+        raise ValueError("Dockerfile pnpm must match mise.toml")
     module = (ROOT / "backend/go.mod").read_text()
     if not re.search(r"^go " + re.escape(mise["tools"]["go"]) + r"$", module, re.M):
         raise ValueError("backend/go.mod must match the pinned Go toolchain")
