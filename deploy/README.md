@@ -36,3 +36,5 @@ cloudbuild.yaml 為手動提交或自訂 trigger 的建置部署流程；firesto
 - [Cloud Run 決策](../docs/decisions/0003-cloud-run-primary.md)
 
 [開發與維運指引圖索引](../docs/diagrams.md#開發與維運指引) · [未來設計圖](../docs/diagrams.md#未來設計)。
+
+Repository 流程已接入部署前的 LINE 導航同步 Job；managed inline Trigger 必須先遷移才可部署移除 /richmenu 的映像。參見 [自動發布與雲端前置條件](../docs/guides/line-setup/rich-menu.md)。

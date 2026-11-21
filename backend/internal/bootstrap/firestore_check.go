@@ -1,5 +1,5 @@
 // firestorecheck verifies read access without creating or modifying documents.
-package main
+package bootstrap
 
 import (
 	"context"
@@ -15,28 +15,28 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func main() {
-	if err := run(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+// CheckFirestore confirms read access to one explicitly selected document.
+func CheckFirestore(parent context.Context, args []string) (resultErr error) {
+	flags := flag.NewFlagSet("check-firestore", flag.ContinueOnError)
+	document := flags.String("document", "", "document path to read; contents will not be printed")
+	if err := flags.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return nil
+		}
+		return err
 	}
-}
-
-func run() (resultErr error) {
-	document := flag.String("document", "", "document path to read; contents will not be printed")
-	flag.Parse()
 	project := os.Getenv("GOOGLE_CLOUD_PROJECT")
 	if strings.TrimSpace(project) == "" {
 		return errors.New("missing GOOGLE_CLOUD_PROJECT")
 	}
-	if flag.NArg() != 0 || !validDocumentPath(*document) {
+	if flags.NArg() != 0 || !validDocumentPath(*document) {
 		return errors.New("provide -document collection/document with no positional arguments")
 	}
 	database := os.Getenv("FIRESTORE_DATABASE_ID")
 	if database == "" {
 		database = "(default)"
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(parent, 10*time.Second)
 	defer cancel()
 	client, err := firestore.NewClientWithDatabase(ctx, project, database)
 	if err != nil {

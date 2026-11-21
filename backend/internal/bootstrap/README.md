@@ -23,3 +23,5 @@
 [現行實作圖：格式與資料相容](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../../../docs/diagrams.md#未來設計)
 
 [上層導覽](../README.md)
+
+部署 Job 的 LINE 選單同步由 [line_navigation.go](line_navigation.go) 組裝，使用 Firestore 租約與有界 context；HTTP 服務啟動不發布。租約整合測試需隔離的 loopback Firestore emulator。

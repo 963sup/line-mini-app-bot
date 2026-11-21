@@ -2,7 +2,7 @@
 
 以 Go 建置 LINE Messaging API Webhook、MINI App API 與 Firestore 整合。
 目前提供 HTTP 服務與可選的 [LINE 接入能力](docs/guides/line-setup/README.md)：
-一對一／群組指令、Flex／Postback、MINI App 身分驗證與 Rich Menu CLI。
+一對一／群組指令、Flex／Postback、MINI App 身分驗證與 Rich Menu 自動同步。
 另有 Firestore 唯讀連線檢查工具；基礎出勤已實作 Firestore 持久化，目標環境的端到端驗收仍需另行確認。服務沒有健康檢查路由。
 
 出勤分工：群組發起上下班，從連結開啟 MINI App、取得位置後送出；1:1 私訊「出勤紀錄」選擇群組，再輸入「出勤紀錄 編號」查本人最近五筆。各群組狀態獨立，定位只記錄位置，不判斷工作半徑。
@@ -23,7 +23,7 @@ runtime 環境變數與 Secret reference 儲存在 Cloud Run service configurati
 開發順序為 [執行／部署基礎 → 資料與 LINE 接入 → 基礎出勤](docs/guides/local-development/environment-verification.md)，
 不在基礎設施尚未確認可用時直接堆疊業務功能；具體出勤規則集中在功能規格確認。
 
-原始碼分為 `backend/`（Go）、`frontend/miniapp/`（Next.js）與 `api/`（OpenAPI 與 TS client）。後端入口為 `backend/cmd/server/main.go`，功能整合依出勤、摘要與天氣歸位。
+原始碼分為 `backend/`（Go）、`frontend/miniapp/`（Next.js）與 `api/`（OpenAPI 與 TS client）。後端入口為 `backend/main.go`，功能整合依出勤、摘要與天氣歸位。
 首次建置後可在開發時開啟 `http://localhost:3000/miniapp`；正式靜態輸出由 Go 提供。遷移範圍與尚未完成項目見 [Monorepo 決策](docs/decisions/0004-monorepo.md)。
 API 契約、產生碼與相容性流程見 [API 工作流程](api/README.md)。
 完整檔案樹見 [目前目錄](docs/architecture/runtime/code-layout.md)，功能入口見 [文件索引](docs/README.md)。

@@ -1,6 +1,7 @@
-package main
+package richmenu
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"strings"
@@ -46,7 +47,7 @@ func TestCleanupMigratesBeforeDelete(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			err = cleanupMenus(api, map[string]string{"attendance-in": "new", "attendance-out": "new-out"})
+			err = cleanupMenus(context.Background(), api, map[string]string{"attendance-in": "new", "attendance-out": "new-out"})
 			if phase == "succeeded" && (err != nil || !deleted) {
 				t.Fatalf("cleanup failed: %v", err)
 			}

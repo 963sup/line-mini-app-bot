@@ -54,7 +54,7 @@ flowchart LR
   h --- n0["建置失敗：遇到 --mount option requires <br/>BuildKit 時核對實際 inline Build env。<br/>BuildKit 契約"]
   click n0 "cloud-run.md#docker-buildkit-建置契約"
   h --- n1["部署失敗或未 Ready：核對映像 digest、PORT、<br/>runtime service account 與 Secret references<br/>。以實際 revision 與前版 metadata 比對。"]
-  h --- n2["選單同步失敗：整體 Build 失敗後仍須查流量確<br/>認部署結果。核對實際 Trigger 的 -images <br/>/assets/line/richmenu，確認同一映像內的目錄<br/>可穿越且 JPEG 可由 nonroot 讀取。圖片路徑與<br/>權限"]
+  h --- n2["選單同步失敗：整體 Build 失敗後仍須查流量確<br/>認部署結果。核對部署 Job 的圖片目錄 <br/>/assets/line/richmenu，確認同一映像內的目錄<br/>可穿越且 JPEG 可由 nonroot 讀取。圖片路徑與<br/>權限"]
   click n2 "cloud-run.md#managed-trigger-的-rich-menu-圖片路徑"
   h --- n3["登入、出勤或摘要失敗：核對 Session、<br/>Firestore、Cloud Tasks、模型與 LINE 訊息流程<br/>。端到端驗收須以真實功能結果為準。"]
   h --- n4["managed trigger 使用 inline build；修改 <br/>repository YAML 不會修正該 Trigger。 修正後<br/>以新 Build 的來源 SHA、每個步驟結果、Ready <br/>revision、traffic 及真實功能結果驗收。 Rich <br/>Menu 同步會修改 LINE 外部狀態，重跑前先確認<br/>既有選單與目標帳號； Cloud Run 回滾不會撤銷<br/>已同步的 LINE 選單。"]

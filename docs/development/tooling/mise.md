@@ -12,8 +12,8 @@ dependency changes and before delivery; it requires access to the vulnerability
 database. CI uses these same task definitions.
 
 Use `deadcode` as review input, not an automatic deletion rule. Supply callgraph
-arguments with `mise run callgraph -- -algo=static ./cmd/server`; supply Delve
-arguments with `mise run debug -- ./cmd/server`. Debugging may require ptrace
+arguments with `mise run callgraph -- -algo=static .`; supply Delve
+arguments with `mise run debug -- .`. Debugging may require ptrace
 support from the host; installing Delve does not establish that permission.
 Use stringer through package-specific `go:generate` directives when needed.
 

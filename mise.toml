@@ -123,7 +123,7 @@ run = "callgraph"
 
 [tasks.debug]
 dir = "backend"
-run = "dlv debug ./cmd/server"
+run = "dlv debug ."
 
 [tasks.coverage]
 dir = "backend"
@@ -185,7 +185,7 @@ description = "Check local Go and Cloud development prerequisites"
 run = "bash scripts/tooling/doctor.sh"
 
 [tasks.dev]
-description = "Run the application once cmd/server exists"
+description = "Run the Go application"
 run = "bash scripts/tooling/app-task.sh dev"
 
 [tasks.deps]
