@@ -74,6 +74,14 @@ jobs:
           key: go-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('mise.toml', 'backend/go.sum') }}
           restore-keys: |
             go-${{ runner.os }}-${{ runner.arch }}-
+      - name: Cache golangci-lint analysis
+        if: steps.module.outputs.present == 'true'
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        with:
+          path: /workspace/tooling/cache/golangci-lint
+          key: lint-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('mise.toml', 'mise.lock', 'backend/go.sum', '**/.golangci.*') }}-${{ github.sha }}
+          restore-keys: |
+            lint-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('mise.toml', 'mise.lock', 'backend/go.sum', '**/.golangci.*') }}-
       - name: Install pinned Go development environment
         if: steps.module.outputs.present == 'true'
         run: |
