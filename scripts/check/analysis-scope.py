@@ -22,7 +22,7 @@ def sha256_file(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def build_manifest():
+def build_manifest(workspace=False):
     config = tomllib.loads((ROOT / "analysis-scope.toml").read_text())
     paths = set(git("ls-files", "-z").decode().split("\0")) - {""}
     paths.difference_update(git("ls-files", "--deleted", "-z").decode().split("\0"))
@@ -31,6 +31,9 @@ def build_manifest():
     doc_specs = [":(glob)" + pattern for pattern in config["working_tree_docs"]]
     paths.update(filter(None, git("ls-files", "--others", "--exclude-standard", "-z",
                                   "--", *doc_specs).decode().split("\0")))
+    if workspace:
+        paths.update(filter(None, git("ls-files", "--others", "--exclude-standard", "-z").decode().split("\0")))
+    unclassified = []
     rows = []
     for name in sorted(paths):
         path = ROOT / name
@@ -46,8 +49,13 @@ def build_manifest():
             row.update(status="MANAGED", sha256=sha256_file(path), required=["repomix"],
                        graphify="optional; observed coverage only")
         else:
+            if workspace:
+                unclassified.append(name)
+                continue
             raise ValueError(f"Unclassified file: {name}; extend the scope contract")
         rows.append(row)
+    if unclassified:
+        raise ValueError("Unclassified workspace paths:\n" + "\n".join(unclassified))
     return {"schema": config["schema"], "contract_sha256": sha256_file(ROOT / "analysis-scope.toml"),
             "commit": git("rev-parse", "HEAD").decode().strip(),
             "dirty": bool(git("status", "--porcelain")), "files": rows}
@@ -134,8 +142,11 @@ def main():
     parser.add_argument("--pack", action="store_true")
     parser.add_argument("--audit", action="store_true")
     parser.add_argument("--verify", type=Path, help="Reject stale or altered saved report evidence")
+    parser.add_argument("--workspace", action="store_true", help="Also classify non-ignored untracked files")
     args = parser.parse_args()
-    manifest = build_manifest()
+    if args.workspace and (args.pack or args.audit or args.verify):
+        parser.error("--workspace is for local classification only")
+    manifest = build_manifest(workspace=args.workspace)
     print(f"Scope: {len(manifest['files'])} classified files")
     if args.verify:
         report = json.loads(args.verify.read_text())

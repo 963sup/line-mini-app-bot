@@ -18,6 +18,8 @@ Call resolve-library-id first, then query-docs with its exact library ID and a f
 
 ## Anonymous fallback
 
+This procedure addresses a quota error returned by an exposed tool. If the native tool is missing, follow the [root exposure procedure](../../../../AGENTS.md).
+
 **開發與維運指引**
 
 ```mermaid
@@ -35,7 +37,7 @@ The two connections are separate. The project server uses no API key or credenti
 ## Verification and failures
 
 ```bash
-bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server context7
+bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server context7
 ```
 
 This checks initialize, tools/list and configured allowlists. Verify a representative

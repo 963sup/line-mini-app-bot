@@ -23,7 +23,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["發布證據與前置條件"]
-  h --- n0["# 讀取服務與涉及的 revision metadata；不讀取 Secret payload。<br/>bash scripts/tooling/tool-exec.sh python3 scripts/release/cloud-run-snapshot.py #92;<br/>  --project=YOUR_PROJECT --region=asia-east1 --service=line-mini-app-bot #92;<br/>  &gt; /tmp/release-before.json<br/><br/># HTTP 無登入 smoke：不送 token、不建立出勤或申請。<br/>python3 scripts/release/release-smoke.py --base-url=https://YOUR_SERVICE_URL #92;<br/>  &gt; /tmp/release-http-before.json"]
+  h --- n0["# 讀取服務與涉及的 revision metadata；不讀取 Secret payload。<br/>bash scripts/tooling/tool-exec.sh python3 scripts/ops/cloud-run-snapshot.py #92;<br/>  --project=YOUR_PROJECT --region=asia-east1 --service=line-mini-app-bot #92;<br/>  &gt; /tmp/release-before.json<br/><br/># HTTP 無登入 smoke：不送 token、不建立出勤或申請。<br/>python3 scripts/release/release-smoke.py --base-url=https://YOUR_SERVICE_URL #92;<br/>  &gt; /tmp/release-http-before.json"]
 ```
 
 ```mermaid
@@ -103,7 +103,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["切換、觀察、回復"]
-  h --- n0["# 會變更正式流量；完成候選驗收及發布授權後執行。<br/>bash scripts/tooling/tool-exec.sh gcloud run services update-traffic line-mini-app-bot #92;<br/>  --project=YOUR_PROJECT --region=asia-east1 --to-revisions=YOUR_ACCEPTED_REVISION=100<br/><br/># 讀取狀態，執行 HTTP smoke、裝置工作流程並觀察錯誤／延遲／未授權結果。<br/>bash scripts/tooling/tool-exec.sh python3 scripts/release/cloud-run-snapshot.py #92;<br/>  --project=YOUR_PROJECT --region=asia-east1 --service=line-mini-app-bot &gt; /tmp/release-after.json<br/><br/># 回復：適用原本 100% 在單一 revision 的基線；若原本分流，還原原分配圖。<br/>bash scripts/tooling/tool-exec.sh gcloud run services update-traffic line-mini-app-bot #92;<br/>  --project=YOUR_PROJECT --region=asia-east1 --to-revisions=YOUR_PREVIOUS_ACCEPTED_REVISION=100"]
+  h --- n0["# 會變更正式流量；完成候選驗收及發布授權後執行。<br/>bash scripts/tooling/tool-exec.sh gcloud run services update-traffic line-mini-app-bot #92;<br/>  --project=YOUR_PROJECT --region=asia-east1 --to-revisions=YOUR_ACCEPTED_REVISION=100<br/><br/># 讀取狀態，執行 HTTP smoke、裝置工作流程並觀察錯誤／延遲／未授權結果。<br/>bash scripts/tooling/tool-exec.sh python3 scripts/ops/cloud-run-snapshot.py #92;<br/>  --project=YOUR_PROJECT --region=asia-east1 --service=line-mini-app-bot &gt; /tmp/release-after.json<br/><br/># 回復：適用原本 100% 在單一 revision 的基線；若原本分流，還原原分配圖。<br/>bash scripts/tooling/tool-exec.sh gcloud run services update-traffic line-mini-app-bot #92;<br/>  --project=YOUR_PROJECT --region=asia-east1 --to-revisions=YOUR_PREVIOUS_ACCEPTED_REVISION=100"]
 ```
 
 ```mermaid

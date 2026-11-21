@@ -58,7 +58,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["驗證與完成條件"]
-  h --- n0["交付前 MUST 審查本次 diff，執行 git diff<br/>--check，核對變更文件的本機連結、標題錨點、來源路徑及相關引用。涉及設定時 MUST<br/>執行既有的 bash scripts/tooling/tool-exec.sh python3<br/>scripts/tooling/check-config.py。該檢查不涵蓋所有<br/>Markdown 結構、錨點或語義；MUST<br/>另做適用的人工或工具核對，不得宣稱不存在的文件檢查任務已執行。"]
+  h --- n0["交付前 MUST 審查本次 diff，執行 git diff<br/>--check，核對變更文件的本機連結、標題錨點、來源路徑及相關引用。涉及設定時 MUST<br/>執行既有的 bash scripts/tooling/tool-exec.sh python3<br/>scripts/check/check-config.py。該檢查不涵蓋所有<br/>Markdown 結構、錨點或語義；MUST<br/>另做適用的人工或工具核對，不得宣稱不存在的文件檢查任務已執行。"]
   h --- n1["適用指令 MUST<br/>核對語法、參數與前置條件；需要憑證、外部寫入或部署的指令不得只為驗證文件而執行。未實際執行時<br/>MUST 說明來源核對與執行驗證的差別。完成報告 MUST<br/>列出修正範圍、來源、實際檢查及剩餘不確定性；格式檢查成功不能取代正確性與語義審查。"]
 ```
 

@@ -55,7 +55,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["開發與交付"]
-  h --- n0["bash scripts/tooling/bootstrap.sh core<br/>bash scripts/tooling/tool-exec.sh mise run install-web<br/>bash scripts/tooling/tool-exec.sh pnpm install --frozen-lockfile<br/>bash scripts/tooling/tool-exec.sh pnpm build<br/>bash scripts/tooling/tool-exec.sh pnpm check<br/>bash scripts/tooling/tool-exec.sh pnpm test<br/>bash scripts/tooling/tool-exec.sh pnpm dev"]
+  h --- n0["bash scripts/bootstrap.sh core<br/>bash scripts/tooling/tool-exec.sh mise run install-web<br/>bash scripts/tooling/tool-exec.sh pnpm install --frozen-lockfile<br/>bash scripts/tooling/tool-exec.sh pnpm build<br/>bash scripts/tooling/tool-exec.sh pnpm check<br/>bash scripts/tooling/tool-exec.sh pnpm test<br/>bash scripts/tooling/tool-exec.sh pnpm dev"]
 ```
 
 ```mermaid

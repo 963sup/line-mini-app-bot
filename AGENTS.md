@@ -1,10 +1,11 @@
 # Repository agent guidance
 
-## Nested directory instructions
+## 從這裡開始
 
-Root instructions apply throughout the repository. Before changing a subtree, read its AGENTS.md and README.md; more specific instructions supplement root policy within their scope, subject to user and host instructions. Directory entry points are listed in [README.md](README.md#巢狀目錄導覽).
-
-涉及跨目錄任務時，讀取所有相關目錄的指引。保留既有變更與上游技能；巢狀指引不增加外部寫入授權。
+- Codex Cloud 首次初始化使用 `scripts/bootstrap.sh`。詳見[環境設定](.codex/README.md#codex-環境初始化)。
+- 日常命令從根目錄使用 `bash scripts/tooling/tool-exec.sh <命令>`。
+- 修改前讀取目標目錄的 README.md 與 AGENTS.md，根指引與各層補充一併適用。跨目錄搬移時核對來源、目的地與呼叫端，保留既有變更與上游技能。[巢狀導覽](README.md#巢狀目錄導覽)
+- 新增或搬移檔案時執行[工作區範圍檢查](docs/development/tooling/analysis-scope.md)，再按[驗收矩陣](docs/development/acceptance.md)驗證行為。
 
 ## 巢狀文件維護標準
 
@@ -25,7 +26,7 @@ Root instructions apply throughout the repository. Before changing a subtree, re
 - 複合 shell 命令 MUST 明確宣告所需工具，例如 `bash scripts/tooling/tool-exec.sh --tool node --tool npm:repomix bash -c 'repomix --version'`。`--tool` 只使用 mise.toml 已宣告的工具，不另指定版本。
 - 缺少工具時 MUST 優先使用 wrapper 或既有 install-* 任務，驗證版本後繼續原任務；MUST NOT 自行升級版本、修改鎖檔或安裝未宣告套件。
 - `mise run` 已開啟任務自動安裝，可能準備任務環境的多個缺少工具；只需單一 CLI 時 MUST 使用 wrapper 的直接命令。
-- UI 任務遇到 shadcn MCP 未曝光或 CLI 缺少時，MUST 自行執行 `bash scripts/tooling/tool-exec.sh mise run ensure-shadcn`，依[自主接線流程](docs/development/tooling/mcp/shadcn.md#自主接線)使用直接 MCP，再按需退回 CLI；不等待使用者手動接線或重新開啟聊天。
+- MCP 未曝光時，先搜尋主機工具、核對專案設定與啟動依賴，修復已確認的問題，再使用主機支援的重新探索或重載功能。以本次聊天原生工具的唯讀呼叫成功為驗收。若仍未曝光，回報阻礙並繼續獨立工作；不得以直接 transport 或 CLI 代辦該 MCP 操作。[shadcn 診斷流程](docs/development/tooling/mcp/shadcn.md#自主接線)
 - MCP 缺少套件時按上述流程準備，再重試連線；憑證、網路、ADC 或主機未載入設定須分別處理。安裝完成不代表目前聊天已載入 MCP。
 - 新環境仍 MUST 先執行初始化以準備 mise、系統 Python 與網路；Graphify 使用既有 install-graphify 任務，不能只靠 mise 的工具宣告安裝。
 
@@ -71,7 +72,7 @@ reuse it for follow-ups and provide the goal, existing changes and deliverable.
 
 ### Registered roles
 
-角色能力與設定由 [.codex/agents](.codex/agents) 維護；角色選用、交接欄位、一檔一寫入者及整合責任依 [shared workflow](docs/development/workflow.md#delegation-depth-and-role-selection)。角色是可選能力，不是每個任務都必須經過的階段；主機限制優先，委派不增加外部寫入權限。
+角色能力與設定由 [角色設定說明](.codex/agents/README.md) 維護；角色選用、交接欄位、一檔一寫入者及整合責任依 [shared workflow](docs/development/workflow.md#delegation-depth-and-role-selection)。角色是可選能力，不是每個任務都必須經過的階段；主機限制優先，委派不增加外部寫入權限。
 
 架構、資料關係、流程或狀態用圖更清楚時，主動使用專案鎖定的本機 Mermaid v13 CLI 驗證並渲染圖表。操作方式見 [.codex/README.md](.codex/README.md#mermaid)。
 

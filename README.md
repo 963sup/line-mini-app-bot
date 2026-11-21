@@ -62,7 +62,7 @@ Next.js 正式建置採靜態匯出，由 Go 在 Cloud Run 提供網頁與 HTTP 
 ## 開始開發
 
 ```bash
-bash scripts/tooling/bootstrap.sh core
+bash scripts/bootstrap.sh core
 bash scripts/tooling/tool-exec.sh pnpm build
 bash scripts/tooling/tool-exec.sh pnpm check
 bash scripts/tooling/tool-exec.sh pnpm test
@@ -70,8 +70,8 @@ bash scripts/tooling/tool-exec.sh pnpm dev
 ```
 
 完整 Cloud／MCP 安裝與限制請見 [Codex Cloud 設定](docs/guides/local-development/setup.md)。
-預設初始化會安裝 Go、Web 依賴及 Mermaid CLI。需要 Graphify／Repomix 與 MCP 時使用
-`bash scripts/tooling/bootstrap.sh all`。Firestore Toolbox 需要先提供 Google ADC，GKE MCP 預設停用。
+Codex Cloud 的 Install script 填入 `scripts/bootstrap.sh`，無參數時使用 cloud 模式。上方本機開發指令使用 core 模式，會安裝 Go、Web 依賴及 Mermaid CLI。需要 Graphify／Repomix 與 MCP 時使用
+`bash scripts/bootstrap.sh all`。Firestore Toolbox 需要先提供 Google ADC，GKE MCP 預設停用。
 工具安裝、
 MCP 握手與聊天主機實際可用性須分別驗收，不因快取存在而視為全新環境已驗證。
 工具與非機密環境以 `mise.toml` 為準；日常命令使用 `scripts/tooling/tool-exec.sh`。

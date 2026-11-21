@@ -67,8 +67,7 @@ specialist. A protocol client's initial initialize/tools-list handshake is disti
 from unnecessary repeated discovery during a healthy connection.
 
 Prefer a host-exposed tool that matches the intended repository and revision.
-If absent, use the service guide's direct client or pinned CLI fallback and report
-the distinction. A host plugin's graph index can differ from the local repository
+If absent, follow the [root exposure procedure](../../../../AGENTS.md). Check configuration and startup dependencies, use supported host rediscovery, and verify a native read-only call. If still absent, report the host limitation and continue independent work. A host plugin's graph index can differ from the local repository
 graph. Loading `.codex/config.toml` cannot add tools to an already-running chat
 host; inspect the host rather than repeatedly editing configuration or restarting
 servers to search for nonexistent exposure.
@@ -121,3 +120,9 @@ and Context7 `/openai/codex` stdio environment configuration.
 [開發與維運指引圖索引](../../../diagrams.md#開發與維運指引) · [未來設計圖](../../../diagrams.md#未來設計)。
 
 [上層導覽](../README.md)
+
+## Project loading check
+
+Open the actual Git checkout in Codex and review the host's project trust decision. From that checkout run `python3 scripts/mcp/check-host-config.py`. This compares every configured server, including disabled entries, with the effective CLI inventory. Keep project endpoints in .codex/config.toml. Installing tools does not require registering copies in the user configuration.
+
+If CLI configuration matches, check tool discovery in the target chat and verify the required native tool with a read-only operation. A managed host may expose a separate catalog. Report that boundary when host reload or discovery is unavailable.

@@ -10,28 +10,32 @@
 
 ## 閱讀與修改入口
 
-先查閱[tooling](tooling)、[api](api)、[analysis](analysis)、[release](release)、[本目錄工作指引](AGENTS.md)。
+從儲存庫根目錄執行。每支 Shell 腳本負責一項操作，多步流程由 bootstrap 或 mise 任務組合。工具版本與任務定義見 [mise.toml](../mise.toml)。
 
-## 相關規格
-
-[local reference usage and refresh](../docs/development/tooling/shadcn-reference/README.md) · [MCP 診斷期限與清理](../docs/development/tooling/mcp/README.md)
-
-
-Run commands from the repository root. Scripts resolve repository files from
-their own location; `tool-exec.sh` also switches to the repository root.
-
-| Directory | Responsibility |
-| --- | --- |
-| `tooling/` | Bootstrap, environment, configuration checks, editor wrappers, application tasks, profiling, frontend assets |
-| `analysis/` | Graphify documentation graph and Graphify/Repomix scope audit |
-| `api/` | OpenAPI generation, route validation and generated-code checks |
-| `release/` | Release smoke checks and Cloud Run metadata inspection |
+| 位置 | 職責 | mise 任務或執行入口 |
+| --- | --- | --- |
+| [bootstrap.sh](bootstrap.sh) | 初始化指定環境 | core 使用 mise run bootstrap；直接執行預設 cloud，也可傳入 core、cloud、mcp、all |
+| [setup/](setup/README.md) | 初始化工具環境、準備 Go 依賴 | deps |
+| [dev/](dev/README.md) | 載入本機環境、啟動服務 | dev |
+| [generate/](generate/README.md) | 生成 API 程式碼、前端資源與文件圖 | pnpm api:generate、graphify-docs |
+| [check/](check/README.md) | 設定與分析範圍檢查 | check-config、analysis-audit |
+| [contract/](contract/README.md) | API 能力與路由契約 | pnpm api:check |
+| [test/](test/README.md) | 路由、MCP 與容器驗收 | pnpm api:check、unittest、container-build |
+| [perf/](perf/README.md) | Go 效能剖析 | profile |
+| [security/](security/README.md) | 供應鏈安全檢查 | vuln 目前由 mise 直接執行 |
+| [build/](build/README.md) | 建置容器映像 | container-build |
+| [release/](release/README.md) | 發布驗收 | release-smoke.py |
+| [deploy/](deploy/README.md) | Google Cloud 部署與流量管理 | 現行設定在儲存庫根目錄 deploy/ |
+| [ops/](ops/README.md) | 查閱 Cloud Run 狀態 | cloud-run-snapshot.py |
+| [db/](db/README.md) | 維護 Firestore 索引 | ensure-attendance-indexes.py |
+| [tooling/](tooling/README.md) | 開發工具與環境診斷 | doctor、tool-exec.sh |
+| [mcp/](mcp/README.md) | 專案維護的 MCP 設定核對、連線與診斷腳本 | check-mcp-config、doctor-mcp |
 
 ```bash
-bash scripts/tooling/bootstrap.sh core
+bash scripts/bootstrap.sh core
 bash scripts/tooling/tool-exec.sh mise run doctor
-python3 scripts/tooling/check-config.py
-bash scripts/tooling/tool-exec.sh python3 -m unittest discover -s scripts/tooling -p 'test_*.py'
+python3 scripts/check/check-config.py
+bash scripts/tooling/tool-exec.sh python3 -m unittest discover -s scripts/test -p 'test_*.py'
 bash scripts/tooling/tool-exec.sh pnpm api:check
 bash scripts/tooling/tool-exec.sh mise run analysis-audit
 ```
@@ -44,7 +48,7 @@ through root `package.json`. Release scripts do not grant deployment permission.
 Elements documentation snapshot; it never installs application components.
 See [local reference usage and refresh](../docs/development/tooling/shadcn-reference/README.md).
 
-External bootstrap and MCP launchers use the paths under `scripts/tooling/`. Rich Menu images are stored under `assets/line/richmenu/`.
+Rich Menu images are stored under `assets/line/richmenu/`.
 
 ## 相關文件
 

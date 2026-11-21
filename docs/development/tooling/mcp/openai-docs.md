@@ -14,29 +14,7 @@ Tool versions are owned by `mise.toml`; never copy token values into documentati
 
 ## Operation
 
-Use the host’s `search_openai_docs` then `fetch_openai_doc`. From the repository root,
-the following task searches the official docs and registers the CLI server if missing:
-
-```bash
-bash scripts/tooling/tool-exec.sh mise run docs-openai
-```
-
-To fetch a search result by URL:
-
-```bash
-bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server openaiDeveloperDocs --call fetch_openai_doc --arguments '{"url":"https://developers.openai.com/codex/mcp"}'
-```
-
-## Verification and failures
-
-```bash
-bash scripts/tooling/tool-exec.sh mise run doctor-openai
-```
-
-This checks the endpoint handshake and tool allowlist without changing CLI registration.
-If the CLI lacks the server, run the `docs-openai` task for OpenAI alone or `ensure-remote-mcp` for OpenAI, Context7 and GitHub. Reopen the chat to
-refresh its tool inventory if needed. See [troubleshooting](../../../guides/release/troubleshooting.md)
-for transport and host-loading failures.
+Use the host’s native search_openai_docs and fetch_openai_doc tools. If missing, follow the [project loading check](README.md#project-loading-check).
 
 ## Codex configuration policy
 

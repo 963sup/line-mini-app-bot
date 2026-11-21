@@ -1,6 +1,6 @@
 # github
 
-Primary roles: Orchestrator, Reviewer, Integrator.
+Primary roles: GitHub, Orchestrator, Reviewer, Integrator.
 
 ## When to use
 
@@ -36,7 +36,7 @@ by its exposed schema, not by the REST request body.
 ## Verification and failures
 
 ```bash
-bash scripts/tooling/tool-exec.sh python3 scripts/tooling/mcp-doctor.py --server github
+bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server github
 ```
 
 This checks initialize, tools/list and configured allowlists. Verify a representative

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
-source scripts/tooling/dev-env.sh
+source scripts/dev/dev-env.sh
 mise exec -- go version
 mise exec -- sh -c '
   for tool do
