@@ -2,20 +2,7 @@
 
 ## Codex 環境初始化
 
-從儲存庫根目錄開啟 Codex。在此 Codex Cloud 環境中，將 Install script 設為下列命令。它會安裝鎖定的 Go／Node／pnpm／API 產生器、依鎖檔安裝依賴，並下載與驗證 Go modules；快取恢復時重用已安裝版本。
-
-```bash
-scripts/bootstrap.sh
-```
-
-發布環境會保存已準備的檔案與快取，程序不會保留。Start skill 指引從 checkout 根目錄使用 tool-exec.sh；若工具設定或依賴鎖檔變更，明確重跑上方命令。此介面沒有獨立 Maintenance script 欄位。
-
-完整 Go 分析工具使用 `mise run install-core`；API 產生器使用 `mise run install-web`；Mermaid 使用 `mise run install-mermaid`，均透過 `bash scripts/tooling/tool-exec.sh` 執行。Cloud setup 不執行測試或註冊使用者層 MCP。
-
-就地開發可使用 `bash scripts/bootstrap.sh core`。從全新 Cloud 環境驗收時，確認 setup 成功，再從 checkout 根目錄執行 `bash scripts/tooling/tool-exec.sh mise run check` 與 `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check`。本機 MCP 以 checkout 根目錄為工作目錄，依任務安裝所需套件後，在新對話確認 MCP 已載入。詳見[本機與 Cloud 初始化](../docs/guides/local-development/setup.md)。
-
-需要 Google Cloud CLI、Firebase CLI 或本機 gcloud MCP 套件時，再執行 `bash scripts/tooling/tool-exec.sh mise run install-cloud`。初始化後，用 `bash scripts/tooling/tool-exec.sh mise ls --installed` 查看實際安裝版本。Codex 每次開啟專案時可依[根目錄指引](../AGENTS.md#cli-discovery)找到工具入口。
-
+從儲存庫根目錄開啟 Codex。依[環境手冊](../docs/development/environment/README.md)選擇就地開發或 Cloud，Install script、Start skill 與快照更新見 [Codex Cloud 環境](../docs/development/environment/codex-cloud.md)。
 
 ## 用途與範圍
 
@@ -31,7 +18,7 @@ scripts/bootstrap.sh
 
 ## 相關規格
 
-[操作模型](../docs/architecture/contracts/business-operations.md) · [符合性流程](../docs/development/workflow.md#business-operation-compliance)
+[操作模型](../docs/architecture/contracts/business-operations.md) · [符合性流程](../docs/development/workflow/implementation.md#business-operation-compliance)
 
 
 ## 目錄導覽與維護
@@ -50,13 +37,13 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 
 ## Business Operation
 
-開始相關任務前，必須閱讀 [操作模型](../docs/architecture/contracts/business-operations.md) 與 [符合性流程](../docs/development/workflow.md#business-operation-compliance)。
+開始相關任務前，必須閱讀 [操作模型](../docs/architecture/contracts/business-operations.md) 與 [符合性流程](../docs/development/workflow/implementation.md#business-operation-compliance)。
 
 現有角色依 Business Operation 契約分工；角色開始相關任務時須讀取模型及符合性流程，文件路徑不是自動 include。
 
 ## 角色配置與派工
 
-角色檔位於 `agents/`，由 `config.toml` 註冊；完整職責、派工順序、深度與單一寫入者規則見[代理工作流程](../docs/development/workflow.md#delegation-depth-and-role-selection)。`graphify`、`repomix` 提供探索證據，`context7` 查證適用版本文件，`golang`、`typescript`、`nextjs`、`shadcn` 接受明確範圍的實作指派，`documentation` 維護 Markdown。工具操作依[MCP 指南](../docs/development/tooling/mcp/README.md)，不在角色檔重複連線設定。
+角色檔位於 `agents/`，由 `config.toml` 註冊；完整職責、派工順序、深度與單一寫入者規則見[代理工作流程](../docs/development/workflow/task-start.md#delegation-depth-and-role-selection)。`graphify`、`repomix` 提供探索證據，`context7` 查證適用版本文件，`golang`、`typescript`、`nextjs`、`shadcn` 接受明確範圍的實作指派，`documentation` 維護 Markdown。工具操作依[MCP 指南](../docs/development/tooling/mcp/README.md)，不在角色檔重複連線設定。
 
 支援自訂代理的 Codex 可選用已註冊角色；其他主機依工作流程採用明示的 fallback。配置存在不代表目前聊天主機已載入角色或 MCP。角色沿用父代理權限，不增加推送、發布或部署授權。
 
@@ -66,7 +53,7 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 
 ### CLI 安裝與發布信任
 
-Mermaid v13 的 `mermaid` 套件內建 `mermaid render`，與舊版 `@mermaid-js/mermaid-cli` 的 `mmdc` 分開。版本與安裝任務以 [mise.toml](../mise.toml) 為準。`bootstrap.sh core` 安裝 Mermaid；`mcp`、`all` 另外安裝 shadcn 與 Next DevTools；`cloud` 只安裝應用程式工具，且 mise 不自動補裝缺少的 CLI。單項安裝可執行 `mise run install-mermaid`、`install-shadcn`、`install-next-devtools`，均透過 `bash scripts/tooling/tool-exec.sh`。
+Mermaid v13 的 `mermaid` 套件內建 `mermaid render`，與舊版 `@mermaid-js/mermaid-cli` 的 `mmdc` 分開。版本與安裝任務以 [mise.toml](../mise.toml) 為準。`bootstrap.sh core` 安裝 Mermaid；`mcp`、`all` 另外安裝 shadcn 與 Next DevTools；`cloud` 只安裝應用程式工具，日常命令由 wrapper 按需準備已宣告的工具。單項安裝可執行 `mise run install-mermaid`、`install-shadcn`、`install-next-devtools`，均透過 `bash scripts/tooling/tool-exec.sh`。
 
 2026-11-20 核對 npm `mermaid@13.0.0-alpha.3` 的 tarball SHA-512 與 registry integrity 一致，套件版本、CLI 入口及 scripts 符合官方 [release revision](https://github.com/mermaid-js/mermaid-v13/tree/beaa8010fc218d7db123ec4084ca987964acf9c2/packages/mermaid)。該 alpha 發布者為現有 maintainer `ashishjain0512`，有 registry 簽章但未提供 provenance；mise/aube 因較早版本有較強信任證明而拒絕。依 [mise npm 指引](https://mise.jdx.dev/dev-tools/backends/npm.html)，僅對這個確切版本設定 `trust_policy_excludes`，不關閉其他套件的信任檢查。未來換版須重新查證。
 
@@ -95,11 +82,4 @@ Mermaid v13 的 `mermaid` 套件內建 `mermaid render`，與舊版 `@mermaid-js
 
 ### Codex Cloud 新環境驗收
 
-從目前 checkout 根目錄執行下列命令。第一個命令會依專案設定啟動 Repomix 並讀回本 checkout 的檔案，可在聊天未提供同名工具時使用。第二個會檢查已啟用的 MCP。
-
-```sh
-python3 scripts/mcp/mcp-doctor.py --server repomix --call file_system_read_file --arguments '{"path":"README.md"}'
-bash scripts/tooling/tool-exec.sh mise run doctor-mcp
-```
-
-使用 Cloud Run 或 Firestore Toolbox 的 Cloud 環境需由主機提供 ADC。若使用憑證檔，讓 GOOGLE_APPLICATION_CREDENTIALS 指向任務執行時可讀的檔案；若主機提供預設身分，移除指向不存在檔案的舊設定。doctor 會確認 ADC 能取得 token，資源 IAM 仍需以目標專案的唯讀操作驗收。新聊天的原生工具曝光須在該聊天內核對。
+從新聊天依序確認應用檢查、專案設定載入、transport、原生 MCP 操作及任務需要的身分。執行方式與證據要求見[新環境驗收](../docs/development/environment/codex-cloud.md#新環境驗收)。
