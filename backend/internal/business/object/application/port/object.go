@@ -16,7 +16,7 @@ type Repositories interface {
 }
 
 type Store interface {
-	List(context.Context, repositoryDomainEntity.Repository, string, string) (objectApplicationDto.Page, error)
+	List(context.Context, repositoryDomainEntity.Repository, string, string, ...string) (objectApplicationDto.Page, error)
 	Get(context.Context, repositoryDomainEntity.Repository, string) (objectDomainEntity.Object, error)
 	Create(context.Context, repositoryDomainEntity.Repository, string, string, objectDomainEntity.Content) (objectDomainEntity.Object, error)
 	Update(context.Context, repositoryDomainEntity.Repository, string, string, objectDomainEntity.Update) (objectDomainEntity.Object, error)

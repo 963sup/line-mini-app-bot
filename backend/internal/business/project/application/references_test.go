@@ -37,11 +37,11 @@ func (s *referenceStore) ReferencePresent(context.Context, projectApplicationPor
 func TestReferenceIdentityAndIndependentAuthorization(t *testing.T) {
 	id := strings.Repeat("a", 32)
 	for _, kind := range []string{"object", "issue", "discussion"} {
-		if !projectDomainEntity.ValidReference(projectDomainEntity.Reference{SourceType: kind, SourceID: id}) || projectDomainEntity.ValidReference(projectDomainEntity.Reference{SourceType: kind, SourceID: id, ParentObjectID: id}) {
+		if !projectDomainEntity.ValidReference(projectDomainEntity.Reference{SourceType: kind, SourceID: id}) {
 			t.Fatal(kind)
 		}
 	}
-	if projectDomainEntity.ValidReference(projectDomainEntity.Reference{SourceType: "subobject", SourceID: id}) || !projectDomainEntity.ValidReference(projectDomainEntity.Reference{SourceType: "subobject", SourceID: id, ParentObjectID: id}) {
+	if projectDomainEntity.ValidReference(projectDomainEntity.Reference{SourceType: "subobject", SourceID: id}) {
 		t.Fatal("child binding")
 	}
 	gid := "C" + id

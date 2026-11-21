@@ -7,7 +7,7 @@ import (
 )
 
 func TestCheckReferences(t *testing.T) {
-	work := Work{Name: "task", Percent: 45, Reference: &Reference{"repository", "r"}, ObjectID: "o", SubobjectID: "s", SpaceIDs: []string{"p"}, ObjectName: "object", SpaceNames: []string{"space"}}
+	work := Work{Name: "task", Percent: 45, Reference: &Reference{"repository", "r"}, ObjectID: "o", SpaceIDs: []string{"p"}, ObjectName: "object", SpaceNames: []string{"space"}}
 	check := func(Reference) error { return ErrNotFound }
 	d := Draft{Today: []Work{work}, Tomorrow: []Work{work}}
 	if err := d.CheckReferences(false, check); err != ErrNotFound || !reflect.DeepEqual(d.Today[0], work) {

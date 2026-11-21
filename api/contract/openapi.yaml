@@ -146,12 +146,6 @@
     "/api/v1/repositories/{repositoryId}/objects/{id}": {
       "$ref": "./object/objects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects~1{id}"
     },
-    "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects": {
-      "$ref": "./object/subobjects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects~1{objectId}~1subobjects"
-    },
-    "/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects/{id}": {
-      "$ref": "./object/subobjects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects~1{objectId}~1subobjects~1{id}"
-    },
     "/api/v1/owners/{ownerId}/projects/{id}/references": {
       "$ref": "./project/references.yaml#/paths/~1api~1v1~1owners~1{ownerId}~1projects~1{id}~1references"
     },
@@ -367,18 +361,6 @@
       },
       "ObjectPage": {
         "$ref": "./object/objects.yaml#/components/schemas/ObjectPage"
-      },
-      "Subobject": {
-        "$ref": "./object/subobjects.yaml#/components/schemas/Subobject"
-      },
-      "SubobjectCreation": {
-        "$ref": "./object/subobjects.yaml#/components/schemas/SubobjectCreation"
-      },
-      "SubobjectUpdate": {
-        "$ref": "./object/subobjects.yaml#/components/schemas/SubobjectUpdate"
-      },
-      "SubobjectPage": {
-        "$ref": "./object/subobjects.yaml#/components/schemas/SubobjectPage"
       },
       "ProjectReference": {
         "$ref": "./project/references.yaml#/components/schemas/ProjectReference"

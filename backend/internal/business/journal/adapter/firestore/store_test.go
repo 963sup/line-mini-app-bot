@@ -132,18 +132,18 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	draft.Today[0].Reference = &journalentity.Reference{Kind: "repository", ID: rid}
 	objectID, childID, spaceID := strings.Repeat("c", 32), strings.Repeat("d", 32), strings.Repeat("e", 32)
 	object := repo.Collection("objects").Doc(objectID)
-	child := object.Collection("subobjects").Doc(childID)
+	child := repo.Collection("objects").Doc(childID)
 	space := repo.Collection("spaces").Doc(spaceID)
 	for ref, data := range map[*db.DocumentRef]map[string]any{
 		object: {"id": objectID, "repositoryId": rid, "name": "父物件"},
-		child:  {"id": childID, "repositoryId": rid, "parentObjectId": objectID, "name": "子物件"},
+		child:  {"id": childID, "repositoryId": rid, "parentId": objectID, "name": "子物件"},
 		space:  {"id": spaceID, "repositoryId": rid, "name": "作業空間"},
 	} {
 		if _, e := ref.Set(ctx, data); e != nil {
 			t.Fatal(e)
 		}
 	}
-	draft.Today[0].ObjectID, draft.Today[0].SubobjectID, draft.Today[0].SpaceIDs = objectID, childID, []string{spaceID}
+	draft.Today[0].ObjectID, draft.Today[0].SpaceIDs = childID, []string{spaceID}
 	draft.Tomorrow = []journalentity.Work{{Name: "明日工作", Percent: 60, Reference: &journalentity.Reference{Kind: "repository", ID: rid}, ObjectID: objectID, SpaceIDs: []string{spaceID}}}
 	linked, e := store.Create(ctx, "writer", "linked", draft)
 	if e != nil {
@@ -155,7 +155,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 			t.Fatalf("missing work rows: %+v", entry)
 		}
 		row := entry.Today[0]
-		if row.ObjectID != objectID || row.SubobjectID != childID || row.ObjectName != "父物件 › 子物件" || len(row.SpaceIDs) != 1 || row.SpaceIDs[0] != spaceID || len(row.SpaceNames) != 1 || row.SpaceNames[0] != "作業空間" {
+		if row.ObjectID != childID || row.ObjectName != "子物件" || len(row.SpaceIDs) != 1 || row.SpaceIDs[0] != spaceID || len(row.SpaceNames) != 1 || row.SpaceNames[0] != "作業空間" {
 			t.Fatalf("wrong today snapshot: %+v", row)
 		}
 		if row := entry.Tomorrow[0]; row.ObjectName != "父物件" || len(row.SpaceNames) != 1 || row.SpaceNames[0] != "作業空間" {
@@ -181,10 +181,6 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 		t.Fatal(e)
 	}
 	assertSnapshot(persisted)
-	wrongParent := object.Collection("subobjects").Doc(strings.Repeat("f", 32))
-	if _, e := wrongParent.Set(ctx, map[string]any{"id": wrongParent.ID, "repositoryId": rid, "parentObjectId": strings.Repeat("1", 32), "name": "其他父物件的子物件"}); e != nil {
-		t.Fatal(e)
-	}
 	otherRepo := repo.Parent.Doc(strings.Repeat("2", 32))
 	if _, e := otherRepo.Set(ctx, map[string]any{"id": otherRepo.ID, "ownerId": "C" + strings.Repeat("3", 32), "status": "ACTIVE", "version": int64(1)}); e != nil {
 		t.Fatal(e)
@@ -203,7 +199,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 		want error
 	}{
 		{"wrong-group", journalentity.Work{Reference: &journalentity.Reference{Kind: "repository", ID: otherRepo.ID}, ObjectID: objectID}, journalentity.ErrNotFound},
-		{"wrong-parent", journalentity.Work{Reference: &journalentity.Reference{Kind: "repository", ID: rid}, ObjectID: objectID, SubobjectID: wrongParent.ID}, journalentity.ErrNotFound},
+		{"missing-object", journalentity.Work{Reference: &journalentity.Reference{Kind: "repository", ID: rid}, ObjectID: strings.Repeat("f", 32)}, journalentity.ErrNotFound},
 		{"duplicate-spaces", journalentity.Work{Reference: &journalentity.Reference{Kind: "repository", ID: rid}, SpaceIDs: []string{spaceID, spaceID}}, journalentity.ErrInput},
 		{"missing-space", journalentity.Work{Reference: &journalentity.Reference{Kind: "repository", ID: rid}, ObjectID: objectID, SpaceIDs: []string{strings.Repeat("4", 32)}}, journalentity.ErrNotFound},
 	} {
@@ -230,7 +226,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 		t.Fatalf("redaction: %v", e)
 	}
 	for _, row := range append(redacted.Today, redacted.Tomorrow...) {
-		if row.Reference != nil || row.ObjectID != "" || row.SubobjectID != "" || len(row.SpaceIDs) != 0 || row.ObjectName != "" || len(row.SpaceNames) != 0 {
+		if row.Reference != nil || row.ObjectID != "" || len(row.SpaceIDs) != 0 || row.ObjectName != "" || len(row.SpaceNames) != 0 {
 			t.Fatalf("unreadable source leaked selection or names: %+v", row)
 		}
 	}

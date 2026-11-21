@@ -24,9 +24,6 @@ func referenceView(ref projectDomainEntity.Reference) generated.ProjectReference
 	}
 	status := generated.ProjectItemStatus(ref.ItemStatus)
 	out.ItemStatus = &status
-	if ref.ParentObjectID != "" {
-		out.ParentObjectId = &ref.ParentObjectID
-	}
 	if !ref.SourceUnavailable {
 		if ref.Quantity != "" {
 			out.Quantity = &ref.Quantity
@@ -69,9 +66,6 @@ func (s *projectServer) AddProjectReference(w http.ResponseWriter, r *http.Reque
 	if input.SourceRepositoryId != nil {
 		ref.SourceRepositoryID = *input.SourceRepositoryId
 	}
-	if input.ParentObjectId != nil {
-		ref.ParentObjectID = *input.ParentObjectId
-	}
 	value, e := s.service.AddReference(r.Context(), identity.UserID(r.Context()), sid, pid, ref, input.ExpectedVersion)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(value, identity.UserID(r.Context())))
@@ -98,9 +92,6 @@ func (s *projectServer) GetProjectReferenceState(w http.ResponseWriter, r *http.
 	}
 	if p.SourceId != nil {
 		ref.SourceID = *p.SourceId
-	}
-	if p.ParentObjectId != nil {
-		ref.ParentObjectID = *p.ParentObjectId
 	}
 	present, matches, err := s.service.ReferenceState(r.Context(), identity.UserID(r.Context()), ownerID, pid, ref, p.DesiredPresent)
 	if !writeError(w, err) {

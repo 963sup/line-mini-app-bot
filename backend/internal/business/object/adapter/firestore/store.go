@@ -119,13 +119,17 @@ func (s *Store) Get(ctx context.Context, r repositoryDomainEntity.Repository, id
 
 type cursor struct{ Scope, ID string }
 
-func (s *Store) List(ctx context.Context, r repositoryDomainEntity.Repository, actor, token string) (result objectApplicationDto.Page, err error) {
+func (s *Store) List(ctx context.Context, r repositoryDomainEntity.Repository, actor, token string, parent ...string) (result objectApplicationDto.Page, err error) {
 	defer func() { err = translate(err) }()
 	result.Items = []objectDomainEntity.Object{}
 	if !s.ready() {
 		return result, objectDomainEntity.ErrUnavailable
 	}
-	scope := firestorekey.JSONDigest([]string{s.ChannelID, r.ID, actor})
+	scopeParts := []string{s.ChannelID, r.ID, actor}
+	if len(parent) > 0 && parent[0] != "" {
+		scopeParts = append(scopeParts, parent[0])
+	}
+	scope := firestorekey.JSONDigest(scopeParts)
 	c := cursor{}
 	if token != "" {
 		b, e := base64.RawURLEncoding.DecodeString(token)
@@ -134,6 +138,9 @@ func (s *Store) List(ctx context.Context, r repositoryDomainEntity.Repository, a
 		}
 	}
 	q := s.repositoryRef(r.ID).Collection("objects").OrderBy(db.DocumentID, db.Asc)
+	if len(parent) > 0 && parent[0] != "" {
+		q = q.Where("parentId", "==", parent[0])
+	}
 	if c.ID != "" {
 		q = q.StartAfter(c.ID)
 	}

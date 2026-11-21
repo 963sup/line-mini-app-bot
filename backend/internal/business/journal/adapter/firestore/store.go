@@ -96,10 +96,10 @@ func (s *Store) checkRefs(ctx context.Context, actor string, d journalentity.Dra
 
 // snapshotWork checks repository-scoped sources and captures names in the publish transaction.
 func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journalentity.Work) error {
-	if w.ObjectID == "" && w.SubobjectID == "" && len(w.SpaceIDs) == 0 {
+	if w.ObjectID == "" && len(w.SpaceIDs) == 0 {
 		return nil
 	}
-	if w.Reference == nil || w.Reference.Kind != "repository" || (w.SubobjectID != "" && w.ObjectID == "") || len(w.SpaceIDs) > 20 {
+	if w.Reference == nil || w.Reference.Kind != "repository" || len(w.SpaceIDs) > 20 {
 		return journalentity.ErrInput
 	}
 	repo := s.root().Collection("repositories").Doc(w.Reference.ID)
@@ -110,13 +110,13 @@ func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journalentity.
 	if snap.Data()["ownerId"] != group || snap.Data()["status"] != "ACTIVE" {
 		return journalentity.ErrNotFound
 	}
-	readName := func(ref *db.DocumentRef, parent string) (string, error) {
+	readName := func(ref *db.DocumentRef) (string, error) {
 		snap, err := tx.Get(ref)
 		if err != nil {
 			return "", missing(err)
 		}
 		data := snap.Data()
-		if data["id"] != ref.ID || data["repositoryId"] != w.Reference.ID || (parent != "" && data["parentObjectId"] != parent) {
+		if data["id"] != ref.ID || data["repositoryId"] != w.Reference.ID {
 			return "", journalentity.ErrNotFound
 		}
 		name, ok := data["name"].(string)
@@ -130,19 +130,9 @@ func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journalentity.
 			return journalentity.ErrInput
 		}
 		object := repo.Collection("objects").Doc(w.ObjectID)
-		w.ObjectName, err = readName(object, "")
+		w.ObjectName, err = readName(object)
 		if err != nil {
 			return err
-		}
-		if w.SubobjectID != "" {
-			if !repositoryDomainEntity.ValidID(w.SubobjectID) {
-				return journalentity.ErrInput
-			}
-			name, err := readName(object.Collection("subobjects").Doc(w.SubobjectID), w.ObjectID)
-			if err != nil {
-				return err
-			}
-			w.ObjectName += " › " + name
 		}
 	}
 	w.SpaceNames = nil
@@ -152,7 +142,7 @@ func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journalentity.
 			return journalentity.ErrInput
 		}
 		seen[id] = true
-		name, err := readName(repo.Collection("spaces").Doc(id), "")
+		name, err := readName(repo.Collection("spaces").Doc(id))
 		if err != nil {
 			return err
 		}

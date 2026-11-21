@@ -39,7 +39,6 @@ import (
 	statisticshttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/statistics"
 	wikihttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/wiki"
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/line"
-	subobjecthttp "github.com/963sup/line-mini-app-bot/internal/business/subobject/adapter/http"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http"
 	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
@@ -177,7 +176,6 @@ func Run() (resultErr error) {
 	issuehttp.Register(mux, newIssues(repositories, repositoryStore), auth)
 	businessgrouphttp.Register(mux, newRepositorySpaces(repositories, repositoryStore), auth)
 	objecthttp.Register(mux, newObjects(repositories, repositoryStore), auth)
-	subobjecthttp.Register(mux, newSubobjects(repositories, repositoryStore), auth)
 	discussionhttp.Register(mux, newDiscussions(repositories, repositoryStore), auth)
 	var repositoryObserver *repositoryline.Observer
 	if repositories != nil {

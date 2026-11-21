@@ -127,10 +127,10 @@ func names(values []string) []string { return append([]string{}, values...) }
 func view(e journalentity.Entry) generated.Journal {
 	j := generated.Journal{Id: e.ID, CreatorId: e.CreatorID, CreatedAt: e.CreatedAt, GroupId: e.GroupID, WorkDate: types.Date{Time: e.WorkDate}, Personnel: generated.JournalPersonnel{Management: names(e.Personnel.Management), Control: names(e.Personnel.Control), Workers: names(e.Personnel.Workers)}, TodayItems: []generated.JournalTodayItem{}, TomorrowItems: []generated.JournalTomorrowItem{}}
 	for _, i := range e.Today {
-		j.TodayItems = append(j.TodayItems, generated.JournalTodayItem{Name: i.Name, CompletionPercent: i.Percent, Reference: refView(i.Reference), ObjectId: i.ObjectID, SubobjectId: i.SubobjectID, SpaceIds: i.SpaceIDs, ObjectName: i.ObjectName, SpaceNames: i.SpaceNames})
+		j.TodayItems = append(j.TodayItems, generated.JournalTodayItem{Name: i.Name, CompletionPercent: i.Percent, Reference: refView(i.Reference), ObjectId: i.ObjectID, SpaceIds: i.SpaceIDs, ObjectName: i.ObjectName, SpaceNames: i.SpaceNames})
 	}
 	for _, i := range e.Tomorrow {
-		j.TomorrowItems = append(j.TomorrowItems, generated.JournalTomorrowItem{Name: i.Name, ExpectedCompletionPercent: i.Percent, Reference: refView(i.Reference), ObjectId: i.ObjectID, SubobjectId: i.SubobjectID, SpaceIds: i.SpaceIDs, ObjectName: i.ObjectName, SpaceNames: i.SpaceNames})
+		j.TomorrowItems = append(j.TomorrowItems, generated.JournalTomorrowItem{Name: i.Name, ExpectedCompletionPercent: i.Percent, Reference: refView(i.Reference), ObjectId: i.ObjectID, SpaceIds: i.SpaceIDs, ObjectName: i.ObjectName, SpaceNames: i.SpaceNames})
 	}
 	return j
 }
@@ -148,10 +148,10 @@ func (s *journalServer) CreateJournal(w http.ResponseWriter, r *http.Request, p 
 	}
 	d := journalentity.Draft{GroupID: b.GroupId, WorkDate: b.WorkDate.Time, Personnel: journalentity.Personnel{Control: b.Personnel.Control, Management: b.Personnel.Management, Workers: b.Personnel.Workers}}
 	for _, i := range b.TodayItems {
-		d.Today = append(d.Today, journalentity.Work{Name: i.Name, Percent: i.CompletionPercent, Reference: source(i.Reference), ObjectID: i.ObjectId, SubobjectID: i.SubobjectId, SpaceIDs: i.SpaceIds})
+		d.Today = append(d.Today, journalentity.Work{Name: i.Name, Percent: i.CompletionPercent, Reference: source(i.Reference), ObjectID: i.ObjectId, SpaceIDs: i.SpaceIds})
 	}
 	for _, i := range b.TomorrowItems {
-		d.Tomorrow = append(d.Tomorrow, journalentity.Work{Name: i.Name, Percent: i.ExpectedCompletionPercent, Reference: source(i.Reference), ObjectID: i.ObjectId, SubobjectID: i.SubobjectId, SpaceIDs: i.SpaceIds})
+		d.Tomorrow = append(d.Tomorrow, journalentity.Work{Name: i.Name, Percent: i.ExpectedCompletionPercent, Reference: source(i.Reference), ObjectID: i.ObjectId, SpaceIDs: i.SpaceIds})
 	}
 	e, err := s.service.Create(r.Context(), identity.UserID(r.Context()), p.IdempotencyKey, d)
 	if !replyError(w, err) {

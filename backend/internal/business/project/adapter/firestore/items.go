@@ -27,7 +27,6 @@ type itemDocument struct {
 	ProjectID          string    `firestore:"projectId"`
 	SourceType         string    `firestore:"sourceType,omitempty"`
 	SourceID           string    `firestore:"sourceId,omitempty"`
-	ParentObjectID     string    `firestore:"parentObjectId,omitempty"`
 	CreatedBy          string    `firestore:"createdBy"`
 	CreatedAt          time.Time `firestore:"createdAt"`
 }

@@ -6,7 +6,7 @@ import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 import { useRepositoryGuard } from "../repository/NavigationGuard";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { useDiscardChanges } from "@/shared/useDiscardChanges";
-import { View as Subobjects } from "../subobject/View";
+import { View as ObjectChildren } from "./Children";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/shared/ui/collapsible";
 import { useSpaces } from "../repository/useSpaces";
 import type { components } from "@repo/api-client";
@@ -272,7 +272,7 @@ function Content({ repositoryId }: Props) {
           </ItemActions>
           {mode === "detail" && activeId === item.id && <ItemFooter>{editor}</ItemFooter>}
         </Item>
-        <CollapsibleContent className="min-w-0 ps-6 pt-3 sm:ps-10">{expanded === item.id && <Subobjects repositoryId={repositoryId} objectId={item.id} canEdit={item.canEdit} parentEditing={!!mode} onEdit={() => { opener.current = null; clearEditor(); }} onBlocked={subBlock} canWrite={canSubWrite}/>}</CollapsibleContent>
+        <CollapsibleContent className="min-w-0 ps-6 pt-3 sm:ps-10">{expanded === item.id && <ObjectChildren repositoryId={repositoryId} objectId={item.id} canEdit={item.canEdit} parentEditing={!!mode} onEdit={() => { opener.current = null; clearEditor(); }} onBlocked={subBlock} canWrite={canSubWrite}/>}</CollapsibleContent>
       </Collapsible>)}</ItemGroup>
       {loaded && !items.length && <Empty><EmptyHeader><EmptyTitle>尚無物件</EmptyTitle><EmptyDescription>選擇「新增物件」建立第一筆物件。</EmptyDescription></EmptyHeader></Empty>}
       {cursor && <Button variant="outline" disabled={busy || listBusy || subBlocked || !!mode} onClick={() => load(cursor)}>載入更多物件</Button>}

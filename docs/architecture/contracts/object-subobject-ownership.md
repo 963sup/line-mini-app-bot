@@ -4,13 +4,8 @@
 
 ## 物件與子物件歸屬
 
-現行實作
+父物件與子項都是同一個儲存庫內的 `Object`。子項透過 `parentId` 指向父物件，兩者分別維護數量、單位、完成數與版本。
 
-[父子物件的歸屬、授權、防重與版本檢查（Mermaid 原始檔）](diagrams/object-operations.mermaid)
-
-```mermaid
-flowchart LR
-  h["物件與子物件歸屬"]
-  h --- n0["操作圖原始檔。子項只記工序；父子各自維護數量<br/>、單位、完成數與版本。"]
-  click n0 "diagrams/object-operations.mermaid"
-```
+- 使用 `GET /api/v1/repositories/{repositoryId}/objects?parentId={id}` 分頁列出直接子項。
+- 建立子項使用 `POST /api/v1/repositories/{repositoryId}/objects`，在請求本文帶入 `parentId`。編輯子項使用其自身的 Object ID 與版本。
+- 專案與工作日誌都引用子項自己的 Object ID。

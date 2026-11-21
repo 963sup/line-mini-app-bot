@@ -44,7 +44,7 @@ type store struct {
 	update objectDomainEntity.Update
 }
 
-func (s *store) List(context.Context, repositoryDomainEntity.Repository, string, string) (objectApplicationDto.Page, error) {
+func (s *store) List(context.Context, repositoryDomainEntity.Repository, string, string, ...string) (objectApplicationDto.Page, error) {
 	s.calls++
 	return objectApplicationDto.Page{Items: []objectDomainEntity.Object{}}, nil
 }

@@ -100,7 +100,7 @@ type stubStore struct {
 	scope string
 }
 
-func (s *stubStore) List(_ context.Context, r repositoryDomainEntity.Repository, _, _ string) (objectApplicationDto.Page, error) {
+func (s *stubStore) List(_ context.Context, r repositoryDomainEntity.Repository, _, _ string, _ ...string) (objectApplicationDto.Page, error) {
 	s.calls++
 	s.scope = r.ID
 	return objectApplicationDto.Page{}, nil

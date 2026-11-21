@@ -63,13 +63,13 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	}
 	oid, sid, iid, did := strings.Repeat("c", 32), strings.Repeat("d", 32), strings.Repeat("e", 32), strings.Repeat("f", 32)
 	object := repository.Collection("objects").Doc(oid)
-	sub := object.Collection("subobjects").Doc(sid)
+	sub := repository.Collection("objects").Doc(sid)
 	issue := repository.Collection("issues").Doc(iid)
 	discussion := repository.Collection("discussions").Doc(did)
 	data := []struct {
 		ref    *db.DocumentRef
 		fields map[string]any
-	}{{object, map[string]any{"schemaVersion": 1, "id": oid, "repositoryId": rid, "name": "Fiber", "type": "work", "quantity": "140", "unit": "M", "completedQuantity": "40", "status": "in_progress"}}, {sub, map[string]any{"schemaVersion": 1, "id": sid, "repositoryId": rid, "parentObjectId": oid, "name": "Splice", "type": "work", "quantity": "11", "unit": "SET", "completedQuantity": "0", "status": "not_started"}}, {issue, map[string]any{"schemaVersion": 1, "id": iid, "repositoryId": rid, "title": "Question", "state": "completed"}}, {discussion, map[string]any{"schemaVersion": 1, "id": did, "repositoryId": rid, "title": "Discussion"}}}
+	}{{object, map[string]any{"schemaVersion": 1, "id": oid, "repositoryId": rid, "name": "Fiber", "type": "work", "quantity": "140", "unit": "M", "completedQuantity": "40", "status": "in_progress"}}, {sub, map[string]any{"schemaVersion": 1, "id": sid, "repositoryId": rid, "parentId": oid, "name": "Splice", "type": "work", "quantity": "11", "unit": "SET", "completedQuantity": "0", "status": "not_started"}}, {issue, map[string]any{"schemaVersion": 1, "id": iid, "repositoryId": rid, "title": "Question", "state": "completed"}}, {discussion, map[string]any{"schemaVersion": 1, "id": did, "repositoryId": rid, "title": "Discussion"}}}
 	for _, source := range data {
 		if _, e = source.ref.Set(ctx, source.fields); e != nil {
 			t.Fatal(e)
@@ -91,7 +91,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 		t.Fatal(e)
 	}
 	oldIssueID := oldItems.Items[0].ID
-	refs := []projectDomainEntity.Reference{{SourceType: "issue", SourceID: iid}, {SourceType: "object", SourceID: oid}, {SourceType: "subobject", SourceID: sid, ParentObjectID: oid}, {SourceType: "discussion", SourceID: did}}
+	refs := []projectDomainEntity.Reference{{SourceType: "issue", SourceID: iid}, {SourceType: "object", SourceID: oid}, {SourceType: "object", SourceID: sid}, {SourceType: "discussion", SourceID: did}}
 	for _, ref := range refs {
 		priorVersion := project.Version
 		project, e = svc.AddReference(ctx, "owner", gid, project.ID, ref, project.Version)
@@ -112,7 +112,11 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	}
 	ids := map[string]string{}
 	for _, ref := range page.Items {
-		ids[ref.SourceType] = ref.ID
+		key := ref.SourceType
+		if ref.SourceID == sid {
+			key = "child"
+		}
+		ids[key] = ref.ID
 		if ref.SourceUnavailable || ref.SourceTitle == "" {
 			t.Fatal(ref)
 		}
@@ -154,7 +158,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 		t.Fatal(e)
 	}
 	for _, ref := range page.Items {
-		if ref.SourceType == "object" && (ref.SourceTitle != "Latest Fiber" || ref.CompletedQuantity != "60") {
+		if ref.SourceID == oid && (ref.SourceTitle != "Latest Fiber" || ref.CompletedQuantity != "60") {
 			t.Fatal("stale source", ref)
 		}
 	}
@@ -165,8 +169,8 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	if _, e = svc.AddReference(ctx, "member", gid, project.ID, refs[0], 1); !errors.Is(e, projectDomainEntity.ErrForbidden) {
 		t.Fatal("duplicate owner bypass", e)
 	}
-	if _, e = svc.AddReference(ctx, "owner", gid, project.ID, projectDomainEntity.Reference{SourceType: "subobject", SourceID: sid, ParentObjectID: strings.Repeat("1", 32)}, project.Version); e == nil {
-		t.Fatal("cross parent")
+	if _, e = svc.AddReference(ctx, "owner", gid, project.ID, projectDomainEntity.Reference{SourceType: "subobject", SourceID: sid}, project.Version); e == nil {
+		t.Fatal("obsolete source type was accepted")
 	}
 	if _, e = svc.AddReference(ctx, "owner", gid, project.ID, projectDomainEntity.Reference{SourceType: "object", SourceID: strings.Repeat("1", 32)}, project.Version); e == nil {
 		t.Fatal("foreign source")
@@ -351,18 +355,18 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 		t.Fatal(e)
 	}
 	note := "配線檢查完成"
-	sent, e := svc.Inspections(ctx, "member", gid, project.ID, ids["subobject"], &note)
+	sent, e := svc.Inspections(ctx, "member", gid, project.ID, ids["child"], &note)
 	if e != nil || len(sent) != 1 || sent[0].SourceVersion != 7 || sent[0].Status != "pending" {
 		t.Fatal(sent, e)
 	}
-	retried, e := svc.Inspections(ctx, "member", gid, project.ID, ids["subobject"], &note)
+	retried, e := svc.Inspections(ctx, "member", gid, project.ID, ids["child"], &note)
 	if e != nil || len(retried) != 1 || retried[0].ID != sent[0].ID {
 		t.Fatal(retried, e)
 	}
-	if _, e = svc.Inspections(ctx, "owner", gid, project.ID, ids["subobject"], &note); !errors.Is(e, projectDomainEntity.ErrInspectionPending) {
+	if _, e = svc.Inspections(ctx, "owner", gid, project.ID, ids["child"], &note); !errors.Is(e, projectDomainEntity.ErrInspectionPending) {
 		t.Fatal(e)
 	}
-	if _, e = svc.RemoveReference(ctx, "owner", gid, project.ID, ids["subobject"], project.Version); !errors.Is(e, projectDomainEntity.ErrInspectionHistory) {
+	if _, e = svc.RemoveReference(ctx, "owner", gid, project.ID, ids["child"], project.Version); !errors.Is(e, projectDomainEntity.ErrInspectionHistory) {
 		t.Fatal(e)
 	}
 	afterSource, e := sub.Get(ctx)
@@ -372,15 +376,15 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	if _, e = sub.Delete(ctx); e != nil {
 		t.Fatal(e)
 	}
-	history, e := svc.Inspections(ctx, "member", gid, project.ID, ids["subobject"], nil)
+	history, e := svc.Inspections(ctx, "member", gid, project.ID, ids["child"], nil)
 	if e != nil || len(history) != 1 || history[0].ID != sent[0].ID {
 		t.Fatal("deleted source hid authorized history", history, e)
 	}
-	if _, e = svc.Inspections(ctx, "member", gid, project.ID, ids["subobject"], &note); e == nil {
+	if _, e = svc.Inspections(ctx, "member", gid, project.ID, ids["child"], &note); e == nil {
 		t.Fatal("submitted on deleted source")
 	}
 	access.denied = true
-	if _, e = svc.Inspections(ctx, "member", gid, project.ID, ids["subobject"], nil); !errors.Is(e, projectDomainEntity.ErrNotFound) {
+	if _, e = svc.Inspections(ctx, "member", gid, project.ID, ids["child"], nil); !errors.Is(e, projectDomainEntity.ErrNotFound) {
 		t.Fatal("revoked inspection readable", e)
 	}
 	page, e = svc.ListReferences(ctx, "owner", gid, project.ID, "")

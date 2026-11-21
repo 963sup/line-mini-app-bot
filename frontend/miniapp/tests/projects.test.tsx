@@ -174,15 +174,14 @@ const reference = (overrides = {}) => ({id:refId,sourceType:"issue",sourceId,sou
 const objectSource = {id:parentId,name:"父物件",quantity:"10",unit:"SET",completedQuantity:"3",type:"work",status:"in_progress"};
 const sourceCatalog = async (request: Request) => {
  const path = new URL(request.url).pathname;
- if(path.endsWith('/objects'))return Response.json({items:[objectSource],nextCursor:""});
- if(path.endsWith('/subobjects'))return Response.json({items:[{...objectSource,id:sourceId,name:"子工序",quantity:"20",unit:"M2"}],nextCursor:""});
+ if(path.endsWith('/objects'))return Response.json({items:new URL(request.url).searchParams.has('parentId') ? [{...objectSource,id:sourceId,parentId,name:"子工序",quantity:"20",unit:"M2"}] : [objectSource],nextCursor:""});
  if(path.endsWith('/issues'))return Response.json({items:[{id:sourceId,title:"可選問題",number:12}],nextCursor:""});
  if(path.endsWith('/discussions'))return Response.json({items:[{id:sourceId,title:"可選討論"}],nextCursor:""});
  return normal(request);
 };
 
 test("Project reference list shows current four typed sources without mixed progress aggregation",async()=>{
- const refs=[reference({sourceType:"object",sourceTitle:"最新物件",quantity:"10",unit:"SET",completedQuantity:"3",type:"work",sourceState:"in_progress"}),reference({id:"2".repeat(32),sourceType:"subobject",parentObjectId:parentId,sourceTitle:"最新子工序",quantity:"20",unit:"M2",type:"non_work"}),reference({id:"3".repeat(32)}),reference({id:"4".repeat(32),sourceType:"discussion",sourceTitle:"最新討論",sourceState:""})];
+ const refs=[reference({sourceType:"object",sourceTitle:"最新物件",quantity:"10",unit:"SET",completedQuantity:"3",type:"work",sourceState:"in_progress"}),reference({id:"2".repeat(32),sourceType:"object",sourceTitle:"最新子工序",quantity:"20",unit:"M2",type:"non_work"}),reference({id:"3".repeat(32)}),reference({id:"4".repeat(32),sourceType:"discussion",sourceTitle:"最新討論",sourceState:""})];
  const f=await fixture(`/miniapp/projects?owner=${sa}&project=${pid}`,async request=>new URL(request.url).pathname.endsWith('/references')?Response.json({items:refs,nextCursor:""}):sourceCatalog(request));
  try{for(const title of ['最新物件','最新子工序','最新問題','最新討論'])assert.ok(document.body.textContent!.includes(title));assert.match(document.body.textContent!,/進度：3\/10 SET/);assert.match(document.body.textContent!,/進度：不適用/);assert.match(document.body.textContent!,/不會修改來源/);assert.ok(![...document.querySelectorAll('p')].some(node=>node.textContent==='狀態：'));assert.equal(f.requests.filter(request=>request.method!=='GET').length,1,'only session creation writes');}finally{await f.dispose();}
 });
@@ -196,7 +195,7 @@ for(const kind of ['object','subobject','issue','discussion'])test(`Project adds
  try{
   await f.chooseKind(kind);if(kind==='subobject'){assert.ok(!f.requests.some(request=>new URL(request.url).pathname.endsWith('/subobjects')));await f.select('父物件',parentId);}
   await f.select('選擇既有',kind==='object'?parentId:sourceId);await f.click('加入專案');
-  assert.deepEqual(bodies,[{sourceRepositoryId:rid,sourceType:kind,sourceId:kind==='object'?parentId:sourceId,...(kind==='subobject'?{parentObjectId:parentId}:{}),expectedVersion:3}]);
+  assert.deepEqual(bodies,[{sourceRepositoryId:rid,sourceType:kind==='subobject'?'object':kind,sourceId:kind==='object'?parentId:sourceId,expectedVersion:3}]);
  }finally{await f.dispose();}
 });
 
@@ -278,7 +277,7 @@ for(const scope of ['group','identity'])test(`Project reference private payload 
 
 test("Project reference parent change rejects stale selected child in the same batch",async()=>{
  let posts=0;
- const f=await fixture(`/miniapp/projects?owner=${sa}&project=${pid}`,async request=>{const path=new URL(request.url).pathname;if(request.method==='POST'&&path.endsWith('/references'))posts++;if(path.endsWith('/objects'))return Response.json({items:[objectSource,{...objectSource,id:'2'.repeat(32),name:'另一父物件'}],nextCursor:""});return sourceCatalog(request);});
+ const f=await fixture(`/miniapp/projects?owner=${sa}&project=${pid}`,async request=>{const path=new URL(request.url).pathname;if(request.method==='POST'&&path.endsWith('/references'))posts++;if(path.endsWith('/objects')&&!new URL(request.url).searchParams.has('parentId'))return Response.json({items:[objectSource,{...objectSource,id:'2'.repeat(32),name:'另一父物件'}],nextCursor:""});return sourceCatalog(request);});
  try{
   await f.chooseKind('subobject');await f.select('父物件',parentId);await f.select('選擇既有',sourceId);const add=[...document.querySelectorAll<HTMLButtonElement>('button')].find(node=>node.textContent==='加入專案')!;
   await act(async()=>{const select=[...document.querySelectorAll('label')].find(node=>node.textContent?.startsWith('父物件'))!.querySelector('select')!;select.value='2'.repeat(32);select.dispatchEvent(new window.Event('change',{bubbles:true}));add.click();await flush();});assert.equal(posts,0);
@@ -358,11 +357,11 @@ test("creator links a repository from a second group before adding its issue", a
 });
 
 test("inspection on a SubObject submits once and reads the saved pending result", async () => {
-  const saved = {id:"submission", note:"配線完成", status:"pending", submittedBy:"A", submittedAt:"2026-11-01T00:00:00Z",sourceId,sourceRepositoryId:rid,sourceVersion:7,sourceType:"subobject"};
+  const saved = {id:"submission", note:"配線完成", status:"pending", submittedBy:"A", submittedAt:"2026-11-01T00:00:00Z",sourceId,sourceRepositoryId:rid,sourceVersion:7,sourceType:"object"};
   let writes=0;
   const f=await fixture(`/miniapp/projects?owner=${sa}&project=${pid}`,async req=>{
     const path=new URL(req.url).pathname;
-    if(path.endsWith("/references"))return Response.json({items:[reference({sourceType:"subobject",parentObjectId:parentId,inspectionMode:"submit_if_empty"})],nextCursor:""});
+    if(path.endsWith("/references"))return Response.json({items:[reference({sourceType:"object",inspectionMode:"submit_if_empty"})],nextCursor:""});
     if(path.endsWith("/inspection-submissions")){
       if(req.method==="POST"){assert.deepEqual(await req.json(),{note:saved.note});writes++;return Response.json(saved);}
       return Response.json(writes?[saved]:[]);

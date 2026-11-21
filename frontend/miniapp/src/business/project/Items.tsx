@@ -20,7 +20,7 @@ type Reference = components["schemas"]["ProjectReference"];
 type Addition = components["schemas"]["ProjectReferenceAddition"];
 type ItemProgress = NonNullable<components["schemas"]["ProjectUpdate"]["itemProgress"]>;
 const progressLabels = {todo:"待辦",in_progress:"進行中",done:"完成"};
-type Kind = Addition["sourceType"];
+type Kind = Addition["sourceType"] | "subobject";
 type Option = { id: string; title: string };
 const kinds: Record<Kind, string> = { object: "物件", subobject: "子物件", issue: "問題", discussion: "討論" };
 const states: Record<string, string> = { open: "待處理", in_progress: "進行中", completed: "已完成", not_started: "未開始", closed: "已結束" };
@@ -78,8 +78,8 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
         return {items:page.items.map(item=>({id:item.id,title:`${item.name} · ${item.quantity} ${item.unit}`})),nextCursor:page.nextCursor};
       }
       if (kind === "subobject") {
-        const page=await request((client,s)=>client.GET("/api/v1/repositories/{repositoryId}/objects/{objectId}/subobjects",{signal:s,params:{path:{repositoryId,objectId:parent},query}}),{signal});
-        return {items:page.items.map(item=>({id:item.id,title:`${item.name} · ${item.quantity} ${item.unit}`})),nextCursor:page.nextCursor};
+        const page=await request((client,s)=>client.GET("/api/v1/repositories/{repositoryId}/objects",{signal:s,params:{path:{repositoryId},query:{...query,parentId:parent}}}),{signal});
+        return {items:page.items.filter(item => item.parentId === parent).map(item=>({id:item.id,title:`${item.name} · ${item.quantity} ${item.unit}`})),nextCursor:page.nextCursor};
       }
       if (kind === "discussion") {
         const page=await request((client,s)=>client.GET("/api/v1/repositories/{repositoryId}/discussions",{signal:s,params:{path:{repositoryId},query}}),{signal});
@@ -96,7 +96,7 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
     if (!user || !canEdit || lock.current || selecting.current || needsRefresh || !canWrite() || (disabled && !unknown.current)) return;
     if (!pending.current) {
       if (!itemId && (!choice || !sourceAvailable || (kind === "subobject" && !parent))) return;
-      pending.current = itemId ? {itemId,version:project.version} : {body:{sourceRepositoryId,sourceType:kind,sourceId:choice,...(kind === "subobject" ? {parentObjectId:parent} : {}),expectedVersion:project.version}};
+      pending.current = itemId ? {itemId,version:project.version} : {body:{sourceRepositoryId,sourceType:kind === "subobject" ? "object" : kind,sourceId:choice,expectedVersion:project.version}};
     }
     const attempt=pending.current, wasUnknown=unknown.current;
     lock.current=true;setBusy(true);block(true);setStatus("正在更新專案引用……");
@@ -133,7 +133,7 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
       signal: s, params: { path: { ownerId, id: project.id }, query: "itemId" in attempt
         ? { itemId: attempt.itemId, desiredPresent: false }
         : { sourceRepositoryId: attempt.body.sourceRepositoryId || initialRepositoryId, sourceType: attempt.body.sourceType,
-            sourceId: attempt.body.sourceId, parentObjectId: attempt.body.parentObjectId, desiredPresent: true } },
+            sourceId: attempt.body.sourceId, desiredPresent: true } },
     }), {signal}), result => {
       lock.current = false; setBusy(false);
       if (!result.matches) { setStatus("目前引用狀態尚未符合原操作，請保留原操作並稍後重試或核對。"); return; }

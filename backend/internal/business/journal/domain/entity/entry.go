@@ -14,14 +14,13 @@ var (
 type (
 	Reference struct{ Kind, ID string }
 	Work      struct {
-		Name        string
-		Percent     int
-		Reference   *Reference
-		ObjectID    string   `json:",omitempty"`
-		SubobjectID string   `json:",omitempty"`
-		SpaceIDs    []string `json:",omitempty"`
-		ObjectName  string   `json:",omitempty"`
-		SpaceNames  []string `json:",omitempty"`
+		Name       string
+		Percent    int
+		Reference  *Reference
+		ObjectID   string   `json:",omitempty"`
+		SpaceIDs   []string `json:",omitempty"`
+		ObjectName string   `json:",omitempty"`
+		SpaceNames []string `json:",omitempty"`
 	}
 )
 
@@ -48,7 +47,6 @@ func (d Draft) CheckReferences(redactMissing bool, check func(Reference) error) 
 			if redactMissing && errors.Is(err, ErrNotFound) {
 				w.Reference = nil
 				w.ObjectID = ""
-				w.SubobjectID = ""
 				w.SpaceIDs = nil
 				w.ObjectName = ""
 				w.SpaceNames = nil

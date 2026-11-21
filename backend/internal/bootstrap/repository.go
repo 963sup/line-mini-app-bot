@@ -24,8 +24,6 @@ import (
 	repositoryApplicationSpace "github.com/963sup/line-mini-app-bot/internal/business/repository/application/space"
 	repositoryApplicationStatistics "github.com/963sup/line-mini-app-bot/internal/business/repository/application/statistics"
 	repositoryApplicationWiki "github.com/963sup/line-mini-app-bot/internal/business/repository/application/wiki"
-	subobjectdb "github.com/963sup/line-mini-app-bot/internal/business/subobject/adapter/firestore"
-	subobjectApplication "github.com/963sup/line-mini-app-bot/internal/business/subobject/application"
 	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
@@ -94,13 +92,6 @@ func newObjects(r *repositoryApplication.Service, store *repositorydb.Store) *ob
 		service.CandidateExtractor = &candidateai.Extractor{Responses: client.Responses, Model: model}
 	}
 	return service
-}
-
-func newSubobjects(r *repositoryApplication.Service, store *repositorydb.Store) *subobjectApplication.Service {
-	if store == nil {
-		return nil
-	}
-	return &subobjectApplication.Service{Repositories: r, Store: &subobjectdb.Store{Client: store.Client, ChannelID: store.ChannelID}}
 }
 
 func newRepositorySpaces(r *repositoryApplication.Service, store *repositorydb.Store) *repositoryApplicationSpace.Service {

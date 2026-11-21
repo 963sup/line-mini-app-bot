@@ -59,15 +59,15 @@ func (s *Service) ExtractCandidates(ctx context.Context, actor, repositoryID str
 	return s.CandidateExtractor.ExtractCandidates(ctx, document)
 }
 
-func (s *Service) List(ctx context.Context, actor, id, cursor string) (objectApplicationDto.Page, error) {
+func (s *Service) List(ctx context.Context, actor, id, cursor string, parent ...string) (objectApplicationDto.Page, error) {
 	r, e := s.scope(ctx, actor, id)
 	if e != nil {
 		return objectApplicationDto.Page{}, e
 	}
-	if len(cursor) > 1024 {
+	if len(cursor) > 1024 || (len(parent) > 0 && parent[0] != "" && !repositoryDomainEntity.ValidID(parent[0])) {
 		return objectApplicationDto.Page{}, objectDomainEntity.ErrInput
 	}
-	return s.Store.List(ctx, r, actor, cursor)
+	return s.Store.List(ctx, r, actor, cursor, parent...)
 }
 
 func (s *Service) Get(ctx context.Context, actor, rid, id string) (objectDomainEntity.Object, error) {

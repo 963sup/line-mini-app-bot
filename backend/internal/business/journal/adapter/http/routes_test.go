@@ -81,7 +81,7 @@ func TestJournalRoutes(t *testing.T) {
 	call("GET", base, "", false, 401)
 	call("POST", base, strings.Replace(draft, "100", "101", 1), true, 400)
 	unselected := call("POST", base, draft, true, 201)
-	for _, field := range []string{"objectId", "subobjectId", "spaceIds", "objectName", "spaceNames"} {
+	for _, field := range []string{"objectId", "spaceIds", "objectName", "spaceNames"} {
 		if strings.Contains(unselected, `"`+field+`"`) {
 			t.Fatalf("unselected optional field %s must remain omitted: %s", field, unselected)
 		}
@@ -97,20 +97,19 @@ func TestJournalRoutes(t *testing.T) {
 	call("GET", base+"/"+strings.Repeat("b", 32), "", true, 404)
 	t.Run("work selection and server snapshots", func(t *testing.T) {
 		const objectID = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-		const childID = "cccccccccccccccccccccccccccccccc"
 		const spaceID = "dddddddddddddddddddddddddddddddd"
 		selected := strings.Replace(draft, `"type":"project"`, `"type":"repository"`, 1)
-		selected = strings.Replace(selected, `"completionPercent":40`, `"completionPercent":40,"objectId":"`+objectID+`","subobjectId":"`+childID+`","spaceIds":["`+spaceID+`"]`, 1)
+		selected = strings.Replace(selected, `"completionPercent":40`, `"completionPercent":40,"objectId":"`+objectID+`","spaceIds":["`+spaceID+`"]`, 1)
 		selected = strings.Replace(selected, `"tomorrowItems":[]`, `"tomorrowItems":[{"name":"明日","expectedCompletionPercent":50,"reference":{"type":"repository","id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"objectId":"`+objectID+`","spaceIds":["`+spaceID+`"]}]`, 1)
 		response := call("POST", base, selected, true, 201)
-		if row := f.saved.Today[0]; row.ObjectID != objectID || row.SubobjectID != childID || len(row.SpaceIDs) != 1 || row.SpaceIDs[0] != spaceID {
+		if row := f.saved.Today[0]; row.ObjectID != objectID || len(row.SpaceIDs) != 1 || row.SpaceIDs[0] != spaceID {
 			t.Fatalf("today selection lost at adapter: %+v", row)
 		}
 		if row := f.saved.Tomorrow[0]; row.ObjectID != objectID || len(row.SpaceIDs) != 1 || row.SpaceIDs[0] != spaceID {
 			t.Fatalf("tomorrow selection lost at adapter: %+v", row)
 		}
 		var created generated.Journal
-		if err := json.Unmarshal([]byte(response), &created); err != nil || len(created.TodayItems) != 2 || len(created.TomorrowItems) != 1 || created.TodayItems[0].ObjectId != objectID || created.TodayItems[0].SubobjectId != childID || len(created.TodayItems[0].SpaceIds) != 1 || created.TomorrowItems[0].ObjectId != objectID {
+		if err := json.Unmarshal([]byte(response), &created); err != nil || len(created.TodayItems) != 2 || len(created.TomorrowItems) != 1 || created.TodayItems[0].ObjectId != objectID || len(created.TodayItems[0].SpaceIds) != 1 || created.TomorrowItems[0].ObjectId != objectID {
 			t.Fatalf("selection lost in response: %s (%v)", response, err)
 		}
 		f.saved.Today[0].ObjectName, f.saved.Today[0].SpaceNames = "父 › 子", []string{"作業區"}

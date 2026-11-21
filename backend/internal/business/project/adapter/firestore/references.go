@@ -1,8 +1,6 @@
 package firestore
 
-import (
-	subobjectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/subobject/domain/entity"
-)
+import ()
 
 import (
 	projectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/project/application/dto"
@@ -33,11 +31,11 @@ func itemReference(d itemDocument) projectDomainEntity.Reference {
 	if d.ItemStatus == "" {
 		d.ItemStatus = "todo"
 	}
-	return projectDomainEntity.Reference{ItemStatus: d.ItemStatus, ID: d.ID, SourceRepositoryID: d.SourceRepositoryID, SourceType: d.SourceType, SourceID: d.SourceID, ParentObjectID: d.ParentObjectID}
+	return projectDomainEntity.Reference{ItemStatus: d.ItemStatus, ID: d.ID, SourceRepositoryID: d.SourceRepositoryID, SourceType: d.SourceType, SourceID: d.SourceID}
 }
 
 func referenceID(pid string, r projectDomainEntity.Reference) string {
-	return firestorekey.JSONDigest([]string{"project-repository-reference", pid, r.SourceRepositoryID, r.SourceType, r.ParentObjectID, r.SourceID})[:32]
+	return firestorekey.JSONDigest([]string{"project-repository-reference", pid, r.SourceRepositoryID, r.SourceType, "", r.SourceID})[:32]
 }
 
 func (s *Store) checkSourceRepository(tx *db.Transaction, source projectDomainEntity.Source) error {
@@ -91,33 +89,15 @@ func (s *Store) sourceReference(tx *db.Transaction, source projectDomainEntity.S
 		return ref, nil
 	}
 	collection := root.Collection("objects")
-	if ref.SourceType == "subobject" {
-		parent, e := tx.Get(collection.Doc(ref.ParentObjectID))
-		if e != nil {
-			return projectDomainEntity.Reference{}, e
-		}
-		var p struct {
-			ID            string `firestore:"id"`
-			RepositoryID  string `firestore:"repositoryId"`
-			SchemaVersion int64  `firestore:"schemaVersion"`
-		}
-		if e = parent.DataTo(&p); e != nil {
-			return projectDomainEntity.Reference{}, e
-		}
-		if p.ID != ref.ParentObjectID || p.RepositoryID != source.ID || p.SchemaVersion != 1 {
-			return projectDomainEntity.Reference{}, projectDomainEntity.ErrSourceUnavailable
-		}
-		collection = collection.Doc(ref.ParentObjectID).Collection("subobjects")
-	}
 	snap, e := tx.Get(collection.Doc(ref.SourceID))
 	if e != nil {
 		return projectDomainEntity.Reference{}, e
 	}
 	var d struct {
-		SchemaVersion     int64  `firestore:"schemaVersion"`
-		ID                string `firestore:"id"`
-		RepositoryID      string `firestore:"repositoryId"`
-		ParentObjectID    string `firestore:"parentObjectId"`
+		SchemaVersion int64  `firestore:"schemaVersion"`
+		ID            string `firestore:"id"`
+		RepositoryID  string `firestore:"repositoryId"`
+
 		Name              string `firestore:"name"`
 		Type              string `firestore:"type"`
 		Quantity          string `firestore:"quantity"`
@@ -129,7 +109,7 @@ func (s *Store) sourceReference(tx *db.Transaction, source projectDomainEntity.S
 	if e = snap.DataTo(&d); e != nil {
 		return projectDomainEntity.Reference{}, e
 	}
-	if d.SchemaVersion != 1 || d.ID != ref.SourceID || d.RepositoryID != source.ID || d.Name == "" || d.Quantity == "" || d.Unit == "" || (ref.SourceType == "subobject" && d.ParentObjectID != ref.ParentObjectID) {
+	if d.SchemaVersion != 1 || d.ID != ref.SourceID || d.RepositoryID != source.ID || d.Name == "" || d.Quantity == "" || d.Unit == "" {
 		return projectDomainEntity.Reference{}, projectDomainEntity.ErrSourceUnavailable
 	}
 
@@ -140,16 +120,6 @@ func (s *Store) sourceReference(tx *db.Transaction, source projectDomainEntity.S
 	}
 	if d.Type == objectDomainEntity.TypeWork && d.CompletedQuantity != "" {
 		derived, e := objectDomainEntity.WorkStatus(d.Quantity, d.CompletedQuantity)
-		if e != nil || derived != d.Status {
-			return projectDomainEntity.Reference{}, projectDomainEntity.ErrSourceUnavailable
-		}
-	}
-	if ref.SourceType == "subobject" {
-		c := subobjectDomainEntity.Content{Name: d.Name, Type: d.Type, Quantity: d.Quantity, Unit: d.Unit, CompletedQuantity: d.CompletedQuantity}
-		if _, e := subobjectDomainEntity.Normalize(c); e != nil {
-			return projectDomainEntity.Reference{}, projectDomainEntity.ErrSourceUnavailable
-		}
-		derived, e := subobjectDomainEntity.Status(c)
 		if e != nil || derived != d.Status {
 			return projectDomainEntity.Reference{}, projectDomainEntity.ErrSourceUnavailable
 		}
@@ -325,7 +295,7 @@ func (s *Store) ChangeReference(ctx context.Context, r projectApplicationPort.Sc
 		action := "remove_reference"
 		if add {
 			action = "add_reference"
-			d := itemDocument{SourceRepositoryID: ref.SourceRepositoryID, SchemaVersion: 2, ID: itemID, ProjectID: pid, SourceType: ref.SourceType, SourceID: ref.SourceID, ParentObjectID: ref.ParentObjectID, CreatedBy: actor, CreatedAt: now}
+			d := itemDocument{SourceRepositoryID: ref.SourceRepositoryID, SchemaVersion: 2, ID: itemID, ProjectID: pid, SourceType: ref.SourceType, SourceID: ref.SourceID, CreatedBy: actor, CreatedAt: now}
 			if e = tx.Create(item, d); e != nil {
 				return e
 			}

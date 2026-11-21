@@ -101,6 +101,6 @@ flowchart LR
 
 建立 Object 時可指定同一 Repository 中已存在的 `parentId`。省略時建立根節點。父、子和葉是依階層推導的角色。父連結建立後固定，因此新節點可以接到現有節點，更新內容不會改寫階層或產生循環。每個節點各自保存數量、單位與進度。一般 Object 清單仍使用既有分頁，回傳包含各層的 Object。
 
-既有 Subobject 路由、Firestore 子集合和日誌引用繼續使用原本的識別。匯入既有子物件到 Object 階層前，需要定義識別對應及歷史資料的保留方式。ObjectTemplate 屬於獨立的範本模型，未來實例化時應建立新的 Object 識別並保存範本來源和版本。
+子項與父物件共用 Object API 與 Firestore 集合。專案和日誌直接引用子項的 Object ID。ObjectTemplate 屬於獨立的範本模型，實例化會建立新的 Object 並保存範本來源和版本。
 
 [ObjectTemplate 規格](template.md)

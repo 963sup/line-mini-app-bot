@@ -40,13 +40,12 @@ async function fixture(handle: (request: Request, actor: string) => Promise<Resp
 }
 
 const sid = "d".repeat(32);
-const child = (overrides={}) => ({id:sid,parentObjectId:oid,repositoryId:rid,name:"測試工序",type:"work",quantity:"9007199254740993.123456",unit:"M2",completedQuantity:"0",status:"not_started",creatorId:"A",version:1,...overrides});
+const child = (overrides={}) => ({id:sid,parentId:oid,canEdit:true,repositoryId:rid,name:"測試工序",type:"work",quantity:"9007199254740993.123456",unit:"M2",completedQuantity:"0",status:"not_started",creatorId:"A",version:1,...overrides});
 
 test("children lazy load only expanded parent, recover read errors, native trigger exposes keyboard semantics", async () => {
   const reads: string[]=[];let fail=true;
   const f=await fixture(async request=>{
-    const path=new URL(request.url).pathname;
-    if(path.endsWith('/subobjects')) {reads.push(path);if(fail) {fail=false;return Response.json({error:{code:"unavailable",message:"讀取失敗"}},{status:503});}return Response.json({items:[child()],nextCursor:""});}
+    if(new URL(request.url).searchParams.has("parentId")) {reads.push(request.url);if(fail) {fail=false;return Response.json({error:{code:"unavailable",message:"讀取失敗"}},{status:503});}return Response.json({items:[child()],nextCursor:""});}
     return Response.json({items:[resource(),resource({id:other,name:"另一父物件"})],nextCursor:""});
   });
   try{
@@ -62,8 +61,7 @@ test("children lazy load only expanded parent, recover read errors, native trigg
 test("unknown child create freezes exact identity, blocks parent navigation and same child retry succeeds without parent update", async()=>{
   const posts:{key:string|null;body:unknown}[]=[];let parentWrites=0;
   const f=await fixture(async request=>{
-    const path=new URL(request.url).pathname;
-    if(path.endsWith('/subobjects')) {
+    if(request.method === "POST" || new URL(request.url).searchParams.has("parentId")) {
       if(request.method==='POST'){posts.push({key:request.headers.get('Idempotency-Key'),body:await request.json()});if(posts.length===1)throw new Error('unknown');return Response.json(child());}
       return Response.json({items:[],nextCursor:""});
     }
@@ -80,7 +78,7 @@ test("unknown child create freezes exact identity, blocks parent navigation and 
 });
 
 test("non-owner may read children but has no child write controls",async()=>{
- const f=await fixture(async request=>Response.json(new URL(request.url).pathname.endsWith('/subobjects')?{items:[child()],nextCursor:""}:{items:[resource({canEdit:false,creatorId:"B"})],nextCursor:""}));
+ const f=await fixture(async request=>Response.json(new URL(request.url).searchParams.has("parentId")?{items:[child()],nextCursor:""}:{items:[resource({canEdit:false,creatorId:"B"})],nextCursor:""}));
  try{await f.click("子物件：測試物件");assert.match(document.body.textContent!,/測試工序/);assert.equal([...document.querySelectorAll('button')].some(button=>button.textContent?.includes('新增子物件')||button.textContent?.includes('編輯子物件')),false);}finally{await f.dispose();}
 });
 
@@ -88,7 +86,7 @@ test("unknown then forbidden preserves original child create retry identity",asy
  const attempts:{key:string|null;body:unknown}[]=[];
  const f=await fixture(async request=>{
   if(request.method==='POST'){attempts.push({key:request.headers.get('Idempotency-Key'),body:await request.json()});if(attempts.length===1)throw new Error('unknown');if(attempts.length===2)return Response.json({error:{code:'forbidden',message:'forbidden'}},{status:403});return Response.json(child());}
-  return Response.json({items:new URL(request.url).pathname.endsWith('/subobjects')?[]:[resource()],nextCursor:""});
+  return Response.json({items:new URL(request.url).searchParams.has("parentId")?[]:[resource()],nextCursor:""});
  });
  try{await f.click('子物件：測試物件');await f.click('新增子物件');await f.fill('子物件名稱','原始內容');await f.click('建立子物件');await f.click('重試原子物件建立請求');assert.equal(document.querySelector<HTMLButtonElement>('[aria-label="子物件：測試物件"]')!.disabled,true);await f.click('重試原子物件建立請求');assert.equal(attempts.length,3);assert.deepEqual(attempts[0],attempts[1]);assert.deepEqual(attempts[0],attempts[2]);}finally{await f.dispose();}
 });
@@ -99,7 +97,7 @@ test("child independent totals, exact CQ validation, nonwork N/A and PATCH versi
   const path=new URL(request.url).pathname;
   if(request.method==='PATCH'){patches.push(await request.json());if(conflict)return Response.json({error:{code:'version_conflict',message:'版本衝突'}},{status:409});return Response.json(child({type:'non_work',completedQuantity:undefined,version:3}));}
   if(path.endsWith(sid))return Response.json(child({quantity:'100',completedQuantity:'0',version:conflict?1:2}));
-  return Response.json({items:path.endsWith('/subobjects')?[child({quantity:'100',completedQuantity:'0'})]:[resource({quantity:'1'})],nextCursor:""});
+  return Response.json({items:new URL(request.url).searchParams.has("parentId")?[child({quantity:'100',completedQuantity:'0'})]:[resource({quantity:'1'})],nextCursor:""});
  });
  try{
   await f.click('子物件：測試物件');await f.click('編輯子物件：測試工序');await f.fill('子物件完成數','100.000001');await f.click('儲存子物件');assert.equal(patches.length,0);assert.match(document.body.textContent!,/完成數須介於/);
@@ -113,7 +111,7 @@ test("child independent totals, exact CQ validation, nonwork N/A and PATCH versi
 for(const scope of ['repository','identity'])test(`child context cancels and clears late reads after ${scope} change`,async()=>{
  let release:((value:Response)=>void)|undefined;let aborted=false;
  const f=await fixture(async request=>{
-  if(new URL(request.url).pathname.endsWith('/subobjects')){request.signal.addEventListener('abort',()=>{aborted=true;});return new Promise<Response>(resolve=>{release=resolve;});}
+  if(new URL(request.url).searchParams.has("parentId")){request.signal.addEventListener('abort',()=>{aborted=true;});return new Promise<Response>(resolve=>{release=resolve;});}
   return Response.json({items:[resource()],nextCursor:""});
  });
  try{await f.click('子物件：測試物件');if(scope==='repository')await f.switchRepository();else await f.verifyAs('B');assert.equal(aborted,true);await act(async()=>{release?.(Response.json({items:[child({name:'舊範圍內容'})],nextCursor:""}));await flush();});assert.ok(!document.body.textContent!.includes('舊範圍內容'));assert.equal(document.querySelector('[aria-label="子物件"]'),null);}finally{await f.dispose();}
@@ -123,7 +121,7 @@ for(const first of ['child','parent'])test(`child write and parent navigation ha
  let posts=0;
  const f=await fixture(async request=>{
   if(request.method==='POST'){posts++;throw new Error('unknown');}
-  return Response.json({items:new URL(request.url).pathname.endsWith('/subobjects')?[]:[resource()],nextCursor:""});
+  return Response.json({items:new URL(request.url).searchParams.has("parentId")?[]:[resource()],nextCursor:""});
  },true);
  try{
   await f.click('物件');await f.click('子物件：測試物件');await f.click('新增子物件');await f.fill('子物件名稱','同步子工序');const form=document.querySelector('[aria-label="子物件"] form')!;const tab=document.querySelector<HTMLButtonElement>('[aria-label="問題"]')!;
@@ -137,7 +135,7 @@ test("temporary type selection preserves unsaved child completion", async () => 
   const f = await fixture(async request => {
     if (request.method === "PATCH") { patches.push(await request.json()); return Response.json(child({quantity:"100",completedQuantity:"25"})); }
     if (new URL(request.url).pathname.endsWith(sid)) return Response.json(child({quantity:"100",completedQuantity:"25"}));
-    return Response.json({items: new URL(request.url).pathname.endsWith("/subobjects") ? [child({quantity:"100",completedQuantity:"25"})] : [resource()], nextCursor:""});
+    return Response.json({items: new URL(request.url).searchParams.has("parentId") ? [child({quantity:"100",completedQuantity:"25"})] : [resource()], nextCursor:""});
   });
   try {
     await f.click("子物件：測試物件"); await f.click("編輯子物件：測試工序");
@@ -156,7 +154,7 @@ test("child name opens a fresh inline editor; failure retains draft and cancel d
     const path = new URL(request.url).pathname;
     if (request.method === "PATCH") { writes++; return Response.json({error:{code:"version_conflict",message:"版本衝突"}}, {status:409}); }
     if (path.endsWith(sid)) { reads++; return Response.json(child({quantity:"100",version:7})); }
-    return Response.json({items:path.endsWith("/subobjects")?[child()]:[resource()],nextCursor:""});
+    return Response.json({items:new URL(request.url).searchParams.has("parentId")?[child()]:[resource()],nextCursor:""});
   });
   try {
     await f.click("子物件：測試物件"); await f.click("測試工序");
@@ -180,7 +178,7 @@ test("arrow keeps expanded children through parent editing and each edit returns
     const path = new URL(request.url).pathname;
     if (path.endsWith(sid)) return Response.json(child());
     if (path.endsWith(oid)) return Response.json(resource());
-    if (path.endsWith("/subobjects")) { reads++; return Response.json({items:[child()],nextCursor:""}); }
+    if (new URL(request.url).searchParams.has("parentId")) { reads++; return Response.json({items:[child()],nextCursor:""}); }
     return Response.json({items:[resource()],nextCursor:""});
   });
   try {
