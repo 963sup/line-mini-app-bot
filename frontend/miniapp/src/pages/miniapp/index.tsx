@@ -29,7 +29,6 @@ export default function Page() {
       ) : id ? (
         <OrganizationPage key={id} organizationId={id} onChanged={refresh} onLeave={() => { void router.replace("/miniapp"); }}>
           <OrganizationTeams organizationId={id} />
-          <section><h2>儲存庫</h2><p>尚未支援組織儲存庫。</p></section>
         </OrganizationPage>
       ) : (
         <View />
