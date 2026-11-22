@@ -1,6 +1,7 @@
 package organizationdb
 
 import (
+	organizationapp "github.com/963sup/line-mini-app-bot/internal/business/organization/application"
 	organizationApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/organization/application/dto"
 	organizationApplicationQuery "github.com/963sup/line-mini-app-bot/internal/business/organization/application/query"
 	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
@@ -8,7 +9,6 @@ import (
 
 import (
 	"context"
-	"slices"
 	"strings"
 
 	"cloud.google.com/go/firestore"
@@ -122,41 +122,33 @@ func createOrganization(tx *firestore.Transaction, root *firestore.DocumentRef, 
 	})
 }
 
-func (s Store) Transfer(ctx context.Context, user string, organizationId, target string) (*organizationDomainEntity.Organization, error) {
+func (s Store) RunOwnershipTransfer(ctx context.Context, organizationID string, transfer func(organizationapp.OwnershipWork) (*organizationDomainEntity.Organization, error)) (*organizationDomainEntity.Organization, error) {
 	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*organizationDomainEntity.Organization, error) {
-		if uuid.Validate(organizationId) != nil || len(organizationId) != 36 {
+		if uuid.Validate(organizationID) != nil || len(organizationID) != 36 {
 			return nil, organizationDomainEntity.ErrInvalid
 		}
-		ref := root.Collection("organizations").Doc(organizationId)
-		org, e := orgstore.Read(tx, ref)
-		if e != nil {
-			return nil, e
-		}
-		if org.Owner != user || !org.LegacyOrganizationEnabled() {
-			return nil, organizationDomainEntity.ErrNotFound
-		}
-		successor := target
-		if !orgstore.UserID.MatchString(successor) {
-			successor = ""
-			for _, member := range org.Members {
-				if orgstore.UserID.MatchString(member) && membership.MemberRef(organizationId, member) == target {
-					successor = member
-					break
-				}
-			}
-		}
-		current := organizationDomainEntity.Organization{ID: organizationId, Name: org.Name, OwnerUserID: org.Owner}
-		result, err := current.TransferOwnership(user, successor, slices.Contains(org.Members, successor))
-		if err != nil {
-			return nil, err
-		}
-		if successor == user {
-			return &result, nil
-		}
-		return &result, tx.Update(ref, []firestore.Update{
-			{Path: "ownerUserId", Value: successor},
-			{Path: "memberUserIds", Value: firestore.ArrayUnion(user)},
-			{Path: "membershipOwnerVersion", Value: firestore.Increment(1)},
-		})
+		return transfer(ownershipWork{tx: tx, ref: root.Collection("organizations").Doc(organizationID)})
+	})
+}
+
+type ownershipWork struct {
+	tx  *firestore.Transaction
+	ref *firestore.DocumentRef
+}
+
+func (w ownershipWork) Load() (organizationDomainEntity.Organization, []string, bool, error) {
+	doc, err := orgstore.Read(w.tx, w.ref)
+	if err != nil {
+		return organizationDomainEntity.Organization{}, nil, false, err
+	}
+	org := organizationDomainEntity.Organization{ID: w.ref.ID, Name: doc.Name, OwnerUserID: doc.Owner}
+	return org, doc.Members, doc.LegacyOrganizationEnabled(), nil
+}
+
+func (w ownershipWork) SaveOwner(previous, successor string) error {
+	return w.tx.Update(w.ref, []firestore.Update{
+		{Path: "ownerUserId", Value: successor},
+		{Path: "memberUserIds", Value: firestore.ArrayUnion(previous)},
+		{Path: "membershipOwnerVersion", Value: firestore.Increment(1)},
 	})
 }

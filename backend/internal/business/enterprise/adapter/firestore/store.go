@@ -1,6 +1,7 @@
 package enterprisedb
 
 import (
+	"github.com/963sup/line-mini-app-bot/internal/business/enterprise/application/port"
 	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
 )
 
@@ -234,34 +235,59 @@ func (s Store) Enterprise(ctx context.Context, user, id string) (*dto.Detail, er
 	})
 }
 
-func (s Store) UpdateEnterprise(ctx context.Context, user, id, target string, addOwner bool) (*dto.Link, error) {
-	if uuid.Validate(id) != nil || (addOwner && !orgstore.UserID.MatchString(target)) || (!addOwner && uuid.Validate(target) != nil) {
+func (s Store) RunOwnerChange(ctx context.Context, id, owner string, apply func(port.OwnerChange) (*dto.Link, error)) (*dto.Link, error) {
+	if uuid.Validate(id) != nil || !orgstore.UserID.MatchString(owner) {
 		return nil, organizationDomainEntity.ErrInvalid
 	}
 	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*dto.Link, error) {
-		ref := root.Collection("enterprises").Doc(id)
-		ent, e := orgstore.Read(tx, ref)
-		if e != nil {
-			return nil, e
-		}
-		if !legacyEnterpriseEnabled(ent) || !ent.IsOwner(user) {
-			return nil, organizationDomainEntity.ErrNotFound
-		}
-		link := &dto.Link{ID: id, Name: ent.Name}
-		if addOwner {
-			return link, tx.Update(ref, []firestore.Update{{Path: "ownerUserIds", Value: firestore.ArrayUnion(target)}})
-		}
-		orgRef := root.Collection("organizations").Doc(target)
-		org, e := orgstore.Read(tx, orgRef)
-		if e != nil {
-			return nil, e
-		}
-		if !org.LegacyOrganizationEnabled() || org.Owner != user {
-			return nil, organizationDomainEntity.ErrNotFound
-		}
-		if org.Enterprise != "" && org.Enterprise != id {
-			return nil, organizationDomainEntity.ErrConflict
-		}
-		return link, tx.Update(orgRef, []firestore.Update{{Path: "enterpriseId", Value: id}})
+		return apply(ownerChange{enterpriseWork{tx: tx, ref: root.Collection("enterprises").Doc(id)}, owner})
 	})
+}
+
+func (s Store) RunOrganizationLink(ctx context.Context, id, organization string, apply func(port.OrganizationLink) (*dto.Link, error)) (*dto.Link, error) {
+	if uuid.Validate(id) != nil || uuid.Validate(organization) != nil {
+		return nil, organizationDomainEntity.ErrInvalid
+	}
+	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*dto.Link, error) {
+		return apply(organizationLink{enterpriseWork{tx: tx, ref: root.Collection("enterprises").Doc(id)}, root.Collection("organizations").Doc(organization)})
+	})
+}
+
+type enterpriseWork struct {
+	tx  *firestore.Transaction
+	ref *firestore.DocumentRef
+}
+
+func (w enterpriseWork) Enterprise(actor string) (port.EnterpriseFacts, error) {
+	ent, err := orgstore.Read(w.tx, w.ref)
+	if err != nil {
+		return port.EnterpriseFacts{}, err
+	}
+	return port.EnterpriseFacts{Name: ent.Name, Active: legacyEnterpriseEnabled(ent), ActorIsOwner: ent.IsOwner(actor)}, nil
+}
+
+type ownerChange struct {
+	enterpriseWork
+	owner string
+}
+
+func (w ownerChange) AddOwner() error {
+	return w.tx.Update(w.ref, []firestore.Update{{Path: "ownerUserIds", Value: firestore.ArrayUnion(w.owner)}})
+}
+
+type organizationLink struct {
+	enterpriseWork
+	organization *firestore.DocumentRef
+}
+
+func (w organizationLink) Organization(actor string) (port.OrganizationFacts, error) {
+	org, err := orgstore.Read(w.tx, w.organization)
+	if err != nil {
+		return port.OrganizationFacts{}, err
+	}
+	return port.OrganizationFacts{Active: org.LegacyOrganizationEnabled(), ActorIsOwner: org.Owner == actor, EnterpriseID: org.Enterprise}, nil
+}
+
+func (w organizationLink) Attach() error {
+	return w.tx.Update(w.organization, []firestore.Update{{Path: "enterpriseId", Value: w.ref.ID}})
 }

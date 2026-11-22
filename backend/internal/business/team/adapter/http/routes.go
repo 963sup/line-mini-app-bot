@@ -1,6 +1,7 @@
 package teamhttp
 
 import (
+	teamapp "github.com/963sup/line-mini-app-bot/internal/business/team/application"
 	teamApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/team/application/dto"
 )
 
@@ -16,7 +17,7 @@ import (
 type Store interface {
 	Activate(ctx context.Context, actor, teamID, scope, managementID, maintainer string) error
 	Manage(ctx context.Context, user string, teamId, scope, managementId string) error
-	Assign(ctx context.Context, user string, id, teamId string, add bool) error
+	teamapp.AssignmentStore
 	List(ctx context.Context, user string, organizationId string) (*teamApplicationDto.Listing, error)
 }
 
@@ -40,13 +41,13 @@ func (h Handler) SetTeamManagement(w http.ResponseWriter, r *http.Request, teamI
 
 func (h Handler) AssignEnterpriseTeam(w http.ResponseWriter, r *http.Request, organizationId, teamId string) {
 	orghttp.Serve(w, r, h.Auth, h.Store != nil, func(ctx context.Context, user string) (any, error) {
-		return nil, h.Store.Assign(ctx, user, organizationId, teamId, true)
+		return nil, teamapp.AssignEnterpriseTeam(ctx, h.Store, user, organizationId, teamId, true)
 	})
 }
 
 func (h Handler) RemoveEnterpriseTeam(w http.ResponseWriter, r *http.Request, organizationId, teamId string) {
 	orghttp.Serve(w, r, h.Auth, h.Store != nil, func(ctx context.Context, user string) (any, error) {
-		return nil, h.Store.Assign(ctx, user, organizationId, teamId, false)
+		return nil, teamapp.AssignEnterpriseTeam(ctx, h.Store, user, organizationId, teamId, false)
 	})
 }
 

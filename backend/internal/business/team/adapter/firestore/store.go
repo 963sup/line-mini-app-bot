@@ -1,7 +1,9 @@
 package teamdb
 
 import (
+	teamapp "github.com/963sup/line-mini-app-bot/internal/business/team/application"
 	teamApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/team/application/dto"
+	teamdomain "github.com/963sup/line-mini-app-bot/internal/business/team/domain"
 )
 
 import (
@@ -119,38 +121,48 @@ func (s Store) Activate(ctx context.Context, actor, teamID, scope, managementID,
 	return err
 }
 
-func (s Store) Assign(ctx context.Context, user string, id, teamId string, add bool) error {
+func (s Store) RunAssignment(ctx context.Context, organizationID, teamID string, apply func(teamapp.AssignmentWork) error) error {
 	_, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*struct{}, error) {
-		if uuid.Validate(id) != nil || !groupvalueobject.ValidID(teamId) {
+		if uuid.Validate(organizationID) != nil || !groupvalueobject.ValidID(teamID) {
 			return nil, organizationDomainEntity.ErrInvalid
 		}
-		ref := root.Collection("organizations").Doc(id)
-		o, e := orgstore.Read(tx, ref)
-		if e != nil {
-			return nil, e
-		}
-		team, e := orgstore.Read(tx, root.Collection("teams").Doc(teamId))
-		if e != nil {
-			return nil, e
-		}
-		if !o.LegacyOrganizationEnabled() || o.Enterprise == "" || team.Scope != "enterprise" || team.Manager != o.Enterprise {
-			return nil, organizationDomainEntity.ErrNotFound
-		}
-		ent, e := orgstore.Read(tx, root.Collection("enterprises").Doc(o.Enterprise))
-		if e != nil {
-			return nil, e
-		}
-		if ent.Disabled || (ent.MembershipMode != "" && ent.MembershipMode != "legacy") ||
-			(!ent.IsOwner(user) && !slices.Contains(ent.Managers, user)) {
-			return nil, organizationDomainEntity.ErrNotFound
-		}
-		link := ref.Collection("enterpriseTeams").Doc(teamId)
-		if add {
-			return nil, tx.Set(link, map[string]any{"teamId": teamId})
-		}
-		return nil, tx.Delete(link)
+		return nil, apply(assignmentWork{tx: tx, root: root, organization: root.Collection("organizations").Doc(organizationID), teamID: teamID})
 	})
 	return err
+}
+
+type assignmentWork struct {
+	tx                 *firestore.Transaction
+	root, organization *firestore.DocumentRef
+	teamID             string
+}
+
+func (w assignmentWork) Scope() (teamdomain.AssignmentScope, error) {
+	org, err := orgstore.Read(w.tx, w.organization)
+	if err != nil {
+		return teamdomain.AssignmentScope{}, err
+	}
+	team, err := orgstore.Read(w.tx, w.root.Collection("teams").Doc(w.teamID))
+	if err != nil {
+		return teamdomain.AssignmentScope{}, err
+	}
+	return teamdomain.AssignmentScope{OrganizationActive: org.LegacyOrganizationEnabled(), EnterpriseID: org.Enterprise, TeamScope: team.Scope, TeamManagerID: team.Manager}, nil
+}
+
+func (w assignmentWork) Authority(enterpriseID, actor string) (teamdomain.AssignmentAuthority, error) {
+	ent, err := orgstore.Read(w.tx, w.root.Collection("enterprises").Doc(enterpriseID))
+	if err != nil {
+		return teamdomain.AssignmentAuthority{}, err
+	}
+	return teamdomain.AssignmentAuthority{Disabled: ent.Disabled, MembershipMode: ent.MembershipMode, Owner: ent.IsOwner(actor), Manager: slices.Contains(ent.Managers, actor)}, nil
+}
+
+func (w assignmentWork) Save(assigned bool) error {
+	link := w.organization.Collection("enterpriseTeams").Doc(w.teamID)
+	if assigned {
+		return w.tx.Set(link, map[string]any{"teamId": w.teamID})
+	}
+	return w.tx.Delete(link)
 }
 
 func (s Store) List(ctx context.Context, user string, organizationId string) (*teamApplicationDto.Listing, error) {
