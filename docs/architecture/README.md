@@ -48,7 +48,7 @@
 
 ### 資料與儲存
 
-先讀[功能規格](../domains/README.md)，再定位該領域的 Firestore adapter。[儲存索引](storage/README.md)與[Firestore 整合](storage/firestore.md)說明連線和交易；[資料契約提案](../proposals/firestore-data-contracts.md)描述規劃中的 schemaVersion、Inbox／Outbox 與保存策略。
+先讀[功能規格](../domains/README.md)，再定位該領域的 Firestore adapter。[儲存索引](storage/README.md)導向[資料配置](storage/data-model.md)、[交易](storage/consistency.md)、[查詢與索引](storage/querying.md)、[生命週期](storage/lifecycle.md)及[Firestore 整合](storage/firestore.md)；[資料契約提案](../proposals/firestore-data-contracts.md)描述規劃中的 schemaVersion、Inbox／Outbox 與保存策略。
 
 ### 外部整合
 

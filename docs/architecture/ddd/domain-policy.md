@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[domain-service](domain-service.md) · [specification](specification.md) · [DDD 設計索引](README.md)
+[授權與業務規則](domain-authorization.md) · [狀態機 Guard](state-machine.md) · [domain-service](domain-service.md) · [specification](specification.md) · [DDD 設計索引](README.md)

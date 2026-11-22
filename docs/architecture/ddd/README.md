@@ -13,6 +13,9 @@
 | 這項能力是否應獨立成一個上下文？ | [子域](subdomain.md)、[限界上下文](bounded-context.md) |
 | 需要追蹤身分，還是只需要一個值？ | [Entity](entity.md)、[Value Object](value-object.md) |
 | 哪些狀態必須一起成立？ | [Invariant](invariant.md)、[Aggregate](aggregate.md)、[一致性](consistency.md) |
+| 誰有權操作，狀態允許嗎？ | [領域授權](domain-authorization.md)、[狀態機](state-machine.md) |
+| 公開契約如何定義錯誤與版本相容？ | [上下文公開契約](domain-contract.md)、[模型演進](model-evolution.md) |
+| 如何探索未知規則、審查模型品質？ | [EventStorming](eventstorming.md)、[模型審查](domain-model-review.md) |
 | 建立與持久資料重建放哪裡？ | [Factory](factory.md)、[Repository](repository.md) |
 | 業務判斷放模型還是服務？ | [Entity](entity.md)、[Domain Service](domain-service.md)、[Application Service](application-service.md) |
 | Port、Adapter、交易與錯誤如何劃分？ | [六邊形架構](hexagonal-architecture.md)、[一致性](consistency.md) |
@@ -70,6 +73,8 @@
 | [聚合與聚合根](aggregate.md) | Aggregate / Aggregate Root | 劃分規則與一致性邊界 |
 | [工廠](factory.md) | Factory | 封裝完整物件的建立與初始規則 |
 | [儲存庫模式](repository.md) | Repository | 以 Aggregate 為單位載入、重建及保存 |
+| [領域授權](domain-authorization.md) | Domain Authorization | 分開資格、領域規則與權威狀態判定 |
+| [狀態機](state-machine.md) | State Machine | 定義轉換、Guard、拒絕與終態 |
 | [領域服務](domain-service.md) | Domain Service | 表達不屬於單一物件的領域決策 |
 | [領域事件](domain-event.md) | Domain Event | 表達已發生的業務事實與後續處理需求 |
 
@@ -101,7 +106,7 @@
 
 ### 模型與上下文整合
 
-[領域模型](domain-model.md) · [限界上下文整合](bounded-context-integration.md) · [防腐層](anti-corruption-layer.md)
+[上下文公開契約](domain-contract.md) · [領域模型](domain-model.md) · [限界上下文整合](bounded-context-integration.md) · [防腐層](anti-corruption-layer.md)
 
 ### 領域模型與規則
 
@@ -121,7 +126,7 @@
 
 ### 建模與驗證
 
-[領域建模](domain-modeling.md) · [領域測試](domain-testing.md) · [架構測試](architecture-testing.md)
+[領域建模](domain-modeling.md) · [EventStorming](eventstorming.md) · [模型審查](domain-model-review.md) · [領域測試](domain-testing.md) · [架構測試](architecture-testing.md)
 
 ## Mermaid 圖表
 
@@ -134,6 +139,12 @@
 | 哪些狀態共同維護？讀寫模型如何更新？ | [聚合](aggregate.md)、[CQRS](cqrs.md#圖解) |
 | 何時提交與發布？如何處理衝突及重送？ | [交易](transaction.md#提交與發布)、[Outbox](outbox-pattern.md)、[樂觀並行控制](optimistic-concurrency.md#圖解)、[冪等](idempotency.md#圖解) |
 | 跨交易失敗如何恢復？誰維護流程進度？ | [Saga](saga.md#圖解)、[Process Manager](process-manager.md#圖解) |
+
+## 來源與適用範圍
+
+2026-11-22 核對 [Microsoft 戰術 DDD](https://learn.microsoft.com/en-us/azure/architecture/microservices/model/tactical-domain-driven-design)的聚合、不變條件與身分引用概念，以及 [EventStorming 官方方法](https://www.eventstorming.com/)。採用建模概念，不沿用其微服務部署前提；本專案的共同交易取捨由[聚合設計](aggregate.md)與功能規格說明。
+
+線上來源未固定文件提交版本。現行規則範例另連到本庫程式與測試；概念文件及原始碼核對不代表已執行功能驗收。
 
 ## 維護與驗證
 
