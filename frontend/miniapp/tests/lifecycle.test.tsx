@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { untilAbort } from "../src/shared/http/lifecycle";
+import { rejectedAttempt, untilAbort } from "../src/shared/http/lifecycle";
 
 function deferred() {
   let resolve!: (value: string) => void;
@@ -63,4 +63,12 @@ test("uncancelled work preserves values and the original error, releasing listen
   const error = new Error("transport failure");
   await assert.rejects(untilAbort(Promise.reject(error), failure.signal), (actual) => actual === error);
   assert.deepEqual(failure.counts(), { added: 1, removed: 1 });
+});
+
+test("the server decides recovery for this attempt, with conservative legacy fallback", () => {
+  assert.equal(rejectedAttempt({ code: "invalid_input", retrySameRequest: true }), false);
+  assert.equal(rejectedAttempt({ code: "new_rejection", retrySameRequest: false }), true);
+  assert.equal(rejectedAttempt({ code: "forbidden" }), true);
+  assert.equal(rejectedAttempt({ code: "conflict" }, ["conflict"]), true);
+  assert.equal(rejectedAttempt(new Error("connection lost")), false);
 });

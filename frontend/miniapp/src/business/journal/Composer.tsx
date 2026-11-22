@@ -165,7 +165,7 @@ export function ComposeView({request, close, repositoryId = "", onSelectReposito
     const options = repositoryId
       ? request((client, signal) => client.GET("/api/v1/repositories/{id}", {
           signal, params: {path: {id: repositoryId}},
-        }), {signal: controller.signal}).then(item => [{id: item.id, name: item.name}])
+        }), {signal: controller.signal}).then(item => [item])
       : collect(cursor => request((client, signal) => client.GET("/api/v1/repositories", {
             signal, params: {query: {cursor: cursor || undefined}},
           }), {signal: controller.signal}));

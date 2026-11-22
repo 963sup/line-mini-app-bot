@@ -38,10 +38,12 @@ interface Session {
 const Context = createContext<Session | null>(null);
 function unwrap<T>({ data, error, response }: Result<T>): T {
   if (!response.ok) {
-    const detail = (error as { error?: { message?: string; code?: string } })
+    const detail = (error as components["schemas"]["APIError"] | undefined)
       ?.error;
     throw Object.assign(new Error(detail?.message || "伺服器無法完成請求。"), {
       code: detail?.code,
+      conflictReason: detail?.conflictReason,
+      retrySameRequest: detail?.retrySameRequest,
       httpStatus: response.status,
     });
   }

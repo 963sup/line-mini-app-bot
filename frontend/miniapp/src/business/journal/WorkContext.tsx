@@ -7,7 +7,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Field, FieldLabel } from "@/shared/ui/field";
 import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList, ComboboxValue } from "@/shared/ui/combobox";
-import { errorMessage } from "@/shared/http/lifecycle";
+import { rejectedAttempt, errorMessage } from "@/shared/http/lifecycle";
 
 type Space = components["schemas"]["RepositorySpace"];
 type Choice = { id: string; objectId: string; name: string; spaceId?: string };
@@ -88,7 +88,7 @@ export function WorkContext({id, repositoryId, request, options, lock}: {id:stri
       pending.current=null; lock(false); setName("");
     } catch (reason) {
       if (!alive.current) return;
-      if (!attempt.unknown && ["invalid_input", "forbidden", "not_found", "idempotency_conflict"].includes((reason as {code?:string}).code || "")) { pending.current=null; lock(false); }
+      if (!attempt.unknown && rejectedAttempt(reason)) { pending.current=null; lock(false); }
       else attempt.unknown=true;
       setCreateError(errorMessage(reason));
     } finally { writing.current=false; if (alive.current) setCreating(false); }

@@ -33,9 +33,9 @@ func TestMiniAppAttendanceGetsDedicatedPage(t *testing.T) {
 		content    string
 	}{
 		{"/miniapp", false, `aria-label="首頁常用功能"`},
-		{"/miniapp/feed", false, "請先登入以查閱群組日誌。"},
-		{"/miniapp?journal=1", false, "請先登入以查閱群組日誌。"},
-		{"/miniapp?liff.state=%3Fjournal%3D1", false, "請先登入以查閱群組日誌。"},
+		{"/miniapp/feed", false, `"page":"/miniapp/feed"`},
+		{"/miniapp?journal=1", false, `"page":"/miniapp/feed"`},
+		{"/miniapp?liff.state=%3Fjournal%3D1", false, `"page":"/miniapp/feed"`},
 		{"/miniapp?launch=token", true, "確認並完成打卡"},
 		{"/miniapp?liff.state=%3Flaunch%3Dtoken", true, "確認並完成打卡"},
 		{"/miniapp/history?group=g&month=2026-11", false, `id="record-list"`},

@@ -26,6 +26,18 @@ export function untilAbort<T>(
     );
   });
 }
+// New servers supply recovery guidance. Preserve each older endpoint's error contract during rollout.
+export function rejectedAttempt(error: unknown, legacyConflicts: readonly string[] = ["idempotency_conflict"]): boolean {
+  const detail = error as { retrySameRequest?: boolean; code?: string } | null;
+  if (typeof detail?.retrySameRequest === "boolean") return !detail.retrySameRequest;
+  return !!detail?.code && (["invalid_input", "forbidden", "not_found"].includes(detail.code) || legacyConflicts.includes(detail.code));
+}
+
+export function isTemporaryReadError(error: unknown): boolean {
+  const status = (error as { httpStatus?: number } | null)?.httpStatus;
+  return !status || status >= 500 || status === 408 || status === 429;
+}
+
 export function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "操作失敗，請重試。";
 }
