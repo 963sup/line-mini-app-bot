@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/group/application/dto"
-	"github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
+	"github.com/963sup/line-mini-app-bot/internal/linegroup/application/dto"
+	"github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
+	"github.com/963sup/line-mini-app-bot/internal/linegroup/domain/event"
 )
 
 var (

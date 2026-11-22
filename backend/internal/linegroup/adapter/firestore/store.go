@@ -8,11 +8,12 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
-	groupdto "github.com/963sup/line-mini-app-bot/internal/business/group/application/dto"
-	groupport "github.com/963sup/line-mini-app-bot/internal/business/group/application/port"
-	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
-	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
-	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/business/group/domain/valueobject"
+	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
+	groupdto "github.com/963sup/line-mini-app-bot/internal/linegroup/application/dto"
+	groupport "github.com/963sup/line-mini-app-bot/internal/linegroup/application/port"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
+	groupevent "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/event"
+	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/valueobject"
 	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -57,12 +58,10 @@ func (s *Store) Observe(ctx context.Context, o groupevent.Observation) error {
 			return readErr
 		}
 		if readErr == nil {
-			snap := existing
-			if err := snap.DataTo(&d); err != nil {
+			var err error
+			d, err = decodeDocument(existing)
+			if err != nil {
 				return err
-			}
-			if d.ID != id || d.GroupID != o.GroupID || d.Version < 1 || (d.Status != "ACTIVE" && d.Status != "INACTIVE") {
-				return groupport.ErrUnavailable
 			}
 			// Equal timestamps prefer INACTIVE; an exact replay never changes version.
 			outdated := o.At.Before(d.EventAt)
@@ -84,8 +83,8 @@ func (s *Store) Observe(ctx context.Context, o groupevent.Observation) error {
 				return err
 			}
 		}
-		// Project the canonical group state even on replay to backfill existing teams.
-		if err := tx.Set(s.channel().Collection("teams").Doc(id), map[string]any{"name": d.Name, "status": d.Status}, db.MergeAll); err != nil {
+		// Apply the accepted observation even on replay to backfill existing teams.
+		if err := teamdb.ApplyGroupObservation(tx, s.channel(), id, d.Name, d.Status); err != nil {
 			return err
 		}
 		seen := map[string]bool{}
@@ -110,14 +109,20 @@ func decode(snap *db.DocumentSnapshot, err error) (groupentity.Group, error) {
 	if err != nil {
 		return groupentity.Group{}, err
 	}
+	d, err := decodeDocument(snap)
+	return d.model(), err
+}
+
+func decodeDocument(snap *db.DocumentSnapshot) (document, error) {
 	var d document
 	if err := snap.DataTo(&d); err != nil {
-		return groupentity.Group{}, err
+		return document{}, err
 	}
-	if !groupvalueobject.ValidID(d.ID) || d.ID != d.GroupID || d.ID != snap.Ref.ID || d.Version < 1 {
-		return groupentity.Group{}, groupport.ErrUnavailable
+	if !groupvalueobject.ValidID(d.ID) || d.ID != d.GroupID || d.ID != snap.Ref.ID || d.Version < 1 ||
+		(d.Status != "ACTIVE" && d.Status != "INACTIVE") {
+		return document{}, groupport.ErrUnavailable
 	}
-	return d.model(), nil
+	return d, nil
 }
 
 func (s *Store) GetByID(ctx context.Context, id string) (groupentity.Group, error) {

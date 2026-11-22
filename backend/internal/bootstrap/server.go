@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	groupquery "github.com/963sup/line-mini-app-bot/internal/linegroup/application/query"
+
 	"cloud.google.com/go/firestore"
 
 	attendancehttp "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/http"
@@ -19,8 +21,6 @@ import (
 	discussionhttp "github.com/963sup/line-mini-app-bot/internal/business/discussion/adapter/http"
 	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
 	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/http"
-	grouphttp "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/http"
-	groupline "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/line"
 	issuehttp "github.com/963sup/line-mini-app-bot/internal/business/issue/adapter/http"
 	journalhttp "github.com/963sup/line-mini-app-bot/internal/business/journal/adapter/http"
 	membershipdb "github.com/963sup/line-mini-app-bot/internal/business/membership/adapter/firestore"
@@ -43,6 +43,8 @@ import (
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/line"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http"
+	grouphttp "github.com/963sup/line-mini-app-bot/internal/linegroup/adapter/http"
+	groupline "github.com/963sup/line-mini-app-bot/internal/linegroup/adapter/line"
 	firestoreplatform "github.com/963sup/line-mini-app-bot/internal/platform/firestore"
 	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
@@ -133,6 +135,12 @@ func Run() (resultErr error) {
 	if err != nil {
 		return err
 	}
+	var lineTeams *teamdb.LINEObservation
+	if groupStore != nil {
+		lineTeams = &teamdb.LINEObservation{Store: teamdb.Store{
+			DB: groupStore.Client, Channel: groupStore.ChannelID,
+		}, Membership: groups.Membership}
+	}
 	var creation organizationline.Conversation
 	var invitations *membershipapp.Service
 	organizationHandler := organizationhttp.Handler{Auth: auth}
@@ -147,17 +155,24 @@ func Run() (resultErr error) {
 			CreateEnterprise:     enterprisedb.CreateFromConversation,
 		}
 		organizationHandler.Store = organizationStore
-		enterpriseHandler.Store = enterprisedb.Store{
-			DB: sessionStore.Client, Channel: channel, Groups: groups,
+		enterpriseStore := enterprisedb.Store{
+			DB: sessionStore.Client, Channel: channel,
 			OrganizationMember: membershipdb.OrganizationMember,
 			TeamMember:         membershipdb.TeamMember,
 		}
-		teamHandler.Store = teamdb.Store{
-			DB: sessionStore.Client, Channel: channel, Groups: groups,
+		teamStore := teamdb.Store{
+			DB: sessionStore.Client, Channel: channel,
 			OrganizationMember: membershipdb.OrganizationMember,
 			TeamMember:         membershipdb.TeamMember,
 			OpenMembership:     membershipdb.OpenTeamMembership,
 		}
+		if lineTeams != nil {
+			enterpriseStore.Groups = lineTeams
+			teamStore.Groups = lineTeams
+			teamStore.LINEActivationMember = lineTeams.Membership
+		}
+		enterpriseHandler.Store = enterpriseStore
+		teamHandler.Store = teamStore
 		creation = organizationStore
 		invitations = membershipInvitations(sessionStore.Client, channel, os.Getenv("LINE_MESSAGING_API_CHANNEL_SECRET"))
 	}
@@ -165,9 +180,18 @@ func Run() (resultErr error) {
 	httpapi.RegisterMembership(mux, membershiphttp.Handler{Service: invitations, Auth: auth})
 	httpapi.RegisterEnterprises(mux, enterpriseHandler)
 	httpapi.RegisterTeams(mux, teamHandler)
-	projects := newProjects(groups, groupStore, repositories)
-	journalhttp.Register(mux, newJournals(groups, groupStore, repositories, projects), auth)
-	grouphttp.Register(mux, groups, auth)
+	var resourceGroups *groupquery.Service
+	var groupCatalog grouphttp.Catalog
+	if groupStore != nil {
+		teamStore := teamdb.Store{
+			DB: groupStore.Client, Channel: groupStore.ChannelID, TeamMember: membershipdb.TeamMember,
+		}
+		resourceGroups = &groupquery.Service{Teams: teamStore}
+		groupCatalog = teamdb.GroupCatalog{Store: teamStore}
+	}
+	projects := newProjects(resourceGroups, groupStore, repositories)
+	journalhttp.Register(mux, newJournals(resourceGroups, groupStore, repositories, projects), auth)
+	grouphttp.Register(mux, groupCatalog, auth)
 	repositoryhttp.Register(mux, repositories, auth)
 	wikihttp.Register(mux, newWiki(repositories, repositoryStore), auth)
 	labelhttp.Register(mux, newLabels(repositories, repositoryStore), auth)
@@ -183,8 +207,8 @@ func Run() (resultErr error) {
 		repositoryObserver = &repositoryline.Observer{Store: repositories.Store}
 	}
 	var groupObserver *groupline.Observer
-	if groups != nil {
-		groupObserver = &groupline.Observer{Store: groups.Store}
+	if lineTeams != nil {
+		groupObserver = &groupline.Observer{Store: lineTeams}
 	}
 	groupLookup, err = registerLINE(mux, appURL, endpointURL, punches, summaries, repositoryObserver, groupObserver, repositories, creation, invitations)
 	if err != nil {

@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
-	groupdto "github.com/963sup/line-mini-app-bot/internal/business/group/application/dto"
-	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
-	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
+	groupdto "github.com/963sup/line-mini-app-bot/internal/linegroup/application/dto"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
+	groupevent "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/event"
+	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
@@ -67,9 +68,13 @@ func TestObserverPreservesDomainNameLifecycleAndFailures(t *testing.T) {
 				}
 				return "current name"
 			}}
-			reply, handled, err := o.Observe(context.Background(), tc.event)
-			if handled || reply.Message != nil || errors.Is(err, failure) != tc.failed || store.lookups != tc.lookups || names != tc.names || len(store.saved) != tc.saves {
-				t.Fatalf("consumed=%v err=%v lookups=%d names=%d saves=%d", handled, err, store.lookups, names, len(store.saved))
+			group, ok := transport.DecodeGroupEvent(tc.event)
+			if !ok {
+				t.Fatal("invalid test group event")
+			}
+			err := o.Observe(context.Background(), tc.event, &group)
+			if errors.Is(err, failure) != tc.failed || store.lookups != tc.lookups || names != tc.names || len(store.saved) != tc.saves {
+				t.Fatalf("err=%v lookups=%d names=%d saves=%d", err, store.lookups, names, len(store.saved))
 			}
 			if tc.saves > 0 {
 				got := store.saved[0]

@@ -16,14 +16,14 @@ import (
 	"errors"
 	"slices"
 	"strings"
+	"sync"
 
 	"cloud.google.com/go/firestore"
 
-	groupport "github.com/963sup/line-mini-app-bot/internal/business/group/application/port"
-	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
-	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
-	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/business/group/domain/valueobject"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
+	groupport "github.com/963sup/line-mini-app-bot/internal/linegroup/application/port"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
+	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/valueobject"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -31,12 +31,43 @@ import (
 )
 
 type Store struct {
-	DB                 *firestore.Client
-	Channel            string
-	Groups             *groupquery.Service
-	OrganizationMember func(*firestore.Transaction, *firestore.DocumentRef, string, string) (bool, error)
-	TeamMember         func(*firestore.Transaction, *firestore.DocumentRef, string, string, string, string) (bool, error)
-	OpenMembership     func(*firestore.Transaction, *firestore.DocumentRef, string, string, string, string, string, bool) error
+	DB      *firestore.Client
+	Channel string
+	Groups  interface {
+		Get(context.Context, string, string) (groupentity.Group, error)
+	}
+	LINEActivationMember groupport.Membership
+	OrganizationMember   func(*firestore.Transaction, *firestore.DocumentRef, string, string) (bool, error)
+	TeamMember           func(*firestore.Transaction, *firestore.DocumentRef, string, string, string, string) (bool, error)
+	OpenMembership       func(*firestore.Transaction, *firestore.DocumentRef, string, string, string, string, string, bool) error
+}
+
+// ApplyGroupObservation keeps the existing Team lifecycle linked to the accepted
+// LINE group state. It preserves Team management and membership fields.
+func ApplyGroupObservation(tx *firestore.Transaction, channel *firestore.DocumentRef, teamID, name, status string) error {
+	return tx.Set(channel.Collection("teams").Doc(teamID), map[string]any{"name": name, "status": status}, firestore.MergeAll)
+}
+
+// IsTeamMember authorizes only an active team with formal membership.
+func (s Store) IsTeamMember(ctx context.Context, teamID, actor string) (bool, error) {
+	if s.TeamMember == nil {
+		return false, groupport.ErrUnavailable
+	}
+	result, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*bool, error) {
+		team, err := orgstore.Read(tx, root.Collection("teams").Doc(teamID))
+		if status.Code(err) == codes.NotFound {
+			return nil, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if team.Disabled || team.Status != "ACTIVE" || team.MembershipMode != "membership" {
+			return nil, nil
+		}
+		ok, err := s.TeamMember(tx, root, teamID, team.Scope, team.Manager, actor)
+		return &ok, err
+	})
+	return err == nil && result != nil && *result, err
 }
 
 func (s Store) Manage(ctx context.Context, user string, teamId, scope, managementId string) error {
@@ -84,19 +115,40 @@ func (s Store) Activate(ctx context.Context, actor, teamID, scope, managementID,
 	if s.OpenMembership == nil {
 		return groupport.ErrUnavailable
 	}
+	checkLINE := sync.OnceValues(func() (bool, error) {
+		if s.LINEActivationMember == nil {
+			return false, groupport.ErrUnavailable
+		}
+		return s.LINEActivationMember.IsMember(ctx, teamID, actor)
+	})
 	_, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*struct{}, error) {
 		ref := root.Collection("teams").Doc(teamID)
 		team, err := orgstore.Read(tx, ref)
 		if err != nil {
 			return nil, err
 		}
-		if team.Disabled || team.Status != "ACTIVE" || !slices.Contains(team.Managers, actor) {
+		if team.Disabled || team.Status != "ACTIVE" {
 			return nil, organizationDomainEntity.ErrNotFound
 		}
 		replay := team.MembershipMode == "membership" && team.Scope == scope &&
 			team.Manager == managementID && team.InitialMaintainer == maintainer
-		if !replay && (team.Scope != "" || team.Manager != "" ||
-			(team.MembershipMode != "" && team.MembershipMode != "legacy")) {
+		unbound := team.Scope == "" && team.Manager == "" &&
+			(team.MembershipMode == "" || team.MembershipMode == "legacy")
+		if !slices.Contains(team.Managers, actor) {
+			if len(team.Managers) != 0 || (!unbound && !replay) {
+				return nil, organizationDomainEntity.ErrNotFound
+			}
+			if !replay {
+				allowed, err := checkLINE()
+				if err != nil {
+					return nil, err
+				}
+				if !allowed {
+					return nil, organizationDomainEntity.ErrNotFound
+				}
+			}
+		}
+		if !unbound && !replay {
 			return nil, organizationDomainEntity.ErrConflict
 		}
 		if err := s.OpenMembership(tx, root, teamID, scope, managementID, actor, maintainer, replay); err != nil {

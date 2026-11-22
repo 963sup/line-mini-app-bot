@@ -48,15 +48,15 @@ func TestSummaryCollectsGroupTextSilentlyWithActor(t *testing.T) {
 	s := &chatStub{}
 	b := &Summary{Store: s}
 	e := webhook.MessageEvent{Mode: "active", Timestamp: time.Now().UnixMilli(), Source: webhook.GroupSource{GroupId: "g", UserId: "u"}, Message: webhook.TextMessageContent{Id: "m", Text: "今天討論出貨"}, WebhookEventId: "event"}
-	r, handled, err := b.Observe(context.Background(), e)
+	r, handled, err := b.Collect(context.Background(), e)
 	if err != nil || handled || r.Message != nil || len(s.collected) != 1 || s.collected[0].UserID != "u" || s.collected[0].ID != "m" || s.group != "g" {
 		t.Fatal("must collect silently using event identity")
 	}
 	e.Source = webhook.UserSource{UserId: "u"}
-	_, _, _ = b.Observe(context.Background(), e)
+	_, _, _ = b.Collect(context.Background(), e)
 	e.Source = webhook.GroupSource{GroupId: "g", UserId: "u"}
 	e.Message = webhook.TextMessageContent{Text: "上班"}
-	_, _, _ = b.Observe(context.Background(), e)
+	_, _, _ = b.Collect(context.Background(), e)
 	if len(s.collected) != 1 {
 		t.Fatal("direct messages and attendance commands must not be collected")
 	}
@@ -67,12 +67,12 @@ func TestSummaryEnqueuesWithoutCallingModel(t *testing.T) {
 	q := &queueStub{}
 	b := &Summary{Store: s, Queue: q}
 	e := webhook.MessageEvent{Mode: "active", Timestamp: time.Now().UnixMilli(), ReplyToken: "reply", WebhookEventId: "event", Source: webhook.GroupSource{GroupId: "g", UserId: "u"}, Message: webhook.TextMessageContent{Text: "摘要"}, DeliveryContext: &webhook.DeliveryContext{IsRedelivery: true}}
-	r, handled, err := b.Observe(context.Background(), e)
+	r, handled, err := b.Reply(context.Background(), e)
 	if err != nil || !handled || r.Message == nil || q.calls != 1 || s.commands != 1 {
 		t.Fatal("must persist and enqueue a command, including redelivery")
 	}
 	s.job.Status = "done"
-	_, _, _ = b.Observe(context.Background(), e)
+	_, _, _ = b.Reply(context.Background(), e)
 	if q.calls != 1 {
 		t.Fatal("completed job must not be requeued")
 	}
@@ -83,8 +83,10 @@ func TestLegacySummarySwitchCommandsDoNothing(t *testing.T) {
 	b := &Summary{Store: s}
 	for _, command := range []string{"關閉摘要", "開啟摘要"} {
 		e := webhook.MessageEvent{Mode: "active", Timestamp: time.Now().UnixMilli(), ReplyToken: "reply", WebhookEventId: "event", Source: webhook.GroupSource{GroupId: "g", UserId: "u"}, Message: webhook.TextMessageContent{Id: "m", Text: command}}
-		reply, handled, err := b.Observe(context.Background(), e)
-		if err != nil || handled || reply.Message != nil || s.commands != 0 || len(s.collected) != 0 {
+		reply, handled, err := b.Reply(context.Background(), e)
+		collectedReply, collectedHandled, collectionErr := b.Collect(context.Background(), e)
+		if err != nil || handled || reply.Message != nil || collectionErr != nil ||
+			collectedHandled || collectedReply.Message != nil || s.commands != 0 || len(s.collected) != 0 {
 			t.Fatalf("legacy command %q must be inert", command)
 		}
 	}

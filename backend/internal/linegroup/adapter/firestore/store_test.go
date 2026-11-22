@@ -11,11 +11,11 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
-	spaceDB "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
-	spaceLine "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/line"
-	groupport "github.com/963sup/line-mini-app-bot/internal/business/group/application/port"
-	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
-	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
+	spaceDB "github.com/963sup/line-mini-app-bot/internal/linegroup/adapter/firestore"
+	spaceLine "github.com/963sup/line-mini-app-bot/internal/linegroup/adapter/line"
+	groupport "github.com/963sup/line-mini-app-bot/internal/linegroup/application/port"
+	groupevent "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/event"
+	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -54,8 +54,9 @@ func TestGroupIdentityAndLifecycleWithoutRepository(t *testing.T) {
 		}
 	}
 	observer := &spaceLine.Observer{Store: store, GroupName: func(context.Context, string) string { return "Independent Group" }}
-	if _, handled, e := observer.Observe(ctx, webhook.MessageEvent{Source: webhook.GroupSource{GroupId: gid, UserId: "actor"}, Timestamp: at.Add(10 * time.Millisecond).UnixMilli(), WebhookEventId: "next-message", Mode: "active"}); e != nil || handled {
-		t.Fatalf("nonjoin event must update independent Group and remain nonconsuming: handled=%v err=%v", handled, e)
+	group := transport.GroupEvent{GroupID: gid, EventID: "next-message", Kind: transport.GroupMessage, At: at.Add(10 * time.Millisecond), Users: []string{"actor"}}
+	if err = observer.Observe(ctx, nil, &group); err != nil {
+		t.Fatalf("nonjoin event must update independent Group: %v", err)
 	}
 	if err = store.Observe(ctx, event); err != nil {
 		t.Fatal(err)
@@ -115,5 +116,29 @@ func TestGroupIdentityAndLifecycleWithoutRepository(t *testing.T) {
 	snapshot, err := orphan.Get(ctx)
 	if err != nil || snapshot.Data()["version"] != int64(7) {
 		t.Fatalf("collision mutated existing Group: %v %v", snapshot, err)
+	}
+
+	incompleteID := "C" + strings.Repeat("d", 32)
+	incomplete := root.Collection("groups").Doc(incompleteID)
+	if _, err = incomplete.Set(ctx, map[string]any{"id": incompleteID, "status": "ACTIVE", "version": int64(7)}); err != nil {
+		t.Fatal(err)
+	}
+	event.GroupID = incompleteID
+	event.EventID = "incomplete-identity"
+	if _, err = store.GetByID(ctx, incompleteID); !errors.Is(err, groupport.ErrUnavailable) {
+		t.Fatalf("missing stored groupId must not authorize: %v", err)
+	}
+	if err = store.Observe(ctx, event); !errors.Is(err, groupport.ErrUnavailable) {
+		t.Fatalf("observation must reject a missing stored groupId: %v", err)
+	}
+	snapshot, err = incomplete.Get(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, present := snapshot.Data()["groupId"]; present {
+		t.Fatal("observation populated the missing stored groupId")
+	}
+	if _, err = root.Collection("teams").Doc(incompleteID).Get(ctx); status.Code(err) != codes.NotFound {
+		t.Fatalf("invalid observation must not create a Team: %v", err)
 	}
 }

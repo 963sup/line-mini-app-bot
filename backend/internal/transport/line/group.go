@@ -8,32 +8,45 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
-// GroupEvent contains protocol facts, not membership or domain authorization.
+type GroupEventKind string
+
+const (
+	GroupBotJoined    GroupEventKind = "join"
+	GroupBotLeft      GroupEventKind = "leave"
+	GroupMessage      GroupEventKind = "message"
+	GroupPostback     GroupEventKind = "postback"
+	GroupMemberJoined GroupEventKind = "memberJoined"
+)
+
+// GroupEvent contains LINE protocol facts. Consumers decide their business state.
 type GroupEvent struct {
-	GroupID, EventID, Status string
-	At                       time.Time
-	Users                    []string
-	Joined                   bool
+	GroupID, EventID string
+	Kind             GroupEventKind
+	At               time.Time
+	Users            []string
 }
 
 // DecodeGroupEvent is called only after the webhook transport verifies signature.
 func DecodeGroupEvent(event webhook.EventInterface) (GroupEvent, bool) {
-	result := GroupEvent{Status: "ACTIVE"}
+	var result GroupEvent
 	var source webhook.SourceInterface
 	var at int64
 	var mode webhook.EventMode
 	switch e := event.(type) {
 	case webhook.JoinEvent:
 		source, at, result.EventID, mode = e.Source, e.Timestamp, e.WebhookEventId, e.Mode
-		result.Joined = true
+		result.Kind = GroupBotJoined
 	case webhook.LeaveEvent:
 		source, at, result.EventID, mode = e.Source, e.Timestamp, e.WebhookEventId, e.Mode
-		result.Status = "INACTIVE"
+		result.Kind = GroupBotLeft
 	case webhook.MessageEvent:
+		result.Kind = GroupMessage
 		source, at, result.EventID, mode = e.Source, e.Timestamp, e.WebhookEventId, e.Mode
 	case webhook.PostbackEvent:
+		result.Kind = GroupPostback
 		source, at, result.EventID, mode = e.Source, e.Timestamp, e.WebhookEventId, e.Mode
 	case webhook.MemberJoinedEvent:
+		result.Kind = GroupMemberJoined
 		source, at, result.EventID, mode = e.Source, e.Timestamp, e.WebhookEventId, e.Mode
 		if e.Joined != nil {
 			for _, member := range e.Joined.Members {

@@ -3,20 +3,36 @@ package query
 import (
 	"context"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/group/application/dto"
-	"github.com/963sup/line-mini-app-bot/internal/business/group/application/port"
-	"github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/business/group/domain/valueobject"
+	"github.com/963sup/line-mini-app-bot/internal/linegroup/application/dto"
+	"github.com/963sup/line-mini-app-bot/internal/linegroup/application/port"
+	"github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
+	"github.com/963sup/line-mini-app-bot/internal/linegroup/domain/valueobject"
 )
 
 type Service struct {
 	Store      port.Store
 	Membership port.Membership
+	Teams      TeamQualification
+}
+
+// TeamQualification checks product membership for a group-backed team.
+type TeamQualification interface {
+	IsTeamMember(context.Context, string, string) (bool, error)
 }
 
 func (s *Service) Get(ctx context.Context, user, id string) (entity.Group, error) {
 	if !valueobject.ValidID(id) || user == "" {
 		return entity.Group{}, entity.ErrNotFound
+	}
+	if s.Teams != nil {
+		ok, err := s.Teams.IsTeamMember(ctx, id, user)
+		if err != nil {
+			return entity.Group{}, err
+		}
+		if !ok {
+			return entity.Group{}, entity.ErrNotFound
+		}
+		return entity.Group{ID: id, GroupID: id}, nil
 	}
 	r, err := s.Store.GetByID(ctx, id)
 	if err != nil {

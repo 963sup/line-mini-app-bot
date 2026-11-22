@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	groupdto "github.com/963sup/line-mini-app-bot/internal/business/group/application/dto"
-	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
-	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
-	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
-	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/business/group/domain/valueobject"
+	groupdto "github.com/963sup/line-mini-app-bot/internal/linegroup/application/dto"
+	groupquery "github.com/963sup/line-mini-app-bot/internal/linegroup/application/query"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
+	groupevent "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/event"
+	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/valueobject"
 )
 
 type store struct {
@@ -97,5 +97,30 @@ func TestLegacyGroupContextDoesNotAcceptBusinessGroupID(t *testing.T) {
 	}
 	if m.calls != 0 {
 		t.Fatal("invalid group context must not reach group membership")
+	}
+}
+
+type teamQualificationFunc func(context.Context, string, string) (bool, error)
+
+func (f teamQualificationFunc) IsTeamMember(ctx context.Context, id, actor string) (bool, error) {
+	return f(ctx, id, actor)
+}
+
+func TestResourceGroupRequiresFormalTeamMembership(t *testing.T) {
+	id := "C" + strings.Repeat("a", 32)
+	for _, allowed := range []bool{false, true} {
+		s := groupquery.Service{Teams: teamQualificationFunc(func(_ context.Context, teamID, actor string) (bool, error) {
+			if teamID != id || actor != "actor" {
+				t.Fatalf("unexpected authority scope: %q %q", teamID, actor)
+			}
+			return allowed, nil
+		})}
+		got, err := s.Get(context.Background(), "actor", id)
+		if allowed && (err != nil || got.ID != id) {
+			t.Fatalf("active membership did not authorize: %+v %v", got, err)
+		}
+		if !allowed && !errors.Is(err, groupentity.ErrNotFound) {
+			t.Fatalf("missing membership must deny without LINE fallback: %v", err)
+		}
 	}
 }

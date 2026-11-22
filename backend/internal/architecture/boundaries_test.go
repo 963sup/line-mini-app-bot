@@ -19,7 +19,12 @@ func TestDependencyBoundaries(t *testing.T) {
 	}
 	core := map[string][]string{
 		"business/team/application":                           {"business/team/domain"},
-		"business/group":                                      {},
+		"linegroup/domain/entity":                             {},
+		"linegroup/domain/event":                              {},
+		"linegroup/domain/valueobject":                        {},
+		"linegroup/application/dto":                           {"linegroup/domain/entity"},
+		"linegroup/application/port":                          {"linegroup/application/dto", "linegroup/domain/entity", "linegroup/domain/event"},
+		"linegroup/application/query":                         {"linegroup/application/dto", "linegroup/application/port", "linegroup/domain/entity", "linegroup/domain/valueobject"},
 		"business/repository/application":                     {"business/repository/application/dto", "business/repository/application/port", "business/repository/domain/entity", "identity"},
 		"business/repository/application/dto":                 {"business/repository/application", "business/repository/application/port", "business/repository/domain/entity", "identity"},
 		"business/repository/application/port":                {"business/repository/application", "business/repository/application/dto", "business/repository/domain/entity", "identity"},
@@ -39,7 +44,7 @@ func TestDependencyBoundaries(t *testing.T) {
 		"business/project/application":                        {"business/project/application/dto", "business/project/application/port", "business/project/domain/entity", "identity"},
 		"business/project/application/dto":                    {"business/project/application", "business/project/application/port", "business/project/domain/entity", "identity"},
 		"business/project/application/port":                   {"business/project/application", "business/project/application/dto", "business/project/domain/entity", "identity"},
-		"business/project/domain/entity":                      {"business/group/domain/entity", "business/group/domain/valueobject", "identity"},
+		"business/project/domain/entity":                      {"linegroup/domain/entity", "linegroup/domain/valueobject", "identity"},
 		"business/repository/application/dto/labels":          {"business/repository/application", "business/repository/application/dto", "business/repository/application/labels", "business/repository/application/port", "business/repository/application/port/labels", "business/repository/domain/entity", "business/repository/domain/entity/labels"},
 		"business/repository/application/labels":              {"business/repository/application", "business/repository/application/dto", "business/repository/application/dto/labels", "business/repository/application/port", "business/repository/application/port/labels", "business/repository/domain/entity", "business/repository/domain/entity/labels"},
 		"business/repository/application/port/labels":         {"business/repository/application", "business/repository/application/dto", "business/repository/application/dto/labels", "business/repository/application/labels", "business/repository/application/port", "business/repository/domain/entity", "business/repository/domain/entity/labels"},

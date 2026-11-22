@@ -26,13 +26,18 @@ type Summary struct {
 	Queue summaryApplicationPortSummarization.Queue
 }
 
-func (b *Summary) Observe(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
+func (b *Summary) Reply(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
 	if b == nil {
 		return transport.Reply{}, false, nil
 	}
 	handler := commands.Commands{Store: b.Store, Queue: b.Queue}
-	if reply, handled, err := handler.Reply(ctx, event); handled || err != nil {
-		return reply, handled, err
+	return handler.Reply(ctx, event)
+}
+
+// Collect observes messages that were not claimed by an earlier handler.
+func (b *Summary) Collect(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
+	if b == nil {
+		return transport.Reply{}, false, nil
 	}
 	collector := collection.Collection{Store: b.Store}
 	return collector.Observe(ctx, event)

@@ -20,7 +20,7 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
 
 	journaldto "github.com/963sup/line-mini-app-bot/internal/business/journal/application/dto"
 	journalentity "github.com/963sup/line-mini-app-bot/internal/business/journal/domain/entity"

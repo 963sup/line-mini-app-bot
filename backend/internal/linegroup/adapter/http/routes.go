@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"time"
 
-	groupport "github.com/963sup/line-mini-app-bot/internal/business/group/application/port"
-	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
-	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
-	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/business/group/domain/valueobject"
+	groupdto "github.com/963sup/line-mini-app-bot/internal/linegroup/application/dto"
+	groupport "github.com/963sup/line-mini-app-bot/internal/linegroup/application/port"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
+	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/valueobject"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
@@ -23,14 +23,19 @@ func view(r groupentity.Group) generated.Group {
 	return generated.Group{Id: r.ID, GroupId: r.GroupID, Name: r.Name, Status: generated.GroupStatus(r.Status), Version: r.Version, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
 }
 
+type Catalog interface {
+	Get(context.Context, string, string) (groupentity.Group, error)
+	List(context.Context, string, string) (groupdto.Page, error)
+}
+
 type groupServer struct {
-	service *groupquery.Service
+	service Catalog
 	auth    Authenticator
 }
 
 var _ httpapi.GroupServer = (*groupServer)(nil)
 
-func Register(mux *http.ServeMux, service *groupquery.Service, auth Authenticator) {
+func Register(mux *http.ServeMux, service Catalog, auth Authenticator) {
 	httpapi.RegisterGroups(mux, &groupServer{service: service, auth: auth})
 }
 

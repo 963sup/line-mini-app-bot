@@ -35,7 +35,7 @@ func TestRedeliveredBatchContinuesAfterSpentReplyToken(t *testing.T) {
 		t.Fatal(err)
 	}
 	second := 0
-	handler := WebhookHandler("secret", bot, []Handler{{RetryOnSendFailure: true, Handle: func(_ context.Context, event webhook.EventInterface) (Reply, bool, error) {
+	handler := WebhookHandler("secret", bot, Dispatch{Commands: []Handler{{RetryOnSendFailure: true, Handle: func(_ context.Context, event webhook.EventInterface) (Reply, bool, error) {
 		e := event.(webhook.MessageEvent)
 		if e.WebhookEventId == "second" {
 			second++
@@ -44,7 +44,7 @@ func TestRedeliveredBatchContinuesAfterSpentReplyToken(t *testing.T) {
 			}
 		}
 		return Reply{Token: e.ReplyToken, Message: &messaging_api.TextMessage{Text: "ok"}}, true, nil
-	}}})
+	}}}})
 	for i, want := range []int{503, 200} {
 		event := func(id string) string {
 			return fmt.Sprintf(`{"type":"message","message":{"type":"text","text":"hello"},"webhookEventId":%q,"replyToken":%q,"deliveryContext":{"isRedelivery":%t}}`, id, id, i == 1)
@@ -62,5 +62,55 @@ func TestRedeliveredBatchContinuesAfterSpentReplyToken(t *testing.T) {
 	}
 	if second != 2 || sends != 3 {
 		t.Fatalf("second visits=%d, sends=%d", second, sends)
+	}
+}
+
+func TestWebhookDispatchPrecedenceAndObservationFailure(t *testing.T) {
+	bot, err := messaging_api.NewMessagingApiAPI("test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name string
+		want string
+		code int
+	}{
+		{"early command", "early", http.StatusOK},
+		{"observer failure", "early,observe", http.StatusServiceUnavailable},
+		{"fallback command", "early,observe,command", http.StatusOK},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var calls []string
+			handler := WebhookHandler("secret", bot, Dispatch{
+				EarlyCommands: []Handler{{Handle: func(context.Context, webhook.EventInterface) (Reply, bool, error) {
+					calls = append(calls, "early")
+					return Reply{}, tc.name == "early command", nil
+				}}},
+				Observers: []Observer{{Failure: "observation unavailable", Observe: func(_ context.Context, _ webhook.EventInterface, group *GroupEvent) error {
+					if group == nil || group.EventID != "group-event" || group.GroupID != "C"+strings.Repeat("a", 32) {
+						t.Fatalf("observer did not receive decoded group facts: %+v", group)
+					}
+					calls = append(calls, "observe")
+					if tc.name == "observer failure" {
+						return errors.New("temporary")
+					}
+					return nil
+				}}},
+				Commands: []Handler{{Handle: func(context.Context, webhook.EventInterface) (Reply, bool, error) {
+					calls = append(calls, "command")
+					return Reply{}, true, nil
+				}}},
+			})
+			body := fmt.Sprintf(`{"events":[{"type":"message","mode":"active","timestamp":1000,"webhookEventId":"group-event","source":{"type":"group","groupId":%q},"message":{"type":"text","text":"hello"}}]}`, "C"+strings.Repeat("a", 32))
+			mac := hmac.New(sha256.New, []byte("secret"))
+			mac.Write([]byte(body))
+			r := httptest.NewRequest("POST", "/", strings.NewReader(body))
+			r.Header.Set("X-Line-Signature", base64.StdEncoding.EncodeToString(mac.Sum(nil)))
+			w := httptest.NewRecorder()
+			handler(w, r)
+			if got := strings.Join(calls, ","); got != tc.want || w.Code != tc.code {
+				t.Fatalf("got %q and status %d, want %q and status %d", got, w.Code, tc.want, tc.code)
+			}
+		})
 	}
 }

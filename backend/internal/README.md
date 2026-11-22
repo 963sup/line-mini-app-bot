@@ -4,6 +4,8 @@
 
 依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
 
+LINE 群組觀測與舊查詢相容層位於 [linegroup](linegroup/README.md)。
+
 ## 閱讀與修改入口
 
 從 [architecture](architecture)、[靜態頁面](transport/http/browser)、[business](business)、[定位診斷](transport/http/geolocation)、[httpapi](transport/http/api)、[identity](identity) 開始。修改前讀[本目錄工作指引](AGENTS.md)。

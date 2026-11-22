@@ -4,65 +4,29 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
-// RegisterWebhook enables the connectivity prototype only when configured.
-func RegisterWebhook(mux *http.ServeMux, handlers []Handler) (func(context.Context, string) string, error) {
-	channelID := os.Getenv("LINE_MESSAGING_API_CHANNEL_ID")
-	secret := os.Getenv("LINE_MESSAGING_API_CHANNEL_SECRET")
-	token := os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN")
-	configurationAbsent := channelID == "" && secret == "" && token == ""
-	if configurationAbsent {
-		slog.Info("LINE webhook disabled: Messaging API configuration is absent")
-		return nil, nil
-	}
-	settings := []struct{ name, value string }{
-		{"LINE_MESSAGING_API_CHANNEL_ID", channelID},
-		{"LINE_MESSAGING_API_CHANNEL_SECRET", secret},
-		{"LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN", token},
-	}
-	for _, setting := range settings {
-		if strings.TrimSpace(setting.value) == "" {
-			return nil, fmt.Errorf("missing configuration: %s", setting.name)
-		}
-	}
-	for _, digit := range channelID {
-		if digit < '0' || digit > '9' {
-			return nil, errors.New("LINE_MESSAGING_API_CHANNEL_ID must contain only digits")
-		}
-	}
-	bot, err := messaging_api.NewMessagingApiAPI(token,
-		messaging_api.WithHTTPClient(&http.Client{Timeout: 5 * time.Second}))
-	if err != nil {
-		return nil, err
-	}
-	lookup := func(ctx context.Context, group string) string {
-		lookupCtx, cancel := context.WithTimeout(ctx, 400*time.Millisecond)
-		defer cancel()
-		client := *bot
-		client.WithContext(lookupCtx)
-		summary, err := client.GetGroupSummary(group)
-		if err != nil || summary == nil {
-			return ""
-		}
-		return summary.GroupName
-	}
-	path := "/webhooks/line/" + channelID
-	mux.HandleFunc("POST "+path, WebhookHandler(secret, bot, handlers))
-	slog.Info("LINE connectivity prototype enabled", "path", path)
-	return lookup, nil
+// Observer records a fact without claiming the event or sending a reply.
+type Observer struct {
+	Observe func(context.Context, webhook.EventInterface, *GroupEvent) error
+	Failure string
 }
 
-func WebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, handlers []Handler) http.HandlerFunc {
+// Dispatch preserves early command precedence while explicitly separating
+// observation from command handling.
+type Dispatch struct {
+	EarlyCommands []Handler
+	Observers     []Observer
+	Commands      []Handler
+}
+
+func WebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, dispatch Dispatch) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
 		callback, err := webhook.ParseRequest(secret, r)
@@ -92,30 +56,56 @@ func WebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, handlers 
 					}
 				}
 			}
-			for _, handler := range handlers {
-				reply, handled, handleErr := handler.Handle(ctx, event)
-				if handleErr != nil {
-					http.Error(w, handler.Failure, http.StatusServiceUnavailable)
+			if handled, ok := runCommands(ctx, w, &client, event, dispatch.EarlyCommands); !ok {
+				return
+			} else if handled {
+				continue
+			}
+			var group *GroupEvent
+			if len(dispatch.Observers) > 0 {
+				if decoded, ok := DecodeGroupEvent(event); ok {
+					group = &decoded
+				}
+			}
+			for _, observer := range dispatch.Observers {
+				if err := observer.Observe(ctx, event, group); err != nil {
+					http.Error(w, observer.Failure, http.StatusServiceUnavailable)
 					return
 				}
-				if !handled {
-					continue
-				}
-				if reply.Message != nil {
-					response, _, sendErr := client.ReplyMessageWithHttpInfo(&messaging_api.ReplyMessageRequest{ReplyToken: reply.Token, Messages: []messaging_api.MessageInterface{reply.Message}})
-					if sendErr != nil && handler.RetryOnSendFailure && !spentRedeliveryToken(event, response) {
-						http.Error(w, "LINE reply unavailable", http.StatusServiceUnavailable)
-						return
-					}
-					if sendErr != nil {
-						slog.Warn("LINE reply failed; not retried")
-					}
-				}
-				break
+			}
+			if _, ok := runCommands(ctx, w, &client, event, dispatch.Commands); !ok {
+				return
 			}
 		}
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+// runCommands reports whether a command claimed the event and whether the
+// webhook may continue processing the batch.
+func runCommands(ctx context.Context, w http.ResponseWriter, client *messaging_api.MessagingApiAPI, event webhook.EventInterface, commands []Handler) (handled, ok bool) {
+	for _, command := range commands {
+		reply, handled, err := command.Handle(ctx, event)
+		if err != nil {
+			http.Error(w, command.Failure, http.StatusServiceUnavailable)
+			return false, false
+		}
+		if !handled {
+			continue
+		}
+		if reply.Message != nil {
+			response, _, sendErr := client.ReplyMessageWithHttpInfo(&messaging_api.ReplyMessageRequest{ReplyToken: reply.Token, Messages: []messaging_api.MessageInterface{reply.Message}})
+			if sendErr != nil && command.RetryOnSendFailure && !spentRedeliveryToken(event, response) {
+				http.Error(w, "LINE reply unavailable", http.StatusServiceUnavailable)
+				return true, false
+			}
+			if sendErr != nil {
+				slog.Warn("LINE reply failed; not retried")
+			}
+		}
+		return true, true
+	}
+	return false, true
 }
 
 // A token rejected on redelivery cannot recover by retrying the same reply.

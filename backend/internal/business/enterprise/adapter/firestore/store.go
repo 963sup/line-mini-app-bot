@@ -16,10 +16,9 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/enterprise/application/dto"
 
-	groupport "github.com/963sup/line-mini-app-bot/internal/business/group/application/port"
-	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
-	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
+	groupport "github.com/963sup/line-mini-app-bot/internal/linegroup/application/port"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
 
 	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"github.com/google/uuid"
@@ -28,9 +27,11 @@ import (
 )
 
 type Store struct {
-	DB                 *firestore.Client
-	Channel            string
-	Groups             *groupquery.Service
+	DB      *firestore.Client
+	Channel string
+	Groups  interface {
+		Get(context.Context, string, string) (groupentity.Group, error)
+	}
 	OrganizationMember func(*firestore.Transaction, *firestore.DocumentRef, string, string) (bool, error)
 	TeamMember         func(*firestore.Transaction, *firestore.DocumentRef, string, string, string, string) (bool, error)
 }

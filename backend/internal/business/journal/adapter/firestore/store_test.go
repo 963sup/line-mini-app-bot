@@ -21,9 +21,9 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
-	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
-	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
-	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
+	groupdb "github.com/963sup/line-mini-app-bot/internal/linegroup/adapter/firestore"
+	groupquery "github.com/963sup/line-mini-app-bot/internal/linegroup/application/query"
+	groupevent "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/event"
 
 	journaldto "github.com/963sup/line-mini-app-bot/internal/business/journal/application/dto"
 	journalentity "github.com/963sup/line-mini-app-bot/internal/business/journal/domain/entity"

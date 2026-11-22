@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	groupdb "github.com/963sup/line-mini-app-bot/internal/business/group/adapter/firestore"
-	groupquery "github.com/963sup/line-mini-app-bot/internal/business/group/application/query"
+	groupdb "github.com/963sup/line-mini-app-bot/internal/linegroup/adapter/firestore"
+	groupquery "github.com/963sup/line-mini-app-bot/internal/linegroup/application/query"
 	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
 )
 

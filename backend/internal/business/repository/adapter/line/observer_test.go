@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
@@ -73,9 +74,13 @@ func TestObserverPreservesDomainNameLifecycleAndFailures(t *testing.T) {
 				}
 				return "current name"
 			}}
-			reply, handled, err := o.Observe(context.Background(), tc.event)
-			if handled || reply.Message != nil || errors.Is(err, failure) != tc.failed || store.lookups != tc.lookups || names != tc.names || len(store.saved) != tc.saves {
-				t.Fatalf("consumed=%v err=%v lookups=%d names=%d saves=%d", handled, err, store.lookups, names, len(store.saved))
+			group, ok := transport.DecodeGroupEvent(tc.event)
+			if !ok {
+				t.Fatal("invalid test group event")
+			}
+			err := o.Observe(context.Background(), tc.event, &group)
+			if errors.Is(err, failure) != tc.failed || store.lookups != tc.lookups || names != tc.names || len(store.saved) != tc.saves {
+				t.Fatalf("err=%v lookups=%d names=%d saves=%d", err, store.lookups, names, len(store.saved))
 			}
 			if tc.saves > 0 {
 				got := store.saved[0]
@@ -95,9 +100,9 @@ func TestFollowCreatesPersonalRepositoryObservation(t *testing.T) {
 	store := &observerStore{}
 	observer := Observer{Store: store}
 	event := webhook.FollowEvent{Source: webhook.UserSource{UserId: owner}, Mode: "active", Timestamp: 123, WebhookEventId: "follow"}
-	_, handled, err := observer.Observe(context.Background(), event)
-	if err != nil || handled || len(store.saved) != 1 {
-		t.Fatalf("follow: %v %v %v", store.saved, handled, err)
+	err := observer.Observe(context.Background(), event, nil)
+	if err != nil || len(store.saved) != 1 {
+		t.Fatalf("follow: %v %v", store.saved, err)
 	}
 	saved := store.saved[0]
 	if saved.OwnerID != owner || len(saved.Users) != 1 || saved.Users[0] != owner || store.lookups != 0 {

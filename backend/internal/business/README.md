@@ -6,7 +6,7 @@
 
 ## 閱讀與修改入口
 
-從 [attendance](attendance)、[discussion](discussion)、[enterprise](enterprise)、[group](group)、[issue](issue)、[journal](journal)、[object](object) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+從 [attendance](attendance)、[discussion](discussion)、[enterprise](enterprise)、[issue](issue)、[journal](journal)、[object](object) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
 
 ## 閱讀入口
 
