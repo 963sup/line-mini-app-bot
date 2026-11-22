@@ -378,7 +378,6 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if _, err := s.CorrectionsPage(ctx, "reviewer", "", "", true, 20); !errors.Is(err, attendanceentity.ErrCorrection) {
 		t.Fatalf("revoked actor could query review list: %v", err)
 	}
-
 }
 
 func TestLaunchExchangeIsStableAndScoped(t *testing.T) {
