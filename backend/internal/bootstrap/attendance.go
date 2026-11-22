@@ -1,9 +1,7 @@
 package bootstrap
 
 import (
-	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"time"
 	_ "time/tzdata"
@@ -18,26 +16,20 @@ type attendanceDependencies struct {
 	zone  *time.Location
 }
 
-func newAttendance(ctx context.Context, channel string) (*attendanceDependencies, func() error, error) {
-	project := os.Getenv("GOOGLE_CLOUD_PROJECT")
-	if project == "" || channel == "" {
-		return nil, func() error { return nil }, nil
+func newAttendance(firestoreConfigured bool, getFirestore func() (*firestore.Client, error), channel string) (*attendanceDependencies, error) {
+	if !firestoreConfigured || channel == "" {
+		return nil, nil
 	}
 	if !regexp.MustCompile(`^[0-9]+$`).MatchString(channel) {
-		return nil, nil, fmt.Errorf("attendance requires LINE_MESSAGING_API_CHANNEL_ID")
+		return nil, fmt.Errorf("attendance requires LINE_MESSAGING_API_CHANNEL_ID")
 	}
-	database := os.Getenv("FIRESTORE_DATABASE_ID")
-	if database == "" {
-		database = "(default)"
-	}
-	client, err := firestore.NewClientWithDatabase(ctx, project, database)
+	client, err := getFirestore()
 	if err != nil {
-		return nil, nil, fmt.Errorf("cannot initialize attendance database")
+		return nil, fmt.Errorf("cannot initialize attendance database")
 	}
 	zone, err := time.LoadLocation("Asia/Taipei")
 	if err != nil {
-		_ = client.Close()
-		return nil, nil, err
+		return nil, err
 	}
-	return &attendanceDependencies{store: &storage.Attendance{Client: client, ChannelID: channel}, zone: zone}, client.Close, nil
+	return &attendanceDependencies{store: &storage.Attendance{Client: client, ChannelID: channel}, zone: zone}, nil
 }

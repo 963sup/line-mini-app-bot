@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	firestoreplatform "github.com/963sup/line-mini-app-bot/internal/platform/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/platform/line/richmenu"
 	"github.com/963sup/line-mini-app-bot/internal/transport/line/navigation"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
@@ -45,10 +46,7 @@ func SyncLINENavigation(parent context.Context) (result error) {
 		menus = append(menus, richmenu.Menu{Alias: alias, Request: definitions[alias], Image: image})
 	}
 	database := os.Getenv("FIRESTORE_DATABASE_ID")
-	if database == "" {
-		database = "(default)"
-	}
-	db, err := firestore.NewClientWithDatabase(ctx, project, database)
+	db, err := firestoreplatform.NewClient(ctx, project, database)
 	if err != nil {
 		return err
 	}
