@@ -48,7 +48,7 @@ function useRepositoryState(workflow: string) {
         const values = [...(cursor && previous.owner === owner ? previous.items : []), ...page.items];
         const items = [...new Map(values.filter((item) => item.status === "ACTIVE").map((item) => [item.id, item])).values()];
         return { owner, items, cursor: page.nextCursor, busy: false, failed: false,
-          status: items.length ? "選擇空間查看資料。" : page.nextCursor ? "本頁沒有可開啟的空間，可繼續載入。" : "目前沒有可開啟的空間。" };
+          status: items.length ? "" : page.nextCursor ? "本頁沒有可開啟的空間，可繼續載入。" : "目前沒有可開啟的空間。" };
       }),
       (error) => setCatalog({ ...emptyCatalog, owner, failed: true, status: errorMessage(error) }),
     );
