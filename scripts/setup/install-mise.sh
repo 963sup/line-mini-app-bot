@@ -3,7 +3,12 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 source scripts/dev/dev-env.sh
 version="$(python3 scripts/setup/render-env.py --mise-version)"
-case "$(uname -m)" in x86_64) arch=x64;; aarch64) arch=arm64;; *) exit 1;; esac
+platform="$(uname -s)/$(uname -m)"
+case "$platform" in
+  Linux/x86_64) arch=x64 ;;
+  Linux/aarch64) arch=arm64 ;;
+  *) printf 'Cannot install mise for %s. Cloud bootstrap supports Linux x86_64 and Linux aarch64.\n' "$platform" >&2; exit 1 ;;
+esac
 if [[ ! -x /workspace/tooling/bin/mise ]] || [[ "$(/workspace/tooling/bin/mise --version)" != "$version "* ]]; then
   stage="$(mktemp -d "$TMPDIR/mise-bootstrap.XXXXXX")"
   trap 'rm -rf "$stage"' EXIT

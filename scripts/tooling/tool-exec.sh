@@ -15,7 +15,7 @@ if [[ ${#tools[@]} -eq 0 ]]; then
 import sys, tomllib
 from pathlib import Path
 command = sys.argv[1]
-aliases = {'python3': 'python', 'npm': 'node', 'npx': 'node'}
+aliases = {'python3': 'python', 'npm': 'node', 'npx': 'node', 'firebase': 'firebase-tools'}
 command = aliases.get(command, command)
 for tool in tomllib.loads(Path('mise.toml').read_text())['tools']:
     if tool.split(':')[-1].split('/')[-1] == command:
