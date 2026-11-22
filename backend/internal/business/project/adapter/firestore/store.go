@@ -276,7 +276,7 @@ func writeProjectChange(tx *db.Transaction, ref *db.DocumentRef, current, result
 	return tx.Create(ref.Collection("changes").Doc(strconv.FormatInt(result.Version, 10)), projectChange{actor, result.Version, result.UpdatedAt, action})
 }
 
-func (s *Store) Update(ctx context.Context, r projectApplicationPort.Scope, actor, id string, input projectDomainEntity.Update) (result projectDomainEntity.Project, err error) {
+func (s *Store) RunUpdate(ctx context.Context, r projectApplicationPort.Scope, id string, update func(projectApplicationPort.UpdateWork) error) (result projectDomainEntity.Project, err error) {
 	defer func() { err = grpcstatus.NormalizeContextError(err) }()
 	if !s.ready() {
 		return result, projectDomainEntity.ErrUnavailable
@@ -294,78 +294,80 @@ func (s *Store) Update(ctx context.Context, r projectApplicationPort.Scope, acto
 		if e := s.checkProjectOwner(tx, r, parent); e != nil {
 			return e
 		}
-		snap, e := tx.Get(ref)
-		current, e := decodeProject(snap, e, r)
-		if e != nil {
-			return e
-		}
-		updated, e := projectDomainEntity.ApplyUpdate(current, actor, input)
-		if e != nil {
-			return e
-		}
-		if input.ItemID != "" {
-			item := ref.Collection("items").Doc(input.ItemID)
-			snap, err := tx.Get(item)
-			if status.Code(err) == codes.NotFound {
-				return projectDomainEntity.ErrNotFound
-			}
-			if err != nil {
-				return err
-			}
-			doc, err := decodeItem(snap, id)
-			if err != nil {
-				return err
-			}
-			if itemReference(doc).ItemStatus != input.ItemStatus {
-				if current.Version >= projectDomainEntity.MaxVersion {
-					return projectDomainEntity.ErrConflict
-				}
-				if err := tx.Update(item, []db.Update{{Path: "itemStatus", Value: input.ItemStatus}}); err != nil {
-					return err
-				}
-				updated.Version = current.Version + 1
-			}
-		}
-		linkID, add := input.LinkRepositoryID, true
-		if linkID == "" {
-			linkID, add = input.UnlinkRepositoryID, false
-		}
-		if linkID != "" {
-			link := ref.Collection("linkedRepositories").Doc(linkID)
-			_, err := tx.Get(link)
-			exists := err == nil
-			if err != nil && status.Code(err) != codes.NotFound {
-				return err
-			}
-			if exists != add {
-				if current.Version >= projectDomainEntity.MaxVersion {
-					return projectDomainEntity.ErrConflict
-				}
-				if add {
-					repo, err := tx.Get(s.repositoryRef(linkID))
-					if err != nil {
-						return err
-					}
-					var src struct{ ID, OwnerID, Status string }
-					if err = repo.DataTo(&src); err != nil {
-						return err
-					}
-					if src.ID != linkID || src.OwnerID != r.SelectedSource.OwnerID || src.Status != "ACTIVE" {
-						return projectDomainEntity.ErrForbidden
-					}
-					if err := tx.Create(link, map[string]string{"repositoryId": linkID}); err != nil {
-						return err
-					}
-				} else if err := tx.Delete(link); err != nil {
-					return err
-				}
-				updated.Version = current.Version + 1
-			}
-		}
-		return writeProjectChange(tx, ref, current, updated, actor, "update")
+		return update(projectUpdateWork{store: s, tx: tx, ref: ref, scope: r})
 	})
 	if err != nil {
 		return result, err
 	}
 	return s.Get(ctx, r, id)
+}
+
+type projectUpdateWork struct {
+	store *Store
+	tx    *db.Transaction
+	ref   *db.DocumentRef
+	scope projectApplicationPort.Scope
+}
+
+func (w projectUpdateWork) Current() (projectDomainEntity.Project, error) {
+	snap, err := w.tx.Get(w.ref)
+	return decodeProject(snap, err, w.scope)
+}
+
+func (w projectUpdateWork) ItemStatus(id string) (string, error) {
+	snap, err := w.tx.Get(w.ref.Collection("items").Doc(id))
+	if status.Code(err) == codes.NotFound {
+		return "", projectDomainEntity.ErrNotFound
+	}
+	if err != nil {
+		return "", err
+	}
+	doc, err := decodeItem(snap, w.ref.ID)
+	if err != nil {
+		return "", err
+	}
+	return itemReference(doc).ItemStatus, nil
+}
+
+func (w projectUpdateWork) RepositoryLinked(id string) (bool, error) {
+	_, err := w.tx.Get(w.ref.Collection("linkedRepositories").Doc(id))
+	if status.Code(err) == codes.NotFound {
+		return false, nil
+	}
+	return err == nil, err
+}
+
+func (w projectUpdateWork) CheckLinkSource(id string) error {
+	repo, err := w.tx.Get(w.store.repositoryRef(id))
+	if err != nil {
+		return err
+	}
+	var src struct{ ID, OwnerID, Status string }
+	if err = repo.DataTo(&src); err != nil {
+		return err
+	}
+	if src.ID != id || src.OwnerID != w.scope.SelectedSource.OwnerID || src.Status != "ACTIVE" {
+		return projectDomainEntity.ErrForbidden
+	}
+	return nil
+}
+
+func (w projectUpdateWork) Save(actor string, previous, updated projectDomainEntity.Project, changes projectApplicationPort.UpdateWrites) error {
+	if changes.ItemID != "" {
+		item := w.ref.Collection("items").Doc(changes.ItemID)
+		if err := w.tx.Update(item, []db.Update{{Path: "itemStatus", Value: changes.ItemStatus}}); err != nil {
+			return err
+		}
+	}
+	if changes.RepositoryID != "" {
+		link := w.ref.Collection("linkedRepositories").Doc(changes.RepositoryID)
+		if changes.LinkRepository {
+			if err := w.tx.Create(link, map[string]string{"repositoryId": changes.RepositoryID}); err != nil {
+				return err
+			}
+		} else if err := w.tx.Delete(link); err != nil {
+			return err
+		}
+	}
+	return writeProjectChange(w.tx, w.ref, previous, updated, actor, "update")
 }

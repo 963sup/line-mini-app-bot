@@ -343,7 +343,10 @@ func TestOwnerProjectStorageRightsAndLegacyAlias(t *testing.T) {
 	if _, err = root.Collection("groups").Doc(gid).Update(ctx, []db.Update{{Path: "status", Value: "INACTIVE"}}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = store.Update(ctx, projectApplicationPort.Scope{OwnerID: gid, Actor: "owner"}, "owner", created.ID, projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: "denied"}, ExpectedVersion: updated.Version}); !errors.Is(err, projectDomainEntity.ErrNotFound) {
+	if _, err = store.RunUpdate(ctx, projectApplicationPort.Scope{OwnerID: gid, Actor: "owner"}, created.ID, func(projectApplicationPort.UpdateWork) error {
+		t.Fatal("inactive project scope reached update")
+		return nil
+	}); !errors.Is(err, projectDomainEntity.ErrNotFound) {
 		t.Fatal("inactive Group allowed write", err)
 	}
 }

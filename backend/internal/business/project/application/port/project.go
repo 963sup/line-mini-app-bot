@@ -20,13 +20,27 @@ type Store interface {
 	List(context.Context, Scope, string, string) (projectApplicationDto.Page, error)
 	Get(context.Context, Scope, string) (projectDomainEntity.Project, error)
 	Create(context.Context, Scope, string, string, projectDomainEntity.Content) (projectDomainEntity.Project, error)
-	Update(context.Context, Scope, string, string, projectDomainEntity.Update) (projectDomainEntity.Project, error)
+	RunUpdate(ctx context.Context, scope Scope, id string, update func(UpdateWork) error) (projectDomainEntity.Project, error)
 	ListItems(context.Context, Scope, string, string, string) (projectDomainEntity.ItemPage, error)
 	ChangeItem(context.Context, Scope, string, string, string, bool, int64) (projectDomainEntity.Project, error)
 	Progress(context.Context, Scope, *projectDomainEntity.Project) error
 	Inspections(context.Context, Scope, string, string, string) ([]projectDomainEntity.InspectionSubmission, error)
 	ListReferences(context.Context, Scope, string, string, string, bool) (projectApplicationDto.ReferencePage, error)
 	ChangeReference(context.Context, Scope, string, string, projectDomainEntity.Reference, bool, int64) (projectDomainEntity.Project, error)
+}
+
+type UpdateWork interface {
+	Current() (projectDomainEntity.Project, error)
+	ItemStatus(id string) (string, error)
+	RepositoryLinked(id string) (bool, error)
+	CheckLinkSource(id string) error
+	Save(actor string, previous, updated projectDomainEntity.Project, changes UpdateWrites) error
+}
+
+type UpdateWrites struct {
+	ItemID, ItemStatus string
+	RepositoryID       string
+	LinkRepository     bool
 }
 
 type Scope struct {
