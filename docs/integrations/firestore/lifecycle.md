@@ -10,7 +10,7 @@ Repository 的 ACTIVE／INACTIVE 表示入口狀態，[Repository 規格](../../
 
 ## TTL 與過期
 
-[firestore.indexes.json](../../../firestore.indexes.json)宣告 Session 的 `expiresAt` TTL；[身分設計](../../architecture/identity/browser-session.md)負責請求時的有效期判定。依[官方 TTL 文件](https://firebase.google.com/docs/firestore/ttl)，TTL 清理非即時，過期文件在清除前仍可能存在，因此授權不能依賴它是否已被背景刪除。
+[firestore.indexes.json](../../../firestore.indexes.json)宣告 Session 的 `expiresAt` TTL；[身分設計](../../contracts/identity.md)負責請求時的有效期判定。依[官方 TTL 文件](https://firebase.google.com/docs/firestore/ttl)，TTL 清理非即時，過期文件在清除前仍可能存在，因此授權不能依賴它是否已被背景刪除。
 
 TTL 清理不代表完成整個業務保留政策。收據、稽核、索引投影與子集合是否保留須逐類決定，不能跟著 Session 規則一起套用。
 

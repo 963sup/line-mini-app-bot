@@ -40,7 +40,7 @@ flowchart LR
   n3 --- n3l0["OpenAPI"]
   click n3l0 "../../../api/README.md"
   n3 --- n3l1["Session"]
-  click n3l1 "../identity/browser-session.md"
+  click n3l1 "../../contracts/identity.md"
   h --- n4["契約：資料與可靠性規劃<br/>權威維護位置：資料契約、可靠性索引<br/>導航時的界線：遵循各頁狀態標示；規劃中的 <br/>schema／Outbox 不作為現行資料庫全貌"]
   n4 --- n4l0["資料契約"]
   click n4l0 "../../proposals/firestore-data-contracts.md"

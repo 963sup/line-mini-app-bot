@@ -37,7 +37,7 @@ flowchart LR
   click n3 "../../domains/README.md#儲存庫"
   h --- n4["需求：Session、登入與請求認證<br/>規格與不可破壞的契約：Session 契約、HTTP 契<br/>約<br/>主要修改入口：backend/internal/identity/、<br/>frontend/miniapp/src/identity/"]
   n4 --- n4l0["Session 契約"]
-  click n4l0 "../identity/browser-session.md"
+  click n4l0 "../../contracts/identity.md"
   n4 --- n4l1["HTTP 契約"]
   click n4l1 "../../contracts/http.md"
   h --- n5["需求：LINE Webhook、導覽或訊息<br/>規格與不可破壞的契約：LINE 接入<br/>主要修改入口：backend/internal/transport/line/navigation/、<br/>功能 line/ adapter、internal/bootstrap/ 組裝"]

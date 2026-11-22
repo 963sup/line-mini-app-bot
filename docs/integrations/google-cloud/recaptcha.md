@@ -22,6 +22,6 @@ reCAPTCHA 不取代 LINE 身分、Session、CSRF、資源授權與速率限制�
 
 ## 來源與相關規格
 
-[官方文件](https://docs.cloud.google.com/recaptcha/docs/create-assessment-website)，查證範圍見[整合總覽](README.md#sources)。[身分與 Session](../../architecture/identity/browser-session.md) · [領域授權](../../references/ddd/domain-authorization.md)。
+[官方文件](https://docs.cloud.google.com/recaptcha/docs/create-assessment-website)，查證範圍見[整合總覽](README.md#sources)。[身分與 Session](../../contracts/identity.md) · [領域授權](../../references/ddd/domain-authorization.md)。
 
 [Google 服務索引](README.md)

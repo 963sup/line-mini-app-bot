@@ -40,7 +40,7 @@
 
 ### 身分與登入
 
-[身分索引](identity/README.md) · [應用 Session 契約](identity/browser-session.md)
+[身分與 Session 契約](../contracts/identity.md)
 
 ### 共用前端
 
@@ -48,7 +48,7 @@
 
 ### 資料與儲存
 
-[資料儲存責任](storage/README.md)說明領域與 adapter 的分工。查閱 [Firestore](../integrations/firestore/README.md) 或 [Cloud Storage](../integrations/storage/README.md) 的具體契約。
+[資料儲存責任](data.md)說明領域與 adapter 的分工。查閱 [Firestore](../integrations/firestore/README.md) 或 [Cloud Storage](../integrations/storage/README.md) 的具體契約。
 
 ### 外部整合
 

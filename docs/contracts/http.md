@@ -46,7 +46,7 @@ flowchart LR
   n0 --- n0l1["錯誤回應實作"]
   click n0l1 "../../backend/internal/transport/http/json.go"
   h --- n1["Cookie Session 的建立、續期、撤銷及 CSRF 檢<br/>查見 Session 契約。"]
-  click n1 "../architecture/identity/browser-session.md"
+  click n1 "identity.md"
 ```
 
 <a id="mini-app-信任流程"></a>

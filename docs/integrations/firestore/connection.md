@@ -23,7 +23,7 @@ flowchart LR
   n2 --- n2l0["connection instructions"]
   click n2l0 "../line/setup.md#firestore-唯讀連線"
   n2 --- n2l1["Session and renewal design"]
-  click n2l1 "../../architecture/identity/browser-session.md"
+  click n2l1 "../../contracts/identity.md"
 ```
 
 <a id="索引宣告"></a>

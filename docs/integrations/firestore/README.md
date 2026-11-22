@@ -10,4 +10,4 @@
 | 驗證連線或執行整合測試 | [唯讀連線](read-check.md) · [本機 emulator](emulator.md) |
 | 瀏覽器 Session 的文件、續期與 TTL | [Session 持久化](browser-session.md) |
 
-[外部整合索引](../README.md) · [資料儲存責任](../../architecture/storage/README.md)
+[外部整合索引](../README.md) · [資料儲存責任](../../architecture/data.md)

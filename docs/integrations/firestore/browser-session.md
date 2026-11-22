@@ -1,6 +1,6 @@
 # Firestore Session 持久化
 
-瀏覽器 Cookie、CSRF 及公開 API 以[應用 Session 契約](../../architecture/identity/browser-session.md)為準。
+瀏覽器 Cookie、CSRF 及公開 API 以[應用 Session 契約](../../contracts/identity.md)為準。
 
 ## 文件與相容性
 

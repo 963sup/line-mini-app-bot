@@ -7,7 +7,7 @@ flowchart LR
   h["React 前端生命週期"]
   h --- n0["Next.js Pages Router 靜態輸出，React Strict <br/>Mode 啟用。出勤功能入口位於 <br/>frontend/miniapp/src/business/attendance/{<br/>records,corrections,approvals,punch,leave}；<br/>定位示範位於 diagnostics/geolocation。組織與企業入口採用<br/>Next.js 客戶端導覽；直接開啟連結或重新整理時<br/>仍會初始化身分。"]
   h --- n1["identity/Session.tsx：身分 Context、LINE 初<br/>始化、伺服器驗證、登入／登出、BFCache 恢復與<br/>型別化認證請求。LINE token 僅於交換後端 <br/>Session 時從 SDK 取得；後續 API 使用 Cookie <br/>與記憶體中的 CSRF token。可見頁面有近期活動<br/>時，接近到期才以單一請求續期；閒置／背景不保<br/>活。登出會先撤銷後端 Session，失敗時保留重試<br/>入口。見 Session 契約。SDK init <br/>single-flight；Strict Mode 清理會取消等待並<br/>拒收結果。"]
-  click n1 "../identity/browser-session.md"
+  click n1 "../../contracts/identity.md"
   h --- n2["platform/line/sdk.ts：官方 SDK script loader<br/> 與初始化共用 Promise。全域僅有官方 <br/>window.liff，沒有自訂 client、DOM dataset 或<br/>身分事件橋接。"]
   h --- n3["shared/http/lifecycle.ts：AbortController、<br/>獨立 deadline、世代檢查。即使底層忽略 abort<br/>，也不套用過期回應。已啟動 Promise 在預先取<br/>消時仍須觀察其成功／拒絕，避免未處理拒絕；外<br/>層取消仍回 AbortError，正常錯誤不吞掉。"]
   h --- n4["shared/location/position.ts：單次定位，成功<br/>、錯誤、逾時、取消一律 clearWatch；拒收無效<br/>座標及遲到 callback。權限等待另有 15 秒期限<br/>。"]

@@ -4,7 +4,7 @@
 
 ## architecture
 
-適用於 runtime、identity 與 storage；共用契約見 [docs/contracts](../contracts/README.md)。
+適用於系統執行、模組依賴與資料儲存責任；共用身分與授權規則見[跨邊界契約](../contracts/README.md)。
 
 跨模組邊界、依賴方向、HTTP／資料契約與架構決策。
 局部命令放模組 README；功能規則放 domains，部署操作放 operations。已接受決策以 decisions 中的 ADR 為準，未來規劃需明確標示。

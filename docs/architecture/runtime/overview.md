@@ -41,7 +41,7 @@ flowchart LR
   n0 --- n0l0["Webhook 與身分"]
   click n0l0 "../../contracts/http.md"
   n0 --- n0l1["Session"]
-  click n0l1 "../identity/browser-session.md"
+  click n0l1 "../../contracts/identity.md"
   n0 --- n0l2["群聊摘要"]
   click n0l2 "../../domains/summary/summary.md"
 ```
