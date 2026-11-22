@@ -32,7 +32,7 @@ func TestMiniAppAttendanceGetsDedicatedPage(t *testing.T) {
 		attendance bool
 		content    string
 	}{
-		{"/miniapp", false, "開始使用"},
+		{"/miniapp", false, `aria-label="首頁常用功能"`},
 		{"/miniapp/feed", false, "請先登入以查閱群組日誌。"},
 		{"/miniapp?journal=1", false, "請先登入以查閱群組日誌。"},
 		{"/miniapp?liff.state=%3Fjournal%3D1", false, "請先登入以查閱群組日誌。"},
