@@ -2,6 +2,8 @@
 
 此頁維護 Cloud Run runtime 設定、Secret Manager 綁定與公開設定遷移。[部署步驟](cloud-run.md)與[發布驗收](release-acceptance.md)另列。
 
+正式環境將 LINE 憑證與 `OPENAI_API_KEY`、`GEMINI_API_KEY`、`CWA_API_KEY` 綁定為 Secret Manager references。先核對目標版本已啟用，再建立並驗證使用該 reference 的 Ready revision。Managed Trigger 若只更新映像，會沿用既有服務設定。服務目前的綁定與值以目標環境為準。
+
 <a id="設定契約"></a>
 
 <a id="secret-manager-與環境變數"></a>
@@ -9,7 +11,7 @@
 ```mermaid
 flowchart LR
   h["Secret Manager 與環境變數"]
-  h --- n0["Secret Manager 與兩條部署路徑的關係如下。<br/>deploy/cloudbuild.yaml 的「部署檔參照」只在<br/>手動或 自訂 Trigger 真正執行該檔時生效；「歷<br/>史快照」記錄 2026-11-08 revision <br/>line-mini-app-bot-00027-695 的 metadata，不<br/>包含 Secret payload。此表不是現行服務宣告； <br/>部署前使用發布 snapshot重新讀取 serving <br/>revision、 流量、執行帳戶及 Secret <br/>references，另核對必要非機密 env 值："]
+  h --- n0["Secret Manager 與兩條部署路徑的關係如下。<br/>cloudbuild.yaml 的「部署檔參照」只在<br/>手動或 自訂 Trigger 真正執行該檔時生效；「歷<br/>史快照」記錄 2026-11-08 revision <br/>line-mini-app-bot-00027-695 的 metadata，不<br/>包含 Secret payload。此表不是現行服務宣告； <br/>部署前使用發布 snapshot重新讀取 serving <br/>revision、 流量、執行帳戶及 Secret <br/>references，另核對必要非機密 env 值："]
   click n0 "release-acceptance.md#發布證據與前置條件"
 ```
 
@@ -28,7 +30,7 @@ flowchart LR
 flowchart LR
   h["Secret Manager 與環境變數"]
   h --- n0["Secret 名稱存在不代表已有 enabled version。<br/>新增或輪替 version 後仍須更新 Cloud Run <br/>reference 並建立 Ready revision；不得用文件<br/>或 Secret 名稱推定 payload 正確。"]
-  h --- n1["_SUMMARY_PROVIDER=openai 與 <br/>_SUMMARY_MODEL=gpt-4.1-mini 只在執行 <br/>deploy/cloudbuild.yaml 時透過 --set-env-vars<br/> 成為 runtime 設定。摘要還需要 <br/>SUMMARY_TASK_QUEUE、SUMMARY_TASK_URL、<br/>SUMMARY_TASK_SERVICE_ACCOUNT。現行服務已由 <br/>Cloud Run service configuration 成套設定 <br/>OpenAI provider；queue 層級也已授予 runtime <br/>service account roles/cloudtasks.enqueuer，<br/>但仍須以真實任務驗收 OIDC、模型與 LINE Push<br/>。"]
+  h --- n1["_SUMMARY_PROVIDER=openai 與 <br/>_SUMMARY_MODEL=gpt-4.1-mini 只在執行 <br/>cloudbuild.yaml 時透過 --set-env-vars<br/> 成為 runtime 設定。摘要還需要 <br/>SUMMARY_TASK_QUEUE、SUMMARY_TASK_URL、<br/>SUMMARY_TASK_SERVICE_ACCOUNT。現行服務已由 <br/>Cloud Run service configuration 成套設定 <br/>OpenAI provider；queue 層級也已授予 runtime <br/>service account roles/cloudtasks.enqueuer，<br/>但仍須以真實任務驗收 OIDC、模型與 LINE Push<br/>。"]
 ```
 
 ```mermaid
@@ -48,7 +50,7 @@ flowchart LR
   h --- n0["使用版本 1 前須確認已存在且 enabled；若實際<br/>版本不同，明確覆寫。 目前 preflight 僅對 <br/>Messaging Channel secret／access token 檢查<br/>正整數版本； 它沒有檢查其他四個 Secret <br/>references，且 YAML 的 Gemini 預設仍是 <br/>latest。 手動發布前須核對所有綁定並使用明確<br/>數字版本；不能把 preflight 通過視為全部機密<br/>已就緒。 輪替時新增 secret version，再帶新的<br/>數字版本部署；保留舊版本供回滾使用。"]
   h --- n1["GOOGLE_CLOUD_PROJECT 自動設為此次 Build 的 <br/>project。MINI App 兩個 ID 全空時停用身分功能<br/>； 只提供其中一個會在建置前失敗。Channel、<br/>LIFF ID 都不是機密，但必須符合實際環境。 <br/>Service Message token、MCP API key、使用者 <br/>ID token 與 ADC 憑證不屬於本部署的 <br/>substitutions。 應用設定命名仍依 LINE 契約。"]
   click n1 "../integrations/line/configuration.md"
-  h --- n2["deploy/cloudbuild.yaml 使用 set-env-vars／<br/>set-secrets 宣告完整集合，會移除未列出的手動<br/> env／secret 綁定； 新增功能時先更新檔案，不<br/>能只在 Console 臨時補值。這些值都在執行期注<br/>入，沒有 bake 進映像。"]
+  h --- n2["cloudbuild.yaml 使用 set-env-vars／<br/>set-secrets 宣告完整集合，會移除未列出的手動<br/> env／secret 綁定； 新增功能時先更新檔案，不<br/>能只在 Console 臨時補值。這些值都在執行期注<br/>入，沒有 bake 進映像。"]
 ```
 
 ## MINI App 公開設定遷移

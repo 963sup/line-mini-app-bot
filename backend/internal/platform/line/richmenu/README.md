@@ -12,4 +12,4 @@
 
 在儲存庫根目錄執行 `bash scripts/tooling/tool-exec.sh go -C backend test -race ./internal/platform/line/richmenu ./internal/bootstrap ./internal/architecture`。測試涵蓋 staging 失敗、Alias 重跑、穩定狀態零寫入、預設查詢失敗與刪除前遷移；租約整合案例需隔離的 loopback Firestore emulator。真實 LINE 整合另驗收。
 
-[平台入口](../README.md) · [自動部署設定](../../../../../deploy/cloudbuild.yaml) · [發布操作指南](../../../../../docs/operations/rich-menu.md)
+[平台入口](../README.md) · [自動部署設定](../../../../../cloudbuild.yaml) · [發布操作指南](../../../../../docs/operations/rich-menu.md)

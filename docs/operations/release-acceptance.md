@@ -51,7 +51,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["候選建置與無流量發布"]
-  h --- n0["這條 image-only 命令沿用服務設定，不適用尚未<br/>完成設定的首次部署。不要加入 --set-env-vars<br/>／--set-secrets 重建未核對的集合。現有 <br/>deploy/cloudbuild.yaml 的 deploy step 會直接<br/>更新服務，並非無流量驗收流程；若採該檔發布，<br/>先調整策略再送出，不能假設它有上述保護。"]
+  h --- n0["這條 image-only 命令沿用服務設定，不適用尚未<br/>完成設定的首次部署。不要加入 --set-env-vars<br/>／--set-secrets 重建未核對的集合。現有 <br/>cloudbuild.yaml 的 deploy step 會直接<br/>更新服務，並非無流量驗收流程；若採該檔發布，<br/>先調整策略再送出，不能假設它有上述保護。"]
   h --- n1["候選 tag URL 仍有原服務 IAM／ingress 限制。<br/>LIFF 必須在已設定 Endpoint URL 或其下層初始<br/>化；不能把正式 LIFF 任意指向 tag hostname。<br/>真實裝置驗收使用已核准且已配置 LIFF 的測試環<br/>境，或依既定變更時段切換正式流量驗收；不得以<br/> mock SDK 當作真實 LINE。此取捨須由環境擁有<br/>者確定，避免為測試任意改正式 Endpoint。"]
 ```
 

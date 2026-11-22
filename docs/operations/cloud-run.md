@@ -19,6 +19,12 @@ flowchart LR
   click n1 "release-acceptance.md"
 ```
 
+## 觸發條件
+
+Managed Trigger 的 `includedFiles`／`ignoredFiles` 在 Cloud Build 維護。文件專用變更可依線上規則略過；根目錄 `firestore.indexes.json` 與 `scripts/generate/prepare-miniapp-assets.mts` 已列為觸發輸入。若要讓單改根目錄 `cloudbuild.yaml` 也觸發建置，需另外更新雲端篩選。自訂 Trigger 若指定舊位置，須改指向根目錄的 YAML。
+
+建置不查詢或自動取消其他建置；現行流程不需要額外的查詢或取消權限。映像輸入與本機驗收見[容器建置契約](container-build.md#容器建置契約)。
+
 <a id="建置入口"></a>
 
 ```mermaid
@@ -31,7 +37,7 @@ flowchart LR
 block-beta
   columns 3
   M["main push：GitHub managed trigger"] H["手動 gcloud builds submit"] C["未來自訂 Trigger"]
-  I["inline build 與根 Dockerfile"] Y["deploy/cloudbuild.yaml"]:2
+  I["inline build 與根 Dockerfile"] Y["cloudbuild.yaml"]:2
   G["image-only update"] D["build → push → deploy"]:2
   M --> I
   H --> Y
@@ -43,8 +49,8 @@ block-beta
 ```mermaid
 flowchart LR
   h["建置入口"]
-  h --- n0["手動入口使用 gcloud builds submit <br/>--config=deploy/cloudbuild.yaml。Managed <br/>trigger 的 substitutions、環境變數與服務帳戶<br/>由實際 inline build 和服務設定管理。"]
-  h --- n1["現行 managed trigger 的 runtime 環境變數與 <br/>Secret reference 以 Cloud Run service <br/>configuration 為準；image-only update 會沿用<br/>當時的 service template。Git push 不會把 <br/>repository 的 .env.example 或 <br/>deploy/cloudbuild.yaml 設定同步到 Cloud Run<br/>。機密只由 Cloud Run 引用 Secret Manager，不<br/>進入 Dockerfile、映像或 Git。"]
+  h --- n0["手動入口使用 gcloud builds submit <br/>--config=cloudbuild.yaml。Managed <br/>trigger 的 substitutions、環境變數與服務帳戶<br/>由實際 inline build 和服務設定管理。"]
+  h --- n1["現行 managed trigger 的 runtime 環境變數與 <br/>Secret reference 以 Cloud Run service <br/>configuration 為準；image-only update 會沿用<br/>當時的 service template。Git push 不會把 <br/>repository 的 .env.example 或 <br/>cloudbuild.yaml 設定同步到 Cloud Run<br/>。機密只由 Cloud Run 引用 Secret Manager，不<br/>進入 Dockerfile、映像或 Git。"]
 ```
 
 <a id="managed-trigger-的-rich-menu-圖片路徑"></a>
@@ -59,13 +65,13 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  h["Repository #96;deploy/cloudbuild.yaml#96; 預設配置"]
+  h["Repository #96;cloudbuild.yaml#96; 預設配置"]
   h --- n0["下表描述 repository 配置，不代表現行 managed<br/> trigger 或 serving revision 已套用相同值。"]
 ```
 
 ```mermaid
 flowchart LR
-  h["Repository #96;deploy/cloudbuild.yaml#96; 預設配置"]
+  h["Repository #96;cloudbuild.yaml#96; 預設配置"]
   h --- n0["項目：Cloud Run service<br/>預設值：line-mini-app-bot"]
   h --- n1["項目：Region<br/>預設值：asia-east1；仍應依 Firestore 位置確<br/>認"]
   h --- n2["項目：Artifact Registry repository<br/>預設值：applications（Docker 類型，與部署 <br/>region 相同）"]
@@ -82,7 +88,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  h["Repository #96;deploy/cloudbuild.yaml#96; 預設配置"]
+  h["Repository #96;cloudbuild.yaml#96; 預設配置"]
   h --- n0["Cloud Run 明確使用 8080 的 startup TCP probe<br/> 檢查容器啟動；本專案沒有 /healthz，沒有新增<br/> HTTP health probe。 此配置不包括 Scheduler<br/>、Worker、Terraform 或另一套 GitHub Actions <br/>部署 workflow。 既有 GitHub Repository <br/>checks 保留；Cloud Build Trigger 不會自動等<br/>待 GitHub checks。"]
 ```
 
@@ -141,14 +147,14 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["首次手動部署"]
-  h --- n0[".gcloudignore 允許 Dockerfile、.dockerignore<br/>、deploy/cloudbuild.yaml、根工作區 manifest<br/>／lock、backend/、frontend/、api/、前端資產<br/>準備腳本與 richmenu 資產；排除依賴目錄及建置<br/>產物。 不會上傳 .env、.codex、憑證、工具快取<br/>、分析輸出或文件。"]
+  h --- n0[".gcloudignore 允許 Dockerfile、.dockerignore<br/>、cloudbuild.yaml、根工作區 manifest<br/>／lock、backend/、frontend/、api/、前端資產<br/>準備腳本與 richmenu 資產；排除依賴目錄及建置<br/>產物。 不會上傳 .env、.codex、憑證、工具快取<br/>、分析輸出或文件。"]
   h --- n1["確認雲端前置條件與部署授權後，替換下列 <br/>project、bucket、Channel ID 及 secret 版本："]
 ```
 
 ```mermaid
 flowchart LR
   h["首次手動部署"]
-  h --- n0["bash scripts/tooling/tool-exec.sh gcloud builds submit . #92;<br/>  --project=YOUR_PROJECT_ID #92;<br/>  --region=asia-east1 #92;<br/>  --gcs-source-staging-dir=gs://YOUR_SOURCE_BUCKET/source #92;<br/>  --config=deploy/cloudbuild.yaml #92;<br/>  --substitutions=_MESSAGING_API_CHANNEL_ID=YOUR_CHANNEL_ID,_CHANNEL_SECRET_VERSION=3,_CHANNEL_ACCESS_TOKEN_VERSION=2 #92;<br/>  --quiet"]
+  h --- n0["bash scripts/tooling/tool-exec.sh gcloud builds submit . #92;<br/>  --project=YOUR_PROJECT_ID #92;<br/>  --region=asia-east1 #92;<br/>  --gcs-source-staging-dir=gs://YOUR_SOURCE_BUCKET/source #92;<br/>  --config=cloudbuild.yaml #92;<br/>  --substitutions=_MESSAGING_API_CHANNEL_ID=YOUR_CHANNEL_ID,_CHANNEL_SECRET_VERSION=3,_CHANNEL_ACCESS_TOKEN_VERSION=2 #92;<br/>  --quiet"]
 ```
 
 ```mermaid
@@ -162,8 +168,8 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["現行 GitHub managed trigger"]
-  h --- n0["目前 Cloud Build Trigger <br/>rmgpgab-line-mini-app-bot-asia-east1-963sup-line-mini-app-boohl<br/> 只監聽 ^main$，Build configuration 是 <br/>Google 管理的 inline build。Build step 使用 <br/>Dockerfile；Deploy step 只更新 image，因此沿<br/>用 Cloud Run service template 的 runtime 設<br/>定。修改 repository deploy/cloudbuild.yaml <br/>或只 push 相同 commit 都不會改變 runtime 設<br/>定； 環境變數或 Secret reference 變更必須在 <br/>Cloud Run 建立新 revision。"]
-  h --- n1["截至 2026-11-08，現行服務使用 <br/>185354881750-compute@developer.gserviceaccount.com<br/> 作為 runtime service account；這與 <br/>repository deploy/cloudbuild.yaml 預設的 <br/>line-mini-app-runtime 不同。兩者的 IAM 不會<br/>自動同步， 切換部署路徑前必須重新核對 Secret<br/>、Firestore、Cloud Tasks 與 service account <br/>impersonation。"]
+  h --- n0["目前 Cloud Build Trigger <br/>rmgpgab-line-mini-app-bot-asia-east1-963sup-line-mini-app-boohl<br/> 只監聽 ^main$，Build configuration 是 <br/>Google 管理的 inline build。Build step 使用 <br/>Dockerfile；Deploy step 只更新 image，因此沿<br/>用 Cloud Run service template 的 runtime 設<br/>定。修改 repository cloudbuild.yaml <br/>或只 push 相同 commit 都不會改變 runtime 設<br/>定； 環境變數或 Secret reference 變更必須在 <br/>Cloud Run 建立新 revision。"]
+  h --- n1["截至 2026-11-08，現行服務使用 <br/>185354881750-compute@developer.gserviceaccount.com<br/> 作為 runtime service account；這與 <br/>repository cloudbuild.yaml 預設的 <br/>line-mini-app-runtime 不同。兩者的 IAM 不會<br/>自動同步， 切換部署路徑前必須重新核對 Secret<br/>、Firestore、Cloud Tasks 與 service account <br/>impersonation。"]
   h --- n2["每次 main push 後要同時驗證 Build 的 source <br/>SHA、Deploy step、latest Ready revision、 <br/>traffic 與該 revision 的 env／Secret <br/>reference。Build 綠燈不等於 LINE 驗簽、<br/>Firestore、 Cloud Tasks、模型或訊息送達已通<br/>過端到端測試。"]
 ```
 
@@ -172,7 +178,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["Docker BuildKit 建置契約"]
-  h --- n0["Dockerfile 使用 RUN --mount=type=secret,<br/>id=build-ca，因此 builder 必須支援並啟用 <br/>BuildKit。 目前 managed trigger 的 inline <br/>Build step 與 repository <br/>deploy/cloudbuild.yaml 的 build step 都明確<br/>設定 DOCKER_BUILDKIT=1；Dockerfile 頂端的 <br/>syntax directive 不會自行啟用 BuildKit。 本<br/>機 Docker 預設啟用不代表 Cloud Build 也啟用<br/>。若更新 Docker builder，確認其 BuildKit／<br/>Buildx 支援，並用實際 builder 測試 secret <br/>mount；不能移除 TLS 驗證或將 CA／憑證寫入映<br/>像代替。"]
+  h --- n0["Dockerfile 使用 RUN --mount=type=secret,<br/>id=build-ca，因此 builder 必須支援並啟用 <br/>BuildKit。 目前 managed trigger 的 inline <br/>Build step 與 repository <br/>cloudbuild.yaml 的 build step 都明確<br/>設定 DOCKER_BUILDKIT=1；Dockerfile 頂端的 <br/>syntax directive 不會自行啟用 BuildKit。 本<br/>機 Docker 預設啟用不代表 Cloud Build 也啟用<br/>。若更新 Docker builder，確認其 BuildKit／<br/>Buildx 支援，並用實際 builder 測試 secret <br/>mount；不能移除 TLS 驗證或將 CA／憑證寫入映<br/>像代替。"]
   h --- n1["若日誌顯示 the --mount option requires <br/>BuildKit，失敗發生在建置階段，尚未推送／部署<br/>新版。 先核對實際 Trigger 的 inline Build <br/>env；只修改 repository YAML 不會更新 managed<br/> trigger。 修改 trigger 前保存 metadata，變<br/>更後比對僅預期的 Build env 有差異，不改部署<br/>、選單或機密設定。"]
   h --- n2["參考：Docker BuildKit、 Docker build secrets<br/>。"]
   n2 --- n2l0["Docker BuildKit"]
@@ -185,8 +191,8 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  h["改用 repository #96;deploy/cloudbuild.yaml#96; 的<br/>自訂 Trigger"]
-  h --- n0["在 Cloud Build Console 連接本 repository、建<br/>立 push Trigger，選定一個部署分支， 設定 <br/>Build configuration 為 <br/>deploy/cloudbuild.yaml，填入相同的非機密 <br/>substitutions。 建議使用受保護分支，合併前要<br/>求既有 Repository checks 通過；不要設定 PR <br/>自動正式部署。"]
+  h["改用 repository #96;cloudbuild.yaml#96; 的<br/>自訂 Trigger"]
+  h --- n0["在 Cloud Build Console 連接本 repository、建<br/>立 push Trigger，選定一個部署分支， 設定 <br/>Build configuration 為 <br/>cloudbuild.yaml，填入相同的非機密 <br/>substitutions。 建議使用受保護分支，合併前要<br/>求既有 Repository checks 通過；不要設定 PR <br/>自動正式部署。"]
   h --- n1["Trigger 的 Service account 必須明確選擇 <br/>cloud-build-deployer 的完整 email。 Trigger <br/>啟動時會忽略 YAML 的 serviceAccount 欄位，只<br/>採用 Trigger 上設定的帳戶； 只改 <br/>_BUILD_SERVICE_ACCOUNT substitution 不能變更<br/> Trigger 的執行身分。 建置步驟自動推送每個 <br/>BUILD_ID 對應的映像，再部署同一個服務，不建<br/>立 preview app。"]
 ```
 

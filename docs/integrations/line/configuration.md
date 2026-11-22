@@ -82,12 +82,12 @@ flowchart LR
 flowchart LR
   h["5. 注入與驗證"]
   h --- n0["mise.toml 管理工具與非機密共用預設；真實 <br/>Channel／LIFF ID 由部署環境提供，避免提交某<br/>個環境的固定值。"]
-  h --- n1["Cloud Run 正式環境機密由 Secret Manager 綁定<br/>。現行 GitHub managed trigger 只更新 image <br/>並沿用 service template；它不從 Dockerfile、<br/>.env.example 或 repository <br/>deploy/cloudbuild.yaml 匯入 runtime 變數。變<br/>更設定必須建立新的 Cloud Run revision。 本機<br/>由執行環境安全注入，不提交至 mise、範例檔或<br/>版本庫。"]
+  h --- n1["本機由執行環境安全注入憑證。Cloud Run 注入、機密輪替及 revision 驗收見正式環境設定。"]
+  click n1 "../../operations/configuration.md"
   h --- n2["前端只公開必要的 LIFF ID 等非機密資訊；所有 <br/>Channel token／secret 限後端使用。"]
   h --- n3["啟動時依啟用功能檢查必填值，錯誤只列變數名稱<br/>，不輸出值；不讀取舊 LINE_CHANNEL_* 別名。"]
   h --- n4["Channel ID 與 LIFF ID 使用字串，不能互換；群<br/>組來源 ID 也不能拿來作使用者授權。"]
   h --- n5["單靠變數名稱不能證明 token 屬於正確 Channel<br/>；部署驗收需檢查環境對應並測試實際授權。"]
-  h --- n6["OPENAI_API_KEY、GEMINI_API_KEY、CWA_API_KEY <br/>也必須使用 Secret reference，不能以 literal <br/>env 寫入。Secret 沒有 enabled version 時不能<br/>綁定；目前 Gemini Secret 尚無 version。"]
   h --- n7["整合行為與資格限制見 LINE 能力矩陣。"]
   click n7 "capabilities.md"
 ```
@@ -108,4 +108,4 @@ flowchart LR
 
 `.env` 不自動載入；本機由 shell／執行環境安全注入。舊 `LINE_MINI_APP_CHANNEL_ID`、`LINE_MINI_APP_LIFF_ID`、`LINE_MINI_APP_WEB_URL` 不再生效，也不作 fallback。公開設定不表示已完成 LINE Console、openid、HTTPS、ADC 或 Firestore 權限驗收。
 
-Cloud Build 範例將十項設定映射為 runtime env；現行 managed trigger 僅更新 image，**合併此變更前必須先補齊 Cloud Run 所選組環境變數**，否則新 revision 會因缺少設定而啟動失敗。變更範例或推送程式不會遷移遠端設定；操作依 [Cloud Run 指南](../../operations/cloud-run.md)。
+正式環境的注入方式、公開設定遷移與 revision 驗收見[正式環境設定](../../operations/configuration.md#mini-app-公開設定遷移)。

@@ -35,8 +35,7 @@
 **/.artifacts/**
 **/*.tsbuildinfo
 !.dockerignore
-!deploy/
-!deploy/cloudbuild.yaml
+!cloudbuild.yaml
 !firestore.indexes.json
 
 !scripts/db/

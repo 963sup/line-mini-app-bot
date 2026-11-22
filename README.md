@@ -13,7 +13,7 @@
 首版功能方向為「基礎出勤」，應用部署至 Google Cloud Run，機密透過
 Secret Manager 綁定。
 目前 GitHub `main` 的 managed trigger 使用 `Dockerfile` 建置映像並更新 Cloud Run；
-它不執行 `deploy/cloudbuild.yaml`。該檔保留給手動提交或改成自訂 Trigger 時使用。
+它不執行 `cloudbuild.yaml`。該檔保留給手動提交或改成自訂 Trigger 時使用。
 runtime 環境變數與 Secret reference 儲存在 Cloud Run service configuration；
 兩種部署方式、首次設定與 IAM 見 [Cloud Run 部署](docs/operations/cloud-run.md)。
 三個 MINI App 環境共用的 HTTPS Endpoint 已內建；桌面 Flex 入口與手機永久連結的分流見 [LINE 環境變數](docs/integrations/line/configuration.md#3-mini-app)。
@@ -130,7 +130,7 @@ MINI App 頁面為 `/miniapp`；公開 Channel／LIFF ID 與 Endpoint 由所選�
 | `api/` | [HTTP API 契約](api/README.md) | [AGENTS.md](api/AGENTS.md) |
 | `assets/` | [應用素材](assets/README.md) | [AGENTS.md](assets/AGENTS.md) |
 | `backend/` | [Go 後端](backend/README.md) | [AGENTS.md](backend/AGENTS.md) |
-| `deploy/` | [部署設定與 Firestore 索引](deploy/README.md) | [AGENTS.md](deploy/AGENTS.md) |
+| `cloudbuild.yaml`、`firestore.indexes.json` | [部署與索引設定](docs/operations/README.md) | [維運指引](docs/operations/AGENTS.md) |
 | `docs/` | [專案文件](docs/README.md) | [AGENTS.md](docs/AGENTS.md) |
 | `scripts/` | [腳本工具](scripts/README.md) | [AGENTS.md](scripts/AGENTS.md) |
 | `frontend/` | [MINI App 前端](frontend/README.md) | [AGENTS.md](frontend/AGENTS.md) |

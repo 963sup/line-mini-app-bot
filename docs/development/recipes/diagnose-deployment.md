@@ -9,7 +9,7 @@
 | 執行 | 最新 revision 的 Ready 狀態、目前流量、受影響路由與應用日誌 |
 | LINE 導航同步 | 實際執行入口、目標渠道及同步前置條件 |
 
-1. 依[故障排查](../../operations/troubleshooting.md)取得原始錯誤，找出第一個失敗點。從[部署設定說明](../../../deploy/README.md)分辨實際 trigger 設定、Dockerfile 與手動 YAML。
+1. 依[故障排查](../../operations/troubleshooting.md)取得原始錯誤，找出第一個失敗點。從[部署設定說明](../../operations/README.md)分辨實際 trigger 設定、Dockerfile 與手動 YAML。
 2. 對照同一提交的程式、映像和入口。若問題出在步驟環境，以同一映像或同一執行身分的證據支持原因。
 3. 涉及修復時，執行對應的[設定或容器驗收](../verification/commands.md)，正式環境結果另按[發布驗收](../../operations/release-acceptance.md)記錄。
 

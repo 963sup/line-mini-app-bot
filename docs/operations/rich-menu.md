@@ -4,13 +4,13 @@ Rich Menu 由部署流程自動同步，不需人工發布。程式入口為 ser
 
 ## 流程與分工
 
-[部署設定](../../deploy/cloudbuild.yaml) 在映像推送後建立每個 Build 專用的 Cloud Run Job，等待選單同步成功後才部署 HTTP 服務，成功後移除 Job。失敗 Job 保留供診斷。未改變的選單不寫入 LINE；Alias 切換不是原子操作，失敗重跑會收斂。
+[部署設定](../../cloudbuild.yaml) 在映像推送後建立每個 Build 專用的 Cloud Run Job，等待選單同步成功後才部署 HTTP 服務，成功後移除 Job。失敗 Job 保留供診斷。未改變的選單不寫入 LINE；Alias 切換不是原子操作，失敗重跑會收斂。
 
 [導航](../../backend/internal/transport/line/navigation/menu.go) 定義內容與 attendance-in/out Alias；[平台機制](../../backend/internal/platform/line/richmenu/README.md) 負責圖片、發布、Alias、預設選單與安全清理；[bootstrap](../../backend/internal/bootstrap/line_navigation.go) 讀取所選 MINI App 設定並注入依賴。圖片維持 assets/line/richmenu/*.jpg，映像內為 /assets/line/richmenu/，大小為 2500×843、最多 1 MiB。
 
 ## 雲端接線與前置條件
 
-現有 managed Trigger 使用 inline build，修改 repository YAML 不會更新它。**部署這版映像之前，必須將該 Trigger 改用 repository 的 deploy/cloudbuild.yaml，或同步其中的 Job 與清理步驟，移除舊 /richmenu 呼叫。** 舊 CLI 參數不再支援。需保留實際 Trigger 的專案、區域、服務帳戶、substitutions 與既有部署設定，不能直接用範例值覆蓋。
+現有 managed Trigger 使用 inline build，修改 repository YAML 不會更新它。**部署這版映像之前，必須將該 Trigger 改用 repository 的 cloudbuild.yaml，或同步其中的 Job 與清理步驟，移除舊 /richmenu 呼叫。** 舊 CLI 參數不再支援。需保留實際 Trigger 的專案、區域、服務帳戶、substitutions 與既有部署設定，不能直接用範例值覆蓋。
 
 2026-11-21 嘗試唯讀查詢 Trigger 時，現有 Google 憑證失效，無法核對或修改線上設定。本次僅完成程式與 repository 部署接線，未啟用線上流程或執行真實 LINE 寫入。
 
@@ -19,6 +19,8 @@ Job 使用既有 runtime service account，透過 Secret Manager 綁定 Messagin
 ## 互斥、重試與故障處理
 
 Firestore 的 line_navigation_publication_leases/{channelID} 保存暫時 owner 與 expiresAt，與業務資料分開。Job 最多運行八分鐘，租約十分鐘，LINE 請求共用較短 context；取得租約前不發布，等待也計入工作時限。釋放時核對 owner，避免刪除別人的租約。程序崩潰後須待租約過期才能接手。此租約假設執行環境時鐘同步，不是 LINE API 支援的 fencing token。
+
+同步依選單定義（含 MINI App 目標）與圖片的 SHA-256 判定是否需要寫入，並讀取遠端圖片、Alias 與預設選單以偵測外部變更。租約仍用於互斥；重複同步行為由[發布測試](../../backend/internal/platform/line/richmenu/publication_test.go)驗證。
 
 單次工作最多重試一次，每次皆重新核對遠端內容。圖片失敗不修改 live Alias；Alias 部分更新會保留已準備完成的目標，下一次同步收斂。只有成功遷移使用者後才刪除舊 managed 選單。同步完成後 HTTP 部署失敗不會自動回滾選單；不同 Build 仍可能先後發布不同版本，租約只保證同時一個發布者，不保證提交順序。
 
