@@ -9,7 +9,7 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 )
 
-func journalURL(appURL string) string {
+func journalURL(appURL string, repositoryIDs ...string) string {
 	if appURL == "" {
 		return ""
 	}
@@ -19,6 +19,10 @@ func journalURL(appURL string) string {
 	}
 	q := u.Query()
 	q.Set("journal", "1")
+	q.Set("journalCompose", "1")
+	if len(repositoryIDs) == 1 && repositoryIDPattern.MatchString(repositoryIDs[0]) {
+		q.Set("journalRepository", repositoryIDs[0])
+	}
 	u.RawQuery = q.Encode()
 	return u.String()
 }
@@ -58,8 +62,8 @@ func Help(group bool, appURL, desktopURL string, repositoryIDs ...string) messag
 			{"打卡", "打卡"}, {"出勤", "出勤"}, {"請假登記", "請假"}, {"補卡申請", "補卡"},
 		} {
 			buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.MessageAction{Label: entry.label, Text: entry.command}})
-			if entry.command == "打卡" && journalURL(appURL) != "" {
-				buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.UriAction{Label: "日誌", Uri: journalURL(appURL)}})
+			if entry.command == "打卡" && journalURL(appURL, repositoryIDs...) != "" {
+				buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.UriAction{Label: "日誌", Uri: journalURL(appURL, repositoryIDs...)}})
 			}
 		}
 	} else {
@@ -97,7 +101,7 @@ func QuickMenu(group bool, appURL string, repositoryIDs ...string) messaging_api
 	}
 	if group {
 		add("打卡", "打卡")
-		if link := journalURL(appURL); link != "" {
+		if link := journalURL(appURL, repositoryIDs...); link != "" {
 			items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.UriAction{Label: "日誌", Uri: link}})
 		}
 		add("出勤", "出勤")

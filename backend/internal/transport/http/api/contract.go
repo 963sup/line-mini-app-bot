@@ -112,6 +112,7 @@ type AttendanceServer interface {
 	GetAttendanceMonthlyReport(w http.ResponseWriter, r *http.Request, params generated.GetAttendanceMonthlyReportParams)
 	GetAttendanceMonthlySummary(w http.ResponseWriter, r *http.Request, params generated.GetAttendanceMonthlySummaryParams)
 	SubmitAttendancePunch(w http.ResponseWriter, r *http.Request, params generated.SubmitAttendancePunchParams)
+	GetAttendanceDailyHeadcount(w http.ResponseWriter, r *http.Request, params generated.GetAttendanceDailyHeadcountParams)
 	ListAttendanceRecords(w http.ResponseWriter, r *http.Request, params generated.ListAttendanceRecordsParams)
 	GetAttendanceRecord(w http.ResponseWriter, r *http.Request, id string, params generated.GetAttendanceRecordParams)
 	ListOwnLeaveRequests(w http.ResponseWriter, r *http.Request)
@@ -184,7 +185,6 @@ type RepositorySpaceServer interface {
 }
 
 type JournalServer interface {
-	ListJournalReferenceTargets(w http.ResponseWriter, r *http.Request, groupId string, params generated.ListJournalReferenceTargetsParams)
 	ListJournals(w http.ResponseWriter, r *http.Request, params generated.ListJournalsParams)
 	GetJournal(w http.ResponseWriter, r *http.Request, journalId string)
 	CreateJournal(w http.ResponseWriter, r *http.Request, params generated.CreateJournalParams)

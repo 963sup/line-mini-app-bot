@@ -555,18 +555,10 @@ test("editing review ID rejects a late proposal and prevents approval of another
       : next(r),
   );
   try {
-    await act(async () => {
-      const button = [...document.querySelectorAll("button")].find((node) => node.textContent === "載入審核群組")!;
-      button.click();
-      await flush();
-    });
-    await act(async () => {
-      const select = document.querySelector("select")!;
-      select.value = "g1";
-      select.dispatchEvent(new Event("change", { bubbles: true }));
-      await flush();
-    });
-    await f.click("requests-load");
+    const listRequest = f.requests.find(({ url }) => new URL(url).searchParams.get("scope") === "review");
+    assert.ok(listRequest);
+    assert.equal(new URL(listRequest.url).searchParams.has("group"), false);
+    assert.equal(f.requests.some(({ url }) => url.endsWith("/reviewer-groups")), false);
     assert.match(f.node("requests-list").textContent!, /待審核/);
     await f.input("correction-id", "c1");
     await f.click("review-correction");

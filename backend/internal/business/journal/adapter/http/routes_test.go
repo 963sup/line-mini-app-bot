@@ -52,7 +52,8 @@ func TestJournalRoutes(t *testing.T) {
 	const base = "/api/v1/journals"
 	const group = "C11111111111111111111111111111111"
 	const key = "sample-journal-001"
-	const draft = `{"groupId":"` + group + `","workDate":"2026-11-18","personnel":{"management":[],"control":[],"workers":["甲"]},"todayItems":[{"name":"鋪設","completionPercent":40,"reference":{"type":"project","id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},{"name":"整理","completionPercent":100}],"tomorrowItems":[]}`
+	const repo = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	const draft = `{"repositoryId":"` + repo + `","workDate":"2026-11-18","personnel":{"management":[],"control":[],"workers":["甲"]},"todayItems":[{"name":"鋪設","completionPercent":40,"reference":{"type":"project","id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},{"name":"整理","completionPercent":100}],"tomorrowItems":[]}`
 	f := new(fixture)
 	mux := http.NewServeMux()
 	Register(mux, f, testAuth{})
@@ -73,20 +74,17 @@ func TestJournalRoutes(t *testing.T) {
 		}
 		return w.Body.String()
 	}
-	targetPath := "/api/v1/groups/" + group + "/journal-reference-targets"
-	call("GET", targetPath, "", false, 401)
-	if body := call("GET", targetPath+"?cursor=p%3A", "", true, 200); !strings.Contains(body, `"name":"Project"`) {
-		t.Fatalf("reference choices: %s", body)
-	}
+	call("GET", "/api/v1/groups/"+group+"/journal-reference-targets", "", true, 404)
 	call("GET", base, "", false, 401)
 	call("POST", base, strings.Replace(draft, "100", "101", 1), true, 400)
+	call("POST", base, strings.Replace(draft, `"repositoryId":"`+repo+`"`, `"groupId":"`+group+`"`, 1), true, 400)
 	unselected := call("POST", base, draft, true, 201)
 	for _, field := range []string{"objectId", "spaceIds", "objectName", "spaceNames"} {
 		if strings.Contains(unselected, `"`+field+`"`) {
 			t.Fatalf("unselected optional field %s must remain omitted: %s", field, unselected)
 		}
 	}
-	if f.key != key || f.saved.CreatorID != "actor" || f.saved.Today[0].Reference.Kind != "project" || f.saved.Today[1].Reference != nil {
+	if f.key != key || f.saved.CreatorID != "actor" || f.saved.RepositoryID != repo || f.saved.Today[0].Reference.Kind != "project" || f.saved.Today[1].Reference != nil {
 		t.Fatal("creation mapping")
 	}
 	list := call("GET", base+"?workDate=2026-11-18&groupId="+group, "", true, 200)
@@ -134,11 +132,4 @@ func TestJournalRoutes(t *testing.T) {
 	mux = http.NewServeMux()
 	Register(mux, nil, testAuth{})
 	call("POST", base, draft, true, 503)
-}
-
-func (f *fixture) ListReferenceTargets(_ context.Context, actor, groupID, cursor string) (journaldto.TargetPage, error) {
-	if actor != "actor" || groupID != "C11111111111111111111111111111111" || cursor != "p:" {
-		return journaldto.TargetPage{}, journalentity.ErrInput
-	}
-	return journaldto.TargetPage{Items: []journaldto.Target{{Kind: "project", ID: "one", Name: "Project"}}}, nil
 }

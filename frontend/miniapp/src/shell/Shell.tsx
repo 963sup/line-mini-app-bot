@@ -48,6 +48,8 @@ function Content({
     let leave = params.has("leave"),
       correction = params.get("correction"),
       journal = params.has("journal"),
+      journalCompose = params.get("journalCompose") === "1",
+      journalRepository = params.get("journalRepository") || "",
       repositories = params.has("repositories"),
       repository = params.get("repository") || "";
     try {
@@ -61,6 +63,8 @@ function Content({
         repositories ||= query.has("repositories");
         repository ||= query.get("repository") || "";
         journal ||= query.has("journal");
+        journalCompose ||= query.get("journalCompose") === "1";
+        journalRepository ||= query.get("journalRepository") || "";
         leave ||= query.has("leave");
         correction ||= query.get("correction");
       }
@@ -70,7 +74,12 @@ function Content({
         "/miniapp/repositories" +
           (repository ? "?" + new URLSearchParams({ id: repository }) : ""),
       );
-    else if (journal) location.replace("/miniapp/feed");
+    else if (journal) {
+      const target = new URLSearchParams();
+      if (journalCompose) target.set("compose", "1");
+      if (journalCompose && /^[a-f0-9]{32}$/.test(journalRepository)) target.set("repositoryId", journalRepository);
+      location.replace("/miniapp/feed" + (target.size ? "?" + target : ""));
+    }
     else if (correction)
       location.replace(
         "/miniapp/correction?" + new URLSearchParams({ group: correction }),

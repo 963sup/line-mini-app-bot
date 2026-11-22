@@ -23,6 +23,9 @@
     "/api/v1/attendance/groups/page": {
       "$ref": "./attendance/records.yaml#/paths/~1api~1v1~1attendance~1groups~1page"
     },
+    "/api/v1/attendance/daily-headcount": {
+      "$ref": "./attendance/records.yaml#/paths/~1api~1v1~1attendance~1daily-headcount"
+    },
     "/api/v1/attendance/records": {
       "$ref": "./attendance/records.yaml#/paths/~1api~1v1~1attendance~1records"
     },
@@ -220,9 +223,6 @@
     },
     "/api/v1/enterprises/{enterpriseId}/organizations": {
       "$ref": "./enterprise/enterprises.yaml#/paths/~1api~1v1~1enterprises~1{enterpriseId}~1organizations"
-    },
-    "/api/v1/groups/{groupId}/journal-reference-targets": {
-      "$ref": "./journal/journals.yaml#/paths/~1api~1v1~1groups~1{groupId}~1journal-reference-targets"
     },
     "/api/v1/repositories/{repositoryId}/objects/candidates": {
       "$ref": "./object/objects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects~1candidates"
@@ -436,12 +436,6 @@
       },
       "ProjectReferenceState": {
         "$ref": "./project/references.yaml#/components/schemas/ProjectReferenceState"
-      },
-      "JournalReferenceTarget": {
-        "$ref": "./journal/journals.yaml#/components/schemas/JournalReferenceTarget"
-      },
-      "JournalReferenceTargetPage": {
-        "$ref": "./journal/journals.yaml#/components/schemas/JournalReferenceTargetPage"
       },
       "ObjectCandidateDocument": {
         "$ref": "./object/objects.yaml#/components/schemas/ObjectCandidateDocument"

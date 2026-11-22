@@ -70,7 +70,7 @@ func (s *attendanceServer) ListAttendanceGroupPage(w http.ResponseWriter, r *htt
 
 func (s *attendanceServer) ListAttendanceRecords(w http.ResponseWriter, r *http.Request, params generated.ListAttendanceRecordsParams) {
 	s.query(w, r, func(ctx context.Context, store attendanceport.RecordQueries, user string) {
-		group, month, ok := attendanceMonthInput(w, params.Group, params.Month, s.bot)
+		group, month, ok := attendanceMonthInput(w, optionalString(params.Group), params.Month, s.bot, true)
 		if !ok {
 			return
 		}
@@ -92,7 +92,7 @@ func (s *attendanceServer) ListAttendanceRecords(w http.ResponseWriter, r *http.
 
 func (s *attendanceServer) GetAttendanceMonthlySummary(w http.ResponseWriter, r *http.Request, params generated.GetAttendanceMonthlySummaryParams) {
 	s.query(w, r, func(ctx context.Context, store attendanceport.RecordQueries, user string) {
-		group, month, ok := attendanceMonthInput(w, params.Group, params.Month, s.bot)
+		group, month, ok := attendanceMonthInput(w, params.Group, params.Month, s.bot, false)
 		if !ok {
 			return
 		}
@@ -148,14 +148,14 @@ func optionalString(value *string) string {
 
 func validAttendanceGroup(group string) bool { return group != "" && len(group) <= 128 }
 
-func attendanceMonthInput(w http.ResponseWriter, group, value string, bot *Attendance) (string, time.Time, bool) {
+func attendanceMonthInput(w http.ResponseWriter, group, value string, bot *Attendance, allowAllGroups bool) (string, time.Time, bool) {
 	zone := bot.zone
 	if zone == nil {
 		zone = time.FixedZone("Asia/Taipei", 28800)
 	}
 	month, err := time.ParseInLocation("2006-01", value, zone)
-	if err != nil || !validAttendanceGroup(group) {
-		transport.WriteAPIError(w, 400, "invalid_input", "請提供群組與 YYYY-MM 月份。")
+	if err != nil || (!validAttendanceGroup(group) && !(allowAllGroups && group == "")) {
+		transport.WriteAPIError(w, 400, "invalid_input", "群組或月份格式無效。")
 		return "", time.Time{}, false
 	}
 	return group, month, true
@@ -174,4 +174,41 @@ func attendanceQueryError(w http.ResponseWriter, err error) bool {
 		transport.WriteServiceError(w, 503, "unavailable", "暫時無法讀取出勤，請重試。", err)
 	}
 	return true
+}
+
+func (s *attendanceServer) GetAttendanceDailyHeadcount(w http.ResponseWriter, r *http.Request, params generated.GetAttendanceDailyHeadcountParams) {
+	if s.bot == nil {
+		transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")
+		return
+	}
+	user, _, ok := s.app.Authenticate(w, r)
+	if !ok {
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+	if s.bot.membership == nil {
+		transport.WriteAPIError(w, 503, "unavailable", "暫時無法查詢出勤參考。")
+		return
+	}
+	member, err := s.bot.membership.IsMember(ctx, params.Group, user)
+	if attendanceQueryError(w, err) {
+		return
+	}
+	if !member {
+		transport.WriteAPIError(w, 403, "not_member", "無法確認你是此群組成員。")
+		return
+	}
+	reader, ok := s.bot.store.(attendanceport.DailyHeadcountReader)
+	if !ok {
+		transport.WriteAPIError(w, 503, "not_configured", "出勤人數查詢尚未啟用。")
+		return
+	}
+	zone := time.FixedZone("Asia/Taipei", 8*60*60)
+	year, month, day := params.Date.Date()
+	start := time.Date(year, month, day, 0, 0, 0, 0, zone)
+	count, err := reader.DailyHeadcount(ctx, params.Group, start, start.AddDate(0, 0, 1))
+	if !attendanceQueryError(w, err) {
+		transport.WriteJSON(w, 200, generated.AttendanceDailyHeadcount{Count: count, AsOf: time.Now().UTC()})
+	}
 }

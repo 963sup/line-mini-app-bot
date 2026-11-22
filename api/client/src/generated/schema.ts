@@ -76,6 +76,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/attendance/daily-headcount": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get recorded daily group headcount */
+        get: operations["getAttendanceDailyHeadcount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/attendance/records": {
         parameters: {
             query?: never;
@@ -189,7 +206,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List own requests, or group requests for an authorized reviewer */
+        /** List own requests, or the authorized reviewer inbox */
         get: operations["listAttendanceCorrections"];
         put?: never;
         /** proposeAttendanceCorrection */
@@ -1232,23 +1249,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/groups/{groupId}/journal-reference-targets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List readable repository and project references for a group journal */
-        get: operations["listJournalReferenceTargets"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/repositories/{repositoryId}/objects/candidates": {
         parameters: {
             query?: never;
@@ -1844,7 +1844,7 @@ export interface components {
             readonly spaceNames?: string[];
         };
         JournalCreation: {
-            groupId: string;
+            repositoryId: string;
             /** Format: date */
             workDate: string;
             personnel: components["schemas"]["JournalPersonnel"];
@@ -1856,7 +1856,8 @@ export interface components {
             creatorId: string;
             /** Format: date-time */
             createdAt: string;
-            groupId: string;
+            repositoryId?: string;
+            groupId?: string;
             /** Format: date */
             workDate: string;
             personnel: components["schemas"]["JournalPersonnel"];
@@ -1930,16 +1931,6 @@ export interface components {
         ProjectReferenceState: {
             matches: boolean;
             present: boolean;
-        };
-        JournalReferenceTarget: {
-            /** @enum {string} */
-            type: "repository" | "project";
-            id: string;
-            name: string;
-        };
-        JournalReferenceTargetPage: {
-            items: components["schemas"]["JournalReferenceTarget"][];
-            nextCursor: string;
         };
         ObjectCandidateDocument: {
             filename: string;
@@ -2022,6 +2013,11 @@ export interface components {
             /** Format: date-time */
             asOf: string;
             queryMode: string;
+        };
+        AttendanceDailyHeadcount: {
+            count: number;
+            /** Format: date-time */
+            asOf: string;
         };
         Interval: {
             /** Format: date-time */
@@ -2772,10 +2768,69 @@ export interface operations {
             };
         };
     };
-    listAttendanceRecords: {
+    getAttendanceDailyHeadcount: {
         parameters: {
             query: {
                 group: string;
+                date: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Number of distinct people with a recorded shift starting on the given Asia/Taipei work date. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceDailyHeadcount"];
+                };
+            };
+            /** @description Request failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    listAttendanceRecords: {
+        parameters: {
+            query: {
+                group?: string;
                 /** @description Calendar month in Asia/Taipei; cross-month shifts are clipped by business rules. */
                 month: string;
                 pageSize?: number;
@@ -3311,6 +3366,7 @@ export interface operations {
         parameters: {
             query?: {
                 scope?: "own" | "review";
+                /** @description Optional reviewer scope. Omit for unresolved requests across all authorized groups. A page can be empty while nextCursor is present. */
                 group?: string;
                 cursor?: string;
                 pageSize?: number;
@@ -5962,6 +6018,7 @@ export interface operations {
     listJournals: {
         parameters: {
             query?: {
+                repositoryId?: string;
                 groupId?: string;
                 workDate?: string;
                 cursor?: string;
@@ -7576,66 +7633,6 @@ export interface operations {
             };
             /** @description Request failed */
             409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Request failed */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-        };
-    };
-    listJournalReferenceTargets: {
-        parameters: {
-            query?: {
-                cursor?: string;
-            };
-            header?: never;
-            path: {
-                groupId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Journal reference choices for this actor and group */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["JournalReferenceTargetPage"];
-                };
-            };
-            /** @description Request failed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Request failed */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["APIError"];
-                };
-            };
-            /** @description Request failed */
-            404: {
                 headers: {
                     [name: string]: unknown;
                 };

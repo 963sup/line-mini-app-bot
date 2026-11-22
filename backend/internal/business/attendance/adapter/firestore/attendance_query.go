@@ -110,7 +110,10 @@ func sortRecords(records []attendanceentity.Record) {
 // Closed queries explicitly order both inequality fields before the document key.
 // The merged order is start DESC, end DESC (open shifts last), key DESC.
 func (s *Attendance) monthQueries(user, group string, start time.Time, c pageCursor) []db.Query {
-	base := s.user(user).Collection("attendance").Where("groupID", "==", group).Where("clockInAt", "<", start.AddDate(0, 1, 0))
+	base := s.user(user).Collection("attendance").Where("clockInAt", "<", start.AddDate(0, 1, 0))
+	if group != "" {
+		base = base.Where("groupID", "==", group)
+	}
 	closed := base.Where("clockOutAt", ">", start).OrderBy("clockInAt", db.Desc).OrderBy("clockOutAt", db.Desc).OrderBy(db.DocumentID, db.Desc)
 	open := base.Where("isOpen", "==", true).OrderBy("clockInAt", db.Desc).OrderBy(db.DocumentID, db.Desc)
 	if c.ID != "" {

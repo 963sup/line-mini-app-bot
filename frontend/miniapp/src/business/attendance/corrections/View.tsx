@@ -52,11 +52,11 @@ export function View() {
     if (!user) return;
     if (!record) {
       loadGroups();
-      setStatus("補卡請填寫已結束班次的實際上下班與休息時間；一律須人工審核。");
+      setStatus("");
       return groupsRead.cancel;
     }
     if (!group || !validID(record)) {
-      setStatus("請從本人月紀錄選擇班次；也可在下方查詢已送出的申請。");
+      setStatus("請從出勤紀錄選擇要更正的班次。");
       return;
     }
     setStatus("正在讀取班次……");
@@ -80,7 +80,7 @@ export function View() {
             End: taiwan(b.End),
           })),
         );
-        setStatus("請填寫實際工作與休息時間。");
+        setStatus("");
       },
       (error) => setStatus(errorMessage(error)),
     );
@@ -131,7 +131,7 @@ export function View() {
           setBusy(false);
           setRefreshVersion((value) => value + 1);
           setStatus(
-            `申請已受理。編號：${data.id}。可在下方「查看申請結果」查看進度與審核理由。`,
+            `申請已受理。編號：${data.id}。`,
           );
         },
         (error) => {
@@ -164,7 +164,7 @@ export function View() {
     <>
       <PagePanel heading="補卡／時間更正申請">
         <p>
-          已結束班次可申請漏上班、漏下班、整班補卡或時間更正；核准前有效紀錄不變。仍在工作且漏上班者，請於班次結束後申報完整時段。
+          班次結束後申請，核准後生效。
         </p>
         <p>
           <a
@@ -172,7 +172,7 @@ export function View() {
             id="back-history"
             href={back}
           >
-            回本人月紀錄選擇班次
+            查看出勤紀錄
           </a>
         </p>
         {newShift && (
@@ -180,10 +180,6 @@ export function View() {
             className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
             disabled={!user || busy}
           >
-            <p>
-              沒有可選班次時，可直接申請補卡。首次使用請回原 LINE
-              群組輸入「補卡」開啟表單。
-            </p>
             <Button onClick={() => loadGroups()}>載入本人群組</Button>
             <FormField>
               群組
@@ -210,13 +206,9 @@ export function View() {
             )}
           </FieldSet>
         )}
-        <p id="record-description">
-          {selected
-            ? `原班次：${displayTime(selected.ClockInAt)} → ${displayTime(selected.ClockOutAt)}。核准前工時不變。`
-            : newShift
-              ? "申請新增缺失班次；請勿重複申報已有的班次。"
-              : "請先從月紀錄選擇要更正的班次。"}
-        </p>
+        {selected && <p id="record-description">
+          原班次：{displayTime(selected.ClockInAt)} → {displayTime(selected.ClockOutAt)}
+        </p>}
         <form id="correction-form" onSubmit={submitCorrection}>
           <FieldGroup>
             <FieldSet

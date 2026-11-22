@@ -157,6 +157,17 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if _, err := s.user("employee").Collection("attendanceGroups").Doc(firestorekey.Encode("group-b")).Set(ctx, map[string]any{"groupID": "group-b"}); err != nil {
 		t.Fatal(err)
 	}
+	if _, err := s.user("other-employee").Collection("attendance").Doc("other-employee-shift").Set(ctx, recordDocumentFrom(fixtures["legacy-a"])); err != nil {
+		t.Fatal(err)
+	}
+	count, err := s.DailyHeadcount(ctx, "group", month, month.AddDate(0, 0, 1))
+	if err != nil || count != 2 {
+		t.Fatalf("daily headcount must deduplicate shifts and isolate date and group: %d %v", count, err)
+	}
+	count, err = s.DailyHeadcount(ctx, "group-b", month, month.AddDate(0, 0, 1))
+	if err != nil || count != 1 {
+		t.Fatalf("second group headcount: %d %v", count, err)
+	}
 	page, err := s.GroupsPage(ctx, "employee", "", 1)
 	if err != nil || page.QueryMode != "indexed" || len(page.Items) != 1 || page.Items[0] != "group" || page.NextCursor == "" {
 		t.Fatalf("groups first page: %+v %v", page, err)
@@ -186,6 +197,22 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	}
 	if _, err := s.RecordsPage(ctx, "another-employee", "group", month, cursor, 1); err != attendancedto.ErrInvalidCursor {
 		t.Fatalf("cross-user cursor accepted: %v", err)
+	}
+	all, err := s.RecordsPage(ctx, "employee", "", month, "", 100)
+	if err != nil || len(all.Items) != len(seen)+1 {
+		t.Fatalf("cross-group records: %+v %v", all, err)
+	}
+	foundOtherGroup := false
+	for _, record := range all.Items {
+		if record.RecordID == "other-group" && record.GroupID == "group-b" {
+			foundOtherGroup = true
+		}
+	}
+	if !foundOtherGroup {
+		t.Fatal("personal records did not include the second group")
+	}
+	if _, err := s.RecordsPage(ctx, "employee", "", month, cursor, 1); err != attendancedto.ErrInvalidCursor {
+		t.Fatalf("single-group cursor accepted without a group: %v", err)
 	}
 	indexed, err := s.RecordsOverlappingMonth(ctx, "employee", "group", month)
 	if err != nil || len(indexed) != len(seen) {
@@ -306,6 +333,52 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if _, err := s.CorrectionsPage(ctx, "stranger", "group", "", true, 20); !errors.Is(err, attendanceentity.ErrCorrection) {
 		t.Fatal("unauthorized request list", err)
 	}
+	reviewerRole := roles.Doc(firestorekey.Encode("reviewer"))
+	if _, err := reviewerRole.Set(ctx, map[string]any{"groups": []string{"group", "group-b"}}); err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]bool{}
+	for _, group := range []string{"group", "group-b", "outside"} {
+		proposal := missing
+		proposal.GroupID = group
+		proposal.Start, proposal.End = start.Add(120*time.Hour), start.Add(128*time.Hour)
+		id, err := s.ProposeCorrection(ctx, "second-employee", proposal, submittedAt.Add(9*time.Hour))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if group != "outside" {
+			want[id] = true
+		}
+	}
+	for cursor := ""; ; {
+		page, err := s.CorrectionsPage(ctx, "reviewer", "", cursor, true, 1)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, item := range page.Items {
+			if item.Correction.GroupID == "outside" || (item.Status != "pending" && item.Status != "stale") {
+				t.Fatalf("unexpected review item: %+v", item)
+			}
+			delete(want, item.Correction.ID)
+		}
+		if page.NextCursor == "" {
+			break
+		}
+		if page.NextCursor == cursor {
+			t.Fatal("review cursor did not advance")
+		}
+		cursor = page.NextCursor
+	}
+	if len(want) != 0 {
+		t.Fatalf("missing authorized group requests: %v", want)
+	}
+	if _, err := reviewerRole.Delete(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.CorrectionsPage(ctx, "reviewer", "", "", true, 20); !errors.Is(err, attendanceentity.ErrCorrection) {
+		t.Fatalf("revoked actor could query review list: %v", err)
+	}
+
 }
 
 func TestLaunchExchangeIsStableAndScoped(t *testing.T) {

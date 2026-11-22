@@ -21,6 +21,7 @@ Issue、Discussion 與 Object 是同一 Repository 上下文內的能力。Repos
 Repository 範圍及功能授權在此說明，各子能力細節由對應文件維護。
 
 ## 閱讀與修改入口
+[業務容器與 LINE 旅程](journey.md)說明能力分工、目標導覽、現行接線與驗收。
 
 先查閱[spaces.md](spaces.md)、[議題規格](issue/design.md)、[組織與團隊歸屬契約](../../contracts/organization-team-ownership.md)。
 

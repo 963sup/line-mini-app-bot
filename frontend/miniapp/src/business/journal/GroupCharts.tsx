@@ -19,6 +19,7 @@ export default function GroupCharts({ entries, groups, renderEntry }: {
 }) {
   const byGroup = new Map<string, Journal[]>();
   for (const entry of entries) {
+    if (!entry.groupId) continue;
     const journals = byGroup.get(entry.groupId);
     if (journals) journals.push(entry);
     else byGroup.set(entry.groupId, [entry]);

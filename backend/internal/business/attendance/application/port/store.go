@@ -35,6 +35,10 @@ type Membership interface {
 	IsMember(context.Context, string, string) (bool, error)
 }
 
+type DailyHeadcountReader interface {
+	DailyHeadcount(ctx context.Context, groupID string, start, end time.Time) (int, error)
+}
+
 type RecordQueries interface {
 	GroupsPage(ctx context.Context, userID, cursor string, pageSize int) (attendancedto.GroupPage, error)
 	RecordsPage(ctx context.Context, userID, groupID string, month time.Time, cursor string, pageSize int) (attendancedto.RecordPage, error)

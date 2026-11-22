@@ -310,7 +310,11 @@ func (s *Attendance) verifyAndRebuildRecords(ctx context.Context, user, group st
 		if record.SchemaVersion < 3 {
 			continue
 		} // Legacy records have no complete raw-event history.
-		validation := attendanceservice.ValidateEventStream(eventsByRecord[record.RecordID], record.RecordID, group, record.EventSequence)
+		recordGroup := group
+		if recordGroup == "" {
+			recordGroup = record.GroupID
+		}
+		validation := attendanceservice.ValidateEventStream(eventsByRecord[record.RecordID], record.RecordID, recordGroup, record.EventSequence)
 		sessions, issues := attendanceservice.RebuildSessions(eventsByRecord[record.RecordID])
 		issues = append(issues, validation...)
 		if len(sessions) != 1 || len(issues) > 0 || int64(len(eventsByRecord[record.RecordID])) != record.EventSequence {

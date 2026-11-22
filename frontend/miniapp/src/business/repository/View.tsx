@@ -5,7 +5,7 @@ import { Button } from "@/shared/ui/button";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { useSession } from "@/identity/Session";
 import { RepositoryNavigationContext, useRepositoryNavigation } from "./NavigationGuard";
-import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
+import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useRepositories } from "./RepositoryContext";
 import { navigation } from "./navigation";
@@ -29,7 +29,7 @@ export function View() {
 }
 
 function Content() {
-  const { selected, selectedID, scope, detailBusy, detailStatus, reloadDetail, canLoad } = useRepositories();
+  const { selected, selectedID, detailBusy, detailStatus, reloadDetail, canLoad } = useRepositories();
   const [wikiId] = useState(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(location.search);
@@ -41,7 +41,6 @@ function Content() {
   useEffect(() => { if (!detailBusy) guard.settled(); }, [page, detailBusy]);
   return (
     <RepositoryNavigationContext.Provider value={guard.context}><section className="flex min-w-0 flex-col gap-4" aria-label="空間">
-      {scope && <p className="text-sm text-muted-foreground">此連結僅開啟原群組空間，需具備該群組的存取資格。</p>}
       {selectedID ? <>
         {!selected && <Button disabled={!canLoad || detailBusy || guard.blocked} onClick={() => guard.navigate(reloadDetail)}>重新載入空間</Button>}
         <ReadFeedback busy={detailBusy} message={detailStatus} label="正在讀取空間……" />
@@ -79,6 +78,10 @@ function Content() {
                   <dd>{displayTime(selected.updatedAt)}</dd>
                 </dl>
               </PagePanel>
+              <PagePanel heading="工程日誌">
+                <a className="text-primary underline underline-offset-4" href={"/miniapp/feed?" + new URLSearchParams({repositoryId:selected.id,compose:"1"})}>寫日誌</a>
+                <a className="text-primary underline underline-offset-4" href={"/miniapp/feed?" + new URLSearchParams({repositoryId:selected.id})}>查看日誌</a>
+              </PagePanel>
               {selected.groupId && <PagePanel heading="出勤與群組服務">
                 <a
                   className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
@@ -86,7 +89,6 @@ function Content() {
                 >
                   查看本人出勤
                 </a>
-                <p className="text-sm leading-relaxed text-muted-foreground">摘要請回原群組操作。</p>
               </PagePanel>}
             </div>
             </TabsContent>
@@ -102,7 +104,6 @@ function Content() {
               <PagePanel heading="稽核">
                 <Empty><EmptyHeader>
                   <EmptyTitle>稽核尚未開放</EmptyTitle>
-                  <EmptyDescription>此空間目前提供基本資料與本人出勤查詢，協作功能將逐步開放。</EmptyDescription>
                 </EmptyHeader></Empty>
               </PagePanel>
             </TabsContent>

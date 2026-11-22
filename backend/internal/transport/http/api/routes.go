@@ -164,7 +164,6 @@ func RegisterRepositorySpaces(public *http.ServeMux, handler RepositorySpaceServ
 func RegisterJournals(public *http.ServeMux, handler JournalServer, wrap func(http.Handler) http.Handler) {
 	routes := routeHandler(contractServer{JournalServer: handler})
 	routes = wrap(routes)
-	public.Handle("GET /api/v1/groups/{groupId}/journal-reference-targets", routes)
 	public.Handle("GET /api/v1/journals", routes)
 	public.Handle("POST /api/v1/journals", routes)
 	public.Handle("GET /api/v1/journals/{journalId}", routes)

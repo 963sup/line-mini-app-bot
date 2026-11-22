@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"slices"
+	"strings"
 	"time"
 
 	db "cloud.google.com/go/firestore"
@@ -400,7 +401,7 @@ func (s *Attendance) CorrectionDetails(ctx context.Context, actor, id string, re
 func (s *Attendance) CorrectionsPage(ctx context.Context, actor, group, cursor string, review bool, size int) (_ attendancedto.CorrectionPage, err error) {
 	defer func() { err = translateError(err, attendanceentity.ErrCorrection) }()
 	result := attendancedto.CorrectionPage{Items: []attendancedto.CorrectionDetails{}}
-	if !validPageSize(size) || (review && !validSegment(group)) {
+	if !validPageSize(size) || (review && group != "" && !validSegment(group)) {
 		return result, attendancedto.ErrInvalidCursor
 	}
 	scope := s.cursorScope("corrections-own", actor, "", time.Time{})
@@ -413,25 +414,44 @@ func (s *Attendance) CorrectionsPage(ctx context.Context, actor, group, cursor s
 	}
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = attendancedto.CorrectionPage{Items: []attendancedto.CorrectionDetails{}}
-		q := s.Client.Collection("channels").Doc(s.ChannelID).Collection("attendanceCorrectionRequests").Where("userKey", "==", firestorekey.Encode(actor))
+		requests := s.Client.Collection("channels").Doc(s.ChannelID).Collection("attendanceCorrectionRequests")
+		actorKey := firestorekey.Encode(actor)
+		queries := []db.Query{requests.Where("userKey", "==", actorKey)}
 		if review {
 			groups, err := s.reviewerGroups(tx, actor)
 			if err != nil {
 				return err
 			}
-			if !slices.Contains(groups, group) {
-				return attendanceentity.ErrCorrection
+			queries = nil
+			switch {
+			case group != "":
+				if !slices.Contains(groups, group) {
+					return attendanceentity.ErrCorrection
+				}
+				queries = append(queries, requests.Where("groupID", "==", group))
+			default:
+				slices.Sort(groups)
+				// Firestore accepts at most 30 disjunctions per query.
+				for batch := range slices.Chunk(slices.Compact(groups), 30) {
+					queries = append(queries, requests.Where("groupID", "in", batch))
+				}
 			}
-			q = s.Client.Collection("channels").Doc(s.ChannelID).Collection("attendanceCorrectionRequests").Where("groupID", "==", group)
 		}
-		q = q.OrderBy(db.DocumentID, db.Desc)
-		if c.ID != "" {
-			q = q.StartAfter(c.ID)
+		var docs []*db.DocumentSnapshot
+		for _, q := range queries {
+			q = q.OrderBy(db.DocumentID, db.Desc)
+			if c.ID != "" {
+				q = q.StartAfter(c.ID)
+			}
+			batch, err := tx.Documents(q.Limit(size + 1)).GetAll()
+			if err != nil {
+				return err
+			}
+			docs = append(docs, batch...)
 		}
-		docs, err := tx.Documents(q.Limit(size + 1)).GetAll()
-		if err != nil {
-			return err
-		}
+		slices.SortFunc(docs, func(a, b *db.DocumentSnapshot) int {
+			return strings.Compare(b.Ref.ID, a.Ref.ID)
+		})
 		if len(docs) > size {
 			result.NextCursor = encodeCursor(scope, time.Time{}, docs[size-1].Ref.ID)
 			docs = docs[:size]
@@ -441,12 +461,15 @@ func (s *Attendance) CorrectionsPage(ctx context.Context, actor, group, cursor s
 			if err := decodeCorrection(doc, &proposal); err != nil {
 				return err
 			}
-			if review && proposal.UserKey == firestorekey.Encode(actor) {
+			if review && proposal.UserKey == actorKey {
 				continue
 			}
 			details, err := s.correctionDetails(tx, doc, proposal)
 			if err != nil {
 				return err
+			}
+			if review && group == "" && details.Status != "pending" && details.Status != "stale" {
+				continue
 			}
 			result.Items = append(result.Items, details)
 		}

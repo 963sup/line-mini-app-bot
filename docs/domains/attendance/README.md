@@ -2,6 +2,8 @@
 
 **已有實作** · [設計規格](strategy.md) · [核心流程](#decision-flow) · [代表測試](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) · [程式目錄](../../../backend/internal/business/attendance/README.md) · [維護指引](../../../backend/internal/business/attendance/AGENTS.md)
 
+[出勤、各業務與 LINE 旅程](journey.md)
+
 ## 用途與範圍
 
 保存出勤、打卡、補卡、請假與審核的規格。

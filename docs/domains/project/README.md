@@ -2,6 +2,8 @@
 
 **已有實作** · [設計規格](project.md) · [核心流程](#decision-flow) · [代表測試](../../../backend/internal/business/project/application/reference_source_test.go) · [程式目錄](../../../backend/internal/business/project/README.md) · [維護指引](../../../backend/internal/business/project/AGENTS.md)
 
+[Repository 業務容器、專案與 LINE 旅程](journey.md)
+
 ## 領域設計
 
 **子域定位**　跨庫工程協作的核心候選。

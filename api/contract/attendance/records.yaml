@@ -1,5 +1,94 @@
 {
   "paths": {
+  "/api/v1/attendance/daily-headcount": {
+    "get": {
+      "operationId": "getAttendanceDailyHeadcount",
+      "summary": "Get recorded daily group headcount",
+      "tags": [
+        "attendance"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        },
+        {
+          "sessionCookie": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "group",
+          "in": "query",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^C[a-f0-9]{32}$"
+          }
+        },
+        {
+          "name": "date",
+          "in": "query",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Number of distinct people with a recorded shift starting on the given Asia/Taipei work date.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendanceDailyHeadcount"
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Request failed",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Request failed",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+              }
+            }
+          }
+        },
+        "403": {
+          "description": "Request failed",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+              }
+            }
+          }
+        },
+        "503": {
+          "description": "Request failed",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
     "/api/v1/attendance/groups": {
       "get": {
         "operationId": "listAttendanceGroups",
@@ -246,7 +335,7 @@
           {
             "name": "group",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string",
               "minLength": 1,
@@ -736,6 +825,23 @@
   },
   "components": {
     "schemas": {
+      "AttendanceDailyHeadcount": {
+        "type": "object",
+        "required": [
+          "count",
+          "asOf"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "Position": {
         "type": "object",
         "properties": {

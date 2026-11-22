@@ -125,7 +125,7 @@ func refView(r *journalentity.Reference) *generated.JournalReference {
 }
 func names(values []string) []string { return append([]string{}, values...) }
 func view(e journalentity.Entry) generated.Journal {
-	j := generated.Journal{Id: e.ID, CreatorId: e.CreatorID, CreatedAt: e.CreatedAt, GroupId: e.GroupID, WorkDate: types.Date{Time: e.WorkDate}, Personnel: generated.JournalPersonnel{Management: names(e.Personnel.Management), Control: names(e.Personnel.Control), Workers: names(e.Personnel.Workers)}, TodayItems: []generated.JournalTodayItem{}, TomorrowItems: []generated.JournalTomorrowItem{}}
+	j := generated.Journal{Id: e.ID, CreatorId: e.CreatorID, CreatedAt: e.CreatedAt, GroupId: e.GroupID, RepositoryId: e.RepositoryID, WorkDate: types.Date{Time: e.WorkDate}, Personnel: generated.JournalPersonnel{Management: names(e.Personnel.Management), Control: names(e.Personnel.Control), Workers: names(e.Personnel.Workers)}, TodayItems: []generated.JournalTodayItem{}, TomorrowItems: []generated.JournalTomorrowItem{}}
 	for _, i := range e.Today {
 		j.TodayItems = append(j.TodayItems, generated.JournalTodayItem{Name: i.Name, CompletionPercent: i.Percent, Reference: refView(i.Reference), ObjectId: i.ObjectID, SpaceIds: i.SpaceIDs, ObjectName: i.ObjectName, SpaceNames: i.SpaceNames})
 	}
@@ -139,14 +139,14 @@ func (s *journalServer) CreateJournal(w http.ResponseWriter, r *http.Request, p 
 	var b generated.JournalCreation
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
-	if decoder.Decode(&b) != nil || decoder.Decode(new(any)) != io.EOF || len(b.TodayItems)+len(b.TomorrowItems) == 0 {
+	if decoder.Decode(&b) != nil || decoder.Decode(new(any)) != io.EOF || b.RepositoryId == "" || len(b.TodayItems)+len(b.TomorrowItems) == 0 {
 		replyError(w, journalentity.ErrInput)
 		return
 	}
 	if !s.enabled(w) {
 		return
 	}
-	d := journalentity.Draft{GroupID: b.GroupId, WorkDate: b.WorkDate.Time, Personnel: journalentity.Personnel{Control: b.Personnel.Control, Management: b.Personnel.Management, Workers: b.Personnel.Workers}}
+	d := journalentity.Draft{RepositoryID: b.RepositoryId, WorkDate: b.WorkDate.Time, Personnel: journalentity.Personnel{Control: b.Personnel.Control, Management: b.Personnel.Management, Workers: b.Personnel.Workers}}
 	for _, i := range b.TodayItems {
 		d.Today = append(d.Today, journalentity.Work{Name: i.Name, Percent: i.CompletionPercent, Reference: source(i.Reference), ObjectID: i.ObjectId, SpaceIDs: i.SpaceIds})
 	}
@@ -174,6 +174,9 @@ func (s *journalServer) ListJournals(w http.ResponseWriter, r *http.Request, p g
 		return
 	}
 	var f journaldto.Filter
+	if p.RepositoryId != nil {
+		f.RepositoryID = *p.RepositoryId
+	}
 	if p.GroupId != nil {
 		f.GroupID = *p.GroupId
 	}
@@ -192,23 +195,4 @@ func (s *journalServer) ListJournals(w http.ResponseWriter, r *http.Request, p g
 		items = append(items, view(e))
 	}
 	transport.WriteJSON(w, 200, generated.JournalPage{Items: items, NextCursor: page.NextCursor})
-}
-
-func (s *journalServer) ListJournalReferenceTargets(w http.ResponseWriter, r *http.Request, groupId string, p generated.ListJournalReferenceTargetsParams) {
-	if !s.enabled(w) {
-		return
-	}
-	cursor := ""
-	if p.Cursor != nil {
-		cursor = *p.Cursor
-	}
-	page, err := s.service.ListReferenceTargets(r.Context(), identity.UserID(r.Context()), groupId, cursor)
-	if replyError(w, err) {
-		return
-	}
-	items := make([]generated.JournalReferenceTarget, 0, len(page.Items))
-	for _, v := range page.Items {
-		items = append(items, generated.JournalReferenceTarget{Type: generated.JournalReferenceTargetType(v.Kind), Id: v.ID, Name: v.Name})
-	}
-	transport.WriteJSON(w, 200, generated.JournalReferenceTargetPage{Items: items, NextCursor: page.NextCursor})
 }

@@ -136,7 +136,7 @@
       },
       "get": {
         "operationId": "listAttendanceCorrections",
-        "summary": "List own requests, or group requests for an authorized reviewer",
+        "summary": "List own requests, or the authorized reviewer inbox",
         "tags": [
           "attendance"
         ],
@@ -164,6 +164,7 @@
           {
             "in": "query",
             "name": "group",
+            "description": "Optional reviewer scope. Omit for unresolved requests across all authorized groups. A page can be empty while nextCursor is present.",
             "schema": {
               "type": "string",
               "minLength": 1,

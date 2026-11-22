@@ -412,6 +412,20 @@
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
     {
+      "operationId": "getAttendanceDailyHeadcount",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/attendance/daily-headcount",
+      "owner": "attendance.records",
+      "adapter": "backend/internal/business/attendance/adapter/http/records.go",
+      "handler": "GetAttendanceDailyHeadcount",
+      "core": "backend/internal/business/attendance/application/port/store.go",
+      "specification": "docs/domains/attendance/queries.md",
+      "consumers": [
+        "frontend/miniapp/src/business/journal/Composer.tsx"
+      ]
+    },
+    {
       "operationId": "listAttendanceRecords",
       "audience": "public",
       "method": "GET",
@@ -584,9 +598,7 @@
       "handler": "ListAttendanceReviewerGroups",
       "core": "backend/internal/business/attendance/domain/policy/review.go",
       "specification": "docs/domains/attendance/queries.md",
-      "consumers": [
-        "frontend/miniapp/src/business/attendance/corrections/Requests.tsx"
-      ],
+      "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
     {
@@ -1563,20 +1575,6 @@
       ]
     },
     {
-      "operationId": "listJournalReferenceTargets",
-      "audience": "public",
-      "method": "GET",
-      "path": "/api/v1/groups/{groupId}/journal-reference-targets",
-      "owner": "journal",
-      "adapter": "backend/internal/business/journal/adapter/http/routes.go",
-      "handler": "ListJournalReferenceTargets",
-      "core": "backend/internal/business/journal/application/query/references.go",
-      "specification": "docs/domains/journal/journal.md",
-      "consumers": [
-        "frontend/miniapp/src/business/journal/Composer.tsx"
-      ]
-    },
-    {
       "operationId": "extractObjectCandidates",
       "audience": "public",
       "method": "POST",
@@ -1892,6 +1890,7 @@
     }
   ],
   "namingExceptions": {
+    "/api/v1/attendance/daily-headcount": "Read-only attendance aggregate scoped to one authorized group and work date.",
     "/api/v1/miniapp/config": "Existing public configuration singleton.",
     "/api/v1/me": "Existing current-actor singleton.",
     "/api/v1/session": "Existing session singleton; keep public compatibility.",

@@ -190,7 +190,7 @@ func Run() (resultErr error) {
 		groupCatalog = teamdb.GroupCatalog{Store: teamStore}
 	}
 	projects := newProjects(resourceGroups, groupStore, repositories)
-	journalhttp.Register(mux, newJournals(resourceGroups, groupStore, repositories, projects), auth)
+	journalhttp.Register(mux, newJournals(groupCatalog, groupStore, repositories, projects), auth)
 	grouphttp.Register(mux, groupCatalog, auth)
 	repositoryhttp.Register(mux, repositories, auth)
 	wikihttp.Register(mux, newWiki(repositories, repositoryStore), auth)

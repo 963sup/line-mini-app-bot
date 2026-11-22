@@ -28,6 +28,7 @@ type (
 	Personnel struct{ Management, Control, Workers []string }
 	Draft     struct {
 		GroupID         string
+		RepositoryID    string `json:",omitempty"`
 		WorkDate        time.Time
 		Personnel       Personnel
 		Today, Tomorrow []Work

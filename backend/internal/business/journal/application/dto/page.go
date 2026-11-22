@@ -5,12 +5,7 @@ import (
 )
 
 type (
-	Target     struct{ Kind, ID, Name string }
-	TargetPage struct {
-		Items      []Target
-		NextCursor string
-	}
-	Filter struct{ GroupID, WorkDate, Cursor string }
+	Filter struct{ GroupID, RepositoryID, WorkDate, Cursor string }
 	Page   struct {
 		Items      []entity.Entry
 		NextCursor string

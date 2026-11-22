@@ -3,10 +3,8 @@ import { Item, ItemGroup, ItemContent, ItemTitle, ItemDescription, ItemActions }
 import { Badge } from "@/shared/ui/badge";
 import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
 import { ReadFeedback } from "@/shared/ReadFeedback";
-import { FormField } from "@/shared/FormField";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
-import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Status } from "@/shared/Status";
 import React, { useState, useCallback, useEffect } from "react";
 import type { components } from "@repo/api-client";
@@ -36,21 +34,13 @@ export function Requests({
 }) {
   const { user, request } = useSession(),
     { run: runRead, cancel: cancelRead } = useLatestRequest(),
-    groupsRead = useLatestRequest(),
     mutation = useLatestRequest();
   const [items, setItems] = useState<S["CorrectionReview"][]>([]),
-    [groups, setGroups] = useState<S["GroupItem"][]>([]),
-    [group, setGroup] = useState(""),
-    [groupsBusy, setGroupsBusy] = useState(false),
     [next, setNext] = useState(""),
     [status, setStatus] = useState(""),
     [busy, setBusy] = useState(false),
     [loaded, setLoaded] = useState(false);
   const load = useCallback((cursor = "") => {
-    if (review && !group) {
-      setStatus("請先載入並選擇審核群組。");
-      return;
-    }
     setBusy(true);
     setLoaded(false);
     setStatus("正在查詢……");
@@ -63,7 +53,6 @@ export function Requests({
               params: {
                 query: {
                   scope: review ? "review" : "own",
-                  ...(review ? { group } : {}),
                   cursor,
                   pageSize: 20,
                 },
@@ -72,17 +61,14 @@ export function Requests({
           { signal },
         ),
       (data) => {
+        if (!Array.isArray(data.items)) throw new Error("申請清單回應無效，請重新查詢。");
         setItems((previous) =>
           cursor ? [...previous, ...data.items] : data.items,
         );
         setLoaded(true);
         setNext(data.nextCursor);
         setBusy(false);
-        setStatus(
-          data.items.length
-            ? "已載入申請；核准前有效紀錄不變。"
-            : "本頁沒有申請。",
-        );
+        setStatus("");
       },
       (error) => {
         setBusy(false);
@@ -94,53 +80,18 @@ export function Requests({
           : errorMessage(error));
       },
     );
-  }, [review, group, request, runRead, onClearReview]);
+  }, [review, request, runRead, onClearReview]);
   useEffect(() => {
-    if (!refreshVersion) return;
     setItems([]);
     setLoaded(false);
     setNext("");
-    if (!review || group) load();
-  }, [refreshVersion, review, group, load]);
-  function loadGroups() {
-    cancelRead();
-    onClearReview?.();
-    setItems([]);
-    setNext("");
-    setLoaded(false);
-    setBusy(false);
-    setGroupsBusy(true);
-    void groupsRead.run(
-      (signal) =>
-        request(
-          (c, s) =>
-            c.GET("/api/v1/attendance/corrections/reviewer-groups", {
-              signal: s,
-            }),
-          { signal },
-        ),
-      (data) => {
-        if (!Array.isArray(data)) throw new Error("審核群組回應無效，請重新載入。");
-        setGroupsBusy(false);
-        setGroups(data);
-        setGroup((current) => data.some((item) => item.id === current) ? current : "");
-        setStatus(data.length ? "請選擇審核群組。" : "尚未指定審核群組。");
-      },
-      (error) => {
-        setGroupsBusy(false);
-        cancelRead();
-        setGroups([]); setGroup(""); setItems([]); setNext(""); setLoaded(false); setBusy(false);
-        onClearReview?.();
-        setStatus((error as { httpStatus?: number }).httpStatus === 403
-          ? "目前沒有補卡審核權限。請聯絡管理員設定審核群組。"
-          : errorMessage(error));
-      },
-    );
-  }
-  useEffect(() => {
-    if (user && review) loadGroups();
-    return groupsRead.cancel;
-  }, [user, request, review]);
+    if (user) load();
+    else {
+      setBusy(false);
+      setStatus("");
+    }
+    return cancelRead;
+  }, [user, refreshVersion, load, cancelRead]);
   function cancel(id: string) {
     if (busy) return;
     setBusy(true);
@@ -162,44 +113,13 @@ export function Requests({
     );
   }
   return (
-    <PagePanel heading={review ? "群組申請清單" : "查看申請結果"}>
-      {!review && <p>直接查詢本人申請的進度與審核理由，無須輸入申請編號。核准後請重新載入月紀錄。</p>}
+    <PagePanel heading={review ? "待我審核" : "查看申請結果"}>
       <FieldSet
         className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
         disabled={!user || busy || disabled}
       >
-        {review && (
-          <>
-            <Button disabled={groupsBusy} onClick={loadGroups}>載入審核群組</Button>
-            <FormField>
-              審核群組
-              <NativeSelect
-                id="review-group"
-                disabled={groupsBusy || !groups.length}
-                aria-busy={groupsBusy}
-                value={group}
-                onChange={(e) => {
-                  cancelRead();
-                  onClearReview?.();
-                  setGroup(e.target.value);
-                  setLoaded(false);
-                  setItems([]);
-                  setNext("");
-                  setStatus("");
-                }}
-              >
-                <NativeSelectOption value="">{groupsBusy ? "正在載入審核群組……" : groups.length ? "請選擇" : "目前沒有可審核群組"}</NativeSelectOption>
-                {groups.map((g) => (
-                  <NativeSelectOption key={g.id} value={g.id}>
-                    {g.name}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
-            </FormField>
-          </>
-        )}
-        <Button id="requests-load" disabled={review && (groupsBusy || !group)} onClick={() => load()}>
-          查詢{review ? "群組" : "本人"}申請
+        <Button id="requests-load" onClick={() => load()}>
+          {review ? "重新整理待辦" : "查詢本人申請"}
         </Button>
         {busy && <ReadFeedback busy label="正在處理申請清單" />}
         <ItemGroup id="requests-list" className="gap-3" aria-busy={busy}>
@@ -208,6 +128,7 @@ export function Requests({
               <ItemContent className="min-w-0">
                 <ItemTitle>{review ? item.applicantName || "姓名未留存，請依申請編號核對" : "補卡／時間更正"}</ItemTitle>
                 <ItemDescription className="line-clamp-none break-words">{displayTime(item.start)} ～ {displayTime(item.end)}</ItemDescription>
+                {item.groupId && <ItemDescription className="break-all">群組：{item.groupId}</ItemDescription>}
                 <Badge variant={item.status === "approved" ? "secondary" : "outline"}>{correctionStatus(item.status)}</Badge>
                 <ItemDescription className="line-clamp-none break-words">{item.reason}</ItemDescription>
                 {item.decisionReason && <ItemDescription className="line-clamp-none break-words">審核理由：{item.decisionReason}</ItemDescription>}
@@ -224,7 +145,7 @@ export function Requests({
             </Item>
           ))}
         </ItemGroup>
-        {loaded && !busy && !items.length && <Empty><EmptyHeader><EmptyTitle>本頁沒有申請</EmptyTitle></EmptyHeader></Empty>}
+        {loaded && !busy && !items.length && <Empty><EmptyHeader><EmptyTitle>{next ? "本頁沒有待處理申請，可繼續查看" : "目前沒有申請"}</EmptyTitle></EmptyHeader></Empty>}
         {next && <Button onClick={() => load(next)}>載入更多申請</Button>}
       </FieldSet>
       <Status role="status">{status}</Status>

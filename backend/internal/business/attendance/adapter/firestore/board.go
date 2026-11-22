@@ -130,3 +130,40 @@ func (s *Attendance) GroupBoard(ctx context.Context, group string, start, now ti
 }
 
 var _ attendanceport.BoardStore = (*Attendance)(nil)
+
+// DailyHeadcount counts each employee at most once, for recorded shifts starting in [start,end).
+func (s *Attendance) DailyHeadcount(ctx context.Context, group string, start, end time.Time) (_ int, err error) {
+	defer func() { err = translateError(err, nil) }()
+	refs := s.Client.Collection("channels").Doc(s.ChannelID).Collection("users").DocumentRefs(ctx)
+	var employees []*db.DocumentRef
+	for {
+		ref, err := refs.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return 0, err
+		}
+		if len(employees) >= boardUserLimit {
+			return 0, attendancedto.ErrBoardLimit
+		}
+		employees = append(employees, ref)
+	}
+	count := 0
+	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+		count = 0
+		for _, employee := range employees {
+			query := employee.Collection("attendance").Where("groupID", "==", group).
+				Where("clockInAt", ">=", start).Where("clockInAt", "<", end).Limit(1)
+			docs, err := tx.Documents(query).GetAll()
+			if err != nil {
+				return err
+			}
+			if len(docs) != 0 {
+				count++
+			}
+		}
+		return nil
+	}, db.ReadOnly)
+	return count, err
+}

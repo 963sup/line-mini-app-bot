@@ -283,8 +283,8 @@ func (s *attendanceServer) ListAttendanceCorrections(w http.ResponseWriter, r *h
 		}
 		review := params.Scope != nil && *params.Scope == "review"
 		group := optionalString(params.Group)
-		if review && !validAttendanceGroup(group) {
-			transport.WriteAPIError(w, 400, "invalid_input", "請選擇審核群組。")
+		if review && group != "" && !validAttendanceGroup(group) {
+			transport.WriteAPIError(w, 400, "invalid_input", "審核群組格式不正確。")
 			return
 		}
 		page, err := store.CorrectionsPage(ctx, user, group, cursor, review, size)

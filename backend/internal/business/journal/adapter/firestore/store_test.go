@@ -7,11 +7,11 @@ import (
 	projectsources "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/repository"
 	projectapp "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 )
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -59,7 +59,14 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 		t.Fatal(e)
 	}
 	store := Store{Client: client, Channel: channel, ReferenceCatalog: journalquery.ReferenceCatalog{Groups: &groupquery.Service{Store: groups, Membership: membership{}}}}
-	draft := journalentity.Draft{GroupID: g, WorkDate: time.Date(2026, 11, 18, 0, 0, 0, 0, time.UTC), Today: []journalentity.Work{{Name: "鋪設", Percent: 40}}}
+	rid := strings.Repeat("b", 32)
+	repo := client.Collection("channels").Doc(channel).Collection("repositories").Doc(rid)
+	_, e = repo.Set(ctx, map[string]any{"id": rid, "ownerId": g, "status": "ACTIVE", "version": int64(1)})
+	if e != nil {
+		t.Fatal(e)
+	}
+	store.Repositories = &repositoryApplication.Service{Store: &repodb.Store{Client: client, ChannelID: channel}, Membership: membership{}}
+	draft := journalentity.Draft{RepositoryID: rid, WorkDate: time.Date(2026, 11, 18, 0, 0, 0, 0, time.UTC), Today: []journalentity.Work{{Name: "鋪設", Percent: 40}}}
 	entry, e := store.Create(ctx, "writer", "key", draft)
 	if e != nil {
 		t.Fatal(e)
@@ -83,7 +90,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 			t.Fatal(e)
 		}
 	}
-	f := journaldto.Filter{WorkDate: "2026-11-18"}
+	f := journaldto.Filter{RepositoryID: rid, WorkDate: "2026-11-18"}
 	p, e := store.List(ctx, "writer", f)
 	if e != nil || len(p.Items) != 20 || p.NextCursor == "" {
 		t.Fatalf("page: %d %v", len(p.Items), e)
@@ -99,37 +106,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	}
 
 	// A linked repository can become unavailable while the publishing group remains readable.
-	rid := strings.Repeat("b", 32)
-	repo := client.Collection("channels").Doc(channel).Collection("repositories").Doc(rid)
-	_, e = repo.Set(ctx, map[string]any{"id": rid, "ownerId": g, "status": "ACTIVE", "version": int64(1)})
-	if e != nil {
-		t.Fatal(e)
-	}
-	store.Repositories = &repositoryApplication.Service{Store: &repodb.Store{Client: client, ChannelID: channel}, Membership: membership{}}
-	if _, err := store.ListReferenceTargets(ctx, "outsider", g, ""); !errors.Is(err, journalentity.ErrNotFound) {
-		t.Fatalf("reference catalog visible to outsider: %v", err)
-	}
-	if _, err := store.ListReferenceTargets(ctx, "writer", g, "wrong"); !errors.Is(err, journalentity.ErrInput) {
-		t.Fatalf("invalid catalog cursor: %v", err)
-	}
-	targets, err := store.ListReferenceTargets(ctx, "writer", g, "")
-	if err != nil || targets.NextCursor != "p:" || len(targets.Items) != 0 {
-		t.Fatalf("empty repository page: %+v %v", targets, err)
-	}
-
-	store.Projects = &projectapp.Service{Groups: projectgroup.Access{Groups: store.Groups}, Store: &projectdb.Store{Client: client, ChannelID: channel}, Sources: projectsources.Sources{Repositories: store.Repositories}}
-	last, err := store.ListReferenceTargets(ctx, "writer", g, targets.NextCursor)
-	if err != nil || last.NextCursor != "" || len(last.Items) != 0 {
-		t.Fatalf("empty project page: %+v %v", last, err)
-	}
-	if _, err := store.root().Collection("repositoryUsers").Doc(firestorekey.Digest([]byte("writer"))).Collection("repositories").Doc(rid).Set(ctx, map[string]any{"id": rid}); err != nil {
-		t.Fatal(err)
-	}
-	targets, err = store.ListReferenceTargets(ctx, "writer", g, "")
-	if err != nil || len(targets.Items) != 1 || targets.Items[0].ID != rid || targets.Items[0].Kind != "repository" {
-		t.Fatalf("missing repository: %+v %v", targets, err)
-	}
-
+	store.Projects = &projectapp.Service{Groups: projectgroup.Access{Groups: &groupquery.Service{Store: groups, Membership: membership{}}}, Store: &projectdb.Store{Client: client, ChannelID: channel}, Sources: projectsources.Sources{Repositories: store.Repositories}}
 	draft.Today[0].Reference = &journalentity.Reference{Kind: "repository", ID: rid}
 	objectID, childID, spaceID := strings.Repeat("c", 32), strings.Repeat("d", 32), strings.Repeat("e", 32)
 	object := repo.Collection("objects").Doc(objectID)
@@ -186,7 +163,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	if _, e := otherRepo.Set(ctx, map[string]any{"id": otherRepo.ID, "ownerId": "C" + strings.Repeat("3", 32), "status": "ACTIVE", "version": int64(1)}); e != nil {
 		t.Fatal(e)
 	}
-	entriesBefore, e := store.entries(g).Documents(ctx).GetAll()
+	entriesBefore, e := store.repositoryEntries(rid).Documents(ctx).GetAll()
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -210,7 +187,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 			t.Fatalf("%s: got %v, want %v", tc.name, e, tc.want)
 		}
 	}
-	entriesAfter, e := store.entries(g).Documents(ctx).GetAll()
+	entriesAfter, e := store.repositoryEntries(rid).Documents(ctx).GetAll()
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -218,11 +195,34 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	if e != nil || len(entriesAfter) != len(entriesBefore) || len(receiptsAfter) != len(receiptsBefore) {
 		t.Fatalf("rejected source left an entry or receipt: entries %d -> %d, receipts %d -> %d, err %v", len(entriesBefore), len(entriesAfter), len(receiptsBefore), len(receiptsAfter), e)
 	}
+	legacy := linked
+	legacy.ID = strings.Repeat("9", 32)
+	legacy.RepositoryID, legacy.GroupID = "", g
+	payload, err := json.Marshal(legacy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.entries(g).Doc(legacy.ID).Set(ctx, record{Payload: string(payload), Order: "2026-11-18/legacy"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.root().Collection("journalReceipts").Doc(legacy.ID).Set(ctx, receipt{Group: g}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.Create(ctx, "writer", "legacy-rejected", legacy.Draft); !errors.Is(err, journalentity.ErrInput) {
+		t.Fatalf("legacy write accepted: %v", err)
+	}
+	page, err := store.List(ctx, "writer", journaldto.Filter{GroupID: g, WorkDate: "2026-11-18"})
+	if err != nil || len(page.Items) != 1 || page.Items[0].ID != legacy.ID {
+		t.Fatalf("legacy list failed: %+v %v", page, err)
+	}
 	_, e = repo.Update(ctx, []db.Update{{Path: "status", Value: "INACTIVE"}})
 	if e != nil {
 		t.Fatal(e)
 	}
-	redacted, e := store.Get(ctx, "writer", linked.ID)
+	if _, err := store.Get(ctx, "writer", linked.ID); !errors.Is(err, journalentity.ErrNotFound) {
+		t.Fatalf("inactive repository still readable: %v", err)
+	}
+	redacted, e := store.Get(ctx, "writer", legacy.ID)
 	if e != nil || redacted.Today[0].Reference != nil {
 		t.Fatalf("redaction: %v", e)
 	}

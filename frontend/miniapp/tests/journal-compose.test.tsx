@@ -10,19 +10,22 @@ const flush = async () => {
   for (let i = 0; i < 12; i++) await new Promise<void>(resolve => setImmediate(resolve));
 };
 
-for (const scenario of ["cancel", "publish", "publish with reference", "space deferred", "space unknown", "space limit"]) test("dedicated journal composer: " + scenario, async () => {
+for (const scenario of ["cancel", "publish", "repository publish", "publish with reference", "space deferred", "space unknown", "space limit"]) test("dedicated journal composer: " + scenario, async () => {
   document.body.innerHTML = '<div id="root"></div>';
   const originalFetch = globalThis.fetch;
   const requests: string[] = [];
   const writes: {body: string; key: string | null}[] = [];
   const spaceWrites: {body:string;key:string|null}[] = [];
   let finishSpace!: (response:Response)=>void;
-  const firstGroup = "C" + "1".repeat(32), secondGroup = "C" + "2".repeat(32);
+  const repositoryId = "b".repeat(32);
+  const preselected = scenario === "repository publish";
   let closes = 0;
   globalThis.fetch = async (input, init) => {
     const request = input instanceof Request ? input : new Request(new URL(String(input), location.origin), init);
     const url = new URL(request.url);
     requests.push(url.pathname + url.search);
+    if (url.pathname === "/api/v1/repositories") return Response.json({items:[{id:repositoryId,name:"工程甲",status:"ACTIVE"}],nextCursor:""});
+    if (url.pathname === "/api/v1/repositories/" + repositoryId) return Response.json({ id: repositoryId, name: "工程甲" });
     if (url.pathname.endsWith("/config")) return Response.json({ liffId: "test" });
     if (url.pathname.endsWith("/session")) return Response.json({ user: { userId: "u1", displayName: "Tester" }, csrfToken: "c".repeat(43), expiresAt: new Date(Date.now() + 1800000).toISOString() });
     if (url.pathname.endsWith("/spaces") && request.method === "POST") {
@@ -38,15 +41,6 @@ for (const scenario of ["cancel", "publish", "publish with reference", "space de
       writes.push({body: await request.text(), key: request.headers.get("Idempotency-Key")});
       return writes.length === 1 ? Response.json({message: "請重試"}, {status: 503}) : Response.json({id: "published"});
     }
-    if (url.pathname.endsWith("/journal-reference-targets")) {
-      if (url.searchParams.has("cursor")) return Response.json({items:[{type:"project",id:"p1",name:"工程甲"}],nextCursor:""});
-      return Response.json({items:url.pathname.includes(secondGroup)?[{type:"repository",id:"r1",name:"工程甲"}]:[],nextCursor:"projects"});
-    }
-    if (url.pathname === "/api/v1/groups") {
-      const next = url.searchParams.has("cursor");
-      const id = next ? secondGroup : firstGroup;
-      return Response.json({ items: [{ id, groupId: id, name: next ? "Second group" : "First group" }], nextCursor: next ? "" : "next-page" });
-    }
     return Response.json({ items: [], nextCursor: "" });
   };
   const sdk = {
@@ -54,22 +48,27 @@ for (const scenario of ["cancel", "publish", "publish with reference", "space de
     getIDToken: () => "test-token", getProfile: async () => ({ userId: "u1" }),
     login() {}, logout() {}, closeWindow() {},
   };
+  function Workspace() {
+    const [selected, setSelected] = React.useState(preselected ? repositoryId : "");
+    return <JournalWorkspace dashboard={false} repositoryId={selected} onSelectRepository={setSelected} onCloseComposer={() => closes++} />;
+  }
   const root = createRoot(document.getElementById("root")!);
   try {
     await act(async () => {
-      root.render(<SessionProvider sdkLoader={async () => sdk}><JournalWorkspace dashboard={false} onCloseComposer={() => closes++} /></SessionProvider>);
+      root.render(<SessionProvider sdkLoader={async () => sdk}><Workspace /></SessionProvider>);
       await flush();
     });
-    assert.ok(requests.includes("/api/v1/groups?cursor=next-page"));
     assert.equal(requests.some(path => path.startsWith("/api/v1/journals")), false);
-    const group = document.querySelector<HTMLSelectElement>("select")!;
-    assert.equal(group.options[2].value, secondGroup);
-    await act(async () => {
-      group.value = secondGroup;
-      group.dispatchEvent(new Event("change", { bubbles: true }));
-      await flush();
-    });
-    assert.match(document.body.textContent!, /Second group/);
+    assert.equal(requests.some(path => path.startsWith("/api/v1/groups")), false);
+    if (!preselected) {
+      const select = document.querySelector<HTMLSelectElement>("select")!;
+      await act(async () => {
+        select.value = repositoryId;
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        await flush();
+      });
+    }
+    assert.match(document.body.textContent!, /工程甲/);
     assert.ok(document.querySelector('input[name="firstname"]'), "selecting a group must open the draft");
     if (scenario !== "cancel") {
       const click = async (name: string) => {
@@ -131,7 +130,6 @@ for (const scenario of ["cancel", "publish", "publish with reference", "space de
       }
       if (scenario === "publish with reference") {
         const search = document.querySelector<HTMLInputElement>("#firstref")!;
-        const count = requests.length;
         await act(async () => {
           search.focus();
           search.dispatchEvent(new window.KeyboardEvent("keydown", {key: "ArrowDown", bubbles: true}));
@@ -141,9 +139,9 @@ for (const scenario of ["cancel", "publish", "publish with reference", "space de
           await flush();
         });
         const results = [...document.querySelectorAll<HTMLElement>('[role="option"]')];
-        assert.deepEqual(results.map(item => item.textContent).sort(), ["專案 · 工程甲", "儲存庫 · 工程甲"].sort());
-        await act(async () => { results.find(item => item.textContent === "專案 · 工程甲")!.click(); await flush(); });
-        assert.equal(requests.length, count);
+        assert.deepEqual(results.map(item => item.textContent).sort(), ["儲存庫 · 工程甲"].sort());
+        await act(async () => { results.find(item => item.textContent === "儲存庫 · 工程甲")!.click(); await flush(); });
+        assert.equal(requests.some(path => path.includes("journal-reference-targets")), false);
       }
       await click("新增今日工作");
       await click("移除第 2 項");
@@ -155,17 +153,18 @@ for (const scenario of ["cancel", "publish", "publish with reference", "space de
       await click("下一步");
       await click("下一步");
       assert.equal(writes.length, 0);
-      await click("發布日誌");
-      await click("發布日誌");
+      await click("儲存日誌");
+      await click("儲存日誌");
       assert.equal(closes, 1);
       assert.equal(writes.length, 2);
       assert.ok(writes[0].key);
       assert.deepEqual(writes[1], writes[0]);
       const draft = JSON.parse(writes[0].body);
-      assert.deepEqual(draft.todayItems, [{name: "施作", completionPercent: 35, ...(scenario === "publish with reference" ? {reference: {type: "project", id: "p1"}} : scenario.startsWith("space ") ? {reference:{type:"repository",id:"r1"},spaceIds:scenario === "space limit" ? [...Array.from({length:19},(_,i)=>"pre"+i),"s1"] : ["s1"]} : {})}]);
+      assert.deepEqual(draft.todayItems, [{name: "施作", completionPercent: 35, ...(scenario === "publish with reference" ? {reference: {type: "repository", id: repositoryId}, spaceIds: []} : scenario.startsWith("space ") ? {reference:{type:"repository",id:repositoryId},spaceIds:scenario === "space limit" ? [...Array.from({length:19},(_,i)=>"pre"+i),"s1"] : ["s1"]} : {})}]);
       assert.deepEqual(draft.tomorrowItems, []);
       assert.deepEqual(draft.personnel.workers, ["甲", "乙"]);
-      assert.equal(draft.groupId, secondGroup);
+      assert.equal(draft.groupId, undefined);
+      assert.equal(draft.repositoryId, repositoryId);
       return;
     }
     const cancel = Array.from(document.querySelectorAll("button")).find(button => button.textContent === "取消填寫")!;

@@ -124,11 +124,14 @@ func TestAttendanceQueryContracts(t *testing.T) {
 		{"/api/v1/attendance/records?group=group&month=bad", 400, true, nil},
 		{"/api/v1/attendance/records?group=group&month=2026-11&cursor=invalid", 400, true, attendancedto.ErrInvalidCursor},
 		{"/api/v1/attendance/records?group=group&month=2026-11", 200, true, nil},
+		{"/api/v1/attendance/records?month=2026-11", 200, true, nil},
+		{"/api/v1/attendance/monthly/summary?month=2026-11", 400, true, nil},
 		{"/api/v1/attendance/records/record?group=group", 200, true, nil},
 		{"/api/v1/attendance/monthly/summary?group=group&month=2026-11", 200, true, nil},
 	} {
 		t.Run(tc.path, func(t *testing.T) {
 			store.err = tc.err
+			store.queriedGroup = "not-called"
 			request := httptest.NewRequest("GET", tc.path, nil)
 			if tc.auth {
 				request.Header.Set("Authorization", "Bearer token")
@@ -142,6 +145,9 @@ func TestAttendanceQueryContracts(t *testing.T) {
 				t.Fatal("invalid JSON")
 			}
 			if tc.status == 200 {
+				if tc.path == "/api/v1/attendance/records?month=2026-11" && store.queriedGroup != "" {
+					t.Fatal("personal records query must not require a group")
+				}
 				if store.queriedUser != "actor" {
 					t.Fatal("query did not use verified actor")
 				}

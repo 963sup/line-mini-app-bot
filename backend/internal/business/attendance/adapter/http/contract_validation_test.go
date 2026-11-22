@@ -288,3 +288,42 @@ func TestContractDTOPreservesLegacyWireValues(t *testing.T) {
 		}
 	}
 }
+
+type headcountMembership bool
+
+func (m headcountMembership) IsMember(context.Context, string, string) (bool, error) {
+	return bool(m), nil
+}
+
+type headcountStore struct {
+	attendanceStub
+	calls int
+}
+
+func (s *headcountStore) DailyHeadcount(_ context.Context, group string, start, end time.Time) (int, error) {
+	s.calls++
+	if group != "C"+strings.Repeat("a", 32) || !start.Equal(time.Date(2026, 11, 21, 16, 0, 0, 0, time.UTC)) || end.Sub(start) != 24*time.Hour {
+		return 0, fmt.Errorf("unexpected headcount scope %s, %s, %s", group, start, end)
+	}
+	return 2, nil
+}
+
+func TestDailyHeadcountRequiresMembership(t *testing.T) {
+	for _, member := range []bool{false, true} {
+		store := &headcountStore{}
+		app := testAuthenticator(&http.Client{Transport: memberTransport(func(r *http.Request) (*http.Response, error) {
+			body := fmt.Sprintf(`{"iss":"https://access.line.me","sub":"u1","aud":"123","exp":%d}`, time.Now().Add(time.Hour).Unix())
+			return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(body))}, nil
+		})})
+		mux := http.NewServeMux()
+		RegisterAttendanceAPI(mux, &Attendance{store: store, membership: headcountMembership(member)}, app)
+		w := httptest.NewRecorder()
+		mux.ServeHTTP(w, contractRequest("GET", "/api/v1/attendance/daily-headcount?group=C"+strings.Repeat("a", 32)+"&date=2026-11-22", ""))
+		if !member && (w.Code != 403 || store.calls != 0) {
+			t.Fatalf("nonmember: status %d with %d reads", w.Code, store.calls)
+		}
+		if member && (w.Code != 200 || store.calls != 1 || !strings.Contains(w.Body.String(), `"count":2`)) {
+			t.Fatalf("member: status %d with %d reads: %s", w.Code, store.calls, w.Body.String())
+		}
+	}
+}

@@ -1,5 +1,7 @@
 # LINE 整合
 
+- [LINE 使用者旅程目標](journey.md)整理私訊、群組與 MINI App 的目標路徑、現有接線及驗收情境。
+- [LINE 任務接線表](wiring.md)集中列出各任務的私訊、群組、MINI App、Webhook 與驗收。
 - [LINE Bot 聊天指令](commands.md)列出私聊、群組、別名與參數。
 - [整合能力與邊界](capabilities.md)收錄八類 LINE 官方能力、英文原文引文與專案採用邊界。
 - [環境變數](configuration.md)說明 Messaging API 與 MINI App 的設定、注入及驗證。

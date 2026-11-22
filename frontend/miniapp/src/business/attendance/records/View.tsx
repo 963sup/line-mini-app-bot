@@ -1,4 +1,3 @@
-import { memberGroups } from "../memberGroups";
 import { FieldSet } from "@/shared/ui/field";
 import { ButtonGroup, ButtonGroupText } from "@/shared/ui/button-group";
 import { Badge } from "@/shared/ui/badge";
@@ -26,7 +25,6 @@ export function View() {
     [group, setGroup] = useState(""),
     [month, setMonth] = useState(""),
     [groupCursor, setGroupCursor] = useState(""),
-    [membershipGroups, setMembershipGroups] = useState(false),
     [groupsBusy, setGroupsBusy] = useState(false);
   const [records, setRecords] = useState<S["AttendanceRecord"][]>([]),
     [summary, setSummary] = useState<S["MonthlySummary"] | null>(null),
@@ -48,13 +46,13 @@ export function View() {
   }
   function loadRecords({ target = 0, selected = group, selectedMonth = month, cursor = cursors[target] || "", withSummary = false }:
     {target?:number; selected?:string; selectedMonth?:string; cursor?:string; withSummary?:boolean}) {
-    if (!selected || !/^\d{4}-\d{2}$/.test(selectedMonth)) {
-      setStatus("請選擇群組與月份。");
+    if (!/^\d{4}-\d{2}$/.test(selectedMonth)) {
+      setStatus("請選擇月份。");
       return;
     }
     setBusy(true);
     setStatus("正在讀取紀錄……");
-    const query = { group: selected, month: selectedMonth };
+    const query = { month: selectedMonth, ...(selected ? { group: selected } : {}) };
     window.history.replaceState(
       null,
       "",
@@ -71,12 +69,12 @@ export function View() {
               }),
             { signal },
           ),
-          withSummary
+          withSummary && selected
             ? request(
                 (c, s) =>
                   c.GET("/api/v1/attendance/monthly/summary", {
                     signal: s,
-                    params: { query },
+                    params: { query: { group: selected, month: selectedMonth } },
                   }),
                 { signal },
               )
@@ -93,7 +91,7 @@ export function View() {
         setBusy(false);
         setStatus(
           data.items?.length
-            ? "顯示本人班次；月份摘要包含全月資料。"
+            ? "顯示本人班次。"
             : "本頁沒有班次。",
         );
       },
@@ -105,50 +103,24 @@ export function View() {
       },
     );
   }
-  function loadGroups(append = false, desired = group, selectedMonth = month) {
-    if (!append) {
-      clear();
-      setGroups([]);
-      setGroupCursor("");
-    }
+  function loadGroups(append = false) {
     setGroupsBusy(true);
     void groupsRead.run(
-      async (signal) => {
-        const fromMembership = append && membershipGroups;
-        const history = fromMembership ? null : await request(
-          (c, s) =>
-            c.GET("/api/v1/attendance/groups/page", {
-              signal: s,
-              params: {
-                query: { pageSize: 20, cursor: append ? groupCursor : "" },
-              },
-            }),
-          { signal },
-        );
-        if (history && (desired || append || history.items.length || history.nextCursor)) {
-          return { ...history, fromMembership: false };
-        }
-        const available = await memberGroups(request, signal, fromMembership ? groupCursor : undefined);
-        return {
-          ...available,
-          fromMembership: true,
-        };
-      },
+      (signal) => request(
+        (c, s) => c.GET("/api/v1/attendance/groups/page", {
+          signal: s,
+          params: { query: { pageSize: 20, cursor: append ? groupCursor : "" } },
+        }),
+        { signal },
+      ),
       (data) => {
         setGroups((previous) => {
           const all = new Map((append ? previous : []).map((g) => [g.id, g]));
-          for (const g of data.items || []) all.set(g.id, g);
-          if (desired && !all.has(desired))
-            all.set(desired, { id: desired, name: "目前選擇的群組" });
+          for (const g of data.items) all.set(g.id, g);
           return [...all.values()];
         });
         setGroupCursor(data.nextCursor || "");
-        setMembershipGroups(data.fromMembership);
         setGroupsBusy(false);
-        setStatus(!append && !desired && !data.items?.length
-          ? "目前沒有出勤群組或可存取的 LINE 群組。請先在原 LINE 群組與機器人互動後重新載入。"
-          : "請選擇群組與月份後查詢。");
-        if (!append && desired) loadRecords({selected:desired,selectedMonth,withSummary:true,cursor:""});
       },
       (error) => {
         setGroupsBusy(false);
@@ -162,16 +134,21 @@ export function View() {
       m = /^\d{4}-\d{2}$/.test(params.get("month") || "")
         ? params.get("month")!
         : taiwan(new Date().toISOString()).slice(0, 7);
+    clear();
+    setGroups([]);
+    setGroupCursor("");
+    setGroupsBusy(false);
+    setStatus("請先完成身分驗證。");
     setGroup(g);
     setMonth(m);
-    if (user) loadGroups(false, g, m);
+    if (user) loadRecords({ selected: g, selectedMonth: m, withSummary: true, cursor: "" });
     return () => {
       groupsRead.cancel();
       monthRead.cancel();
     };
   }, [user, request]);
   return (
-    <PagePanel id="history" heading="本人月紀錄">
+    <PagePanel id="history" heading="我的出勤紀錄">
       <p>
         <a
           className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
@@ -183,7 +160,7 @@ export function View() {
         </a>
       </p>
       <p className="text-sm leading-relaxed text-muted-foreground">
-        整月摘要與下方分頁明細分開計算。資料可能更新；更正後請重新查詢。
+        預設顯示本人所有群組的班次。選取群組後可同時查看該群組的整月工時摘要。
       </p>
       <FieldSet
         className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
@@ -196,7 +173,7 @@ export function View() {
             disabled={groupsBusy}
             onClick={() => loadGroups()}
           >
-            載入本人群組
+            選擇群組篩選
           </Button>
           <Button
             id="more-groups"
@@ -209,10 +186,10 @@ export function View() {
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField>
-            群組
+            群組（選填）
             <NativeSelect
               id="history-group"
-              disabled={groupsBusy || !groups.length}
+              disabled={groupsBusy || (!groups.length && !group)}
               aria-busy={groupsBusy}
               value={group}
               onChange={(e) => {
@@ -221,7 +198,8 @@ export function View() {
                 setStatus("條件已變更，請重新查詢。");
               }}
             >
-              <NativeSelectOption value="">{groupsBusy ? "正在載入群組……" : groups.length ? "請選擇群組" : "目前沒有可選群組"}</NativeSelectOption>
+              <NativeSelectOption value="">所有群組</NativeSelectOption>
+              {group && !groups.some((g) => g.id === group) && <NativeSelectOption value={group}>{group}</NativeSelectOption>}
               {groups.map((g) => (
                 <NativeSelectOption key={g.id} value={g.id}>
                   {g.name}
@@ -280,6 +258,7 @@ export function View() {
         <TableCaption>本人班次明細；工時單位為分鐘</TableCaption>
         <TableHeader>
           <TableRow>
+            <TableHead>群組</TableHead>
             <TableHead>上班</TableHead>
             <TableHead>下班</TableHead>
             <TableHead>工時與狀態</TableHead>
@@ -289,6 +268,7 @@ export function View() {
         <TableBody id="record-list">
           {records.map((record) => (
             <TableRow key={record.RecordID}>
+              <TableCell>{groups.find((g) => g.id === record.GroupID)?.name || record.GroupID}</TableCell>
               <TableCell>{displayTime(record.ClockInAt)}</TableCell>
               <TableCell>{displayTime(record.ClockOutAt)}</TableCell>
               <TableCell className="whitespace-normal min-w-48">
@@ -304,7 +284,7 @@ export function View() {
               </TableCell>
               <TableCell>
                 <Button asChild variant="link">
-                  <a href={"/miniapp/correction?" + new URLSearchParams({ group, month, record: record.RecordID })}>
+                  <a href={"/miniapp/correction?" + new URLSearchParams({ group: record.GroupID, month, record: record.RecordID })}>
                     查看班次並提出更正
                   </a>
                 </Button>

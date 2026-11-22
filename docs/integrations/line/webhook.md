@@ -1,4 +1,5 @@
 # LINE Webhook 接線與驗證
+各任務的入口與事件對照見 [LINE 任務接線表](wiring.md)。
 
 1. 依[環境變數規格](configuration.md)注入 Messaging API Channel ID、secret 與 access token。Cloud Run 的機密綁定見[正式環境設定](../../operations/configuration.md)。
 2. 在 LINE Developers 設定 Webhook URL 為 `<service-url>/webhooks/line/<channelID>` 並啟用 Webhook。需要群組功能時，允許官方帳號加入群組。

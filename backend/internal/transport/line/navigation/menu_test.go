@@ -57,7 +57,7 @@ func TestQuickMenuPayload(t *testing.T) {
 		}
 		if tc.group {
 			journal := payload.QuickReply.Items[1].Action
-			if journal.Type != "uri" || journal.Label != "日誌" || journal.Uri != "https://liff.line.me/example?journal=1" {
+			if journal.Type != "uri" || journal.Label != "日誌" || journal.Uri != "https://liff.line.me/example?journal=1&journalCompose=1&journalRepository=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" {
 				t.Fatalf("invalid journal link: %s", data)
 			}
 		}
@@ -128,6 +128,14 @@ func TestMiniAppGroupRepositoryOnBothEntrances(t *testing.T) {
 	const query = "?repositories=1&repository=" + id
 	if action.Uri != mobile+query || action.AltUri == nil || action.AltUri.Desktop != desktop+query {
 		t.Fatalf("group repository was lost between entry points: %+v", action)
+	}
+}
+
+func TestJournalURLDoesNotGuessRepository(t *testing.T) {
+	for _, ids := range [][]string{nil, {"invalid"}, {"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}} {
+		if got := journalURL("https://liff.line.me/example", ids...); got != "https://liff.line.me/example?journal=1&journalCompose=1" {
+			t.Fatalf("unexpected journal URL: %s", got)
+		}
 	}
 }
 
