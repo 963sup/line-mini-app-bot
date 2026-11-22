@@ -12,7 +12,7 @@ import (
 	attendanceevent "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/event"
 	attendanceservice "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/service"
 	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

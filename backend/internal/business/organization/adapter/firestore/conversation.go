@@ -10,7 +10,7 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
 	dto "github.com/963sup/line-mini-app-bot/internal/business/organization/application/dto"
 	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

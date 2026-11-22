@@ -13,7 +13,7 @@ import (
 	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
 	groupevent "github.com/963sup/line-mini-app-bot/internal/business/group/domain/event"
 	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/business/group/domain/valueobject"
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

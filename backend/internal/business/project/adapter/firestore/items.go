@@ -10,7 +10,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"github.com/963sup/line-mini-app-bot/internal/platform/grpcstatus"
 
 	db "cloud.google.com/go/firestore"

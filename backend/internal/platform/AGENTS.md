@@ -2,7 +2,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[line](line/README.md)、[firestorekey](firestorekey)、[grpcstatus](grpcstatus)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+先查閱[line](line/README.md)、[firestorekey](firestore/key)、[grpcstatus](grpcstatus)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
 
 ## 相關規格
 

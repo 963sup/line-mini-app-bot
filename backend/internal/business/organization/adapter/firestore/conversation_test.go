@@ -9,7 +9,7 @@ import (
 	"cloud.google.com/go/firestore"
 	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
 	dto "github.com/963sup/line-mini-app-bot/internal/business/organization/application/dto"
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"github.com/google/uuid"
 )
 
