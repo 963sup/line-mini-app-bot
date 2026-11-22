@@ -33,7 +33,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Authorized repository data; no-store",
+            "description": "Only active repositories readable by the current user; an empty page may have a nextCursor; no-store",
             "content": {
               "application/json": {
                 "schema": {
@@ -110,7 +110,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Authorized repository data; no-store",
+            "description": "Active repository readable by the current user; no-store",
             "content": {
               "application/json": {
                 "schema": {

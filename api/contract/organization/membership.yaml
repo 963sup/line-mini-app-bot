@@ -306,7 +306,9 @@
         "required": [
           "memberId",
           "owner",
-          "self"
+          "self",
+          "canRemove",
+          "canReceiveOwnership"
         ],
         "properties": {
           "memberId": {
@@ -317,6 +319,12 @@
           },
           "self": {
             "type": "boolean"
+          },
+          "canRemove": {
+            "type": "boolean"
+          },
+          "canReceiveOwnership": {
+            "type": "boolean"
           }
         }
       },
@@ -326,7 +334,9 @@
           "organizationName",
           "members",
           "canLeave",
-          "canRemove"
+          "canRemove",
+          "isOwner",
+          "canTransferOwnership"
         ],
         "properties": {
           "organizationName": {
@@ -342,6 +352,12 @@
             "type": "boolean"
           },
           "canRemove": {
+            "type": "boolean"
+          },
+          "isOwner": {
+            "type": "boolean"
+          },
+          "canTransferOwnership": {
             "type": "boolean"
           }
         }

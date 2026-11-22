@@ -14,6 +14,12 @@
         ],
         "parameters": [
           {
+            "name": "includeProgress",
+            "in": "query",
+            "description": "Include ordered work progress for each journal on this page.",
+            "schema": { "type": "boolean" }
+          },
+          {
             "name": "repositoryId",
             "in": "query",
             "schema": { "type": "string", "pattern": "^[a-f0-9]{32}$" }
@@ -510,6 +516,15 @@
           }
         }
       },
+      "JournalProgress": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "today": { "type": "integer", "minimum": 0, "maximum": 100 },
+          "tomorrow": { "type": "integer", "minimum": 0, "maximum": 100 }
+        }
+      },
       "Journal": {
         "type": "object",
         "additionalProperties": false,
@@ -523,6 +538,11 @@
           "tomorrowItems"
         ],
         "properties": {
+          "progress": {
+            "type": "array",
+            "description": "Today's actual progress followed by tomorrow's expected progress, in journal order.",
+            "items": { "$ref": "#/components/schemas/JournalProgress" }
+          },
           "id": {
             "type": "string",
             "pattern": "^[a-f0-9]{32}$"

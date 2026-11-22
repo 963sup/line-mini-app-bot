@@ -2,6 +2,7 @@ package wiki
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 	"unicode"
@@ -13,6 +14,13 @@ import (
 var ErrInput = errors.New("invalid wiki input")
 
 var ErrConflict = errors.New("wiki title, version or creation key conflicts")
+
+var (
+	ErrVersion = fmt.Errorf("stale version: %w", ErrConflict)
+	ErrTitle   = fmt.Errorf("duplicate title: %w", ErrConflict)
+	ErrReplay  = fmt.Errorf("creation key reused: %w", ErrConflict)
+	ErrLimit   = fmt.Errorf("version limit reached: %w", ErrConflict)
+)
 
 type Page struct {
 	ID        string
@@ -34,7 +42,7 @@ func Validate(title, body string) (string, error) {
 // CheckCreationReplay compares a retried create with the immutable first revision.
 func (p Page) CheckCreationReplay(actor, title, body string) error {
 	if p.AuthorID != actor || p.Title != title || p.Body != body {
-		return ErrConflict
+		return ErrReplay
 	}
 	return nil
 }
@@ -42,13 +50,13 @@ func (p Page) CheckCreationReplay(actor, title, body string) error {
 // Revise returns the next page only when the requested edit changes its content.
 func (p Page) Revise(expected int64, actor, title, body string, now time.Time) (Page, bool, error) {
 	if expected != p.Version {
-		return p, false, ErrConflict
+		return p, false, ErrVersion
 	}
 	if title == p.Title && body == p.Body {
 		return p, false, nil
 	}
 	if p.Version >= repositoryDomainEntity.MaxResourceNumber {
-		return p, false, ErrConflict
+		return p, false, ErrLimit
 	}
 	p.Title, p.Body, p.AuthorID = title, body, actor
 	p.Version++

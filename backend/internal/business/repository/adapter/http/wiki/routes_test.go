@@ -96,8 +96,18 @@ func TestWikiMembershipAndRevisions(t *testing.T) {
 	auth.actor = "beta"
 	edit := `{"title":"Pump SOP","body":"revised","expectedVersion":1}`
 	call("PATCH", path, edit, "", 200)
-	call("PATCH", path, edit, "", 409)
-	call("POST", "", `{"title":"pump sop","body":"duplicate"}`, "second-creation-key", 409)
+	for _, tc := range []struct {
+		body []byte
+		want generated.APIErrorErrorConflictReason
+	}{
+		{call("PATCH", path, edit, "", 409), generated.StaleVersion},
+		{call("POST", "", `{"title":"pump sop","body":"duplicate"}`, "second-creation-key", 409), generated.DuplicateTitle},
+	} {
+		var result generated.APIError
+		if err := json.Unmarshal(tc.body, &result); err != nil || result.Error.Code != "conflict" || result.Error.ConflictReason == nil || *result.Error.ConflictReason != tc.want {
+			t.Fatalf("want conflict %s, got %s", tc.want, tc.body)
+		}
+	}
 	auth.actor = "alpha"
 	if err = json.Unmarshal(call("POST", "", first, key, 200), &p); err != nil || p.Version != 2 || "/"+p.Id != path {
 		t.Fatal(p, err)

@@ -21,14 +21,14 @@ type Roster struct {
 }
 
 type Member struct {
-	ID          string
-	Owner, Self bool
+	ID                                          string
+	Owner, Self, CanRemove, CanReceiveOwnership bool
 }
 
 type Members struct {
-	Name                string
-	People              []Member
-	CanLeave, CanRemove bool
+	Name                                               string
+	People                                             []Member
+	CanLeave, CanRemove, IsOwner, CanTransferOwnership bool
 }
 
 type Departure struct {
@@ -47,15 +47,15 @@ func (s Service) ListMembers(ctx context.Context, actor, organization string) (M
 		if !owner && !slices.Contains(roster.UserIDs, actor) {
 			return ErrForbidden
 		}
-		result = Members{Name: roster.Name, CanLeave: !owner, CanRemove: owner}
-		result.People = append(result.People, Member{domain.MemberRef(organization, roster.OwnerID), true, owner})
+		result = Members{Name: roster.Name, CanLeave: !owner, CanRemove: owner, IsOwner: owner, CanTransferOwnership: owner}
+		result.People = append(result.People, Member{ID: domain.MemberRef(organization, roster.OwnerID), Owner: true, Self: owner})
 		seen := map[string]bool{roster.OwnerID: true}
 		for _, user := range roster.UserIDs {
 			if user == "" || seen[user] {
 				continue
 			}
 			seen[user] = true
-			result.People = append(result.People, Member{domain.MemberRef(organization, user), false, user == actor})
+			result.People = append(result.People, Member{ID: domain.MemberRef(organization, user), Self: user == actor, CanRemove: owner, CanReceiveOwnership: owner})
 		}
 		return nil
 	})

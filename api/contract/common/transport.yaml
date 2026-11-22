@@ -17,6 +17,15 @@
               "code": {
                 "type": "string"
               },
+              "retrySameRequest": {
+                "description": "Recovery guidance for this attempt: true means retain the original request and idempotency key; false permits editing after a first failed attempt. A later response cannot resolve an earlier unknown outcome. Missing on older servers or errors without recovery guidance.",
+                "type": "boolean"
+              },
+              "conflictReason": {
+                "description": "Optional reason for a Wiki conflict. The top-level error code remains conflict.",
+                "type": "string",
+                "enum": ["stale_version", "duplicate_title", "creation_key", "version_limit"]
+              },
               "message": {
                 "type": "string"
               }

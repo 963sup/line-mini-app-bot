@@ -988,6 +988,11 @@
             "type": "boolean",
             "description": "Whether the authenticated actor may edit the content. Writes recheck authorization."
           },
+          "workConversionDefault": {
+            "description": "When converting a legacy object to work, prefill zero or the current draft quantity. Otherwise let the user enter the value.",
+            "type": "string",
+            "enum": ["zero", "quantity"]
+          },
           "requiresProgressReset": {
             "type": "boolean",
             "description": "Whether stored progress must be reset before changing the type to non-work."

@@ -192,7 +192,18 @@ func (s *journalServer) ListJournals(w http.ResponseWriter, r *http.Request, p g
 	}
 	items := make([]generated.Journal, 0, len(page.Items))
 	for _, e := range page.Items {
-		items = append(items, view(e))
+		journal := view(e)
+		if p.IncludeProgress != nil && *p.IncludeProgress {
+			rows := make([]generated.JournalProgress, 0, len(e.Today)+len(e.Tomorrow))
+			for _, item := range e.Today {
+				rows = append(rows, generated.JournalProgress{Name: item.Name, Today: &item.Percent})
+			}
+			for _, item := range e.Tomorrow {
+				rows = append(rows, generated.JournalProgress{Name: item.Name, Tomorrow: &item.Percent})
+			}
+			journal.Progress = &rows
+		}
+		items = append(items, journal)
 	}
 	transport.WriteJSON(w, 200, generated.JournalPage{Items: items, NextCursor: page.NextCursor})
 }

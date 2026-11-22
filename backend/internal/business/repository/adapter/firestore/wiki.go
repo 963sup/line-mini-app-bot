@@ -146,7 +146,7 @@ func (s *Store) WriteWiki(ctx context.Context, r repositoryDomainEntity.Reposito
 		if !exists || oldName.ID != name.ID {
 			_, e = tx.Get(name)
 			if e == nil {
-				return repositoryDomainEntityWiki.ErrConflict
+				return repositoryDomainEntityWiki.ErrTitle
 			}
 			if status.Code(e) != codes.NotFound {
 				return e

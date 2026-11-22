@@ -24,7 +24,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Authorized repository data; no-store",
+            "description": "Active groups readable by the current member; no-store",
             "content": {
               "application/json": {
                 "schema": {
@@ -101,7 +101,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Authorized repository data; no-store",
+            "description": "Active group readable by the current member; no-store",
             "content": {
               "application/json": {
                 "schema": {

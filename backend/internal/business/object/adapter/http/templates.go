@@ -113,7 +113,7 @@ func (s *objectServer) InstantiateObjectTemplate(w http.ResponseWriter, r *http.
 
 func writeTemplateError(w http.ResponseWriter, e error) bool {
 	if errors.Is(e, entity.ErrInput) {
-		transport.WriteAPIError(w, 400, "invalid_input", "請確認範本名稱、單一根節點與父子關係；最多100個節點、48,000 bytes，數量與單位須符合物件規則。")
+		transport.WriteRequestError(w, 400, "invalid_input", "請確認範本名稱、單一根節點與父子關係；最多100個節點、48,000 bytes，數量與單位須符合物件規則。", false)
 		return true
 	}
 	return writeError(w, e)

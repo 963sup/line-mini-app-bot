@@ -158,6 +158,19 @@ func Normalize(c Content) (Content, error) {
 	return c, nil
 }
 
+// WorkConversionDefault preserves legacy progress when switching to measured work.
+func (v Object) WorkConversionDefault() string {
+	if v.Type != TypeWork && v.Type != TypeNonWork {
+		switch v.Status {
+		case StatusNotStarted:
+			return "zero"
+		case StatusCompleted:
+			return "quantity"
+		}
+	}
+	return ""
+}
+
 func (v Object) RequiresProgressReset() bool {
 	if v.Type != TypeWork || v.CompletedQuantity == "" {
 		return false

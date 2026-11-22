@@ -106,6 +106,18 @@ func TestJournalRoutes(t *testing.T) {
 		if row := f.saved.Tomorrow[0]; row.ObjectID != objectID || len(row.SpaceIDs) != 1 || row.SpaceIDs[0] != spaceID {
 			t.Fatalf("tomorrow selection lost at adapter: %+v", row)
 		}
+		if strings.Contains(list, `"progress"`) {
+			t.Fatal("ordinary feed must omit progress")
+		}
+		chart := call("GET", base+"?repositoryId="+repo+"&includeProgress=true", "", true, 200)
+		var dashboard generated.JournalPage
+		if err := json.Unmarshal([]byte(chart), &dashboard); err != nil || len(dashboard.Items) != 1 || dashboard.Items[0].Progress == nil {
+			t.Fatalf("missing dashboard progress: %s", chart)
+		}
+		rows := *dashboard.Items[0].Progress
+		if len(rows) != 3 || rows[0].Name != "鋪設" || rows[0].Today == nil || *rows[0].Today != 40 || rows[0].Tomorrow != nil || rows[2].Tomorrow == nil || *rows[2].Tomorrow != 50 || rows[2].Today != nil {
+			t.Fatalf("incorrect progress: %s", chart)
+		}
 		var created generated.Journal
 		if err := json.Unmarshal([]byte(response), &created); err != nil || len(created.TodayItems) != 2 || len(created.TomorrowItems) != 1 || created.TodayItems[0].ObjectId != objectID || len(created.TodayItems[0].SpaceIds) != 1 || created.TomorrowItems[0].ObjectId != objectID {
 			t.Fatalf("selection lost in response: %s (%v)", response, err)

@@ -1360,6 +1360,13 @@ export interface components {
         APIError: {
             error: {
                 code: string;
+                /** @description Recovery guidance for this attempt: true means retain the original request and idempotency key; false permits editing after a first failed attempt. A later response cannot resolve an earlier unknown outcome. Missing on older servers or errors without recovery guidance. */
+                retrySameRequest?: boolean;
+                /**
+                 * @description Optional reason for a Wiki conflict. The top-level error code remains conflict.
+                 * @enum {string}
+                 */
+                conflictReason?: "stale_version" | "duplicate_title" | "creation_key" | "version_limit";
                 message: string;
             };
         };
@@ -1697,6 +1704,11 @@ export interface components {
             spaceId?: string;
             /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
             canEdit: boolean;
+            /**
+             * @description When converting a legacy object to work, prefill zero or the current draft quantity. Otherwise let the user enter the value.
+             * @enum {string}
+             */
+            workConversionDefault?: "zero" | "quantity";
             /** @description Whether stored progress must be reset before changing the type to non-work. */
             requiresProgressReset: boolean;
             /** @description Immutable template source, when instantiated. */
@@ -1852,6 +1864,8 @@ export interface components {
             tomorrowItems: components["schemas"]["JournalTomorrowItem"][];
         };
         Journal: {
+            /** @description Today's actual progress followed by tomorrow's expected progress, in journal order. */
+            progress?: components["schemas"]["JournalProgress"][];
             id: string;
             creatorId: string;
             /** Format: date-time */
@@ -2284,6 +2298,11 @@ export interface components {
         };
         /** @enum {string} */
         ProjectItemStatus: "todo" | "in_progress" | "done";
+        JournalProgress: {
+            name: string;
+            today?: number;
+            tomorrow?: number;
+        };
         OrganizationOption: {
             organizationId: string;
             name: string;
@@ -2330,12 +2349,16 @@ export interface components {
             memberId: string;
             owner: boolean;
             self: boolean;
+            canRemove: boolean;
+            canReceiveOwnership: boolean;
         };
         OrganizationMembers: {
             organizationName: string;
             members: components["schemas"]["OrganizationMember"][];
             canLeave: boolean;
             canRemove: boolean;
+            isOwner: boolean;
+            canTransferOwnership: boolean;
         };
         TeamManagement: {
             /** @enum {string} */
@@ -4361,7 +4384,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Authorized repository data; no-store */
+            /** @description Only active repositories readable by the current user; an empty page may have a nextCursor; no-store */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -4419,7 +4442,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Authorized repository data; no-store */
+            /** @description Active repository readable by the current user; no-store */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -5331,7 +5354,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Authorized repository data; no-store */
+            /** @description Active groups readable by the current member; no-store */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -5389,7 +5412,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Authorized repository data; no-store */
+            /** @description Active group readable by the current member; no-store */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -6018,6 +6041,8 @@ export interface operations {
     listJournals: {
         parameters: {
             query?: {
+                /** @description Include ordered work progress for each journal on this page. */
+                includeProgress?: boolean;
                 repositoryId?: string;
                 groupId?: string;
                 workDate?: string;

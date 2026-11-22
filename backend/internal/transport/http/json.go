@@ -27,13 +27,23 @@ func WriteJSON(w http.ResponseWriter, status int, value any) {
 }
 
 func WriteAPIError(w http.ResponseWriter, status int, code, message string) {
+	writeError(w, status, code, message, nil)
+}
+
+// WriteRequestError adds recovery guidance for this attempt only.
+func WriteRequestError(w http.ResponseWriter, status int, code, message string, retrySameRequest bool) {
+	writeError(w, status, code, message, &retrySameRequest)
+}
+
+func writeError(w http.ResponseWriter, status int, code, message string, retrySameRequest *bool) {
 	type detail struct {
-		Code    string `json:"code"`
-		Message string `json:"message"`
+		RetrySameRequest *bool  `json:"retrySameRequest,omitempty"`
+		Code             string `json:"code"`
+		Message          string `json:"message"`
 	}
 	WriteJSON(w, status, struct {
 		Error detail `json:"error"`
-	}{Error: detail{Code: code, Message: message}})
+	}{Error: detail{Code: code, Message: message, RetrySameRequest: retrySameRequest}})
 }
 
 // WriteServiceError exposes the service message when running the local dev task.
@@ -42,6 +52,13 @@ func WriteServiceError(w http.ResponseWriter, status int, code, message string, 
 		message = err.Error()
 	}
 	WriteAPIError(w, status, code, message)
+}
+
+func WriteResourceError(w http.ResponseWriter, status int, code, message string, err error, retrySameRequest bool) {
+	if os.Getenv("DEV_ERROR_DETAILS") == "1" {
+		message = err.Error()
+	}
+	WriteRequestError(w, status, code, message, retrySameRequest)
 }
 
 func ValidateUniqueQuery(w http.ResponseWriter, r *http.Request) bool {

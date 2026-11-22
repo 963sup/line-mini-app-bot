@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 
@@ -32,5 +33,22 @@ func TestListForOwnerPreservesAuthorizationAndContinuation(t *testing.T) {
 	page, err = service.List(t.Context(), "U"+strings.Repeat("c", 32), "", user)
 	if err != nil || len(page.Items) != 0 || page.NextCursor != "more" {
 		t.Fatalf("unexpected page for another actor: %+v, %v", page, err)
+	}
+}
+
+type singleRepository struct {
+	port.Store
+	item entity.Repository
+}
+
+func (s singleRepository) GetByID(context.Context, string) (entity.Repository, error) {
+	return s.item, nil
+}
+
+func TestGetRejectsInactiveRepositoryForItsOwner(t *testing.T) {
+	item := entity.Repository{ID: strings.Repeat("a", 32), OwnerID: "U" + strings.Repeat("b", 32), Status: "INACTIVE"}
+	service := Service{Store: singleRepository{item: item}}
+	if _, err := service.Get(t.Context(), item.OwnerID, item.ID); !errors.Is(err, entity.ErrNotFound) {
+		t.Fatalf("inactive repository: got %v, want not found", err)
 	}
 }

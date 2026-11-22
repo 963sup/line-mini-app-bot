@@ -47,7 +47,7 @@ func Register(mux *http.ServeMux, service *repositoryApplicationMilestones.Servi
 				return nil
 			}},
 			ErrorHandlerWithOpts: func(_ context.Context, _ error, w http.ResponseWriter, _ *http.Request, _ middleware.ErrorHandlerOpts) {
-				transport.WriteAPIError(w, 400, "invalid_input", "請求資料不符合里程碑契約。")
+				transport.WriteRequestError(w, 400, "invalid_input", "請求資料不符合里程碑契約。", false)
 			},
 		})(next)
 		return http.NewCrossOriginProtection().Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -75,7 +75,7 @@ func Register(mux *http.ServeMux, service *repositoryApplicationMilestones.Servi
 				}
 				r.Body = http.MaxBytesReader(w, r.Body, 65536)
 				if r.Method == http.MethodPost && len(r.Header.Values("Idempotency-Key")) != 1 {
-					transport.WriteAPIError(w, 400, "invalid_input", "請提供唯一的重試識別碼。")
+					transport.WriteRequestError(w, 400, "invalid_input", "請提供唯一的重試識別碼。", false)
 					return
 				}
 			}
@@ -112,7 +112,7 @@ func writeError(w http.ResponseWriter, e error) bool {
 	case errors.Is(e, repositoryDomainEntityMilestones.ErrCreationConflict):
 		code, status, message = "idempotency_conflict", 409, "建立識別碼已用於不同內容，請確認原紀錄。"
 	}
-	transport.WriteServiceError(w, status, code, message, e)
+	transport.WriteResourceError(w, status, code, message, e, code == "unavailable")
 	return true
 }
 

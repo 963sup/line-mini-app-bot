@@ -49,7 +49,7 @@ func Register(mux *http.ServeMux, service *objectApplication.Service, auth Authe
 				return nil
 			}},
 			ErrorHandlerWithOpts: func(_ context.Context, _ error, w http.ResponseWriter, _ *http.Request, _ middleware.ErrorHandlerOpts) {
-				transport.WriteAPIError(w, 400, "invalid_input", "請求資料不符合物件契約。")
+				transport.WriteRequestError(w, 400, "invalid_input", "請求資料不符合物件契約。", false)
 			},
 		})(next)
 		return http.NewCrossOriginProtection().Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +84,7 @@ func Register(mux *http.ServeMux, service *objectApplication.Service, auth Authe
 				}
 				r.Body = http.MaxBytesReader(w, r.Body, limit)
 				if r.Method == http.MethodPost && !extraction && len(r.Header.Values("Idempotency-Key")) != 1 {
-					transport.WriteAPIError(w, 400, "invalid_input", "請提供唯一的重試識別碼。")
+					transport.WriteRequestError(w, 400, "invalid_input", "請提供唯一的重試識別碼。", false)
 					return
 				}
 			}
@@ -107,7 +107,12 @@ func view(i objectDomainEntity.Object, actor string) generated.Object {
 	if i.ParentID != "" {
 		parentID = &i.ParentID
 	}
-	return generated.Object{TemplateId: optional(i.TemplateID), TemplateVersion: templateVersion(i.TemplateVersion), TemplateNodeId: optional(i.TemplateNodeID), ParentId: parentID, RequiresProgressReset: i.RequiresProgressReset(), CanEdit: i.CanEdit(actor), SpaceId: spaceID, CompletedQuantity: completed, Id: i.ID, RepositoryId: i.RepositoryID, Name: i.Name, Description: i.Description, Type: i.Type, Quantity: i.Quantity, Unit: i.Unit, Status: generated.ObjectStatus(i.Status), SourceDocument: i.SourceDocument, SourceRevision: i.SourceRevision, SourceItemNo: i.SourceItemNo, SourcePages: i.SourcePages, MaterialCode: i.MaterialCode, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
+	var preset *generated.ObjectWorkConversionDefault
+	if value := i.WorkConversionDefault(); value != "" {
+		mode := generated.ObjectWorkConversionDefault(value)
+		preset = &mode
+	}
+	return generated.Object{WorkConversionDefault: preset, TemplateId: optional(i.TemplateID), TemplateVersion: templateVersion(i.TemplateVersion), TemplateNodeId: optional(i.TemplateNodeID), ParentId: parentID, RequiresProgressReset: i.RequiresProgressReset(), CanEdit: i.CanEdit(actor), SpaceId: spaceID, CompletedQuantity: completed, Id: i.ID, RepositoryId: i.RepositoryID, Name: i.Name, Description: i.Description, Type: i.Type, Quantity: i.Quantity, Unit: i.Unit, Status: generated.ObjectStatus(i.Status), SourceDocument: i.SourceDocument, SourceRevision: i.SourceRevision, SourceItemNo: i.SourceItemNo, SourcePages: i.SourcePages, MaterialCode: i.MaterialCode, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
 }
 
 func writeError(w http.ResponseWriter, e error) bool {
@@ -129,7 +134,7 @@ func writeError(w http.ResponseWriter, e error) bool {
 	case errors.Is(e, objectDomainEntity.ErrCreationConflict):
 		code, httpStatus, message = "idempotency_conflict", 409, "重試識別碼已用於不同內容，請先確認原物件。"
 	}
-	transport.WriteServiceError(w, httpStatus, code, message, e)
+	transport.WriteResourceError(w, httpStatus, code, message, e, code == "unavailable")
 	return true
 }
 

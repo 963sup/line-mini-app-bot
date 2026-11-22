@@ -44,7 +44,7 @@ func Register(mux *http.ServeMux, service *discussionapp.Service, auth Authentic
 				return nil
 			}},
 			ErrorHandlerWithOpts: func(_ context.Context, _ error, w http.ResponseWriter, _ *http.Request, _ middleware.ErrorHandlerOpts) {
-				transport.WriteAPIError(w, 400, "invalid_input", "請求資料不符合討論契約。")
+				transport.WriteRequestError(w, 400, "invalid_input", "請求資料不符合討論契約。", false)
 			},
 		})(next)
 		return http.NewCrossOriginProtection().Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -72,7 +72,7 @@ func Register(mux *http.ServeMux, service *discussionapp.Service, auth Authentic
 				}
 				r.Body = http.MaxBytesReader(w, r.Body, 65536)
 				if r.Method == http.MethodPost && len(r.Header.Values("Idempotency-Key")) != 1 {
-					transport.WriteAPIError(w, 400, "invalid_input", "請提供唯一的重試識別碼。")
+					transport.WriteRequestError(w, 400, "invalid_input", "請提供唯一的重試識別碼。", false)
 					return
 				}
 			}
@@ -105,7 +105,7 @@ func writeError(w http.ResponseWriter, err error) bool {
 	case errors.Is(err, discussionentity.ErrCreationConflict):
 		code, status, message = "idempotency_conflict", 409, "重試識別碼已用於不同內容，請先確認原討論。"
 	}
-	transport.WriteServiceError(w, status, code, message, err)
+	transport.WriteResourceError(w, status, code, message, err, code == "unavailable")
 	return true
 }
 

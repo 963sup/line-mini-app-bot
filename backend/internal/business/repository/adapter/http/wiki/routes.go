@@ -48,7 +48,7 @@ func Register(mux *http.ServeMux, service *repositoryApplicationWiki.Service, au
 				return nil
 			}},
 			ErrorHandlerWithOpts: func(_ context.Context, _ error, w http.ResponseWriter, _ *http.Request, _ middleware.ErrorHandlerOpts) {
-				transport.WriteAPIError(w, 400, "invalid_input", "請求資料不符合Wiki契約。")
+				transport.WriteRequestError(w, 400, "invalid_input", "請求資料不符合Wiki契約。", false)
 			},
 		})(next)
 		return http.NewCrossOriginProtection().Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +76,7 @@ func Register(mux *http.ServeMux, service *repositoryApplicationWiki.Service, au
 				}
 				r.Body = http.MaxBytesReader(w, r.Body, 256<<10)
 				if r.Method == http.MethodPost && len(r.Header.Values("Idempotency-Key")) != 1 {
-					transport.WriteAPIError(w, 400, "invalid_input", "請提供唯一的重試識別碼。")
+					transport.WriteRequestError(w, 400, "invalid_input", "請提供唯一的重試識別碼。", false)
 					return
 				}
 			}
@@ -93,13 +93,32 @@ func handleError(w http.ResponseWriter, e error) bool {
 	}
 	switch {
 	case errors.Is(e, repositoryDomainEntity.ErrNotFound):
-		transport.WriteAPIError(w, 404, "not_found", "找不到知識庫或頁面。")
+		transport.WriteRequestError(w, 404, "not_found", "找不到知識庫或頁面。", false)
 	case errors.Is(e, repositoryDomainEntityWiki.ErrInput):
-		transport.WriteAPIError(w, 400, "invalid_input", "請確認標題、內容或分頁參數。")
+		transport.WriteRequestError(w, 400, "invalid_input", "請確認標題、內容或分頁參數。", false)
 	case errors.Is(e, repositoryDomainEntityWiki.ErrConflict):
-		transport.WriteAPIError(w, 409, "conflict", "版本、標題或重試識別碼衝突，請核對後再儲存。")
+		var result generated.APIError
+		var reason generated.APIErrorErrorConflictReason
+		result.Error.Code = "conflict"
+		retrySameRequest := false
+		result.Error.RetrySameRequest = &retrySameRequest
+		result.Error.Message = "請核對後再儲存。"
+		switch {
+		case errors.Is(e, repositoryDomainEntityWiki.ErrVersion):
+			reason, result.Error.Message = generated.StaleVersion, "頁面已有新版本，請比對後再儲存。"
+		case errors.Is(e, repositoryDomainEntityWiki.ErrTitle):
+			reason, result.Error.Message = generated.DuplicateTitle, "標題已被使用，請修改標題。"
+		case errors.Is(e, repositoryDomainEntityWiki.ErrReplay):
+			reason, result.Error.Message = generated.CreationKey, "建立識別碼已使用，請核對原建立請求。"
+		case errors.Is(e, repositoryDomainEntityWiki.ErrLimit):
+			reason, result.Error.Message = generated.VersionLimit, "頁面版本已達上限。"
+		}
+		if reason != "" {
+			result.Error.ConflictReason = &reason
+		}
+		transport.WriteJSON(w, http.StatusConflict, result)
 	default:
-		transport.WriteAPIError(w, 503, "unavailable", "暫時無法存取知識庫。")
+		transport.WriteRequestError(w, 503, "unavailable", "暫時無法存取知識庫。", true)
 	}
 	return true
 }
