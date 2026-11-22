@@ -1,6 +1,8 @@
 package command
 
 import (
+	"context"
+	"strings"
 	"time"
 
 	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
@@ -8,6 +10,28 @@ import (
 	attendancepolicy "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/policy"
 	attendanceservice "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/service"
 )
+
+func ApproveCorrection(ctx context.Context, runner attendanceport.CorrectionReviewRunner, actor, id string, now time.Time) error {
+	return runCorrectionReview(ctx, runner, actor, id, attendancepolicy.Decision{Status: "approved"}, now)
+}
+
+func RejectCorrection(ctx context.Context, runner attendanceport.CorrectionReviewRunner, actor, id, reason string, now time.Time) error {
+	reason = strings.TrimSpace(reason)
+	if reason == "" || len([]rune(reason)) > 500 {
+		return attendanceentity.ErrCorrection
+	}
+	return runCorrectionReview(ctx, runner, actor, id, attendancepolicy.Decision{Status: "rejected", Reason: reason}, now)
+}
+
+func CancelCorrection(ctx context.Context, runner attendanceport.CorrectionReviewRunner, actor, id string, now time.Time) error {
+	return runCorrectionReview(ctx, runner, actor, id, attendancepolicy.Decision{Status: "cancelled"}, now)
+}
+
+func runCorrectionReview(ctx context.Context, runner attendanceport.CorrectionReviewRunner, actor, id string, decision attendancepolicy.Decision, now time.Time) error {
+	return runner.RunCorrectionReview(ctx, actor, id, func(tx attendanceport.ReviewTransaction, actorKey string, correction attendanceentity.Correction) error {
+		return ReviewCorrection(tx, actorKey, correction, decision, now)
+	})
+}
 
 func ReviewCorrection(tx attendanceport.ReviewTransaction, actorKey string, c attendanceentity.Correction, d attendancepolicy.Decision, now time.Time) error {
 	switch d.Status {

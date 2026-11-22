@@ -6,12 +6,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"slices"
-	"strings"
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	attendancecommand "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/command"
 	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
 	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	attendancepolicy "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/policy"
 	attendanceservice "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/service"
@@ -143,23 +142,6 @@ func (s *Attendance) proposeCorrection(ctx context.Context, user, key string, c 
 	return c.ID, nil
 }
 
-// ApproveCorrection and RejectCorrection share one atomic, terminal decision.
-func (s *Attendance) ApproveCorrection(ctx context.Context, reviewer, id string, now time.Time) error {
-	return s.decideCorrection(ctx, reviewer, id, "approved", "", now)
-}
-
-func (s *Attendance) RejectCorrection(ctx context.Context, reviewer, id, reason string, now time.Time) error {
-	reason = strings.TrimSpace(reason)
-	if reason == "" || len([]rune(reason)) > 500 {
-		return attendanceentity.ErrCorrection
-	}
-	return s.decideCorrection(ctx, reviewer, id, "rejected", reason, now)
-}
-
-func (s *Attendance) CancelCorrection(ctx context.Context, user, id string, now time.Time) error {
-	return s.decideCorrection(ctx, user, id, "cancelled", "", now)
-}
-
 type correctionDecision struct {
 	Status      string    `firestore:"status"`
 	Reason      string    `firestore:"decisionReason"`
@@ -232,7 +214,7 @@ func (s *Attendance) reviewerGroups(tx *db.Transaction, reviewer string) ([]stri
 	return access.Groups, nil
 }
 
-func (s *Attendance) decideCorrection(ctx context.Context, actor, id, decision, reason string, now time.Time) (err error) {
+func (s *Attendance) RunCorrectionReview(ctx context.Context, actor, id string, review func(attendanceport.ReviewTransaction, string, attendanceentity.Correction) error) (err error) {
 	defer func() { err = translateError(err, attendanceentity.ErrCorrection) }()
 	if actor == "" || !validSegment(id) {
 		return attendanceentity.ErrCorrection
@@ -249,7 +231,7 @@ func (s *Attendance) decideCorrection(ctx context.Context, actor, id, decision, 
 			return err
 		}
 		t := reviewTransaction{store: s, tx: tx, proposal: proposal, audit: channel.Collection("attendanceCorrections").Doc(id), employee: channel.Collection("users").Doc(c.UserKey), actor: actor}
-		return attendancecommand.ReviewCorrection(t, firestorekey.Encode(actor), c, attendancepolicy.Decision{Status: decision, Reason: reason}, now)
+		return review(t, firestorekey.Encode(actor), c)
 	})
 }
 

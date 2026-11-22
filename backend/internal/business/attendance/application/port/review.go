@@ -1,11 +1,17 @@
 package port
 
 import (
+	"context"
 	"time"
 
 	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	attendancepolicy "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/policy"
 )
+
+// CorrectionReviewRunner loads the correction and binds the callback to one transaction.
+type CorrectionReviewRunner interface {
+	RunCorrectionReview(ctx context.Context, actor, id string, review func(ReviewTransaction, string, attendanceentity.Correction) error) error
+}
 
 // ReviewTransaction supplies one consistent view and commits both writes atomically.
 type ReviewTransaction interface {
