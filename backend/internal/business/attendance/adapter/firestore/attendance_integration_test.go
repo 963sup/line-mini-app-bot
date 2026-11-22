@@ -356,10 +356,10 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 			t.Fatal(err)
 		}
 		for _, item := range page.Items {
-			if item.Correction.GroupID == "outside" || (item.Status != "pending" && item.Status != "stale") {
+			if item.GroupID == "outside" || (item.Status != "pending" && item.Status != "stale") {
 				t.Fatalf("unexpected review item: %+v", item)
 			}
-			delete(want, item.Correction.ID)
+			delete(want, item.ID)
 		}
 		if page.NextCursor == "" {
 			break

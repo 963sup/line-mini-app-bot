@@ -154,7 +154,7 @@ func attendanceMonthInput(w http.ResponseWriter, group, value string, bot *Atten
 		zone = time.FixedZone("Asia/Taipei", 28800)
 	}
 	month, err := time.ParseInLocation("2006-01", value, zone)
-	if err != nil || (!validAttendanceGroup(group) && !(allowAllGroups && group == "")) {
+	if err != nil || (!validAttendanceGroup(group) && (!allowAllGroups || group != "")) {
 		transport.WriteAPIError(w, 400, "invalid_input", "群組或月份格式無效。")
 		return "", time.Time{}, false
 	}
