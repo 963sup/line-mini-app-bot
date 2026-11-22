@@ -8,8 +8,9 @@ docker run --rm --network=none --read-only --cap-drop=ALL \
   --security-opt=no-new-privileges --entrypoint=/bin/sh "$image" -ceu '
   test -x /server
   test -r /app/frontend/miniapp.html || test -r /app/frontend/miniapp/index.html
-  test -r /assets/line/richmenu/attendance-in.jpg
-  test -r /assets/line/richmenu/attendance-out.jpg
+  test -r /assets/line/richmenu/rich-menu-clock-in.JPG
+  test -r /assets/line/richmenu/rich-menu-transfer.JPG
+  test -r /assets/line/richmenu/rich-menu-clock-out.JPG
   test -s /etc/ssl/certs/ca-certificates.crt
   pdftotext -v
   # An invalid argument must be rejected before any external side effect.

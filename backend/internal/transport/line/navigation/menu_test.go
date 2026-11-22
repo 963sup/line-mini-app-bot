@@ -130,3 +130,35 @@ func TestMiniAppGroupRepositoryOnBothEntrances(t *testing.T) {
 		t.Fatalf("group repository was lost between entry points: %+v", action)
 	}
 }
+
+func TestAttendanceRichMenuArtworkLayoutAndActions(t *testing.T) {
+	aliases := AttendanceRichMenuAliases()
+	menus := AttendanceRichMenus()
+	for _, alias := range aliases {
+		menu := menus[alias]
+		if menu.Size.Width != 2500 || menu.Size.Height != 1686 || len(menu.Areas) != 3 {
+			t.Fatalf("invalid full-height layout for %s: %+v", alias, menu)
+		}
+		targets := map[string]bool{}
+		for _, area := range menu.Areas[:2] {
+			action, ok := area.Action.(*messaging_api.RichMenuSwitchAction)
+			if !ok || action.RichMenuAliasId == alias || targets[action.RichMenuAliasId] {
+				t.Fatalf("invalid tab for %s: %+v", alias, area)
+			}
+			target := menus[action.RichMenuAliasId]
+			if target == nil || target.Name != "出勤："+action.Label || area.Bounds.Y != 0 || area.Bounds.Height != 843 {
+				t.Fatalf("tab does not match its destination: %+v", area)
+			}
+			targets[action.RichMenuAliasId] = true
+		}
+		primary := menu.Areas[2]
+		action, ok := primary.Action.(*messaging_api.PostbackAction)
+		if !ok || primary.Bounds.X != 0 || primary.Bounds.Y != 843 || primary.Bounds.Width != 2500 || primary.Bounds.Height != 843 {
+			t.Fatalf("invalid main action for %s: %+v", alias, primary)
+		}
+		command := "/" + strings.TrimPrefix(action.Data, "action=")
+		if reply := (menuRequest{command: command}).reply("", ""); reply.Message == nil {
+			t.Fatalf("%s does not dispatch to a reply", action.Data)
+		}
+	}
+}

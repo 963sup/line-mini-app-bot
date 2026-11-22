@@ -34,6 +34,12 @@ var (
 // publications for the channel; aliases are separate, non-atomic LINE calls.
 // menus[0] becomes the default. Clients are copied before setting their context.
 func Sync(ctx context.Context, api *messaging_api.MessagingApiAPI, blob *messaging_api.MessagingApiBlobAPI, menus []Menu) error {
+	return SyncWithLegacyAliases(ctx, api, blob, menus, nil)
+}
+
+// SyncWithLegacyAliases maps retired aliases to current aliases. Existing retired
+// aliases remain usable while their individually linked users migrate.
+func SyncWithLegacyAliases(ctx context.Context, api *messaging_api.MessagingApiAPI, blob *messaging_api.MessagingApiBlobAPI, menus []Menu, legacy map[string]string) error {
 	if api == nil || blob == nil || len(menus) == 0 {
 		return errors.New("rich menu clients and menus are required")
 	}
@@ -52,8 +58,11 @@ func Sync(ctx context.Context, api *messaging_api.MessagingApiAPI, blob *messagi
 			return errors.New("rich menu image must be at most 1 MiB")
 		}
 		config, format, err := image.DecodeConfig(bytes.NewReader(menu.Image))
-		if err != nil || (format != "jpeg" && format != "png") || config.Width != 2500 || config.Height != 843 {
-			return errors.New("rich menu image must be a 2500 x 843 PNG or JPEG")
+		if err != nil || (format != "jpeg" && format != "png") || config.Width != 2500 || config.Height != 1686 {
+			return errors.New("rich menu image must be a 2500 x 1686 PNG or JPEG")
+		}
+		if size := menu.Request.Size; size == nil || int(size.Width) != config.Width || int(size.Height) != config.Height {
+			return fmt.Errorf("rich menu %s request size does not match image", menu.Alias)
 		}
 		data, err := json.Marshal(menu.Request)
 		if err != nil {
@@ -66,6 +75,11 @@ func Sync(ctx context.Context, api *messaging_api.MessagingApiAPI, blob *messagi
 		request.Name = fmt.Sprintf("managed-%s-%x", menu.Alias, h.Sum(nil))
 		desired[i] = Menu{Alias: menu.Alias, Request: &request, Image: menu.Image}
 	}
+	for old, target := range legacy {
+		if !aliasName.MatchString(old) || seen[old] || !seen[target] {
+			return fmt.Errorf("invalid legacy rich menu alias %q", old)
+		}
+	}
 	list, err := api.GetRichMenuList()
 	if err != nil {
 		return err
@@ -73,6 +87,17 @@ func Sync(ctx context.Context, api *messaging_api.MessagingApiAPI, blob *messagi
 	aliases, err := api.GetRichMenuAliasList()
 	if err != nil {
 		return err
+	}
+	// Refuse an unmanaged retired alias before staging or changing the default.
+	for _, existing := range aliases.Aliases {
+		old := existing.RichMenuAliasId
+		target, retired := legacy[old]
+		if !retired {
+			continue
+		}
+		if !ownsManagedMenu(list, old, existing.RichMenuId) && !ownsManagedMenu(list, target, existing.RichMenuId) {
+			return fmt.Errorf("legacy rich menu alias %q points to an unmanaged menu", old)
+		}
 	}
 	ids := map[string]string{}
 	for _, menu := range desired {
@@ -149,7 +174,34 @@ func Sync(ctx context.Context, api *messaging_api.MessagingApiAPI, blob *messagi
 	if err != nil || actual.RichMenuId != defaultID {
 		return errors.New("default readback mismatch")
 	}
+	for _, existing := range aliases.Aliases {
+		old := existing.RichMenuAliasId
+		target, retired := legacy[old]
+		if !retired || existing.RichMenuId == ids[target] {
+			continue
+		}
+		if _, err := api.UpdateRichMenuAlias(old, &messaging_api.UpdateRichMenuAliasRequest{RichMenuId: ids[target]}); err != nil {
+			return fmt.Errorf("update legacy rich menu alias %q: %w", old, err)
+		}
+		actual, err := api.GetRichMenuAlias(old)
+		if err != nil || actual == nil || actual.RichMenuId != ids[target] {
+			return fmt.Errorf("legacy rich menu alias %q readback mismatch", old)
+		}
+	}
+	for old, target := range legacy {
+		ids[old] = ids[target]
+	}
 	return cleanupMenus(ctx, api, ids)
+}
+
+func ownsManagedMenu(list *messaging_api.RichMenuListResponse, alias, id string) bool {
+	for _, menu := range list.Richmenus {
+		if menu.RichMenuId == id {
+			match := managedMenuName.FindStringSubmatch(menu.Name)
+			return match != nil && match[1] == alias
+		}
+	}
+	return false
 }
 
 func cleanupMenus(ctx context.Context, api *messaging_api.MessagingApiAPI, current map[string]string) error {

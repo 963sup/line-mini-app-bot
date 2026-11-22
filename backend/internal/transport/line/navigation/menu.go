@@ -45,23 +45,6 @@ func RepositoryURL(appURL string, group bool, ids ...string) string {
 	return u.String()
 }
 
-// AttendanceRichMenus previews two tabs. Aliases must be bound to uploaded menu
-// IDs before publishing. Switching tabs never records attendance.
-func AttendanceRichMenus(appURL string) map[string]*messaging_api.RichMenuRequest {
-	menus := make(map[string]*messaging_api.RichMenuRequest)
-	for _, tab := range []struct{ alias, other, label, action string }{
-		{"attendance-in", "attendance-out", "出勤紀錄", "attendance-history"},
-		{"attendance-out", "attendance-in", "功能說明", "help"},
-	} {
-		menu := RichMenu(appURL)
-		menu.Name = "出勤：" + tab.label
-		menu.Areas[0].Action = &messaging_api.PostbackAction{Label: tab.label, Data: "action=" + tab.action}
-		menu.Areas[1].Action = &messaging_api.RichMenuSwitchAction{Label: "切換分頁", RichMenuAliasId: tab.other, Data: "tab=" + tab.other}
-		menus[tab.alias] = menu
-	}
-	return menus
-}
-
 func Help(group bool, appURL, desktopURL string, repositoryIDs ...string) messaging_api.MessageInterface {
 	title := "LINE 功能選單"
 	description := "輸入「出勤紀錄」查詢本人紀錄，或輸入「建立組織」「建立企業」開始建立。"
@@ -133,28 +116,6 @@ func QuickMenu(group bool, appURL string, repositoryIDs ...string) messaging_api
 		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.PostbackAction{Label: "MINI App", Data: "action=miniapp"}})
 	}
 	return &messaging_api.TextMessage{Text: "請選擇功能：", QuickReply: &messaging_api.QuickReply{Items: items}}
-}
-
-// RichMenu describes three horizontal areas matching a 2500 x 843 image.
-func RichMenu(appURL string) *messaging_api.RichMenuRequest {
-	return &messaging_api.RichMenuRequest{
-		Size: &messaging_api.RichMenuSize{Width: 2500, Height: 843},
-		Name: "LINE 基礎服務", ChatBarText: "開啟選單", Selected: false,
-		Areas: []messaging_api.RichMenuArea{
-			{
-				Bounds: &messaging_api.RichMenuBounds{X: 0, Y: 0, Width: 833, Height: 843},
-				Action: &messaging_api.PostbackAction{Label: "功能說明", Data: "action=help"},
-			},
-			{
-				Bounds: &messaging_api.RichMenuBounds{X: 833, Y: 0, Width: 833, Height: 843},
-				Action: &messaging_api.PostbackAction{Label: "出勤紀錄", Data: "action=attendance-history"},
-			},
-			{
-				Bounds: &messaging_api.RichMenuBounds{X: 1666, Y: 0, Width: 834, Height: 843},
-				Action: &messaging_api.UriAction{Label: "開啟 MINI App", Uri: appURL},
-			},
-		},
-	}
 }
 
 // miniAppAction uses only the configured endpoint, never a request host or postback URL.

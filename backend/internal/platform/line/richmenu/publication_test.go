@@ -23,11 +23,14 @@ type publication struct {
 	writes, creates       int
 	failUpload, failAlias bool
 	defaultStatus         int
+	migrationPhase        string
+	migrations            map[string]string
 }
 
 func (p *publication) RoundTrip(r *http.Request) (*http.Response, error) {
 	path := strings.TrimPrefix(r.URL.Path, "/v2/bot/")
 	code, body := 200, `{}`
+	header := make(http.Header)
 	if r.Method != "GET" {
 		p.writes++
 	}
@@ -46,6 +49,28 @@ func (p *publication) RoundTrip(r *http.Request) (*http.Response, error) {
 		}
 		data, _ := json.Marshal(map[string]any{"aliases": aliases})
 		body = string(data)
+	case path == "richmenu/batch":
+		var batch struct {
+			Operations []struct{ From, To string }
+		}
+		if err := json.NewDecoder(r.Body).Decode(&batch); err != nil || len(batch.Operations) != 1 {
+			return nil, fmt.Errorf("invalid migration request")
+		}
+		op := batch.Operations[0]
+		if p.migrations == nil {
+			p.migrations = make(map[string]string)
+		}
+		p.migrations[op.From] = op.To
+		header.Set("X-Line-Request-Id", "migration-test")
+	case path == "richmenu/progress/batch":
+		body = `{"phase":"` + p.migrationPhase + `"}`
+	case r.Method == "DELETE" && strings.HasPrefix(path, "richmenu/"):
+		id := strings.TrimPrefix(path, "richmenu/")
+		if p.migrationPhase != "succeeded" || p.migrations[id] == "" {
+			return nil, fmt.Errorf("deleted %s before migration succeeded", id)
+		}
+		delete(p.menus, id)
+		delete(p.images, id)
 	case path == "richmenu" && r.Method == "POST":
 		var menu struct {
 			Name string `json:"name"`
@@ -101,7 +126,7 @@ func (p *publication) RoundTrip(r *http.Request) (*http.Response, error) {
 	if code >= 400 {
 		body = `{"message":"failure"}`
 	}
-	return &http.Response{StatusCode: code, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(body))}, nil
+	return &http.Response{StatusCode: code, Header: header, Body: io.NopCloser(strings.NewReader(body))}, nil
 }
 
 func publicationFixture(t *testing.T) (*publication, *messaging_api.MessagingApiAPI, *messaging_api.MessagingApiBlobAPI, []Menu) {
@@ -117,10 +142,10 @@ func publicationFixture(t *testing.T) (*publication, *messaging_api.MessagingApi
 		t.Fatal(err)
 	}
 	var imageData bytes.Buffer
-	if err := jpeg.Encode(&imageData, image.NewGray(image.Rect(0, 0, 2500, 843)), nil); err != nil {
+	if err := jpeg.Encode(&imageData, image.NewGray(image.Rect(0, 0, 2500, 1686)), nil); err != nil {
 		t.Fatal(err)
 	}
-	menus := []Menu{{Alias: "tab-one", Request: &messaging_api.RichMenuRequest{Name: "One"}, Image: imageData.Bytes()}, {Alias: "tab-two", Request: &messaging_api.RichMenuRequest{Name: "Two"}, Image: imageData.Bytes()}}
+	menus := []Menu{{Alias: "tab-one", Request: &messaging_api.RichMenuRequest{Name: "One", Size: &messaging_api.RichMenuSize{Width: 2500, Height: 1686}}, Image: imageData.Bytes()}, {Alias: "tab-two", Request: &messaging_api.RichMenuRequest{Name: "Two", Size: &messaging_api.RichMenuSize{Width: 2500, Height: 1686}}, Image: imageData.Bytes()}}
 	return p, api, blob, menus
 }
 
@@ -172,5 +197,59 @@ func TestSyncAliasFailureCanConvergeAndDefaultLookupFailureStops(t *testing.T) {
 	}
 	if p.writes != writes {
 		t.Fatal("lookup failure caused a default write")
+	}
+}
+
+func TestSyncRejectsRequestSizeMismatchBeforePublishing(t *testing.T) {
+	p, api, blob, menus := publicationFixture(t)
+	menus[1].Request.Size.Height = 843
+	if err := Sync(context.Background(), api, blob, menus); err == nil {
+		t.Fatal("accepted a request whose size differs from its image")
+	}
+	if p.writes != 0 {
+		t.Fatal("size mismatch caused a LINE write")
+	}
+}
+
+func TestSyncMigratesRetiredAliasesAndRetriesSafely(t *testing.T) {
+	p, api, blob, menus := publicationFixture(t)
+	p.menus["legacy"] = "managed-attendance-in-" + strings.Repeat("a", 64)
+	p.aliases["attendance-in"] = "legacy"
+	p.migrationPhase = "failed"
+	legacy := map[string]string{"attendance-in": "tab-one", "attendance-out": "tab-two"}
+	if err := SyncWithLegacyAliases(context.Background(), api, blob, menus, legacy); err == nil {
+		t.Fatal("failed migration was accepted")
+	}
+	target := p.aliases["tab-one"]
+	if target == "" || p.aliases["attendance-in"] != target || p.menus["legacy"] == "" || p.migrations["legacy"] != target {
+		t.Fatalf("expected the old menu to survive with its alias redirected: %+v", p)
+	}
+	if _, exists := p.aliases["attendance-out"]; exists {
+		t.Fatal("created an unused retired alias")
+	}
+	p.migrationPhase = "succeeded"
+	if err := SyncWithLegacyAliases(context.Background(), api, blob, menus, legacy); err != nil || p.menus["legacy"] != "" {
+		t.Fatalf("retry did not finish the migration: %v", err)
+	}
+	menus[0].Request.Name = "new revision"
+	if err := SyncWithLegacyAliases(context.Background(), api, blob, menus, legacy); err != nil {
+		t.Fatalf("later publication failed to keep the retired alias current: %v", err)
+	}
+	if p.aliases["attendance-in"] != p.aliases["tab-one"] || p.migrations[target] != p.aliases["tab-one"] {
+		t.Fatal("compatibility alias or existing users remained on the previous release")
+	}
+	writes := p.writes
+	if err := SyncWithLegacyAliases(context.Background(), api, blob, menus, legacy); err != nil || p.writes != writes {
+		t.Fatalf("converged publication wrote again: %v", err)
+	}
+}
+
+func TestSyncDoesNotRedirectUnmanagedLegacyAlias(t *testing.T) {
+	p, api, blob, menus := publicationFixture(t)
+	p.menus["foreign"] = "managed-by-another-tool"
+	p.aliases["attendance-in"] = "foreign"
+	err := SyncWithLegacyAliases(context.Background(), api, blob, menus, map[string]string{"attendance-in": "tab-one"})
+	if err == nil || p.aliases["attendance-in"] != "foreign" || p.menus["foreign"] == "" || p.writes != 0 {
+		t.Fatal("unmanaged legacy alias was overridden")
 	}
 }

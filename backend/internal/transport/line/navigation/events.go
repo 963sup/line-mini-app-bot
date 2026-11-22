@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
+	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
@@ -52,7 +53,13 @@ func parseMenu(event webhook.EventInterface) menuRequest {
 		if err != nil || len(values) != 1 || len(values["action"]) != 1 {
 			return menuRequest{}
 		}
-		if values.Get("action") != "help" && values.Get("action") != "miniapp" {
+		switch values.Get("action") {
+		case "help", "miniapp":
+		case "clock-in", "transfer", "clock-out":
+			if _, ok := e.Source.(webhook.UserSource); !ok {
+				return menuRequest{}
+			}
+		default:
 			return menuRequest{}
 		}
 		command = "/" + values.Get("action")
@@ -79,7 +86,7 @@ func parseMenu(event webhook.EventInterface) menuRequest {
 	switch command {
 	case "選單", "功能":
 		command = "/menu"
-	case "/menu", "/miniapp", "/help":
+	case "/menu", "/miniapp", "/help", "/clock-in", "/transfer", "/clock-out":
 	default:
 		if groupID != "" {
 			return menuRequest{}
@@ -98,6 +105,12 @@ func (m menuRequest) reply(appURL, endpointURL string, ids ...string) transport.
 		reply.Message = MiniApp(appURL, endpointURL, ids...)
 	case "/help":
 		reply.Message = Help(m.groupID != "", appURL, endpointURL, ids...)
+	case "/clock-in":
+		reply.Message = &messaging_api.TextMessage{Text: "請在上班的群組輸入「打卡」，再選擇「上班」。"}
+	case "/transfer":
+		reply.Message = &messaging_api.TextMessage{Text: "請先確認支援作業是否仍計入原班次。需要結束原班次時，請回原群組操作。此入口不會結束或新增班次。"}
+	case "/clock-out":
+		reply.Message = &messaging_api.TextMessage{Text: "請在要結束班次的原群組輸入「打卡」，再選擇「下班」。可在這裡輸入「出勤紀錄」查詢本人紀錄。"}
 	case "private-help":
 		reply.Message = Help(false, appURL, endpointURL)
 	}

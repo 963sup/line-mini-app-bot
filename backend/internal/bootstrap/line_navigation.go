@@ -24,7 +24,7 @@ import (
 func SyncLINENavigation(parent context.Context) (result error) {
 	ctx, cancel := context.WithTimeout(parent, 8*time.Minute)
 	defer cancel()
-	auth, _, err := newMiniAppAuthenticator(os.Getenv("LINE_MINI_APP_ENV"))
+	_, _, err := newMiniAppAuthenticator(os.Getenv("LINE_MINI_APP_ENV"))
 	if err != nil {
 		return err
 	}
@@ -36,10 +36,10 @@ func SyncLINENavigation(parent context.Context) (result error) {
 	if dir == "" {
 		dir = "/assets/line/richmenu"
 	}
-	definitions := navigation.AttendanceRichMenus("https://miniapp.line.me/" + auth.LIFFID)
+	definitions := navigation.AttendanceRichMenus()
 	menus := make([]richmenu.Menu, 0, len(definitions))
-	for _, alias := range []string{"attendance-in", "attendance-out"} {
-		image, err := os.ReadFile(filepath.Join(dir, alias+".jpg"))
+	for _, alias := range navigation.AttendanceRichMenuAliases() {
+		image, err := os.ReadFile(filepath.Join(dir, alias+".JPG"))
 		if err != nil {
 			return fmt.Errorf("read rich menu image %s: %w", alias, err)
 		}
@@ -67,7 +67,10 @@ func SyncLINENavigation(parent context.Context) (result error) {
 	if err != nil {
 		return err
 	}
-	return richmenu.Sync(ctx, api, blob, menus)
+	return richmenu.SyncWithLegacyAliases(ctx, api, blob, menus, map[string]string{
+		"attendance-in":  "rich-menu-clock-in",
+		"attendance-out": "rich-menu-clock-out",
+	})
 }
 
 var errNavigationBusy = errors.New("another LINE navigation publication is active")
