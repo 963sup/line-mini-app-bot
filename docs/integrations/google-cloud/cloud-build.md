@@ -22,6 +22,6 @@
 
 ## 來源與相關規格
 
-[官方文件](https://docs.cloud.google.com/build/docs/overview)，查證範圍見[整合總覽](README.md#sources)。[部署規格](../../../operations/cloud-run.md) · [Artifact Registry](artifact-registry.md)。
+[官方文件](https://docs.cloud.google.com/build/docs/overview)，查證範圍見[整合總覽](README.md#sources)。[部署規格](../../operations/cloud-run.md) · [Artifact Registry](artifact-registry.md)。
 
 [Google 服務索引](README.md)

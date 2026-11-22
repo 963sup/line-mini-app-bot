@@ -11,11 +11,9 @@
 
 依[基線決策](../decisions/0002-baseline.md)與[基礎開發規格](../development/environment/verification.md)判斷階段範圍：先基礎建設，再 LINE／Firestore，接著基本出勤。平台擴充文件屬延後參考，不將 Worker、Garr、定位或新測試基礎設施設為此階段的必要條件。
 
-## integrations
+## 外部整合
 
-適用於 integrations 子目錄。
-
-LINE、瀏覽器定位、Firestore 與 Cloud Storage 由[外部整合索引](../integrations/README.md)導覽。Firestore 的儲存規則見 [Firestore 整合](../integrations/firestore/connection.md)。
+LINE、瀏覽器定位、Firestore、Cloud Storage 與 Google Cloud 由[外部整合索引](../integrations/README.md)導覽。Firestore 的儲存規則見 [Firestore 整合](../integrations/firestore/connection.md)。
 外部服務契約與專案功能規則分開；遵循根層查證政策，不在文件存放 token、憑證或機密。
 
 ## operations

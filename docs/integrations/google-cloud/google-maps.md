@@ -22,6 +22,6 @@ Maps JavaScript API 負責互動顯示；Geocoding、Places、Routes 個別評�
 
 ## 來源與相關規格
 
-[官方文件](https://developers.google.com/maps/documentation/javascript/overview)，查證範圍見[整合總覽](README.md#sources)。[瀏覽器定位](../../../integrations/geolocation/browser-api.md) · [金鑰限制](https://developers.google.com/maps/api-security-best-practices)。
+[官方文件](https://developers.google.com/maps/documentation/javascript/overview)，查證範圍見[整合總覽](README.md#sources)。[瀏覽器定位](../geolocation/browser-api.md) · [金鑰限制](https://developers.google.com/maps/api-security-best-practices)。
 
 [Google 服務索引](README.md)

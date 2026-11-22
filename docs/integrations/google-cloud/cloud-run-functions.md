@@ -14,7 +14,7 @@ HTTP 或 CloudEvent 觸發 → 驗證來源及操作身分 → 冪等處理指�
 
 ## 導入條件
 
-依[Cloud Run 決策](../../../decisions/0003-cloud-run-primary.md)評估附加 function 的部署與所有權；不是自動拆服務。事件可能重送，限制重試與寫回循環，較長批次改評估 Jobs。
+依[Cloud Run 決策](../../decisions/0003-cloud-run-primary.md)評估附加 function 的部署與所有權；不是自動拆服務。事件可能重送，限制重試與寫回循環，較長批次改評估 Jobs。
 
 ## 驗收
 

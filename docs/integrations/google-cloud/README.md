@@ -6,9 +6,9 @@
 
 | 服務 | 專案用途 | 採用狀態 |
 |---|---|---|
-| [Cloud Run](../../../operations/cloud-run.md) | 應用 API、LINE Webhook 與容器部署 | 現行部署來源 |
-| [Firestore](../../../integrations/firestore/connection.md) | 業務狀態與資料保存 | 現行整合來源 |
-| [Cloud Storage](../../../integrations/storage/cloud-storage.md) | 檔案、附件及匯出內容 | 候選方案 |
+| [Cloud Run](../../operations/cloud-run.md) | 應用 API、LINE Webhook 與容器部署 | 現行部署來源 |
+| [Firestore](../firestore/connection.md) | 業務狀態與資料保存 | 現行整合來源 |
+| [Cloud Storage](../storage/cloud-storage.md) | 檔案、附件及匯出內容 | 候選方案 |
 | [Cloud Tasks](cloud-tasks.md) | 將摘要、通知或文件處理交給指定 HTTP worker，控制重試與速率。 | 已有摘要佇列接線；其他背景工作按需擴充 |
 | [Cloud Scheduler](cloud-scheduler.md) | 定時產生日摘要、出勤提醒、檢查或清理工作。 | 按需導入 |
 | [Cloud Run Jobs](cloud-run-jobs.md) | 執行批次匯入、匯出、資料回填與統計重建。 | 按需導入 |
@@ -44,4 +44,4 @@ Maps 是 Google Maps Platform；報表產品及 reCAPTCHA 的名稱與入口依�
 
 本聊天沒有 Google Developer Knowledge 或 Context7 的原生入口，本次使用官方網站查證。報表舊 overview 入口無法讀取，已改核對官方 Data Studio 資料憑證文件。未查詢雲端實際資源、費率或配額，也未執行部署及功能測試。
 
-[外部整合索引](../README.md) · [架構索引](../../README.md) · [適用指引](../../AGENTS.md)
+[外部整合索引](../README.md) · [架構索引](../../architecture/README.md) · [適用指引](../../architecture/AGENTS.md)

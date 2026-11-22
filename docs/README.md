@@ -15,7 +15,7 @@
 | 判定修改是否完成 | [驗收矩陣](development/acceptance.md#變更驗收矩陣) | 對應功能及外部環境驗收 |
 | 部署、發布或排錯 | [營運入口](architecture/README.md#部署與營運) | 相關設定與真實環境證據 |
 | 查工具在 Codex 沒有曝光 | [MCP 載入檢查](development/tooling/mcp/README.md#project-loading-check) | [專案 Codex 設定](../.codex/README.md) |
-| 選用 Google Cloud、Maps 或 reCAPTCHA | [逐服務規格](architecture/integrations/google-cloud/README.md) | [資料儲存](architecture/storage/README.md)與對應領域契約 |
+| 選用 Google Cloud、Maps 或 reCAPTCHA | [逐服務規格](integrations/google-cloud/README.md) | [資料儲存](architecture/storage/README.md)與對應領域契約 |
 | 評估未來能力 | [規劃與提案](proposals/README.md) | 已接受 ADR 與現行功能規格 |
 
 ## 日常開發看哪張圖

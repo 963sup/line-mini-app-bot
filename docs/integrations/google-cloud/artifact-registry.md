@@ -22,6 +22,6 @@ Writer、Reader 與刪除權限分開；清理前核對目前服務及保留回�
 
 ## 來源與相關規格
 
-[官方文件](https://docs.cloud.google.com/artifact-registry/docs/repositories)，查證範圍見[整合總覽](README.md#sources)。[Cloud Build](cloud-build.md) · [發布驗收](../../../operations/release-acceptance.md)。
+[官方文件](https://docs.cloud.google.com/artifact-registry/docs/repositories)，查證範圍見[整合總覽](README.md#sources)。[Cloud Build](cloud-build.md) · [發布驗收](../../operations/release-acceptance.md)。
 
 [Google 服務索引](README.md)

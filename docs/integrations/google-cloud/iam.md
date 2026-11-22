@@ -22,6 +22,6 @@
 
 ## 來源與相關規格
 
-[官方文件](https://docs.cloud.google.com/iam/docs/overview)，查證範圍見[整合總覽](README.md#sources)。[領域授權](../../../references/ddd/domain-authorization.md) · [部署規格](../../../operations/cloud-run.md)。
+[官方文件](https://docs.cloud.google.com/iam/docs/overview)，查證範圍見[整合總覽](README.md#sources)。[領域授權](../../references/ddd/domain-authorization.md) · [部署規格](../../operations/cloud-run.md)。
 
 [Google 服務索引](README.md)

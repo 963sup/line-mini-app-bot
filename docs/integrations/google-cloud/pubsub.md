@@ -22,6 +22,6 @@
 
 ## 來源與相關規格
 
-[官方文件](https://docs.cloud.google.com/pubsub/docs/choosing-pubsub-or-cloud-tasks)，查證範圍見[整合總覽](README.md#sources)。[Tasks](cloud-tasks.md) · [公開契約](../../../references/ddd/domain-contract.md)。
+[官方文件](https://docs.cloud.google.com/pubsub/docs/choosing-pubsub-or-cloud-tasks)，查證範圍見[整合總覽](README.md#sources)。[Tasks](cloud-tasks.md) · [公開契約](../../references/ddd/domain-contract.md)。
 
 [Google 服務索引](README.md)

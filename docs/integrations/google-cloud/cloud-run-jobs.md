@@ -22,6 +22,6 @@
 
 ## 來源與相關規格
 
-[官方文件](https://docs.cloud.google.com/run/docs/create-jobs)，查證範圍見[整合總覽](README.md#sources)。[資料演進](../../../references/ddd/model-evolution.md) · [Scheduler](cloud-scheduler.md)。
+[官方文件](https://docs.cloud.google.com/run/docs/create-jobs)，查證範圍見[整合總覽](README.md#sources)。[資料演進](../../references/ddd/model-evolution.md) · [Scheduler](cloud-scheduler.md)。
 
 [Google 服務索引](README.md)

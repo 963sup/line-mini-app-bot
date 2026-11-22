@@ -22,6 +22,6 @@
 
 ## 來源與相關規格
 
-[官方文件](https://docs.cloud.google.com/bigquery/docs/introduction)，查證範圍見[整合總覽](README.md#sources)。[報表](looker-studio.md) · [資料演進](../../../references/ddd/model-evolution.md)。
+[官方文件](https://docs.cloud.google.com/bigquery/docs/introduction)，查證範圍見[整合總覽](README.md#sources)。[報表](looker-studio.md) · [資料演進](../../references/ddd/model-evolution.md)。
 
 [Google 服務索引](README.md)

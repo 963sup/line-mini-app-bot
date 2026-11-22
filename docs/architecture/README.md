@@ -58,7 +58,7 @@
 
 ### Google 服務選用
 
-[Google Cloud 與 Maps 簡要規格](integrations/google-cloud/README.md)依服務分頁，包含背景工作、functions、機密與 IAM、觀測、建置、AI、報表、Maps 及 reCAPTCHA。檔案儲存由 [Cloud Storage](../integrations/storage/cloud-storage.md)維護，既有 Firestore 與 Cloud Run 沿用原來源。各頁標示現況或導入條件，不代表候選服務已啟用。
+[Google Cloud 與 Maps 簡要規格](../integrations/google-cloud/README.md)依服務分頁，包含背景工作、functions、機密與 IAM、觀測、建置、AI、報表、Maps 及 reCAPTCHA。檔案儲存由 [Cloud Storage](../integrations/storage/cloud-storage.md)維護，既有 Firestore 與 Cloud Run 沿用原來源。各頁標示現況或導入條件，不代表候選服務已啟用。
 
 ### 部署與營運
 

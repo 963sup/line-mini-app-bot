@@ -22,6 +22,6 @@
 
 ## 來源與相關規格
 
-[官方文件](https://docs.cloud.google.com/monitoring/docs/monitoring-overview)，查證範圍見[整合總覽](README.md#sources)。[Logging](cloud-logging.md) · [故障診斷](../../../operations/troubleshooting.md)。
+[官方文件](https://docs.cloud.google.com/monitoring/docs/monitoring-overview)，查證範圍見[整合總覽](README.md#sources)。[Logging](cloud-logging.md) · [故障診斷](../../operations/troubleshooting.md)。
 
 [Google 服務索引](README.md)

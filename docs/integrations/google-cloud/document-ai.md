@@ -22,6 +22,6 @@
 
 ## 來源與相關規格
 
-[官方文件](https://docs.cloud.google.com/document-ai/docs/overview)，查證範圍見[整合總覽](README.md#sources)。[Cloud Storage](../../../integrations/storage/cloud-storage.md) · [Tasks](cloud-tasks.md)。
+[官方文件](https://docs.cloud.google.com/document-ai/docs/overview)，查證範圍見[整合總覽](README.md#sources)。[Cloud Storage](../storage/cloud-storage.md) · [Tasks](cloud-tasks.md)。
 
 [Google 服務索引](README.md)
