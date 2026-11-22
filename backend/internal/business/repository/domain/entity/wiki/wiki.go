@@ -15,12 +15,12 @@ var ErrInput = errors.New("invalid wiki input")
 var ErrConflict = errors.New("wiki title, version or creation key conflicts")
 
 type Page struct {
-	ID        string    `firestore:"id"`
-	Title     string    `firestore:"title"`
-	Body      string    `firestore:"body"`
-	AuthorID  string    `firestore:"authorId"`
-	Version   int64     `firestore:"version"`
-	UpdatedAt time.Time `firestore:"updatedAt"`
+	ID        string
+	Title     string
+	Body      string
+	AuthorID  string
+	Version   int64
+	UpdatedAt time.Time
 }
 
 func Validate(title, body string) (string, error) {
@@ -39,15 +39,19 @@ func (p Page) CheckCreationReplay(actor, title, body string) error {
 	return nil
 }
 
-func (p Page) NeedsRevision(expected int64, title, body string) (bool, error) {
+// Revise returns the next page only when the requested edit changes its content.
+func (p Page) Revise(expected int64, actor, title, body string, now time.Time) (Page, bool, error) {
 	if expected != p.Version {
-		return false, ErrConflict
+		return p, false, ErrConflict
 	}
 	if title == p.Title && body == p.Body {
-		return false, nil
+		return p, false, nil
 	}
 	if p.Version >= repositoryDomainEntity.MaxResourceNumber {
-		return false, ErrConflict
+		return p, false, ErrConflict
 	}
-	return true, nil
+	p.Title, p.Body, p.AuthorID = title, body, actor
+	p.Version++
+	p.UpdatedAt = now
+	return p, true, nil
 }

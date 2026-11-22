@@ -181,7 +181,7 @@ func (s *wikiServer) save(w http.ResponseWriter, r *http.Request, rid, id, key s
 	if !ok {
 		return
 	}
-	p, e := s.service.Store.SaveWiki(r.Context(), repo, identity.UserID(r.Context()), id, key, v, title, body)
+	p, e := s.service.Save(r.Context(), repo, identity.UserID(r.Context()), id, key, v, title, body)
 	if !handleError(w, e) {
 		transport.WriteJSON(w, 200, page(p))
 	}

@@ -1,11 +1,6 @@
 package firestore
 
 import (
-	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
-	repositoryDomainEntityWiki "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity/wiki"
-)
-
-import (
 	"context"
 	"fmt"
 	"strconv"
@@ -14,10 +9,23 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
+	wikiport "github.com/963sup/line-mini-app-bot/internal/business/repository/application/port/wiki"
+	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
+	repositoryDomainEntityWiki "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity/wiki"
 	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+// wikiDocument retains the stored schema for current pages and revisions.
+type wikiDocument struct {
+	ID        string    `firestore:"id"`
+	Title     string    `firestore:"title"`
+	Body      string    `firestore:"body"`
+	AuthorID  string    `firestore:"authorId"`
+	Version   int64     `firestore:"version"`
+	UpdatedAt time.Time `firestore:"updatedAt"`
+}
 
 func readWiki(snap *db.DocumentSnapshot, err error) (p repositoryDomainEntityWiki.Page, e error) {
 	if status.Code(err) == codes.NotFound {
@@ -26,8 +34,11 @@ func readWiki(snap *db.DocumentSnapshot, err error) (p repositoryDomainEntityWik
 	if err != nil {
 		return p, err
 	}
-	e = snap.DataTo(&p)
-	return
+	var stored wikiDocument
+	if e = snap.DataTo(&stored); e != nil {
+		return p, e
+	}
+	return repositoryDomainEntityWiki.Page(stored), nil
 }
 
 func (s *Store) GetWiki(ctx context.Context, r repositoryDomainEntity.Repository, id string) (repositoryDomainEntityWiki.Page, error) {
@@ -81,26 +92,22 @@ func (s *Store) ListWiki(ctx context.Context, r repositoryDomainEntity.Repositor
 	return items, next, nil
 }
 
-func (s *Store) SaveWiki(ctx context.Context, r repositoryDomainEntity.Repository, actor, id, key string, expected int64, title, body string) (result repositoryDomainEntityWiki.Page, err error) {
-	title, err = repositoryDomainEntityWiki.Validate(title, body)
-	if err != nil {
-		return
-	}
+func (s *Store) WriteWiki(ctx context.Context, r repositoryDomainEntity.Repository, target wikiport.WriteTarget, decide wikiport.DecideWrite) (repositoryDomainEntityWiki.Page, error) {
+	id := target.ID
 	create := id == ""
 	if create {
-		id = firestorekey.Encode("wiki", actor, key)[:32]
+		id = firestorekey.Encode("wiki", target.Actor, target.CreationKey)[:32]
 	}
+	var result repositoryDomainEntityWiki.Page
 	root := s.repositoryRef(r.ID)
 	doc := root.Collection("wikiPages").Doc(id)
 	names := root.Collection("wikiTitles")
-	name := names.Doc(firestorekey.Encode(strings.ToLower(title)))
-	now := time.Now().UTC()
-	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+	err := s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		scope, e := decode(tx.Get(root))
 		if e != nil {
 			return e
 		}
-		if scope.OwnerID != r.OwnerID || scope.Status != "ACTIVE" {
+		if !r.MatchesActive(r.ID, scope.OwnerID, scope.Status) {
 			return repositoryDomainEntity.ErrNotFound
 		}
 		snap, e := tx.Get(doc)
@@ -115,30 +122,26 @@ func (s *Store) SaveWiki(ctx context.Context, r repositoryDomainEntity.Repositor
 				return e
 			}
 		}
-		if create && exists {
-			first, e := readWiki(tx.Get(doc.Collection("revisions").Doc("0000000000000001")))
-			if e != nil {
-				return e
+		state := wikiport.WriteState{ID: id}
+		if exists {
+			state.Current = &current
+			if create {
+				first, err := readWiki(tx.Get(doc.Collection("revisions").Doc("0000000000000001")))
+				if err != nil {
+					return err
+				}
+				state.FirstRevision = &first
 			}
-			if err := first.CheckCreationReplay(actor, title, body); err != nil {
-				return err
-			}
-			result = current
+		}
+		next, changed, err := decide(state)
+		if err != nil {
+			return err
+		}
+		result = next
+		if !changed {
 			return nil
 		}
-		if !create {
-			if !exists {
-				return repositoryDomainEntity.ErrNotFound
-			}
-			changed, err := current.NeedsRevision(expected, title, body)
-			if err != nil {
-				return err
-			}
-			if !changed {
-				result = current
-				return nil
-			}
-		}
+		name := names.Doc(firestorekey.Encode(strings.ToLower(next.Title)))
 		oldName := names.Doc(firestorekey.Encode(strings.ToLower(current.Title)))
 		if !exists || oldName.ID != name.ID {
 			_, e = tx.Get(name)
@@ -157,11 +160,14 @@ func (s *Store) SaveWiki(ctx context.Context, r repositoryDomainEntity.Repositor
 				}
 			}
 		}
-		result = repositoryDomainEntityWiki.Page{ID: id, Title: title, Body: body, AuthorID: actor, Version: current.Version + 1, UpdatedAt: now}
-		if e = tx.Set(doc, result); e != nil {
+		stored := wikiDocument(next)
+		if e = tx.Set(doc, stored); e != nil {
 			return e
 		}
-		return tx.Create(doc.Collection("revisions").Doc(fmt.Sprintf("%016d", result.Version)), result)
+		return tx.Create(doc.Collection("revisions").Doc(fmt.Sprintf("%016d", next.Version)), stored)
 	})
-	return
+	if err != nil {
+		return repositoryDomainEntityWiki.Page{}, err
+	}
+	return result, nil
 }
