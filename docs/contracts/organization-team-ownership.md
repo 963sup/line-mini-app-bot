@@ -2,9 +2,7 @@
 
 實作範圍：組織與 Team API、Firestore 寫入、側欄切換及團隊清單。文件路徑均位於 channels/{channelId} 下。現行群組資料與授權行為見[儲存庫規格](../domains/repository/README.md)。
 
-![Enterprise 與 Organization 分別管理 Team，Enterprise Team 可指派至多個旗下組織](diagrams/organization-team.svg)
-
-[Mermaid 原始檔](diagrams/organization-team.mermaid)
+[企業、組織與團隊歸屬圖（Mermaid）](diagrams/organization-team.mermaid)
 
 ## 管理操作與既有資料
 
@@ -19,9 +17,8 @@
 
 
 ## LINE 一對一建立入口
-![LINE 私訊建立流程](diagrams/private-chat-creation.svg)
 
-[Mermaid 原始檔](diagrams/private-chat-creation.mermaid)
+[LINE 私訊建立流程圖（Mermaid）](diagrams/private-chat-creation.mermaid)
 
 在私訊輸入「建立組織」或「建立企業」，五分鐘內回覆名稱即可建立；輸入「取消」結束。建立企業時，詢問名稱及實際建立時都檢查開通資格。已驗證的 webhook 決定建立者身分。成功回覆附上對應 MINI App 入口。對話狀態依渠道與使用者隔離；資源建立、結束對話及事件回覆紀錄在同一個 Firestore 交易完成，重送同一事件會取得原結果。群組事件沿用原有 Team 流程。
 
