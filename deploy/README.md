@@ -46,7 +46,7 @@ Node、Go 基底版本及 pnpm MUST 與 mise.toml 一致，由 check-config.py �
 
 ## 減少不必要部署
 
-[Trigger 路徑政策](build-trigger-policy.json) 列出會影響映像或部署的檔案；純 docs、README、AGENTS 與 GitHub CI 文件變更不啟動 managed Trigger。混合程式與文件的提交仍會建置。新增建置輸入時 MUST 同步政策與雲端 includedFiles／ignoredFiles；只修改本檔不會套用雲端。
+Managed Trigger 的 `includedFiles`／`ignoredFiles` 由 Cloud Build 管理。純 docs、README、AGENTS 與 GitHub CI 文件變更不啟動 Trigger；混合程式與文件的提交仍會建置。根目錄 `firestore.indexes.json` 與 Dockerfile 使用的 `scripts/generate/prepare-miniapp-assets.mts` 都屬於觸發輸入。新增建置輸入時更新雲端 Trigger；映像內容由 Dockerfile 定義。
 
 建置依原流程執行，不查詢或自動取消其他建置。2026-11-21 已移除 managed inline Trigger 與 repository YAML 的過期建置檢查，不需要新增 Cloud Build 查詢／取消權限；文件路徑過濾維持啟用。
 
