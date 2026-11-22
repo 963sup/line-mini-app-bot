@@ -104,12 +104,24 @@ Rules:
 
 ## Repository publication default
 
-Publish verified changes through a pull request from work to main. Use squash merge so each main commit represents one independently revertible change. Synchronize work with the resulting main commit before starting the next change. Follow the [publication workflow](docs/development/workflow/publication.md#repository-publication) and respect the user's requested scope and branch protections.
+Develop directly on `main`. Every commit must be a complete, independently reviewable, verified milestone. Push only completed milestones within the authorized scope. Follow the [publication workflow](docs/development/workflow/publication.md#repository-publication) and respect branch protections.
+
+## 工程決策與交付要求
+
+1. **定義成功標準。** 實作前確認問題、受影響的流程與可觀察的驗收條件。對會改變業務行為的歧義，先查規格與實作，再確認仍缺少的決策。
+2. **釐清領域模型。** 涉及業務規則或資料時，先確認資料關係、規則的責任邊界、必須維持的條件及允許的狀態轉換。沿用適用的既有模型。
+3. **採用最簡單的可行設計。** 優先重用現有元件。新增抽象、依賴或服務前，說明具體需求與現有做法的限制。
+4. **處理失敗與邊界。** 核對正常、無效輸入與失敗路徑。若涉及重試、併發或部分成功，確認資料狀態與恢復方式。
+5. **用證據驗收。** 執行與變更風險相符的既有測試和適用的 CI 檢查。既有測試若無法捕捉本次可能造成的具體回歸，使用現有框架補上針對性的案例。
+6. **降低維護成本。** 在任務範圍內刪除已無用途的程式，或合併可安全移除的重複。以效能或成本為理由重構時，先量測基線，再以相同條件比較結果。
+
+每次交付說明解決的問題、實際執行的驗證與結果，以及仍未驗證的項目。每次在 `main` 提交或推送仍須符合[階段交付門檻](docs/development/workflow/publication.md#repository-publication)。
 
 ## 共通驗證與交付
 
-任務範圍內發現不符合時，以 Graphify 定位關係、Repomix 核對內容、Context7 查證相關技術，再最小修正並依 acceptance 驗證。工具無法使用、圖譜過期或打包遺漏時明確列出限制，不猜測通過。
+任務範圍內發現不符合時，以 Graphify 定位關係、Repomix 核對內容、Context7 查證相關技術，找出並修正任務範圍內的根因，控制變更範圍，再依 acceptance 驗證。工具無法使用、圖譜過期或打包遺漏時明確列出限制，不猜測通過。
 範圍外發現列出證據與後續工作，不自行全庫重構、改產品規則或部署。純文件及設定調整不要求無關應用測試；修改行為須執行相應檢查。
+涉及 Firestore 交易、併發、重送或持久資料相容性時，依[整合驗收流程](docs/development/verification/commands.md#firestore-integration)主動檢查、準備並重跑 emulator 測試。
 交付對照規格、實作位置、實際驗證結果及剩餘限制；角色指引與本規則一致，不因委派增加授權。
 
 [現行實作圖索引](docs/diagrams.md#現行實作) · [未來設計圖](docs/diagrams.md#未來設計)。

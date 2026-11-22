@@ -13,7 +13,7 @@
 | 修改 MINI App 頁面 | [前端操作配方](recipes/change-frontend.md) | 從頁面入口追到 API 與瀏覽器驗收 |
 | 分析錯誤或部署紅燈 | [系統化除錯](workflow/debugging.md)或[部署診斷](recipes/diagnose-deployment.md) | 重現錯誤或定位雲端失敗階段 |
 | 選檢查、整理證據 | [驗收矩陣](verification/commands.md#變更驗收矩陣) | 按[證據限制](verification/evidence.md)記錄結果 |
-| 把工作交給另一個聊天或建立 PR | [交接規格](workflow/handoff.md#sidebar-handoff)或[發布流程](workflow/publication.md#repository-publication) | 記錄可重現狀態或核對已驗證的提交 |
+| 交接工作或推送已驗證的階段 | [交接規格](workflow/handoff.md#sidebar-handoff)或[發布流程](workflow/publication.md#repository-publication) | 記錄可重現狀態或核對已驗證的提交 |
 | 查 CLI、MCP、技能或來源分析 | [工具索引](tooling/README.md) | 選對應工具專頁 |
 
 [開發流程索引](workflow/README.md) · [驗收索引](verification/README.md) · [操作配方索引](recipes/README.md)

@@ -5,7 +5,7 @@ Primary roles: GitHub, Orchestrator, Reviewer, Integrator.
 ## When to use
 
 Read repository refs, issues, PRs and CI state; perform authorized collaboration
-and publication using the [shared workflow](../../workflow.md#repository-publication).
+and publication using the [shared workflow](../../workflow/publication.md#repository-publication).
 
 ## Prerequisites and configuration
 
@@ -18,7 +18,7 @@ Tool versions are owned by `mise.toml`; never copy token values into documentati
 ## Operation
 
 Tool selection, publication order, authorization and failure handling follow the
-[single publication policy](../../workflow.md#repository-publication).
+[single publication policy](../../workflow/publication.md#repository-publication).
 Tool names and capabilities can differ between the host connector and project
 server; use the actual exposed schemas for the intended repository and branch.
 

@@ -28,6 +28,6 @@ Report LINE iOS/Android and external-browser acceptance separately; mocks do not
 - 依風險提供成功、越權、非法狀態及重要寫入的重送／併發證據，說明失敗不應改變的資料。
 - 分別記錄 Graphify 範圍、Repomix 遺漏、Context7／官方文件來源與版本，以及實際執行、跳過或待確認項目。
 
-本階段沿用既有 CI 與適用檢查，不因本規範自動新增測試方案、案例或工具；tester 的一般職責受此階段限制。需要新增案例時先明列缺口與所需階段調整，不用缺少證據宣稱通過。純文件變更驗證連結與 whitespace；角色設定變更另跑 check-config。
+測試與回歸證據依[工程決策與交付要求](../../../AGENTS.md#工程決策與交付要求)。純文件變更驗證連結與 whitespace；角色設定變更另跑 check-config。
 
 [驗收矩陣](commands.md#變更驗收矩陣) · [驗收索引](README.md)

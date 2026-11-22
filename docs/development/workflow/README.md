@@ -8,6 +8,6 @@
 | 實作與審查 | [實作指引](implementation.md) | 從操作契約到實作與驗收的可追溯路徑 |
 | 除錯 | [系統化除錯](debugging.md) | 預期和實際結果、重現方式與因果證據 |
 | 交接 | [交接與證據重用](handoff.md) | 六欄摘要與接手後的第一個動作 |
-| 發布 | [版本控制與 PR 交付](publication.md) | 已驗證的提交、適用的 CI 與發布狀態 |
+| 發布 | [版本控制與階段交付](publication.md) | 已驗證的提交、適用的 CI 與發布狀態 |
 
 [按任務開始](../README.md#按任務開始) · [驗收索引](../verification/README.md)

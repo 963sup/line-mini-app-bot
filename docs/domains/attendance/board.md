@@ -71,7 +71,7 @@ flowchart LR
   click n1l0 "https://docs.cloud.google.com/firestore/native/docs/standard-index-overview"
   n1 --- n1l1["Firestore Go v1.29.2 CollectionRef來源"]
   click n1l1 "https://github.com/googleapis/google-cloud-go/blob/firestore/v1.29.2/firestore/collref.go"
-  h --- n2["遵循現有測試階段規則，沿用既有檢查，不新增測<br/>試案例或工具。本機測試與圖譜更新不代表新增群<br/>組流程已在真實LINE或正式Firestore通過。缺少<br/>Firestore emulator時既有整合測試會skip，應分<br/>開回報。main推送可能觸發既有CI/CD，Git發布不<br/>等同部署驗收。"]
+  h --- n2["本機測試與圖譜更新不代表新增群<br/>組流程已在真實LINE或正式Firestore通過。缺少<br/>Firestore emulator時既有整合測試會skip，應分<br/>開回報。main推送可能觸發既有CI/CD，Git發布不<br/>等同部署驗收。"]
   h --- n3["功能索引 · 出勤總覽 · 文件總索引"]
   n3 --- n3l0["功能索引"]
   click n3l0 "../README.md"

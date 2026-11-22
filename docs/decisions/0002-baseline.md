@@ -10,12 +10,14 @@ flowchart LR
   click n1 "0003-cloud-run-primary.md"
 ```
 
+驗證政策以[工程決策與交付要求](../../AGENTS.md#工程決策與交付要求)為準。
+
 <a id="背景"></a>
 
 ```mermaid
 flowchart LR
   h["背景"]
-  h --- n0["現有架構已明確定義程式分層；部署決策後續更新<br/>為只使用 Cloud Run。 先穩定基礎及暫不展開測<br/>試工作的順序不變。"]
+  h --- n0["現有架構已明確定義程式分層；部署決策後續更新<br/>為只使用 Cloud Run。"]
 ```
 
 <a id="決策"></a>
@@ -41,7 +43,7 @@ flowchart LR
   click n0l0 "../domains/attendance/README.md"
   n0 --- n0l1["分階段落地"]
   click n0l1 "../guides/local-development/environment-verification.md"
-  h --- n1["目前先穩定工具設定、應用骨架、設定注入與部署<br/>說明；不新增測試方案、案例或工具。 此決策不<br/>要求移除現有測試或 CI，也不表示既有檢查已執<br/>行或通過。"]
+  h --- n1["目前先穩定工具設定、應用骨架、設定注入與部署<br/>說明；各階段依工程決策與交付要求驗證。"]
 ```
 
 <a id="後果與變更條件"></a>

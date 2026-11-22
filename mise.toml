@@ -172,6 +172,13 @@ run = "mise install node npm:next-devtools-mcp"
 description = "Install pinned Google Cloud CLI, Firebase CLI, and local MCP"
 run = "mise install node gcloud npm:firebase-tools npm:@google-cloud/gcloud-mcp"
 
+[tasks.firestore-emulator]
+description = "Start the local Firestore emulator with a task-specific Java 25"
+run = [
+  "mise install java@temurin-25.0.5.1+2.0.LTS gcloud",
+  "mise exec java@temurin-25.0.5.1+2.0.LTS gcloud -- gcloud --quiet emulators firestore start --host-port=127.0.0.1:8080",
+]
+
 [tasks.doctor-google-knowledge]
 description = "Verify Google Developer Knowledge MCP using the host API key"
 run = "python3 scripts/mcp/mcp-doctor.py --server google-developer-knowledge"

@@ -2,11 +2,11 @@
 
 先閱讀 [文件索引](docs/README.md)、[環境設定](docs/guides/local-development/setup.md) 與 [Go 慣例](docs/standards/go.md)。
 
-1. 從最新目標分支建立工作分支，讓每次變更聚焦於單一問題。
-2. 更新相關文件；目前依 [已接受的基線](docs/decisions/0002-baseline.md) 先穩定基礎，不新增測試方案、案例或工具。
+1. 直接在 `main` 開發，開始前核對遠端版本及工作樹。
+2. 更新相關文件，依[工程決策與交付要求](AGENTS.md#工程決策與交付要求)定義驗收並處理回歸證據缺口。
 3. 依下列步驟執行設定、Shell 與格式檢查；Go 修改另跑既有 CI 對應任務。
 4. 現有 Go 應用與 CI 保留；[驗收矩陣](docs/development/acceptance.md#變更驗收矩陣)列出現階段應執行的檢查，實際執行結果應如實回報。
-5. 從 work 提出 PR，驗證後 squash merge 到 main；下一項工作開始前將 main 合回 work。細節見[發布流程](docs/development/workflow.md#repository-publication)。
+5. 每次提交與推送都須通過[發布流程](docs/development/workflow/publication.md#repository-publication)的階段門檻。
 
 請勿提交機密、工具快取或產生的分析輸出。安全漏洞請依 [安全政策](.github/SECURITY.md) 私下回報。
 
@@ -35,5 +35,5 @@ Go 修改依 [驗收規則](docs/development/acceptance.md) 執行 focused check
 不是 Graphify／Repomix 原生設定；獨立 audit 與日常 CLI 範圍須分別核對。
 
 提交前檢查 staged diff 與產物排除，保留其他人的本機修改。
-PR 回報實際命令、失敗及未驗證整合；安裝或 MCP 握手不等於雲端部署或裝置驗收。
+交付時回報實際命令、失敗及未驗證整合；安裝或 MCP 握手不等於雲端部署或裝置驗收。
 產生的分析包、圖譜及 profile 留在工作區，分享前依 [安全政策](SECURITY.md) 檢查敏感內容。

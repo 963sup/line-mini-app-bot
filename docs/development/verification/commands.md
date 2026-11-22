@@ -1,6 +1,6 @@
 # 驗收矩陣與命令
 
-目前階段依[已接受的基線](../../decisions/0002-baseline.md)：不新增測試方案、案例或工具，保留並執行與變更相關的既有檢查。此限制不代表停止執行既有測試；若既有案例不足，列出證據缺口與待決定的階段調整，不自行宣稱驗收通過。
+驗證範圍與新增回歸案例的條件依[工程決策與交付要求](../../../AGENTS.md#工程決策與交付要求)。
 
 行為變更以使用者入口驗收。沿入口核對實際涉及的契約、產生碼來源、呼叫者、儲存或設定與測試；更名或遷移時搜尋舊識別字，確認保留的引用有用途。整合後核對差異與原需求，從正常入口執行適用檢查，清楚記錄未驗證的行為。
 
@@ -32,11 +32,17 @@ flowchart TB
 | 公開 HTTP API | 依 [API 流程](../../../api/README.md)更新契約與生成碼，執行 `pnpm api:check`；Go／前端變更另套對應列 | 核對相容性、認證、錯誤格式及既有行為；不手改產生檔；歷史相容性比較需另列 base revision |
 | 前端 | `pnpm --filter @repo/miniapp check`、`pnpm --filter @repo/miniapp test` | 靜態輸出、路由或資產變更另執行 `pnpm --filter @repo/miniapp build`；UI 另核對[元件規範](../../../frontend/miniapp/src/shared/ui/AGENTS.md)與相關畫面 |
 | 依賴 | 核對 manifest 與鎖檔；執行受影響工作區的既有檢查 | Go 執行模組下載／驗證及 `mise run vuln`；不把下載成功當整合通過 |
-| Firestore | 套用 Go／API 對應列；核對功能契約中的路徑、授權、交易、防重與相容性 | 索引或遷移須依既有指南驗證；沒有真實資料庫證據時，讀寫與交易整合仍待驗收 |
+| Firestore | 套用 Go／API 對應列；核對功能契約中的路徑、授權、交易、防重與相容性，依[整合驗收流程](#firestore-integration)執行適用測試 | 索引或遷移須依既有指南驗證；沒有真實資料庫證據時，讀寫與交易整合仍待驗收 |
 | LINE 身分／Webhook | 套用 Go／API／前端對應列，檢查既有案例涵蓋的無效簽章／token、越權與重送 | 未涵蓋者列為證據缺口；真實渠道及裝置另驗收 |
 | Cloud Run／定位 | 套用設定與受影響程式的對應列；依[環境驗收要求](evidence.md#cloud-run-and-browser-location)記錄 | 設定檢查、編譯與 mock 均不取代部署或裝置驗收 |
 
 命令定義以 [mise.toml](../../../mise.toml)、[根 package.json](../../../package.json) 與[前端 package.json](../../../frontend/miniapp/package.json)為準。模組局部操作仍由各 README 維護，本頁集中決定何時需要執行。
+
+## Firestore integration
+
+變更涉及交易、併發、重送或持久資料相容性時，Codex 須辨識對應整合案例並執行。依[本機操作指引](../../guides/local-development/README.md#firestore-emulator)檢查 loopback emulator 是否可達；需要時自行用 mise 準備依賴並啟動，待服務可用後設定測試端點並執行指定案例。若先前因環境未準備而跳過，準備好後重跑。
+
+使用 `-count=1 -v`，逐一確認指定案例實際執行且通過。套件顯示成功但案例出現 `SKIP`，或篩選條件未選中任何案例，均不得列為整合證據。若工具無法準備、服務無法啟動或案例仍未執行，記錄原因及尚未驗證的行為，繼續其餘可執行的檢查。
 
 ## Go verification
 

@@ -41,6 +41,7 @@ Do not change platform HOME/CODEX_HOME or copy authentication files.
 - `check-config` / `doctor`: configuration and Go environment verification.
 - `doctor-mcp`: configured service transports; needs network and GitHub token.
 - `doctor-openai`: isolated documentation transport diagnosis.
+- `firestore-emulator`：按需準備固定版本的 Java 25，啟動本機 Firestore emulator。見[操作與測試](../../guides/local-development/README.md#firestore-emulator)。
 - `install-cloud`: pinned gcloud CLI and local gcloud MCP installation.
 - `doctor-gcloud` / `doctor-google-knowledge`: separate Google MCP transport checks; see [Google setup](mcp/google.md).
 - `check` / `build`: application checks; require an existing Go module.
