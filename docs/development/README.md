@@ -18,8 +18,6 @@
 
 [開發流程索引](workflow/README.md) · [驗收索引](verification/README.md) · [操作配方索引](recipes/README.md)
 
-舊書籤可透過[原流程](workflow.md)、[原驗收](acceptance.md)與[原除錯](debugging.md)的章節連到新位置。
-
 ## 歸屬與維護
 
 開發手冊說明怎麼工作。[領域規格](../domains/README.md)定義應有行為，[架構文件](../architecture/README.md)定義邊界與契約，[腳本索引](../../scripts/README.md)指向可執行入口。工具版本與任務以 [mise.toml](../../mise.toml) 為準。

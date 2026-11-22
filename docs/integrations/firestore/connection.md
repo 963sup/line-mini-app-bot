@@ -21,7 +21,7 @@ flowchart LR
   h --- n1["Configure the selected Google Cloud project,<br/> database and application identity <br/>explicitly. Cloud Run uses the attached <br/>runtime service account and appropriate IAM;<br/> do not assume credentials are provided by <br/>the deployment host."]
   h --- n2["The repository provides a read-only <br/>check-firestore application mode for an explicitly<br/> selected existing document. See connection <br/>instructions. It prints no document contents<br/> and writes no data. Application attendance <br/>persistence and transactional writes are <br/>implemented in <br/>backend/internal/business/attendance/adapter/firestore.<br/> Browser Session persistence is implemented <br/>separately; see Session and renewal design."]
   n2 --- n2l0["connection instructions"]
-  click n2l0 "../line/setup.md#firestore-唯讀連線"
+  click n2l0 "../../development/tooling/backend/firestore.md#唯讀連線檢查"
   n2 --- n2l1["Session and renewal design"]
   click n2l1 "../../contracts/identity.md"
 ```

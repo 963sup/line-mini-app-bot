@@ -50,8 +50,6 @@ jobs:
       - name: Offline tooling regressions
         if: steps.changes.outputs.run_application == 'true'
         run: python3 -m unittest discover -s scripts/test -p 'test_*.py'
-      - name: Analysis scope contract
-        run: python3 scripts/check/analysis-scope.py
       - name: Whitespace
         run: git diff --check
   go:

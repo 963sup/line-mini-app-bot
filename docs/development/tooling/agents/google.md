@@ -78,11 +78,7 @@ and constrain list output. Configuration does not authorize deploying resources 
    不先試 `BROWSER`、DISPLAY、loopback 或 Playwright；使用者要求代開瀏覽器時才使用。
    不改用 `--no-browser`，該流程需要另一台已安裝 gcloud 的可信機器。
 
-4. **同一執行者保留同一程序。** 由 orchestrator 的單一 executor 持有登入 session，
-   top-level 只負責傳達網址及將使用者驗證碼交回原 executor，原 executor 直接寫入
-   該程序 stdin。不可假設其他 agent 能以相同 session ID 呼叫 `write_stdin`。
-   等待使用者期間保留程序；不另開第二次登入、不重複讀瀏覽器狀態。
-   若程序已結束或碼過期，只重建一次並提供新網址，舊碼不能送進新流程。
+4. **同一執行者保留同一程序。** 由目前代理持有登入 session、呈現網址並將使用者驗證碼送回同一程序。等待期間不另開第二次登入；程序結束或碼過期時才重新提供網址。不要啟動子代理處理 OAuth。
 
 5. **以憑證結果判斷成功。** 完成後再查 ACTIVE 帳號並私密確認 token 可取得。
    若登入退出碼非零，先區分 OAuth 交換失敗和登入後專案設定錯誤；已有 ACTIVE

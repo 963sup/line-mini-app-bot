@@ -43,4 +43,4 @@ Process Manager 著重流程決策與狀態；Saga 著重跨局部交易的一�
 
 [Saga](saga.md) · [領域事件](domain-event.md) · [Outbox](outbox-pattern.md)
 
-[DDD 設計索引](README.md) · [現行驗收基線](../../development/acceptance.md)
+[DDD 設計索引](README.md) · [現行驗收基線](../../development/tooling/testing/commands.md)

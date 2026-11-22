@@ -43,4 +43,4 @@ flowchart TD
 
 [Process Manager](process-manager.md) · [一致性](consistency.md) · [Outbox](outbox-pattern.md)
 
-[DDD 設計索引](README.md) · [現行驗收基線](../../development/acceptance.md)
+[DDD 設計索引](README.md) · [現行驗收基線](../../development/tooling/testing/commands.md)

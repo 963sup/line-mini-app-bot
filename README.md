@@ -78,7 +78,7 @@ MCP 握手與聊天主機實際可用性須分別驗收，不因快取存在而�
 
 - [文件索引與 Backend／API／Frontend／Scripts／Deploy 閱讀入口](docs/README.md#按模組閱讀)
 - [需求到實作導航](docs/architecture/runtime/code-layout.md#從需求定位修改範圍)
-- [變更驗收矩陣](docs/development/acceptance.md#變更驗收矩陣)
+- [變更驗收矩陣](docs/development/tooling/testing/commands.md#變更驗收矩陣)
 - [架構與流程](docs/architecture/runtime/overview.md)
 - [Go 開發](docs/standards/go.md)
 - [貢獻方式](CONTRIBUTING.md)
@@ -101,7 +101,6 @@ HTML/CSS 與鎖檔不保證被解析。使用 Repomix 的 `repomix-output.xml` �
 再對照實際來源；打包與查詢成功都不代表程式正確或整合已驗收。
 兩工具均排除 `.agents`、`.claude`、`agent` 與 `skills-lock.json`；`.codex` 保留為分析來源，
 仍受工具原生格式支援與內建排除限制。各 ignore 規則不等於完整收錄保證。
-範圍契約及獨立 audit 的用途與限制見 [分析證據](docs/development/tooling/shared/analysis-scope.md)。
 
 ## 執行服務
 
@@ -135,11 +134,11 @@ MINI App 頁面為 `/miniapp`；公開 Channel／LIFF ID 與 Endpoint 由所選�
 | `scripts/` | [腳本工具](scripts/README.md) | [AGENTS.md](scripts/AGENTS.md) |
 | `frontend/` | [MINI App 前端](frontend/README.md) | [AGENTS.md](frontend/AGENTS.md) |
 
-進入 `frontend/miniapp/` 另讀其 [Next.js 指引](frontend/miniapp/AGENTS.md)。分析結果與涵蓋限制見 [分析範圍與證據限制](docs/development/tooling/shared/analysis-scope.md)。
+進入 `frontend/miniapp/` 另讀其 [Next.js 指引](frontend/miniapp/AGENTS.md)。
 
 ## 業務操作開發原則
 
 採用 [資源導向的通用業務操作模型](docs/contracts/business-operations.md)：Actor、Resource、Action、Context、Authority、Policy、Decision 與 Result。
 開發前定義操作契約，交付時對照實作與證據；讀取不強制建立事件，採納提案時才使用 Merge。
-發現不符合時依 [Graphify／Repomix／Context7 符合性流程](docs/development/workflow.md#business-operation-compliance) 在任務範圍內修正。
+發現不符合時依 [Graphify／Repomix／Context7 符合性流程](docs/development/workflow/implementation.md#business-operation-compliance) 在任務範圍內修正。
 統一操作模型，隔離業務規則；共用必要機制，避免不必要的抽象。

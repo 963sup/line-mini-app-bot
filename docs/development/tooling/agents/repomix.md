@@ -8,7 +8,7 @@ Bundle relevant source for review and impact analysis.
 
 ## Prerequisites and configuration
 
-Node and Repomix installed by install-mcp. The mise task checks its XML against the [source manifest](../shared/analysis-scope.md); .repomixignore also filters ad hoc CLI runs. Scope MCP packing explicitly. Security scanning is not a proof that no secrets exist.
+安裝、CLI 打包、排除規則與參考技能更新見 [Repomix CLI](../shared/repomix.md)。Scope MCP packing explicitly.
 Connection, timeouts and enabled tool names are owned by `.codex/config.toml`.
 Tool versions are owned by `mise.toml`; never copy token values into documentation.
 
@@ -16,7 +16,7 @@ Tool versions are owned by `mise.toml`; never copy token values into documentati
 
 When the configured MCP is exposed, inspect the current tool schema before a new operation. Search the returned bundle, then corroborate critical excerpts against source. Reuse the bundle across roles when its revision, relevant working-tree changes and file coverage still match the assignment.
 
-Run `mise run repomix`, then read the generated XML; host MCP exposes pack_codebase and read/search output tools.
+CLI 操作依[共用打包指引](../shared/repomix.md#打包)；host MCP exposes pack_codebase and read/search output tools.
 
 The configured MCP runs with `--sandbox` at the repository root. Its file-tool
 paths MUST be relative to that root, for example `.codex/config.toml`; absolute
@@ -32,7 +32,3 @@ bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server rep
 This checks initialize, tools/list and configured allowlists. Verify a representative
 operation separately. For failures distinguish missing binary, network, credential,
 workspace prerequisites and host loading; see [troubleshooting](../../environment/troubleshooting.md).
-
-Project exclusions use gitignore syntax in `.repomixignore`; keep project docs,
-agent configuration and application source, while excluding upstream skills and
-agent-specific copies. The JSON config has been removed. Gitignore/default exclusions and security scanning remain enabled by Repomix defaults; do not pass disabling flags.

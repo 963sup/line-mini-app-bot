@@ -225,15 +225,7 @@ run = "python3 scripts/check/check-config.py"
 
 [tasks.repomix]
 description = "Pack project sources with security checking and without generated skills"
-run = "python3 scripts/check/analysis-scope.py --pack"
-
-[tasks.analysis-scope]
-description = "Validate classification of all versioned sources"
-run = "python3 scripts/check/analysis-scope.py"
-
-[tasks.analysis-audit]
-description = "Cross-check Graphify and Repomix against the source contract"
-run = "python3 scripts/check/analysis-scope.py --audit"
+run = "repomix --style xml --output repomix-output.xml"
 
 [tasks.doctor-openai]
 description = "Check OpenAI Docs MCP independently of optional GitHub credentials"

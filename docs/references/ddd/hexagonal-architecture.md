@@ -228,7 +228,7 @@ backend/
 | 儲存整合 | 交易衝突、並行撤權、防重與資料相容性有實際證據 |
 | 組裝 | 實際注入正確實作，生命週期及設定完整 |
 
-以上是證據種類，不要求本次新增測試工具或案例；實際檢查依[驗收矩陣](../../development/acceptance.md)。替身可協助隔離核心，但不能證明 Firestore 交易或真實 LINE 行為。
+以上是證據種類，不要求本次新增測試工具或案例；實際檢查依[驗收矩陣](../../development/tooling/testing/commands.md)。替身可協助隔離核心，但不能證明 Firestore 交易或真實 LINE 行為。
 
 常見反例：handler 直接讀庫再決定角色、核心 import SDK、Adapter 彼此串接以繞過用例、只有 CRUD interface 卻沒有業務契約、Unit of Work 各方法實際開不同交易、bootstrap 長出業務規則。這些都不能靠重新命名目錄修正。
 

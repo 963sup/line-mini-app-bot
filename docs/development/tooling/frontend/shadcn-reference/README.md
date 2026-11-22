@@ -56,7 +56,7 @@ bash scripts/tooling/tool-exec.sh python3 scripts/tooling/shadcn-reference.py --
 
 2026-11-18（Asia/Taipei）：直接讀取官方 Markdown 入口及各項文件，覆蓋與雜湊由腳本檢查。Graphify 用於定位工具關係，其 AST 圖不涵蓋全部文件規則；Repomix 用於專案指引交叉核對。Context7 本次 resolve 成功，但 query 達月額度，未宣稱取得新結果；CLI 預覽流程沿用本聊天先前已取得的 Context7 證據，下載格式則以當次官方回應驗證。未安裝應用元件或執行 UI／LINE 驗收。
 
-實際通過：下載及離線完整性檢查、`check-config.py`、維護文件的本機連結／錨點、`git diff --check`；以暫存副本確認文件損壞與過期會被拒絕、下載失敗保留舊快照。Repomix 交叉核對八個相關檔案；Graphify 已執行 AST 更新，未執行 LLM 語意抽取。分析範圍檢查通過，但其 Git 清單不包含尚未追蹤的新檔，不將該結果冒充新快照的覆蓋證據。
+實際通過：下載及離線完整性檢查、`check-config.py`、維護文件的本機連結／錨點、`git diff --check`；以暫存副本確認文件損壞與過期會被拒絕、下載失敗保留舊快照。Repomix 交叉核對八個相關檔案；Graphify 已執行 AST 更新，未執行 LLM 語意抽取。
 
 [工具索引](../../README.md) · [shadcn 工具指南](../shadcn.md) · [文件總索引](../../../../README.md)
 

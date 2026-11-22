@@ -9,7 +9,7 @@
 | 持久 Inbox、Outbox、Worker 與管理後台如何分工？ | [平台提案](platform/README.md) · [套件配置](platform/package-layout.md) · [Webhook 可靠交付](webhook-delivery/README.md) |
 | LINE 與跨業務能力的目標架構是什麼？ | [工程平台設計](line-engineering/README.md) |
 | Repository、Issue 與 Discussion 的目標模型有何差異？ | [平台資源模型](platform/domain-model.md) |
-| 如何看待早期平台切片的交付順序？ | [歷史交付階段](platform/delivery.md)；目前變更以[驗收矩陣](../development/acceptance.md)選擇檢查。 |
+| 如何看待早期平台切片的交付順序？ | [歷史交付階段](platform/delivery.md)；目前變更以[驗收矩陣](../development/tooling/testing/commands.md)選擇檢查。 |
 
 ## 相鄰的設計參考
 

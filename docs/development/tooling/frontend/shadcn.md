@@ -119,7 +119,20 @@ bash scripts/tooling/tool-exec.sh shadcn view @shadcn/button --cwd frontend/mini
 bash scripts/tooling/tool-exec.sh shadcn add @shadcn/button --dry-run --cwd frontend/miniapp
 ```
 
-`docs` 回傳連結後仍須讀取相關官方內容。Graphify CLI 用於程式關係定位，Repomix CLI 用於必要範圍的來源交叉核對；前者的 AST 圖不完整涵蓋工具設定／文件，後者不應每次整庫打包。兩者版本／任務由 `mise.toml` 管理，見 [Graphify](../agents/graphify.md)、[Repomix](../agents/repomix.md)。
+`docs` 回傳連結後仍須讀取相關官方內容。Graphify CLI 用於程式關係定位，Repomix CLI 用於必要範圍的來源交叉核對；前者的 AST 圖不完整涵蓋工具設定／文件，後者不應每次整庫打包。兩者版本／任務由 `mise.toml` 管理，見 [Graphify](../shared/graphify.md)、[Repomix](../shared/repomix.md)。
+
+## 頁面元件應用
+
+已核對官方 Components 目錄，專案維持 Radix base；CLI 的 `docs` 輸出若指向 Base UI，改讀相對應的官方 Radix 文件，避免混用 API。Table、Item、InputGroup 透過固定版 CLI 的 `add --view` 取得官方輸出，修正 `cn` alias 後以 local registry 安裝新增檔案，沒有覆寫既有 primitives 或增加 `cn` 套件。
+
+| 元件 | 應用位置 |
+| --- | --- |
+| Table | 本人月紀錄的上班、下班、工時狀態與更正入口；窄螢幕可在表格內橫向捲動 |
+| Item / ItemGroup | 補卡／審核申請、本人請假紀錄與群組空間清單；理由全文保留 |
+| Empty（沿用） | 成功查詢後沒有班次、申請、請假或空間時顯示，未查詢與查詢失敗不冒充空結果 |
+| Spinner / Badge（沿用） | 清單處理中及申請狀態 |
+
+官方來源：[Table](https://ui.shadcn.com/docs/components/radix/table)、[Item](https://ui.shadcn.com/docs/components/radix/item)、[InputGroup](https://ui.shadcn.com/docs/components/radix/input-group)，並以 Context7 `/shadcn-ui/ui` 交叉核對。圖表選用見[官方圖表範例](#官方圖表範例)。LINE 手機實機與視覺驗收仍需獨立確認。
 
 ## 驗證紀錄
 
@@ -142,16 +155,3 @@ bash scripts/tooling/tool-exec.sh shadcn add @shadcn/button --dry-run --cwd fron
 - 無前端元件、依賴或執行行為變更，未執行應用測試、AI 功能或實機 LINE 驗收；本機 transport 成功仍不證明聊天 host 自動載入。
 
 安裝的官方 skill 為本次 upstream revision，可能描述比本專案固定 CLI 更新的命令或元件；不保證其中每個例子都可在固定 CLI 使用，先以 `info` 與相關命令的 `--help` 核對，再決定操作。官方文件為查詢當下內容，不與固定 CLI 保證完全同版；使用未實測功能前仍須查該版本 help 與官方 API。Graphify 在 Context7 無可解析的 library，本次僅驗證既有本機 CLI，未宣稱完成其最新上游文件查證。
-
-## 頁面元件應用
-
-已核對官方 Components 目錄，專案維持 Radix base；CLI 的 `docs` 輸出若指向 Base UI，改讀相對應的官方 Radix 文件，避免混用 API。Table、Item、InputGroup 透過固定版 CLI 的 `add --view` 取得官方輸出，修正 `cn` alias 後以 local registry 安裝新增檔案，沒有覆寫既有 primitives 或增加 `cn` 套件。
-
-| 元件 | 應用位置 |
-| --- | --- |
-| Table | 本人月紀錄的上班、下班、工時狀態與更正入口；窄螢幕可在表格內橫向捲動 |
-| Item / ItemGroup | 補卡／審核申請、本人請假紀錄與群組空間清單；理由全文保留 |
-| Empty（沿用） | 成功查詢後沒有班次、申請、請假或空間時顯示，未查詢與查詢失敗不冒充空結果 |
-| Spinner / Badge（沿用） | 清單處理中及申請狀態 |
-
-官方來源：[Table](https://ui.shadcn.com/docs/components/radix/table)、[Item](https://ui.shadcn.com/docs/components/radix/item)、[InputGroup](https://ui.shadcn.com/docs/components/radix/input-group)，並以 Context7 `/shadcn-ui/ui` 交叉核對。圖表選用見[官方圖表範例](#官方圖表範例)。LINE 手機實機與視覺驗收仍需獨立確認。

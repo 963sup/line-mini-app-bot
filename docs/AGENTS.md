@@ -59,11 +59,10 @@ docs/
 │   └── 0001-<decision>.md
 ├── development/                   # 開發工作流程
 │   ├── README.md
-│   ├── setup.md                   # 環境初始化
-│   ├── workflow.md                # 開發與交付流程
-│   ├── testing.md                 # 測試策略與驗收
-│   ├── debugging.md               # 問題診斷
-│   └── tooling.md                 # CLI / MCP / Codex
+│   ├── environment/               # 環境初始化
+│   ├── workflow/                  # 開發、除錯與交付流程
+│   ├── verification/              # 驗收證據與限制
+│   └── tooling/                   # 工具與測試命令
 ├── operations/                    # 部署與維運
 │   ├── README.md
 │   ├── deployment.md              # 部署流程
@@ -103,4 +102,4 @@ docs/
 
 ## 驗證
 
-核對相對路徑、來源、標題錨點與索引。改圖時依[圖表規範](standards/documentation.md)驗證圖意與渲染；命令與證據依[驗收矩陣](development/acceptance.md#變更驗收矩陣)。
+核對相對路徑、來源、標題錨點與索引。改圖時依[圖表規範](standards/documentation.md)驗證圖意與渲染；命令與證據依[驗收矩陣](development/tooling/testing/commands.md#變更驗收矩陣)。

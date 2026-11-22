@@ -105,7 +105,7 @@ flowchart LR
 flowchart LR
   h["3. 每次功能交付順序"]
   h --- n0["業務變更的查證與交付證據依業務操作符合性流程<br/>。"]
-  click n0 "../development/workflow.md#business-operation-compliance"
+  click n0 "../development/workflow/implementation.md#business-operation-compliance"
 ```
 
 <a id="4-邊界檢查"></a>
@@ -124,7 +124,7 @@ flowchart LR
   n5 --- n5l0["Go 慣例"]
   click n5l0 "go.md"
   n5 --- n5l1["驗收矩陣"]
-  click n5l1 "../development/acceptance.md#變更驗收矩陣"
+  click n5l1 "../development/tooling/testing/commands.md#變更驗收矩陣"
   h --- n6["目標套件配置見 目錄規劃，依賴方向見 依賴規則<br/>。"]
   n6 --- n6l0["目錄規劃"]
   click n6l0 "../architecture/runtime/code-layout.md"

@@ -33,6 +33,6 @@ callback 若可能重跑，內部不得發送 LINE 訊息或進行不可撤回�
 
 ## 設計產出與核對
 
-記錄原子邊界、讀寫集合、版本、撤權生效時間、可觀察中間狀態、重送與取消語意。驗收條件可列併發及故障情境；實際新增或執行檢查須遵循[現行驗收基線](../../development/acceptance.md)。
+記錄原子邊界、讀寫集合、版本、撤權生效時間、可觀察中間狀態、重送與取消語意。驗收條件可列併發及故障情境；實際新增或執行檢查須遵循[現行驗收基線](../../development/tooling/testing/commands.md)。
 
 [Aggregate](aggregate.md) · [領域事件](domain-event.md) · [Saga（按需）](saga.md) · [Outbox（按需）](outbox-pattern.md) · [六邊形架構](hexagonal-architecture.md) · [DDD 設計索引](README.md)

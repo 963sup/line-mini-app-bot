@@ -35,7 +35,7 @@ attendance/
 
 ## 規格與驗證
 
-[出勤規格](../../../../docs/domains/attendance/README.md) · [工作指引](AGENTS.md) · [驗收矩陣](../../../../docs/development/acceptance.md)。Go 檢查在根目錄透過 `bash scripts/tooling/tool-exec.sh mise run check` 執行；Firestore 整合測試另需 `FIRESTORE_EMULATOR_HOST`。
+[出勤規格](../../../../docs/domains/attendance/README.md) · [工作指引](AGENTS.md) · [驗收矩陣](../../../../docs/development/tooling/testing/commands.md#變更驗收矩陣)。Go 檢查在根目錄透過 `bash scripts/tooling/tool-exec.sh mise run check` 執行；Firestore 整合測試另需 `FIRESTORE_EMULATOR_HOST`。
 
 ## 領域追蹤入口
 

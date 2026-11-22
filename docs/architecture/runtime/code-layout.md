@@ -18,7 +18,7 @@ flowchart LR
   n0 --- n0l0["命名規範"]
   click n0l0 "../../standards/naming.md"
   n0 --- n0l1["驗收矩陣"]
-  click n0l1 "../../development/acceptance.md#變更驗收矩陣"
+  click n0l1 "../../development/tooling/testing/commands.md#變更驗收矩陣"
 ```
 
 ```mermaid

@@ -51,7 +51,7 @@ workspace prerequisites and host loading; see [troubleshooting](../../environmen
 Follow the [root source-verification policy](../../../../AGENTS.md#mandatory-documentation-verification),
 including its Codex, LINE and Google Cloud official-source routes. Context7 does
 not replace those sources or define product requirements. Role handoffs follow
-[the agent workflow](../../workflow.md#delegation-depth-and-role-selection).
+[the agent workflow](../../workflow/task-start.md#delegation-depth-and-role-selection).
 If the service or required evidence is unavailable, report the blocker and leave
 the affected decision pending. A successful query does not prove application
 behavior or host loading.

@@ -54,4 +54,4 @@ flowchart TD
 
 [一致性](consistency.md) · [領域事件](domain-event.md) · [Saga](saga.md)
 
-[DDD 設計索引](README.md) · [現行驗收基線](../../development/acceptance.md)
+[DDD 設計索引](README.md) · [現行驗收基線](../../development/tooling/testing/commands.md)

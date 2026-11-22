@@ -30,7 +30,7 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 ## Business Operation
 
-開始相關任務前，必須閱讀 [操作模型](../docs/contracts/business-operations.md) 與 [符合性流程](../docs/development/workflow.md#business-operation-compliance)。
+開始相關任務前，必須閱讀 [操作模型](../docs/contracts/business-operations.md) 與 [符合性流程](../docs/development/workflow/implementation.md#business-operation-compliance)。
 
 畫面呈現操作可用性、確認與結果；前端隱藏按鈕不能取代後端授權。使用 API 契約處理拒絕、過期版本與失敗，結果未知時遵循既有重試契約，不自行宣告權限或成功。
 

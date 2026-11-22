@@ -14,7 +14,7 @@
 | [setup/](setup/README.md) | 初始化工具環境、準備 Go 依賴 | deps |
 | [dev/](dev/README.md) | 載入本機環境、啟動服務 | dev |
 | [generate/](generate/README.md) | 生成 API 程式碼、前端資源與文件圖 | pnpm api:generate、graphify-docs |
-| [check/](check/README.md) | 設定與分析範圍檢查 | check-config、analysis-audit |
+| [check/](check/README.md) | 設定檢查 | check-config |
 | [contract/](contract/README.md) | API 能力與路由契約 | pnpm api:check |
 | [test/](test/README.md) | 路由、MCP 與容器驗收 | pnpm api:check、unittest、container-build |
 | [perf/](perf/README.md) | Go 效能剖析 | profile |
@@ -32,7 +32,6 @@ bash scripts/tooling/tool-exec.sh mise run doctor
 python3 scripts/check/check-config.py
 bash scripts/tooling/tool-exec.sh python3 -m unittest discover -s scripts/test -p 'test_*.py'
 bash scripts/tooling/tool-exec.sh pnpm api:check
-bash scripts/tooling/tool-exec.sh mise run analysis-audit
 ```
 
 Tool versions and task definitions remain in `mise.toml`. Frontend-only script
@@ -50,6 +49,5 @@ Rich Menu images are stored under `assets/line/richmenu/`.
 - [MCP 診斷期限與清理](../docs/development/tooling/agents/README.md)
 - [文件索引：Scripts](../docs/README.md#按模組閱讀)
 - [mise 任務與工具](../docs/development/tooling/shared/mise.md)
-- [分析範圍與稽核](../docs/development/tooling/shared/analysis-scope.md)
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md)

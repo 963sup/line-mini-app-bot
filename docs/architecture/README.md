@@ -14,7 +14,7 @@
 
 ### 任務準備與按需參考
 
-從[任務索引](../README.md#按任務開始)選取範圍，依[驗收矩陣](../development/acceptance.md#變更驗收矩陣)決定必要證據。早期[平台交付階段](../proposals/platform/delivery.md)記錄當時的切片與待決策項目，功能現況查所屬契約。
+從[任務索引](../README.md#按任務開始)選取範圍，依[驗收矩陣](../development/tooling/testing/commands.md#變更驗收矩陣)決定必要證據。早期[平台交付階段](../proposals/platform/delivery.md)記錄當時的切片與待決策項目，功能現況查所屬契約。
 
 <a id="architecture-decision-records"></a>
 

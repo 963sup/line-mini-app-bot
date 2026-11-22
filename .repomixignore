@@ -68,11 +68,10 @@ crash.log
 *.tar
 *.gz
 
-# Upstream agent installations stay out; the three project guides are maintained sources.
+# Upstream agent installations stay out; the project guides are maintained sources.
 /.agents/**
 !/.agents/AGENTS.md
 !/.agents/README.md
-!/.agents/go-workflow.md
 /.claude/
 /agent/
 

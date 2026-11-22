@@ -16,35 +16,11 @@ Tool versions are owned by `mise.toml`; never copy token values into documentati
 
 Prefer the configured Graphify MCP when exposed. Use the current host inventory and configured allowlist. When using another host, verify its repository and indexed revision before comparing its results with the local graph.
 
-Refresh with `bash scripts/tooling/tool-exec.sh mise run graphify-update`; the task scans all code together so Go receivers in separate files resolve to their type declaration, then regenerates the report. Query with `graphify query "<question>"`.
+CLI 建圖、排除規則與更新方式見 [Graphify CLI](../shared/graphify.md)。
 
 ### Docs-only graph
 
-The existing graphify-update task indexes code only; it does not extract documentation semantics.
-For a separate, credential-free Markdown navigation graph:
-
-```bash
-bash scripts/tooling/tool-exec.sh mise run graphify-docs
-bash scripts/tooling/tool-exec.sh graphify query "Firestore" --graph /workspace/tooling/cache/graphify-docs/graph.json
-```
-
-The graph covers tracked and non-ignored project Markdown across the repository,
-including nested module guides. Linked `.mermaid` sources appear as file nodes.
-Upstream skill directories and the generated shadcn reference snapshot are
-excluded. ATX headings and inline local links retain their source locations.
-
-It does not infer semantic relationships, validate URL fragments, or automatically
-identify missing requirements. Review document content to assess gaps. Generated
-files stay outside the source tree and do not replace the code graph.
-
-For synchronization, rebuild, query the affected concepts, follow related files
-with path/explain, and check the source text against the accepted baseline. After
-editing, rebuild and repeat the relevant queries until the scoped inconsistencies
-are resolved. A valid link graph alone does not prove semantic consistency.
-
-Full semantic extraction is a separate operation requiring a configured backend
-when using the headless extract CLI. No API credentials are needed for the local
-navigation graph; never store credentials in repository configuration.
+文件導航圖的建立與限制見 [共用操作](../shared/graphify.md#docs-only-graph)。
 
 ## Verification and failures
 
@@ -64,8 +40,3 @@ layer, not proven to be graph size, CLI arguments or a slow graph load. No verif
 dependency fix was available, so pins and timeouts were left unchanged. Reuse this
 failure evidence for the unchanged task to avoid repeating the same timeout in each role. For missing native tools follow the root exposure procedure. The host's separate cloud Graphify
 index is not evidence that this local MCP or unpushed sources were loaded.
-
-Project exclusions live in `.graphifyignore` (gitignore-style). After changing
-exclusions, run `graphify extract . --code-only --force --allow-dedup-shrink --out .`
-through the project tooling to rescan and prune old indexed skill/example sources.
-AST-only extraction does not turn Markdown plans into an implemented code graph.

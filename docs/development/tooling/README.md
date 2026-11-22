@@ -34,13 +34,12 @@ docs/development/tooling/
 | Go 語言工具 | [gopls](backend/gopls.md) |
 | 修改與驗證 HTTP 契約 | [API 工具流程](api/change-api.md) |
 | 產生 LINE Rich Menu 圖片與熱區 | [共用定義與產生器](shared/rich-menu-generator.md) |
-| Firestore 工具 | [唯讀連線檢查](backend/firestore-read-check.md) · [本機模擬器](testing/firestore-emulator.md) |
+| Firestore 工具 | [後端工具與驗證](backend/firestore.md) |
 | 選擇測試與品質檢查 | [驗收矩陣與命令](testing/commands.md) |
 | 選擇或診斷 MCP | [MCP 索引](agents/README.md) |
 | 使用專案技能 | [Skills](agents/skills.md) |
-| 理解分析涵蓋與限制 | [分析範圍](shared/analysis-scope.md) |
-| 查詢程式關係 | [Graphify](agents/graphify.md) |
-| 打包限定原始碼 | [Repomix](agents/repomix.md) |
+| 查詢程式關係 | [Graphify](shared/graphify.md) |
+| 打包限定原始碼 | [Repomix](shared/repomix.md) |
 | 產生本次交談的來源參考技能 | [Repomix Skills](agents/repomix-skills.md#operation) |
 | 查 UI 元件與整合流程 | [前端工具入口](frontend/README.md) |
 | 檢查 Next.js 開發執行狀態 | [Next DevTools](frontend/nextjs-devtools.md) |
@@ -49,7 +48,7 @@ docs/development/tooling/
 
 `frontend/shadcn-reference/snapshot/` 是上游參考快照，按索引搜尋所需頁面；不作為專案政策，也不全量載入。[查詢與更新方式](frontend/shadcn-reference/README.md)
 
-分析產物存放於任務暫存目錄，依[來源與證據規則](shared/analysis-scope.md)核對版本及有效性；不在 docs 累積日期報告。
+分析產物存放於任務暫存目錄，核對來源版本、實際涵蓋檔案及有效性；不在 docs 累積日期報告。
 
 [本目錄指引](AGENTS.md) · [父層指引](../../AGENTS.md) · [文件總入口](../../README.md)
 

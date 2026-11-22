@@ -8,4 +8,4 @@
 
 圖表依[圖表維護規則](../../AGENTS.md#圖表維護)標明狀態。改動本目錄時，核對索引、相對連結、錨點與來源；Mermaid 依[文件規範](../../standards/documentation.md)渲染。純文件修改不執行無關應用測試。
 
-來源查閱與文件檢查不等於功能驗收；證據範圍、新案例限制及實際檢查依[驗收矩陣](../../development/acceptance.md)。
+來源查閱與文件檢查不等於功能驗收；證據範圍、新案例限制及實際檢查依[驗收矩陣](../../development/tooling/testing/commands.md)。

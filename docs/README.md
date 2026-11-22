@@ -12,7 +12,7 @@
 | 劃分模型、聚合或交易邊界 | [DDD 問題索引](references/ddd/README.md#按問題查閱) | [現行後端邊界](architecture/runtime/backend-boundaries.md)與目標領域測試 |
 | 修改自有文件或巢狀指引 | [文件歸屬](#文件歸屬與維護) | [文件維護與驗證](AGENTS.md#驗證) |
 | 準備開發環境 | [初始化指南](development/tooling/shared/toolchain-setup.md) | [工具與 MCP](development/tooling/README.md) |
-| 判定修改是否完成 | [驗收矩陣](development/acceptance.md#變更驗收矩陣) | 對應功能及外部環境驗收 |
+| 判定修改是否完成 | [驗收矩陣](development/tooling/testing/commands.md#變更驗收矩陣) | 對應功能及外部環境驗收 |
 | 部署、發布或排錯 | [營運入口](architecture/README.md#部署與營運) | 相關設定與真實環境證據 |
 | 查工具在 Codex 沒有曝光 | [MCP 載入檢查](development/tooling/agents/README.md#project-loading-check) | [專案 Codex 設定](../.codex/README.md) |
 | 選用 Google Cloud、Maps 或 reCAPTCHA | [逐服務規格](integrations/google-cloud/README.md) | [資料儲存](architecture/data.md)與對應領域契約 |
