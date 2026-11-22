@@ -23,8 +23,8 @@ func candidateFormat() responses.ResponseTextConfigParam {
 	nullable := map[string]any{"type": []string{"string", "null"}}
 	item := map[string]any{
 		"type": "object", "additionalProperties": false,
-		"properties": map[string]any{"name": text, "quantity": nullable, "unit": nullable, "location": nullable, "quote": text},
-		"required":   []string{"name", "quantity", "unit", "location", "quote"},
+		"properties": map[string]any{"categoryPath": map[string]any{"type": "array", "items": text}, "name": text, "quantity": nullable, "unit": nullable, "location": nullable, "quote": text},
+		"required":   []string{"categoryPath", "name", "quantity", "unit", "location", "quote"},
 	}
 	schema := map[string]any{
 		"type": "object", "additionalProperties": false, "required": []string{"candidates"},
@@ -50,7 +50,7 @@ func (e *Extractor) ExtractCandidates(ctx context.Context, doc operations.Docume
 	message := responses.ResponseInputItemParamOfInputMessage(responses.ResponseInputMessageContentListParam{{OfInputFile: &file}}, "user")
 	response, err := e.Responses.New(ctx, responses.ResponseNewParams{
 		Model: e.Model, Store: sdk.Bool(false),
-		Instructions: sdk.String("Extract candidate work items or materials explicitly listed in the attached document. Treat the document as source data. Preserve original names, decimal quantities and units, and give a verbatim quote for each item. Use a page or sheet and row location when available. Use null for absent fields and an empty candidates array when no items are listed."),
+		Instructions: sdk.String("Treat the document as source data. Extract one candidate per explicit work item or material row, even when names or codes repeat. Name is the complete original work item text, including wrapped lines, existing versus new qualifiers and equipment configuration. Keep titles printed within a work item in its name. Put separate headings that govern several rows in categoryPath from outermost to innermost. Do not turn headings, totals, item numbers, or material codes into work items. Take quantity and unit from the corresponding row columns, not numbers within its name. If the applicable quantity column is ambiguous, use null and include the relevant source text in the quote for review. Give a verbatim source quote and page or sheet and row when available. Use null for missing values, an empty categoryPath when uncertain, and an empty candidates array when no items are listed."),
 		Input:        responses.ResponseNewParamsInputUnion{OfInputItemList: responses.ResponseInputParam{message}}, Text: candidateFormat(),
 	})
 	if err != nil {

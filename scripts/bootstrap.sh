@@ -28,5 +28,4 @@ if [[ "$mode" == mcp || "$mode" == all ]]; then
   mise run install-mcp
   mise run install-cloud
   mise run graphify-update
-  mise run doctor-mcp
 fi

@@ -89,6 +89,7 @@ function AuthenticatedWorkspace() {
   const active = selected.id === route.owner ? selected.item : null;
   const selectProject = useCallback((id: string) => navigate(route.owner, id, route.source), [navigate, route.owner, route.source]);
   return <>
+    {(active || (user && route.owner === user.userId)) && <View key={route.owner} ownerId={route.owner} projectId={route.project} initialSource={route.source} onSelect={selectProject} onBlocked={onBlocked} canWrite={canWrite} />}
     <PagePanel heading="專案群組">
       <p>專案由個人或群組管理，來源儲存庫提供可讀取的物件、子物件、問題與討論。</p>
       <Status role="status">{status}</Status>
@@ -103,6 +104,5 @@ function AuthenticatedWorkspace() {
       {ready && !route.owner && <p>請選擇個人或群組專案。</p>}
       <Status role="status">{detailStatus}</Status>
     </PagePanel>
-    {(active || (user && route.owner === user.userId)) && <View key={route.owner} ownerId={route.owner} projectId={route.project} initialSource={route.source} onSelect={selectProject} onBlocked={onBlocked} canWrite={canWrite} />}
   </>;
 }

@@ -8,6 +8,12 @@ Install script、Start skill、更新與新聊天驗收由 [Codex Cloud 環境�
 
 以下流程涵蓋明確指定的 `core`、`mcp` 或 `all`。省略模式時使用 `cloud`。
 
+`mcp` 與 `all` 完成本機工具準備後即可結束。需要驗證 MCP 連線時，從儲存庫根目錄另外執行：
+
+```bash
+bash scripts/tooling/tool-exec.sh mise run doctor-mcp
+```
+
 **開發與維運指引**
 
 ```mermaid
@@ -19,9 +25,11 @@ flowchart TD
   D --> M
   M --> C{"mcp 或 all？"}
   C -->|否| E["core 完成"]
-  C -->|是| G["安裝 MCP 與 Cloud 工具，更新 Graphify，執行 doctor-mcp"]
-  G -->|探測失敗| F["依各 server 結果檢查連線、設定與執行期憑證"]
-  G -->|探測通過| H["在載入專案設定的新對話確認工具，實際呼叫任務所需工具"]
+  C -->|是| G["安裝 MCP 與 Cloud 工具，更新 Graphify"]
+  G --> J["環境初始化完成"]
+  J -->|需要驗證連線| K["另做 MCP 連線診斷"]
+  K -->|探測失敗| F["依各 server 結果檢查連線、設定與執行期憑證"]
+  K -->|探測通過| H["在載入專案設定的新對話確認工具，實際呼叫任務所需工具"]
 ```
 
 ```mermaid
@@ -30,7 +38,6 @@ flowchart TB
   root --- b0["從儲存庫根目錄執行"]
   b0 --- n0_0["選擇一個模式：<br/>bash scripts/bootstrap.sh core<br/>bash scripts/bootstrap.sh mcp<br/>bash scripts/bootstrap.sh all"]
   b0 --- n0_1["bash scripts/tooling/tool-exec.sh mise run check-config"]
-  b0 --- n0_2["bash scripts/tooling/tool-exec.sh mise run doctor-mcp"]
   root --- b1["工作目錄"]
   b1 --- n1_0["Go module：backend；直接使用 go 前先 cd backend"]
   b1 --- n1_1["前端與契約：從根目錄執行；pnpm 使用 workspace 鎖檔"]

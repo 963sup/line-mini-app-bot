@@ -26,13 +26,13 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 
 連線設定只在 config.toml 維護；工具版本、任務與非機密環境以 ../mise.toml 為準。不要手改上游技能或寫入憑證。
 
-從根目錄執行 bash scripts/tooling/tool-exec.sh python3 scripts/check/check-config.py；MCP transport 與聊天主機曝光需分別驗證。
+從根目錄執行 bash scripts/tooling/tool-exec.sh python3 scripts/check/check-config.py。
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
 
 ## 確認專案設定載入
 
-以儲存庫根目錄開啟 Codex；在可信任的 checkout 確認專案信任狀態。以新工作階段實際列出的專案專屬 MCP 或角色驗證，並分別檢查工具能否呼叫。使用者層級已註冊的同名 MCP、mise trust、角色 TOML 解析成功，都無法單獨證明聊天主機載入了專案設定。[官方設定層級](https://developers.openai.com/codex/config-basic/)
+從儲存庫根目錄開啟 Codex，以新工作階段實際列出的角色確認專案設定。MCP 依[主機載入檢查](../docs/development/tooling/mcp/README.md#project-loading-check)驗收。[官方設定層級](https://developers.openai.com/codex/config-basic/)
 
 每則訊息送出時，`UserPromptSubmit` 用 CLI 刷新 Repomix 技能與 Graphify 文件子圖。啟用及驗收方式見 [Repomix Hook](../docs/development/tooling/mcp/repomix-skills.md#每次交談前重新產生)與 [Graphify Hook](../docs/development/tooling/mcp/graphify.md#每則訊息的文件子圖)。
 
@@ -81,4 +81,4 @@ Mermaid v13 的 `mermaid` 套件內建 `mermaid render`，與舊版 `@mermaid-js
 
 ### Codex Cloud 新環境驗收
 
-從新聊天依序確認應用檢查、專案設定載入、transport、原生 MCP 操作及任務需要的身分。執行方式與證據要求見[新環境驗收](../docs/development/environment/codex-cloud.md#新環境驗收)。
+從新聊天執行[新環境驗收](../docs/development/environment/codex-cloud.md#新環境驗收)。

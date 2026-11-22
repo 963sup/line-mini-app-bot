@@ -28,8 +28,7 @@
 - 複合 shell 命令 MUST 明確宣告所需工具，例如 `bash scripts/tooling/tool-exec.sh --tool node --tool npm:repomix bash -c 'repomix --version'`。`--tool` 只使用 mise.toml 已宣告的工具，不另指定版本。
 - 缺少工具時 MUST 優先使用 wrapper 或既有 install-* 任務，驗證版本後繼續原任務；MUST NOT 自行升級版本、修改鎖檔或安裝未宣告套件。
 - `mise run` 已開啟任務自動安裝，可能準備任務環境的多個缺少工具；只需單一 CLI 時 MUST 使用 wrapper 的直接命令。
-- MCP 未曝光時，先搜尋主機工具、核對專案設定與啟動依賴，修復已確認的問題，再使用主機支援的重新探索或重載功能。以本次聊天原生工具的唯讀呼叫成功為驗收。若仍未曝光，回報阻礙並繼續獨立工作；不得以直接 transport 或 CLI 代辦該 MCP 操作。[shadcn 診斷流程](docs/development/tooling/mcp/shadcn.md#自主接線)
-- MCP 缺少套件時按上述流程準備，再重試連線；憑證、網路、ADC 或主機未載入設定須分別處理。安裝完成不代表目前聊天已載入 MCP。
+- MCP 缺少、呼叫失敗或需要整體驗收時，依[共用 MCP 排查流程](docs/development/tooling/mcp/README.md#project-loading-check)處理並繼續可獨立完成的工作。
 - 新環境仍 MUST 先執行初始化以準備 mise、系統 Python 與網路；Graphify 使用既有 install-graphify 任務，不能只靠 mise 的工具宣告安裝。
 
 依據：mise 2026.11.3 `exec --help` 與 [官方設定](https://mise.jdx.dev/configuration/settings.html#exec_auto_install)。
@@ -108,12 +107,8 @@ Develop directly on `main`. Every commit must be a complete, independently revie
 
 ## 工程決策與交付要求
 
-1. **定義成功標準。** 實作前確認問題、受影響的流程與可觀察的驗收條件。對會改變業務行為的歧義，先查規格與實作，再確認仍缺少的決策。
-2. **釐清領域模型。** 涉及業務規則或資料時，先確認資料關係、規則的責任邊界、必須維持的條件及允許的狀態轉換。沿用適用的既有模型。
-3. **採用最簡單的可行設計。** 優先重用現有元件。新增抽象、依賴或服務前，說明具體需求與現有做法的限制。
-4. **處理失敗與邊界。** 核對正常、無效輸入與失敗路徑。若涉及重試、併發或部分成功，確認資料狀態與恢復方式。
-5. **用證據驗收。** 執行與變更風險相符的既有測試和適用的 CI 檢查。既有測試若無法捕捉本次可能造成的具體回歸，使用現有框架補上針對性的案例。
-6. **降低維護成本。** 在任務範圍內刪除已無用途的程式，或合併可安全移除的重複。以效能或成本為理由重構時，先量測基線，再以相同條件比較結果。
+- 工程任務開始前，閱讀並遵循[工程原則與決策](docs/standards/engineering.md)。
+- 涉及介面、互動或使用者流程時，另閱讀並遵循[產品與體驗設計原則](docs/standards/design.md)。
 
 每次交付說明解決的問題、實際執行的驗證與結果，以及仍未驗證的項目。每次在 `main` 提交或推送仍須符合[階段交付門檻](docs/development/workflow/publication.md#repository-publication)。
 

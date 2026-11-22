@@ -43,15 +43,15 @@ function Content() {
     <RepositoryNavigationContext.Provider value={guard.context}><section className="flex min-w-0 flex-col gap-4" aria-label="空間">
       {scope && <p className="text-sm text-muted-foreground">此連結僅開啟原群組空間，需具備該群組的存取資格。</p>}
       {selectedID ? <>
-        <Button disabled={!canLoad || detailBusy || guard.blocked} onClick={() => guard.navigate(reloadDetail)}>重新載入空間</Button>
-        <ReadFeedback busy={detailBusy} message={selected ? "" : detailStatus} label="正在讀取空間……" />
+        {!selected && <Button disabled={!canLoad || detailBusy || guard.blocked} onClick={() => guard.navigate(reloadDetail)}>重新載入空間</Button>}
+        <ReadFeedback busy={detailBusy} message={detailStatus} label="正在讀取空間……" />
       </> : <p>展開側欄「儲存庫」，選擇可開啟的群組空間。</p>}
       <noscript>請啟用 JavaScript 並完成 LINE 身分驗證，以載入側邊欄空間及內容。</noscript>
       {selected && (
         <>
-          <div>
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-2xl font-semibold tracking-tight break-words">{selected.name || "群組空間"}</h2>
-            <p className="text-sm text-muted-foreground">在同一個空間掌握工作、交流想法與追蹤目標。</p>
+            {selectedID && <Button variant="outline" disabled={!canLoad || detailBusy || guard.blocked} onClick={() => guard.navigate(reloadDetail)}>重新載入空間</Button>}
           </div>
           <Tabs value={page} activationMode="manual" onValueChange={value => guard.navigate(() => setPage(value))}>
             <TabsList aria-label="空間功能" className="max-w-full flex-wrap justify-start group-data-[orientation=horizontal]/tabs:h-auto">

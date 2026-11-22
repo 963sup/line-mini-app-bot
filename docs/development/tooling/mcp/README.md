@@ -52,11 +52,26 @@ Do not run doctor or tools/list before every operation or independently in every
 specialist. A protocol client's initial initialize/tools-list handshake is distinct
 from unnecessary repeated discovery during a healthy connection.
 
-Prefer a host-exposed tool that matches the intended repository and revision.
-If absent, follow the [root exposure procedure](../../../../AGENTS.md). Check configuration and startup dependencies, use supported host rediscovery, and verify a native read-only call. If still absent, report the host limitation and continue independent work. A host plugin's graph index can differ from the local repository
-graph. Loading `.codex/config.toml` cannot add tools to an already-running chat
-host; inspect the host rather than repeatedly editing configuration or restarting
-servers to search for nonexistent exposure.
+For a new Cloud environment or an explicit inventory audit, compare every
+server in the checkout configuration with `codex mcp list` and the current
+chat's native tools. Record disabled servers separately. Reuse this inventory
+across roles. For routine work, check only the relevant servers.
+
+1. For a missing or failing tool, verify checkout, project trust, server
+   enablement and allowlist. Prefer a native tool that matches the intended
+   repository and revision. A host plugin may use a different source or index.
+2. Prepare missing pinned dependencies using the existing installation task
+   through `tool-exec.sh`. Run a single-server doctor when needed to identify
+   startup, transport or credential failures. See the server-specific guide
+   for preparation commands.
+3. Use supported host rediscovery, or verify in a new session opened in the
+   intended checkout. Confirm each enabled server with a native read-only
+   call where its allowlist permits one. If the allowlist only exposes a
+   write operation, record the native tool as exposed and functional acceptance
+   as pending until an authorized operation succeeds. For example, Repomix Skills
+   exposes only `generate_skill`. Record missing tools, credentials
+   or permissions and continue independent work. Direct transport and CLI
+   checks serve as diagnostics and do not substitute for the required MCP call.
 
 Use only task-relevant services and bounded queries. Reuse a healthy connection
 when the client supports it; keep related search/fetch or bundle/read operations

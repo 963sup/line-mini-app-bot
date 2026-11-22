@@ -19,7 +19,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var _ port.TemplateStore = (*Store)(nil)
+var (
+	_ port.TemplateStore         = (*Store)(nil)
+	_ port.PersonalTemplateStore = (*Store)(nil)
+)
 
 type templateNodeDocument struct {
 	ID          string `firestore:"id"`
@@ -73,11 +76,26 @@ func templateDecode(snap *db.DocumentSnapshot, err error, rid string) (dto.Templ
 }
 
 func (s *Store) CreateTemplate(ctx context.Context, r repository.Repository, actor, key string, in dto.TemplateCreation) (result dto.Template, err error) {
+	return s.createTemplate(ctx, r, actor, key, in)
+}
+
+func (s *Store) CreatePersonalTemplate(ctx context.Context, actor, key string, in dto.TemplateCreation) (dto.Template, error) {
+	return s.createTemplate(ctx, repository.Repository{}, actor, key, in)
+}
+
+func (s *Store) templateParent(rid, actor string) *db.DocumentRef {
+	if rid != "" {
+		return s.repositoryRef(rid)
+	}
+	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("personalObjectTemplateLibraries").Doc(firestorekey.JSONDigest(actor))
+}
+
+func (s *Store) createTemplate(ctx context.Context, r repository.Repository, actor, key string, in dto.TemplateCreation) (result dto.Template, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
 		return result, entity.ErrUnavailable
 	}
-	parent := s.repositoryRef(r.ID)
+	parent := s.templateParent(r.ID, actor)
 	ref := parent.Collection("objectTemplates").NewDoc()
 	// Match existing Object identity format, rather than Firestore's auto-ID format.
 	ref = parent.Collection("objectTemplates").Doc(firestorekey.JSONDigest([]string{ref.ID, actor, key})[:32])
@@ -86,8 +104,10 @@ func (s *Store) CreateTemplate(ctx context.Context, r repository.Repository, act
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = dto.Template{}
-		if e := container(tx, parent, r); e != nil {
-			return e
+		if r.ID != "" {
+			if e := container(tx, parent, r); e != nil {
+				return e
+			}
 		}
 		old, e := tx.Get(rec)
 		if e == nil {
@@ -111,7 +131,7 @@ func (s *Store) CreateTemplate(ctx context.Context, r repository.Repository, act
 		if status.Code(e) != codes.NotFound {
 			return e
 		}
-		if _, e = template.Publish(r.ID, ref.ID, 1, in.Nodes); e != nil {
+		if template.ValidateTree(in.Nodes) != nil {
 			return entity.ErrInput
 		}
 		result = dto.Template{ID: ref.ID, RepositoryID: r.ID, Name: in.Name, CreatorID: actor, Version: 1, Nodes: in.Nodes, CreatedAt: now}
@@ -136,12 +156,33 @@ func (s *Store) GetTemplate(ctx context.Context, r repository.Repository, id str
 }
 
 func (s *Store) ListTemplates(ctx context.Context, r repository.Repository, actor, token string) (result dto.TemplatePage, err error) {
+	return s.listTemplates(ctx, r.ID, actor, token)
+}
+
+func (s *Store) ListPersonalTemplates(ctx context.Context, actor, token string) (dto.TemplatePage, error) {
+	return s.listTemplates(ctx, "", actor, token)
+}
+
+func (s *Store) GetPersonalTemplate(ctx context.Context, actor, id string) (result dto.Template, err error) {
+	defer func() { err = translate(err) }()
+	if !s.ready() || actor == "" {
+		return result, entity.ErrUnavailable
+	}
+	snap, err := s.templateParent("", actor).Collection("objectTemplates").Doc(id).Get(ctx)
+	t, err := templateDecode(snap, err, "")
+	if err == nil && t.CreatorID != actor {
+		return dto.Template{}, entity.ErrNotFound
+	}
+	return t, err
+}
+
+func (s *Store) listTemplates(ctx context.Context, rid, actor, token string) (result dto.TemplatePage, err error) {
 	defer func() { err = translate(err) }()
 	result.Items = []dto.Template{}
 	if !s.ready() {
 		return result, entity.ErrUnavailable
 	}
-	scope := firestorekey.JSONDigest([]string{s.ChannelID, r.ID, actor, "objectTemplates"})
+	scope := firestorekey.JSONDigest([]string{s.ChannelID, rid, actor, "objectTemplates"})
 	c := cursor{}
 	if token != "" {
 		b, e := base64.RawURLEncoding.DecodeString(token)
@@ -149,7 +190,7 @@ func (s *Store) ListTemplates(ctx context.Context, r repository.Repository, acto
 			return result, entity.ErrInput
 		}
 	}
-	q := s.repositoryRef(r.ID).Collection("objectTemplates").OrderBy(db.DocumentID, db.Asc)
+	q := s.templateParent(rid, actor).Collection("objectTemplates").OrderBy(db.DocumentID, db.Asc)
 	if c.ID != "" {
 		q = q.StartAfter(c.ID)
 	}
@@ -162,9 +203,12 @@ func (s *Store) ListTemplates(ctx context.Context, r repository.Repository, acto
 		docs = docs[:20]
 	}
 	for _, snap := range docs {
-		t, e := templateDecode(snap, nil, r.ID)
+		t, e := templateDecode(snap, nil, rid)
 		if e != nil {
 			return dto.TemplatePage{}, e
+		}
+		if rid == "" && t.CreatorID != actor {
+			return dto.TemplatePage{}, entity.ErrUnavailable
 		}
 		result.Items = append(result.Items, t)
 		c = cursor{scope, t.ID}
@@ -192,13 +236,26 @@ type templateInstanceReceipt struct {
 	TemplateVersion int64                          `firestore:"templateVersion"`
 }
 
-func (s *Store) InstantiateTemplate(ctx context.Context, r repository.Repository, actor, key string, snapshot dto.Template, parentID string, plan []entity.Content) (result dto.TemplateInstance, err error) {
+func (s *Store) InstantiateTemplate(ctx context.Context, r repository.Repository, actor, key string, snapshot dto.Template, parentID string, plan []entity.Content, edits ...[]template.Node) (dto.TemplateInstance, error) {
+	nodes := snapshot.Nodes
+	if len(edits) != 0 {
+		nodes = edits[0]
+	}
+	if snapshot.RepositoryID != r.ID || snapshot.Version != 1 || len(plan) != len(nodes) || len(plan) == 0 || len(plan) > application.MaxTemplateNodes {
+		return dto.TemplateInstance{}, entity.ErrInput
+	}
+	return s.instantiateTemplate(ctx, r, actor, key, snapshot, parentID, nodes, plan, len(edits) != 0, false)
+}
+
+func (s *Store) InstantiatePersonalTemplate(ctx context.Context, r repository.Repository, actor, id, key, parentID string, edits []template.Node) (dto.TemplateInstance, error) {
+	source := dto.Template{ID: id, CreatorID: actor, Version: 1}
+	return s.instantiateTemplate(ctx, r, actor, key, source, parentID, edits, nil, true, true)
+}
+
+func (s *Store) instantiateTemplate(ctx context.Context, r repository.Repository, actor, key string, snapshot dto.Template, parentID string, nodes []template.Node, plan []entity.Content, edited, personal bool) (result dto.TemplateInstance, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
 		return result, entity.ErrUnavailable
-	}
-	if len(plan) != len(snapshot.Nodes) || len(plan) == 0 || len(plan) > application.MaxTemplateNodes || snapshot.RepositoryID != r.ID || snapshot.Version != 1 {
-		return result, entity.ErrInput
 	}
 	parent := s.repositoryRef(r.ID)
 	rec := parent.Collection("objectTemplateInstanceReceipts").Doc(firestorekey.JSONDigest([]string{actor, key}))
@@ -207,10 +264,19 @@ func (s *Store) InstantiateTemplate(ctx context.Context, r repository.Repository
 		Version    int64
 		ParentID   string
 	}{snapshot.ID, snapshot.Version, parentID})
-	ids := make(map[string]string, len(plan))
-	refs := make([]*db.DocumentRef, len(plan))
+	if edited {
+		payload = firestorekey.JSONDigest(struct {
+			Base  string
+			Nodes []template.Node
+		}{payload, nodes})
+	}
+	if personal {
+		payload = firestorekey.JSONDigest([]string{"personal", payload})
+	}
+	ids := make(map[string]string, len(nodes))
+	refs := make([]*db.DocumentRef, len(nodes))
 	rootID := ""
-	for i, n := range snapshot.Nodes {
+	for i, n := range nodes {
 		seed := parent.Collection("objects").NewDoc().ID
 		id := firestorekey.JSONDigest([]string{seed, actor, key, n.ID})[:32]
 		refs[i] = parent.Collection("objects").Doc(id)
@@ -249,12 +315,21 @@ func (s *Store) InstantiateTemplate(ctx context.Context, r repository.Repository
 		if status.Code(e) != codes.NotFound {
 			return e
 		}
-		saved, e := tx.Get(parent.Collection("objectTemplates").Doc(snapshot.ID))
-		current, e := templateDecode(saved, e, r.ID)
+		saved, e := tx.Get(s.templateParent(snapshot.RepositoryID, actor).Collection("objectTemplates").Doc(snapshot.ID))
+		current, e := templateDecode(saved, e, snapshot.RepositoryID)
 		if e != nil {
 			return e
 		}
-		if !reflect.DeepEqual(current, snapshot) {
+		creationPlan := plan
+		if personal {
+			if current.CreatorID != actor {
+				return entity.ErrNotFound
+			}
+			_, creationPlan, e = application.PlanTemplateInstance(current, nodes)
+			if e != nil {
+				return e
+			}
+		} else if !reflect.DeepEqual(current, snapshot) {
 			return entity.ErrConflict
 		}
 		if parentID != "" {
@@ -264,9 +339,9 @@ func (s *Store) InstantiateTemplate(ctx context.Context, r repository.Repository
 			}
 		}
 		// All reads precede every write. Objects and the replay receipt commit together.
-		result = dto.TemplateInstance{RootObjectID: rootID, TemplateID: snapshot.ID, TemplateVersion: snapshot.Version, ObjectIDs: make([]string, len(plan))}
-		for i, n := range snapshot.Nodes {
-			c := plan[i]
+		result = dto.TemplateInstance{RootObjectID: rootID, TemplateID: snapshot.ID, TemplateVersion: snapshot.Version, ObjectIDs: make([]string, len(creationPlan))}
+		for i, n := range nodes {
+			c := creationPlan[i]
 			c.ParentID = parentID
 			if n.ParentID != "" {
 				c.ParentID = ids[n.ParentID]
@@ -282,11 +357,11 @@ func (s *Store) InstantiateTemplate(ctx context.Context, r repository.Repository
 			result.ObjectIDs[i] = object.ID
 			result.Nodes = append(result.Nodes, dto.TemplateInstanceNode{ObjectID: object.ID, ParentID: c.ParentID, Name: c.Name})
 		}
-		nodes := make([]templateInstanceNodeDocument, len(result.Nodes))
+		receiptNodes := make([]templateInstanceNodeDocument, len(result.Nodes))
 		for i, n := range result.Nodes {
-			nodes[i] = templateInstanceNodeDocument{n.ObjectID, n.ParentID, n.Name}
+			receiptNodes[i] = templateInstanceNodeDocument{n.ObjectID, n.ParentID, n.Name}
 		}
-		return tx.Create(rec, templateInstanceReceipt{Nodes: nodes, SchemaVersion: 1, PayloadHash: payload, RootObjectID: rootID, ObjectIDs: result.ObjectIDs, TemplateID: snapshot.ID, TemplateVersion: snapshot.Version})
+		return tx.Create(rec, templateInstanceReceipt{Nodes: receiptNodes, SchemaVersion: 1, PayloadHash: payload, RootObjectID: rootID, ObjectIDs: result.ObjectIDs, TemplateID: snapshot.ID, TemplateVersion: snapshot.Version})
 	})
 	if err != nil {
 		return dto.TemplateInstance{}, err

@@ -20,6 +20,7 @@ var creationKey = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
 
 type Service struct {
 	Templates          objectApplicationPort.TemplateStore
+	PersonalTemplates  objectApplicationPort.PersonalTemplateStore
 	CandidateExtractor operations.CandidateExtractor
 	// DocumentTextExtractor is reserved for a future PDF import use case.
 	DocumentTextExtractor operations.DocumentTextExtractor

@@ -52,7 +52,8 @@ and MCP servers; do not duplicate server configuration or impose model overrides
 
 Verify returned evidence and the combined diff, coordinate shared checks once,
 and report actual results and limitations to the top-level agent, which owns user
-communication. Use scripts/tooling/tool-exec.sh for tooling. Delegation never
+communication. Use scripts/tooling/tool-exec.sh for tooling. Share the verified MCP inventory and any
+blocked operations with specialists when assigning work. Delegation never
 authorizes pushing, publishing, deploying or other external writes; follow the
 user's scope and applicable publication instructions separately.
 """
