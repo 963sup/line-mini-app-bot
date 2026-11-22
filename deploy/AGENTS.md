@@ -2,7 +2,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[cloudbuild.yaml](cloudbuild.yaml)、[firestore/indexes.json](firestore/indexes.json)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+先查閱[cloudbuild.yaml](cloudbuild.yaml)、[firestore.indexes.json](../firestore.indexes.json)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
 
 ## 相關規格
 
@@ -13,7 +13,7 @@
 
 ## 職責與邊界
 
-cloudbuild.yaml 為手動提交或自訂 trigger 的建置部署流程；firestore/indexes.json 保存索引設定。現有 GitHub managed trigger 使用 Dockerfile，不執行此 YAML。
+cloudbuild.yaml 為手動提交或自訂 trigger 的建置部署流程；根目錄的 `firestore.indexes.json` 保存索引設定。現有 GitHub managed trigger 使用 Dockerfile，不執行此 YAML。
 
 部署目標為 Cloud Run；區分 build 與 runtime service account，機密使用 Secret Manager reference。修改檔案不代表已套用雲端設定或索引。
 

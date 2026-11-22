@@ -37,8 +37,7 @@
 !.dockerignore
 !deploy/
 !deploy/cloudbuild.yaml
-!deploy/firestore/
-!deploy/firestore/indexes.json
+!firestore.indexes.json
 
 !scripts/db/
 !scripts/db/ensure-attendance-indexes.py

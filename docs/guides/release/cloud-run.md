@@ -1,6 +1,6 @@
 # cloud-run-部署
 
-出勤查詢需要三個複合索引，定義在 [Firestore 索引清單](../../../deploy/firestore/indexes.json)。自訂 Cloud Build 流程在發布前建立缺少的出勤索引，等待全部達到 `READY`。建置身分需要 Firestore 索引管理權限。使用 inline trigger 或其他部署平台時，在部署步驟前執行同一個檢查：
+出勤查詢需要三個複合索引，定義在 [Firestore 索引清單](../../../firestore.indexes.json)。自訂 Cloud Build 流程在發布前建立缺少的出勤索引，等待全部達到 `READY`。建置身分需要 Firestore 索引管理權限。使用 inline trigger 或其他部署平台時，在部署步驟前執行同一個檢查：
 
 ```sh
 python3 scripts/db/ensure-attendance-indexes.py "$PROJECT_ID"

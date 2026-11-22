@@ -1,6 +1,6 @@
 {
   "firestore": {
-    "indexes": "deploy/firestore/indexes.json",
+    "indexes": "firestore.indexes.json",
     "rules": "firestore.rules"
   },
   "storage": {

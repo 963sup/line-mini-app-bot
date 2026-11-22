@@ -50,7 +50,7 @@ flowchart LR
   h --- n0["新寫入同交易維護 isOpen 與本人 <br/>attendanceGroups 群組投影。"]
   h --- n1["新 Channel 直接使用索引查詢，API queryMode 為 indexed。"]
   h --- n2["索引模式以已下班的時間重疊條件與未下班集合查<br/>候選班次；完整月摘要仍須讀取相關班次原始事件<br/>與更正audit證據，不能為減少讀取而省略。資料<br/>依批次讀取不等於月摘要成本固定，多range索引<br/>仍需以官方Query Explain確認實際掃描量。"]
-  h --- n3["發布前依 deploy/firestore/indexes.json 建立出勤索引並等待 READY，再發布使用索引的版本。"]
+  h --- n3["發布前依 firestore.indexes.json 建立出勤索引並等待 READY，再發布使用索引的版本。"]
 ```
 
 <a id="更正提交重試"></a>

@@ -29,7 +29,7 @@ def key(index):
 
 
 def main(project, database):
-    manifest = Path(__file__).resolve().parents[2] / "deploy/firestore/indexes.json"
+    manifest = Path(__file__).resolve().parents[2] / "firestore.indexes.json"
     required = [i for i in json.loads(manifest.read_text())["indexes"] if i["collectionGroup"] == "attendance"]
     url = f"https://firestore.googleapis.com/v1/projects/{project}/databases/{database}/collectionGroups/attendance/indexes"
     deadline = time.monotonic() + 1800
