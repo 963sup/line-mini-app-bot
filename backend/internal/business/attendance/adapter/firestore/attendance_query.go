@@ -11,7 +11,7 @@ import (
 	db "cloud.google.com/go/firestore"
 	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
 	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

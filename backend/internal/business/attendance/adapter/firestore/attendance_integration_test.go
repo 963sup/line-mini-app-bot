@@ -13,7 +13,7 @@ import (
 	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	attendanceservice "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/service"
 	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 )
 
 // Never runs against a production Firestore project.

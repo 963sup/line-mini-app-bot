@@ -15,7 +15,7 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
 	membership "github.com/963sup/line-mini-app-bot/internal/business/membership/domain"
 
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

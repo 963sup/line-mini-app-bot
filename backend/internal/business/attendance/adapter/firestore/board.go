@@ -9,7 +9,7 @@ import (
 	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
 	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
 	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

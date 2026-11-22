@@ -18,7 +18,7 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"github.com/963sup/line-mini-app-bot/internal/platform/grpcstatus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

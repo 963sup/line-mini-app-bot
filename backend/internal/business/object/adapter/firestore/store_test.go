@@ -22,7 +22,7 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 )
 
 // These tests require an explicitly selected loopback emulator, never ADC or a

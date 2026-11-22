@@ -8,7 +8,7 @@ import (
 	"cloud.google.com/go/firestore"
 	membershipdb "github.com/963sup/line-mini-app-bot/internal/business/membership/adapter/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/membership/application"
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 )
 
 func membershipInvitations(db *firestore.Client, channel, secret string) *application.Service {

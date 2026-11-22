@@ -5,7 +5,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/membership/application"
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

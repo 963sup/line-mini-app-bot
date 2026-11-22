@@ -6,7 +6,7 @@ import (
 	projectsources "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/repository"
 	projectapp "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestorekey"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 )
 
 import (

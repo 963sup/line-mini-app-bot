@@ -6,7 +6,7 @@
 
 ## 閱讀與修改入口
 
-從 [line](line/README.md)、[firestorekey](firestorekey)、[grpcstatus](grpcstatus) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+從 [line](line/README.md)、[firestorekey](firestore/key)、[grpcstatus](grpcstatus) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
 
 ## 閱讀入口
 
