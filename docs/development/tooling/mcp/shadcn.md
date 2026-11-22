@@ -82,10 +82,7 @@ MCP 可提供 registry 資訊及新增命令；若回傳命令使用浮動版本
 
 ## 自主接線
 
-1. 在目前聊天的工具目錄搜尋 shadcn。若找不到，核對 checkout 的 [.codex/config.toml](../../../../.codex/config.toml)、server 啟用狀態、專案信任與啟動錯誤。
-2. 執行 `bash scripts/tooling/tool-exec.sh mise run ensure-shadcn`，準備鎖定的啟動依賴並檢查 MCP 握手與工具清單。此檢查只用於定位本機啟動問題。
-3. 修復已確認的設定或依賴問題後，使用主機提供的重新探索或重載功能，再搜尋原生工具。從聊天原生工具呼叫唯讀 registry 查詢，成功後繼續依賴 MCP 的工作。
-4. 若主機沒有重載介面且重新搜尋仍找不到工具，記錄未曝光的 server、診斷結果與需由宿主完成的步驟。直接 transport 與 CLI 不可用來代辦該操作。
+依[共用 MCP 排查流程](README.md#project-loading-check)處理。shadcn 專用準備命令為 `bash scripts/tooling/tool-exec.sh mise run ensure-shadcn`，會準備鎖定依賴並檢查握手與工具清單。原生驗收使用唯讀 registry 查詢。
 
 ## 官方能力索引與適用範圍
 

@@ -28,8 +28,7 @@
 - 複合 shell 命令 MUST 明確宣告所需工具，例如 `bash scripts/tooling/tool-exec.sh --tool node --tool npm:repomix bash -c 'repomix --version'`。`--tool` 只使用 mise.toml 已宣告的工具，不另指定版本。
 - 缺少工具時 MUST 優先使用 wrapper 或既有 install-* 任務，驗證版本後繼續原任務；MUST NOT 自行升級版本、修改鎖檔或安裝未宣告套件。
 - `mise run` 已開啟任務自動安裝，可能準備任務環境的多個缺少工具；只需單一 CLI 時 MUST 使用 wrapper 的直接命令。
-- MCP 未曝光時，先搜尋主機工具、核對專案設定與啟動依賴，修復已確認的問題，再使用主機支援的重新探索或重載功能。以本次聊天原生工具的唯讀呼叫成功為驗收。若仍未曝光，回報阻礙並繼續獨立工作；不得以直接 transport 或 CLI 代辦該 MCP 操作。[shadcn 診斷流程](docs/development/tooling/mcp/shadcn.md#自主接線)
-- MCP 缺少套件時按上述流程準備，再重試連線；憑證、網路、ADC 或主機未載入設定須分別處理。安裝完成不代表目前聊天已載入 MCP。
+- MCP 缺少、呼叫失敗或需要整體驗收時，依[共用 MCP 排查流程](docs/development/tooling/mcp/README.md#project-loading-check)處理並繼續可獨立完成的工作。
 - 新環境仍 MUST 先執行初始化以準備 mise、系統 Python 與網路；Graphify 使用既有 install-graphify 任務，不能只靠 mise 的工具宣告安裝。
 
 依據：mise 2026.11.3 `exec --help` 與 [官方設定](https://mise.jdx.dev/configuration/settings.html#exec_auto_install)。
