@@ -54,7 +54,7 @@ enabled = true
 # Spawned threads include orchestrator and exclude the primary; host limits prevail.
 max_concurrent_threads_per_session = 6
 # V1: primary(0) -> orchestrator(1) -> specialist(2). V2 ignores max_depth.
-# Specialists do not spawn; see docs/development/workflow.md for the shared policy.
+# Specialists do not spawn; see docs/development/workflow/task-start.md#delegation-depth-and-role-selection for the shared policy.
 max_depth = 2
 
 [agents.orchestrator]
@@ -128,8 +128,8 @@ tool_timeout_sec = 45
 env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
 # Resolve paths from the Codex checkout, including worktrees.
 cwd = "."
-command = "npx"
-args = ["-y", "repomix@1.18.1", "--mcp"]
+command = "bash"
+args = ["scripts/tooling/tool-exec.sh", "repomix", "--mcp"]
 enabled_tools = ["generate_skill"]
 default_tools_approval_mode = "prompt"
 enabled = true
@@ -238,9 +238,9 @@ tool_timeout_sec = 120
 # Forward runtime network settings by name; values remain host-owned.
 env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
 # Resolve paths from the Codex checkout, including worktrees.
-cwd = "frontend/miniapp"
-command = "npx"
-args = ["-y", "shadcn@latest", "mcp"]
+cwd = "."
+command = "bash"
+args = ["scripts/tooling/tool-exec.sh", "--tool", "node", "--tool", "npm:shadcn", "bash", "-c", "cd frontend/miniapp && exec shadcn mcp"]
 enabled = true
 required = false
 startup_timeout_sec = 45
@@ -250,9 +250,9 @@ tool_timeout_sec = 60
 # Runtime inspection is task-specific; use the installed Next.js dev server.
 env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS", "NEXT_TELEMETRY_DISABLED"]
 # Resolve paths from the Codex checkout, including worktrees.
-cwd = "frontend/miniapp"
-command = "npx"
-args = ["-y", "next-devtools-mcp@latest"]
+cwd = "."
+command = "bash"
+args = ["scripts/tooling/tool-exec.sh", "--tool", "node", "--tool", "npm:next-devtools-mcp", "bash", "-c", "cd frontend/miniapp && exec next-devtools-mcp"]
 enabled_tools = ["nextjs_index", "nextjs_call", "nextjs_docs", "browser_eval"]
 default_tools_approval_mode = "writes"
 enabled = true
