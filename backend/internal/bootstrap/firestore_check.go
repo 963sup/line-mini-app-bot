@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"cloud.google.com/go/firestore"
+	firestoreplatform "github.com/963sup/line-mini-app-bot/internal/platform/firestore"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -33,12 +33,9 @@ func CheckFirestore(parent context.Context, args []string) (resultErr error) {
 		return errors.New("provide -document collection/document with no positional arguments")
 	}
 	database := os.Getenv("FIRESTORE_DATABASE_ID")
-	if database == "" {
-		database = "(default)"
-	}
 	ctx, cancel := context.WithTimeout(parent, 10*time.Second)
 	defer cancel()
-	client, err := firestore.NewClientWithDatabase(ctx, project, database)
+	client, err := firestoreplatform.NewClient(ctx, project, database)
 	if err != nil {
 		return err
 	}

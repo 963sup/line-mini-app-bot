@@ -1,7 +1,6 @@
 package bootstrap
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -50,21 +49,17 @@ func newDiscussions(repositories *repositoryApplication.Service, store *reposito
 	return discussionapp.New(repositories, &discussiondb.Store{Client: store.Client, ChannelID: store.ChannelID, Numbers: store, Labels: store})
 }
 
-func newRepositories(ctx context.Context) (*repositoryApplication.Service, *repositorydb.Store, func() error, error) {
-	project, channel, token := os.Getenv("GOOGLE_CLOUD_PROJECT"), os.Getenv("LINE_MESSAGING_API_CHANNEL_ID"), os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN")
-	if project == "" || channel == "" || token == "" {
-		return nil, nil, func() error { return nil }, nil
+func newRepositories(firestoreConfigured bool, getFirestore func() (*firestore.Client, error)) (*repositoryApplication.Service, *repositorydb.Store, error) {
+	channel, token := os.Getenv("LINE_MESSAGING_API_CHANNEL_ID"), os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN")
+	if !firestoreConfigured || channel == "" || token == "" {
+		return nil, nil, nil
 	}
-	database := os.Getenv("FIRESTORE_DATABASE_ID")
-	if database == "" {
-		database = "(default)"
-	}
-	client, err := firestore.NewClientWithDatabase(ctx, project, database)
+	client, err := getFirestore()
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("cannot initialize repository database")
+		return nil, nil, fmt.Errorf("cannot initialize repository database")
 	}
 	store := &repositorydb.Store{Client: client, ChannelID: channel}
-	return &repositoryApplication.Service{Store: store, Membership: &lineplatform.Membership{Token: token, Client: &http.Client{Timeout: time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}}, store, client.Close, nil
+	return &repositoryApplication.Service{Store: store, Membership: &lineplatform.Membership{Token: token, Client: &http.Client{Timeout: time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}}, store, nil
 }
 
 func newMilestones(r *repositoryApplication.Service, store *repositorydb.Store) *repositoryApplicationMilestones.Service {

@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"cloud.google.com/go/firestore"
+
 	attendancehttp "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/http"
 	attendanceline "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line/presentation"
@@ -41,6 +43,7 @@ import (
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/line"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http"
+	firestoreplatform "github.com/963sup/line-mini-app-bot/internal/platform/firestore"
 	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/browser"
@@ -62,29 +65,42 @@ func Run() (resultErr error) {
 	if err != nil {
 		return err
 	}
-	sessions, sessionStore, closeSessions, err := newSessions(context.Background(), auth.ChannelID)
+	// Open Firestore only when an enabled module needs it. Run owns the
+	// client through startup and server shutdown.
+	project, database := os.Getenv("GOOGLE_CLOUD_PROJECT"), os.Getenv("FIRESTORE_DATABASE_ID")
+	firestoreConfigured := project != ""
+	var db *firestore.Client
+	getFirestore := func() (*firestore.Client, error) {
+		if db != nil {
+			return db, nil
+		}
+		client, err := firestoreplatform.NewClient(context.Background(), project, database)
+		if err != nil {
+			return nil, err
+		}
+		db = client
+		return db, nil
+	}
+	defer func() {
+		if db != nil {
+			if closeErr := db.Close(); resultErr == nil {
+				resultErr = closeErr
+			}
+		}
+	}()
+	sessions, sessionStore, err := newSessions(firestoreConfigured, getFirestore, auth.ChannelID)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if closeErr := closeSessions(); resultErr == nil {
-			resultErr = closeErr
-		}
-	}()
 	auth.Sessions = sessions
 	appURL, err := auth.Register(mux)
 	if err != nil {
 		return err
 	}
-	attendance, closeAttendance, err := newAttendance(context.Background(), os.Getenv("LINE_MESSAGING_API_CHANNEL_ID"))
+	attendance, err := newAttendance(firestoreConfigured, getFirestore, os.Getenv("LINE_MESSAGING_API_CHANNEL_ID"))
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if closeErr := closeAttendance(); resultErr == nil {
-			resultErr = closeErr
-		}
-	}()
 	var groupLookup func(context.Context, string) string
 	lookup := func(ctx context.Context, group string) string {
 		if groupLookup != nil {
@@ -105,33 +121,18 @@ func Run() (resultErr error) {
 
 	attendancehttp.RegisterAttendanceAPI(mux, browserAttendance, auth)
 	operationshttp.Register(mux, &operations.DocumentTextService{Extractor: &poppler.Extractor{}}, auth)
-	summaries, closeSummaries, err := registerSummary(context.Background(), mux)
+	summaries, err := registerSummary(context.Background(), mux, firestoreConfigured, getFirestore)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if closeErr := closeSummaries(); resultErr == nil {
-			resultErr = closeErr
-		}
-	}()
-	repositories, repositoryStore, closeRepositories, err := newRepositories(context.Background())
+	repositories, repositoryStore, err := newRepositories(firestoreConfigured, getFirestore)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if closeErr := closeRepositories(); resultErr == nil {
-			resultErr = closeErr
-		}
-	}()
-	groups, groupStore, closeGroups, err := newGroups(context.Background())
+	groups, groupStore, err := newGroups(firestoreConfigured, getFirestore)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if closeErr := closeGroups(); resultErr == nil {
-			resultErr = closeErr
-		}
-	}()
 	var creation organizationline.Conversation
 	var invitations *membershipapp.Service
 	organizationHandler := organizationhttp.Handler{Auth: auth}
