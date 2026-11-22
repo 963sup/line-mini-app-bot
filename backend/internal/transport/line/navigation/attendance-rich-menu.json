@@ -1,0 +1,12 @@
+{
+  "width": 2500,
+  "height": 1686,
+  "tabHeight": 843,
+  "tabWidths": [833, 834, 833],
+  "chatBarText": "開啟選單",
+  "pages": [
+    {"alias": "rich-menu-clock-in", "label": "上班", "postback": "action=clock-in", "hint": "前往上班群組打卡", "color": "#14614C"},
+    {"alias": "rich-menu-transfer", "label": "轉場支援", "postback": "action=transfer", "hint": "先確認原班次與支援規則", "color": "#174B85"},
+    {"alias": "rich-menu-clock-out", "label": "下班", "postback": "action=clock-out", "hint": "回原班次群組打卡", "color": "#7F3929"}
+  ]
+}
