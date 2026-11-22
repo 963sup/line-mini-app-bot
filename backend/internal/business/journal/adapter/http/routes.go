@@ -91,13 +91,13 @@ func replyError(w http.ResponseWriter, err error) bool {
 	}
 	switch {
 	case errors.Is(err, journalentity.ErrInput):
-		transport.WriteServiceError(w, 400, "invalid_input", "日誌資料無效。", err)
+		transport.WriteResourceError(w, 400, "invalid_input", "日誌資料無效。", err, false)
 	case errors.Is(err, journalentity.ErrNotFound):
-		transport.WriteServiceError(w, 404, "not_found", "找不到日誌或關聯來源。", err)
+		transport.WriteResourceError(w, 404, "not_found", "找不到日誌或關聯來源。", err, false)
 	case errors.Is(err, journalentity.ErrConflict):
-		transport.WriteServiceError(w, 409, "idempotency_conflict", "重試識別碼已用於不同內容。", err)
+		transport.WriteResourceError(w, 409, "idempotency_conflict", "重試識別碼已用於不同內容。", err, false)
 	default:
-		transport.WriteServiceError(w, 503, "unavailable", "日誌服務暫時無法使用。", err)
+		transport.WriteResourceError(w, 503, "unavailable", "日誌服務暫時無法使用。", err, true)
 	}
 	return true
 }

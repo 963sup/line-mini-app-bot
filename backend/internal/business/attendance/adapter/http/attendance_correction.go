@@ -184,11 +184,11 @@ func correctionHTTPError(w http.ResponseWriter, err error) bool {
 		return false
 	}
 	if errors.Is(err, attendanceentity.ErrCorrection) {
-		transport.WriteServiceError(w, 403, "invalid_correction", "無權限、申請已結案、時段重疊或紀錄已變動。", err)
+		transport.WriteResourceError(w, 403, "invalid_correction", "無權限、申請已結案、時段重疊或紀錄已變動。", err, false)
 	} else if errors.Is(err, attendancedto.ErrInvalidCursor) {
-		transport.WriteServiceError(w, 400, "invalid_cursor", "分頁已失效，請重新查詢。", err)
+		transport.WriteResourceError(w, 400, "invalid_cursor", "分頁已失效，請重新查詢。", err, false)
 	} else {
-		transport.WriteServiceError(w, 503, "unavailable", "暫時無法處理申請，請稍後重試。", err)
+		transport.WriteResourceError(w, 503, "unavailable", "暫時無法處理申請，請稍後重試。", err, true)
 	}
 	return true
 }
