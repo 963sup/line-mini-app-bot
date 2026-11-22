@@ -33,9 +33,6 @@ export function View() {
           ))}
         </ItemGroup>
       </nav>
-      <p className="mt-4 text-sm text-muted-foreground">
-        上／下班及休息請用原群組按鈕。
-      </p>
     </PagePanel>
   );
 }

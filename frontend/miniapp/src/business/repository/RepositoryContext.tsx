@@ -66,7 +66,7 @@ function useRepositoryState(workflow: string) {
           setDetail({ ...emptyDetail, owner, id: route.selected, failed: true, status: "無法開啟此空間。" });
           return;
         }
-        setDetail({ owner, id: route.selected, item, busy: false, status: "已載入空間。", failed: false });
+        setDetail({ owner, id: route.selected, item, busy: false, status: "", failed: false });
       },
       (error) => setDetail({ ...emptyDetail, owner, id: route.selected, failed: true, status: errorMessage(error) }),
     );
@@ -93,7 +93,7 @@ function useRepositoryState(workflow: string) {
     : currentCatalog.items.filter((item) => !(currentDetail.failed && item.id === currentDetail.id));
   const busy = route.scope ? currentDetail.busy : currentCatalog.busy;
   const status = !user ? "請先完成身分驗證。" : route.scope
-    ? currentDetail.status : currentCatalog.status || "展開後載入可開啟的空間。";
+    ? currentDetail.status : currentCatalog.status;
   const ensure = () => {
     if (workflow !== "repositories" && !route.scope) setCatalogRequested(true);
   };
