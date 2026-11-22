@@ -12,7 +12,7 @@
 
 ## 單一代理執行
 
-`.codex/config.toml` 停用 `multi_agent` 且不註冊子代理。專業能力保存為普通 Markdown，按需讀取；不依賴角色選擇或額外模型。MCP 與 Skills 保持各自設定，工具存在不代表已由當前聊天載入。
+`.codex/config.toml` 不覆寫 `multi_agent` 功能開關，也不註冊子代理；不啟動子代理的工作規則由根 AGENTS.md 維護。專業能力保存為普通 Markdown，按需讀取；不依賴角色選擇或額外模型。MCP 與 Skills 保持各自設定，工具存在不代表已由當前聊天載入。
 
 錯誤與測試失敗依[除錯流程](debugging.md)處理。工具按任務使用，不強制每次完整執行 Graphify、Repomix 或所有 MCP。
 

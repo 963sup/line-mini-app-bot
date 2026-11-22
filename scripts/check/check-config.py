@@ -16,8 +16,6 @@ def check():
     codex_dir = ROOT / ".codex"
     config = tomllib.loads((codex_dir / "config.toml").read_text())
     mise = tomllib.loads((ROOT / "mise.toml").read_text())
-    if config.get("features", {}).get("multi_agent") is not False:
-        raise ValueError("Codex multi_agent must be disabled")
     if "agents" in config or list((codex_dir / "agents").glob("*.toml")):
         raise ValueError("Subagent registrations must be removed")
     capabilities = ROOT / "docs/development/workflow/capabilities"

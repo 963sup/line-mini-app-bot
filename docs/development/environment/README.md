@@ -1,5 +1,23 @@
 # 開發環境
 
+## 依任務選擇能力
+
+每個使用此專案的聊天，由目前代理依下表選讀適用指引後執行；必讀要求由[根目錄 AGENTS.md](../../../AGENTS.md#從這裡開始)維護。同一任務可採用多項能力，不必讀完全部，也不啟動子代理。
+
+| 任務 | 指引 |
+| --- | --- |
+| 計畫、範圍、風險與交付 | [規劃](../workflow/capabilities/planning.md) |
+| 原始碼、依賴與官方來源查證 | [探索](../workflow/capabilities/explorer.md) |
+| 模型、架構與交易邊界 | [設計](../workflow/capabilities/architect.md) |
+| 最小修改與根因除錯 | [實作](../workflow/capabilities/implementer.md) |
+| 唯讀檢視差異與風險 | [自我審查](../workflow/capabilities/reviewer.md) |
+| 回歸、契約與整合驗收 | [測試](../workflow/capabilities/tester.md) |
+| Markdown、Mermaid 與授權 Wiki 工作 | [文件](../workflow/capabilities/documentation.md) |
+
+能力內容與階段邊界見[能力說明](../workflow/capabilities/README.md)。選讀能力不代表需要安裝工具、登入或啟動應用；環境操作依任務實際需要選擇。
+
+## 依環境選擇操作
+
 從儲存庫根目錄執行命令。Linux x64／arm64 需要 Bash、curl、tar、sha256sum 與 Python 3.11 以上。
 
 | 場景 | 操作入口 |

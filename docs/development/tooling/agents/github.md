@@ -1,11 +1,15 @@
 # github
 
-Primary roles: Explorer, Documentation, Orchestrator, Reviewer.
+適用能力：探索、文件、規劃與自我審查。
+
+一般儲存庫與交付狀態操作見[共用 GitHub 指南](../shared/github.md)。
 
 ## When to use
 
 Read repository refs, issues, PRs and CI state; perform authorized collaboration
 and publication using the [shared workflow](../../workflow/publication.md#repository-publication).
+
+處理 GitHub Actions／PR 紅燈時，依[檢查失敗處理流程](../shared/github.md#github-actionspr-檢查失敗)優先使用 GitHub MCP；缺少必要能力時明列限制再採替代工具。
 
 ## Prerequisites and configuration
 
@@ -35,7 +39,7 @@ by its exposed schema, not by the REST request body.
 
 ## Wiki publication
 
-Inspect existing pages and preserve their language, navigation and unrelated content. Use a Wiki-specific tool when available, otherwise use the repository’s separate `.wiki.git` remote. Review the diff, publish only the requested changes without force, and verify the published page or remote commit.
+頁面維護與發布核對見[共用 Wiki 操作](../shared/github.md#wiki-publication)。本頁只維護 MCP 的接線與工具限制。
 
 ## Verification and failures
 

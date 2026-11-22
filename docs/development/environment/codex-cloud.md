@@ -14,7 +14,7 @@ Linux x64／arm64 下載資訊由 [mise.lock](../../../mise.lock) 鎖定，pnpm 
 
 **Start skill** 應從 checkout 根目錄透過專案 wrapper 執行命令。需使用應用時，依[啟動表](README.md#啟動應用)選服務，核對目標路由及日誌。發布狀態保存已準備的檔案與快取，執行中的程序需於工作階段啟動。
 
-在已建立的 Cloud 工作區，先確認 checkout 位於 `/workspace/line-mini-app-bot`。若需在該 checkout 開啟 Codex CLI，使用 `codex -C /workspace/line-mini-app-bot`。從工作區外提交 Cloud 任務時，先用 `codex cloud` 查環境 ID，再用 `codex cloud exec --env <ENV_ID> "<任務>"`。路徑用於選擇本機工作目錄，Cloud 任務由環境 ID 選擇。命令語法可用本機 CLI 的 `--help` 核對。
+Codex CLI 與 Cloud 任務提交方式見 [Codex 操作](../tooling/agents/codex.md#開啟專案與提交-cloud-任務)。
 
 工具設定或依賴鎖檔變更時，重新執行初始化並發布更新的環境。從新聊天驗收已發布的狀態。若需比較速度，分開記錄空快取準備與重用快取時的耗時。
 
@@ -23,6 +23,6 @@ Linux x64／arm64 下載資訊由 [mise.lock](../../../mise.lock) 鎖定，pnpm 
 1. 在新 checkout 確認安裝工具與工作區依賴。若還要執行完整專案 `pnpm check` 或 Go 格式及 lint，先透過 wrapper 執行 `mise run install-core`。
 2. 執行 `bash scripts/tooling/tool-exec.sh mise run check` 與 `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check`，並依任務驗收實際入口。
 3. 在新聊天依 [MCP 主機載入檢查](../tooling/agents/README.md#project-loading-check)。
-4. 若任務需要 Cloud Run 或 Firestore Toolbox，依主機方式提供 ADC。使用憑證檔時，`GOOGLE_APPLICATION_CREDENTIALS` 須指向任務執行時可讀的檔案。以目標資源的唯讀操作確認登入身分及 IAM。參見 [Google 工具指引](../tooling/agents/google.md)。
+4. 若任務需要 Cloud Run 或 Firestore Toolbox，依主機方式提供 ADC。使用憑證檔時，`GOOGLE_APPLICATION_CREDENTIALS` 須指向任務執行時可讀的檔案。以目標資源的唯讀操作確認登入身分及 IAM。參見 [Google 工具指引](../tooling/shared/gcloud.md)。
 
 記錄所驗證的快照、命令、結果與尚缺的環境證據。[驗收索引](../verification/README.md) · [環境排查](troubleshooting.md)

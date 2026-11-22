@@ -18,7 +18,6 @@
 | [contract/](contract/README.md) | API 能力與路由契約 | pnpm api:check |
 | [test/](test/README.md) | 路由、MCP 與容器驗收 | pnpm api:check、unittest、container-build |
 | [perf/](perf/README.md) | Go 效能剖析 | profile |
-| [security/](security/README.md) | 供應鏈安全檢查 | vuln 目前由 mise 直接執行 |
 | [build/](build/README.md) | 建置容器映像 | container-build |
 | [release/](release/README.md) | 發布驗收 | release-smoke.py |
 | [ops/](ops/README.md) | 查閱 Cloud Run 狀態 | cloud-run-snapshot.py |
@@ -43,6 +42,8 @@ Elements documentation snapshot; it never installs application components.
 See [local reference usage and refresh](../docs/development/tooling/frontend/shadcn-reference/README.md).
 
 Rich Menu images are stored under `assets/line/richmenu/`.
+
+Go 弱點檢查請執行 `mise run vuln`；工具版本由 [mise.toml](../mise.toml) 固定。
 
 ## 相關文件
 

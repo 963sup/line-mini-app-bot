@@ -2,15 +2,9 @@
 
 ## Go development loop
 
-Run `bash scripts/bootstrap.sh core` to install the pinned core tools. In a new
-shell use `bash scripts/tooling/tool-exec.sh mise run <task>`; installation alone does
-not activate the shell PATH. Use `install-debug` separately for Delve.
+Go 工具準備與開發操作見[後端指南](../backend/go-development.md#go-development-loop)。
 
-Go 驗收、覆蓋率及效能分析見[測試與品質工具](../testing/commands.md#go-verification)。`fmt` 會修改格式；`fmt-check` 僅報告差異。弱點檢查需要能連線至弱點資料庫。
-
-Versions are verified against the Go module proxy; mise Go backend/exec behavior
-was checked using Context7's upstream mise documentation, and coverage/benchmark
-commands against Go version-matched documentation. Pins live only in mise.toml.
+## 共用版本與任務
 
 Use `bash scripts/tooling/tool-exec.sh mise run <task>` from the repository root.
 Tool versions, non-secret paths and tasks are defined in `mise.toml`.
@@ -34,3 +28,7 @@ Use `mise tasks` to discover current tasks. Bootstrap needs system Python 3.11+,
 curl, archive/checksum utilities and network access before mise is installed.
 Workspace tool paths target Codex Cloud; arbitrary machines need deliberate path
 configuration. Existing cache success is not a clean rebuild test.
+
+## 鎖檔與安裝結果
+
+已有 `mise.lock` 時，mise 安裝單一工具也可能解析整份工具設定；任何失敗會中止後續批次步驟，不能只憑套件下載完成宣稱整個安裝任務成功。診斷時分別驗證任務 exit code、CLI 執行與 MCP handshake；MCP 通過不代表聊天已載入或 Next.js runtime 已啟動。

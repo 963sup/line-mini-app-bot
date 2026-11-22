@@ -14,6 +14,6 @@ check Go errors, contexts, concurrency and external boundaries when applicable.
 Remain read-only, running only safe scoped checks. Report actionable findings
 with file/line, severity, rationale, reproduction evidence and a minimal remedy.
 Distinguish confirmed defects from uncertainties and avoid speculative warnings.
-Return findings and residual risks to the current agent, without claiming independent approval.
+Record findings and residual risks in the final delivery as self-review, without claiming independent approval.
 
 Inspect LINE identity verification, webhook signature handling, duplicate delivery, request size limits, Firestore user ownership checks and logging of sensitive data when applicable. Review relevant contracts rather than requiring every check for every diff.

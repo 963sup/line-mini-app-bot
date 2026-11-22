@@ -16,22 +16,6 @@ bash scripts/tooling/tool-exec.sh mise run repomix
 
 任務輸出 `repomix-output.xml`。限定任務來源時使用 `--include` 與 `--output`，核對輸出清單與來源內容，避免把打包成功當作功能驗收。
 
-## 在 Codex 使用本專案的參考技能
-
-從專案根目錄產生或更新本機參考包：
-
-```bash
-bash scripts/tooling/tool-exec.sh repomix --skill-generate repomix-reference-line-mini-app-bot --skill-output .agents/skills/repomix-reference-line-mini-app-bot --force
-```
-
-技能名稱與輸出目錄名稱均為 `repomix-reference-line-mini-app-bot`。在 Codex 聊天中輸入 `$`，選取此技能，再寫任務。例如：
-
-```text
-$repomix-reference-line-mini-app-bot 請從參考包查出勤 Rich Menu 的畫布尺寸與三欄寬度，並與目前的 JSON 定義核對。
-```
-
-要重現這個查詢，可在 `references/files.md` 搜尋 `## File: backend/internal/transport/line/navigation/attendance-rich-menu.json`，把該節的 `width`、`height`、`tabWidths` 與[目前定義](../../../../backend/internal/transport/line/navigation/attendance-rich-menu.json)比較。參考包是生成當下的快照，來源變更後可重跑上方命令。若聊天未列出技能，先執行 `bash scripts/tooling/tool-exec.sh skills list --agent codex` 檢查本機安裝，再從此專案開啟新工作階段。
-
 ## 產生參考技能
 
 需要[交接原始碼](../../workflow/handoff.md#sidebar-handoff)時，可產生限定於該任務的參考包。
@@ -44,7 +28,7 @@ $repomix-reference-line-mini-app-bot 請從參考包查出勤 Rich Menu 的畫�
 bash scripts/tooling/tool-exec.sh repomix . \
   --skill-generate repomix-reference-codex-cloud \
   --skill-output .agents/skills/repomix-reference-codex-cloud \
-  --include '.codex/config.toml,.codex/README.md,mise.toml,scripts/bootstrap.sh,scripts/setup/**,scripts/dev/**,scripts/mcp/**,scripts/tooling/tool-exec.sh' \
+  --include '.codex/config.toml,docs/development/tooling/agents/codex.md,mise.toml,scripts/bootstrap.sh,scripts/setup/**,scripts/dev/**,scripts/mcp/**,scripts/tooling/tool-exec.sh' \
   --ignore '**/node_modules/**,**/__pycache__/**,**/.env*,**/*credentials*.json,.agents/**,.claude/**,graphify-out/**' \
   --force
 ```
@@ -53,7 +37,7 @@ bash scripts/tooling/tool-exec.sh repomix . \
 - `--skill-output` 跳過位置選擇；`--force` 跳過覆寫確認，不會縮小打包範圍。範圍由 `--include`／`--ignore` 控制，需核對實作時保留完整內容，不加壓縮。
 - `--force` 只可更新本任務擁有的生成目錄。MUST 先核對既有來源、版本與未提交內容。同一用途的自有生成包可在核對後更新；需要保留的舊快照移至技能目錄外的報告或封存位置，不以版本後綴建立另一個技能。不覆寫上游或其他工作的技能。
 - 成功後核對 `SKILL.md`、`references/project-structure.md` 與 `references/files.md`；Evidence 記錄來源版本、未提交狀態、範圍與可讀路徑。使用 `bash scripts/tooling/tool-exec.sh skills list --agent codex` 確認本機探索；當前聊天載入及自動觸發仍須另行驗證。
-- `.agents/skills/` 受 Git 忽略。另一個 checkout 或新環境須重新生成或明確保存產物；不因本機生成成功就宣稱已隨 Git 或發布環境提供。
+- `.agents/skills/` 下的本機 Repomix 生成包受 Git 忽略。另一個 checkout 或新環境須重新生成或明確保存產物；不因本機生成成功就宣稱已隨 Git 或發布環境提供。
 
 指令已對照專案固定 Repomix 1.18.1 的 `--help` 與輸出路徑實作；參見 [官方非互動產生說明](https://repomix.com/guide/agent-skills-generation#non-interactive-usage)。
 

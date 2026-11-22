@@ -2,6 +2,7 @@
 
 ## 從這裡開始
 
+- 開始每個任務前，MUST 閱讀[環境與能力入口](docs/development/environment/README.md#依任務選擇能力)，依任務選擇適用能力，並讀完對應指引後才開始實質操作。不得只讀能力名稱或憑記憶跳過；同一任務可重用已讀且未變更的指引，任務範圍改變時重新選擇。交付時說明採用的能力與實際驗證結果。
 - Codex Cloud 首次初始化使用 `scripts/bootstrap.sh`。詳見 [Cloud 環境設定](docs/development/environment/codex-cloud.md)。
 - 日常命令從根目錄使用 `bash scripts/tooling/tool-exec.sh <命令>`。
 - 修改前遵循從根目錄到目標目錄的 AGENTS.md；需要查入口、操作方式或領域背景時，再讀最近的 README.md。跨目錄搬移時核對來源、目的地與呼叫端，保留既有變更與上游技能。[巢狀導覽](README.md#巢狀目錄導覽)
@@ -68,7 +69,7 @@ Rules:
 
 新增、修改或審查任何自有 Markdown 前，MUST 讀取並遵守[文件規範](docs/standards/documentation.md)。目前代理按需採用文件能力指引並確認檔案所有權，自主修正任務範圍內有證據的問題，不擴展為全庫重寫。
 
-依[開發手冊](docs/development/README.md#按任務開始)選擇環境、工作流程、配方與驗收。角色依 developer_instructions 選讀適用文件。工具選擇與診斷見 [MCP 指南](docs/development/tooling/agents/README.md)。
+依[開發手冊](docs/development/README.md#按任務開始)選擇環境、工作流程、配方與驗收。工具選擇與診斷見 [MCP 指南](docs/development/tooling/agents/README.md)。
 
 實作交接依[交接與證據重用](docs/development/workflow/handoff.md#minimal-handoff-and-evidence-reuse)與[命名規範](docs/standards/naming.md)。
 
@@ -88,4 +89,4 @@ Develop directly on `main`. Every commit must be a complete, independently revie
 任務範圍內發現不符合時，以 Graphify 定位關係、Repomix 核對內容、Context7 查證相關技術，找出並修正任務範圍內的根因，控制變更範圍，再依 acceptance 驗證。工具無法使用、圖譜過期或打包遺漏時明確列出限制，不猜測通過。
 範圍外發現列出證據與後續工作，不自行全庫重構、改產品規則或部署。純文件及設定調整不要求無關應用測試；修改行為須執行相應檢查。
 涉及 Firestore 交易、併發、重送或持久資料相容性時，依[整合驗收流程](docs/development/tooling/testing/commands.md#firestore-integration)主動檢查、準備並重跑 emulator 測試。
-交付對照規格、實作位置、實際驗證結果及剩餘限制；角色指引與本規則一致，不因委派增加授權。
+交付對照規格、實作位置、實際驗證結果及剩餘限制。

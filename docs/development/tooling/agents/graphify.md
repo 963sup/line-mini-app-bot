@@ -1,7 +1,5 @@
 # graphify
 
-Primary roles: Explorer, Architect.
-
 ## When to use
 
 Explore graph relationships before broad source reads.
@@ -32,11 +30,4 @@ This checks initialize, tools/list and configured allowlists. Verify a represent
 operation separately. For failures distinguish missing binary, network, credential,
 workspace prerequisites and host loading; see [troubleshooting](../../environment/troubleshooting.md).
 
-2026-11-14 (Asia/Taipei): the configured local command and graph path were valid,
-and CLI queries succeeded. Local MCP initialize did not return a JSON-RPC reply;
-a bounded minimal server using the same installed MCP SDK also stalled without
-importing Graphify. The problem is bounded to that environment's SDK stdio/dispatch
-layer, not proven to be graph size, CLI arguments or a slow graph load. No verified
-dependency fix was available, so pins and timeouts were left unchanged. Reuse this
-failure evidence for the unchanged task to avoid repeating the same timeout in each role. For missing native tools follow the root exposure procedure. The host's separate cloud Graphify
-index is not evidence that this local MCP or unpushed sources were loaded.
+若 CLI 查詢成功但 MCP 初始化逾時，先確認本機伺服器是否回傳 JSON-RPC，再依[主機載入檢查](README.md#project-loading-check)確認目前聊天使用的服務與索引。

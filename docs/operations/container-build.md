@@ -4,7 +4,7 @@
 
 Dockerfile 將 backend/main.go 編譯成映像內的 /server；HTTP 模式不帶參數，導航同步使用 /server sync-line-navigation。部署設定 MUST 與這個入口一致，修改 repository YAML 不會更新 managed inline Trigger。
 
-本機執行 `bash scripts/tooling/tool-exec.sh mise run container-build`，建置後自動執行 [映像驗收](../../scripts/test/container-smoke.sh)。環境有代理 CA 時，設定 BUILD_CA_FILE 為可讀 CA 檔案，透過 BuildKit secret 提供，不寫入映像。GitHub 的 container job 執行同一驗收，不提供雲端憑證、不發布 LINE 選單；此驗收確認執行檔、CLI dispatch、非 root 身分、CA、Poppler 與靜態資源，不取代真實 HTTP 與雲端整合測試。
+本機建置、CA 注入與 smoke 涵蓋範圍見[容器驗收操作](../development/tooling/testing/container.md#本機建置與-smoke-驗收)。
 
 Node、Go 基底版本及 pnpm MUST 與 mise.toml 一致，由 check-config.py 檢查；基底映像使用 digest 固定內容。升級時 MUST 一併更新版本與 digest，再建置驗收。Debian apt 套件仍隨套件來源更新，這不是逐位元可重現建置。版本依據見 [Docker 官方建置指引](https://docs.docker.com/build/building/best-practices/)。
 

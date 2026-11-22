@@ -42,7 +42,7 @@ Next.js 正式建置採靜態匯出，由 Go 在 Cloud Run 提供網頁與 HTTP 
 | 資料儲存 | Cloud Firestore | [持久化文件](docs/architecture/README.md#資料與儲存) |
 | 工作區與建置 | Node.js、pnpm workspaces、Turborepo；mise 管理工具鏈 | [工作區設定](package.json)、[工具設定](mise.toml) |
 | 部署 | Docker 多階段建置、Cloud Build、Cloud Run、Secret Manager | [Dockerfile](Dockerfile)、[部署說明](docs/operations/cloud-run.md) |
-| 品質檢查 | GitHub Actions、Go 測試與檢查工具、Node Test Runner／tsx／jsdom | [CI 說明](.github/README.md)、[工具設定](mise.toml)、[前端測試指令](frontend/miniapp/package.json) |
+| 品質檢查 | GitHub Actions、Go 測試與檢查工具、Node Test Runner／tsx／jsdom | [CI 設定](.github/workflows/check.yml)、[工具設定](mise.toml)、[前端測試指令](frontend/miniapp/package.json) |
 
 主要 SDK 與套件如下；完整依賴與固定版本以 [backend/go.mod](backend/go.mod)、
 [前端 package.json](frontend/miniapp/package.json) 及 [API client package.json](api/client/package.json) 為準。
@@ -122,10 +122,10 @@ MINI App 頁面為 `/miniapp`；公開 Channel／LIFF ID 與 Endpoint 由所選�
 
 | 目錄 | 說明 | 工作指引 |
 | --- | --- | --- |
-| `.agents/` | [共用 Agent Skills](.agents/README.md) | [AGENTS.md](.agents/AGENTS.md) |
-| `.codex/` | [Codex 專案配置](.codex/README.md) | [AGENTS.md](.codex/AGENTS.md) |
-| `.github/` | [GitHub 協作與 CI](.github/README.md) | [AGENTS.md](.github/AGENTS.md) |
-| `.vscode/` | [VS Code 工作區設定](.vscode/README.md) | [AGENTS.md](.vscode/AGENTS.md) |
+| `.agents/` | [技能維護](docs/development/tooling/agents/skills.md) | [根目錄指引](AGENTS.md) |
+| `.codex/` | [Codex 設定](.codex/config.toml) · [CLI 操作](docs/development/tooling/agents/codex.md) | [根目錄指引](AGENTS.md) |
+| `.github/` | [GitHub 操作](docs/development/tooling/shared/github.md) · [CI 設定](.github/workflows/check.yml) | [根目錄指引](AGENTS.md) |
+| `.vscode/` | [工作區任務](.vscode/tasks.json) · [編輯器設定](.vscode/settings.json) | [根目錄指引](AGENTS.md) |
 | `api/` | [HTTP API 契約](api/README.md) | [AGENTS.md](api/AGENTS.md) |
 | `assets/` | [應用素材](assets/README.md) | [AGENTS.md](assets/AGENTS.md) |
 | `backend/` | [Go 後端](backend/README.md) | [AGENTS.md](backend/AGENTS.md) |

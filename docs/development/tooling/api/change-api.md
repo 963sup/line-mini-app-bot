@@ -32,10 +32,6 @@ bash scripts/tooling/tool-exec.sh pnpm api:generate
 bash scripts/tooling/tool-exec.sh pnpm api:check
 ```
 
-API capability checks use a limited, comment-aware Go token reader to validate
-embedded interface methods, generated signatures, adapter ownership and route
-composition. Unsupported composition forms fail closed; full Go type checking
-remains in the generated interface assertion and Go checks. `pnpm api:check`
-runs dispatch regression tests before validating contracts and generated output.
+API 檢查器的涵蓋範圍與限制見[API 契約檢查](../testing/commands.md#api-contract-verification)。
 
 [操作配方](../../recipes/README.md)

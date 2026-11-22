@@ -20,6 +20,10 @@ Explorer 與 Reviewer 只查任務相關原始碼及文件，區分設定與實�
 | reviewer | [驗收矩陣](../testing/commands.md) · [line-平台架構總覽](../../../architecture/runtime/overview.md) · [repomix](repomix.md) · [github](github.md) |
 | tester | [驗收矩陣](../testing/commands.md) · [gopls](../backend/gopls.md) |
 
+## Codex CLI
+
+開啟本機 checkout 與提交 Cloud 任務見 [Codex CLI 操作](codex.md)。
+
 ## MCP 工具與角色
 
 | Service | Primary roles |
@@ -33,8 +37,8 @@ Explorer 與 Reviewer 只查任務相關原始碼及文件，區分設定與實�
 | [mermaid](../shared/mermaid.md) | Documentation；架構、資料關係、操作流程與狀態圖，來源與渲染分開驗證 |
 | [repomix_skills](repomix-skills.md) | 交接主責代理；依交接需要產生可重用的來源參考包 |
 | [gopls](../backend/gopls.md) | Implementer；Explorer、Tester、Reviewer 亦可使用 |
-| [github](github.md) | Explorer、Documentation、Orchestrator、Reviewer |
-| [google-developer-knowledge、gcloud](google.md) | Explorer、Implementer、Reviewer、Orchestrator；查 Google 文件、核對 CLI 操作 |
+| [github](github.md) | 探索、文件、規劃、自我審查 |
+| [google-developer-knowledge、gcloud](google.md) | 探索、實作、自我審查、規劃；查 Google 文件、核對 CLI 操作 |
 | [cloud-run、toolbox、gke](../../../../.codex/config.toml) | 依任務選 Cloud Run、Firestore 或 GKE。啟用狀態與允許的工具依左側設定，當前可用性依原生呼叫驗證。 |
 
 The current agent selects tools by capability; this mapping is guidance, not access control. Host tool
@@ -75,7 +79,7 @@ from unnecessary repeated discovery during a healthy connection.
 For a new Cloud environment or an explicit inventory audit, compare every
 server in the checkout configuration with `codex mcp list` and the current
 chat's native tools. Record disabled servers separately. Reuse this inventory
-across roles. For routine work, check only the relevant servers.
+across capability stages. For routine work, check only the relevant servers.
 
 1. For a missing or failing tool, verify checkout, project trust, server
    enablement and allowlist. Prefer a native tool that matches the intended
@@ -107,35 +111,18 @@ process creation. Offline regressions run in the configuration CI job; see the
 
 Local Codex sessions may disable an unrelated server without deleting its
 configuration using `-c 'mcp_servers.SERVER.enabled=false'`. `enabled_tools` and
-`disabled_tools` filter tools in the parent configuration; a custom role inherits
-that server set and cannot create a separate MCP sandbox. Host/plugin connections
+`disabled_tools` filter the configured server tools. Capability documents do not
+create separate MCP connections or sandboxes. Host/plugin connections
 have their own controls, so these local overrides do not reconfigure this chat.
 Keep existing service capabilities unless task-specific overrides are chosen.
 
 Configuration options and these boundaries were checked through OpenAI Docs MCP
 against the [official MCP guide](https://developers.openai.com/codex/mcp) and
 [subagent guide](https://learn.chatgpt.com/docs/agent-configuration/subagents) on
-2026-11-14 (Asia/Taipei). Independent read-heavy subproblems can use agents; their
-results should be concise evidence summaries, not raw intermediate output.
+2026-11-14 (Asia/Taipei). 本專案目前採單一代理；依能力指引完成必要查證，
+以精簡證據摘要交付，不啟動子代理。
 
-### Verification snapshot
-
-On 2026-11-14 (Asia/Taipei), a read-only Context7 registration check used one
-focused local Graphify CLI query (0.813 s), then one Repomix MCP connection:
-initialize 0.384 s, tools/list 0.010 s, and two file reads 0.018 s / 0.004 s.
-The measured corrected run had two MCP tool calls, one CLI query and no failures;
-an earlier absolute-path call was rejected by Repomix's sandbox and corrected
-to repository-relative paths. These are observed operation times, not model/agent
-latency or a before/after performance claim.
-
-The source results were summarized as the workflow's six-field handoff with
-revision, relevant dirty paths and source locations. This verifies direct tools
-and evidence transfer; the host used for that snapshot had no `agent_type` selection parameter,
-so native execution of all registered custom roles remains unverified. Configuration,
-direct MCP operation and host-exposed tools must still be reported separately.
-
-References: [OpenAI MCP configuration](https://developers.openai.com/codex/mcp)
-and Context7 `/openai/codex` stdio environment configuration.
+Use repository-relative paths for Repomix file reads.
 
 [上層導覽](../README.md)
 

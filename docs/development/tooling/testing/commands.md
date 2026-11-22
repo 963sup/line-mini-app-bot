@@ -64,3 +64,17 @@ These tasks do not create test cases or benchmarks. No Firestore Emulator is use
 工具安裝見 [mise tooling](../shared/mise.md)。交接時沿用仍適用的[檢查證據](../../workflow/handoff.md#minimal-handoff-and-evidence-reuse)。
 
 [驗收索引](../../verification/README.md)
+
+## API contract verification
+
+API capability checks use a limited, comment-aware Go token reader to validate
+embedded interface methods, generated signatures, adapter ownership and route
+composition. Unsupported composition forms fail closed; full Go type checking
+remains in the generated interface assertion and Go checks. `pnpm api:check`
+runs dispatch regression tests before validating contracts and generated output.
+
+契約修改與生成操作見 [HTTP API 指南](../api/change-api.md#契約生成流程)。
+
+## 容器驗收入口
+
+本機建置、CA 前置條件與 smoke 涵蓋範圍見[容器驗收工具](container.md)。
