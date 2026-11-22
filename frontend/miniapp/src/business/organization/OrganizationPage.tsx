@@ -12,6 +12,7 @@ import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Item, ItemActions, ItemContent, ItemGroup, ItemTitle } from "@/shared/ui/item";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 
 const memberLabel = (id: string) => `成員 ${id.slice(0, 12)}`;
 
@@ -139,53 +140,64 @@ export function OrganizationPage({ organizationId, children, onChanged, onLeave 
         <h2 className="min-w-0 break-words text-2xl font-semibold tracking-tight">{roster.organizationName}</h2>
         <Badge variant="secondary">{roster.isOwner ? "擁有者" : "成員"}</Badge>
       </header>
-      <PagePanel heading="成員">
-        <ItemGroup className="divide-y">
-          {roster.members.map(member => <Item key={member.memberId} role="listitem" size="sm">
-            <ItemContent className="min-w-0">
-              <ItemTitle className="block max-w-full break-words">
-                {memberLabel(member.memberId)}{member.self ? "（你）" : ""}
-              </ItemTitle>
-            </ItemContent>
-            {member.owner && !member.self && <Badge variant="secondary">擁有者</Badge>}
-            {member.canRemove && <ItemActions>
-              <ConfirmAction title={`從「${roster.organizationName}」移除成員？`}
-                description={`請核對成員代碼：${member.memberId}。移除後，該成員將失去組織成員資格。`}
-                action="移除成員" onConfirm={() => depart(member.memberId)}
-                trigger={<Button type="button" variant="outline" disabled={busy} aria-label={`移除${memberLabel(member.memberId)}`}>移除</Button>} />
-            </ItemActions>}
-          </Item>)}
-        </ItemGroup>
-        <p className="mt-3 text-sm text-muted-foreground">成員可分享自己的代碼供核對。</p>
-        {roster.isOwner && <p className="text-sm text-muted-foreground">請透過 LINE 官方帳號邀請新成員。</p>}
-      </PagePanel>
-      {children}
-      <PagePanel heading="組織管理">
-        <div className="grid gap-4">
-          {roster.canTransferOwnership && (candidates.length ? <>
-            <FormField>
-              新擁有者
-              <NativeSelect value={successor} disabled={busy} onChange={event => setSuccessor(event.target.value)}>
-                <NativeSelectOption value="">選擇接任成員</NativeSelectOption>
-                {candidates.map(member => <NativeSelectOption key={member.memberId} value={member.memberId}>
-                  {memberLabel(member.memberId)}
-                </NativeSelectOption>)}
-              </NativeSelect>
-            </FormField>
-            <ConfirmAction title={`移轉「${roster.organizationName}」的所有權？`}
-              description={`接任成員代碼：${successor}。移轉後，你將成為一般成員。`}
-              action="移轉所有權" onConfirm={transferOwnership}
-              trigger={<Button type="button" className="justify-self-start" disabled={busy || !selectedSuccessor}>移轉所有權</Button>} />
-          </> : <p className="text-sm text-muted-foreground">
-            請先邀請其他成員，再移轉所有權。移轉後即可退出組織。
-          </p>)}
-          {roster.canLeave
-            ? <ConfirmAction title={`退出「${roster.organizationName}」？`} description="退出後，你將失去這個組織的成員資格。"
-                action="退出組織" onConfirm={() => depart()}
-                trigger={<Button type="button" variant="destructive" className="justify-self-start" disabled={busy}>退出組織</Button>} />
-            : candidates.length > 0 && <p className="text-sm text-muted-foreground">請先移轉所有權，再退出組織。</p>}
-        </div>
-      </PagePanel>
+      <Tabs key={organizationId} defaultValue="members">
+        <TabsList aria-label="組織功能" className="w-full">
+          <TabsTrigger value="members">成員</TabsTrigger>
+          <TabsTrigger value="teams">組織團隊</TabsTrigger>
+          <TabsTrigger value="management">組織管理</TabsTrigger>
+        </TabsList>
+        <TabsContent value="members">
+          <PagePanel heading="成員">
+            <ItemGroup className="divide-y">
+              {roster.members.map(member => <Item key={member.memberId} role="listitem" size="sm">
+                <ItemContent className="min-w-0">
+                  <ItemTitle className="block max-w-full break-words">
+                    {memberLabel(member.memberId)}{member.self ? "（你）" : ""}
+                  </ItemTitle>
+                </ItemContent>
+                {member.owner && !member.self && <Badge variant="secondary">擁有者</Badge>}
+                {member.canRemove && <ItemActions>
+                  <ConfirmAction title={`從「${roster.organizationName}」移除成員？`}
+                    description={`請核對成員代碼：${member.memberId}。移除後，該成員將失去組織成員資格。`}
+                    action="移除成員" onConfirm={() => depart(member.memberId)}
+                    trigger={<Button type="button" variant="outline" disabled={busy} aria-label={`移除${memberLabel(member.memberId)}`}>移除</Button>} />
+                </ItemActions>}
+              </Item>)}
+            </ItemGroup>
+            <p className="mt-3 text-sm text-muted-foreground">成員可分享自己的代碼供核對。</p>
+            {roster.isOwner && <p className="text-sm text-muted-foreground">請透過 LINE 官方帳號邀請新成員。</p>}
+          </PagePanel>
+        </TabsContent>
+        <TabsContent value="teams">{children}</TabsContent>
+        <TabsContent value="management">
+          <PagePanel heading="組織管理">
+            <div className="grid gap-4">
+              {roster.canTransferOwnership && (candidates.length ? <>
+                <FormField>
+                  新擁有者
+                  <NativeSelect value={successor} disabled={busy} onChange={event => setSuccessor(event.target.value)}>
+                    <NativeSelectOption value="">選擇接任成員</NativeSelectOption>
+                    {candidates.map(member => <NativeSelectOption key={member.memberId} value={member.memberId}>
+                      {memberLabel(member.memberId)}
+                    </NativeSelectOption>)}
+                  </NativeSelect>
+                </FormField>
+                <ConfirmAction title={`移轉「${roster.organizationName}」的所有權？`}
+                  description={`接任成員代碼：${successor}。移轉後，你將成為一般成員。`}
+                  action="移轉所有權" onConfirm={transferOwnership}
+                  trigger={<Button type="button" className="justify-self-start" disabled={busy || !selectedSuccessor}>移轉所有權</Button>} />
+              </> : <p className="text-sm text-muted-foreground">
+                請先邀請其他成員，再移轉所有權。移轉後即可退出組織。
+              </p>)}
+              {roster.canLeave
+                ? <ConfirmAction title={`退出「${roster.organizationName}」？`} description="退出後，你將失去這個組織的成員資格。"
+                    action="退出組織" onConfirm={() => depart()}
+                    trigger={<Button type="button" variant="destructive" className="justify-self-start" disabled={busy}>退出組織</Button>} />
+                : candidates.length > 0 && <p className="text-sm text-muted-foreground">請先移轉所有權，再退出組織。</p>}
+            </div>
+          </PagePanel>
+        </TabsContent>
+      </Tabs>
     </>}
   </>;
 }

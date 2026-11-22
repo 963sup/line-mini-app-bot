@@ -88,20 +88,20 @@ function AuthenticatedWorkspace() {
 
   const active = selected.id === route.owner ? selected.item : null;
   const selectProject = useCallback((id: string) => navigate(route.owner, id, route.source), [navigate, route.owner, route.source]);
-  return <>
+  return <div className="flex min-w-0 flex-col gap-4">
     {(active || (user && route.owner === user.userId)) && <View key={route.owner} ownerId={route.owner} projectId={route.project} initialSource={route.source} onSelect={selectProject} onBlocked={onBlocked} canWrite={canWrite} />}
-    <PagePanel heading="專案群組">
+    <PagePanel heading="專案群組" description="選擇個人或群組，開啟對應的專案。">
       <Status role="status">{status}</Status>
       {listFailed && !writeBlocked && <Button type="button" variant="outline" onClick={() => load()}>重試讀取</Button>}
       <Button disabled={writeBlocked} onClick={() => user && navigate(user.userId)}>我的個人專案</Button>
-      <ItemGroup>
-        {groups.map(group => <Item key={group.id} variant="outline"><ItemContent><ItemTitle>
-          <Button variant="link" disabled={writeBlocked} aria-current={group.id === route.owner ? "page" : undefined} onClick={() => navigate(group.id)}>{group.name || "工程群組"}</Button>
+      <ItemGroup className="gap-3">
+        {groups.map(group => <Item key={group.id} variant="outline" role="listitem"><ItemContent className="min-w-0"><ItemTitle className="min-w-0 max-w-full">
+          <Button variant="link" className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]" disabled={writeBlocked} aria-current={group.id === route.owner ? "page" : undefined} onClick={() => navigate(group.id)}>{group.name || "工程群組"}</Button>
         </ItemTitle></ItemContent></Item>)}
       </ItemGroup>
       {cursor && <Button variant="outline" disabled={busy || writeBlocked} onClick={() => load(cursor)}>載入更多專案群組</Button>}
       {ready && !route.owner && <p>請選擇個人或群組專案。</p>}
       <Status role="status">{detailStatus}</Status>
     </PagePanel>
-  </>;
+  </div>;
 }

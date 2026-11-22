@@ -1,5 +1,9 @@
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/shared/ui/accordion";
-import { Item } from "@/shared/ui/item";
+import { Item, ItemContent, ItemGroup, ItemTitle } from "@/shared/ui/item";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyMedia } from "@/shared/ui/empty";
+import { FieldGroup } from "@/shared/ui/field";
+import { FileTextIcon } from "lucide-react";
+import { ReadFeedback } from "@/shared/ReadFeedback";
 import { useEffect, useRef, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
@@ -25,7 +29,7 @@ function Markdown({ body }: { body: string }) {
       const link = /^\[([^\]]+)\]\((https?:\/\/[^\s()]+)\)$/.exec(part);
       return link ? <a className="underline" key={j} href={link[2]}>{link[1]}</a> : part;
     });
-    return /^#{1,3} /.test(line) ? <h3 key={i}>{parts}</h3> : <p key={i}>{line ? parts : <br/>}</p>;
+    return /^#{1,3} /.test(line) ? <h3 className="mt-4 mb-2 font-semibold" key={i}>{parts}</h3> : <p key={i}>{line ? parts : <br/>}</p>;
   })}</div>;
 }
 
@@ -74,16 +78,25 @@ export function View({repositoryId, initialId}: {repositoryId:string; initialId:
         fail(e, unknown);
       });
   }
-  return <PagePanel heading="知識庫 Wiki">
+  return <PagePanel heading="知識庫 Wiki" description="整理儲存庫的共用知識，並保留每次編輯的版本紀錄。">
     {message && <Status role="status">{message}</Status>}
     {!draft && !id && <><Button disabled={busy} onClick={()=>{key.current=crypto.randomUUID();setDraft({title:"",body:""});}}>建立頁面</Button>
-      {busy && <p role="status">正在讀取 Wiki 目錄……</p>}
-      {!busy && !message && !items.length && !cursor && <p>目前沒有 Wiki 頁面。</p>}
-      <ul>{items.map(p=><li key={p.id}><Item asChild size="sm"><a href={link(p.id)}>{p.title}</a></Item></li>)}</ul>
+      <ReadFeedback busy={busy} label="正在讀取 Wiki 目錄……" />
+      {!busy && !message && !items.length && !cursor && <Empty><EmptyHeader>
+        <EmptyMedia variant="icon"><FileTextIcon /></EmptyMedia>
+        <EmptyTitle>目前沒有 Wiki 頁面。</EmptyTitle>
+        <EmptyDescription>選擇「建立頁面」，開始整理共用知識。</EmptyDescription>
+      </EmptyHeader></Empty>}
+      <ItemGroup className="gap-3">{items.map(p=><div key={p.id} role="listitem"><Item asChild variant="outline"><a href={link(p.id)}>
+        <ItemContent className="min-w-0"><ItemTitle className="max-w-full [overflow-wrap:anywhere]">{p.title}</ItemTitle></ItemContent>
+      </a></Item></div>)}</ItemGroup>
       {cursor && <Button disabled={busy} onClick={()=>load(cursor)}>更多頁面</Button>}</>}
-    {!draft && page && <><h2>{page.title}</h2><Markdown body={page.body}/><a href={link(page.id)}>此頁永久連結</a>
-      <Button disabled={busy} onClick={()=>setDraft({title:page.title,body:page.body})}>編輯</Button>
-      <Button disabled={busy} onClick={()=>versions()}>版本歷史</Button>
+    {!draft && page && <><h2 className="text-xl font-semibold [overflow-wrap:anywhere]">{page.title}</h2><Markdown body={page.body}/>
+      <div className="flex flex-wrap gap-2">
+        <Button disabled={busy} onClick={()=>setDraft({title:page.title,body:page.body})}>編輯</Button>
+        <Button variant="outline" disabled={busy} onClick={()=>versions()}>版本歷史</Button>
+        <Button asChild variant="outline"><a href={link(page.id)}>此頁永久連結</a></Button>
+      </div>
       {history.length > 0 && <Accordion type="multiple" key={page.id}>
         {history.map(p => <AccordionItem key={p.version} value={String(p.version)}>
           <AccordionTrigger>第 {p.version} 版 · {p.title} · {p.authorId} · {p.updatedAt}</AccordionTrigger>
@@ -91,18 +104,22 @@ export function View({repositoryId, initialId}: {repositoryId:string; initialId:
         </AccordionItem>)}
       </Accordion>}
       {historyCursor && <Button disabled={busy} onClick={()=>versions(historyCursor)}>更早版本</Button>}</>}
-    {!draft && id && <Button disabled={busy} onClick={()=>{setPage(null);setId("");}}>返回目錄</Button>}
-    {!draft && message && <Button disabled={busy} onClick={()=>load()}>重新讀取</Button>}
+    {!draft && id && <Button variant="outline" disabled={busy} onClick={()=>{setPage(null);setId("");}}>返回目錄</Button>}
+    {!draft && message && <Button variant="outline" disabled={busy} onClick={()=>load()}>重新讀取</Button>}
     {draft && <form onSubmit={e=>{e.preventDefault();save();}}>
-      <FormField>標題<Input ref={titleInput} required maxLength={120} disabled={busy||uncertain} value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})}/></FormField>
-      <FormField>Markdown 內容<Textarea maxLength={32000} disabled={busy||uncertain} value={draft.body} onChange={e=>setDraft({...draft,body:e.target.value})}/></FormField>
+      <FieldGroup>
+        <FormField>標題<Input ref={titleInput} required maxLength={120} disabled={busy||uncertain} value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})}/></FormField>
+        <FormField>Markdown 內容<Textarea rows={12} className="min-h-64" maxLength={32000} disabled={busy||uncertain} value={draft.body} onChange={e=>setDraft({...draft,body:e.target.value})}/></FormField>
       {compare && <Button type="button" disabled={busy} onClick={()=>{setBusy(true);void run(signal=>request((c,s)=>c.GET(detail,{signal:s,params:{path}}),{signal}),p=>{setPage(p);setCompare(false);setBusy(false);setMessage("已載入目前版本。請比對草稿後再儲存。");},fail);}}>讀取目前版本以比對</Button>}
       {page && <Collapsible key={page.version}>
         <CollapsibleTrigger asChild><Button type="button" variant="outline" className="h-auto max-w-full whitespace-normal text-left"><span className="min-w-0 break-words">對照第 {page.version} 版 · {page.title}</span></Button></CollapsibleTrigger>
         <CollapsibleContent><Markdown body={page.body}/></CollapsibleContent>
       </Collapsible>}
-      <Button type="submit" disabled={busy||compare}>{uncertain?"重試原建立請求":"儲存"}</Button>
-      <Button type="button" disabled={busy||uncertain} onClick={()=>{setDraft(null);setCompare(false);setMessage("");}}>取消編輯</Button>
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" disabled={busy||compare}>{uncertain?"重試原建立請求":"儲存"}</Button>
+        <Button type="button" variant="outline" disabled={busy||uncertain} onClick={()=>{setDraft(null);setCompare(false);setMessage("");}}>取消編輯</Button>
+      </div>
+      </FieldGroup>
     </form>}
   </PagePanel>;
 }

@@ -1,3 +1,4 @@
+import { Enterprise } from "../src/business/enterprise/Enterprise";
 import React from "react";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -870,4 +871,47 @@ test("a denied corrections reload clears previously readable requests",async()=>
     assert.match(document.body.textContent!, /權限已變更/);
     assert.doesNotMatch(document.body.textContent!, /目前沒有補卡審核權限/);
   }finally{await f.dispose();}
+});
+
+test("enterprise creation retains its original name after a lost response and later denial", async () => {
+  const names: string[] = [];
+  let saved = "";
+  const f = await fixture(<Enterprise id="new" canCreate onSaved={id => {saved=id;}} />, "", async (r,next) => {
+    if (!r.url.endsWith("/enterprises") || r.method !== "POST") return next(r);
+    names.push((await r.clone().json()).name);
+    if (names.length === 1) throw new Error("connection lost");
+    if (names.length === 2) return Response.json({error:{code:"forbidden",message:"denied",retrySameRequest:false}},{status:403});
+    return Response.json({id:"existing",name:names[0]});
+  });
+  try {
+    const input = document.querySelector<HTMLInputElement>('input[name=value]')!;
+    const submit = async () => act(async () => {input.form!.requestSubmit();await flush();});
+    input.value = "原企業"; await submit();
+    assert.equal(input.readOnly,true);
+    input.value = "編輯後名稱"; await submit(); await submit();
+    assert.deepEqual(names,["原企業","原企業","原企業"]);
+    assert.equal(saved,"existing");
+  } finally {await f.dispose();}
+});
+
+test("enterprise management denial refreshes permissions and removes stale data", async () => {
+  let denied = false;
+  const f = await fixture(<Enterprise id="hq" onSaved={() => {}} />, "", async (r,next) => {
+    if (r.url.endsWith("/enterprises/hq/owners")) {
+      denied=true;
+      return Response.json({error:{code:"forbidden",message:"權限已變更"}},{status:403});
+    }
+    if (r.url.endsWith("/enterprises/hq")) return Response.json({
+      id:"hq",name:"企業",canManage:!denied, teams:[], organizations:denied ? [] : [{id:"private",name:"過期組織"}],
+    });
+    return next(r);
+  });
+  try {
+    const owner = [...document.querySelectorAll("form")].find(form => form.textContent?.includes("新增企業 Owner"))!;
+    owner.querySelector("input")!.value="member";
+    await act(async () => {owner.requestSubmit();await flush();});
+    assert.ok(denied);
+    assert.ok([...document.querySelectorAll("h2")].some(heading => heading.textContent === "企業"));
+    assert.doesNotMatch(document.body.textContent!,/新增企業 Owner|加入組織|過期組織/);
+  } finally {await f.dispose();}
 });

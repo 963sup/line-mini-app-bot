@@ -12,7 +12,10 @@ import { ReadFeedback } from "@/shared/ReadFeedback";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
-import { FieldGroup, FieldSet } from "@/shared/ui/field";
+import { FieldGroup, FieldSet, FieldLegend } from "@/shared/ui/field";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
+import { Item, ItemContent, ItemGroup, ItemTitle } from "@/shared/ui/item";
+import { Badge } from "@/shared/ui/badge";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 
 type Snapshot = components["schemas"]["ObjectTemplate"];
@@ -138,7 +141,7 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied, initia
   }
   return <>
     {!standalone && <Button ref={trigger} variant="outline" disabled={disabled || open} onClick={() => { if (!guard.canWrite()) return; onBlocked(true); setOpen(true); load(); }}>物件範本</Button>}
-    {open && <PagePanel heading="物件範本"><section ref={panel} tabIndex={-1} aria-label="物件範本操作" className="flex min-w-0 flex-col gap-3">
+    {open && <PagePanel heading="物件範本" description="選擇或建立範本，確認物件與工序後套用到儲存庫。"><section ref={panel} tabIndex={-1} aria-label="物件範本操作" className="flex min-w-0 flex-col gap-4 outline-none">
       <ReadFeedback busy={reading || busy} message={message} label="正在讀取範本……" />
       {!standalone && !plan && scope === "personal" && <Candidates repositoryId={repositoryId} disabled={busy || uncertain || creating} importDraft={(filename, candidates) => { setDraft(documentDraft(filename, candidates)); setCreating(true); }} />}
       {!creating && !plan && <>
@@ -153,8 +156,13 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied, initia
           <NativeSelectOption value="">請選擇</NativeSelectOption>
           {items.map(item => <NativeSelectOption key={item.id} value={item.id}>{item.name} · v{item.version}</NativeSelectOption>)}
         </NativeSelect></FormField>
-        {snapshot && <ul aria-label="範本節點">{snapshot.nodes.map(node => <li key={node.id} className="[overflow-wrap:anywhere]">{node.name}{node.parentId ? `（父節點：${snapshot.nodes.find(parent => parent.id === node.parentId)?.name || node.parentId}）` : "（根節點）"}</li>)}</ul>}
-        {!reading && !items.length && <p>尚無範本，請先建立。</p>}
+        {snapshot && <ItemGroup aria-label="範本節點" className="gap-3">{snapshot.nodes.map(node => <Item key={node.id} role="listitem" variant="outline">
+          <ItemContent className="min-w-0">
+            <ItemTitle className="max-w-full flex-wrap [overflow-wrap:anywhere]">{node.name}{!node.parentId && <Badge variant="secondary">根節點</Badge>}</ItemTitle>
+            {node.parentId && <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">父節點：{snapshot.nodes.find(parent => parent.id === node.parentId)?.name || node.parentId}</p>}
+          </ItemContent>
+        </Item>)}</ItemGroup>}
+        {!reading && !busy && !message && !items.length && <Empty><EmptyHeader><EmptyTitle>尚無範本，請先建立。</EmptyTitle><EmptyDescription>選擇「新增範本」，整理可重複使用的物件與工序。</EmptyDescription></EmptyHeader></Empty>}
         <div className="flex flex-wrap gap-2">
           <Button disabled={!snapshot || busy || uncertain} onClick={() => { if (snapshot) setPlan(structuredClone(snapshot.nodes)); }}>使用範本</Button>
           <Button variant="outline" disabled={busy || uncertain || reading} onClick={() => setCreating(true)}>新增範本</Button>
@@ -170,7 +178,8 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied, initia
         {plan.map(node => {
           const removed = isRemoved(node.id);
           const descendants = descendantsOf(node.id);
-          return <FieldGroup key={node.id}>
+          return <FieldSet key={node.id}>
+            <FieldLegend>{node.parentId ? "工序" : "根物件"}</FieldLegend>
             <FormField>物件名稱<NodeName required maxLength={120} disabled={removed} value={node.name} onChange={event => editNode(node.id, { name: event.target.value })} /></FormField>
             {node.parentId && <p>父物件：{byID.get(node.parentId)?.name}</p>}
             <div className="grid grid-cols-2 gap-2">
@@ -180,7 +189,7 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied, initia
             {node.parentId && !removed && descendants.length > 0 && <p>移除時一併移除：{descendants.map(child => child.name).join("、")}</p>}
             {node.parentId && (!removed || excluded.includes(node.id)) && <Button type="button" variant="outline" onClick={() => setExcluded(previous => removed ? previous.filter(id => id !== node.id) : [...previous, node.id])}>{removed ? "復原工序" : "移除工序（含子工序）"}</Button>}
             {removed && <p>本次不建立</p>}
-          </FieldGroup>;
+          </FieldSet>;
         })}
         <Button type="submit" disabled={!targetRepository}>建立 {retained.length} 個物件</Button>
         <Button type="button" variant="outline" onClick={() => discard.navigate(() => { setPlan(undefined); setExcluded([]); })}>返回範本</Button>
@@ -189,7 +198,8 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied, initia
       {creating && <form onSubmit={create}><FieldGroup><FieldSet disabled={busy || uncertain}>
         <FormField>範本名稱<Input required maxLength={120} value={draft.name} onChange={event => setDraft(previous => ({ ...previous, name: event.target.value }))} /></FormField>
         {nameTooLong(draft.name) && <p role="alert">範本名稱超過 120 字。</p>}
-        {draft.nodes.map((node, index) => <FieldGroup key={node.id}>
+        {draft.nodes.map((node, index) => <FieldSet key={node.id}>
+          <FieldLegend>{index === 0 ? "根物件" : `節點 ${index + 1}`}</FieldLegend>
           <FormField>{index === 0 ? "根物件名稱" : `節點 ${index + 1} 名稱`}<NodeName required maxLength={120} value={node.name} onChange={event => setDraft(previous => ({ ...previous, nodes: previous.nodes.map(n => n.id === node.id ? { ...n, name: event.target.value } : n) }))} /></FormField>
           {nameTooLong(node.name) && <p role="alert">此工項名稱超過 120 字，請先修正。</p>}
           {scope === "personal" && <FormField>{`節點 ${index + 1} 單位`}<Input maxLength={32} value={node.unit ?? ""} onChange={event => setDraft(previous => ({ ...previous, nodes: previous.nodes.map(n => n.id === node.id ? { ...n, unit: event.target.value } : n) }))} /></FormField>}
@@ -197,7 +207,7 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied, initia
             {draft.nodes.filter(n => n.id !== node.id).map(n => <NativeSelectOption key={n.id} value={n.id}>{n.name || "未命名節點"}</NativeSelectOption>)}
           </NativeSelect></FormField>}
           {scope === "personal" && index > 0 && <Button type="button" variant="outline" onClick={() => setDraft(previous => ({ ...previous, nodes: removeDraftBranch(previous.nodes, node.id) }))}>移除工序（含子工序）</Button>}
-        </FieldGroup>)}
+        </FieldSet>)}
         <Button type="button" variant="outline" disabled={draft.nodes.length >= 100} onClick={() => setDraft(previous => ({ ...previous, nodes: [...previous.nodes, { id: crypto.randomUUID(), parentId: "root", name: "" }] }))}>新增節點</Button>
         <Button type="submit" disabled={draft.nodes.length > 100 || draftTooLong}>建立範本</Button>
       </FieldSet></FieldGroup></form>}

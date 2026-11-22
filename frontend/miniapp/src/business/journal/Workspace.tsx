@@ -9,6 +9,9 @@ import { FormField } from "@/shared/FormField";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
+import { FieldGroup } from "@/shared/ui/field";
+import { Badge } from "@/shared/ui/badge";
+import { Item, ItemContent, ItemGroup, ItemTitle } from "@/shared/ui/item";
 import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
 import { Status } from "@/shared/Status";
 import { collect } from "./pagination";
@@ -33,7 +36,7 @@ type WorkspaceProps = {
 
 export function JournalWorkspace({dashboard, journalId = "", repositoryId = "", onSelectRepository, onCloseComposer}: WorkspaceProps) {
   const {user,epoch,request}=useSession();
-  if(!user)return <p role="status">{onCloseComposer ? "請先登入以撰寫日誌。" : "請先登入以查閱儲存庫日誌。"}</p>;
+  if(!user)return <Status>{onCloseComposer ? "請先登入以撰寫日誌。" : "請先登入以查閱儲存庫日誌。"}</Status>;
   const sessionKey = epoch + ":" + user.userId;
   return onCloseComposer
     ? <ComposeView key={sessionKey + ":" + repositoryId} request={request} repositoryId={repositoryId} onSelectRepository={onSelectRepository} close={onCloseComposer} />
@@ -88,26 +91,43 @@ function View({dashboard,request,detail,repositoryId: initialRepositoryId}:{dash
   useEffect(()=>{load();return list.cancel;},[date,revision,detail,dashboard,request,repositoryId]);
   const repositoryName = repositories?.find(repo=>repo.id===repositoryId)?.name;
   const renderEntry = (j:Journal) => <PagePanel key={j.id} heading={j.workDate+" · "+(repositoryName||"工程日誌")}>
-    {Object.entries(roles).map(([key,label])=><p key={key}>{label}：{j.personnel[key as keyof typeof roles].join("、")||"未填"}</p>)}
-    {([["今日工作",j.todayItems],["明日計畫",j.tomorrowItems]] as const).map(([title,items])=><section key={title}><h3>{title}</h3>{items.length?<ul>{items.map((i,k)=><li key={k}>{i.name} · {"completionPercent" in i?i.completionPercent:i.expectedCompletionPercent}%
-      {i.objectName && <> · {i.objectName}</>}{!!i.spaceNames?.length && <> · {i.spaceNames.join("、")}</>}
-      {i.reference&&(i.reference.type === "repository" || j.groupId)&&<a href={i.reference.type==="repository"?"/miniapp/repositories?selected="+i.reference.id:"/miniapp/projects?owner="+j.groupId+"&project="+i.reference.id}> · {i.reference.type==="repository"?"儲存庫":"專案"}</a>}</li>)}</ul>:<p>未填</p>}</section>)}
+    <dl className="grid gap-3 text-sm sm:grid-cols-3">
+      {Object.entries(roles).map(([key,label]) => <div key={key} className="min-w-0">
+        <dt className="text-muted-foreground">{label}</dt>
+        <dd className="[overflow-wrap:anywhere]">{j.personnel[key as keyof typeof roles].join("、") || "未填"}</dd>
+      </div>)}
+    </dl>
+    {([["今日工作",j.todayItems],["明日計畫",j.tomorrowItems]] as const).map(([title,items]) => <section key={title} aria-label={title} className="flex min-w-0 flex-col gap-3">
+      <h3 className="text-sm font-medium">{title}</h3>
+      {items.length ? <ItemGroup className="gap-3">{items.map((item,index) => <Item key={index} role="listitem" variant="outline">
+        <ItemContent className="min-w-0">
+          <ItemTitle className="max-w-full flex-wrap [overflow-wrap:anywhere]">{item.name}<Badge variant="secondary">{"completionPercent" in item ? item.completionPercent : item.expectedCompletionPercent}%</Badge></ItemTitle>
+          {item.objectName && <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{item.objectName}</p>}
+          {!!item.spaceNames?.length && <p className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{item.spaceNames.join("、")}</p>}
+          {item.reference && (item.reference.type === "repository" || j.groupId) && <Button asChild variant="link" className="self-start">
+            <a href={item.reference.type === "repository" ? "/miniapp/repositories?selected=" + item.reference.id : "/miniapp/projects?owner=" + j.groupId + "&project=" + item.reference.id}>{item.reference.type === "repository" ? "儲存庫" : "專案"}</a>
+          </Button>}
+        </ItemContent>
+      </Item>)}</ItemGroup> : <Empty><EmptyHeader><EmptyTitle>未填</EmptyTitle></EmptyHeader></Empty>}
+    </section>)}
     {detail && j.repositoryId && <CopyJournalLink id={j.id} repositoryId={j.repositoryId} />}
-    {!detail&&<a href={"/miniapp/feed?" + new URLSearchParams({journalId:j.id,...(repositoryId?{repositoryId}:{})})}>查看原文</a>}
+    {!detail&&<Button asChild variant="outline" className="self-start"><a href={"/miniapp/feed?" + new URLSearchParams({journalId:j.id,...(repositoryId?{repositoryId}:{})})}>查看原文</a></Button>}
   </PagePanel>;
-  return <><PagePanel heading={repositoryId?"工程日誌":dashboard?"工作概況":"工作牆"}>
-    {detail?<a href={"/miniapp/feed" + (repositoryId ? "?repositoryId=" + encodeURIComponent(repositoryId) : "")}>返回日誌</a>:repositoryId?<Button asChild><a href={"/miniapp/feed?" + new URLSearchParams({repositoryId,compose:"1"})}>寫日誌</a></Button>:null}
+  return <div className="flex min-w-0 flex-col gap-4"><PagePanel heading={repositoryId?"工程日誌":dashboard?"工作概況":"工作牆"}>
+    {detail?<Button asChild variant="outline" className="self-start"><a href={"/miniapp/feed" + (repositoryId ? "?repositoryId=" + encodeURIComponent(repositoryId) : "")}>返回日誌</a></Button>:repositoryId?<Button asChild><a href={"/miniapp/feed?" + new URLSearchParams({repositoryId,compose:"1"})}>寫日誌</a></Button>:null}
+    <FieldGroup>
     {!detail && (repositories === null
       ? !catalogError && <ReadFeedback busy label="正在讀取儲存庫……" />
       : repositories.length ? <FormField>儲存庫 <NativeSelect value={repositoryId} onChange={event=>setRepositoryId(event.target.value)}>
           {repositoryId && !repositories.some(repo=>repo.id===repositoryId) && <NativeSelectOption value={repositoryId}>{repositoryId}</NativeSelectOption>}
           {repositories.map(repo=><NativeSelectOption key={repo.id} value={repo.id}>{repo.name||repo.id}</NativeSelectOption>)}
-        </NativeSelect></FormField> : <p>目前沒有可用的儲存庫。</p>)}
+        </NativeSelect></FormField> : <Empty><EmptyHeader><EmptyTitle>目前沒有可用的儲存庫。</EmptyTitle></EmptyHeader></Empty>)}
     {(dashboard||!!repositoryId)&&!detail&&<FormField>工作日期<Input type="date" value={date} onChange={e=>setDate(e.target.value)}/></FormField>}
-    {(error||catalogError)&&<Alert variant="destructive"><AlertDescription>{error||catalogError}<Button onClick={()=>reload(v=>v+1)}>重新讀取</Button></AlertDescription></Alert>}
+    </FieldGroup>
+    {(error||catalogError)&&<Alert variant="destructive"><AlertDescription>{error||catalogError}<Button variant="outline" onClick={()=>reload(v=>v+1)}>重新讀取</Button></AlertDescription></Alert>}
   </PagePanel>
   <ReadFeedback busy={busy} label="正在讀取日誌……" />
   {(detail||repositoryId)&&!busy&&!error&&!catalogError&&!entries.length&&<Empty><EmptyHeader><EmptyTitle>目前條件下沒有日誌。</EmptyTitle></EmptyHeader></Empty>}
   {dashboard?<RepositoryChart entries={entries} name={repositoryName||repositoryId} renderEntry={renderEntry}/>:entries.map(renderEntry)}
-  {cursor&&<Button disabled={busy} onClick={()=>load(cursor)}>載入更多</Button>}</>;
+  {cursor&&<Button disabled={busy} onClick={()=>load(cursor)}>載入更多</Button>}</div>;
 }

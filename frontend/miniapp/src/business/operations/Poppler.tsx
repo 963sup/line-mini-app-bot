@@ -5,7 +5,10 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/shared/ui/field";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
+import { PagePanel } from "@/shared/PagePanel";
+import { Status } from "@/shared/Status";
+import { Spinner } from "@/shared/ui/spinner";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
 
 function encode(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -46,12 +49,7 @@ export function Poppler() {
     });
   }
 
-  return <Card>
-    <CardHeader>
-      <CardTitle>PDF 文字擷取</CardTitle>
-      <CardDescription>上傳 PDF 測試文字擷取與標準化。文件只用於本次處理，不儲存，也不送至 AI。</CardDescription>
-    </CardHeader>
-    <CardContent className="flex flex-col gap-4">
+  return <PagePanel heading="PDF 文字擷取" description="上傳 PDF 測試文字擷取與標準化。文件只用於本次處理，不儲存，也不送至 AI。">
       <form onSubmit={extract}>
         <FieldGroup>
           <Field>
@@ -61,10 +59,14 @@ export function Poppler() {
             }} />
             <FieldDescription>每份文件最多 8 MiB，擷取時間上限 30 秒。</FieldDescription>
           </Field>
-          <Field><Button type="submit" disabled={busy || !file || !user}>{busy ? "正在擷取……" : "擷取文字"}</Button></Field>
+          <Field><Button type="submit" disabled={busy || !file || !user}>{busy && <Spinner data-icon="inline-start" aria-hidden="true" />}{busy ? "正在擷取……" : "擷取文字"}</Button></Field>
         </FieldGroup>
       </form>
-      <p role="status" aria-live="polite">{notice}</p>
+      <Status>{notice}</Status>
+      {!busy && text === undefined && !notice && <Empty><EmptyHeader>
+        <EmptyTitle>尚未擷取文字</EmptyTitle>
+        <EmptyDescription>選擇 PDF 後按「擷取文字」，結果會顯示於此，也可下載文字原檔。</EmptyDescription>
+      </EmptyHeader></Empty>}
       {text !== undefined && <FieldGroup>
         <Field>
           <FieldLabel htmlFor="poppler-output">擷取結果</FieldLabel>
@@ -77,6 +79,5 @@ export function Poppler() {
           setTimeout(() => URL.revokeObjectURL(url), 1000);
         }}>下載文字原檔</Button></Field>
       </FieldGroup>}
-    </CardContent>
-  </Card>;
+  </PagePanel>;
 }

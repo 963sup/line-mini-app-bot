@@ -230,8 +230,7 @@ function Content({ repositoryId }: Props) {
       <Button type="button" variant="outline" disabled={busy || uncertain || needsRefresh || subBlocked} onClick={close}>{canEdit || mode === "create" ? "取消" : "關閉"}</Button>
     </section>;
   return <>
-    <PagePanel heading="物件" className="w-full min-w-0">
-      <p className="mb-4 text-sm text-muted-foreground">先記下物件名稱，其他資料確定後再補。成員可新增，僅建立者可編輯。</p>
+    <PagePanel heading="物件" description="先記下物件名稱，其他資料確定後再補。成員可新增，僅建立者可編輯。" className="w-full min-w-0">
       <div className="mb-4 flex flex-wrap gap-2">
         <Button disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={event => openCreateForm(event.currentTarget)}>新增物件</Button>
       </div>

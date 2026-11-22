@@ -177,8 +177,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
       <Button type="button" variant="outline" disabled={busy || createOutcomeUnknown || needsRefresh} onClick={close}>{canEdit || mode === "create" ? "取消" : "關閉"}</Button>
     </section>;
   return <>
-    <PagePanel heading="問題">
-      <p className="mb-4 text-sm text-muted-foreground">空間成員可整理標籤及里程碑；問題內容與狀態由建立者修改。</p>
+    <PagePanel heading="問題" description="空間成員可整理標籤及里程碑；問題內容與狀態由建立者修改。">
       <div className="mb-4 flex flex-wrap gap-2">
         <Button disabled={!user || busy || createOutcomeUnknown || needsRefresh} onClick={event => openCreateForm(event.currentTarget)}>新增問題</Button>
       </div>

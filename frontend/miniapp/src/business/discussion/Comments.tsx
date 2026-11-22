@@ -91,8 +91,7 @@ export function Comments({repositoryId,discussionId,onWriteStateChange}:{reposit
       error=>{lock.current=false;recoveryTarget.current=item;onWriteStateChange(true);setBusy(false);setNeedsRefresh(true);setStatus(errorMessage(error)+" 請重新載入留言後再編輯。");},
     );
   }
-  return <PagePanel heading="留言">
-    <p className="mb-4 text-sm text-muted-foreground">空間成員可留言，每則留言由自己的作者編輯；目前提供單層留言。</p>
+  return <PagePanel heading="留言" description="空間成員可留言，每則留言由自己的作者編輯；目前提供單層留言。">
     <Button variant="outline" disabled={!user||readBusy||busy||uncertain} onClick={()=>{if(recoveryTarget.current){load();return;}discard.navigate(()=>{setBody("");setEditBody("");setEditing(null);load();});}}>重新載入留言</Button>
     <ReadFeedback busy={readBusy} message={listStatus} label="正在讀取留言……" />
     <ItemGroup className="gap-3">

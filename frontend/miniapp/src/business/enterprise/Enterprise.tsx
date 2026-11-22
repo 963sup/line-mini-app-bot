@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
-import { useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
+import { useLatestRequest, errorMessage, rejectedAttempt } from "@/shared/http/lifecycle";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
 
@@ -15,13 +15,18 @@ export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
     { run, cancel } = useLatestRequest();
   const [view, setView] = useState<components["schemas"]["Enterprise"]>(),
     [busy, setBusy] = useState(false),
+    [retryName, setRetryName] = useState(""),
+    [revision, setRevision] = useState(0),
+    [readFailed, setReadFailed] = useState(false),
     [message, setMessage] = useState("");
+  const writing = useRef(false);
   const create = id === "new";
   const eligibilityMessage = create && (canCreate === undefined
     ? eligibilityError
     : !canCreate && "帳號尚無可用的企業開通資格。");
   useEffect(() => {
     if (!user || create) return;
+    setReadFailed(false);
     void run(
       (signal) =>
         request(
@@ -33,10 +38,10 @@ export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
           { signal },
         ),
       setView,
-      (e) => setMessage(errorMessage(e)),
+      (e) => {setView(undefined);setReadFailed(true);setMessage(errorMessage(e));},
     );
     return cancel;
-  }, [id, create, user, request, run, cancel]);
+  }, [id, create, user, request, run, cancel, revision]);
   function form(
     kind: "create" | "owner" | "organization",
     label: string,
@@ -46,11 +51,12 @@ export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          if (busy) return;
-          const value = String(
+          if (writing.current) return;
+          const value = retryName || String(
             new FormData(event.currentTarget).get("value") ?? "",
           ).trim();
           if (!value) return;
+          writing.current = true;
           setBusy(true);
           setMessage("");
           const params = { path: { enterpriseId: id } };
@@ -81,7 +87,18 @@ export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
               ),
             (v) => onSaved(v.id),
             (e) => {
+              writing.current = false;
               setBusy(false);
+              if (kind === "create" && (retryName || !rejectedAttempt(e, ["conflict"]))) {
+                setRetryName(value);
+                setMessage(errorMessage(e) + " 建立結果待確認，請沿用原企業名稱重試。");
+                return;
+              }
+              const status = (e as {httpStatus?: number})?.httpStatus;
+              if (kind !== "create" && (status === 401 || status === 403 || status === 404)) {
+                setView(undefined);
+                setRevision(previous => previous + 1);
+              }
               setMessage(errorMessage(e));
             },
           );
@@ -90,9 +107,9 @@ export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
       >
         <label>
           {label}
-          <Input name="value" required disabled={busy} />
+          <Input name="value" required readOnly={!!retryName} disabled={busy} />
         </label>
-        <Button disabled={busy}>{action}</Button>
+        <Button disabled={busy}>{retryName ? "重試原企業名稱" : action}</Button>
       </form>
     );
   }
@@ -100,6 +117,7 @@ export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
   return (
     <section className="grid gap-4">
       {(message || eligibilityMessage) && <p role="status">{message || eligibilityMessage}</p>}
+      {readFailed && <Button onClick={() => {setMessage("");setRevision(previous => previous + 1);}}>重新讀取企業</Button>}
       {create && canCreate && form("create", "企業名稱", "建立企業")}
       {view && (
         <>

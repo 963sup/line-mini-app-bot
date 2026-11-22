@@ -142,8 +142,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
     );
   }
   return <>
-    <PagePanel heading="討論">
-      <p className="mb-4 text-sm text-muted-foreground">空間成員可整理討論標籤；主題正文與留言各由作者編輯。</p>
+    <PagePanel heading="討論" description="空間成員可整理討論標籤；主題正文與留言各由作者編輯。">
       <div className="mb-4 flex flex-wrap gap-2">
         <Button disabled={!user || busy || createOutcomeUnknown || needsRefresh || commentsBlocked} onClick={openCreateForm}>發起討論</Button>
       </div>

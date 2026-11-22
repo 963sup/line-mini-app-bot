@@ -135,9 +135,9 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
       },
     );
   }
-  return <>
-    <PagePanel heading="專案">
-      <div className="mb-4 flex flex-wrap gap-2">
+  return <div className="flex min-w-0 flex-col gap-4">
+    <PagePanel heading="專案" description="建立個人或群組專案，並整理相關的物件、問題與討論。">
+      <div className="flex flex-wrap gap-2">
         <Button disabled={!user || busy || uncertain || referencesBlocked} onClick={openCreateForm}>新增專案</Button>
         <Button variant="outline" disabled={!user || listBusy || busy || uncertain || referencesBlocked} onClick={() => load()}>重新載入專案</Button>
       </div>
@@ -145,8 +145,8 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
       {!mode && <Status role="status">{status}</Status>}
       <ItemGroup className="gap-3">
         {items.map((item) => <Item key={item.id} variant="outline" role="listitem">
-          <ItemContent>
-            <ItemTitle><Button variant="link" className="h-auto whitespace-normal text-left" disabled={busy || detailBusy || uncertain || referencesBlocked} onClick={() => { if (lock.current || unknown.current || referenceLock.current || !canWrite()) return; navigation.current = true; onSelect(item.id); }}>{item.title}</Button></ItemTitle>
+          <ItemContent className="min-w-0">
+            <ItemTitle className="min-w-0 max-w-full"><Button variant="link" className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || detailBusy || uncertain || referencesBlocked} onClick={() => { if (lock.current || unknown.current || referenceLock.current || !canWrite()) return; navigation.current = true; onSelect(item.id); }}>{item.title}</Button></ItemTitle>
 
           </ItemContent>
         </Item>)}
@@ -154,9 +154,9 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
       {loaded && !items.length && <Empty><EmptyHeader><EmptyTitle>{cursor ? "本頁沒有專案" : "目前沒有專案"}</EmptyTitle><EmptyDescription>{cursor ? "請繼續載入下一頁。" : "可建立新的專案。"}</EmptyDescription></EmptyHeader></Empty>}
       {cursor && <Button variant="outline" disabled={listBusy || busy || uncertain || referencesBlocked} onClick={() => load(cursor)}>載入更多專案</Button>}
     </PagePanel>
-    {mode && <PagePanel heading={mode === "create" ? "新增專案" : selected ? selected.title : "專案詳情"}>
+    {mode && <PagePanel heading={mode === "create" ? "新增專案" : "專案詳情"} description={selected && <span className="block [overflow-wrap:anywhere]">{selected.title}</span>}>
       <Status role="status">{status}</Status>
-      {mode === "detail" && /^[a-f0-9]{32}$/.test(projectId) && <div className="mb-4 flex flex-wrap items-center gap-2">
+      {mode === "detail" && /^[a-f0-9]{32}$/.test(projectId) && <div className="flex flex-wrap items-center gap-2">
 
         <Button variant="outline" disabled={busy || detailBusy || referencesBlocked} onClick={() => open(projectId)}>重新讀取專案</Button>
       </div>}
@@ -165,7 +165,7 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
           {mode === "create" && <SourcePicker key={ownerId} ownerId={ownerId} initialSource={initialSource} value={sourceRepositoryId} onChange={setSourceRepositoryId} disabled={busy || uncertain} />}
           <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || referencesBlocked || uncertain || needsRefresh || (mode === "detail" && !canEdit)}>
             <FormField>標題<Input required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} /></FormField>
-            <FormField>內容<Textarea maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} /></FormField>
+            <FormField>內容<Textarea className="min-h-40" maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} /></FormField>
           </FieldSet>
 
           {(mode === "create" || canEdit) && <div className="flex flex-wrap gap-2">
@@ -175,5 +175,5 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
       </form>}
     </PagePanel>}
     {selected && <Items key={selected.id+":"+selected.version} ownerId={ownerId} sourceRepositoryId={selected.defaultRepositoryId} project={selected} disabled={busy||detailBusy||needsRefresh||title!==selected.title||body!==selected.body} canWrite={() => !navigation.current && !lock.current && !unknown.current && !detailBusy && !needsRefresh && title === selected.title && body === selected.body && canWrite()} onBlocked={referenceBlock} onChange={(item)=>{show(item);load();}} onRefresh={()=>open(selected.id)} />}
-  </>;
+  </div>;
 }

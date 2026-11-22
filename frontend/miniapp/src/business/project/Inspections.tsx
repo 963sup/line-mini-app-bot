@@ -3,7 +3,8 @@ import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
 import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
 import { Badge } from "@/shared/ui/badge";
-import { Item, ItemContent, ItemDescription } from "@/shared/ui/item";
+import { Item, ItemGroup, ItemContent, ItemDescription } from "@/shared/ui/item";
+import { FieldGroup } from "@/shared/ui/field";
 import { Button } from "@/shared/ui/button";
 import { Textarea } from "@/shared/ui/textarea";
 import { FormField } from "@/shared/FormField";
@@ -34,20 +35,20 @@ export function Inspections({canSubmit, ownerId, projectId, itemId}: {canSubmit:
     },entries=>{lock.current=false;setBusy(false);setRows(entries);if(submit) setNote("");},
     error=>{lock.current=false;setBusy(false);setRows(null);setStatus(errorMessage(error));});
   }
-  return <div>
+  return <div className="flex min-w-0 flex-col gap-3">
     <Button type="button" variant="outline" disabled={busy} onClick={()=>perform(false)}>查看驗收紀錄</Button>
-    {rows?.map(row => <Item key={row.id} variant="outline" size="sm">
+    <ItemGroup className="gap-3">{rows?.map(row => <Item key={row.id} role="listitem" variant="outline" size="sm">
       <ItemContent className="min-w-0">
         <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{row.note}</p>
         <ItemDescription>{row.submittedBy} · <time dateTime={row.submittedAt}>{new Date(row.submittedAt).toLocaleString()}</time></ItemDescription>
       </ItemContent>
       <Badge variant="outline">待審</Badge>
-    </Item>)}
+    </Item>)}</ItemGroup>
     {rows?.length===0 && !canSubmit && <Empty><EmptyHeader><EmptyTitle>目前沒有驗收紀錄。</EmptyTitle></EmptyHeader></Empty>}
-    {rows?.length===0 && canSubmit && <>
+    {rows?.length===0 && canSubmit && <FieldGroup>
       <FormField>檢查說明<Textarea maxLength={2000} disabled={busy} value={note} onChange={e=>setNote(e.target.value)}/></FormField>
       <Button type="button" disabled={busy||!note.trim()} onClick={()=>perform(true)}>提交驗收</Button>
-    </>}
+    </FieldGroup>}
     {status && <Status role="status">{status}</Status>}
   </div>;
 }

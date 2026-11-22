@@ -141,16 +141,16 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
       onRefresh();
     }, error => {lock.current=false;setBusy(false);setStatus(errorMessage(error)+" 原操作仍保留，請稍後再次核對。");});
   }
-  return <PagePanel heading="專案引用"><p>顯示來源最新內容。加入或移出專案只變更引用，不會修改來源、授予來源編輯權或加總不同來源的進度。</p>
+  return <PagePanel heading="專案引用" description="顯示來源最新內容。加入或移出專案只變更引用，不會修改來源、授予來源編輯權或加總不同來源的進度。">
     <Status role="status">{status}</Status>
     <Button type="button" variant="outline" disabled={busy||uncertain||disabled} onClick={onRefresh}>重新讀取專案與引用</Button>
     {uncertain && <><Button type="button" disabled={busy} onClick={()=>change()}>重試原引用操作</Button><Button type="button" variant="outline" disabled={busy} onClick={verify}>核對引用結果</Button></>}
     {(["工程對象","待處理問題","決策討論"] as const).map(group=>{
       const entries=items.filter(item=>(item.sourceType==="issue"?"待處理問題":item.sourceType==="discussion"?"決策討論":"工程對象")===group);
       if(!entries.length)return null;
-      return <section key={group}><h3>{group}</h3><ItemGroup className="min-w-0">{entries.map(item=>{
+      return <section key={group} className="flex min-w-0 flex-col gap-3"><h3 className="text-sm font-medium">{group}</h3><ItemGroup className="min-w-0 gap-3">{entries.map(item=>{
       const title=item.sourceUnavailable ? `不可讀取的${kinds[item.sourceType]}` : item.sourceTitle;
-      return <Item key={item.id} variant="outline" className="min-w-0"><ItemContent className="min-w-0"><ItemTitle className="w-full min-w-0 whitespace-normal [overflow-wrap:anywhere]">{kinds[item.sourceType]}：{title}</ItemTitle>
+      return <Item key={item.id} variant="outline" role="listitem" className="min-w-0"><ItemContent className="min-w-0 gap-3"><ItemTitle className="w-full min-w-0 whitespace-normal [overflow-wrap:anywhere]">{kinds[item.sourceType]}：{title}</ItemTitle>
         {item.sourceUnavailable ? <p>來源目前不可讀取；不顯示先前內容。</p> : <>
           {(item.type === "non_work" || item.sourceState) && <p>來源狀態：{item.type === "non_work" ? "不適用" : states[item.sourceState] || item.sourceState}</p>}
           {item.quantity !== undefined && <p className="whitespace-normal [overflow-wrap:anywhere]">數量：{item.quantity} {item.unit}</p>}
