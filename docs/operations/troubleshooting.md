@@ -27,8 +27,8 @@ flowchart TB
 ```mermaid
 flowchart LR
   h["Cloud Build、Cloud Run 與部署後同步"]
-  h --- n0["建置失敗：遇到 --mount option requires <br/>BuildKit 時核對實際 inline Build env。<br/>BuildKit 契約"]
-  click n0 "cloud-run.md#docker-buildkit-建置契約"
+  h --- n0["建置失敗：遇到 --mount option requires <br/>BuildKit 表示新版尚未推送或部署。核對實際 <br/>Build step 的 DOCKER_BUILDKIT；若需修正雲端 <br/>Trigger，保存前後 metadata 並核對差異。"]
+  click n0 "container-build.md#buildkit-與建置機密"
   h --- n1["部署失敗或未 Ready：核對映像 digest、PORT、<br/>runtime service account 與 Secret references<br/>。以實際 revision 與前版 metadata 比對。"]
   h --- n2["選單同步失敗：整體 Build 失敗後仍須查流量確<br/>認部署結果。核對部署 Job 的圖片目錄 <br/>/assets/line/richmenu，確認同一映像內的目錄<br/>可穿越且 JPEG 可由 nonroot 讀取。圖片路徑與<br/>權限"]
   click n2 "cloud-run.md#managed-trigger-的-rich-menu-圖片路徑"

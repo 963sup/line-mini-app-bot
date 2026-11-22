@@ -3,6 +3,7 @@
 從執行入口、程式位置與依賴方向追到實際的資料流。
 
 - [後端功能邊界](backend-boundaries.md)
+- [組織、企業與團隊的共用 Adapter](shared-adapters.md)
 - [目前目錄與責任](code-layout.md)
 - [套件依賴與圖譜](dependencies.md)
 - [line-平台架構總覽](overview.md)

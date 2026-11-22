@@ -10,4 +10,10 @@ Node、Go 基底版本及 pnpm MUST 與 mise.toml 一致，由 check-config.py �
 
 依賴安裝與原始碼分層，BuildKit cache mount 重用 pnpm、Next.js 與 Go 快取。暫存 worker 不保證跨建置保留快取；尚未設定外部 cache 匯入／匯出，不宣稱 Cloud Build 已獲得跨次加速。AI_DOCUMENT_MODEL 可由部署環境覆寫，變更模型不需重建映像。目前 managed 服務未明確設定此值，因此保留映像既有預設，避免部署後停用文件 AI；等所有部署入口明確提供模型後再移除預設。
 
+## BuildKit 與建置機密
+
+Dockerfile 使用 `RUN --mount=type=secret,id=build-ca`，建置器必須支援並啟用 BuildKit。Dockerfile 的 syntax directive 只選擇語法，本機 Docker 的預設也無法證明 Cloud Build 的設定。更換 builder 時，以實際 builder 驗證 BuildKit／Buildx 和 secret mount。建置過程須保留 TLS 驗證，CA 與憑證不得寫入映像。
+
+[Docker BuildKit](https://docs.docker.com/build/buildkit/) · [Docker build secrets](https://docs.docker.com/build/building/secrets/)
+
 [Dockerfile](../../Dockerfile) · [Cloud Run 部署](cloud-run.md) · [正式維運索引](README.md)

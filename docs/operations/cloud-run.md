@@ -175,17 +175,9 @@ flowchart LR
 
 <a id="docker-buildkit-建置契約"></a>
 
-```mermaid
-flowchart LR
-  h["Docker BuildKit 建置契約"]
-  h --- n0["Dockerfile 使用 RUN --mount=type=secret,<br/>id=build-ca，因此 builder 必須支援並啟用 <br/>BuildKit。 目前 managed trigger 的 inline <br/>Build step 與 repository <br/>cloudbuild.yaml 的 build step 都明確<br/>設定 DOCKER_BUILDKIT=1；Dockerfile 頂端的 <br/>syntax directive 不會自行啟用 BuildKit。 本<br/>機 Docker 預設啟用不代表 Cloud Build 也啟用<br/>。若更新 Docker builder，確認其 BuildKit／<br/>Buildx 支援，並用實際 builder 測試 secret <br/>mount；不能移除 TLS 驗證或將 CA／憑證寫入映<br/>像代替。"]
-  h --- n1["若日誌顯示 the --mount option requires <br/>BuildKit，失敗發生在建置階段，尚未推送／部署<br/>新版。 先核對實際 Trigger 的 inline Build <br/>env；只修改 repository YAML 不會更新 managed<br/> trigger。 修改 trigger 前保存 metadata，變<br/>更後比對僅預期的 Build env 有差異，不改部署<br/>、選單或機密設定。"]
-  h --- n2["參考：Docker BuildKit、 Docker build secrets<br/>。"]
-  n2 --- n2l0["Docker BuildKit"]
-  click n2l0 "https://docs.docker.com/build/buildkit/"
-  n2 --- n2l1["Docker build secrets"]
-  click n2l1 "https://docs.docker.com/build/building/secrets/"
-```
+## 建置器設定
+
+Managed Trigger 的 inline Build 和儲存庫的 `cloudbuild.yaml` 各自在 Build step 設定 `DOCKER_BUILDKIT=1`。更新前核對實際執行的入口；儲存庫的 YAML 不會同步到 managed Trigger。建置器與機密掛載要求見 [BuildKit 與建置機密](container-build.md#buildkit-與建置機密)。
 
 <a id="改用-repository-deploycloudbuildyaml-的自訂-trigger"></a>
 
