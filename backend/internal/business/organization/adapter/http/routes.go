@@ -1,6 +1,7 @@
 package organizationhttp
 
 import (
+	organizationapp "github.com/963sup/line-mini-app-bot/internal/business/organization/application"
 	organizationApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/organization/application/dto"
 	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
 )
@@ -17,7 +18,7 @@ import (
 type Store interface {
 	Context(ctx context.Context, user string, preference string, write bool) (*organizationApplicationDto.Context, error)
 	Create(ctx context.Context, user string, name string) (*organizationDomainEntity.Organization, error)
-	Transfer(ctx context.Context, user string, organizationId, target string) (*organizationDomainEntity.Organization, error)
+	organizationapp.OwnershipStore
 }
 
 type Handler struct {
@@ -64,12 +65,12 @@ func (h Handler) TransferOrganization(w http.ResponseWriter, r *http.Request, or
 			if len(*input.MemberId) != 64 {
 				return nil, organizationDomainEntity.ErrInvalid
 			}
-			_, err := h.Store.Transfer(ctx, user, organizationId, *input.MemberId)
+			_, err := organizationapp.TransferOwnership(ctx, h.Store, user, organizationId, *input.MemberId)
 			return nil, err
 		}
 		if len(*input.UserId) != 33 {
 			return nil, organizationDomainEntity.ErrInvalid
 		}
-		return organizationResponse(h.Store.Transfer(ctx, user, organizationId, *input.UserId))
+		return organizationResponse(organizationapp.TransferOwnership(ctx, h.Store, user, organizationId, *input.UserId))
 	})
 }
