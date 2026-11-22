@@ -40,7 +40,7 @@ flowchart TB
 
 ## Firestore integration
 
-變更涉及交易、併發、重送或持久資料相容性時，Codex 須辨識對應整合案例並執行。依[本機操作指引](../../guides/local-development/README.md#firestore-emulator)檢查 loopback emulator 是否可達；需要時自行用 mise 準備依賴並啟動，待服務可用後設定測試端點並執行指定案例。若先前因環境未準備而跳過，準備好後重跑。
+變更涉及交易、併發、重送或持久資料相容性時，Codex 須辨識對應整合案例並執行。依[本機操作指引](../../integrations/firestore/emulator.md#firestore-emulator)檢查 loopback emulator 是否可達；需要時自行用 mise 準備依賴並啟動，待服務可用後設定測試端點並執行指定案例。若先前因環境未準備而跳過，準備好後重跑。
 
 使用 `-count=1 -v`，逐一確認指定案例實際執行且通過。套件顯示成功但案例出現 `SKIP`，或篩選條件未選中任何案例，均不得列為整合證據。若工具無法準備、服務無法啟動或案例仍未執行，記錄原因及尚未驗證的行為，繼續其餘可執行的檢查。
 

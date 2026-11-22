@@ -12,7 +12,7 @@
 
 **驗收案例**　建立者可關閉議題後重新開啟；只有分類權限的成員不能藉由分類操作修改內容。
 
-[對照實作或測試](../../../../backend/internal/business/issue/domain/entity/issue_test.go) · [戰略設計與分類準則](../../../architecture/ddd/README.md)
+[對照實作或測試](../../../../backend/internal/business/issue/domain/entity/issue_test.go) · [戰略設計與分類準則](../../../references/ddd/README.md)
 
 議題的建立、分類與狀態變更以議題規格為準。
 

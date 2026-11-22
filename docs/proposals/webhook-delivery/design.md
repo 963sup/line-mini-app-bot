@@ -6,7 +6,7 @@
 flowchart LR
   h["事件與發送狀態機"]
   h --- n0["狀態：LINE、Firestore 與 Garr 的後續平台提案<br/>。現行 Webhook 見 HTTP 契約。外部 API 不提供<br/>與 Firestore 跨系統原子交易，不保證 <br/>exactly-once。"]
-  click n0 "../../architecture/contracts/http.md#基礎入口"
+  click n0 "../../contracts/http.md#基礎入口"
 ```
 
 <a id="webhook-接收處理與發送"></a>
@@ -62,5 +62,5 @@ flowchart LR
   n1 --- n1l2["Garr"]
   click n1l2 "https://github.com/line/garr"
   n1 --- n1l3["LINE 能力矩陣"]
-  click n1l3 "../../architecture/integrations/line.md"
+  click n1l3 "../../integrations/line/capabilities.md"
 ```

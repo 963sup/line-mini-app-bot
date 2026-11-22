@@ -18,7 +18,7 @@ additional writes.
 
 ## Business Operation compliance
 
-業務開發、審查及修正必須先讀 [操作模型](../../architecture/contracts/business-operations.md)。任務分派附上操作契約、規格來源、既有實作、檔案所有權與驗收條件。
+業務開發、審查及修正必須先讀 [操作模型](../../contracts/business-operations.md)。任務分派附上操作契約、規格來源、既有實作、檔案所有權與驗收條件。
 
 **開發與維運指引**
 

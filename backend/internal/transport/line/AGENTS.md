@@ -6,6 +6,6 @@
 
 ## 工作方式
 
-[現行實作圖：基礎入口](../../../../docs/architecture/contracts/http.md#基礎入口)
+[現行實作圖：基礎入口](../../../../docs/contracts/http.md#基礎入口)
 
 群組成員 API 查詢由 [platform/line](../../platform/line/README.md) 實作，透過 bootstrap 注入各領域的 Membership port。

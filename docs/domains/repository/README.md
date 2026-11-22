@@ -14,7 +14,7 @@ Issue、Discussion 與 Object 是同一 Repository 上下文內的能力。Repos
 
 **驗收案例**　即使庫 ID 相符，只要擁有者已變更或狀態不再是 ACTIVE，就不能沿用舊授權完成受限操作。
 
-[對照實作或測試](../../../backend/internal/business/repository/domain/entity/repository.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
+[對照實作或測試](../../../backend/internal/business/repository/domain/entity/repository.go) · [戰略設計與分類準則](../../references/ddd/README.md)
 
 保存 Repository 及其空間、標籤、事項、討論與其他子能力的規格。
 
@@ -22,7 +22,7 @@ Repository 範圍及功能授權在此說明，各子能力細節由對應文件
 
 ## 閱讀與修改入口
 
-先查閱[spaces.md](spaces.md)、[議題規格](issue/design.md)、[組織與團隊歸屬契約](../../architecture/contracts/organization-team-ownership.md)。
+先查閱[spaces.md](spaces.md)、[議題規格](issue/design.md)、[組織與團隊歸屬契約](../../contracts/organization-team-ownership.md)。
 
 <a id="repository-capabilities"></a>
 

@@ -14,7 +14,7 @@
 
 ## 相關規格
 
-[本層規格與指引](../../../docs/guides/line-setup/rich-menu.md)
+[本層規格與指引](../../../docs/operations/rich-menu.md)
 
 ## 自動同步指令
 

@@ -1745,7 +1745,7 @@
     {
       "owner": "organization",
       "action": "Create organization or enterprise in private chat",
-      "contract": "docs/architecture/contracts/organization-team-ownership.md",
+      "contract": "docs/contracts/organization-team-ownership.md",
       "adapter": "backend/internal/business/organization/adapter/line/creation_line.go",
       "handler": "CreationHandler",
       "note": "Verified private LINE messages drive the transactional naming prompt and replay-safe creation."

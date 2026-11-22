@@ -16,7 +16,7 @@ shadcn 元件以可維護的原始碼納入 MINI App，不是後端服務或瀏�
 
 CLI 固定版本與安裝任務由根目錄 `mise.toml` 管理；UI 與編譯依賴由 MINI App 的 `package.json` 和根目錄 lockfile 管理。
 不要另在 workspace 安裝一份不同版本的 shadcn CLI，也不要以未固定的版本覆寫既有元件。
-先依 [環境設定](../../../guides/local-development/setup.md) 安裝工具及 workspace 依賴，再使用固定 CLI。
+先依 [環境設定](../../environment/setup.md) 安裝工具及 workspace 依賴，再使用固定 CLI。
 
 從儲存庫根目錄執行：
 

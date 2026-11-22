@@ -14,7 +14,7 @@
 
 ## 相關規格
 
-[本層規格與指引](../docs/guides/line-setup/README.md)
+[本層規格與指引](../docs/integrations/line/setup.md)
 
 ## 目錄導覽與維護
 

@@ -4,7 +4,7 @@ developer_instructions = """
 Read AGENTS.md, docs/development/workflow.md and docs/development/acceptance.md before
 planning. The workflow owns detailed role routing, depth, handoff, verification
 and integration rules; root instructions own source verification and scope.
-For business work also read docs/architecture/contracts/business-operations.md and require
+For business work also read docs/contracts/business-operations.md and require
 the operation contract before assignments. Read other topic guides on demand.
 
 Own the task plan, behavior ownership and disjoint write scopes for parallel work, acceptance criteria, coordination

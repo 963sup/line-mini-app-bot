@@ -30,4 +30,4 @@ Open issues｜先讀 NeedsDecision 對既有核准紀錄的判斷，再對照交
 
 核對本次操作的 API、schema、狀態機與驗收案例，逐一確認角色及各分支的結果。涉及[平台交付提案的 P01–P07](../proposals/platform/delivery.md#產品決策閘門)時，只追蹤本功能依賴的決策，現行行為以[領域規格](../domains/README.md)為準。
 
-若要新增到場判定或定位歷史，先依[定位契約](../architecture/integrations/web-geolocation.md)確認 P08 的目的、精度與新鮮度、替代流程、保存期及同意。未決前維持既有功能範圍。
+若要新增到場判定或定位歷史，先依[定位契約](../integrations/geolocation/browser-api.md)確認 P08 的目的、精度與新鮮度、替代流程、保存期及同意。未決前維持既有功能範圍。

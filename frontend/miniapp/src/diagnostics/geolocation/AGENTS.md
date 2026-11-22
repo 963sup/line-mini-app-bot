@@ -6,4 +6,4 @@
 
 ## 相關規格
 
-[現行實作圖：現有出勤整合檔案與責任](../../../../../docs/architecture/integrations/web-geolocation.md#現有出勤整合檔案與責任)
+[現行實作圖：現有出勤整合檔案與責任](../../../../../docs/integrations/geolocation/browser-api.md#現有出勤整合檔案與責任)

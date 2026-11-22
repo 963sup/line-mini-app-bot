@@ -10,7 +10,7 @@
 
 **驗收案例**　操作回傳歸屬衝突時，HTTP 映射為 409；請求未通過身分驗證時不得呼叫業務操作。
 
-[對照實作或測試](../../../backend/internal/business/internal/adapter/http/response.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
+[對照實作或測試](../../../backend/internal/business/internal/adapter/http/response.go) · [戰略設計與分類準則](../../references/ddd/README.md)
 
 對應 Go 業務模組共用的 orghttp 與 orgstore，供查閱組織相關的 HTTP 與儲存實作。
 

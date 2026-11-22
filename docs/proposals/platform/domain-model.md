@@ -254,7 +254,7 @@ flowchart LR
   h --- n0["Repository 維持 既有功能文件；Issue 與 <br/>Discussion 開發時分別建立 <br/>docs/domains/repository/issue/design.md、<br/>docs/domains/repository/discussion/design.md，並<br/>加入功能索引。"]
   click n0 "../../domains/repository/README.md"
   n0 --> n1["功能文件先按 操作契約範本 補齊每個操作：誰操<br/>作、對象、行為、權限、業務條件及成功結果；<br/>Context、Authority、Decision 與必要 Audit 明<br/>確記錄。"]
-  click n1 "../../architecture/contracts/business-operations.md#功能操作契約範本"
+  click n1 "../../contracts/business-operations.md#功能操作契約範本"
   n1 --> n2["開發前確認 Issue／Discussion 的建立、讀取、<br/>修改與生命週期操作，以及權限來源、可見範圍、<br/>併發版本、重送、失敗及稽核語意。不從 GitHub <br/>功能自行推定產品需求。"]
   n2 --> n3["HTTP 契約依業務放在 api/contract/&lt;業務&gt;/，由<br/>既有 OpenAPI 入口組合，沿用 REST 介面；不先<br/>建立空契約或生成碼。"]
   n3 --> n4["程式按業務維護，模組 README 連回功能規格；契<br/>約來源、設計說明與實作避免重複維護相同欄位定<br/>義。"]

@@ -36,7 +36,7 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 - [文件索引：Frontend](../docs/README.md#按模組閱讀)
 - [Go browser Session 與滑動續期](../docs/architecture/identity/browser-session.md)
 - [shadcn UI 與 MCP：元件位置、CSS 與工具驗證](../docs/development/tooling/mcp/shadcn.md)
-- [瀏覽器定位整合](../docs/architecture/integrations/web-geolocation.md)
+- [瀏覽器定位整合](../docs/integrations/geolocation/browser-api.md)
 - [出勤查詢與更正](../docs/domains/attendance/queries.md)
 - [API 契約工作流程](../api/README.md)
 

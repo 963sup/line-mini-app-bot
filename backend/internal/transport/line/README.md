@@ -16,7 +16,7 @@
 
 ## 閱讀入口
 
-[現行實作圖：基礎入口](../../../../docs/architecture/contracts/http.md#基礎入口)
+[現行實作圖：基礎入口](../../../../docs/contracts/http.md#基礎入口)
 
 [上層導覽](../README.md)
 

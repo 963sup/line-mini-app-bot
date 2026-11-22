@@ -16,7 +16,7 @@
 
 `View` 依儲存庫及身分世代重設狀態，未知建立結果保留原請求鍵及內容；父層導覽在建立結果未確認時保持目前表單。沿用既有 typed client、請求取消及官方 UI 元件組合。
 
-[現行實作圖：物件與子物件歸屬](../../../../../docs/architecture/contracts/object-subobject-ownership.md#物件與子物件歸屬)
+[現行實作圖：物件與子物件歸屬](../../../../../docs/contracts/object-subobject-ownership.md#物件與子物件歸屬)
 
 [上層導覽](../README.md)
 

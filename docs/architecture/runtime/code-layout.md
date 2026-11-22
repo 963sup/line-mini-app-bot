@@ -39,9 +39,9 @@ flowchart LR
   n4 --- n4l0["Session 契約"]
   click n4l0 "../identity/browser-session.md"
   n4 --- n4l1["HTTP 契約"]
-  click n4l1 "../contracts/http.md"
+  click n4l1 "../../contracts/http.md"
   h --- n5["需求：LINE Webhook、導覽或訊息<br/>規格與不可破壞的契約：LINE 接入<br/>主要修改入口：backend/internal/transport/line/navigation/、<br/>功能 line/ adapter、internal/bootstrap/ 組裝"]
-  click n5 "../../guides/line-setup/README.md"
+  click n5 "../../integrations/line/setup.md"
   h --- n6["需求：摘要／天氣<br/>規格與不可破壞的契約：摘要入口、天氣入口<br/>主要修改入口：<br/>backend/internal/business/summary/、<br/>weather/forecast/；不自動加入公開 HTTP 契約"]
   n6 --- n6l0["摘要入口"]
   click n6l0 "../../../api/contract/summary/README.md"
@@ -51,7 +51,7 @@ flowchart LR
   click n7 "dependencies.md#契約與不變條件的維護位置"
   h --- n8["需求：部署、設定或前端資產供應<br/>規格與不可破壞的契約：Cloud Run 操作、前端生<br/>命週期<br/>主要修改入口：Dockerfile、deploy/、<br/>backend/internal/bootstrap/、browser/、前端建置<br/>設定"]
   n8 --- n8l0["Cloud Run 操作"]
-  click n8l0 "../../guides/release/cloud-run.md"
+  click n8l0 "../../operations/cloud-run.md"
   n8 --- n8l1["前端生命週期"]
   click n8l1 "react-lifecycle.md"
 ```

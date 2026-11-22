@@ -21,7 +21,7 @@ Report LINE iOS/Android and external-browser acceptance separately; mocks do not
 
 ## Business Operation evidence
 
-業務變更須對照 [操作契約](../../architecture/contracts/business-operations.md#功能操作契約範本) 與 [符合性流程](../workflow/implementation.md#business-operation-compliance)：
+業務變更須對照 [操作契約](../../contracts/business-operations.md#功能操作契約範本) 與 [符合性流程](../workflow/implementation.md#business-operation-compliance)：
 
 - Actor 的可信來源、Resource 歸屬、Action 與 Authority 範圍可定位至實作。
 - 授權條件、領域規則、系統判定與合法轉換一致；前端不能取代後端授權。

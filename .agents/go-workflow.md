@@ -8,8 +8,8 @@ This file is a compatibility pointer; do not duplicate policy here.
 ## Deployment and browser location routing
 
 Application deployment uses Cloud Run only. Read docs/decisions/0003-cloud-run-primary.md
-and docs/guides/release/cloud-run.md before deployment work; use a dedicated runtime service account and minimal IAM.
-For location tasks read docs/architecture/integrations/web-geolocation.md: browser JavaScript obtains location,
+and docs/operations/cloud-run.md before deployment work; use a dedicated runtime service account and minimal IAM.
+For location tasks read docs/integrations/geolocation/browser-api.md: browser JavaScript obtains location,
 Go validates untrusted coordinates and authorization. No location history or presence verification
 without the product contract. Read docs/standards/task-handoff.md and
 docs/standards/naming.md for implementation handoffs. Preserve generated upstream skills.

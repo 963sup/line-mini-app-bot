@@ -12,4 +12,10 @@
 
 將確認的失敗階段及能重現的命令寫入交付。若需檢查程式根因，轉入[系統化除錯](../workflow/debugging.md#diagnostic-loop)。
 
+## 設定與 MCP 診斷
+
+先用 `python3 scripts/check/check-config.py` 核對設定。單一服務可用 `bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server <name>` 檢查 transport。分別記錄設定、安裝、transport、主機載入及實際呼叫結果；可選憑證缺漏時繼續其他檢查。
+
+Codex 設定查 [OpenAI Docs MCP](../tooling/mcp/openai-docs.md)，版本專屬行為查 [Context7](../tooling/mcp/context7.md)。維持主機提供的 `HOME`、`CODEX_HOME` 與憑證設定，記錄錯誤時遮蔽認證標頭和機密值。
+
 [環境索引](README.md)

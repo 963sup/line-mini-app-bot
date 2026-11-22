@@ -12,7 +12,7 @@
 
 **驗收案例**　加入跨庫引用時應核對選定來源及其專案連結；持有專案權限不會自動授予其他儲存庫的來源讀權。
 
-[對照實作或測試](../../../backend/internal/business/project/application/reference_source_test.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
+[對照實作或測試](../../../backend/internal/business/project/application/reference_source_test.go) · [戰略設計與分類準則](../../references/ddd/README.md)
 
 專案規格說明來源引用、巡檢與存取範圍。
 

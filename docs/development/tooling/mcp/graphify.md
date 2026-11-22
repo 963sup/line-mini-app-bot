@@ -60,7 +60,7 @@ bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server gra
 
 This checks initialize, tools/list and configured allowlists. Verify a representative
 operation separately. For failures distinguish missing binary, network, credential,
-workspace prerequisites and host loading; see [troubleshooting](../../../guides/release/troubleshooting.md).
+workspace prerequisites and host loading; see [troubleshooting](../../environment/troubleshooting.md).
 
 2026-11-14 (Asia/Taipei): the configured local command and graph path were valid,
 and CLI queries succeeded. Local MCP initialize did not return a JSON-RPC reply;

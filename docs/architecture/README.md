@@ -1,6 +1,6 @@
 # 共用系統基礎
 
-修改跨模組行為時，依下列問題找契約與程式入口。單一功能的規則由[領域規格](../domains/README.md)維護。需要劃分模型、交易或 Port 時，從 [DDD 問題索引](ddd/README.md#按問題查閱)選讀。
+修改跨模組行為時，依下列問題找契約與程式入口。單一功能的規則由[領域規格](../domains/README.md)維護。需要劃分模型、交易或 Port 時，從 [DDD 問題索引](../references/ddd/README.md#按問題查閱)選讀。
 
 ## 現行架構與決策
 
@@ -10,7 +10,7 @@
 | --- | --- |
 | 哪個入口處理請求？改動會牽涉哪些模組？ | [服務入口](runtime/overview.md) · [從需求定位修改範圍](runtime/code-layout.md#從需求定位修改範圍) |
 | 核心、適配器與組裝在哪裡？ | [後端功能邊界](runtime/backend-boundaries.md) · [依賴與契約歸屬](runtime/dependencies.md) |
-| 這項操作由誰授權？哪些規則必須一起成立？ | [業務操作模型](contracts/business-operations.md) · [工程原則](../standards/engineering.md) |
+| 這項操作由誰授權？哪些規則必須一起成立？ | [業務操作模型](../contracts/business-operations.md) · [工程原則](../standards/engineering.md) |
 
 ### 任務準備與按需參考
 
@@ -36,11 +36,11 @@
 
 ### HTTP 契約
 
-查[公開 API 與身分契約](contracts/http.md)及[跨領域契約索引](contracts/README.md)。實際變更 API 的命令在 [API 工作流程](../../api/README.md)。
+查[公開 API 與身分契約](../contracts/http.md)及[跨領域契約索引](../contracts/README.md)。實際變更 API 的命令在 [API 工作流程](../../api/README.md)。
 
 ### 身分與登入
 
-[身分索引](identity/README.md) · [Go browser Session、Firestore 與續期](identity/browser-session.md)
+[身分索引](identity/README.md) · [應用 Session 契約](identity/browser-session.md)
 
 ### 共用前端
 
@@ -48,21 +48,21 @@
 
 ### 資料與儲存
 
-先讀[功能規格](../domains/README.md)，再定位該領域的 Firestore adapter。[儲存索引](storage/README.md)導向[資料配置](storage/data-model.md)、[交易](storage/consistency.md)、[查詢與索引](storage/querying.md)、[生命週期](storage/lifecycle.md)及[Firestore 整合](storage/firestore.md)；[資料契約提案](../proposals/firestore-data-contracts.md)描述規劃中的 schemaVersion、Inbox／Outbox 與保存策略。
+[資料儲存責任](storage/README.md)說明領域與 adapter 的分工。查閱 [Firestore](../integrations/firestore/README.md) 或 [Cloud Storage](../integrations/storage/README.md) 的具體契約。
 
 ### 外部整合
 
 <a id="文件索引"></a>
 
-[整合索引](integrations/README.md) · [LINE 接入邊界](integrations/line.md) · [LINE 環境變數](integrations/line-environment.md) · [呈現方式](integrations/line-presentation-options.md) · [瀏覽器定位](integrations/web-geolocation.md)
+[外部整合索引](../integrations/README.md) · [LINE 整合](../integrations/line/README.md) · [瀏覽器定位](../integrations/geolocation/README.md)
 
 ### 部署與營運
 
-從 [Cloud Run 建置入口](../guides/release/cloud-run.md#建置入口)、[發布與回復](../guides/release/release-acceptance.md#切換觀察回復)或[故障診斷](../guides/release/troubleshooting.md)進入。需要分別查儲存庫設定、雲端實際設定、建置結果與服務驗收。
+從 [Cloud Run 建置入口](../operations/cloud-run.md#建置入口)、[發布與回復](../operations/release-acceptance.md#切換觀察回復)或[故障診斷](../operations/troubleshooting.md)進入。需要分別查儲存庫設定、雲端實際設定、建置結果與服務驗收。
 
 ### 可靠性設計參考
 
-[Webhook、Inbox 與 Outbox 提案](../proposals/webhook-delivery/design.md)用於討論重試及持久工作；是否已實作以[現行 HTTP 契約](contracts/http.md)及對應功能為準。
+[Webhook、Inbox 與 Outbox 提案](../proposals/webhook-delivery/design.md)用於討論重試及持久工作；是否已實作以[現行 HTTP 契約](../contracts/http.md)及對應功能為準。
 
 ## 歸屬與維護
 

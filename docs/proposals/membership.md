@@ -293,7 +293,7 @@ People 預設只回有效成員，每頁重新驗證目前可見性，跨頁允�
 | 提交後回應逾時，操作者在重送前失去可見性 | 原寫入保留且不重做；重送不揭露已不可見的結果。 |
 | 上層移除後再加入 | 下層原紀錄可保留，但舊 generation 持續無效。重新授權須透過後續切片定義的明確操作。 |
 
-設計依據：[聚合與聚合根](../architecture/ddd/aggregate.md) · [不變條件](../architecture/ddd/invariant.md) · [一致性與交易](../architecture/ddd/consistency.md) · [冪等](../architecture/ddd/idempotency.md) · [六邊形架構](../architecture/ddd/hexagonal-architecture.md)
+設計依據：[聚合與聚合根](../references/ddd/aggregate.md) · [不變條件](../references/ddd/invariant.md) · [一致性與交易](../references/ddd/consistency.md) · [冪等](../references/ddd/idempotency.md) · [六邊形架構](../references/ddd/hexagonal-architecture.md)
 
 ## 本次查證與待定事項
 
@@ -305,4 +305,4 @@ People 預設只回有效成員，每頁重新驗證目前可見性，跨頁允�
 
 目前待定規則及其啟用阻塞範圍統一見 [閉環判定與待定規則](#閉環判定與待定規則)。Team 的角色管理政策以領域規格為準；Organization 單一 Owner 與 Enterprise 多 Owner 不混用。
 
-[提案索引](README.md) · [現行組織與 Team 契約](../architecture/contracts/organization-team-ownership.md) · [操作模型](../architecture/contracts/business-operations.md)
+[提案索引](README.md) · [現行組織與 Team 契約](../contracts/organization-team-ownership.md) · [操作模型](../contracts/business-operations.md)

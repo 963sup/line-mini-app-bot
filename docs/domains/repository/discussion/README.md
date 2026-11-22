@@ -12,7 +12,7 @@
 
 **驗收案例**　只具分類權限的成員可以調整分類；同一請求若夾帶內容修改，應拒絕越權變更。
 
-[對照實作或測試](../../../../backend/internal/business/discussion/domain/entity/classification_test.go) · [戰略設計與分類準則](../../../architecture/ddd/README.md)
+[對照實作或測試](../../../../backend/internal/business/discussion/domain/entity/classification_test.go) · [戰略設計與分類準則](../../../references/ddd/README.md)
 
 討論串、留言與分類的行為由討論規格定義。
 

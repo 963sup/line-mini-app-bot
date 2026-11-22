@@ -80,5 +80,5 @@ flowchart LR
   n0 --- n0l1["刪除資料"]
   click n0l1 "https://docs.cloud.google.com/firestore/native/docs/manage-data/delete-data"
   h --- n1["對照目前的資料保存方式，見Firestore 整合與實<br/>作入口。"]
-  click n1 "../architecture/storage/firestore.md"
+  click n1 "../integrations/firestore/connection.md"
 ```

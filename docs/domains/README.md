@@ -27,7 +27,7 @@
 
 ## 業務功能
 
-依上表的「狀態」區分現行實作與提案。各領域擁有通用語言、規則及驗收案例；公開格式以 [API 契約](../../api/README.md) 為準。核心／支援子域的分類需依客戶採用理由驗證。跨模組問題查[共用實作邊界](internal/README.md)、[DDD 設計方法](../architecture/ddd/README.md)或[Organization 與 Team 目標契約](../architecture/contracts/organization-team-ownership.md)。
+依上表的「狀態」區分現行實作與提案。各領域擁有通用語言、規則及驗收案例；公開格式以 [API 契約](../../api/README.md) 為準。核心／支援子域的分類需依客戶採用理由驗證。跨模組問題查[共用實作邊界](internal/README.md)、[DDD 設計方法](../references/ddd/README.md)或[Organization 與 Team 目標契約](../contracts/organization-team-ownership.md)。
 
 ## 出勤
 

@@ -85,7 +85,7 @@ docs/
     └── ddd.md                     # DDD 概念與參考來源
 ```
 
-目前的跨領域契約、部署指南與 DDD 索引分別從 [跨邊界契約](architecture/contracts/README.md)、[部署與維運](guides/release/README.md) 與 [DDD 參考](architecture/ddd/README.md) 查閱。
+目前的跨領域契約、部署指南與 DDD 索引分別從 [跨邊界契約](contracts/README.md)、[部署與維運](operations/README.md) 與 [DDD 參考](references/ddd/README.md) 查閱。
 
 ## 文件與目錄命名規範
 

@@ -39,7 +39,7 @@ flowchart LR
   h["執行入口"]
   h --- n0["Go 驗簽後分派 LINE 事件，由 handler 決定回覆<br/>及重試。MINI App 由 Go 提供頁面與 API，後端<br/>分別核驗身分及資源存取權。Cloud Tasks 呼叫內<br/>部摘要工作入口。Webhook 與身分 · Session · <br/>群聊摘要"]
   n0 --- n0l0["Webhook 與身分"]
-  click n0l0 "../contracts/http.md"
+  click n0l0 "../../contracts/http.md"
   n0 --- n0l1["Session"]
   click n0l1 "../identity/browser-session.md"
   n0 --- n0l2["群聊摘要"]
@@ -74,12 +74,12 @@ flowchart LR
   n0 --- n0l1["後端邊界"]
   click n0l1 "backend-boundaries.md"
   h --- n1["任務：修改資料與交易<br/>維護位置：Firestore 整合"]
-  click n1 "../storage/firestore.md"
+  click n1 "../../integrations/firestore/connection.md"
   h --- n2["任務：準備裝置或部署驗收<br/>維護位置：整合與發布驗收、Cloud Run 部署"]
   n2 --- n2l0["整合與發布驗收"]
-  click n2l0 "../../guides/release/release-acceptance.md"
+  click n2l0 "../../operations/release-acceptance.md"
   n2 --- n2l1["Cloud Run 部署"]
-  click n2l1 "../../guides/release/cloud-run.md"
+  click n2l1 "../../operations/cloud-run.md"
 ```
 
 ## 文件路由

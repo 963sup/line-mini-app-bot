@@ -1,16 +1,9 @@
 # 資料儲存
 
-本目錄維護資料配置、交易、查詢、索引與生命週期。具體業務欄位及授權以[領域規格](../../domains/README.md)為準，模型邊界依 [DDD 設計](../ddd/README.md)，保存細節由所屬 Firestore adapter 負責。
+資料擁有者、業務欄位與授權由[領域規格](../../domains/README.md)維護。聚合、一致性邊界及資料演進依 [DDD 設計](../../references/ddd/README.md)判定。Adapter 負責保存格式與相容性。
 
-## 按問題查閱
-
-| 問題 | 內容 |
-|---|---|
-| 資料存在哪裡？誰有權寫入？ | [儲存模型與歸屬](data-model.md)：現行路徑、ID、引用、序列化及演進 |
-| 哪些檢查與寫入必須一起提交？ | [交易與一致性](consistency.md)：讀寫集合、版本、重試、冪等及結果未知 |
-| 如何查詢、分頁及部署索引？ | [查詢與索引](querying.md)：作用域、游標、正式索引及成本 |
-| 過期、刪除、保存與恢復怎麼辦？ | [資料生命週期](lifecycle.md)：TTL、孤兒資料、保存決策及恢復驗收 |
-| 如何連線及使用 Firestore client？ | [Firestore 整合](firestore.md)：執行身分、client、設定與唯讀檢查 |
+- [Firestore 整合](../../integrations/firestore/README.md)維護文件配置、交易、查詢、索引與資料生命週期。
+- [Cloud Storage 整合](../../integrations/storage/README.md)維護檔案、物件版本、IAM 與附件協調。
 
 ## 現況與設計界線
 
@@ -20,6 +13,6 @@
 
 ## 維護與驗收
 
-異動保存行為時，同步核對領域規格、Adapter、公開契約及歷史資料相容性。交易與競爭驗收依[Firestore 整合流程](../../development/verification/commands.md#firestore-integration)，索引與正式設定依[發布驗收](../../guides/release/release-acceptance.md)。文件檢查不代替資料庫或恢復演練。
+異動保存行為時，同步核對領域規格、Adapter、公開契約及歷史資料相容性。交易與競爭驗收依[Firestore 整合流程](../../development/verification/commands.md#firestore-integration)，索引與正式設定依[發布驗收](../../operations/release-acceptance.md)。文件檢查不代替資料庫或恢復演練。
 
 [適用工作指引](../AGENTS.md) · [架構索引](../README.md)

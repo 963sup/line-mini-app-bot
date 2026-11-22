@@ -10,7 +10,7 @@
 
 ## 相關規格
 
-[群組位置天氣](../../../docs/domains/weather/weather.md) · [現行實作圖：基礎入口](../../../docs/architecture/contracts/http.md#基礎入口)
+[群組位置天氣](../../../docs/domains/weather/weather.md) · [現行實作圖：基礎入口](../../../docs/contracts/http.md#基礎入口)
 
 本文件描述既有 LINE 入口，不加入公開 OpenAPI、不產生瀏覽器 client。
 完整產品規則見 [群組位置天氣](../../../docs/domains/weather/weather.md)。
@@ -25,6 +25,6 @@
 組裝在 internal/bootstrap/line.go，與出勤、摘要資料層無依賴。
 沒有既有公開 Weather HTTP API 或 MINI App 天氣畫面。
 
-[現行實作圖：基礎入口](../../../docs/architecture/contracts/http.md#基礎入口)
+[現行實作圖：基礎入口](../../../docs/contracts/http.md#基礎入口)
 
 [上層導覽](../README.md)
