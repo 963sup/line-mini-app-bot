@@ -93,4 +93,18 @@ crash.log
 # Agent metadata and local installation copies
 skills-lock.json
 
-# Generated Graphify installation copy; source is tracked by skill provenance.
+
+# Local caches, generated reports and analysis bundles
+.DS_Store
+Thumbs.db
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+playwright-report/
+blob-report/
+**/.next/
+**/.turbo/
+**/out/
+**/dist/
+**/*.tsbuildinfo
+/frontend/miniapp/public/assets/

@@ -31,3 +31,29 @@
 
 # Agent metadata and local installation copies
 skills-lock.json
+
+# Local caches, generated reports and analysis bundles
+.DS_Store
+Thumbs.db
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+playwright-report/
+blob-report/
+test-results/
+coverage/
+*.log
+*.prof
+*.pprof
+*.trace
+/repomix-*.xml
+/repomix-*.md
+/repomix-*.json
+**/.next/
+**/.turbo/
+**/out/
+**/dist/
+**/.cache/
+**/.npm-cache/
+**/*.tsbuildinfo
+/frontend/miniapp/public/assets/

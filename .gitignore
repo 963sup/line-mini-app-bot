@@ -34,3 +34,22 @@ dist/
 out/
 /frontend/miniapp/public/assets/
 *.tsbuildinfo
+
+# Local caches, generated reports and analysis bundles
+.DS_Store
+Thumbs.db
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+playwright-report/
+blob-report/
+test-results/
+coverage/
+*.log
+*.prof
+*.pprof
+*.trace
+/repomix-*.xml
+/repomix-*.md
+/repomix-*.json
+!/.agents/README.md

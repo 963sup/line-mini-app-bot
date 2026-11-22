@@ -34,3 +34,24 @@
 **/.venv/**
 **/.artifacts/**
 **/*.tsbuildinfo
+
+# Local artifacts inside otherwise allowed application directories
+**/.git/**
+**/.cache/**
+**/.npm-cache/**
+**/.pytest_cache/**
+**/.ruff_cache/**
+**/.mypy_cache/**
+**/coverage/**
+**/coverage.out
+**/test-results/**
+**/playwright-report/**
+**/blob-report/**
+**/graphify-out/**
+**/repomix-output.*
+**/*.log
+**/*.prof
+**/*.pprof
+**/*.trace
+**/.DS_Store
+**/Thumbs.db
