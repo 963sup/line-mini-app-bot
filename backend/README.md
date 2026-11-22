@@ -59,7 +59,7 @@
 
 業務模組位於 [internal/business](internal/business)，服務組裝見 [bootstrap](internal/bootstrap)，各功能行為見[功能索引](../docs/domains/README.md)。
 
-[現行實作圖：格式與資料相容](../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../docs/diagrams.md#未來設計)
+[現行實作圖：格式與資料相容](../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
 
 ## 單一執行入口
 

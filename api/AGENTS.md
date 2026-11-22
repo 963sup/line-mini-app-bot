@@ -36,7 +36,7 @@ contract/openapi.yaml 僅組合公開契約；能力歸屬與引用規則遵循 
 
 操作契約須對應 OpenAPI 的輸入、回應及既有公開失敗語義；客戶端不能自行宣告可信 Actor、角色或審核權。先改契約再生成，不手改產生碼，不為模型強迫新增端點或破壞相容性。
 
-[現行實作圖：基礎入口](../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../docs/diagrams.md#未來設計)
+[現行實作圖：基礎入口](../docs/architecture/contracts/http.md#基礎入口)
 
 ## 前端操作與業務契約
 

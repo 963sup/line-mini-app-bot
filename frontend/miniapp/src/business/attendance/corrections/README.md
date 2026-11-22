@@ -10,6 +10,6 @@
 
 ## 相關規格
 
-[現行實作圖：更正提交重試](../../../../../../docs/domains/attendance/queries.md#更正提交重試) · [未來設計圖](../../../../../../docs/diagrams.md#未來設計)
+[現行實作圖：更正提交重試](../../../../../../docs/domains/attendance/queries.md#更正提交重試)
 
 [上層導覽](../README.md)

@@ -6,4 +6,4 @@
 
 ## 相關規格
 
-[現行實作圖：續期交易與前端觸發](../../../docs/architecture/identity/browser-session.md#續期交易與前端觸發) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：續期交易與前端觸發](../../../docs/architecture/identity/browser-session.md#續期交易與前端觸發)

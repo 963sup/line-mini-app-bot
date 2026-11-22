@@ -76,7 +76,6 @@ Codex Cloud 的 Install script 填入 `scripts/bootstrap.sh`，無參數時使�
 MCP 握手與聊天主機實際可用性須分別驗收，不因快取存在而視為全新環境已驗證。
 工具與非機密環境以 `mise.toml` 為準；日常命令使用 `scripts/tooling/tool-exec.sh`。
 
-
 - [文件索引與 Backend／API／Frontend／Scripts／Deploy 閱讀入口](docs/README.md#按模組閱讀)
 - [需求到實作導航](docs/architecture/runtime/code-layout.md#從需求定位修改範圍)
 - [變更驗收矩陣](docs/development/acceptance.md#變更驗收矩陣)
@@ -144,5 +143,3 @@ MINI App 頁面為 `/miniapp`；公開 Channel／LIFF ID 與 Endpoint 由所選�
 開發前定義操作契約，交付時對照實作與證據；讀取不強制建立事件，採納提案時才使用 Merge。
 發現不符合時依 [Graphify／Repomix／Context7 符合性流程](docs/development/workflow.md#business-operation-compliance) 在任務範圍內修正。
 統一操作模型，隔離業務規則；共用必要機制，避免不必要的抽象。
-
-[現行實作圖索引](docs/diagrams.md#現行實作) · [未來設計圖](docs/diagrams.md#未來設計)。

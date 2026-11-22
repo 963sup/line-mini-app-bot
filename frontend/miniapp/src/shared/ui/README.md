@@ -20,7 +20,7 @@
 
 Data Table、Date Picker、Typography 是組合／樣式配方，沿用已安裝的 Table、Calendar、Popover 等元件與官方範例；不額外建立同名業務框架。已棄用的 Toast 由 Sonner 替代。安裝不會自動更換業務畫面，也不代表所有互動已完成整合驗收。
 
-[現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期) · [未來設計圖](../../../../../docs/diagrams.md#未來設計)
+[現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
 
 ## 前端使用位置
 

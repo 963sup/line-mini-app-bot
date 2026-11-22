@@ -6,6 +6,6 @@
 
 ## 工作方式
 
-[現行實作圖：格式與資料相容](../../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../../../../../docs/diagrams.md#未來設計)
+[現行實作圖：格式與資料相容](../../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
 
 [上層工作指引](../AGENTS.md)

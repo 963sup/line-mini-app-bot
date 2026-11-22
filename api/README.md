@@ -114,4 +114,4 @@ Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄
 
 已接線與規劃中的操作以[能力清單](contract/capabilities.json)為準，各操作的請求與回應見 [OpenAPI 契約](contract/openapi.yaml)。
 
-[現行實作圖：基礎入口](../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../docs/diagrams.md#未來設計)
+[現行實作圖：基礎入口](../docs/architecture/contracts/http.md#基礎入口)

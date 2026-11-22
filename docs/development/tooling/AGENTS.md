@@ -10,5 +10,3 @@ mise、Skills、MCP 與 Graphify／Repomix 分析範圍及報告。
 ## 維護與驗證
 
 更新索引與驗證連結依[文件維護指引](../../AGENTS.md#驗證)。
-
-[開發與維運指引圖索引](../../diagrams.md#開發與維運指引) · [未來設計圖](../../diagrams.md#未來設計)。

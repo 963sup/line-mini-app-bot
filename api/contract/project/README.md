@@ -10,6 +10,6 @@
 
 ## 相關規格
 
-[現行實作圖：最小來源引用骨架](../../../docs/domains/project/project.md#最小來源引用骨架) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：最小來源引用骨架](../../../docs/domains/project/project.md#最小來源引用骨架)
 
 [上層導覽](../README.md)

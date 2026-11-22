@@ -6,4 +6,4 @@
 
 ## 相關規格
 
-[現行實作圖：里程碑](../../../../../../docs/domains/repository/milestones.md#里程碑) · [未來設計圖](../../../../../../docs/diagrams.md#未來設計)
+[現行實作圖：里程碑](../../../../../../docs/domains/repository/milestones.md#里程碑)

@@ -19,4 +19,4 @@
 - Table、Board、Roadmap 共用項目資料，View 保存呈現與查詢設定；篩選或隱藏欄位不是授權。
 - 不因雛型需求自動加入跨群組、草稿、排程、自動化、分析或範本；來源資源與專案權限分別核驗。
 
-[現行實作圖：最小來源引用骨架](../../../docs/domains/project/project.md#最小來源引用骨架) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：最小來源引用骨架](../../../docs/domains/project/project.md#最小來源引用骨架)

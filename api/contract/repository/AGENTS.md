@@ -20,4 +20,4 @@ Project 和 Repository 各自保存一個 `ownerId`。LINE UserID（U）以登�
 - Label 目錄依 [標籤規格](../../../docs/domains/repository/labels.md) 提供列出及建立，不含改名或刪除，引用沿用事項／討論作者更新。Milestone 與 statistics 依 [里程碑](../../../docs/domains/repository/milestones.md)、[儲存庫洞察（Insights）](../../../docs/domains/repository/insights.md)；Member 等未來能力先定義操作與擁有者；不得把互動候選當作 members API。
 - 子業務引用既有 Repository 歸屬，不由 Issue／Discussion 的寫入順便建立容器。
 
-[現行實作圖：空間載入時序](../../../docs/domains/repository/README.md#空間載入時序) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：空間載入時序](../../../docs/domains/repository/README.md#空間載入時序)

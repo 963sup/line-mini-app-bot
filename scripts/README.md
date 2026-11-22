@@ -60,5 +60,3 @@ embedded interface methods, generated signatures, adapter ownership and route
 composition. Unsupported composition forms fail closed; full Go type checking
 remains in the generated interface assertion and Go checks. `pnpm api:check`
 runs dispatch regression tests before validating contracts and generated output.
-
-[開發與維運指引圖索引](../docs/diagrams.md#開發與維運指引) · [未來設計圖](../docs/diagrams.md#未來設計)。

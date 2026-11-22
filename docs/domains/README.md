@@ -83,4 +83,4 @@
 
 [群組位置天氣](weather/weather.md)
 
-[領域維護規則](AGENTS.md) · [圖表索引](../diagrams.md) · [上層導覽](../README.md)
+[領域維護規則](AGENTS.md) · [上層導覽](../README.md)

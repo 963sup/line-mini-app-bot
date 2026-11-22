@@ -30,8 +30,6 @@ cloudbuild.yaml 為手動提交或自訂 trigger 的建置部署流程；根目�
 - [故障排查](../docs/guides/release/troubleshooting.md)
 - [Cloud Run 決策](../docs/decisions/0003-cloud-run-primary.md)
 
-[開發與維運指引圖索引](../docs/diagrams.md#開發與維運指引) · [未來設計圖](../docs/diagrams.md#未來設計)。
-
 Repository 流程已接入部署前的 LINE 導航同步 Job；managed inline Trigger 另行維護，MUST 使用相容的 /server sync-line-navigation 入口與必要環境，不能沿用 /richmenu。參見 [自動發布與雲端前置條件](../docs/guides/line-setup/rich-menu.md)。
 
 ## 容器建置契約

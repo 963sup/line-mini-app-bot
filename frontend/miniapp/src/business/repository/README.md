@@ -10,7 +10,7 @@
 
 ## 相關規格
 
-[現行實作圖：空間載入時序](../../../../../docs/domains/repository/README.md#空間載入時序) · [未來設計圖](../../../../../docs/diagrams.md#未來設計)
+[現行實作圖：空間載入時序](../../../../../docs/domains/repository/README.md#空間載入時序)
 
 [上層導覽](../README.md)
 

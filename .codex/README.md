@@ -20,7 +20,6 @@
 
 [操作模型](../docs/architecture/contracts/business-operations.md) · [符合性流程](../docs/development/workflow/implementation.md#business-operation-compliance)
 
-
 ## 目錄導覽與維護
 
 config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json 保存 hooks；skills/ 為安裝產物。
@@ -79,8 +78,6 @@ Mermaid v13 的 `mermaid` 套件內建 `mermaid render`，與舊版 `@mermaid-js
 1. 核對來源並依[文件圖表規範](../docs/standards/documentation.md#獨立圖檔)維護內嵌區塊或獨立圖檔。
 2. 使用專案鎖定的本機 Mermaid v13 CLI。需要安裝時執行 `bash scripts/tooling/tool-exec.sh mise run install-mermaid`。
 3. 執行 `bash scripts/tooling/tool-exec.sh mise run render-mermaid -- render diagram.mmd --format svg > diagram.svg`，核對圖中文字與箭頭符合來源。
-
-[開發與維運指引圖索引](../docs/diagrams.md#開發與維運指引) · [未來設計圖](../docs/diagrams.md#未來設計)。
 
 ### Codex Cloud 新環境驗收
 

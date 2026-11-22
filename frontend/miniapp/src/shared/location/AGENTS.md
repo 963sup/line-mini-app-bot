@@ -8,6 +8,6 @@
 
 [現行實作圖：現有出勤整合檔案與責任](../../../../../docs/architecture/integrations/web-geolocation.md#現有出勤整合檔案與責任) · [瀏覽器定位規格](../../../../../docs/architecture/integrations/web-geolocation.md)
 
-[現行實作圖：現有出勤整合檔案與責任](../../../../../docs/architecture/integrations/web-geolocation.md#現有出勤整合檔案與責任) · [未來設計圖](../../../../../docs/diagrams.md#未來設計)
+[現行實作圖：現有出勤整合檔案與責任](../../../../../docs/architecture/integrations/web-geolocation.md#現有出勤整合檔案與責任)
 
 定位由瀏覽器 JavaScript 取得，Go 驗證不受信任的座標與操作權限。新增位置歷史或在場驗證須有產品契約。修改前先讀[瀏覽器定位規格](../../../../../docs/architecture/integrations/web-geolocation.md)。

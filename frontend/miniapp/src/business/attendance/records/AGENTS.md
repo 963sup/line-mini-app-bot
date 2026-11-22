@@ -6,4 +6,4 @@
 
 ## 相關規格
 
-[現行實作圖：共用狀態規則與事件重建](../../../../../../docs/domains/attendance/worktime.md#共用狀態規則與事件重建) · [未來設計圖](../../../../../../docs/diagrams.md#未來設計)
+[現行實作圖：共用狀態規則與事件重建](../../../../../../docs/domains/attendance/worktime.md#共用狀態規則與事件重建)

@@ -17,4 +17,4 @@
 - 保留現有 Cookie／Bearer、CSRF、錯誤及單例路徑相容性；不在公開 DTO 暴露憑證與服務端機密。
 - 修改前閱讀 [Session 設計](../../../docs/architecture/identity/browser-session.md)。
 
-[現行實作圖：續期交易與前端觸發](../../../docs/architecture/identity/browser-session.md#續期交易與前端觸發) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：續期交易與前端觸發](../../../docs/architecture/identity/browser-session.md#續期交易與前端觸發)

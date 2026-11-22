@@ -25,6 +25,6 @@
 組裝在 internal/bootstrap/line.go，與出勤、摘要資料層無依賴。
 沒有既有公開 Weather HTTP API 或 MINI App 天氣畫面。
 
-[現行實作圖：基礎入口](../../../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：基礎入口](../../../docs/architecture/contracts/http.md#基礎入口)
 
 [上層導覽](../README.md)

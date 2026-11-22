@@ -19,7 +19,7 @@
 
 ## 日常開發看哪張圖
 
-[全部圖表按狀態查閱](diagrams.md)。初次接手先看執行入口；修改功能時，依手上的問題選讀一張。
+初次接手先看執行入口；修改功能時，依手上的問題選讀原文章節。圖表所述的實作、部署和裝置驗收狀態以各頁證據為準。
 
 | 開發問題 | 現行實作圖 |
 | --- | --- |
@@ -30,7 +30,14 @@
 | 改 API 或 Firestore 欄位時，格式在哪一層轉換？ | [後端資料邊界](architecture/runtime/backend-boundaries.md#格式與資料相容) |
 | 專案如何收錄多個 Repository的來源項目？ | [Project 與來源引用](domains/project/project.md#最小來源引用骨架) |
 
-出勤、請假、送件等流程從[功能索引](domains/README.md)進入。評估未來設計時才讀[平台規劃](proposals/README.md)；[Inbox、Outbox 與 Webhook 時序](proposals/webhook-delivery/design.md)描述規劃中的持久接收機制。
+其他圖依目的查閱：
+
+| 目的 | 閱讀入口 |
+| --- | --- |
+| 查現行業務流程與狀態 | [領域索引](domains/README.md#domain-matrix) · [定位打卡時序](domains/attendance/README.md#定位前預檢狀態與時序) · [補卡與人工審核](domains/attendance/worktime.md#補卡與人工審核) |
+| 推導模型、聚合、交易與用例 | [DDD 設計圖](architecture/ddd/design-diagrams.md) · [聚合邊界](architecture/ddd/aggregate.md#邊界與存取入口) · [提交與發布](architecture/ddd/transaction.md#提交與發布) |
+| 開發、驗收或排錯 | [開發流程](development/README.md) · [驗收矩陣](development/verification/commands.md#變更驗收矩陣) · [部署與回復](guides/release/release-acceptance.md#切換觀察回復) |
+| 評估尚未採用的設計 | [提案索引](proposals/README.md) · [跨領域協作](proposals/domain-collaboration.md) · [Webhook、Inbox 與 Outbox](proposals/webhook-delivery/design.md#webhook-接收處理與發送) |
 
 ## 目錄責任
 
