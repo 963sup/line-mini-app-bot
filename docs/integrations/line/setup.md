@@ -25,8 +25,10 @@ flowchart LR
 ```mermaid
 flowchart LR
   a["接入後要驗證什麼？"]
-  a --- n0["Webhook 與指令"]
+  a --- n0["Webhook 接線"]
   click n0 "webhook.md"
+  a --- commands["LINE Bot 聊天指令"]
+  click commands "commands.md"
   a --- n1["MINI App 與 Session"]
   click n1 "mini-app-setup.md"
   a --- n2["建立或替換 Rich Menu"]

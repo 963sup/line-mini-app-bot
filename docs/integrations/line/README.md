@@ -1,5 +1,6 @@
 # LINE 整合
 
+- [LINE Bot 聊天指令](commands.md)列出私聊、群組、別名與參數。
 - [整合能力與邊界](capabilities.md)說明私聊、群組、Webhook 與 MINI App 的責任。
 - [環境變數](configuration.md)說明 Messaging API 與 MINI App 的設定、注入及驗證。
 - [呈現方式選型](presentation.md)比較訊息、Quick Reply、Rich Menu 與 MINI App 的適用情境。

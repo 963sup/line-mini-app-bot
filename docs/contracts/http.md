@@ -1,6 +1,8 @@
-# http-與身分契約
+# HTTP 與信任邊界
 
 <a id="http-與身分契約"></a>
+
+本頁維護請求、回應、Webhook 信任邊界及模組間的驗證流程。Cookie、CSRF、Session 期限、續期和撤銷以[身分與 Session 契約](identity.md)為準。
 
 <a id="基礎入口"></a>
 

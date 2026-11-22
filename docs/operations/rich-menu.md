@@ -28,4 +28,4 @@ Firestore 的 line_navigation_publication_leases/{channelID} 保存暫時 owner 
 
 LINE SDK 維持 v8.23.0。官方 [Rich Menu API](https://developers.line.biz/en/reference/messaging-api/#rich-menu) 與批次遷移規範核對自 line-developers-docs-source main / c15d6d3fa2eff7fcae65554c20be5b1e60f9a10a。Firestore transaction 語意核對 googleapis/google-cloud-go firestore/v1.29.2 原碼文件；交易 callback 可能重跑，因此只取得／釋放租約，所有 LINE 副作用均在交易外。Context7 配額已耗盡；主機未提供另一條匿名連線。gcloud Job 旗標以本機固定版 592.0.0 leaf help 核對；未做雲端整合驗收。
 
-[LINE 接入入口](../integrations/line/setup.md) · [Cloud Run 部署](cloud-run.md)
+[聊天指令清單](../integrations/line/commands.md) · [LINE 接入入口](../integrations/line/setup.md) · [Cloud Run 部署](cloud-run.md)

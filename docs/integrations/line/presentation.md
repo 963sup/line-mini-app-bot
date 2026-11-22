@@ -22,7 +22,7 @@ flowchart LR
   h --- n2["類型：位置<br/>適用場景：使用者傳送座標；現有群組位置天氣<br/>限制與維護：位置是使用者輸入，不能當可信到場<br/>證明<br/>本專案：已接收群組位置；不作出勤認證"]
   h --- n3["類型：優惠券<br/>適用場景：發送優惠券<br/>限制與維護：需符合 LINE 優惠券資源與帳號條件<br/>本專案：延後"]
   h --- n4["類型：Imagemap<br/>適用場景：單張圖上多個點擊區域<br/>限制與維護：圖片尺寸、點擊熱區及替代文字需同<br/>步維護<br/>本專案：未實作"]
-  h --- n5["類型：Template：Buttons、Confirm、Carousel、<br/>Image Carousel<br/>適用場景：固定結構的決策、確認、橫向列表或圖<br/>片列表<br/>限制與維護：版面和 action 數量受 API 限制；<br/>內容較 Flex 不靈活<br/>本專案：未實作"]
+  h --- n5["類型：Template：Buttons、Confirm、Carousel、<br/>Image Carousel<br/>適用場景：固定結構的決策、確認、橫向列表或圖<br/>片列表<br/>限制與維護：版面和 action 數量受 API 限制；<br/>內容較 Flex 不靈活<br/>本專案：Buttons Template 已用於請假與補卡入口"]
   h --- n6["類型：Flex<br/>適用場景：自訂卡片與多欄內容<br/>限制與維護：須維護 JSON 版面、替代文字和窄螢<br/>幕呈現<br/>本專案：功能說明、打卡選單等已用"]
 ```
 

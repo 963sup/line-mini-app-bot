@@ -1,0 +1,41 @@
+# LINE Bot 聊天指令
+
+在與官方帳號的私聊或有 Bot 的群組輸入下列文字。指令表依目前程式碼整理；線上可用性仍取決於部署版本、渠道設定與使用者權限。
+
+## 私聊與群組
+
+| 指令 | 用途 |
+| --- | --- |
+| `選單`、`功能`、`/menu` | 回覆當前聊天可用的 Quick Reply 快捷選單。群組也可用已設定的選單貼圖。 |
+| `/help` | 回覆符合聊天範圍的 Flex 功能說明。 |
+| `/miniapp` | 取得 MINI App 開啟卡。已設定網頁入口時，支援桌面替代連結。 |
+
+[導航指令實作](../../../backend/internal/transport/line/navigation/events.go) · [訊息與快捷選單實作](../../../backend/internal/transport/line/navigation/menu.go)
+
+## 群組
+
+| 指令 | 用途 |
+| --- | --- |
+| `打卡` | 開啟本群的上班、下班、休息開始、休息結束及確認休息選項，再依提示進行本人驗證和定位。 |
+| `出勤` | 查看本群上班中、休息中與今日已下班的紀錄統計。 |
+| `漏下班`、`下班提醒` | 查詢發話者在本群是否有未結束班次。 |
+| `補卡` | 開啟本群補卡與時間更正申請。核准前有效出勤紀錄維持原狀。 |
+| `請假` | 取得本群請假登記表。送出後仍須依流程確認。 |
+| `摘要` | 摘要最近 24 小時的群聊，最多 100 則。須已啟用摘要服務。 |
+
+直接輸入 `上班`、`下班`、`休息開始`、`休息結束` 或 `確認休息` 會收到操作引導。出勤只在完成 `打卡` 選單中的驗證流程後寫入。群組也可分享位置查天氣，這是位置訊息操作。
+
+[出勤指令實作](../../../backend/internal/business/attendance/adapter/line/attendance.go) · [摘要指令實作](../../../backend/internal/business/summary/adapter/line/summarization/commands.go) · [出勤規格](../../domains/attendance/README.md)
+
+## 私聊
+
+| 指令 | 用途 |
+| --- | --- |
+| `出勤紀錄` | 查看本人出勤，依畫面選群組與月份。 |
+| `出勤紀錄 1` | 依本人群組清單的編號選擇群組，再選月份。 |
+| `我的工程` | 查詢本人可存取的工程儲存庫及入口。 |
+| `建立組織`、`建立企業` | 開始建立流程，五分鐘內回覆名稱；流程中可輸入 `取消`。企業建立須符合開通資格。 |
+| `邀請加入 組織ID` | 有組織邀請權限時產生邀請碼。 |
+| `接受邀請 邀請碼`、`撤銷邀請 邀請碼` | 依邀請狀態與權限接受或撤銷邀請。 |
+
+[工程入口實作](../../../backend/internal/business/repository/adapter/line/my_engineering.go) · [建立流程實作](../../../backend/internal/business/organization/adapter/line/creation_line.go) · [邀請指令實作](../../../backend/internal/business/membership/adapter/line/invitations.go)
