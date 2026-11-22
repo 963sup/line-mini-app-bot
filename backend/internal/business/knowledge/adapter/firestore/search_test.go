@@ -22,7 +22,11 @@ func TestSearchEvidenceChecksPublicationAndOrganization(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	t.Cleanup(func() {
+		if err := client.Close(); err != nil {
+			t.Errorf("close Firestore client: %v", err)
+		}
+	})
 
 	reader := Reader{DB: client, Channel: uuid.NewString()}
 	const template = "template-v1"
