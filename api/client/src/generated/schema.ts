@@ -1335,6 +1335,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/object-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List personal templates across repositories */
+        get: operations["listPersonalObjectTemplates"];
+        put?: never;
+        /** Create a personal template independent of repositories */
+        post: operations["createPersonalObjectTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -7915,6 +7933,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ObjectTemplateInstance"];
+                };
+            };
+            400: components["responses"]["ObjectError"];
+            401: components["responses"]["ObjectError"];
+            403: components["responses"]["ObjectForbidden"];
+            404: components["responses"]["ObjectError"];
+            409: components["responses"]["ObjectError"];
+            415: components["responses"]["ObjectError"];
+            503: components["responses"]["ObjectError"];
+        };
+    };
+    listPersonalObjectTemplates: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectTemplatePage"];
+                };
+            };
+            400: components["responses"]["ObjectError"];
+            401: components["responses"]["ObjectError"];
+            403: components["responses"]["ObjectForbidden"];
+            404: components["responses"]["ObjectError"];
+            409: components["responses"]["ObjectError"];
+            415: components["responses"]["ObjectError"];
+            503: components["responses"]["ObjectError"];
+        };
+    };
+    createPersonalObjectTemplate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Scoped to actor, repository and this operation. Retry the original key and body after an unknown result. Same key with different normalized content returns idempotency_conflict (409). */
+                "Idempotency-Key": string;
+                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObjectTemplateCreation"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectTemplate"];
                 };
             };
             400: components["responses"]["ObjectError"];

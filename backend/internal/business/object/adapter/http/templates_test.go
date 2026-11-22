@@ -97,3 +97,44 @@ func TestTemplateHTTPContractAndAuthorization(t *testing.T) {
 		t.Fatal("rejected input or denied authority reached store")
 	}
 }
+
+type personalTemplateStore struct{ templateStore }
+
+func (s *personalTemplateStore) CreatePersonalTemplate(ctx context.Context, actor, key string, in dto.TemplateCreation) (dto.Template, error) {
+	return s.CreateTemplate(ctx, repository.Repository{}, actor, key, in)
+}
+
+func (s *personalTemplateStore) ListPersonalTemplates(ctx context.Context, actor, cursor string) (dto.TemplatePage, error) {
+	return s.ListTemplates(ctx, repository.Repository{}, actor, cursor)
+}
+
+func (s *personalTemplateStore) InstantiatePersonalTemplate(context.Context, repository.Repository, string, string, string, string, []template.Node) (dto.TemplateInstance, error) {
+	panic("not used by library operations")
+}
+
+func TestPersonalTemplateLibraryDoesNotRequireRepository(t *testing.T) {
+	templates := &personalTemplateStore{}
+	service := &application.Service{PersonalTemplates: templates}
+	mux := http.NewServeMux()
+	Register(mux, service, auth{})
+	for _, method := range []string{"POST", "GET"} {
+		request := httptest.NewRequest(method, "/api/v1/object-templates", strings.NewReader(`{"name":"範本","nodes":[{"id":"root","name":"工程"}]}`))
+		request.Header.Set("Content-Type", "application/json")
+		request.Header.Set("Idempotency-Key", "personal-template-key")
+		response := httptest.NewRecorder()
+		mux.ServeHTTP(response, request)
+		if response.Code != http.StatusOK {
+			t.Fatalf("%s: %d %s", method, response.Code, response.Body.String())
+		}
+	}
+	if templates.calls != 2 || templates.snapshot.CreatorID != "A" {
+		t.Fatalf("unexpected template calls: %+v", templates)
+	}
+	denied := http.NewServeMux()
+	Register(denied, service, auth{deny: true})
+	response := httptest.NewRecorder()
+	denied.ServeHTTP(response, httptest.NewRequest("GET", "/api/v1/object-templates", nil))
+	if response.Code != 401 || templates.calls != 2 {
+		t.Fatal("unauthenticated request reached store")
+	}
+}

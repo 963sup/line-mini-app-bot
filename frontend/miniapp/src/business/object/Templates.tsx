@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useRepositories } from "../repository/RepositoryContext";
 import { Candidates, type Candidate } from "./Candidates";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
@@ -16,8 +17,8 @@ import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 
 type Snapshot = components["schemas"]["ObjectTemplate"];
 type Creation = components["schemas"]["ObjectTemplateCreation"];
-type Props = { repositoryId: string; disabled: boolean; onBlocked: (blocked: boolean) => void; onApplied: (result: components["schemas"]["ObjectTemplateInstance"]) => void };
-type Attempt = { key: string } & ({ kind: "create"; body: Creation } | { kind: "apply"; id: string; body: components["schemas"]["ObjectTemplateInstantiation"] });
+type Props = { standalone?: boolean; initiallyOpen?: boolean; repositoryId: string; disabled: boolean; onBlocked: (blocked: boolean) => void; onApplied: (result: components["schemas"]["ObjectTemplateInstance"]) => void };
+type Attempt = { key: string } & ({ kind: "create"; body: Creation } | { kind: "apply"; id: string; repositoryId: string; body: components["schemas"]["ObjectTemplateInstantiation"] });
 const initial = (): Creation => ({ name: "", nodes: [{ id: "root", name: "" }] });
 
 function documentDraft(filename: string, candidates: Candidate[]): Creation {
@@ -53,12 +54,13 @@ function removeDraftBranch(nodes: Creation["nodes"], id: string) {
 }
 
 // Only input, request lifecycle and navigation live here. Go validates and creates the tree.
-export function Templates({ repositoryId, disabled, onBlocked, onApplied }: Props) {
+export function Templates({ repositoryId, disabled, onBlocked, onApplied, initiallyOpen = false, standalone = false }: Props) {
   const { request } = useSession();
   const read = useLatestRequest(), write = useLatestRequest();
   const [open, setOpen] = useState(false), [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState<Creation>(initial), [items, setItems] = useState<Snapshot[]>([]);
-  const [scope, setScope] = useState<"repository" | "personal">("repository");
+  const [scope, setScope] = useState<"repository" | "personal">(standalone ? "personal" : "repository");
+  const [targetRepository, setTargetRepository] = useState(repositoryId);
   const [plan, setPlan] = useState<Creation["nodes"]>();
   const [excluded, setExcluded] = useState<string[]>([]);
   const [selected, setSelected] = useState(""), [cursor, setCursor] = useState("");
@@ -74,10 +76,17 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied }: Prop
   const load = useCallback((next = "", library = scope) => {
     setReading(true); setMessage("");
     if (!next) { setItems([]); setSelected(""); }
-    void read.run(signal => request((client, s) => client.GET("/api/v1/repositories/{repositoryId}/object-templates", { signal: s, params: { path: { repositoryId }, query: { cursor: next || undefined, scope: library === "personal" ? "personal" : undefined } } }), { signal }), page => {
+    void read.run(signal => request((client, s) => standalone ? client.GET("/api/v1/object-templates", { signal: s, params: { query: { cursor: next || undefined } } }) : client.GET("/api/v1/repositories/{repositoryId}/object-templates", { signal: s, params: { path: { repositoryId }, query: { cursor: next || undefined, scope: library === "personal" ? "personal" : undefined } } }), { signal }), page => {
       setItems(previous => next ? [...previous, ...page.items] : page.items); setCursor(page.nextCursor); setReading(false);
     }, error => { setReading(false); setMessage(errorMessage(error)); });
-  }, [read.run, request, repositoryId, scope]);
+  }, [read.run, request, repositoryId, scope, standalone]);
+  const openedFromEntry = useRef(false);
+  useEffect(() => {
+    if (!initiallyOpen || disabled || openedFromEntry.current) return;
+    openedFromEntry.current = true;
+    setOpen(true);
+    load();
+  }, [initiallyOpen, disabled, load]);
   function close() {
     if (lock.current || uncertain) return;
     discard.navigate(() => { read.cancel(); onBlocked(false); setOpen(false); setPlan(undefined); setExcluded([]); setCreating(false); setDraft(initial()); setMessage(""); trigger.current?.focus(); });
@@ -94,12 +103,12 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied }: Prop
     };
     const settled = () => { lock.current = false; setBusy(false); setUncertain(false); guard.block(false); attempt.current = null; };
     if (pending.kind === "create") {
-      void write.run(signal => request((client, s) => client.POST("/api/v1/repositories/{repositoryId}/object-templates", { signal: s, params: { path: { repositoryId }, query: { scope: scope === "personal" ? "personal" : undefined }, header: { "Idempotency-Key": pending.key } }, body: pending.body }), { signal }), snapshot => {
+      void write.run(signal => request((client, s) => standalone ? client.POST("/api/v1/object-templates", { signal: s, params: { header: { "Idempotency-Key": pending.key } }, body: pending.body }) : client.POST("/api/v1/repositories/{repositoryId}/object-templates", { signal: s, params: { path: { repositoryId }, query: { scope: scope === "personal" ? "personal" : undefined }, header: { "Idempotency-Key": pending.key } }, body: pending.body }), { signal }), snapshot => {
         settled(); setItems(previous => [snapshot, ...previous.filter(item => item.id !== snapshot.id)]); setSelected(snapshot.id); setCreating(false); setDraft(initial()); setMessage("已建立範本，可直接套用。");
       }, failed);
     } else {
-      void write.run(signal => request((client, s) => client.POST("/api/v1/repositories/{repositoryId}/object-templates/{id}/instances", { signal: s, params: { path: { repositoryId, id: pending.id }, query: { scope: scope === "personal" ? "personal" : undefined }, header: { "Idempotency-Key": pending.key } }, body: pending.body }), { signal }), result => {
-        settled(); read.cancel(); setOpen(false); setPlan(undefined); setExcluded([]); setCreating(false); setDraft(initial()); onBlocked(false); onApplied(result);
+      void write.run(signal => request((client, s) => client.POST("/api/v1/repositories/{repositoryId}/object-templates/{id}/instances", { signal: s, params: { path: { repositoryId: pending.repositoryId, id: pending.id }, query: { scope: scope === "personal" ? "personal" : undefined }, header: { "Idempotency-Key": pending.key } }, body: pending.body }), { signal }), result => {
+        settled(); read.cancel(); setMessage(`已建立 ${result.objectIds.length} 個物件。`); setOpen(standalone); setPlan(undefined); setExcluded([]); setCreating(false); setDraft(initial()); onBlocked(false); onApplied(result);
       }, failed);
     }
   }
@@ -128,18 +137,18 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied }: Prop
     setPlan(previous => previous?.map(node => node.id === id ? { ...node, ...patch } : node));
   }
   return <>
-    <Button ref={trigger} variant="outline" disabled={disabled || open} onClick={() => { if (!guard.canWrite()) return; onBlocked(true); setOpen(true); load(); }}>物件範本</Button>
+    {!standalone && <Button ref={trigger} variant="outline" disabled={disabled || open} onClick={() => { if (!guard.canWrite()) return; onBlocked(true); setOpen(true); load(); }}>物件範本</Button>}
     {open && <PagePanel heading="物件範本"><section ref={panel} tabIndex={-1} aria-label="物件範本操作" className="flex min-w-0 flex-col gap-3">
       <ReadFeedback busy={reading || busy} message={message} label="正在讀取範本……" />
-      {!plan && scope === "personal" && <Candidates repositoryId={repositoryId} disabled={busy || uncertain || creating} importDraft={(filename, candidates) => { setDraft(documentDraft(filename, candidates)); setCreating(true); }} />}
+      {!standalone && !plan && scope === "personal" && <Candidates repositoryId={repositoryId} disabled={busy || uncertain || creating} importDraft={(filename, candidates) => { setDraft(documentDraft(filename, candidates)); setCreating(true); }} />}
       {!creating && !plan && <>
-        <FormField>範本庫<NativeSelect value={scope} disabled={busy || uncertain} onChange={event => {
+        {!standalone && <FormField>範本庫<NativeSelect value={scope} disabled={busy || uncertain} onChange={event => {
           const library = event.target.value === "personal" ? "personal" : "repository";
           setScope(library); load("", library);
         }}>
           <NativeSelectOption value="repository">本庫</NativeSelectOption>
           <NativeSelectOption value="personal">我的範本</NativeSelectOption>
-        </NativeSelect></FormField>
+        </NativeSelect></FormField>}
         <FormField>選擇範本<NativeSelect value={selected} disabled={busy || uncertain} onChange={event => setSelected(event.target.value)}>
           <NativeSelectOption value="">請選擇</NativeSelectOption>
           {items.map(item => <NativeSelectOption key={item.id} value={item.id}>{item.name} · v{item.version}</NativeSelectOption>)}
@@ -155,8 +164,10 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied }: Prop
       </>}
       {plan && <form onSubmit={event => {
         event.preventDefault();
-        send({ kind: "apply", key: crypto.randomUUID(), id: selected, body: { nodes: retained } });
+        if (!targetRepository) return;
+        send({ kind: "apply", repositoryId: targetRepository, key: crypto.randomUUID(), id: selected, body: { nodes: retained } });
       }}><FieldGroup><FieldSet disabled={busy || uncertain}>
+        {standalone && <TemplateTarget value={targetRepository} onChange={setTargetRepository} disabled={busy || uncertain} />}
         {plan.map(node => {
           const removed = isRemoved(node.id);
           const descendants = descendantsOf(node.id);
@@ -172,7 +183,7 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied }: Prop
             {removed && <p>本次不建立</p>}
           </FieldGroup>;
         })}
-        <Button type="submit">建立 {retained.length} 個物件</Button>
+        <Button type="submit" disabled={!targetRepository}>建立 {retained.length} 個物件</Button>
         <Button type="button" variant="outline" onClick={() => discard.navigate(() => { setPlan(undefined); setExcluded([]); })}>返回範本</Button>
       </FieldSet></FieldGroup></form>}
       {creating && draft.nodes.length > 100 && <p role="alert">範本最多 100 個節點（含根物件），請移除不需要的工序後再儲存。</p>}
@@ -192,8 +203,22 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied }: Prop
         <Button type="submit" disabled={draft.nodes.length > 100 || draftTooLong}>建立範本</Button>
       </FieldSet></FieldGroup></form>}
       {uncertain && !busy && <Button onClick={() => { if (attempt.current) send(attempt.current); }}>重試原範本請求</Button>}
-      <Button variant="outline" disabled={busy || uncertain} onClick={close}>關閉範本</Button>
+      {!standalone && <Button variant="outline" disabled={busy || uncertain} onClick={close}>關閉範本</Button>}
     </section></PagePanel>}
     {discard.dialog}
+  </>;
+}
+
+function TemplateTarget({ value, onChange, disabled }: { value: string; onChange: (id: string) => void; disabled: boolean }) {
+  const repositories = useRepositories();
+  useEffect(() => { repositories.ensure(); }, []);
+  return <>
+    <FormField>目標儲存庫<NativeSelect required value={value} disabled={disabled} onChange={event => onChange(event.target.value)}>
+      <NativeSelectOption value="">請選擇要建立物件的儲存庫</NativeSelectOption>
+      {repositories.items.map(item => <NativeSelectOption key={item.id} value={item.id}>{item.name || "群組空間"}</NativeSelectOption>)}
+    </NativeSelect></FormField>
+    <ReadFeedback busy={repositories.busy} message={repositories.status} label="正在讀取儲存庫……" />
+    {repositories.catalogFailed && <Button type="button" variant="outline" disabled={disabled || repositories.busy} onClick={repositories.retryCatalog}>重試讀取儲存庫</Button>}
+    {repositories.cursor && <Button type="button" variant="outline" disabled={disabled || repositories.busy} onClick={repositories.loadMore}>載入更多儲存庫</Button>}
   </>;
 }

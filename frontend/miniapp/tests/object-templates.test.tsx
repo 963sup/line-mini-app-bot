@@ -4,6 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { pressButton } from "./sidebar-dom";
 import { Shell } from "./shell-fixture";
+import { Templates } from "../src/business/object/Templates";
 import { View } from "../src/business/object/View";
 
 const rid = "a".repeat(32), tid = "b".repeat(32), rootId = "c".repeat(32), childId = "d".repeat(32);
@@ -12,7 +13,7 @@ const snapshot = { id: tid, repositoryId: rid, name: "範本", version: 1, creat
 const instance = { rootObjectId: rootId, objectIds: [rootId, childId], templateId: tid, templateVersion: 1, nodes: [{ objectId: rootId, parentId: "", name: "工程" }, { objectId: childId, parentId: rootId, name: "工序" }] };
 const resource = (id: string) => ({ id, repositoryId: rid, name: id === rootId ? "工程" : "工序", parentId: id === childId ? rootId : undefined, description: "", type: "", quantity: "", unit: "", status: "not_started", creatorId: "A", canEdit: true, version: 1, createdAt: snapshot.createdAt, updatedAt: snapshot.createdAt });
 const flush = async () => { for (let i = 0; i < 10; i++) await new Promise<void>(resolve => setImmediate(resolve)); };
-async function fixture(handle: (r: Request) => Promise<Response>) {
+async function fixture(handle: (r: Request) => Promise<Response>, standalone = false) {
   document.body.innerHTML = '<div id="root"></div>';
   window.history.replaceState(null, "", "/miniapp/projects");
   const oldFetch = globalThis.fetch, oldSDK = window.liff;
@@ -27,7 +28,7 @@ async function fixture(handle: (r: Request) => Promise<Response>) {
     return handle(r);
   };
   const root = createRoot(document.getElementById("root")!);
-  await act(async () => { root.render(<Shell title="測試" workflow="projects"><View repositoryId={rid} /></Shell>); await flush(); });
+  await act(async () => { root.render(<Shell title="測試" workflow={standalone ? "object-templates" : "projects"}>{standalone ? <Templates repositoryId="" standalone initiallyOpen disabled={false} onBlocked={() => {}} onApplied={() => {}} /> : <View repositoryId={rid} />}</Shell>); await flush(); });
   return {
     async click(label: string) { await act(async () => { const b = [...document.querySelectorAll<HTMLButtonElement>("button")].find(b => b.textContent === label || b.getAttribute("aria-label") === label); assert.ok(b, `missing ${label}`); pressButton(b); await flush(); }); },
     async fill(label: string, value: string) { await act(async () => { const input = [...document.querySelectorAll("label")].find(n => n.textContent === label)?.querySelector<HTMLInputElement | HTMLTextAreaElement>("input, textarea"); assert.ok(input, label); Object.getOwnPropertyDescriptor(Object.getPrototypeOf(input), "value")!.set!.call(input, value); input.dispatchEvent(new window.Event("input", { bubbles: true })); await flush(); }); },
@@ -158,5 +159,40 @@ test("document extraction creates only an editable personal draft and preserves 
     assert.notEqual(floors[0].parentId, floors[1].parentId);
     assert.ok(nodes.some(node => node.name === "（一）SCADA站內工程：\n既設161kv RTU"));
     assert.ok(nodes.every(node => !("quantity" in node)));
+  } finally { await f.dispose(); }
+});
+
+test("standalone templates create without repositories and select a target only when applying", async () => {
+  let repositoryReads = 0;
+  const writes: { path: string; key: string | null; body: string }[] = [];
+  let attempts = 0;
+  const f = await fixture(async request => {
+    const path = new URL(request.url).pathname;
+    if (path === "/api/v1/repositories") { repositoryReads++; return Response.json({ items: [{ id: rid, name: "目標庫", status: "ACTIVE" }], nextCursor: "" }); }
+    if (path === "/api/v1/object-templates" && request.method === "GET") return Response.json({ items: [], nextCursor: "" });
+    if (request.method === "POST") {
+      writes.push({ path, key: request.headers.get("Idempotency-Key"), body: await request.text() });
+      if (path === "/api/v1/object-templates") return Response.json(snapshot);
+      if (++attempts === 1) throw new TypeError("offline");
+      return Response.json(instance);
+    }
+    throw new Error(`unexpected ${path}`);
+  }, true);
+  try {
+    assert.equal(repositoryReads, 0);
+    await f.click("新增範本"); await f.fill("範本名稱", "共用範本"); await f.fill("根物件名稱", "工程"); await f.click("建立範本");
+    assert.equal(writes[0].path, "/api/v1/object-templates");
+    assert.equal(repositoryReads, 0);
+    await f.click("使用範本");
+    assert.ok(repositoryReads > 0);
+    const submit = [...document.querySelectorAll<HTMLButtonElement>("button")].find(b => b.textContent === "建立 2 個物件")!;
+    assert.equal(submit.disabled, true);
+    await f.select(rid, "目標儲存庫");
+    await f.click("建立 2 個物件");
+    assert.equal(document.querySelector<HTMLSelectElement>('select')!.disabled, true);
+    await f.click("重試原範本請求");
+    assert.deepEqual(writes[1], writes[2]);
+    assert.equal(writes[1].path, `${base}/object-templates/${tid}/instances`);
+    assert.match(document.body.textContent!, /已建立 2 個物件/);
   } finally { await f.dispose(); }
 });

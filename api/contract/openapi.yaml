@@ -238,6 +238,9 @@
     },
     "/api/v1/repositories/{repositoryId}/object-templates/{id}/instances": {
       "$ref": "./object/objects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-templates~1{id}~1instances"
+    },
+    "/api/v1/object-templates": {
+      "$ref": "./object/objects.yaml#/paths/~1api~1v1~1object-templates"
     }
   },
   "components": {

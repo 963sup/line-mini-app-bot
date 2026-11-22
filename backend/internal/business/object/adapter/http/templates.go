@@ -118,3 +118,13 @@ func writeTemplateError(w http.ResponseWriter, e error) bool {
 	}
 	return writeError(w, e)
 }
+
+func (s *objectServer) ListPersonalObjectTemplates(w http.ResponseWriter, r *http.Request, p generated.ListPersonalObjectTemplatesParams) {
+	scope := generated.ListObjectTemplatesParamsScopePersonal
+	s.ListObjectTemplates(w, r, "", generated.ListObjectTemplatesParams{Scope: &scope, Cursor: p.Cursor})
+}
+
+func (s *objectServer) CreatePersonalObjectTemplate(w http.ResponseWriter, r *http.Request, p generated.CreatePersonalObjectTemplateParams) {
+	scope := generated.CreateObjectTemplateParamsScopePersonal
+	s.CreateObjectTemplate(w, r, "", generated.CreateObjectTemplateParams{Scope: &scope, IdempotencyKey: p.IdempotencyKey})
+}

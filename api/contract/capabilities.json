@@ -1699,6 +1699,34 @@
       "consumers": [
         "frontend/miniapp/src/business/object/Templates.tsx"
       ]
+    },
+    {
+      "operationId": "listPersonalObjectTemplates",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/object-templates",
+      "owner": "object",
+      "adapter": "backend/internal/business/object/adapter/http/templates.go",
+      "handler": "ListPersonalObjectTemplates",
+      "core": "backend/internal/business/object/domain/template/version.go",
+      "specification": "docs/domains/repository/object/template.md",
+      "consumers": [
+        "frontend/miniapp/src/business/object/Templates.tsx"
+      ]
+    },
+    {
+      "operationId": "createPersonalObjectTemplate",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/object-templates",
+      "owner": "object",
+      "adapter": "backend/internal/business/object/adapter/http/templates.go",
+      "handler": "CreatePersonalObjectTemplate",
+      "core": "backend/internal/business/object/domain/template/version.go",
+      "specification": "docs/domains/repository/object/template.md",
+      "consumers": [
+        "frontend/miniapp/src/business/object/Templates.tsx"
+      ]
     }
   ],
   "events": [
@@ -1856,6 +1884,11 @@
       "entity": "PopplerText",
       "collection": "extractions",
       "path": "/api/v1/tools/poppler/extractions"
+    },
+    {
+      "entity": "ObjectTemplate",
+      "collection": "object-templates",
+      "path": "/api/v1/object-templates"
     }
   ],
   "namingExceptions": {
