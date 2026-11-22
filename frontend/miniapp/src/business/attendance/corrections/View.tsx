@@ -11,7 +11,7 @@ import { Status } from "@/shared/Status";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "../../../identity/Session";
-import { useLatestRequest, errorMessage } from "../../../shared/http/lifecycle";
+import { rejectedAttempt, useLatestRequest, errorMessage } from "../../../shared/http/lifecycle";
 import { taiwan, displayTime, timestamp } from "../../../shared/time/time";
 import { Requests } from "./Requests";
 type S = components["schemas"];
@@ -30,12 +30,13 @@ export function View() {
     [breaks, setBreaks] = useState<{ Start: string; End: string }[]>([]),
     [reason, setReason] = useState(""),
     [confirmed, setConfirmed] = useState(false),
+    [uncertain,setUncertain] = useState(false),
     [busy, setBusy] = useState(false),
     [refreshVersion, setRefreshVersion] = useState(0),
     [status, setStatus] = useState("請先完成身分驗證。"),
     [back, setBack] = useState("/miniapp/history");
   const lock = useRef(false),
-    attempt = useRef<{ serialized: string; key: string } | null>(null);
+    attempt = useRef<{ body: S["CorrectionSubmission"]; key: string } | null>(null);
   useEffect(() => {
     const params = new URLSearchParams(location.search),
       group = params.get("group") || "",
@@ -89,7 +90,7 @@ export function View() {
     event.preventDefault();
     if (lock.current || !user || (!selected && !newShift) || !group) return;
     try {
-      const body: S["CorrectionSubmission"] = {
+      const body: S["CorrectionSubmission"] = (uncertain && attempt.current) ? attempt.current.body : {
         groupId: selected?.GroupID || group,
         ...(selected
           ? {
@@ -107,9 +108,8 @@ export function View() {
         })),
         restConfirmed: confirmed,
       };
-      const serialized = JSON.stringify(body);
-      if (attempt.current?.serialized !== serialized)
-        attempt.current = { serialized, key: crypto.randomUUID() };
+      const retry = uncertain;
+      if (!attempt.current || (!retry && JSON.stringify(attempt.current.body) !== JSON.stringify(body))) attempt.current = {body,key:crypto.randomUUID()};
       const key = attempt.current.key;
       lock.current = true;
       setBusy(true);
@@ -128,6 +128,7 @@ export function View() {
         (data) => {
           lock.current = false;
           setBusy(false);
+          setUncertain(false);
           setRefreshVersion((value) => value + 1);
           setStatus(
             `申請已受理。編號：${data.id}。`,
@@ -136,6 +137,9 @@ export function View() {
         (error) => {
           lock.current = false;
           setBusy(false);
+          const unknown = retry || !rejectedAttempt(error, ["invalid_correction","invalid_idempotency_key","not_member"]);
+          if (!unknown) attempt.current=null;
+          setUncertain(unknown);
           setStatus(
             errorMessage(error) + " 結果未確認時，請保留本頁並以相同內容重試。",
           );
@@ -177,7 +181,7 @@ export function View() {
         {newShift && (
           <FieldSet
             className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
-            disabled={!user || busy}
+            disabled={!user || busy || uncertain}
           >
             <Button onClick={() => loadGroups()}>載入本人群組</Button>
             <FormField>
@@ -213,7 +217,7 @@ export function View() {
             <FieldSet
               className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
               id="correction-fields"
-              disabled={!user || (!selected && !newShift) || !group || busy}
+              disabled={!user || (!selected && !newShift) || !group || busy || uncertain}
             >
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField>
@@ -312,6 +316,7 @@ export function View() {
                 送出申請
               </Button>
             </FieldSet>
+            {uncertain && <Button type="submit" disabled={busy}>重試原申請</Button>}
           </FieldGroup>
         </form>
         <Status id="correction-status" role="status">

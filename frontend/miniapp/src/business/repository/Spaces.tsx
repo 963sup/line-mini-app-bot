@@ -6,7 +6,7 @@ import { ReadFeedback } from "@/shared/ReadFeedback";
 import { Status } from "@/shared/Status";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
+import { rejectedAttempt, errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
 import { useRepositoryGuard } from "./NavigationGuard";
 import { useSpaces } from "./useSpaces";
 
@@ -30,7 +30,7 @@ export function Spaces({ repositoryId }: { repositoryId: string }) {
       setSpaces(previous => [...previous.filter(space => space.id !== item.id), item]);
       pending.current = null; lock.current = false; guard.block(false); setBusy(false); setName(""); setMessage("已建立空間。");
     }, error => {
-      if (!retry && ["invalid_input", "forbidden", "not_found", "idempotency_conflict"].includes((error as { code?: string }).code || "")) {
+      if (!retry && rejectedAttempt(error)) {
         pending.current = null; guard.block(false);
       }
       lock.current = false; setBusy(false); setMessage(errorMessage(error));
@@ -42,9 +42,8 @@ export function Spaces({ repositoryId }: { repositoryId: string }) {
       <Button type="submit" disabled={!user || busy || spacesBusy || !name.trim()}>{pending.current && !busy ? "重試原空間建立請求" : "新增空間"}</Button>
     </form>
     <Status role="status">{message}</Status>
-    <ReadFeedback busy={spacesBusy} message={spaceStatus} label="正在讀取空間……" />
+    <ReadFeedback busy={spacesBusy} message={spaceStatus} label="正在讀取空間……" onRetry={spaceStatus && !busy ? () => loadSpaces(spaceCursor) : undefined} />
     {spaces.length > 0 ? <ul>{spaces.map(space => <li className="break-words" key={space.id}>{space.name}</li>)}</ul> : !spacesBusy && !spaceStatus && <p>尚無空間</p>}
-    {spaceStatus && <Button variant="outline" disabled={busy} onClick={() => loadSpaces()}>重試讀取</Button>}
-    {spaceCursor && <Button variant="outline" disabled={busy || spacesBusy} onClick={() => loadSpaces(spaceCursor)}>載入更多空間</Button>}
+    {spaceCursor && !spaceStatus && <Button variant="outline" disabled={busy || spacesBusy} onClick={() => loadSpaces(spaceCursor)}>載入更多空間</Button>}
   </PagePanel>;
 }

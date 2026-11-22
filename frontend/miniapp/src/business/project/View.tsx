@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
-import { useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
+import { rejectedAttempt, useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
 import { PagePanel } from "@/shared/PagePanel";
 import { FormField } from "@/shared/FormField";
 import { Status } from "@/shared/Status";
@@ -113,7 +113,7 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
       (item) => { lock.current = false; setBusy(false); show(item); onSelect(item.id); setStatus("已建立專案。"); load(); },
       (error) => {
         lock.current = false; setBusy(false);
-        if (!wasUnknown && ["invalid_input", "forbidden", "not_found", "idempotency_conflict"].includes((error as { code?: string }).code || "")) { setUncertain(false); block(false); }
+        if (!wasUnknown && rejectedAttempt(error)) { setUncertain(false); block(false); }
         setStatus(errorMessage(error) + " 結果未確認時請沿用原內容重試，或先查詢專案；重新開頁前請先確認紀錄。");
       },
     );
@@ -129,7 +129,7 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
       (item) => { lock.current = false; setBusy(false); show(item); setStatus("已更新專案。"); load(); },
       (error) => {
         lock.current = false; setBusy(false); setNeedsRefresh(true);
-        const rejected = ["invalid_input", "forbidden", "not_found", "version_conflict", "conflict"].includes((error as {code?: string}).code || "");
+        const rejected = rejectedAttempt(error, ["version_conflict", "conflict"]);
         if (rejected) block(false); else { block(true); setUncertain(true); }
         setStatus(errorMessage(error) + " 請重新讀取專案以確認更新結果，再修改。");
       },

@@ -154,6 +154,8 @@ for (const scenario of ["cancel", "publish", "repository publish", "publish with
       await click("下一步");
       assert.equal(writes.length, 0);
       await click("儲存日誌");
+      assert.ok(input("firstname").matches(":disabled"));
+      input("firstname").value = "不得送出的變更";
       await click("儲存日誌");
       assert.equal(closes, 1);
       assert.equal(writes.length, 2);

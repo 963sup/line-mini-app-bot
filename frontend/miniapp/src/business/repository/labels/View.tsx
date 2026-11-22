@@ -3,7 +3,7 @@ import { useRepositoryGuard } from "../NavigationGuard";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
-import { useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
+import { rejectedAttempt, useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
 import { PagePanel } from "@/shared/PagePanel";
 import { FormField } from "@/shared/FormField";
 import { Status } from "@/shared/Status";
@@ -25,6 +25,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
   const input = useRef<HTMLInputElement>(null);
   const guard = useRepositoryGuard(!!name, () => input.current?.focus());
   useEffect(() => { guard.block(busy || uncertain); }, [busy, uncertain]);
+  const reconcile = useRef<{id:string;name:string} | null>(null);
   const load = useCallback((nextCursor = "") => {
     if (!user) return;
     setReadBusy(true); setLoaded(false); setCursor("");
@@ -35,6 +36,12 @@ export function View({ repositoryId }: { repositoryId: string }) {
         signal: s, params: { path: { repositoryId }, query: { cursor: nextCursor || undefined } },
       }), { signal }),
       (page) => {
+        const current = reconcile.current && page.items.find(item => item.id === reconcile.current?.id);
+        if (current && !lock.current) {
+          const confirmed = current.name === reconcile.current?.name;
+          reconcile.current=null;
+          setUncertain(false);setEditing(null);setName("");attempt.current=null;setStatus(confirmed ? "已確認標籤名稱。" : "已重新讀取標籤，目前名稱："+current.name);
+        }
         setItems((previous) => [...new Map([...(nextCursor ? previous : []), ...page.items].map((item) => [item.id, item])).values()]);
         setCursor(page.nextCursor); setReadBusy(false); setLoaded(true); setListStatus("");
       },
@@ -56,9 +63,13 @@ export function View({ repositoryId }: { repositoryId: string }) {
       }), { signal }),
       () => { lock.current = false; setBusy(false); setUncertain(false); guard.block(false); attempt.current = null; setName(""); setEditing(null); setStatus(editing ? "已更新標籤名稱。" : "已建立標籤。"); load(); },
       (error) => {
-        lock.current = false; setBusy(false); const code = (error as { code?: string })?.code;
-        if ((editing || !wasUnknown) && ["invalid_input", "not_found", "forbidden", "name_conflict", "idempotency_conflict","version_conflict"].includes(code || "")) { setUncertain(false); guard.block(false); }
-        if (code === "version_conflict") {setEditing(null);setName("");} if (code === "name_conflict" || code === "version_conflict") load();
+        lock.current = false; setBusy(false);
+        const code = (error as { code?: string })?.code;
+        if (!wasUnknown && rejectedAttempt(error, ["name_conflict", "idempotency_conflict", "version_conflict"])) { setUncertain(false); guard.block(false); }
+        if (!wasUnknown && code === "version_conflict") {setEditing(null);setName("");} if (code === "name_conflict" || code === "version_conflict") {
+          reconcile.current=wasUnknown && editing ? {id:editing.id,name:pending.name} : null;
+          load();
+        }
         setStatus(errorMessage(error) + " 結果未確認時請沿用原名稱重試，離頁或重新整理前請先確認目錄。");
       },
     );

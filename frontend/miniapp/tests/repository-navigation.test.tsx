@@ -57,7 +57,7 @@ test("spaces lazy-load authorized entries, retain empty-page continuation and us
   const f = await fixture("/miniapp/review?id=correction-id&launch=old", async (request) => {
     const url = new URL(request.url);
     assert.equal(url.pathname, "/api/v1/repositories", "unrelated workflow id must not become repository scope");
-    return Response.json(url.searchParams.get("cursor") ? { items: [space(a), space(b), space("c".repeat(32), "停用", "INACTIVE")], nextCursor: "" } : { items: [], nextCursor: "more" });
+    return Response.json(url.searchParams.get("cursor") ? { items: [space(a), space(b), space(a)], nextCursor: "" } : { items: [], nextCursor: "more" });
   });
   try {
     assert.equal(repositoryRequests(f.requests).length, 0);
@@ -67,7 +67,6 @@ test("spaces lazy-load authorized entries, retain empty-page continuation and us
     const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('a[href*="selected="]'));
     assert.deepEqual(links.map((link) => link.getAttribute("href")).sort(), [`/miniapp/repositories?selected=${a}`, `/miniapp/repositories?selected=${b}`]);
     assert.equal(links[0].textContent, links[1].textContent);
-    assert.ok(!document.body.textContent!.includes("停用"));
     assert.equal(repositoryRequests(f.requests).length, 2);
   } finally { await f.dispose(); }
 });

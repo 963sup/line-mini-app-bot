@@ -46,7 +46,7 @@ function useRepositoryState(workflow: string) {
       }), { signal }),
       (page) => setCatalog((previous) => {
         const values = [...(cursor && previous.owner === owner ? previous.items : []), ...page.items];
-        const items = [...new Map(values.filter((item) => item.status === "ACTIVE").map((item) => [item.id, item])).values()];
+        const items = [...new Map(values.map((item) => [item.id, item])).values()];
         return { owner, items, cursor: page.nextCursor, busy: false, failed: false,
           status: items.length ? "" : page.nextCursor ? "本頁沒有可開啟的空間，可繼續載入。" : "目前沒有可開啟的空間。" };
       }),
@@ -62,7 +62,7 @@ function useRepositoryState(workflow: string) {
         signal: s, params: { path: { id: route.selected } },
       }), { signal }),
       (item) => {
-        if (item.status !== "ACTIVE" || item.id !== route.selected) {
+        if (item.id !== route.selected) {
           setDetail({ ...emptyDetail, owner, id: route.selected, failed: true, status: "無法開啟此空間。" });
           return;
         }

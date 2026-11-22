@@ -7,12 +7,31 @@ import { PagePanel } from "@/shared/PagePanel";
 import { FormField } from "@/shared/FormField";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/shared/ui/alert-dialog";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Item, ItemActions, ItemContent, ItemGroup, ItemTitle } from "@/shared/ui/item";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 
 const memberLabel = (id: string) => `成員 ${id.slice(0, 12)}`;
+
+function ConfirmAction({ trigger, title, description, action, onConfirm }: {
+  trigger: ReactNode; title: string; description: string; action: string; onConfirm: () => void;
+}) {
+  return <AlertDialog>
+    <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle className="[overflow-wrap:anywhere]">{title}</AlertDialogTitle>
+        <AlertDialogDescription className="[overflow-wrap:anywhere]">{description}</AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>取消</AlertDialogCancel>
+        <AlertDialogAction variant="destructive" onClick={onConfirm}>{action}</AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>;
+}
 
 export function OrganizationPage({ organizationId, children, onChanged, onLeave }: {
   organizationId: string;
@@ -51,8 +70,6 @@ export function OrganizationPage({ organizationId, children, onChanged, onLeave 
 
   function depart(memberId?: string) {
     if (busy || !roster) return;
-    const label = memberId ? memberLabel(memberId) : roster.organizationName;
-    if (!window.confirm(memberId ? `要移除「${label}」嗎？\n請先與對方核對成員代碼。` : `要退出「${label}」嗎？`)) return;
     const target = memberId ?? "";
     const key = keys.current.get(target) ?? crypto.randomUUID();
     keys.current.set(target, key);
@@ -83,13 +100,12 @@ export function OrganizationPage({ organizationId, children, onChanged, onLeave 
     );
   }
 
-  const candidates = roster?.members.filter(member => !member.owner && !member.self) ?? [];
+  const candidates = roster?.members.filter(member => member.canReceiveOwnership) ?? [];
   const selectedSuccessor = candidates.find(member => member.memberId === successor);
 
   function transferOwnership() {
-    if (busy || !roster?.canRemove || !selectedSuccessor) return;
+    if (busy || !roster?.canTransferOwnership || !selectedSuccessor) return;
     const memberId = selectedSuccessor.memberId;
-    if (!window.confirm(`要將「${roster.organizationName}」移轉給「${memberLabel(memberId)}」嗎？你將成為一般成員。請先與對方核對成員代碼。`)) return;
     setBusy(true);
     setError("");
     void run(
@@ -121,7 +137,7 @@ export function OrganizationPage({ organizationId, children, onChanged, onLeave 
     /> : <>
       <header className="flex min-w-0 flex-wrap items-center gap-2">
         <h2 className="min-w-0 break-words text-2xl font-semibold tracking-tight">{roster.organizationName}</h2>
-        <Badge variant="secondary">{roster.canRemove ? "擁有者" : "成員"}</Badge>
+        <Badge variant="secondary">{roster.isOwner ? "擁有者" : "成員"}</Badge>
       </header>
       <PagePanel heading="成員">
         <ItemGroup className="divide-y">
@@ -132,20 +148,21 @@ export function OrganizationPage({ organizationId, children, onChanged, onLeave 
               </ItemTitle>
             </ItemContent>
             {member.owner && !member.self && <Badge variant="secondary">擁有者</Badge>}
-            {roster.canRemove && !member.owner && !member.self && <ItemActions>
-              <Button type="button" variant="outline" disabled={busy}
-                aria-label={`移除${memberLabel(member.memberId)}`}
-                onClick={() => depart(member.memberId)}>移除</Button>
+            {member.canRemove && <ItemActions>
+              <ConfirmAction title={`從「${roster.organizationName}」移除成員？`}
+                description={`請核對成員代碼：${member.memberId}。移除後，該成員將失去組織成員資格。`}
+                action="移除成員" onConfirm={() => depart(member.memberId)}
+                trigger={<Button type="button" variant="outline" disabled={busy} aria-label={`移除${memberLabel(member.memberId)}`}>移除</Button>} />
             </ItemActions>}
           </Item>)}
         </ItemGroup>
         <p className="mt-3 text-sm text-muted-foreground">成員可分享自己的代碼供核對。</p>
-        {roster.canRemove && <p className="text-sm text-muted-foreground">請透過 LINE 官方帳號邀請新成員。</p>}
+        {roster.isOwner && <p className="text-sm text-muted-foreground">請透過 LINE 官方帳號邀請新成員。</p>}
       </PagePanel>
       {children}
       <PagePanel heading="組織管理">
         <div className="grid gap-4">
-          {roster.canRemove && (candidates.length ? <>
+          {roster.canTransferOwnership && (candidates.length ? <>
             <FormField>
               新擁有者
               <NativeSelect value={successor} disabled={busy} onChange={event => setSuccessor(event.target.value)}>
@@ -155,14 +172,17 @@ export function OrganizationPage({ organizationId, children, onChanged, onLeave 
                 </NativeSelectOption>)}
               </NativeSelect>
             </FormField>
-            <Button type="button" className="justify-self-start" disabled={busy || !selectedSuccessor}
-              onClick={transferOwnership}>移轉所有權</Button>
+            <ConfirmAction title={`移轉「${roster.organizationName}」的所有權？`}
+              description={`接任成員代碼：${successor}。移轉後，你將成為一般成員。`}
+              action="移轉所有權" onConfirm={transferOwnership}
+              trigger={<Button type="button" className="justify-self-start" disabled={busy || !selectedSuccessor}>移轉所有權</Button>} />
           </> : <p className="text-sm text-muted-foreground">
             請先邀請其他成員，再移轉所有權。移轉後即可退出組織。
           </p>)}
           {roster.canLeave
-            ? <Button type="button" variant="destructive" className="justify-self-start"
-                disabled={busy} onClick={() => depart()}>退出組織</Button>
+            ? <ConfirmAction title={`退出「${roster.organizationName}」？`} description="退出後，你將失去這個組織的成員資格。"
+                action="退出組織" onConfirm={() => depart()}
+                trigger={<Button type="button" variant="destructive" className="justify-self-start" disabled={busy}>退出組織</Button>} />
             : candidates.length > 0 && <p className="text-sm text-muted-foreground">請先移轉所有權，再退出組織。</p>}
         </div>
       </PagePanel>

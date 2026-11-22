@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronRight, ClipboardList, FolderOpen, Layers, List } from "lucide-react";
 import { PagePanel } from "@/shared/PagePanel";
-import { Item, ItemContent, ItemGroup, ItemMedia, ItemTitle } from "@/shared/ui/item";
+import { Item, ItemContent, ItemMedia, ItemTitle } from "@/shared/ui/item";
 
 const destinations = [
   { title: "動態", href: "/miniapp/feed", icon: List },
@@ -14,9 +14,9 @@ export function View() {
   return (
     <PagePanel heading="常用功能">
       <nav aria-label="首頁常用功能">
-        <ItemGroup className="gap-2">
+        <ul className="grid gap-2 sm:grid-cols-2">
           {destinations.map(({ title, href, icon: Icon }) => (
-            <div key={href} role="listitem">
+            <li key={href}>
               <Item asChild variant="outline" size="sm" className="min-h-11">
                 <Link href={href}>
                   <ItemMedia className="text-muted-foreground">
@@ -28,9 +28,9 @@ export function View() {
                   <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />
                 </Link>
               </Item>
-            </div>
+            </li>
           ))}
-        </ItemGroup>
+        </ul>
       </nav>
     </PagePanel>
   );

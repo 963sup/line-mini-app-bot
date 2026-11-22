@@ -5,7 +5,7 @@ import { useDiscardChanges } from "@/shared/useDiscardChanges";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
-import { useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
+import { rejectedAttempt, useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
 import { PagePanel } from "@/shared/PagePanel";
 import { FormField } from "@/shared/FormField";
 import { Button } from "@/shared/ui/button";
@@ -135,7 +135,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
       (item) => { lock.current = false; setBusy(false); saved(item, "已建立里程碑。"); },
       (error) => {
         lock.current = false; setBusy(false);
-        if (!wasUnknown && ["invalid_input", "forbidden", "not_found", "idempotency_conflict"].includes((error as { code?: string }).code || "")) { setUncertain(false); guard.block(false); }
+        if (!wasUnknown && rejectedAttempt(error)) { setUncertain(false); guard.block(false); }
         setStatus(errorMessage(error) + " 結果未確認時請沿用原內容重試，或先查詢里程碑；重新開頁前請先確認紀錄。");
       },
     );

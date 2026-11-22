@@ -200,3 +200,26 @@ test("arrow keeps expanded children through parent editing and each edit returns
     assert.equal(trigger.getAttribute("aria-expanded"),"true"); assert.equal(reads,1);
   } finally { await f.dispose(); }
 });
+
+test("fresh child detail controls edit permission and progress reset", async () => {
+  let editable = true, writes = 0;
+  const f = await fixture(async request => {
+    if (request.method === "PATCH") writes++;
+    const url = new URL(request.url);
+    if (url.pathname.endsWith(sid)) return Response.json(child({canEdit:editable, requiresProgressReset:true}));
+    return Response.json({items:url.searchParams.has("parentId") ? [child()] : [resource()], nextCursor:""});
+  });
+  try {
+    await f.click("子物件：測試物件"); await f.click("編輯子物件：測試工序");
+    await f.selectType("non_work"); await f.click("儲存子物件");
+    assert.match(document.body.textContent!, /請先將完成數改為0/);
+    editable = false;
+    await f.click("重新讀取子物件"); await f.click("放棄修改");
+    const form = document.querySelector<HTMLFormElement>('form[aria-label="子物件編輯"]')!;
+    assert.equal(form.querySelector("fieldset")?.disabled,true);
+    assert.equal(form.querySelector('button[type="submit"]'),null);
+    await act(async()=>{form.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true})); await flush();});
+    assert.equal(writes,0);
+    await f.click("關閉");
+  } finally { await f.dispose(); }
+});

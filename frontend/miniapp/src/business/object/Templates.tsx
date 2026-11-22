@@ -3,7 +3,7 @@ import { useRepositories } from "../repository/RepositoryContext";
 import { Candidates, type Candidate } from "./Candidates";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
-import { useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
+import { rejectedAttempt, useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
 import { useRepositoryGuard } from "../repository/NavigationGuard";
 import { useDiscardChanges } from "@/shared/useDiscardChanges";
 import { FormField } from "@/shared/FormField";
@@ -98,7 +98,7 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied, initia
     lock.current = true; setBusy(true); setUncertain(true); guard.block(true); setMessage("正在處理範本……");
     const failed = (error: unknown) => {
       lock.current = false; setBusy(false);
-      if (!wasUnknown && ["invalid_input", "not_found", "forbidden", "idempotency_conflict"].includes((error as { code?: string }).code || "")) { setUncertain(false); guard.block(false); attempt.current = null; }
+      if (!wasUnknown && rejectedAttempt(error)) { setUncertain(false); guard.block(false); attempt.current = null; }
       setMessage(errorMessage(error) + " 結果未確認時，請重試原請求。");
     };
     const settled = () => { lock.current = false; setBusy(false); setUncertain(false); guard.block(false); attempt.current = null; };
@@ -158,7 +158,6 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied, initia
         <div className="flex flex-wrap gap-2">
           <Button disabled={!snapshot || busy || uncertain} onClick={() => { if (snapshot) setPlan(structuredClone(snapshot.nodes)); }}>使用範本</Button>
           <Button variant="outline" disabled={busy || uncertain || reading} onClick={() => setCreating(true)}>新增範本</Button>
-          <Button variant="outline" disabled={busy || uncertain || reading} onClick={() => load()}>重新讀取範本</Button>
           {cursor && <Button variant="outline" disabled={busy || uncertain || reading} onClick={() => load(cursor)}>載入更多範本</Button>}
         </div>
       </>}

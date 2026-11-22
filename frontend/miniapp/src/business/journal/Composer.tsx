@@ -14,7 +14,7 @@ import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
 import { Questionnaire, QuestionnaireActions, QuestionnaireItem, QuestionnairePrevious, QuestionnaireProgress, QuestionnaireTitle } from "@/shared/ui/questionnaire";
 import { Input } from "@/shared/ui/input";
-import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
+import { rejectedAttempt, errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
 import { WorkContext, useWorkOptions, type WorkOptionsLoader } from "./WorkContext";
 import type { components } from "@repo/api-client";
 import { collect } from "./pagination";
@@ -100,13 +100,29 @@ function Composer({request,repository,saved,onPending,isBlocked}:{request:Reques
   const [today,setToday]=useState(["first"]),[tomorrow,setTomorrow]=useState<string[]>([]);
   const targets: Target[] = [{type:"repository", id:repository.id, name:repository.name}];
   const [error,setError]=useState(""),[busy,setBusy]=useState(false);
-  const publishAttempt=useRef({serializedBody:"",idempotencyKey:""}),submitting=useRef(false);
+  const publishAttempt=useRef<{body:Draft;key:string} | null>(null),submitting=useRef(false);
   const write=useLatestRequest();
+  const [uncertain,setUncertain]=useState(false);
+  function publish(body: Draft) {
+    const retry = !!publishAttempt.current;
+    const attempt = publishAttempt.current ?? {body,key:crypto.randomUUID()};
+    publishAttempt.current = attempt;
+    submitting.current=true;setBusy(true);setError("");onPending("publish",true);
+    void write.run(signal=>request((c,s)=>c.POST("/api/v1/journals",{signal:s,params:{header:{"Idempotency-Key":attempt.key}},body:attempt.body}),{signal}),
+      () => {onPending("publish",false);saved();}, e=>{
+        submitting.current=false;setBusy(false);
+        const unknown=retry || !rejectedAttempt(e);
+        if (!unknown) publishAttempt.current=null;
+        setUncertain(unknown);onPending("publish",unknown);
+        setError(errorMessage(e)+(unknown?" 請沿用原內容重試。":""));
+      });
+  }
   return <PagePanel heading={"寫日誌 · " + repository.name}><Questionnaire item={step} onItemChange={setStep} onSubmitCapture={event=>{
     // Each step contains several native fields. Validate the active group together.
     event.preventDefault();
     event.stopPropagation();
     if (submitting.current) return;
+    if (publishAttempt.current) {publish(publishAttempt.current.body);return;}
     if (isBlocked()) {setError("請先完成或重試空間建立，再儲存日誌。");return;}
     const invalid = event.currentTarget.querySelector<HTMLInputElement>("fieldset[data-active] input:invalid");
     if (invalid) { invalid.reportValidity(); invalid.focus(); return; }
@@ -119,13 +135,10 @@ function Composer({request,repository,saved,onPending,isBlocked}:{request:Reques
       todayItems:today.map(id=>({...row(id),completionPercent:Number(get(id+"percent"))})),
       tomorrowItems:tomorrow.map(id=>({...row(id),expectedCompletionPercent:Number(get(id+"percent"))}))};
     if(!today.length&&!tomorrow.length){setError("請新增至少一項工作。");return;}
-    const json=JSON.stringify(body);if(publishAttempt.current.serializedBody!==json)publishAttempt.current={serializedBody:json,idempotencyKey:crypto.randomUUID()};
-    submitting.current=true;setBusy(true);setError("");
-    void write.run(signal=>request((c,s)=>c.POST("/api/v1/journals",{signal:s,params:{header:{"Idempotency-Key":publishAttempt.current.idempotencyKey}},body}),{signal}),
-      saved,e=>{submitting.current=false;setBusy(false);setError(errorMessage(e));});
+    publish(body);
   }}>
     <QuestionnaireProgress aria-label="日誌填寫進度" aria-valuetext={step === "people" ? "日期與人員" : step === "today" ? "今日工作" : "明日計畫與儲存"}>第 {step === "people" ? 1 : step === "today" ? 2 : 3} 步，共 3 步</QuestionnaireProgress>
-    <FieldSet disabled={busy} className="grid min-w-0 grid-cols-1 gap-3">
+    <FieldSet disabled={busy || uncertain} className="grid min-w-0 grid-cols-1 gap-3">
     <QuestionnaireItem name="people"><QuestionnaireTitle>日期與人員</QuestionnaireTitle>
     <FormField>工作日期<Input required type="date" name="date" value={date} onChange={event=>setDate(event.target.value)}/></FormField>
     <AttendanceReference request={request} date={date} />
@@ -140,9 +153,9 @@ function Composer({request,repository,saved,onPending,isBlocked}:{request:Reques
     {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
     <QuestionnaireActions>
       <QuestionnairePrevious>上一步</QuestionnairePrevious>
-      <Button type="submit" className="col-start-3">{step === "tomorrow" ? (busy ? "儲存中" : "儲存日誌") : "下一步"}</Button>
+      {!uncertain && <Button type="submit" className="col-start-3">{step === "tomorrow" ? (busy ? "儲存中" : "儲存日誌") : "下一步"}</Button>}
     </QuestionnaireActions>
-  </FieldSet></Questionnaire></PagePanel>;
+  </FieldSet>{uncertain && <Button type="submit" disabled={busy}>儲存日誌</Button>}</Questionnaire></PagePanel>;
 }
 
 export function ComposeView({request, close, repositoryId = "", onSelectRepository}: {request: Request; close: () => void; repositoryId?: string; onSelectRepository?: (id: string) => void}) {

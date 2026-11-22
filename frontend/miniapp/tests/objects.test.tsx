@@ -323,3 +323,19 @@ test("document candidates require review and use the object creation form", asyn
     assert.ok([...document.querySelectorAll("button")].find(b=>b.textContent==="已建立")?.disabled);
   } finally { await f.dispose(); }
 });
+
+test("work conversion uses the API preset and the edited exact quantity", async () => {
+  const old = resource({ type: "Engineering", completedQuantity: undefined, workConversionDefault: "quantity" });
+  let patch: Record<string, unknown> | undefined;
+  const f = await fixture(async request => {
+    if (request.method === "PATCH") patch = await request.json();
+    return Response.json(new URL(request.url).pathname.endsWith(oid) ? old : { items: [old], nextCursor: "" });
+  });
+  try {
+    await f.click("測試物件");
+    await f.fill("數量", "9007199254740993.123456");
+    await f.selectType("work");
+    await f.click("儲存物件");
+    assert.equal(patch?.completedQuantity, "9007199254740993.123456");
+  } finally { await f.dispose(); }
+});

@@ -5,7 +5,7 @@ import { ReadFeedback } from "@/shared/ReadFeedback";
 import { useDiscardChanges } from "@/shared/useDiscardChanges";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
-import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
+import { rejectedAttempt, errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
 import { FormField } from "@/shared/FormField";
 import { Status } from "@/shared/Status";
 import { Button } from "@/shared/ui/button";
@@ -56,7 +56,7 @@ function Content({ repositoryId, objectId, canEdit, parentEditing, onEdit, onBlo
     if (lock.current || unknown.current) return;
     setLoading(true); setReadStatus("");
     void read.run(signal => request((client, s) => client.GET("/api/v1/repositories/{repositoryId}/objects", {signal: s, params: {path: {repositoryId}, query: {parentId: objectId, cursor: next || undefined}}}), {signal}), page => {
-      const children = page.items.filter(item => item.parentId === objectId);
+      const children = page.items;
       setItems(previous => next ? [...previous, ...children] : children); setCursor(page.nextCursor); setLoading(false); setReadStatus(!next && !page.nextCursor && !children.length ? "尚無子物件。" : "");
     }, error => { setLoading(false); setReadStatus(errorMessage(error)); });
   }, [repositoryId, objectId, request, read.run]);
@@ -84,15 +84,16 @@ function Content({ repositoryId, objectId, canEdit, parentEditing, onEdit, onBlo
       lock.current = false; setBusy(false); block(false); setSelected(item); baseline.current = {name:item.name,type:item.type === "non_work" ? "non_work" : "work",quantity:item.quantity || "",unit:item.unit || "",completedQuantity:item.completedQuantity}; setContent(baseline.current); setRefresh(false); setStatus(""); setItems(previous => previous.map(value => value.id === item.id ? item : value));
     }, error => {lock.current=false;setBusy(false);onBlocked(unknown.current);setRefresh(true);setStatus(errorMessage(error));});
   }
+  const editable = canEdit && (!selected || selected.canEdit);
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (discard.isConfirming() || !canEdit || lock.current || navigation.current || refresh || !repositoryGuard.canWrite() || !canWrite()) return;
+    if (discard.isConfirming() || !editable || lock.current || navigation.current || refresh || !repositoryGuard.canWrite() || !canWrite()) return;
     let body = pending.current && unknown.current ? pending.current.body : {...content, name:content.name.trim(), quantity:content.quantity.trim(), unit:content.unit.trim(), completedQuantity:content.completedQuantity?.trim()};
     if (!body.name || !body.unit || !isPositiveQuantity(body.quantity)) {setStatus("請填寫名稱、單位及大於零的數量（最多18位整數及6位小數）。");return;}
     if (body.type === "work") {
       if (!isValidCompletedQuantity(body.completedQuantity, body.quantity)) {setStatus("完成數須介於0與子物件數量之間（最多18位整數及6位小數）。");return;}
     } else {body = {...body}; delete body.completedQuantity;}
-    if (selected?.type === "work" && Number(selected.completedQuantity) > 0 && body.type === "non_work") {setStatus("請先將完成數改為0並儲存，再改為非施作。");return;}
+    if (selected?.requiresProgressReset && body.type === "non_work") {setStatus("請先將完成數改為0並儲存，再改為非施作。");return;}
     const wasUnknown = unknown.current;
     lock.current = true; setBusy(true); block(true); setStatus(selected ? "正在更新子物件……" : "正在建立子物件……");
     if (!selected && !pending.current) pending.current = {key:crypto.randomUUID(),body};
@@ -100,7 +101,7 @@ function Content({ repositoryId, objectId, canEdit, parentEditing, onEdit, onBlo
       lock.current=false;setBusy(false);block(false);pending.current=null;setEditing(false);setSelected(null);baseline.current=initial;setContent(initial);setItems(previous=>previous.some(value=>value.id===item.id)?previous.map(value=>value.id===item.id?item:value):[...previous,item]);setReadStatus("已儲存子物件；父物件進度不變。");
     }, error => {
       lock.current=false;setBusy(false);
-      const rejected = ["invalid_input","forbidden","not_found","idempotency_conflict","version_conflict"].includes((error as {code?:string}).code || "");
+      const rejected = rejectedAttempt(error, ["idempotency_conflict", "version_conflict"]);
       if (selected) {setRefresh(true); if(rejected) block(false); setStatus(errorMessage(error)+" 請重新讀取子物件以確認更新結果。");}
       else {if(rejected && !wasUnknown) {block(false);pending.current=null;} setStatus(errorMessage(error)+" 結果未確認時，請重試原子物件建立請求。");}
     });
@@ -108,15 +109,15 @@ function Content({ repositoryId, objectId, canEdit, parentEditing, onEdit, onBlo
   const editor = <form ref={editorPanel} tabIndex={-1} className="w-full min-w-0" aria-label="子物件編輯" onSubmit={submit}><FieldGroup>
       <Status role="status">{status}</Status>
       {selected && <Button type="button" variant="outline" disabled={busy} onClick={() => discard.navigate(reloadDetail)}>重新讀取子物件</Button>}
-      <FieldSet className="grid min-w-0 gap-3" disabled={busy || uncertain || refresh}>
+      <FieldSet className="grid min-w-0 gap-3" disabled={!editable || busy || uncertain || refresh}>
         <FormField>子物件名稱<Input ref={nameInput} required maxLength={120} value={content.name} onChange={event => setContent(previous=>({...previous,name:event.target.value}))}/></FormField>
         <FormField>子物件類型<NativeSelect value={content.type} onChange={event=>setContent(previous=>({...previous,type:event.target.value as Creation["type"],completedQuantity:previous.completedQuantity ?? (event.target.value === "work" ? "0" : undefined)}))}><NativeSelectOption value="work">施作</NativeSelectOption><NativeSelectOption value="non_work">非施作</NativeSelectOption></NativeSelect></FormField>
         <FormField>子物件數量<Input required maxLength={25} inputMode="decimal" value={content.quantity} onChange={event=>setContent(previous=>({...previous,quantity:event.target.value}))}/></FormField>
         <FormField>子物件單位<Input required maxLength={32} value={content.unit} onChange={event=>setContent(previous=>({...previous,unit:event.target.value}))}/></FormField>
         {content.type === "work" ? <FormField>子物件完成數<Input required maxLength={25} inputMode="decimal" value={content.completedQuantity || ""} onChange={event=>setContent(previous=>({...previous,completedQuantity:event.target.value}))}/></FormField> : <p>狀態與進度：不適用</p>}
       </FieldSet>
-      <Button type="submit" disabled={busy || refresh}>{selected ? "儲存子物件" : uncertain ? "重試原子物件建立請求" : "建立子物件"}</Button>
-      <Button type="button" variant="outline" disabled={busy || uncertain} onClick={close}>取消</Button>
+      {editable && <Button type="submit" disabled={busy || refresh}>{selected ? "儲存子物件" : uncertain ? "重試原子物件建立請求" : "建立子物件"}</Button>}
+      <Button type="button" variant="outline" disabled={busy || uncertain} onClick={close}>{editable ? "取消" : "關閉"}</Button>
     </FieldGroup></form>;
   return <section aria-label="子物件" className="grid min-w-0 gap-3">
     <p>子物件數量與單位獨立；父物件進度仍由人工維護，不會加總子物件完成數。</p>

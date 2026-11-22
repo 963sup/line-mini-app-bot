@@ -5,7 +5,7 @@ import { useDiscardChanges } from "@/shared/useDiscardChanges";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
-import { useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
+import { rejectedAttempt, useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
 import { Picker as LabelPicker } from "../repository/labels/Picker";
 import { PagePanel } from "@/shared/PagePanel";
 import { FormField } from "@/shared/FormField";
@@ -124,7 +124,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
       (item) => { lock.current = false; setBusy(false); show(item); setStatus("已建立討論。"); load(); },
       (error) => {
         lock.current = false; setBusy(false);
-        if (!previousCreateOutcomeUnknown && ["invalid_input", "forbidden", "not_found", "idempotency_conflict"].includes((error as { code?: string }).code || "")) { setCreateOutcomeUnknown(false); guard.block(false); }
+        if (!previousCreateOutcomeUnknown && rejectedAttempt(error)) { setCreateOutcomeUnknown(false); guard.block(false); }
         setStatus(errorMessage(error) + " 結果未確認時請沿用原內容重試，或先查詢討論；重新開頁前請先確認紀錄。");
       },
     );

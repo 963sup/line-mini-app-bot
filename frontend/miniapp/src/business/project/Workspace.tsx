@@ -80,7 +80,7 @@ function AuthenticatedWorkspace() {
     void detail.run(signal => request((client, s) => client.GET("/api/v1/groups/{id}", {
       signal: s, params: { path: { id: route.owner } },
     }), { signal }), item => {
-      if (item.id !== route.owner || item.groupId !== route.owner || item.status !== "ACTIVE") { setDetailStatus("無法開啟此群組。"); return; }
+      if (item.id !== route.owner || item.groupId !== route.owner) { setDetailStatus("無法開啟此群組。"); return; }
       setSelected({ id: route.owner, item }); setDetailStatus("");
     }, error => setDetailStatus(errorMessage(error)));
     return detail.cancel;

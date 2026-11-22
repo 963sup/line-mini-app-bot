@@ -11,7 +11,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/shared/ui
 import { useSpaces } from "../repository/useSpaces";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
-import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
+import { rejectedAttempt, errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
 import { PagePanel } from "@/shared/PagePanel";
 import { FormField } from "@/shared/FormField";
 import { Button } from "@/shared/ui/button";
@@ -169,7 +169,7 @@ function Content({ repositoryId }: Props) {
       lock.current = false; setBusy(false); saved(item, "已建立物件。");
     }, error => {
       lock.current = false; setBusy(false);
-      if (!wasUnknown && ["invalid_input", "forbidden", "not_found", "idempotency_conflict"].includes((error as { code?: string }).code || "")) { setUncertain(false); repositoryGuard.block(false); }
+      if (!wasUnknown && rejectedAttempt(error)) { setUncertain(false); repositoryGuard.block(false); }
       setStatus(errorMessage(error) + " 結果未確認時請重試原建立請求，避免重複建立；離開頁面前請先確認紀錄。");
     });
   }
@@ -184,12 +184,8 @@ function Content({ repositoryId }: Props) {
             setContent(previous => {
               let completedQuantity = previous.completedQuantity;
               if (type === "work" && completedQuantity === undefined) {
-                completedQuantity = "";
-                if (selected?.type === "work") completedQuantity = selected.completedQuantity || "";
-                else if (selected && selected.type !== "non_work") {
-                  if (selected.status === "not_started") completedQuantity = "0";
-                  if (selected.status === "completed") completedQuantity = previous.quantity;
-                }
+                completedQuantity = selected?.workConversionDefault === "quantity" ? previous.quantity
+                  : selected?.workConversionDefault === "zero" ? "0" : selected?.completedQuantity ?? "";
               }
               return { ...previous, type, completedQuantity };
             });
@@ -217,9 +213,8 @@ function Content({ repositoryId }: Props) {
             {content.spaceId && !spaces.some(value => value.id === content.spaceId) && <NativeSelectOption value={content.spaceId}>目前空間（未載入）</NativeSelectOption>}
             {spaces.map(space => <NativeSelectOption key={space.id} value={space.id}>{space.name}</NativeSelectOption>)}
           </NativeSelect></FormField>
-          <ReadFeedback busy={spacesBusy} message={spaceStatus} label="正在讀取空間……" />
-          {spaceStatus && <Button type="button" variant="outline" disabled={spacesBusy} onClick={() => loadSpaces()}>重試讀取</Button>}
-          {spaceCursor && <Button type="button" variant="outline" disabled={spacesBusy} onClick={() => loadSpaces(spaceCursor)}>載入更多空間</Button>}
+          <ReadFeedback busy={spacesBusy} message={spaceStatus} label="正在讀取空間……" onRetry={spaceStatus ? () => loadSpaces(spaceCursor) : undefined} />
+          {spaceCursor && !spaceStatus && <Button type="button" variant="outline" disabled={spacesBusy} onClick={() => loadSpaces(spaceCursor)}>載入更多空間</Button>}
           </>}
           {mode === "detail" && <>
           <FormField>完整說明<Textarea maxLength={8000} value={content.description} onChange={event => setContent(previous => ({ ...previous, description: event.target.value }))} /></FormField>
@@ -262,7 +257,6 @@ function Content({ repositoryId }: Props) {
             </ItemTitle>
             {item.quantity && <p className="whitespace-normal [overflow-wrap:anywhere]">數量：{item.quantity} {item.unit}</p>}
             {item.type && <p className="whitespace-normal [overflow-wrap:anywhere]">類型：{typeLabel(item.type)}</p>}
-            {invalidField === "completedQuantity" && <FieldError id="object-completed-error">請填寫0至數量之間的完成數（最多18位整數及6位小數）。</FieldError>}
           {item.type && <p>狀態：{statusLabel(item)}</p>}
             {item.type && <p className="whitespace-normal [overflow-wrap:anywhere]">進度：{progressLabel(item)}</p>}
           </ItemContent>

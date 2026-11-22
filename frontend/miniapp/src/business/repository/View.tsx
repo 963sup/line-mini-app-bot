@@ -44,12 +44,12 @@ function Content() {
       {selectedID ? <>
         {!selected && <Button disabled={!canLoad || detailBusy || guard.blocked} onClick={() => guard.navigate(reloadDetail)}>重新載入空間</Button>}
         <ReadFeedback busy={detailBusy} message={detailStatus} label="正在讀取空間……" />
-      </> : <p>展開側欄「儲存庫」，選擇可開啟的群組空間。</p>}
+      </> : <p>展開側欄「儲存庫」，選擇要開啟的儲存庫。</p>}
       <noscript>請啟用 JavaScript 並完成 LINE 身分驗證，以載入側邊欄空間及內容。</noscript>
       {selected && (
         <>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-2xl font-semibold tracking-tight break-words">{selected.name || "群組空間"}</h2>
+            <h2 className="min-w-0 text-2xl font-semibold tracking-tight [overflow-wrap:anywhere]">{selected.name || "儲存庫"}</h2>
             {selectedID && <Button variant="outline" disabled={!canLoad || detailBusy || guard.blocked} onClick={() => guard.navigate(reloadDetail)}>重新載入空間</Button>}
           </div>
           <Tabs value={page} activationMode="manual" onValueChange={value => guard.navigate(() => setPage(value))}>
@@ -79,8 +79,10 @@ function Content() {
                 </dl>
               </PagePanel>
               <PagePanel heading="工程日誌">
-                <a className="text-primary underline underline-offset-4" href={"/miniapp/feed?" + new URLSearchParams({repositoryId:selected.id,compose:"1"})}>寫日誌</a>
-                <a className="text-primary underline underline-offset-4" href={"/miniapp/feed?" + new URLSearchParams({repositoryId:selected.id})}>查看日誌</a>
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild><a href={"/miniapp/feed?" + new URLSearchParams({repositoryId:selected.id,compose:"1"})}>寫日誌</a></Button>
+                  <Button asChild variant="outline"><a href={"/miniapp/feed?" + new URLSearchParams({repositoryId:selected.id})}>查看日誌</a></Button>
+                </div>
               </PagePanel>
               {selected.groupId && <PagePanel heading="出勤與群組服務">
                 <a

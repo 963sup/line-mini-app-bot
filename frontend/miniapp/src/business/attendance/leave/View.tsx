@@ -13,7 +13,7 @@ import { Status } from "@/shared/Status";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "../../../identity/Session";
-import { useLatestRequest, errorMessage } from "../../../shared/http/lifecycle";
+import { rejectedAttempt, useLatestRequest, errorMessage } from "../../../shared/http/lifecycle";
 import { displayTime, timestamp } from "../../../shared/time/time";
 
 type S = components["schemas"];
@@ -111,9 +111,12 @@ export function View() {
           setBusy(false);
           const code = (error as { code?: string })?.code;
           if (code === "expired_launch" || code === "not_member") {
-            setLaunch(""); setUncertain(false); attempt.current=null; setStatus(errorMessage(error)); return;
+            setLaunch("");
+            if (!uncertain) {setUncertain(false);attempt.current=null;}
+            setStatus(errorMessage(error)+(uncertain?" 前次結果待確認，請查看本人紀錄。":""));
+            loadLeaveHistory();return;
           }
-          if (code === "invalid_input") {setUncertain(false);setStatus(errorMessage(error));return;}
+          if (!uncertain && rejectedAttempt(error, [])) {setUncertain(false);setStatus(errorMessage(error));return;}
           setStatus(
             errorMessage(error) +
               " 請查看本人紀錄確認結果；若仍未確認，可沿用原內容重試。",

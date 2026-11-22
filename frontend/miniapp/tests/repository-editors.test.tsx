@@ -328,3 +328,24 @@ test("issue editing follows the response capability even when the displayed crea
     await f.dispose();
   }
 });
+
+test("an interrupted label rename keeps its original target through a later denial", async () => {
+  const bodies: unknown[] = [];
+  const f = await fixture(async request => {
+    if (request.method === "GET" && request.url.endsWith("/labels"))
+      return Response.json({items:[{id,name:"原名稱"}],nextCursor:""});
+    if (request.method !== "PATCH") return;
+    bodies.push(await request.json());
+    if (bodies.length === 1) throw new Error("connection lost");
+    if (bodies.length === 2)
+      return Response.json({error:{code:"forbidden",message:"權限已變更",retrySameRequest:false}},{status:403});
+    return Response.json({id,name:"新名稱"});
+  });
+  try {
+    await f.click("標籤"); await f.click("改名"); await f.fill("標籤名稱","新名稱");
+    await f.click("儲存新名稱"); await f.click("重試改名");
+    assert.equal(document.querySelector<HTMLButtonElement>('[aria-label="物件"]')!.disabled,true);
+    await f.click("重試改名");
+    assert.deepEqual(bodies, Array(3).fill({name:"新名稱",expectedName:"原名稱"}));
+  } finally { await f.dispose(); }
+});

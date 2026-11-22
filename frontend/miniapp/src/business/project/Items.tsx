@@ -2,7 +2,7 @@ import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/em
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
-import { useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
+import { rejectedAttempt, useLatestRequest, errorMessage, isTemporaryReadError } from "@/shared/http/lifecycle";
 import { PagePanel } from "@/shared/PagePanel";
 import { FormField } from "@/shared/FormField";
 import { Status } from "@/shared/Status";
@@ -52,8 +52,7 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
     void read.run(signal => request((client, s) => client.GET("/api/v1/owners/{ownerId}/projects/{id}/references", { signal: s, params: { path: { ownerId, id: project.id }, query: { cursor: next || undefined } } }), { signal }), page => {
       setItems(previous => [...new Map([...(next ? previous : []), ...page.items].map(item => [item.id, item])).values()]); setCursor(page.nextCursor); setReadBusy(false); setLoaded(true); setStatus("");
     }, error => {
-      const status = (error as {httpStatus?: number}).httpStatus;
-      if (next && (!status || status >= 500 || status === 408 || status === 429)) {
+      if (next && isTemporaryReadError(error)) {
         setCursor(next);
       } else {
         setItems([]);
@@ -79,7 +78,7 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
       }
       if (kind === "subobject") {
         const page=await request((client,s)=>client.GET("/api/v1/repositories/{repositoryId}/objects",{signal:s,params:{path:{repositoryId},query:{...query,parentId:parent}}}),{signal});
-        return {items:page.items.filter(item => item.parentId === parent).map(item=>({id:item.id,title:`${item.name} · ${item.quantity} ${item.unit}`})),nextCursor:page.nextCursor};
+        return {items:page.items.map(item=>({id:item.id,title:`${item.name} · ${item.quantity} ${item.unit}`})),nextCursor:page.nextCursor};
       }
       if (kind === "discussion") {
         const page=await request((client,s)=>client.GET("/api/v1/repositories/{repositoryId}/discussions",{signal:s,params:{path:{repositoryId},query}}),{signal});
@@ -104,7 +103,7 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
       lock.current=false;setBusy(false);pending.current=null;block(false);onChange(value);
     },error=>{
       lock.current=false;setBusy(false);
-      const rejected=["invalid_input","forbidden","not_found","version_conflict","conflict"].includes((error as {code?:string}).code || "");
+      const rejected=rejectedAttempt(error, ["version_conflict", "conflict"]);
       if(rejected && !wasUnknown){pending.current=null;block(false);setNeedsRefresh(true);setStatus(errorMessage(error)+" 請重新讀取專案後再管理引用。");}
       else setStatus(errorMessage(error)+" 結果尚未確認，請重試原引用操作；不要更換來源。");
     });

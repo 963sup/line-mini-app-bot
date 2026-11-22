@@ -466,7 +466,7 @@ test("cursor pagination keeps the full monthly summary and navigates back", asyn
     await f.dispose();
   }
 });
-test("correction double submit and ambiguous retry reuse a key; edited draft rotates it", async () => {
+test("correction double submit and ambiguous retry retain the original key and body", async () => {
   const f = await fixture(
     <Correction />,
     "?group=g1&record=r1",
@@ -511,7 +511,8 @@ test("correction double submit and ambiguous retry reuse a key; edited draft rot
     });
     posts = f.requests.filter((r) => r.url.endsWith("/corrections"));
     assert.equal(posts.length, 3);
-    assert.notEqual(
+    assert.deepEqual(await posts[2].clone().json(), await posts[1].clone().json());
+    assert.equal(
       posts[1].headers.get("Idempotency-Key"),
       posts[2].headers.get("Idempotency-Key"),
     );
@@ -748,11 +749,11 @@ test("pagehide rejects late identity responses; BFCache restoration verifies aga
   }
 });
 test("diagnostic location renders only validated coordinates and retains the last success after failure", async () => {
-  const f = await fixture(<Geo />, "", async (r, next) =>
-    r.url.endsWith("/api/location/validate")
-      ? Response.json({ valid: true })
-      : next(r),
-  );
+  const f = await fixture(<Geo />, "", async (r, next) => {
+    if (!r.url.endsWith("/api/location/validate")) return next(r);
+    assert.equal(r.credentials, "omit");
+    return Response.json({valid:true, receivedAt:new Date().toISOString()});
+  });
   try {
     assert.equal(f.watchers.length, 0);
     await f.click("locate");
@@ -837,14 +838,23 @@ test("leave history filters already loaded records by group without issuing anot
 });
 
 test("expired leave launch offers history instead of retrying an unusable link", async () => {
-  const f=await fixture(<Leave />,"?leave="+launch, async(r,next)=>r.url.endsWith("/leaves")
-    ? r.method==="POST" ? Response.json({error:{code:"expired_launch",message:"請假連結已過期"}},{status:403}) : Response.json([]) : next(r));
+  let posts=0, reads=0;
+  const f=await fixture(<Leave />,"?leave="+launch, async(r,next)=>{
+    if (!r.url.endsWith("/leaves")) return next(r);
+    if (r.method !== "POST") {reads++;return Response.json([]);}
+    if (++posts === 1) throw new Error("connection lost");
+    return Response.json({error:{code:"expired_launch",message:"請假連結已過期"}},{status:403});
+  });
   try{
     const form=document.querySelector("form")!;
     const fields=form.querySelectorAll("input");
     fields[0].id="leave-from";fields[1].id="leave-to";form.querySelector("textarea")!.id="leave-why";
     await f.input("leave-from","2026-11-01T09:00");await f.input("leave-to","2026-11-01T12:00");await f.input("leave-why","看診");
     await act(async()=>{form.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));await flush();});
+    const before=reads;
+    await act(async()=>{form.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));await flush();});
+    assert.ok(reads>before);
+    assert.match(document.body.textContent!,/前次結果待確認/);
     assert.match(document.body.textContent!,/請假連結已過期/);assert.equal(document.querySelector("form"),null);
     assert.doesNotMatch(document.body.textContent!,/重試原申請/);
   }finally{await f.dispose();}

@@ -4,7 +4,7 @@ import { useRepositoryGuard } from "../repository/NavigationGuard";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
-import { useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
+import { rejectedAttempt, useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
 import { displayTime } from "@/shared/time/time";
 import { PagePanel } from "@/shared/PagePanel";
 import { FormField } from "@/shared/FormField";
@@ -71,7 +71,7 @@ export function Comments({repositoryId,discussionId,onWriteStateChange}:{reposit
     void write.run(
       signal=>request((client,s)=>client.POST("/api/v1/repositories/{repositoryId}/discussions/{id}/comments",{signal:s,params:{path:{repositoryId,id:discussionId},header:{"Idempotency-Key":pending.key}},body:{body:pending.body}}),{signal}),
       ()=>{lock.current=false;guard.block(false);onWriteStateChange(false);setBusy(false);setUncertain(false);attempt.current=null;setBody("");setStatus("已新增留言；留言依建立時間顯示，可載入更多。");load();},
-      error=>{lock.current=false;setBusy(false);if(!wasUnknown&&["invalid_input","forbidden","not_found","idempotency_conflict"].includes((error as {code?:string}).code||"")){setUncertain(false);guard.block(false);onWriteStateChange(false);}setStatus(errorMessage(error)+" 結果不明時請沿用原留言重試；確認前請勿切換主題或重新開頁。");},
+      error=>{lock.current=false;setBusy(false);if(!wasUnknown&&rejectedAttempt(error)){setUncertain(false);guard.block(false);onWriteStateChange(false);}setStatus(errorMessage(error)+" 結果不明時請沿用原留言重試；確認前請勿切換主題或重新開頁。");},
     );
   }
   function save(event:FormEvent){

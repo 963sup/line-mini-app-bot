@@ -10,7 +10,7 @@ import { Status } from "@/shared/Status";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { FormField } from "@/shared/FormField";
-import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
+import { rejectedAttempt, errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
 import { useRepositoryGuard } from "../NavigationGuard";
 
 type Page = components["schemas"]["WikiPage"];
@@ -36,16 +36,17 @@ export function View({repositoryId, initialId}: {repositoryId:string; initialId:
   const [items,setItems] = useState<Summary[]>([]), [history,setHistory] = useState<Page[]>([]);
   const [cursor,setCursor] = useState(""), [historyCursor,setHistoryCursor] = useState("");
   const [draft,setDraft] = useState<{title:string;body:string}|null>(null);
-  const [busy,setBusy] = useState(false), [message,setMessage] = useState("");
+  const [busy,setBusy] = useState(true), [message,setMessage] = useState("");
   const [uncertain,setUncertain] = useState(false), [compare,setCompare] = useState(false);
   const lock=useRef(false), key=useRef(""), titleInput=useRef<HTMLInputElement>(null);
   const guard=useRepositoryGuard(!!draft,()=>titleInput.current?.focus());
   const path={repositoryId,id};
   const link=(pageId:string)=>"/miniapp/repositories?"+new URLSearchParams({id:repositoryId,wiki:pageId});
-  function fail(e:unknown){
+  function fail(e:unknown, keepAttempt = false){
     const code=(e as {code?:string}).code;
     if(code==="not_found" || code==="forbidden" || code==="unauthorized"){
-      setPage(null);setHistory([]);setItems([]);setCursor("");setHistoryCursor("");setDraft(null);setCompare(false);setUncertain(false);guard.block(false);
+      setPage(null);setHistory([]);setItems([]);setCursor("");setHistoryCursor("");setCompare(false);
+      if (!keepAttempt) { setDraft(null);setUncertain(false);guard.block(false); }
     }
     setBusy(false);setMessage(errorMessage(e));
   }
@@ -67,14 +68,17 @@ export function View({repositoryId, initialId}: {repositoryId:string; initialId:
         lock.current=false;guard.block(false);setUncertain(false);setBusy(false);setDraft(null);setPage(p);setHistory([]);setHistoryCursor("");setId(p.id);
       },e=>{
         lock.current=false;
-        const code=(e as {code?:string}).code;
-        const unknown=!page && !["conflict","invalid_input","forbidden","not_found"].includes(code||"");
-        guard.block(unknown);setUncertain(unknown);setCompare(!!page && code==="conflict");fail(e);
+        const {code, conflictReason} = e as {code?:string; conflictReason?:string};
+        const unknown=!page && (uncertain || !rejectedAttempt(e, ["conflict"]));
+        guard.block(unknown);setUncertain(unknown);setCompare(!!page && code==="conflict" && (!conflictReason || conflictReason==="stale_version"));
+        fail(e, unknown);
       });
   }
   return <PagePanel heading="知識庫 Wiki">
     {message && <Status role="status">{message}</Status>}
     {!draft && !id && <><Button disabled={busy} onClick={()=>{key.current=crypto.randomUUID();setDraft({title:"",body:""});}}>建立頁面</Button>
+      {busy && <p role="status">正在讀取 Wiki 目錄……</p>}
+      {!busy && !message && !items.length && !cursor && <p>目前沒有 Wiki 頁面。</p>}
       <ul>{items.map(p=><li key={p.id}><Item asChild size="sm"><a href={link(p.id)}>{p.title}</a></Item></li>)}</ul>
       {cursor && <Button disabled={busy} onClick={()=>load(cursor)}>更多頁面</Button>}</>}
     {!draft && page && <><h2>{page.title}</h2><Markdown body={page.body}/><a href={link(page.id)}>此頁永久連結</a>

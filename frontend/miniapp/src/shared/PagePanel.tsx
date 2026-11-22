@@ -4,17 +4,16 @@ import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 export function PagePanel({
   heading,
   children,
-  className,
   ...props
 }: React.ComponentProps<typeof Card> & { heading: React.ReactNode }) {
   return (
-    <Card className={className} {...props}>
+    <Card {...props}>
       <CardHeader className="min-w-0">
         <CardTitle role="heading" aria-level={2} className="min-w-0 break-words">
           {heading}
         </CardTitle>
       </CardHeader>
-      <CardContent>{children}</CardContent>
+      <CardContent className="min-w-0">{children}</CardContent>
     </Card>
   );
 }

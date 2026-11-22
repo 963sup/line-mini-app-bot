@@ -75,3 +75,25 @@ test("repository space creation retries the original key and lists the new space
     assert.match(document.body.textContent!, /已建立空間/);
   } finally { await f.dispose(); }
 });
+
+test("space pagination retries the failed cursor and clears prior rows when access is denied", async () => {
+  const cursors: (string | null)[] = [];
+  const f = await fixture(async request => {
+    const url = new URL(request.url);
+    if (!url.pathname.endsWith("/spaces")) return Response.json({groups:[], enterprises:[]});
+    cursors.push(url.searchParams.get("cursor"));
+    if (cursors.length === 1) return Response.json({items:[space],nextCursor:"page2"});
+    const status = cursors.length === 2 ? 503 : 403;
+    return Response.json({error:{code:status === 503 ? "unavailable" : "forbidden",message:"讀取失敗"}},{status});
+  }, Spaces);
+  try {
+    await f.click("載入更多空間");
+    assert.match(document.body.textContent!, /機房/);
+    assert.doesNotMatch(document.body.textContent!, /載入更多空間/);
+    await f.click("重試讀取");
+    assert.deepEqual(cursors, [null,"page2","page2"]);
+    assert.doesNotMatch(document.body.textContent!, /機房/);
+    await f.click("重試讀取");
+    assert.equal(cursors.at(-1), null);
+  } finally { await f.dispose(); }
+});
