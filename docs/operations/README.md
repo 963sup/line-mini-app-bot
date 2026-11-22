@@ -1,5 +1,7 @@
 # 正式部署與維運
 
+此目錄面向正式服務的部署、驗收與復原。應用程式內的操作與 PDF 工具見[業務操作能力](../domains/operations/README.md)。
+
 | 要完成的工作 | 入口 |
 | --- | --- |
 | 準備或更新建置、Trigger、IAM 與 runtime 設定 | [Cloud Run 部署](cloud-run.md) |
