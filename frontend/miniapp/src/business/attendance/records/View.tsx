@@ -10,7 +10,6 @@ import { Button } from "@/shared/ui/button";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Input } from "@/shared/ui/input";
 import { Status } from "@/shared/Status";
-import React from "react";
 import { useEffect, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "../../../identity/Session";

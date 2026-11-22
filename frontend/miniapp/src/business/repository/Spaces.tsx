@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useSession } from "@/identity/Session";
 import { FormField } from "@/shared/FormField";
 import { PagePanel } from "@/shared/PagePanel";

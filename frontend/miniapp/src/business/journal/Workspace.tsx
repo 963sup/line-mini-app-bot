@@ -1,6 +1,6 @@
 import { listMemberGroups } from "@/business/group/memberGroups";
 import dynamic from "next/dynamic";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession, type Request } from "@/identity/Session";
 import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";

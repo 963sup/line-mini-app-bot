@@ -10,7 +10,6 @@ import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { Button } from "@/shared/ui/button";
 import { Status } from "@/shared/Status";
-import React from "react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "../../../identity/Session";

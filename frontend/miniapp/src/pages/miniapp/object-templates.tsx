@@ -1,4 +1,3 @@
-import React from "react";
 import { Shell } from "@/shell/Shell";
 import { Templates } from "@/business/object/Templates";
 import { useSession } from "@/identity/Session";

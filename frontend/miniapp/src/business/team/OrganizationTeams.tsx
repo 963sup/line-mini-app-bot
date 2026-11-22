@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "@/identity/Session";
 import { useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
 import { PagePanel } from "@/shared/PagePanel";

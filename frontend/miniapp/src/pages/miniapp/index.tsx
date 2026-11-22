@@ -1,4 +1,3 @@
-import React from "react";
 import { Shell } from "../../shell/Shell";
 import { View } from "../../navigation/home/View";
 import { useRouter } from "next/router";

@@ -1,4 +1,3 @@
-import React from "react";
 import { Shell } from "../../shell/Shell";
 import { View } from "../../business/attendance/leave/View";
 export default function Page() {

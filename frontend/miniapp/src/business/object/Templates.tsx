@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useRepositories } from "../repository/RepositoryContext";
 import { Candidates, type Candidate } from "./Candidates";
 import type { components } from "@repo/api-client";

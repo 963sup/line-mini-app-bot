@@ -7,7 +7,6 @@ import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
 import { Textarea } from "@/shared/ui/textarea";
 import { Status } from "@/shared/Status";
-import React from "react";
 import { useCallback, useRef, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "../../../identity/Session";

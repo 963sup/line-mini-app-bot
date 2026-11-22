@@ -1,4 +1,3 @@
-import React from "react";
 import type { ReactNode } from "react";
 import { useSession } from "../identity/Session";
 import { useEffect } from "react";

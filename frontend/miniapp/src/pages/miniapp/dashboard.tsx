@@ -1,4 +1,3 @@
-import React from "react";
 import { Shell } from "../../shell/Shell";
 import { JournalWorkspace } from "../../business/journal/Workspace";
 

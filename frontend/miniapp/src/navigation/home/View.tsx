@@ -1,4 +1,3 @@
-import React from "react";
 import Link from "next/link";
 import { ChevronRight, ClipboardList, FolderOpen, Layers, List } from "lucide-react";
 import { PagePanel } from "@/shared/PagePanel";

@@ -1,7 +1,6 @@
 import { Spinner } from "@/shared/ui/spinner";
 import { Button } from "@/shared/ui/button";
 import { Status } from "@/shared/Status";
-import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { locate, type Position } from "../../shared/location/position";
 import { errorMessage, untilAbort } from "../../shared/http/lifecycle";

@@ -3,7 +3,7 @@ import { PagePanel } from "@/shared/PagePanel";
 import { Spinner } from "@/shared/ui/spinner";
 import { Button } from "@/shared/ui/button";
 import { Status } from "@/shared/Status";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "../../../identity/Session";
 import { errorMessage } from "../../../shared/http/lifecycle";
 import { locate } from "../../../shared/location/position";
