@@ -6,7 +6,9 @@ import (
 
 import (
 	"context"
+	"errors"
 	"regexp"
+	"time"
 
 	"github.com/963sup/line-mini-app-bot/internal/business/discussion/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/business/discussion/domain/entity"
@@ -36,7 +38,34 @@ func (s *Service) Update(ctx context.Context, actor, repositoryID, id string, in
 	if !repositoryDomainEntity.ValidID(id) {
 		return entity.Discussion{}, entity.ErrNotFound
 	}
-	return s.Store.Update(ctx, r, actor, id, input)
+	now := time.Now().UTC().Truncate(time.Microsecond)
+	return s.Store.RunUpdate(ctx, r, id, func(work port.UpdateWork) (entity.Discussion, error) {
+		repoID, owner, status, err := work.Repository()
+		if err != nil {
+			return entity.Discussion{}, err
+		}
+		if !r.MatchesActive(repoID, owner, status) {
+			return entity.Discussion{}, entity.ErrNotFound
+		}
+		current, err := work.Current()
+		if err != nil {
+			return entity.Discussion{}, err
+		}
+		updated, err := entity.ApplyUpdate(current, actor, input)
+		if err != nil || updated.Version == current.Version {
+			return updated, err
+		}
+		if len(updated.LabelIDs) > 0 {
+			if err := work.ValidateLabels(updated.LabelIDs); err != nil {
+				return entity.Discussion{}, invalidReference(err)
+			}
+		}
+		updated.UpdatedAt = now
+		if now.Before(current.UpdatedAt) {
+			updated.UpdatedAt = current.UpdatedAt
+		}
+		return updated, work.Save(actor, current, updated)
+	})
 }
 
 func (s *Service) CreateComment(ctx context.Context, actor, repositoryID, id, key, body string) (entity.Comment, error) {
@@ -63,4 +92,11 @@ func (s *Service) UpdateComment(ctx context.Context, actor, repositoryID, id, co
 		return entity.Comment{}, entity.ErrNotFound
 	}
 	return s.Store.UpdateComment(ctx, r, actor, id, commentID, body, version)
+}
+
+func invalidReference(err error) error {
+	if errors.Is(err, repositoryDomainEntity.ErrNotFound) {
+		return entity.ErrInput
+	}
+	return err
 }

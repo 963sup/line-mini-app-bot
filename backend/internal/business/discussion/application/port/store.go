@@ -22,7 +22,7 @@ type (
 		List(context.Context, repositoryDomainEntity.Repository, string, dto.Filter) (dto.Page, error)
 		Get(context.Context, repositoryDomainEntity.Repository, string) (entity.Discussion, error)
 		Create(context.Context, repositoryDomainEntity.Repository, string, string, entity.Content) (entity.Discussion, error)
-		Update(context.Context, repositoryDomainEntity.Repository, string, string, entity.Update) (entity.Discussion, error)
+		RunUpdate(ctx context.Context, scope repositoryDomainEntity.Repository, id string, update func(UpdateWork) (entity.Discussion, error)) (entity.Discussion, error)
 		ListComments(context.Context, repositoryDomainEntity.Repository, string, string, string) (dto.CommentPage, error)
 		CreateComment(context.Context, repositoryDomainEntity.Repository, string, string, string, string) (entity.Comment, error)
 		UpdateComment(context.Context, repositoryDomainEntity.Repository, string, string, string, string, int64) (entity.Comment, error)
@@ -43,4 +43,11 @@ func (s *Access) Scope(ctx context.Context, actor, repositoryID string) (reposit
 		return repositoryDomainEntity.Repository{}, entity.ErrNotFound
 	}
 	return r, err
+}
+
+type UpdateWork interface {
+	Repository() (id, owner, status string, err error)
+	Current() (entity.Discussion, error)
+	ValidateLabels([]string) error
+	Save(actor string, previous, updated entity.Discussion) error
 }

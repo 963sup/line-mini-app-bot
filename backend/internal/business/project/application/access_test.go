@@ -58,12 +58,23 @@ func (s *store) Create(_ context.Context, r projectApplicationPort.Scope, a, k s
 	return s.item, nil
 }
 
-func (s *store) Update(_ context.Context, r projectApplicationPort.Scope, a, id string, in projectDomainEntity.Update) (projectDomainEntity.Project, error) {
-	v, e := projectDomainEntity.ApplyUpdate(s.item, a, in)
-	if e == nil {
-		s.item = v
+func (s *store) RunUpdate(_ context.Context, _ projectApplicationPort.Scope, _ string, update func(projectApplicationPort.UpdateWork) error) (projectDomainEntity.Project, error) {
+	if err := update(metadataWork{store: s}); err != nil {
+		return projectDomainEntity.Project{}, err
 	}
-	return v, e
+	return s.item, nil
+}
+
+type metadataWork struct {
+	projectApplicationPort.UpdateWork
+	store *store
+}
+
+func (w metadataWork) Current() (projectDomainEntity.Project, error) { return w.store.item, nil }
+
+func (w metadataWork) Save(_ string, _, updated projectDomainEntity.Project, _ projectApplicationPort.UpdateWrites) error {
+	w.store.item = updated
+	return nil
 }
 
 func (s *store) ListItems(context.Context, projectApplicationPort.Scope, string, string, string) (projectDomainEntity.ItemPage, error) {

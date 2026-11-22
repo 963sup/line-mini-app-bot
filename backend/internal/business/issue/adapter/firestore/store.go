@@ -212,73 +212,17 @@ type change struct {
 	At      time.Time `firestore:"at"`
 }
 
-func (s *Store) Update(ctx context.Context, scope repositoryDomainEntity.Repository, actor, id string, input issueentity.Update) (result issueentity.Issue, err error) {
+func (s *Store) RunUpdate(ctx context.Context, scope repositoryDomainEntity.Repository, id string, update func(issueport.UpdateWork) (issueentity.Issue, error)) (result issueentity.Issue, err error) {
 	defer func() { err = translate(err) }()
 	if !s.ready() {
 		return result, issueport.ErrUnavailable
 	}
 	parent := s.repositoryRef(scope.ID)
 	ref := parent.Collection("issues").Doc(id)
-	now := time.Now().UTC().Truncate(time.Microsecond)
 	err = s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
-		result = issueentity.Issue{}
-		snap, err := tx.Get(parent)
-		if status.Code(err) == codes.NotFound {
-			return issueentity.ErrNotFound
-		}
-		if err != nil {
-			return err
-		}
-		var container struct {
-			ID      string `firestore:"id"`
-			OwnerID string `firestore:"ownerId"`
-			Status  string `firestore:"status"`
-		}
-		if err := snap.DataTo(&container); err != nil {
-			return err
-		}
-		if !scope.MatchesActive(container.ID, container.OwnerID, container.Status) {
-			return issueentity.ErrNotFound
-		}
-		currentSnap, err := tx.Get(ref)
-		current, err := decode(currentSnap, err, scope.ID)
-		if err != nil {
-			return err
-		}
-		result, err = issueentity.ApplyUpdate(current, actor, input)
-		if err != nil {
-			return err
-		}
-		if result.Version == current.Version {
-			return nil
-		}
-		if len(result.LabelIDs) > 0 {
-			if s.Labels == nil {
-				return issueport.ErrUnavailable
-			}
-			if err := s.Labels.ValidateLabelIDs(ctx, tx, scope, result.LabelIDs); err != nil {
-				if errors.Is(err, repositoryDomainEntity.ErrNotFound) {
-					return issueentity.ErrInput
-				}
-				return err
-			}
-		}
-		if result.MilestoneID != "" {
-			if s.Milestones == nil {
-				return issueport.ErrUnavailable
-			}
-			if e := s.Milestones.ValidateMilestoneID(ctx, tx, scope, result.MilestoneID); e != nil {
-				if errors.Is(e, repositoryDomainEntity.ErrNotFound) {
-					return issueentity.ErrInput
-				}
-				return e
-			}
-		}
-		result.UpdatedAt = maxTime(now, current.UpdatedAt)
-		if err := tx.Set(ref, encode(result)); err != nil {
-			return err
-		}
-		return tx.Create(ref.Collection("changes").Doc(strconv.FormatInt(result.Version, 10)), change{actor, current.State, result.State, result.Version, result.UpdatedAt})
+		var err error
+		result, err = update(updateWork{ctx: ctx, tx: tx, store: s, scope: scope, parent: parent, ref: ref})
+		return err
 	})
 	if err != nil {
 		return issueentity.Issue{}, err
@@ -286,9 +230,53 @@ func (s *Store) Update(ctx context.Context, scope repositoryDomainEntity.Reposit
 	return result, nil
 }
 
-func maxTime(a, b time.Time) time.Time {
-	if a.Before(b) {
-		return b
+type updateWork struct {
+	ctx         context.Context
+	tx          *db.Transaction
+	store       *Store
+	scope       repositoryDomainEntity.Repository
+	parent, ref *db.DocumentRef
+}
+
+func (w updateWork) Repository() (string, string, string, error) {
+	snap, err := w.tx.Get(w.parent)
+	if status.Code(err) == codes.NotFound {
+		return "", "", "", issueentity.ErrNotFound
 	}
-	return a
+	if err != nil {
+		return "", "", "", err
+	}
+	var container struct {
+		ID      string `firestore:"id"`
+		OwnerID string `firestore:"ownerId"`
+		Status  string `firestore:"status"`
+	}
+	err = snap.DataTo(&container)
+	return container.ID, container.OwnerID, container.Status, err
+}
+
+func (w updateWork) Current() (issueentity.Issue, error) {
+	snap, err := w.tx.Get(w.ref)
+	return decode(snap, err, w.scope.ID)
+}
+
+func (w updateWork) ValidateLabels(ids []string) error {
+	if w.store.Labels == nil {
+		return issueport.ErrUnavailable
+	}
+	return w.store.Labels.ValidateLabelIDs(w.ctx, w.tx, w.scope, ids)
+}
+
+func (w updateWork) ValidateMilestone(id string) error {
+	if w.store.Milestones == nil {
+		return issueport.ErrUnavailable
+	}
+	return w.store.Milestones.ValidateMilestoneID(w.ctx, w.tx, w.scope, id)
+}
+
+func (w updateWork) Save(actor string, previous, updated issueentity.Issue) error {
+	if err := w.tx.Set(w.ref, encode(updated)); err != nil {
+		return err
+	}
+	return w.tx.Create(w.ref.Collection("changes").Doc(strconv.FormatInt(updated.Version, 10)), change{actor, previous.State, updated.State, updated.Version, updated.UpdatedAt})
 }

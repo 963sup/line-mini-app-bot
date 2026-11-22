@@ -163,11 +163,61 @@ func (s *Service) Update(ctx context.Context, actor, rid, id string, input proje
 			return projectDomainEntity.Project{}, projectDomainEntity.ErrInput
 		}
 	}
-	value, e := s.Store.Update(ctx, r, actor, id, input)
+	value, e := s.Store.RunUpdate(ctx, r, id, func(work projectApplicationPort.UpdateWork) error {
+		return updateProject(work, actor, input)
+	})
 	if e == nil {
 		e = s.progress(ctx, r, &value)
 	}
 	return value, e
+}
+
+func updateProject(work projectApplicationPort.UpdateWork, actor string, input projectDomainEntity.Update) error {
+	current, err := work.Current()
+	if err != nil {
+		return err
+	}
+	updated, err := projectDomainEntity.ApplyUpdate(current, actor, input)
+	if err != nil {
+		return err
+	}
+	var writes projectApplicationPort.UpdateWrites
+	if input.ItemID != "" {
+		status, err := work.ItemStatus(input.ItemID)
+		if err != nil {
+			return err
+		}
+		if status != input.ItemStatus {
+			if current.Version >= projectDomainEntity.MaxVersion {
+				return projectDomainEntity.ErrConflict
+			}
+			writes.ItemID, writes.ItemStatus = input.ItemID, input.ItemStatus
+			updated.Version = current.Version + 1
+		}
+	}
+	linkID, add := input.LinkRepositoryID, true
+	if linkID == "" {
+		linkID, add = input.UnlinkRepositoryID, false
+	}
+	if linkID != "" {
+		exists, err := work.RepositoryLinked(linkID)
+		if err != nil {
+			return err
+		}
+		if exists != add {
+			if current.Version >= projectDomainEntity.MaxVersion {
+				return projectDomainEntity.ErrConflict
+			}
+			if add {
+				if err := work.CheckLinkSource(linkID); err != nil {
+					return err
+				}
+			}
+			writes.RepositoryID, writes.LinkRepository = linkID, add
+			updated.Version = current.Version + 1
+		}
+	}
+	return work.Save(actor, current, updated, writes)
 }
 
 func (s *Service) ListItems(ctx context.Context, actor, rid, id, cursor string) (projectDomainEntity.ItemPage, error) {

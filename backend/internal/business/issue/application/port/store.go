@@ -22,7 +22,7 @@ type (
 		List(context.Context, repositoryDomainEntity.Repository, string, dto.Filter) (dto.Page, error)
 		Get(context.Context, repositoryDomainEntity.Repository, string) (entity.Issue, error)
 		Create(context.Context, repositoryDomainEntity.Repository, string, string, entity.Content) (entity.Issue, error)
-		Update(context.Context, repositoryDomainEntity.Repository, string, string, entity.Update) (entity.Issue, error)
+		RunUpdate(ctx context.Context, scope repositoryDomainEntity.Repository, id string, update func(UpdateWork) (entity.Issue, error)) (entity.Issue, error)
 	}
 )
 
@@ -40,4 +40,12 @@ func (s *Access) Scope(ctx context.Context, actor, repositoryID string) (reposit
 		return repositoryDomainEntity.Repository{}, entity.ErrNotFound
 	}
 	return r, err
+}
+
+type UpdateWork interface {
+	Repository() (id, owner, status string, err error)
+	Current() (entity.Issue, error)
+	ValidateLabels([]string) error
+	ValidateMilestone(string) error
+	Save(actor string, previous, updated entity.Issue) error
 }
