@@ -4,9 +4,15 @@
 
 Workflow 定義固定步驟、等待條件及恢復位置。步驟可以呼叫 [Operations](operations.md) 執行工作，也可以委派有界任務給 [Agent](agent.md)，再按回傳結果繼續。需要跨請求恢復時才引入持久化，儲存格式與公開 API 留待使用案例決定。
 
+## 流程模型
+
+依 [狀態機](../references/ddd/state-machine.md)及[樂觀併發](../references/ddd/optimistic-concurrency.md)，持久化時以 `RunID` 識別一次流程，用執行版本保護轉換。候選版本、目標與命令組成確認的值，確認與提交識別碼在同一轉換保存。競爭請求的舊版本回報衝突。完成狀態只能由有效收據推進；結果未知可用原提交識別碼恢復。拒絕、過期與撤權應有明確結果。
+
 <a id="design-diagram"></a>
 
 ## 確認與恢復流程圖
+
+未來設計
 
 ```mermaid
 flowchart TD
@@ -33,8 +39,8 @@ flowchart TD
 | 操作 | 結果、副作用與失敗語意 |
 |---|---|
 | Start(actor, resourceID) | 建立或取回本次流程與等待步驟；記錄所引用的草稿版本。 |
-| AcceptConfirmation(actor, runID, candidateVersion) | 檢查流程與版本，保存寫入意圖和執行識別碼；過期確認要求使用者重看。 |
-| Resume(actor, runID) | 讀取等待點。若寫入結果未定，以原碼重送；若版本衝突回到確認，遇權限拒絕則停止。 |
+| AcceptConfirmation(actor, runID, candidateVersion, target, command) | 核對確認者、流程、候選版本、目標及命令，執行前保存寫入意圖與識別碼；過期確認要求使用者重看。 |
+| Resume(actor, runID) | 讀取等待點。若寫入結果未定，先查原結果，或以原碼安全重送；若版本衝突回到確認，遇權限拒絕則停止。 |
 
 [共用架構、時序與驗收](domain-collaboration.md)
 
