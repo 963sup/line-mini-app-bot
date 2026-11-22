@@ -25,6 +25,27 @@
 | [weather](weather/README.md) | 已有實作 | [核心流程](weather/README.md#decision-flow) | [測試](../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go) |
 | [workflow](workflow/README.md) | 提案 | [核心流程](../proposals/workflow.md#design-diagram) | [驗收條件](../proposals/domain-collaboration.md) |
 
+## 依領域查程式目錄
+
+從領域規格進入對應的模組 README，再依該目錄的工作指引修改。功能實作狀態以上方追蹤矩陣為準。
+
+| 領域規格 | 模組入口 |
+|---|---|
+| [agent](agent/README.md) | [後端](../../backend/internal/business/agent/README.md) |
+| [attendance](attendance/README.md) | [後端](../../backend/internal/business/attendance/README.md) · [前端](../../frontend/miniapp/src/business/attendance/README.md) · [公開契約](../../api/contract/attendance/README.md) |
+| [enterprise](enterprise/README.md) | [後端](../../backend/internal/business/enterprise/README.md) |
+| [group](group/README.md) | [公開契約](../../api/contract/group/README.md) |
+| [journal](journal/README.md) | [後端](../../backend/internal/business/journal/README.md) · [前端](../../frontend/miniapp/src/business/journal/README.md) · [公開契約](../../api/contract/journal/README.md) |
+| [knowledge](knowledge/README.md) | [後端](../../backend/internal/business/knowledge/README.md) |
+| [operations](operations/README.md) | [後端](../../backend/internal/business/operations/README.md) · [前端](../../frontend/miniapp/src/business/operations/README.md) · [公開契約](../../api/contract/operations/README.md) |
+| [organization](organization/README.md) | [後端](../../backend/internal/business/organization/README.md) |
+| [project](project/README.md) | [後端](../../backend/internal/business/project/README.md) · [前端](../../frontend/miniapp/src/business/project/README.md) · [公開契約](../../api/contract/project/README.md) |
+| [repository](repository/README.md) | [後端](../../backend/internal/business/repository/README.md) · [前端](../../frontend/miniapp/src/business/repository/README.md) · [公開契約](../../api/contract/repository/README.md) |
+| [summary](summary/README.md) | [後端](../../backend/internal/business/summary/README.md) · [公開契約](../../api/contract/summary/README.md) |
+| [team](team/README.md) | [後端](../../backend/internal/business/team/README.md) |
+| [weather](weather/README.md) | [後端](../../backend/internal/business/weather/README.md) · [公開契約](../../api/contract/weather/README.md) |
+| [workflow](workflow/README.md) | [後端](../../backend/internal/business/workflow/README.md) |
+
 ## 業務功能
 
 依上表的「狀態」區分現行實作與提案。各領域擁有通用語言、規則及驗收案例；公開格式以 [API 契約](../../api/README.md) 為準。核心／支援子域的分類需依客戶採用理由驗證。跨模組問題查[後端共用 Adapter](../architecture/runtime/shared-adapters.md)、[DDD 設計方法](../references/ddd/README.md)或[Organization 與 Team 目標契約](../contracts/organization-team-ownership.md)。

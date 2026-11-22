@@ -6,7 +6,7 @@
 
 ## 閱讀與修改入口
 
-先查閱[capabilities.json](contract/capabilities.json)、[redocly.yaml](codegen/redocly.yaml)、[本目錄工作指引](AGENTS.md)。
+修改端點或資料格式，從[契約能力索引](contract/README.md)選擇所屬領域。調整產生器時讀[產生設定指南](codegen/README.md)；使用 TypeScript client 時讀[客戶端指南](client/README.md)。修改前請讀[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 

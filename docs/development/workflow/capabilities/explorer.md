@@ -4,16 +4,9 @@
 
 ## 執行要求
 
+依問題選擇查找方式：已知檔案或符號直接查原始碼；關係不清時用 Graphify，跨檔核對可用 Repomix。以目前 checkout 確認呼叫端、影響範圍與驗收入口，區分已確認的原因和推測。
 
-
-Locate existing operation paths with Graphify and corroborate with Repomix/current source. Remain read-only; report confirmed violations separately from stale graphs and unknown requirements.
-
-Explore current code, module dependencies, call paths and likely impact of
-the assigned change. Follow applicable Graphify guidance and corroborate graph
-claims with current source or gopls. Provide concrete file/symbol references,
-affected consumers, boundaries and candidate verification targets. Distinguish
-observed relationships from hypotheses and stale graph data. Remain read-only;
-do not edit application source or configuration. Record evidence for the final delivery.
+探索階段唯讀。若原任務要求修復，定位原因後由目前代理接續已授權的實作與驗收；若只要求調查，交付證據與結論。
 
 Use gopls for Go symbols and references. Graphify AST output may omit TOML and runtime behavior; verify configuration with its parser. Read the scoped Repomix pack instead of generated skill bundles.
 

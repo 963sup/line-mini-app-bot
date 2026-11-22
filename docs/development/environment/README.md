@@ -9,7 +9,7 @@
 | 計畫、範圍、風險與交付 | [規劃](../workflow/capabilities/planning.md) |
 | 原始碼、依賴與官方來源查證 | [探索](../workflow/capabilities/explorer.md) |
 | 模型、架構與交易邊界 | [設計](../workflow/capabilities/architect.md) |
-| 最小修改與根因除錯 | [實作](../workflow/capabilities/implementer.md) |
+| 找出問題並修好 | [實作](../workflow/capabilities/implementer.md) → [驗證修復](../workflow/capabilities/tester.md) |
 | 唯讀檢視差異與風險 | [自我審查](../workflow/capabilities/reviewer.md) |
 | 回歸、契約與整合驗收 | [測試](../workflow/capabilities/tester.md) |
 | Markdown、Mermaid 與授權 Wiki 工作 | [文件](../workflow/capabilities/documentation.md) |

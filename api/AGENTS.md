@@ -1,6 +1,6 @@
 # api 工作指引
 
-本目錄沿用[根目錄指引](../AGENTS.md)。目錄分工、生成與驗證命令見[API 工作流程](README.md)。
+目錄分工、生成與驗證命令見[API 工作流程](README.md)。進入 [contract](contract/AGENTS.md)、[codegen](codegen/AGENTS.md) 或 [client](client/AGENTS.md) 修改檔案前，先讀該目錄的工作指引。
 
 ## 相關規格
 

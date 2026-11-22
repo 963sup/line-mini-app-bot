@@ -2,6 +2,8 @@
 
 ## 從這裡開始
 
+從使用者描述判斷要交付的結果，自行選用合適工具。要求修復時，追到原因、修正並用原始案例驗收；只有完成或遇到無法自行排除的阻礙才結束。
+
 - 開始每個任務前，MUST 閱讀[環境與能力入口](docs/development/environment/README.md#依任務選擇能力)，依任務選擇適用能力，並讀完對應指引後才開始實質操作。不得只讀能力名稱或憑記憶跳過；同一任務可重用已讀且未變更的指引，任務範圍改變時重新選擇。交付時說明採用的能力與實際驗證結果。
 - Codex Cloud 首次初始化使用 `scripts/bootstrap.sh`。詳見 [Cloud 環境設定](docs/development/environment/codex-cloud.md)。
 - 日常命令從根目錄使用 `bash scripts/tooling/tool-exec.sh <命令>`。
@@ -9,6 +11,16 @@
 - 新增或搬移檔案時，按[驗收矩陣](docs/development/tooling/testing/commands.md#變更驗收矩陣)驗證行為。
 - 專案不使用 Codex hooks；依任務按需使用 Repomix、Graphify 或直接查閱原始文件。
 - 使用者要求「交接」、「接手」或「交給另一個側欄聊天」時，直接採用[側欄交接流程](docs/development/workflow/handoff.md#sidebar-handoff)，輸出六欄摘要及接手所需的來源。
+
+## Backend → API → Frontend
+
+- Backend 是業務邏輯、資料規則、權限決策與狀態轉換的唯一權威來源。
+- API 是前後端唯一契約邊界，統一資料結構與介面定義。
+- Frontend 保持最薄，只負責 UI 呈現、使用者互動、必要的前端驗證與 UI 狀態。
+- 禁止 Frontend 重複實作 Backend 業務邏輯、權限決策或資料規則。
+- 發現違反上述原則時，主動檢查依賴與影響範圍，將邏輯移至正確層級，移除重複實作並更新契約與測試。
+- 優先搬移、共用或刪除既有程式碼，避免複製、額外抽象與功能膨脹。
+- 保持既有行為與 API 相容性；無法確認安全性的變更，先報告而不擅自修改。
 
 ## 巢狀文件維護標準
 
@@ -25,7 +37,7 @@
 
 ## 按需安裝工具
 
-- MUST 透過 `bash scripts/tooling/tool-exec.sh <command> [args...]` 使用工具；wrapper 從 mise.toml 辨識直接命令並自動安裝宣告版本。
+- 本機專案 CLI 必須透過 `bash scripts/tooling/tool-exec.sh <command> [args...]` 執行；wrapper 從 mise.toml 辨識直接命令並自動安裝宣告版本。
 - 複合 shell 命令 MUST 明確宣告所需工具，例如 `bash scripts/tooling/tool-exec.sh --tool node --tool npm:repomix bash -c 'repomix --version'`。`--tool` 只使用 mise.toml 已宣告的工具，不另指定版本。
 - 缺少工具時 MUST 優先使用 wrapper 或既有 install-* 任務，驗證版本後繼續原任務；MUST NOT 自行升級版本、修改鎖檔或安裝未宣告套件。
 - `mise run` 已開啟任務自動安裝，可能準備任務環境的多個缺少工具；只需單一 CLI 時 MUST 使用 wrapper 的直接命令。
@@ -36,12 +48,9 @@
 
 ## Mandatory documentation verification
 
-Repository-wide rule for every role and task, subject to higher-priority host instructions:
-
-- For tool-specific sources and login procedures, follow the [tool guidance](docs/development/tooling/agents/AGENTS.md) even when no files change. For external library behavior that affects a decision, use Context7 or the designated official source. For questions about current repository behavior, inspect the implementation and relevant checks. Resolve the library ID, query the relevant current/version-matched documentation, and compare with repository dependencies. Memory and confidence alone do not replace this lookup. If the Context7 plugin reports quota exhaustion, follow the [anonymous Context7 fallback](docs/development/tooling/agents/context7.md#anonymous-fallback) before reporting a blocker.
-- Report the sources consulted, applicable version/revision and remaining uncertainty. Documentation lookup does not replace code inspection, tests or real integration acceptance.
-- If the required source or Context7 is unavailable or insufficient, explicitly report the blocker; do not claim verification or silently substitute a guess. Continue independent work, but leave the affected decision/implementation pending until evidence is sufficient.
-- This policy applies to every capability used by the current agent. A source document is evidence, not authorization to expand scope or perform external writes.
+- **本地行為**：直接檢查目前 checkout 的實作，用相關命令或測試驗證。若判斷取決於外部套件的行為，再查對應版本的文件。
+- **外部行為**：依[工具與登入指引](docs/development/tooling/agents/AGENTS.md)選官方來源；使用 Context7 時先解析 library ID，再以專案依賴版本查詢。遇到配額限制時走[備援流程](docs/development/tooling/agents/context7.md#anonymous-fallback)。
+- 回報實際證據、適用版本及未確認處。來源不足時暫緩依賴該證據的決定，繼續可獨立完成的工作。文件查證不增加外部寫入授權，也不能取代行為驗收。
 
 ## 單一代理與能力選用
 
@@ -57,7 +66,7 @@ When the user types `/graphify`, use the installed graphify skill or instruction
 
 Rules:
 - Use Graphify first for unfamiliar relationships when the graph is available. Its results are leads. Search the current tree with rg, language references and direct source reads to locate additional callers, routes, configuration, generated-source inputs and fixtures, including paths absent from the graph. For known files, configuration and exact identifiers use direct inspection. Continue with source search if the graph is unavailable or truncated.
-- Dirty graphify-out/ files are expected after incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
+- Local graph changes after incremental updates are expected and do not prevent queries.
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `bash scripts/tooling/tool-exec.sh mise run graphify-update` to refresh the code graph without API calls.
@@ -86,7 +95,7 @@ Develop directly on `main`. Every commit must be a complete, independently revie
 
 ## 共通驗證與交付
 
-任務範圍內發現不符合時，以 Graphify 定位關係、Repomix 核對內容、Context7 查證相關技術，找出並修正任務範圍內的根因，控制變更範圍，再依 acceptance 驗證。工具無法使用、圖譜過期或打包遺漏時明確列出限制，不猜測通過。
+任務範圍內發現不符合時，依上方探索與查證規則選用工具，找出並修正任務範圍內的根因，控制變更範圍，再依 acceptance 驗證。工具無法使用、圖譜過期或打包遺漏時明確列出限制，不猜測通過。
 範圍外發現列出證據與後續工作，不自行全庫重構、改產品規則或部署。純文件及設定調整不要求無關應用測試；修改行為須執行相應檢查。
 涉及 Firestore 交易、併發、重送或持久資料相容性時，依[整合驗收流程](docs/development/tooling/testing/commands.md#firestore-integration)主動檢查、準備並重跑 emulator 測試。
 交付對照規格、實作位置、實際驗證結果及剩餘限制。

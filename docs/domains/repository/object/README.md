@@ -2,6 +2,8 @@
 
 **已有實作** · [設計規格](design.md) · [核心流程](#decision-flow) · [代表測試](../../../../backend/internal/business/object/application/progress_test.go) · [程式目錄](../../../../backend/internal/business/object/README.md) · [維護指引](../../../../backend/internal/business/object/AGENTS.md)
 
+[前端畫面](../../../../frontend/miniapp/src/business/object/README.md) · [公開 API](../../../../api/contract/object/README.md) · [子物件畫面](../../../../frontend/miniapp/src/business/subobject/README.md)
+
 ## 領域設計
 
 **子域定位**　工程數量與進度的核心候選。

@@ -2,6 +2,8 @@
 
 **已有實作** · [設計規格](design.md) · [核心流程](#decision-flow) · [代表測試](../../../../backend/internal/business/issue/domain/entity/issue_test.go) · [程式目錄](../../../../backend/internal/business/issue/README.md) · [維護指引](../../../../backend/internal/business/issue/AGENTS.md)
 
+[前端畫面](../../../../frontend/miniapp/src/business/issue/README.md) · [公開 API](../../../../api/contract/issue/README.md)
+
 ## 領域設計
 
 **子域定位**　事項追蹤的支援候選。

@@ -1,6 +1,6 @@
 # MCP tool selection
 
-依任務選服務。能力對照是閱讀入口，不表示子代理註冊，實際連線設定以[專案 MCP 設定](../../../../.codex/config.toml)為準。原生工具缺少時先查[專案載入](#project-loading-check)；修改指引見[本層規則](AGENTS.md)。
+需要遠端資料或服務操作時，按任務搜尋並呼叫目前聊天提供的 MCP 工具。核對未提交的檔案或執行測試時，使用本機 CLI。預期的工具找不到時，再核對[專案設定](../../../../.codex/config.toml)與[載入狀態](#project-loading-check)。
 
 ## 開發角色共同工作指引
 
@@ -69,17 +69,7 @@ Inspect `codex mcp list` and test a host-exposed tool separately.
 
 ## Task-scoped tool use
 
-Check the current host's exposed tools once for the relevant service. Reuse the
-verified inventory within the same host/session, server configuration and
-allowlist; refresh when those change, a required tool is missing, or a call fails.
-Do not run doctor or tools/list before every operation or independently in every
-capability stage. A protocol client's initial initialize/tools-list handshake is distinct
-from unnecessary repeated discovery during a healthy connection.
-
-For a new Cloud environment or an explicit inventory audit, compare every
-server in the checkout configuration with `codex mcp list` and the current
-chat's native tools. Record disabled servers separately. Reuse this inventory
-across capability stages. For routine work, check only the relevant servers.
+日常任務直接呼叫能回答問題的工具，並重用有效連線與結果。工具缺少、呼叫失敗或主機設定改變時，才診斷相關服務。新 Cloud 環境或明確要求全量盤點時，才逐一比對專案設定、CLI 註冊與聊天內可用工具，另列停用項目。
 
 1. For a missing or failing tool, verify checkout, project trust, server
    enablement and allowlist. Prefer a native tool that matches the intended
@@ -89,7 +79,7 @@ across capability stages. For routine work, check only the relevant servers.
    startup, transport or credential failures. See the server-specific guide
    for preparation commands.
 3. Use supported host rediscovery, or verify in a new session opened in the
-   intended checkout. Confirm each enabled server with a native read-only
+   intended checkout. Confirm the affected server (each enabled server for a full audit) with a native read-only
    call where its allowlist permits one. If the allowlist only exposes a
    write operation, record the native tool as exposed and functional acceptance
    as pending until an authorized operation succeeds. Record missing tools, credentials

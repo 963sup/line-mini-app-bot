@@ -11,3 +11,5 @@
 [現行實作圖：物件與子物件歸屬](../../../../../docs/contracts/object-subobject-ownership.md#物件與子物件歸屬)
 
 [上層導覽](../README.md)
+
+子物件的父子關係與階層限制見[物件規格](../../../../../docs/domains/repository/object/design.md)。

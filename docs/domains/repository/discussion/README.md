@@ -2,6 +2,8 @@
 
 **已有實作** · [設計規格](design.md) · [核心流程](#decision-flow) · [代表測試](../../../../backend/internal/business/discussion/domain/entity/classification_test.go) · [程式目錄](../../../../backend/internal/business/discussion/README.md) · [維護指引](../../../../backend/internal/business/discussion/AGENTS.md)
 
+[前端畫面](../../../../frontend/miniapp/src/business/discussion/README.md) · [公開 API](../../../../api/contract/discussion/README.md)
+
 ## 領域設計
 
 **子域定位**　協作支援候選。

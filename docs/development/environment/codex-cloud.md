@@ -10,6 +10,10 @@ scripts/bootstrap.sh
 
 Linux x64／arm64 下載資訊由 [mise.lock](../../../mise.lock) 鎖定，pnpm CLI 的相依鎖在 `.mise/locks/`，應用依賴以 [pnpm-lock.yaml](../../../pnpm-lock.yaml) 和 [backend/go.sum](../../../backend/go.sum) 驗證。選用工具有自己的版本來源。
 
+## 已初始化的工作區
+
+開始任務時，先用 `git rev-parse --show-toplevel` 確認 checkout，並在該根目錄執行 `bash scripts/tooling/tool-exec.sh mise ls --installed` 查看可用版本。沿[模組導覽](../../../README.md#巢狀目錄導覽)讀目標路徑的工作指引；跨模組任務依 [Codex 閱讀順序](../tooling/agents/codex.md#從根目錄處理跨模組任務)核對程式與規格。若缺少單一工具，依[根目錄工具指引](../../../AGENTS.md#按需安裝工具)準備。
+
 ## 啟動與更新
 
 **Start skill** 應從 checkout 根目錄透過專案 wrapper 執行命令。需使用應用時，依[啟動表](README.md#啟動應用)選服務，核對目標路由及日誌。發布狀態保存已準備的檔案與快取，執行中的程序需於工作階段啟動。

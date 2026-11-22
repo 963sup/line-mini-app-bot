@@ -57,7 +57,7 @@
 
 ## 按模組閱讀
 
-[Backend](../backend/README.md) · [API](../api/README.md) · [Frontend](../frontend/README.md) · [Scripts](../scripts/README.md) · [正式維運](operations/README.md)
+[Backend](../backend/README.md) · [API](../api/README.md) · [Frontend](../frontend/README.md) · [Scripts](../scripts/README.md) · [應用素材](../assets/README.md) · [正式維運](operations/README.md)
 
 ## 文件歸屬與維護
 
