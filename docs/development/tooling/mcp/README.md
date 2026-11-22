@@ -66,8 +66,10 @@ across roles. For routine work, check only the relevant servers.
    for preparation commands.
 3. Use supported host rediscovery, or verify in a new session opened in the
    intended checkout. Confirm each enabled server with a native read-only
-   call where its allowlist permits one. For write-only servers, record discovery
-   separately from functional acceptance. Record missing tools, credentials
+   call where its allowlist permits one. If the allowlist only exposes a
+   write operation, record the native tool as exposed and functional acceptance
+   as pending until an authorized operation succeeds. For example, Repomix Skills
+   exposes only `generate_skill`. Record missing tools, credentials
    or permissions and continue independent work. Direct transport and CLI
    checks serve as diagnostics and do not substitute for the required MCP call.
 
