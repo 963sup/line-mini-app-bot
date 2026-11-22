@@ -7,7 +7,7 @@ import { locate, type Position } from "../../shared/location/position";
 import { errorMessage, untilAbort } from "../../shared/http/lifecycle";
 export function View() {
   const [busy, setBusy] = useState(false),
-    [status, setStatus] = useState("尚未要求定位。"),
+    [status, setStatus] = useState(""),
     [position, setPosition] = useState<Position | null>(null),
     [valid, setValid] = useState(false);
   const active = useRef<AbortController | null>(null);

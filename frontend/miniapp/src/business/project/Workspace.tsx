@@ -91,7 +91,6 @@ function AuthenticatedWorkspace() {
   return <>
     {(active || (user && route.owner === user.userId)) && <View key={route.owner} ownerId={route.owner} projectId={route.project} initialSource={route.source} onSelect={selectProject} onBlocked={onBlocked} canWrite={canWrite} />}
     <PagePanel heading="專案群組">
-      <p>專案由個人或群組管理，來源儲存庫提供可讀取的物件、子物件、問題與討論。</p>
       <Status role="status">{status}</Status>
       {listFailed && !writeBlocked && <Button type="button" variant="outline" onClick={() => load()}>重試讀取</Button>}
       <Button disabled={writeBlocked} onClick={() => user && navigate(user.userId)}>我的個人專案</Button>

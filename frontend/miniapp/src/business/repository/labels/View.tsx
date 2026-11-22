@@ -64,7 +64,6 @@ export function View({ repositoryId }: { repositoryId: string }) {
     );
   }
   return <PagePanel heading="標籤">
-    <p className="mb-4 text-sm text-muted-foreground">可建立共用標籤，再到問題或討論詳情選取並儲存分類。</p>
     <form onSubmit={submit}><FieldGroup>
       <FormField>標籤名稱<Input ref={input} required maxLength={40} value={name} disabled={!user || busy || uncertain} onChange={(e) => setName(e.target.value)} /></FormField>
       <Button type="submit" disabled={!user || busy}>{uncertain ? editing ? "重試改名" : "重試原建立請求" : editing ? "儲存新名稱" : "建立標籤"}</Button>

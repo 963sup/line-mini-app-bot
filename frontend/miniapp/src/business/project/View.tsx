@@ -137,7 +137,6 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
   }
   return <>
     <PagePanel heading="專案">
-      <p className="mb-4 text-sm text-muted-foreground">群組成員可建立專案；只有建立者可以修改及管理收錄來源。</p>
       <div className="mb-4 flex flex-wrap gap-2">
         <Button disabled={!user || busy || uncertain || referencesBlocked} onClick={openCreateForm}>新增專案</Button>
         <Button variant="outline" disabled={!user || listBusy || busy || uncertain || referencesBlocked} onClick={() => load()}>重新載入專案</Button>

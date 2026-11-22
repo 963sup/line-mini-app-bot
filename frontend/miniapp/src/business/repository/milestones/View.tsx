@@ -181,7 +181,6 @@ export function View({ repositoryId }: { repositoryId: string }) {
     </section>;
   return <>
     <PagePanel heading="里程碑">
-      <p className="mb-4 text-sm text-muted-foreground">空間成員可建立里程碑；只有建立者可以編輯、完成或重新開啟。</p>
       <div className="mb-4 flex flex-wrap gap-2">
         <Button disabled={!user || busy || uncertain || needsRefresh} onClick={event => openCreateForm(event.currentTarget)}>新增里程碑</Button>
       </div>
