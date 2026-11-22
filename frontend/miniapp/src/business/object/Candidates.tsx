@@ -25,9 +25,10 @@ function encodeFile(file: File): Promise<string> {
   });
 }
 
-export function Candidates({ repositoryId, disabled, created, choose }: {
-  repositoryId: string; disabled: boolean; created: ReadonlySet<string>;
-  choose: (selection: Selection, trigger: HTMLButtonElement) => void;
+export function Candidates({ repositoryId, disabled, created, choose, importDraft }: {
+  repositoryId: string; disabled: boolean; created?: ReadonlySet<string>;
+  choose?: (selection: Selection, trigger: HTMLButtonElement) => void;
+  importDraft?: (filename: string, candidates: Candidate[]) => void;
 }) {
   const { request } = useSession();
   const { run } = useLatestRequest();
@@ -40,6 +41,10 @@ export function Candidates({ repositoryId, disabled, created, choose }: {
 
   function extract() {
     if (!file || disabled || locked.current) return;
+    if (file.size === 0 || file.size > 8 * 1024 * 1024) {
+      setMessage("請選擇 8 MiB 以內的非空文件。");
+      return;
+    }
     locked.current = true;
     setBusy(true); setMessage(""); setResult(undefined);
     void run(async signal => {
@@ -55,8 +60,8 @@ export function Candidates({ repositoryId, disabled, created, choose }: {
   }
 
   return <details className="my-3">
-    <summary>從文件辨識物件</summary>
-    <p>辨識時會將原檔送至 OpenAI，格式依 Responses API 支援範圍判定，每檔須小於 50 MB。試算表每張工作表最多處理前 1,000 列。<a href="https://developers.openai.com/api/docs/guides/file-inputs" target="_blank" rel="noreferrer">官方文件格式與限制</a></p>
+    <summary>{importDraft ? "從文件建立" : "從文件辨識物件"}</summary>
+    <p>辨識時會將原檔送至 OpenAI，格式依 Responses API 支援範圍判定，每檔最多 8 MiB。試算表每張工作表最多處理前 1,000 列。<a href="https://developers.openai.com/api/docs/guides/file-inputs" target="_blank" rel="noreferrer">官方文件格式與限制</a></p>
     <label>來源文件<Input type="file" disabled={busy} onChange={e => {
       setFile(e.target.files?.[0]); setResult(undefined); setMessage("");
     }} /></label>
@@ -66,13 +71,16 @@ export function Candidates({ repositoryId, disabled, created, choose }: {
       const id = `${batch}-${index}`;
       return <article key={id} className="my-3">
         <strong>{candidate.name}</strong>
+        {!!candidate.categoryPath?.length && <p>{candidate.categoryPath.join(" › ")}</p>}
         <p>{candidate.quantity ?? "數量待補"} {candidate.unit ?? "單位待補"} · {candidate.location ?? "位置待核對"}</p>
         <blockquote>{candidate.quote}</blockquote>
-        <Button type="button" variant="outline" disabled={disabled || created.has(id)} onClick={e => choose({ id, candidate, filename: file!.name }, e.currentTarget)}>
-          {created.has(id) ? "已建立" : "覆核並填入新增表單"}
-        </Button>
+        {choose && <Button type="button" variant="outline" disabled={disabled || created?.has(id)} onClick={e => choose({ id, candidate, filename: file!.name }, e.currentTarget)}>
+          {created?.has(id) ? "已建立" : "覆核並填入新增表單"}
+        </Button>}
       </article>;
     })}
+    {importDraft && result?.status === "completed" && result.candidates.length > 0 &&
+      <Button type="button" disabled={disabled || busy} onClick={() => importDraft(file!.name, result.candidates)}>填入範本草稿</Button>}
     {result?.rawResponse && <details><summary>OpenAI 原始回應</summary><pre className="whitespace-pre-wrap break-all">{result.rawResponse}</pre></details>}
   </details>;
 }

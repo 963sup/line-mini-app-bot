@@ -33,7 +33,7 @@ func (s *templateStoreStub) GetTemplate(context.Context, repository.Repository, 
 	return s.snapshot, nil
 }
 
-func (s *templateStoreStub) InstantiateTemplate(_ context.Context, _ repository.Repository, _, _ string, _ dto.Template, _ string, plan []entity.Content) (dto.TemplateInstance, error) {
+func (s *templateStoreStub) InstantiateTemplate(_ context.Context, _ repository.Repository, _, _ string, _ dto.Template, _ string, plan []entity.Content, _ ...[]template.Node) (dto.TemplateInstance, error) {
 	s.calls++
 	s.plan = plan
 	return dto.TemplateInstance{}, nil

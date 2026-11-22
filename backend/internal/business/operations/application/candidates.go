@@ -20,11 +20,12 @@ type Document struct {
 }
 
 type Candidate struct {
-	Name     string  `json:"name"`
-	Quantity *string `json:"quantity"`
-	Unit     *string `json:"unit"`
-	Location *string `json:"location"`
-	Quote    string  `json:"quote"`
+	CategoryPath []string `json:"categoryPath"`
+	Name         string   `json:"name"`
+	Quantity     *string  `json:"quantity"`
+	Unit         *string  `json:"unit"`
+	Location     *string  `json:"location"`
+	Quote        string   `json:"quote"`
 }
 
 // Extraction contains provider diagnostics even when interpreting a response fails.

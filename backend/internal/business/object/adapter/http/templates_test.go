@@ -12,6 +12,7 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/object/application"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/template"
 	repository "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
@@ -37,7 +38,7 @@ func (s *templateStore) GetTemplate(context.Context, repository.Repository, stri
 	return s.snapshot, nil
 }
 
-func (s *templateStore) InstantiateTemplate(_ context.Context, _ repository.Repository, _, _ string, snapshot dto.Template, _ string, _ []entity.Content) (dto.TemplateInstance, error) {
+func (s *templateStore) InstantiateTemplate(_ context.Context, _ repository.Repository, _, _ string, snapshot dto.Template, _ string, _ []entity.Content, _ ...[]template.Node) (dto.TemplateInstance, error) {
 	s.calls++
 	id := strings.Repeat("c", 32)
 	return dto.TemplateInstance{RootObjectID: id, ObjectIDs: []string{id}, TemplateID: snapshot.ID, TemplateVersion: 1, Nodes: []dto.TemplateInstanceNode{{ObjectID: id, Name: snapshot.Nodes[0].Name}}}, nil

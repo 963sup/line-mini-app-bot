@@ -396,6 +396,12 @@
         ],
         "parameters": [
           {
+            "in": "query",
+            "name": "scope",
+            "schema": { "type": "string", "enum": ["personal"] },
+            "description": "Use the authenticated user's private template library."
+          },
+          {
             "in": "path",
             "name": "repositoryId",
             "required": true,
@@ -459,6 +465,12 @@
           }
         ],
         "parameters": [
+          {
+            "in": "query",
+            "name": "scope",
+            "schema": { "type": "string", "enum": ["personal"] },
+            "description": "Use the authenticated user's private template library."
+          },
           {
             "in": "path",
             "name": "repositoryId",
@@ -612,6 +624,12 @@
           }
         ],
         "parameters": [
+          {
+            "in": "query",
+            "name": "scope",
+            "schema": { "type": "string", "enum": ["personal"] },
+            "description": "Use the authenticated user's private template library."
+          },
           {
             "in": "path",
             "name": "repositoryId",
@@ -1033,7 +1051,7 @@
             "type": "string",
             "format": "byte",
             "minLength": 4,
-            "maxLength": 66666668
+            "maxLength": 11184812
           }
         }
       },
@@ -1045,6 +1063,11 @@
           "quote"
         ],
         "properties": {
+          "categoryPath": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Source headings from outermost to innermost. Empty when no heading is identified."
+          },
           "name": {
             "type": "string"
           },
@@ -1224,6 +1247,12 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "nodes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": { "$ref": "#/components/schemas/ObjectTemplateNode" }
+          },
           "parentId": {
             "type": "string",
             "pattern": "^[a-f0-9]{32}$"

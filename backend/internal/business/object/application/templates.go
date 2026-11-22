@@ -99,33 +99,124 @@ func (s *Service) GetTemplate(ctx context.Context, actor, rid, id string) (dto.T
 	return s.Templates.GetTemplate(ctx, r, id)
 }
 
-func (s *Service) InstantiateTemplate(ctx context.Context, actor, rid, id, key, parentID string) (dto.TemplateInstance, error) {
-	r, e := s.scope(ctx, actor, rid)
-	if e != nil {
-		return dto.TemplateInstance{}, e
+func (s *Service) InstantiateTemplate(ctx context.Context, actor, rid, id, key, parentID string, edits ...[]template.Node) (dto.TemplateInstance, error) {
+	r, err := s.templateTarget(ctx, actor, rid, id, key, parentID)
+	if err != nil {
+		return dto.TemplateInstance{}, err
 	}
-	if s.Templates == nil {
-		return dto.TemplateInstance{}, entity.ErrUnavailable
+	snapshot, err := s.Templates.GetTemplate(ctx, r, id)
+	if err != nil {
+		return dto.TemplateInstance{}, err
 	}
-	if !repository.ValidID(id) {
-		return dto.TemplateInstance{}, entity.ErrNotFound
+	nodes, plan, err := PlanTemplateInstance(snapshot, edits...)
+	if err != nil {
+		return dto.TemplateInstance{}, err
 	}
-	if !creationKey.MatchString(key) || (parentID != "" && !repository.ValidID(parentID)) {
-		return dto.TemplateInstance{}, entity.ErrInput
-	}
-	snapshot, e := s.Templates.GetTemplate(ctx, r, id)
-	if e != nil {
-		return dto.TemplateInstance{}, e
-	}
-	if _, e = template.Publish(rid, id, snapshot.Version, snapshot.Nodes); e != nil {
-		return dto.TemplateInstance{}, entity.ErrUnavailable
-	}
-	plan := make([]entity.Content, len(snapshot.Nodes))
-	for i, n := range snapshot.Nodes {
-		plan[i], e = templateContent(n)
-		if e != nil {
-			return dto.TemplateInstance{}, entity.ErrUnavailable
-		}
+	if len(edits) != 0 {
+		return s.Templates.InstantiateTemplate(ctx, r, actor, key, snapshot, parentID, plan, nodes)
 	}
 	return s.Templates.InstantiateTemplate(ctx, r, actor, key, snapshot, parentID, plan)
+}
+
+func (s *Service) InstantiatePersonalTemplate(ctx context.Context, actor, rid, id, key, parentID string, edits []template.Node) (dto.TemplateInstance, error) {
+	r, err := s.templateTarget(ctx, actor, rid, id, key, parentID)
+	if err != nil {
+		return dto.TemplateInstance{}, err
+	}
+	if s.PersonalTemplates == nil {
+		return dto.TemplateInstance{}, entity.ErrUnavailable
+	}
+	// Normalize only editable values before computing the retry fingerprint.
+	retained := make([]template.Node, len(edits))
+	for i, n := range edits {
+		retained[i] = template.Node{ID: n.ID, ParentID: n.ParentID, Name: n.Name, Quantity: n.Quantity, Unit: n.Unit}
+	}
+	confirmed, err := NormalizeTemplate(dto.TemplateCreation{Name: "instance", Nodes: retained})
+	if err != nil {
+		return dto.TemplateInstance{}, err
+	}
+	return s.PersonalTemplates.InstantiatePersonalTemplate(ctx, r, actor, id, key, parentID, confirmed.Nodes)
+}
+
+func (s *Service) templateTarget(ctx context.Context, actor, rid, id, key, parentID string) (repository.Repository, error) {
+	r, err := s.scope(ctx, actor, rid)
+	if err != nil {
+		return r, err
+	}
+	if s.Templates == nil {
+		return r, entity.ErrUnavailable
+	}
+	if !repository.ValidID(id) {
+		return r, entity.ErrNotFound
+	}
+	if !creationKey.MatchString(key) || (parentID != "" && !repository.ValidID(parentID)) {
+		return r, entity.ErrInput
+	}
+	return r, nil
+}
+
+// PlanTemplateInstance validates the confirmed tree against its immutable source.
+func PlanTemplateInstance(snapshot dto.Template, edits ...[]template.Node) ([]template.Node, []entity.Content, error) {
+	if snapshot.Version != 1 || template.ValidateTree(snapshot.Nodes) != nil {
+		return nil, nil, entity.ErrUnavailable
+	}
+	nodes := snapshot.Nodes
+	if len(edits) != 0 {
+		source := make(map[string]template.Node, len(snapshot.Nodes))
+		for _, node := range snapshot.Nodes {
+			source[node.ID] = node
+		}
+		retained := make([]template.Node, 0, len(edits[0]))
+		for _, edit := range edits[0] {
+			node, ok := source[edit.ID]
+			if !ok || node.ParentID != edit.ParentID {
+				return nil, nil, entity.ErrInput
+			}
+			node.Name, node.Quantity, node.Unit = edit.Name, edit.Quantity, edit.Unit
+			retained = append(retained, node)
+		}
+		confirmed, err := NormalizeTemplate(dto.TemplateCreation{Name: snapshot.Name, Nodes: retained})
+		if err != nil {
+			return nil, nil, err
+		}
+		nodes = confirmed.Nodes
+	}
+	plan := make([]entity.Content, len(nodes))
+	for i, node := range nodes {
+		content, err := templateContent(node)
+		if err != nil {
+			return nil, nil, err
+		}
+		plan[i] = content
+	}
+	return nodes, plan, nil
+}
+
+func (s *Service) CreatePersonalTemplate(ctx context.Context, actor, key string, in dto.TemplateCreation) (dto.Template, error) {
+	if actor == "" || !creationKey.MatchString(key) {
+		return dto.Template{}, entity.ErrInput
+	}
+	if s == nil || s.PersonalTemplates == nil {
+		return dto.Template{}, entity.ErrUnavailable
+	}
+	for _, n := range in.Nodes {
+		if strings.TrimSpace(n.Quantity) != "" {
+			return dto.Template{}, entity.ErrInput
+		}
+	}
+	normalized, err := NormalizeTemplate(in)
+	if err != nil {
+		return dto.Template{}, err
+	}
+	return s.PersonalTemplates.CreatePersonalTemplate(ctx, actor, key, normalized)
+}
+
+func (s *Service) ListPersonalTemplates(ctx context.Context, actor, cursor string) (dto.TemplatePage, error) {
+	if actor == "" || len(cursor) > 1024 {
+		return dto.TemplatePage{}, entity.ErrInput
+	}
+	if s == nil || s.PersonalTemplates == nil {
+		return dto.TemplatePage{}, entity.ErrUnavailable
+	}
+	return s.PersonalTemplates.ListPersonalTemplates(ctx, actor, cursor)
 }

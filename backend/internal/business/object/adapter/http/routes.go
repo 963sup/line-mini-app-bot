@@ -22,6 +22,8 @@ import (
 	middleware "github.com/oapi-codegen/nethttp-middleware"
 )
 
+const maxCandidateDocumentBytes = 8 << 20
+
 type (
 	Authenticator interface {
 		Authenticate(http.ResponseWriter, *http.Request) (string, string, bool)
@@ -77,7 +79,7 @@ func Register(mux *http.ServeMux, service *objectApplication.Service, auth Authe
 				}
 				limit := int64(65536)
 				if extraction {
-					limit = 4*((50_000_000+2)/3) + 65536 // Base64 plus JSON envelope for the Responses file limit.
+					limit = 4*((maxCandidateDocumentBytes+2)/3) + 65536
 					timeout = 75 * time.Second
 				}
 				r.Body = http.MaxBytesReader(w, r.Body, limit)
@@ -197,7 +199,7 @@ func (s *objectServer) ExtractObjectCandidates(w http.ResponseWriter, r *http.Re
 	if !transport.ReadJSON(w, r, &in, "文件資料無效。") {
 		return
 	}
-	if len(in.Data) == 0 || len(in.Data) > 8<<20 {
+	if len(in.Data) == 0 || len(in.Data) > maxCandidateDocumentBytes {
 		transport.WriteAPIError(w, 400, "invalid_document", "請選擇 8 MiB 以內的非空文件。")
 		return
 	}
@@ -206,7 +208,11 @@ func (s *objectServer) ExtractObjectCandidates(w http.ResponseWriter, r *http.Re
 	switch {
 	case err == nil:
 		for _, c := range result.Candidates {
-			out.Candidates = append(out.Candidates, generated.ObjectCandidate{Name: c.Name, Quantity: c.Quantity, Unit: c.Unit, Quote: c.Quote, Location: c.Location})
+			candidate := generated.ObjectCandidate{Name: c.Name, Quantity: c.Quantity, Unit: c.Unit, Quote: c.Quote, Location: c.Location}
+			if len(c.CategoryPath) > 0 {
+				candidate.CategoryPath = &c.CategoryPath
+			}
+			out.Candidates = append(out.Candidates, candidate)
 		}
 	case errors.Is(err, operations.ErrInvalidDocument):
 		transport.WriteAPIError(w, 400, "invalid_document", "不支援此文件格式。")

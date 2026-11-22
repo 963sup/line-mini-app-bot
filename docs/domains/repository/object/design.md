@@ -85,7 +85,7 @@ flowchart LR
 
 ## 從文件辨識候選
 
-成員可在物件清單選取文件，確認將文件傳送至 OpenAI 後執行辨識。選檔器不以副檔名篩選，格式由 Responses API 判定；每份原檔須小於 50 MB，依 [OpenAI File inputs](https://developers.openai.com/api/docs/guides/file-inputs)。API 契約及 HTTP 接收上限容納對應的 Base64 與 JSON，不另設較小的檔案上限。物件 API 核對儲存庫權限，再透過 Operations 呼叫模型；沒有配置辨識模型時，手動建立仍可使用。
+成員可在物件清單選取文件，確認將文件傳送至 OpenAI 後執行辨識。選檔器不以副檔名篩選，格式由 Responses API 判定；每份原檔最多 8 MiB。API 契約及 HTTP 接收上限容納對應的 Base64 與 JSON。物件 API 核對儲存庫權限，再透過 Operations 呼叫模型；沒有配置辨識模型時，手動建立仍可使用。
 
 辨識只回傳候選、引文、來源位置與模型回應。畫面列出每筆候選，讓使用者核對原件、補正數量與單位、選擇類型，再透過既有物件建立操作確認寫入。試算表每張工作表最多處理前 1,000 列，其他文件也可能漏列。候選留在當前畫面，重新辨識會產生新的結果。
 

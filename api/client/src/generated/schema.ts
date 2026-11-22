@@ -1929,6 +1929,8 @@ export interface components {
             data: string;
         };
         ObjectCandidate: {
+            /** @description Source headings from outermost to innermost. Empty when no heading is identified. */
+            categoryPath?: string[];
             name: string;
             quote: string;
             location?: string;
@@ -1975,6 +1977,7 @@ export interface components {
         };
         /** @description Same Repository only. Optional parent must exist. All object writes, provenance and the actor/key receipt commit in one transaction. On an unknown response retry with the same Idempotency-Key and body. */
         ObjectTemplateInstantiation: {
+            nodes?: components["schemas"]["ObjectTemplateNode"][];
             parentId?: string;
         };
         ObjectTemplateInstance: {
@@ -7780,6 +7783,8 @@ export interface operations {
     listObjectTemplates: {
         parameters: {
             query?: {
+                /** @description Use the authenticated user's private template library. */
+                scope?: "personal";
                 cursor?: string;
             };
             header?: never;
@@ -7810,7 +7815,10 @@ export interface operations {
     };
     createObjectTemplate: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Use the authenticated user's private template library. */
+                scope?: "personal";
+            };
             header: {
                 /** @description Scoped to actor, repository and this operation. Retry the original key and body after an unknown result. Same key with different normalized content returns idempotency_conflict (409). */
                 "Idempotency-Key": string;
@@ -7878,7 +7886,10 @@ export interface operations {
     };
     instantiateObjectTemplate: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Use the authenticated user's private template library. */
+                scope?: "personal";
+            };
             header: {
                 /** @description Scoped to actor, repository and this operation. Retry the original key and body after an unknown result. Same key with different normalized content returns idempotency_conflict (409). */
                 "Idempotency-Key": string;

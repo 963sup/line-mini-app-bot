@@ -160,3 +160,117 @@ func TestEmulatorTemplateRollbackAfterBufferedWrites(t *testing.T) {
 		t.Fatal(result, e)
 	}
 }
+
+func TestEmulatorEditedTemplate(t *testing.T) {
+	ctx, store, r := emulatorStore(t)
+	service := application.Service{Repositories: &templateRepositories{r: r}, Store: store, Templates: store}
+	source := []template.Node{
+		{ID: "root", Name: "電力系統"},
+		{ID: "cable", ParentID: "root", Name: "高壓線"},
+		{ID: "branch", ParentID: "root", Name: "接地工程"},
+		{ID: "leaf", ParentID: "branch", Name: "接地測試"},
+	}
+	snapshot, err := service.CreateTemplate(ctx, "actor", r.ID, "create-edited-template", dto.TemplateCreation{Name: "電力系統", Nodes: source})
+	if err != nil {
+		t.Fatal(err)
+	}
+	apply := func(nodes []template.Node) (dto.TemplateInstance, error) {
+		return service.InstantiateTemplate(ctx, "actor", r.ID, snapshot.ID, "apply-edited-template", "", nodes)
+	}
+	if _, err := apply([]template.Node{source[0], source[3]}); !errors.Is(err, entity.ErrInput) {
+		t.Fatalf("orphan should be rejected: %v", err)
+	}
+	if got := collectionCount(t, ctx, store.repositoryRef(r.ID), "objects"); got != 0 {
+		t.Fatalf("invalid request wrote %d objects", got)
+	}
+	edits := append([]template.Node(nil), source[:2]...)
+	edits[1].Name, edits[1].Quantity, edits[1].Unit = "高壓線敷設", "6400.0", "米"
+	first, err := apply(edits)
+	if err != nil || len(first.ObjectIDs) != 2 {
+		t.Fatalf("apply: %+v %v", first, err)
+	}
+	got, err := service.Get(ctx, "actor", r.ID, first.ObjectIDs[1])
+	if err != nil || got.Name != "高壓線敷設" || got.Quantity != "6400" || got.Unit != "米" || got.ParentID != first.RootObjectID {
+		t.Fatalf("read back: %+v %v", got, err)
+	}
+	replay, err := apply(edits)
+	if err != nil || !reflect.DeepEqual(first, replay) {
+		t.Fatalf("replay: %+v %v", replay, err)
+	}
+	edits[1].Quantity = "6500"
+	if _, err := apply(edits); !errors.Is(err, entity.ErrCreationConflict) {
+		t.Fatalf("changed request should conflict: %v", err)
+	}
+	if got := collectionCount(t, ctx, store.repositoryRef(r.ID), "objects"); got != 2 {
+		t.Fatalf("want exactly two objects, got %d", got)
+	}
+	unchanged, err := service.GetTemplate(ctx, "actor", r.ID, snapshot.ID)
+	if err != nil || !reflect.DeepEqual(snapshot, unchanged) {
+		t.Fatalf("source template changed: %+v %v", unchanged, err)
+	}
+}
+
+func TestEmulatorPersonalTemplateAcrossRepositories(t *testing.T) {
+	ctx, store, r := emulatorStore(t)
+	repos := &templateRepositories{r: r}
+	service := application.Service{Repositories: repos, Store: store, Templates: store, PersonalTemplates: store}
+	nodes := []template.Node{{ID: "root", Name: "電力系統"}, {ID: "cable", ParentID: "root", Name: "線材", Unit: "米"}}
+	created, err := service.CreatePersonalTemplate(ctx, "alice", "create-personal-key", dto.TemplateCreation{Name: "電力", Nodes: nodes})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for actor, want := range map[string]int{"alice": 1, "bob": 0} {
+		page, err := service.ListPersonalTemplates(ctx, actor, "")
+		if err != nil || len(page.Items) != want {
+			t.Fatalf("list %s: %+v %v", actor, page, err)
+		}
+	}
+	apply := func(actor string, target repository.Repository, plan []template.Node) (dto.TemplateInstance, error) {
+		repos.r = target
+		return service.InstantiatePersonalTemplate(ctx, actor, target.ID, created.ID, "apply-personal-key", "", plan)
+	}
+	if _, err := apply("bob", r, nodes); !errors.Is(err, entity.ErrNotFound) {
+		t.Fatalf("foreign source: %v", err)
+	}
+	repos.denied = true
+	if _, err := apply("alice", r, nodes); !errors.Is(err, entity.ErrNotFound) {
+		t.Fatalf("foreign target: %v", err)
+	}
+	repos.denied = false
+	if got := collectionCount(t, ctx, store.repositoryRef(r.ID), "objects"); got != 0 {
+		t.Fatalf("denied writes: %d", got)
+	}
+	first, err := apply("alice", r, nodes[:1])
+	if err != nil || len(first.ObjectIDs) != 1 {
+		t.Fatalf("apply first: %+v %v", first, err)
+	}
+	r2 := r
+	r2.ID = strings.Repeat("b", 32)
+	if _, err := store.repositoryRef(r2.ID).Set(ctx, map[string]any{"id": r2.ID, "ownerId": r2.OwnerID, "status": r2.Status}); err != nil {
+		t.Fatal(err)
+	}
+	nodes[1].Quantity = "6400"
+	second, err := apply("alice", r2, nodes)
+	if err != nil || len(second.ObjectIDs) != 2 || second.RootObjectID == first.RootObjectID {
+		t.Fatalf("apply second: %+v %v", second, err)
+	}
+	got, err := service.Get(ctx, "alice", r2.ID, second.ObjectIDs[1])
+	if err != nil || got.Quantity != "6400" || got.Unit != "米" || got.ParentID != second.RootObjectID {
+		t.Fatalf("read back: %+v %v", got, err)
+	}
+	replay, err := apply("alice", r2, nodes)
+	if err != nil || !reflect.DeepEqual(second, replay) {
+		t.Fatalf("replay: %+v %v", replay, err)
+	}
+	nodes[1].Quantity = "6500"
+	if _, err := apply("alice", r2, nodes); !errors.Is(err, entity.ErrCreationConflict) {
+		t.Fatalf("changed replay: %v", err)
+	}
+	if got := collectionCount(t, ctx, store.repositoryRef(r2.ID), "objects"); got != 2 {
+		t.Fatalf("expected two objects: %d", got)
+	}
+	source, err := store.GetPersonalTemplate(ctx, "alice", created.ID)
+	if err != nil || !reflect.DeepEqual(created.Nodes, source.Nodes) {
+		t.Fatalf("source changed: %+v %v", source, err)
+	}
+}

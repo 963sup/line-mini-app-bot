@@ -37,14 +37,29 @@ func (s *objectServer) CreateObjectTemplate(w http.ResponseWriter, r *http.Reque
 	for i, n := range in.Nodes {
 		nodes[i] = template.Node{ID: n.Id, ParentID: value(n.ParentId), Name: n.Name, Description: value(n.Description), Type: value(n.Type), Quantity: value(n.Quantity), Unit: value(n.Unit)}
 	}
-	t, e := s.service.CreateTemplate(r.Context(), identity.UserID(r.Context()), rid, p.IdempotencyKey, dto.TemplateCreation{Name: in.Name, Nodes: nodes})
+	actor := identity.UserID(r.Context())
+	input := dto.TemplateCreation{Name: in.Name, Nodes: nodes}
+	var t dto.Template
+	var e error
+	if p.Scope != nil && *p.Scope == "personal" {
+		t, e = s.service.CreatePersonalTemplate(r.Context(), actor, p.IdempotencyKey, input)
+	} else {
+		t, e = s.service.CreateTemplate(r.Context(), actor, rid, p.IdempotencyKey, input)
+	}
 	if !writeTemplateError(w, e) {
 		transport.WriteJSON(w, 200, templateView(t))
 	}
 }
 
 func (s *objectServer) ListObjectTemplates(w http.ResponseWriter, r *http.Request, rid string, p generated.ListObjectTemplatesParams) {
-	page, e := s.service.ListTemplates(r.Context(), identity.UserID(r.Context()), rid, value(p.Cursor))
+	actor := identity.UserID(r.Context())
+	var page dto.TemplatePage
+	var e error
+	if p.Scope != nil && *p.Scope == "personal" {
+		page, e = s.service.ListPersonalTemplates(r.Context(), actor, value(p.Cursor))
+	} else {
+		page, e = s.service.ListTemplates(r.Context(), actor, rid, value(p.Cursor))
+	}
 	if writeTemplateError(w, e) {
 		return
 	}
@@ -67,7 +82,26 @@ func (s *objectServer) InstantiateObjectTemplate(w http.ResponseWriter, r *http.
 	if !transport.ReadJSON(w, r, &in, "套用範本資料無效。") {
 		return
 	}
-	result, e := s.service.InstantiateTemplate(r.Context(), identity.UserID(r.Context()), rid, id, p.IdempotencyKey, value(in.ParentId))
+	var edits [][]template.Node
+	if in.Nodes != nil {
+		nodes := make([]template.Node, 0, len(*in.Nodes))
+		for _, node := range *in.Nodes {
+			nodes = append(nodes, template.Node{ID: node.Id, ParentID: value(node.ParentId), Name: node.Name, Quantity: value(node.Quantity), Unit: value(node.Unit)})
+		}
+		edits = append(edits, nodes)
+	}
+	actor := identity.UserID(r.Context())
+	var result dto.TemplateInstance
+	var e error
+	if p.Scope != nil && *p.Scope == "personal" {
+		if len(edits) == 0 {
+			writeTemplateError(w, entity.ErrInput)
+			return
+		}
+		result, e = s.service.InstantiatePersonalTemplate(r.Context(), actor, rid, id, p.IdempotencyKey, value(in.ParentId), edits[0])
+	} else {
+		result, e = s.service.InstantiateTemplate(r.Context(), actor, rid, id, p.IdempotencyKey, value(in.ParentId), edits...)
+	}
 	if !writeTemplateError(w, e) {
 		nodes := make([]generated.ObjectTemplateInstanceNode, len(result.Nodes))
 		for i, n := range result.Nodes {
