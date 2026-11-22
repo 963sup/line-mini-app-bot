@@ -102,7 +102,7 @@
       "source": "samber/cc-skills-golang",
       "sourceType": "github",
       "skillPath": "skills/golang-documentation/SKILL.md",
-      "computedHash": "79e90a747b02c26753bff5ba289397f485d0375e4179e5737b7469c42b66b2ad"
+      "computedHash": "0b2be50910f20a4adfa908e02dd0676c53cf7310d9996846d3f3585b23c669c0"
     },
     "golang-error-handling": {
       "source": "samber/cc-skills-golang",
@@ -294,7 +294,7 @@
       "source": "samber/cc-skills-golang",
       "sourceType": "github",
       "skillPath": "skills/golang-troubleshooting/SKILL.md",
-      "computedHash": "1abaadca208edfc69e69ef694195233da1da31084f8a533adb3db16614a7d933"
+      "computedHash": "284e4de23965b8164f9259ddf47e14d5b2c98c1d624241abd09cb12e5e213f73"
     },
     "golang-uber-dig": {
       "source": "samber/cc-skills-golang",
