@@ -1,8 +1,53 @@
 # 四領域協作提案
 
-[Workflow](workflow.md) 管理步驟順序與等待條件，透過 [Operations](operations.md) 呼叫業務操作。資源所屬領域負責驗證授權、資料版本與寫入規則。
+狀態：提案。四種能力可以各自使用。以一次具名業務查詢或命令為預設，只有遇到跨請求等待、需要可追溯知識或下一步無法預先列舉時，才加入對應能力。
 
-需要補查證據時，[Agent](agent.md) 可在授權範圍內選擇操作。[Knowledge](knowledge.md) 提供已發布且適用於目前組織的規則版本。
+## 領域邊界、能力契約與依賴方向
+
+| 能力 | 負責的決策 | 最小對外契約 |
+| --- | --- | --- |
+| [Workflow](workflow.md) | 掌握流程步驟、等待確認與恢復點。持有流程狀態、候選版本、確認與提交識別碼。 | `Start` 建立執行；`AcceptConfirmation` 核對候選、目標與命令；`Resume` 依已保存的狀態續跑。 |
+| [Knowledge](knowledge.md) | 管理來源、發布版本、適用範圍與可見性。 | `Retrieve` 回傳目前有權引用的規則、版本與來源。不符合時回空結果，服務失敗另外回報。 |
+| [Agent](agent.md) | 在限定資源、唯讀工具及預算內補查，交回候選、引用和待確認事項。 | `Investigate` 回傳候選修訂或停止原因。輸出由呼叫端核對，正式寫入交由業務命令。 |
+| [Operations](operations.md) | 提供具名操作的輸入、作用範圍、結果及副作用契約。 | 唯讀工具回傳資料與可引用的來源。寫入工具轉接既有具名命令，以穩定提交識別碼執行並取得收據。 |
+
+業務域決定資料歸屬、目前權限及合法狀態。以可信 Session 帶入操作者，模型與連結只能提出目標。候選與引用可留在流程紀錄，但讀取時仍須核驗可見性。Workflow 與 Agent 可同屬 Execution；Operations 和 Knowledge 可按用例獨立接入。現有業務用例可直接執行。
+
+未來設計。圖中箭頭表示呼叫方向。組裝層把具名業務用例接到工具；業務命令不反向依賴 AI 執行器。
+
+```mermaid
+flowchart LR
+    U["入口／業務用例"] --> W["Workflow"]
+    W --> P["流程狀態"]
+    W --> A["Agent"]
+    W --> O["Operations：具名查詢或命令"]
+    U -.-> K["Knowledge"]
+    A --> K
+    A -->|"僅允許唯讀"| O
+    O --> B["業務查詢／命令：權限與規則"]
+```
+
+## 採用的 DDD 概念
+
+依 [DDD 設計流程](../references/ddd/design-process.md)從用例、拒絕條件和併發反例推回模型。四個名稱描述能力及責任。只有具備獨立語言、規則與資料生命週期的部分才形成獨立限界上下文，部署方式另依需要決定。
+
+| 採用概念 | 在本規格的用途 | 驗證依據 |
+| --- | --- | --- |
+| [通用語言](../references/ddd/ubiquitous-language.md)與[上下文映射](../references/ddd/context-mapping.md) | 區分候選、確認、提交意圖、業務收據與知識版本。Journal 是日誌生效結果的權威來源。Workflow 保存流程進度，Knowledge 保存引用版本。 | 工作進度顯示完成前，須能指出具體的業務收據。 |
+| [公開契約](../references/ddd/domain-contract.md)與[領域授權](../references/ddd/domain-authorization.md) | 跨邊界傳具名輸入及結果，操作者由可信情境帶入。工具資格、來源可見性與正式寫入權分別在對應邊界判斷。 | 撤回授權後，舊確認及舊工具清單都不能授予寫入權。 |
+| [聚合](../references/ddd/aggregate.md)、[不變條件](../references/ddd/invariant.md)與[狀態機](../references/ddd/state-machine.md) | 持久化需要成立時，以單次流程執行為一致性邊界。確認與提交意圖一起保存。日誌與收據由 Journal 在自己的交易內提交。 | 並行確認或修改候選時，至多一個符合當前版本的確認能建立提交意圖。 |
+| [依賴規則](../references/ddd/dependency-rule.md)、[Port／Adapter](../references/ddd/hexagonal-architecture.md)與[組裝根](../references/ddd/composition-root.md) | 呼叫端定義其所需的介面。組裝層注入 Firestore、模型供應商及工具轉接。領域模型依賴自身規則與型別。 | 替換模型或儲存 Adapter 時，授權、狀態與寫入契約的測試仍成立。 |
+| [交易](../references/ddd/transaction.md)、[冪等](../references/ddd/idempotency.md)與[架構測試](../references/ddd/architecture-testing.md) | 流程保存與業務命令各自提交。跨邊界用操作識別碼與收據對帳，重送同一請求沿用同一識別碼。 | 模擬日誌成功、流程未完成便中斷，恢復後仍只有一篇日誌。 |
+
+首個切片沿用同步業務命令和既有收據。Outbox 留給已提交後需要可靠發送的通知；Saga 留給有明確補償規則的多方業務交易；事件溯源需另有回放或歷史模型需求。首版驗收以上述反例為準。
+
+## 最小可驗證情境：指定儲存庫的日誌草稿
+
+1. 使用者指定 B 庫。Workflow 從可信身分取得授權情境，委派 Agent 使用少量唯讀操作查工項；如需規範，再向 Knowledge 取帶版本的依據。證據不足時列出缺項。
+2. 使用者查看候選與來源。確認綁定操作者、候選版本、B 庫與 `CreateJournal` 命令。任何一項變更都要求重新確認。
+3. 跨請求執行前先保存確認及穩定提交識別碼。命令重新檢查權限與日誌規則，成功後以日誌收據完成。結果未知時先查原結果，或沿用原識別碼安全重試。
+
+驗收涵蓋：無權的工項、組織規則與紀錄不可見；Agent 無法呼叫寫入；改庫或改候選使舊確認失效；確認後撤權時拒絕保存；提交成功但回應遺失時恢復只產生一篇日誌。第一個切片沿用既有日誌保存契約，暫不建立通用流程引擎。
 
 ## 物件呼叫文件辨識能力
 

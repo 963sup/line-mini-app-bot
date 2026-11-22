@@ -2,11 +2,17 @@
 
 狀態：提案。目錄入口見[領域導覽](../../backend/internal/business/agent/README.md)。
 
-Agent 依任務目標與目前證據選擇下一步。呼叫端指定可讀資源、允許的[操作](operations.md)及步數上限。每次模型提出操作，由執行端驗證授權與參數。未來若抽出共用模型用戶端，可放在 `backend/internal/genai`；業務欄位與驗證仍歸使用它的領域。
+Agent 依任務目標與目前證據選擇下一步。呼叫端指定可讀資源、允許的[操作](operations.md)及步數上限。每次模型提出操作，由執行端核對唯讀工具清單、授權與參數。模型只交回候選、證據及停止原因。未來若抽出共用模型用戶端，可放在 `backend/internal/genai`；業務欄位與驗證仍歸使用它的領域。
+
+## 執行邊界
+
+依 [用例](../references/ddd/use-case.md)及[出站 Port](../references/ddd/driven-port.md)，以一次有界補查建模。任務輸入包含可信資源範圍、唯讀工具及預算；候選包含來源定位與待確認事項。由呼叫端保存流程狀態及決定是否採納。模型與工具 Adapter 由組裝層注入；用測試替身驗證越界、耗盡預算及來源不足時能停止。
 
 <a id="design-diagram"></a>
 
 ## 補查與終止流程圖
+
+未來設計
 
 ```mermaid
 flowchart TD
