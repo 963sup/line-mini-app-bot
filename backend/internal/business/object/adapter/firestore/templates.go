@@ -19,8 +19,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var _ port.TemplateStore = (*Store)(nil)
-var _ port.PersonalTemplateStore = (*Store)(nil)
+var (
+	_ port.TemplateStore         = (*Store)(nil)
+	_ port.PersonalTemplateStore = (*Store)(nil)
+)
 
 type templateNodeDocument struct {
 	ID          string `firestore:"id"`
