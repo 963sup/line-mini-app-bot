@@ -12,7 +12,7 @@ Actor 取自既有 Session／Bearer 驗證後的 request context，前端不能�
 | 列出／讀取 | 同 Repository 的範本，列表每頁20筆，使用綁定操作者與範圍的 opaque cursor。 |
 | 套用範本 | 範本 ID、重試鍵及選填父 Object ID，回傳新根 ID、所有 Object ID 與已建立的節點關係。第一版只接受 v1。 |
 
-公開格式與錯誤回應以 [Object 契約](../../../api/contract/object/objects.yaml) 為準。路徑為 `/api/v1/repositories/{repositoryId}/object-templates`、`/{id}` 與 `/{id}/instances`。
+公開格式與錯誤回應以 [Object 契約](../../../../api/contract/object/objects.yaml) 為準。路徑為 `/api/v1/repositories/{repositoryId}/object-templates`、`/{id}` 與 `/{id}/instances`。
 
 ## 輸入與領域規則
 
@@ -36,12 +36,12 @@ Firestore adapter 在交易內重新檢查 Repository 的有效容器、範本�
 
 | 層級 | 責任與位置 |
 | --- | --- |
-| 前端 | [Templates.tsx](../../../frontend/miniapp/src/business/object/Templates.tsx) 收集名稱、節點名稱與父節點，選用並送出一次套用請求；未知結果凍結輸入、重試沿用原請求。 |
-| API | [契約](../../../api/contract/object/objects.yaml) 生成 Go／TypeScript 型別；[HTTP adapter](../../../backend/internal/business/object/adapter/http/templates.go) 映射格式與可信 Actor。 |
-| 應用層 | [templates.go](../../../backend/internal/business/object/application/templates.go) 驗證權限與輸入、準備 Object 建立內容，依[儲存介面](../../../backend/internal/business/object/application/port/template.go)寫入。 |
-| 領域 | [template/version.go](../../../backend/internal/business/object/domain/template/version.go) 驗證單根樹與不可變版本，不匯入 Object 實體或基礎設施。 |
-| Firestore | [templates.go](../../../backend/internal/business/object/adapter/firestore/templates.go) 實作快照、分頁、交易及收據。 |
-| 組裝 | [repository.go](../../../backend/internal/bootstrap/repository.go) 注入既有 Repository 服務及 Object store，不由 HTTP adapter 建立資料庫 client。 |
+| 前端 | [Templates.tsx](../../../../frontend/miniapp/src/business/object/Templates.tsx) 收集名稱、節點名稱與父節點，選用並送出一次套用請求；未知結果凍結輸入、重試沿用原請求。 |
+| API | [契約](../../../../api/contract/object/objects.yaml) 生成 Go／TypeScript 型別；[HTTP adapter](../../../../backend/internal/business/object/adapter/http/templates.go) 映射格式與可信 Actor。 |
+| 應用層 | [templates.go](../../../../backend/internal/business/object/application/templates.go) 驗證權限與輸入、準備 Object 建立內容，依[儲存介面](../../../../backend/internal/business/object/application/port/template.go)寫入。 |
+| 領域 | [template/version.go](../../../../backend/internal/business/object/domain/template/version.go) 驗證單根樹與不可變版本，不匯入 Object 實體或基礎設施。 |
+| Firestore | [templates.go](../../../../backend/internal/business/object/adapter/firestore/templates.go) 實作快照、分頁、交易及收據。 |
+| 組裝 | [repository.go](../../../../backend/internal/bootstrap/repository.go) 注入既有 Repository 服務及 Object store，不由 HTTP adapter 建立資料庫 client。 |
 
 服務方法均以 `context.Context` 為第一參數，沿用呼叫端取消與期限；HTTP 期限12秒。`actor` 來自可信驗證，其他字串與 DTO 是未信任輸入，由應用層驗證。
 
@@ -54,7 +54,7 @@ Firestore adapter 在交易內重新檢查 Repository 的有效容器、範本�
 
 ## 驗證與限制
 
-[應用層測試](../../../backend/internal/business/object/application/templates_test.go)、[HTTP 測試](../../../backend/internal/business/object/adapter/http/templates_test.go)、[Firestore 交易測試](../../../backend/internal/business/object/adapter/firestore/templates_test.go)與[前端互動測試](../../../frontend/miniapp/tests/object-templates.test.tsx)涵蓋最小閉環、拒絕、重送及結果開啟。
+[應用層測試](../../../../backend/internal/business/object/application/templates_test.go)、[HTTP 測試](../../../../backend/internal/business/object/adapter/http/templates_test.go)、[Firestore 交易測試](../../../../backend/internal/business/object/adapter/firestore/templates_test.go)與[前端互動測試](../../../../frontend/miniapp/tests/object-templates.test.tsx)涵蓋最小閉環、拒絕、重送及結果開啟。
 
 ```bash
 bash scripts/tooling/tool-exec.sh pnpm api:check

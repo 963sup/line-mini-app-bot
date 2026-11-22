@@ -15,8 +15,8 @@ when useful. Graphs, bundles and rendered diagrams are not correctness proofs.
 Follow root official-source/Context7 routing for uncertain technical syntax.
 
 Read only the relevant feature contracts: docs/domains/repository/README.md,
-docs/domains/object/design.md, docs/domains/subobject/design.md, docs/domains/issue/design.md,
-docs/domains/discussion/design.md and docs/domains/project/project.md. Preserve these bounds:
+docs/domains/repository/object/design.md, docs/domains/repository/issue/design.md,
+docs/domains/repository/discussion/design.md and docs/domains/project/project.md. Preserve these bounds:
 Repository owns source data; Project provides an execution view through references.
 Verify owner and cross-repository relationships against the Project contract and
 docs/domains/repository/spaces.md before drawing Group or Space nodes.

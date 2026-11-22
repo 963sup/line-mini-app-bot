@@ -22,9 +22,9 @@ flowchart LR
   click n2 "../../domains/repository/README.md"
   h --- n3["Issue 基礎操作已依 事項規格 接入；Discussion<br/> 基礎主題與單層留言依 討論規格 接入，其他擴<br/>充仍為後續設計。"]
   n3 --- n3l0["事項規格"]
-  click n3l0 "../../domains/issue/design.md"
+  click n3l0 "../../domains/repository/issue/design.md"
   n3 --- n3l1["討論規格"]
-  click n3l1 "../../domains/discussion/design.md"
+  click n3l1 "../../domains/repository/discussion/design.md"
   h --- n4["本專案使用 REST／OpenAPI。GitHub 文件僅作業<br/>務資源、關係與功能分類的設計參考；不將其介面<br/>技術、查詢形式或型別結構列為本專案規劃。HTTP<br/> 來源見 OpenAPI 契約。"]
   click n4 "../../../api/README.md"
 ```
@@ -60,9 +60,9 @@ flowchart LR
   h["業務邊界與關係"]
   h --- n0["業務：Repository<br/>設計責任：容器識別、群組綁定、可見性與入口狀<br/>態<br/>必須保留的邊界：既有 Bot 管理模式維持；取得<br/>容器資格不自動授予所有子業務操作權"]
   h --- n1["業務：Issue<br/>設計責任：可追蹤事項及其生命週期<br/>必須保留的邊界：基礎欄位、建立者權限與生命週<br/>期依 事項規格；指派等擴充待確認，不套用出勤<br/>審核權"]
-  click n1 "../../domains/issue/design.md"
+  click n1 "../../domains/repository/issue/design.md"
   h --- n2["業務：Discussion<br/>設計責任：討論主題及其互動規則<br/>必須保留的邊界：基礎主題、作者編輯與單層留言<br/>依 討論規格；分類、解答、鎖定與轉換另定"]
-  click n2 "../../domains/discussion/design.md"
+  click n2 "../../domains/repository/discussion/design.md"
 ```
 
 ```mermaid
@@ -251,7 +251,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["後續開發文件與實作順序"]
-  h --- n0["Repository 維持 既有功能文件；Issue 與 <br/>Discussion 開發時分別建立 <br/>docs/domains/issue/design.md、<br/>docs/domains/discussion/design.md，並<br/>加入功能索引。"]
+  h --- n0["Repository 維持 既有功能文件；Issue 與 <br/>Discussion 開發時分別建立 <br/>docs/domains/repository/issue/design.md、<br/>docs/domains/repository/discussion/design.md，並<br/>加入功能索引。"]
   click n0 "../../domains/repository/README.md"
   n0 --> n1["功能文件先按 操作契約範本 補齊每個操作：誰操<br/>作、對象、行為、權限、業務條件及成功結果；<br/>Context、Authority、Decision 與必要 Audit 明<br/>確記錄。"]
   click n1 "../../architecture/contracts/business-operations.md#功能操作契約範本"
@@ -272,7 +272,7 @@ flowchart LR
   click n1 "https://docs.github.com/en/issues/planning-and-tracking-with-projects"
   h --- n2["本專案介面沿用 REST／OpenAPI；Issue 基礎操作<br/>與資料保存依 事項規格；Discussion 基礎操作依<br/> 討論規格；本參考頁未啟用其他分類／專案管理 <br/>API 或遷移。"]
   n2 --- n2l0["事項規格"]
-  click n2l0 "../../domains/issue/design.md"
+  click n2l0 "../../domains/repository/issue/design.md"
   n2 --- n2l1["討論規格"]
-  click n2l1 "../../domains/discussion/design.md"
+  click n2l1 "../../domains/repository/discussion/design.md"
 ```

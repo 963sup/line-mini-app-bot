@@ -24,4 +24,4 @@
 
 每個領域以 README.md 導覽責任、核心流程、契約及驗收。單一主規格使用 design.md；已有多個明確主題時保留具體名稱。跨領域保證在 docs/architecture/contracts 維護一份，相關領域引用同一來源。待評估設計放在 docs/proposals。搬移時一併校正章節錨點、圖檔、Mermaid click 與 API 能力清單的路徑。
 
-領域入口固定為本目錄下的「領域名/README.md」。首頁先列狀態、設計、核心流程、驗收依據、程式目錄與維護指引；提案沿用同一入口，正文連回 proposals 的單一來源。新增或調整狀態時同步更新[全域矩陣](README.md#domain-matrix)。
+獨立領域或容器入口固定為本目錄下的「領域名/README.md」。Repository 容器內的 Issue、Discussion、Object（含子物件與範本）文件放在 `repository/<能力>/`，由 Repository README 統一導覽；Project 與 Journal 保留獨立入口。能力子目錄沿用本指引，文件歸組不改變程式模組或業務權責。首頁先列狀態、設計、核心流程、驗收依據、程式目錄與維護指引；提案沿用同一入口，正文連回 proposals 的單一來源。新增或調整狀態時同步更新[全域矩陣](README.md#domain-matrix)。

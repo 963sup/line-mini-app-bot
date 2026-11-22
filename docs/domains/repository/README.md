@@ -10,6 +10,8 @@
 
 **上下文與契約**　Issue、Discussion、Object 等能力使用 Repository 的範圍與狀態；各自在交易中以最新儲存庫資料確認能否寫入。
 
+Issue、Discussion 與 Object 是同一 Repository 上下文內的能力。Repository 定義庫內識別碼與版本上限，也擁有標籤、里程碑及工區目錄。Issue 與 Discussion 各自擁有內容修改規則；引用標籤或里程碑時，由其寫入交易使用 Repository 目錄驗證。Object 擁有自己的階層規則，庫內識別碼和工區範圍則沿用 Repository 契約。
+
 **驗收案例**　即使庫 ID 相符，只要擁有者已變更或狀態不再是 ACTIVE，就不能沿用舊授權完成受限操作。
 
 [對照實作或測試](../../../backend/internal/business/repository/domain/entity/repository.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
@@ -20,11 +22,28 @@ Repository 範圍及功能授權在此說明，各子能力細節由對應文件
 
 ## 閱讀與修改入口
 
-先查閱[spaces.md](spaces.md)、[議題規格](../issue/design.md)、[組織與團隊歸屬契約](../../architecture/contracts/organization-team-ownership.md)。
+先查閱[spaces.md](spaces.md)、[議題規格](issue/design.md)、[組織與團隊歸屬契約](../../architecture/contracts/organization-team-ownership.md)。
 
-## 相關規格
+<a id="repository-capabilities"></a>
 
-[Repository Insights 與 Pulse](insights.md) · [工程知識庫 Wiki](wiki.md)
+## 容器內能力
+
+以下能力共用 Repository 的資源範圍，各自維護操作規則與授權；文件集中在容器下，程式模組仍按能力分工。
+
+| 能力 | 規格與驗收入口 |
+|---|---|
+| 庫內工區 | [空間與 ID 責任](spaces.md) |
+| 議題 Issue | [能力入口與核心流程](issue/README.md) · [設計與操作契約](issue/design.md) |
+| 討論與留言 Discussion | [能力入口與核心流程](discussion/README.md) · [設計與操作契約](discussion/design.md) |
+| 物件與子物件 Object | [能力入口與核心流程](object/README.md) · [物件規格](object/design.md) · [物件範本](object/template.md) |
+| 標籤 | [標籤目錄與引用](labels.md) |
+| 里程碑 | [里程碑規格](milestones.md) |
+| 共用資源編號 | [編號規則](numbering.md) |
+| 洞察 Insights | [現況總覽與 Pulse](insights.md) |
+| 知識庫 Wiki | [頁面與修訂](wiki.md) |
+| 容器基礎驗收 | [完成界線](acceptance.md) |
+
+子物件由 `Object.parentId` 表示，規則併入[物件規格](object/design.md)，不另設 Subobject 領域文件。跨庫的 [Project](../project/README.md) 與獨立的 [Journal](../journal/README.md) 維持各自領域責任。
 
 <a id="個人與群組-repository"></a>
 
@@ -38,7 +57,6 @@ flowchart LR
   click n0l1 "../project/project.md"
 ```
 
-[Repository Insights 與 Pulse](insights.md) · [工程知識庫 Wiki](wiki.md)
 
 <a id="範圍與資料"></a>
 
@@ -130,9 +148,9 @@ flowchart LR
   h["正式空間 UI 基礎雛形"]
   h --- n0["正式空間沿用上述 List / Get 操作契約與身分隔<br/>離，以寬版卡片呈現已授權空間的基本資料與本人<br/>出勤入口。 正式頁內導覽由 <br/>frontend/miniapp/src/business/repository/navigation.ts<br/> 定義；Repository內容維持原有問題、討論、標<br/>籤及里程碑。專案改走獨立側欄／<br/>/miniapp/projects，舊入口僅導向帶明確Space／<br/>來源識別的新頁，不再在Repository View掛載<br/>Project業務。 總覽使用真實空間資料，問題已接<br/>入 問題第一階段，討論已接入 討論與留言，標籤<br/>目錄已接入 標籤規格；里程碑、專案及洞察<br/>依里程碑、Project 與 Insights 規格接入；公開稽核仍明<br/>示尚未開放，不回填示範資料。載入、核驗失敗、<br/>登出時不呈現空間內容。 既有 API、Bot 管理、<br/>成員核驗及共用編號規則不變。問題與討論／留言<br/>依各自獨立規格接入；標籤已接入問題／討論作者<br/>的分類操作；完成界線依 基礎雛形，里程碑、專<br/>案及洞察依本次授權另完成最小切片，不自動展開<br/>其他管理功能。 總覽為讀取畫面基礎整合；問題<br/>驗證另依功能規格，不代表其他協作業務或真實 <br/>LINE 裝置已驗收。"]
   n0 --- n0l0["問題第一階段"]
-  click n0l0 "../issue/design.md"
+  click n0l0 "issue/design.md"
   n0 --- n0l1["討論與留言"]
-  click n0l1 "../discussion/design.md"
+  click n0l1 "discussion/design.md"
   n0 --- n0l2["標籤規格"]
   click n0l2 "labels.md"
   n0 --- n0l3["里程碑"]
@@ -168,7 +186,7 @@ flowchart LR
   h --- n7["群組空間入口由可信 groupId 查得 Repository <br/>ID，連結帶 repositories=1&amp;repository=&lt;id&gt;。<br/>一般 query 與 liff.state 均保留目標 ID；專用<br/>入口只查詳情，重新載入仍查同一 ID，失敗不退<br/>回列表。私訊入口維持本人列表。個人庫比對本人<br/>，群組庫以 ownerId 即時核驗成員；連結不是授<br/>權憑證，修改 ID 不授予其他群組權限。"]
   h --- n8["群組專用入口本機驗證：以實際 Go 靜態頁路由、<br/>受控 LINE SDK／API 回應檢查一般 query、<br/>liff.state 與 404 情境；三者均只請求指定 <br/>Repository 詳情，重新載入不切換到列表，390px<br/> 無水平溢出。這不取代 LINE 裝置驗收。"]
   h --- n9["工程項目新增與追蹤依 Objects 規格，與「問題<br/>」業務分開；不自動匯入 PDF 或授予他人編輯權<br/>。"]
-  click n9 "../object/design.md"
+  click n9 "object/design.md"
 ```
 
 <a id="後續模型設計"></a>

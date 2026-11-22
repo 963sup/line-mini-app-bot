@@ -10,6 +10,6 @@
 
 ## 相關規格
 
-[現行實作圖：最小實作邊界與驗證](../../../docs/domains/discussion/design.md#最小實作邊界與驗證) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：最小實作邊界與驗證](../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證) · [未來設計圖](../../../docs/diagrams.md#未來設計)
 
 [上層導覽](../README.md)

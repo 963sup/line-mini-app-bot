@@ -10,9 +10,9 @@
 
 ## 相關規格
 
-[物件規格](../../../../../docs/domains/object/design.md)
+[物件規格](../../../../../docs/domains/repository/object/design.md)
 
-提供物件清單、詳情、手動新增及建立者編輯；欄位、權限與狀態依 [物件規格](../../../../../docs/domains/object/design.md)。
+提供物件清單、詳情、手動新增及建立者編輯；欄位、權限與狀態依 [物件規格](../../../../../docs/domains/repository/object/design.md)。
 
 `View` 依儲存庫及身分世代重設狀態，未知建立結果保留原請求鍵及內容；父層導覽在建立結果未確認時保持目前表單。沿用既有 typed client、請求取消及官方 UI 元件組合。
 
@@ -22,4 +22,4 @@
 
 新增物件僅顯示名稱，不載入空間選項；其他資料確定後再從詳情編輯補充。未分類物件不顯示進度與狀態。來源候選覆核保留原文證據，建立時不自動套入未確認的數量或分類。
 
-[ObjectTemplate 最小閉環](../../../../../docs/domains/object/template.md)：建立不可變 v1、選用、原子套用並開啟獨立 Object 樹；草稿、改版與舊資料遷移留在後續範圍。
+[ObjectTemplate 最小閉環](../../../../../docs/domains/repository/object/template.md)：建立不可變 v1、選用、原子套用並開啟獨立 Object 樹；草稿、改版與舊資料遷移留在後續範圍。

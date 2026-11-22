@@ -2,7 +2,9 @@
 
 <a id="domain-matrix"></a>
 
-## 18 個業務領域的追蹤矩陣
+## 領域與容器的追蹤矩陣
+
+頂層依獨立領域與容器組織；Repository 內的 Issue、Discussion、Object（含子物件）由[儲存庫能力索引](repository/README.md#repository-capabilities)集中導覽。文件歸組不改變各能力的授權、狀態或程式模組責任。
 
 沿用六邊形架構：從入口適配器追到使用案例或既有實作，再核對輸出介面、儲存適配器及業務判定。各列連到代表路徑；實作連結與提案驗收均不代表已執行測試。
 
@@ -10,18 +12,14 @@
 |---|---|---|---|
 | [agent](agent/README.md) | 提案 | [核心流程](../proposals/agent.md#design-diagram) | [驗收條件](../proposals/domain-collaboration.md) |
 | [attendance](attendance/README.md) | 已有實作 | [核心流程](attendance/README.md#decision-flow) | [測試](../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) |
-| [discussion](discussion/README.md) | 已有實作 | [核心流程](discussion/README.md#decision-flow) | [測試](../../backend/internal/business/discussion/domain/entity/classification_test.go) |
 | [enterprise](enterprise/README.md) | 已有實作 | [核心流程](enterprise/README.md#decision-flow) | [實作](../../backend/internal/business/enterprise/adapter/firestore/store.go) |
 | [group](group/README.md) | 已有實作 | [核心流程](group/README.md#decision-flow) | [測試](../../backend/internal/business/group/application/query/group_test.go) |
-| [issue](issue/README.md) | 已有實作 | [核心流程](issue/README.md#decision-flow) | [測試](../../backend/internal/business/issue/domain/entity/issue_test.go) |
 | [journal](journal/README.md) | 已有實作 | [核心流程](journal/README.md#decision-flow) | [測試](../../backend/internal/business/journal/domain/entity/entry_test.go) |
 | [knowledge](knowledge/README.md) | 提案 | [核心流程](../proposals/knowledge.md#design-diagram) | [驗收條件](../proposals/domain-collaboration.md) |
-| [object](object/README.md) | 已有實作 | [核心流程](object/README.md#decision-flow) | [測試](../../backend/internal/business/object/application/progress_test.go) |
 | [operations](operations/README.md) | 提案 | [核心流程](../proposals/operations.md#design-diagram) | [驗收條件](../proposals/domain-collaboration.md) |
 | [organization](organization/README.md) | 已有實作 | [核心流程](organization/README.md#decision-flow) | [實作](../../backend/internal/business/organization/adapter/firestore/store.go) |
 | [project](project/README.md) | 已有實作 | [核心流程](project/README.md#decision-flow) | [測試](../../backend/internal/business/project/application/reference_source_test.go) |
 | [repository](repository/README.md) | 已有實作 | [核心流程](repository/README.md#decision-flow) | [實作](../../backend/internal/business/repository/domain/entity/repository.go) |
-| [subobject](subobject/README.md) | 歸入 Object | [Object 核心流程](object/README.md#decision-flow) | [Object 樹儲存](../../backend/internal/business/object/adapter/firestore/store.go) |
 | [summary](summary/README.md) | 已有實作 | [核心流程](summary/README.md#decision-flow) | [實作](../../backend/internal/business/summary/application/summarization/validation.go) |
 | [team](team/README.md) | 已有實作 | [核心流程](team/README.md#decision-flow) | [實作](../../backend/internal/business/team/adapter/firestore/store.go) |
 | [weather](weather/README.md) | 已有實作 | [核心流程](weather/README.md#decision-flow) | [測試](../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go) |
@@ -67,36 +65,11 @@
 
 ## 儲存庫
 
-空間討論與單層留言 · 留言互鎖時序
+[Repository 容器與能力索引](repository/README.md#repository-capabilities)
 
-[空間討論與單層留言](discussion/design.md)
+庫內能力包括工區、議題、討論與留言、物件與子物件、物件範本、標籤、里程碑、共用編號、洞察及 Wiki；詳細規格與驗收由 Repository 入口導向各自的單一來源。
 
-[留言互鎖時序](discussion/design.md#最小實作邊界與驗證)
-
-[空間基礎雛形完成界線](repository/acceptance.md)
-
-[空間問題第一階段](issue/design.md)
-
-[空間標籤目錄](repository/labels.md)
-
-[里程碑](repository/milestones.md)
-
-[Repository 共用資源編號基礎](repository/numbering.md)
-
-
-儲存庫物件 · 父子歸屬圖
-
-[儲存庫物件](object/design.md)
-
-[父子歸屬圖](../architecture/contracts/object-subobject-ownership.md#物件與子物件歸屬)
-
-[群組 Repository](repository/README.md)
-
-[儲存庫洞察（Insights）](repository/insights.md)
-
-[物件的單層子物件](object/design.md)
-
-[儲存庫業務空間與 ID 責任](repository/spaces.md)
+跨庫的 [Project](project/README.md) 與獨立的 [Journal](journal/README.md) 保留各自入口。
 
 <a id="群聊摘要"></a>
 

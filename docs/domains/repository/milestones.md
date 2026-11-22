@@ -41,7 +41,7 @@ flowchart LR
   n0 --- n0l0["OpenAPI 來源"]
   click n0l0 "../../../api/contract/repository/milestones.yaml"
   n0 --- n0l1["事項規格"]
-  click n0l1 "../issue/design.md"
+  click n0l1 "issue/design.md"
   n0 --- n0l2["驗收矩陣"]
   click n0l2 "../../development/acceptance.md"
 ```

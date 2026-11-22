@@ -6,13 +6,13 @@
 
 ## 相關規格
 
-[事項操作規格](../../../docs/domains/issue/design.md) · [業務模型設計](../../../docs/proposals/platform/domain-model.md)
+[事項操作規格](../../../docs/domains/repository/issue/design.md) · [業務模型設計](../../../docs/proposals/platform/domain-model.md)
 
 適用於本目錄及其子目錄；繼承 [上層指引](../AGENTS.md)，並遵循其引用的根目錄規則。此處只補充本範圍責任；使用者與主機指令優先，不增加外部寫入授權。
 
 ## 職責與邊界
 
-- 狀態：基礎事項 API 已接入；先讀 [事項操作規格](../../../docs/domains/issue/design.md)。types／comments 仍為雛形，[業務模型設計](../../../docs/proposals/platform/domain-model.md) 不取代已確認規格。
+- 狀態：基礎事項 API 已接入；先讀 [事項操作規格](../../../docs/domains/repository/issue/design.md)。types／comments 仍為雛形，[業務模型設計](../../../docs/proposals/platform/domain-model.md) 不取代已確認規格。
 - 實體用 Issue、集合用 issues；每個 Issue 歸屬既有 Repository。正式路由、欄位、識別碼與保存位置須在功能規格確認。
 - 建立契約前先建立 Issue 功能規格，定義建立、查詢、修改與生命週期的操作者、權限、狀態轉換、版本、重送及必要稽核。
 - Issue 的關閉不自動代表施工驗收或業務核准；不沿用出勤補卡的狀態或審核權。

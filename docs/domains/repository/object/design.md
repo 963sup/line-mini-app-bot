@@ -59,7 +59,7 @@ flowchart LR
 flowchart LR
   h["API 與保存"]
   h --- n0["權威來源為 物件契約，由既有 OpenAPI 入口生成<br/> Go／TS 型別："]
-  click n0 "../../../api/contract/object/objects.yaml"
+  click n0 "../../../../api/contract/object/objects.yaml"
   h --- n1["GET／POST /api/v1/repositories/{repositoryId<br/>}/objects；列表依不透明文件 ID 遞增分頁，不<br/>宣稱為建立時間或來源項次順序。"]
   h --- n2["GET／PATCH /api/v1/repositories/{<br/>repositoryId}/objects/{id}。"]
   h --- n3["建立只收內容與可選來源欄位；新施作未提供完成<br/>量預設0，新非施作初始technical status為<br/>not_started。PATCH收完整內容、<br/>expectedVersion及可選completedQuantity／<br/>status；可選來源欄位省略時保留現值，明確空字<br/>串才清除；不做文件版本自動合併。"]
@@ -75,13 +75,13 @@ flowchart LR
   h --- n1["最小驗收包含精確數量／非法輸入、預設及三態轉<br/>換、未登入／非成員／停用／跨儲存庫拒絕、非作<br/>者修改拒絕、版本衝突、防重重送與內容衝突、未<br/>知結果重試、前端載入／失敗／切換身份及手機表<br/>單。使用脫敏測資；真實商業 PDF 不進儲存庫或<br/>公開 fixtures。"]
   h --- n2["實作位置：後端 object、前端 object；正式 <br/>LINE／Firestore／手機整合另行驗收，測試替身<br/>或 build 不代表正式環境通過。本輪驗證不將真<br/>實來源文件的 54 項寫入資料庫。"]
   n2 --- n2l0["object"]
-  click n2l0 "../../../backend/internal/business/object/README.md"
+  click n2l0 "../../../../backend/internal/business/object/README.md"
   n2 --- n2l1["object"]
-  click n2l1 "../../../frontend/miniapp/src/business/object/README.md"
+  click n2l1 "../../../../frontend/miniapp/src/business/object/README.md"
 ```
 
 
-[跨領域歸屬契約](../../architecture/contracts/object-subobject-ownership.md) · [領域入口](README.md)
+[跨領域歸屬契約](../../../architecture/contracts/object-subobject-ownership.md) · [領域入口](README.md)
 
 ## 從文件辨識候選
 
@@ -89,7 +89,7 @@ flowchart LR
 
 辨識只回傳候選、引文、來源位置與模型回應。畫面列出每筆候選，讓使用者核對原件、補正數量與單位、選擇類型，再透過既有物件建立操作確認寫入。試算表每張工作表最多處理前 1,000 列，其他文件也可能漏列。候選留在當前畫面，重新辨識會產生新的結果。
 
-[文件辨識能力與領域分工](../../proposals/domain-collaboration.md)
+[文件辨識能力與領域分工](../../../proposals/domain-collaboration.md)
 
 ## 先記名稱，再補資料
 

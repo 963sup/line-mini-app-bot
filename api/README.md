@@ -103,8 +103,8 @@ Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄
 
 - [群組 Repository](../docs/domains/repository/README.md)
 - [空間標籤目錄](../docs/domains/repository/labels.md)：目錄列出／建立，分類沿用 Issue／Discussion 更新；不含改名或刪除。
-- [空間事項第一階段](../docs/domains/issue/design.md)：已接入公開 Issue 契約與生成型別；正式環境待驗收。
-- [空間討論與留言](../docs/domains/discussion/design.md)：主題及單層留言契約，作者編輯。
+- [空間事項第一階段](../docs/domains/repository/issue/design.md)：已接入公開 Issue 契約與生成型別；正式環境待驗收。
+- [空間討論與留言](../docs/domains/repository/discussion/design.md)：主題及單層留言契約，作者編輯。
 
 - [Repository、Issue 與 Discussion 模型及 Connection 分頁規劃](../docs/proposals/platform/domain-model.md)：未來設計參考，現行 OpenAPI 契約維持原狀。
 

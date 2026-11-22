@@ -16,4 +16,4 @@
 
 [上層導覽](../README.md)
 
-[ObjectTemplate 最小閉環](../../../docs/domains/object/template.md)：建立不可變 v1、選用、原子套用並開啟獨立 Object 樹；草稿、改版與舊資料遷移留在後續範圍。
+[ObjectTemplate 最小閉環](../../../docs/domains/repository/object/template.md)：建立不可變 v1、選用、原子套用並開啟獨立 Object 樹；草稿、改版與舊資料遷移留在後續範圍。
