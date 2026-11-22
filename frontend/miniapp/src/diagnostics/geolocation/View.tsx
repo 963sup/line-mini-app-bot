@@ -1,6 +1,10 @@
+import { createLocationClient } from "@repo/api-client";
 import { Spinner } from "@/shared/ui/spinner";
 import { Button } from "@/shared/ui/button";
 import { Status } from "@/shared/Status";
+import { PagePanel } from "@/shared/PagePanel";
+import { Badge } from "@/shared/ui/badge";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
 import { useEffect, useRef, useState } from "react";
 import { locate, type Position } from "../../shared/location/position";
 import { errorMessage, untilAbort } from "../../shared/http/lifecycle";
@@ -38,23 +42,13 @@ export function View() {
       if (active.current !== c) return;
       setStatus("正在驗證位置……");
       timer = setTimeout(() => c.abort(), 10000);
-      const response = await untilAbort(
-        fetch("/api/location/validate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "omit",
-          cache: "no-store",
-          signal: c.signal,
-          body: JSON.stringify(value),
-        }),
-        c.signal,
+      const {data,error} = await untilAbort(
+        createLocationClient(location.origin).POST("/api/location/validate", {
+          body: value, signal: c.signal,
+        }), c.signal,
       );
-      const data = await untilAbort(response.json(), c.signal);
       if (active.current !== c) return;
-      if (!response.ok || data.valid !== true)
-        throw new Error(
-          typeof data.error === "string" ? data.error : "位置驗證失敗。",
-        );
+      if (data?.valid !== true) throw new Error(error?.error || "位置驗證失敗。");
       setPosition(value);
       setValid(true);
       setStatus("位置驗證成功。");
@@ -69,17 +63,21 @@ export function View() {
     }
   }
   return (
-    <>
-      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+    <PagePanel heading="定位測試" description="取得裝置目前位置，再交由伺服器驗證，不會儲存。結果包含座標、估計精度與採樣時間。">
+      <div className="flex flex-wrap items-center gap-2">
         <Button id="locate" disabled={busy} onClick={start}>
-          {busy && <Spinner aria-label="處理中" />}
+          {busy && <Spinner data-icon="inline-start" aria-label="處理中" />}
           取得位置並驗證
         </Button>
       </div>
       <Status id="status" role="status">
         {status}
       </Status>
-      <dl className="grid gap-2 text-sm [&_dd]:break-all [&_dd]:text-muted-foreground" id="result" hidden={!position}>
+      {!position && !busy && !status && <Empty><EmptyHeader>
+        <EmptyTitle>尚未取得位置</EmptyTitle>
+        <EmptyDescription>按「取得位置並驗證」，並允許瀏覽器使用位置資訊。</EmptyDescription>
+      </EmptyHeader></Empty>}
+      <dl className="grid gap-4 text-sm sm:grid-cols-2 [&_dt]:font-medium [&_dd]:break-all [&_dd]:text-muted-foreground" id="result" hidden={!position}>
         <div>
           <dt>緯度</dt>
           <dd id="latitude">{position?.latitude}</dd>
@@ -101,9 +99,9 @@ export function View() {
         </div>
         <div>
           <dt>伺服器驗證</dt>
-          <dd id="validation">{valid ? "通過" : "尚未驗證"}</dd>
+          <dd id="validation"><Badge variant={valid ? "secondary" : "outline"}>{valid ? "通過" : "尚未驗證"}</Badge></dd>
         </div>
       </dl>
-    </>
+    </PagePanel>
   );
 }

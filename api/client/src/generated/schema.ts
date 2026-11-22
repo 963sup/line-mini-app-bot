@@ -1190,7 +1190,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** createEnterprise */
+        /**
+         * Create an enterprise or return the one already provisioned for this account
+         * @description A repeated request returns the existing enterprise when the caller still owns it. The submitted name applies only on initial creation.
+         */
         post: operations["createEnterprise"];
         delete?: never;
         options?: never;

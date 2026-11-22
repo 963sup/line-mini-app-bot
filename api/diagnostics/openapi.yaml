@@ -1,0 +1,40 @@
+openapi: 3.0.3
+info:
+  title: Public location diagnostic
+  version: 1.0.0
+paths:
+  /api/location/validate:
+    post:
+      operationId: validateLocation
+      summary: Validate a browser location sample without storing coordinates
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../contract/attendance/records.yaml#/components/schemas/Position'
+      responses:
+        '200':
+          description: Sample accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [valid, receivedAt]
+                properties:
+                  valid: {type: boolean}
+                  receivedAt: {type: string, format: date-time}
+        '400': &invalid
+          description: Invalid sample or request
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [error]
+                properties:
+                  error: {type: string}
+        '413': *invalid
+        '415': *invalid
+        '403':
+          description: Cross-origin request denied

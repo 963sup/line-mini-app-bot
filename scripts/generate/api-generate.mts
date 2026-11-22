@@ -19,7 +19,8 @@ try {
  run('pnpm', ['exec', 'redocly', 'lint', '--config', 'api/codegen/redocly.yaml', 'api/contract/internal-openapi.yaml']);
  run('pnpm', ['exec', 'redocly', 'bundle', '--config', 'api/codegen/redocly.yaml', 'api/contract/internal-openapi.yaml', '-o', join(temporary, 'internal-openapi.yaml')]);
  run('oapi-codegen', ['-config', resolve(root, 'api/codegen/internal-go.yaml'), '-o', join(temporary, 'internal.gen.go'), join(temporary, 'internal-openapi.yaml')], join(root, 'backend'));
- for (const [file, target] of [['schema.ts', 'api/client/src/generated/schema.ts'], ['api.gen.go', 'backend/internal/transport/http/api/generated/api.gen.go'], ['internal.gen.go', 'backend/internal/transport/http/api/generatedinternal/api.gen.go']]) {
+ run('pnpm', ['exec', 'openapi-typescript', 'api/diagnostics/openapi.yaml', '-o', join(temporary, 'geolocation.ts')]);
+ for (const [file, target] of [['geolocation.ts', 'api/client/src/generated/geolocation.ts'], ['schema.ts', 'api/client/src/generated/schema.ts'], ['api.gen.go', 'backend/internal/transport/http/api/generated/api.gen.go'], ['internal.gen.go', 'backend/internal/transport/http/api/generatedinternal/api.gen.go']]) {
   if (check) { if (!readFileSync(join(temporary, file)).equals(readFileSync(join(root, target)))) throw new Error(`Generated file is stale: ${target}`); }
   else copyFileSync(join(temporary, file), join(root, target));
  }
