@@ -140,8 +140,8 @@ tool_timeout_sec = 45
 env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
 # Resolve paths from the Codex checkout, including worktrees.
 cwd = "."
-command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "repomix", "--mcp"]
+command = "npx"
+args = ["-y", "repomix@1.18.1", "--mcp"]
 enabled_tools = ["generate_skill"]
 default_tools_approval_mode = "prompt"
 enabled = true
@@ -155,8 +155,8 @@ tool_timeout_sec = 120
 env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
 # Resolve paths from the Codex checkout, including worktrees.
 cwd = "."
-command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "--tool", "node", "--tool", "npm:repomix", "bash", "-c", 'exec repomix --mcp --sandbox "$PWD"']
+command = "npx"
+args = ["-y", "repomix@1.18.1", "--mcp", "--sandbox", "."]
 enabled_tools = ["pack_codebase", "read_repomix_output", "grep_repomix_output", "file_system_read_file", "file_system_read_directory"]
 enabled = true
 required = false
@@ -196,7 +196,7 @@ tool_timeout_sec = 60
 # Resolve paths from the Codex checkout, including worktrees.
 cwd = "."
 command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "npx", "-y", "@google-cloud/gcloud-mcp@0.5.3"]
+args = ["scripts/tooling/tool-exec.sh", "--tool", "node", "--tool", "gcloud", "npx", "-y", "@google-cloud/gcloud-mcp@0.5.3"]
 env_vars = ["CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "CLOUDSDK_CORE_PROJECT", "CLOUDSDK_CORE_ACCOUNT", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
 enabled_tools = ["run_gcloud_command"]
 default_tools_approval_mode = "prompt"
@@ -209,8 +209,8 @@ tool_timeout_sec = 120
 # Official local stdio server: https://github.com/GoogleCloudPlatform/cloud-run-mcp
 # Resolve paths from the Codex checkout, including worktrees.
 cwd = "."
-command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "npx", "-y", "@google-cloud/cloud-run-mcp@1.12.0"]
+command = "npx"
+args = ["-y", "@google-cloud/cloud-run-mcp@1.12.0"]
 env_vars = ["CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_REGION", "DEFAULT_SERVICE_NAME", "SKIP_IAM_CHECK", "RUN_INGRESS_POLICY", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
 default_tools_approval_mode = "prompt"
 enabled = true
@@ -237,8 +237,8 @@ tool_timeout_sec = 120
 # Requires FIRESTORE_PROJECT and ADC; FIRESTORE_DATABASE is optional.
 # Resolve paths from the Codex checkout, including worktrees.
 cwd = "."
-command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "npx", "-y", "@toolbox-sdk/server@1.17.0", "--prebuilt", "firestore", "--stdio"]
+command = "npx"
+args = ["-y", "@toolbox-sdk/server@1.17.0", "--prebuilt", "firestore", "--stdio"]
 env_vars = ["FIRESTORE_PROJECT", "FIRESTORE_DATABASE", "CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
 default_tools_approval_mode = "prompt"
 enabled = true
@@ -250,9 +250,9 @@ tool_timeout_sec = 120
 # Forward runtime network settings by name; values remain host-owned.
 env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
 # Resolve paths from the Codex checkout, including worktrees.
-cwd = "."
-command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "--tool", "node", "--tool", "npm:shadcn", "bash", "-c", "cd frontend/miniapp && exec shadcn mcp"]
+cwd = "frontend/miniapp"
+command = "npx"
+args = ["-y", "shadcn@latest", "mcp"]
 enabled = true
 required = false
 startup_timeout_sec = 45
@@ -262,9 +262,9 @@ tool_timeout_sec = 60
 # Runtime inspection is task-specific; use the installed Next.js dev server.
 env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS", "NEXT_TELEMETRY_DISABLED"]
 # Resolve paths from the Codex checkout, including worktrees.
-cwd = "."
-command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "--tool", "node", "--tool", "npm:next-devtools-mcp", "bash", "-c", "cd frontend/miniapp && exec next-devtools-mcp"]
+cwd = "frontend/miniapp"
+command = "npx"
+args = ["-y", "next-devtools-mcp@latest"]
 enabled_tools = ["nextjs_index", "nextjs_call", "nextjs_docs", "browser_eval"]
 default_tools_approval_mode = "writes"
 enabled = true
