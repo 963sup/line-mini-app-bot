@@ -54,7 +54,7 @@ func TestDependencyBoundaries(t *testing.T) {
 		"business/knowledge/application/port":                 {},
 		"business/object/application":                         {"business/object/domain/template", "business/operations/application", "business/object/application/dto", "business/object/application/port", "business/object/domain/entity", "business/repository/application", "business/repository/application/dto", "business/repository/application/port", "business/repository/domain/entity"},
 		"business/object/application/dto":                     {"business/object/domain/template", "business/object/application", "business/object/application/port", "business/object/domain/entity", "business/repository/application", "business/repository/application/dto", "business/repository/application/port", "business/repository/domain/entity"},
-		"business/object/application/port":                    {"business/object/application", "business/object/application/dto", "business/object/domain/entity", "business/repository/application", "business/repository/application/dto", "business/repository/application/port", "business/repository/domain/entity"},
+		"business/object/application/port":                    {"business/object/domain/template", "business/object/application", "business/object/application/dto", "business/object/domain/entity", "business/repository/application", "business/repository/application/dto", "business/repository/application/port", "business/repository/domain/entity"},
 		"business/object/domain/template":                     {},
 		"business/object/domain/entity":                       {"business/repository/domain/entity"},
 		"business/attendance/domain/valueobject":              {},
