@@ -74,6 +74,11 @@ func (s Service) Invite(ctx context.Context, actor, event, organization string) 
 }
 
 func (s Service) Accept(ctx context.Context, actor, event, code string) error {
+	// Use one service-side receipt time across transaction attempts.
+	return s.acceptAt(ctx, actor, event, code, time.Now())
+}
+
+func (s Service) acceptAt(ctx context.Context, actor, event, code string, now time.Time) error {
 	key := digest(code)
 	return s.Store.Run(ctx, func(w Work) error {
 		invitation, exists, err := w.Invitation(key)
@@ -90,7 +95,6 @@ func (s Service) Accept(ctx context.Context, actor, event, code string) error {
 		if invitation.AcceptedBy == actor && invitation.AcceptedEvent == event && member {
 			return nil
 		}
-		now := time.Now()
 		if !invitation.CanAccept(owner, ownerVersion, now) {
 			return ErrUnavailableInvitation
 		}
