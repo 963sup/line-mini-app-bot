@@ -18,7 +18,7 @@ test-results/
 
 # Generated reports and profiles
 # Upstream reference pages are searched on demand, not packed into application context.
-/docs/development/tooling/shadcn-reference/snapshot/
+/docs/development/tooling/frontend/shadcn-reference/snapshot/
 coverage/
 coverage.*
 *.log

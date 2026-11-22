@@ -41,21 +41,15 @@ through root `package.json`. Release scripts do not grant deployment permission.
 
 `tooling/shadcn-reference.py` downloads and verifies the official Components／AI
 Elements documentation snapshot; it never installs application components.
-See [local reference usage and refresh](../docs/development/tooling/shadcn-reference/README.md).
+See [local reference usage and refresh](../docs/development/tooling/frontend/shadcn-reference/README.md).
 
 Rich Menu images are stored under `assets/line/richmenu/`.
 
 ## 相關文件
 
-- [MCP 診斷期限與清理](../docs/development/tooling/mcp/README.md)
+- [MCP 診斷期限與清理](../docs/development/tooling/agents/README.md)
 - [文件索引：Scripts](../docs/README.md#按模組閱讀)
-- [mise 任務與工具](../docs/development/tooling/mise.md)
-- [分析範圍與稽核](../docs/development/tooling/analysis-scope.md)
+- [mise 任務與工具](../docs/development/tooling/shared/mise.md)
+- [分析範圍與稽核](../docs/development/tooling/shared/analysis-scope.md)
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md)
-
-API capability checks use a limited, comment-aware Go token reader to validate
-embedded interface methods, generated signatures, adapter ownership and route
-composition. Unsupported composition forms fail closed; full Go type checking
-remains in the generated interface assertion and Go checks. `pnpm api:check`
-runs dispatch regression tests before validating contracts and generated output.

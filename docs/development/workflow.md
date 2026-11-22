@@ -10,7 +10,7 @@
 
 ## Go verification
 
-[前往此章節](verification/commands.md#go-verification)
+[前往此章節](tooling/testing/commands.md#go-verification)
 
 ## Assignment contract
 

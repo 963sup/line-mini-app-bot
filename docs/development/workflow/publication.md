@@ -9,6 +9,6 @@
 3. **推送前。** 確認授權涵蓋推送，核對最新遠端版本及所有待推送的提交。每筆提交都必須符合上述門檻，且準備推送的 SHA 必須對應已驗證的內容。用正常的快轉推送更新 `origin/main`。若遠端前進，整合後重新驗證。若分支保護阻擋，依其規則處理並回報。
 4. **推送後。** 核對遠端 SHA，追蹤適用的 GitHub Actions 檢查，回報提交、驗證結果及未完成的驗收。版本驗收後可依發布安排加標籤。若需重寫已發布歷史，須取得單次明確授權並備妥可還原備份。
 
-GitHub MCP 與 Git CLI 的使用見 [GitHub 工具指南](../tooling/mcp/github.md)。推送、CI 與正式部署分別核對，見 [發布驗收](../../operations/release-acceptance.md)。
+GitHub MCP 與 Git CLI 的使用見 [GitHub 工具指南](../tooling/agents/github.md)。推送、CI 與正式部署分別核對，見 [發布驗收](../../operations/release-acceptance.md)。
 
 [開發流程索引](README.md)

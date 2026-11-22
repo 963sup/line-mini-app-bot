@@ -12,32 +12,11 @@
 
 [獨立Project](../docs/domains/project/project.md) · [React 前端生命週期](../docs/architecture/runtime/react-lifecycle.md)
 
-工程群組／Project新增獨立入口；既有Repository-scoped Project路由由相容adapter呼叫同一用例，來源識別不再代表專案擁有權。資料與授權／相容界線見 [獨立Project](../docs/domains/project/project.md)，契約及生成碼仍遵循本頁流程，不手改generated檔。
+工程群組／Project新增獨立入口；既有Repository-scoped Project路由由相容adapter呼叫同一用例，來源識別不再代表專案擁有權。資料與授權／相容界線見 [獨立Project](../docs/domains/project/project.md)，契約及生成碼遵循下方連結的生成流程，不手改generated檔。
 
 [contract/openapi.yaml](contract/openapi.yaml) 是公開 HTTP 契約的唯一組合入口。各能力維護自己的操作與格式，共用錯誤與認證位於 `contract/common/`；歸屬見[契約能力索引](contract/README.md)。不手改產生檔，業務核心不 import 生成套件。
 
-## 契約生成流程
-
-**開發與維運指引**
-
-```mermaid
-flowchart TB
-  SPEC["修改 OpenAPI 來源契約"] --> GEN["pnpm api:generate"]
-  GEN --> BUNDLE["Redocly bundle：解析外部參照"]
-  BUNDLE --> GO["Go 生成路由與 HTTP DTO"]
-  BUNDLE --> TS["TypeScript paths／components／operations 型別"]
-  GO --> BACK["同步 HTTP adapter 與業務用例接線"]
-  TS --> FRONT["同步 createAPIClient 與前端呼叫端"]
-  BACK --> CHECK["pnpm api:check 與受影響工作區檢查"]
-  FRONT --> CHECK
-```
-
-圖表示開發與生成順序，依據[生成腳本](../scripts/generate/api-generate.mts)；不表示業務核心依賴 HTTP DTO。從儲存庫根目錄執行，前置工具安裝使用 `bash scripts/tooling/tool-exec.sh mise run install-web`：
-
-```bash
-bash scripts/tooling/tool-exec.sh pnpm api:generate
-bash scripts/tooling/tool-exec.sh pnpm api:check
-```
+契約生成與檢查命令見[契約生成流程](../docs/development/tooling/api/change-api.md#契約生成流程)。
 
 瀏覽器控制器與 SessionProvider 的認證請求見 [React 前端生命週期](../docs/architecture/runtime/react-lifecycle.md)。
 
@@ -73,7 +52,7 @@ Redocly lint／bundle 設定位於 `api/codegen/redocly.yaml`；根目錄的生�
 
 ## 目錄導覽與維護
 
-[契約來源](contract/README.md)按能力維護，[客戶端](client/README.md)與[生成設定](codegen/README.md)共用。契約變更依[生成流程](#契約生成流程)驗證。若須對歷史版本做相容性比較，明列比較的 revision 與差異；目前的 `api:check` 驗證工作樹內的契約與生成結果。
+[契約來源](contract/README.md)按能力維護，[客戶端](client/README.md)與[生成設定](codegen/README.md)共用。契約變更依[生成流程](../docs/development/tooling/api/change-api.md#契約生成流程)驗證。若須對歷史版本做相容性比較，明列比較的 revision 與差異；目前的 `api:check` 驗證工作樹內的契約與生成結果。
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
 

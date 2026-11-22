@@ -6,7 +6,7 @@
 | --- | --- |
 | 準備或更新發布的 Codex Cloud 環境 | [Cloud 安裝、啟動與驗收](codex-cloud.md) |
 | 本機開發 | `bash scripts/bootstrap.sh core`，再按需求[啟動應用](#啟動應用) |
-| 本機需要 MCP 與雲端工具 | [初始化模式](setup.md#一般開發與-mcp-安裝) |
+| 本機需要 MCP 與雲端工具 | [初始化模式](../tooling/shared/toolchain-setup.md#一般開發與-mcp-安裝) |
 | 核對設定、啟動及分階段驗收 | [環境驗證](verification.md) |
 | 工具找不到、依賴或認證失敗 | [環境排查](troubleshooting.md) |
 

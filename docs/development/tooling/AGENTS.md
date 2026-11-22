@@ -7,6 +7,14 @@
 mise、Skills、MCP 與 Graphify／Repomix 分析範圍及報告。
 區分安裝、設定、連線與實際操作驗證；工具涵蓋率不等於語意正確。版本與連線設定連回單一來源。
 
+## 文件歸檔規則
+
+依[工具文件目錄標準](README.md#工具文件目錄標準)選擇主要用途所屬目錄。前端、後端、API、測試與品質工具各歸其類；多個領域共用的開發工具歸入 `shared/`。Agent 協作、Skills 與通用 MCP 設定歸入 `agents/`。
+
+工具即使透過 MCP 呼叫，專屬領域的操作指南仍放在該領域。例如 shadcn 與 Next DevTools 的標準路徑分別是 `frontend/shadcn.md` 和 `frontend/nextjs-devtools.md`，由 `frontend/README.md` 導覽。其他分類需要引用時，連到同一份指南。
+
+新增或搬移指南時，同步更新分類索引、本層 README 與引用舊路徑的文件。尚未搬移的頁面沿用現行連結。
+
 ## 維護與驗證
 
 更新索引與驗證連結依[文件維護指引](../../AGENTS.md#驗證)。

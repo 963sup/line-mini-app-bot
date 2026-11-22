@@ -57,6 +57,6 @@ MUST 表示必要，MUST NOT 表示禁止，SHOULD 表示有具體理由才可�
 ## 增量驗證
 
 1. 用 `git diff --name-only` 找出已追蹤的變更，用 `git status --short` 補查新增頁面。核對相對連結、標題錨點、來源路徑與引用。搬移頁面或更名時搜尋舊目的地，再從分類索引走一次。
-2. [文件圖](../development/tooling/mcp/graphify.md#docs-only-graph)可查標題與本機連結，錨點需另查。程式 AST 用於定位實作。更改 Mermaid 原始內容時，以[專案鎖定的 CLI](../../.codex/README.md#mermaid)渲染到暫存檔，再用 handler、契約或 ADR 核對條件與方向。
+2. [文件圖](../development/tooling/agents/graphify.md#docs-only-graph)可查標題與本機連結，錨點需另查。程式 AST 用於定位實作。更改 Mermaid 原始內容時，以[專案鎖定的 CLI](../development/tooling/shared/mermaid.md)渲染到暫存檔，再用 handler、契約或 ADR 核對條件與方向。
 3. 審閱本次 diff 並執行 `git diff --check`。涉及設定時執行 `bash scripts/tooling/tool-exec.sh python3 scripts/check/check-config.py`。配置檢查只涵蓋它明定的項目。
 4. 對照來源檢查命令語法、參數及前置條件。文件驗證不觸發需要憑證的外部寫入或部署。交付時分清「已核對來源」與「已執行」，列明修正範圍、證據、實際檢查與剩餘限制。

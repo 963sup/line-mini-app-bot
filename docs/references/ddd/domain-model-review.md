@@ -34,6 +34,6 @@
 
 ## 實際驗收
 
-模型單元測試驗證判定；儲存整合測試驗證交易與競爭；契約測試驗證對外語意；架構檢查驗證依賴方向。具體執行依[驗收矩陣](../../development/verification/commands.md#變更驗收矩陣)。單次成功、圖譜或打包內容無法替代上述行為證據。
+模型單元測試驗證判定；儲存整合測試驗證交易與競爭；契約測試驗證對外語意；架構檢查驗證依賴方向。具體執行依[驗收矩陣](../../development/tooling/testing/commands.md#變更驗收矩陣)。單次成功、圖譜或打包內容無法替代上述行為證據。
 
 [領域測試](domain-testing.md) · [架構測試](architecture-testing.md) · [設計流程](design-process.md) · [DDD 索引](README.md)

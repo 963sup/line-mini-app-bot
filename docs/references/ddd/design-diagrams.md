@@ -76,4 +76,4 @@ flowchart LR
 bash scripts/tooling/tool-exec.sh mermaid render diagram.mmd --format svg > diagram.svg
 ```
 
-使用專案鎖定的 `mermaid@13.0.0-alpha.3`，版本及操作方式見 [Mermaid 專案指引](../../../.codex/README.md#mermaid)。概念資料以匿名 Context7 查閱 [Domain-Driven Hexagon](https://github.com/sairyss/domain-driven-hexagon)，文件索引未固定 revision。Context7 另查得 [Mermaid CLI](https://github.com/mermaid-js/mermaid-cli) 的 `mmdc` 用法，渲染命令以專案鎖定版本為準。
+使用專案鎖定的 `mermaid@13.0.0-alpha.3`，版本及操作方式見 [Mermaid 專案指引](../../development/tooling/shared/mermaid.md)。概念資料以匿名 Context7 查閱 [Domain-Driven Hexagon](https://github.com/sairyss/domain-driven-hexagon)，文件索引未固定 revision。Context7 另查得 [Mermaid CLI](https://github.com/mermaid-js/mermaid-cli) 的 `mmdc` 用法，渲染命令以專案鎖定版本為準。

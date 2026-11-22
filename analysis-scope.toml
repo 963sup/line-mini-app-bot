@@ -8,7 +8,7 @@ managed_suffixes = [".rules", ".go", ".mod", ".sum", ".sh", ".py", ".toml", ".md
 managed_names = ["mise.lock", "Dockerfile", "LICENSE", "GOOGLE-SKILLS-LICENSE", ".editorconfig", ".gcloudignore", ".gitattributes", ".gitignore", ".dockerignore", ".graphifyignore", ".repomixignore", ".env.example"]
 
 [[exclude]]
-pattern = "docs/development/tooling/shadcn-reference/snapshot/*"
+pattern = "docs/development/tooling/frontend/shadcn-reference/snapshot/*"
 reason = "Generated upstream documentation snapshot has its own source manifest and integrity checks"
 impact = "Reference pages are searched on demand; project guidance and download script remain managed"
 owner = "tooling"

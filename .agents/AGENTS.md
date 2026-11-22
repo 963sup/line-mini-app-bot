@@ -1,6 +1,6 @@
 # 專案技能維護指引
 
-本目錄沿用[根目錄指引](../AGENTS.md)。修改技能來源前讀[目錄說明](README.md)與[技能維護流程](../docs/development/tooling/skills.md)。
+本目錄沿用[根目錄指引](../AGENTS.md)。修改技能來源前讀[目錄說明](README.md)與[技能維護流程](../docs/development/tooling/agents/skills.md)。
 
 ## 職責與邊界
 
@@ -8,4 +8,4 @@
 
 ## 驗證
 
-直接比對受影響的技能與鎖檔；先查[分析範圍](../docs/development/tooling/analysis-scope.md)才引用打包或圖譜結果。工具設定變更執行 `bash scripts/tooling/tool-exec.sh python3 scripts/check/check-config.py`，角色及工具可用性另由當前主機驗證。
+直接比對受影響的技能與鎖檔；先查[分析範圍](../docs/development/tooling/shared/analysis-scope.md)才引用打包或圖譜結果。工具設定變更執行 `bash scripts/tooling/tool-exec.sh python3 scripts/check/check-config.py`，角色及工具可用性另由當前主機驗證。

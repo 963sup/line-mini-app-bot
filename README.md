@@ -69,7 +69,7 @@ bash scripts/tooling/tool-exec.sh pnpm test
 bash scripts/tooling/tool-exec.sh pnpm dev
 ```
 
-完整 Cloud／MCP 安裝與限制請見 [Codex Cloud 設定](docs/development/environment/setup.md)。
+完整 Cloud／MCP 安裝與限制請見 [Codex Cloud 設定](docs/development/tooling/shared/toolchain-setup.md)。
 Codex Cloud 的 Install script 填入 `scripts/bootstrap.sh`，無參數時使用 cloud 模式。上方本機開發指令使用 core 模式，會安裝 Go、Web 依賴及 Mermaid CLI。需要 Graphify／Repomix 與 MCP 時使用
 `bash scripts/bootstrap.sh all`。Firestore Toolbox 需要先提供 Google ADC，GKE MCP 預設停用。
 工具安裝、
@@ -101,7 +101,7 @@ HTML/CSS 與鎖檔不保證被解析。使用 Repomix 的 `repomix-output.xml` �
 再對照實際來源；打包與查詢成功都不代表程式正確或整合已驗收。
 兩工具均排除 `.agents`、`.claude`、`agent` 與 `skills-lock.json`；`.codex` 保留為分析來源，
 仍受工具原生格式支援與內建排除限制。各 ignore 規則不等於完整收錄保證。
-範圍契約及獨立 audit 的用途與限制見 [分析證據](docs/development/tooling/analysis-scope.md)。
+範圍契約及獨立 audit 的用途與限制見 [分析證據](docs/development/tooling/shared/analysis-scope.md)。
 
 ## 執行服務
 
@@ -135,7 +135,7 @@ MINI App 頁面為 `/miniapp`；公開 Channel／LIFF ID 與 Endpoint 由所選�
 | `scripts/` | [腳本工具](scripts/README.md) | [AGENTS.md](scripts/AGENTS.md) |
 | `frontend/` | [MINI App 前端](frontend/README.md) | [AGENTS.md](frontend/AGENTS.md) |
 
-進入 `frontend/miniapp/` 另讀其 [Next.js 指引](frontend/miniapp/AGENTS.md)。分析結果與涵蓋限制見 [分析範圍與證據限制](docs/development/tooling/analysis-scope.md)。
+進入 `frontend/miniapp/` 另讀其 [Next.js 指引](frontend/miniapp/AGENTS.md)。分析結果與涵蓋限制見 [分析範圍與證據限制](docs/development/tooling/shared/analysis-scope.md)。
 
 ## 業務操作開發原則
 

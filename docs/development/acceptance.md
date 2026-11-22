@@ -2,11 +2,11 @@
 
 <a id="acceptance-and-evidence"></a>
 
-依變更選擇命令見[新入口](verification/commands.md)。
+依變更選擇命令見[新入口](tooling/testing/commands.md)。
 
 ## 變更驗收矩陣
 
-[前往此章節](verification/commands.md#變更驗收矩陣)
+[前往此章節](tooling/testing/commands.md#變更驗收矩陣)
 
 ## Evidence limits
 

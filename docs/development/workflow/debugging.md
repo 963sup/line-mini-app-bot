@@ -1,7 +1,7 @@
 # 系統化除錯與根因分析
 
-Orchestrator assigns debugger for error messages, logs, reproducible bugs and
-unexplained test failures. Debugger owns diagnosis and scoped fixes; orchestrator
+Orchestrator assigns implementer for error messages, logs, reproducible bugs and
+unexplained test failures. Implementer owns diagnosis and scoped fixes; orchestrator
 owns priorities, dependencies, file ownership and final acceptance. Small obvious
 fixes can stay with implementer; do not start every role for every bug.
 
@@ -10,11 +10,11 @@ fixes can stay with implementer; do not start every role for every bug.
 Provide expected versus observed behavior, exact sanitized error or log, revision,
 runtime/dependency versions, reproduction inputs, owned files, constraints and
 acceptance commands. Distinguish read-only diagnosis from authorized fixes.
-Debugger never invokes orchestrator or delegates. Request scope reassignment
+Implementer never invokes orchestrator or delegates. Request scope reassignment
 through orchestrator when a cause crosses file ownership. Implementer may take a
 larger fix after an explicit handoff; never edit the same files concurrently.
 Tester checks reproduction and relevant regressions; reviewer checks causal
-reasoning and fix scope; integrator handles combined acceptance when needed.
+reasoning and fix scope; orchestrator handles combined acceptance when needed.
 Orchestrator decides completion from this evidence, not from a role's confidence.
 
 ## Diagnostic loop
@@ -39,7 +39,7 @@ flowchart TB
   PASS -->|是| VERIFIED["交付已驗證修正；通過範圍以實際檢查為限"]
 ```
 
-來源與限制：[根查證路由](../../../AGENTS.md#mandatory-documentation-verification) · [驗收矩陣](../verification/commands.md) · [證據重用](handoff.md#minimal-handoff-and-evidence-reuse)。本圖定義除錯流程，不代表已執行某次診斷。
+來源與限制：[根查證路由](../../../AGENTS.md#mandatory-documentation-verification) · [驗收矩陣](../tooling/testing/commands.md) · [證據重用](handoff.md#minimal-handoff-and-evidence-reuse)。本圖定義除錯流程，不代表已執行某次診斷。
 
 - Context7 先 resolve ID 再查適用版本，與安裝依賴比對；Codex、LINE 與 Google 採根指引的特定官方來源。查詢不可用時明列限制。
 - 區分觀察、推論、排除的假設與確認根因。AST／bundle 不證明執行結果；不收錄憑證或私人原始日誌。
@@ -52,12 +52,6 @@ flowchart TB
 
 ## Configuration and activation
 
-The role is registered as `[agents.debugger]` in `.codex/config.toml`, with
-`config_file = "agents/debugger.toml"` relative to that configuration file.
-Role instructions inherit parent permissions and MCP availability; a role file
-does not grant a sandbox or extra tools. Role configuration parsing is separate
-from successful host loading and execution. Reload/start a session that loads
-this project configuration before expecting debugger to appear. Respect actual
-host restrictions, concurrency and depth; select only roles needed by the task.
+Assign debugging to `implementer` under its inherited permissions and assigned write scope.
 
 [開發流程索引](README.md)

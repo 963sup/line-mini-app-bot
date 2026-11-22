@@ -1,6 +1,6 @@
 # .codex 工作指引
 
-本目錄沿用[根目錄指引](../AGENTS.md)。[config.toml](config.toml)登記角色與 MCP；[角色目錄](agents/README.md)維護分工，[hooks.json](hooks.json)定義 hooks。環境設定見[本層說明](README.md)。
+本目錄沿用[根目錄指引](../AGENTS.md)。[config.toml](config.toml)登記角色與 MCP；[角色目錄](agents/README.md)維護分工；專案不使用 Codex hooks。環境設定見[本層說明](README.md)。
 
 ## 職責與邊界
 

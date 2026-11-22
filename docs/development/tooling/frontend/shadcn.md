@@ -16,7 +16,7 @@ shadcn 元件以可維護的原始碼納入 MINI App，不是後端服務或瀏�
 
 CLI 固定版本與安裝任務由根目錄 `mise.toml` 管理；UI 與編譯依賴由 MINI App 的 `package.json` 和根目錄 lockfile 管理。
 不要另在 workspace 安裝一份不同版本的 shadcn CLI，也不要以未固定的版本覆寫既有元件。
-先依 [環境設定](../../environment/setup.md) 安裝工具及 workspace 依賴，再使用固定 CLI。
+先依 [環境設定](../shared/toolchain-setup.md) 安裝工具及 workspace 依賴，再使用固定 CLI。
 
 從儲存庫根目錄執行：
 
@@ -82,16 +82,16 @@ MCP 可提供 registry 資訊及新增命令；若回傳命令使用浮動版本
 
 ## 自主接線
 
-依[共用 MCP 排查流程](README.md#project-loading-check)處理。shadcn 專用準備命令為 `bash scripts/tooling/tool-exec.sh mise run ensure-shadcn`，會準備鎖定依賴並檢查握手與工具清單。原生驗收使用唯讀 registry 查詢。
+依[共用 MCP 排查流程](../agents/README.md#project-loading-check)處理。shadcn 專用準備命令為 `bash scripts/tooling/tool-exec.sh mise run ensure-shadcn`，會準備鎖定依賴並檢查握手與工具清單。原生驗收使用唯讀 registry 查詢。
 
 ## 官方能力索引與適用範圍
 
-本頁維護功能入口、專案路徑及實測狀態；[元件目錄 AGENTS.md](../../../../frontend/miniapp/src/shared/ui/AGENTS.md) 保存禁止修改規則及 Codex 主動使用 Skill／MCP 的流程；完整目錄與文件統一由 [本機參考庫](../shadcn-reference/README.md) 生成及維護。該參考庫供探索與按需安裝，不代表全部已安裝；每次使用仍核對官方網站／registry，實際已安裝清單以 CLI `info --json` 為準。前端 UI 任務應先讀該指引，使用公開 props／variants 在應用層組合，避免直接修改官方元件。
+本頁維護功能入口、專案路徑及實測狀態；[元件目錄 AGENTS.md](../../../../frontend/miniapp/src/shared/ui/AGENTS.md) 保存禁止修改規則及 Codex 主動使用 Skill／MCP 的流程；完整目錄與文件統一由 [本機參考庫](shadcn-reference/README.md) 生成及維護。該參考庫供探索與按需安裝，不代表全部已安裝；每次使用仍核對官方網站／registry，實際已安裝清單以 CLI `info --json` 為準。前端 UI 任務應先讀該指引，使用公開 props／variants 在應用層組合，避免直接修改官方元件。
 
 | 能力 | 官方入口／操作 | 本專案狀態與邊界 |
 | --- | --- | --- |
 | Components | [完整元件目錄](https://ui.shadcn.com/docs/components)；CLI `docs`、`view`、`search` | 已依頁面需求安裝基礎控制項、Sidebar、Table、Item、InputGroup 等；實際清單用 CLI `info --json` 取得，先核對 API、依賴與適用 base |
-| AI Elements | [官方入口](https://ui.shadcn.com/docs/ai-elements)、[本機文件索引](../shadcn-reference/snapshot/INDEX.md) | agentic UI 的元件組合模式；已保存文件及內嵌範例，未安裝進應用或新增聊天／模型服務。完整項目以生成索引為準 |
+| AI Elements | [官方入口](https://ui.shadcn.com/docs/ai-elements)、[本機文件索引](shadcn-reference/snapshot/INDEX.md) | agentic UI 的元件組合模式；已保存文件及內嵌範例，未安裝進應用或新增聊天／模型服務。完整項目以生成索引為準 |
 | Skill | [官方說明](https://ui.shadcn.com/docs/skills)、[本機 SKILL.md](../../../../.agents/skills/shadcn/SKILL.md) | 相關任務先讀；提供專案 context、元件用法、組合、樣式、CLI／registry／MCP 指引；不取代 Context7 查證 |
 | CLI | `info`、`docs`、`view`、`search`；`add`、`init`、`apply`、`migrate`、`build`、`preset`、`registry` | 前四項用於查詢；變更命令依任務範圍使用，逐項查 `--help`，不表示所有命令已端到端驗收。舊 `diff` 命令已 deprecated，改用 `add --diff` |
 | MCP | [官方 MCP 文件](https://ui.shadcn.com/docs/registry/mcp) | 已配置、transport 及 registry search 實測通過；聊天 host 載入另驗證 |
@@ -119,11 +119,11 @@ bash scripts/tooling/tool-exec.sh shadcn view @shadcn/button --cwd frontend/mini
 bash scripts/tooling/tool-exec.sh shadcn add @shadcn/button --dry-run --cwd frontend/miniapp
 ```
 
-`docs` 回傳連結後仍須讀取相關官方內容。Graphify CLI 用於程式關係定位，Repomix CLI 用於必要範圍的來源交叉核對；前者的 AST 圖不完整涵蓋工具設定／文件，後者不應每次整庫打包。兩者版本／任務由 `mise.toml` 管理，見 [Graphify](graphify.md)、[Repomix](repomix.md)。
+`docs` 回傳連結後仍須讀取相關官方內容。Graphify CLI 用於程式關係定位，Repomix CLI 用於必要範圍的來源交叉核對；前者的 AST 圖不完整涵蓋工具設定／文件，後者不應每次整庫打包。兩者版本／任務由 `mise.toml` 管理，見 [Graphify](../agents/graphify.md)、[Repomix](../agents/repomix.md)。
 
 ## 驗證紀錄
 
-2026-11-18（Asia/Taipei）參考庫：下載官方入口列出的 Components 與 AI Elements，保存兩種 base 的 Markdown 與內嵌範例；完整數量與來源只維護於 [生成索引／manifest](../shadcn-reference/README.md)。移除 UI 指引的手工元件表，根指引、前端入口與 shadcn 角色統一指向參考庫。上游頁面不改寫，一般分析按需排除生成快照；未安裝應用元件。Context7 本次 query 達月額度限制，未宣稱新查證成功；官方 Markdown 回應及覆蓋／雜湊由下載腳本直接驗證。
+2026-11-18（Asia/Taipei）參考庫：下載官方入口列出的 Components 與 AI Elements，保存兩種 base 的 Markdown 與內嵌範例；完整數量與來源只維護於 [生成索引／manifest](shadcn-reference/README.md)。移除 UI 指引的手工元件表，根指引、前端入口與 shadcn 角色統一指向參考庫。上游頁面不改寫，一般分析按需排除生成快照；未安裝應用元件。Context7 本次 query 達月額度限制，未宣稱新查證成功；官方 Markdown 回應及覆蓋／雜湊由下載腳本直接驗證。
 
 2026-11-18（Asia/Taipei）：補齊[需求驅動的選用與驗收](../../../../frontend/miniapp/src/shared/ui/AGENTS.md#需求驅動的選用與驗收)，明確指定官方 registry、任務內按需新增與 UI 驗收要求。Context7 `/shadcn-ui/ui` 核對上游 Skill 的組合及 CLI 預覽流程；該來源不保證與固定版本完全同版，本機固定 CLI `4.23.0` 的 `--version`、`info --json`、`docs dialog sheet --base radix --json`、`search @shadcn -q drawer`、`add --help` 均成功，辨識 30 個已安裝元件並找到 3 個 drawer 相關項目。Repomix `1.18.1` 打包 5 個相關指引／設定檔並交叉核對；Graphify query 成功，但 AST 關係未完整涵蓋文件規則，未將其當作指引正確性的證據。此聊天未曝光 shadcn MCP，已用固定 CLI 完成查詢；未新增元件、修改上游 Skill、執行 UI 測試或宣稱瀏覽器／LINE 驗收。
 

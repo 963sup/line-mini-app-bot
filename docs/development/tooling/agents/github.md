@@ -1,6 +1,6 @@
 # github
 
-Primary roles: GitHub, Orchestrator, Reviewer, Integrator.
+Primary roles: Explorer, Documentation, Orchestrator, Reviewer.
 
 ## When to use
 
@@ -32,6 +32,10 @@ GitHub REST [reference updates](https://docs.github.com/en/rest/git/refs#update-
 with `force=false` require a fast-forward. This was checked through Context7
 `/websites/github_en_rest`; connector-specific `expected_sha` behavior is defined
 by its exposed schema, not by the REST request body.
+
+## Wiki publication
+
+Inspect existing pages and preserve their language, navigation and unrelated content. Use a Wiki-specific tool when available, otherwise use the repository’s separate `.wiki.git` remote. Review the diff, publish only the requested changes without force, and verify the published page or remote commit.
 
 ## Verification and failures
 

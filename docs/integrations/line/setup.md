@@ -34,7 +34,7 @@ flowchart LR
   a --- n2["建立或替換 Rich Menu"]
   click n2 "../../operations/rich-menu.md"
   a --- n3["測試 Firestore 唯讀連線"]
-  click n3 "../firestore/read-check.md"
+  click n3 "../../development/tooling/backend/firestore-read-check.md"
   a --- n4["歷史查證與環境限制"]
   click n4 "sources.md"
 ```

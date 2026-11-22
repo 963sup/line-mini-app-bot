@@ -22,7 +22,7 @@ Linux x64／arm64 下載資訊由 [mise.lock](../../../mise.lock) 鎖定，pnpm 
 
 1. 在新 checkout 確認安裝工具與工作區依賴。若還要執行完整專案 `pnpm check` 或 Go 格式及 lint，先透過 wrapper 執行 `mise run install-core`。
 2. 執行 `bash scripts/tooling/tool-exec.sh mise run check` 與 `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check`，並依任務驗收實際入口。
-3. 在新聊天依 [MCP 主機載入檢查](../tooling/mcp/README.md#project-loading-check)。
-4. 若任務需要 Cloud Run 或 Firestore Toolbox，依主機方式提供 ADC。使用憑證檔時，`GOOGLE_APPLICATION_CREDENTIALS` 須指向任務執行時可讀的檔案。以目標資源的唯讀操作確認登入身分及 IAM。參見 [Google 工具指引](../tooling/mcp/google.md)。
+3. 在新聊天依 [MCP 主機載入檢查](../tooling/agents/README.md#project-loading-check)。
+4. 若任務需要 Cloud Run 或 Firestore Toolbox，依主機方式提供 ADC。使用憑證檔時，`GOOGLE_APPLICATION_CREDENTIALS` 須指向任務執行時可讀的檔案。以目標資源的唯讀操作確認登入身分及 IAM。參見 [Google 工具指引](../tooling/agents/google.md)。
 
 記錄所驗證的快照、命令、結果與尚缺的環境證據。[驗收索引](../verification/README.md) · [環境排查](troubleshooting.md)

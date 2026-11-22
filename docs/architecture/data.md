@@ -13,6 +13,6 @@
 
 ## 維護與驗收
 
-異動保存行為時，同步核對領域規格、Adapter、公開契約及歷史資料相容性。交易與競爭驗收依[Firestore 整合流程](../development/verification/commands.md#firestore-integration)，索引與正式設定依[發布驗收](../operations/release-acceptance.md)。文件檢查不代替資料庫或恢復演練。
+異動保存行為時，同步核對領域規格、Adapter、公開契約及歷史資料相容性。交易與競爭驗收依[Firestore 整合流程](../development/tooling/testing/commands.md#firestore-integration)，索引與正式設定依[發布驗收](../operations/release-acceptance.md)。文件檢查不代替資料庫或恢復演練。
 
 [適用工作指引](AGENTS.md) · [架構索引](README.md)

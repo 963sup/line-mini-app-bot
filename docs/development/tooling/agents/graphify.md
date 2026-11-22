@@ -14,6 +14,8 @@ Tool versions are owned by `mise.toml`; never copy token values into documentati
 
 ## Operation
 
+Prefer the configured Graphify MCP when exposed. Use the current host inventory and configured allowlist. When using another host, verify its repository and indexed revision before comparing its results with the local graph.
+
 Refresh with `bash scripts/tooling/tool-exec.sh mise run graphify-update`; the task scans all code together so Go receivers in separate files resolve to their type declaration, then regenerates the report. Query with `graphify query "<question>"`.
 
 ### Docs-only graph
@@ -43,14 +45,6 @@ are resolved. A valid link graph alone does not prove semantic consistency.
 Full semantic extraction is a separate operation requiring a configured backend
 when using the headless extract CLI. No API credentials are needed for the local
 navigation graph; never store credentials in repository configuration.
-
-## 每則訊息的文件子圖
-
-[專案 Hooks](../../../../.codex/hooks.json) 透過 `UserPromptSubmit` 啟動[子圖腳本](../../../../scripts/tooling/graphify-prompt-hook.py)。它從當前工作樹抽取 Markdown 標題與連結，再用 Graphify CLI 查詢一層相鄰關係。以訊息提到的既有 Markdown 路徑或主題選入口，預設從開發手冊開始。
-
-子圖文字存到 `.agents/graphify-subgraphs/`，同一聊天後續訊息覆蓋同一檔。Hook 將路徑交給 Codex，CLI 只接收選中的文件路徑與固定查詢文字。要分析 Go 或 TypeScript 的依賴，另外查程式圖與原始碼。
-
-首次使用須在支援專案 Hooks 的宿主信任並審核定義。可先送「檢查 OpenAPI 契約」，再送「排查 Cloud Run 部署」。兩次都應刷新同一聊天的子圖，入口應分別指向 API 與部署配方。沒有預裝 Graphify 時，腳本透過 uv 準備 [mise 宣告版本](../../../../mise.toml)。安裝或查詢失敗時，聊天可繼續查原始文件。
 
 ## Verification and failures
 

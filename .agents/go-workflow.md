@@ -2,7 +2,7 @@
 
 The maintained workflow is [docs/development/workflow.md](../docs/development/workflow.md).
 Acceptance criteria are in [docs/development/acceptance.md](../docs/development/acceptance.md).
-MCP usage is documented in [docs/development/tooling/mcp/README.md](../docs/development/tooling/mcp/README.md).
+MCP usage is documented in [docs/development/tooling/agents/README.md](../docs/development/tooling/agents/README.md).
 This file is a compatibility pointer; do not duplicate policy here.
 
 ## Deployment and browser location routing

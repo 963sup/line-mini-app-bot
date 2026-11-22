@@ -1,6 +1,6 @@
 # Go 效能剖析
 
-操作入口：profile。
+[剖析命令與輸出位置](../../docs/development/tooling/testing/commands.md#go-verification)
 
 - [go-profile.sh](go-profile.sh)
 

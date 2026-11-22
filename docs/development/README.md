@@ -8,11 +8,11 @@
 | --- | --- | --- |
 | 準備本機或新的 Codex Cloud 環境 | [開發環境](environment/README.md) | 啟動所需服務或執行[新環境驗收](environment/codex-cloud.md#新環境驗收) |
 | 開始、接手或界定工作範圍 | [開始任務](workflow/task-start.md) | 找到工作樹、適用指引與完成條件 |
-| 修改 HTTP API | [API 操作配方](recipes/change-api.md) | 從契約追到生成碼與呼叫端 |
+| 修改 HTTP API | [API 操作配方](tooling/api/change-api.md) | 從契約追到生成碼與呼叫端 |
 | 修改領域行為 | [領域操作配方](recipes/change-domain.md) | 從規格追到授權、寫入與既有測試 |
 | 修改 MINI App 頁面 | [前端操作配方](recipes/change-frontend.md) | 從頁面入口追到 API 與瀏覽器驗收 |
 | 分析錯誤或部署紅燈 | [系統化除錯](workflow/debugging.md)或[部署診斷](recipes/diagnose-deployment.md) | 重現錯誤或定位雲端失敗階段 |
-| 選檢查、整理證據 | [驗收矩陣](verification/commands.md#變更驗收矩陣) | 按[證據限制](verification/evidence.md)記錄結果 |
+| 選檢查、整理證據 | [驗收矩陣](tooling/testing/commands.md#變更驗收矩陣) | 按[證據限制](verification/evidence.md)記錄結果 |
 | 交接工作或推送已驗證的階段 | [交接規格](workflow/handoff.md#sidebar-handoff)或[發布流程](workflow/publication.md#repository-publication) | 記錄可重現狀態或核對已驗證的提交 |
 | 查 CLI、MCP、技能或來源分析 | [工具索引](tooling/README.md) | 選對應工具專頁 |
 

@@ -8,11 +8,13 @@ Bundle relevant source for review and impact analysis.
 
 ## Prerequisites and configuration
 
-Node and Repomix installed by install-mcp. The mise task checks its XML against the [source manifest](../analysis-scope.md); .repomixignore also filters ad hoc CLI runs. Scope MCP packing explicitly. Security scanning is not a proof that no secrets exist.
+Node and Repomix installed by install-mcp. The mise task checks its XML against the [source manifest](../shared/analysis-scope.md); .repomixignore also filters ad hoc CLI runs. Scope MCP packing explicitly. Security scanning is not a proof that no secrets exist.
 Connection, timeouts and enabled tool names are owned by `.codex/config.toml`.
 Tool versions are owned by `mise.toml`; never copy token values into documentation.
 
 ## Operation
+
+When the configured MCP is exposed, inspect the current tool schema before a new operation. Search the returned bundle, then corroborate critical excerpts against source. Reuse the bundle across roles when its revision, relevant working-tree changes and file coverage still match the assignment.
 
 Run `mise run repomix`, then read the generated XML; host MCP exposes pack_codebase and read/search output tools.
 

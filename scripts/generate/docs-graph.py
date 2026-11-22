@@ -18,7 +18,7 @@ def main():
         ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard",
          "--", "*.md", "*.mermaid"], cwd=root,
     ).decode().split("\0")
-    upstream = (".agents/skills/", "docs/development/tooling/shadcn-reference/snapshot/")
+    upstream = (".agents/skills/", "docs/development/tooling/frontend/shadcn-reference/snapshot/")
     files = sorted(root / name for name in set(paths)
                    if name and not name.startswith(upstream) and (root / name).is_file())
     nodes, edges, coverage, unresolved = [], [], {}, []

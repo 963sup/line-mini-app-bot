@@ -8,4 +8,4 @@
 | [rich-menu-transfer.JPG](rich-menu-transfer.JPG) | 轉場支援 |
 | [rich-menu-clock-out.JPG](rich-menu-clock-out.JPG) | 下班 |
 
-按鈕文案、熱區和動作見 [Rich Menu 產生器與配置](../../../docs/operations/rich-menu-generator.md#版面與按鈕)。部署同步由 [Rich Menu 自動發布](../../../docs/operations/rich-menu.md)負責。
+按鈕文案、熱區和動作見 [LINE 任務接線表](../../../docs/integrations/line/wiring.md#rich-menu-圖片與按鈕配置)。部署同步由 [Rich Menu 自動發布](../../../docs/operations/rich-menu.md)負責。

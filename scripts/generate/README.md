@@ -4,6 +4,7 @@
 
 - [api-generate.mts](api-generate.mts)
 - [docs-graph.py](docs-graph.py)
+- [rich-menu.py](rich-menu.py) · [產生及檢查 Rich Menu](../../docs/development/tooling/shared/rich-menu-generator.md)
 - [prepare-miniapp-assets.mts](prepare-miniapp-assets.mts)
 
 [腳本總覽](../README.md) · [本層工作指引](AGENTS.md)

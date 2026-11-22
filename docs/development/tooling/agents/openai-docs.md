@@ -1,10 +1,10 @@
 # openaiDeveloperDocs
 
-Primary roles: Researcher, Implementer.
+Primary roles: Explorer, Implementer.
 
 ## When to use
 
-Diagnose Codex agents, MCP, configuration and hooks.
+Diagnose Codex agents, MCP and configuration.
 
 ## Prerequisites and configuration
 

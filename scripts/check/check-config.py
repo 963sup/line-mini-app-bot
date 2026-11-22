@@ -10,11 +10,7 @@ if sys.version_info < (3, 11):
 import tomllib
 
 ROOT = Path(__file__).resolve().parents[2]
-ROLES = {
-    "orchestrator", "architect", "researcher", "explorer",
-    "implementer", "debugger", "tester", "reviewer", "documentation", "integrator", "github",
-    "graphify", "repomix", "shadcn", "golang", "typescript", "nextjs", "context7", "mermaid",
-}
+ROLES = {"orchestrator", "architect", "explorer", "implementer", "reviewer", "tester", "documentation"}
 
 
 def check():
@@ -24,14 +20,14 @@ def check():
     if config.get("features", {}).get("multi_agent") is not True:
         raise ValueError("Codex multi_agent must be enabled")
     roles = {name: role for name, role in config["agents"].items() if isinstance(role, dict)}
-    if set(roles) != ROLES:
+    if set(roles) != ROLES or {path.stem for path in (codex_dir / "agents").glob("*.toml")} != ROLES:
         raise ValueError("Codex role registry must contain the documented roles")
     for name, role in roles.items():
         path = (codex_dir / role["config_file"]).resolve()
         if not path.is_relative_to(codex_dir.resolve()):
             raise ValueError(f"Agent file must remain inside .codex: {name}")
         agent = tomllib.loads(path.read_text())
-        if agent.get("name") != name or not agent.get("description", "").strip():
+        if agent.get("name") != name or not agent.get("description", "").strip() or agent["description"] != role.get("description"):
             raise ValueError(f"Missing or mismatched agent identity: {name}")
         instructions = agent.get("developer_instructions")
         if not isinstance(instructions, str) or not instructions.strip():
@@ -47,7 +43,7 @@ def check():
         # Preserve upstream Markdown: /docs/... links belong to ui.shadcn.com.
         # The local snapshot INDEX remains checked here; page hashes/coverage
         # are checked by shadcn-reference.py --check.
-        if path.is_relative_to(ROOT / "docs/development/tooling/shadcn-reference/snapshot/pages"):
+        if path.is_relative_to(ROOT / "docs/development/tooling/frontend/shadcn-reference/snapshot/pages"):
             continue
         for target in re.findall(r"\]\(([^)]+)\)", path.read_text()):
             if "://" in target or target.startswith("#"):

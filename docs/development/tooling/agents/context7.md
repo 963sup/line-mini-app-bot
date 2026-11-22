@@ -1,6 +1,6 @@
 # context7
 
-Primary roles: Context7; TypeScript, Next.js, Golang, Researcher, Implementer and Tester may also use the service.
+Primary roles: Explorer, Implementer, Tester.
 
 ## When to use
 
@@ -13,6 +13,8 @@ Connection, timeouts and enabled tool names are owned by `.codex/config.toml`.
 Tool versions are owned by `mise.toml`; never copy token values into documentation.
 
 ## Operation
+
+Reuse applicable answers from earlier handoffs. Check the documented behavior against the repository manifest and current source before applying it.
 
 Call resolve-library-id first, then query-docs with its exact library ID and a focused version-aware question. Return source URLs, documented versions and applicability limits. If the installed version is unavailable, state the mismatch rather than treating another version as verified. Do not send secrets or private source in queries.
 

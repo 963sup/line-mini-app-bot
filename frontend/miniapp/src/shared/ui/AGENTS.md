@@ -6,7 +6,7 @@
 
 ## 相關規格
 
-[本機參考庫](../../../../../docs/development/tooling/shadcn-reference/README.md) · [生成索引](../../../../../docs/development/tooling/shadcn-reference/snapshot/INDEX.md)
+[本機參考庫](../../../../../docs/development/tooling/frontend/shadcn-reference/README.md) · [生成索引](../../../../../docs/development/tooling/frontend/shadcn-reference/snapshot/INDEX.md)
 
 適用於本目錄及子目錄；遵循 [MINI App 指引](../../../AGENTS.md) 與 [根指引](../../../../../AGENTS.md)。本目錄是 `components.json` 的 `aliases.ui`（`@/shared/ui`）解析位置，保存官方 shadcn 元件；業務組合放在本目錄之外。
 
@@ -24,7 +24,7 @@
 1. 先讀官方 [Skills](https://ui.shadcn.com/docs/skills) 與專案已安裝的 [shadcn SKILL.md](../../../../../.agents/skills/shadcn/SKILL.md)，再按需求讀其 composition、forms、styling 等 references。保留上游 skill 原樣；本專案元件保護及固定工具規則優先於其中一般客製化／浮動版本範例。
 2. 以固定 CLI `info --json` 核對已安裝清單、base、aliases 與生成路徑；目前專案是 Radix、new-york、Pages Router、Tailwind v4、Lucide。實際值以 `components.json`、`info` 與套件檔案為準，不把本機參考庫視為已安裝清單。
 3. 開發前主動用已曝光的 shadcn MCP 查詢 registry、搜尋／查看元件及取得範例；依官方 [Registry MCP](https://ui.shadcn.com/docs/registry/mcp) 與 [MCP 使用說明](https://ui.shadcn.com/docs/mcp)。優先使用 `get_project_registries`、`search_items_in_registries`、`view_items_in_registries`、`get_item_examples_from_registries` 等實際可用工具；工具名稱以 host 的 tools/list 為準。
-4. MCP 未曝光時依[主機曝光診斷流程](../../../../../docs/development/tooling/mcp/shadcn.md#自主接線)修復並驗證。
+4. MCP 未曝光時依[主機曝光診斷流程](../../../../../docs/development/tooling/frontend/shadcn.md#自主接線)修復並驗證。
 5. 執行 `docs <component> --base radix` 後讀取實際官方文件與範例，並依根指引用 Context7 查證；不要將 Base UI 的 `render` 或 React Aria API 套到 Radix 的 `asChild`。官方目錄可能先連到 Base UI，實作須回到當前專案 base。
 6. 已有元件直接 import／組合；確實缺少且在任務範圍內才預覽安裝。MCP 提供的 add command 只是建議，須換成固定 CLI，先核對 registryDependencies、npm dependencies、CSS 與每個檔案 diff；不因搜尋到元件便自動安裝。
 
@@ -46,7 +46,7 @@ bash scripts/tooling/tool-exec.sh shadcn add @shadcn/button --diff --cwd fronten
 以下流程適用所有前端 UI 任務；純指引修改只驗證文件，不要求建立示範畫面。
 
 1. **先定操作目的。** 寫明使用者要完成的操作、資料密度、手機／桌面限制及必要狀態，再選元件；不要先決定元件再改變業務流程。沿用既有授權、表單資料、錯誤及未知結果重試契約。
-2. **按目的搜尋候選。** 依 [本機參考庫](../../../../../docs/development/tooling/shadcn-reference/README.md) 檢查快照新鮮度、搜尋完整 Components／AI Elements 索引，再讀相關文件；不局限已安裝項目。接著查官方 registry 的元件、組合與範例。存在實際取捨時，比較候選並簡述理由；已有合適模式時直接重用，不為流程湊選項。
+2. **按目的搜尋候選。** 依 [本機參考庫](../../../../../docs/development/tooling/frontend/shadcn-reference/README.md) 檢查快照新鮮度、搜尋完整 Components／AI Elements 索引，再讀相關文件；不局限已安裝項目。接著查官方 registry 的元件、組合與範例。存在實際取捨時，比較候選並簡述理由；已有合適模式時直接重用，不為流程湊選項。
 3. **主動按需新增。** 本專案明確指定官方 `@shadcn` 為預設來源，不需再詢問 registry。使用者要求實作 UI 時，任務必需且通過前述預覽的缺少元件可直接新增，不需使用者點名或逐件確認；只保留必要依賴與輸出。預覽若覆寫既有檔案，先嘗試以現有元件組合；仍需修改受保護元件時遵循上方授權規則。
 4. **在應用層組合。** 先使用公開 props、variants 與官方組合；新增元件後檢查 import、base、必要子元件及依賴，避免自製已有的互動控制項。AI／聊天需求才探索 [AI Elements](https://ui.shadcn.com/docs/ai-elements)，確認其實際 registry、依賴與 API；不因名稱含 AI 就新增模型服務。
 5. **驗證行為與畫面。** 實際 UI 變更依前端指引執行型別、相關測試及建置；用可用瀏覽器檢查桌面與窄螢幕、長文字／溢出、鍵盤操作、焦點進出與返回、可及名稱，以及適用的載入、空資料、錯誤、停用及提交狀態。不能只以編譯通過認定 UX 完成；沒有瀏覽器或憑證時，明列未驗收項目，不宣稱 LINE 實機已通過。
@@ -64,8 +64,8 @@ bash scripts/tooling/tool-exec.sh shadcn add @shadcn/button --diff --cwd fronten
 
 ## 全部官方元件目錄
 
-完整 Components／AI Elements 清單、用途、兩種 base 的文件與內嵌範例由 [本機參考庫](../../../../../docs/development/tooling/shadcn-reference/README.md) 的 [生成索引](../../../../../docs/development/tooling/shadcn-reference/snapshot/INDEX.md) 統一維護，不在本檔複製快照或數量。先搜尋索引，再按需讀相關 Radix 文件；未安裝、棄用及 base 不符都不能憑目錄推定可直接使用。
+完整 Components／AI Elements 清單、用途、兩種 base 的文件與內嵌範例由 [本機參考庫](../../../../../docs/development/tooling/frontend/shadcn-reference/README.md) 的 [生成索引](../../../../../docs/development/tooling/frontend/shadcn-reference/snapshot/INDEX.md) 統一維護，不在本檔複製快照或數量。先搜尋索引，再按需讀相關 Radix 文件；未安裝、棄用及 base 不符都不能憑目錄推定可直接使用。
 
-更新與完整性檢查依參考庫說明執行；最新官方目錄仍是發現新增／改名項目的來源。應用檢查、安裝來源與 MCP 診斷見 [shadcn 工具指南](../../../../../docs/development/tooling/mcp/shadcn.md) 與 [前端入口](../../../../README.md)。純指引修改驗證連結及 whitespace；實際安裝／組合再依前端指引檢查，不把文件查證當作 UI、LINE 裝置或整合驗收。
+更新與完整性檢查依參考庫說明執行；最新官方目錄仍是發現新增／改名項目的來源。應用檢查、安裝來源與 MCP 診斷見 [shadcn 工具指南](../../../../../docs/development/tooling/frontend/shadcn.md) 與 [前端入口](../../../../README.md)。純指引修改驗證連結及 whitespace；實際安裝／組合再依前端指引檢查，不把文件查證當作 UI、LINE 裝置或整合驗收。
 
 [現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)

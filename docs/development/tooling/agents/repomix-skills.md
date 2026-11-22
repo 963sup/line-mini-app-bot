@@ -4,7 +4,7 @@ Owner: the primary agent preparing the handoff, or the assigned skill-generation
 
 ## When to use
 
-每次送出使用者訊息時，專案 Hook 刷新開發入口技能。需要交接或反覆查閱一組程式時，再按任務選擇來源。
+需要交接或反覆查閱一組程式時，按任務選擇來源並產生參考技能。專案不使用 Codex hooks。
 
 ## Prerequisites and configuration
 
@@ -14,15 +14,9 @@ Tool versions are owned by `mise.toml`; never copy token values into documentati
 
 <a id="operation"></a>
 
-## 每次交談前重新產生
-
-[專案 Hooks](../../../../.codex/hooks.json) 在 `UserPromptSubmit` 呼叫[刷新腳本](../../../../scripts/tooling/repomix-prompt-hook.py)。腳本使用固定版本 CLI 和 `--force`，將開發手冊入口打包到 `.agents/skills/repomix-reference-development-entry/`，並把 `SKILL.md` 路徑交給當輪 Codex。來源由腳本限定。使用者訊息不傳給 Repomix。
-
-在支援專案 Hooks 的宿主開啟並信任此 checkout。Codex 首次載入這項 Hook 時要審核其定義，CLI 可用 `/hooks`。驗收時在一個新聊天先後送出兩則訊息。兩次都應看到刷新，且 `SKILL.md` 的修改時間都應更新。生成失敗時由 Hook 顯示原因，聊天可繼續查原始文件。[OpenAI Hooks](https://developers.openai.com/codex/hooks/#userpromptsubmit)
-
 ## 按需打包任務來源
 
-開發入口技能提供導覽。需要更深入或要[交接原始碼](../../workflow/handoff.md#sidebar-handoff)時，可另外產生限定於該任務的參考包。
+需要[交接原始碼](../../workflow/handoff.md#sidebar-handoff)時，可產生限定於該任務的參考包。
 
 用簡短、好識別的用途名稱，例如 `repomix-reference-codex-cloud`。同一用途沿用名稱，來源版本記在 Evidence。
 

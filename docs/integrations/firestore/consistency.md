@@ -32,6 +32,6 @@
 
 ## 驗收與設計產出
 
-交付讀寫集合、交易內判定、提交點、版本條件、重送鍵、回應遺失後續行為及外部副作用責任。驗證兩人同版本更新、同鍵同內容／不同內容建立、容器停用競爭、callback 重試及部分失敗後無部分提交。依[Firestore 整合驗收](../../development/verification/commands.md#firestore-integration)執行；emulator 不代表正式環境的 IAM、索引與負載均已驗證。
+交付讀寫集合、交易內判定、提交點、版本條件、重送鍵、回應遺失後續行為及外部副作用責任。驗證兩人同版本更新、同鍵同內容／不同內容建立、容器停用競爭、callback 重試及部分失敗後無部分提交。依[Firestore 整合驗收](../../development/tooling/testing/commands.md#firestore-integration)執行；emulator 不代表正式環境的 IAM、索引與負載均已驗證。
 
 [資料配置](data-model.md) · [冪等](../../references/ddd/idempotency.md) · [交易](../../references/ddd/transaction.md) · [儲存索引](README.md)

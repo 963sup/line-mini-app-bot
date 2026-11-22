@@ -4,9 +4,7 @@
 
 - [doctor.sh](doctor.sh)
 - [go-tool.sh](go-tool.sh)
-- [graphify-prompt-hook.py](graphify-prompt-hook.py) 每則 Codex 訊息送出時刷新文件子圖。
 - [gopls-tool.sh](gopls-tool.sh)
-- [repomix-prompt-hook.py](repomix-prompt-hook.py) 每則 Codex 訊息送出時刷新開發入口技能。
 - [shadcn-reference.py](shadcn-reference.py)
 - [tool-exec.sh](tool-exec.sh)
 

@@ -14,6 +14,42 @@ enabled = true
 name = "openai-docs"
 enabled = true
 
+[[skills.config]]
+name = "shadcn"
+enabled = true
+
+[[skills.config]]
+name = "frontend-design"
+enabled = true
+
+[[skills.config]]
+name = "web-design-guidelines"
+enabled = true
+
+[[skills.config]]
+name = "vercel-react-best-practices"
+enabled = true
+
+[[skills.config]]
+name = "next-dev-loop"
+enabled = true
+
+[[skills.config]]
+name = "graphify"
+enabled = true
+
+[[skills.config]]
+name = "repomix-explorer"
+enabled = true
+
+[[skills.config]]
+name = "context7-mcp"
+enabled = true
+
+[[skills.config]]
+name = "golang-gopls"
+enabled = true
+
 [agents]
 # Spawned threads include orchestrator and exclude the primary; host limits prevail.
 max_concurrent_threads_per_session = 6
@@ -22,28 +58,20 @@ max_concurrent_threads_per_session = 6
 max_depth = 2
 
 [agents.orchestrator]
-description = "Task decomposition, assignment, coordination and result integration."
+description = "Assign scoped work with the relevant tool guides, coordinate owners, and verify each acceptance criterion against returned evidence."
 config_file = "agents/orchestrator.toml"
 
 [agents.architect]
 description = "System architecture, technical decisions and module boundaries."
 config_file = "agents/architect.toml"
 
-[agents.researcher]
-description = "Technical research, official documentation and option comparisons."
-config_file = "agents/researcher.toml"
-
 [agents.explorer]
-description = "Code exploration, dependency analysis and change impact."
+description = "Read-only code and dependency exploration, Graphify and Repomix evidence, versioned research and published GitHub source verification."
 config_file = "agents/explorer.toml"
 
 [agents.implementer]
-description = "Implementation, refactoring, bug fixes and scoped environment repairs."
+description = "Implement and debug scoped Go, TypeScript, Next.js and shadcn changes; reproduce failures and verify fixes."
 config_file = "agents/implementer.toml"
-
-[agents.debugger]
-description = "Reproduce bugs, identify root causes, implement minimal fixes, and verify regressions."
-config_file = "agents/debugger.toml"
 
 [agents.tester]
 description = "Test design, execution and issue verification."
@@ -54,48 +82,8 @@ description = "Code quality, security and architectural compliance review."
 config_file = "agents/reviewer.toml"
 
 [agents.documentation]
-description = "Write, review and repair assigned Markdown while preserving meaning and verified sources."
+description = "Maintain assigned Markdown, source-backed Mermaid diagrams and explicitly authorized GitHub Wiki pages."
 config_file = "agents/documentation.toml"
-
-[agents.github]
-description = "Verify GitHub repository evidence and maintain its Wiki."
-config_file = "agents/github.toml"
-
-[agents.integrator]
-description = "Change integration, conflict resolution and final acceptance."
-config_file = "agents/integrator.toml"
-
-[agents.graphify]
-description = "Read-only graph exploration with current-source corroboration and scoped graph maintenance when assigned."
-config_file = "agents/graphify.toml"
-
-[agents.repomix]
-description = "Produce scoped source bundles and cross-file evidence without editing source or generating skills."
-config_file = "agents/repomix.toml"
-
-[agents.shadcn]
-description = "Inspect shadcn registry evidence and implement assigned UI composition while protecting upstream components."
-config_file = "agents/shadcn.toml"
-
-[agents.golang]
-description = "Implement assigned Go changes using gopls evidence and the repository's Go verification workflow."
-config_file = "agents/golang.toml"
-
-[agents.typescript]
-description = "Implement assigned TypeScript language and client changes with version-matched documentation and type checks."
-config_file = "agents/typescript.toml"
-
-[agents.nextjs]
-description = "Implement assigned Next.js changes while preserving the installed router, static export and application boundaries."
-config_file = "agents/nextjs.toml"
-
-[agents.context7]
-description = "Resolve version-matched library documentation and return traceable evidence without editing source or inventing unsupported claims."
-config_file = "agents/context7.toml"
-
-[agents.mermaid]
-description = "Create and maintain source-backed project diagrams with Mermaid; validate rendering and preserve business boundaries."
-config_file = "agents/mermaid.toml"
 
 [mcp_servers.mermaid]
 url = "https://mcp.mermaid.ai/mcp"

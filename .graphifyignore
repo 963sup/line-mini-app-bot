@@ -7,7 +7,7 @@
 /graphify-out/
 /repomix-output.*
 # Upstream reference pages are not application dependency evidence.
-/docs/development/tooling/shadcn-reference/snapshot/
+/docs/development/tooling/frontend/shadcn-reference/snapshot/
 
 # Dependencies, caches and build outputs
 **/node_modules/

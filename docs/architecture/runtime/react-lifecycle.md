@@ -34,7 +34,7 @@ flowchart LR
   h --- n0["pages/_app.tsx 透過 MiniAppLayout 讓<br/>/miniapp 頁面共用身分與組織 context。身分<br/>世代改變時，Shell 重建功能子樹並清除舊資料、<br/>表單及重試狀態。空間載入由 Shell 內的<br/>RepositoryProvider 管理，詳見空間載入時序。"]
   click n0 "../../domains/repository/README.md#空間載入時序"
   h --- n1["樣式編譯、Preflight、utilities 與歷史 CSS 移<br/>除範圍集中於 CSS 編譯與版面。樣式入口保留主<br/>題變數與必要的 base layer。"]
-  click n1 "../../development/tooling/mcp/shadcn.md#css-編譯與版面"
+  click n1 "../../development/tooling/frontend/shadcn.md#css-編譯與版面"
   h --- n2["月摘要與明細分開請求，cursor 翻頁只讀明細；<br/>條件變更立即清空原畫面並取消舊讀取。更正申請<br/>同一份序列化草稿沿用同一 Idempotency-Key，內<br/>容變更才換碼；同步 ref 防止連點。審核必須先<br/>讀取目前編號，變更編號即作廢舊內容。"]
   h --- n3["打卡畫面管理 exchange／locate／submit。自動<br/>打卡在可清理的 effect 中排程，Strict Mode 探<br/>測不重送；每頁只自動啟動一次。交換結果在同身<br/>分的重試間保留；不明提交結果不自動重試，手動<br/>重試沿用 requestId。離頁或登出清理 watcher／<br/>請求；整頁重開或從 BFCache 恢復時重新驗證。關窗僅適用伺服器回<br/>傳 accepted: true 與 LINE 內建瀏覽器。"]
   h --- n4["診斷定位需手動啟動；驗證成功才更新座標結果，<br/>失敗／更新中保留上次成功結果並標示。診斷端點<br/>仍不保存位置。"]

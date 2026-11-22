@@ -17,6 +17,6 @@ FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 \
   -run '^TestWikiMembershipAndRevisions$' -count=1 -v
 ```
 
-若連接埠已被其他服務占用，先確認服務身分，保留既有程序。測試驗收門檻見[整合驗收流程](../../development/verification/commands.md#firestore-integration)。
+若連接埠已被其他服務占用，先確認服務身分，保留既有程序。測試驗收門檻見[整合驗收流程](commands.md#firestore-integration)。
 
-[Firestore 整合索引](README.md)
+[Firestore 整合索引](../../../integrations/firestore/README.md)

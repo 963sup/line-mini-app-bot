@@ -11,10 +11,10 @@
 | 修改公開 API | [API 契約與生成流程](../api/README.md) | 對應功能與 [HTTP 契約](architecture/README.md#http-契約) |
 | 劃分模型、聚合或交易邊界 | [DDD 問題索引](references/ddd/README.md#按問題查閱) | [現行後端邊界](architecture/runtime/backend-boundaries.md)與目標領域測試 |
 | 修改自有文件或巢狀指引 | [文件歸屬](#文件歸屬與維護) | [文件維護與驗證](AGENTS.md#驗證) |
-| 準備開發環境 | [初始化指南](development/environment/setup.md) | [工具與 MCP](development/tooling/README.md) |
+| 準備開發環境 | [初始化指南](development/tooling/shared/toolchain-setup.md) | [工具與 MCP](development/tooling/README.md) |
 | 判定修改是否完成 | [驗收矩陣](development/acceptance.md#變更驗收矩陣) | 對應功能及外部環境驗收 |
 | 部署、發布或排錯 | [營運入口](architecture/README.md#部署與營運) | 相關設定與真實環境證據 |
-| 查工具在 Codex 沒有曝光 | [MCP 載入檢查](development/tooling/mcp/README.md#project-loading-check) | [專案 Codex 設定](../.codex/README.md) |
+| 查工具在 Codex 沒有曝光 | [MCP 載入檢查](development/tooling/agents/README.md#project-loading-check) | [專案 Codex 設定](../.codex/README.md) |
 | 選用 Google Cloud、Maps 或 reCAPTCHA | [逐服務規格](integrations/google-cloud/README.md) | [資料儲存](architecture/data.md)與對應領域契約 |
 | 評估未來能力 | [規劃與提案](proposals/README.md) | 已接受 ADR 與現行功能規格 |
 
@@ -37,7 +37,7 @@
 | --- | --- |
 | 查現行業務流程與狀態 | [領域索引](domains/README.md#domain-matrix) · [定位打卡時序](domains/attendance/README.md#定位前預檢狀態與時序) · [補卡與人工審核](domains/attendance/worktime.md#補卡與人工審核) |
 | 推導模型、聚合、交易與用例 | [DDD 設計圖](references/ddd/design-diagrams.md) · [聚合邊界](references/ddd/aggregate.md#邊界與存取入口) · [提交與發布](references/ddd/transaction.md#提交與發布) |
-| 開發、驗收或排錯 | [開發流程](development/README.md) · [驗收矩陣](development/verification/commands.md#變更驗收矩陣) · [部署與回復](operations/release-acceptance.md#切換觀察回復) |
+| 開發、驗收或排錯 | [開發流程](development/README.md) · [驗收矩陣](development/tooling/testing/commands.md#變更驗收矩陣) · [部署與回復](operations/release-acceptance.md#切換觀察回復) |
 | 評估尚未採用的設計 | [提案索引](proposals/README.md) · [跨領域協作](proposals/domain-collaboration.md) · [Webhook、Inbox 與 Outbox](proposals/webhook-delivery/design.md#webhook-接收處理與發送) |
 
 ## 目錄責任
