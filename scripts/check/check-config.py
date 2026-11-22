@@ -10,34 +10,24 @@ if sys.version_info < (3, 11):
 import tomllib
 
 ROOT = Path(__file__).resolve().parents[2]
-ROLES = {"orchestrator", "architect", "explorer", "implementer", "reviewer", "tester", "documentation"}
 
 
 def check():
     codex_dir = ROOT / ".codex"
     config = tomllib.loads((codex_dir / "config.toml").read_text())
     mise = tomllib.loads((ROOT / "mise.toml").read_text())
-    if config.get("features", {}).get("multi_agent") is not True:
-        raise ValueError("Codex multi_agent must be enabled")
-    roles = {name: role for name, role in config["agents"].items() if isinstance(role, dict)}
-    if set(roles) != ROLES or {path.stem for path in (codex_dir / "agents").glob("*.toml")} != ROLES:
-        raise ValueError("Codex role registry must contain the documented roles")
-    for name, role in roles.items():
-        path = (codex_dir / role["config_file"]).resolve()
-        if not path.is_relative_to(codex_dir.resolve()):
-            raise ValueError(f"Agent file must remain inside .codex: {name}")
-        agent = tomllib.loads(path.read_text())
-        if agent.get("name") != name or not agent.get("description", "").strip() or agent["description"] != role.get("description"):
-            raise ValueError(f"Missing or mismatched agent identity: {name}")
-        instructions = agent.get("developer_instructions")
-        if not isinstance(instructions, str) or not instructions.strip():
-            raise ValueError(f"Missing agent instructions: {name}")
-    # Catch stale role-document paths after moving or renaming documentation.
-    for role in roles.values():
-        instructions = tomllib.loads((codex_dir / role["config_file"]).read_text())["developer_instructions"]
-        for reference in re.findall(r"docs/[A-Za-z0-9_./-]+\.md", instructions):
+    if config.get("features", {}).get("multi_agent") is not False:
+        raise ValueError("Codex multi_agent must be disabled")
+    if "agents" in config or list((codex_dir / "agents").glob("*.toml")):
+        raise ValueError("Subagent registrations must be removed")
+    capabilities = ROOT / "docs/development/workflow/capabilities"
+    for name in ("README", "planning", "architect", "explorer", "implementer", "reviewer", "tester", "documentation"):
+        if not (capabilities / (name + ".md")).is_file():
+            raise ValueError(f"Missing capability guide: {name}")
+    for guide in capabilities.glob("*.md"):
+        for reference in re.findall(r"docs/[A-Za-z0-9_./-]+\.md", guide.read_text()):
             if not (ROOT / reference).is_file():
-                raise ValueError(f"Missing role document: {reference}")
+                raise ValueError(f"Missing capability reference: {reference}")
     docs = list((ROOT / "docs").rglob("*.md"))
     for path in docs:
         # Preserve upstream Markdown: /docs/... links belong to ui.shadcn.com.
@@ -86,7 +76,7 @@ def check():
     scripts = sorted((ROOT / "scripts").rglob("*.sh"))
     for path in scripts:
         subprocess.run(["bash", "-n", str(path)], check=True)
-    print(f"PASS: {len(roles)} agents, mise env/tool config, {len(json_paths)} JSON files and {len(scripts)} shell scripts")
+    print(f"PASS: single-agent capabilities, mise env/tool config, {len(json_paths)} JSON files and {len(scripts)} shell scripts")
 
 
 if __name__ == "__main__":

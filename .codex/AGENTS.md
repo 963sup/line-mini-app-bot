@@ -1,6 +1,6 @@
 # .codex 工作指引
 
-本目錄沿用[根目錄指引](../AGENTS.md)。[config.toml](config.toml)登記角色與 MCP；[角色目錄](agents/README.md)維護分工；專案不使用 Codex hooks。環境設定見[本層說明](README.md)。
+本目錄沿用[根目錄指引](../AGENTS.md)。[config.toml](config.toml)維護單一代理功能與 MCP；[能力入口](../docs/development/workflow/capabilities/README.md)保存專業指引；專案不使用 Codex hooks。環境設定見[本層說明](README.md)。
 
 ## 職責與邊界
 
@@ -12,6 +12,6 @@
 
 ## Business Operation
 
-開始相關任務前，必須閱讀 [操作模型](../docs/contracts/business-operations.md) 與 [符合性流程](../docs/development/workflow.md#business-operation-compliance)。
+開始相關任務前，必須閱讀 [操作模型](../docs/contracts/business-operations.md) 與 [符合性流程](../docs/development/workflow/implementation.md#business-operation-compliance)。
 
-角色調整必須同步引用操作模型與符合性流程，以角色責任補充，不複製完整政策；不藉由此流程增加角色或權限。
+能力調整必須同步引用操作模型與符合性流程，以專業責任補充，不複製完整政策；不藉由此流程增加角色或權限。

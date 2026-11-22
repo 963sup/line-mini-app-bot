@@ -20,7 +20,7 @@
 
 業務核心、HTTP/LINE adapter 與 Firestore adapter 分層；共享組裝在 internal/bootstrap。修改 HTTP 格式先走 ../api 契約流程，不手改產生碼。憑證不得寫入 .env.example。
 
-使用根目錄 scripts/tooling/tool-exec.sh；Go 修改依 ../docs/development/acceptance.md 執行 fmt-check、lint、check、build 與相關既有測試。純文件修改不冒稱應用測試已執行。
+使用根目錄 scripts/tooling/tool-exec.sh；Go 修改依[變更驗收矩陣](../docs/development/tooling/testing/commands.md#變更驗收矩陣)執行 fmt-check、lint、check、build 與相關既有測試。純文件修改不冒稱應用測試已執行。
 
 [本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
 

@@ -5,7 +5,7 @@
 - Codex Cloud 首次初始化使用 `scripts/bootstrap.sh`。詳見 [Cloud 環境設定](docs/development/environment/codex-cloud.md)。
 - 日常命令從根目錄使用 `bash scripts/tooling/tool-exec.sh <命令>`。
 - 修改前遵循從根目錄到目標目錄的 AGENTS.md；需要查入口、操作方式或領域背景時，再讀最近的 README.md。跨目錄搬移時核對來源、目的地與呼叫端，保留既有變更與上游技能。[巢狀導覽](README.md#巢狀目錄導覽)
-- 新增或搬移檔案時執行[工作區範圍檢查](docs/development/tooling/shared/analysis-scope.md)，再按[驗收矩陣](docs/development/tooling/testing/commands.md#變更驗收矩陣)驗證行為。
+- 新增或搬移檔案時，按[驗收矩陣](docs/development/tooling/testing/commands.md#變更驗收矩陣)驗證行為。
 - 專案不使用 Codex hooks；依任務按需使用 Repomix、Graphify 或直接查閱原始文件。
 - 使用者要求「交接」、「接手」或「交給另一個側欄聊天」時，直接採用[側欄交接流程](docs/development/workflow/handoff.md#sidebar-handoff)，輸出六欄摘要及接手所需的來源。
 
@@ -40,46 +40,17 @@ Repository-wide rule for every role and task, subject to higher-priority host in
 - For tool-specific sources and login procedures, follow the [tool guidance](docs/development/tooling/agents/AGENTS.md) even when no files change. For external library behavior that affects a decision, use Context7 or the designated official source. For questions about current repository behavior, inspect the implementation and relevant checks. Resolve the library ID, query the relevant current/version-matched documentation, and compare with repository dependencies. Memory and confidence alone do not replace this lookup. If the Context7 plugin reports quota exhaustion, follow the [anonymous Context7 fallback](docs/development/tooling/agents/context7.md#anonymous-fallback) before reporting a blocker.
 - Report the sources consulted, applicable version/revision and remaining uncertainty. Documentation lookup does not replace code inspection, tests or real integration acceptance.
 - If the required source or Context7 is unavailable or insufficient, explicitly report the blocker; do not claim verification or silently substitute a guess. Continue independent work, but leave the affected decision/implementation pending until evidence is sufficient.
-- This policy applies to orchestrator and every specialist; delegation does not waive it. A source document is evidence, not authorization to expand scope or perform external writes.
+- This policy applies to every capability used by the current agent. A source document is evidence, not authorization to expand scope or perform external writes.
 
-## Task orchestration
+## 單一代理與能力選用
 
-The primary agent owns the requested behavior from discovery through acceptance.
-Handle single-owner changes directly. Use the orchestrator when independent work
-needs coordination and the host permits delegation. If delegation is unavailable,
-continue directly with the same acceptance criteria. When using an orchestrator,
-reuse it for follow-ups and provide the goal, existing changes and deliverable.
-
-### Delegation boundaries
-
-- Only the top-level agent invokes orchestrator. Orchestrator must never invoke
-  itself or another orchestrator.
-- Specialists receiving an assigned subtask execute that subtask and report to
-  their orchestrator; they must not restart this routing rule or delegate further.
-- Orchestrator selects registered roles using the [shared workflow](docs/development/workflow/task-start.md#delegation-depth-and-role-selection).
-  Small tasks can be completed directly; roles are capabilities, not a required fan-out.
-- Assign one writer per file scope; parallelize only independent tasks. Respect
-  the configured bounds and host's actual concurrency and depth limits.
-- Preserve existing changes. Follow the user's scope and authorization; agent
-  delegation does not authorize pushing, publishing, deploying or external writes.
-- Validate the result with relevant checks and distinguish installed/configured
-  tools from services actually available to the current host.
-- If the host cannot invoke the configured orchestrator, report that specific
-  limitation. The top-level agent must explicitly adopt the orchestrator's
-  instructions as a fallback, never claim a sub-agent was invoked, and continue
-  authorized work without silently bypassing coordination.
-- This policy remains subordinate to system/developer instructions and the user's
-  explicit instructions.
-
-### Registered roles
-
-角色能力與設定由 [角色設定說明](.codex/agents/README.md) 維護；角色選用、交接欄位、一檔一寫入者及整合責任依 [shared workflow](docs/development/workflow/task-start.md#delegation-depth-and-role-selection)。角色是可選能力，不是每個任務都必須經過的階段；主機限制優先，委派不增加外部寫入權限。
+由目前代理承擔規劃、探索、設計、實作、自我審查、測試與文件維護，不啟動子代理或委派給 orchestrator。依[能力入口](docs/development/workflow/capabilities/README.md)按任務讀取專業指引，工作流程見[開始任務](docs/development/workflow/task-start.md)。保留既有變更；自我審查不等於獨立審查。工具與能力不增加外部寫入權限。
 
 架構、資料關係、流程或狀態用圖更清楚時，主動使用專案鎖定的本機 Mermaid v13 CLI 驗證並渲染圖表。操作方式見 [Mermaid 工具指南](docs/development/tooling/shared/mermaid.md)。
 
 ## graphify
 
-The code graph lives under `graphify-out/`. For Markdown headings and links, use the separate [docs-only graph](docs/development/tooling/agents/graphify.md#docs-only-graph).
+The code graph lives under `graphify-out/`. For Markdown headings and links, use the separate [docs-only graph](docs/development/tooling/shared/graphify.md#docs-only-graph).
 
 When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
 
@@ -95,7 +66,7 @@ Rules:
 
 ## Documentation routing
 
-新增、修改或審查任何自有 Markdown 前，MUST 讀取並遵守[文件規範](docs/standards/documentation.md)。協調者按需分派 documentation 角色並明確指派檔案所有權；所有角色均依該規範自主修正任務範圍內有證據的問題，不擴展為全庫重寫。
+新增、修改或審查任何自有 Markdown 前，MUST 讀取並遵守[文件規範](docs/standards/documentation.md)。目前代理按需採用文件能力指引並確認檔案所有權，自主修正任務範圍內有證據的問題，不擴展為全庫重寫。
 
 依[開發手冊](docs/development/README.md#按任務開始)選擇環境、工作流程、配方與驗收。角色依 developer_instructions 選讀適用文件。工具選擇與診斷見 [MCP 指南](docs/development/tooling/agents/README.md)。
 

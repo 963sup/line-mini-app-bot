@@ -11,4 +11,4 @@ Codex 問題先查 OpenAI Docs MCP。SDK 與版本查證依[全庫查證規則](
 
 ## gcloud sign-in routing
 
-For gcloud login, follow [the short sign-in workflow](google.md#gcloud-sign-in). Keep one orchestrator executor for the whole OAuth process; the top-level agent relays the clickable URL and user code to that same executor. Reuse valid credentials first; otherwise provide the headless login URL immediately. Do not start browser/desktop discovery or additional specialists unless the user asks. Keep CLI login separate from ADC and resource changes.
+For gcloud login, follow [the short sign-in workflow](google.md#gcloud-sign-in). Keep the current agent as the executor for the whole OAuth process; it presents the clickable URL and returns the user code to the same process. Reuse valid credentials first; otherwise provide the headless login URL immediately. Do not start browser/desktop discovery or additional specialists unless the user asks. Keep CLI login separate from ADC and resource changes.

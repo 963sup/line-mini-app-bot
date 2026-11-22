@@ -43,7 +43,7 @@ flowchart TB
 
 Context7 先解析 library ID 再查適用版本。LINE、Google Cloud 與 Codex 依[工具查證指引](../tooling/agents/AGENTS.md)。產品決策以使用者與已接受規格為準。
 
-Explorer 與 reviewer 維持唯讀並回報 orchestrator，implementer 修正，必要時依除錯流程定位。保留既有變更，範圍外另列。主機不支援角色時由主代理直接承接並說明。依[驗收矩陣](../tooling/testing/commands.md)核對契約、實作與證據。程式修改後依根指引更新 Graphify，重新打包受影響內容並沿用有效證據。
+目前代理先唯讀探索，再依授權修改並進行自我審查，必要時依除錯流程定位。保留既有變更，範圍外另列；自我審查不等於獨立審查。依[驗收矩陣](../tooling/testing/commands.md)核對契約、實作與證據。程式修改後依根指引更新 Graphify，重新打包受影響內容並沿用有效證據。
 
 交付列出：發現 → 規格依據 → 修改位置 → 檢查結果 → 剩餘限制。不把工具成功等同業務正確，不無限重跑全庫檢查。此流程不增加 push、部署或資料遷移授權。
 

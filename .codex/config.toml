@@ -1,5 +1,5 @@
 [features]
-multi_agent = true
+multi_agent = false
 
 [skills]
 include_instructions = true
@@ -50,40 +50,6 @@ enabled = true
 name = "golang-gopls"
 enabled = true
 
-[agents]
-# Spawned threads include orchestrator and exclude the primary; host limits prevail.
-max_concurrent_threads_per_session = 6
-# V1: primary(0) -> orchestrator(1) -> specialist(2). V2 ignores max_depth.
-# Specialists do not spawn; see docs/development/workflow/task-start.md#delegation-depth-and-role-selection for the shared policy.
-max_depth = 2
-
-[agents.orchestrator]
-description = "Assign scoped work with the relevant tool guides, coordinate owners, and verify each acceptance criterion against returned evidence."
-config_file = "agents/orchestrator.toml"
-
-[agents.architect]
-description = "System architecture, technical decisions and module boundaries."
-config_file = "agents/architect.toml"
-
-[agents.explorer]
-description = "Read-only code and dependency exploration, Graphify and Repomix evidence, versioned research and published GitHub source verification."
-config_file = "agents/explorer.toml"
-
-[agents.implementer]
-description = "Implement and debug scoped Go, TypeScript, Next.js and shadcn changes; reproduce failures and verify fixes."
-config_file = "agents/implementer.toml"
-
-[agents.tester]
-description = "Test design, execution and issue verification."
-config_file = "agents/tester.toml"
-
-[agents.reviewer]
-description = "Code quality, security and architectural compliance review."
-config_file = "agents/reviewer.toml"
-
-[agents.documentation]
-description = "Maintain assigned Markdown, source-backed Mermaid diagrams and explicitly authorized GitHub Wiki pages."
-config_file = "agents/documentation.toml"
 
 [mcp_servers.mermaid]
 url = "https://mcp.mermaid.ai/mcp"

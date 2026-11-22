@@ -1,22 +1,24 @@
 # MCP tool selection
 
-依任務選服務。角色對照是閱讀入口，實際連線設定以[專案 MCP 設定](../../../../.codex/config.toml)為準。原生工具缺少時先查[專案載入](#project-loading-check)；修改指引見[本層規則](AGENTS.md)。
+依任務選服務。能力對照是閱讀入口，不表示子代理註冊，實際連線設定以[專案 MCP 設定](../../../../.codex/config.toml)為準。原生工具缺少時先查[專案載入](#project-loading-check)；修改指引見[本層規則](AGENTS.md)。
 
 ## 開發角色共同工作指引
 
-接到任務時，先讀[根目錄指引](../../../../AGENTS.md)及適用的巢狀指引，遵循查證來源與任務範圍規則。依[開發流程](../../workflow.md)交接並重用已驗證的證據；依[驗收指引](../../acceptance.md)選擇檢查。業務變更另讀[業務操作契約](../../../contracts/business-operations.md)並遵循其符合性流程。透過 `scripts/tooling/tool-exec.sh` 執行專案工具，回報實際檢查結果及未驗證事項。
+接到任務時，先讀[根目錄指引](../../../../AGENTS.md)及適用的巢狀指引，遵循查證來源與任務範圍規則。依[交接指引](../../workflow/handoff.md)交接並重用已驗證的證據；依[驗收指引](../testing/commands.md)選擇檢查。業務變更另讀[業務操作契約](../../../contracts/business-operations.md)並遵循其符合性流程。透過 `scripts/tooling/tool-exec.sh` 執行專案工具，回報實際檢查結果及未驗證事項。
+
+Explorer 與 Reviewer 只查任務相關原始碼及文件，區分設定與實測行為，回報可採取行動的發現；有新證據才重新檢查未變動的設定。
 
 依角色與任務選讀下表。涉及 LINE 或 Firestore 時，另查[LINE 能力](../../../integrations/line/capabilities.md)與[Firestore 連線](../../../integrations/firestore/connection.md)；其他領域由[文件總覽](../../../README.md)定位。
 
 | 角色 | 任務相關文件 |
 | --- | --- |
 | architect | [line-平台架構總覽](../../../architecture/runtime/overview.md) · [共用系統基礎](../../../architecture/README.md) · [graphify](graphify.md) |
-| implementer | [Go 開發與驗收](../../../standards/go.md) · [驗收索引（原路徑）](../../acceptance.md) · [openaiDeveloperDocs](openai-docs.md) · [context7](context7.md) |
+| implementer | [Go 開發與驗收](../../../standards/go.md) · [驗收矩陣](../testing/commands.md) · [openaiDeveloperDocs](openai-docs.md) · [context7](context7.md) |
 | explorer | [line-平台架構總覽](../../../architecture/runtime/overview.md) · [graphify](graphify.md) · [gopls](../backend/gopls.md) · [repomix](repomix.md) |
-| orchestrator | [開發流程索引（原路徑）](../../workflow.md) · [驗收索引（原路徑）](../../acceptance.md) · [github](github.md) |
-| explorer（技術研究） | [共用系統基礎](../../../architecture/README.md) · [openaiDeveloperDocs](openai-docs.md) · [context7](context7.md) · [repomix_skills](repomix-skills.md) |
-| reviewer | [驗收索引（原路徑）](../../acceptance.md) · [line-平台架構總覽](../../../architecture/runtime/overview.md) · [repomix](repomix.md) · [github](github.md) |
-| tester | [驗收索引（原路徑）](../../acceptance.md) · [gopls](../backend/gopls.md) |
+| 規劃與交付 | [開發流程](../../workflow/README.md) · [驗收矩陣](../testing/commands.md) · [github](github.md) |
+| explorer（技術研究） | [共用系統基礎](../../../architecture/README.md) · [openaiDeveloperDocs](openai-docs.md) · [context7](context7.md) · [Repomix 來源包](repomix.md) |
+| reviewer | [驗收矩陣](../testing/commands.md) · [line-平台架構總覽](../../../architecture/runtime/overview.md) · [repomix](repomix.md) · [github](github.md) |
+| tester | [驗收矩陣](../testing/commands.md) · [gopls](../backend/gopls.md) |
 
 ## MCP 工具與角色
 
@@ -29,13 +31,13 @@
 | [next-devtools](../frontend/nextjs-devtools.md) | Implementer；按需檢查本機開發伺服器的 runtime 狀態 |
 | [repomix](repomix.md) | Explorer；Reviewer 亦可使用 |
 | [mermaid](../shared/mermaid.md) | Documentation；架構、資料關係、操作流程與狀態圖，來源與渲染分開驗證 |
-| [repomix_skills](repomix-skills.md) | 交接主責代理；接手者需重用一組原始碼時自動產生參考包 |
+| [repomix_skills](repomix-skills.md) | 交接主責代理；依交接需要產生可重用的來源參考包 |
 | [gopls](../backend/gopls.md) | Implementer；Explorer、Tester、Reviewer 亦可使用 |
 | [github](github.md) | Explorer、Documentation、Orchestrator、Reviewer |
 | [google-developer-knowledge、gcloud](google.md) | Explorer、Implementer、Reviewer、Orchestrator；查 Google 文件、核對 CLI 操作 |
 | [cloud-run、toolbox、gke](../../../../.codex/config.toml) | 依任務選 Cloud Run、Firestore 或 GKE。啟用狀態與允許的工具依左側設定，當前可用性依原生呼叫驗證。 |
 
-Roles share services; this mapping is guidance, not access control. Host tool
+The current agent selects tools by capability; this mapping is guidance, not access control. Host tool
 exposure, server allowlists and user authorization determine actual access.
 Use OpenAI Docs first for Codex questions, Google Developer Knowledge and installed
 Google skills for Google Cloud, and Context7 for other library/version questions.
@@ -43,7 +45,7 @@ Use Graphify/gopls for structure and verify source claims; Repomix bundles sourc
 TypeScript and Next.js use Context7 and version-matched official documentation;
 Next.js runtime inspection may additionally use the configured next-devtools
 connector. There is no dedicated TypeScript language-service MCP server.
-Role selection and writer ownership follow the [agent workflow](../../workflow.md#delegation-depth-and-role-selection).
+Capability selection and writer ownership follow the [agent workflow](../../workflow/task-start.md#delegation-depth-and-role-selection).
 
 ## MCP 診斷
 
@@ -67,7 +69,7 @@ Check the current host's exposed tools once for the relevant service. Reuse the
 verified inventory within the same host/session, server configuration and
 allowlist; refresh when those change, a required tool is missing, or a call fails.
 Do not run doctor or tools/list before every operation or independently in every
-specialist. A protocol client's initial initialize/tools-list handshake is distinct
+capability stage. A protocol client's initial initialize/tools-list handshake is distinct
 from unnecessary repeated discovery during a healthy connection.
 
 For a new Cloud environment or an explicit inventory audit, compare every
@@ -86,8 +88,7 @@ across roles. For routine work, check only the relevant servers.
    intended checkout. Confirm each enabled server with a native read-only
    call where its allowlist permits one. If the allowlist only exposes a
    write operation, record the native tool as exposed and functional acceptance
-   as pending until an authorized operation succeeds. For example, Repomix Skills
-   exposes only `generate_skill`. Record missing tools, credentials
+   as pending until an authorized operation succeeds. Record missing tools, credentials
    or permissions and continue independent work. Direct transport and CLI
    checks serve as diagnostics and do not substitute for the required MCP call.
 

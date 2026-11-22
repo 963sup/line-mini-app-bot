@@ -1,21 +1,10 @@
 # 系統化除錯與根因分析
 
-Orchestrator assigns implementer for error messages, logs, reproducible bugs and
-unexplained test failures. Implementer owns diagnosis and scoped fixes; orchestrator
-owns priorities, dependencies, file ownership and final acceptance. Small obvious
-fixes can stay with implementer; do not start every role for every bug.
+目前代理負責診斷、最小修正與驗收；依[實作能力](capabilities/implementer.md)及[測試能力](capabilities/tester.md)按需查閱，最後進行唯讀自我審查。
 
 ## Assignment and collaboration
 
-Provide expected versus observed behavior, exact sanitized error or log, revision,
-runtime/dependency versions, reproduction inputs, owned files, constraints and
-acceptance commands. Distinguish read-only diagnosis from authorized fixes.
-Implementer never invokes orchestrator or delegates. Request scope reassignment
-through orchestrator when a cause crosses file ownership. Implementer may take a
-larger fix after an explicit handoff; never edit the same files concurrently.
-Tester checks reproduction and relevant regressions; reviewer checks causal
-reasoning and fix scope; orchestrator handles combined acceptance when needed.
-Orchestrator decides completion from this evidence, not from a role's confidence.
+記錄預期與實際行為、去識別錯誤、來源版本、執行環境、重現輸入、檔案範圍及驗收命令。區分唯讀診斷與授權修正；保留其他聊天的變更，跨檔案時先確認所有權。以重現和回歸證據判定完成，不以信心代替驗證。
 
 ## Diagnostic loop
 
@@ -52,6 +41,6 @@ flowchart TB
 
 ## Configuration and activation
 
-Assign debugging to `implementer` under its inherited permissions and assigned write scope.
+目前代理在既有權限與授權範圍內採用實作能力，不啟動子代理。
 
 [開發流程索引](README.md)
