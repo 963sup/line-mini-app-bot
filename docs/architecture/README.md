@@ -16,16 +16,6 @@
 
 從[任務索引](../README.md#按任務開始)選取範圍，依[驗收矩陣](../development/acceptance.md#變更驗收矩陣)決定必要證據。早期[平台交付階段](../proposals/platform/delivery.md)記錄當時的切片與待決策項目，功能現況查所屬契約。
 
-### 接手時的證據與用語
-
-追蹤需求時，將需求 ID 對到用例、實際檔案或函數與代表測試。成功與拒絕案例的 JSON 放在測試的 testdata。actor 是經驗證操作者，target 是發送目標；accepted 表示 API 接受，completed 表示本地處理完成，兩者均未證明訊息已讀。核對每類錯誤的 HTTP、重試與觀測語意；未知錯誤不預設可以重試。
-
-工具版本查 [mise](../../mise.toml)，Go SDK 依賴查 [go.mod](../../backend/go.mod)。畫圖時區分執行、依賴及資料方向；Graphify 描述程式結構，Repomix 提供來源上下文，驗收另需行為證據。
-
-### 歷史查核來源（2026-11-07）
-
-當時以 Context7 查核 Go 命名與建構函數、LINE event source／mode、retry key、Reply，以及 Firestore 交易重試與刪除。來源 ID 為 `/websites/go_dev_doc`、`/line/line-openapi`、`/websites/cloud_google_firestore_native`。遇到 token 期限、資格或客戶端差異，依目前 endpoint 文件及實測確認。
-
 <a id="architecture-decision-records"></a>
 
 ### 已接受的架構決策

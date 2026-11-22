@@ -37,6 +37,10 @@ flowchart LR
   click n0 "../proposals/webhook-delivery/design.md#webhook-接收處理與發送"
 ```
 
+## 回應與送達
+
+整合結果若使用 `accepted`，表示外部 API 接受請求；`completed` 表示本地處理完成。LINE 訊息是否送達或已讀須依該流程取得相應證據。未知錯誤依各操作契約判定是否可重試。
+
 <a id="api-一致性"></a>
 
 ```mermaid

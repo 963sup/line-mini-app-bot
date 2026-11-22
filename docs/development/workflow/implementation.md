@@ -4,6 +4,12 @@
 
 核對既有呼叫者及資料語意，實作可從正常入口驗收的完整變更。交付前按[驗收矩陣](../verification/commands.md)選檢查，並記錄[證據限制](../verification/evidence.md)。
 
+## 完整實作就緒條件
+
+核對本次操作的 API、schema、狀態機與驗收案例，逐一確認角色及各分支的結果。涉及[平台交付提案的 P01–P07](../../proposals/platform/delivery.md#產品決策閘門)時，只追蹤本功能依賴的決策，現行行為以[領域規格](../../domains/README.md)為準。
+
+若要新增到場判定或定位歷史，先依[定位契約](../../integrations/geolocation/browser-api.md)確認 P08 的目的、精度與新鮮度、替代流程、保存期及同意。未決前維持既有功能範圍。
+
 ## Deployment and browser location routing
 
 部署與瀏覽器定位任務分別依[部署指引](../../operations/AGENTS.md)與[定位指引](../../../frontend/miniapp/src/shared/location/AGENTS.md)載入適用決策與操作文件；實際驗收依 [acceptance](../verification/evidence.md#cloud-run-and-browser-location)。本節不另外維護部署政策。
@@ -29,7 +35,7 @@ flowchart TB
   C --> D{"必需來源可用？"}
   D -->|否| H["受影響決策待確認，繼續獨立部分"]
   D -->|是| E["區分缺陷、工具盲點與待確認需求"]
-  E --> F["記錄規格、符號、影響、最小修正及檢查"]
+  E --> F["記錄規格、符號、根因、影響與檢查"]
   F --> G["分派範圍內修正，依驗收矩陣交付"]
 ```
 

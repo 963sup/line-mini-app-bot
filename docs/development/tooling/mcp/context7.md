@@ -53,3 +53,7 @@ not replace those sources or define product requirements. Role handoffs follow
 If the service or required evidence is unavailable, report the blocker and leave
 the affected decision pending. A successful query does not prove application
 behavior or host loading.
+
+## 歷史查證範圍
+
+2026-11-07 曾透過 Context7 核對 Go 命名與建構函數、LINE 事件來源、模式、retry key 與 Reply，以及 Firestore 交易重試與刪除。當時來源 ID 為 `/websites/go_dev_doc`、`/line/line-openapi`、`/websites/cloud_google_firestore_native`。目前的版本、資格及期限須依適用文件與實測重查。

@@ -7,7 +7,7 @@
 
 ## Deployment and browser location routing
 
-部署依[Cloud Run 決策](../docs/decisions/0003-cloud-run-primary.md)與[發布指南](../docs/operations/cloud-run.md)選擇專用執行身分與最小 IAM。定位依[瀏覽器取得與後端驗證契約](../docs/integrations/geolocation/browser-api.md)，涉及到場判定或歷史需有產品決策。設計交接依[任務範本](../docs/standards/task-handoff.md)與[命名規範](../docs/standards/naming.md)。
+部署依[Cloud Run 決策](../docs/decisions/0003-cloud-run-primary.md)與[發布指南](../docs/operations/cloud-run.md)選擇專用執行身分與最小 IAM。定位依[瀏覽器取得與後端驗證契約](../docs/integrations/geolocation/browser-api.md)，涉及到場判定或歷史需有產品決策。設計交接依[任務範本](../docs/development/workflow/handoff.md#六欄交接範本)與[命名規範](../docs/standards/naming.md)。
 
 ## Mandatory documentation verification
 

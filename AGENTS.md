@@ -100,7 +100,7 @@ Rules:
 
 依[開發手冊](docs/development/README.md#按任務開始)選擇環境、工作流程、配方與驗收。角色依 developer_instructions 選讀適用文件。工具選擇與診斷見 [MCP 指南](docs/development/tooling/mcp/README.md)。
 
-實作交接依[架構證據與用語](docs/architecture/README.md#接手時的證據與用語)與[命名規範](docs/standards/naming.md)。
+實作交接依[交接與證據重用](docs/development/workflow/handoff.md#minimal-handoff-and-evidence-reuse)與[命名規範](docs/standards/naming.md)。
 
 ## Repository publication default
 
