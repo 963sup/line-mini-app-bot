@@ -18,7 +18,7 @@ func templateView(t dto.Template) generated.ObjectTemplate {
 	for i, n := range t.Nodes {
 		nodes[i] = generated.ObjectTemplateNode{Id: n.ID, Name: n.Name, ParentId: optional(n.ParentID), Description: optional(n.Description), Type: optional(n.Type), Quantity: optional(n.Quantity), Unit: optional(n.Unit)}
 	}
-	return generated.ObjectTemplate{Id: t.ID, RepositoryId: t.RepositoryID, Name: t.Name, CreatorId: t.CreatorID, Version: 1, Nodes: nodes, CreatedAt: t.CreatedAt}
+	return generated.ObjectTemplate{Id: t.ID, RepositoryId: t.RepositoryID, Name: t.Name, CreatorId: t.CreatorID, Version: t.Version, Nodes: nodes, CreatedAt: t.CreatedAt}
 }
 
 func optional(s string) *string {
@@ -39,6 +39,14 @@ func (s *objectServer) CreateObjectTemplate(w http.ResponseWriter, r *http.Reque
 	}
 	actor := identity.UserID(r.Context())
 	input := dto.TemplateCreation{Name: in.Name, Nodes: nodes}
+	if in.TemplateId != nil || in.BaseVersion != nil {
+		if rid != "" || in.TemplateId == nil || in.BaseVersion == nil || *in.BaseVersion < 1 || *in.TemplateId == "" {
+			writeTemplateError(w, entity.ErrInput)
+			return
+		}
+		input.TemplateID = *in.TemplateId
+		input.BaseVersion = *in.BaseVersion
+	}
 	var t dto.Template
 	var e error
 	if p.Scope != nil && *p.Scope == "personal" {
@@ -98,8 +106,16 @@ func (s *objectServer) InstantiateObjectTemplate(w http.ResponseWriter, r *http.
 			writeTemplateError(w, entity.ErrInput)
 			return
 		}
-		result, e = s.service.InstantiatePersonalTemplate(r.Context(), actor, rid, id, p.IdempotencyKey, value(in.ParentId), edits[0])
+		version := int64(1)
+		if in.TemplateVersion != nil {
+			version = *in.TemplateVersion
+		}
+		result, e = s.service.InstantiatePersonalTemplate(r.Context(), actor, rid, id, p.IdempotencyKey, value(in.ParentId), edits[0], version)
 	} else {
+		if in.TemplateVersion != nil && *in.TemplateVersion != 1 {
+			writeTemplateError(w, entity.ErrInput)
+			return
+		}
 		result, e = s.service.InstantiateTemplate(r.Context(), actor, rid, id, p.IdempotencyKey, value(in.ParentId), edits...)
 	}
 	if !writeTemplateError(w, e) {
@@ -112,6 +128,10 @@ func (s *objectServer) InstantiateObjectTemplate(w http.ResponseWriter, r *http.
 }
 
 func writeTemplateError(w http.ResponseWriter, e error) bool {
+	if errors.Is(e, entity.ErrConflict) {
+		transport.WriteRequestError(w, 409, "version_conflict", "範本已有新版，請返回範本庫重新選取。", false)
+		return true
+	}
 	if errors.Is(e, entity.ErrInput) {
 		transport.WriteRequestError(w, 400, "invalid_input", "請確認範本名稱、單一根節點與父子關係；最多100個節點、48,000 bytes，數量與單位須符合物件規則。", false)
 		return true

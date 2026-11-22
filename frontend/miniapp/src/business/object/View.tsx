@@ -1,4 +1,3 @@
-import { Templates } from "./Templates";
 import { Candidates, type Selection } from "./Candidates";
 import { isPositiveQuantity, isValidCompletedQuantity } from "@/business/object/quantity";
 import React, { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
@@ -24,7 +23,7 @@ import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/em
 
 type Resource = components["schemas"]["Object"];
 type Creation = components["schemas"]["ObjectCreation"];
-type Props = { repositoryId: string };
+type Props = { repositoryId: string; initialObjectId?: string };
 const states = { not_started: "未開始", in_progress: "進行中", completed: "已完成" };
 const empty: Creation = { name: "" };
 const typeLabel = (type: string) => !type ? "尚未分類" : type === "work" ? "施作" : type === "non_work" ? "非施作" : `${type}（待確認）`;
@@ -39,7 +38,7 @@ export function View(props: Props) {
   return <Content key={`${props.repositoryId}:${epoch}:${user?.userId || ""}`} {...props} />;
 }
 
-function Content({ repositoryId }: Props) {
+function Content({ repositoryId, initialObjectId }: Props) {
   const { user, request } = useSession();
   const read = useLatestRequest(), detail = useLatestRequest(), write = useLatestRequest();
   const [items, setItems] = useState<Resource[]>([]), [cursor, setCursor] = useState("");
@@ -63,7 +62,6 @@ function Content({ repositoryId }: Props) {
   const [busy, setBusy] = useState(false), [detailBusy, setDetailBusy] = useState(false), [uncertain, setUncertain] = useState(false), [needsRefresh, setNeedsRefresh] = useState(false), [status, setStatus] = useState("");
   useEffect(() => { repositoryGuard.block(busy || uncertain || needsRefresh); }, [busy, uncertain, needsRefresh]);
   const [expanded, setExpanded] = useState("");
-  const [instance, setInstance] = useState<components["schemas"]["ObjectTemplateInstance"]>();
   const [subBlocked, setSubBlocked] = useState(false);
   const subLock = useRef(false);
   const subBlock = useCallback((value: boolean) => { subLock.current = value; setSubBlocked(value); }, []);
@@ -118,6 +116,7 @@ function Content({ repositoryId }: Props) {
       }, error => { setDetailBusy(false); setStatus(errorMessage(error)); });
     });
   }
+  useEffect(() => { if (initialObjectId) open(initialObjectId); }, [initialObjectId]);
   function openCreateForm(trigger: HTMLElement, selection?: Selection) {
     if (subLock.current || lock.current || uncertain || needsRefresh || formNavigation.current) return;
     discard.navigate(() => {
@@ -234,13 +233,7 @@ function Content({ repositoryId }: Props) {
       <div className="mb-4 flex flex-wrap gap-2">
         <Button disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={event => openCreateForm(event.currentTarget)}>新增物件</Button>
       </div>
-      <Templates repositoryId={repositoryId} disabled={!user || !!mode || busy || listBusy || uncertain || needsRefresh || subBlocked} onBlocked={subBlock} onApplied={result => {
-        // The API owns the result identity; no list scan is needed to find it.
-        subLock.current = false; formNavigation.current = false; setExpanded("");
-        setItems([]); setInstance(result); open(result.rootObjectId);
-      }} />
       <Candidates repositoryId={repositoryId} disabled={!user || !!mode || busy || uncertain || needsRefresh || subBlocked} created={createdCandidates} choose={(selection, trigger) => openCreateForm(trigger, selection)} />
-      {instance && <section aria-label="新物件樹" className="flex min-w-0 flex-col gap-2"><h3>已建立物件樹</h3><ul>{instance.nodes.map(node => <li key={node.objectId}><Button variant="link" disabled={busy || uncertain || needsRefresh || subBlocked} onClick={() => open(node.objectId)}>{node.name}</Button>{node.objectId === instance.rootObjectId ? "（根節點）" : `（父節點：${instance.nodes.find(parent => parent.objectId === node.parentId)?.name || "既有物件"}）`}</li>)}</ul></section>}
       <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取物件……" onRetry={user && listStatus && !loaded && !busy && !subBlocked && !uncertain && !mode ? () => load() : undefined} />
       {mode === "create" && <PagePanel heading="新增物件">{editor}</PagePanel>}
       {mode === "detail" && !items.some(item => item.id === activeId) && <PagePanel heading="物件詳情">{editor}</PagePanel>}

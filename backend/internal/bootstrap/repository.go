@@ -84,7 +84,9 @@ func newObjects(r *repositoryApplication.Service, store *repositorydb.Store) *ob
 	service := &objectApplication.Service{Templates: objects, PersonalTemplates: objects, DocumentTextExtractor: &candidatepoppler.Extractor{}, Repositories: r, Store: objects}
 	if key, model := os.Getenv("OPENAI_API_KEY"), os.Getenv("AI_DOCUMENT_MODEL"); key != "" && model != "" {
 		client := openai.NewClient(option.WithAPIKey(key), option.WithBaseURL("https://api.openai.com/v1/"), option.WithMaxRetries(0), option.WithHTTPClient(&http.Client{Timeout: 2 * time.Minute, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}))
-		service.CandidateExtractor = &candidateai.Extractor{Responses: client.Responses, Model: model}
+		extractor := &candidateai.Extractor{Responses: client.Responses, Model: model}
+		service.CandidateExtractor = extractor
+		service.TemplatePreparer = templatePreparation{operations: extractor}
 	}
 	return service
 }

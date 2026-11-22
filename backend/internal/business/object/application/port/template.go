@@ -22,5 +22,5 @@ type TemplateStore interface {
 type PersonalTemplateStore interface {
 	CreatePersonalTemplate(context.Context, string, string, dto.TemplateCreation) (dto.Template, error)
 	ListPersonalTemplates(context.Context, string, string) (dto.TemplatePage, error)
-	InstantiatePersonalTemplate(context.Context, repository.Repository, string, string, string, string, []template.Node) (dto.TemplateInstance, error)
+	InstantiatePersonalTemplate(context.Context, repository.Repository, string, string, string, string, []template.Node, int64) (dto.TemplateInstance, error)
 }

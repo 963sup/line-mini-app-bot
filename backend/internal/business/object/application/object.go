@@ -19,6 +19,7 @@ import (
 var creationKey = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
 
 type Service struct {
+	TemplatePreparer   TemplatePreparer
 	Templates          objectApplicationPort.TemplateStore
 	PersonalTemplates  objectApplicationPort.PersonalTemplateStore
 	CandidateExtractor operations.CandidateExtractor

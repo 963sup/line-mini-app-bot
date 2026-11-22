@@ -108,7 +108,7 @@ func (s *personalTemplateStore) ListPersonalTemplates(ctx context.Context, actor
 	return s.ListTemplates(ctx, repository.Repository{}, actor, cursor)
 }
 
-func (s *personalTemplateStore) InstantiatePersonalTemplate(context.Context, repository.Repository, string, string, string, string, []template.Node) (dto.TemplateInstance, error) {
+func (s *personalTemplateStore) InstantiatePersonalTemplate(context.Context, repository.Repository, string, string, string, string, []template.Node, int64) (dto.TemplateInstance, error) {
 	panic("not used by library operations")
 }
 

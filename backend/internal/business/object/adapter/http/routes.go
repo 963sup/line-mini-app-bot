@@ -69,7 +69,7 @@ func Register(mux *http.ServeMux, service *objectApplication.Service, auth Authe
 			if !transport.ValidateUniqueQuery(w, r) {
 				return
 			}
-			extraction := r.Pattern == "POST /api/v1/repositories/{repositoryId}/objects/candidates"
+			extraction := r.Pattern == "POST /api/v1/repositories/{repositoryId}/objects/candidates" || r.Pattern == "POST /api/v1/object-template-drafts"
 			timeout := 12 * time.Second
 			if r.Method == http.MethodPost || r.Method == http.MethodPatch {
 				media, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))

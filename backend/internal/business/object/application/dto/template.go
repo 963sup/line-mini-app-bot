@@ -6,7 +6,7 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/template"
 )
 
-// Template is an immutable, immediately usable v1 snapshot.
+// Template is an published snapshot of one template version.
 type Template struct {
 	ID, RepositoryID, Name, CreatorID string
 	Version                           int64
@@ -15,8 +15,10 @@ type Template struct {
 }
 
 type TemplateCreation struct {
-	Name  string
-	Nodes []template.Node
+	TemplateID  string
+	BaseVersion int64
+	Name        string
+	Nodes       []template.Node
 }
 
 type TemplatePage struct {

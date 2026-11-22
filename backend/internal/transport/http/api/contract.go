@@ -164,6 +164,7 @@ type OwnerProjectServer interface {
 }
 
 type ObjectServer interface {
+	PrepareObjectTemplateDraft(w http.ResponseWriter, r *http.Request, params generated.PrepareObjectTemplateDraftParams)
 	ListPersonalObjectTemplates(w http.ResponseWriter, r *http.Request, params generated.ListPersonalObjectTemplatesParams)
 	CreatePersonalObjectTemplate(w http.ResponseWriter, r *http.Request, params generated.CreatePersonalObjectTemplateParams)
 	CreateObjectTemplate(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.CreateObjectTemplateParams)

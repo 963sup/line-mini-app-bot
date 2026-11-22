@@ -38,7 +38,10 @@ func NormalizeTemplate(in dto.TemplateCreation) (dto.TemplateCreation, error) {
 	if template.ValidateTree(in.Nodes) != nil {
 		return dto.TemplateCreation{}, entity.ErrInput
 	}
-	raw, e := json.Marshal(in)
+	raw, e := json.Marshal(struct {
+		Name  string
+		Nodes []template.Node
+	}{in.Name, in.Nodes})
 	if e != nil || len(raw) > 48000 {
 		return dto.TemplateCreation{}, entity.ErrInput
 	}
@@ -118,7 +121,7 @@ func (s *Service) InstantiateTemplate(ctx context.Context, actor, rid, id, key, 
 	return s.Templates.InstantiateTemplate(ctx, r, actor, key, snapshot, parentID, plan)
 }
 
-func (s *Service) InstantiatePersonalTemplate(ctx context.Context, actor, rid, id, key, parentID string, edits []template.Node) (dto.TemplateInstance, error) {
+func (s *Service) InstantiatePersonalTemplate(ctx context.Context, actor, rid, id, key, parentID string, edits []template.Node, versions ...int64) (dto.TemplateInstance, error) {
 	r, err := s.templateTarget(ctx, actor, rid, id, key, parentID)
 	if err != nil {
 		return dto.TemplateInstance{}, err
@@ -135,7 +138,14 @@ func (s *Service) InstantiatePersonalTemplate(ctx context.Context, actor, rid, i
 	if err != nil {
 		return dto.TemplateInstance{}, err
 	}
-	return s.PersonalTemplates.InstantiatePersonalTemplate(ctx, r, actor, id, key, parentID, confirmed.Nodes)
+	version := int64(1)
+	if len(versions) > 0 {
+		version = versions[0]
+	}
+	if version < 1 {
+		return dto.TemplateInstance{}, entity.ErrInput
+	}
+	return s.PersonalTemplates.InstantiatePersonalTemplate(ctx, r, actor, id, key, parentID, confirmed.Nodes, version)
 }
 
 func (s *Service) templateTarget(ctx context.Context, actor, rid, id, key, parentID string) (repository.Repository, error) {
@@ -157,7 +167,7 @@ func (s *Service) templateTarget(ctx context.Context, actor, rid, id, key, paren
 
 // PlanTemplateInstance validates the confirmed tree against its immutable source.
 func PlanTemplateInstance(snapshot dto.Template, edits ...[]template.Node) ([]template.Node, []entity.Content, error) {
-	if snapshot.Version != 1 || template.ValidateTree(snapshot.Nodes) != nil {
+	if snapshot.Version < 1 || template.ValidateTree(snapshot.Nodes) != nil {
 		return nil, nil, entity.ErrUnavailable
 	}
 	nodes := snapshot.Nodes
@@ -193,7 +203,7 @@ func PlanTemplateInstance(snapshot dto.Template, edits ...[]template.Node) ([]te
 }
 
 func (s *Service) CreatePersonalTemplate(ctx context.Context, actor, key string, in dto.TemplateCreation) (dto.Template, error) {
-	if actor == "" || !creationKey.MatchString(key) {
+	if actor == "" || !creationKey.MatchString(key) || (in.TemplateID == "") != (in.BaseVersion == 0) || in.BaseVersion < 0 || (in.TemplateID != "" && !repository.ValidID(in.TemplateID)) {
 		return dto.Template{}, entity.ErrInput
 	}
 	if s == nil || s.PersonalTemplates == nil {

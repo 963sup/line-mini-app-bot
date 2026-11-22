@@ -1356,6 +1356,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/object-template-drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prepare a personal template draft from a document or suggested procedures without saving */
+        post: operations["prepareObjectTemplateDraft"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1978,20 +1995,21 @@ export interface components {
             quantity?: string;
             unit?: string;
         };
-        /** @description One root, connected acyclic tree, at most 100 nodes and 48,000 UTF-8 bytes of normalized content. Work defaults with a quantity require a unit; completion always starts at zero. Published immediately as immutable v1. */
+        /** @description Create v1, or publish the next personal revision by supplying templateId and baseVersion. */
         ObjectTemplateCreation: {
             name: string;
             nodes: components["schemas"]["ObjectTemplateNode"][];
+            /** @description Personal revision only. Supply together with baseVersion. */
+            templateId?: string;
+            /** Format: int64 */
+            baseVersion?: number;
         };
         ObjectTemplate: {
             id: string;
             repositoryId: string;
             name: string;
-            /**
-             * Format: int64
-             * @enum {integer}
-             */
-            version: 1;
+            /** Format: int64 */
+            version: number;
             nodes: components["schemas"]["ObjectTemplateNode"][];
             creatorId: string;
             /** Format: date-time */
@@ -2005,6 +2023,11 @@ export interface components {
         ObjectTemplateInstantiation: {
             nodes?: components["schemas"]["ObjectTemplateNode"][];
             parentId?: string;
+            /**
+             * Format: int64
+             * @description Personal snapshot version. Defaults to 1 for legacy clients.
+             */
+            templateVersion?: number;
         };
         ObjectTemplateInstance: {
             rootObjectId: string;
@@ -2395,6 +2418,31 @@ export interface components {
         };
         PopplerText: {
             text: string;
+        };
+        ObjectTemplateDraftRequest: {
+            /** @enum {string} */
+            source: "document" | "procedure";
+            filename?: string;
+            /** Format: byte */
+            data?: string;
+            name?: string;
+            conditions?: string;
+        };
+        ObjectTemplateDraftNode: {
+            id: string;
+            parentId?: string;
+            name: string;
+            unit?: string;
+        };
+        /** @description Editable unsaved tree; may exceed publication limits and must be corrected before creation. Quantities are absent. */
+        ObjectTemplateDraft: {
+            name: string;
+            nodes: components["schemas"]["ObjectTemplateDraftNode"][];
+        };
+        ObjectTemplateDraftResult: {
+            draft: components["schemas"]["ObjectTemplateDraft"];
+            warnings: string[];
+            candidates: components["schemas"]["ObjectCandidate"][];
         };
     };
     responses: {
@@ -8023,6 +8071,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ObjectTemplate"];
+                };
+            };
+            400: components["responses"]["ObjectError"];
+            401: components["responses"]["ObjectError"];
+            403: components["responses"]["ObjectForbidden"];
+            404: components["responses"]["ObjectError"];
+            409: components["responses"]["ObjectError"];
+            415: components["responses"]["ObjectError"];
+            503: components["responses"]["ObjectError"];
+        };
+    };
+    prepareObjectTemplateDraft: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
+                "X-CSRF-Token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObjectTemplateDraftRequest"];
+            };
+        };
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectTemplateDraftResult"];
                 };
             };
             400: components["responses"]["ObjectError"];

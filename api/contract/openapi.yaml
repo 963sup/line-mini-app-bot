@@ -241,6 +241,9 @@
     },
     "/api/v1/object-templates": {
       "$ref": "./object/objects.yaml#/paths/~1api~1v1~1object-templates"
+    },
+    "/api/v1/object-template-drafts": {
+      "$ref": "./object/objects.yaml#/paths/~1api~1v1~1object-template-drafts"
     }
   },
   "components": {

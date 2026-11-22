@@ -16,7 +16,7 @@ const messages: Record<Exclude<Result["status"], "completed">, string> = {
   provider_error: "OpenAI 請求失敗。請檢查回應或稍後再試。",
 };
 
-function encodeFile(file: File): Promise<string> {
+export function encodeFile(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new window.FileReader();
     reader.onload = () => resolve(String(reader.result).split(",")[1]);
@@ -25,10 +25,9 @@ function encodeFile(file: File): Promise<string> {
   });
 }
 
-export function Candidates({ repositoryId, disabled, created, choose, importDraft }: {
+export function Candidates({ repositoryId, disabled, created, choose }: {
   repositoryId: string; disabled: boolean; created?: ReadonlySet<string>;
   choose?: (selection: Selection, trigger: HTMLButtonElement) => void;
-  importDraft?: (filename: string, candidates: Candidate[]) => void;
 }) {
   const { request } = useSession();
   const { run } = useLatestRequest();
@@ -60,7 +59,7 @@ export function Candidates({ repositoryId, disabled, created, choose, importDraf
   }
 
   return <details className="my-3">
-    <summary>{importDraft ? "從文件建立" : "從文件辨識物件"}</summary>
+    <summary>從文件辨識物件</summary>
     <p>辨識時會將原檔送至 OpenAI，格式依 Responses API 支援範圍判定，每檔最多 8 MiB。試算表每張工作表最多處理前 1,000 列。<a href="https://developers.openai.com/api/docs/guides/file-inputs" target="_blank" rel="noreferrer">官方文件格式與限制</a></p>
     <label>來源文件<Input type="file" disabled={busy} onChange={e => {
       setFile(e.target.files?.[0]); setResult(undefined); setMessage("");
@@ -79,8 +78,5 @@ export function Candidates({ repositoryId, disabled, created, choose, importDraf
         </Button>}
       </article>;
     })}
-    {importDraft && result?.status === "completed" && result.candidates.length > 0 &&
-      <Button type="button" disabled={disabled || busy} onClick={() => importDraft(file!.name, result.candidates)}>填入範本草稿</Button>}
-    {result?.rawResponse && <details><summary>OpenAI 原始回應</summary><pre className="whitespace-pre-wrap break-all">{result.rawResponse}</pre></details>}
   </details>;
 }

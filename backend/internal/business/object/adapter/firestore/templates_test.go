@@ -274,3 +274,48 @@ func TestEmulatorPersonalTemplateAcrossRepositories(t *testing.T) {
 		t.Fatalf("source changed: %+v %v", source, err)
 	}
 }
+
+func TestEmulatorPersonalTemplateRevision(t *testing.T) {
+	ctx, store, r := emulatorStore(t)
+	s := application.Service{Repositories: &templateRepositories{r: r}, PersonalTemplates: store, Templates: store, Store: store}
+	first := dto.TemplateCreation{Name: "first", Nodes: []template.Node{{ID: "root", Name: "root"}}}
+	original, err := s.CreatePersonalTemplate(ctx, "alice", "original-request", first)
+	if err != nil {
+		t.Fatal(err)
+	}
+	old, err := s.InstantiatePersonalTemplate(ctx, "alice", r.ID, original.ID, "apply-original-key", "", original.Nodes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	edit := first
+	edit.TemplateID = original.ID
+	edit.BaseVersion = 1
+	edit.Name = "second"
+	updated, err := s.CreatePersonalTemplate(ctx, "alice", "revision-request", edit)
+	if err != nil || updated.ID != original.ID || updated.Version != 2 {
+		t.Fatalf("revision %+v %v", updated, err)
+	}
+	if _, err = s.CreatePersonalTemplate(ctx, "alice", "stale-request-key", edit); !errors.Is(err, entity.ErrConflict) {
+		t.Fatalf("stale edit: %v", err)
+	}
+	replay, err := s.CreatePersonalTemplate(ctx, "alice", "original-request", first)
+	if err != nil || !reflect.DeepEqual(replay, original) {
+		t.Fatalf("original replay %+v %v", replay, err)
+	}
+	replay, err = s.CreatePersonalTemplate(ctx, "alice", "revision-request", edit)
+	if err != nil || !reflect.DeepEqual(replay, updated) {
+		t.Fatalf("revision replay %+v %v", replay, err)
+	}
+	page, err := s.ListPersonalTemplates(ctx, "alice", "")
+	if err != nil || len(page.Items) != 1 || page.Items[0].Version != 2 {
+		t.Fatalf("list %+v %v", page, err)
+	}
+	obj, err := s.Get(ctx, "alice", r.ID, old.RootObjectID)
+	if err != nil || obj.TemplateVersion != 1 {
+		t.Fatalf("old object %+v %v", obj, err)
+	}
+	newer, err := s.InstantiatePersonalTemplate(ctx, "alice", r.ID, original.ID, "apply-new-version", "", updated.Nodes, 2)
+	if err != nil || newer.TemplateVersion != 2 {
+		t.Fatalf("new instance %+v %v", newer, err)
+	}
+}

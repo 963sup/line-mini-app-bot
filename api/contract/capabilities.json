@@ -1725,6 +1725,20 @@
       "consumers": [
         "frontend/miniapp/src/business/object/Templates.tsx"
       ]
+    },
+    {
+      "operationId": "prepareObjectTemplateDraft",
+      "audience": "public",
+      "method": "POST",
+      "path": "/api/v1/object-template-drafts",
+      "owner": "object",
+      "adapter": "backend/internal/business/object/adapter/http/drafts.go",
+      "handler": "PrepareObjectTemplateDraft",
+      "core": "backend/internal/business/object/application/drafts.go",
+      "specification": "docs/domains/repository/object/template.md",
+      "consumers": [
+        "frontend/miniapp/src/business/object/TemplatePreparation.tsx"
+      ]
     }
   ],
   "events": [
@@ -1887,6 +1901,11 @@
       "entity": "ObjectTemplate",
       "collection": "object-templates",
       "path": "/api/v1/object-templates"
+    },
+    {
+      "entity": "ObjectTemplateDraft",
+      "collection": "object-template-drafts",
+      "path": "/api/v1/object-template-drafts"
     }
   ],
   "namingExceptions": {

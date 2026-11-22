@@ -141,6 +141,7 @@ func RegisterOwnerProjects(public *http.ServeMux, handler OwnerProjectServer, wr
 
 func RegisterObjects(public *http.ServeMux, handler ObjectServer, wrap func(http.Handler) http.Handler) {
 	routes := withMiddleware(routeHandler(contractServer{ObjectServer: handler}), wrap)
+	public.Handle("POST /api/v1/object-template-drafts", routes)
 	public.Handle("GET /api/v1/object-templates", routes)
 	public.Handle("POST /api/v1/object-templates", routes)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/object-templates", routes)

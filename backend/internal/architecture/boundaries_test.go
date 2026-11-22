@@ -18,6 +18,9 @@ func TestDependencyBoundaries(t *testing.T) {
 		t.Fatal(err)
 	}
 	core := map[string][]string{
+		"business/workflow/application":                       {},
+		"business/agent/application":                          {"business/agent/application/port"},
+		"business/agent/application/port":                     {},
 		"business/team/application":                           {"business/team/domain"},
 		"linegroup/domain/entity":                             {},
 		"linegroup/domain/event":                              {},
@@ -105,6 +108,9 @@ func TestDependencyBoundaries(t *testing.T) {
 			dependency, err := strconv.Unquote(spec.Path.Value)
 			if err != nil {
 				return err
+			}
+			if dir == "business/operations/application" && strings.HasPrefix(dependency, module) {
+				t.Errorf("operation contract %s depends on business implementation %s", rel, dependency)
 			}
 			parts := strings.Split(dir, "/")
 			if len(parts) >= 3 && parts[0] == "business" && (parts[2] == "application" || parts[2] == "domain") {

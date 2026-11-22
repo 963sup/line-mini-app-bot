@@ -861,6 +861,73 @@
           }
         }
       }
+    },
+    "/api/v1/object-template-drafts": {
+      "post": {
+        "operationId": "prepareObjectTemplateDraft",
+        "summary": "Prepare a personal template draft from a document or suggested procedures without saving",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for Cookie Session writes; validated by the existing session authenticator."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectTemplateDraftResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObjectTemplateDraftRequest"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -991,7 +1058,10 @@
           "workConversionDefault": {
             "description": "When converting a legacy object to work, prefill zero or the current draft quantity. Otherwise let the user enter the value.",
             "type": "string",
-            "enum": ["zero", "quantity"]
+            "enum": [
+              "zero",
+              "quantity"
+            ]
           },
           "requiresProgressReset": {
             "type": "boolean",
@@ -1318,7 +1388,7 @@
           "name",
           "nodes"
         ],
-        "description": "One root, connected acyclic tree, at most 100 nodes and 48,000 UTF-8 bytes of normalized content. Work defaults with a quantity require a unit; completion always starts at zero. Published immediately as immutable v1.",
+        "description": "Create v1, or publish the next personal revision by supplying templateId and baseVersion.",
         "properties": {
           "name": {
             "type": "string",
@@ -1332,6 +1402,16 @@
             "items": {
               "$ref": "#/components/schemas/ObjectTemplateNode"
             }
+          },
+          "templateId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "description": "Personal revision only. Supply together with baseVersion."
+          },
+          "baseVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
           }
         }
       },
@@ -1360,9 +1440,7 @@
           "version": {
             "type": "integer",
             "format": "int64",
-            "enum": [
-              1
-            ]
+            "minimum": 1
           },
           "nodes": {
             "type": "array",
@@ -1415,6 +1493,12 @@
           "parentId": {
             "type": "string",
             "pattern": "^[a-f0-9]{32}$"
+          },
+          "templateVersion": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "description": "Personal snapshot version. Defaults to 1 for legacy clients."
           }
         },
         "description": "Same Repository only. Optional parent must exist. All object writes, provenance and the actor/key receipt commit in one transaction. On an unknown response retry with the same Idempotency-Key and body."
@@ -1472,6 +1556,109 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "ObjectTemplateDraftRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "document",
+              "procedure"
+            ]
+          },
+          "filename": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "data": {
+            "type": "string",
+            "format": "byte",
+            "maxLength": 11184812
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "conditions": {
+            "type": "string",
+            "maxLength": 4000
+          }
+        }
+      },
+      "ObjectTemplateDraftResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "draft",
+          "warnings",
+          "candidates"
+        ],
+        "properties": {
+          "draft": {
+            "$ref": "#/components/schemas/ObjectTemplateDraft"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObjectCandidate"
+            }
+          }
+        }
+      },
+      "ObjectTemplateDraftNode": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,64}$"
+          },
+          "parentId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,64}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          }
+        }
+      },
+      "ObjectTemplateDraft": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "nodes"
+        ],
+        "description": "Editable unsaved tree; may exceed publication limits and must be corrected before creation. Quantities are absent.",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObjectTemplateDraftNode"
+            }
           }
         }
       }

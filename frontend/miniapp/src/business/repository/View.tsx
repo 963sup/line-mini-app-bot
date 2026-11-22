@@ -36,7 +36,12 @@ function Content() {
     try { return params.get("wiki") || new URL(params.get("liff.state") || "/", location.origin).searchParams.get("wiki") || ""; }
     catch { return ""; }
   });
-  const [page, setPage] = useState(wikiId ? "Wiki" : "總覽");
+  const [objectId] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const query = new URLSearchParams(location.search);
+    return query.get("id") === selectedID ? query.get("object") || "" : "";
+  });
+  const [page, setPage] = useState(wikiId ? "Wiki" : objectId ? "物件" : "總覽");
   const guard = useRepositoryNavigation();
   useEffect(() => { if (!detailBusy) guard.settled(); }, [page, detailBusy]);
   return (
@@ -95,7 +100,7 @@ function Content() {
             </div>
             </TabsContent>
             <TabsContent value="空間"><Spaces repositoryId={selected.id} /></TabsContent>
-            <TabsContent value="物件"><Objects repositoryId={selected.id} /></TabsContent>
+            <TabsContent value="物件"><Objects repositoryId={selected.id} initialObjectId={objectId} /></TabsContent>
             <TabsContent value="問題"><Issues repositoryId={selected.id} /></TabsContent>
             <TabsContent value="討論"><Discussions repositoryId={selected.id} /></TabsContent>
             <TabsContent value="標籤"><Labels repositoryId={selected.id} /></TabsContent>
