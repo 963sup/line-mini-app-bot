@@ -10,6 +10,148 @@ flowchart LR
   click n1 "configuration.md"
 ```
 
+## LINE 官方能力索引
+
+以下整理官方平台能力，英文引文保留官方術語、標題或原句。專案採用範圍及驗收條件見本頁後段，實作細節由各專章維護。
+
+### Identity — 識別碼
+
+| 欄位 | 用途與範圍 |
+| --- | --- |
+| `userId` | 使用者識別碼，同一使用者在不同 Provider 下的 ID 不同。群組事件的 `source.userId` 依事件而定。 |
+| `groupId` | LINE 群組識別碼，從群組 Webhook 的 `source.groupId` 取得。 |
+| `roomId` | 舊式多人聊天室識別碼，從該來源的 Webhook `source.roomId` 取得。本專案的群組業務設計採 `group`。 |
+| `channelId` | LINE Channel 識別碼，驗證 ID Token 時使用預期的 Channel ID。 |
+| `destination` | Webhook 接收端的 Bot 使用者 ID。 |
+| `messageId` | 訊息識別碼。收到的訊息用 `message.id`，收回事件用 `unsend.messageId`。 |
+| `webhookEventId` | Webhook 事件識別碼，可用於去重。 |
+| `richMenuId` | Rich Menu 資源識別碼。 |
+| `liffId` | LIFF App 識別碼，用於 `liff.init()`。 |
+
+> “Webhook Event Objects”
+
+[Webhook 參考](https://developers.line.biz/en/reference/messaging-api/#webhook-event-objects) · [使用者 ID](https://developers.line.biz/en/docs/messaging-api/getting-user-ids/) · [LINE Login API](https://developers.line.biz/en/reference/line-login/) · [LIFF 初始化](https://developers.line.biz/en/reference/liff/#initialize-liff-app)
+
+### Interface — 使用者介面
+
+| 元件 | 用途與選型 |
+| --- | --- |
+| Rich Menu | 一對一聊天室底部選單。Per-user Rich Menu 可依使用者套用不同選單，Rich Menu Alias 可搭配切換 Action 實作分頁。 |
+| Quick Reply | 隨訊息顯示的快速操作按鈕。 |
+| Flex Message | 自訂卡片、欄位、按鈕及版面，為本專案豐富卡片的預設選型。 |
+| Buttons／Confirm Template | 提供多個按鈕，或提供兩個選項供使用者確認。 |
+| Carousel／Image Carousel Template | 橫向切換卡片或圖片。 |
+| Imagemap | 在圖片上定義可點擊區域。 |
+
+> “Rich menu switch action”
+
+[切換 Rich Menu](https://developers.line.biz/en/docs/messaging-api/switch-rich-menus/) · [訊息物件](https://developers.line.biz/en/reference/messaging-api/#message-objects) · [呈現方式選型](presentation.md)
+
+### Messaging — 訊息發送與格式
+
+| 方式 | 用途 |
+| --- | --- |
+| Reply | 使用事件提供的短效 `replyToken` 回覆。 |
+| Push | 發送給符合資格的使用者、群組或多人聊天室。 |
+| Multicast | 一次發送給多個指定的使用者 ID。 |
+| Narrowcast | 依受眾條件分眾發送。 |
+| Broadcast | 向官方帳號好友廣播。 |
+
+發送格式包含 Text、Text v2、Image、Video、Audio、Sticker、Location、Flex、Template、Imagemap、Coupon。File 可由使用者傳入，後端用 content API 取得檔案，公開發送訊息物件未提供 File。
+
+> “Text message (v2)”
+
+[發送訊息](https://developers.line.biz/en/reference/messaging-api/#send-push-message) · [訊息物件](https://developers.line.biz/en/reference/messaging-api/#message-objects) · [取得訊息內容](https://developers.line.biz/en/reference/messaging-api/#get-content)
+
+### Event — Webhook 事件
+
+| 事件 | 觸發條件 |
+| --- | --- |
+| `message`／`postback` | 使用者傳送訊息或觸發 Postback Action。 |
+| `follow`／`unfollow` | 加入官方帳號好友或解除封鎖時觸發 follow，封鎖時觸發 unfollow。 |
+| `join`／`leave` | Bot 加入或離開群組或多人聊天室。 |
+| `memberJoined`／`memberLeft` | 成員加入或離開 Bot 所在聊天室。 |
+| `unsend` | 使用者收回訊息。 |
+| `videoPlayComplete` | 使用者看完有指定追蹤 ID 的影片訊息。 |
+| `accountLink` | 帳號綁定流程回報結果，需檢查 `link.result`。 |
+| `beacon` | 使用者端觸發 LINE Beacon 事件。 |
+
+公開的 Messaging API Webhook 事件清單未列出 `messageEdited`，群組訊息編輯不列入整合契約。
+
+> “Unsend event”
+
+[Webhook 事件物件](https://developers.line.biz/en/reference/messaging-api/#webhook-event-objects) · [Webhook 接線與驗證](webhook.md)
+
+### Interaction — 操作行為
+
+| Action | 用途 |
+| --- | --- |
+| Postback／Message／URI | 分別回傳結構化資料至 Webhook、送出預設文字、開啟網頁或 LIFF／MINI App。 |
+| Datetime Picker | 選取日期、時間或兩者。 |
+| Camera／Camera Roll／Location | 分別開啟相機、相簿、LINE 地點選擇介面。 |
+| Rich Menu Switch／Clipboard | 透過 Alias 切換選單，或複製指定文字。 |
+
+Action 的可用性依承載元件與客戶端而異。
+
+> “Clipboard action”
+
+[Action 物件](https://developers.line.biz/en/reference/messaging-api/#action-objects)
+
+### Group — 群組與成員
+
+| 能力 | 用途與限制 |
+| --- | --- |
+| Get Group Summary／Get Group Member Count | 取得群組名稱、圖片資訊及成員數。 |
+| Get Group Member IDs／Get Group Member Profile | 取得符合可見條件的成員 ID 清單或指定成員資料。成員 ID 清單 API 限已認證或 Premium 官方帳號。 |
+| Leave Group／Member Join and Leave | Bot 主動退出，或從 Webhook 接收成員進出事件。 |
+| Group Push／Reply | Bot 可用群組 ID 主動發送，或使用群組事件的 `replyToken` 回覆。 |
+
+> “Get group chat summary”
+
+[群組聊天 API](https://developers.line.biz/en/reference/messaging-api/#get-group-summary) · [在群組使用 Bot](https://developers.line.biz/en/docs/messaging-api/group-chats/)
+
+### Authentication — 身分與授權
+
+| 能力 | 用途 |
+| --- | --- |
+| LINE Login／ID Token | 使用 LINE 帳號登入，由後端驗證 token 及預期 Channel。 |
+| Access Token／Channel Access Token | 使用者 Access Token 依授權範圍存取資源。Channel Access Token 供後端呼叫 Messaging API。 |
+| Account Linking | 將 LINE 帳號與服務內帳號綁定。 |
+| Friendship Status／Profile API | 查詢與連結官方帳號的好友關係，或在取得相應授權後取得使用者基本資料。 |
+
+> “Verify ID token”
+
+[LINE Login API](https://developers.line.biz/en/reference/line-login/) · [Channel Access Token](https://developers.line.biz/en/docs/basics/channel-access-token/) · [Account Linking](https://developers.line.biz/en/docs/messaging-api/linking-accounts/) · [MINI App 身分交換](mini-app-identity.md)
+
+### MINI App / LIFF — 應用平台
+
+| 能力 | 用途 |
+| --- | --- |
+| `liff.init()`／`liff.getContext()` | 初始化 SDK 並取得執行環境。`type` 可辨識聊天室類型，LIFF 自 2023 年 2 月 6 日起停止提供 `groupId`、`roomId`、`utouId`。 |
+| `liff.getProfile()`／`liff.getIDToken()`／`liff.getFriendship()` | 取得獲授權的個人資料、原始 ID Token，或查詢與連結官方帳號的好友關係。後端身分依驗證過的憑證。 |
+| `liff.sendMessages()`／`liff.shareTargetPicker()` | 在符合條件時向開啟 LIFF 的聊天室送出訊息，或由使用者自選分享對象。 |
+| `liff.openWindow()`／`liff.closeWindow()` | 開啟網址或關閉 LIFF 視窗，依執行環境檢查支援。 |
+| Permanent Link／Service Message | 提供持久的 MINI App 入口，或使用官方模板回應使用者在 App 內的操作。Service Message 有資格及用途限制。 |
+
+LIFF 參考對 `groupId` 的說明：
+
+> “This property was discontinued.”
+
+[LIFF API](https://developers.line.biz/en/reference/liff/) · [Context](https://developers.line.biz/en/reference/liff/#get-context) · [Permanent Link](https://developers.line.biz/en/docs/line-mini-app/develop/permanent-links/) · [Service Message](https://developers.line.biz/en/docs/line-mini-app/develop/service-messages/) · [MINI App 啟動與登入](mini-app-setup.md)
+
+### 群組與 MINI App 的整合對照
+
+| 需求 | 實作入口 |
+| --- | --- |
+| 識別 LINE 群組 | Messaging API Webhook 的 `source.groupId`。 |
+| 在群組傳送訊息 | Messaging API Push／Reply。 |
+| 讓使用者選擇分享的聊天室 | `liff.shareTargetPicker()`。 |
+| 在群組提供應用入口 | 分享 LIFF URL 或 MINI App URL。 |
+| 識別應用內協作空間 | 使用服務自己的 ID，透過後端維護對應關係與授權。 |
+| 辨識 App 的開啟環境 | `liff.getContext().type`。 |
+
+[官方文件總入口](https://developers.line.biz/en/docs/) · [MINI App、Basics、Messaging API、LINE Pay 與官方公告入口](sources.md#line-官方文件入口)
+
 <a id="1-先選場景"></a>
 
 ```mermaid
