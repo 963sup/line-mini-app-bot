@@ -9,6 +9,7 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
+	attendancecommand "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/command"
 	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
 	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	attendanceservice "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/service"
@@ -97,13 +98,13 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if err := s.ApproveCorrection(ctx, "employee", id, start.Add(10*time.Hour)); err == nil {
+	if err := attendancecommand.ApproveCorrection(ctx, s, "employee", id, start.Add(10*time.Hour)); err == nil {
 		t.Fatal("self approval accepted")
 	}
-	if err := s.ApproveCorrection(ctx, "reviewer", id, start.Add(10*time.Hour)); err != nil {
+	if err := attendancecommand.ApproveCorrection(ctx, s, "reviewer", id, start.Add(10*time.Hour)); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.ApproveCorrection(ctx, "reviewer", id, start.Add(11*time.Hour)); err != nil {
+	if err := attendancecommand.ApproveCorrection(ctx, s, "reviewer", id, start.Add(11*time.Hour)); err != nil {
 		t.Fatal("duplicate approval", err)
 	}
 	// A committed submission remains replayable after approval changes revision.
@@ -212,16 +213,16 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if records, err := s.RecordsOverlappingMonth(ctx, "missing-employee", "group", month); err != nil || len(records) != 0 {
 		t.Fatalf("pending request became effective: %v %v", records, err)
 	}
-	if err := s.ApproveCorrection(ctx, "stranger", missingID, submittedAt); err == nil {
+	if err := attendancecommand.ApproveCorrection(ctx, s, "stranger", missingID, submittedAt); err == nil {
 		t.Fatal("unauthorized approval")
 	}
-	if err := s.ApproveCorrection(ctx, "reviewer", missingID, submittedAt); err != nil {
+	if err := attendancecommand.ApproveCorrection(ctx, s, "reviewer", missingID, submittedAt); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.ApproveCorrection(ctx, "reviewer", missingID, submittedAt); err != nil {
+	if err := attendancecommand.ApproveCorrection(ctx, s, "reviewer", missingID, submittedAt); err != nil {
 		t.Fatal("approval replay", err)
 	}
-	if err := s.RejectCorrection(ctx, "reviewer", missingID, "changed mind", submittedAt); err == nil {
+	if err := attendancecommand.RejectCorrection(ctx, s, "reviewer", missingID, "changed mind", submittedAt); err == nil {
 		t.Fatal("approved request rejected")
 	}
 	effective, err := s.RecordsOverlappingMonth(ctx, "missing-employee", "group", month)
@@ -240,13 +241,13 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := s.RejectCorrection(ctx, "reviewer", rejectID, "未提供出勤佐證", submittedAt); err != nil {
+	if err := attendancecommand.RejectCorrection(ctx, s, "reviewer", rejectID, "未提供出勤佐證", submittedAt); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.RejectCorrection(ctx, "reviewer", rejectID, "未提供出勤佐證", submittedAt); err != nil {
+	if err := attendancecommand.RejectCorrection(ctx, s, "reviewer", rejectID, "未提供出勤佐證", submittedAt); err != nil {
 		t.Fatal("rejection replay", err)
 	}
-	if err := s.ApproveCorrection(ctx, "reviewer", rejectID, submittedAt); err == nil {
+	if err := attendancecommand.ApproveCorrection(ctx, s, "reviewer", rejectID, submittedAt); err == nil {
 		t.Fatal("rejected request approved")
 	}
 	details, err := s.CorrectionDetails(ctx, "missing-employee", rejectID, false)
@@ -257,10 +258,10 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := s.CancelCorrection(ctx, "stranger", cancelID, submittedAt); err == nil {
+	if err := attendancecommand.CancelCorrection(ctx, s, "stranger", cancelID, submittedAt); err == nil {
 		t.Fatal("other user withdrew request")
 	}
-	if err := s.CancelCorrection(ctx, "missing-employee", cancelID, submittedAt); err != nil {
+	if err := attendancecommand.CancelCorrection(ctx, s, "missing-employee", cancelID, submittedAt); err != nil {
 		t.Fatal(err)
 	}
 	if state, err := s.CorrectionStatus(ctx, "missing-employee", cancelID); err != nil || state != "cancelled" {
@@ -277,7 +278,7 @@ func TestAttendanceCorrectionRoundTrip(t *testing.T) {
 	}
 	outcomes := make(chan error, 2)
 	for _, id := range []string{firstID, secondID} {
-		go func() { outcomes <- s.ApproveCorrection(ctx, "reviewer", id, submittedAt) }()
+		go func() { outcomes <- attendancecommand.ApproveCorrection(ctx, s, "reviewer", id, submittedAt) }()
 	}
 	successes := 0
 	for range 2 {

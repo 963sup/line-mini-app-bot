@@ -44,7 +44,7 @@ type RecordQueries interface {
 
 type CorrectionStore interface {
 	ProposeCorrection(context.Context, string, attendanceentity.Correction, time.Time) (string, error)
-	ApproveCorrection(context.Context, string, string, time.Time) error
+	CorrectionReviewRunner
 }
 
 type IdempotentCorrectionStore interface {
@@ -61,12 +61,4 @@ type ReviewerGroupReader interface {
 
 type CorrectionPageReader interface {
 	CorrectionsPage(context.Context, string, string, string, bool, int) (attendancedto.CorrectionPage, error)
-}
-
-type CorrectionRejecter interface {
-	RejectCorrection(context.Context, string, string, string, time.Time) error
-}
-
-type CorrectionCanceller interface {
-	CancelCorrection(context.Context, string, string, time.Time) error
 }

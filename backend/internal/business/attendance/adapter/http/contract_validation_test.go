@@ -60,7 +60,7 @@ func (s *contractStore) ProposeCorrectionOnce(_ context.Context, _ string, key s
 	return "c1", nil
 }
 
-func (s *contractStore) ApproveCorrection(context.Context, string, string, time.Time) error {
+func (s *contractStore) RunCorrectionReview(context.Context, string, string, func(attendanceport.ReviewTransaction, string, attendanceentity.Correction) error) error {
 	s.writes++
 	return nil
 }

@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"time"
 
+	attendancecommand "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/command"
 	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
 	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
 	attendancequery "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/query"
@@ -54,7 +55,7 @@ func (s *attendanceServer) correct(w http.ResponseWriter, r *http.Request, id st
 			transport.WriteAPIError(w, 400, "invalid_input", "申請編號無效。")
 			return
 		}
-		err = store.ApproveCorrection(ctx, user, id, time.Now().UTC())
+		err = attendancecommand.ApproveCorrection(ctx, store, user, id, time.Now().UTC())
 	} else {
 		media, _, e := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		if e != nil || media != "application/json" {
@@ -312,7 +313,7 @@ func (s *attendanceServer) decideCorrection(w http.ResponseWriter, r *http.Reque
 
 		var err error
 		if action == "reject" {
-			store, ok := bot.store.(attendanceport.CorrectionRejecter)
+			store, ok := bot.store.(attendanceport.CorrectionReviewRunner)
 			if !ok {
 				transport.WriteAPIError(w, 503, "not_configured", "駁回尚未啟用。")
 				return
@@ -324,14 +325,14 @@ func (s *attendanceServer) decideCorrection(w http.ResponseWriter, r *http.Reque
 				transport.WriteAPIError(w, 400, "invalid_input", "請填寫駁回理由。")
 				return
 			}
-			err = store.RejectCorrection(ctx, user, id, input.Reason, time.Now().UTC())
+			err = attendancecommand.RejectCorrection(ctx, store, user, id, input.Reason, time.Now().UTC())
 		} else {
-			store, ok := bot.store.(attendanceport.CorrectionCanceller)
+			store, ok := bot.store.(attendanceport.CorrectionReviewRunner)
 			if !ok {
 				transport.WriteAPIError(w, 503, "not_configured", "撤回尚未啟用。")
 				return
 			}
-			err = store.CancelCorrection(ctx, user, id, time.Now().UTC())
+			err = attendancecommand.CancelCorrection(ctx, store, user, id, time.Now().UTC())
 		}
 		if correctionHTTPError(w, err) {
 			return
