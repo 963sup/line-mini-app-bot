@@ -36,34 +36,39 @@ func (r Reader) Retrieve(ctx context.Context, q port.Lookup) ([]port.PublishedRu
 		if membership.Owner != q.Actor && !slices.Contains(membership.Members, q.Actor) {
 			return nil, errors.New("knowledge scope unavailable")
 		}
-		// Publication replaces this projection; withdrawal deletes it. Drafts live elsewhere.
-		snap, err := tx.Get(organization.Collection("publishedKnowledge").Doc(firestorekey.Digest([]byte(q.TemplateVersion))))
-		rules := []port.PublishedRule{}
-		if status.Code(err) == codes.NotFound {
-			return &rules, nil
-		}
-		if err != nil {
-			return nil, err
-		}
-		var projection struct {
-			TemplateVersion string               `firestore:"templateVersion"`
-			Rules           []port.PublishedRule `firestore:"rules"`
-		}
-		if err := snap.DataTo(&projection); err != nil {
-			return nil, err
-		}
-		if projection.TemplateVersion != q.TemplateVersion {
-			return nil, errors.New("knowledge version mismatch")
-		}
-		for _, rule := range projection.Rules {
-			if rule.ID == "" || rule.Version == "" || rule.Source == "" || rule.Text == "" {
-				return nil, errors.New("incomplete published rule")
-			}
-		}
-		return &projection.Rules, nil
+		rules, err := publishedRules(tx, organization, q.TemplateVersion)
+		return &rules, err
 	})
 	if err != nil {
 		return nil, err
 	}
 	return *result, nil
+}
+
+func publishedRules(tx *db.Transaction, organization *db.DocumentRef, templateVersion string) ([]port.PublishedRule, error) {
+	// Publication replaces this projection; withdrawal deletes it. Drafts live elsewhere.
+	snap, err := tx.Get(organization.Collection("publishedKnowledge").Doc(firestorekey.Digest([]byte(templateVersion))))
+	rules := []port.PublishedRule{}
+	if status.Code(err) == codes.NotFound {
+		return rules, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	var projection struct {
+		TemplateVersion string               `firestore:"templateVersion"`
+		Rules           []port.PublishedRule `firestore:"rules"`
+	}
+	if err := snap.DataTo(&projection); err != nil {
+		return nil, err
+	}
+	if projection.TemplateVersion != templateVersion {
+		return nil, errors.New("knowledge version mismatch")
+	}
+	for _, rule := range projection.Rules {
+		if rule.ID == "" || rule.Version == "" || rule.Source == "" || rule.Text == "" {
+			return nil, errors.New("incomplete published rule")
+		}
+	}
+	return projection.Rules, nil
 }
