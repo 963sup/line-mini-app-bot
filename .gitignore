@@ -17,6 +17,8 @@ __pycache__/
 .venv/
 
 # Agent workspace and local tooling (tracked files are unaffected).
+/.codex-acceptance-*/
+/.codex-behavior-*/
 /.agents/**
 !/.agents/AGENTS.md
 /.claude/

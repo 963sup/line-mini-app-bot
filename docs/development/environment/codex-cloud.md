@@ -12,7 +12,7 @@ Linux x64／arm64 下載資訊由 [mise.lock](../../../mise.lock) 鎖定，pnpm 
 
 ## 已初始化的工作區
 
-開始任務時，先用 `git rev-parse --show-toplevel` 確認 checkout，並在該根目錄執行 `bash scripts/tooling/tool-exec.sh mise ls --installed` 查看可用版本。沿[模組導覽](../../../README.md#巢狀目錄導覽)讀目標路徑的工作指引；跨模組任務依 [Codex 閱讀順序](../tooling/agents/codex.md#從根目錄處理跨模組任務)核對程式與規格。若缺少單一工具，依[根目錄工具指引](../../../AGENTS.md#按需安裝工具)準備。
+開始任務時，先用 `git rev-parse --show-toplevel` 確認 checkout。沿[模組導覽](../../../README.md#巢狀目錄導覽)讀目標路徑的工作指引；跨模組任務依 [Codex 閱讀順序](../tooling/agents/codex.md#從根目錄處理跨模組任務)核對程式與規格。需要查找、執行或安裝 CLI 時，依[根目錄工具指引](../../../AGENTS.md#按需安裝工具)操作。
 
 ## 啟動與更新
 

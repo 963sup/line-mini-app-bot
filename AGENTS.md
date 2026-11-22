@@ -5,9 +5,7 @@
 從使用者描述判斷要交付的結果，自行選用合適工具。要求修復時，追到原因、修正並用原始案例驗收；只有完成或遇到無法自行排除的阻礙才結束。
 
 - 開始每個任務前，MUST 閱讀[環境與能力入口](docs/development/environment/README.md#依任務選擇能力)，依任務選擇適用能力，並讀完對應指引後才開始實質操作。不得只讀能力名稱或憑記憶跳過；同一任務可重用已讀且未變更的指引，任務範圍改變時重新選擇。交付時說明採用的能力與實際驗證結果。
-- Codex Cloud 首次初始化使用 `scripts/bootstrap.sh`。詳見 [Cloud 環境設定](docs/development/environment/codex-cloud.md)。
-- 日常命令從根目錄使用 `bash scripts/tooling/tool-exec.sh <命令>`。
-- 修改前遵循從根目錄到目標目錄的 AGENTS.md；需要查入口、操作方式或領域背景時，再讀最近的 README.md。跨目錄搬移時核對來源、目的地與呼叫端，保留既有變更與上游技能。[巢狀導覽](README.md#巢狀目錄導覽)
+- 在主機權限與使用者指定的任務範圍內，根 AGENTS.md 定義共通規則，目標路徑上較近的 AGENTS.md 優先處理局部事項。能力指南依任務選讀，生成的圖譜與參考包只用來定位來源。修改前沿目標路徑讀取適用指引；需要查入口、操作方式或領域背景時，再讀最近的 README.md。跨目錄搬移時核對來源、目的地與呼叫端，保留既有變更與上游技能。[巢狀導覽](README.md#巢狀目錄導覽)
 - 新增或搬移檔案時，按[驗收矩陣](docs/development/tooling/testing/commands.md#變更驗收矩陣)驗證行為。
 - 專案不使用 Codex hooks；依任務按需使用 Repomix、Graphify 或直接查閱原始文件。
 - 使用者要求「交接」、「接手」或「交給另一個側欄聊天」時，直接採用[側欄交接流程](docs/development/workflow/handoff.md#sidebar-handoff)，輸出六欄摘要及接手所需的來源。
@@ -29,20 +27,15 @@
 - 目錄有明確責任且需要導覽時建立 README。有上層未涵蓋的局部規則時補 AGENTS，其餘規則由上層繼承。更新對應行為時，順手核對文件中的入口、連結及驗證命令。
 - 明確區分現行結構、必須遵守的規則和按需採用的參考範本。只有實際需要的章節或子目錄才建立。驗證需特殊環境時，列明前置條件。
 
-## CLI discovery
-
-- When a task needs to find, list, or run a CLI, start at the repository root and read [mise.toml](mise.toml) for declared tools and versions. Run `bash scripts/tooling/tool-exec.sh mise ls --installed` to inventory installed versions. The wrapper loads the workspace tool paths even when the Codex shell starts without them.
-- Run project CLIs through `bash scripts/tooling/tool-exec.sh <command> [args...]`. If the wrapper cannot find mise, check `/workspace/tooling/bin/mise` and `/workspace/tooling/mise-data/installs` before reporting a tool missing.
-- For a fresh checkout, use the [Codex environment setup instructions](docs/development/environment/codex-cloud.md). Installed CLI packages and MCP servers exposed to the current Codex session are separate inventories.
+<a id="cli-discovery"></a>
 
 ## 按需安裝工具
 
-- 本機專案 CLI 必須透過 `bash scripts/tooling/tool-exec.sh <command> [args...]` 執行；wrapper 從 mise.toml 辨識直接命令並自動安裝宣告版本。
-- 複合 shell 命令 MUST 明確宣告所需工具，例如 `bash scripts/tooling/tool-exec.sh --tool node --tool npm:repomix bash -c 'repomix --version'`。`--tool` 只使用 mise.toml 已宣告的工具，不另指定版本。
-- 缺少工具時 MUST 優先使用 wrapper 或既有 install-* 任務，驗證版本後繼續原任務；MUST NOT 自行升級版本、修改鎖檔或安裝未宣告套件。
-- `mise run` 已開啟任務自動安裝，可能準備任務環境的多個缺少工具；只需單一 CLI 時 MUST 使用 wrapper 的直接命令。
-- MCP 缺少、呼叫失敗或需要整體驗收時，依[共用 MCP 排查流程](docs/development/tooling/agents/README.md#project-loading-check)處理並繼續可獨立完成的工作。
-- 新環境仍 MUST 先執行初始化以準備 mise、系統 Python 與網路；Graphify 使用既有 install-graphify 任務，不能只靠 mise 的工具宣告安裝。
+- 新環境先依 [Cloud 環境設定](docs/development/environment/codex-cloud.md)執行 `scripts/bootstrap.sh`，準備 mise、系統 Python 與網路。
+- 查找或執行 CLI 時，以 [mise.toml](mise.toml) 為版本來源，從根目錄用 `bash scripts/tooling/tool-exec.sh mise ls --installed` 核對已安裝版本。wrapper 找不到 mise 時，檢查 `/workspace/tooling/bin/mise` 與 `/workspace/tooling/mise-data/installs`。
+- 執行單一工具用 `bash scripts/tooling/tool-exec.sh <命令> [參數]`，wrapper 會依宣告版本準備工具；`mise run` 可能準備整個任務環境。複合命令須明列已宣告的工具，例如 `bash scripts/tooling/tool-exec.sh --tool node --tool npm:repomix bash -c 'repomix --version'`。
+- 缺少工具時使用 wrapper 或既有安裝任務；Graphify 用 `mise run install-graphify`。核對版本後繼續，不自行升級、改鎖檔或安裝未宣告套件。
+- 聊天可呼叫的 MCP 須另行確認。缺少服務、呼叫失敗或需要整體驗收時，依[共用排查流程](docs/development/tooling/agents/README.md#project-loading-check)處理，並繼續可獨立完成的工作。
 
 依據：mise 2026.11.3 `exec --help` 與 [官方設定](https://mise.jdx.dev/configuration/settings.html#exec_auto_install)。
 
@@ -72,7 +65,7 @@ Rules:
 - After modifying code, run `bash scripts/tooling/tool-exec.sh mise run graphify-update` to refresh the code graph without API calls.
 - The code graph is generated locally and ignored by Git. Refresh it in the current checkout when the task needs updated code relationships.
 
-程式關係探索遵循上方 Graphify 規則；需跨檔來源核對時讀 `.agents/skills/repomix-explorer/SKILL.md`，以 Repomix CLI 打包所需範圍。純工具文件工作不要求每次全庫打包；圖譜過期須回報，不能把舊路徑當目前實作證據。
+跨檔查詢依[探索指南](docs/development/workflow/capabilities/explorer.md)選擇既有參考技能或限定範圍的打包。圖譜過期時回報限制，並用目前來源核對。
 
 ## Documentation routing
 
@@ -90,8 +83,6 @@ Develop directly on `main`. Every commit must be a complete, independently revie
 
 - 工程任務開始前，閱讀並遵循[工程原則與決策](docs/standards/engineering.md)。
 - 涉及介面、互動或使用者流程時，另閱讀並遵循[產品與體驗設計原則](docs/standards/design.md)。
-
-每次交付說明解決的問題、實際執行的驗證與結果，以及仍未驗證的項目。每次在 `main` 提交或推送仍須符合[階段交付門檻](docs/development/workflow/publication.md#repository-publication)。
 
 ## 共通驗證與交付
 

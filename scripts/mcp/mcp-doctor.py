@@ -1,5 +1,6 @@
 """Probe configured MCP transports without changing host configuration or credentials."""
 import argparse
+from functools import cache
 import json
 import os
 from pathlib import Path
@@ -24,8 +25,17 @@ READ_ONLY_CALLS = {
 }
 
 
+def google_adc_available():
+    result = subprocess.run(
+        ['bash', str(ROOT / 'scripts/tooling/tool-exec.sh'), 'gcloud', 'auth',
+         'application-default', 'print-access-token', '--quiet'],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=45)
+    return result.returncode == 0
+
+
 def check_servers(configs, server=None, call=None, arguments=None, list_tools=False):
     counts = {"PASS": 0, "FAIL": 0, "SKIP": 0}
+    adc_available = cache(google_adc_available)
     for name, config in configs.items():
         if server and name != server:
             continue
@@ -38,7 +48,7 @@ def check_servers(configs, server=None, call=None, arguments=None, list_tools=Fa
                 print(f"SKIP {name}: disabled", flush=True)
             continue
         try:
-            probe_server(name, config, call, arguments, list_tools)
+            probe_server(name, config, call, arguments, list_tools, adc_available=adc_available)
             counts["PASS"] += 1
         except Exception as exc:
             counts["FAIL"] += 1
@@ -49,7 +59,7 @@ def check_servers(configs, server=None, call=None, arguments=None, list_tools=Fa
     return int(bool(counts["FAIL"]))
 
 
-def probe_server(name, config, call=None, arguments=None, list_tools=False):
+def probe_server(name, config, call=None, arguments=None, list_tools=False, *, adc_available=google_adc_available):
     if call and call not in READ_ONLY_CALLS.get(name, set()):
         raise RuntimeError("tool call is not in the server read-only allowlist")
     if call and "enabled_tools" in config and call not in config["enabled_tools"]:
@@ -73,22 +83,19 @@ def probe_server(name, config, call=None, arguments=None, list_tools=False):
         credential = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
         if credential and not (Path(credential).is_file() and os.access(credential, os.R_OK)):
             raise RuntimeError('GOOGLE_APPLICATION_CREDENTIALS must reference a readable file')
-        adc = subprocess.run(
-            ['bash', str(ROOT / 'scripts/tooling/tool-exec.sh'), 'gcloud', 'auth',
-             'application-default', 'print-access-token', '--quiet'],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=45)
-        if adc.returncode:
+        if not adc_available():
             raise RuntimeError('Google ADC unavailable; provision a runtime identity for this environment')
     if 'command' in config:
         process = subprocess.Popen([config['command'], *config.get('args', [])], cwd=ROOT,
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                    stderr=subprocess.DEVNULL, text=True, start_new_session=True)
         def reader():
-            for line in process.stdout:
-                try:
-                    inbox.put(json.loads(line))
-                except ValueError:
-                    continue
+            with process.stdout as stream:
+                for line in stream:
+                    try:
+                        inbox.put(json.loads(line))
+                    except ValueError:
+                        continue
             inbox.put(None)
         threading.Thread(target=reader, daemon=True).start()
 
@@ -160,7 +167,8 @@ def probe_server(name, config, call=None, arguments=None, list_tools=False):
         for number in range(2, 102):
             result = request(number, 'tools/list', params)
             names.update(tool['name'] for tool in result['tools'])
-            inventory.extend(result['tools'])
+            if list_tools:
+                inventory.extend(result['tools'])
             if not result.get('nextCursor'):
                 break
             params = {'cursor': result['nextCursor']}
@@ -191,6 +199,11 @@ def probe_server(name, config, call=None, arguments=None, list_tools=False):
                 process.wait()
             except ProcessLookupError:
                 pass
+            finally:
+                try:
+                    process.stdin.close()
+                except BrokenPipeError:
+                    pass  # The server may have exited before reading its input.
 
 
 if __name__ == '__main__':

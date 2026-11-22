@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Build a Graphify-readable Markdown heading/link graph, without an LLM."""
 import argparse
+from functools import cache
 import json
 from pathlib import Path
 import re
@@ -22,9 +23,10 @@ def main():
     files = sorted(root / name for name in set(paths)
                    if name and not name.startswith(upstream) and (root / name).is_file())
     nodes, edges, coverage, unresolved = [], [], {}, []
-    ids = {path.resolve(): path.relative_to(root).as_posix() for path in files}
+    resolve = cache(Path.resolve)  # Reuse link targets only within this build.
+    ids = {resolve(path): path.relative_to(root).as_posix() for path in files}
     for path in files:
-        source = ids[path.resolve()]
+        source = ids[resolve(path)]
         lines = path.read_text(encoding="utf-8").splitlines()
         coverage[source] = len(lines)
         nodes.append({"id": source, "label": source, "file_type": "document",
@@ -51,7 +53,7 @@ def main():
                 url = urlsplit(match[1].strip("<>"))
                 if url.scheme or url.netloc or not url.path:
                     continue
-                target = (path.parent / unquote(url.path)).resolve()
+                target = resolve(path.parent / unquote(url.path))
                 if target in ids:
                     edges.append({"source": source, "target": ids[target], "relation": "references",
                                   "confidence": "EXTRACTED", "confidence_score": 1.0,

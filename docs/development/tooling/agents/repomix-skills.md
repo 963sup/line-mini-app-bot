@@ -10,13 +10,16 @@
 
 ## 在 Codex 使用本專案的參考技能
 
-從專案根目錄產生或更新本機參考包：
+關係不清楚時先用 [Graphify CLI](../shared/graphify.md#operation) 找相關路徑。已有本機參考包時，直接用下方技能查詢；首次使用或需要更新快照時，才從專案根目錄執行：
 
 ```bash
-bash scripts/tooling/tool-exec.sh repomix --skill-generate repomix-reference-line-mini-app-bot --skill-output .agents/skills/repomix-reference-line-mini-app-bot --force
+bash scripts/tooling/tool-exec.sh repomix \
+  --skill-generate repomix-reference-line-mini-app-bot \
+  --skill-output .agents/skills/repomix-reference-line-mini-app-bot \
+  --ignore '.mise/locks/**' --force
 ```
 
-技能名稱與輸出目錄名稱均為 `repomix-reference-line-mini-app-bot`。在 Codex 聊天中輸入 `$`，選取此技能，再寫任務。例如：
+在 Codex 聊天中選取技能，指定要查的問題：
 
 ```text
 $repomix-reference-line-mini-app-bot 請從參考包查出勤 Rich Menu 的畫布尺寸與三欄寬度，並與目前的 JSON 定義核對。

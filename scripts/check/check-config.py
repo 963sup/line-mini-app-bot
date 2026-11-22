@@ -12,6 +12,20 @@ import tomllib
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def check_capability_routes(index, guides):
+    section = re.search(r"^## 依任務選擇能力[ \t]*\n(.*?)(?=^## |\Z)", index.read_text(), re.M | re.S)
+    if not section:
+        raise ValueError(f"Missing capability selection section in {index}")
+    routes = set()
+    for row in section[1].splitlines():
+        if row.lstrip().startswith("|"):
+            for target in re.findall(r"\]\(([^)#]+)(?:#[^)]*)?\)", row):
+                routes.add((index.parent / target).resolve())
+    for guide in guides:
+        if guide.name != "README.md" and guide.resolve() not in routes:
+            raise ValueError(f"Capability selection table does not link to {guide.name}")
+
+
 def check():
     codex_dir = ROOT / ".codex"
     config = tomllib.loads((codex_dir / "config.toml").read_text())
@@ -22,11 +36,13 @@ def check():
     for name in ("README", "planning", "architect", "explorer", "implementer", "reviewer", "tester", "documentation"):
         if not (capabilities / (name + ".md")).is_file():
             raise ValueError(f"Missing capability guide: {name}")
-    for guide in capabilities.glob("*.md"):
+    guides = list(capabilities.glob("*.md"))
+    check_capability_routes(ROOT / "docs/development/environment/README.md", guides)
+    for guide in guides:
         for reference in re.findall(r"docs/[A-Za-z0-9_./-]+\.md", guide.read_text()):
             if not (ROOT / reference).is_file():
                 raise ValueError(f"Missing capability reference: {reference}")
-    docs = list((ROOT / "docs").rglob("*.md"))
+    docs = [ROOT / "AGENTS.md", *(ROOT / "docs").rglob("*.md")]
     for path in docs:
         # Preserve upstream Markdown: /docs/... links belong to ui.shadcn.com.
         # The local snapshot INDEX remains checked here; page hashes/coverage

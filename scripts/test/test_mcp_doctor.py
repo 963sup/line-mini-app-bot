@@ -39,6 +39,11 @@ for line in sys.stdin:
     print(json.dumps({'jsonrpc': '2.0', 'method': 'notifications/message'}), flush=True)
     result = ({'protocolVersion': '2025-03-26'} if message['method'] == 'initialize'
               else {'tools': [{'name': 'read_only'}]})
+    if mode == 'pages' and message['method'] == 'tools/list':
+        if not message['params']:
+            result['nextCursor'] = 'next-page'
+        elif message['params'] == {'cursor': 'next-page'}:
+            result = {'tools': [{'name': 'last', 'description': 'last page detail'}]}
     print(json.dumps({'jsonrpc': '2.0', 'id': message['id'], 'result': result}), flush=True)
 '''
 
@@ -81,8 +86,7 @@ class StdioDeadlineTests(unittest.TestCase):
             self.assertTrue(all(child.poll() is not None for child in children),
                             'every outcome must reap the server process')
             for child in children:
-                child.stdin.close()
-                child.stdout.close()
+                self.assertTrue(child.stdin.closed, 'doctor must close the input pipe')
 
     def test_notifications_and_wrong_ids_cannot_extend_request_deadline(self):
         for mode in ('notifications', 'wrong_ids', 'silent'):
@@ -302,6 +306,42 @@ class ReadOnlyBridgeTests(unittest.TestCase):
                                  '--call', 'init_project'], capture_output=True, text=True)
         self.assertEqual(result.returncode, 2)
         self.assertIn('read-only allowlist', result.stderr)
+
+
+class ToolInventoryTests(unittest.TestCase):
+    def test_both_modes_validate_last_page_and_only_listing_prints_details(self):
+        config = {'command': sys.executable, 'args': ['-u', '-c', SERVER, 'pages'],
+                  'enabled_tools': ['last']}
+        for details in (False, True):
+            with self.subTest(details=details), mock.patch('builtins.print') as output:
+                doctor.probe_server('fixture', config, list_tools=details)
+                output.assert_any_call('PASS fixture: initialize + tools/list (2 tools)', flush=True)
+                if details:
+                    listing = json.loads(output.call_args_list[0].args[0])
+                    self.assertEqual(listing['tools'], [{'name': 'read_only'},
+                                     {'name': 'last', 'description': 'last page detail'}])
+                else:
+                    self.assertEqual(output.call_count, 1)
+
+
+class GoogleAdcTests(unittest.TestCase):
+    def test_shared_preflight_is_rechecked_on_next_run(self):
+        configs = {
+            name: {'command': sys.executable, 'args': ['-u', '-c', SERVER, mode]}
+            for name, mode in [('cloud-run', 'normal'), ('toolbox', 'exit')]
+        }
+        with mock.patch.dict(os.environ, GOOGLE_APPLICATION_CREDENTIALS=''), \
+             mock.patch.object(doctor.subprocess, 'run') as gcloud, \
+             mock.patch('builtins.print') as output:
+            gcloud.return_value.returncode = 1
+            self.assertEqual(doctor.check_servers(configs), 1)
+            output.assert_any_call('Summary: PASS=0, FAIL=2, SKIP=0', flush=True)
+            self.assertEqual(gcloud.call_count, 1)
+
+            gcloud.return_value.returncode = 0
+            self.assertEqual(doctor.check_servers(configs), 1)
+            output.assert_any_call('Summary: PASS=1, FAIL=1, SKIP=0', flush=True)
+            self.assertEqual(gcloud.call_count, 2)
 
 
 if __name__ == '__main__':
