@@ -6,7 +6,7 @@
 
 ## 工作方式
 
-[現行實作圖：空間載入時序](../../../../docs/domains/repository/README.md#空間載入時序) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
+[現行實作圖：空間載入時序](../../../../docs/domains/repository/README.md#空間載入時序)
 
 Project 和 Repository 各自保存一個 `ownerId`。LINE UserID（U）以登入本人核驗，GroupID（C）以當下群組成員資格核驗。Project 可連結多個 Repository，每筆來源引用各自授權。Space 隸屬 Repository。
 

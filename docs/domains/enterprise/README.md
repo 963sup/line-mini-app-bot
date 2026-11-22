@@ -12,7 +12,7 @@
 
 **驗收案例**　使用者能登入但缺少開通資格時，建立企業應失敗；查閱企業詳情也不等於取得變更擁有者的資格。
 
-[對照實作或測試](../../../backend/internal/business/enterprise/adapter/firestore/store.go) · [戰略設計與分類準則](../../architecture/ddd/README.md)
+[對照實作或測試](../../../backend/internal/business/enterprise/adapter/firestore/store.go) · [戰略設計與分類準則](../../references/ddd/README.md)
 
 企業與組織連結的目標設計收錄在組織所有權規格。
 
@@ -31,6 +31,6 @@ flowchart TD
 
 [入口適配器](../../../backend/internal/business/enterprise/adapter/http/routes.go) · [判定依據](../../../backend/internal/business/enterprise/adapter/firestore/store.go) · [應用層輸出介面](../../../backend/internal/business/enterprise/application/port/store.go) · 本領域目錄未見獨立 Go 測試；以上述驗收案例核對實作
 
-[三領域授權邊界](../../architecture/contracts/organization-team-ownership.md#ownership-boundaries)
+[三領域授權邊界](../../contracts/organization-team-ownership.md#ownership-boundaries)
 
 [適用工作指引](../AGENTS.md) · [上層導覽](../README.md)

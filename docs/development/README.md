@@ -25,5 +25,3 @@
 開發手冊說明怎麼工作。[領域規格](../domains/README.md)定義應有行為，[架構文件](../architecture/README.md)定義邊界與契約，[腳本索引](../../scripts/README.md)指向可執行入口。工具版本與任務以 [mise.toml](../../mise.toml) 為準。
 
 [本目錄指引](AGENTS.md) · [父層指引](../AGENTS.md) · [文件總索引](../README.md)
-
-[開發與維運指引圖索引](../diagrams.md#開發與維運指引) · [未來設計圖](../diagrams.md#未來設計)

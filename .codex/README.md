@@ -18,8 +18,7 @@
 
 ## 相關規格
 
-[操作模型](../docs/architecture/contracts/business-operations.md) · [符合性流程](../docs/development/workflow/implementation.md#business-operation-compliance)
-
+[操作模型](../docs/contracts/business-operations.md) · [符合性流程](../docs/development/workflow/implementation.md#business-operation-compliance)
 
 ## 目錄導覽與維護
 
@@ -39,7 +38,7 @@ config.toml 定義角色與 MCP 連線，agents/ 定義角色指引，hooks.json
 
 ## Business Operation
 
-開始相關任務前，必須閱讀 [操作模型](../docs/architecture/contracts/business-operations.md) 與 [符合性流程](../docs/development/workflow/implementation.md#business-operation-compliance)。
+開始相關任務前，必須閱讀 [操作模型](../docs/contracts/business-operations.md) 與 [符合性流程](../docs/development/workflow/implementation.md#business-operation-compliance)。
 
 現有角色依 Business Operation 契約分工；角色開始相關任務時須讀取模型及符合性流程，文件路徑不是自動 include。
 
@@ -68,7 +67,7 @@ Mermaid v13 的 `mermaid` 套件內建 `mermaid render`，與舊版 `@mermaid-js
 | 儲存庫與專案關係 | [Project](../docs/domains/project/project.md)：個人或群組擁有 Project，引用可跨庫，來源讀權逐庫核驗 |
 | 物件與子工序 | [Object 與子物件](../docs/domains/repository/object/design.md)：單層子項，數量／單位／進度獨立 |
 | 問題與討論 | [Issue](../docs/domains/repository/issue/design.md)、[Discussion](../docs/domains/repository/discussion/design.md)：各自狀態與資料，不自動推進物件進度 |
-| 授權與寫入流程 | [操作模型](../docs/architecture/contracts/business-operations.md)：區分主體、資源、權限、領域規則、交易與結果 |
+| 授權與寫入流程 | [操作模型](../docs/contracts/business-operations.md)：區分主體、資源、權限、領域規則、交易與結果 |
 
 以 `GroupID` 識別 LINE 群組，以 `SpaceID` 識別 Repository 內的工區。[庫內工區](../docs/domains/repository/spaces.md)
 
@@ -79,8 +78,6 @@ Mermaid v13 的 `mermaid` 套件內建 `mermaid render`，與舊版 `@mermaid-js
 1. 核對來源並依[文件圖表規範](../docs/standards/documentation.md#獨立圖檔)維護內嵌區塊或獨立圖檔。
 2. 使用專案鎖定的本機 Mermaid v13 CLI。需要安裝時執行 `bash scripts/tooling/tool-exec.sh mise run install-mermaid`。
 3. 執行 `bash scripts/tooling/tool-exec.sh mise run render-mermaid -- render diagram.mmd --format svg > diagram.svg`，核對圖中文字與箭頭符合來源。
-
-[開發與維運指引圖索引](../docs/diagrams.md#開發與維運指引) · [未來設計圖](../docs/diagrams.md#未來設計)。
 
 ### Codex Cloud 新環境驗收
 

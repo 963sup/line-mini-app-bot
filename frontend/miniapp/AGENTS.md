@@ -24,4 +24,4 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 遵循[前端元件保護規則](../AGENTS.md#shadcn-元件保護)。Codex 預設不得改寫 shared/ui 與 shell/sidebar-07 的樣式、結構或互動；新增需求在應用層組合，只有使用者當次明確授權才能修改官方元件。
 
-[現行實作圖：頁面與身分生命週期](../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期) · [未來設計圖](../../docs/diagrams.md#未來設計)
+[現行實作圖：頁面與身分生命週期](../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)

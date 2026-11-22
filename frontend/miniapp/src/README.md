@@ -10,7 +10,7 @@ MINI App 採用 **依功能組織（feature-based architecture）**。`pages/` �
 
 ## 相關規格
 
-[現行實作圖：頁面與身分生命週期](../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：頁面與身分生命週期](../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
 
 ## 驗證入口
 

@@ -10,6 +10,6 @@
 
 ## 相關規格
 
-[現行實作圖：MINI App 信任流程](../../../../../docs/architecture/contracts/http.md#mini-app-信任流程) · [未來設計圖](../../../../../docs/diagrams.md#未來設計)
+[現行實作圖：MINI App 信任流程](../../../../../docs/contracts/http.md#mini-app-信任流程)
 
 [上層導覽](../README.md)

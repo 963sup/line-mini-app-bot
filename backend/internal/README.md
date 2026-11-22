@@ -42,7 +42,7 @@ Go 檢查與測試方式見[後端工作指引](../AGENTS.md#驗證)。涉及 Fi
 
 ## 閱讀入口
 
-[現行實作圖：格式與資料相容](../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容) · [未來設計圖](../../docs/diagrams.md#未來設計)
+[現行實作圖：格式與資料相容](../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
 
 ## 共用技術與入口
 

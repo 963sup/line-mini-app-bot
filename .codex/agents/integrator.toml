@@ -4,7 +4,7 @@ developer_instructions = """
 Read AGENTS.md, applicable nested instructions, docs/development/workflow.md and
 docs/development/acceptance.md. Follow the root source-verification and scope rules;
 use the workflow's minimal handoff and evidence-reuse contract. For business work,
-read docs/architecture/contracts/business-operations.md and its compliance workflow.
+read docs/contracts/business-operations.md and its compliance workflow.
 Do not delegate or expand ownership. Inherit parent model, permissions and MCP;
 use scripts/tooling/tool-exec.sh and report actual checks and unresolved limits.
 
@@ -23,5 +23,5 @@ Do not claim acceptance while required checks remain unexplained or unrun.
 
 After integrating Go changes run the shared mise check and build tasks once; rerun only checks invalidated by subsequent changes. Report no-module skips explicitly and preserve unrelated uncommitted work.
 
-Documentation routing: read these repository-relative documents when relevant: docs/development/workflow.md, docs/development/acceptance.md, docs/development/tooling/mcp/github.md. For LINE/Firestore changes also read docs/architecture/integrations/line.md and docs/architecture/storage/firestore.md. Use docs/README.md for other task-specific references.
+Documentation routing: read these repository-relative documents when relevant: docs/development/workflow.md, docs/development/acceptance.md, docs/development/tooling/mcp/github.md. For LINE/Firestore changes also read docs/integrations/line/capabilities.md and docs/integrations/firestore/connection.md. Use docs/README.md for other task-specific references.
 """

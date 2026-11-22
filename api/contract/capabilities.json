@@ -5,7 +5,7 @@
       "contract": "identity/identity.yaml",
       "adapter": "backend/internal/identity/http/identity.go",
       "core": "backend/internal/identity/session/session.go",
-      "specification": "docs/architecture/identity/browser-session.md"
+      "specification": "docs/contracts/identity.md"
     },
     "repository": {
       "contract": "repository/repositories.yaml",
@@ -244,7 +244,7 @@
       "adapter": "backend/internal/identity/http/identity.go",
       "handler": "GetMiniAppConfig",
       "core": "backend/internal/identity/session/session.go",
-      "specification": "docs/architecture/identity/browser-session.md",
+      "specification": "docs/contracts/identity.md",
       "consumers": [
         "frontend/miniapp/src/identity/Session.tsx"
       ],
@@ -259,7 +259,7 @@
       "adapter": "backend/internal/identity/http/identity.go",
       "handler": "GetCurrentUser",
       "core": "backend/internal/identity/session/session.go",
-      "specification": "docs/architecture/identity/browser-session.md",
+      "specification": "docs/contracts/identity.md",
       "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
@@ -272,7 +272,7 @@
       "adapter": "backend/internal/identity/http/identity.go",
       "handler": "CreateSession",
       "core": "backend/internal/identity/session/session.go",
-      "specification": "docs/architecture/identity/browser-session.md",
+      "specification": "docs/contracts/identity.md",
       "consumers": [
         "frontend/miniapp/src/identity/Session.tsx"
       ],
@@ -287,7 +287,7 @@
       "adapter": "backend/internal/identity/http/identity.go",
       "handler": "DeleteSession",
       "core": "backend/internal/identity/session/session.go",
-      "specification": "docs/architecture/identity/browser-session.md",
+      "specification": "docs/contracts/identity.md",
       "consumers": [
         "frontend/miniapp/src/identity/Session.tsx"
       ],
@@ -302,7 +302,7 @@
       "adapter": "backend/internal/identity/http/identity.go",
       "handler": "RefreshSession",
       "core": "backend/internal/identity/session/session.go",
-      "specification": "docs/architecture/identity/browser-session.md",
+      "specification": "docs/contracts/identity.md",
       "consumers": [
         "frontend/miniapp/src/identity/Session.tsx"
       ],
@@ -1745,7 +1745,7 @@
     {
       "owner": "organization",
       "action": "Create organization or enterprise in private chat",
-      "contract": "docs/architecture/contracts/organization-team-ownership.md",
+      "contract": "docs/contracts/organization-team-ownership.md",
       "adapter": "backend/internal/business/organization/adapter/line/creation_line.go",
       "handler": "CreationHandler",
       "note": "Verified private LINE messages drive the transactional naming prompt and replay-safe creation."

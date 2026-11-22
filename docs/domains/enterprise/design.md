@@ -36,4 +36,4 @@
 
 所有獨立資格寫入遵循 [Membership 交易與重送契約](../../proposals/membership.md#原子操作與重送契約)。切換須涵蓋企業詳情、導覽、Team 開通與指派的所有授權讀寫；未完成時不得啟用 membership 模式。驗收須證明直接與衍生資格可區分、最後 Owner 不可撤除、manager 不能自行升 Owner，以及企業撤權再加入不恢復舊 Team 資格。角色、入口與權威格式未定案的部分須保留為阻塞，不能以編譯或列表可見宣稱閉環。
 
-[跨領域歸屬契約](../../architecture/contracts/organization-team-ownership.md) · [領域入口](README.md)
+[跨領域歸屬契約](../../contracts/organization-team-ownership.md) · [領域入口](README.md)

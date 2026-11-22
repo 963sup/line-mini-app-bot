@@ -10,6 +10,6 @@
 
 ## 相關規格
 
-[現行實作圖：基礎入口](../../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../../docs/diagrams.md#未來設計)
+[現行實作圖：基礎入口](../../docs/contracts/http.md#基礎入口)
 
 [上層導覽](../README.md)

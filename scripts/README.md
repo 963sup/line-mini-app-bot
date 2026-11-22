@@ -21,7 +21,6 @@
 | [security/](security/README.md) | 供應鏈安全檢查 | vuln 目前由 mise 直接執行 |
 | [build/](build/README.md) | 建置容器映像 | container-build |
 | [release/](release/README.md) | 發布驗收 | release-smoke.py |
-| [deploy/](deploy/README.md) | Google Cloud 部署與流量管理 | 現行設定在儲存庫根目錄 deploy/ |
 | [ops/](ops/README.md) | 查閱 Cloud Run 狀態 | cloud-run-snapshot.py |
 | [db/](db/README.md) | 維護 Firestore 索引 | ensure-attendance-indexes.py |
 | [tooling/](tooling/README.md) | 開發工具與環境診斷 | doctor、tool-exec.sh |
@@ -60,5 +59,3 @@ embedded interface methods, generated signatures, adapter ownership and route
 composition. Unsupported composition forms fail closed; full Go type checking
 remains in the generated interface assertion and Go checks. `pnpm api:check`
 runs dispatch regression tests before validating contracts and generated output.
-
-[開發與維運指引圖索引](../docs/diagrams.md#開發與維運指引) · [未來設計圖](../docs/diagrams.md#未來設計)。

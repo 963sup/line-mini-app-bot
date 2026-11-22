@@ -6,7 +6,7 @@
 
 ## 相關規格
 
-[現行實作圖：物件與子物件歸屬](../../../../docs/architecture/contracts/object-subobject-ownership.md#物件與子物件歸屬) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
+[現行實作圖：物件與子物件歸屬](../../../../docs/contracts/object-subobject-ownership.md#物件與子物件歸屬)
 
 ## 變更工項進度的維護與驗收
 

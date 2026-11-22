@@ -4,20 +4,18 @@
 
 ## architecture
 
-適用於 runtime、identity、storage 與 contracts。
+適用於系統執行、模組依賴與資料儲存責任；共用身分與授權規則見[跨邊界契約](../contracts/README.md)。
 
 跨模組邊界、依賴方向、HTTP／資料契約與架構決策。
-局部命令放模組 README；功能規則放 domains，部署操作放 guides/release。已接受決策以 decisions 中的 ADR 為準，未來規劃需明確標示。
+局部命令放模組 README；功能規則放 domains，部署操作放 operations。已接受決策以 decisions 中的 ADR 為準，未來規劃需明確標示。
 
-依[基線決策](../decisions/0002-baseline.md)與[基礎開發規格](../guides/local-development/environment-verification.md)判斷階段範圍：先基礎建設，再 LINE／Firestore，接著基本出勤。平台擴充文件屬延後參考，不將 Worker、Garr、定位或新測試基礎設施設為此階段的必要條件。
+依[基線決策](../decisions/0002-baseline.md)與[基礎開發規格](../development/environment/verification.md)判斷階段範圍：先基礎建設，再 LINE／Firestore，接著基本出勤。平台擴充文件屬延後參考，不將 Worker、Garr、定位或新測試基礎設施設為此階段的必要條件。
 
-## integrations
+## 外部整合
 
-適用於 integrations 子目錄。
-
-本目錄維護 LINE 與瀏覽器定位整合。Firestore 的儲存規則見 [Firestore 整合](storage/firestore.md)。
+LINE、瀏覽器定位、Firestore、Cloud Storage 與 Google Cloud 由[外部整合索引](../integrations/README.md)導覽。Firestore 的儲存規則見 [Firestore 整合](../integrations/firestore/connection.md)。
 外部服務契約與專案功能規則分開；遵循根層查證政策，不在文件存放 token、憑證或機密。
 
 ## operations
 
-發布與驗收依[操作指引](../guides/AGENTS.md)。
+發布與驗收依[維運指引](../operations/AGENTS.md)。

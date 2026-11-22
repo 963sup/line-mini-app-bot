@@ -100,7 +100,7 @@ Rules:
 
 依[開發手冊](docs/development/README.md#按任務開始)選擇環境、工作流程、配方與驗收。角色依 developer_instructions 選讀適用文件。工具選擇與診斷見 [MCP 指南](docs/development/tooling/mcp/README.md)。
 
-實作交接依[架構證據與用語](docs/architecture/README.md#接手時的證據與用語)與[命名規範](docs/standards/naming.md)。
+實作交接依[交接與證據重用](docs/development/workflow/handoff.md#minimal-handoff-and-evidence-reuse)與[命名規範](docs/standards/naming.md)。
 
 ## Repository publication default
 
@@ -123,5 +123,3 @@ Develop directly on `main`. Every commit must be a complete, independently revie
 範圍外發現列出證據與後續工作，不自行全庫重構、改產品規則或部署。純文件及設定調整不要求無關應用測試；修改行為須執行相應檢查。
 涉及 Firestore 交易、併發、重送或持久資料相容性時，依[整合驗收流程](docs/development/verification/commands.md#firestore-integration)主動檢查、準備並重跑 emulator 測試。
 交付對照規格、實作位置、實際驗證結果及剩餘限制；角色指引與本規則一致，不因委派增加授權。
-
-[現行實作圖索引](docs/diagrams.md#現行實作) · [未來設計圖](docs/diagrams.md#未來設計)。

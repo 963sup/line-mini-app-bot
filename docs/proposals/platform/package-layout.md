@@ -21,7 +21,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   h["邊界欄位命名"]
-  h --- n0["Go ChannelID → JSON channelId → Firestore<br/>channelId；schemaVersion 作版本欄位。 LINE 原始 payload<br/>保留官方欄位名，不改寫 webhookEventId 等名稱。 內部 EventID 對應<br/>LINE webhookEventId，mapping 明寫在 adapter。 JSON 統一<br/>lowerCamelCase，環境變數依 LINE<br/>設定（../../architecture/integrations/line-environment.md），不可把機密放公開<br/>DTO。"]
+  h --- n0["Go ChannelID → JSON channelId → Firestore<br/>channelId；schemaVersion 作版本欄位。 LINE 原始 payload<br/>保留官方欄位名，不改寫 webhookEventId 等名稱。 內部 EventID 對應<br/>LINE webhookEventId，mapping 明寫在 adapter。 JSON 統一<br/>lowerCamelCase，環境變數依 LINE<br/>設定（../../integrations/line/configuration.md），不可把機密放公開<br/>DTO。"]
   h --- n1["測試函數 TestService_HandlePostback，table case 使用行為如<br/>rejects missing actor；benchmark<br/>BenchmarkRenderFlex。 文件名小寫<br/>kebab-case，標題使用具體責任；不使用 final/new/v2-copy。API<br/>版本與 schema 版本各自管理。"]
   h --- n2["依據：Context7 /websites/go_dev_doc，2026-11-07 核對<br/>Effective Go（https://go.dev/doc/effective_go） 的<br/>MixedCaps、package 與建構函數慣例；snake_case 檔案與 JSON<br/>規則是專案選擇。"]
 ```

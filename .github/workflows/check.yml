@@ -1,6 +1,7 @@
 name: Repository checks
 on:
   push:
+    branches: [main]
   pull_request:
 permissions:
   contents: read
@@ -9,23 +10,53 @@ concurrency:
   cancel-in-progress: true
 jobs:
   configuration:
+    outputs:
+      run_application: ${{ steps.changes.outputs.run_application }}
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
+      - name: Detect application changes
+        id: changes
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          # Compare the complete PR or push, including deletions and renames.
+          # A new branch or unavailable history must run the full checks.
+          if [[ "$EVENT" == pull_request ]]; then
+            before="$PR_BASE" after="$PR_HEAD" separator=...
+          else
+            before="$PUSH_BEFORE" after="$PUSH_AFTER" separator=..
+          fi
+          run_application=true
+          if [[ -n "$before" && -n "$after" ]] && git diff --quiet --no-renames "$before$separator$after" -- . \
+            ':(exclude,glob)**/*.md' \
+            ':(exclude,glob)docs/**/*.mermaid' \
+            ':(exclude,glob)docs/**/*.svg'; then
+            run_application=false
+          fi
+          echo "run_application=$run_application" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
       - run: python3 scripts/check/check-config.py
       - name: Offline tooling regressions
+        if: steps.changes.outputs.run_application == 'true'
         run: python3 -m unittest discover -s scripts/test -p 'test_*.py'
       - name: Analysis scope contract
         run: python3 scripts/check/analysis-scope.py
       - name: Whitespace
         run: git diff --check
   go:
+    needs: configuration
+    if: needs.configuration.outputs.run_application == 'true'
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
@@ -92,6 +123,8 @@ jobs:
           bash scripts/tooling/tool-exec.sh mise run vuln
 
   container:
+    needs: configuration
+    if: needs.configuration.outputs.run_application == 'true'
     timeout-minutes: 25
     runs-on: ubuntu-latest
     steps:

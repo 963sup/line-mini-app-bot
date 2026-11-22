@@ -10,7 +10,7 @@ flowchart LR
   n1 --- n1l0["ADR 0002"]
   click n1l0 "../../decisions/0002-baseline.md"
   n1 --- n1l1["基礎設施"]
-  click n1l1 "../../guides/local-development/environment-verification.md"
+  click n1l1 "../../development/environment/verification.md"
   n1 --- n1l2["基礎出勤"]
   click n1l2 "../../domains/attendance/README.md"
 ```
@@ -21,7 +21,7 @@ flowchart LR
 flowchart LR
   h["第一個可實作切片"]
   h --- n0["目前先完成 HTTP／容器／Cloud Run 骨架，再接<br/>入資料與首期 LINE 入口。 後續平台切片參考：<br/>接收 user/group Webhook、驗簽、持久接收、去<br/>重與 source 分流。 目前只有 最小接入試作，不<br/>含持久接收；不新增健康檢查路由。 本切片不執<br/>行任意 Postback、不授予群組管理權、不自動 <br/>Push；未知事件安全記錄中繼資料並忽略。 這個<br/>切片能先開始，不等於完整業務產品。"]
-  click n0 "../../guides/line-setup/README.md"
+  click n0 "../../integrations/line/setup.md"
 ```
 
 <a id="產品決策閘門"></a>
@@ -67,7 +67,7 @@ flowchart LR
   n0 --- n0l0["ADR 0002"]
   click n0l0 "../../decisions/0002-baseline.md"
   n0 --- n0l1["分階段落地"]
-  click n0l1 "../../guides/local-development/environment-verification.md"
+  click n0l1 "../../development/environment/verification.md"
   n0 --- n0l2["基礎出勤"]
   click n0l2 "../../domains/attendance/README.md"
 ```

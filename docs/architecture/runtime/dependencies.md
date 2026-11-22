@@ -40,14 +40,14 @@ flowchart LR
   n3 --- n3l0["OpenAPI"]
   click n3l0 "../../../api/README.md"
   n3 --- n3l1["Session"]
-  click n3l1 "../identity/browser-session.md"
+  click n3l1 "../../contracts/identity.md"
   h --- n4["契約：資料與可靠性規劃<br/>權威維護位置：資料契約、可靠性索引<br/>導航時的界線：遵循各頁狀態標示；規劃中的 <br/>schema／Outbox 不作為現行資料庫全貌"]
   n4 --- n4l0["資料契約"]
   click n4l0 "../../proposals/firestore-data-contracts.md"
   n4 --- n4l1["可靠性索引"]
   click n4l1 "../README.md#可靠性設計參考"
   h --- n5["契約：業務操作的共用描述方式<br/>權威維護位置：操作模型<br/>導航時的界線：功能文件填具體操作；本頁只提供<br/>定位"]
-  click n5 "../contracts/business-operations.md"
+  click n5 "../../contracts/business-operations.md"
 ```
 
 <a id="目前實作"></a>

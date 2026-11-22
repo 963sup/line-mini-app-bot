@@ -16,6 +16,6 @@
 
 `Picker` 共用目錄查詢及選取 UI，只修改父層草稿；透過問題／討論既有更新 API 保存。
 
-[現行實作圖：空間載入時序](../../../../../../docs/domains/repository/README.md#空間載入時序) · [未來設計圖](../../../../../../docs/diagrams.md#未來設計)
+[現行實作圖：空間載入時序](../../../../../../docs/domains/repository/README.md#空間載入時序)
 
 [上層導覽](../README.md)

@@ -71,7 +71,7 @@ flowchart LR
   n0 --- n0l1["工時計算與更正證據"]
   click n0l1 "worktime.md"
   n0 --- n0l2["基礎設施與接入"]
-  click n0l2 "../../guides/local-development/environment-verification.md"
+  click n0l2 "../../development/environment/verification.md"
 ```
 
 <a id="最小操作"></a>

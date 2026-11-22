@@ -6,6 +6,6 @@
 
 [領域規格](../../../../docs/domains/organization/README.md) · [判定流程](../../../../docs/domains/organization/README.md#decision-flow) · [判定實作](adapter/firestore/store.go)
 
-[三領域授權邊界](../../../../docs/architecture/contracts/organization-team-ownership.md#ownership-boundaries)
+[三領域授權邊界](../../../../docs/contracts/organization-team-ownership.md#ownership-boundaries)
 
 [適用工作指引](AGENTS.md) · [上層導覽](../README.md)

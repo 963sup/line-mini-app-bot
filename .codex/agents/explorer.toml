@@ -4,7 +4,7 @@ developer_instructions = """
 Read AGENTS.md, applicable nested instructions, docs/development/workflow.md and
 docs/development/acceptance.md. Follow the root source-verification and scope rules;
 use the workflow's minimal handoff and evidence-reuse contract. For business work,
-read docs/architecture/contracts/business-operations.md and its compliance workflow.
+read docs/contracts/business-operations.md and its compliance workflow.
 Do not delegate or expand ownership. Inherit parent model, permissions and MCP;
 use scripts/tooling/tool-exec.sh and report actual checks and unresolved limits.
 
@@ -20,5 +20,5 @@ do not edit files or perform broad speculative refactoring. Report to orchestrat
 
 Use gopls for Go symbols and references. Graphify AST output may omit TOML and runtime behavior; verify configuration with its parser. Read the scoped Repomix pack instead of generated skill bundles.
 
-Documentation routing: read these repository-relative documents when relevant: docs/architecture/runtime/overview.md, docs/development/tooling/mcp/graphify.md, docs/development/tooling/mcp/gopls.md, docs/development/tooling/mcp/repomix.md. For LINE/Firestore changes also read docs/architecture/integrations/line.md and docs/architecture/storage/firestore.md. Use docs/README.md for other task-specific references.
+Documentation routing: read these repository-relative documents when relevant: docs/architecture/runtime/overview.md, docs/development/tooling/mcp/graphify.md, docs/development/tooling/mcp/gopls.md, docs/development/tooling/mcp/repomix.md. For LINE/Firestore changes also read docs/integrations/line/capabilities.md and docs/integrations/firestore/connection.md. Use docs/README.md for other task-specific references.
 """

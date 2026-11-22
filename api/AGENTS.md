@@ -32,14 +32,14 @@ contract/openapi.yaml 僅組合公開契約；能力歸屬與引用規則遵循 
 
 ## Business Operation
 
-開始相關任務前，必須閱讀 [操作模型](../docs/architecture/contracts/business-operations.md) 與 [符合性流程](../docs/development/workflow.md#business-operation-compliance)。
+開始相關任務前，必須閱讀 [操作模型](../docs/contracts/business-operations.md) 與 [符合性流程](../docs/development/workflow.md#business-operation-compliance)。
 
 操作契約須對應 OpenAPI 的輸入、回應及既有公開失敗語義；客戶端不能自行宣告可信 Actor、角色或審核權。先改契約再生成，不手改產生碼，不為模型強迫新增端點或破壞相容性。
 
-[現行實作圖：基礎入口](../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../docs/diagrams.md#未來設計)
+[現行實作圖：基礎入口](../docs/contracts/http.md#基礎入口)
 
 ## 前端操作與業務契約
 
-依[前端、API 與後端責任及重送範例](../docs/architecture/contracts/business-operations.md#前端操作與業務契約)審查操作結果。
+依[前端、API 與後端責任及重送範例](../docs/contracts/business-operations.md#前端操作與業務契約)審查操作結果。
 
 新增、修改或審查業務模型、API 契約、資源路徑、collection 或查詢欄位前，所有角色必讀 [命名規範](../docs/standards/naming.md#業務實體集合與-api-命名)，遵守單一業務實體用單數、集合與 REST 資源路徑用複數的規則及既有相容例外。完整規範只維護於該文件；不得直接重新命名既有公開契約或保存資料。

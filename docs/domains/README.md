@@ -16,7 +16,7 @@
 | [group](group/README.md) | 已有實作 | [核心流程](group/README.md#decision-flow) | [測試](../../backend/internal/business/group/application/query/group_test.go) |
 | [journal](journal/README.md) | 已有實作 | [核心流程](journal/README.md#decision-flow) | [測試](../../backend/internal/business/journal/domain/entity/entry_test.go) |
 | [knowledge](knowledge/README.md) | 提案 | [核心流程](../proposals/knowledge.md#design-diagram) | [驗收條件](../proposals/domain-collaboration.md) |
-| [operations](operations/README.md) | 提案 | [核心流程](../proposals/operations.md#design-diagram) | [驗收條件](../proposals/domain-collaboration.md) |
+| [業務操作能力](operations/README.md) | 通用操作模型為提案，PDF 文字擷取已實作 | [核心流程](../proposals/operations.md#design-diagram) | [驗收條件](../proposals/domain-collaboration.md) |
 | [organization](organization/README.md) | 已有實作 | [核心流程](organization/README.md#decision-flow) | [實作](../../backend/internal/business/organization/adapter/firestore/store.go) |
 | [project](project/README.md) | 已有實作 | [核心流程](project/README.md#decision-flow) | [測試](../../backend/internal/business/project/application/reference_source_test.go) |
 | [repository](repository/README.md) | 已有實作 | [核心流程](repository/README.md#decision-flow) | [實作](../../backend/internal/business/repository/domain/entity/repository.go) |
@@ -27,7 +27,7 @@
 
 ## 業務功能
 
-依上表的「狀態」區分現行實作與提案。各領域擁有通用語言、規則及驗收案例；公開格式以 [API 契約](../../api/README.md) 為準。核心／支援子域的分類需依客戶採用理由驗證。跨模組問題查[共用實作邊界](internal/README.md)、[DDD 設計方法](../architecture/ddd/README.md)或[Organization 與 Team 目標契約](../architecture/contracts/organization-team-ownership.md)。
+依上表的「狀態」區分現行實作與提案。各領域擁有通用語言、規則及驗收案例；公開格式以 [API 契約](../../api/README.md) 為準。核心／支援子域的分類需依客戶採用理由驗證。跨模組問題查[後端共用 Adapter](../architecture/runtime/shared-adapters.md)、[DDD 設計方法](../references/ddd/README.md)或[Organization 與 Team 目標契約](../contracts/organization-team-ownership.md)。
 
 ## 出勤
 
@@ -83,4 +83,4 @@
 
 [群組位置天氣](weather/weather.md)
 
-[領域維護規則](AGENTS.md) · [圖表索引](../diagrams.md) · [上層導覽](../README.md)
+[領域維護規則](AGENTS.md) · [上層導覽](../README.md)

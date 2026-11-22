@@ -66,10 +66,10 @@ flowchart LR
 flowchart LR
   h["4. 邊界檢查"]
   h --- n0["Webhook：先驗證原始 body 的簽章，處理重送冪<br/>等性，詳見 LINE。"]
-  click n0 "../architecture/integrations/line.md"
+  click n0 "../integrations/line/capabilities.md"
   h --- n1["MINI App：後端驗證 LINE 身分，再檢查資源存取<br/>權；不信任前端 user ID。"]
   h --- n2["Firestore：server SDK 的授權由後端與 IAM 負<br/>責；交易 callback 可能重跑，詳見 Firestore。"]
-  click n2 "../architecture/storage/firestore.md"
+  click n2 "../integrations/firestore/connection.md"
   h --- n3["並行工作：明確管理取消與生命週期；需要可靠完<br/>成的工作使用持久化機制。"]
   h --- n4["目前先不引入微服務、完整 CQRS、Event <br/>Sourcing 或通用 Repository 框架。 當獨立部署<br/>、讀寫差異或事件稽核需求成立時，再重新評估。"]
   h --- n5["實作細節見 Go 慣例；驗證方式見 驗收矩陣。"]
@@ -90,5 +90,5 @@ flowchart LR
 flowchart LR
   h["資源導向業務操作"]
   h --- n0["新增或修改功能須依 Business Operation 模型與<br/>操作契約 定義身分、資源、行為、授權、領域規<br/>則與結果。 完整定義集中於該頁；本頁既有模組<br/>邊界、簡單優先與漸進演進原則繼續適用。"]
-  click n0 "../architecture/contracts/business-operations.md"
+  click n0 "../contracts/business-operations.md"
 ```

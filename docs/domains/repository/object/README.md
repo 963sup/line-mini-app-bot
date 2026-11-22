@@ -12,7 +12,7 @@
 
 **驗收案例**　總量為 5、完成量為 8 的工項應被拒絕；等值十進位表示不應產生不同的完成狀態。
 
-[對照實作或測試](../../../../backend/internal/business/object/application/progress_test.go) · [戰略設計與分類準則](../../../architecture/ddd/README.md)
+[對照實作或測試](../../../../backend/internal/business/object/application/progress_test.go) · [戰略設計與分類準則](../../../references/ddd/README.md)
 
 工項規格涵蓋數量、進度與狀態。
 

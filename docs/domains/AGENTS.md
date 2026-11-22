@@ -11,9 +11,7 @@
 
 更新索引與驗證連結依[文件維護指引](../AGENTS.md#驗證)。
 
-新增或修改功能文件時，使用 [操作契約範本](../architecture/contracts/business-operations.md#功能操作契約範本)，區分既有證據、目標行為與待確認規則，不擅自改變產品範圍。
-
-[現行實作圖索引](../diagrams.md#現行實作) · [未來設計圖](../diagrams.md#未來設計)。
+新增或修改功能文件時，使用 [操作契約範本](../contracts/business-operations.md#功能操作契約範本)，區分既有證據、目標行為與待確認規則，不擅自改變產品範圍。
 
 在對應功能文件回答六個問題：誰操作、操作什麼、做什麼、有沒有權限、符合哪些業務規則、成功後改變或回傳什麼；補充 Context、Authority、Decision 與依風險需要的 Event／Audit。
 區分系統允許／拒絕與業務核准／駁回；Merge 僅於採納提案時使用。

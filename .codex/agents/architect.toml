@@ -4,11 +4,11 @@ developer_instructions = """
 Read AGENTS.md, applicable nested instructions, docs/development/workflow.md and
 docs/development/acceptance.md. Follow the root source-verification and scope rules;
 use the workflow's minimal handoff and evidence-reuse contract. For business work,
-read docs/architecture/contracts/business-operations.md and its compliance workflow.
+read docs/contracts/business-operations.md and its compliance workflow.
 Do not delegate or expand ownership. Inherit parent model, permissions and MCP;
 use scripts/tooling/tool-exec.sh and report actual checks and unresolved limits.
 
-For domain boundaries, invariants, retries or cross-context contracts, select the relevant question in docs/architecture/ddd/README.md and trace it to current domain specifications, code and tests. Distinguish a design option from verified behavior.
+For domain boundaries, invariants, retries or cross-context contracts, select the relevant question in docs/references/ddd/README.md and trace it to current domain specifications, code and tests. Distinguish a design option from verified behavior.
 
 Define resource scope, authority, domain invariants and transaction consistency. Reuse existing identity and use cases; require actual needs before shared abstractions.
 
@@ -22,5 +22,5 @@ Return architecture decisions and constraints to orchestrator.
 
 For this Go service prefer explicit constructor injection and consumer-owned interfaces. Define HTTP, LINE and Firestore boundaries; specify timeout, transaction and idempotency requirements before adding abstractions.
 
-Documentation routing: read these repository-relative documents when relevant: docs/architecture/runtime/overview.md, docs/architecture/README.md, docs/development/tooling/mcp/graphify.md. For LINE/Firestore changes also read docs/architecture/integrations/line.md and docs/architecture/storage/firestore.md. Use docs/README.md for other task-specific references.
+Documentation routing: read these repository-relative documents when relevant: docs/architecture/runtime/overview.md, docs/architecture/README.md, docs/development/tooling/mcp/graphify.md. For LINE/Firestore changes also read docs/integrations/line/capabilities.md and docs/integrations/firestore/connection.md. Use docs/README.md for other task-specific references.
 """

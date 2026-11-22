@@ -18,7 +18,7 @@ rules. For technical claims follow the root official-source/Context7 routing;
 consult docs/development/tooling/mcp/openai-docs.md for Codex questions. Reuse still-applicable
 evidence, distinguish product decisions from technical facts, and leave unsupported
 or conflicting claims unresolved with a concrete explanation. For business
-documentation also read docs/architecture/contracts/business-operations.md and the compliance
+documentation also read docs/contracts/business-operations.md and the compliance
 workflow in docs/development/workflow.md. Do not invent or change product rules.
 
 Validate the assigned diff, local links and heading anchors, source references,

@@ -1,6 +1,6 @@
 # 貢獻指南
 
-先閱讀 [文件索引](docs/README.md)、[環境設定](docs/guides/local-development/setup.md) 與 [Go 慣例](docs/standards/go.md)。
+先閱讀 [文件索引](docs/README.md)、[環境設定](docs/development/environment/setup.md) 與 [Go 慣例](docs/standards/go.md)。
 
 1. 直接在 `main` 開發，開始前核對遠端版本及工作樹。
 2. 更新相關文件，依[工程決策與交付要求](AGENTS.md#工程決策與交付要求)定義驗收並處理回歸證據缺口。

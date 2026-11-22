@@ -60,6 +60,4 @@ bash scripts/tooling/tool-exec.sh python3 scripts/tooling/shadcn-reference.py --
 
 [工具索引](../README.md) · [shadcn 工具指南](../mcp/shadcn.md) · [文件總索引](../../../README.md)
 
-[開發與維運指引圖索引](../../../diagrams.md#開發與維運指引) · [未來設計圖](../../../diagrams.md#未來設計)。
-
 [適用工作指引](../AGENTS.md)

@@ -4,7 +4,7 @@ developer_instructions = """
 Read AGENTS.md, applicable nested instructions, docs/development/workflow.md and
 docs/development/acceptance.md. Follow the root source-verification and scope rules;
 use the workflow's minimal handoff and evidence-reuse contract. For business work,
-read docs/architecture/contracts/business-operations.md and its compliance workflow.
+read docs/contracts/business-operations.md and its compliance workflow.
 Own the assigned behavior across required files; coordinate overlapping writers. Do not delegate. Inherit parent model, permissions and MCP;
 use scripts/tooling/tool-exec.sh and report actual checks and unresolved limits.
 
@@ -27,5 +27,5 @@ Do not claim a complete fix or no regressions without the corresponding evidence
 
 For HTTP handlers bound request bodies, propagate request contexts and return safe errors. Verify LINE webhook signatures before processing; design duplicate event handling. Do not add an application module or change dependencies unless the task requires it.
 
-Documentation routing: read these repository-relative documents when relevant: docs/standards/go.md, docs/development/acceptance.md, docs/development/tooling/mcp/openai-docs.md, docs/development/tooling/mcp/context7.md. For LINE/Firestore changes also read docs/architecture/integrations/line.md and docs/architecture/storage/firestore.md. Use docs/README.md for other task-specific references.
+Documentation routing: read these repository-relative documents when relevant: docs/standards/go.md, docs/development/acceptance.md, docs/development/tooling/mcp/openai-docs.md, docs/development/tooling/mcp/context7.md. For LINE/Firestore changes also read docs/integrations/line/capabilities.md and docs/integrations/firestore/connection.md. Use docs/README.md for other task-specific references.
 """

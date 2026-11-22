@@ -42,7 +42,7 @@ flowchart LR
   n0 --- n0l0["基礎出勤"]
   click n0l0 "../domains/attendance/README.md"
   n0 --- n0l1["分階段落地"]
-  click n0l1 "../guides/local-development/environment-verification.md"
+  click n0l1 "../development/environment/verification.md"
   h --- n1["目前先穩定工具設定、應用骨架、設定注入與部署<br/>說明；各階段依工程決策與交付要求驗證。"]
 ```
 
@@ -65,5 +65,5 @@ flowchart LR
   n0 --- n0l1["開發原則"]
   click n0l1 "../standards/engineering.md"
   n0 --- n0l2["Cloud Run"]
-  click n0l2 "../guides/release/cloud-run.md"
+  click n0l2 "../operations/cloud-run.md"
 ```

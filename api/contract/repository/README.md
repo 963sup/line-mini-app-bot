@@ -10,7 +10,7 @@
 
 ## 相關規格
 
-[現行實作圖：空間載入時序](../../../docs/domains/repository/README.md#空間載入時序) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：空間載入時序](../../../docs/domains/repository/README.md#空間載入時序)
 
 Repository 列表與詳情的 `groupId` 只在群組擁有的儲存庫回傳。MINI App 使用此欄位建立出勤入口；出勤 API 仍依自己的規則驗證存取資格。
 

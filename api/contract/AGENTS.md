@@ -19,4 +19,4 @@
 - 新增操作同步維護 [能力清單](capabilities.json)、對應 adapter、消費端及功能規格；事件入口不為目錄一致而新增 HTTP API。
 - 契約變更由儲存庫根目錄執行 `bash scripts/tooling/tool-exec.sh pnpm api:check`；純指引變更檢查連結與 whitespace，歷史相容性比較另列 base revision。
 
-[現行實作圖：基礎入口](../../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../../docs/diagrams.md#未來設計)
+[現行實作圖：基礎入口](../../docs/contracts/http.md#基礎入口)

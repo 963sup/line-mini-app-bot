@@ -6,7 +6,7 @@
 
 ## 相關規格
 
-[天氣功能](../../../docs/domains/weather/weather.md) · [現行實作圖：基礎入口](../../../docs/architecture/contracts/http.md#基礎入口)
+[天氣功能](../../../docs/domains/weather/weather.md) · [現行實作圖：基礎入口](../../../docs/contracts/http.md#基礎入口)
 
 適用於本目錄及其子目錄；繼承 [上層指引](../AGENTS.md)，並遵循其引用的根目錄規則。此處只補充本範圍責任；使用者與主機指令優先，不增加外部寫入授權。
 
@@ -16,4 +16,4 @@
 - 不為目錄一致建立空 OpenAPI、瀏覽器 client 或 MINI App 天氣畫面；不複製 LINE／CWA 官方 schema。
 - 保留位置輸入的用途、預報有效期、支援範圍與失敗語義；不得擴大成定位歷史、出勤證明或持續追蹤。
 
-[現行實作圖：基礎入口](../../../docs/architecture/contracts/http.md#基礎入口) · [未來設計圖](../../../docs/diagrams.md#未來設計)
+[現行實作圖：基礎入口](../../../docs/contracts/http.md#基礎入口)

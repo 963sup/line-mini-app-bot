@@ -81,7 +81,7 @@ flowchart LR
 ```
 
 
-[跨領域歸屬契約](../../../architecture/contracts/object-subobject-ownership.md) · [領域入口](README.md)
+[跨領域歸屬契約](../../../contracts/object-subobject-ownership.md) · [領域入口](README.md)
 
 ## 從文件辨識候選
 

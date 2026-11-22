@@ -30,4 +30,4 @@ Go 檔用 snake_case，文件、Shell／Python 腳本及 Web JS／CSS 依專案�
 - [出勤實體](../../backend/internal/business/attendance/domain/entity/record.go)、[儲存 Port](../../backend/internal/business/attendance/application/port/store.go)、[事件序列驗證](../../backend/internal/business/attendance/domain/service/event_stream.go)、[打卡啟動憑證](../../backend/internal/business/attendance/adapter/firestore/attendance_launch.go)。
 - [摘要持久化](../../backend/internal/business/summary/adapter/firestore/summary.go)與[模型整合](../../backend/internal/business/summary/adapter/summarizer/summarization/client.go)分開；後者按 client、Gemini 與 OpenAI 的責任分檔。
 - 前端的[共同版型](../../frontend/miniapp/src/shell/Shell.tsx)、[身分生命週期](../../frontend/miniapp/src/identity/Session.tsx)、[請求取消與過期回應](../../frontend/miniapp/src/shared/http/lifecycle.ts)及[出勤畫面](../../frontend/miniapp/src/business/attendance/README.md)分別由其模組管理。
-- [Go 執行入口](../../backend/main.go)辨識 `check-firestore` 與 `sync-line-navigation` 兩個子命令；變更名稱時需一併核對[部署設定](../../deploy/README.md#容器建置契約)及呼叫端。
+- [Go 執行入口](../../backend/main.go)辨識 `check-firestore` 與 `sync-line-navigation` 兩個子命令；變更名稱時需一併核對[部署設定](../operations/container-build.md#容器建置契約)及呼叫端。

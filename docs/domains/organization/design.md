@@ -69,4 +69,4 @@ Team 透過交易內的資格讀取契約取得目前 Owner 判定、首任候�
 
 驗收須從正常入口完成建立、邀請、接受、名單、移轉及退出／移除，並核對重送不重新開權、移轉與退出併發仍有有效 Owner、撤權後選單及下層資格立即失效。切換後重新加入產生新世代，不能恢復舊 Team 資格。資料準備、切換執行入口及回復工具尚待實作與環境驗收；未完成前 MUST 維持 legacy 模式。
 
-[跨領域歸屬契約](../../architecture/contracts/organization-team-ownership.md) · [領域入口](README.md)
+[跨領域歸屬契約](../../contracts/organization-team-ownership.md) · [領域入口](README.md)

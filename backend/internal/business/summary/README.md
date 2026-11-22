@@ -12,7 +12,7 @@
 
 ## 閱讀入口
 
-[現行實作圖：資料與可靠性](../../../../docs/domains/summary/summary.md#資料與可靠性) · [未來設計圖](../../../../docs/diagrams.md#未來設計)
+[現行實作圖：資料與可靠性](../../../../docs/domains/summary/summary.md#資料與可靠性)
 
 ## 領域追蹤入口
 

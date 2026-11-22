@@ -53,7 +53,7 @@ Organization Team 須先完成 Organization 的獨立資格閉環；Enterprise T
 
 驗收至少覆蓋無群組管理授權不能開通、雙方競爭開通僅一方成功、重送不重新授權、maintainer 不能改寫 maintainer、撤權與授予競爭遵守版本、上層退出再加入不恢復舊 Team 權限。正常入口、可信授權來源與資料庫併發證據齊備後，才可標示首次開通閉環完成。
 
-[跨領域歸屬契約](../../architecture/contracts/organization-team-ownership.md) · [領域入口](README.md)
+[跨領域歸屬契約](../../contracts/organization-team-ownership.md) · [領域入口](README.md)
 
 ### 群組開通授權
 

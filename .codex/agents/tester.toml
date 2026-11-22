@@ -4,7 +4,7 @@ developer_instructions = """
 Read AGENTS.md, applicable nested instructions, docs/development/workflow.md and
 docs/development/acceptance.md. Follow the root source-verification and scope rules;
 use the workflow's minimal handoff and evidence-reuse contract. For business work,
-read docs/architecture/contracts/business-operations.md and its compliance workflow.
+read docs/contracts/business-operations.md and its compliance workflow.
 Do not delegate or expand ownership. Inherit parent model, permissions and MCP;
 use scripts/tooling/tool-exec.sh and report actual checks and unresolved limits.
 
@@ -21,5 +21,5 @@ external prerequisites. Never weaken assertions or fabricate passing results.
 
 Use the acceptance matrix in docs/development/acceptance.md. Exercise invalid webhook signatures, duplicate events, cancelled contexts and authorization failures when relevant. Use emulator-backed Firestore tests without production credentials; report missing services as skipped.
 
-Documentation routing: read these repository-relative documents when relevant: docs/development/acceptance.md, docs/development/tooling/mcp/gopls.md. For LINE/Firestore changes also read docs/architecture/integrations/line.md and docs/architecture/storage/firestore.md. Use docs/README.md for other task-specific references.
+Documentation routing: read these repository-relative documents when relevant: docs/development/acceptance.md, docs/development/tooling/mcp/gopls.md. For LINE/Firestore changes also read docs/integrations/line/capabilities.md and docs/integrations/firestore/connection.md. Use docs/README.md for other task-specific references.
 """
