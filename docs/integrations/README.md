@@ -4,5 +4,6 @@
 - [瀏覽器定位](geolocation/README.md)涵蓋 Web Geolocation API、使用者同意與後端驗證。
 - [Firestore](firestore/README.md)涵蓋連線、文件、交易、索引與資料生命週期。
 - [Cloud Storage](storage/README.md)涵蓋檔案、附件 metadata 與存取控制。
+- [Google Cloud 與 Maps](../architecture/integrations/README.md)由既有 Google 整合索引導覽。
 
 [專案文件入口](../README.md)
