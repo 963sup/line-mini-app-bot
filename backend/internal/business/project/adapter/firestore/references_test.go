@@ -1,6 +1,7 @@
 package firestore_test
 
 import (
+	projectgroup "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/group"
 	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
 )
@@ -77,7 +78,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	}
 	access := &sourceAccess{root: root}
 	store := &projectDB.Store{Client: client, ChannelID: root.ID}
-	svc := &projectApplication.Service{Groups: &groupquery.Service{Store: groups, Membership: membership{}}, Sources: access, Store: store}
+	svc := &projectApplication.Service{Groups: projectgroup.Access{Groups: &groupquery.Service{Store: groups, Membership: membership{}}}, Sources: access, Store: store}
 	project, e := svc.Create(ctx, "owner", gid, "typed-reference-project", projectDomainEntity.Content{Title: "Existing project", SourceRepositoryID: rid})
 	if e != nil {
 		t.Fatal(e)
@@ -214,7 +215,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	if issueSeen != 1 {
 		t.Fatal("legacy issue lost/duplicated", issueSeen)
 	}
-	// Remove added rows again to keep subsequent exact counts focused on four source kinds.
+	// Remove pagination fixtures while keeping the four original references.
 	cursor = ""
 	for {
 		page, e := svc.ListReferences(ctx, "owner", gid, project.ID, cursor)
@@ -222,7 +223,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 			t.Fatal(e)
 		}
 		for _, ref := range page.Items {
-			if ref.SourceType == "object" && ref.SourceID != oid {
+			if ref.SourceType == "object" && ref.SourceID != oid && ref.SourceID != sid {
 				project, e = svc.RemoveReference(ctx, "owner", gid, project.ID, ref.ID, project.Version)
 				if e != nil {
 					t.Fatal(e)
@@ -242,7 +243,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 		t.Fatal(e)
 	}
 	for _, ref := range page.Items {
-		if ref.SourceType == "object" && !ref.SourceUnavailable {
+		if ref.SourceType == "object" && ref.SourceID == oid && !ref.SourceUnavailable {
 			t.Fatal("corrupt source progress exposed", ref)
 		}
 	}

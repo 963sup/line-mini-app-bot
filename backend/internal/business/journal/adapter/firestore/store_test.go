@@ -3,6 +3,7 @@ package firestore
 import (
 	journalquery "github.com/963sup/line-mini-app-bot/internal/business/journal/application/query"
 	projectdb "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/firestore"
+	projectgroup "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/group"
 	projectsources "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/repository"
 	projectapp "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
@@ -116,7 +117,7 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 		t.Fatalf("empty repository page: %+v %v", targets, err)
 	}
 
-	store.Projects = &projectapp.Service{Groups: store.Groups, Store: &projectdb.Store{Client: client, ChannelID: channel}, Sources: projectsources.Sources{Repositories: store.Repositories}}
+	store.Projects = &projectapp.Service{Groups: projectgroup.Access{Groups: store.Groups}, Store: &projectdb.Store{Client: client, ChannelID: channel}, Sources: projectsources.Sources{Repositories: store.Repositories}}
 	last, err := store.ListReferenceTargets(ctx, "writer", g, targets.NextCursor)
 	if err != nil || last.NextCursor != "" || len(last.Items) != 0 {
 		t.Fatalf("empty project page: %+v %v", last, err)

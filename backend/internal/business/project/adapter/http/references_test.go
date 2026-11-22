@@ -12,8 +12,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
 )
 
 type referenceAuth struct{}
@@ -22,10 +20,10 @@ func (referenceAuth) Authenticate(http.ResponseWriter, *http.Request) (string, s
 	return "owner", "", true
 }
 
-type referenceGroups struct{ projectApplicationPort.Groups }
+type referenceGroups struct{}
 
-func (referenceGroups) Get(_ context.Context, _, id string) (groupentity.Group, error) {
-	return groupentity.Group{ID: id}, nil
+func (referenceGroups) AuthorizeGroup(_ context.Context, _, id string) (string, error) {
+	return id, nil
 }
 
 type referenceSources struct{}

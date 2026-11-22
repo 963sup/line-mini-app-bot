@@ -2,10 +2,12 @@ package application
 
 import (
 	"context"
+	"errors"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/business/team/domain"
 )
+
+var ErrAssignmentNotFound = errors.New("team assignment scope not found")
 
 type AssignmentWork interface {
 	Scope() (domain.AssignmentScope, error)
@@ -24,14 +26,14 @@ func AssignEnterpriseTeam(ctx context.Context, store AssignmentStore, actor, org
 			return err
 		}
 		if !scope.AllowsAssignment() {
-			return entity.ErrNotFound
+			return ErrAssignmentNotFound
 		}
 		authority, err := work.Authority(scope.EnterpriseID, actor)
 		if err != nil {
 			return err
 		}
 		if !authority.AllowsAssignment() {
-			return entity.ErrNotFound
+			return ErrAssignmentNotFound
 		}
 		return work.Save(assigned)
 	})

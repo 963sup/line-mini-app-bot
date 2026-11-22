@@ -1,6 +1,7 @@
 package firestore_test
 
 import (
+	projectgroup "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/group"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
@@ -112,7 +113,7 @@ func TestSourceHydrationFailurePreservesProjectMetadata(t *testing.T) {
 		t.Fatal(err)
 	}
 	store := &projectDB.Store{Client: client, ChannelID: channel}
-	svc := &projectApplication.Service{Groups: &groupquery.Service{Store: groups, Membership: membership{}}, Sources: &sourceAccess{root: root}, Store: store}
+	svc := &projectApplication.Service{Groups: projectgroup.Access{Groups: &groupquery.Service{Store: groups, Membership: membership{}}}, Sources: &sourceAccess{root: root}, Store: store}
 	created, err := svc.Create(ctx, "owner", gid, "source-failure-key-001", projectDomainEntity.Content{Title: "owned metadata", SourceRepositoryID: rid})
 	if err != nil {
 		t.Fatal(err)
@@ -196,7 +197,7 @@ func TestOwnerProjectStorageRightsAndLegacyAlias(t *testing.T) {
 	}
 	source := &sourceAccess{root: root}
 	store := &projectDB.Store{Client: client, ChannelID: channel}
-	svc := &projectApplication.Service{Groups: &groupquery.Service{Store: ss, Membership: membership{}}, Sources: source, Store: store}
+	svc := &projectApplication.Service{Groups: projectgroup.Access{Groups: &groupquery.Service{Store: ss, Membership: membership{}}}, Sources: source, Store: store}
 	content := projectDomainEntity.Content{Title: "Group project", SourceRepositoryID: rid}
 	key := "stable-create-key-0001"
 	if _, err = svc.Create(ctx, "outsider", gid, key, content); !errors.Is(err, projectDomainEntity.ErrNotFound) {
@@ -385,7 +386,7 @@ func TestPersonalRepositoryAndProject(t *testing.T) {
 		t.Fatal("foreign repository read", err)
 	}
 	access := &sourceAccess{root: root}
-	svc := projectApplication.Service{Groups: &groupquery.Service{}, Sources: access, Store: &projectDB.Store{Client: client, ChannelID: channel}}
+	svc := projectApplication.Service{Groups: projectgroup.Access{Groups: &groupquery.Service{}}, Sources: access, Store: &projectDB.Store{Client: client, ChannelID: channel}}
 	value, err := svc.Create(ctx, owner, owner, "personal-project-0001", projectDomainEntity.Content{Title: "工程", SourceRepositoryID: rid})
 	if err != nil {
 		t.Fatal(err)

@@ -3,13 +3,12 @@ package port
 import (
 	"context"
 
-	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
 	projectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/project/application/dto"
 	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
 )
 
 type Groups interface {
-	Get(context.Context, string, string) (groupentity.Group, error)
+	AuthorizeGroup(ctx context.Context, actor, ownerID string) (string, error)
 }
 
 type Sources interface {

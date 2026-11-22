@@ -5,7 +5,6 @@ import (
 	"errors"
 	"regexp"
 
-	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
 	projectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/project/application/dto"
 	projectApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/project/application/port"
 	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
@@ -42,14 +41,11 @@ func (s *Service) resolveProjectScope(ctx context.Context, actor, id string) (pr
 		}
 		return scope, nil
 	}
-	value, err := s.Groups.Get(ctx, actor, scope.OwnerID)
-	if errors.Is(err, groupentity.ErrNotFound) {
-		return projectApplicationPort.Scope{}, projectDomainEntity.ErrNotFound
-	}
+	ownerID, err := s.Groups.AuthorizeGroup(ctx, actor, scope.OwnerID)
 	if err != nil {
 		return projectApplicationPort.Scope{}, err
 	}
-	scope.OwnerID = value.ID
+	scope.OwnerID = ownerID
 	return scope, nil
 }
 

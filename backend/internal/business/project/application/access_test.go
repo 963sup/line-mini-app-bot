@@ -10,22 +10,17 @@ import (
 
 	projectApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/project/application/port"
 
-	groupentity "github.com/963sup/line-mini-app-bot/internal/business/group/domain/entity"
 	projectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/project/application/dto"
 	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
 )
 
 type groups struct{ denied bool }
 
-func (s *groups) Get(_ context.Context, a, id string) (groupentity.Group, error) {
-	if s.denied || a == "outsider" {
-		return groupentity.Group{}, groupentity.ErrNotFound
+func (s *groups) AuthorizeGroup(_ context.Context, actor, id string) (string, error) {
+	if s.denied || actor == "outsider" {
+		return "", projectDomainEntity.ErrNotFound
 	}
-	return groupentity.Group{ID: id, GroupID: id, Status: "ACTIVE"}, nil
-}
-
-func (s *groups) LegacyGet(ctx context.Context, a, id string) (groupentity.Group, error) {
-	return s.Get(ctx, a, id)
+	return id, nil
 }
 
 type sources struct {
