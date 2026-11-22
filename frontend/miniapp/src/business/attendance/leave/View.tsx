@@ -35,6 +35,7 @@ export function View() {
   const [records, setRecords] = useState<S["LeaveRecord"][]>([]);
   const [historyGroup, setHistoryGroup] = useState("");
   const [listStatus, setListStatus] = useState("");
+  const [historyFailed, setHistoryFailed] = useState(false);
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const lock = useRef(false),
     attempt = useRef<S["LeaveSubmission"] | null>(null);
@@ -45,6 +46,7 @@ export function View() {
   }, []);
   function loadLeaveHistory() {
     if (!user) return;
+    setHistoryFailed(false);
     setHistoryLoaded(false);
     setListStatus("正在讀取本人最近20筆請假登記……");
     void read.run(
@@ -61,7 +63,7 @@ export function View() {
             : "目前沒有請假登記。",
         );
       },
-      (error) => {setRecords([]);setListStatus(errorMessage(error));},
+      (error) => {setRecords([]);setHistoryFailed(true);setListStatus(errorMessage(error));},
     );
   }
   useEffect(() => {
@@ -115,8 +117,9 @@ export function View() {
           if (code === "invalid_input") {setUncertain(false);setStatus(errorMessage(error));return;}
           setStatus(
             errorMessage(error) +
-              " 請先重新載入本人紀錄確認結果；未確認時，重試會沿用原內容。重新開頁前也請先確認紀錄。",
+              " 請查看本人紀錄確認結果；若仍未確認，可沿用原內容重試。",
           );
+          loadLeaveHistory();
         },
       );
     } catch (error) {
@@ -203,10 +206,8 @@ export function View() {
         </Status>
       </PagePanel>
       <PagePanel heading="本人請假紀錄">
-        <Button disabled={!user} onClick={loadLeaveHistory}>
-          重新載入本人紀錄
-        </Button>
         <Status role="status">{listStatus}</Status>
+        {user && historyFailed && <Button type="button" variant="outline" onClick={loadLeaveHistory}>重試讀取</Button>}
         {user && historyGroups.length > 0 && (
           <FormField>
             群組

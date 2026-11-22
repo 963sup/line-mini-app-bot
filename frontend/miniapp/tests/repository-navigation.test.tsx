@@ -133,15 +133,16 @@ test("list failure clears entries and exposes retry; final empty response has no
   let attempt = 0;
   const f = await fixture("/miniapp/repositories", async () => {
     attempt++;
-    return attempt === 1 ? Response.json({ items: [space(a, "過期空間")], nextCursor: "" })
+    return attempt === 1 ? Response.json({ items: [space(a, "過期空間")], nextCursor: "next" })
       : attempt === 2 ? Response.json({ error: { message: "暫時無法讀取空間" } }, { status: 503 })
       : Response.json({ items: [], nextCursor: "" });
   });
   try {
-    await f.clickText("重新載入空間清單");
+    assert.ok(!document.body.textContent!.includes("重新載入空間清單"));
+    await f.clickText("載入更多空間");
     assert.ok(!document.body.textContent!.includes("過期空間"));
     assert.match(document.body.textContent!, /暫時無法讀取空間/);
-    await f.clickText("載入空間");
+    await f.clickText("重試讀取空間");
     assert.match(document.body.textContent!, /目前沒有可開啟的空間/);
     assert.equal(Array.from(document.querySelectorAll("button")).find((button) => button.textContent === "載入更多空間"), undefined);
   } finally { await f.dispose(); }
@@ -193,7 +194,7 @@ for (const width of [375, 1024]) {
       assert.equal(trigger.getAttribute("aria-expanded"), "true");
       assert.match(document.body.textContent!, /清單暫時失敗/);
       assert.match(document.body.textContent!, /審核內容/);
-      await f.clickText("載入空間");
+      await f.clickText("重試讀取空間");
       const link = document.querySelector<HTMLAnchorElement>(`a[href="/miniapp/repositories?selected=${a}"]`);
       assert.ok(link);
       if (width === 375) {
@@ -228,11 +229,9 @@ test("project navigation clears a logged-out catalog and can reload after verifi
     await f.account("logout");
     assert.ok(!document.body.textContent!.includes("A空間"));
     assert.match(document.body.textContent!, /請先完成身分驗證/);
-    const load = Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find((button) => button.textContent === "載入空間")!;
-    assert.equal(load.disabled, true);
+    assert.ok(!document.body.textContent!.includes("重試讀取空間"));
     f.setActor("B");
     await f.account("verify");
-    await f.clickText("載入空間");
     assert.match(document.body.textContent!, /B空間/);
     assert.ok(!document.body.textContent!.includes("A空間"));
   } finally { await f.dispose(); }

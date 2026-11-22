@@ -181,7 +181,6 @@ export function View({ repositoryId }: { repositoryId: string }) {
       <p className="mb-4 text-sm text-muted-foreground">空間成員可整理標籤及里程碑；問題內容與狀態由建立者修改。</p>
       <div className="mb-4 flex flex-wrap gap-2">
         <Button disabled={!user || busy || createOutcomeUnknown || needsRefresh} onClick={event => openCreateForm(event.currentTarget)}>新增問題</Button>
-        <Button variant="outline" disabled={!user || listBusy || busy || !!mode || createOutcomeUnknown || needsRefresh} onClick={() => load()}>重新載入問題</Button>
       </div>
       <form onSubmit={(event) => { event.preventDefault(); if (!lock.current && !createOutcomeUnknown && !needsRefresh) discard.navigate(() => { navigating.current = true; clearEditor(); setFilter({ query: query.trim(), state }); }); }}>
         <FieldGroup className="mb-4">
@@ -200,7 +199,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
           <Button type="submit" disabled={!user || listBusy || busy}>套用篩選</Button>
         </FieldGroup>
       </form>
-      <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取問題……" />
+      <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取問題……" onRetry={user && listStatus && !loaded && !busy && !mode && !createOutcomeUnknown && !needsRefresh ? () => load() : undefined} />
       {mode === "create" && <PagePanel heading="新增問題">{editor}</PagePanel>}
       <ItemGroup className="gap-3">
         {items.map((item) => <Item key={item.id} variant="outline" role="listitem" className="min-w-0">

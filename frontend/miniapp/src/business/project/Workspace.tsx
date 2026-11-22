@@ -37,6 +37,7 @@ function AuthenticatedWorkspace() {
   const [groups, setGroups] = useState<Group[]>([]), [cursor, setCursor] = useState("");
   const [selected, setSelected] = useState<{ id: string; item: Group | null }>({ id: "", item: null });
   const [busy, setBusy] = useState(false), [status, setStatus] = useState("");
+  const [listFailed, setListFailed] = useState(false);
   const [detailStatus, setDetailStatus] = useState("");
 
   useEffect(() => {
@@ -60,13 +61,13 @@ function AuthenticatedWorkspace() {
 
   const load = useCallback((next = "") => {
     if (blocked.current) return;
-    setBusy(true); setCursor(""); setStatus("正在核驗可開啟的群組……");
+    setListFailed(false); setBusy(true); setCursor(""); setStatus("正在核驗可開啟的群組……");
     if (!next) setGroups([]);
     void list.run(signal => listMemberGroups(request, signal, next || undefined), page => {
       setGroups(previous => [...new Map([...(next ? previous : []), ...page.items].map(item => [item.id, item])).values()]);
       setCursor(page.nextCursor); setBusy(false);
-      setStatus(page.nextCursor ? "可繼續載入群組。" : "已讀取可開啟的群組。");
-    }, error => { setGroups([]); setBusy(false); setStatus(errorMessage(error)); });
+      setStatus(!page.nextCursor && !next && !page.items.length ? "目前沒有可開啟的群組。" : "");
+    }, error => { setGroups([]); setListFailed(true); setBusy(false); setStatus(errorMessage(error)); });
   }, [request, list.run]);
   useEffect(() => { load(); return list.cancel; }, [load, list.cancel]);
 
@@ -90,8 +91,8 @@ function AuthenticatedWorkspace() {
   return <>
     <PagePanel heading="專案群組">
       <p>專案由個人或群組管理，來源儲存庫提供可讀取的物件、子物件、問題與討論。</p>
-      <Button variant="outline" disabled={busy || writeBlocked} onClick={() => load()}>重新載入專案群組</Button>
       <Status role="status">{status}</Status>
+      {listFailed && !writeBlocked && <Button type="button" variant="outline" onClick={() => load()}>重試讀取</Button>}
       <Button disabled={writeBlocked} onClick={() => user && navigate(user.userId)}>我的個人專案</Button>
       <ItemGroup>
         {groups.map(group => <Item key={group.id} variant="outline"><ItemContent><ItemTitle>

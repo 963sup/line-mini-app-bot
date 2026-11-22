@@ -71,7 +71,7 @@ test("unknown child create freezes exact identity, blocks parent navigation and 
   try{
     await f.click("子物件：測試物件");await f.click("新增子物件");await f.fill("子物件名稱","測試工序");await f.fill("子物件數量","9007199254740993.123456");await f.fill("子物件單位","M2");await f.click("建立子物件");
     assert.equal(posts.length,1);for(const label of ['子物件：測試物件','子物件：另一父物件','另一父物件'])assert.equal(document.querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!.disabled,true);
-    for(const text of ['新增物件','重新載入物件']) assert.equal([...document.querySelectorAll<HTMLButtonElement>('button')].find(button=>button.textContent===text)!.disabled,true);
+    assert.equal([...document.querySelectorAll<HTMLButtonElement>('button')].find(button=>button.textContent==='新增物件')!.disabled,true);
     await f.click("子物件：測試物件");assert.ok(document.querySelector('[aria-label="子物件"]'));
     await f.click("重試原子物件建立請求");assert.equal(posts.length,2);assert.deepEqual(posts[0],posts[1]);assert.equal((posts[0].body as {quantity:string}).quantity,"9007199254740993.123456");assert.equal(parentWrites,0);assert.match(document.body.textContent!,/父物件進度不變/);
   }finally{await f.dispose();}

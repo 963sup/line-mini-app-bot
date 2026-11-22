@@ -5,9 +5,9 @@ import { errorMessage, useLatestRequest } from "../../shared/http/lifecycle";
 
 type Repository = components["schemas"]["Repository"];
 type Route = { ready: boolean; scope: string; selected: string };
-type Catalog = { owner: string; items: Repository[]; cursor: string; busy: boolean; loaded: boolean; status: string };
+type Catalog = { owner: string; items: Repository[]; cursor: string; busy: boolean; failed: boolean; status: string };
 type Detail = { owner: string; id: string; item: Repository | null; busy: boolean; status: string; failed: boolean };
-const emptyCatalog: Catalog = { owner: "", items: [], cursor: "", busy: false, loaded: false, status: "" };
+const emptyCatalog: Catalog = { owner: "", items: [], cursor: "", busy: false, failed: false, status: "" };
 const emptyDetail: Detail = { owner: "", id: "", item: null, busy: false, status: "", failed: false };
 
 function repositoryRoute(): Route {
@@ -27,6 +27,7 @@ function useRepositoryState(workflow: string) {
   const { user, epoch, request } = useSession();
   const [route, setRoute] = useState<Route>({ ready: false, scope: "", selected: "" });
   const owner = `${epoch}:${user?.userId || ""}:${route.scope}`;
+  const [catalogRequested, setCatalogRequested] = useState(false);
   const [catalog, setCatalog] = useState<Catalog>(emptyCatalog);
   const [detail, setDetail] = useState<Detail>(emptyDetail);
   const { run: listRun, cancel: listCancel } = useLatestRequest();
@@ -46,10 +47,10 @@ function useRepositoryState(workflow: string) {
       (page) => setCatalog((previous) => {
         const values = [...(cursor && previous.owner === owner ? previous.items : []), ...page.items];
         const items = [...new Map(values.filter((item) => item.status === "ACTIVE").map((item) => [item.id, item])).values()];
-        return { owner, items, cursor: page.nextCursor, busy: false, loaded: true,
+        return { owner, items, cursor: page.nextCursor, busy: false, failed: false,
           status: items.length ? "選擇空間查看資料。" : page.nextCursor ? "本頁沒有可開啟的空間，可繼續載入。" : "目前沒有可開啟的空間。" };
       }),
-      (error) => setCatalog({ ...emptyCatalog, owner, loaded: true, status: errorMessage(error) }),
+      (error) => setCatalog({ ...emptyCatalog, owner, failed: true, status: errorMessage(error) }),
     );
   }, [user, owner, request, route, listRun]);
 
@@ -78,10 +79,10 @@ function useRepositoryState(workflow: string) {
     setDetail(emptyDetail);
     if (user && route.ready) {
       if (route.selected) loadDetail();
-      if (!route.scope && workflow === "repositories") loadPage();
+      if (!route.scope && (workflow === "repositories" || catalogRequested)) loadPage();
     }
     return () => { listCancel(); detailCancel(); };
-  }, [owner, user, route, workflow, loadPage, loadDetail, listCancel, detailCancel]);
+  }, [owner, user, route, workflow, catalogRequested, loadPage, loadDetail, listCancel, detailCancel]);
 
   // Guard during render as well as effect cleanup: a previous identity's data
   // must never appear in the first render after logout or re-verification.
@@ -94,15 +95,15 @@ function useRepositoryState(workflow: string) {
   const status = !user ? "請先完成身分驗證。" : route.scope
     ? currentDetail.status : currentCatalog.status || "展開後載入可開啟的空間。";
   const ensure = () => {
-    if (!currentCatalog.loaded && !currentCatalog.busy && !route.scope) loadPage();
+    if (workflow !== "repositories" && !route.scope) setCatalogRequested(true);
   };
-  return { items, busy, status, scope: route.scope, selectedID: route.selected,
+  return { items, busy, status, catalogFailed: !route.scope && currentCatalog.failed, scope: route.scope, selectedID: route.selected,
     cursor: route.scope ? "" : currentCatalog.cursor,
     selected: currentDetail.item, detailBusy: currentDetail.busy,
     detailStatus: !user ? "請先完成身分驗證。" : currentDetail.status,
     canLoad: !!user && route.ready,
     ensure, loadMore: () => loadPage(currentCatalog.cursor),
-    reload: () => route.scope ? loadDetail() : loadPage(), reloadDetail: loadDetail,
+    retryCatalog: () => loadPage(), reloadDetail: loadDetail,
     href: (id: string) => "/miniapp/repositories?" + new URLSearchParams({ [route.scope ? "id" : "selected"]: id }),
   };
 }

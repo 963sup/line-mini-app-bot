@@ -71,8 +71,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
     {editing && <Button type="button" variant="outline" disabled={busy || uncertain} onClick={()=>{setEditing(null);setName("");}}>取消改名</Button>}
     </FieldGroup></form>
     <Status role="status">{status}</Status>
-    <Button variant="outline" disabled={!user || readBusy || busy} onClick={() => load()}>重新載入標籤</Button>
-    <ReadFeedback busy={readBusy} message={listStatus} label="正在讀取標籤……" />
+    <ReadFeedback busy={readBusy} message={listStatus} label="正在讀取標籤……" onRetry={user && listStatus && !loaded && !busy ? () => load() : undefined} />
     <ItemGroup className="gap-3">
       {items.map((item) => <Item key={item.id} variant="outline" role="listitem"><ItemContent><ItemTitle>{item.name}</ItemTitle></ItemContent><Button variant="outline" disabled={!user || busy || uncertain || !!name} onClick={()=>{setEditing(item);setName(item.name);input.current?.focus();}}>改名</Button></Item>)}
     </ItemGroup>

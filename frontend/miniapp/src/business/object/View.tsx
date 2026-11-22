@@ -239,7 +239,6 @@ function Content({ repositoryId }: Props) {
       <p className="mb-4 text-sm text-muted-foreground">先記下物件名稱，其他資料確定後再補。成員可新增，僅建立者可編輯。</p>
       <div className="mb-4 flex flex-wrap gap-2">
         <Button disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={event => openCreateForm(event.currentTarget)}>新增物件</Button>
-        <Button variant="outline" disabled={!user || busy || listBusy || subBlocked || uncertain || !!mode} onClick={() => load()}>重新載入物件</Button>
       </div>
       <Templates repositoryId={repositoryId} disabled={!user || !!mode || busy || listBusy || uncertain || needsRefresh || subBlocked} onBlocked={subBlock} onApplied={result => {
         // The API owns the result identity; no list scan is needed to find it.
@@ -248,7 +247,7 @@ function Content({ repositoryId }: Props) {
       }} />
       <Candidates repositoryId={repositoryId} disabled={!user || !!mode || busy || uncertain || needsRefresh || subBlocked} created={createdCandidates} choose={(selection, trigger) => openCreateForm(trigger, selection)} />
       {instance && <section aria-label="新物件樹" className="flex min-w-0 flex-col gap-2"><h3>已建立物件樹</h3><ul>{instance.nodes.map(node => <li key={node.objectId}><Button variant="link" disabled={busy || uncertain || needsRefresh || subBlocked} onClick={() => open(node.objectId)}>{node.name}</Button>{node.objectId === instance.rootObjectId ? "（根節點）" : `（父節點：${instance.nodes.find(parent => parent.objectId === node.parentId)?.name || "既有物件"}）`}</li>)}</ul></section>}
-      <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取物件……" />
+      <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取物件……" onRetry={user && listStatus && !loaded && !busy && !subBlocked && !uncertain && !mode ? () => load() : undefined} />
       {mode === "create" && <PagePanel heading="新增物件">{editor}</PagePanel>}
       {mode === "detail" && !items.some(item => item.id === activeId) && <PagePanel heading="物件詳情">{editor}</PagePanel>}
       <ItemGroup className="w-full min-w-0 gap-3">{items.map(item => <Collapsible key={item.id} open={expanded === item.id} onOpenChange={value => {

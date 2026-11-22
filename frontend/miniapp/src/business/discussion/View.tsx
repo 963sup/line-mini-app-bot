@@ -146,7 +146,6 @@ export function View({ repositoryId }: { repositoryId: string }) {
       <p className="mb-4 text-sm text-muted-foreground">空間成員可整理討論標籤；主題正文與留言各由作者編輯。</p>
       <div className="mb-4 flex flex-wrap gap-2">
         <Button disabled={!user || busy || createOutcomeUnknown || needsRefresh || commentsBlocked} onClick={openCreateForm}>發起討論</Button>
-        <Button variant="outline" disabled={!user || listBusy || busy} onClick={() => load()}>重新載入討論</Button>
       </div>
       <form onSubmit={(event) => { event.preventDefault(); if (!lock.current && !createOutcomeUnknown && !needsRefresh && !commentLock.current) discard.navigate(() => { navigating.current = true; detailRequest.cancel(); setDetailBusy(false); setMode(null); setSelected(null); setStatus(""); setFilter({ query: query.trim() }); }); }}>
         <Field className="mb-4">
@@ -159,7 +158,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
         </InputGroup>
         </Field>
       </form>
-      <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取討論……" />
+      <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取討論……" onRetry={user && listStatus && !loaded && !busy ? () => load() : undefined} />
       <ItemGroup className="gap-3">
         {items.map((item) => <Item key={item.id} variant="outline" role="listitem">
           <ItemContent>
