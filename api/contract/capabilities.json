@@ -153,8 +153,8 @@
     },
     "group": {
       "contract": "group/groups.yaml",
-      "adapter": "backend/internal/business/group/adapter/http/routes.go",
-      "core": "backend/internal/business/group/application/query/group.go",
+      "adapter": "backend/internal/linegroup/adapter/http/routes.go",
+      "core": "backend/internal/business/team/adapter/firestore/group_catalog.go",
       "specification": "docs/domains/project/project.md"
     },
     "project.group": {
@@ -993,9 +993,9 @@
       "method": "GET",
       "path": "/api/v1/groups",
       "owner": "group",
-      "adapter": "backend/internal/business/group/adapter/http/routes.go",
+      "adapter": "backend/internal/linegroup/adapter/http/routes.go",
       "handler": "ListGroups",
-      "core": "backend/internal/business/group/application/query/group.go",
+      "core": "backend/internal/business/team/adapter/firestore/group_catalog.go",
       "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/group/memberGroups.ts"
@@ -1007,9 +1007,9 @@
       "method": "GET",
       "path": "/api/v1/groups/{id}",
       "owner": "group",
-      "adapter": "backend/internal/business/group/adapter/http/routes.go",
+      "adapter": "backend/internal/linegroup/adapter/http/routes.go",
       "handler": "GetGroup",
-      "core": "backend/internal/business/group/application/query/group.go",
+      "core": "backend/internal/business/team/adapter/firestore/group_catalog.go",
       "specification": "docs/domains/project/project.md",
       "consumers": [
         "frontend/miniapp/src/business/project/Workspace.tsx"
