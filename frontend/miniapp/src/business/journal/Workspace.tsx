@@ -1,7 +1,6 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { useSession, type Request } from "@/identity/Session";
-import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
 import { ReadFeedback } from "@/shared/ReadFeedback";
@@ -124,7 +123,7 @@ function View({dashboard,request,detail,repositoryId: initialRepositoryId}:{dash
         </NativeSelect></FormField> : <Empty><EmptyHeader><EmptyTitle>目前沒有可用的儲存庫。</EmptyTitle></EmptyHeader></Empty>)}
     {(dashboard||!!repositoryId)&&!detail&&<FormField>工作日期<Input type="date" value={date} onChange={e=>setDate(e.target.value)}/></FormField>}
     </FieldGroup>
-    {(error||catalogError)&&<Alert variant="destructive"><AlertDescription>{error||catalogError}<Button variant="outline" onClick={()=>reload(v=>v+1)}>重新讀取</Button></AlertDescription></Alert>}
+    {(error || catalogError) && <ReadFeedback busy={false} message={error || catalogError} onRetry={() => reload(v => v + 1)} />}
   </PagePanel>
   <ReadFeedback busy={busy} label="正在讀取日誌……" />
   {(detail||repositoryId)&&!busy&&!error&&!catalogError&&!entries.length&&<Empty><EmptyHeader><EmptyTitle>目前條件下沒有日誌。</EmptyTitle></EmptyHeader></Empty>}

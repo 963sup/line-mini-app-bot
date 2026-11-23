@@ -1,5 +1,8 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
+import { FormField } from "@/shared/FormField";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
 import { ReadFeedback } from "@/shared/ReadFeedback";
@@ -29,7 +32,8 @@ export function View() {
 }
 
 function Content() {
-  const { selected, selectedID, detailBusy, detailStatus, reloadDetail, canLoad } = useRepositories();
+  const repositories = useRepositories();
+  const { selected, selectedID, detailBusy, detailStatus, reloadDetail, canLoad } = repositories;
   const [wikiId] = useState(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(location.search);
@@ -49,7 +53,20 @@ function Content() {
       {selectedID ? <>
         {!selected && <Button disabled={!canLoad || detailBusy || guard.blocked} onClick={() => guard.navigate(reloadDetail)}>重新載入空間</Button>}
         <ReadFeedback busy={detailBusy} message={detailStatus} label="正在讀取空間……" />
-      </> : <p>展開側欄「儲存庫」，選擇要開啟的儲存庫。</p>}
+      </> : <PagePanel heading="選擇儲存庫">
+        {repositories.items.length > 0 && <FormField>儲存庫<NativeSelect value="" onChange={event => {
+          if (event.target.value) window.location.assign(repositories.href(event.target.value));
+        }}>
+          <NativeSelectOption value="">選擇要開啟的儲存庫</NativeSelectOption>
+          {repositories.items.map(item => <NativeSelectOption key={item.id} value={item.id}>{item.name || "群組空間"}</NativeSelectOption>)}
+        </NativeSelect></FormField>}
+        <ReadFeedback busy={repositories.busy} label="正在讀取儲存庫……"
+          message={repositories.catalogFailed || !canLoad ? repositories.status : undefined}
+          onRetry={repositories.catalogFailed ? repositories.retryCatalog : undefined} />
+        {canLoad && !repositories.busy && !repositories.catalogFailed && !repositories.items.length && repositories.status &&
+          <Empty><EmptyHeader><EmptyTitle>{repositories.status}</EmptyTitle></EmptyHeader></Empty>}
+        {repositories.cursor && <Button type="button" variant="outline" disabled={repositories.busy} onClick={repositories.loadMore}>載入更多儲存庫</Button>}
+      </PagePanel>}
       <noscript>請啟用 JavaScript 並完成 LINE 身分驗證，以載入側邊欄空間及內容。</noscript>
       {selected && (
         <>

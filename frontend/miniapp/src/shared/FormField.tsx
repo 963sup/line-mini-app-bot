@@ -11,7 +11,7 @@ export function FormField({
     <Field {...props}>
       <FieldLabel
         className={cn(
-          "w-full flex-col items-stretch gap-2 whitespace-normal",
+          "w-full min-w-0 flex-col items-stretch gap-2 whitespace-normal [&>[data-slot=native-select-wrapper]]:max-w-full",
           labelClassName,
         )}
       >
