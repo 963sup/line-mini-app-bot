@@ -8,8 +8,11 @@ type AssignmentScope struct {
 }
 
 func (s AssignmentScope) AllowsAssignment() bool {
-	return s.OrganizationActive && s.EnterpriseID != "" &&
-		s.TeamScope == "enterprise" && s.TeamManagerID == s.EnterpriseID
+	return s.OrganizationActive && s.TeamManagedByEnterprise()
+}
+
+func (s AssignmentScope) TeamManagedByEnterprise() bool {
+	return s.EnterpriseID != "" && s.TeamScope == "enterprise" && s.TeamManagerID == s.EnterpriseID
 }
 
 type AssignmentAuthority struct {

@@ -70,9 +70,11 @@ func (s Store) IsTeamMember(ctx context.Context, teamID, actor string) (bool, er
 	return err == nil && result != nil && *result, err
 }
 
-func canBindTeam(target orgstore.Document, owner bool, user string) bool {
-	return !target.Disabled && (target.MembershipMode == "" || target.MembershipMode == "legacy") &&
-		(owner || slices.Contains(target.Managers, user))
+func assignmentAuthority(target orgstore.Document, owner bool, user string) teamdomain.AssignmentAuthority {
+	return teamdomain.AssignmentAuthority{
+		Disabled: target.Disabled, MembershipMode: target.MembershipMode,
+		Owner: owner, Manager: slices.Contains(target.Managers, user),
+	}
 }
 
 func (s Store) Manage(ctx context.Context, user string, teamId, scope, managementId string) error {
@@ -91,7 +93,7 @@ func (s Store) Manage(ctx context.Context, user string, teamId, scope, managemen
 		if scope == "enterprise" {
 			owner = target.IsOwner(user)
 		}
-		if !canBindTeam(target, owner, user) {
+		if !assignmentAuthority(target, owner, user).AllowsAssignment() {
 			return nil, organizationDomainEntity.ErrNotFound
 		}
 		ref := root.Collection("teams").Doc(teamId)
@@ -210,7 +212,7 @@ func (w assignmentWork) Authority(enterpriseID, actor string) (teamdomain.Assign
 	if err != nil {
 		return teamdomain.AssignmentAuthority{}, err
 	}
-	return teamdomain.AssignmentAuthority{Disabled: ent.Disabled, MembershipMode: ent.MembershipMode, Owner: ent.IsOwner(actor), Manager: slices.Contains(ent.Managers, actor)}, nil
+	return assignmentAuthority(ent, ent.IsOwner(actor), actor), nil
 }
 
 func (w assignmentWork) Save(assigned bool) error {
@@ -268,11 +270,12 @@ func (s Store) List(ctx context.Context, user string, organizationId string) (*t
 			if e != nil {
 				return nil, e
 			}
-			if org.Enterprise != "" && team.Scope == "enterprise" && team.Manager == org.Enterprise {
+			scope := teamdomain.AssignmentScope{EnterpriseID: org.Enterprise, TeamScope: team.Scope, TeamManagerID: team.Manager}
+			if scope.TeamManagedByEnterprise() {
 				candidates[doc.Ref.ID] = team
 			}
 		}
-		result := teamApplicationDto.Listing{Teams: []teamApplicationDto.Option{}, CanBindTeam: org.LegacyOrganizationEnabled() && canBindTeam(org, org.Owner == user, user)}
+		result := teamApplicationDto.Listing{Teams: []teamApplicationDto.Option{}, CanBindTeam: org.LegacyOrganizationEnabled() && assignmentAuthority(org, org.Owner == user, user).AllowsAssignment()}
 		for id, team := range candidates {
 			switch team.MembershipMode {
 			case "membership":

@@ -6,32 +6,32 @@ type VisibleOrganization struct {
 }
 
 type Option struct {
-	ID     string  `json:"organizationId"`
-	Name   string  `json:"name"`
-	Detail *string `json:"detail"`
+	ID     string
+	Name   string
+	Detail *string
 }
 
 type Group struct {
-	EnterpriseID  *string  `json:"enterpriseId"`
-	Label         string   `json:"label"`
-	Organizations []Option `json:"organizations"`
+	EnterpriseID  *string
+	Label         string
+	Organizations []Option
 }
 
 type Selected struct {
-	ID         string `json:"organizationId"`
-	Name       string `json:"name"`
-	GroupLabel string `json:"groupLabel"`
+	ID         string
+	Name       string
+	GroupLabel string
 }
 
 type EnterpriseLink struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID   string
+	Name string
 }
 
 type Context struct {
-	Enterprises         []EnterpriseLink `json:"enterprises"`
-	CanCreateEnterprise bool             `json:"canCreateEnterprise"`
-	Groups              []Group          `json:"groups"`
-	Selected            *Selected        `json:"selected"`
-	CanSwitch           bool             `json:"canSwitch"`
+	Enterprises         []EnterpriseLink
+	CanCreateEnterprise bool
+	Groups              []Group
+	Selected            *Selected
+	CanSwitch           bool
 }

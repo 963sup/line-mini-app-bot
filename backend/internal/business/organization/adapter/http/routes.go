@@ -28,7 +28,7 @@ type Handler struct {
 
 func (h Handler) GetOrganizationContext(w http.ResponseWriter, r *http.Request) {
 	orghttp.Serve(w, r, h.Auth, h.Store != nil, func(ctx context.Context, user string) (any, error) {
-		return h.Store.Context(ctx, user, "", false)
+		return contextResponse(h.Store.Context(ctx, user, "", false))
 	})
 }
 
@@ -38,7 +38,7 @@ func (h Handler) SelectOrganization(w http.ResponseWriter, r *http.Request) {
 		if err := orghttp.Decode(r, w, &input); err != nil {
 			return nil, err
 		}
-		return h.Store.Context(ctx, user, input.OrganizationId, true)
+		return contextResponse(h.Store.Context(ctx, user, input.OrganizationId, true))
 	})
 }
 

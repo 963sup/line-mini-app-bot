@@ -59,12 +59,19 @@ func (e Document) IsOwner(user string) bool {
 	return e.Owner == user || slices.Contains(e.Owners, user)
 }
 
-// LegacyOrganizationEnabled prevents legacy fields from authorizing a resource
-// after it leaves the legacy mode. Existing documents have no mode field.
+// LegacyOrganization translates the shared legacy document into Organization's
+// own model. Enterprise owner arrays never confer Organization ownership.
+func (d Document) LegacyOrganization() organizationDomainEntity.Organization {
+	return organizationDomainEntity.Organization{
+		Name: d.Name, OwnerUserID: d.Owner, MemberUserIDs: d.Members,
+		Disabled: d.Disabled, MembershipMode: d.MembershipMode,
+	}
+}
+
 func (d Document) LegacyOrganizationEnabled() bool {
-	return !d.Disabled && d.Owner != "" && (d.MembershipMode == "" || d.MembershipMode == "legacy")
+	return d.LegacyOrganization().LegacyEnabled()
 }
 
 func (d Document) VisibleLegacyOrganization(user string) bool {
-	return user != "" && d.LegacyOrganizationEnabled() && (d.Owner == user || slices.Contains(d.Members, user))
+	return d.LegacyOrganization().VisibleLegacy(user)
 }
