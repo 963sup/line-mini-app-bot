@@ -118,3 +118,11 @@ Classify public HTTP, events and internal jobs through the [contract capability 
 See the [capability inventory](contract/capabilities.json) for wired and planned operations, and the [OpenAPI contract](contract/openapi.yaml) for requests and responses.
 
 [Current implementation diagram: basic entry points](../docs/contracts/http.md#基礎入口)
+
+## Resource inventory semantics
+
+[capabilities.json](contract/capabilities.json) owns the HTTP inventory. Inventory format version 2 adds required resource ownership/representation metadata; it does not change the HTTP API version. Each resource entry declares an `owner` capability matching its operation and a representation `kind`: `resource` for a resource URI, `projection` for query-only selection data, or `command-result` for an operation result. The checker rejects missing/unknown ownership, unknown kinds, mismatched operation ownership and duplicate paths.
+
+The legacy `entity` field identifies a public schema name; it does not declare a DDD aggregate. `collection` names the URI segment, not necessarily a Firestore collection. `GroupItem` is an attendance selection projection; `PunchResponse` and `PopplerText` are command results. No public type, URI or stored ID is renamed by this classification.
+
+Project's repository and owner routes retain their separate capability ownership while referring to the same Project domain. LINE Group visibility and Team management remain separate responsibilities. Organization's single Owner and Enterprise's multiple Owners continue to follow their own domain contracts. Domain rules and persistence remain authoritative in the [domain specifications](../docs/domains/README.md).

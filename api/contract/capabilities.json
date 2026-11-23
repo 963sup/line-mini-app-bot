@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "capabilities": {
     "identity": {
       "contract": "identity/identity.yaml",
@@ -1803,117 +1803,163 @@
     {
       "entity": "Repository",
       "collection": "repositories",
-      "path": "/api/v1/repositories"
+      "path": "/api/v1/repositories",
+      "owner": "repository",
+      "kind": "resource"
     },
     {
       "entity": "AttendanceRecord",
       "collection": "records",
-      "path": "/api/v1/attendance/records"
+      "path": "/api/v1/attendance/records",
+      "owner": "attendance.records",
+      "kind": "resource"
     },
     {
       "entity": "LeaveRecord",
       "collection": "leaves",
-      "path": "/api/v1/attendance/leaves"
+      "path": "/api/v1/attendance/leaves",
+      "owner": "attendance.leave",
+      "kind": "resource"
     },
     {
       "entity": "GroupItem",
       "collection": "groups",
-      "path": "/api/v1/attendance/groups"
+      "path": "/api/v1/attendance/groups",
+      "owner": "attendance.records",
+      "kind": "projection"
     },
     {
       "entity": "PunchResponse",
       "collection": "punches",
-      "path": "/api/v1/attendance/punches"
+      "path": "/api/v1/attendance/punches",
+      "owner": "attendance.punch",
+      "kind": "command-result"
     },
     {
       "entity": "CorrectionReview",
       "collection": "corrections",
-      "path": "/api/v1/attendance/corrections"
+      "path": "/api/v1/attendance/corrections",
+      "owner": "attendance.corrections",
+      "kind": "resource"
     },
     {
       "entity": "Issue",
       "collection": "issues",
-      "path": "/api/v1/repositories/{repositoryId}/issues"
+      "path": "/api/v1/repositories/{repositoryId}/issues",
+      "owner": "issue",
+      "kind": "resource"
     },
     {
       "entity": "Discussion",
       "collection": "discussions",
-      "path": "/api/v1/repositories/{repositoryId}/discussions"
+      "path": "/api/v1/repositories/{repositoryId}/discussions",
+      "owner": "discussion",
+      "kind": "resource"
     },
     {
       "entity": "DiscussionComment",
       "collection": "comments",
-      "path": "/api/v1/repositories/{repositoryId}/discussions/{id}/comments"
+      "path": "/api/v1/repositories/{repositoryId}/discussions/{id}/comments",
+      "owner": "discussion.comments",
+      "kind": "resource"
     },
     {
       "entity": "Label",
       "collection": "labels",
-      "path": "/api/v1/repositories/{repositoryId}/labels"
+      "path": "/api/v1/repositories/{repositoryId}/labels",
+      "owner": "repository.labels",
+      "kind": "resource"
     },
     {
       "entity": "Milestone",
       "collection": "milestones",
-      "path": "/api/v1/repositories/{repositoryId}/milestones"
+      "path": "/api/v1/repositories/{repositoryId}/milestones",
+      "owner": "repository.milestones",
+      "kind": "resource"
     },
     {
       "entity": "Project",
       "collection": "projects",
-      "path": "/api/v1/repositories/{repositoryId}/projects"
+      "path": "/api/v1/repositories/{repositoryId}/projects",
+      "owner": "project",
+      "kind": "resource"
     },
     {
       "entity": "ProjectItem",
       "collection": "items",
-      "path": "/api/v1/repositories/{repositoryId}/projects/{id}/items"
+      "path": "/api/v1/repositories/{repositoryId}/projects/{id}/items",
+      "owner": "project.items",
+      "kind": "resource"
     },
     {
       "entity": "Group",
       "collection": "groups",
-      "path": "/api/v1/groups"
+      "path": "/api/v1/groups",
+      "owner": "group",
+      "kind": "resource"
     },
     {
       "entity": "Project",
       "collection": "projects",
-      "path": "/api/v1/owners/{ownerId}/projects"
+      "path": "/api/v1/owners/{ownerId}/projects",
+      "owner": "project.group",
+      "kind": "resource"
     },
     {
       "entity": "Object",
       "collection": "objects",
-      "path": "/api/v1/repositories/{repositoryId}/objects"
+      "path": "/api/v1/repositories/{repositoryId}/objects",
+      "owner": "object",
+      "kind": "resource"
     },
     {
       "entity": "Journal",
       "collection": "journals",
-      "path": "/api/v1/journals"
+      "path": "/api/v1/journals",
+      "owner": "journal",
+      "kind": "resource"
     },
     {
       "entity": "WikiPage",
       "collection": "wiki-pages",
-      "path": "/api/v1/repositories/{repositoryId}/wiki-pages"
+      "path": "/api/v1/repositories/{repositoryId}/wiki-pages",
+      "owner": "repository.wiki",
+      "kind": "resource"
     },
     {
       "entity": "Organization",
       "collection": "organizations",
-      "path": "/api/v1/organizations"
+      "path": "/api/v1/organizations",
+      "owner": "organization",
+      "kind": "resource"
     },
     {
       "entity": "Enterprise",
       "collection": "enterprises",
-      "path": "/api/v1/enterprises"
+      "path": "/api/v1/enterprises",
+      "owner": "enterprise",
+      "kind": "resource"
     },
     {
       "entity": "PopplerText",
       "collection": "extractions",
-      "path": "/api/v1/tools/poppler/extractions"
+      "path": "/api/v1/tools/poppler/extractions",
+      "owner": "operations.poppler",
+      "kind": "command-result"
     },
     {
       "entity": "ObjectTemplate",
       "collection": "object-templates",
-      "path": "/api/v1/object-templates"
+      "path": "/api/v1/object-templates",
+      "owner": "object",
+      "kind": "resource"
     },
     {
       "entity": "ObjectTemplateDraft",
       "collection": "object-template-drafts",
-      "path": "/api/v1/object-template-drafts"
+      "path": "/api/v1/object-template-drafts",
+      "owner": "object",
+      "kind": "resource"
     }
   ],
   "namingExceptions": {

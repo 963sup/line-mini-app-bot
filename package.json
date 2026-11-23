@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "turbo run build --filter @repo/miniapp && turbo run dev",
     "api:generate": "node scripts/generate/api-generate.mts",
-    "api:check": "pnpm scripts:typecheck && node --test scripts/test/check-dispatch.test.mts && node scripts/contract/check-capabilities.mts && node scripts/generate/api-generate.mts --check",
+    "api:check": "pnpm scripts:typecheck && node --test scripts/test/check-dispatch.test.mts scripts/test/check-resource-semantics.test.mts && node scripts/contract/check-capabilities.mts && node scripts/generate/api-generate.mts --check",
     "check": "pnpm api:check && python3 scripts/check/check-config.py && turbo run check",
     "test": "turbo run test",
     "build": "turbo run build",

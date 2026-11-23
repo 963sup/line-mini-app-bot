@@ -3,6 +3,8 @@ import { readdirSync, readFileSync, realpathSync, statSync } from "node:fs";
 import { dirname, join, resolve, sep } from "node:path";
 import { checkDispatch, type DispatchOperation } from "./check-dispatch.mts";
 
+import { checkResourceSemantics, type ResourceEntry } from "./check-resource-semantics.mts";
+
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 interface Operation extends DispatchOperation {
   owner: string;
@@ -14,7 +16,7 @@ interface Inventory {
   schemaVersion: number;
   operations: Operation[];
   capabilities: Record<string, { contract?: string }>;
-  resources: { entity: string; collection: string; path: string }[];
+  resources: ResourceEntry[];
   namingExceptions: Record<string, string>;
   events: {
     owner: string;
@@ -86,7 +88,7 @@ function hasHandler(text: string, handler: string): boolean {
 }
 
 const inventory = JSON.parse(source("api/contract/capabilities.json")) as Inventory;
-assert.equal(inventory.schemaVersion, 1, "Unsupported inventory format");
+assert.equal(inventory.schemaVersion, 2, "Unsupported inventory format");
 const docs = new Map<string, Json>();
 for (const entry of readdirSync(contract, { recursive: true, withFileTypes: true })) {
   if (!entry.isFile() || !entry.name.endsWith(".yaml")) continue;
@@ -193,6 +195,7 @@ assert.deepEqual(
   "Unclassified contract source (assign its capability first)",
 );
 
+checkResourceSemantics(inventory.resources, inventory.capabilities, inventory.operations);
 for (const { entity, collection, path } of inventory.resources) {
   assert(
     /^[A-Z]/.test(entity) && entity.toLowerCase() !== collection && collection.endsWith("s"),
