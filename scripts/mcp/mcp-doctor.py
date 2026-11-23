@@ -86,7 +86,8 @@ def probe_server(name, config, call=None, arguments=None, list_tools=False, *, a
         if not adc_available():
             raise RuntimeError('Google ADC unavailable; provision a runtime identity for this environment')
     if 'command' in config:
-        process = subprocess.Popen([config['command'], *config.get('args', [])], cwd=ROOT,
+        process = subprocess.Popen([config['command'], *config.get('args', [])],
+                                   cwd=ROOT / config.get('cwd', '.'), env=os.environ | config.get('env', {}),
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                    stderr=subprocess.DEVNULL, text=True, start_new_session=True)
         def reader():

@@ -10,7 +10,7 @@ Requires Graphify installed by install-mcp and the graph path configured in Code
 
 ## Operation
 
-Prefer the configured Graphify MCP when exposed. Use the current host inventory and configured allowlist. When using another host, verify its repository and indexed revision before comparing its results with the local graph.
+Prefer the configured Graphify MCP when exposed. Check the current host inventory for available tools. When using another host, verify its repository and indexed revision before comparing its results with the local graph.
 
 CLI 建圖、排除規則與更新方式見 [Graphify CLI](../shared/graphify.md)。
 

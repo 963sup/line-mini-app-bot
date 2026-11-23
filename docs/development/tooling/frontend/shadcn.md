@@ -66,7 +66,7 @@ Tailwind 4 的 `components.json` 不指定舊式 Tailwind config 檔案。
 ## MCP 設定與驗證
 
 唯一連線設定在根目錄 `.codex/config.toml`，版本在 `mise.toml`；不在 feature 或瀏覽器設定 MCP，也不在文件複製 credentials。
-`tool-exec.sh` 先切回儲存庫根目錄，因此 server 命令須在 wrapper 載入工具環境後再切到 `frontend/miniapp`，才能讀取正確的 `components.json`。
+Codex 以 `frontend/miniapp` 為工作目錄，透過 `npx` 啟動 shadcn MCP，讀取該目錄的 `components.json`。
 
 ```bash
 bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server shadcn

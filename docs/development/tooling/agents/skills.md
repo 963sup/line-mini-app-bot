@@ -46,7 +46,7 @@ CLI 安裝不等於批次安裝網站技能；add/update/remove 會修改技能�
 
 ## Samber 技能與 Codex plugins
 
-Samber 技能依目前專案需求保留通用 Go 開發指引。已移除目前程式與依賴未使用的 GraphQL、Wire、Dig、Fx、Cobra、Viper、Testify 與 Samber 套件專用技能。安裝清單以 `skills-lock.json` 及 `.agents/skills/` 為準。
+Samber 技能依目前專案需求保留通用 Go 開發指引。已移除目前程式與依賴未使用的 GraphQL、Wire、Dig、Fx、Cobra、Viper、Testify 與 Samber 套件專用技能。資料層使用 Firestore，OpenAPI 由契約產生，因此移除 SQL 資料庫與 swaggo 專用技能。亦移除需要未配置的 godig 工具的查詢技能，以及 Go 社群資訊追蹤技能。Go 技能由任務按需選用；套件配置與六邊形邊界依[後端指引](../../../../backend/AGENTS.md)維護。後端僅引用 gRPC 錯誤狀態與代碼，因此省略 gRPC 服務開發技能。安裝清單以 `skills-lock.json` 及 `.agents/skills/` 為準。
 CLI 來源／內容 hash 記錄在根目錄 skills-lock.json。golang-gopls 早期手動安裝的 revision 為 bb1d43d98a3f8ab639a0042f90d0ec524e39a477，現行安裝以鎖檔內容雜湊為準。
 `--all` 同時選擇其他 agent 目標；本 repo 提交 canonical .agents/skills，Claude/Eve 額外副本留在本機。
 
@@ -59,6 +59,10 @@ codex plugin add python-development@claude-code-workflows
 
 本次觀測 python-development 為 1.2.4；這是安裝紀錄，不是重建版本鎖定。
 安裝不授權 plugin 自動進行對外操作，目前代理依[能力指引](../../workflow/capabilities/)選用所需能力，文件查證依根目錄指引。
+
+## Next.js 官方技能
+
+`next-dev-loop` 用於開發伺服器上的行為驗證，`next-bundle-optimizer` 用於前端 bundle 分析。兩者取自 [Next.js 官方儲存庫](https://github.com/vercel/next.js/tree/v16.4.5/skills) 對應專案版本的標籤，來源與內容雜湊由 `skills-lock.json` 保存。Mini App 使用 Pages Router 靜態匯出。框架一般指引見專案所安裝版本的 `next/dist/docs/`。Go 技能用於後端 Go 模組。
 
 ## shadcn 官方 skill
 

@@ -6,6 +6,7 @@
 
 Follow rule 18 to start a task. See the [nested directory guide](README.md#巢狀目錄導覽) for directory guidance.
 
+- Codex MUST run with the repository root as its working directory. In this workspace, launch `codex -C /workspace/line-mini-app-bot` to use the project's `.codex/config.toml`. Verify the checkout with `pwd` and `git rev-parse --show-toplevel`. If the background daemon cannot start, retry with `codex --no-daemon -C /workspace/line-mini-app-bot`. Both modes require a writable Codex state directory.
 - This project does not use Codex hooks. Use Repomix, Graphify or source documents as needed for the task.
 
 <a id="共通工程規則"></a>

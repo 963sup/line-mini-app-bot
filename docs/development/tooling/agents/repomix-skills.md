@@ -6,7 +6,7 @@
 
 ## Prerequisites and configuration
 
-[repomix_skills 設定](../../../../.codex/config.toml)以固定版本 Repomix 的 `--mcp` 模式啟動，只曝光 `generate_skill`，依主機核准設定執行。啟動與握手本身不產生或覆寫技能。使用現有參考包請從 [Codex 技能操作](#在-codex-使用本專案的參考技能)進入。
+[repomix_skills 設定](../../../../.codex/config.toml)以固定版本 Repomix 的 `--mcp` 模式啟動，使用服務預設工具清單，以 `generate_skill` 產生技能，依主機核准設定執行。啟動與握手本身不產生或覆寫技能。使用現有參考包請從 [Codex 技能操作](#在-codex-使用本專案的參考技能)進入。
 
 ## 在 Codex 使用本專案的參考技能
 

@@ -67,12 +67,6 @@
       "skillPath": "skills/golang-data-structures/SKILL.md",
       "computedHash": "f5852a07e6194cfb50f209adeb0a46e2c59b42d3b4d994cfe935e39d8cd0ee52"
     },
-    "golang-database": {
-      "source": "samber/cc-skills-golang",
-      "sourceType": "github",
-      "skillPath": "skills/golang-database/SKILL.md",
-      "computedHash": "5fed6236020b37237872d9234d016180396ba524f6ea01c63421a659002ef060"
-    },
     "golang-dependency-injection": {
       "source": "samber/cc-skills-golang",
       "sourceType": "github",
@@ -109,18 +103,6 @@
       "skillPath": "skills/golang-gopls/SKILL.md",
       "computedHash": "c99abdae03878e8e0b9f677d5eea6f7009edce0acf6c2826ea42b88232d7c499"
     },
-    "golang-grpc": {
-      "source": "samber/cc-skills-golang",
-      "sourceType": "github",
-      "skillPath": "skills/golang-grpc/SKILL.md",
-      "computedHash": "db36a77544181323a191c3665550d9530a3c3a69b82077b3cdd2839f79ab566d"
-    },
-    "golang-how-to": {
-      "source": "samber/cc-skills-golang",
-      "sourceType": "github",
-      "skillPath": "skills/golang-how-to/SKILL.md",
-      "computedHash": "2c1138f868519cc3b64f808ff00ba5529187c531f3dbf082673ca01962bfee61"
-    },
     "golang-lint": {
       "source": "samber/cc-skills-golang",
       "sourceType": "github",
@@ -151,23 +133,11 @@
       "skillPath": "skills/golang-performance/SKILL.md",
       "computedHash": "a4dcba5d70473c10c030b8342c53ad21b04da2a885462cbf235c896a1cf2d255"
     },
-    "golang-pkg-go-dev": {
-      "source": "samber/cc-skills-golang",
-      "sourceType": "github",
-      "skillPath": "skills/golang-pkg-go-dev/SKILL.md",
-      "computedHash": "87317fa320c89d2654ac3f9750b0e6fb43c7f335b6670367780590bf1921592c"
-    },
     "golang-popular-libraries": {
       "source": "samber/cc-skills-golang",
       "sourceType": "github",
       "skillPath": "skills/golang-popular-libraries/SKILL.md",
       "computedHash": "f15782ec5f187aa4134859576552c0b23ba5bea73791c3db452335e15f761830"
-    },
-    "golang-project-layout": {
-      "source": "samber/cc-skills-golang",
-      "sourceType": "github",
-      "skillPath": "skills/golang-project-layout/SKILL.md",
-      "computedHash": "65b0553857dec289b091016ca3185c1796e1417969dd1312fe55895a24baef5d"
     },
     "golang-refactoring": {
       "source": "samber/cc-skills-golang",
@@ -187,23 +157,11 @@
       "skillPath": "skills/golang-security/SKILL.md",
       "computedHash": "349c1d69db947297c4325f0a26f7a9a4e9e7189103748d28b9c8bf4756f83dbc"
     },
-    "golang-stay-updated": {
-      "source": "samber/cc-skills-golang",
-      "sourceType": "github",
-      "skillPath": "skills/golang-stay-updated/SKILL.md",
-      "computedHash": "ea859e59ae40b837243ef6150865b90411705be3bb05b229fd318ea9ca36f6da"
-    },
     "golang-structs-interfaces": {
       "source": "samber/cc-skills-golang",
       "sourceType": "github",
       "skillPath": "skills/golang-structs-interfaces/SKILL.md",
       "computedHash": "d190a76c44b638e2af5e4f6a3f4b218c8dd7c5352e119f8d52e3c4faa06deb27"
-    },
-    "golang-swagger": {
-      "source": "samber/cc-skills-golang",
-      "sourceType": "github",
-      "skillPath": "skills/golang-swagger/SKILL.md",
-      "computedHash": "a150c3e098bbdf7476250c5ad85f37ea45fb617743c1a54f1886718647885e5c"
     },
     "golang-testing": {
       "source": "samber/cc-skills-golang",
@@ -216,6 +174,22 @@
       "sourceType": "github",
       "skillPath": "skills/golang-troubleshooting/SKILL.md",
       "computedHash": "284e4de23965b8164f9259ddf47e14d5b2c98c1d624241abd09cb12e5e213f73"
+    },
+    "next-bundle-optimizer": {
+      "source": "vercel/next.js",
+      "ref": "v16.4.5",
+      "sourceType": "github",
+      "skillPath": "skills/next-bundle-optimizer/SKILL.md",
+      "computedHash": "5ff4463d88f33a7d09cdf820684d1f732b97cd40ad0171bc18689d9bdd7614e2",
+      "installMode": "copy"
+    },
+    "next-dev-loop": {
+      "source": "vercel/next.js",
+      "ref": "v16.4.5",
+      "sourceType": "github",
+      "skillPath": "skills/next-dev-loop/SKILL.md",
+      "computedHash": "c305c83b726212e0284930c65cded2c4a4ab85f9bfccfa83b62274247fe3580e",
+      "installMode": "copy"
     },
     "openai-docs": {
       "source": "openai/skills",

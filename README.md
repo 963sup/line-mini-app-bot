@@ -66,7 +66,7 @@ bash scripts/tooling/tool-exec.sh pnpm test
 bash scripts/tooling/tool-exec.sh pnpm dev
 ```
 
-For Cloud and MCP installation details and limitations, see the [toolchain setup guide](docs/development/tooling/shared/toolchain-setup.md). Set the Codex Cloud install script to `scripts/bootstrap.sh`; without arguments, it uses cloud mode. The local commands above use core mode to install Go, web dependencies and the Mermaid CLI. Use `bash scripts/bootstrap.sh all` when Graphify, Repomix and MCP tools are needed. Firestore Toolbox requires Google ADC; GKE MCP is disabled by default.
+For Cloud and MCP installation details and limitations, see the [toolchain setup guide](docs/development/tooling/shared/toolchain-setup.md). Set the Codex Cloud install script to `scripts/bootstrap.sh`; without arguments, it uses cloud mode. The local commands above use core mode to install Go, web dependencies and the Mermaid CLI. Optional MCP tools are installed separately from bootstrap. Firestore Toolbox requires Google ADC; GKE MCP requires the local gke-mcp executable.
 
 Verify tool installation, MCP handshakes and availability to the chat host separately. Cached artifacts do not establish that a fresh environment has been verified. Tool versions and non-secret environment settings are maintained in `mise.toml`; use `scripts/tooling/tool-exec.sh` for routine commands.
 

@@ -51,178 +51,87 @@ enabled = true
 name = "golang-gopls"
 enabled = true
 
-
 [mcp_servers.mermaid]
 url = "https://mcp.mermaid.ai/mcp"
-bearer_token_env_var = "MERMAID_TOKEN"
-enabled = false
-required = false
-startup_timeout_sec = 30
-tool_timeout_sec = 60
-enabled_tools = ["validate_and_render_mermaid_diagram", "get_diagram_title", "get_diagram_summary"]
 
 [mcp_servers.graphify]
-# Forward runtime network settings by name; never store credential values.
-env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
-# Resolve paths from the Codex checkout, including worktrees.
-cwd = "."
-command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "graphify-mcp", "graphify-out/graph.json"]
-enabled = true
-required = false
-startup_timeout_sec = 45
-tool_timeout_sec = 60
-enabled_tools = ["query_graph", "get_node", "get_neighbors", "get_community", "god_nodes", "graph_stats", "shortest_path"]
+command = "/workspace/tooling/bin/graphify-mcp"
+args = ["graphify-out/graph.json"]
 
 [mcp_servers.openaiDeveloperDocs]
-# Keep documentation context focused on search and retrieval.
-enabled_tools = ["search_openai_docs", "fetch_openai_doc"]
 url = "https://developers.openai.com/mcp"
-enabled = true
-required = false
-startup_timeout_sec = 20
-tool_timeout_sec = 45
 
 [mcp_servers.context7]
 url = "https://mcp.context7.com/mcp"
-enabled = true
-required = false
-startup_timeout_sec = 20
-tool_timeout_sec = 45
 
 [mcp_servers.repomix_skills]
-# Forward runtime network settings by name; never store credential values.
-env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
-# Resolve paths from the Codex checkout, including worktrees.
-cwd = "."
-command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "repomix", "--mcp"]
-enabled_tools = ["generate_skill"]
+command = "npx"
+args = ["-y", "repomix@1.18.1", "--mcp"]
+env = { npm_config_cache = "/workspace/tooling/cache/npm" }
 default_tools_approval_mode = "prompt"
-enabled = true
-required = false
 startup_timeout_sec = 45
-tool_timeout_sec = 120
-
 
 [mcp_servers.repomix]
-# Forward runtime network settings by name; never store credential values.
-env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
-# Resolve paths from the Codex checkout, including worktrees.
-cwd = "."
 command = "npx"
 args = ["-y", "repomix@1.18.1", "--mcp", "--sandbox", "."]
-enabled_tools = ["pack_codebase", "read_repomix_output", "grep_repomix_output", "file_system_read_file", "file_system_read_directory"]
-enabled = true
-required = false
+env = { npm_config_cache = "/workspace/tooling/cache/npm" }
 startup_timeout_sec = 45
-tool_timeout_sec = 120
 
 [mcp_servers.gopls]
-# Forward runtime network settings by name; never store credential values.
-env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS", "GOPROXY", "GOPRIVATE", "GONOPROXY", "GONOSUMDB", "GOSUMDB"]
-# Resolve paths from the Codex checkout, including worktrees.
-cwd = "."
-command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "gopls", "mcp"]
-enabled = true
-required = false
-startup_timeout_sec = 120
-tool_timeout_sec = 60
+command = "/workspace/tooling/mise-data/installs/go-golang-org-x-tools-gopls/0.24.0/bin/gopls"
+args = ["mcp"]
+env = { PATH = "/workspace/tooling/mise-data/installs/go/1.27.4/bin:/usr/local/bin:/usr/bin:/bin", GOCACHE = "/workspace/tooling/cache/go-build", GOMODCACHE = "/workspace/tooling/go/pkg/mod" }
+env_vars = ["GOPROXY", "GOPRIVATE", "GONOPROXY", "GONOSUMDB", "GOSUMDB"]
 
 [mcp_servers.github]
 url = "https://api.githubcopilot.com/mcp/"
 bearer_token_env_var = "GITHUB_MCP_TOKEN"
-enabled = true
-required = false
-startup_timeout_sec = 30
-tool_timeout_sec = 60
 
 [mcp_servers.google-developer-knowledge]
 url = "https://developerknowledge.googleapis.com/mcp"
 env_http_headers = { "X-Goog-Api-Key" = "DEVELOPERKNOWLEDGE_API_KEY" }
-enabled = true
-required = false
-startup_timeout_sec = 30
-tool_timeout_sec = 60
 
 [mcp_servers.gcloud]
-# Official server: https://github.com/googleapis/gcloud-mcp
-# Resolve paths from the Codex checkout, including worktrees.
-cwd = "."
-command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "--tool", "node", "--tool", "gcloud", "npx", "-y", "@google-cloud/gcloud-mcp@0.5.3"]
-env_vars = ["CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "CLOUDSDK_CORE_PROJECT", "CLOUDSDK_CORE_ACCOUNT", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
-enabled_tools = ["run_gcloud_command"]
+command = "npx"
+args = ["-y", "@google-cloud/gcloud-mcp@0.5.3"]
+env = { npm_config_cache = "/workspace/tooling/cache/npm", PATH = "/workspace/tooling/mise-data/installs/gcloud/592.0.0/bin:/workspace/tooling/mise-data/installs/node/24.22.1/bin:/usr/local/bin:/usr/bin:/bin" }
+env_vars = ["CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "CLOUDSDK_CORE_PROJECT", "CLOUDSDK_CORE_ACCOUNT"]
 default_tools_approval_mode = "prompt"
-enabled = true
-required = false
 startup_timeout_sec = 60
-tool_timeout_sec = 120
 
 [mcp_servers.cloud-run]
-# Official local stdio server: https://github.com/GoogleCloudPlatform/cloud-run-mcp
-# Resolve paths from the Codex checkout, including worktrees.
-cwd = "."
 command = "npx"
 args = ["-y", "@google-cloud/cloud-run-mcp@1.12.0"]
-env_vars = ["CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_REGION", "DEFAULT_SERVICE_NAME", "SKIP_IAM_CHECK", "RUN_INGRESS_POLICY", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
+env = { npm_config_cache = "/workspace/tooling/cache/npm" }
+env_vars = ["CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_REGION", "DEFAULT_SERVICE_NAME", "SKIP_IAM_CHECK", "RUN_INGRESS_POLICY"]
 default_tools_approval_mode = "prompt"
-enabled = true
-required = false
 startup_timeout_sec = 60
-tool_timeout_sec = 120
 
 [mcp_servers.gke]
-# Official Go stdio server: https://github.com/GoogleCloudPlatform/gke-mcp
-# Upstream reads DK_API_KEY; reuse the host's Developer Knowledge key at launch.
-# Resolve paths from the Codex checkout, including worktrees.
-cwd = "."
-command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "bash", "-c", 'export DK_API_KEY="${DEVELOPERKNOWLEDGE_API_KEY:-}"; exec gke-mcp']
-env_vars = ["DEVELOPERKNOWLEDGE_API_KEY", "CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "CLOUDSDK_CORE_PROJECT", "CLOUDSDK_CORE_ACCOUNT", "CLOUDSDK_COMPUTE_REGION", "CLOUDSDK_COMPUTE_ZONE", "KUBECONFIG", "GKE_MCP_PROVIDER", "GKE_MCP_MODEL", "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_LOCATION", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
+command = "gke-mcp"
+env_vars = ["DK_API_KEY", "CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "CLOUDSDK_CORE_PROJECT", "CLOUDSDK_CORE_ACCOUNT", "CLOUDSDK_COMPUTE_REGION", "CLOUDSDK_COMPUTE_ZONE", "KUBECONFIG", "GKE_MCP_PROVIDER", "GKE_MCP_MODEL", "GOOGLE_CLOUD_PROJECT", "GOOGLE_CLOUD_LOCATION"]
 default_tools_approval_mode = "prompt"
-enabled = false
-required = false
-startup_timeout_sec = 120
-tool_timeout_sec = 120
 
 [mcp_servers.toolbox]
-# Official MCP Toolbox; use the project's existing Firestore integration.
-# Requires FIRESTORE_PROJECT and ADC; FIRESTORE_DATABASE is optional.
-# Resolve paths from the Codex checkout, including worktrees.
-cwd = "."
 command = "npx"
 args = ["-y", "@toolbox-sdk/server@1.17.0", "--prebuilt", "firestore", "--stdio"]
-env_vars = ["FIRESTORE_PROJECT", "FIRESTORE_DATABASE", "CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"]
+env = { npm_config_cache = "/workspace/tooling/cache/npm" }
+env_vars = ["FIRESTORE_PROJECT", "FIRESTORE_DATABASE", "CLOUDSDK_CONFIG", "GOOGLE_APPLICATION_CREDENTIALS"]
 default_tools_approval_mode = "prompt"
-enabled = true
-required = false
 startup_timeout_sec = 120
-tool_timeout_sec = 120
 
 [mcp_servers.shadcn]
-# Forward runtime network settings by name; values remain host-owned.
-env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS"]
-# Resolve paths from the Codex checkout, including worktrees.
-cwd = "."
-command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "--tool", "node", "--tool", "npm:shadcn", "bash", "-c", "cd frontend/miniapp && exec shadcn mcp"]
-enabled = true
-required = false
+command = "npx"
+args = ["-y", "shadcn@4.23.0", "mcp"]
+cwd = "frontend/miniapp"
+env = { npm_config_cache = "/workspace/tooling/cache/npm" }
 startup_timeout_sec = 45
-tool_timeout_sec = 60
 
 [mcp_servers.next-devtools]
-# Runtime inspection is task-specific; use the installed Next.js dev server.
-env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "NODE_EXTRA_CA_CERTS", "NEXT_TELEMETRY_DISABLED"]
-# Resolve paths from the Codex checkout, including worktrees.
-cwd = "."
-command = "bash"
-args = ["scripts/tooling/tool-exec.sh", "--tool", "node", "--tool", "npm:next-devtools-mcp", "bash", "-c", "cd frontend/miniapp && exec next-devtools-mcp"]
-enabled_tools = ["nextjs_index", "nextjs_call", "nextjs_docs", "browser_eval"]
+command = "npx"
+args = ["-y", "next-devtools-mcp@0.4.0"]
+cwd = "frontend/miniapp"
+env = { npm_config_cache = "/workspace/tooling/cache/npm" }
+env_vars = ["NEXT_TELEMETRY_DISABLED"]
 default_tools_approval_mode = "writes"
-enabled = true
-required = false
 startup_timeout_sec = 30
-tool_timeout_sec = 60

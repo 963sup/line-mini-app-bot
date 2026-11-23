@@ -9,7 +9,7 @@
 | Cloud 初始化顯示 `Cannot install mise for …` | 用 `uname -s -m` 核對執行 Install script 的主機；[Cloud 初始化](codex-cloud.md)使用 Linux x86_64 或 Linux aarch64 的發行檔                                                                  |
 | 安裝失敗                                     | 確認[系統前置條件](../tooling/shared/toolchain-setup.md)、原始鎖檔與套件網路可用，記錄是哪一項下載或驗證失敗                                                                                |
 | Next.js 頁面可開，但 API 失敗                | 依[啟動表](codex-cloud.md#本機服務啟動)確認 Go 服務、8080 埠與實際 API 回應，對照兩邊日誌                                                                                                   |
-| 設定存在，但聊天找不到 MCP 工具              | 依[主機載入檢查](troubleshooting.md#設定與-mcp-診斷)分別核對信任、載入、transport 與原生工具                                                                                                |
+| 設定存在，但聊天找不到 MCP 工具              | 依[主機載入檢查](#設定與-mcp-診斷)分別核對信任、載入、transport 與原生工具                                                                                                                  |
 | 已看得到工具，但呼叫資源時被拒絕             | 依[工具指引](../tooling/shared/gcloud.md)確認實際身分、專案／資料庫、資源權限與錯誤訊息                                                                                                     |
 
 將確認的失敗階段及能重現的命令寫入交付。若需檢查程式根因，轉入[系統化除錯](../workflow/debugging.md#diagnostic-loop)。

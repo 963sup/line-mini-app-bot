@@ -21,6 +21,11 @@ __pycache__/
 /.codex-behavior-*/
 /.agents/**
 !/.agents/AGENTS.md
+!/.agents/skills/
+!/.agents/skills/next-bundle-optimizer/
+!/.agents/skills/next-bundle-optimizer/**
+!/.agents/skills/next-dev-loop/
+!/.agents/skills/next-dev-loop/**
 /.claude/
 /agent/
 /server

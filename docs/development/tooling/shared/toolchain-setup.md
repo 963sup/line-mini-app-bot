@@ -6,33 +6,15 @@ Install script、Start skill、更新與新聊天驗收由 [Codex Cloud 環境�
 
 ## 一般開發與 MCP 安裝
 
-以下流程涵蓋明確指定的 `core`、`mcp` 或 `all`。省略模式時使用 `cloud`。
-
-`mcp` 與 `all` 完成本機工具準備後即可結束。需要驗證連線時，依 [MCP 診斷](../../environment/troubleshooting.md#設定與-mcp-診斷)選擇單一或全部服務。
+省略模式時使用 `cloud`，本機開發使用 `core`。初始化只安裝該模式的開發工具。需要 MCP 時，依 [mise 工具任務](mise.md)另行準備，再執行 [MCP 診斷](../../environment/troubleshooting.md#設定與-mcp-診斷)。
 
 **開發與維運指引**
-
-```mermaid
-flowchart TD
-  A["Linux x64／arm64：Bash、curl、tar、sha256sum、Python 3.11+"] --> B["核對固定版 mise，信任專案設定，安裝 core 工具"]
-  B --> W{"core 或 all？"}
-  W -->|是| D["安裝 Web 工具與鎖定依賴，執行 doctor"]
-  W -->|否| M["安裝 Mermaid"]
-  D --> M
-  M --> C{"mcp 或 all？"}
-  C -->|否| E["core 完成"]
-  C -->|是| G["安裝 MCP 與 Cloud 工具，更新 Graphify"]
-  G --> J["環境初始化完成"]
-  J -->|需要驗證連線| K["另做 MCP 連線診斷"]
-  K -->|探測失敗| F["依各 server 結果檢查連線、設定與執行期憑證"]
-  K -->|探測通過| H["在載入專案設定的新對話確認工具，實際呼叫任務所需工具"]
-```
 
 ```mermaid
 flowchart TB
   root["開發環境與驗收"]
   root --- b0["從儲存庫根目錄執行"]
-  b0 --- n0_0["選擇一個模式：<br/>bash scripts/bootstrap.sh core<br/>bash scripts/bootstrap.sh mcp<br/>bash scripts/bootstrap.sh all"]
+  b0 --- n0_0["選擇一個模式：<br/>bash scripts/bootstrap.sh cloud<br/>bash scripts/bootstrap.sh core"]
   b0 --- n0_1["bash scripts/tooling/tool-exec.sh mise run check-config"]
   root --- b1["工作目錄"]
   b1 --- n1_0["Go module：backend；直接使用 go 前先 cd backend"]

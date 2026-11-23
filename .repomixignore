@@ -1,6 +1,21 @@
 # Repomix-specific exclusions
 # Git ignores and default exclusions remain enabled.
 
+# Tests and their data are inspected from source when a task needs them.
+**/*_test.go
+**/*.test.*
+**/*.spec.*
+**/tests/
+**/testdata/
+**/__tests__/
+
+# Pinned tool copies and generated API types are available from their sources.
+/.mise/
+/pnpm-lock.yaml
+/mise.lock
+/api/client/src/generated/
+/backend/internal/transport/http/api/generated/
+
 # Repomix outputs
 repomix-output.*
 /repomix-*.xml

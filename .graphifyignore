@@ -2,12 +2,25 @@
 /.agents/**
 /.claude/
 /agent/
+/.mise/
 
 # Generated analysis outputs
 /graphify-out/
 /repomix-output.*
 # Upstream reference pages are not application dependency evidence.
 /docs/development/tooling/frontend/shadcn-reference/snapshot/
+
+# Tests and their data are verified separately, not part of the application graph.
+**/*_test.go
+**/*.test.*
+**/*.spec.*
+**/tests/
+**/testdata/
+**/__tests__/
+
+# The API contract owns these generated transport and client types.
+/api/client/src/generated/
+/backend/internal/transport/http/api/generated/
 
 # Dependencies, caches and build outputs
 **/node_modules/

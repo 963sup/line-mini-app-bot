@@ -18,7 +18,6 @@ Use the host’s native search_openai_docs and fetch_openai_doc tools. If missin
 
 ## Codex configuration policy
 
-The configured allowlist contains search_openai_docs and fetch_openai_doc.
 本專案由單一代理使用目前聊天的 MCP 與權限；能力文件不建立獨立沙箱。 Optional server failure must be reported
 without claiming host loading succeeded. See the official [MCP configuration](https://developers.openai.com/codex/mcp)
 and [subagent guidance](https://developers.openai.com/codex/multi-agent).
