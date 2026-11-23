@@ -1,10 +1,6 @@
 package summarizer
 
 import (
-	summaryDomainEntityMessagecollection "github.com/963sup/line-mini-app-bot/internal/business/summary/domain/entity/messagecollection"
-)
-
-import (
 	"context"
 	"encoding/json"
 	"io"
@@ -15,6 +11,7 @@ import (
 )
 
 func TestOpenAISummaryContract(t *testing.T) {
+	const input = `{"Source":"S1","Speaker":"成員1","Text":"聊天"}`
 	for _, tc := range []struct {
 		name, body string
 		status     int
@@ -48,12 +45,12 @@ func TestOpenAISummaryContract(t *testing.T) {
 				if body.Model != gptModel || body.MaxCompletionTokens != 1500 || len(body.Messages) != 2 || body.Messages[0].Role != "system" || body.Messages[1].Role != "user" || len(body.Tools) != 0 {
 					t.Fatal("invalid model request contract")
 				}
-				if strings.Contains(body.Messages[1].Content, "raw-user-id") || !strings.Contains(body.Messages[1].Content, "成員1") {
-					t.Fatal("must alias participant IDs")
+				if body.Messages[1].Content != input {
+					t.Fatal("model input changed")
 				}
 				return &http.Response{StatusCode: tc.status, Header: http.Header{"Content-Type": []string{"application/json"}}, Body: io.NopCloser(strings.NewReader(tc.body))}, nil
 			})}}
-			_, err := g.Summarize(context.Background(), []summaryDomainEntityMessagecollection.Message{{ID: "source", UserID: "raw-user-id", Text: "聊天"}})
+			_, err := g.Summarize(context.Background(), input)
 			if (err == nil) != tc.valid {
 				t.Fatalf("unexpected result: %v", err)
 			}

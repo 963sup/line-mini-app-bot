@@ -2,11 +2,13 @@ package summarization
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
 
 	summaryApplicationPortSummarization "github.com/963sup/line-mini-app-bot/internal/business/summary/application/port/summarization"
 	summaryDomainEntityMessagecollection "github.com/963sup/line-mini-app-bot/internal/business/summary/domain/entity/messagecollection"
-	summaryDomainEntitySummarization "github.com/963sup/line-mini-app-bot/internal/business/summary/domain/entity/summarization"
 )
 
 type Service struct {
@@ -38,23 +40,20 @@ func (s *Service) Run(ctx context.Context, group, id string) error {
 		if err != nil {
 			return err
 		}
-		input, sources := summaryDomainEntitySummarization.Input(messages)
+		input, sources := modelInput(messages)
 		if input == "" {
 			j.Result = "最近 24 小時沒有可摘要的群組文字。"
 		} else {
-			// Use exactly the bounded set selected by Input, preserving citation numbers.
-			selected := make([]summaryDomainEntityMessagecollection.Message, 0, len(sources))
 			byID := map[string]summaryDomainEntityMessagecollection.Message{}
 			for _, m := range messages {
 				byID[m.ID] = m
 			}
 			for _, id := range sources {
-				selected = append(selected, byID[id])
 				if byID[id].ExpireAt.Before(j.ExpireAt) {
 					j.ExpireAt = byID[id].ExpireAt
 				}
 			}
-			j.Result, err = s.Model.Summarize(ctx, selected)
+			j.Result, err = s.Model.Summarize(ctx, input)
 			if err != nil {
 				return err
 			}
@@ -79,4 +78,32 @@ func (s *Service) Run(ctx context.Context, group, id string) error {
 		return err
 	}
 	return s.Store.Done(ctx, j)
+}
+
+// modelInput aliases users without losing the source-message association held by the job.
+// The byte budget also bounds the maximum possible input token count.
+func modelInput(messages []summaryDomainEntityMessagecollection.Message) (string, []string) {
+	people := map[string]int{}
+	lines := make([]string, 0, len(messages))
+	sources := make([]string, 0, len(messages))
+	budget := 24000
+	for _, m := range messages {
+		if len(sources) == 100 {
+			break
+		}
+		if m.Deleted || m.Text == "" {
+			continue
+		}
+		if _, ok := people[m.UserID]; !ok {
+			people[m.UserID] = len(people) + 1
+		}
+		b, _ := json.Marshal(struct{ Source, Speaker, Time, Text string }{fmt.Sprintf("S%d", len(sources)+1), fmt.Sprintf("成員%d", people[m.UserID]), m.OccurredAt.UTC().Format(time.RFC3339), m.Text})
+		if len(b) > budget {
+			break
+		}
+		budget -= len(b)
+		lines = append(lines, string(b))
+		sources = append(sources, m.ID)
+	}
+	return strings.Join(lines, "\n"), sources
 }

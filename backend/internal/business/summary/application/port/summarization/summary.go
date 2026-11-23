@@ -21,7 +21,7 @@ type Store interface {
 }
 
 type Model interface {
-	Summarize(context.Context, []summaryDomainEntityMessagecollection.Message) (string, error)
+	Summarize(context.Context, string) (string, error)
 }
 
 type Queue interface {

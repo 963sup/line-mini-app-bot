@@ -14,6 +14,7 @@ import (
 	db "cloud.google.com/go/firestore"
 
 	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -157,7 +158,7 @@ func (s *Summary) commandOperation(ctx context.Context, g, event, command string
 	ref := root.Collection("summaryJobs").Doc(id)
 	var job summaryDomainEntitySummarization.Job
 	now := time.Now().UTC()
-	retry := summaryDomainEntitySummarization.RandomID()
+	retry := uuid.NewString()
 	err := s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		old, e := tx.Get(ref)
 		if e == nil {
@@ -186,7 +187,7 @@ func (s *Summary) claimOperation(ctx context.Context, g, id string) (summaryDoma
 	root := s.group(g)
 	ref := root.Collection("summaryJobs").Doc(id)
 	now := time.Now()
-	lease := summaryDomainEntitySummarization.RandomID()
+	lease := uuid.NewString()
 	err := s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		claimed = false
 		d, e := tx.Get(ref)

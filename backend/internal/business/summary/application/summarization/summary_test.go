@@ -61,7 +61,7 @@ type modelStub struct {
 	after func()
 }
 
-func (m *modelStub) Summarize(context.Context, []summaryDomainEntityMessagecollection.Message) (string, error) {
+func (m *modelStub) Summarize(context.Context, string) (string, error) {
 	m.calls++
 	if m.after != nil {
 		m.after()
@@ -120,11 +120,11 @@ func TestRunDuplicateAndCancelledJobsDoNotCallModel(t *testing.T) {
 }
 
 func TestInputPreservesActorAndSourcesWithoutRawIDs(t *testing.T) {
-	text, ids := summaryDomainEntitySummarization.Input([]summaryDomainEntityMessagecollection.Message{{ID: "m1", UserID: "secret-user", Text: "一"}, {ID: "m2", UserID: "other-user", Text: "二"}, {ID: "m3", UserID: "secret-user", Text: "三"}, {ID: "m4", Text: "撤回", Deleted: true}})
+	text, ids := modelInput([]summaryDomainEntityMessagecollection.Message{{ID: "m1", UserID: "secret-user", Text: "一"}, {ID: "m2", UserID: "other-user", Text: "二"}, {ID: "m3", UserID: "secret-user", Text: "三"}, {ID: "m4", Text: "撤回", Deleted: true}})
 	if len(ids) != 3 || ids[2] != "m3" || strings.Contains(text, "secret-user") || strings.Count(text, "成員1") != 2 || !strings.Contains(text, "S3") || strings.Contains(text, "撤回") {
 		t.Fatal("actor aliases or citations are inconsistent")
 	}
-	_, ids = summaryDomainEntitySummarization.Input([]summaryDomainEntityMessagecollection.Message{{ID: "huge", Text: strings.Repeat("x", 25000)}})
+	_, ids = modelInput([]summaryDomainEntityMessagecollection.Message{{ID: "huge", Text: strings.Repeat("x", 25000)}})
 	if len(ids) != 0 {
 		t.Fatal("input budget must be bounded")
 	}
@@ -132,7 +132,7 @@ func TestInputPreservesActorAndSourcesWithoutRawIDs(t *testing.T) {
 
 type uncitedModel struct{}
 
-func (uncitedModel) Summarize(context.Context, []summaryDomainEntityMessagecollection.Message) (string, error) {
+func (uncitedModel) Summarize(context.Context, string) (string, error) {
 	return "摘要 [S2]", nil
 }
 
