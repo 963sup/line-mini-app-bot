@@ -69,9 +69,15 @@ Follow rule 18 to start a task. See the [nested directory guide](README.md#å·¢ç‹
 - Before locating or running a CLI, check installed versions from the repository root with `bash scripts/tooling/tool-exec.sh mise ls --installed`. If the wrapper cannot find mise, check `/workspace/tooling/bin/mise` and `/workspace/tooling/mise-data/installs`.
 - Run an individual tool with `bash scripts/tooling/tool-exec.sh <command> [arguments]`; the wrapper prepares tools at declared versions. `mise run` may prepare the entire task environment. For compound commands, list declared tools explicitly, for example `bash scripts/tooling/tool-exec.sh --tool node --tool npm:repomix bash -c 'repomix --version'`.
 - If Graphify is missing, run `mise run install-graphify`.
-- Confirm separately which MCP tools the chat can call. If a service is missing, a call fails or comprehensive acceptance is needed, follow the [shared troubleshooting workflow](docs/development/tooling/agents/) and continue independent work.
 
 Sources: mise 2026.11.3 `exec --help` and [official settings](https://mise.jdx.dev/configuration/settings.html#exec_auto_install).
+
+## MCP selection and registration
+
+- For dependency documentation, use `context7` as described below. For Codex or OpenAI API documentation, use `openaiDeveloperDocs`. Use `graphify` to trace relationships and `repomix` to inspect a scoped source bundle. Select additional servers by the target module's AGENTS.md.
+- When a required tool is unavailable, first check the active chat's tool list and run `codex mcp list` and `codex mcp get <name>` from the checkout root. Server names, URLs, pinned commands, working directories and environment settings come from the [project MCP configuration](.codex/config.toml).
+- If the registration is missing, use `codex mcp add <name> --url <url>` for an HTTP server (for example, `codex mcp add openaiDeveloperDocs --url https://developers.openai.com/mcp`). For a local server, install its pinned executable using the project toolchain if needed, then use `codex mcp add <name> -- <command> [args...]`. The command writes a user-level registration. Preserve the project's required environment, working directory and approval settings when using a user-level entry.
+- If already registered, diagnose the existing entry using the [MCP troubleshooting guide](docs/development/environment/troubleshooting.md). Reopen Codex from the checkout root and verify that the new chat exposes the intended tools with a read-only call.
 
 ## Mandatory documentation verification
 
