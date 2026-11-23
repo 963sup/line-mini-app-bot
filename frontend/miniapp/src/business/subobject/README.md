@@ -8,7 +8,7 @@ Object owns child-node UI/interactions; backend APIs determine permissions/resul
 
 ## Reading and editing entry points
 
-Start with [Children.tsx](../object/Children.tsx); before editing, read  [Object agent guidance](../object/AGENTS.md).
+Start with [Children.tsx](../object/Children.tsx); before editing, read [Object agent guidance](../object/AGENTS.md).
 
 <a id="相關規格"></a>
 

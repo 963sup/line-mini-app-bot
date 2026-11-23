@@ -12,11 +12,11 @@ Use the questions below for cross-module contracts/code. [Domain specifications]
 
 ### Current structure and rules
 
-| Question | Source |
-| --- | --- |
-| Which entry handles requests and which modules are affected? | [Service entry](runtime/overview.md) · [Requirements-to-code navigation](runtime/code-layout.md#從需求定位修改範圍) |
-| Where are cores, adapters and composition? | [Backend boundaries](runtime/backend-boundaries.md) · [Dependencies/contract ownership](runtime/dependencies.md) |
-| Who authorizes operations and which rules must hold together? | [Operation model](../contracts/business-operations.md) · [Engineering principles](../standards/engineering.md) |
+| Question                                                      | Source                                                                                                              |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Which entry handles requests and which modules are affected?  | [Service entry](runtime/overview.md) · [Requirements-to-code navigation](runtime/code-layout.md#從需求定位修改範圍) |
+| Where are cores, adapters and composition?                    | [Backend boundaries](runtime/backend-boundaries.md) · [Dependencies/contract ownership](runtime/dependencies.md)    |
+| Who authorizes operations and which rules must hold together? | [Operation model](../contracts/business-operations.md) · [Engineering principles](../standards/engineering.md)      |
 
 <a id="任務準備與按需參考"></a>
 

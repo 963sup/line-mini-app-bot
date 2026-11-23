@@ -8,12 +8,12 @@ Space 是 Repository 內的業務分類空間，具有獨立的 32 位小寫十�
 
 ## 身分與相容邊界
 
-| 識別碼 | 權威與責任 |
-| --- | --- |
-| GroupID | 簽章驗證的 LINE 群組上下文與目前成員資格；C 加 32 位十六進位。 |
-| UserID | 後端驗證 LINE 身分取得的 actor，不接受 body 宣告。LINE User ID 以 provider 為範圍；同 provider 的相關 channels 才能對應同一使用者。 |
-| RepositoryID | 伺服器管理的資料來源容器，與 LINE GroupID 分開。 |
-| SpaceID | 本功能的 repository-owned 業務空間 ID；同一空間不能掛到其他 repository 或 channel。 |
+| 識別碼       | 權威與責任                                                                                                                          |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| GroupID      | 簽章驗證的 LINE 群組上下文與目前成員資格；C 加 32 位十六進位。                                                                      |
+| UserID       | 後端驗證 LINE 身分取得的 actor，不接受 body 宣告。LINE User ID 以 provider 為範圍；同 provider 的相關 channels 才能對應同一使用者。 |
+| RepositoryID | 伺服器管理的資料來源容器，與 LINE GroupID 分開。                                                                                    |
+| SpaceID      | 本功能的 repository-owned 業務空間 ID；同一空間不能掛到其他 repository 或 channel。                                                 |
 
 - [庫內工區使用 Repository 的 spaces 路徑及 spaceId。跨庫收錄工程對象的規則見 Project 功能規格。](../project/project.md)
 
@@ -23,11 +23,11 @@ Space 是 Repository 內的業務分類空間，具有獨立的 32 位小寫十�
 
 ## 操作契約
 
-| 操作 | Result／重送 |
-| --- | --- |
-| 成員讀取列表／單筆Context／Authority／Policy：可信 actor、目前 repository 成員；容器 ACTIVE；不另設 Space 成員 | GET /api/v1/repositories/{repositoryId}/spaces[/id]，列表每頁 20 筆，游標綁 actor/channel/repository。 |
-| 成員建立空間Context／Authority／Policy：同上；名稱 trim 後 1–120 字；寫入交易核 repository ID/GroupID/ACTIVE | POST collection；Idempotency-Key 綁 actor/repository 與名稱。同鍵同內容回原空間，異內容衝突；不使用共用編號。 |
-| 物件建立／修改分配Context／Authority／Policy：沿物件既有權限與 expectedVersion；同交易核業務空間屬於目前 channel/repository | 可選 spaceId：建立省略為未分配；PATCH 省略保留、空字串解除。失敗不寫物件或收據。 |
+| 操作                                                                                                                        | Result／重送                                                                                                  |
+| --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 成員讀取列表／單筆Context／Authority／Policy：可信 actor、目前 repository 成員；容器 ACTIVE；不另設 Space 成員              | GET /api/v1/repositories/{repositoryId}/spaces[/id]，列表每頁 20 筆，游標綁 actor/channel/repository。        |
+| 成員建立空間Context／Authority／Policy：同上；名稱 trim 後 1–120 字；寫入交易核 repository ID/GroupID/ACTIVE                | POST collection；Idempotency-Key 綁 actor/repository 與名稱。同鍵同內容回原空間，異內容衝突；不使用共用編號。 |
+| 物件建立／修改分配Context／Authority／Policy：沿物件既有權限與 expectedVersion；同交易核業務空間屬於目前 channel/repository | 可選 spaceId：建立省略為未分配；PATCH 省略保留、空字串解除。失敗不寫物件或收據。                              |
 
 資料位於 channels/{channelId}/repositories/{repositoryId}/spaces/{spaceId}；建立收據位於同庫 spaceCreationReceipts。首版只提供建立／讀取，不提供刪除、獨立成員管理或正式資料遷移。Subobject 沿父物件的空間，不另存 SpaceID 或建立權限。
 

@@ -66,12 +66,12 @@ Applies to all frontend UI work. Guidance-only changes verify documentation with
 
 These are exploration directions, not fixed recipes; verify official examples for the current base:
 
-| Purpose | Candidate components/compositions |
-| --- | --- |
-| Edit/add content | Inline Field/InputGroup; compare Dialog/Sheet/Drawer by content length/context |
-| Filter/select | Native Select/Select for small fixed sets; Combobox/Command for search |
-| Lists/details | Item, Table/Data Table; Collapsible/Accordion for expansion, not long Tooltip details |
-| Navigation/actions | Sidebar, Breadcrumb, Tabs, Dropdown Menu; preserve routes/semantics |
+| Purpose                    | Candidate components/compositions                                                                     |
+| -------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Edit/add content           | Inline Field/InputGroup; compare Dialog/Sheet/Drawer by content length/context                        |
+| Filter/select              | Native Select/Select for small fixed sets; Combobox/Command for search                                |
+| Lists/details              | Item, Table/Data Table; Collapsible/Accordion for expansion, not long Tooltip details                 |
+| Navigation/actions         | Sidebar, Breadcrumb, Tabs, Dropdown Menu; preserve routes/semantics                                   |
 | Dangerous actions/feedback | Alert Dialog, Alert, Empty, Skeleton, Spinner, Progress by state; notices do not replace confirmation |
 
 <a id="全部官方元件目錄"></a>

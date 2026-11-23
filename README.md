@@ -28,27 +28,27 @@ Shared HTTPS endpoint handling for the three MINI App environments is implemente
 
 ## Technology stack and SDKs
 
-| Area | Technology and purpose | Configuration and sources |
-| --- | --- | --- |
-| Backend | Go and the standard library's `net/http` | [Backend guide](backend/README.md), [go.mod](backend/go.mod) |
-| Frontend | Next.js, React, TypeScript | [Frontend dependencies](frontend/miniapp/package.json), [static export configuration](frontend/miniapp/next.config.ts) |
-| UI | shadcn/ui, Radix UI, Tailwind CSS, Lucide icons | [Frontend guide](frontend/README.md) |
-| API contracts | OpenAPI; Go and TypeScript generation with oapi-codegen and openapi-typescript | [API workflow](api/README.md) |
-| Storage | Cloud Firestore | [Persistence documentation](docs/architecture/README.md#資料與儲存) |
-| Workspace and builds | Node.js, pnpm workspaces, Turborepo; mise-managed toolchain | [Workspace configuration](package.json), [toolchain configuration](mise.toml) |
-| Deployment | Docker multi-stage builds, Cloud Build, Cloud Run, Secret Manager | [Dockerfile](Dockerfile), [deployment guide](docs/operations/cloud-run.md) |
-| Quality checks | GitHub Actions, Go tests and analysis tools, Node Test Runner/tsx/jsdom | [CI configuration](.github/workflows/check.yml), [toolchain configuration](mise.toml), [frontend test commands](frontend/miniapp/package.json) |
+| Area                 | Technology and purpose                                                         | Configuration and sources                                                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend              | Go and the standard library's `net/http`                                       | [Backend guide](backend/README.md), [go.mod](backend/go.mod)                                                                                   |
+| Frontend             | Next.js, React, TypeScript                                                     | [Frontend dependencies](frontend/miniapp/package.json), [static export configuration](frontend/miniapp/next.config.ts)                         |
+| UI                   | shadcn/ui, Radix UI, Tailwind CSS, Lucide icons                                | [Frontend guide](frontend/README.md)                                                                                                           |
+| API contracts        | OpenAPI; Go and TypeScript generation with oapi-codegen and openapi-typescript | [API workflow](api/README.md)                                                                                                                  |
+| Storage              | Cloud Firestore                                                                | [Persistence documentation](docs/architecture/README.md#資料與儲存)                                                                            |
+| Workspace and builds | Node.js, pnpm workspaces, Turborepo; mise-managed toolchain                    | [Workspace configuration](package.json), [toolchain configuration](mise.toml)                                                                  |
+| Deployment           | Docker multi-stage builds, Cloud Build, Cloud Run, Secret Manager              | [Dockerfile](Dockerfile), [deployment guide](docs/operations/cloud-run.md)                                                                     |
+| Quality checks       | GitHub Actions, Go tests and analysis tools, Node Test Runner/tsx/jsdom        | [CI configuration](.github/workflows/check.yml), [toolchain configuration](mise.toml), [frontend test commands](frontend/miniapp/package.json) |
 
 Primary SDKs and packages are listed below. Complete dependencies and pinned versions are defined in [backend/go.mod](backend/go.mod), the [frontend package.json](frontend/miniapp/package.json) and the [API client package.json](api/client/package.json).
 
-| SDK or package | Purpose |
-| --- | --- |
-| `github.com/line/line-bot-sdk-go/v8` | LINE Messaging API and webhook integration |
-| `cloud.google.com/go/firestore` | Firestore access |
-| `github.com/openai/openai-go/v3` | OpenAI integration through the official Go SDK |
-| `google.golang.org/api`, `golang.org/x/oauth2` | Google API and authentication support |
+| SDK or package                                                                                                   | Purpose                                                                     |
+| ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `github.com/line/line-bot-sdk-go/v8`                                                                             | LINE Messaging API and webhook integration                                  |
+| `cloud.google.com/go/firestore`                                                                                  | Firestore access                                                            |
+| `github.com/openai/openai-go/v3`                                                                                 | OpenAI integration through the official Go SDK                              |
+| `google.golang.org/api`, `golang.org/x/oauth2`                                                                   | Google API and authentication support                                       |
 | `github.com/getkin/kin-openapi`, `github.com/oapi-codegen/nethttp-middleware`, `github.com/oapi-codegen/runtime` | OpenAPI contract handling, request validation and generated Go code support |
-| `openapi-fetch` | TypeScript API client |
+| `openapi-fetch`                                                                                                  | TypeScript API client                                                       |
 
 See [dependency and contract ownership](docs/architecture/runtime/dependencies.md) for technical baselines and maintenance responsibilities. This inventory does not establish end-to-end acceptance of external services or production environments.
 
@@ -118,19 +118,19 @@ No license has been selected. All rights are reserved under [LICENSE](LICENSE).
 
 Select the target directory below. Read AGENTS.md files along the path from the repository root to the target, and use the nearest README.md for implementation entry points. For cross-module questions, start with [documentation by task](docs/README.md#按任務開始). Follow the [nested documentation maintenance standards](AGENTS.md#nested-documentation-maintenance-standards) when adding or editing guidance.
 
-| Directory or file | Description | Agent guidance |
-| --- | --- | --- |
-| `.agents/` | [Skill maintenance](docs/development/tooling/agents/skills.md) | [Root guidance](AGENTS.md) |
-| `.codex/` | [Codex configuration](.codex/config.toml) · [CLI operations](docs/development/tooling/agents/codex.md) | [Root guidance](AGENTS.md) |
-| `.github/` | [GitHub operations](docs/development/tooling/shared/github.md) · [CI configuration](.github/workflows/check.yml) | [Root guidance](AGENTS.md) |
-| `.vscode/` | [Workspace tasks](.vscode/tasks.json) · [Editor settings](.vscode/settings.json) | [Root guidance](AGENTS.md) |
-| `api/` | [HTTP API contracts](api/README.md) | [AGENTS.md](api/AGENTS.md) |
-| `assets/` | [Application assets](assets/README.md) | [AGENTS.md](assets/AGENTS.md) |
-| `backend/` | [Go backend](backend/README.md) | [AGENTS.md](backend/AGENTS.md) |
-| `cloudbuild.yaml`, `firestore.indexes.json` | [Deployment and index configuration](docs/operations/README.md) | [Operations guidance](docs/operations/AGENTS.md) |
-| `docs/` | [Project documentation](docs/README.md) | [AGENTS.md](docs/AGENTS.md) |
-| `scripts/` | [Script tooling](scripts/README.md) | [AGENTS.md](scripts/AGENTS.md) |
-| `frontend/` | [MINI App frontend](frontend/README.md) | [AGENTS.md](frontend/AGENTS.md) |
+| Directory or file                           | Description                                                                                                      | Agent guidance                                   |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `.agents/`                                  | [Skill maintenance](docs/development/tooling/agents/skills.md)                                                   | [Root guidance](AGENTS.md)                       |
+| `.codex/`                                   | [Codex configuration](.codex/config.toml) · [CLI operations](docs/development/tooling/agents/codex.md)           | [Root guidance](AGENTS.md)                       |
+| `.github/`                                  | [GitHub operations](docs/development/tooling/shared/github.md) · [CI configuration](.github/workflows/check.yml) | [Root guidance](AGENTS.md)                       |
+| `.vscode/`                                  | [Workspace tasks](.vscode/tasks.json) · [Editor settings](.vscode/settings.json)                                 | [Root guidance](AGENTS.md)                       |
+| `api/`                                      | [HTTP API contracts](api/README.md)                                                                              | [AGENTS.md](api/AGENTS.md)                       |
+| `assets/`                                   | [Application assets](assets/README.md)                                                                           | [AGENTS.md](assets/AGENTS.md)                    |
+| `backend/`                                  | [Go backend](backend/README.md)                                                                                  | [AGENTS.md](backend/AGENTS.md)                   |
+| `cloudbuild.yaml`, `firestore.indexes.json` | [Deployment and index configuration](docs/operations/README.md)                                                  | [Operations guidance](docs/operations/AGENTS.md) |
+| `docs/`                                     | [Project documentation](docs/README.md)                                                                          | [AGENTS.md](docs/AGENTS.md)                      |
+| `scripts/`                                  | [Script tooling](scripts/README.md)                                                                              | [AGENTS.md](scripts/AGENTS.md)                   |
+| `frontend/`                                 | [MINI App frontend](frontend/README.md)                                                                          | [AGENTS.md](frontend/AGENTS.md)                  |
 
 When entering `frontend/miniapp/`, also read its [Next.js guidance](frontend/miniapp/AGENTS.md).
 

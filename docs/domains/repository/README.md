@@ -25,6 +25,7 @@ This page owns Repository scope/authorization; capability documents own details.
 <a id="閱讀與修改入口"></a>
 
 ## Reading and editing entry points
+
 [Containers/LINE journeys](journey.md) explains responsibilities, target navigation, wiring and acceptance.
 
 Start with [spaces.md](spaces.md), [Issue specifications](issue/design.md) and [organization/team ownership](../../contracts/organization-team-ownership.md).
@@ -37,18 +38,18 @@ Start with [spaces.md](spaces.md), [Issue specifications](issue/design.md) and [
 
 Capabilities share Repository scope but own operation/authorization rules. Documents are grouped by container; code remains separated by capability.
 
-| Capability | Specification/acceptance |
-|---|---|
-| Spaces | [Space/ID ownership](spaces.md) |
-| Issue | [Entry/core flow](issue/README.md) · [Design/contracts](issue/design.md) |
-| Discussion/comments | [Entry/core flow](discussion/README.md) · [Design/contracts](discussion/design.md) |
-| Object/subobjects | [Entry/core flow](object/README.md) · [Objects](object/design.md) · [Templates](object/template.md) |
-| Labels | [Catalog/references](labels.md) |
-| Milestones | [Specification](milestones.md) |
-| Shared numbering | [Numbering rules](numbering.md) |
-| Insights | [Overview/Pulse](insights.md) |
-| Wiki | [Pages/revisions](wiki.md) |
-| Container acceptance | [Completion boundaries](acceptance.md) |
+| Capability           | Specification/acceptance                                                                            |
+| -------------------- | --------------------------------------------------------------------------------------------------- |
+| Spaces               | [Space/ID ownership](spaces.md)                                                                     |
+| Issue                | [Entry/core flow](issue/README.md) · [Design/contracts](issue/design.md)                            |
+| Discussion/comments  | [Entry/core flow](discussion/README.md) · [Design/contracts](discussion/design.md)                  |
+| Object/subobjects    | [Entry/core flow](object/README.md) · [Objects](object/design.md) · [Templates](object/template.md) |
+| Labels               | [Catalog/references](labels.md)                                                                     |
+| Milestones           | [Specification](milestones.md)                                                                      |
+| Shared numbering     | [Numbering rules](numbering.md)                                                                     |
+| Insights             | [Overview/Pulse](insights.md)                                                                       |
+| Wiki                 | [Pages/revisions](wiki.md)                                                                          |
+| Container acceptance | [Completion boundaries](acceptance.md)                                                              |
 
 `Object.parentId` represents subobjects governed by [object specifications](object/design.md); no separate Subobject domain documents. Cross-repository [Project](../project/README.md) and independent [Journal](../journal/README.md) retain their domains.
 

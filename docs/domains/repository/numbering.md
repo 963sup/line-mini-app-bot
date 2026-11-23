@@ -26,11 +26,11 @@
 
 以下路徑均位於既有 channels/{channelId}/repositories/{repositoryId} 下：
 
-| 路徑 | 責任 |
-| --- | --- |
-| counters/resources | 唯一計數器，schemaVersion 與 lastNumber |
-| resourceNumbers/{number} | schemaVersion、repositoryId、resourceType、resourceId、number、createdAt |
-| resourceCreationReceipts/{hash} | schemaVersion、payloadHash 與原始編號對照結果 |
+| 路徑                            | 責任                                                                     |
+| ------------------------------- | ------------------------------------------------------------------------ |
+| counters/resources              | 唯一計數器，schemaVersion 與 lastNumber                                  |
+| resourceNumbers/{number}        | schemaVersion、repositoryId、resourceType、resourceId、number、createdAt |
+| resourceCreationReceipts/{hash} | schemaVersion、payloadHash 與原始編號對照結果                            |
 
 - 資源類型使用穩定的小寫名稱；本基礎不接受客戶端直接選擇類型、操作者、ID 或號碼。收據鍵使用命名空間、可信操作者與防重鍵的 JSON tuple 做 SHA-256；channel 與 Repository 由保存路徑隔離。同一操作者在同一空間共用建立鍵範圍，跨類型重用鍵會回傳衝突。
 
@@ -40,22 +40,22 @@
 
 ## 操作契約
 
-| 欄位 | 建立帶編號的業務資源 |
-| --- | --- |
-| Actor / Resource / Action | 未來業務使用案例傳入的可信操作者；既有 Repository；CreateNumberedResource |
-| Context / Authority | 呼叫者必須先驗證登入及該項業務建立權；GroupID 來自已授權的 Repository。本方法不是授權服務，不由讀取資格推導建立權 |
-| Policy / Decision | 交易內讀取 Repository，確認啟用且群組綁定與已授權範圍一致；檢查防重收據、計數器與下一號對照。額外業務規則由 callback 在同一交易檢查 |
-| Result | 同一交易提交業務資源、共用計數器、編號對照與防重收據；僅整個方法成功後可使用回傳結果 |
-| 重送／併發 | 同操作者、鍵、類型與內容雜湊回原 ID／number／時間，不呼叫建立 callback、不增加計數。同鍵不同內容或類型回 ErrCreationConflict。不同請求透過共用計數器交易序列化 |
-| Event / Audit | 對照保存類型、ID、號碼與時間；收據提供操作者／鍵範圍的防重證據。正式業務 Audit 由未來功能定義；不記錄 token 或原始防重鍵 |
-| 失敗 | callback 或驗證拒絕會回滾本次交易；整體方法發生錯誤時回傳零值與錯誤。提交結果不明的網路錯誤必須沿用原鍵重試，不宣稱一定未提交 |
+| 欄位                      | 建立帶編號的業務資源                                                                                                                                           |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Actor / Resource / Action | 未來業務使用案例傳入的可信操作者；既有 Repository；CreateNumberedResource                                                                                      |
+| Context / Authority       | 呼叫者必須先驗證登入及該項業務建立權；GroupID 來自已授權的 Repository。本方法不是授權服務，不由讀取資格推導建立權                                              |
+| Policy / Decision         | 交易內讀取 Repository，確認啟用且群組綁定與已授權範圍一致；檢查防重收據、計數器與下一號對照。額外業務規則由 callback 在同一交易檢查                            |
+| Result                    | 同一交易提交業務資源、共用計數器、編號對照與防重收據；僅整個方法成功後可使用回傳結果                                                                           |
+| 重送／併發                | 同操作者、鍵、類型與內容雜湊回原 ID／number／時間，不呼叫建立 callback、不增加計數。同鍵不同內容或類型回 ErrCreationConflict。不同請求透過共用計數器交易序列化 |
+| Event / Audit             | 對照保存類型、ID、號碼與時間；收據提供操作者／鍵範圍的防重證據。正式業務 Audit 由未來功能定義；不記錄 token 或原始防重鍵                                       |
+| 失敗                      | callback 或驗證拒絕會回滾本次交易；整體方法發生錯誤時回傳零值與錯誤。提交結果不明的網路錯誤必須沿用原鍵重試，不宣稱一定未提交                                  |
 
-| 欄位 | 依編號解析 |
-| --- | --- |
-| Actor / Resource / Action | 未來已授權使用案例；指定 Repository 的編號；GetResourceNumber |
-| Context / Authority | 此方法只做低層持久化查詢；對外使用前必須核驗容器及目標業務資源存取權，不能直接轉成無授權公開端點 |
-| Policy / Decision | 檢查 ID、號碼範圍與對照資料完整性；無資料回 ErrNotFound，損壞或服務不可用則拒絕 |
-| Result / 重送 / Audit | 回傳類型、ID、號碼與建立時間；無寫入、無額外事件，不表示使用者有權讀取目標內容 |
+| 欄位                      | 依編號解析                                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------------------ |
+| Actor / Resource / Action | 未來已授權使用案例；指定 Repository 的編號；GetResourceNumber                                    |
+| Context / Authority       | 此方法只做低層持久化查詢；對外使用前必須核驗容器及目標業務資源存取權，不能直接轉成無授權公開端點 |
+| Policy / Decision         | 檢查 ID、號碼範圍與對照資料完整性；無資料回 ErrNotFound，損壞或服務不可用則拒絕                  |
+| Result / 重送 / Audit     | 回傳類型、ID、號碼與建立時間；無寫入、無額外事件，不表示使用者有權讀取目標內容                   |
 
 <a id="內部接入方式"></a>
 

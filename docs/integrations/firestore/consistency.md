@@ -6,12 +6,12 @@
 
 每個重要寫入先列出判定所需的文件、版本與外部事實，再列出必須一起提交的結果。讀取時合法不代表提交時仍合法；需要一致保護的資料必須參與交易或其他明確的衝突控制。
 
-| 代表操作 | 需核對的保存保證 | 現行來源 |
-|---|---|---|
+| 代表操作              | 需核對的保存保證                               | 現行來源                                                                                     |
+| --------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | 建立／更新 Repository | 唯一擁有者綁定與容器一致；舊事件不能覆寫新觀察 | [Repository store](../../../backend/internal/business/repository/adapter/firestore/store.go) |
-| 建立 Object | 容器與父項有效，重送收據與新物件一起提交 | [Object store](../../../backend/internal/business/object/adapter/firestore/store.go) |
-| 更新 Object | 目前版本及進度規則成立，物件與變更紀錄一起保存 | [Object store](../../../backend/internal/business/object/adapter/firestore/store.go) |
-| 保存 Wiki | 頁面、標題占用與修訂保持一致，過期版本拒絕 | [Wiki store](../../../backend/internal/business/repository/adapter/firestore/wiki.go) |
+| 建立 Object           | 容器與父項有效，重送收據與新物件一起提交       | [Object store](../../../backend/internal/business/object/adapter/firestore/store.go)         |
+| 更新 Object           | 目前版本及進度規則成立，物件與變更紀錄一起保存 | [Object store](../../../backend/internal/business/object/adapter/firestore/store.go)         |
+| 保存 Wiki             | 頁面、標題占用與修訂保持一致，過期版本拒絕     | [Wiki store](../../../backend/internal/business/repository/adapter/firestore/wiki.go)        |
 
 表格是原始碼定位，未代表本次已執行上述整合驗收。
 

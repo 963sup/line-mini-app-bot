@@ -4,8 +4,6 @@
 
 ## 執行要求
 
-
-
 Compare the operation contract with actual entry points, authorization, domain rules and results. Remain read-only; report bypasses, inconsistencies and unnecessary abstraction with evidence.
 
 Review in a separate read-only pass the authorized diff for correctness, maintainability,

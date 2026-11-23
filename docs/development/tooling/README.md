@@ -32,20 +32,20 @@ docs/development/tooling/
 
 ## Daily tool entry points
 
-| Need | Documentation |
-| --- | --- |
-| Set up tools, inspect GitHub CI, authenticate gcloud, render diagrams or generate artifacts | [Shared development tools](shared/README.md) |
-| Go tools/development | [Go development](backend/go-development.md) |
-| Go language tools | [gopls](backend/gopls.md) |
-| Change/verify HTTP contracts | [API tools](api/change-api.md) |
-| LINE Rich Menu layout | [Grids/buttons](frontend/rich-menu-layout.md) |
-| Firestore tools | [Backend tools/verification](backend/firestore.md) |
-| Select quality checks | [Acceptance matrix/commands](testing/commands.md) |
-| Open projects/submit Cloud tasks | [Codex](agents/codex.md) |
-| Local container build/smoke | [Container acceptance](../../operations/container-build.md#本機建置與-smoke-驗收) |
-| Select/diagnose MCP | [MCP index](agents/README.md) |
-| Project skills | [Skills](agents/skills.md) |
-| UI components/integration | [Frontend tools](frontend/README.md) |
+| Need                                                                                        | Documentation                                                                     |
+| ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Set up tools, inspect GitHub CI, authenticate gcloud, render diagrams or generate artifacts | [Shared development tools](shared/README.md)                                      |
+| Go tools/development                                                                        | [Go development](backend/go-development.md)                                       |
+| Go language tools                                                                           | [gopls](backend/gopls.md)                                                         |
+| Change/verify HTTP contracts                                                                | [API tools](api/change-api.md)                                                    |
+| LINE Rich Menu layout                                                                       | [Grids/buttons](frontend/rich-menu-layout.md)                                     |
+| Firestore tools                                                                             | [Backend tools/verification](backend/firestore.md)                                |
+| Select quality checks                                                                       | [Acceptance matrix/commands](testing/commands.md)                                 |
+| Open projects/submit Cloud tasks                                                            | [Codex](agents/codex.md)                                                          |
+| Local container build/smoke                                                                 | [Container acceptance](../../operations/container-build.md#本機建置與-smoke-驗收) |
+| Select/diagnose MCP                                                                         | [MCP index](agents/README.md)                                                     |
+| Project skills                                                                              | [Skills](agents/skills.md)                                                        |
+| UI components/integration                                                                   | [Frontend tools](frontend/README.md)                                              |
 
 <a id="上游參考資料"></a>
 

@@ -12,15 +12,15 @@ Exploration/review reads task-relevant sources only, distinguishes configuration
 
 Select references by role/task. For LINE/Firestore, read [LINE capabilities](../../../integrations/line/capabilities.md)/[Firestore connectivity](../../../integrations/firestore/connection.md); locate other domains through the [documentation index](../../../README.md).
 
-| Role | Task references |
-| --- | --- |
-| architect | [LINE platform architecture](../../../architecture/runtime/overview.md) · [System foundations](../../../architecture/README.md) · [graphify](graphify.md) |
-| implementer | [Go development/acceptance](../../../standards/go.md) · [Acceptance matrix](../testing/commands.md) · [openaiDeveloperDocs](openai-docs.md) · [context7](context7.md) |
-| explorer | [LINE platform architecture](../../../architecture/runtime/overview.md) · [graphify](graphify.md) · [gopls](../backend/gopls.md) · [repomix](repomix.md) |
-| Planning/delivery | [Development workflow](../../workflow/README.md) · [Acceptance matrix](../testing/commands.md) · [github](github.md) |
-| explorer (research) | [System foundations](../../../architecture/README.md) · [openaiDeveloperDocs](openai-docs.md) · [context7](context7.md) · [Repomix sources](repomix.md) |
-| reviewer | [Acceptance matrix](../testing/commands.md) · [LINE platform architecture](../../../architecture/runtime/overview.md) · [repomix](repomix.md) · [github](github.md) |
-| tester | [Acceptance matrix](../testing/commands.md) · [gopls](../backend/gopls.md) |
+| Role                | Task references                                                                                                                                                       |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| architect           | [LINE platform architecture](../../../architecture/runtime/overview.md) · [System foundations](../../../architecture/README.md) · [graphify](graphify.md)             |
+| implementer         | [Go development/acceptance](../../../standards/go.md) · [Acceptance matrix](../testing/commands.md) · [openaiDeveloperDocs](openai-docs.md) · [context7](context7.md) |
+| explorer            | [LINE platform architecture](../../../architecture/runtime/overview.md) · [graphify](graphify.md) · [gopls](../backend/gopls.md) · [repomix](repomix.md)              |
+| Planning/delivery   | [Development workflow](../../workflow/README.md) · [Acceptance matrix](../testing/commands.md) · [github](github.md)                                                  |
+| explorer (research) | [System foundations](../../../architecture/README.md) · [openaiDeveloperDocs](openai-docs.md) · [context7](context7.md) · [Repomix sources](repomix.md)               |
+| reviewer            | [Acceptance matrix](../testing/commands.md) · [LINE platform architecture](../../../architecture/runtime/overview.md) · [repomix](repomix.md) · [github](github.md)   |
+| tester              | [Acceptance matrix](../testing/commands.md) · [gopls](../backend/gopls.md)                                                                                            |
 
 ## Codex CLI
 
@@ -30,19 +30,19 @@ See [Codex CLI operations](codex.md) for local checkouts/Cloud tasks.
 
 ## MCP tools and roles
 
-| Service | Primary roles |
-| --- | --- |
-| [graphify](graphify.md) | Explorer; also Architect |
-| [openaiDeveloperDocs](openai-docs.md) | Explorer, Implementer |
-| [context7](context7.md) | Explorer/Implementer; version-matched documentation |
-| [shadcn](../frontend/shadcn.md) | Implementer; MINI App registry/integration |
-| [next-devtools](../frontend/nextjs-devtools.md) | Implementer; local development runtime as needed |
-| [repomix](repomix.md) | Explorer; also Reviewer |
-| [mermaid](../shared/mermaid.md) | Documentation; architecture, data, flows/states; verify sources/rendering separately |
-| [repomix_skills](repomix-skills.md) | Handoff owner; reusable source bundles as needed |
-| [gopls](../backend/gopls.md) | Implementer; also Explorer, Tester, Reviewer |
-| [github](github.md) | Exploration, documentation, planning/self-review |
-| [google-developer-knowledge, gcloud](google.md) | Exploration, implementation, self-review/planning; Google docs/CLI verification |
+| Service                                                   | Primary roles                                                                                                                               |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| [graphify](graphify.md)                                   | Explorer; also Architect                                                                                                                    |
+| [openaiDeveloperDocs](openai-docs.md)                     | Explorer, Implementer                                                                                                                       |
+| [context7](context7.md)                                   | Explorer/Implementer; version-matched documentation                                                                                         |
+| [shadcn](../frontend/shadcn.md)                           | Implementer; MINI App registry/integration                                                                                                  |
+| [next-devtools](../frontend/nextjs-devtools.md)           | Implementer; local development runtime as needed                                                                                            |
+| [repomix](repomix.md)                                     | Explorer; also Reviewer                                                                                                                     |
+| [mermaid](../shared/mermaid.md)                           | Documentation; architecture, data, flows/states; verify sources/rendering separately                                                        |
+| [repomix_skills](repomix-skills.md)                       | Handoff owner; reusable source bundles as needed                                                                                            |
+| [gopls](../backend/gopls.md)                              | Implementer; also Explorer, Tester, Reviewer                                                                                                |
+| [github](github.md)                                       | Exploration, documentation, planning/self-review                                                                                            |
+| [google-developer-knowledge, gcloud](google.md)           | Exploration, implementation, self-review/planning; Google docs/CLI verification                                                             |
 | [cloud-run, toolbox, gke](../../../../.codex/config.toml) | Select Cloud Run, Firestore or GKE by task. Linked settings define enabled/allowed tools; verify current availability through native calls. |
 
 The current agent selects tools by capability; this mapping is guidance, not access control. Host tool

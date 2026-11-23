@@ -14,15 +14,15 @@ Stores the LINE MINI App Next.js application, build settings/tests.
 
 `pages/` composes pages; `business/` owns feature forms/screens; `shared/ui/` supplies shadcn. OpenAPI defines exchanged data. Backends authorize every read/write against current identity/persistence state.
 
-| Feature | Backend supplies | Browser owns |
-|---|---|---|
-| Attendance/corrections/leave | Preflight, monthly worktime, review eligibility/actions, requests | Location, unsent time edits, rejection reasons, loaded records |
-| Discussions/comments/issues/milestones | Edit capabilities, classification, counts/completion | Drafts, labels, progress/keyboard interaction |
-| Objects/subobjects | Quantities/transitions/reset conditions | Unsent decimal validation |
-| Projects/repositories | Sources, references/inspection modes, versions, statistics/Wiki history | Deep links, pagination, source rechecks, grouped references/Wiki formatting |
-| Journals | Reference candidates, work snapshots, actual/expected cumulative progress | Group selection, work rows/group charts, cancel stale requests |
+| Feature                                | Backend supplies                                                           | Browser owns                                                                                                                                       |
+| -------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Attendance/corrections/leave           | Preflight, monthly worktime, review eligibility/actions, requests          | Location, unsent time edits, rejection reasons, loaded records                                                                                     |
+| Discussions/comments/issues/milestones | Edit capabilities, classification, counts/completion                       | Drafts, labels, progress/keyboard interaction                                                                                                      |
+| Objects/subobjects                     | Quantities/transitions/reset conditions                                    | Unsent decimal validation                                                                                                                          |
+| Projects/repositories                  | Sources, references/inspection modes, versions, statistics/Wiki history    | Deep links, pagination, source rechecks, grouped references/Wiki formatting                                                                        |
+| Journals                               | Reference candidates, work snapshots, actual/expected cumulative progress  | Group selection, work rows/group charts, cancel stale requests                                                                                     |
 | Enterprises/organizations/teams/groups | Provisioning/management eligibility, valid organizations, teams/membership | Share organization queries during sessions and navigate after selection; attendance/journals/projects share group queries with separate pagination |
-| Identity/navigation/diagnostics | LINE verification, sessions/location validation | LIFF/browser APIs, invalid-identity cleanup, sidebar/focus/cancellation |
+| Identity/navigation/diagnostics        | LINE verification, sessions/location validation                            | LIFF/browser APIs, invalid-identity cleanup, sidebar/focus/cancellation                                                                            |
 
 Tests cover identity switches, retries, stale responses, pagination/edit conflicts. Check domain rules, responses and controls together when changing permissions/work state.
 

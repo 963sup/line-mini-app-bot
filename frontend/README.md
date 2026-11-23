@@ -58,13 +58,13 @@ Use the [matrix](../docs/development/tooling/testing/commands.md#變更驗收矩
 
 ## Business screen scope
 
-| Feature | Existing frontend | Other entries |
-| --- | --- | --- |
-| Journals | `/miniapp/dashboard`/`/miniapp/feed` share JournalWorkspace | [Design](../docs/domains/journal/journal.md) |
-| Attendance | Punches, records, corrections, review/leave; records present worktime | [Attendance](../docs/domains/attendance/README.md) |
-| Repository | `/miniapp/repositories` provides spaces, objects/collaboration | [Capabilities](../docs/domains/README.md#儲存庫) |
-| Project | `/miniapp/projects` provides independent cross-repository projects | [Contract](../docs/domains/project/project.md) |
-| Summary/weather | LINE entry points; internal summary workers | [Summary](../api/contract/summary/README.md) · [Weather](../api/contract/weather/README.md) |
+| Feature         | Existing frontend                                                     | Other entries                                                                               |
+| --------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Journals        | `/miniapp/dashboard`/`/miniapp/feed` share JournalWorkspace           | [Design](../docs/domains/journal/journal.md)                                                |
+| Attendance      | Punches, records, corrections, review/leave; records present worktime | [Attendance](../docs/domains/attendance/README.md)                                          |
+| Repository      | `/miniapp/repositories` provides spaces, objects/collaboration        | [Capabilities](../docs/domains/README.md#儲存庫)                                            |
+| Project         | `/miniapp/projects` provides independent cross-repository projects    | [Contract](../docs/domains/project/project.md)                                              |
+| Summary/weather | LINE entry points; internal summary workers                           | [Summary](../api/contract/summary/README.md) · [Weather](../api/contract/weather/README.md) |
 
 <a id="shadcn-頁內組合"></a>
 

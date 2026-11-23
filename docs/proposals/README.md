@@ -8,12 +8,12 @@ Candidate capabilities, platform targets and historical designs. Verify current 
 
 ## Browse by question
 
-| Design question | Proposal/comparison |
-| --- | --- |
-| Durable Inbox/Outbox/Worker/admin responsibilities? | [Platform proposal](platform/README.md) · [Packages](platform/package-layout.md) · [Reliable webhooks](webhook-delivery/README.md) |
-| LINE/cross-business target architecture? | [Engineering platform](line-engineering/README.md) |
-| Repository/Issue/Discussion model differences? | [Resource model](platform/domain-model.md) |
-| Early platform delivery order? | [Historical stages](platform/delivery.md); choose current checks using [acceptance matrix](../development/tooling/testing/commands.md). |
+| Design question                                     | Proposal/comparison                                                                                                                     |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Durable Inbox/Outbox/Worker/admin responsibilities? | [Platform proposal](platform/README.md) · [Packages](platform/package-layout.md) · [Reliable webhooks](webhook-delivery/README.md)      |
+| LINE/cross-business target architecture?            | [Engineering platform](line-engineering/README.md)                                                                                      |
+| Repository/Issue/Discussion model differences?      | [Resource model](platform/domain-model.md)                                                                                              |
+| Early platform delivery order?                      | [Historical stages](platform/delivery.md); choose current checks using [acceptance matrix](../development/tooling/testing/commands.md). |
 
 <a id="相鄰的設計參考"></a>
 

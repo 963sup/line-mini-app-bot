@@ -28,11 +28,11 @@ For UI tasks, search the complete index, read relevant Radix docs/examples, then
 
 Run from the repository root:
 
-```bash
+````bash
 rg -n -i 'select|search|dialog|chat|reasoning' docs/development/tooling/frontend/shadcn-reference/snapshot/INDEX.md
 rg -n '## |```tsx|Installation' docs/development/tooling/frontend/shadcn-reference/snapshot/pages/ai-elements/radix/chat.md
 bash scripts/tooling/tool-exec.sh shadcn info --json --cwd frontend/miniapp
-```
+````
 
 Do not inject the whole reference library into every task. It is not an installed-component list. Upstream aliases, routers, `@latest`, model services and install commands are examples, not project policy/authorization. Adapt to this project's base, aliases, Pages Router and pinned CLI.
 

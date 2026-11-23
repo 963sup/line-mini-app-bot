@@ -53,14 +53,14 @@ Tailwind 4 的 `components.json` 不指定舊式 Tailwind config 檔案。
 
 製作統計、報表或儀表板時，先依資料的呈現目的挑選 shadcn Chart 範例。MINI App 的共用圖表元件位於 `frontend/miniapp/src/shared/ui/chart.tsx`，以 Recharts 為基礎。重用共用元件與主題設定，前端負責呈現，業務統計以後端資料為準。
 
-| 選項 | 適用情境 | 官方範例 |
-| --- | --- | --- |
-| Area（面積圖） | 趨勢與累積量 | [Area](https://ui.shadcn.com/charts/area#charts) |
-| Bar（長條圖） | 類別間的數值比較 | [Bar](https://ui.shadcn.com/charts/bar#charts) |
-| Line（折線圖） | 時間序列與變化趨勢 | [Line](https://ui.shadcn.com/charts/line#charts) |
-| Pie（圓餅圖） | 整體占比 | [Pie](https://ui.shadcn.com/charts/pie#charts) |
-| Radar（雷達圖） | 多個維度的比較 | [Radar](https://ui.shadcn.com/charts/radar#charts) |
-| Radial（徑向圖） | 進度或比例 | [Radial](https://ui.shadcn.com/charts/radial#charts) |
+| 選項              | 適用情境                 | 官方範例                                               |
+| ----------------- | ------------------------ | ------------------------------------------------------ |
+| Area（面積圖）    | 趨勢與累積量             | [Area](https://ui.shadcn.com/charts/area#charts)       |
+| Bar（長條圖）     | 類別間的數值比較         | [Bar](https://ui.shadcn.com/charts/bar#charts)         |
+| Line（折線圖）    | 時間序列與變化趨勢       | [Line](https://ui.shadcn.com/charts/line#charts)       |
+| Pie（圓餅圖）     | 整體占比                 | [Pie](https://ui.shadcn.com/charts/pie#charts)         |
+| Radar（雷達圖）   | 多個維度的比較           | [Radar](https://ui.shadcn.com/charts/radar#charts)     |
+| Radial（徑向圖）  | 進度或比例               | [Radial](https://ui.shadcn.com/charts/radial#charts)   |
 | Tooltip（提示框） | 顯示資料點細節的共用配件 | [Tooltip](https://ui.shadcn.com/charts/tooltip#charts) |
 
 ## MCP 設定與驗證
@@ -88,25 +88,25 @@ MCP 可提供 registry 資訊及新增命令；若回傳命令使用浮動版本
 
 本頁維護功能入口、專案路徑及實測狀態；[元件目錄 AGENTS.md](../../../../frontend/miniapp/src/shared/ui/AGENTS.md) 保存禁止修改規則及 Codex 主動使用 Skill／MCP 的流程；完整目錄與文件統一由 [本機參考庫](shadcn-reference/README.md) 生成及維護。該參考庫供探索與按需安裝，不代表全部已安裝；每次使用仍核對官方網站／registry，實際已安裝清單以 CLI `info --json` 為準。前端 UI 任務應先讀該指引，使用公開 props／variants 在應用層組合，避免直接修改官方元件。
 
-| 能力 | 官方入口／操作 | 本專案狀態與邊界 |
-| --- | --- | --- |
-| Components | [完整元件目錄](https://ui.shadcn.com/docs/components)；CLI `docs`、`view`、`search` | 已依頁面需求安裝基礎控制項、Sidebar、Table、Item、InputGroup 等；實際清單用 CLI `info --json` 取得，先核對 API、依賴與適用 base |
-| AI Elements | [官方入口](https://ui.shadcn.com/docs/ai-elements)、[本機文件索引](shadcn-reference/snapshot/INDEX.md) | agentic UI 的元件組合模式；已保存文件及內嵌範例，未安裝進應用或新增聊天／模型服務。完整項目以生成索引為準 |
-| Skill | [官方說明](https://ui.shadcn.com/docs/skills)、[本機 SKILL.md](../../../../.agents/skills/shadcn/SKILL.md) | 相關任務先讀；提供專案 context、元件用法、組合、樣式、CLI／registry／MCP 指引；不取代 Context7 查證 |
-| CLI | `info`、`docs`、`view`、`search`；`add`、`init`、`apply`、`migrate`、`build`、`preset`、`registry` | 前四項用於查詢；變更命令依任務範圍使用，逐項查 `--help`，不表示所有命令已端到端驗收。舊 `diff` 命令已 deprecated，改用 `add --diff` |
-| MCP | [官方 MCP 文件](https://ui.shadcn.com/docs/registry/mcp) | 已配置、transport 及 registry search 實測通過；聊天 host 載入另驗證 |
+| 能力        | 官方入口／操作                                                                                             | 本專案狀態與邊界                                                                                                                    |
+| ----------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Components  | [完整元件目錄](https://ui.shadcn.com/docs/components)；CLI `docs`、`view`、`search`                        | 已依頁面需求安裝基礎控制項、Sidebar、Table、Item、InputGroup 等；實際清單用 CLI `info --json` 取得，先核對 API、依賴與適用 base     |
+| AI Elements | [官方入口](https://ui.shadcn.com/docs/ai-elements)、[本機文件索引](shadcn-reference/snapshot/INDEX.md)     | agentic UI 的元件組合模式；已保存文件及內嵌範例，未安裝進應用或新增聊天／模型服務。完整項目以生成索引為準                           |
+| Skill       | [官方說明](https://ui.shadcn.com/docs/skills)、[本機 SKILL.md](../../../../.agents/skills/shadcn/SKILL.md) | 相關任務先讀；提供專案 context、元件用法、組合、樣式、CLI／registry／MCP 指引；不取代 Context7 查證                                 |
+| CLI         | `info`、`docs`、`view`、`search`；`add`、`init`、`apply`、`migrate`、`build`、`preset`、`registry`         | 前四項用於查詢；變更命令依任務範圍使用，逐項查 `--help`，不表示所有命令已端到端驗收。舊 `diff` 命令已 deprecated，改用 `add --diff` |
+| MCP         | [官方 MCP 文件](https://ui.shadcn.com/docs/registry/mcp)                                                   | 已配置、transport 及 registry search 實測通過；聊天 host 載入另驗證                                                                 |
 
 目前 MCP `tools/list` 提供以下 7 個工具：
 
-| 工具 | 用途 |
-| --- | --- |
-| `get_project_registries` | 讀取專案配置的 registry |
-| `list_items_in_registries` | 列出 registry 項目 |
-| `search_items_in_registries` | 搜尋元件與範例 |
-| `view_items_in_registries` | 查看項目及來源內容 |
-| `get_item_examples_from_registries` | 取得用法範例 |
-| `get_add_command_for_items` | 提供新增命令；回傳命令不等於已安裝，浮動版本須換成本專案固定 CLI |
-| `get_audit_checklist` | 提供變更後檢查項目；不等於檢查已執行 |
+| 工具                                | 用途                                                             |
+| ----------------------------------- | ---------------------------------------------------------------- |
+| `get_project_registries`            | 讀取專案配置的 registry                                          |
+| `list_items_in_registries`          | 列出 registry 項目                                               |
+| `search_items_in_registries`        | 搜尋元件與範例                                                   |
+| `view_items_in_registries`          | 查看項目及來源內容                                               |
+| `get_item_examples_from_registries` | 取得用法範例                                                     |
+| `get_add_command_for_items`         | 提供新增命令；回傳命令不等於已安裝，浮動版本須換成本專案固定 CLI |
+| `get_audit_checklist`               | 提供變更後檢查項目；不等於檢查已執行                             |
 
 `components.json` 的 `ui` 為 `@/shared/ui`、`utils` 為 `@/shared/utils`、`components`／`lib` 為 `@/shared`、`hooks` 為 `@/shared/hooks`；`@/*` 解析至 `frontend/miniapp/src/*`。先執行 `info --cwd frontend/miniapp` 核對實際 context，不使用根目錄作為 UI 生成目錄。
 
@@ -125,12 +125,12 @@ bash scripts/tooling/tool-exec.sh shadcn add @shadcn/button --dry-run --cwd fron
 
 已核對官方 Components 目錄，專案維持 Radix base；CLI 的 `docs` 輸出若指向 Base UI，改讀相對應的官方 Radix 文件，避免混用 API。Table、Item、InputGroup 透過固定版 CLI 的 `add --view` 取得官方輸出，修正 `cn` alias 後以 local registry 安裝新增檔案，沒有覆寫既有 primitives 或增加 `cn` 套件。
 
-| 元件 | 應用位置 |
-| --- | --- |
-| Table | 本人月紀錄的上班、下班、工時狀態與更正入口；窄螢幕可在表格內橫向捲動 |
-| Item / ItemGroup | 補卡／審核申請、本人請假紀錄與群組空間清單；理由全文保留 |
-| Empty（沿用） | 成功查詢後沒有班次、申請、請假或空間時顯示，未查詢與查詢失敗不冒充空結果 |
-| Spinner / Badge（沿用） | 清單處理中及申請狀態 |
+| 元件                    | 應用位置                                                                 |
+| ----------------------- | ------------------------------------------------------------------------ |
+| Table                   | 本人月紀錄的上班、下班、工時狀態與更正入口；窄螢幕可在表格內橫向捲動     |
+| Item / ItemGroup        | 補卡／審核申請、本人請假紀錄與群組空間清單；理由全文保留                 |
+| Empty（沿用）           | 成功查詢後沒有班次、申請、請假或空間時顯示，未查詢與查詢失敗不冒充空結果 |
+| Spinner / Badge（沿用） | 清單處理中及申請狀態                                                     |
 
 官方來源：[Table](https://ui.shadcn.com/docs/components/radix/table)、[Item](https://ui.shadcn.com/docs/components/radix/item)、[InputGroup](https://ui.shadcn.com/docs/components/radix/input-group)，並以 Context7 `/shadcn-ui/ui` 交叉核對。圖表選用見[官方圖表範例](#官方圖表範例)。LINE 手機實機與視覺驗收仍需獨立確認。
 

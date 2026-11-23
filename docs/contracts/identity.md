@@ -64,16 +64,16 @@ sequenceDiagram
 
 ## Session 套用範圍
 
-| 範圍 | 驗證方式 |
-| --- | --- |
-| MINI App 本人 API、出勤操作（含請假登記） | Cookie Session；既有無 Cookie Bearer 仍相容 |
-| 前端打卡、歷史、申請更正、審核 | 共用 SessionProvider.request，帶 Cookie／CSRF；LINE token 僅用於登入交換 |
-| Session refresh／delete | Cookie、Origin、CSRF，不以 Bearer 代替 |
-| Session create | 向 LINE 驗證 Bearer ID token，建立應用 Session |
-| MINI App 設定、靜態頁面、資產 | 公開，不提供使用者授權 |
-| /location、/api/location/validate | 公開無狀態診斷，不授予出勤或本人身分 |
-| LINE webhook | LINE 簽章，不能用瀏覽器 Session 取代 |
-| /internal/summary | Google ID token 的 audience／工作帳號驗證 |
+| 範圍                                      | 驗證方式                                                                 |
+| ----------------------------------------- | ------------------------------------------------------------------------ |
+| MINI App 本人 API、出勤操作（含請假登記） | Cookie Session；既有無 Cookie Bearer 仍相容                              |
+| 前端打卡、歷史、申請更正、審核            | 共用 SessionProvider.request，帶 Cookie／CSRF；LINE token 僅用於登入交換 |
+| Session refresh／delete                   | Cookie、Origin、CSRF，不以 Bearer 代替                                   |
+| Session create                            | 向 LINE 驗證 Bearer ID token，建立應用 Session                           |
+| MINI App 設定、靜態頁面、資產             | 公開，不提供使用者授權                                                   |
+| /location、/api/location/validate         | 公開無狀態診斷，不授予出勤或本人身分                                     |
+| LINE webhook                              | LINE 簽章，不能用瀏覽器 Session 取代                                     |
+| /internal/summary                         | Google ID token 的 audience／工作帳號驗證                                |
 
 應用瀏覽器業務已使用 Session，但後端尚未禁止舊 Bearer 客戶端。移除 Bearer 需要獨立契約與客戶端遷移；本次保留相容性，不改公開診斷或服務對服務驗證。
 

@@ -36,19 +36,19 @@ Data Table, Date Picker/Typography are composition/style recipes using Table, Ca
 
 Classified by static imports in `src`. Direct means imported outside `shared/ui`; indirect traces those UI dependencies. Actual rendering depends on routes, data/state.
 
-| Purpose | 30 directly imported modules |
-|---|---|
-| Navigation/framing | accordion, avatar, breadcrumb, collapsible, dropdown-menu, separator, sidebar, tabs |
-| Forms/actions | button, button-group, checkbox, combobox, field, input, input-group, native-select, questionnaire, radio-group, textarea, toggle-group |
-| Data/feedback | alert, alert-dialog, badge, card, chart, empty, item, progress, spinner, table |
+| Purpose            | 30 directly imported modules                                                                                                           |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Navigation/framing | accordion, avatar, breadcrumb, collapsible, dropdown-menu, separator, sidebar, tabs                                                    |
+| Forms/actions      | button, button-group, checkbox, combobox, field, input, input-group, native-select, questionnaire, radio-group, textarea, toggle-group |
+| Data/feedback      | alert, alert-dialog, badge, card, chart, empty, item, progress, spinner, table                                                         |
 
-| Indirect | Entry/purpose |
-|---|---|
-| label | FieldLabel uses Label; forms obtain labels through FieldLabel/FormField. |
-| sheet | Mobile sidebar uses Sheet with title, description/focus management. |
-| tooltip | Sidebar TooltipProvider enables configured icon-collapse menu labels. |
+| Indirect | Entry/purpose                                                                                         |
+| -------- | ----------------------------------------------------------------------------------------------------- |
+| label    | FieldLabel uses Label; forms obtain labels through FieldLabel/FormField.                              |
+| sheet    | Mobile sidebar uses Sheet with title, description/focus management.                                   |
+| tooltip  | Sidebar TooltipProvider enables configured icon-collapse menu labels.                                 |
 | skeleton | SidebarMenuSkeleton uses Skeleton; dependencies render placeholders only when that component renders. |
-| toggle | toggle-group shares variants; styling dependency does not mean separate Toggle rendering. |
+| toggle   | toggle-group shares variants; styling dependency does not mean separate Toggle rendering.             |
 
 30 direct plus 5 indirect dependencies yield 35 reachable modules, not rendered instance counts. Remaining 29 installed official modules are not referenced from those entries:
 

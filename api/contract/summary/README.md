@@ -21,11 +21,11 @@ Start with [worker.yaml](worker.yaml) and [local guidance](AGENTS.md).
 This document describes existing LINE/internal job entries. It adds neither public OpenAPI operations nor a browser client.
 See [group chat summaries](../../../docs/domains/summary/summary.md) for complete product rules and persistence.
 
-| Capability | Entry and trusted source | Inputs, rules and results | Backend |
-| --- | --- | --- | --- |
-| MessageCollection | Group text/edit/unsend events after shared LINE webhook signature validation | Silently collect ordinary text, exclude commands; retain version invalidation for edits/unsends | business/summary/messagecollection, its line/; shared summary/firestore |
-| Summarization | Group summary command through the same webhook | Valid group, user, event ID, reply token and freshness checks; deduplicate by event ID, create/schedule jobs; do not reschedule completed jobs | business/summary/summarization/line |
-| Summarization worker | POST /internal/summary; Google job identity Bearer authentication | JSON group (C plus 32 lowercase hex digits), id (64 lowercase hex digits); 2048-byte limit; reject unknown fields and multiple JSON values | business/summary/summarization/http |
+| Capability           | Entry and trusted source                                                     | Inputs, rules and results                                                                                                                      | Backend                                                                 |
+| -------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| MessageCollection    | Group text/edit/unsend events after shared LINE webhook signature validation | Silently collect ordinary text, exclude commands; retain version invalidation for edits/unsends                                                | business/summary/messagecollection, its line/; shared summary/firestore |
+| Summarization        | Group summary command through the same webhook                               | Valid group, user, event ID, reply token and freshness checks; deduplicate by event ID, create/schedule jobs; do not reschedule completed jobs | business/summary/summarization/line                                     |
+| Summarization worker | POST /internal/summary; Google job identity Bearer authentication            | JSON group (C plus 32 lowercase hex digits), id (64 lowercase hex digits); 2048-byte limit; reject unknown fields and multiple JSON values     | business/summary/summarization/http                                     |
 
 Preserve worker responses: 204 no content; 401 unauthorized; 400 invalid job; 503 summary temporarily unavailable.
 Queues send lowercase group/id. Handlers retain Go JSON decoder case matching; refactoring must not change accepted formats.

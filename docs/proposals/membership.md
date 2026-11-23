@@ -14,14 +14,14 @@ Bot 邀請切片沿用現有 webhook 與 Organization 資料。獨立儲存切�
 
 ## 現況與需要替換的來源
 
-| 現行位置 | 原碼核對結果 | 接入後責任 |
-| --- | --- | --- |
-| [Organization store](../../backend/internal/business/organization/adapter/firestore/store.go) | `Context` 查 `ownerUserId`／`memberUserIds`；`Transfer` 核對現任 Owner 與既有成員 | 可見組織與角色查 Membership；建立組織時一併建立 Owner |
-| [Enterprise store](../../backend/internal/business/enterprise/adapter/firestore/store.go) | 使用 `ownerUserId`／`ownerUserIds`／`managerUserIds`；People 可見性還讀組織成員 | 企業直接成員由 Membership 管理；旗下 People 可另做聚合讀模型 |
-| [Team store](../../backend/internal/business/team/adapter/firestore/store.go) | 直接讀組織成員與管理者陣列；清單還經 Group 查資格 | 改由明確查詢契約取得資格；管理歸屬仍屬 Team |
-| [共用 Firestore document](../../backend/internal/business/internal/adapter/firestore/store.go) | 混合 Owners、Members、Managers 與資源歸屬欄位 | 成員欄位逐步退役；資源歸屬不能一起當成成員資料搬走 |
-| [Repository service](../../backend/internal/business/repository/application/repository.go) | 個人庫比對 Owner；群組庫經 Port 即時查 LINE Membership | 保留既有個人／群組模式；組織庫另接 Membership 與 Grant |
-| [LINE Membership](../../backend/internal/platform/line/membership.go) | LINE 群組資格的外部查詢能力 | 保留技術整合；不作為內部邀請或組織成員的保存位置 |
+| 現行位置                                                                                       | 原碼核對結果                                                                      | 接入後責任                                                   |
+| ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| [Organization store](../../backend/internal/business/organization/adapter/firestore/store.go)  | `Context` 查 `ownerUserId`／`memberUserIds`；`Transfer` 核對現任 Owner 與既有成員 | 可見組織與角色查 Membership；建立組織時一併建立 Owner        |
+| [Enterprise store](../../backend/internal/business/enterprise/adapter/firestore/store.go)      | 使用 `ownerUserId`／`ownerUserIds`／`managerUserIds`；People 可見性還讀組織成員   | 企業直接成員由 Membership 管理；旗下 People 可另做聚合讀模型 |
+| [Team store](../../backend/internal/business/team/adapter/firestore/store.go)                  | 直接讀組織成員與管理者陣列；清單還經 Group 查資格                                 | 改由明確查詢契約取得資格；管理歸屬仍屬 Team                  |
+| [共用 Firestore document](../../backend/internal/business/internal/adapter/firestore/store.go) | 混合 Owners、Members、Managers 與資源歸屬欄位                                     | 成員欄位逐步退役；資源歸屬不能一起當成成員資料搬走           |
+| [Repository service](../../backend/internal/business/repository/application/repository.go)     | 個人庫比對 Owner；群組庫經 Port 即時查 LINE Membership                            | 保留既有個人／群組模式；組織庫另接 Membership 與 Grant       |
+| [LINE Membership](../../backend/internal/platform/line/membership.go)                          | LINE 群組資格的外部查詢能力                                                       | 保留技術整合；不作為內部邀請或組織成員的保存位置             |
 
 Graphify `explain` 找到 Team、Organization store 與 bootstrap 的依賴；`path --undirected` 找到 Repository Application → bootstrap → LINE Membership 的兩跳連線。廣泛 query 有截斷，後續以精確 explain/path 及原碼補查，不能把圖中 import 路徑視為完整執行時序。
 
@@ -44,13 +44,13 @@ flowchart LR
 
 箭頭表示使用能力，不要求 Go package 雙向 import。各消費端在自己的 `application/port` 定義最小介面，由 bootstrap 的整合 adapter 轉換 DTO；核心不得 import 對方的 Firestore adapter。ResourcePolicy 僅提供資源事實及純政策判定，不可再次呼叫 Membership，避免循環查詢。
 
-| 模組 | 擁有的權威資料／規則 |
-| --- | --- |
-| Identity | 登入者身分、Session；第一版沿用目前可信使用者 ID，不另造帳號遷移 |
-| Membership | 使用者與資源的唯一關係、邀請、狀態、版本、資格世代與異動稽核 |
+| 模組                           | 擁有的權威資料／規則                                                  |
+| ------------------------------ | --------------------------------------------------------------------- |
+| Identity                       | 登入者身分、Session；第一版沿用目前可信使用者 ID，不另造帳號遷移      |
+| Membership                     | 使用者與資源的唯一關係、邀請、狀態、版本、資格世代與異動稽核          |
 | Enterprise／Organization／Team | 資源是否存在、管理歸屬、允許角色、誰能管理成員的政策與 Owner 保護要求 |
-| Repository | 庫的擁有者、角色對操作的映射、Team Grant、內容與子資源規則 |
-| Bootstrap／整合 Adapter | 跨領域契約轉譯與同一工作單元協調，無獨立業務權威 |
+| Repository                     | 庫的擁有者、角色對操作的映射、Team Grant、內容與子資源規則            |
+| Bootstrap／整合 Adapter        | 跨領域契約轉譯與同一工作單元協調，無獨立業務權威                      |
 
 資源歸屬與資格分開：`enterpriseId`、Team 的 `managementScope/managementId`、Repository owner 不因搬移成員欄位而改變。企業 Owner 不因角色名稱而自動取得旗下所有 Repository 內容權限。
 
@@ -69,13 +69,13 @@ flowchart TB
     G --> RR["Repository"]
 ```
 
-| 實體 | 必要欄位與約束 |
-| --- | --- |
-| `ResourceRef` | `channelId`、`type`、`id`；三者共同識別範圍。Channel 由服務端設定取得，不能採信請求指定的租戶 |
-| `Membership` | `id`、`resource`、`userId`、`role`、`status`、`generation`、`version`、`joinedAt`、`updatedAt`、`endedAt`、`createdBy`、`updatedBy`、`dependencies` |
-| `Invitation` | `id`、`resource`、`role`、`status`、`expiresAt`、`createdBy`、`acceptedAt`、`acceptedMembershipGeneration`、`version`、建立時的資源政策版本、邀請者資格世代、邀請碼摘要及兌換後的 `acceptedBy` |
+| 實體                      | 必要欄位與約束                                                                                                                                                                                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ResourceRef`             | `channelId`、`type`、`id`；三者共同識別範圍。Channel 由服務端設定取得，不能採信請求指定的租戶                                                                                                                                              |
+| `Membership`              | `id`、`resource`、`userId`、`role`、`status`、`generation`、`version`、`joinedAt`、`updatedAt`、`endedAt`、`createdBy`、`updatedBy`、`dependencies`                                                                                        |
+| `Invitation`              | `id`、`resource`、`role`、`status`、`expiresAt`、`createdBy`、`acceptedAt`、`acceptedMembershipGeneration`、`version`、建立時的資源政策版本、邀請者資格世代、邀請碼摘要及兌換後的 `acceptedBy`                                             |
 | `ResourceMembershipState` | 每資源一筆，保存 `version`、政策版本及授權模式；Organization 首版另以 `ownerUserID` 保存唯一 Owner 指標，Team 不使用此指標，Enterprise 多 Owner 權威格式待定；所有異動讀取適用的模式與政策版本；只有改變 Owner、模式或政策的異動寫入此狀態 |
-| `Audit` | `actorUserId`、`action`、`resource`、`targetUserId`、前後角色／狀態／版本、`requestId`、時間；不保存 token 或完整邀請連結 |
+| `Audit`                   | `actorUserId`、`action`、`resource`、`targetUserId`、前後角色／狀態／版本、`requestId`、時間；不保存 token 或完整邀請連結                                                                                                                  |
 
 `Membership` 使用由服務端對完整範圍與 userId 做無歧義編碼後產生的確定鍵，確保同一關係最多一筆。重新加入沿用關係識別碼、增加 `generation`，歷史由 Audit 保留。`version` 用於每次異動的併發控制，不能取代 `generation`。
 
@@ -95,12 +95,12 @@ Invitation 與 Membership 分開：待接受的邀請不是有效成員。Owner 
 
 以下為提案預設；落地時由各資源政策明確定義，Membership 負責套用而不提供任意自訂角色引擎。
 
-| 資源 | 初始角色 | 成員管理基線 |
-| --- | --- | --- |
-| Enterprise | `owner`、`manager`、`member` | Owner 管理企業角色；manager 維持核准的管理能力，不得自行升 Owner |
-| Organization | `owner`、`member` | Owner 邀請、移除、移轉；恰有一位有效 Owner |
-| Team | `maintainer`、`member` | 授予、撤銷與首次開通的角色政策以 [Team 規格](../domains/team/design.md#授予撤銷與首次開通)為權威；不得自行改變管理歸屬 |
-| Repository | `admin`、`write`、`read` | admin 管理直接使用者存取與 Team Grant；資源擁有者保留管理能力，不能由成員異動變成無人可管理 |
+| 資源         | 初始角色                     | 成員管理基線                                                                                                           |
+| ------------ | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Enterprise   | `owner`、`manager`、`member` | Owner 管理企業角色；manager 維持核准的管理能力，不得自行升 Owner                                                       |
+| Organization | `owner`、`member`            | Owner 邀請、移除、移轉；恰有一位有效 Owner                                                                             |
+| Team         | `maintainer`、`member`       | 授予、撤銷與首次開通的角色政策以 [Team 規格](../domains/team/design.md#授予撤銷與首次開通)為權威；不得自行改變管理歸屬 |
+| Repository   | `admin`、`write`、`read`     | admin 管理直接使用者存取與 Team Grant；資源擁有者保留管理能力，不能由成員異動變成無人可管理                            |
 
 角色不是跨種類的數值大小。Organization member 不代表 Repository read；Team maintainer 不代表 Repository admin。Repository 內可定義 `admin ≥ write ≥ read`，由 Repository 政策解釋。
 
@@ -130,12 +130,12 @@ flowchart LR
 
 ### 邀請狀態
 
-| 操作 | 前置條件 | 成功與拒絕 |
-| --- | --- | --- |
-| 發邀請 | 目前 Owner 發起 | 建立 pending、簽發一次性邀請碼，保存摘要及發邀時的 Owner 版本。 |
-| 接受 | pending、邀請碼符合、未到期，且發邀者仍為相同版本的 Owner | 以已驗證 Actor 為加入者，原子消耗邀請並建立關係。若已是成員則不消耗邀請。 |
-| 撤銷 | 目前管理者，邀請仍 pending 且未到期 | 轉 revoked；已撤銷可安全重送，已接受或到期則拒絕。 |
-| 到期 | pending 且服務端判定時間大於或等於 expiresAt | 視為 expired，拒絕接受與撤銷。背景清理只整理紀錄。 |
+| 操作   | 前置條件                                                  | 成功與拒絕                                                                |
+| ------ | --------------------------------------------------------- | ------------------------------------------------------------------------- |
+| 發邀請 | 目前 Owner 發起                                           | 建立 pending、簽發一次性邀請碼，保存摘要及發邀時的 Owner 版本。           |
+| 接受   | pending、邀請碼符合、未到期，且發邀者仍為相同版本的 Owner | 以已驗證 Actor 為加入者，原子消耗邀請並建立關係。若已是成員則不消耗邀請。 |
+| 撤銷   | 目前管理者，邀請仍 pending 且未到期                       | 轉 revoked；已撤銷可安全重送，已接受或到期則拒絕。                        |
+| 到期   | pending 且服務端判定時間大於或等於 expiresAt              | 視為 expired，拒絕接受與撤銷。背景清理只整理紀錄。                        |
 
 每個邀請只能成功兌換一次。Owner 移轉，使舊邀請即使原 Owner 日後回任仍不可用。獨立 Membership 模式接入重新加入前，還須以最近一次退出或撤權為下限，拒絕在該次異動前發出的舊邀請。
 
@@ -155,12 +155,12 @@ flowchart LR
 
 ### 成員狀態
 
-| 操作 | 起始狀態與結果 | 版本與資格 |
-| --- | --- | --- |
-| 首次加入 | 無紀錄 → active | 建立 ID、version 1、generation 1。 |
-| 重新加入 | removed → active，須接受新邀請 | 沿用 ID，增加 version 與 generation。 |
-| 改角色 | active → active | 改角色才增加 version；generation 不變。 |
-| 移除／退出 | active 或 suspended → removed | 增加 version，立即停止授權。 |
+| 操作       | 起始狀態與結果                         | 版本與資格                                                |
+| ---------- | -------------------------------------- | --------------------------------------------------------- |
+| 首次加入   | 無紀錄 → active                        | 建立 ID、version 1、generation 1。                        |
+| 重新加入   | removed → active，須接受新邀請         | 沿用 ID，增加 version 與 generation。                     |
+| 改角色     | active → active                        | 改角色才增加 version；generation 不變。                   |
+| 移除／退出 | active 或 suspended → removed          | 增加 version，立即停止授權。                              |
 | 暫停／恢復 | active → suspended；suspended → active | 兩者增加 version，恢復另增加 generation，且重新核對依賴。 |
 
 suspended 關係只能經恢復流程重新生效。上層資格失效時下層關係可仍為 active，但有效資格立即失效。Owner 異動另需遵守資源狀態的保護規則。
@@ -171,17 +171,17 @@ suspended 關係只能經恢復流程重新生效。上層資格失效時下層�
 
 下表為候選路徑，尚未寫入 OpenAPI；類型複數及 ID 的對應表由服務端固定解析，不能任意映射 collection 名稱。
 
-| 操作 | 候選 HTTP 路徑 | Authority／Policy 與成功結果 |
-| --- | --- | --- |
-| People | `GET /api/v1/{resourceCollection}/{id}/members` | 可見該資源名單的成員／管理者；分頁回傳 Member DTO，不揭露其他資源角色 |
-| 我的資格 | `GET /api/v1/me/memberships` | 僅目前 Actor；包含有效性及失效原因，不以此清單替代操作時授權 |
-| 邀請 | `POST /api/v1/{resourceCollection}/{id}/invitations` | 未來可沿用 Owner 建立一次性邀請的用例，現行入口為 Bot 私聊 |
-| 接受 | `POST /api/v1/membership-invitations/{id}/accept` | 未來可沿用 Bot 兌換用例；須持有效邀請碼，原子接受並建立關係 |
-| 撤銷 | `DELETE /api/v1/membership-invitations/{id}` | 該資源目前管理者；僅 pending 可轉 revoked，重複撤銷冪等 |
-| 改角色 | `PATCH /api/v1/{resourceCollection}/{id}/members/{userId}` | 首版 Organization 不開放；後續新增可指派角色才定義異動契約 |
-| 移除／退出 | `DELETE /api/v1/{resourceCollection}/{id}/members/{userId}` | 管理者移除或本人退出；Owner 保護；removed 不做實體刪除 |
-| 移轉 Owner | 依資源定義具名命令 | 目前 Owner 將資格移轉給同資源另一位有效成員；同一交易更新 Owner 指標與範圍版本。 |
-| 暫停／恢復 | 後續明確狀態命令 | 模型預留；第一切片不開放 API，待企業治理用例接入 |
+| 操作       | 候選 HTTP 路徑                                              | Authority／Policy 與成功結果                                                     |
+| ---------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| People     | `GET /api/v1/{resourceCollection}/{id}/members`             | 可見該資源名單的成員／管理者；分頁回傳 Member DTO，不揭露其他資源角色            |
+| 我的資格   | `GET /api/v1/me/memberships`                                | 僅目前 Actor；包含有效性及失效原因，不以此清單替代操作時授權                     |
+| 邀請       | `POST /api/v1/{resourceCollection}/{id}/invitations`        | 未來可沿用 Owner 建立一次性邀請的用例，現行入口為 Bot 私聊                       |
+| 接受       | `POST /api/v1/membership-invitations/{id}/accept`           | 未來可沿用 Bot 兌換用例；須持有效邀請碼，原子接受並建立關係                      |
+| 撤銷       | `DELETE /api/v1/membership-invitations/{id}`                | 該資源目前管理者；僅 pending 可轉 revoked，重複撤銷冪等                          |
+| 改角色     | `PATCH /api/v1/{resourceCollection}/{id}/members/{userId}`  | 首版 Organization 不開放；後續新增可指派角色才定義異動契約                       |
+| 移除／退出 | `DELETE /api/v1/{resourceCollection}/{id}/members/{userId}` | 管理者移除或本人退出；Owner 保護；removed 不做實體刪除                           |
+| 移轉 Owner | 依資源定義具名命令                                          | 目前 Owner 將資格移轉給同資源另一位有效成員；同一交易更新 Owner 指標與範圍版本。 |
+| 暫停／恢復 | 後續明確狀態命令                                            | 模型預留；第一切片不開放 API，待企業治理用例接入                                 |
 
 People 的 `Member` 是 Membership 與允許公開的個人資料投影，不新增 Member 業務領域。前端可在各資源下呈現 People／邀請頁面，共用操作能力，依伺服器 capabilities 顯示可用操作；畫面隱藏按鈕不是授權。
 
@@ -193,26 +193,26 @@ People 的 `Member` 是 Membership 與允許公開的個人資料投影，不新
 
 以 `backend/internal/business/membership/` 為根。以下是責任配置，依實際用例落地：
 
-| 檔案 | 查找入口 |
-| --- | --- |
-| `domain/resource_ref.go` | `NewResourceRef`、資源引用的相等與關係識別規則。 |
-| `domain/invitation.go`、`domain/membership.go` | 邀請與成員的合法轉換；接受邀請的領域行為決定首次加入或重新加入。 |
-| `domain/scope.go` | 首位 Owner、Owner 移轉及現任 Owner 不可退出或移除的規則。 |
-| `application/invitations.go` | `Invite`、`AcceptInvitation`、`RevokeInvitation`。 |
-| `application/members.go`、`application/ownership.go` | `Leave`、`RemoveMember`、`TransferOwner`。 |
-| `application/queries.go`、`application/ports.go` | `ListMembers`、`ResolveMembership`、個人資格查詢，以及交易內讀寫和查詢契約。 |
-| `adapter/firestore/transaction.go`、`adapter/firestore/records.go` | Firestore 交易、保存格式及查詢投影。 |
+| 檔案                                                               | 查找入口                                                                     |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| `domain/resource_ref.go`                                           | `NewResourceRef`、資源引用的相等與關係識別規則。                             |
+| `domain/invitation.go`、`domain/membership.go`                     | 邀請與成員的合法轉換；接受邀請的領域行為決定首次加入或重新加入。             |
+| `domain/scope.go`                                                  | 首位 Owner、Owner 移轉及現任 Owner 不可退出或移除的規則。                    |
+| `application/invitations.go`                                       | `Invite`、`AcceptInvitation`、`RevokeInvitation`。                           |
+| `application/members.go`、`application/ownership.go`               | `Leave`、`RemoveMember`、`TransferOwner`。                                   |
+| `application/queries.go`、`application/ports.go`                   | `ListMembers`、`ResolveMembership`、個人資格查詢，以及交易內讀寫和查詢契約。 |
+| `adapter/firestore/transaction.go`、`adapter/firestore/records.go` | Firestore 交易、保存格式及查詢投影。                                         |
 
 HTTP 由共用 transport 接入用例，Bootstrap 在模組外組裝。狀態轉換及資格決策留在核心，不按 DDD 概念預建子套件。
 
 契約草案如下，尚未固定 Go signature 或生成 DTO：
 
-| 能力 | 輸入／輸出 | 信任與失敗規則 |
-| --- | --- | --- |
-| `ResolveMembership` | ctx、可信 Actor、ResourceRef、targetUserId → 有效角色、generation、依賴版本或錯誤 | 對第三人查詢須授權；I/O 接受取消及期限；unavailable 與無資格分開 |
-| `ListMembers` | ctx、Actor、資源、cursor／limit → Member page | 限定同一資源，先授權再回資料；limit 與 cursor 由 adapter 驗證 |
-| `Invite`／`Accept`／`ChangeRole`／`Remove` | ctx、可信 Actor、明確命令、requestId、適用版本 → 結果／錯誤 | 不採信前端角色；同工作單元核對政策、關係與依賴 |
-| `ResourcePolicy` | 工作單元中的資源事實、Actor 與目標有效角色、Action → 允許角色／管理條件 | 不讀 Membership、不產生外部副作用；使用同一快照，避免檢查後改寫 |
+| 能力                                       | 輸入／輸出                                                                        | 信任與失敗規則                                                   |
+| ------------------------------------------ | --------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `ResolveMembership`                        | ctx、可信 Actor、ResourceRef、targetUserId → 有效角色、generation、依賴版本或錯誤 | 對第三人查詢須授權；I/O 接受取消及期限；unavailable 與無資格分開 |
+| `ListMembers`                              | ctx、Actor、資源、cursor／limit → Member page                                     | 限定同一資源，先授權再回資料；limit 與 cursor 由 adapter 驗證    |
+| `Invite`／`Accept`／`ChangeRole`／`Remove` | ctx、可信 Actor、明確命令、requestId、適用版本 → 結果／錯誤                       | 不採信前端角色；同工作單元核對政策、關係與依賴                   |
+| `ResourcePolicy`                           | 工作單元中的資源事實、Actor 與目標有效角色、Action → 允許角色／管理條件           | 不讀 Membership、不產生外部副作用；使用同一快照，避免檢查後改寫  |
 
 Membership 查詢回傳資格事實，Repository 再判定具體 action；不能用 `IsMember == true` 直接放行所有操作。Team Grant 與直接使用者角色可依 Repository 定義合併，但都要先滿足組織資格。列表、詳情、附件、搜尋與子資源應採同一資格規則。
 
@@ -226,13 +226,13 @@ Membership 查詢回傳資格事實，Repository 再判定具體 action；不能
 
 ### 原子操作與重送契約
 
-| 命令 | 同一工作單元讀取 | 成功時共同保存 |
-| --- | --- | --- |
-| 建立資源 | 建立者權限、資源識別占用情況、收據 | 資源、資源狀態、首位 Owner、收據、Audit。 |
-| 發邀請／撤銷 | 資源、政策、Actor 授權及其依賴；發邀與撤銷均讀邀請狀態 | 新邀請或更新後的邀請、收據、Audit。 |
-| 接受邀請 | 邀請、資源與政策、邀請者目前有效資格、受邀者關係及雙方必要依賴 | 邀請、成員關係、收據、Audit。 |
-| 改角色／移除／退出／暫停／恢復 | 資源與政策、Actor 與目標關係、受影響的資格依賴及預期版本 | 關係、收據、Audit；若會失去最後有效 Owner 則拒絕，保留原狀態。 |
-| 移轉 Owner | 資源狀態與預期範圍版本、現任 Owner 與接任者的有效關係 | Owner 指標、範圍版本、收據、Audit；兩筆關係的版本與世代不變。 |
+| 命令                           | 同一工作單元讀取                                               | 成功時共同保存                                                 |
+| ------------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------- |
+| 建立資源                       | 建立者權限、資源識別占用情況、收據                             | 資源、資源狀態、首位 Owner、收據、Audit。                      |
+| 發邀請／撤銷                   | 資源、政策、Actor 授權及其依賴；發邀與撤銷均讀邀請狀態         | 新邀請或更新後的邀請、收據、Audit。                            |
+| 接受邀請                       | 邀請、資源與政策、邀請者目前有效資格、受邀者關係及雙方必要依賴 | 邀請、成員關係、收據、Audit。                                  |
+| 改角色／移除／退出／暫停／恢復 | 資源與政策、Actor 與目標關係、受影響的資格依賴及預期版本       | 關係、收據、Audit；若會失去最後有效 Owner 則拒絕，保留原狀態。 |
+| 移轉 Owner                     | 資源狀態與預期範圍版本、現任 Owner 與接任者的有效關係          | Owner 指標、範圍版本、收據、Audit；兩筆關係的版本與世代不變。  |
 
 移轉與退出都須在同一交易讀取範圍狀態；移轉讀取接任者關係，退出寫入該關係。若退出先提交，移轉重試看到接任者無效而拒絕。若移轉先提交，退出重試看到目標成為現任 Owner 而拒絕。兩種拒絕均不更新關係、指標或成功收據。
 
@@ -259,23 +259,23 @@ People 預設只回有效成員，每頁重新驗證目前可見性，跨頁允�
 
 ## 交付順序與驗收條件
 
-| 階段 | 交付範圍 | 必須取得的證據 |
-| --- | --- | --- |
-| 一 | Membership 核心＋Organization People＋試點切換 | 無組織仍可登入；建立資源與 Owner 原子性；邀請、接受、名單、移除閉環 |
-| 二 A | Organization Team 首次開通與成員管理 | 先完成階段一及可信群組管理授權入口；開通、名單、授予與撤銷可由正常入口完成；上層退出再加入不恢復舊 Team 權 |
-| 二 B | Enterprise 直接資格與 Enterprise Team | 先定案多 Owner 權威及角色管理契約，完成企業資格建立、加入、撤權與世代查詢，再開通企業 Team；企業 Team 指派不自動授予組織資格 |
-| 三 | 組織 Repository 的直接角色與 Team Grant | read／write／admin 行為一致；列表、詳情、子資源、舊連結與併發寫入均服從撤權 |
-| 四 | Enterprise People 聚合與舊欄位退役 | 以階段二 B 的直接資格為基礎，區分直接與衍生資格；管理角色不洩漏內容；原 API 與資料相容策略完成 |
+| 階段 | 交付範圍                                       | 必須取得的證據                                                                                                               |
+| ---- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 一   | Membership 核心＋Organization People＋試點切換 | 無組織仍可登入；建立資源與 Owner 原子性；邀請、接受、名單、移除閉環                                                          |
+| 二 A | Organization Team 首次開通與成員管理           | 先完成階段一及可信群組管理授權入口；開通、名單、授予與撤銷可由正常入口完成；上層退出再加入不恢復舊 Team 權                   |
+| 二 B | Enterprise 直接資格與 Enterprise Team          | 先定案多 Owner 權威及角色管理契約，完成企業資格建立、加入、撤權與世代查詢，再開通企業 Team；企業 Team 指派不自動授予組織資格 |
+| 三   | 組織 Repository 的直接角色與 Team Grant        | read／write／admin 行為一致；列表、詳情、子資源、舊連結與併發寫入均服從撤權                                                  |
+| 四   | Enterprise People 聚合與舊欄位退役             | 以階段二 B 的直接資格為基礎，區分直接與衍生資格；管理角色不洩漏內容；原 API 與資料相容策略完成                               |
 
 ### 閉環判定與待定規則
 
 每個流程 MUST 具備可信 Actor、可辨識目標、正常入口、授權與狀態規則、原子提交、失敗／重送結果，以及使用者可觀察的驗收條件。編譯、後端交易或列表接線只算進度。各資源的入口與政策以 [Organization](../domains/organization/design.md#獨立資格的交付邊界)、[Team](../domains/team/design.md#正常入口與開通阻塞條件)、[Enterprise](../domains/enterprise/design.md#獨立資格與治理的交付邊界)維護，本提案保存共通關係與一致性規則。
 
-| 尚未定案的規則 | 阻擋範圍與處理 |
-| --- | --- |
-| 群組管理授權審核人員與可採用的獨立委任證據 | [Team 首版提案](../domains/team/design.md#群組開通授權)已定義申請、審核、撤銷及交易消耗。正式開通前須確認渠道審核人員、可接受的獨立證據及效期。 |
-| Enterprise 多 Owner 權威、直接成員入口及 manager 管理動作 | 阻擋企業獨立資格與 Enterprise Team；不阻擋 Organization Team。 |
-| 獨立模式邀請效期、收據重送窗口與 Audit 保留期間 | 對應正式寫入能力啟用前須定案；不能將 legacy 的 24 小時直接當成獨立模式既定政策，也不能承諾無限重送。 |
+| 尚未定案的規則                                            | 阻擋範圍與處理                                                                                                                                  |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 群組管理授權審核人員與可採用的獨立委任證據                | [Team 首版提案](../domains/team/design.md#群組開通授權)已定義申請、審核、撤銷及交易消耗。正式開通前須確認渠道審核人員、可接受的獨立證據及效期。 |
+| Enterprise 多 Owner 權威、直接成員入口及 manager 管理動作 | 阻擋企業獨立資格與 Enterprise Team；不阻擋 Organization Team。                                                                                  |
+| 獨立模式邀請效期、收據重送窗口與 Audit 保留期間           | 對應正式寫入能力啟用前須定案；不能將 legacy 的 24 小時直接當成獨立模式既定政策，也不能承諾無限重送。                                            |
 
 待定項目必須在對應操作實作前解決；未定案時維持未啟用，不以手動改資料代替正常入口。本次整理未將這些產品決策視為已獲確認，也未宣稱四領域已全部閉環。
 
@@ -285,13 +285,13 @@ People 預設只回有效成員，每頁重新驗證目前可見性，跨頁允�
 
 ### 設計反例
 
-| 情境 | 必須可觀察的結果 |
-| --- | --- |
-| 兩人同時兌換同一邀請 | 最多一人成功。另一人不得取得成員資格。 |
+| 情境                                         | 必須可觀察的結果                                                                           |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 兩人同時兌換同一邀請                         | 最多一人成功。另一人不得取得成員資格。                                                     |
 | 接受與撤銷並行，或接受遇交易重試而跨過到期點 | 只有一個合法終態。尚未提交的接受依重試當下重新判斷；拒絕不寫入成員、成功收據或成功 Audit。 |
-| 唯一 Owner 退出，或移轉時接任者同時離開 | 直接退出被拒。移轉與接任者離開的衝突須重新判斷，資源不得落入沒有有效 Owner 的中間狀態。 |
-| 提交後回應逾時，操作者在重送前失去可見性 | 原寫入保留且不重做；重送不揭露已不可見的結果。 |
-| 上層移除後再加入 | 下層原紀錄可保留，但舊 generation 持續無效。重新授權須透過後續切片定義的明確操作。 |
+| 唯一 Owner 退出，或移轉時接任者同時離開      | 直接退出被拒。移轉與接任者離開的衝突須重新判斷，資源不得落入沒有有效 Owner 的中間狀態。    |
+| 提交後回應逾時，操作者在重送前失去可見性     | 原寫入保留且不重做；重送不揭露已不可見的結果。                                             |
+| 上層移除後再加入                             | 下層原紀錄可保留，但舊 generation 持續無效。重新授權須透過後續切片定義的明確操作。         |
 
 設計依據：[聚合與聚合根](../references/ddd/aggregate.md) · [不變條件](../references/ddd/invariant.md) · [一致性與交易](../references/ddd/consistency.md) · [冪等](../references/ddd/idempotency.md) · [六邊形架構](../references/ddd/hexagonal-architecture.md)
 

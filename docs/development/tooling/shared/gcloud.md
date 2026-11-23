@@ -67,5 +67,4 @@ CLI 登入不等於 ADC：只有使用者要求或已授權工作明確需要 cl
 依據：[官方 headless 登入流程](https://cloud.google.com/sdk/docs/authorizing#authorizing_with_a_user_account)
 及本機 pinned CLI 的 leaf-level help；本流程已在此環境驗證。登入前仍需即時檢查帳號與憑證狀態。
 
-
 [工具索引](../README.md)

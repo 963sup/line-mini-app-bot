@@ -18,26 +18,26 @@ Design entries: [subdomains/investment assumptions](strategy.md) · [context map
 
 Attendance answers who attended in which group/time, what evidence supports it and how much worktime is confirmed. Maintain separate states per person/group. Multiple daily shifts are allowed; monthly reports intersect shifts with report months.
 
-| Boundary | Facts exchanged | Responsibility |
-|---|---|---|
-| Identity/groups | Verified actor and operation-bound group | Entry/identity modules authenticate; Attendance determines punch/query/review eligibility and reads reviewer group authorization itself. Membership alone grants no correction-review rights. |
-| LINE/MINI App | Group actions, preflight, personal submission/results | Entry points translate requests into Attendance operations. Locations evidence individual punches; opening pages does not punch. |
-| Scheduling/payroll | Confirmed net worktime, estimated totals and pending reasons | Attendance currently defines neither expected schedules, overtime eligibility nor pay amounts. |
+| Boundary           | Facts exchanged                                              | Responsibility                                                                                                                                                                                |
+| ------------------ | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Identity/groups    | Verified actor and operation-bound group                     | Entry/identity modules authenticate; Attendance determines punch/query/review eligibility and reads reviewer group authorization itself. Membership alone grants no correction-review rights. |
+| LINE/MINI App      | Group actions, preflight, personal submission/results        | Entry points translate requests into Attendance operations. Locations evidence individual punches; opening pages does not punch.                                                              |
+| Scheduling/payroll | Confirmed net worktime, estimated totals and pending reasons | Attendance currently defines neither expected schedules, overtime eligibility nor pay amounts.                                                                                                |
 
 <a id="通用語言"></a>
 
 ## Ubiquitous language
 
-| Term | Meaning here |
-|---|---|
-| Punch Event | Identified attempt with action, time/result. Rejected attempts also have results; only accepted actions change shifts. |
-| Shift (worktime.Session) | One person's clock-in/out within one group. Open shifts lack end times; this Session differs from login sessions. |
-| Interval | Start/end values for clipping reports, merging overlaps and calculating breaks; value-comparable without identity. |
-| Attendance Record | Identifiable shift with times, event sequence and correction version; target of corrections. |
-| Break confirmation | Personal confirmation that breaks are complete. Empty lists distinguish confirmed no-break from unconfirmed. |
+| Term                            | Meaning here                                                                                                           |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Punch Event                     | Identified attempt with action, time/result. Rejected attempts also have results; only accepted actions change shifts. |
+| Shift (worktime.Session)        | One person's clock-in/out within one group. Open shifts lack end times; this Session differs from login sessions.      |
+| Interval                        | Start/end values for clipping reports, merging overlaps and calculating breaks; value-comparable without identity.     |
+| Attendance Record               | Identifiable shift with times, event sequence and correction version; target of corrections.                           |
+| Break confirmation              | Personal confirmation that breaks are complete. Empty lists distinguish confirmed no-break from unconfirmed.           |
 | Confirmed net / Estimated total | Confirmed time requires complete verifiable evidence. Estimated total already includes confirmed time; never add them. |
-| Correction | Reasoned changes to a specified record. Request, review decision and effective record are distinct. |
-| Leave registration | Personal group leave type, period/reason. Registration neither approves leave nor changes attendance. |
+| Correction                      | Reasoned changes to a specified record. Request, review decision and effective record are distinct.                    |
+| Leave registration              | Personal group leave type, period/reason. Registration neither approves leave nor changes attendance.                  |
 
 <a id="子域與業務能力"></a>
 
@@ -45,13 +45,13 @@ Attendance answers who attended in which group/time, what evidence supports it a
 
 Capabilities below share attendance language/rules by current responsibility. Independent deployments/contexts are not presently needed.
 
-| Capability | Decisions owned | Specification |
-|---|---|---|
-| Punches/shifts | Clock-in, break-start/end and clock-out eligibility; processed retries | [Worktime/transitions](worktime.md) |
-| Worktime | Rebuild shifts from events, clip months and confirm minutes | [Calculation](worktime.md) |
-| Corrections/review | Submission, withdrawal, decisions and approval versions/evidence | [Evidence](worktime.md), [queries/retries](queries.md) |
-| Leave | Input/retry validity and personal registration persistence | [Leave](leave.md) |
-| Personal queries/group boards | Read scope and distinct-person working/resting/finished counts | [Queries](queries.md), [boards](board.md) |
+| Capability                    | Decisions owned                                                        | Specification                                          |
+| ----------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------ |
+| Punches/shifts                | Clock-in, break-start/end and clock-out eligibility; processed retries | [Worktime/transitions](worktime.md)                    |
+| Worktime                      | Rebuild shifts from events, clip months and confirm minutes            | [Calculation](worktime.md)                             |
+| Corrections/review            | Submission, withdrawal, decisions and approval versions/evidence       | [Evidence](worktime.md), [queries/retries](queries.md) |
+| Leave                         | Input/retry validity and personal registration persistence             | [Leave](leave.md)                                      |
+| Personal queries/group boards | Read scope and distinct-person working/resting/finished counts         | [Queries](queries.md), [boards](board.md)              |
 
 <a id="一致性與驗收"></a>
 

@@ -20,15 +20,15 @@
 
 沿用 GOOGLE_CLOUD_PROJECT、LINE_MESSAGING_API_CHANNEL_ID、LINE_MESSAGING_API_CHANNEL_SECRET、LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN、FIRESTORE_DATABASE_ID 與 runtime ADC。 以下 provider、選用的 API key、模型與三項 task 設定全部未設定時，摘要模組不啟用；設定任何一項後則檢查完整性。這是模組部署條件，群組使用時無需再逐一開啟。
 
-| 環境變數 | 值 |
-| --- | --- |
-| SUMMARY_PROVIDER | openai 或 gemini；未設定時沿用 Gemini。 |
-| OPENAI_API_KEY | 選用 OpenAI 時，由 Secret Manager 的 openai-api-key 注入。 |
-| GEMINI_API_KEY | 選用 Gemini 時，由 Secret Manager 注入。 |
-| SUMMARY_MODEL | 該 key／專案可使用、支援對應 provider API 的文字模型名稱（OpenAI 使用 Chat Completions、Gemini 使用 generateContent）；不硬編碼版本。 |
-| SUMMARY_TASK_QUEUE | projects/PROJECT_ID/locations/REGION/queues/QUEUE_ID。 |
-| SUMMARY_TASK_URL | 本服務 https://HOST/internal/summary，不能有 query 或 fragment。 |
-| SUMMARY_TASK_SERVICE_ACCOUNT | Cloud Tasks 發送 OIDC token 使用的專用服務帳戶 email。 |
+| 環境變數                     | 值                                                                                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| SUMMARY_PROVIDER             | openai 或 gemini；未設定時沿用 Gemini。                                                                                               |
+| OPENAI_API_KEY               | 選用 OpenAI 時，由 Secret Manager 的 openai-api-key 注入。                                                                            |
+| GEMINI_API_KEY               | 選用 Gemini 時，由 Secret Manager 注入。                                                                                              |
+| SUMMARY_MODEL                | 該 key／專案可使用、支援對應 provider API 的文字模型名稱（OpenAI 使用 Chat Completions、Gemini 使用 generateContent）；不硬編碼版本。 |
+| SUMMARY_TASK_QUEUE           | projects/PROJECT_ID/locations/REGION/queues/QUEUE_ID。                                                                                |
+| SUMMARY_TASK_URL             | 本服務 https://HOST/internal/summary，不能有 query 或 fragment。                                                                      |
+| SUMMARY_TASK_SERVICE_ACCOUNT | Cloud Tasks 發送 OIDC token 使用的專用服務帳戶 email。                                                                                |
 
 - 需事先啟用 Cloud Tasks API、建立 HTTP queue。建議 queue 設定 maxAttempts=5、minBackoff=120秒、maxRetryDuration=3600秒，避免無限模型重試。 runtime 帳戶需指定資料庫讀寫、指定 queue enqueue 權限，以及代用指定 task service account 的權限；Cloud Tasks service agent 需能產生該身分的 OIDC token。 task service account 與 queue 使用同專案。入口驗證 Google token 簽章、有效期限、audience（完整 SUMMARY_TASK_URL）、email 與 email_verified。 現有服務公開模式不能保護此內部入口，所以不能移除應用層 token 檢查。若服務另外啟用 Cloud Run invoker IAM，task service account 也需該服務 invoker 權限。 Cloud Run 請求逾時需至少100秒；程式 worker deadline80秒、模型45秒、LINE Push10秒，租約120秒。仍是同一個容器，沒有常駐 goroutine worker。 LINE Console 開啟 Webhook redelivery；所選模型 API key 的計費與模型資料處理政策應依實際帳戶確認。
 

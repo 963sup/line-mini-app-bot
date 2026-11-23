@@ -4,8 +4,6 @@
 
 ## 執行要求
 
-
-
 For domain boundaries, invariants, retries or cross-context contracts, select the relevant question in docs/references/ddd/README.md and trace it to current domain specifications, code and tests. Distinguish a design option from verified behavior.
 
 Define resource scope, authority, domain invariants and transaction consistency. Reuse existing identity and use cases; require actual needs before shared abstractions.

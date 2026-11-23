@@ -30,12 +30,12 @@
 
 ## 實體、集合與 REST 資源命名
 
-| 語意 | Repository | Issue | Discussion |
-| --- | --- | --- | --- |
-| 單一業務實體 | Repository | Issue | Discussion |
-| 多個資源的集合 | repositories | issues | discussions |
-| REST 集合名稱 | /repositories | /issues | /discussions |
-| REST 單筆形式 | /repositories/{id} | /issues/{id} | /discussions/{id} |
+| 語意           | Repository         | Issue        | Discussion        |
+| -------------- | ------------------ | ------------ | ----------------- |
+| 單一業務實體   | Repository         | Issue        | Discussion        |
+| 多個資源的集合 | repositories       | issues       | discussions       |
+| REST 集合名稱  | /repositories      | /issues      | /discussions      |
+| REST 單筆形式  | /repositories/{id} | /issues/{id} | /discussions/{id} |
 
 [上述 REST 名稱僅表達設計命名形式；Issue／Discussion 現行版本前綴、巢狀路徑與正式路由以 OpenAPI 契約為準，不以本頁規劃推導。 既有 Repository API 為 /api/v1/repositories 與 /api/v1/repositories/{id}，不得依本頁直接改名。](../../../api/contract/openapi.yaml)
 
@@ -75,21 +75,21 @@ Issue 與 Discussion 各自擁有狀態與操作；若未來需要互相連結�
 
 ## 單一資源與集合欄位
 
-| GitHub 資源名稱 | 集合欄位 | GitHub 歸屬／關聯範例 | 功能 |
-| --- | --- | --- | --- |
-| Repository | repositories | RepositoryOwner（如 User／Organization） | 儲存庫；本專案既有業務意義為群組空間 |
-| Issue | issues | Repository | 問題、工作事項 |
-| Discussion | discussions | Repository | 討論 |
-| Label | labels | Repository | 標籤 |
-| Milestone | milestones | Repository | 里程碑 |
-| Release | releases | Repository | 發布版本 |
-| Deployment | deployments | Repository | 部署紀錄 |
-| ProjectV2 | projectsV2 | Repository | 專案管理 |
-| ProjectV2Item | items | ProjectV2 | 專案工作項目 |
-| DiscussionCategory | discussionCategories | Repository | 討論分類 |
-| IssueType | issueTypes | Repository／Organization | 議題類型 |
-| RepositoryTopic | repositoryTopics | Repository | 儲存庫主題關聯 |
-| Team | teams | Organization | 團隊 |
+| GitHub 資源名稱    | 集合欄位             | GitHub 歸屬／關聯範例                    | 功能                                 |
+| ------------------ | -------------------- | ---------------------------------------- | ------------------------------------ |
+| Repository         | repositories         | RepositoryOwner（如 User／Organization） | 儲存庫；本專案既有業務意義為群組空間 |
+| Issue              | issues               | Repository                               | 問題、工作事項                       |
+| Discussion         | discussions          | Repository                               | 討論                                 |
+| Label              | labels               | Repository                               | 標籤                                 |
+| Milestone          | milestones           | Repository                               | 里程碑                               |
+| Release            | releases             | Repository                               | 發布版本                             |
+| Deployment         | deployments          | Repository                               | 部署紀錄                             |
+| ProjectV2          | projectsV2           | Repository                               | 專案管理                             |
+| ProjectV2Item      | items                | ProjectV2                                | 專案工作項目                         |
+| DiscussionCategory | discussionCategories | Repository                               | 討論分類                             |
+| IssueType          | issueTypes           | Repository／Organization                 | 議題類型                             |
+| RepositoryTopic    | repositoryTopics     | Repository                               | 儲存庫主題關聯                       |
+| Team               | teams                | Organization                             | 團隊                                 |
 
 ProjectV2 的 V2 是 GitHub 的既有命名；本專案若需要專案管理，先決定自己的業務名稱與範圍，不據此預設存在 V1 或引入版本字尾。 ProjectV2Item 是專案中的項目，不必然等同 Issue；RepositoryTopic 表達儲存庫與主題的關聯，不直接當作標籤的別名。
 
@@ -97,13 +97,13 @@ ProjectV2 的 V2 是 GitHub 的既有命名；本專案若需要專案管理，�
 
 ## 子資源與父資源欄位
 
-| GitHub 子資源名稱 | 來源關聯名稱 | 功能 |
-| --- | --- | --- |
-| IssueComment | Issue.comments | 問題留言 |
-| DiscussionComment | Discussion.comments | 討論回覆 |
-| ReviewRequest | PullRequest.reviewRequests | 審查請求 |
-| Reaction | Issue.reactions | 表情反應 |
-| ReleaseAsset | Release.releaseAssets | 發布附件 |
+| GitHub 子資源名稱 | 來源關聯名稱               | 功能     |
+| ----------------- | -------------------------- | -------- |
+| IssueComment      | Issue.comments             | 問題留言 |
+| DiscussionComment | Discussion.comments        | 討論回覆 |
+| ReviewRequest     | PullRequest.reviewRequests | 審查請求 |
+| Reaction          | Issue.reactions            | 表情反應 |
+| ReleaseAsset      | Release.releaseAssets      | 發布附件 |
 
 本表列出使用情境而非唯一歸屬；例如 Reaction 可用於其他支援反應的內容。 PullRequest 在此作為 GitHub 參考資源，不代表本專案計畫實作程式碼合併功能。 父子關係不直接決定 REST 巢狀路由或資料庫保存位置；仍須明訂存取範圍與刪除規則。
 
@@ -111,16 +111,16 @@ ProjectV2 的 V2 是 GitHub 的既有命名；本專案若需要專案管理，�
 
 ## 資源模型與工程現場應用類比
 
-| 資源模型 | GitHub 功能 | 工程現場應用範例 |
-| --- | --- | --- |
-| User | 使用者身分，可參與操作；部分資源可由使用者擁有 | 使用 LINE 登入識別個人 |
-| Organization | 管理儲存庫、團隊與組織資源 | 工程公司管理多個專案 |
-| Team | 組織內的成員分組與協作單位 | 工程部、採購部、施工班組 |
-| IssueComment | Issue 下方的留言、回報與討論紀錄 | 施工人員回報「材料已到場」 |
-| DiscussionComment | Discussion 內的回覆，支援對話與問答互動 | 回覆施工方案討論、補充意見 |
-| Reaction | 對內容做快速反應 | 表示知悉、支持或贊同 |
-| PullRequestReview | 正式審查 Pull Request，可批准或要求修改 | 借鑑為文件或變更單的審核決策 |
-| ReviewRequest | 請求指定對象進行審查 | 指派工程經理審核變更申請 |
+| 資源模型          | GitHub 功能                                    | 工程現場應用範例             |
+| ----------------- | ---------------------------------------------- | ---------------------------- |
+| User              | 使用者身分，可參與操作；部分資源可由使用者擁有 | 使用 LINE 登入識別個人       |
+| Organization      | 管理儲存庫、團隊與組織資源                     | 工程公司管理多個專案         |
+| Team              | 組織內的成員分組與協作單位                     | 工程部、採購部、施工班組     |
+| IssueComment      | Issue 下方的留言、回報與討論紀錄               | 施工人員回報「材料已到場」   |
+| DiscussionComment | Discussion 內的回覆，支援對話與問答互動        | 回覆施工方案討論、補充意見   |
+| Reaction          | 對內容做快速反應                               | 表示知悉、支持或贊同         |
+| PullRequestReview | 正式審查 Pull Request，可批准或要求修改        | 借鑑為文件或變更單的審核決策 |
+| ReviewRequest     | 請求指定對象進行審查                           | 指派工程經理審核變更申請     |
 
 身分識別、組織歸屬、容器成員與業務授權是不同責任；LINE 登入不自動代表公司成員或資源擁有者。 Organization／Team 是否需要獨立實體、如何驗證成員及如何與現有群組空間對應，須另行產品設計，不改變目前 Repository 的 Bot 管理模式。 ReviewRequest 是待審任務或指派，PullRequestReview 是審查紀錄／決策；兩者不互相替代。 Reaction、留言或被指派審查均不等於正式核准，也不自動取得核准權。 工程變更單若採用此概念，應取符合領域的名稱並訂定自己的申請、審核與生效狀態，不直接複製 GitHub 型別或出勤審核規則。
 
@@ -130,15 +130,15 @@ ProjectV2 的 V2 是 GitHub 的既有命名；本專案若需要專案管理，�
 
 本節延伸專案管理參考，全部屬於後續開發素材；GitHub 來源名稱不直接成為本專案的實體、API 或資料集合。
 
-| GitHub 資源名稱 | 種類與責任 | 工程現場應用參考 |
-| --- | --- | --- |
-| ProjectV2 | 專案本體，包含工作項目、欄位與視圖 | 整合某工程的工作規劃 |
-| ProjectV2Item | 專案內的一筆工作項目；與引用的內容分開識別 | 將施工事項納入專案追蹤 |
-| ProjectV2Field | 一般欄位定義 | 定義施工區域、預計日期等欄位 |
-| ProjectV2SingleSelectField | 單選欄位定義，包含選項設定 | Priority／優先級、工班或狀態 |
-| ProjectV2IterationField | 週期欄位定義，管理 iteration 設定 | 每週施工工作規劃 |
-| ProjectV2ItemFieldValue | 工作項目的欄位值，如日期、文字、單選或週期 | 某筆工作的預計日期、優先級或施工週次 |
-| ProjectV2View | 已保存的專案視圖設定 | 每日工作、各工班工作或工程時間軸 |
+| GitHub 資源名稱            | 種類與責任                                 | 工程現場應用參考                     |
+| -------------------------- | ------------------------------------------ | ------------------------------------ |
+| ProjectV2                  | 專案本體，包含工作項目、欄位與視圖         | 整合某工程的工作規劃                 |
+| ProjectV2Item              | 專案內的一筆工作項目；與引用的內容分開識別 | 將施工事項納入專案追蹤               |
+| ProjectV2Field             | 一般欄位定義                               | 定義施工區域、預計日期等欄位         |
+| ProjectV2SingleSelectField | 單選欄位定義，包含選項設定                 | Priority／優先級、工班或狀態         |
+| ProjectV2IterationField    | 週期欄位定義，管理 iteration 設定          | 每週施工工作規劃                     |
+| ProjectV2ItemFieldValue    | 工作項目的欄位值，如日期、文字、單選或週期 | 某筆工作的預計日期、優先級或施工週次 |
+| ProjectV2View              | 已保存的專案視圖設定                       | 每日工作、各工班工作或工程時間軸     |
 
 - 欄位定義、單選選項與每筆項目的欄位值是不同資料；修改某筆工作的 Priority 不等於修改整個專案的選項設定。 此處只列需求涉及的資源與欄位種類，並非 GitHub 全部欄位種類清單。
 
@@ -150,21 +150,21 @@ ProjectV2 的 V2 是 GitHub 的既有命名；本專案若需要專案管理，�
 
 以下為 GitHub Projects 的產品能力分類與工程現場用途，供本專案選擇需求；不代表已有對應 API 或實作。
 
-| 能力 | 功能 | 工程現場應用範例 |
-| --- | --- | --- |
-| Items | 收集 Issue、PR 或 Draft Issue | 整合各項施工工作 |
-| Table | 表格模式管理項目與欄位 | 工作清單、負責人、進度 |
-| Board | Kanban 看板，依欄位值分欄 | 待辦、進行中、完成 |
-| Roadmap | 依日期或週期呈現時間軸 | 工程排程、施工階段 |
-| Custom Fields | 設定自訂欄位及其型別 | 施工區域、優先級、預計日期 |
-| Views | 保存多組篩選與呈現設定 | 每日工作、各工班工作 |
-| Filtering | 依欄位與內容屬性篩選 | 只看逾期、未完成事項 |
-| Grouping | 依支援欄位分組 | 依工班、狀態或負責人分類 |
-| Iteration | 以可配置長度與休息區間的週期規劃工作 | 每週施工工作規劃 |
-| Workflows | 自動化項目新增、狀態更新或歸檔等管理 | Issue 完成時更新專案狀態 |
-| Insights | 圖表與進度分析 | 查看各階段完成情況 |
-| Permissions | 專案存取與操作控制 | 管理誰可查看、編輯或管理專案 |
-| Templates | 重複使用專案設定 | 建立標準工程工作看板 |
+| 能力          | 功能                                 | 工程現場應用範例             |
+| ------------- | ------------------------------------ | ---------------------------- |
+| Items         | 收集 Issue、PR 或 Draft Issue        | 整合各項施工工作             |
+| Table         | 表格模式管理項目與欄位               | 工作清單、負責人、進度       |
+| Board         | Kanban 看板，依欄位值分欄            | 待辦、進行中、完成           |
+| Roadmap       | 依日期或週期呈現時間軸               | 工程排程、施工階段           |
+| Custom Fields | 設定自訂欄位及其型別                 | 施工區域、優先級、預計日期   |
+| Views         | 保存多組篩選與呈現設定               | 每日工作、各工班工作         |
+| Filtering     | 依欄位與內容屬性篩選                 | 只看逾期、未完成事項         |
+| Grouping      | 依支援欄位分組                       | 依工班、狀態或負責人分類     |
+| Iteration     | 以可配置長度與休息區間的週期規劃工作 | 每週施工工作規劃             |
+| Workflows     | 自動化項目新增、狀態更新或歸檔等管理 | Issue 完成時更新專案狀態     |
+| Insights      | 圖表與進度分析                       | 查看各階段完成情況           |
+| Permissions   | 專案存取與操作控制                   | 管理誰可查看、編輯或管理專案 |
+| Templates     | 重複使用專案設定                     | 建立標準工程工作看板         |
 
 Table、Board 與 Roadmap 是同一批專案項目的不同呈現方式，不各自複製一套工作資料。 Views 保存布局、篩選、分組與排序等設定；Filtering／Grouping 是查詢與呈現能力，不因一個項目被多個視圖選中而複製它。 Roadmap 顯示日期或週期不代表具備工序相依、關鍵路徑或自動排程能力；這些需求須另訂規格。 Iteration 是規劃區間，不等同實際出勤、工時結算或施工完成證明。
 

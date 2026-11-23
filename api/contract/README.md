@@ -20,30 +20,30 @@ Start with the [capability and implementation inventory](capabilities.json), [in
 
 Contracts are organized by capability ownership. Public HTTP, events and internal jobs have different entry forms; classification must not create public APIs. Feature specifications still define authorization and business rules.
 
-| Capability or responsibility | Source | Scope |
-| --- | --- | --- |
-| Public HTTP composition | [openapi.yaml](openapi.yaml) | API metadata and `$ref` indexes for existing paths and components |
-| Shared transport contracts | [common/transport.yaml](common/transport.yaml) | APIError, Bearer and Cookie security schemes; no business models |
-| PDF tools | [operations/poppler.yaml](operations/poppler.yaml) | Authenticated PDF text extraction testing without persistence |
-| Identity | [identity/identity.yaml](identity/identity.yaml) | MINI App public configuration, current user, session creation/renewal/revocation and DTOs |
-| Repository | [repository/repositories.yaml](repository/repositories.yaml) | Container lists, details, pagination and DTOs; no manual creation or management API |
-| Enterprise | [enterprises.yaml](enterprise/enterprises.yaml), [types.yaml](enterprise/types.yaml) | Enterprise provisioning, details, owners and organization links |
-| Organization | [context.yaml](organization/context.yaml) | Organization selection, creation and owner transfer |
-| Team | [teams.yaml](team/teams.yaml) | Team management, organization team queries and enterprise team assignment |
-| Group | [group/groups.yaml](group/groups.yaml) | Engineering group lists, details and current membership |
-| Repository / Space | [repository/spaces.yaml](repository/spaces.yaml) | Workspaces within a repository, using its authorization |
-| Project | [project/owner-projects.yaml](project/owner-projects.yaml) | Personally or engineering-group-owned projects and items with read-only sources; [Project specification](../../docs/domains/project/project.md) |
-| Project legacy | [project/projects.yaml](project/projects.yaml), [items.yaml](project/items.yaml) | Compatibility adapters for repository-scoped routes and DTOs; same use cases, no new ownership |
-| Repository / Labels | [repository/labels.yaml](repository/labels.yaml) | List/create label catalog; see [labels](../../docs/domains/repository/labels.md) |
-| Issue | [issue/issues.yaml](issue/issues.yaml) | Space issue lists, details, creation and creator updates; see [issues](../../docs/domains/repository/issue/design.md) |
-| Discussion | [discussion/discussions.yaml](discussion/discussions.yaml), [comments.yaml](discussion/comments.yaml) | Topic reads/writes and single-level comments with author editing; see [discussions](../../docs/domains/repository/discussion/design.md) |
-| Attendance / Punch | [attendance/punch.yaml](attendance/punch.yaml) | Launch, punch and preflight |
-| Attendance / Records | [attendance/records.yaml](attendance/records.yaml) | Groups, attendance records, monthly summaries and pagination |
-| Attendance / Worktime | [attendance/worktime.yaml](attendance/worktime.yaml) | Worktime calculation and interval types; no independent HTTP operations |
-| Attendance / Corrections | [attendance/corrections.yaml](attendance/corrections.yaml) | Submit/list corrections, status and self-withdrawal; request snapshots, results and shared correction errors |
-| Attendance / Approvals | [attendance/approvals.yaml](attendance/approvals.yaml) | Review details, approval, rejection and review groups; references Corrections request data |
-| Summary | [summary/README.md](summary/README.md) | MessageCollection, Summarization and internal worker; outside public OpenAPI |
-| Weather | [weather/README.md](weather/README.md) | Existing Forecast LINE event entry point; outside public OpenAPI |
+| Capability or responsibility | Source                                                                                                | Scope                                                                                                                                           |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public HTTP composition      | [openapi.yaml](openapi.yaml)                                                                          | API metadata and `$ref` indexes for existing paths and components                                                                               |
+| Shared transport contracts   | [common/transport.yaml](common/transport.yaml)                                                        | APIError, Bearer and Cookie security schemes; no business models                                                                                |
+| PDF tools                    | [operations/poppler.yaml](operations/poppler.yaml)                                                    | Authenticated PDF text extraction testing without persistence                                                                                   |
+| Identity                     | [identity/identity.yaml](identity/identity.yaml)                                                      | MINI App public configuration, current user, session creation/renewal/revocation and DTOs                                                       |
+| Repository                   | [repository/repositories.yaml](repository/repositories.yaml)                                          | Container lists, details, pagination and DTOs; no manual creation or management API                                                             |
+| Enterprise                   | [enterprises.yaml](enterprise/enterprises.yaml), [types.yaml](enterprise/types.yaml)                  | Enterprise provisioning, details, owners and organization links                                                                                 |
+| Organization                 | [context.yaml](organization/context.yaml)                                                             | Organization selection, creation and owner transfer                                                                                             |
+| Team                         | [teams.yaml](team/teams.yaml)                                                                         | Team management, organization team queries and enterprise team assignment                                                                       |
+| Group                        | [group/groups.yaml](group/groups.yaml)                                                                | Engineering group lists, details and current membership                                                                                         |
+| Repository / Space           | [repository/spaces.yaml](repository/spaces.yaml)                                                      | Workspaces within a repository, using its authorization                                                                                         |
+| Project                      | [project/owner-projects.yaml](project/owner-projects.yaml)                                            | Personally or engineering-group-owned projects and items with read-only sources; [Project specification](../../docs/domains/project/project.md) |
+| Project legacy               | [project/projects.yaml](project/projects.yaml), [items.yaml](project/items.yaml)                      | Compatibility adapters for repository-scoped routes and DTOs; same use cases, no new ownership                                                  |
+| Repository / Labels          | [repository/labels.yaml](repository/labels.yaml)                                                      | List/create label catalog; see [labels](../../docs/domains/repository/labels.md)                                                                |
+| Issue                        | [issue/issues.yaml](issue/issues.yaml)                                                                | Space issue lists, details, creation and creator updates; see [issues](../../docs/domains/repository/issue/design.md)                           |
+| Discussion                   | [discussion/discussions.yaml](discussion/discussions.yaml), [comments.yaml](discussion/comments.yaml) | Topic reads/writes and single-level comments with author editing; see [discussions](../../docs/domains/repository/discussion/design.md)         |
+| Attendance / Punch           | [attendance/punch.yaml](attendance/punch.yaml)                                                        | Launch, punch and preflight                                                                                                                     |
+| Attendance / Records         | [attendance/records.yaml](attendance/records.yaml)                                                    | Groups, attendance records, monthly summaries and pagination                                                                                    |
+| Attendance / Worktime        | [attendance/worktime.yaml](attendance/worktime.yaml)                                                  | Worktime calculation and interval types; no independent HTTP operations                                                                         |
+| Attendance / Corrections     | [attendance/corrections.yaml](attendance/corrections.yaml)                                            | Submit/list corrections, status and self-withdrawal; request snapshots, results and shared correction errors                                    |
+| Attendance / Approvals       | [attendance/approvals.yaml](attendance/approvals.yaml)                                                | Review details, approval, rejection and review groups; references Corrections request data                                                      |
+| Summary                      | [summary/README.md](summary/README.md)                                                                | MessageCollection, Summarization and internal worker; outside public OpenAPI                                                                    |
+| Weather                      | [weather/README.md](weather/README.md)                                                                | Existing Forecast LINE event entry point; outside public OpenAPI                                                                                |
 
 <a id="巢狀指引"></a>
 
@@ -51,18 +51,18 @@ Contracts are organized by capability ownership. Public HTTP, events and interna
 
 This directory follows [contract guidance](AGENTS.md) and inherits [API guidance](../AGENTS.md). Capability-specific additions:
 
-| Scope | Guidance | Status |
-| --- | --- | --- |
-| Common | [AGENTS.md](common/AGENTS.md) | Shared transport contracts |
-| PDF tools | [operations/poppler.yaml](operations/poppler.yaml) | Authenticated PDF text extraction testing without persistence |
-| Identity | [AGENTS.md](identity/AGENTS.md) | Existing public contracts |
-| Repository | [AGENTS.md](repository/AGENTS.md) | Bot-managed group spaces |
-| Issue | [AGENTS.md](issue/AGENTS.md) | Basic Issue API; types/comments remain scaffolds |
-| Discussion | [AGENTS.md](discussion/AGENTS.md) | Topics/single-level comments wired; categories remain a scaffold |
-| Project | [AGENTS.md](project/AGENTS.md) | Project/items wired; fields/views are scaffolds |
-| Attendance | [AGENTS.md](attendance/AGENTS.md) | Existing attendance contracts |
-| Summary | [AGENTS.md](summary/AGENTS.md) | Event and internal job contracts |
-| Weather | [AGENTS.md](weather/AGENTS.md) | Existing event entry contracts |
+| Scope      | Guidance                                           | Status                                                           |
+| ---------- | -------------------------------------------------- | ---------------------------------------------------------------- |
+| Common     | [AGENTS.md](common/AGENTS.md)                      | Shared transport contracts                                       |
+| PDF tools  | [operations/poppler.yaml](operations/poppler.yaml) | Authenticated PDF text extraction testing without persistence    |
+| Identity   | [AGENTS.md](identity/AGENTS.md)                    | Existing public contracts                                        |
+| Repository | [AGENTS.md](repository/AGENTS.md)                  | Bot-managed group spaces                                         |
+| Issue      | [AGENTS.md](issue/AGENTS.md)                       | Basic Issue API; types/comments remain scaffolds                 |
+| Discussion | [AGENTS.md](discussion/AGENTS.md)                  | Topics/single-level comments wired; categories remain a scaffold |
+| Project    | [AGENTS.md](project/AGENTS.md)                     | Project/items wired; fields/views are scaffolds                  |
+| Attendance | [AGENTS.md](attendance/AGENTS.md)                  | Existing attendance contracts                                    |
+| Summary    | [AGENTS.md](summary/AGENTS.md)                     | Event and internal job contracts                                 |
+| Weather    | [AGENTS.md](weather/AGENTS.md)                     | Existing event entry contracts                                   |
 
 <a id="歸屬與依賴"></a>
 

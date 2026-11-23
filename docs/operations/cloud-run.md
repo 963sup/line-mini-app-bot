@@ -57,20 +57,20 @@ block-beta
 
 下表描述 repository 配置，不代表現行 managed trigger 或 serving revision 已套用相同值。
 
-| 項目 | 預設值 |
-| --- | --- |
-| Cloud Run service | line-mini-app-bot |
-| Region | asia-east1；仍應依 Firestore 位置確認 |
-| Artifact Registry repository | applications（Docker 類型，與部署 region 相同） |
-| 映像標記 | Cloud Build 的 BUILD_ID；手動與 Trigger 都有值，不依賴 COMMIT_SHA |
-| 建置服務帳戶 ID | cloud-build-deployer |
-| 應用執行服務帳戶 ID | line-mini-app-runtime |
-| CPU／記憶體 | 1 CPU／512 MiB |
-| Service instance 範圍 | min=0、max=3；不是成本上限或 HA 保證 |
-| 每 instance concurrency | 20，初始配置，非效能驗收結果 |
-| 請求 timeout | 100 秒；應用內 LINE 呼叫仍有自己的期限 |
-| HTTP | 公開 ingress，允許 LINE Webhook 與瀏覽器存取 |
-| PORT | 使用 Cloud Run 注入的 8080，不透過自訂 env 覆寫 |
+| 項目                         | 預設值                                                            |
+| ---------------------------- | ----------------------------------------------------------------- |
+| Cloud Run service            | line-mini-app-bot                                                 |
+| Region                       | asia-east1；仍應依 Firestore 位置確認                             |
+| Artifact Registry repository | applications（Docker 類型，與部署 region 相同）                   |
+| 映像標記                     | Cloud Build 的 BUILD_ID；手動與 Trigger 都有值，不依賴 COMMIT_SHA |
+| 建置服務帳戶 ID              | cloud-build-deployer                                              |
+| 應用執行服務帳戶 ID          | line-mini-app-runtime                                             |
+| CPU／記憶體                  | 1 CPU／512 MiB                                                    |
+| Service instance 範圍        | min=0、max=3；不是成本上限或 HA 保證                              |
+| 每 instance concurrency      | 20，初始配置，非效能驗收結果                                      |
+| 請求 timeout                 | 100 秒；應用內 LINE 呼叫仍有自己的期限                            |
+| HTTP                         | 公開 ingress，允許 LINE Webhook 與瀏覽器存取                      |
+| PORT                         | 使用 Cloud Run 注入的 8080，不透過自訂 env 覆寫                   |
 
 Cloud Run 明確使用 8080 的 startup TCP probe 檢查容器啟動；本專案沒有 /healthz，沒有新增 HTTP health probe。 此配置不包括 Scheduler、Worker、Terraform 或另一套 GitHub Actions 部署 workflow。 既有 GitHub Repository checks 保留；Cloud Build Trigger 不會自動等待 GitHub checks。
 
@@ -91,14 +91,14 @@ flowchart LR
 
 ## 兩種服務帳戶的權限
 
-| 身分 | 權限與範圍 |
-| --- | --- |
-| 建置服務帳戶 | Artifact Registry Writer，限目標 repository |
-| 建置服務帳戶 | Logs Writer，目標 project；使用 CLOUD_LOGGING_ONLY |
+| 身分         | 權限與範圍                                                                      |
+| ------------ | ------------------------------------------------------------------------------- |
+| 建置服務帳戶 | Artifact Registry Writer，限目標 repository                                     |
+| 建置服務帳戶 | Logs Writer，目標 project；使用 CLOUD_LOGGING_ONLY                              |
 | 建置服務帳戶 | Cloud Run Admin，目標 project，用於初次建立與設定公開存取；日後可依服務範圍縮限 |
-| 建置服務帳戶 | Service Account User，只針對應用執行服務帳戶 |
-| 建置服務帳戶 | 手動提交時，Storage Object Viewer，限此次來源 bucket |
-| 執行服務帳戶 | Secret Manager Secret Accessor，針對部署檔引用的六個 secrets 分別授權 |
+| 建置服務帳戶 | Service Account User，只針對應用執行服務帳戶                                    |
+| 建置服務帳戶 | 手動提交時，Storage Object Viewer，限此次來源 bucket                            |
+| 執行服務帳戶 | Secret Manager Secret Accessor，針對部署檔引用的六個 secrets 分別授權           |
 
 建置帳戶不需讀取 LINE 機密內容。執行帳戶不需要部署、建置或 registry 寫入權限。 Cloud Run 透過執行帳戶提供 ADC，不上傳 Google service-account key file。 出勤與群聊摘要已有 Firestore 讀寫實作；執行帳戶需具備目標資料庫所需權限，並以實際讀寫驗收。 check-firestore 子命令 仍使用執行該工具之身分的 ADC，與 Cloud Run 服務是否部署成功分開驗證。
 

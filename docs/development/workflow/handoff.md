@@ -6,14 +6,14 @@
 
 Use six fields rather than forwarding the full conversation or raw logs:
 
-| Field | Required content |
-| --- | --- |
-| Goal | One bounded question or change and its completion condition |
-| Ownership | Repository, branch, revision, relevant dirty paths (including untracked files), owned files/hunks and read-only boundaries |
-| Inputs | Located paths/symbols, applicable instructions and constraints; read required instructions if not already supplied and current |
-| Evidence | Only relevant source/query results with version, scope and artifact locations; include host/server/tool identity for MCP evidence |
-| Checks | Exact commands already run, actual results and required checks still pending |
-| Open issues | Missing evidence, conflicts, failures, and the next executable step or decision owner |
+| Field       | Required content                                                                                                                  |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Goal        | One bounded question or change and its completion condition                                                                       |
+| Ownership   | Repository, branch, revision, relevant dirty paths (including untracked files), owned files/hunks and read-only boundaries        |
+| Inputs      | Located paths/symbols, applicable instructions and constraints; read required instructions if not already supplied and current    |
+| Evidence    | Only relevant source/query results with version, scope and artifact locations; include host/server/tool identity for MCP evidence |
+| Checks      | Exact commands already run, actual results and required checks still pending                                                      |
+| Open issues | Missing evidence, conflicts, failures, and the next executable step or decision owner                                             |
 
 **開發與維運指引**
 

@@ -42,15 +42,15 @@
 
 ## 操作契約
 
-| 欄位 | Group 列表／詳情 | Project 列表／詳情／建立／更新 | ProjectItem 列表／加入／移除 |
-| --- | --- | --- | --- |
-| Actor | 既有 Session／Bearer 驗證的本人 | 同左 | 同左 |
-| Resource／Action | channel 內 Group；List／Get | owner 內 Project；List／Get／Create／Update | Project 自有項目；List／Add／Remove |
-| Context／Authority | 可信群組候選不代表授權；ACTIVE Group 與當下群組成員核驗 | 個人本人或目前可存取該組織的成員可讀／建立；現行組織授權沿用啟用的 legacy 組織規則。Project 建立者管理內容；來源資格另外核驗 | Project 建立者管理收錄，來源事項仍依目前 Repository 讀取資格 |
-| Policy／Decision | 非成員、停用、不存在不揭露；外部核驗失敗不當作允許 | 零或一個初始來源及多個可連結來源；沿用內容限制、expectedVersion 與防重鍵；Project 無獨立完成狀態 | 同 Project 不重複，同事項可在不同 Project；項目 ID 與 Issue ID 分開，來源資格不允許則不揭露來源內容 |
-| Result | 本人可開啟的 Group／基本資料，不授予 Issue 寫權 | Project 自有資料／版本；不寫 Repository、Issue 內容或狀態 | 僅改關聯及 Project 版本，來源事項完全不變；本專案進度獨立保存，來源狀態另按可讀來源取得，不改寫 Issue 狀態 |
-| 重送／併發 | 讀取無副作用；外部成員資格不宣稱與資料庫原子 | 舊建立鍵及收據維持同結果／同鍵異內容衝突；更新過期版本拒絕，無變化不加版本 | expectedVersion 序列化收錄／移除，結果不明先讀取再決定 |
-| Event／Audit | 保存必要群組事件排序，不記 token／profile | 保留原作者、建立／更新時間及版本追溯 | 關聯變動與 Project metadata 同交易，無外部通知 |
+| 欄位               | Group 列表／詳情                                        | Project 列表／詳情／建立／更新                                                                                               | ProjectItem 列表／加入／移除                                                                               |
+| ------------------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Actor              | 既有 Session／Bearer 驗證的本人                         | 同左                                                                                                                         | 同左                                                                                                       |
+| Resource／Action   | channel 內 Group；List／Get                             | owner 內 Project；List／Get／Create／Update                                                                                  | Project 自有項目；List／Add／Remove                                                                        |
+| Context／Authority | 可信群組候選不代表授權；ACTIVE Group 與當下群組成員核驗 | 個人本人或目前可存取該組織的成員可讀／建立；現行組織授權沿用啟用的 legacy 組織規則。Project 建立者管理內容；來源資格另外核驗 | Project 建立者管理收錄，來源事項仍依目前 Repository 讀取資格                                               |
+| Policy／Decision   | 非成員、停用、不存在不揭露；外部核驗失敗不當作允許      | 零或一個初始來源及多個可連結來源；沿用內容限制、expectedVersion 與防重鍵；Project 無獨立完成狀態                             | 同 Project 不重複，同事項可在不同 Project；項目 ID 與 Issue ID 分開，來源資格不允許則不揭露來源內容        |
+| Result             | 本人可開啟的 Group／基本資料，不授予 Issue 寫權         | Project 自有資料／版本；不寫 Repository、Issue 內容或狀態                                                                    | 僅改關聯及 Project 版本，來源事項完全不變；本專案進度獨立保存，來源狀態另按可讀來源取得，不改寫 Issue 狀態 |
+| 重送／併發         | 讀取無副作用；外部成員資格不宣稱與資料庫原子            | 舊建立鍵及收據維持同結果／同鍵異內容衝突；更新過期版本拒絕，無變化不加版本                                                   | expectedVersion 序列化收錄／移除，結果不明先讀取再決定                                                     |
+| Event／Audit       | 保存必要群組事件排序，不記 token／profile               | 保留原作者、建立／更新時間及版本追溯                                                                                         | 關聯變動與 Project metadata 同交易，無外部通知                                                             |
 
 - Project 自有資料的授權不得再要求 Repository 作為父容器。來源成員資格被撤銷或來源不可用時，來源 Issue 的內容、狀態及衍生進度不能由 Project 權限繞過；不得把未知統計回傳成零或以舊來源資料冒充成功。前端隱藏按鈕不能代替後端檢查。
 
@@ -88,13 +88,13 @@ erDiagram
 
 - 新引用只保存sourceType、sourceId及子物件必要的parentObjectId與關聯追溯欄位；跨庫引用保存 sourceRepositoryId。物件改名、數量或狀態更新後，列表重新讀取來源目前值，不儲存一份可分歧的名稱／狀態快照。子引用需同時驗父物件路徑，不能只有子ID。來源引用不是存取或修改來源的授權。
 
-| 欄位 | 列出引用 | 加入引用 | 移除引用 |
-| --- | --- | --- | --- |
-| Actor／Resource／Action | 本人可信Session／Bearer；owner 內 Project的來源引用；List | 同Project內Add | 同Project內Remove |
-| Context／Authority | 個人本人或目前可存取該組織的成員；來源讀權另外核驗 | 同左且Project建立者；已連結來源庫、ACTIVE 與該庫的當下讀權 | Project建立者及Project版本，不要求來源仍可讀 |
-| Policy／Decision | 來源缺失／失權保留占位，sourceUnavailable且不提供舊標題、數量或狀態；不令整個列表迴圈失敗 | sourceType與ID合法、父子歸屬正確，同Project同來源不重複 | 只刪引用，不刪來源，不繞過Project管理權或版本 |
-| Result | 最新來源唯讀preview；不改來源與Project | 交易保存引用並更新Project版本／audit | 交易移除引用並更新Project版本／audit，來源不變 |
-| 重送／併發 | 分頁游標綁本人與Project scope | 決定性來源鍵綁類型、父與來源ID，重送已存在同引用不重複；其他過期版本變更409 | 同引用重複移除不刪其他資料；其他過期版本變更409 |
+| 欄位                    | 列出引用                                                                                  | 加入引用                                                                    | 移除引用                                        |
+| ----------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------- |
+| Actor／Resource／Action | 本人可信Session／Bearer；owner 內 Project的來源引用；List                                 | 同Project內Add                                                              | 同Project內Remove                               |
+| Context／Authority      | 個人本人或目前可存取該組織的成員；來源讀權另外核驗                                        | 同左且Project建立者；已連結來源庫、ACTIVE 與該庫的當下讀權                  | Project建立者及Project版本，不要求來源仍可讀    |
+| Policy／Decision        | 來源缺失／失權保留占位，sourceUnavailable且不提供舊標題、數量或狀態；不令整個列表迴圈失敗 | sourceType與ID合法、父子歸屬正確，同Project同來源不重複                     | 只刪引用，不刪來源，不繞過Project管理權或版本   |
+| Result                  | 最新來源唯讀preview；不改來源與Project                                                    | 交易保存引用並更新Project版本／audit                                        | 交易移除引用並更新Project版本／audit，來源不變  |
+| 重送／併發              | 分頁游標綁本人與Project scope                                                             | 決定性來源鍵綁類型、父與來源ID，重送已存在同引用不重複；其他過期版本變更409 | 同引用重複移除不刪其他資料；其他過期版本變更409 |
 
 - 四種引用共用 items 文件格式，將來源庫、來源類型、父物件及來源 ID 納入決定性鍵；不同庫的同名識別可獨立收錄。
 
@@ -106,11 +106,11 @@ erDiagram
 
 ## 保存路徑與顯示範圍
 
-| 位置 | Project 路徑 |
-| --- | --- |
-| HTTP | /api/v1/owners/{ownerId}/projects/{id} |
-| Firestore 個人專案 | channels/{channelId}/users/{userId}/projects/{projectId} |
-| Firestore 組織專案 | channels/{channelId}/organizations/{organizationId}/projects/{projectId} |
+| 位置               | Project 路徑                                                                                                                      |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| HTTP               | /api/v1/owners/{ownerId}/projects/{id}                                                                                            |
+| Firestore 個人專案 | channels/{channelId}/users/{userId}/projects/{projectId}                                                                          |
+| Firestore 組織專案 | channels/{channelId}/organizations/{organizationId}/projects/{projectId}                                                          |
 | 舊群組專案相容資料 | channels/{channelId}/groups/{groupId}/projects/{projectId}；由既有 legacy adapter 隔離處理，不代表 canonical API 接受 Group Owner |
 
 - Project 文件保存 ownerId；沒有初始來源時，對外回應省略 defaultRepositoryId。同一擁有者底下的 projectCreationScopes 保存建立收據，Project 底下的 linkedRepositories 保存庫連結；每筆引用以 sourceRepositoryId 定位來源。

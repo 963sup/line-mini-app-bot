@@ -4,8 +4,6 @@
 
 ## 執行要求
 
-
-
 Verify contract outcomes using applicable checks, including denial, illegal transitions and write retry/concurrency when relevant. Current acceptance phase restrictions override general test-authoring duties; do not invent passing evidence.
 
 Design and execute meaningful tests for the assigned behavior and failure

@@ -10,22 +10,22 @@ Scripts own development/maintenance flows; frontend/backend packages own applica
 
 Run from root. Each shell script owns one operation; bootstrap/mise compose multi-step flows. [mise.toml](../mise.toml) defines versions/tasks.
 
-| Location | Responsibility | Task/entry |
-| --- | --- | --- |
-| [bootstrap.sh](bootstrap.sh) | Environment setup | core via mise run bootstrap; direct invocation defaults cloud; accepts core, cloud, mcp, all |
-| [setup/](setup/README.md) | Tools/Go dependencies | deps |
-| [dev/](dev/README.md) | Local environment/service startup | dev |
-| [generate/](generate/README.md) | API code, frontend assets/document graphs | pnpm api:generate, graphify-docs |
-| [check/](check/README.md) | Configuration checks | check-config |
-| [contract/](contract/README.md) | API capabilities/routes | pnpm api:check |
-| [test/](test/README.md) | Route/MCP/container acceptance | pnpm api:check, unittest, container-build |
-| [perf/](perf/README.md) | Go profiling | profile |
-| [build/](build/README.md) | Container images | container-build |
-| [release/](release/README.md) | Release acceptance | release-smoke.py |
-| [ops/](ops/README.md) | Cloud Run inspection | cloud-run-snapshot.py |
-| [db/](db/README.md) | Firestore indexes | ensure-firestore-indexes.py |
-| [tooling/](tooling/README.md) | Development/environment diagnostics | doctor, tool-exec.sh |
-| [mcp/](mcp/README.md) | Project MCP settings, connections/diagnostics | check-mcp-config, doctor-mcp |
+| Location                        | Responsibility                                | Task/entry                                                                                   |
+| ------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| [bootstrap.sh](bootstrap.sh)    | Environment setup                             | core via mise run bootstrap; direct invocation defaults cloud; accepts core, cloud, mcp, all |
+| [setup/](setup/README.md)       | Tools/Go dependencies                         | deps                                                                                         |
+| [dev/](dev/README.md)           | Local environment/service startup             | dev                                                                                          |
+| [generate/](generate/README.md) | API code, frontend assets/document graphs     | pnpm api:generate, graphify-docs                                                             |
+| [check/](check/README.md)       | Configuration checks                          | check-config                                                                                 |
+| [contract/](contract/README.md) | API capabilities/routes                       | pnpm api:check                                                                               |
+| [test/](test/README.md)         | Route/MCP/container acceptance                | pnpm api:check, unittest, container-build                                                    |
+| [perf/](perf/README.md)         | Go profiling                                  | profile                                                                                      |
+| [build/](build/README.md)       | Container images                              | container-build                                                                              |
+| [release/](release/README.md)   | Release acceptance                            | release-smoke.py                                                                             |
+| [ops/](ops/README.md)           | Cloud Run inspection                          | cloud-run-snapshot.py                                                                        |
+| [db/](db/README.md)             | Firestore indexes                             | ensure-firestore-indexes.py                                                                  |
+| [tooling/](tooling/README.md)   | Development/environment diagnostics           | doctor, tool-exec.sh                                                                         |
+| [mcp/](mcp/README.md)           | Project MCP settings, connections/diagnostics | check-mcp-config, doctor-mcp                                                                 |
 
 ```bash
 bash scripts/bootstrap.sh core

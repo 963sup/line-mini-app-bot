@@ -15,12 +15,12 @@ Runtime 查詢需要已安裝依賴且正在運行的 Next.js 16+ 開發伺服�
 
 ## 工具與操作邊界
 
-| 工具 | 用途與邊界 |
-| --- | --- |
-| `nextjs_index` | 探索正在運行的 Next.js server 及其 runtime 工具；先核對專案、port 與環境，再使用結果 |
-| `nextjs_call` | 依 index 實際回傳的工具名稱，對指定 port 查詢必要狀態；工具與參數依執行中的 Next.js 版本，不猜名稱 |
-| `nextjs_docs` | 尋找已安裝 Next.js 的 `node_modules/next/dist/docs/` 並回傳閱讀指引；是 gateway，不代讀或遠端下載文件 |
-| `browser_eval` | 偵測並提供 `agent-browser` CLI 指引；不等於已執行瀏覽器操作，也不自動授權安裝或互動 |
+| 工具           | 用途與邊界                                                                                            |
+| -------------- | ----------------------------------------------------------------------------------------------------- |
+| `nextjs_index` | 探索正在運行的 Next.js server 及其 runtime 工具；先核對專案、port 與環境，再使用結果                  |
+| `nextjs_call`  | 依 index 實際回傳的工具名稱，對指定 port 查詢必要狀態；工具與參數依執行中的 Next.js 版本，不猜名稱    |
+| `nextjs_docs`  | 尋找已安裝 Next.js 的 `node_modules/next/dist/docs/` 並回傳閱讀指引；是 gateway，不代讀或遠端下載文件 |
+| `browser_eval` | 偵測並提供 `agent-browser` CLI 指引；不等於已執行瀏覽器操作，也不自動授權安裝或互動                   |
 
 先重用同任務有效的工具 inventory 與證據，再按需呼叫；完整派工及失效條件見[代理工作流程](../../workflow/handoff.md#minimal-handoff-and-evidence-reuse)。典型 runtime 路徑是 `nextjs_index` → 核對目標 → `nextjs_call`，不是每次呼叫前重新 initialize 或啟動所有 MCP。
 

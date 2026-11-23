@@ -6,15 +6,14 @@
 
 ## 管理操作與既有資料
 
-| HTTP 操作 | 用途 |
-|---|---|
-| POST /api/v1/organizations | 登入者建立獨立組織。 |
-| PUT /api/v1/organizations/{organizationId}/owner | 現任 Owner 移轉給組織現有成員。 |
-| PUT /api/v1/teams/{teamId}/management | 為已自動建立的 Team 指定管理歸屬。 |
-| PUT 或 DELETE /api/v1/organizations/{organizationId}/enterprise-teams/{teamId} | 新增或移除同企業內的 Team 指派。 |
+| HTTP 操作                                                                      | 用途                               |
+| ------------------------------------------------------------------------------ | ---------------------------------- |
+| POST /api/v1/organizations                                                     | 登入者建立獨立組織。               |
+| PUT /api/v1/organizations/{organizationId}/owner                               | 現任 Owner 移轉給組織現有成員。    |
+| PUT /api/v1/teams/{teamId}/management                                          | 為已自動建立的 Team 指定管理歸屬。 |
+| PUT 或 DELETE /api/v1/organizations/{organizationId}/enterprise-teams/{teamId} | 新增或移除同企業內的 Team 指派。   |
 
 組織的 memberUserIds 代表有效成員；管理歸屬操作讀取服務端維護的 managerUserIds。企業自助開通與組織加入流程見[企業規格](../domains/enterprise/design.md)。既有 LINE 群組在下一筆可信事件時以 groupId 補齊 Team；事件只更新群組名稱與狀態，保留既有管理範圍與權限。
-
 
 ## LINE 一對一建立入口
 

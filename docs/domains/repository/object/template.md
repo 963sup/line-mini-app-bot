@@ -67,11 +67,11 @@ flowchart LR
 
 Actor 取自既有 Session／Bearer 驗證後的 request context，前端不能指定建立者。本庫範本操作及個人範本套用沿用 Object 的 Repository 成員存取規則，由 `Repositories.Get` 確認目前成員與有效範圍；不是只有範本建立者能套用。
 
-| 操作 | 輸入與結果 |
-| --- | --- |
-| 建立範本 | 名稱與節點樹，立即保存為不可修改的 v1，回傳完整快照。 |
-| 列出／讀取 | 同 Repository 的範本，列表每頁20筆，使用綁定操作者與範圍的 opaque cursor。 |
-| 套用範本 | 範本 ID、重試鍵及選填父 Object ID，回傳新根 ID、所有 Object ID 與已建立的節點關係。個人範本依選取版本套用，舊客戶端預設 v1。 |
+| 操作       | 輸入與結果                                                                                                                   |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 建立範本   | 名稱與節點樹，立即保存為不可修改的 v1，回傳完整快照。                                                                        |
+| 列出／讀取 | 同 Repository 的範本，列表每頁20筆，使用綁定操作者與範圍的 opaque cursor。                                                   |
+| 套用範本   | 範本 ID、重試鍵及選填父 Object ID，回傳新根 ID、所有 Object ID 與已建立的節點關係。個人範本依選取版本套用，舊客戶端預設 v1。 |
 
 公開格式與錯誤回應以 [Object 契約](../../../../api/contract/object/objects.yaml) 為準。路徑為 `/api/v1/repositories/{repositoryId}/object-templates`、`/{id}` 與 `/{id}/instances`。
 
@@ -95,14 +95,14 @@ Firestore adapter 在交易內重新檢查 Repository 的有效容器、範本�
 
 ## 分層與入口
 
-| 層級 | 責任與位置 |
-| --- | --- |
-| 前端 | [Templates.tsx](../../../../frontend/miniapp/src/business/object/Templates.tsx) 收集名稱、節點名稱與父節點，選用並送出一次套用請求；未知結果凍結輸入、重試沿用原請求。 |
-| API | [契約](../../../../api/contract/object/objects.yaml) 生成 Go／TypeScript 型別；[HTTP adapter](../../../../backend/internal/business/object/adapter/http/templates.go) 映射格式與可信 Actor。 |
-| 應用層 | [templates.go](../../../../backend/internal/business/object/application/templates.go) 驗證權限與輸入、準備 Object 建立內容，依[儲存介面](../../../../backend/internal/business/object/application/port/template.go)寫入。 |
-| 領域 | [template/version.go](../../../../backend/internal/business/object/domain/template/version.go) 驗證單根樹與不可變版本，不匯入 Object 實體或基礎設施。 |
-| Firestore | [templates.go](../../../../backend/internal/business/object/adapter/firestore/templates.go) 實作快照、分頁、交易及收據。 |
-| 組裝 | [repository.go](../../../../backend/internal/bootstrap/repository.go) 注入既有 Repository 服務及 Object store，不由 HTTP adapter 建立資料庫 client。 |
+| 層級      | 責任與位置                                                                                                                                                                                                                |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 前端      | [Templates.tsx](../../../../frontend/miniapp/src/business/object/Templates.tsx) 收集名稱、節點名稱與父節點，選用並送出一次套用請求；未知結果凍結輸入、重試沿用原請求。                                                    |
+| API       | [契約](../../../../api/contract/object/objects.yaml) 生成 Go／TypeScript 型別；[HTTP adapter](../../../../backend/internal/business/object/adapter/http/templates.go) 映射格式與可信 Actor。                              |
+| 應用層    | [templates.go](../../../../backend/internal/business/object/application/templates.go) 驗證權限與輸入、準備 Object 建立內容，依[儲存介面](../../../../backend/internal/business/object/application/port/template.go)寫入。 |
+| 領域      | [template/version.go](../../../../backend/internal/business/object/domain/template/version.go) 驗證單根樹與不可變版本，不匯入 Object 實體或基礎設施。                                                                     |
+| Firestore | [templates.go](../../../../backend/internal/business/object/adapter/firestore/templates.go) 實作快照、分頁、交易及收據。                                                                                                  |
+| 組裝      | [repository.go](../../../../backend/internal/bootstrap/repository.go) 注入既有 Repository 服務及 Object store，不由 HTTP adapter 建立資料庫 client。                                                                      |
 
 服務方法均以 `context.Context` 為第一參數，沿用呼叫端取消與期限；HTTP 期限12秒。`actor` 來自可信驗證，其他字串與 DTO 是未信任輸入，由應用層驗證。
 

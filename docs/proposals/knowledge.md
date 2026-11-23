@@ -38,12 +38,12 @@ flowchart TD
 
 以下為邏輯簽章，實作時對照既有介面。身分及資源範圍取自可信呼叫情境。
 
-| 操作 | 結果、副作用與失敗語意 |
-|---|---|
-| Propose(actor, scope, rule, source) | 有權貢獻者建立附來源草稿；草稿尚不可供一般檢索。 |
-| Publish(reviewer, draftVersion, expectedHead) | 檢查範圍內發布權限與審核紀錄；原子比對現行版本並切換。並行發布的落後請求回報衝突。 |
-| Retrieve(actor, scope, templateVersion) | 僅回傳來自授權範圍、適用且有效的已發布規則與版本；無符合規則時回傳空集合。讀取服務失敗另行回報，不能視為沒有規則。 |
-| Withdraw(reviewer, entryVersion) | 檢查撤回權限；停止新引用並保留歷史紀錄。重複撤回同版維持已撤回狀態。 |
+| 操作                                          | 結果、副作用與失敗語意                                                                                             |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Propose(actor, scope, rule, source)           | 有權貢獻者建立附來源草稿；草稿尚不可供一般檢索。                                                                   |
+| Publish(reviewer, draftVersion, expectedHead) | 檢查範圍內發布權限與審核紀錄；原子比對現行版本並切換。並行發布的落後請求回報衝突。                                 |
+| Retrieve(actor, scope, templateVersion)       | 僅回傳來自授權範圍、適用且有效的已發布規則與版本；無符合規則時回傳空集合。讀取服務失敗另行回報，不能視為沒有規則。 |
+| Withdraw(reviewer, entryVersion)              | 檢查撤回權限；停止新引用並保留歷史紀錄。重複撤回同版維持已撤回狀態。                                               |
 
 [共用架構、時序與驗收](domain-collaboration.md)
 
