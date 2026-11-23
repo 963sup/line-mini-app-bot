@@ -71,13 +71,14 @@ func TestDependencyBoundaries(t *testing.T) {
 		"business/knowledge/application/port":             {},
 
 		"business/object/application":         {"business/object/application/command", "business/object/application/dto", "business/object/application/port", "business/object/application/query", "business/object/domain/entity", "business/object/domain/template", "business/operations/application", "business/repository/domain/entity"},
-		"business/object/application/command": {"business/object/application/dto", "business/object/application/port", "business/object/domain/entity", "business/object/domain/service", "business/object/domain/template", "business/repository/domain/entity"},
+		"business/object/application/command": {"business/object/domain/event", "business/object/application/dto", "business/object/application/port", "business/object/domain/entity", "business/object/domain/service", "business/object/domain/template", "business/repository/domain/entity"},
 		"business/object/application/query":   {"business/object/application/dto", "business/object/application/port", "business/object/domain/entity", "business/object/domain/service", "business/object/domain/template", "business/operations/application", "business/repository/domain/entity"},
 		"business/object/application/dto":     {"business/object/domain/entity", "business/object/domain/template", "business/operations/application"},
-		"business/object/application/port":    {"business/object/application/dto", "business/object/domain/entity", "business/object/domain/template", "business/operations/application", "business/repository/domain/entity"},
+		"business/object/application/port":    {"business/object/domain/event", "business/object/application/dto", "business/object/domain/entity", "business/object/domain/template", "business/operations/application", "business/repository/domain/entity"},
 		"business/object/domain/template":     {},
 		"business/object/domain/policy":       {},
 		"business/object/domain/valueobject":  {},
+		"business/object/domain/event":        {},
 		"business/object/domain/entity":       {"business/object/domain/valueobject", "business/object/domain/policy"},
 		"business/object/domain/service":      {"business/object/domain/entity", "business/object/domain/template"},
 

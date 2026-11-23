@@ -9,6 +9,7 @@ import (
 	db "cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/event"
 	repository "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 	key "github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"google.golang.org/api/iterator"
@@ -74,7 +75,8 @@ func (s *Store) ListQuantityChanges(ctx context.Context, r repository.Repository
 		if snapshot.Ref.Path != ref.Path || c.Before.RepositoryID != r.ID || c.After.RepositoryID != r.ID {
 			return page, entity.ErrUnavailable
 		}
-		if c.Before.Quantity == c.After.Quantity {
+		change, changed := event.QuantityChange(c.Before.Quantity, c.Before.Unit, c.After.Quantity, c.After.Unit)
+		if !changed {
 			continue
 		}
 		label := strings.TrimSpace(c.ActorName)
@@ -85,7 +87,7 @@ func (s *Store) ListQuantityChanges(ctx context.Context, r repository.Repository
 				label = "成員 " + key.JSONDigest([]string{s.ChannelID, r.ID, c.ActorID})[:12]
 			}
 		}
-		page.Items = append(page.Items, dto.QuantityChange{ObjectID: c.After.ID, Name: c.After.Name, Version: c.Version, At: c.At, Actor: label, BeforeQuantity: c.Before.Quantity, BeforeUnit: c.Before.Unit, AfterQuantity: c.After.Quantity, AfterUnit: c.After.Unit})
+		page.Items = append(page.Items, dto.QuantityChange{ObjectID: c.After.ID, Name: c.After.Name, Version: c.Version, At: c.At, Actor: label, BeforeQuantity: change.BeforeQuantity, BeforeUnit: change.BeforeUnit, AfterQuantity: change.AfterQuantity, AfterUnit: change.AfterUnit})
 	}
 	return page, nil
 }

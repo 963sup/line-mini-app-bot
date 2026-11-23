@@ -8,13 +8,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
 	"syscall"
 	"time"
 
-	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
-
 	"cloud.google.com/go/firestore"
-
 	attendancehttp "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/http"
 	attendanceline "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line"
 	"github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/presentation"
@@ -26,7 +24,11 @@ import (
 	membershipdb "github.com/963sup/line-mini-app-bot/internal/business/membership/adapter/firestore"
 	membershiphttp "github.com/963sup/line-mini-app-bot/internal/business/membership/adapter/http"
 	membershipapp "github.com/963sup/line-mini-app-bot/internal/business/membership/application"
+	objectevents "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/firestore"
 	objecthttp "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/http"
+	objectmessages "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/messaging"
+	objectscheduler "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/scheduler"
+	objectcommand "github.com/963sup/line-mini-app-bot/internal/business/object/application/command"
 	operationshttp "github.com/963sup/line-mini-app-bot/internal/business/operations/adapter/http"
 	poppler "github.com/963sup/line-mini-app-bot/internal/business/operations/adapter/poppler"
 	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
@@ -34,6 +36,7 @@ import (
 	organizationhttp "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/http"
 	organizationline "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/line"
 	projecthttp "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/http"
+	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	repositoryhttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http"
 	labelhttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/labels"
 	milestonehttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/milestones"
@@ -51,6 +54,7 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/browser"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/geolocation"
+	"google.golang.org/api/pubsub/v1"
 )
 
 func Run() (resultErr error) {
@@ -229,6 +233,25 @@ func Run() (resultErr error) {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	if topic := os.Getenv("OBJECT_QUANTITY_PUBSUB_TOPIC"); topic != "" {
+		if repositoryStore == nil || !regexp.MustCompile(`^projects/[a-zA-Z0-9-]+/topics/[A-Za-z][A-Za-z0-9._~%+-]{2,254}$`).MatchString(topic) {
+			return errors.New("invalid Object event configuration: repository storage and full Pub/Sub topic required")
+		}
+		client, err := pubsub.NewService(ctx)
+		if err != nil {
+			return err
+		}
+		publisher := objectmessages.Publisher{Client: client, Topic: topic}
+		store := objectevents.Store{Client: repositoryStore.Client, ChannelID: repositoryStore.ChannelID}
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			objectscheduler.Run(ctx, func(batch context.Context) error {
+				return objectcommand.DeliverQuantityEvents(batch, &store, publisher.Publish)
+			})
+		}()
+		defer func() { stop(); <-done }()
+	}
 	result := make(chan error, 1)
 	slog.Info("server starting", "port", port)
 	go func() { result <- server.ListenAndServe() }()

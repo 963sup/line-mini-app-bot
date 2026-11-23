@@ -21,17 +21,17 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-
+	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/event"
+	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"github.com/963sup/line-mini-app-bot/internal/platform/grpcstatus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 )
 
 type Store struct {
-	Client    *db.Client
-	ChannelID string
+	QueueQuantityEvents bool
+	Client              *db.Client
+	ChannelID           string
 }
 
 var _ objectApplicationPort.Store = (*Store)(nil)
@@ -298,6 +298,12 @@ func (s *Store) Update(ctx context.Context, r repositoryDomainEntity.Repository,
 		if e = tx.Set(ref, encode(result)); e != nil {
 			return e
 		}
+		if change, changed := event.QuantityChange(current.Quantity, current.Unit, result.Quantity, result.Unit); changed && s.QueueQuantityEvents {
+			revision := event.Revision{ChannelID: s.ChannelID, RepositoryID: r.ID, ObjectID: id, Version: result.Version, Change: change}
+			if err := tx.Create(s.quantityOutbox().Doc(firestorekey.JSONDigest([]string{s.ChannelID, r.ID, id, strconv.FormatInt(result.Version, 10)})), revision); err != nil {
+				return err
+			}
+		}
 		return tx.Create(ref.Collection("changes").Doc(strconv.FormatInt(result.Version, 10)), map[string]any{"actorId": actor, "actorName": u.ActorDisplayName, "version": result.Version, "at": result.UpdatedAt, "before": encode(current), "after": encode(result)})
 	})
 	if err != nil {
@@ -367,4 +373,29 @@ func creationHash(c objectDomainEntity.Content) string {
 		Content           legacyContent
 		CompletedQuantity string
 	}{2, old, c.CompletedQuantity})
+}
+
+func (s *Store) quantityOutbox() *db.CollectionRef {
+	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("objectQuantityOutbox")
+}
+
+func (s *Store) PendingQuantityEvents(ctx context.Context) ([]event.PendingRevision, error) {
+	docs, err := s.quantityOutbox().Limit(50).Documents(ctx).GetAll()
+	if err != nil {
+		return nil, err
+	}
+	pending := make([]event.PendingRevision, 0, len(docs))
+	for _, doc := range docs {
+		var rev event.Revision
+		if err := doc.DataTo(&rev); err != nil {
+			return nil, err
+		}
+		pending = append(pending, event.PendingRevision{ID: doc.Ref.ID, Revision: rev})
+	}
+	return pending, nil
+}
+
+func (s *Store) AcknowledgeQuantityEvent(ctx context.Context, id string) error {
+	_, err := s.quantityOutbox().Doc(id).Delete(ctx)
+	return err
 }

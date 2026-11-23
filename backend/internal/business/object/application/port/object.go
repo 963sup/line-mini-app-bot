@@ -9,6 +9,7 @@ import (
 
 	objectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
 	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/event"
 )
 
 type Repositories interface {
@@ -24,4 +25,10 @@ type Store interface {
 
 type QuantityHistory interface {
 	ListQuantityChanges(context.Context, repositoryDomainEntity.Repository, string, string) (objectApplicationDto.QuantityChangePage, error)
+}
+
+// QuantityEvents reads and acknowledges committed revisions in the configured channel.
+type QuantityEvents interface {
+	PendingQuantityEvents(context.Context) ([]event.PendingRevision, error)
+	AcknowledgeQuantityEvent(context.Context, string) error
 }

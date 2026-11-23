@@ -81,7 +81,7 @@ func newObjects(r *repositoryApplication.Service, store *repositorydb.Store) *ob
 	if store == nil {
 		return nil
 	}
-	objects := &objectdb.Store{Client: store.Client, ChannelID: store.ChannelID}
+	objects := &objectdb.Store{QueueQuantityEvents: os.Getenv("OBJECT_QUANTITY_PUBSUB_TOPIC") != "", Client: store.Client, ChannelID: store.ChannelID}
 	service := &objectApplication.Service{QuantityHistory: objects, Templates: objects, PersonalTemplates: objects, Repositories: r, Store: objects}
 	if key, model := os.Getenv("OPENAI_API_KEY"), os.Getenv("AI_DOCUMENT_MODEL"); key != "" && model != "" {
 		client := openai.NewClient(option.WithAPIKey(key), option.WithBaseURL("https://api.openai.com/v1/"), option.WithMaxRetries(0), option.WithHTTPClient(&http.Client{Transport: httptransport.TraceTransport{}, Timeout: 2 * time.Minute, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}))

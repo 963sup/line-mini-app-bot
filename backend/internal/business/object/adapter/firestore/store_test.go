@@ -1,6 +1,8 @@
 package firestore
 
 import (
+	objectcommand "github.com/963sup/line-mini-app-bot/internal/business/object/application/command"
+	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/event"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
@@ -22,7 +24,6 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-
 	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 )
 
@@ -309,5 +310,46 @@ func TestQuantityHistoryReadsCommittedVersions(t *testing.T) {
 	foreign, err := other.ListQuantityChanges(ctx, r, "author", "")
 	if err != nil || len(foreign.Items) != 0 {
 		t.Fatalf("channel isolation: %+v %v", foreign, err)
+	}
+}
+
+func TestQuantityOutboxRetriesCommittedRevision(t *testing.T) {
+	ctx, store, repo := emulatorStore(t)
+	store.QueueQuantityEvents = true
+	obj, err := store.Create(ctx, repo, "actor", "quantity-outbox-create", testContent())
+	if err != nil {
+		t.Fatal(err)
+	}
+	update := objectDomainEntity.Update{Content: obj.Content, ExpectedVersion: obj.Version}
+	update.Quantity = "13"
+	if _, err = store.Update(ctx, repo, "actor", obj.ID, update); err != nil {
+		t.Fatal(err)
+	}
+	var first string
+	err = objectcommand.DeliverQuantityEvents(ctx, store, func(_ context.Context, id string, rev event.Revision) error {
+		first = id
+		if rev.Change.AfterQuantity != "13" || rev.Version != 2 || rev.ObjectID != obj.ID {
+			t.Fatal(rev)
+		}
+		return context.Canceled
+	})
+	if err != context.Canceled || first == "" {
+		t.Fatal(first, err)
+	}
+	count := 0
+	for i := 0; i < 2; i++ {
+		err = objectcommand.DeliverQuantityEvents(ctx, store, func(_ context.Context, id string, rev event.Revision) error {
+			if id != first {
+				t.Fatal(id)
+			}
+			count++
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	if count != 1 {
+		t.Fatal(count)
 	}
 }
