@@ -1,30 +1,36 @@
-# Weather / Forecast 既有入口契約
+<a id="weather--forecast-既有入口契約"></a>
 
-記錄天氣預報的 LINE 互動入口。
+# Existing Weather / Forecast entry contracts
 
-此處描述 LINE 天氣預報的事件入口。預報來源與回覆邏輯由後端 weather 套件維護。
+Documents LINE weather forecast interactions.
 
-## 閱讀與修改入口
+Describes LINE forecast event entry points. The backend weather package owns forecast sources and reply logic.
 
-先查閱[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[群組位置天氣](../../../docs/domains/weather/weather.md) · [現行實作圖：基礎入口](../../../docs/contracts/http.md#基礎入口)
+Read the [local guidance](AGENTS.md) first.
 
-本文件描述既有 LINE 入口，不加入公開 OpenAPI、不產生瀏覽器 client。
-完整產品規則見 [群組位置天氣](../../../docs/domains/weather/weather.md)。
+<a id="相關規格"></a>
 
-- Actor／Context：共用 webhook 驗證簽章後，群組來源的位置訊息；沿用 active、reply token 與非重送條件。
-- Resource／Action：以該訊息的經緯度、地址查詢目前有效的區域預報；不保存位置。
-- Authority／Policy：私訊、一般文字與地圖網址不觸發；沿用 CWA 縣市與距離、有效時段、逾時及回應大小限制。
-- Result：由 LINE 回覆官方區域預報；未設定、超出支援範圍或上游失敗時，回覆既有提示；不產生出勤或位置紀錄。
-- 重送：位置事件不重查；回覆失敗不保證送達，使用者可重新分享。
+## Related specifications
 
-後端 core、CWA adapter、LINE adapter 分別位於 business/weather/forecast、其 cwa/、line/。
-組裝在 internal/bootstrap/line.go，與出勤、摘要資料層無依賴。
-沒有既有公開 Weather HTTP API 或 MINI App 天氣畫面。
+[Group location weather](../../../docs/domains/weather/weather.md) · [Current implementation diagram: basic entry points](../../../docs/contracts/http.md#基礎入口)
 
-[現行實作圖：基礎入口](../../../docs/contracts/http.md#基礎入口)
+Describes existing LINE entry points without public OpenAPI or generated browser clients.
+See [group location weather](../../../docs/domains/weather/weather.md) for complete product rules.
 
-[上層導覽](../README.md)
+- Actor/Context: group location messages after shared webhook signature validation; retain active, reply-token and non-redelivery conditions.
+- Resource/Action: query current regional forecasts by message coordinates/address without storing location.
+- Authority/Policy: direct messages, ordinary text and map URLs do not trigger forecasts. Preserve CWA county/city, distance, validity window, timeout and response-size limits.
+- Result: reply through LINE with official regional forecasts. Unconfigured, unsupported or upstream failure cases use existing notices; create no attendance/location records.
+- Redelivery: do not repeat location-event queries. Replies are not guaranteed after failure; users may share location again.
+
+Backend core, CWA adapter and LINE adapter live in business/weather/forecast and its cwa/ and line/ directories.
+Composition is in internal/bootstrap/line.go, independent of attendance and summary storage.
+There is no existing public Weather HTTP API or MINI App weather screen.
+
+[Current implementation diagram: basic entry points](../../../docs/contracts/http.md#基礎入口)
+
+[Parent directory guide](../README.md)

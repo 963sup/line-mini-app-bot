@@ -8,9 +8,9 @@ Diagnose Codex agents, MCP and configuration.
 
 ## Prerequisites and configuration
 
+See [shared MCP settings and diagnostics](README.md#mcp-診斷).
+
 Remote documentation service; network required. A website 403 does not imply MCP is unavailable.
-Connection, timeouts and enabled tool names are owned by `.codex/config.toml`.
-Tool versions are owned by `mise.toml`; never copy token values into documentation.
 
 ## Operation
 

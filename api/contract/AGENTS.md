@@ -1,22 +1,37 @@
-# 契約來源
+<a id="契約來源"></a>
 
-## 閱讀與修改入口
+# Contract sources
 
-先查閱[internal-openapi.yaml](internal-openapi.yaml)、[openapi.yaml](openapi.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[專案與來源引用](../../docs/domains/project/project.md) · [里程碑](../../docs/domains/repository/milestones.md)
+Start with [internal-openapi.yaml](internal-openapi.yaml), [openapi.yaml](openapi.yaml), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
 
-適用於本目錄及其子目錄；繼承 [上層指引](../AGENTS.md)，並遵循其引用的根目錄規則。此處只補充本範圍責任；使用者與主機指令優先，不增加外部寫入授權。
+<a id="相關規格"></a>
 
-## 職責與邊界
+## Related specifications
 
-- 公開 HTTP 由 `openapi.yaml` 組合，內部 worker HTTP 由 `internal-openapi.yaml` 組合；入口只維護 metadata 與 `$ref`，業務操作與 DTO 歸所屬能力。
-- 依 [能力索引](README.md) 維護唯一歸屬；能力檔不得反向引用組合入口，跨能力引用遵循擁有者方向，不形成循環。
-- 共通傳輸定義放 common；業務模型不因多處使用就移入 common。資料夾使用能力名稱，實體與 REST 資源命名遵循上層命名規範。
-- Issue 的 types／comments、Discussion categories 與 Project fields／views 保留 scaffold，空 paths／schemas 不接入組合入口。Project／items 與 Repository milestones／statistics 已依 [專案與來源引用](../../docs/domains/project/project.md)、[里程碑](../../docs/domains/repository/milestones.md)、[儲存庫洞察（Insights）](../../docs/domains/repository/insights.md) 接入；其餘能力先完成操作規格再新增契約及實作。
-- 新增操作同步維護 [能力清單](capabilities.json)、對應 adapter、消費端及功能規格；事件入口不為目錄一致而新增 HTTP API。
-- 契約變更由儲存庫根目錄執行 `bash scripts/tooling/tool-exec.sh pnpm api:check`；純指引變更檢查連結與 whitespace，歷史相容性比較另列 base revision。
+[Projects and source references](../../docs/domains/project/project.md) · [Milestones](../../docs/domains/repository/milestones.md)
 
-[現行實作圖：基礎入口](../../docs/contracts/http.md#基礎入口)
+Applies to this directory and descendants. Inherit [parent guidance](../AGENTS.md) and its referenced root rules. This file adds only local responsibilities. User and host instructions take precedence; it grants no additional authorization for external writes.
+
+<a id="職責與邊界"></a>
+
+## Responsibilities and boundaries
+
+- `openapi.yaml` composes public HTTP; `internal-openapi.yaml` composes internal worker HTTP. Entry points maintain only metadata and `$ref`; operations and DTOs belong to their capabilities.
+- Maintain unique ownership through the [capability index](README.md). Capability files must not reference composition entry points. Cross-capability references follow ownership direction without cycles.
+- Put shared transport definitions in common, but do not move business models there merely because they have several users. Name folders by capability; follow parent entity and REST resource naming rules.
+- Keep scaffolds for Issue types/comments, Discussion categories and Project fields/views. Do not compose empty paths/schemas. Project/items and Repository milestones/statistics are wired according to [projects and source references](../../docs/domains/project/project.md), [milestones](../../docs/domains/repository/milestones.md) and [repository insights](../../docs/domains/repository/insights.md). Specify other operations before adding contracts or implementations.
+- For new operations, update the [capability inventory](capabilities.json), adapters, consumers and feature specifications together. Do not add HTTP APIs for event entry points merely for directory consistency.
+- Run `bash scripts/tooling/tool-exec.sh pnpm api:check` from the root after contract changes. For guidance-only changes, check links and whitespace. Specify the base revision separately for historical compatibility comparisons.
+
+[Current implementation diagram: basic entry points](../../docs/contracts/http.md#基礎入口)
+
+## Applicable engineering conventions
+
+- **Schema and ownership:** Keep one owning capability for each operation and DTO, with shared transport definitions referenced rather than copied.
+- **HTTP and querying:** Specify request validation, stable errors, pagination scope and ordering before wiring an operation or registering consumers.
+- **Evolution:** Synchronize affected consumers and generated artifacts after schema or call-site changes, then run the existing API contract checks; retain compatible readers during expand-contract migrations.
+- **Types and compatibility:** Preserve field casing, optionality and existing operation/error semantics; make incompatible schema evolution an explicit migration.

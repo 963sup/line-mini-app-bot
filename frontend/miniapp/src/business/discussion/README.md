@@ -1,19 +1,25 @@
-# 空間討論與留言
+<a id="空間討論與留言"></a>
 
-組合 Repository 討論串及留言互動。
+# Space discussions and comments
 
-在本功能就近維護畫面與互動，路由由 pages 組合，權限與結果以後端 API 為準。
+Composes Repository discussions/comments.
 
-## 閱讀與修改入口
+Colocate feature UI/interactions; pages compose routes and backend APIs determine permissions/results.
 
-先查閱[Comments.tsx](Comments.tsx)、[View.tsx](View.tsx)、[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[討論規格](../../../../../docs/domains/repository/discussion/design.md) · [現行實作圖：最小實作邊界與驗證](../../../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+Start with [Comments.tsx](Comments.tsx), [View.tsx](View.tsx), [local agent guidance](AGENTS.md).
 
-操作、權限、資料與驗收依 [討論規格](../../../../../docs/domains/repository/discussion/design.md) 維護；本模組保存對應業務實作，不共用問題狀態。
+<a id="相關規格"></a>
 
-[現行實作圖：最小實作邊界與驗證](../../../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+## Related specifications
 
-[上層導覽](../README.md)
+[Discussion specification](../../../../../docs/domains/repository/discussion/design.md) · [Current implementation diagram: minimal boundaries and verification](../../../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+
+The [discussion specification](../../../../../docs/domains/repository/discussion/design.md) owns operations, permissions, data/acceptance. This module implements them without sharing Issue states.
+
+[Current implementation diagram: minimal boundaries and verification](../../../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+
+[Parent directory guide](../README.md)

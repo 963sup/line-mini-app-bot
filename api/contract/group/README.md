@@ -1,17 +1,23 @@
-# 工程群組 API
+<a id="工程群組-api"></a>
 
-定義群組列表與群組詳情的 API 契約。
+# Engineering group API
 
-維護本能力的操作與 schema；根規格負責組合，公開格式由契約產生。
+Defines group list and detail API contracts.
 
-## 閱讀與修改入口
+Maintain this capability's operations and schemas. Root specifications compose them; public formats are generated from contracts.
 
-先查閱[groups.yaml](groups.yaml)、[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[groups.yaml](groups.yaml) 定義群組列表與詳情，由[公開入口](../openapi.yaml)組合。
+Start with [groups.yaml](groups.yaml) and [local guidance](AGENTS.md).
 
-[現行實作圖：基礎入口](../../../docs/contracts/http.md#基礎入口)
+<a id="相關規格"></a>
 
-[上層導覽](../README.md)
+## Related specifications
+
+[groups.yaml](groups.yaml) defines group lists and details, composed through the [public entry point](../openapi.yaml).
+
+[Current implementation diagram: basic entry points](../../../docs/contracts/http.md#基礎入口)
+
+[Parent directory guide](../README.md)

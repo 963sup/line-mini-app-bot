@@ -1,24 +1,40 @@
-# 工具版本、操作及診斷工作指引
+<a id="工具版本操作及診斷工作指引"></a>
 
-修改本目錄時沿用[上層指引](../AGENTS.md)，按任務查[本層索引](README.md)。
+# Tool versions, operations and diagnostics guidance
 
-## 職責與邊界
+Inherit [parent guidance](../AGENTS.md); select topics through the [local index](README.md).
 
-mise、Skills、MCP 與 Graphify／Repomix 分析範圍及報告。
-區分安裝、設定、連線與實際操作驗證；工具涵蓋率不等於語意正確。版本與連線設定連回單一來源。
+<a id="職責與邊界"></a>
 
-## 文件歸檔規則
+## Responsibilities and boundaries
 
-依[工具文件目錄標準](README.md#工具文件目錄標準)選擇主要用途所屬目錄。前端、後端、API、測試與品質工具各歸其類；多個領域共用的開發工具歸入 `shared/`。Agent 協作、Skills 與通用 MCP 設定歸入 `agents/`。
+mise, Skills, MCP and Graphify/Repomix analysis scope/reports.
+Distinguish installation, configuration, connectivity and actual operations. Coverage is not semantic correctness. Link versions/settings to their authority.
 
-工具即使透過 MCP 呼叫，專屬領域的操作指南仍放在該領域。例如 shadcn 與 Next DevTools 的標準路徑分別是 `frontend/shadcn.md` 和 `frontend/nextjs-devtools.md`，由 `frontend/README.md` 導覽。其他分類需要引用時，連到同一份指南。
+<a id="文件歸檔規則"></a>
 
-新增或搬移指南時，同步更新分類索引、本層 README 與引用舊路徑的文件。尚未搬移的頁面沿用現行連結。
+## Filing documentation
 
-## 維護與驗證
+Choose directories by primary purpose using [tool documentation standards](README.md#工具文件目錄標準). Categorize frontend, backend, API, testing and quality tools accordingly; shared development tools belong in `shared/`. Agent collaboration, Skills and general MCP settings belong in `agents/`.
 
-更新索引與驗證連結依[文件維護指引](../../AGENTS.md#驗證)。
+Domain-specific guides stay in their domain even when called through MCP. Standard shadcn/Next DevTools paths are `frontend/shadcn.md`/`frontend/nextjs-devtools.md`, indexed by `frontend/README.md`. Other categories link the same guides.
 
-## 共用 CLI 與代理接線
+Update category indexes, this README and old-path references when adding/moving guides. Unmoved pages retain current links.
 
-通用 CLI 的安裝、設定、操作、產物更新及清理統一放在 `shared/`；`agents/` 只補充代理選用、MCP 接線與主機驗證，引用共用操作，不複製指令。搬移時同步核對直接引用、錨點與任務擁有的生成參考包。
+<a id="維護與驗證"></a>
+
+## Maintenance and verification
+
+Update indexes/links per [documentation maintenance](../../AGENTS.md#驗證).
+
+<a id="共用-cli-與代理接線"></a>
+
+## Shared CLIs and agent wiring
+
+Keep general CLI installation, configuration, operations, artifact updates/cleanup in `shared/`. `agents/` adds agent selection, MCP wiring and host verification, referencing shared commands. Check direct references, anchors and task-owned generated bundles during moves.
+
+## Applicable engineering conventions
+
+- **Tool structure and configuration:** File guidance by the tool's actual responsibility and link version/configuration authority instead of copying it.
+- **Reproducibility and security:** Use pinned commands with explicit working directories; document required credentials without storing credential values.
+- **Evidence:** Distinguish installed, configured, connected and behaviorally verified states, including timeout and recovery limitations.

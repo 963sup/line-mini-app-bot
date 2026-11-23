@@ -1,15 +1,21 @@
-# backend/internal/platform/grpcstatus 目錄導覽
+<a id="backendinternalplatformgrpcstatus-目錄導覽"></a>
 
-將 gRPC 的取消與逾時狀態對應到 Go context 錯誤，供資料存取層統一處理。
+# backend/internal/platform/grpcstatus directory guide
 
-依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
+Maps gRPC cancellation/timeouts to Go context errors for consistent storage handling.
 
-## 閱讀與修改入口
+Directories expose backend entry points or shared capabilities by purpose. Bootstrap wires services; domains own resource authorization and use cases.
 
-從 [context.go](context.go)、[context_test.go](context_test.go) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 閱讀入口
+## Reading and editing entry points
 
-[現行實作圖：格式與資料相容](../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [context.go](context.go), [context_test.go](context_test.go); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="閱讀入口"></a>
+
+## Reading entry points
+
+[Current implementation diagram: formats and data compatibility](../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+[Parent directory guide](../README.md)

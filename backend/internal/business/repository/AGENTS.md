@@ -1,17 +1,29 @@
-# backend/internal/business/repository 工作指引
+<a id="backendinternalbusinessrepository-工作指引"></a>
 
-## 閱讀與修改入口
+# backend/internal/business/repository agent guidance
 
-先查閱[numbering.go](domain/entity/numbering.go)、[repository.go](domain/entity/repository.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 工作方式
+## Reading and editing entry points
 
-[現行實作圖：空間載入時序](../../../../docs/domains/repository/README.md#空間載入時序)
+Start with [numbering.go](domain/entity/numbering.go), [repository.go](domain/entity/repository.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
 
-Project 和 Repository 各自保存一個 `ownerId`。LINE UserID（U）以登入本人核驗，GroupID（C）以當下群組成員資格核驗。Project 可連結多個 Repository，每筆來源引用各自授權。Space 隸屬 Repository。
+<a id="工作方式"></a>
 
-## 寫入庫內受限資源的維護與驗收
+## Working approach
 
-即使庫 ID 相符，只要擁有者已變更或狀態不再是 ACTIVE，就不能沿用舊授權完成受限操作。
+[Current implementation diagram: space loading sequence](../../../../docs/domains/repository/README.md#空間載入時序)
 
-修改此規則時，核對[判定流程](../../../../docs/domains/repository/README.md#decision-flow)與[判定實作](domain/entity/repository.go)。
+Repository ownership uses LINE UserID (U) or GroupID (C); verify the logged-in user or current group membership accordingly. Project has its own user/organization Owner and optional source links; follow the Project specification rather than applying Repository Owner rules to Projects. Authorize each Project source reference separately. Spaces belong to Repositories.
+
+<a id="寫入庫內受限資源的維護與驗收"></a>
+
+## Maintaining and verifying restricted repository writes
+
+Even with a matching repository ID, changed ownership or non-ACTIVE status invalidates old authorization for restricted operations.
+
+When changing this rule, check the [decision flow](../../../../docs/domains/repository/README.md#decision-flow) and [implementation](domain/entity/repository.go).
+
+## Applicable engineering conventions
+
+- **Domain, state and authorization:** Revalidate repository ownership and active status at restricted writes; list filters and cached capability flags are not write authorization.

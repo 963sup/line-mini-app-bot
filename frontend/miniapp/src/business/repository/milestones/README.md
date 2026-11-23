@@ -1,19 +1,25 @@
-# 里程碑基礎
+<a id="里程碑基礎"></a>
 
-提供 Repository 里程碑的畫面與操作。
+# Milestone foundations
 
-在本功能就近維護畫面與互動，路由由 pages 組合，權限與結果以後端 API 為準。
+Repository milestone screens/actions.
 
-## 閱讀與修改入口
+Colocate feature UI/interactions; pages compose routes and backend APIs determine permissions/results.
 
-先查閱[Picker.tsx](Picker.tsx)、[View.tsx](View.tsx)、[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[基礎規格](../../../../../../docs/domains/repository/milestones.md) · [現行實作圖：里程碑](../../../../../../docs/domains/repository/milestones.md#里程碑)
+Start with [Picker.tsx](Picker.tsx), [View.tsx](View.tsx), [local agent guidance](AGENTS.md).
 
-操作、權限、資料與驗收依 [基礎規格](../../../../../../docs/domains/repository/milestones.md)。不擴充未授權功能；核心、HTTP 與 Firestore 各自保留責任，前端組合既有元件。
+<a id="相關規格"></a>
 
-[現行實作圖：里程碑](../../../../../../docs/domains/repository/milestones.md#里程碑)
+## Related specifications
 
-[上層導覽](../README.md)
+[Basic specification](../../../../../../docs/domains/repository/milestones.md) · [Current implementation diagram: milestones](../../../../../../docs/domains/repository/milestones.md#里程碑)
+
+See the [basic specification](../../../../../../docs/domains/repository/milestones.md) for operations, permissions, data and acceptance. Do not expand unauthorized scope. Keep core/HTTP/Firestore responsibilities separate; compose existing frontend components.
+
+[Current implementation diagram: milestones](../../../../../../docs/domains/repository/milestones.md#里程碑)
+
+[Parent directory guide](../README.md)

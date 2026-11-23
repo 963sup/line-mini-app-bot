@@ -1,5 +1,7 @@
-# 文件工具契約
+<a id="文件工具契約"></a>
 
-`poppler.yaml` 定義登入使用者的 PDF 文字擷取測試。JSON 內含檔名與 Base64 資料，原始 PDF 上限 8 MiB；回傳標準化文字，保留分頁 FF。操作不儲存文件、不呼叫 AI，也不建立業務物件。Cookie Session 需要 CSRF token，並套用同源保護。
+# Document tool contracts
 
-來源組合於 `../openapi.yaml`，生成與驗證依上層 API 指引執行 `pnpm api:generate`、`pnpm api:check`。
+`poppler.yaml` defines authenticated PDF text extraction testing. JSON contains a filename and Base64 data; raw PDFs are limited to 8 MiB. Returns normalized text preserving FF page breaks. Does not store documents, invoke AI or create business objects. Cookie sessions require CSRF tokens and same-origin protection.
+
+Sources are composed in `../openapi.yaml`. Follow parent API guidance to generate and verify with `pnpm api:generate` and `pnpm api:check`.

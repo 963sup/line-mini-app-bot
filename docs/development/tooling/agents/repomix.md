@@ -9,8 +9,6 @@ Bundle relevant source for review and impact analysis.
 ## Prerequisites and configuration
 
 安裝、CLI 打包、排除規則與參考技能更新見 [Repomix CLI](../shared/repomix.md)。Scope MCP packing explicitly.
-Connection, timeouts and enabled tool names are owned by `.codex/config.toml`.
-Tool versions are owned by `mise.toml`; never copy token values into documentation.
 
 ## Operation
 
@@ -25,10 +23,4 @@ bundle or connection for related reads instead of initializing once per file.
 
 ## Verification and failures
 
-```bash
-bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server repomix
-```
-
-This checks initialize, tools/list and configured allowlists. Verify a representative
-operation separately. For failures distinguish missing binary, network, credential,
-workspace prerequisites and host loading; see [troubleshooting](../../environment/troubleshooting.md).
+Follow [MCP diagnostics](README.md#mcp-診斷) with the service name `repomix`.

@@ -1,21 +1,31 @@
-# 共用系統基礎文件指引
+<a id="共用系統基礎文件指引"></a>
 
-沿用[文件指引與驗證方式](../AGENTS.md)，依[目錄索引](README.md)選取跨模組契約、整合或架構決策。
+# Shared system foundation documentation guidance
+
+Follow [documentation/verification guidance](../AGENTS.md); select cross-module contracts, integrations or decisions through the [index](README.md).
 
 ## architecture
 
-適用於系統執行、模組依賴與資料儲存責任；共用身分與授權規則見[跨邊界契約](../contracts/README.md)。
+Covers runtime, dependencies and storage responsibilities; shared identity/authorization live in [cross-boundary contracts](../contracts/README.md).
 
-跨模組邊界、依賴方向、HTTP／資料契約與架構決策。
-局部命令放模組 README；功能規則放 domains，部署操作放 operations。已接受決策以 decisions 中的 ADR 為準，未來規劃需明確標示。
+Cross-module boundaries, dependency direction, HTTP/data contracts and architectural decisions.
+Keep local commands in module READMEs, feature rules in domains and deployment procedures in operations. Accepted ADRs in decisions are authoritative; clearly label future plans.
 
-依[基線決策](../decisions/0002-baseline.md)與[基礎開發規格](../development/environment/verification.md)判斷階段範圍：先基礎建設，再 LINE／Firestore，接著基本出勤。平台擴充文件屬延後參考，不將 Worker、Garr、定位或新測試基礎設施設為此階段的必要條件。
+Use the [baseline](../decisions/0002-baseline.md) and [foundation specification](../development/environment/verification.md) for stage scope: infrastructure, LINE/Firestore, then attendance. Platform expansion is deferred reference; Worker, Garr, location and new testing infrastructure are not requirements for this stage.
 
-## 外部整合
+<a id="外部整合"></a>
 
-LINE、瀏覽器定位、Firestore、Cloud Storage 與 Google Cloud 由[外部整合索引](../integrations/README.md)導覽。Firestore 的儲存規則見 [Firestore 整合](../integrations/firestore/connection.md)。
-外部服務契約與專案功能規則分開；遵循根層查證政策，不在文件存放 token、憑證或機密。
+## External integrations
+
+The [integration index](../integrations/README.md) covers LINE, geolocation, Firestore, Cloud Storage and Google Cloud. See [Firestore integration](../integrations/firestore/connection.md) for storage rules.
+Separate external-service contracts from project feature rules. Follow root verification policies; store no tokens, credentials or secrets in documents.
 
 ## operations
 
-發布與驗收依[維運指引](../operations/AGENTS.md)。
+Follow [operations guidance](../operations/AGENTS.md) for publication/acceptance.
+
+## Applicable engineering conventions
+
+- **Boundaries and dependencies:** Describe owned data, dependency direction and integration boundaries using the current module structure and contracts.
+- **Consistency and evolution:** Make transaction, concurrency, event and migration assumptions explicit; record consequential decisions through the existing ADR process.
+- **Evidence:** Label current/proposed diagrams and link their implementation or acceptance sources, rather than presenting a target architecture as deployed behavior.

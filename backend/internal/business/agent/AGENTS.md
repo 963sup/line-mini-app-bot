@@ -1,9 +1,17 @@
-# agent 維護指引
+<a id="agent-維護指引"></a>
 
-適用於本目錄及子目錄，繼承[業務層指引](../AGENTS.md)。責任範圍見[目錄說明](README.md)。
+# agent maintenance guidance
 
-每個任務宣告可用操作、可讀資源及步數上限。模型提出的呼叫須經驗證後才交給操作執行。
+Applies to this directory/descendants; inherit [business guidance](../AGENTS.md). See the [directory guide](README.md) for scope.
 
-驗證方式：純文件變更檢查連結與 git diff --check；實作時，檢查越權操作被拒絕，步數用盡或證據不足時可結束並交回結果。
+Declare allowed operations, readable resources and step limits for each task. Validate model-proposed calls before execution.
 
-變更此領域的行為時，核對[補查與終止流程圖](../../../../docs/proposals/agent.md#design-diagram)，同步更新受影響的分支與驗收條件。
+Verification: for documentation, check links and git diff --check. For implementations, verify unauthorized operations are rejected and tasks terminate with results when steps or evidence are exhausted.
+
+When changing this domain's behavior, check the [investigation and termination diagram](../../../../docs/proposals/agent.md#design-diagram) and update affected branches and acceptance criteria.
+
+## Applicable engineering conventions
+
+- **Domain, state and authorization:** Validate model-proposed operations against the task allowlist, resource scope and step budget before executing side effects.
+- **Reliability and lifecycle:** Bound model/tool calls, preserve cancellation and stop at the declared task budget; retries must not expand the operation allowlist.
+- **Verification:** For implemented behavior, test denied operations, exhausted evidence/budgets and termination outcomes without inventing persistent workflow infrastructure.

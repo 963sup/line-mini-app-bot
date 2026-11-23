@@ -1,85 +1,116 @@
-# frontend 工作指引
+<a id="frontend-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend agent guidance
 
-先查閱[miniapp](miniapp)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[文件索引](../docs/README.md) · [模組閱讀入口](../docs/README.md#按模組閱讀)
+Start with [miniapp](miniapp), [directory guide](README.md), [parent guidance](../AGENTS.md).
 
-適用於本目錄及其子目錄；先遵循 [根目錄 AGENTS.md](../AGENTS.md)，再套用較近的子目錄補充。使用者及主機指令優先；本檔不增加外部寫入授權。
+<a id="相關規格"></a>
 
-## 職責與邊界
+## Related specifications
 
-miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/attendance/ 提供出勤畫面，identity/、platform/line/、shared/、shell/ 分別處理身分、平台、共用與外框。
+[Documentation index](../docs/README.md) · [Module entry points](../docs/README.md#按模組閱讀)
 
-進入 miniapp/ 先讀其 AGENTS.md 與安裝版本的 Next.js 指引。HTTP 呼叫透過 @repo/api-client；位置由瀏覽器取得，後端驗證。不手改建置輸出。
+Applies to this directory and its descendants. Follow the [root AGENTS.md](../AGENTS.md), then nearer directory guidance. User and host instructions take precedence; this file grants no additional authorization for external writes.
+
+<a id="職責與邊界"></a>
+
+## Responsibilities and boundaries
+
+miniapp/ is the Next.js/React workspace. src/pages/ owns routes; business/attendance/ owns attendance UI; identity/, platform/line/, shared/ and shell/ own identity, platform, shared capabilities and framing.
+
+Read miniapp/AGENTS.md and installed Next.js guidance first. Use @repo/api-client for HTTP; browsers obtain location and backends validate it. Do not edit build outputs.
 
 ## Thin Client & UI Gate
 
-適用於 Next.js Pages Router、React、LINE MINI App 的元件、頁面、互動與資料流程。沿用 [Mini App 工作指引](miniapp/AGENTS.md)與下方 shadcn 官方元件保護規則。
+Applies to Next.js Pages Router, React/LINE MINI App components, pages, interactions and data flows. Follow [Mini App guidance](miniapp/AGENTS.md) and shadcn protection below.
 
-### 職責與資料
+<a id="職責與資料"></a>
 
-- MUST 透過 `@repo/api-client` 與生成型別讀寫 API。前端處理呈現、互動、畫面資料及 UI 狀態。MUST NOT 複製業務 DTO、HTTP Client、授權決策、權威計算、一致性規則或業務狀態轉換。欄位驗證只提供即時回饋。
-- MUST 沿用既有 Session、LINE 身分、定位與重送流程。區分載入、成功、空資料、拒絕、失敗與結果未確認，依契約決定可否重送。不可由按鈕狀態或請求送出推定業務成功。
-- MUST 維持路由、Shell、Identity、Platform、Business、Shared 的責任邊界。發現重複時先查來源、呼叫端及影響範圍。業務責任移回 Backend，傳輸結構變更先走 API 契約流程。
+### Responsibilities and data
 
-### 元件、渲染與狀態
+- MUST use `@repo/api-client`/generated types for API reads/writes. Frontends own presentation, interaction, screen data/UI state. MUST NOT duplicate business DTOs, clients, authorization, authoritative calculations, consistency or transitions. Field checks provide immediate feedback only.
+- MUST reuse sessions, LINE identity, location and retries. Distinguish loading, success, empty, denied, failed and unknown results; contracts determine retries. Buttons/sent requests do not prove business success.
+- MUST preserve routing, Shell, Identity, Platform, Business/Shared boundaries. Investigate sources/callers/impact before consolidation. Move business authority backend; change API contracts before transport structures.
 
-- MUST 遵循已安裝版本的 Pages Router 指引與[正式靜態匯出設定](miniapp/next.config.ts)。可預先產生的內容在建置時處理。Session、LIFF、定位與登入後資料依既有瀏覽器流程取得。不得為套用新模式而引入逐請求 SSR 或遷移路由。
-- MUST 優先組合既有 shadcn/ui、設計系統與共用元件，保留鍵盤操作、可及名稱、響應式版面及載入回饋。遵守官方 primitives、Sidebar 與生成檔的修改限制。SHOULD 使用語意化 HTML、既有 Tailwind utilities、tokens 與 variants，減少多餘 DOM、重複 CSS 與全域覆蓋。
-- MUST 區分伺服器資料、局部 UI 狀態與可直接推導的值。SHOULD 在使用處持有狀態，於 render 推導畫面資料，以事件處理使用者動作，僅在需要與外部系統同步時使用 Effect。避免同步多份狀態、重複請求、無必要的瀑布式請求與輪詢。
-- MUST NOT 在多頁複製 API mapping、Session、錯誤處理或相同互動流程。也不得僅為單一情境、假設需求或形式一致新增 Hook、Wrapper、Provider、全域 Store、Adapter、Factory 或通用元件，或為減少行數而混合責任、增加分支。
-- SHOULD 優先刪除死碼、重用元件，減少 hydration、Client JavaScript 與重複渲染。以實際需求及量測證據決定是否增加 memoization、dynamic import、第三方依賴或特殊效能機制。
+<a id="元件渲染與狀態"></a>
 
-### 變更與驗收
+### Components, rendering and state
 
-- MUST 依[驗收矩陣](../docs/development/tooling/testing/commands.md#變更驗收矩陣)與下方驗證流程執行 `pnpm --filter @repo/miniapp check`、相關測試及必要的靜態建置。
-- MUST 從受影響的頁面核對正常、載入、空資料、錯誤、拒絕與關鍵互動。UI 變更另核對相關畫面的可及性、響應式呈現，以及受影響的效能指標。
+- MUST follow installed Pages Router guidance and [production static export](miniapp/next.config.ts). Build precomputable content; fetch sessions, LIFF, location and authenticated data through browser flows. Do not introduce per-request SSR or router migrations solely for new patterns.
+- MUST compose existing shadcn/design-system/shared components, preserving keyboard access, accessible names, responsiveness/loading feedback. Respect primitive, Sidebar/generated-file restrictions. SHOULD use semantic HTML, existing Tailwind utilities/tokens/variants and avoid redundant DOM/CSS/global overrides.
+- MUST separate server data, local UI state and derived values. SHOULD colocate state, derive during render, handle user actions in events and reserve Effects for external synchronization. Avoid synchronized state copies, duplicate requests, unnecessary waterfalls/polling.
+- MUST NOT duplicate mappings, sessions, errors or interactions across pages, or add hooks/wrappers/providers/stores/adapters/factories/generic components solely for one case, hypotheticals or uniformity. Do not mix responsibilities/add branches just to reduce lines.
+- SHOULD remove dead code/reuse components to reduce hydration, client JS/rerenders. Use actual needs/measurements for memoization, dynamic imports, dependencies or special performance mechanisms.
 
-**完成條件**為業務權威留在 Backend，畫面只保留必要狀態、邏輯與依賴，且既有互動、API 相容性與適用驗收通過。失敗時繼續修正，無法驗證時明列阻礙。
+<a id="變更與驗收"></a>
 
-## 驗證
+### Changes and acceptance
 
-修改互動時，核對使用此模組的頁面與 miniapp 測試。
+- MUST run `pnpm --filter @repo/miniapp check`, relevant tests and necessary static builds per the [matrix](../docs/development/tooling/testing/commands.md#變更驗收矩陣) and verification below.
+- MUST check affected pages' normal/loading/empty/error/denied states and key interactions. UI changes also verify accessibility, responsiveness and affected performance metrics.
 
-從根目錄透過 tool-exec.sh 執行 pnpm --filter @repo/miniapp check 與相關既有 test；需要靜態輸出時執行 build。API 變更另走 ../api/README.md。
+**Completion:** business authority remains backend; UI retains necessary state, logic/dependencies only; existing interactions, API compatibility and applicable acceptance pass. Continue fixing failures; report blockers for unverified behavior.
 
-命令除另有標示外均在儲存庫根目錄執行。閱讀 [本目錄 README](README.md) 與 [文件索引](../docs/README.md)；回報實際執行結果與限制。
+<a id="驗證"></a>
 
-## 文件閱讀路由
+## Verification
 
-先由 [本模組相關文件](README.md#相關文件) 與 [模組閱讀入口](../docs/README.md#按模組閱讀) 選擇文件。局部用途與命令維護在本模組 README；跨模組架構、功能與營運文件依 docs 主題分類保存。索引更新依[文件維護指引](../docs/AGENTS.md#主題子目錄)。
+Check consuming pages and miniapp tests when changing interactions.
+
+From root, use tool-exec.sh for pnpm --filter @repo/miniapp check and relevant existing tests; build when static output is needed. API changes also follow ../api/README.md.
+
+Run commands from the repository root unless stated otherwise. Read the [local README](README.md) and [documentation index](../docs/README.md); report actual results and limitations.
+
+<a id="文件閱讀路由"></a>
+
+## Documentation routing
+
+Choose sources through [related module documentation](README.md#相關文件) and [module entry points](../docs/README.md#按模組閱讀). Maintain local purposes and commands in this module's README; organize cross-module architecture, feature and operations documents by topic under docs. Follow the [documentation maintenance guidance](../docs/AGENTS.md#主題子目錄) when updating indexes.
 
 ## Business Operation
 
-開始相關任務前，必須閱讀 [操作模型](../docs/contracts/business-operations.md) 與 [符合性流程](../docs/development/workflow/implementation.md#business-operation-compliance)。
+Before related work, read the [operation model](../docs/contracts/business-operations.md) and [compliance workflow](../docs/development/workflow/implementation.md#business-operation-compliance).
 
-畫面呈現操作可用性、確認與結果；前端隱藏按鈕不能取代後端授權。使用 API 契約處理拒絕、過期版本與失敗，結果未知時遵循既有重試契約，不自行宣告權限或成功。
+UI presents availability, confirmation/results; hiding buttons is not backend authorization. Handle rejections, stale versions/failures by API contract. Unknown results follow retry contracts without self-declared permissions/success.
 
-[現行實作圖：頁面與身分生命週期](../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+[Current implementation diagram: page and identity lifecycle](../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
 
-## 前端操作與業務契約
+<a id="前端操作與業務契約"></a>
 
-依[前端、API 與後端責任及重送範例](../docs/contracts/business-operations.md#前端操作與業務契約)審查操作結果。
+## Frontend operations and business contracts
 
-## shadcn 任務入口
+Review operation results using [frontend, API and backend responsibilities and retry examples](../docs/contracts/business-operations.md#前端操作與業務契約).
 
-凡前端 UI 任務，主動先讀 [官方元件保護與 Skill／MCP 工作流程](miniapp/src/shared/ui/AGENTS.md)，再依 [本機參考庫](../docs/development/tooling/frontend/shadcn-reference/README.md) 檢查新鮮度、搜尋完整 Components／AI Elements 索引及相關文件，不需使用者逐次指定 shadcn。完整元件索引只由該參考庫生成；MCP 未曝光時依 UI 指引的主機曝光診斷流程處理。
-元件選擇、按需新增與 UI 驗收遵循該檔的「需求驅動的選用與驗收」；主動完成當前任務，不以已安裝清單限制候選，也不擴大為未要求的全站改版。
+<a id="shadcn-任務入口"></a>
 
-涉及 shadcn/ui、components.json、registry、preset 或其 MCP 的任務，開始前必讀 [.agents/skills/shadcn/SKILL.md](../.agents/skills/shadcn/SKILL.md)，再按需讀其 references；使用方式與驗證見 [shadcn 工具指南](../docs/development/tooling/frontend/shadcn.md)。所有角色都適用。
+## shadcn task entry point
 
-涉及統計、報表或儀表板時，先查 [shadcn 官方圖表範例](../docs/development/tooling/frontend/shadcn.md#官方圖表範例)，按資料呈現需求選用圖表並重用共用 Chart 元件。
-上游 skill 保留原樣；其 `npx shadcn@latest` 等範例在本專案一律改用 `bash scripts/tooling/tool-exec.sh shadcn`，並將工作目錄指向 `frontend/miniapp`。先讀實際元件文件、檢查已安裝元件，更新前使用 `--dry-run`／`--diff`；不因 skill 範例自動重建專案或安裝所有元件。
+For every frontend UI task, proactively read [component protection/Skill/MCP workflow](miniapp/src/shared/ui/AGENTS.md), then check [reference freshness](../docs/development/tooling/frontend/shadcn-reference/README.md) and search complete Components/AI Elements indexes/docs. No repeated user invocation is needed. The reference library alone generates indexes; follow UI host-exposure diagnostics for absent MCP tools.
+Follow its requirements-driven selection/acceptance section for component choices, additions and verification. Complete the current task without limiting candidates to installed components or expanding into unsolicited redesigns.
 
-## shadcn 元件保護
+Before shadcn/ui, components.json, registry, preset or MCP work, all roles read [.agents/skills/shadcn/SKILL.md](../.agents/skills/shadcn/SKILL.md) and relevant references. See the [tool guide](../docs/development/tooling/frontend/shadcn.md) for usage/verification.
 
-Codex 預設不得直接修改 `frontend/miniapp/src/shared/ui/*.tsx`、`shared/hooks/use-mobile.ts` 或 `src/shell/sidebar-07/*.tsx` 的官方樣式、結構與互動。不得為配合單一頁面需求更改 primitives，亦不得用全域 CSS 覆蓋其外觀。
-業務需求優先透過公開 props、variants、資料與事件，由 `shell/AppFrame.tsx`、`shell/Shell.tsx` 或業務層組合；sidebar-07 保留既有真實導覽、身分與登入操作，不換回示範帳號、假連結或訂閱／帳單功能。
-只有使用者明確要求修改、還原或更新上述元件時才可更動，且授權只適用當次任務；先用固定版 CLI `add --dry-run`／`--diff` 核對，再最小修改並執行前端檢查。不要自行執行 `add sidebar-07 --overwrite`：它會產生另一套 shared 元件及 dashboard，無法直接更新目前 shell 中的整合。
-必要的 alias、client directive 與已記錄的可及性修正保留。不得藉套用 upstream 移除 `Progress` 傳給 Root 的 `value`，使進度值無法被輔助工具讀取。上游 skill 保留原樣，本專案保護規則優先於其一般客製化建議。
+For statistics, reports/dashboards, consult [official chart examples](../docs/development/tooling/frontend/shadcn.md#官方圖表範例), select for data needs and reuse shared Chart components.
+Preserve upstream skills. Replace examples such as `npx shadcn@latest` with `bash scripts/tooling/tool-exec.sh shadcn`, targeting `frontend/miniapp`. Read actual docs/installed components; preview updates with `--dry-run`/`--diff`. Examples do not authorize project recreation or wholesale installation.
 
-新增、修改或審查業務模型、API 契約、資源路徑、collection 或查詢欄位前，所有角色必讀 [命名規範](../docs/standards/naming.md#業務實體集合與-api-命名)，遵守單一業務實體用單數、集合與 REST 資源路徑用複數的規則及既有相容例外。完整規範只維護於該文件；不得直接重新命名既有公開契約或保存資料。
+<a id="shadcn-元件保護"></a>
+
+## shadcn component protection
+
+By default, Codex must not directly modify official styles, structure/interactions in `frontend/miniapp/src/shared/ui/*.tsx`, `shared/hooks/use-mobile.ts` or `src/shell/sidebar-07/*.tsx`, change primitives for individual pages or override appearance globally.
+Compose business needs through public props, variants, data/events in `shell/AppFrame.tsx`, `shell/Shell.tsx` or business layers. Keep real sidebar-07 navigation/identity/login; do not restore demo accounts, fake links or subscription/billing.
+Only explicit current-task requests to modify/restore/update these components authorize changes. Compare with pinned CLI `add --dry-run`/`--diff`, make minimal edits and run checks. Do not independently run `add sidebar-07 --overwrite`; it creates separate shared/dashboard files rather than updating integrated shell code.
+Preserve aliases, client directives and recorded accessibility fixes. Do not remove `value` passed to Root by `Progress` when applying upstream code. Preserve skills; local protection overrides general customization advice.
+
+Before adding, editing or reviewing business models, API contracts, resource paths, collections or query fields, all roles must read the [naming standards](../docs/standards/naming.md#業務實體集合與-api-命名). Use singular names for individual business entities and plural names for collections and REST resource paths, respecting existing compatibility exceptions. Maintain the full rules only in that document; do not directly rename existing public contracts or persisted data.
+
+## Applicable engineering conventions
+
+- **Types and forms:** Use generated API types and existing field components; client validation supplies feedback while the backend decides business validity and permissions.
+- **UI and state:** Compose the design system and distinguish loading, empty, denied, failed and unknown outcomes with accessible controls.
+- **Recovery and privacy:** Keep draft, request and idempotency identity intact after an unknown write; discard scoped data when identity or authorization changes.
+- **Acceptance:** Validate types, affected interactions and required static routes, including keyboard/focus behavior and narrow layouts.

@@ -1,15 +1,21 @@
-# frontend/miniapp/src/shared/location 目錄導覽
+<a id="frontendminiappsrcsharedlocation-目錄導覽"></a>
 
-封裝瀏覽器定位操作，供診斷及業務功能共用。
+# frontend/miniapp/src/shared/location directory guide
 
-提供跨功能重用的元件或工具；特定業務流程留在使用它的功能模組。
+Shared browser location operations for diagnostics/business features.
 
-## 閱讀與修改入口
+Cross-feature reusable utilities/components; specific workflows remain in consuming features.
 
-從 [position.ts](position.ts) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：現有出勤整合檔案與責任](../../../../../docs/integrations/geolocation/browser-api.md#現有出勤整合檔案與責任)
+Start with [position.ts](position.ts); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: attendance integration files and responsibilities](../../../../../docs/integrations/geolocation/browser-api.md#現有出勤整合檔案與責任)
+
+[Parent directory guide](../README.md)

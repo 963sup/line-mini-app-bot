@@ -1,15 +1,29 @@
-# LINE 群組相容整合工作指引
+<a id="line-群組相容整合工作指引"></a>
 
-## 閱讀與修改入口
+# LINE group compatibility integration guidance
 
-先查閱[group.go](application/query/group.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：格式與資料相容](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [group.go](application/query/group.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
 
-## 查閱受限群組資料的維護與驗收
+<a id="相關規格"></a>
 
-曾在事件中出現的使用者即使被列為候選，仍須通過群組成員核驗才能取得受限資料。
+## Related specifications
 
-修改此規則時，核對[判定流程](../../../docs/domains/group/README.md#decision-flow)與[代表測試](application/query/group_test.go)。
+[Current implementation diagram: formats and data compatibility](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+<a id="查閱受限群組資料的維護與驗收"></a>
+
+## Maintaining and verifying restricted group reads
+
+Users observed in events still need verified group membership to access restricted data, even when listed as candidates.
+
+When changing this rule, check the [decision flow](../../../docs/domains/group/README.md#decision-flow) and [representative tests](application/query/group_test.go).
+
+## Applicable engineering conventions
+
+- **Authorization:** Resolve restricted group access through verified membership; cached candidates and webhook observation do not prove current membership.
+- **Caching and queries:** Scope membership/cache keys by the relevant identity and group, with explicit expiry and failure behavior.
+- **Compatibility:** Preserve legacy group identifiers while testing that unavailable or changed membership cannot reuse stale authorization.

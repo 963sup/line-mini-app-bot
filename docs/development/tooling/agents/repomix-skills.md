@@ -47,10 +47,4 @@ CLI 的命名、來源選擇、覆寫與驗證規則統一見 [產生參考技�
 
 下列 doctor 驗證已設定的 MCP 服務。CLI 產物另依共用操作文件的查詢範例核對。
 
-```bash
-bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server repomix_skills
-```
-
-This checks initialize, tools/list and configured allowlists. Verify a representative
-operation separately. For failures distinguish missing binary, network, credential,
-workspace prerequisites and host loading; see [troubleshooting](../../environment/troubleshooting.md).
+Follow [MCP diagnostics](README.md#mcp-診斷) with the service name `repomix_skills`.

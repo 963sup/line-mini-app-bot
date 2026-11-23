@@ -1,18 +1,32 @@
-# 共用契約生成設定
+<a id="共用契約生成設定"></a>
 
-## 閱讀與修改入口
+# Shared contract generation settings
 
-先查閱[Redocly lint／bundle 設定](redocly.yaml)、[go.yaml](go.yaml)、[internal-go.yaml](internal-go.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-適用於本目錄及其子目錄；繼承 [上層指引](../AGENTS.md)，並遵循其引用的根目錄規則。此處只補充本範圍責任；使用者與主機指令優先，不增加外部寫入授權。
+Start with [Redocly lint/bundle settings](redocly.yaml), [go.yaml](go.yaml), [internal-go.yaml](internal-go.yaml), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
 
-## 職責與邊界
+<a id="相關規格"></a>
 
-- 維護公開與內部契約的生成設定；生成流程與版本以根目錄腳本、package.json、mise.toml 為準，不按能力另建生成器。
-- 公開與內部入口分開處理；生成 HTTP adapter DTO，不讓業務核心依賴生成套件。
-- 先修改來源契約及設定，再由根目錄執行生成；檢視生成差異，不手改產物或刷新相容性 baseline 掩蓋問題。
-- 變更生成設定或流程須執行 `bash scripts/tooling/tool-exec.sh pnpm api:check`，確認同步與相容性。
+## Related specifications
 
-[現行實作圖：基礎入口](../../docs/contracts/http.md#基礎入口)
+Applies to this directory and descendants. Inherit [parent guidance](../AGENTS.md) and its referenced root rules. This file adds only local responsibilities. User and host instructions take precedence; it grants no additional authorization for external writes.
+
+<a id="職責與邊界"></a>
+
+## Responsibilities and boundaries
+
+- Maintain public and internal contract generation settings. Root scripts, package.json and mise.toml define workflows and versions; do not create per-capability generators.
+- Keep public and internal entry points separate. Generate HTTP adapter DTOs without making the business core depend on generated packages.
+- Change source contracts and configuration first, then generate from the root and inspect the diff. Do not edit artifacts or refresh compatibility baselines to conceal problems.
+- Run `bash scripts/tooling/tool-exec.sh pnpm api:check` after changing generation settings or workflows to verify synchronization and compatibility.
+
+[Current implementation diagram: basic entry points](../../docs/contracts/http.md#基礎入口)
+
+## Applicable engineering conventions
+
+- **Reproducible generation:** Use pinned generators and the existing entry points to rebuild artifacts from schemas; review output drift before committing.
+- **Structure and dependencies:** Keep public/internal generation separate and generated transport types outside domain packages.
+- **Compatibility:** Preserve operation names, field casing and identifier mappings unless the source contract explicitly changes them.

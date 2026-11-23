@@ -1,5 +1,13 @@
-# 載入本機環境、啟動服務工作指引
+<a id="載入本機環境啟動服務工作指引"></a>
 
-本目錄沿用[上層指引](../AGENTS.md)。環境變數來源維持在 mise.toml，載入環境與啟動服務各自獨立。
+# Local environment and service startup guidance
 
-修改後依[腳本總覽](../README.md)執行對應檢查，入口見[本層說明](README.md)。
+Inherit [parent guidance](../AGENTS.md); mise.toml owns environment variables. Keep environment loading/service startup separate.
+
+After changes, run checks from the [script overview](../README.md); see the [local README](README.md) for entry points.
+
+## Applicable engineering conventions
+
+- **Configuration:** Load declared non-secret settings through the existing environment entry point without duplicating defaults across scripts.
+- **Lifecycle:** Manage child processes, readiness, cancellation and shutdown explicitly; a listening port alone does not prove feature acceptance.
+- **Diagnostics:** Preserve original command failures and emit usable, redacted startup information.

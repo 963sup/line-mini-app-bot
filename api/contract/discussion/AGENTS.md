@@ -1,21 +1,33 @@
-# Discussion 契約指引
+<a id="discussion-契約指引"></a>
 
-## 閱讀與修改入口
+# Discussion contract guidance
 
-先查閱[categories.yaml](categories.yaml)、[comments.yaml](comments.yaml)、[discussions.yaml](discussions.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[討論操作規格](../../../docs/domains/repository/discussion/design.md) · [現行實作圖：最小實作邊界與驗證](../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+Start with [categories.yaml](categories.yaml), [comments.yaml](comments.yaml), [discussions.yaml](discussions.yaml), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
 
-適用於本目錄及其子目錄；繼承 [上層指引](../AGENTS.md)，並遵循其引用的根目錄規則。此處只補充本範圍責任；使用者與主機指令優先，不增加外部寫入授權。
+<a id="相關規格"></a>
 
-## 職責與邊界
+## Related specifications
 
-- 狀態：基礎主題與單層留言已接入；先讀 [討論操作規格](../../../docs/domains/repository/discussion/design.md)。categories 仍為雛形，其他擴充另依功能規格。
-- 實體用 Discussion、集合用 discussions；每個主題歸屬既有 Repository，DiscussionComment 的回覆關係由本能力定義。
-- 建立、讀取、修改、分類、回覆、解答與鎖定按需求逐項決定，不把 GitHub 所有操作當成必建清單。
-- 明定可見範圍、編輯權、回覆層級、生命週期、重送與併發；留言、Reaction 或標記解答不等同正式核准。
-- 與 Issue 連結或轉換需另定授權、識別及追溯語義，不直接改寫或共用兩者狀態。
+[Discussion operation specification](../../../docs/domains/repository/discussion/design.md) · [Current implementation diagram: minimal boundaries and verification](../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
 
-[現行實作圖：最小實作邊界與驗證](../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+Applies to this directory and descendants. Inherit [parent guidance](../AGENTS.md) and its referenced root rules. This file adds only local responsibilities. User and host instructions take precedence; it grants no additional authorization for external writes.
+
+<a id="職責與邊界"></a>
+
+## Responsibilities and boundaries
+
+- Status: basic topics and single-level comments are wired. Read the [discussion specification](../../../docs/domains/repository/discussion/design.md) first. Categories remain a scaffold; specify other extensions separately.
+- Use Discussion for entities and discussions for collections. Topics belong to existing Repositories; this capability defines DiscussionComment reply relationships.
+- Decide creation, reads, updates, categorization, replies, answers and locking individually by need. GitHub's full operation set is not a mandatory checklist.
+- Specify visibility, edit permissions, reply depth, lifecycle, retries and concurrency. Comments, reactions and marking answers do not constitute formal approval.
+- Linking or converting Issues requires separate authorization, identity and traceability semantics; do not directly overwrite or share their states.
+
+[Current implementation diagram: minimal boundaries and verification](../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+
+## Applicable engineering conventions
+
+- **Contract semantics:** Specify topic/comment lifecycles and edit versus classification permissions independently; never equate answer selection with business approval.

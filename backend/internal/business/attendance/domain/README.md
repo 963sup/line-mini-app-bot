@@ -1,15 +1,21 @@
-# Attendance 領域層
+<a id="attendance-領域層"></a>
 
-領域層不引用 application、adapter、HTTP 或 Firestore。
+# Attendance domain layer
 
-## 目錄與責任
+Does not reference application, adapters, HTTP or Firestore.
 
-- [entity](entity/README.md)：業務物件、識別、狀態與不變條件。
-- [valueobject](valueobject/README.md)：沒有識別的業務值與驗證。
-- [service](service/README.md)：跨物件計算、補正與證據核對。
-- [event](event/README.md)：已記錄的打卡事實。
-- [policy](policy/README.md)：審核資格、重送與請假規則。
+<a id="目錄與責任"></a>
 
-## 相關入口
+## Directories and responsibilities
 
-[模組導覽](../README.md) · [工作指引](../AGENTS.md)
+- [entity](entity/README.md): business objects, identity, state and invariants.
+- [valueobject](valueobject/README.md): identity-free business values and validation.
+- [service](service/README.md): cross-object calculation, corrections and evidence checks.
+- [event](event/README.md): recorded punch facts.
+- [policy](policy/README.md): review eligibility, retries and leave rules.
+
+<a id="相關入口"></a>
+
+## Related entry points
+
+[module guide](../README.md) · [agent guidance](../AGENTS.md)

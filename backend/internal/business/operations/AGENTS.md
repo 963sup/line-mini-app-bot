@@ -1,9 +1,17 @@
-# operations 維護指引
+<a id="operations-維護指引"></a>
 
-適用於本目錄及子目錄，繼承[業務層指引](../AGENTS.md)。責任範圍見[目錄說明](README.md)。
+# Operations maintenance guidance
 
-新增操作時說明輸入、結果、副作用與重試語意。呼叫端提供可信身分，資源所屬領域執行授權。
+Applies to this directory/descendants; inherit [business guidance](../AGENTS.md). See the [directory guide](README.md) for scope.
 
-驗證方式：純文件變更檢查連結與 git diff --check；實作時，檢查相同操作從不同入口呼叫時，授權與驗證結果一致。
+Describe inputs, results, side effects and retries for new operations. Callers supply trusted identities; resource-owning domains authorize.
 
-變更此領域的行為時，核對[操作與授權流程圖](../../../../docs/proposals/operations.md#design-diagram)，同步更新受影響的分支與驗收條件。
+Verification: documentation checks links and git diff --check. Implementations verify consistent authorization/validation when calling the same operation from different entry points.
+
+When behavior changes, check the [operation and authorization diagram](../../../../docs/proposals/operations.md#design-diagram) and update affected branches and acceptance criteria.
+
+## Applicable engineering conventions
+
+- **Domain, state and authorization:** Keep extraction/model adapters focused on I/O and translate their failures into application errors; the resource owner retains business authorization.
+- **Errors and reliability:** Bound document/model input, propagate cancellation and map provider/process failures to stable application errors rather than leaking SDK-specific failures.
+- **Testing and privacy:** Verify malformed, oversized, cancelled and unavailable extraction paths; do not retain source documents or add writes implicitly.

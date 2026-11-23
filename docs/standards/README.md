@@ -1,14 +1,16 @@
-# 工程與文件規範
+<a id="工程與文件規範"></a>
 
-實作、命名、交付或修訂文件時，依變更類型查閱對應規則。
+# Engineering and documentation standards
 
-- [撰寫與驗證文件](documentation.md)
-- [開發原則與決策](engineering.md)
-- [產品與體驗設計原則](design.md)
-- [LINE MINI App UI 設計規格與十二個入口的驗收條件](miniapp-ui.md)
-- [Go 開發與驗收](go.md)
-- [業務實體、集合與 API 命名](naming.md)
+Choose applicable rules by change type for implementation, naming, delivery or documentation.
 
-[上層索引](../README.md)
+- [Writing/verifying documentation](documentation.md)
+- [Engineering principles/decisions](engineering.md)
+- [Product/experience design](design.md)
+- [LINE MINI App UI and twelve-entry acceptance](miniapp-ui.md)
+- [Go development/acceptance](go.md)
+- [Entity, collection and API naming](naming.md)
 
-[適用工作指引](../AGENTS.md)
+[Parent index](../README.md)
+
+[applicable guidance](../AGENTS.md)

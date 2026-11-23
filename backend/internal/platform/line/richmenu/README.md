@@ -1,15 +1,21 @@
-# Rich Menu 同步
+<a id="rich-menu-同步"></a>
 
-提供 LINE 平台發布機制。導航內容由 transport/line/navigation 定義，bootstrap 組裝後在部署 Job 呼叫 Sync；不在服務啟動或 Webhook 中發布。
+# Rich Menu synchronization
 
-## 行為與安全邊界
+Provides LINE publication. transport/line/navigation defines content; bootstrap composes it and deployment jobs call Sync. No publication during service startup/webhooks.
 
-先驗證所有圖片，再以內容雜湊識別選單。所有目標圖片準備完成後才更新 Alias 與預設選單；LINE Alias 更新不是原子交易，失敗可重跑收斂。內容相同不重複建立、上傳或切換。只有本次管理 Alias 或明確設定遷移對應的 managed 選單可以清理，並先確認無其他 Alias 引用、遷移使用者成功，再刪除。舊 Alias 若指向非本流程管理的選單，會在發布寫入前中止。未知預設選單查詢錯誤會中止，不擅自覆寫。
+<a id="行為與安全邊界"></a>
 
-呼叫端必須對同一 Messaging API Channel 序列化發布。bootstrap 使用 Firestore 租約，所有 LINE API 呼叫共用工作 context；取消或逾時停止後續操作。對外 API 呼叫不在 Firestore transaction callback 內。
+## Behavior and security boundaries
 
-## 驗證與入口
+Validate all images, then identify menus by content hash. Prepare every target image before updating aliases/defaults. Alias updates are not atomic; reruns converge. Identical content causes no recreation/upload/switch. Clean up only managed menus associated with current aliases or explicit migrations, after checking references and migrating users. Abort before writes for old aliases targeting unmanaged menus. Abort on unknown default-menu query errors instead of overwriting.
 
-在儲存庫根目錄執行 `bash scripts/tooling/tool-exec.sh go -C backend test -race ./internal/platform/line/richmenu ./internal/bootstrap ./internal/architecture`。測試涵蓋 staging 失敗、Alias 重跑、穩定狀態零寫入、預設查詢失敗與刪除前遷移；租約整合案例需隔離的 loopback Firestore emulator。真實 LINE 整合另驗收。
+Callers serialize publication per Messaging API channel. Bootstrap uses Firestore leases and a shared job context for LINE calls; cancellation/timeouts stop further operations. External calls remain outside transaction callbacks.
 
-[平台入口](../README.md) · [自動部署設定](../../../../../cloudbuild.yaml) · [發布操作指南](../../../../../docs/operations/rich-menu.md)
+<a id="驗證與入口"></a>
+
+## Verification and entry points
+
+Run `bash scripts/tooling/tool-exec.sh go -C backend test -race ./internal/platform/line/richmenu ./internal/bootstrap ./internal/architecture` from the root. Tests cover staging failures, alias reruns, zero writes at steady state, failed default queries and migration before deletion. Lease integration needs an isolated loopback Firestore emulator; live LINE acceptance is separate.
+
+[Platform entry](../README.md) · [Automatic deployment configuration](../../../../../cloudbuild.yaml) · [Publication guide](../../../../../docs/operations/rich-menu.md)

@@ -1,9 +1,21 @@
-# frontend/miniapp/src/shared/hooks 工作指引
+<a id="frontendminiappsrcsharedhooks-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend/miniapp/src/shared/hooks agent guidance
 
-先查閱[use-highlighted-code.ts](use-highlighted-code.ts)、[use-mobile.ts](use-mobile.ts)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+Start with [use-highlighted-code.ts](use-highlighted-code.ts), [use-mobile.ts](use-mobile.ts), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: page and identity lifecycle](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+## Applicable engineering conventions
+
+- **Types and dependencies:** Give hooks explicit inputs/results and keep their dependency scope mechanical rather than feature-policy-specific.
+- **Lifecycle and state:** Clean up listeners, timers and requests; verify remounts and late completions without duplicating derived state.
+- **Component compatibility:** Preserve protected upstream hooks and public caller behavior; compose application-specific behavior outside protected files.

@@ -1,13 +1,25 @@
-# 協作、除錯、交付與驗收工作指引
+<a id="協作除錯交付與驗收工作指引"></a>
 
-修改本目錄時沿用[上層指引](../AGENTS.md)，按任務查[本層索引](README.md)。
+# Collaboration, debugging, delivery and acceptance guidance
 
-## 職責與邊界
+Inherit [parent guidance](../AGENTS.md); select topics through the [local index](README.md).
 
-開發環境、協作分工、交付驗收、系統化除錯、工具與按任務查閱的操作配方。
-配方只串接操作入口、適用規格與驗收。產品規則、架構契約、工具版本及命令定義由原來源維護。搬移時保留仍有引用的舊路徑與錨點。
-遵循根 AGENTS.md 與主機限制；此處不新增角色權限、發布或部署授權。
+<a id="職責與邊界"></a>
 
-## 維護與驗證
+## Responsibilities and boundaries
 
-更新索引與驗證連結依[文件維護指引](../AGENTS.md#驗證)。
+Development environments, collaboration, delivery acceptance, systematic debugging, tools and task-specific recipes.
+Recipes connect entry points, specifications and acceptance only. Original sources own product rules, architectural contracts, versions and command definitions. Preserve referenced old paths/anchors during moves.
+Follow root AGENTS.md and host limits. This grants no additional role, publication or deployment permissions.
+
+<a id="維護與驗證"></a>
+
+## Maintenance and verification
+
+Update indexes/links per [documentation maintenance](../AGENTS.md#驗證).
+
+## Applicable engineering conventions
+
+- **Development workflow:** Define a reviewable milestone, its applicable checks and Definition of Done before describing a delivery procedure.
+- **Single-source configuration:** Reference the declared toolchain, command definitions and lockfiles rather than maintaining duplicate version tables.
+- **Verification:** Separate local tests, contract checks, browser/emulator evidence and deployment acceptance, with reproducible prerequisites.

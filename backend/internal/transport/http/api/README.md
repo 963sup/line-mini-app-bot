@@ -1,15 +1,21 @@
-# backend/internal/transport/http/api 目錄導覽
+<a id="backendinternaltransporthttpapi-目錄導覽"></a>
 
-將 OpenAPI 契約接入 Go HTTP 路由，並保存公開與內部 API 的產生碼。契約變更從根目錄的 `api/` 開始。
+# backend/internal/transport/http/api directory guide
 
-依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
+Connects OpenAPI to Go routes and stores public/internal generated code. Start contract changes in root `api/`.
 
-## 閱讀與修改入口
+Directories expose backend entry points or shared capabilities by purpose. Bootstrap wires services; domains own resource authorization and use cases.
 
-從 [contract.go](contract.go)、[routes.go](routes.go)、[generated](generated)、[generatedinternal](generatedinternal) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 閱讀入口
+## Reading and editing entry points
 
-[現行實作圖：格式與資料相容](../../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [contract.go](contract.go), [routes.go](routes.go), [generated](generated), [generatedinternal](generatedinternal); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="閱讀入口"></a>
+
+## Reading entry points
+
+[Current implementation diagram: formats and data compatibility](../../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+[Parent directory guide](../README.md)

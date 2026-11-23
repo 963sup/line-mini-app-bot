@@ -1,19 +1,27 @@
-# 空間標籤目錄
+<a id="空間標籤目錄"></a>
 
-提供 Repository 標籤的查詢與建立，讓事項和討論能引用共用分類。
+# Space label catalog
 
-此目錄維護本領域或子能力的行為。HTTP、LINE 與 Firestore 依需要提供適配，授權和狀態規則歸資源所屬領域。
+Queries and creates Repository labels shared by Issues and Discussions.
 
-## 閱讀與修改入口
+This directory owns domain or sub-capability behavior. Add HTTP, LINE and Firestore adapters as needed; resource-owning domains control authorization and state.
 
-先查閱[labels.go](../domain/entity/labels/labels.go)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[標籤規格](../../../../../docs/domains/repository/labels.md)
+Start with [labels.go](../domain/entity/labels/labels.go).
 
-## 閱讀入口
+<a id="相關規格"></a>
 
-僅提供列出及建立，操作、權限、資料與驗收依 [標籤規格](../../../../../docs/domains/repository/labels.md)；不提供改名或刪除。分類引用由事項／討論自己的作者更新流程保存。
+## Related specifications
 
-[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)
+[Label specification](../../../../../docs/domains/repository/labels.md)
+
+<a id="閱讀入口"></a>
+
+## Reading entry points
+
+List/create only, per the [label specification](../../../../../docs/domains/repository/labels.md); no rename/delete. Issue/Discussion author-update workflows persist classification references.
+
+[applicable guidance](../AGENTS.md) · [parent directory guide](../README.md)

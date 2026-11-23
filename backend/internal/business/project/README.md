@@ -1,27 +1,37 @@
-# 專案基礎
+<a id="專案基礎"></a>
 
-[領域文件](../../../../docs/domains/project/README.md) · [全域索引](../../../../docs/domains/README.md#domain-matrix)
+# Project foundations
 
-管理工程專案、來源引用及檢查紀錄，負責專案歸屬與引用來源的授權規則。
+[domain documentation](../../../../docs/domains/project/README.md) · [global index](../../../../docs/domains/README.md#domain-matrix)
 
-此目錄維護本領域或子能力的行為。HTTP、LINE 與 Firestore 依需要提供適配，授權和狀態規則歸資源所屬領域。
+Manages construction projects, source references, inspection records, ownership and source authorization.
 
-## 閱讀與修改入口
+This directory owns domain or sub-capability behavior. Add HTTP, LINE and Firestore adapters as needed; resource-owning domains control authorization and state.
 
-先查閱[inspections.go](domain/entity/inspections.go)、[project.go](domain/entity/project.go)、[references.go](domain/entity/references.go)、[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[基礎規格](../../../../docs/domains/project/project.md) · [現行實作圖：最小來源引用骨架](../../../../docs/domains/project/project.md#最小來源引用骨架)
+Start with [inspections.go](domain/entity/inspections.go), [project.go](domain/entity/project.go), [references.go](domain/entity/references.go), [local agent guidance](AGENTS.md).
 
-## 閱讀入口
+<a id="相關規格"></a>
 
-操作、權限、資料與驗收依 [基礎規格](../../../../docs/domains/project/project.md)。不擴充未授權功能；核心、HTTP 與 Firestore 各自保留責任，前端組合既有元件。
+## Related specifications
 
-[現行實作圖：最小來源引用骨架](../../../../docs/domains/project/project.md#最小來源引用骨架)
+[Basic specification](../../../../docs/domains/project/project.md) · [Current implementation diagram: minimal source reference structure](../../../../docs/domains/project/project.md#最小來源引用骨架)
 
-## 領域追蹤入口
+<a id="閱讀入口"></a>
 
-[領域規格](../../../../docs/domains/project/README.md) · [判定流程](../../../../docs/domains/project/README.md#decision-flow) · [代表測試](application/reference_source_test.go)
+## Reading entry points
 
-[上層導覽](../README.md)
+See the [basic specification](../../../../docs/domains/project/project.md) for operations, permissions, data and acceptance. Do not expand unauthorized scope. Keep core/HTTP/Firestore responsibilities separate; compose existing frontend components.
+
+[Current implementation diagram: minimal source reference structure](../../../../docs/domains/project/project.md#最小來源引用骨架)
+
+<a id="領域追蹤入口"></a>
+
+## Domain traceability entry points
+
+[domain specification](../../../../docs/domains/project/README.md) · [decision flow](../../../../docs/domains/project/README.md#decision-flow) · [representative tests](application/reference_source_test.go)
+
+[Parent directory guide](../README.md)

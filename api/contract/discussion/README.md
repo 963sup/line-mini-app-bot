@@ -1,15 +1,21 @@
-# api/contract/discussion 目錄導覽
+<a id="apicontractdiscussion-目錄導覽"></a>
 
-定義 Repository 討論、分類與留言的 API 契約。
+# api/contract/discussion directory guide
 
-維護本能力的操作與 schema；根規格負責組合，公開格式由契約產生。
+Defines APIs for Repository discussions, categories and comments.
 
-## 閱讀與修改入口
+Maintain this capability's operations and schemas. Root specifications compose them; public formats are generated from contracts.
 
-從 [categories.yaml](categories.yaml)、[comments.yaml](comments.yaml)、[discussions.yaml](discussions.yaml) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：最小實作邊界與驗證](../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+Start with [categories.yaml](categories.yaml), [comments.yaml](comments.yaml) and [discussions.yaml](discussions.yaml). Read the [local guidance](AGENTS.md) before editing.
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: minimal boundaries and verification](../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+
+[Parent directory guide](../README.md)

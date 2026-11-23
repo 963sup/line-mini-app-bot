@@ -1,27 +1,37 @@
-# LINE 群組相容整合
+<a id="line-群組相容整合"></a>
 
-[領域文件](../../../docs/domains/group/README.md) · [全域索引](../../../docs/domains/README.md#domain-matrix)
+# LINE group compatibility integration
 
-保存從已驗簽 LINE 事件取得的群組資料與成員候選資訊，提供群組查詢。
+[domain documentation](../../../docs/domains/group/README.md) · [global index](../../../docs/domains/README.md#domain-matrix)
 
-本目錄維護 LINE 群組觀測、舊群組查詢與相容 API。Team 管理團隊狀態與歸屬，Membership 管理正式資格。群組候選索引只用於發現資料，讀取仍須驗證即時 LINE 成員資格。
+Stores group data/member candidates from signature-verified LINE events and provides group queries.
 
-## 閱讀與修改入口
+Owns LINE group observation, legacy group queries and compatibility APIs. Team owns state/ownership; Membership owns formal eligibility. Candidate indexes aid discovery only; reads still require live LINE membership verification.
 
-先查閱[group.go](application/query/group.go)、[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[專案設計](../../../docs/domains/project/project.md) · [現行實作圖：格式與資料相容](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [group.go](application/query/group.go), [local agent guidance](AGENTS.md).
 
-## 閱讀入口
+<a id="相關規格"></a>
 
-Group 直接以 LINE GroupID 為文件 ID，保存已驗簽的群組事件與成員候選清單。Project 歸屬與授權見[專案設計](../../../docs/domains/project/project.md)。
+## Related specifications
 
-[現行實作圖：格式與資料相容](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+[Project design](../../../docs/domains/project/project.md) · [Current implementation diagram: formats and data compatibility](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
 
-## 領域追蹤入口
+<a id="閱讀入口"></a>
 
-[領域規格](../../../docs/domains/group/README.md) · [判定流程](../../../docs/domains/group/README.md#decision-flow) · [代表測試](application/query/group_test.go)
+## Reading entry points
 
-[上層導覽](../README.md)
+Group uses LINE GroupID directly as document ID and stores verified events/member candidates. See [Project design](../../../docs/domains/project/project.md) for Project ownership/authorization.
+
+[Current implementation diagram: formats and data compatibility](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+<a id="領域追蹤入口"></a>
+
+## Domain traceability entry points
+
+[domain specification](../../../docs/domains/group/README.md) · [decision flow](../../../docs/domains/group/README.md#decision-flow) · [representative tests](application/query/group_test.go)
+
+[Parent directory guide](../README.md)

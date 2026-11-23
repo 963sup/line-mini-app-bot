@@ -1,5 +1,13 @@
-# 生成 API 程式碼、前端資源與文件圖工作指引
+<a id="生成-api-程式碼前端資源與文件圖工作指引"></a>
 
-本目錄沿用[上層指引](../AGENTS.md)。修改生成器後核對對應產物與消費端的路徑。
+# API code, frontend asset and document graph generation guidance
 
-修改後依[腳本總覽](../README.md)執行對應檢查，入口見[本層說明](README.md)。
+Inherit [parent guidance](../AGENTS.md); check artifact/consumer paths after generator changes.
+
+After changes, run checks from the [script overview](../README.md); see the [local README](README.md) for entry points.
+
+## Applicable engineering conventions
+
+- **Code generation:** Derive outputs only from declared schemas/assets/sources using pinned tools, then compare artifact paths and consumer references.
+- **Determinism and types:** Preserve generated names, serialization and target-language signatures; repeated runs on identical inputs must not introduce unexplained drift.
+- **Lifecycle:** Keep temporary output isolated and clean it after failure; never hand-edit generated files as a substitute for fixing their source.

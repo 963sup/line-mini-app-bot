@@ -1,11 +1,13 @@
-# 架構決策紀錄
+<a id="架構決策紀錄"></a>
 
-查閱已採用決策的背景、理由與適用範圍。ADR 編號保留作為永久引用。
+# Architecture decision records
 
-- [ADR 0002 · 基礎出勤與階段順序](0002-baseline.md)（部署部分已由 ADR 0003 取代）
-- [ADR 0003 · Cloud Run 部署決策](0003-cloud-run-primary.md)
-- [ADR 0004 · 前端、後端與 API 契約的 Monorepo 邊界](0004-monorepo.md)
+Background, reasons and applicability of adopted decisions. ADR numbers are permanent references.
 
-[上層索引](../README.md)
+- [ADR 0002 · Attendance baseline/stage order](0002-baseline.md) (deployment superseded by ADR 0003)
+- [ADR 0003 · Cloud Run deployment](0003-cloud-run-primary.md)
+- [ADR 0004 · Frontend/backend/API Monorepo boundaries](0004-monorepo.md)
 
-[適用工作指引](../AGENTS.md)
+[Parent index](../README.md)
+
+[applicable guidance](../AGENTS.md)

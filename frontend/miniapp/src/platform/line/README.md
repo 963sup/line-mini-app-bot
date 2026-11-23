@@ -1,15 +1,21 @@
-# frontend/miniapp/src/platform/line 目錄導覽
+<a id="frontendminiappsrcplatformline-目錄導覽"></a>
 
-封裝 LINE LIFF SDK 的初始化與使用方式。
+# frontend/miniapp/src/platform/line directory guide
 
-依層級維護本目錄的共用能力；功能畫面由 business 組織，頁面入口由 pages 接入。
+Encapsulates LIFF SDK initialization/usage.
 
-## 閱讀與修改入口
+Maintain shared capabilities by layer; business owns feature UI and pages owns entry points.
 
-從 [sdk.ts](sdk.ts) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：MINI App 信任流程](../../../../../docs/contracts/http.md#mini-app-信任流程)
+Start with [sdk.ts](sdk.ts); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: MINI App trust flow](../../../../../docs/contracts/http.md#mini-app-信任流程)
+
+[Parent directory guide](../README.md)

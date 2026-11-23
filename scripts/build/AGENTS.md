@@ -1,5 +1,13 @@
-# 建置容器映像工作指引
+<a id="建置容器映像工作指引"></a>
 
-本目錄沿用[上層指引](../AGENTS.md)。保留 Dockerfile 建置參數與 CA secret 傳遞方式。
+# Container image build guidance
 
-修改後依[腳本總覽](../README.md)執行對應檢查，入口見[本層說明](README.md)。
+Inherit [parent guidance](../AGENTS.md); preserve Dockerfile build arguments/CA secret passing.
+
+After changes, run checks from the [script overview](../README.md); see the [local README](README.md) for entry points.
+
+## Applicable engineering conventions
+
+- **Reproducible builds:** Use locked inputs, explicit build contexts and existing image stages; verify the runtime contract rather than only compilation.
+- **Security:** Pass required trust material through the established secret mechanism and keep credentials out of layers, logs and build arguments.
+- **Artifact lifecycle:** Identify the built revision/image and cleanup temporary artifacts without publishing or deploying implicitly.

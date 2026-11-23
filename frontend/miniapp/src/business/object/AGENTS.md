@@ -1,9 +1,19 @@
-# frontend/miniapp/src/business/object 工作指引
+<a id="frontendminiappsrcbusinessobject-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend/miniapp/src/business/object agent guidance
 
-先查閱[View.tsx](View.tsx)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：物件與子物件歸屬](../../../../../docs/contracts/object-subobject-ownership.md#物件與子物件歸屬)
+Start with [View.tsx](View.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: object and subobject ownership](../../../../../docs/contracts/object-subobject-ownership.md#物件與子物件歸屬)
+
+## Applicable engineering conventions
+
+- **Data, scope and state:** Keep exact quantity input strings and parent/resource identities intact; display server conversion defaults and progress-reset requirements.

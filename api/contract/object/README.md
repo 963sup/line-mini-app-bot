@@ -1,19 +1,25 @@
-# api/contract/object 目錄導覽
+<a id="apicontractobject-目錄導覽"></a>
 
-定義工程清單物件與子物件的 API 契約。
+# api/contract/object directory guide
 
-維護本能力的操作與 schema；根規格負責組合，公開格式由契約產生。
+Defines API contracts for construction list objects and subobjects.
 
-## 閱讀與修改入口
+Maintain this capability's operations and schemas. Root specifications compose them; public formats are generated from contracts.
 
-先查閱[objects.yaml](objects.yaml)、[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-物件與其子節點的操作共用 [objects.yaml](objects.yaml)。修改前請參考[本目錄工作指引](AGENTS.md)。
+Start with [objects.yaml](objects.yaml) and [local guidance](AGENTS.md).
 
-[現行實作圖：物件與子物件歸屬](../../../docs/contracts/object-subobject-ownership.md#物件與子物件歸屬)
+<a id="相關規格"></a>
 
-[上層導覽](../README.md)
+## Related specifications
 
-[ObjectTemplate 最小閉環](../../../docs/domains/repository/object/template.md)：建立不可變 v1、選用、原子套用並開啟獨立 Object 樹；草稿、改版與舊資料遷移留在後續範圍。
+Objects and their child nodes share operations in [objects.yaml](objects.yaml). Read the [local guidance](AGENTS.md) before editing.
+
+[Current implementation diagram: object and subobject ownership](../../../docs/contracts/object-subobject-ownership.md#物件與子物件歸屬)
+
+[Parent directory guide](../README.md)
+
+[Minimal ObjectTemplate workflow](../../../docs/domains/repository/object/template.md): create immutable v1, select, apply atomically and open an independent Object tree. Drafts, revisions and legacy migration remain future work.

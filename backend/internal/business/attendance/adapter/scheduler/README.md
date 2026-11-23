@@ -1,11 +1,15 @@
 # Attendance scheduler
 
-保留排程觸發入口，目前無實作。
+Reserved scheduler entry point; unimplemented.
 
-## 實作與規則
+<a id="實作與規則"></a>
 
-保留未來排程觸發位置，目前沒有排程任務或註冊接線。確定排程需求後在此呼叫 application 用例。
+## Implementation and rules
 
-## 驗證與入口
+Reserved for future scheduled triggers, without jobs or registration. Call application use cases here once scheduling needs are confirmed.
 
-繼承[模組工作指引](../../AGENTS.md)，依[模組驗證入口](../../README.md#規格與驗證)執行相關檢查。[上層導覽](../README.md)。
+<a id="驗證與入口"></a>
+
+## Verification and entry points
+
+Inherit [module guidance](../../AGENTS.md) and run applicable checks through [module verification](../../README.md#規格與驗證). [Parent directory guide](../README.md).

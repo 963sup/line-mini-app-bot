@@ -1,9 +1,19 @@
-# frontend/miniapp/src/business/project 工作指引
+<a id="frontendminiappsrcbusinessproject-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend/miniapp/src/business/project agent guidance
 
-先查閱[Inspections.tsx](Inspections.tsx)、[Items.tsx](Items.tsx)、[SourcePicker.tsx](SourcePicker.tsx)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：最小來源引用骨架](../../../../../docs/domains/project/project.md#最小來源引用骨架)
+Start with [Inspections.tsx](Inspections.tsx), [Items.tsx](Items.tsx), [SourcePicker.tsx](SourcePicker.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: minimal source reference structure](../../../../../docs/domains/project/project.md#最小來源引用骨架)
+
+## Applicable engineering conventions
+
+- **Data, scope and state:** Keep Project Owner, destination-copy Owner and source repository selections distinct; hiding a source or view field does not grant source access.

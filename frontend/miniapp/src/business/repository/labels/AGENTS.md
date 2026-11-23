@@ -1,9 +1,19 @@
-# frontend/miniapp/src/business/repository/labels 工作指引
+<a id="frontendminiappsrcbusinessrepositorylabels-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend/miniapp/src/business/repository/labels agent guidance
 
-先查閱[Picker.tsx](Picker.tsx)、[View.tsx](View.tsx)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：空間載入時序](../../../../../../docs/domains/repository/README.md#空間載入時序)
+Start with [Picker.tsx](Picker.tsx), [View.tsx](View.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: space loading sequence](../../../../../../docs/domains/repository/README.md#空間載入時序)
+
+## Applicable engineering conventions
+
+- **Data, scope and state:** Preserve selected label IDs while paging authorized options; retry the failed cursor and clear inaccessible options after denial.

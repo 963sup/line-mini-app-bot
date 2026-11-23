@@ -1,13 +1,28 @@
-# frontend/miniapp/src/business 工作指引
+<a id="frontendminiappsrcbusiness-工作指引"></a>
 
-## 架構與責任邊界
+# frontend/miniapp/src/business agent guidance
 
-顯示內容編輯控制時使用後端回傳的 `canEdit`。測試應包含關閉該能力時的畫面，並保留具備獨立授權的分類操作。切換帳號或群組後，重新取得該範圍的資料。
+<a id="架構與責任邊界"></a>
 
-## 閱讀與修改入口
+## Architecture and responsibility boundaries
 
-先查閱[attendance](attendance)、[discussion](discussion)、[enterprise](enterprise)、[issue](issue)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+Use backend `canEdit` for content-edit controls. Test disabled capabilities while retaining separately authorized classification. Reload scoped data after account/group switches.
 
-## 相關規格
+<a id="閱讀與修改入口"></a>
 
-[現行實作圖：頁面與身分生命週期](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+## Reading and editing entry points
+
+Start with [attendance](attendance), [discussion](discussion), [enterprise](enterprise), [issue](issue), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: page and identity lifecycle](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+## Applicable engineering conventions
+
+- **Authorization and state:** Render server-provided capabilities and results without reconstructing ownership or domain transition policy in the browser.
+- **Forms and recovery:** Reuse existing schema-backed fields and shared field/error mappings; preserve the original request and identity after an unknown write, and block navigation where an unresolved operation requires it.
+- **Query scope:** Keep filters, cursors and projections tied to the selected authorized resource and reject late results from a prior scope.
+- **UI acceptance:** Verify affected loading, empty, denied and retry states through public controls, including focus and stale-response cleanup.

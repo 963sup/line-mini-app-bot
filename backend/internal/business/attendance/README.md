@@ -1,10 +1,14 @@
-# Attendance 套件分工
+<a id="attendance-套件分工"></a>
 
-[領域文件](../../../../docs/domains/attendance/README.md) · [全域索引](../../../../docs/domains/README.md#domain-matrix)
+# Attendance package responsibilities
 
-管理打卡、出勤紀錄、補正審核、請假與出勤查詢。依賴由適配器及應用層指向領域層，外部實作由 `internal/bootstrap` 組裝。
+[domain documentation](../../../../docs/domains/attendance/README.md) · [global index](../../../../docs/domains/README.md#domain-matrix)
 
-## 現行結構
+Manages punches, records, correction reviews, leave and queries. Adapter/application dependencies point toward the domain; `internal/bootstrap` composes external implementations.
+
+<a id="現行結構"></a>
+
+## Current structure
 
 ```text
 attendance/
@@ -27,18 +31,24 @@ attendance/
     └── scheduler/
 ```
 
-## 閱讀入口
+<a id="閱讀入口"></a>
 
-[領域模型](domain/README.md) 區分實體、業務值、運算、事件與政策；[應用層](application/README.md) 分開寫入、查詢、輸出介面與 DTO；[適配器](adapter/README.md) 處理協定及持久化。`messaging` 與 `scheduler` 是保留入口，目前沒有佇列或排程實作。
+## Reading entry points
 
-補正審核由 [command](application/command/review.go) 協調，[交易 port](application/port/review.go) 取得最新事實。Firestore 在同一交易內執行用例、核對版本及保存核准證據；交易重試時重新判斷。HTTP 與 LINE 共用 [月報 query](application/query/monthly.go)。
+The [domain model](domain/README.md) separates entities, values, calculations, events and policies. The [application layer](application/README.md) separates writes, queries, output ports and DTOs; [adapters](adapter/README.md) handle protocols and persistence. `messaging`/`scheduler` are reserved entry points without queue/scheduler implementations.
 
-## 規格與驗證
+[command](application/command/review.go) coordinates correction review; the [transaction port](application/port/review.go) supplies current facts. Firestore runs use cases, verifies versions and saves approval evidence in one transaction, reevaluating on retries. HTTP/LINE share the [monthly query](application/query/monthly.go).
 
-[出勤規格](../../../../docs/domains/attendance/README.md) · [工作指引](AGENTS.md) · [驗收矩陣](../../../../docs/development/tooling/testing/commands.md#變更驗收矩陣)。Go 檢查在根目錄透過 `bash scripts/tooling/tool-exec.sh mise run check` 執行；Firestore 整合測試另需 `FIRESTORE_EMULATOR_HOST`。
+<a id="規格與驗證"></a>
 
-## 領域追蹤入口
+## Specifications and verification
 
-[領域規格](../../../../docs/domains/attendance/README.md) · [判定流程](../../../../docs/domains/attendance/README.md#decision-flow) · [代表測試](adapter/firestore/attendance_integration_test.go)
+[Attendance specification](../../../../docs/domains/attendance/README.md) · [Agent guidance](AGENTS.md) · [Acceptance matrix](../../../../docs/development/tooling/testing/commands.md#變更驗收矩陣). Run Go checks from the root through `bash scripts/tooling/tool-exec.sh mise run check`; Firestore integration tests also require `FIRESTORE_EMULATOR_HOST`.
 
-[上層導覽](../README.md)
+<a id="領域追蹤入口"></a>
+
+## Domain traceability entry points
+
+[domain specification](../../../../docs/domains/attendance/README.md) · [decision flow](../../../../docs/domains/attendance/README.md#decision-flow) · [representative tests](adapter/firestore/attendance_integration_test.go)
+
+[Parent directory guide](../README.md)

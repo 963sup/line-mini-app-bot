@@ -1,15 +1,21 @@
-# api/contract/attendance 目錄導覽
+<a id="apicontractattendance-目錄導覽"></a>
 
-定義打卡、出勤紀錄、工時、請假、補卡及審核的 API 契約。
+# api/contract/attendance directory guide
 
-維護本能力的操作與 schema；根規格負責組合，公開格式由契約產生。
+Defines API contracts for punches, attendance records, worktime, leave, corrections and review.
 
-## 閱讀與修改入口
+Maintain this capability's operations and schemas. Root specifications compose them; public formats are generated from contracts.
 
-從 [approvals.yaml](approvals.yaml)、[corrections.yaml](corrections.yaml)、[leave.yaml](leave.yaml)、[punch.yaml](punch.yaml)、[records.yaml](records.yaml)、[worktime.yaml](worktime.yaml) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：定位前預檢、狀態與時序](../../../docs/domains/attendance/README.md#定位前預檢狀態與時序)
+Start with [approvals.yaml](approvals.yaml), [corrections.yaml](corrections.yaml), [leave.yaml](leave.yaml), [punch.yaml](punch.yaml), [records.yaml](records.yaml) and [worktime.yaml](worktime.yaml). Read the [local guidance](AGENTS.md) before editing.
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: location preflight, state and sequence](../../../docs/domains/attendance/README.md#定位前預檢狀態與時序)
+
+[Parent directory guide](../README.md)

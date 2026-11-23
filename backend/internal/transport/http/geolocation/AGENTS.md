@@ -1,11 +1,23 @@
-# backend/internal/transport/http/geolocation 工作指引
+<a id="backendinternaltransporthttpgeolocation-工作指引"></a>
 
-## 閱讀與修改入口
+# backend/internal/transport/http/geolocation agent guidance
 
-先查閱[geolocation.go](geolocation.go)、[本目錄導覽](README.md)、[上層工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 工作方式
+## Reading and editing entry points
 
-[上層指引](../AGENTS.md)
+Start with [geolocation.go](geolocation.go), [directory guide](README.md), [parent guidance](AGENTS.md).
 
-[現行實作圖：現有出勤整合檔案與責任](../../../../../docs/integrations/geolocation/browser-api.md#現有出勤整合檔案與責任)
+<a id="工作方式"></a>
+
+## Working approach
+
+[parent guidance](../AGENTS.md)
+
+[Current implementation diagram: attendance integration files and responsibilities](../../../../../docs/integrations/geolocation/browser-api.md#現有出勤整合檔案與責任)
+
+## Applicable engineering conventions
+
+- **Validation and privacy:** Validate coordinates, precision and timestamps against the location contract without treating client data as proof of business authorization.
+- **HTTP semantics:** Preserve public diagnostic credential, body-limit and error semantics independently of authenticated attendance operations.
+- **Testing:** Verify malformed, stale and disallowed requests; do not add location persistence or retention policy through diagnostic changes.

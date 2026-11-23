@@ -1,19 +1,25 @@
-# 空間問題
+<a id="空間問題"></a>
 
-組合 Repository 事項及其狀態與留言操作。
+# Space issues
 
-在本功能就近維護畫面與互動，路由由 pages 組合，權限與結果以後端 API 為準。
+Composes Repository Issues, states/comment interactions.
 
-## 閱讀與修改入口
+Colocate feature UI/interactions; pages compose routes and backend APIs determine permissions/results.
 
-先查閱[View.tsx](View.tsx)、[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[問題規格](../../../../../docs/domains/repository/issue/design.md) · [現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+Start with [View.tsx](View.tsx), [local agent guidance](AGENTS.md).
 
-操作權限、狀態、API、資料與驗收依 [問題規格](../../../../../docs/domains/repository/issue/design.md) 維護；本模組只保存對應業務實作。
+<a id="相關規格"></a>
 
-[現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+## Related specifications
 
-[上層導覽](../README.md)
+[Issue specification](../../../../../docs/domains/repository/issue/design.md) · [Current implementation diagram: page/identity lifecycle](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+The [Issue specification](../../../../../docs/domains/repository/issue/design.md) owns permissions, states, APIs, data and acceptance; this module contains corresponding implementation only.
+
+[Current implementation diagram: page and identity lifecycle](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+[Parent directory guide](../README.md)

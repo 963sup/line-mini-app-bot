@@ -1,15 +1,21 @@
-# backend/internal/platform/firestore/key 目錄導覽
+<a id="backendinternalplatformfirestorekey-目錄導覽"></a>
 
-提供 Firestore 文件鍵值與分頁游標的共用處理。
+# backend/internal/platform/firestore/key directory guide
 
-依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
+Provides shared Firestore document-key and pagination-cursor handling.
 
-## 閱讀與修改入口
+Directories expose backend entry points or shared capabilities by purpose. Bootstrap wires services; domains own resource authorization and use cases.
 
-從 [cursor.go](cursor.go)、[key.go](key.go)、[cursor_test.go](cursor_test.go) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 閱讀入口
+## Reading and editing entry points
 
-[現行實作圖：格式與資料相容](../../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [cursor.go](cursor.go), [key.go](key.go), [cursor_test.go](cursor_test.go); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../../README.md)
+<a id="閱讀入口"></a>
+
+## Reading entry points
+
+[Current implementation diagram: formats and data compatibility](../../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+[Parent directory guide](../../README.md)

@@ -1,9 +1,20 @@
-# frontend/miniapp/src/business/attendance/records 工作指引
+<a id="frontendminiappsrcbusinessattendancerecords-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend/miniapp/src/business/attendance/records agent guidance
 
-先查閱[View.tsx](View.tsx)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：共用狀態規則與事件重建](../../../../../../docs/domains/attendance/worktime.md#共用狀態規則與事件重建)
+Start with [View.tsx](View.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: shared state rules/event reconstruction](../../../../../../docs/domains/attendance/worktime.md#共用狀態規則與事件重建)
+
+## Applicable engineering conventions
+
+- **Data, scope and state:** Keep month and cursor navigation scoped to the personal records contract; render backend worktime results instead of recalculating summaries.
+- **Queries and time:** Keep the selected business month and failed-page cursor together, clear obsolete private results and respect the records API error/cache semantics.

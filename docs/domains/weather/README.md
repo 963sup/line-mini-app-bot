@@ -1,34 +1,40 @@
-# 天氣
+<a id="天氣"></a>
 
-**已有實作** · [設計規格](weather.md) · [核心流程](#decision-flow) · [代表測試](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go) · [程式目錄](../../../backend/internal/business/weather/README.md) · [維護指引](../../../backend/internal/business/weather/AGENTS.md)
+# Weather
 
-## 領域設計
+**Implemented** · [Design](weather.md) · [Core flow](#decision-flow) · [Representative tests](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go) · [Code](../../../backend/internal/business/weather/README.md) · [Guidance](../../../backend/internal/business/weather/AGENTS.md)
 
-**子域定位**　外部預報屬通用能力；群組查詢是產品支援能力。
+<a id="領域設計"></a>
 
-**通用語言**　位置是查詢輸入，預報由氣象來源提供，群組回覆是一次查詢的呈現結果。
+## Domain design
 
-**上下文與契約**　LINE 入口辨識能回覆的群組事件，天氣適配器取得中央氣象署預報。出勤定位的目的與授權不因兩者都使用位置而共用。
+**Subdomain classification:** external forecasts are generic; group queries support the product.
 
-**驗收案例**　以群組位置事件測試預報入口；非群組或無法回覆的事件不得觸發同一群組回覆流程。
+**Language:** location is query input, providers supply forecasts and group replies present one query result.
 
-[對照實作或測試](../../../backend/internal/business/weather/adapter/line/forecast/forecast.go) · [戰略設計與分類準則](../../references/ddd/README.md)
+**Context/contracts:** LINE identifies replyable group events; weather adapters query CWA. Shared location inputs do not unify attendance purpose/authorization.
 
-天氣功能的查詢與 LINE 互動見天氣規格。
+**Acceptance:** group locations trigger forecasts; non-group/non-replyable events cannot trigger that reply flow.
 
-[相關業務規格](weather.md) · [後端weather 實作說明](../../../backend/internal/business/weather/README.md)
+[Implementation/tests](../../../backend/internal/business/weather/adapter/line/forecast/forecast.go) · [Strategic classification criteria](../../references/ddd/README.md)
+
+See weather specifications for queries/LINE interaction.
+
+[Business specification](weather.md) · [Backend weather implementation](../../../backend/internal/business/weather/README.md)
 
 <a id="decision-flow"></a>
 
-## 收到可回覆的群組位置的判定流程
+<a id="收到可回覆的群組位置的判定流程"></a>
+
+## Replyable group location decision flow
 
 ```mermaid
 flowchart TD
-    start["收到可回覆的群組位置"] --> gate{"取得有效且符合位置條件的預報？"}
-    gate -->|是| ok["回覆官方預報"]
-    gate -->|否| stop["回報無可用預報"]
+    start["Receive replyable group location"] --> gate{"Valid forecast matches location?"}
+    gate -->|Yes| ok["Reply official forecast"]
+    gate -->|No| stop["Report no forecast"]
 ```
 
-[入口適配器](../../../backend/internal/business/weather/adapter/cwa/forecast/cwa.go) · [判定依據](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go) · [相關測試](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go)
+[Entry adapter](../../../backend/internal/business/weather/adapter/cwa/forecast/cwa.go) · [Decision rules](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go) · [Related tests](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go)
 
-[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)
+[applicable guidance](../AGENTS.md) · [parent directory guide](../README.md)

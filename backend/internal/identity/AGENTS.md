@@ -1,9 +1,21 @@
-# backend/internal/identity 工作指引
+<a id="backendinternalidentity-工作指引"></a>
 
-## 閱讀與修改入口
+# backend/internal/identity agent guidance
 
-先查閱[identity.go](identity.go)、[owner.go](owner.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：續期交易與前端觸發](../../../docs/contracts/identity.md#續期交易與前端觸發)
+Start with [identity.go](identity.go), [owner.go](owner.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: renewal transaction and frontend triggers](../../../docs/contracts/identity.md#續期交易與前端觸發)
+
+## Applicable engineering conventions
+
+- **Authentication and security:** Keep trusted actor identifiers distinct from profiles and resource ownership; identity verification does not assign domain permissions.
+- **Time and identifiers:** Preserve token/session identifier formats and expiry precision; distinguish UTC instants from local business dates.
+- **Reliability and tests:** Bound verification calls and test invalid, expired, revoked and cancelled cases at the changed boundary.

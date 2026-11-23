@@ -46,4 +46,4 @@ FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 \
 go test -count=1 -run '^TestProjectSettingsBrowserRoundTrip$' ./internal/business/project/adapter/firestore
 ```
 
-測試透過瀏覽器建立個人專案、儲存欄位與檢視、複製到組織，最後重新開啟兩份專案，核對欄位名稱、選項及檢視引用。組織與專案資料經 Go HTTP 處理器讀寫 emulator；LINE 登入與 session 使用測試身分。
+瀏覽器送出建立個人專案後，測試等後端成功寫入才中斷回應。從畫面重試原請求後，核對開啟的專案 ID 與第一次寫入一致，並透過清單 API 確認個人範圍只有該筆專案。接著儲存欄位與檢視、複製到組織，再重新開啟兩份專案核對欄位名稱、選項及檢視引用。組織與專案資料經 Go HTTP 處理器讀寫 emulator；LINE 登入與 session 使用測試身分。

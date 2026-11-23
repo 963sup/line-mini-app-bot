@@ -1,38 +1,44 @@
-# 工項
+<a id="工項"></a>
 
-**已有實作** · [設計規格](design.md) · [核心流程](#decision-flow) · [代表測試](../../../../backend/internal/business/object/application/progress_test.go) · [程式目錄](../../../../backend/internal/business/object/README.md) · [維護指引](../../../../backend/internal/business/object/AGENTS.md)
+# Work items
 
-[前端畫面](../../../../frontend/miniapp/src/business/object/README.md) · [公開 API](../../../../api/contract/object/README.md) · [子物件畫面](../../../../frontend/miniapp/src/business/subobject/README.md)
+**Implemented** · [Design](design.md) · [Core flow](#decision-flow) · [Representative tests](../../../../backend/internal/business/object/application/progress_test.go) · [Code](../../../../backend/internal/business/object/README.md) · [Guidance](../../../../backend/internal/business/object/AGENTS.md)
 
-## 領域設計
+[Frontend](../../../../frontend/miniapp/src/business/object/README.md) · [Public API](../../../../api/contract/object/README.md) · [Subobject UI](../../../../frontend/miniapp/src/business/subobject/README.md)
 
-**子域定位**　工程數量與進度的核心候選。
+<a id="領域設計"></a>
 
-**通用語言**　總量、完成量與狀態共同描述工項進度；未提供完成量與明確填零有不同語意。
+## Domain design
 
-**上下文與契約**　Repository 提供操作範圍，Object 負責數量與進度規則。
+**Subdomain classification:** core construction quantity/progress candidate.
 
-**驗收案例**　總量為 5、完成量為 8 的工項應被拒絕；等值十進位表示不應產生不同的完成狀態。
+**Language:** totals, completed quantities and states define progress; absent completion differs from explicit zero.
 
-[對照實作或測試](../../../../backend/internal/business/object/application/progress_test.go) · [戰略設計與分類準則](../../../references/ddd/README.md)
+**Context/contracts:** Repository supplies scope; Object owns quantity/progress rules.
 
-工項規格涵蓋數量、進度與狀態。[數量原位編輯與儲存庫稽核](design.md#quantity-audit)記載已接通的歷史查詢、待實作的原位編輯與驗收條件。
+**Acceptance:** total 5/completed 8 rejects; equivalent decimals produce identical completion states.
 
-[領域設計與操作契約](design.md) · [後端實作入口](../../../../backend/internal/business/object/README.md)
+[Implementation/tests](../../../../backend/internal/business/object/application/progress_test.go) · [Strategic classification criteria](../../../references/ddd/README.md)
+
+Specifications cover quantity, progress/state. [Inline quantities/repository audit](design.md#quantity-audit) records implemented history, pending inline editing and acceptance.
+
+[Domain design/operation contracts](design.md) · [Backend entry](../../../../backend/internal/business/object/README.md)
 
 <a id="decision-flow"></a>
 
-## 變更工項進度的判定流程
+<a id="變更工項進度的判定流程"></a>
+
+## Work-item progress decision flow
 
 ```mermaid
 flowchart TD
-    start["變更工項進度"] --> gate{"完成量超過總量？"}
-    gate -->|是| ok["拒絕變更"]
-    gate -->|否| stop["驗證其餘欄位後更新"]
+    start["Change progress"] --> gate{"Completed quantity exceeds total?"}
+    gate -->|Yes| ok["Reject change"]
+    gate -->|No| stop["Validate remaining fields and update"]
 ```
 
-[入口適配器](../../../../backend/internal/business/object/adapter/http/routes.go) · [判定依據](../../../../backend/internal/business/object/application/progress_test.go) · [應用層輸出介面](../../../../backend/internal/business/object/application/port/object.go) · [相關測試](../../../../backend/internal/business/object/application/progress_test.go)
+[Entry adapter](../../../../backend/internal/business/object/adapter/http/routes.go) · [Decision rules](../../../../backend/internal/business/object/application/progress_test.go) · [Application output port](../../../../backend/internal/business/object/application/port/object.go) · [Related tests](../../../../backend/internal/business/object/application/progress_test.go)
 
-[適用工作指引](../../AGENTS.md) · [Repository 能力索引](../README.md#repository-capabilities) · [領域總覽](../../README.md)
+[Guidance](../../AGENTS.md) · [Repository capabilities](../README.md#repository-capabilities) · [Domain overview](../../README.md)
 
-[ObjectTemplate 最小閉環](template.md)：建立不可變 v1、選用、原子套用並開啟獨立 Object 樹；草稿、改版與舊資料遷移留在後續範圍。
+[Minimal ObjectTemplate workflow](template.md): create immutable v1, select, apply atomically and open an independent Object tree. Drafts, revisions and legacy migration remain future work.

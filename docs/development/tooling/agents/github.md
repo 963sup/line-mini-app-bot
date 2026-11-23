@@ -16,8 +16,6 @@ and publication using the [shared workflow](../../workflow/publication.md#reposi
 Use the host's GitHub MCP connection when available. The separately configured
 project server receives GITHUB_MCP_TOKEN securely at runtime through config.toml;
 its token presence does not establish host tool exposure or repository access.
-Connection, timeouts and enabled tool names are owned by `.codex/config.toml`.
-Tool versions are owned by `mise.toml`; never copy token values into documentation.
 
 ## Operation
 
@@ -43,10 +41,4 @@ by its exposed schema, not by the REST request body.
 
 ## Verification and failures
 
-```bash
-bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server github
-```
-
-This checks initialize, tools/list and configured allowlists. Verify a representative
-operation separately. For failures distinguish missing binary, network, credential,
-workspace prerequisites and host loading; see [troubleshooting](../../environment/troubleshooting.md).
+Follow [MCP diagnostics](README.md#mcp-診斷) with the service name `github`.

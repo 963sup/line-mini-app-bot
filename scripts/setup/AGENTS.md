@@ -1,5 +1,13 @@
-# 初始化工具環境、準備 Go 依賴工作指引
+<a id="初始化工具環境準備-go-依賴工作指引"></a>
 
-本目錄沿用[上層指引](../AGENTS.md)。維持初始化可重跑，安裝 mise 時驗證下載檔的校驗碼。
+# Tool setup and Go dependency guidance
 
-修改後依[腳本總覽](../README.md)執行對應檢查，入口見[本層說明](README.md)。
+Inherit [parent guidance](../AGENTS.md); keep setup rerunnable and verify mise download checksums.
+
+After changes, run checks from the [script overview](../README.md); see the [local README](README.md) for entry points.
+
+## Applicable engineering conventions
+
+- **Pinned configuration:** Install declared tool/dependency versions, validate platform/checksums and preserve manifest/lockfile consistency.
+- **Idempotency:** Make repeated setup safe and failures explicit; do not silently upgrade tools or leave partially configured resources.
+- **Security and lifecycle:** Keep writable state in the declared workspace paths and credentials out of installation logs or tracked configuration.

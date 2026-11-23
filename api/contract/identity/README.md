@@ -1,15 +1,21 @@
-# api/contract/identity 目錄導覽
+<a id="apicontractidentity-目錄導覽"></a>
 
-定義前端登入與身分相關的 API 契約。
+# api/contract/identity directory guide
 
-維護本能力的操作與 schema；根規格負責組合，公開格式由契約產生。
+Defines frontend login and identity API contracts.
 
-## 閱讀與修改入口
+Maintain this capability's operations and schemas. Root specifications compose them; public formats are generated from contracts.
 
-從 [identity.yaml](identity.yaml) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：續期交易與前端觸發](../../../docs/contracts/identity.md#續期交易與前端觸發)
+Start with [identity.yaml](identity.yaml). Read the [local guidance](AGENTS.md) before editing.
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: renewal transaction and frontend triggers](../../../docs/contracts/identity.md#續期交易與前端觸發)
+
+[Parent directory guide](../README.md)

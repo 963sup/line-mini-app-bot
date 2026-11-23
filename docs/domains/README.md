@@ -1,107 +1,92 @@
-# 業務功能
+<a id="業務功能"></a>
 
+# Business features
+
+<a id="code-by-domain"></a>
+<a id="依領域查程式目錄"></a>
 <a id="domain-matrix"></a>
 
-## 領域與容器的追蹤矩陣
+<a id="領域與容器的追蹤矩陣"></a>
 
-頂層依獨立領域與容器組織；Repository 內的 Issue、Discussion、Object（含子物件）由[儲存庫能力索引](repository/README.md#repository-capabilities)集中導覽。文件歸組不改變各能力的授權、狀態或程式模組責任。
+## Domain and container traceability matrix
 
-沿用六邊形架構：從入口適配器追到使用案例或既有實作，再核對輸出介面、儲存適配器及業務判定。各列連到代表路徑；實作連結與提案驗收均不代表已執行測試。
+Organize top-level entries by independent domains/containers. The [Repository capability index](repository/README.md#repository-capabilities) routes Issues, Discussions and Objects/subobjects. Grouping does not alter authorization, state or code responsibility.
 
-| 領域入口 | 狀態 | 核心圖與契約 | 實作、測試或驗收 |
-|---|---|---|---|
-| [agent](agent/README.md) | 提案 | [核心流程](../proposals/agent.md#design-diagram) | [驗收條件](../proposals/domain-collaboration.md) |
-| [attendance](attendance/README.md) | 已有實作 | [核心流程](attendance/README.md#decision-flow) | [測試](../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) |
-| [enterprise](enterprise/README.md) | 已有實作 | [核心流程](enterprise/README.md#decision-flow) | [實作](../../backend/internal/business/enterprise/adapter/firestore/store.go) |
-| [LINE 群組相容整合](group/README.md) | 已有實作 | [核心流程](group/README.md#decision-flow) | [測試](../../backend/internal/linegroup/application/query/group_test.go) |
-| [journal](journal/README.md) | 已有實作 | [核心流程](journal/README.md#decision-flow) | [測試](../../backend/internal/business/journal/domain/entity/entry_test.go) |
-| [knowledge](knowledge/README.md) | 提案 | [核心流程](../proposals/knowledge.md#design-diagram) | [驗收條件](../proposals/domain-collaboration.md) |
-| [業務操作能力](operations/README.md) | 通用操作模型為提案，PDF 文字擷取已實作 | [核心流程](../proposals/operations.md#design-diagram) | [驗收條件](../proposals/domain-collaboration.md) |
-| [organization](organization/README.md) | 已有實作 | [核心流程](organization/README.md#decision-flow) | [實作](../../backend/internal/business/organization/adapter/firestore/store.go) |
-| [project](project/README.md) | 已有實作 | [核心流程](project/README.md#decision-flow) | [測試](../../backend/internal/business/project/application/reference_source_test.go) |
-| [repository](repository/README.md) | 已有實作 | [核心流程](repository/README.md#decision-flow) | [實作](../../backend/internal/business/repository/domain/entity/repository.go) |
-| [summary](summary/README.md) | 已有實作 | [核心流程](summary/README.md#decision-flow) | [實作](../../backend/internal/business/summary/application/summarization/validation.go) |
-| [team](team/README.md) | 已有實作 | [核心流程](team/README.md#decision-flow) | [實作](../../backend/internal/business/team/adapter/firestore/store.go) |
-| [weather](weather/README.md) | 已有實作 | [核心流程](weather/README.md#decision-flow) | [測試](../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go) |
-| [workflow](workflow/README.md) | 提案 | [核心流程](../proposals/workflow.md#design-diagram) | [驗收條件](../proposals/domain-collaboration.md) |
+Follow hexagonal architecture from entry adapters to use cases/implementations, then output ports, storage and decisions. Links show representative paths; implementation links/proposal acceptance do not prove executed tests.
 
-## 依領域查程式目錄
+| Domain entry | Status | Core flow/contracts | Implementation, tests or acceptance | Module entry |
+|---|---|---|---|---|
+| [agent](agent/README.md) | Proposal | [Core flow](../proposals/agent.md#design-diagram) | [Acceptance criteria](../proposals/domain-collaboration.md) | [Backend](../../backend/internal/business/agent/README.md) |
+| [attendance](attendance/README.md) | Implemented | [Core flow](attendance/README.md#decision-flow) | [Tests](../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) | [Backend](../../backend/internal/business/attendance/README.md) · [Frontend](../../frontend/miniapp/src/business/attendance/README.md) · [Public contracts](../../api/contract/attendance/README.md) |
+| [enterprise](enterprise/README.md) | Implemented | [Core flow](enterprise/README.md#decision-flow) | [Implementation](../../backend/internal/business/enterprise/adapter/firestore/store.go) | [Backend](../../backend/internal/business/enterprise/README.md) |
+| [LINE group compatibility](group/README.md) | Implemented | [Core flow](group/README.md#decision-flow) | [Tests](../../backend/internal/linegroup/application/query/group_test.go) | [Public contracts](../../api/contract/group/README.md) |
+| [journal](journal/README.md) | Implemented | [Core flow](journal/README.md#decision-flow) | [Tests](../../backend/internal/business/journal/domain/entity/entry_test.go) | [Backend](../../backend/internal/business/journal/README.md) · [Frontend](../../frontend/miniapp/src/business/journal/README.md) · [Public contracts](../../api/contract/journal/README.md) |
+| [knowledge](knowledge/README.md) | Proposal | [Core flow](../proposals/knowledge.md#design-diagram) | [Acceptance criteria](../proposals/domain-collaboration.md) | [Backend](../../backend/internal/business/knowledge/README.md) |
+| [Business operations](operations/README.md) | Generic model proposed; PDF extraction implemented | [Core flow](../proposals/operations.md#design-diagram) | [Acceptance criteria](../proposals/domain-collaboration.md) | [Backend](../../backend/internal/business/operations/README.md) · [Frontend](../../frontend/miniapp/src/business/operations/README.md) · [Public contracts](../../api/contract/operations/README.md) |
+| [organization](organization/README.md) | Implemented | [Core flow](organization/README.md#decision-flow) | [Implementation](../../backend/internal/business/organization/adapter/firestore/store.go) | [Backend](../../backend/internal/business/organization/README.md) |
+| [project](project/README.md) | Implemented | [Core flow](project/README.md#decision-flow) | [Tests](../../backend/internal/business/project/application/reference_source_test.go) | [Backend](../../backend/internal/business/project/README.md) · [Frontend](../../frontend/miniapp/src/business/project/README.md) · [Public contracts](../../api/contract/project/README.md) |
+| [repository](repository/README.md) | Implemented | [Core flow](repository/README.md#decision-flow) | [Implementation](../../backend/internal/business/repository/domain/entity/repository.go) | [Backend](../../backend/internal/business/repository/README.md) · [Frontend](../../frontend/miniapp/src/business/repository/README.md) · [Public contracts](../../api/contract/repository/README.md) |
+| [summary](summary/README.md) | Implemented | [Core flow](summary/README.md#decision-flow) | [Implementation](../../backend/internal/business/summary/application/summarization/validation.go) | [Backend](../../backend/internal/business/summary/README.md) · [Public contracts](../../api/contract/summary/README.md) |
+| [team](team/README.md) | Implemented | [Core flow](team/README.md#decision-flow) | [Implementation](../../backend/internal/business/team/adapter/firestore/store.go) | [Backend](../../backend/internal/business/team/README.md) |
+| [weather](weather/README.md) | Implemented | [Core flow](weather/README.md#decision-flow) | [Tests](../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go) | [Backend](../../backend/internal/business/weather/README.md) · [Public contracts](../../api/contract/weather/README.md) |
+| [workflow](workflow/README.md) | Proposal | [Core flow](../proposals/workflow.md#design-diagram) | [Acceptance criteria](../proposals/domain-collaboration.md) | [Backend](../../backend/internal/business/workflow/README.md) |
 
-從領域規格進入對應的模組 README，再依該目錄的工作指引修改。功能實作狀態以上方追蹤矩陣為準。
+<a id="業務功能-1"></a>
 
-| 領域規格 | 模組入口 |
-|---|---|
-| [agent](agent/README.md) | [後端](../../backend/internal/business/agent/README.md) |
-| [attendance](attendance/README.md) | [後端](../../backend/internal/business/attendance/README.md) · [前端](../../frontend/miniapp/src/business/attendance/README.md) · [公開契約](../../api/contract/attendance/README.md) |
-| [enterprise](enterprise/README.md) | [後端](../../backend/internal/business/enterprise/README.md) |
-| [group](group/README.md) | [公開契約](../../api/contract/group/README.md) |
-| [journal](journal/README.md) | [後端](../../backend/internal/business/journal/README.md) · [前端](../../frontend/miniapp/src/business/journal/README.md) · [公開契約](../../api/contract/journal/README.md) |
-| [knowledge](knowledge/README.md) | [後端](../../backend/internal/business/knowledge/README.md) |
-| [operations](operations/README.md) | [後端](../../backend/internal/business/operations/README.md) · [前端](../../frontend/miniapp/src/business/operations/README.md) · [公開契約](../../api/contract/operations/README.md) |
-| [organization](organization/README.md) | [後端](../../backend/internal/business/organization/README.md) |
-| [project](project/README.md) | [後端](../../backend/internal/business/project/README.md) · [前端](../../frontend/miniapp/src/business/project/README.md) · [公開契約](../../api/contract/project/README.md) |
-| [repository](repository/README.md) | [後端](../../backend/internal/business/repository/README.md) · [前端](../../frontend/miniapp/src/business/repository/README.md) · [公開契約](../../api/contract/repository/README.md) |
-| [summary](summary/README.md) | [後端](../../backend/internal/business/summary/README.md) · [公開契約](../../api/contract/summary/README.md) |
-| [team](team/README.md) | [後端](../../backend/internal/business/team/README.md) |
-| [weather](weather/README.md) | [後端](../../backend/internal/business/weather/README.md) · [公開契約](../../api/contract/weather/README.md) |
-| [workflow](workflow/README.md) | [後端](../../backend/internal/business/workflow/README.md) |
+## Business features
 
-## 業務功能
+Use status above to distinguish implementations/proposals. Domains own language, rules and acceptance; [API contracts](../../api/README.md) own public formats. Validate core/supporting classifications against adoption reasons. For cross-module questions, see [shared adapters](../architecture/runtime/shared-adapters.md), [DDD methods](../references/ddd/README.md) or [Organization/Team target contracts](../contracts/organization-team-ownership.md).
 
-依上表的「狀態」區分現行實作與提案。各領域擁有通用語言、規則及驗收案例；公開格式以 [API 契約](../../api/README.md) 為準。核心／支援子域的分類需依客戶採用理由驗證。跨模組問題查[後端共用 Adapter](../architecture/runtime/shared-adapters.md)、[DDD 設計方法](../references/ddd/README.md)或[Organization 與 Team 目標契約](../contracts/organization-team-ownership.md)。
+<a id="出勤"></a>
 
-## 出勤
+## Attendance
 
-[基礎出勤](attendance/README.md)
+[Basic attendance](attendance/README.md)
 
-[群組出勤看板與本人漏下班檢查](attendance/board.md)
+[Group boards/personal missing clock-out checks](attendance/board.md)
 
-[群組請假登記](attendance/leave.md)
+[Group leave registration](attendance/leave.md)
 
-出勤查詢與更正 · 審核畫面流程
+[Attendance queries/corrections](attendance/queries.md)
 
-[出勤查詢與更正](attendance/queries.md)
+[Review screen flow](attendance/queries.md#審核畫面狀態同步)
 
-[審核畫面流程](attendance/queries.md#審核畫面狀態同步)
+[Worktime calculation](attendance/worktime.md)
 
-工時計算 · 補卡狀態圖
-
-[工時計算](attendance/worktime.md)
-
-[補卡狀態圖](attendance/worktime.md#補卡與人工審核)
+[Correction state diagram](attendance/worktime.md#補卡與人工審核)
 
 <a id="日誌"></a>
 
-## 日誌
+## Journal
 
-[獨立日誌：Feed 與 Dashboard 雛型](journal/journal.md)
+[Independent journals: Feed/Dashboard scaffold](journal/journal.md)
 
 <a id="專案"></a>
 
-## 專案
+## Project
 
-[個人或群組擁有的獨立 Project](project/project.md)
+[Independent personally/group-owned Project](project/project.md)
 
 <a id="儲存庫"></a>
 
-## 儲存庫
+## Repository
 
-[Repository 容器與能力索引](repository/README.md#repository-capabilities)
+[Repository container/capability index](repository/README.md#repository-capabilities)
 
-庫內能力包括工區、議題、討論與留言、物件與子物件、物件範本、標籤、里程碑、共用編號、洞察及 Wiki；詳細規格與驗收由 Repository 入口導向各自的單一來源。
+Repository capabilities include spaces, issues, discussions/comments, objects/subobjects, templates, labels, milestones, shared numbering, insights and Wiki. The Repository entry routes detailed specifications/acceptance to their single sources.
 
-跨庫的 [Project](project/README.md) 與獨立的 [Journal](journal/README.md) 保留各自入口。
+Cross-repository [Project](project/README.md) and independent [Journal](journal/README.md) retain their own entries.
 
 <a id="群聊摘要"></a>
 
-## 群聊摘要
+## Group chat summaries
 
-[基礎群聊摘要](summary/summary.md)
+[Basic group summaries](summary/summary.md)
 
 <a id="天氣"></a>
 
-## 天氣
+## Weather
 
-[群組位置天氣](weather/weather.md)
+[Group location weather](weather/weather.md)
 
-[領域維護規則](AGENTS.md) · [上層導覽](../README.md)
+[Domain maintenance rules](AGENTS.md) · [Parent directory guide](../README.md)

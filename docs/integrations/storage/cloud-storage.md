@@ -29,4 +29,4 @@ Firestore 與 Storage 沒有共同業務交易，以 pending／ready／failed �
 
 [官方 Signed URL 說明](https://docs.cloud.google.com/storage/docs/access-control/signed-urls)，查證範圍見[Google 整合總覽](../google-cloud/README.md#sources)。
 
-[Eventarc](../google-cloud/eventarc.md) · [Document AI](../google-cloud/document-ai.md) · [儲存索引](../../architecture/data.md)
+[Eventarc](../google-cloud/event-processing.md#eventarc) · [Document AI](../google-cloud/document-processing.md#document-ai) · [儲存索引](../../architecture/data.md)

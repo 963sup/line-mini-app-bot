@@ -1,27 +1,39 @@
-# 應用素材
+<a id="應用素材"></a>
 
-## 用途與範圍
+# Application assets
 
-保存應用程式與 LINE 介面使用的資產。
+<a id="用途與範圍"></a>
 
-## 架構與責任邊界
+## Purpose and scope
 
-資產在此維護，功能行為由前後端實作。
+Stores assets used by the application and LINE interface.
 
-## 閱讀與修改入口
+<a id="架構與責任邊界"></a>
 
-先查閱[line/richmenu](line/richmenu)、[本目錄工作指引](AGENTS.md)。
+## Architecture and responsibility boundaries
 
-## 相關規格
+Assets are maintained here; frontend/backend implementations own feature behavior.
 
-[本層規格與指引](../docs/integrations/line/setup.md)
+<a id="閱讀與修改入口"></a>
 
-## 目錄導覽與維護
+## Reading and editing entry points
 
-line/richmenu/ 保存兩張選單 JPEG 與既有操作指南。圖片由容器打包，對應 backend/cmd/richmenu CLI。
+Start with [line/richmenu](line/richmenu) and [local guidance](AGENTS.md).
 
-修改圖片時核對既有尺寸、點擊區域與用途；素材變更不等於 LINE 選單已更新。遠端發布須有明確授權。
+<a id="相關規格"></a>
 
-閱讀 line/richmenu/README.md 並核對圖片尺寸與 Dockerfile 素材路徑；不以 Graphify 未收錄圖片推論素材不存在。
+## Related specifications
 
-[本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
+[Local specifications and guidance](../docs/integrations/line/setup.md)
+
+<a id="目錄導覽與維護"></a>
+
+## Directory guide and maintenance
+
+line/richmenu/ stores three menu JPEGs and existing operating guidance. Images are packaged in containers for the backend/cmd/richmenu CLI.
+
+When changing images, check dimensions, click regions and purpose. Asset changes do not update LINE menus; remote publication requires explicit authorization.
+
+Read line/richmenu/README.md and check image dimensions and Dockerfile asset paths. Absence from Graphify does not establish that images are missing.
+
+[Local guidance](AGENTS.md) · [Root README](../README.md) · [Root guidance](../AGENTS.md)

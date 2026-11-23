@@ -1,15 +1,21 @@
-# frontend/miniapp/src/navigation 目錄導覽
+<a id="frontendminiappsrcnavigation-目錄導覽"></a>
 
-保存功能入口導覽，目前包含首頁模組。
+# frontend/miniapp/src/navigation directory guide
 
-依層級維護本目錄的共用能力；功能畫面由 business 組織，頁面入口由 pages 接入。
+Feature navigation, currently home.
 
-## 閱讀與修改入口
+Maintain shared capabilities by layer; business owns feature UI and pages owns entry points.
 
-從 [home](home) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：頁面與身分生命週期](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+Start with [home](home); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: page and identity lifecycle](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+[Parent directory guide](../README.md)

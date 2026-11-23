@@ -1,36 +1,42 @@
-# 組織
+<a id="組織"></a>
 
-**已有實作** · [設計規格](design.md) · [核心流程](#decision-flow) · [判定實作](../../../backend/internal/business/organization/adapter/firestore/store.go) · [程式目錄](../../../backend/internal/business/organization/README.md) · [維護指引](../../../backend/internal/business/organization/AGENTS.md)
+# Organization
 
-## 領域設計
+**Implemented** · [Design](design.md) · [Core flow](#decision-flow) · [Decision implementation](../../../backend/internal/business/organization/adapter/firestore/store.go) · [Code](../../../backend/internal/business/organization/README.md) · [Guidance](../../../backend/internal/business/organization/AGENTS.md)
 
-**子域定位**　組織治理的支援候選。
+<a id="領域設計"></a>
 
-**通用語言**　組織擁有者可發起移轉；成員資格決定誰能成為新擁有者。企業連結與團隊歸屬另有規則。
+## Domain design
 
-**上下文與契約**　Organization 決定組織移轉，Team 決定團隊管理範圍。企業與團隊可出現在同一導覽結果，各自的管理權仍需核對。
+**Subdomain classification:** supporting organizational governance candidate.
 
-**驗收案例**　將組織移轉給他人時，在同一交易以目前擁有者與成員資料判斷；非擁有者或非成員受讓者不能完成移轉。
+**Language:** owners initiate transfers; membership determines eligible recipients. Enterprise links/team affiliation have separate rules.
 
-[對照實作或測試](../../../backend/internal/business/organization/adapter/firestore/store.go) · [戰略設計與分類準則](../../references/ddd/README.md)
+**Context/contracts:** Organization owns transfers; Team owns management scope. Enterprise/team navigation does not combine management permissions.
 
-組織所有權、移轉及團隊歸屬的目標規格集中於此入口。
+**Acceptance:** transfer checks current owner/membership in one transaction; nonowners/nonmember recipients cannot transfer.
 
-[領域設計與操作契約](design.md) · [後端實作入口](../../../backend/internal/business/organization/README.md)
+[Implementation/tests](../../../backend/internal/business/organization/adapter/firestore/store.go) · [Strategic classification criteria](../../references/ddd/README.md)
+
+Entry for target organization ownership, transfer and team affiliation specifications.
+
+[Domain design/operation contracts](design.md) · [Backend entry](../../../backend/internal/business/organization/README.md)
 
 <a id="decision-flow"></a>
 
-## 移轉組織擁有權的判定流程
+<a id="移轉組織擁有權的判定流程"></a>
+
+## Organization transfer decision flow
 
 ```mermaid
 flowchart TD
-    start["移轉組織擁有權"] --> gate{"交易內確認現任擁有者與受讓者成員身分？"}
-    gate -->|是| ok["提交移轉"]
-    gate -->|否| stop["拒絕移轉"]
+    start["Transfer organization ownership"] --> gate{"Transaction verifies owner and recipient membership?"}
+    gate -->|Yes| ok["Commit transfer"]
+    gate -->|No| stop["Reject transfer"]
 ```
 
-[入口適配器](../../../backend/internal/business/organization/adapter/http/routes.go) · [判定依據](../../../backend/internal/business/organization/adapter/firestore/store.go) · [相關測試](../../../backend/internal/business/organization/adapter/firestore/conversation_test.go)
+[Entry adapter](../../../backend/internal/business/organization/adapter/http/routes.go) · [Decision rules](../../../backend/internal/business/organization/adapter/firestore/store.go) · [Related tests](../../../backend/internal/business/organization/adapter/firestore/conversation_test.go)
 
-[三領域授權邊界](../../contracts/organization-team-ownership.md#ownership-boundaries)
+[authorization boundaries across three domains](../../contracts/organization-team-ownership.md#ownership-boundaries)
 
-[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)
+[applicable guidance](../AGENTS.md) · [parent directory guide](../README.md)

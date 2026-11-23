@@ -1,21 +1,29 @@
-# LINE 平台能力
+<a id="line-平台能力"></a>
 
-提供多個領域共用的 LINE Group Member API 查詢機制與 [Rich Menu 同步](richmenu/README.md)。由 bootstrap 注入既有 Membership port，不依賴 transport、identity 或 business。
+# LINE platform capabilities
 
-## 入口與語意
+Provides shared LINE Group Member API queries and [Rich Menu synchronization](richmenu/README.md). Bootstrap injects existing Membership ports; no transport, identity or business dependencies.
 
-[membership.go](membership.go) 每次查詢目前成員資料，不快取歷史互動作為授權證據。只有 HTTP 200、有效 JSON 且 userId 與查詢者一致才回傳 true。404 回傳 false；400、認證失敗、限流、網路錯誤與無效資料回傳 ErrMembershipUnavailable，均不得授權。404 也可能表示 Bot 不在群組，不能據此宣稱使用者已離群。
+<a id="入口與語意"></a>
 
-預設查詢上限一秒，Attendance 由 bootstrap 指定五秒；上游較短 deadline 優先。bootstrap 的 HTTP Client 拒絕 redirect。ValidGroupID 僅檢查 LINE 群組 ID 格式，不代表成員身分或業務權限。
+## Entry points and semantics
 
-## 責任邊界
+[membership.go](membership.go) queries live membership without treating cached interactions as authorization. Only HTTP 200 with valid JSON and matching userId returns true. 404 returns false; 400, authentication, rate limits, network/invalid-data errors return ErrMembershipUnavailable without authorization. 404 may mean the bot left; it does not prove the user left.
 
-Webhook 驗簽、事件派送與 Reply Token 語意保留在 transport/line；共用導航與 Rich Menu 定義保留在 transport/line/navigation；領域 Flex、Quick Reply 與政策保留在各領域 adapter。MINI App token 驗證與 Session 屬於 identity。直接使用官方 SDK 已提供的訊息型別，沒有新增通用訊息框架。
+Default timeout is one second; bootstrap sets five for Attendance. Shorter upstream deadlines take precedence. Bootstrap clients reject redirects. ValidGroupID checks ID format only, not membership or permissions.
 
-## 驗證與來源
+<a id="責任邊界"></a>
 
-在儲存庫根目錄執行 `bash scripts/tooling/tool-exec.sh go -C backend test ./internal/platform/line ./internal/architecture ./internal/bootstrap ./internal/transport/line/...`。測試不呼叫真實 LINE；正式渠道整合另行驗收。
+## Responsibility boundaries
 
-LINE 官方 [Group Member Profile](https://developers.line.biz/en/reference/messaging-api/#get-group-member-profile) 的核對來源為 line-developers-docs-source main revision c15d6d3fa2eff7fcae65554c20be5b1e60f9a10a；SDK 保持 v8.23.0。
+transport/line owns signatures, dispatch and reply-token semantics; transport/line/navigation owns shared navigation/Rich Menu definitions. Domain adapters own Flex, Quick Reply and policies. Identity owns MINI App tokens/sessions. Use official SDK message types; no generic message framework was added.
 
-[上層導覽](../README.md) · [上層工作指引](../AGENTS.md)
+<a id="驗證與來源"></a>
+
+## Verification and sources
+
+Run `bash scripts/tooling/tool-exec.sh go -C backend test ./internal/platform/line ./internal/architecture ./internal/bootstrap ./internal/transport/line/...` from the root. Tests do not call live LINE; real-channel acceptance is separate.
+
+Official LINE [Group Member Profile](https://developers.line.biz/en/reference/messaging-api/#get-group-member-profile) was checked against line-developers-docs-source main revision c15d6d3fa2eff7fcae65554c20be5b1e60f9a10a. SDK remains v8.23.0.
+
+[parent directory guide](../README.md) · [parent guidance](../AGENTS.md)

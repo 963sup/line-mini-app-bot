@@ -1,21 +1,37 @@
-# scripts 工作指引
+<a id="scripts-工作指引"></a>
 
-## 閱讀與修改入口
+# scripts agent guidance
 
-先由[腳本分類總覽](README.md)進入對應子目錄，閱讀該層 README.md 與 AGENTS.md，再依[上層工作指引](../AGENTS.md)驗證。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[模組閱讀入口](../docs/README.md#按模組閱讀) · [文件維護指引](../docs/AGENTS.md#主題子目錄)
+Select subdirectories through the [script overview](README.md), read their README/AGENTS, then verify under [parent guidance](../AGENTS.md).
 
-適用於本目錄及其子目錄；遵循 [根目錄指引](../AGENTS.md)，使用者與主機指令優先。
+<a id="相關規格"></a>
 
-## 職責與邊界
+## Related specifications
 
-依 [腳本分類](README.md) 按操作目的歸檔，每支 Shell 腳本只負責一項操作。
-工具版本、非機密環境與任務維持在 mise.toml；腳本實作任務，不複製機密或授予部署權限。
+[Module entries](../docs/README.md#按模組閱讀) · [Documentation maintenance](../docs/AGENTS.md#主題子目錄)
 
-## 文件與驗證
+Applies here and below; follow [root guidance](../AGENTS.md). User/host instructions take precedence.
 
-從 [相關文件](README.md#相關文件) 與 [模組閱讀入口](../docs/README.md#按模組閱讀) 閱讀；跨模組規格依 docs 主題分類，索引更新依[文件維護指引](../docs/AGENTS.md#主題子目錄)。
-命令從儲存庫根目錄執行，使用 scripts/tooling/tool-exec.sh。腳本變更執行設定檢查及相關任務 smoke check；純文件變更檢查連結與 git diff --check。不宣稱未執行的部署或驗收已成功。
+<a id="職責與邊界"></a>
+
+## Responsibilities and boundaries
+
+File scripts by purpose through [categories](README.md); each shell script owns one operation.
+mise.toml owns versions, non-secret settings/tasks. Scripts implement tasks without duplicating secrets or granting deployment authority.
+
+<a id="文件與驗證"></a>
+
+## Documentation and verification
+
+Read [related documents](README.md#相關文件)/[module entries](../docs/README.md#按模組閱讀); classify cross-module specifications under docs. Follow [maintenance guidance](../docs/AGENTS.md#主題子目錄) for indexes.
+Run from root through scripts/tooling/tool-exec.sh. Script changes run configuration/relevant smoke checks; prose-only changes check links/git diff --check. Never claim unexecuted deployments/acceptance.
+
+## Applicable engineering conventions
+
+- **Structure and configuration:** Keep scripts grouped by operation, with versions/settings owned by the existing configuration sources.
+- **Reliability and errors:** Propagate failures with nonzero status, bound external calls and clean up temporary resources on cancellation or partial failure.
+- **Security and delivery:** Redact credentials and verify the intended environment before side effects; script execution does not expand publication authority.

@@ -1,63 +1,93 @@
-# 共用系統基礎
+<a id="共用系統基礎"></a>
 
-修改跨模組行為時，依下列問題找契約與程式入口。單一功能的規則由[領域規格](../domains/README.md)維護。需要劃分模型、交易或 Port 時，從 [DDD 問題索引](../references/ddd/README.md#按問題查閱)選讀。
+# Shared system foundations
 
-## 現行架構與決策
+Use the questions below for cross-module contracts/code. [Domain specifications](../domains/README.md) own individual features. Start with the [DDD question index](../references/ddd/README.md#按問題查閱) for models, transactions or ports.
 
-### 現行結構與規則
+<a id="現行架構與決策"></a>
 
-| 問題 | 來源 |
+## Current architecture and decisions
+
+<a id="現行結構與規則"></a>
+
+### Current structure and rules
+
+| Question | Source |
 | --- | --- |
-| 哪個入口處理請求？改動會牽涉哪些模組？ | [服務入口](runtime/overview.md) · [從需求定位修改範圍](runtime/code-layout.md#從需求定位修改範圍) |
-| 核心、適配器與組裝在哪裡？ | [後端功能邊界](runtime/backend-boundaries.md) · [依賴與契約歸屬](runtime/dependencies.md) |
-| 這項操作由誰授權？哪些規則必須一起成立？ | [業務操作模型](../contracts/business-operations.md) · [工程原則](../standards/engineering.md) |
+| Which entry handles requests and which modules are affected? | [Service entry](runtime/overview.md) · [Requirements-to-code navigation](runtime/code-layout.md#從需求定位修改範圍) |
+| Where are cores, adapters and composition? | [Backend boundaries](runtime/backend-boundaries.md) · [Dependencies/contract ownership](runtime/dependencies.md) |
+| Who authorizes operations and which rules must hold together? | [Operation model](../contracts/business-operations.md) · [Engineering principles](../standards/engineering.md) |
 
-### 任務準備與按需參考
+<a id="任務準備與按需參考"></a>
 
-從[任務索引](../README.md#按任務開始)選取範圍，依[驗收矩陣](../development/tooling/testing/commands.md#變更驗收矩陣)決定必要證據。早期[平台交付階段](../proposals/platform/delivery.md)記錄當時的切片與待決策項目，功能現況查所屬契約。
+### Task preparation and references
+
+Select scope through the [task index](../README.md#按任務開始) and evidence through the [acceptance matrix](../development/tooling/testing/commands.md#變更驗收矩陣). Early [platform stages](../proposals/platform/delivery.md) record historical slices/open decisions; use owning contracts for current behavior.
 
 <a id="architecture-decision-records"></a>
 
-### 已接受的架構決策
+<a id="已接受的架構決策"></a>
 
-[ADR 0002](../decisions/0002-baseline.md) 定義應用基線，部署部分由 [ADR 0003](../decisions/0003-cloud-run-primary.md) 取代；[ADR 0004](../decisions/0004-monorepo.md) 說明 Monorepo 邊界。新增重大決策時，在[決策目錄](../decisions/README.md)記下背景、選項、狀態、影響與驗證，標記已被取代的決策並保留歷史。
+### Accepted architectural decisions
 
-## 相鄰契約
+Use the [ADR index](../decisions/README.md) for the adopted baseline, deployment and monorepo decisions. Record each decision’s background, options, status, impact and verification in its ADR and retain superseded decisions for history.
 
-### HTTP 契約
+<a id="相鄰契約"></a>
 
-查[公開 API 與身分契約](../contracts/http.md)及[跨領域契約索引](../contracts/README.md)。實際變更 API 的命令在 [API 工作流程](../../api/README.md)。
+## Adjacent contracts
 
-### 身分與登入
+<a id="http-契約"></a>
 
-[身分與 Session 契約](../contracts/identity.md)
+### HTTP contracts
 
-### 共用前端
+See [public API/identity contracts](../contracts/http.md) and [cross-domain contracts](../contracts/README.md). Find change commands in the [API workflow](../../api/README.md).
 
-[React 頁面生命週期](runtime/react-lifecycle.md) · [執行架構索引](runtime/README.md)
+<a id="身分與登入"></a>
 
-### 資料與儲存
+### Identity and login
 
-[資料儲存責任](data.md)說明領域與 adapter 的分工。查閱 [Firestore](../integrations/firestore/README.md) 或 [Cloud Storage](../integrations/storage/README.md) 的具體契約。
+[Identity/session contract](../contracts/identity.md)
 
-### 外部整合
+<a id="共用前端"></a>
+
+### Shared frontend
+
+[React page lifecycle](runtime/react-lifecycle.md) · [Runtime architecture index](runtime/README.md)
+
+<a id="資料與儲存"></a>
+
+### Data and storage
+
+[Storage responsibilities](data.md) defines domain/adapter ownership. See specific [Firestore](../integrations/firestore/README.md) and [Cloud Storage](../integrations/storage/README.md) contracts.
+
+<a id="外部整合"></a>
+
+### External integrations
 
 <a id="文件索引"></a>
 
-[外部整合索引](../integrations/README.md) · [LINE 整合](../integrations/line/README.md) · [瀏覽器定位](../integrations/geolocation/README.md)
+[Integration index](../integrations/README.md) · [LINE](../integrations/line/README.md) · [Browser geolocation](../integrations/geolocation/README.md)
 
-### Google 服務選用
+<a id="google-服務選用"></a>
 
-[Google Cloud 與 Maps 簡要規格](../integrations/google-cloud/README.md)依服務分頁，包含背景工作、functions、機密與 IAM、觀測、建置、AI、報表、Maps 及 reCAPTCHA。檔案儲存由 [Cloud Storage](../integrations/storage/cloud-storage.md)維護，既有 Firestore 與 Cloud Run 沿用原來源。各頁標示現況或導入條件，不代表候選服務已啟用。
+### Selecting Google services
 
-### 部署與營運
+[Google Cloud/Maps specifications](../integrations/google-cloud/README.md) cover background jobs, functions, secrets/IAM, observability, builds, AI, reporting, Maps and reCAPTCHA by service. [Cloud Storage](../integrations/storage/cloud-storage.md) owns file storage; Firestore/Cloud Run retain existing sources. Pages state current usage/adoption criteria, not activation of candidate services.
 
-從 [Cloud Run 建置入口](../operations/cloud-run.md#建置入口)、[發布與回復](../operations/release-acceptance.md#切換觀察回復)或[故障診斷](../operations/troubleshooting.md)進入。需要分別查儲存庫設定、雲端實際設定、建置結果與服務驗收。
+<a id="部署與營運"></a>
 
-### 可靠性設計參考
+### Deployment and operations
 
-[Webhook、Inbox 與 Outbox 提案](../proposals/webhook-delivery/design.md)用於討論重試及持久工作；是否已實作以[現行 HTTP 契約](../contracts/http.md)及對應功能為準。
+Start with [Cloud Run builds](../operations/cloud-run.md#建置入口), [release/recovery](../operations/release-acceptance.md#切換觀察回復) or [diagnostics](../operations/troubleshooting.md). Check repository declarations, actual cloud settings, builds and service acceptance separately.
 
-## 歸屬與維護
+<a id="可靠性設計參考"></a>
 
-修改架構、外部整合或營運文件時，依[本層指引](AGENTS.md)與[索引維護規則](../AGENTS.md#主題子目錄)更新受影響的入口。常用圖見[專案閱讀入口](../README.md#日常開發看哪張圖)。
+### Reliability design references
+
+The [Webhook/Inbox/Outbox proposal](../proposals/webhook-delivery/design.md) supports retry/durable-job discussions. Determine implementation through [current HTTP contracts](../contracts/http.md) and corresponding features.
+
+<a id="歸屬與維護"></a>
+
+## Ownership and maintenance
+
+Update affected entries per [local guidance](AGENTS.md) and [index maintenance](../AGENTS.md#主題子目錄) when changing architecture, integrations or operations. Find common diagrams in the [project entry point](../README.md#日常開發看哪張圖).

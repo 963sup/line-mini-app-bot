@@ -1,35 +1,47 @@
-# frontend/miniapp 目錄導覽
+<a id="frontendminiapp-目錄導覽"></a>
 
-## 用途與範圍
+# frontend/miniapp directory guide
 
-保存 LINE MINI App 的 Next.js 應用、建置設定與測試。
+<a id="用途與範圍"></a>
 
-## 架構與責任邊界
+## Purpose and scope
 
-頁面入口由 `pages/` 組合，`business/` 依功能維護表單與畫面，`shared/ui/` 提供 shadcn 元件。OpenAPI 定義各端交換的資料。後端在每次讀寫時依當下身分與儲存狀態核對權限。
+Stores the LINE MINI App Next.js application, build settings/tests.
 
-| 功能 | 後端提供 | 瀏覽器負責 |
+<a id="架構與責任邊界"></a>
+
+## Architecture and responsibility boundaries
+
+`pages/` composes pages; `business/` owns feature forms/screens; `shared/ui/` supplies shadcn. OpenAPI defines exchanged data. Backends authorize every read/write against current identity/persistence state.
+
+| Feature | Backend supplies | Browser owns |
 |---|---|---|
-| 出勤、補正、請假 | 打卡預檢、工時月報、審核資格與操作、申請查詢 | 取得定位、編輯尚未送出的時段、輸入駁回理由、顯示已載入的紀錄 |
-| 討論、留言、問題、里程碑 | 編輯能力、分類操作、問題數及里程碑完成率 | 草稿、標籤選取、進度條與鍵盤操作 |
-| 物件、子物件 | 數量與狀態轉換、進度歸零條件 | 檢查尚未送出的十進位輸入 |
-| 專案、儲存庫 | 可讀來源、引用與驗收模式、版本、活動統計及 Wiki 歷程 | 深層連結、分頁、重新核對所選來源、顯示引用群組與 Wiki 格式 |
-| 日誌 | 可引用對象、工作快照、累計實際及預期完成度 | 選取群組、編輯工作列、依群組繪製圖表，切換時取消舊請求 |
-| 企業、組織、團隊、群組 | 企業開通及管理資格、有效組織選項、團隊清單與成員資格 | 登入期間共用組織查詢，更新選取後導覽。出勤、日誌及專案共用群組查詢，分別控制分頁 |
-| 身分、導覽、診斷 | 驗證 LINE 憑證、管理 Session、驗證定位請求 | 呼叫 LIFF 與瀏覽器 API、清除失效身分的畫面、管理側欄、焦點與取消操作 |
+| Attendance/corrections/leave | Preflight, monthly worktime, review eligibility/actions, requests | Location, unsent time edits, rejection reasons, loaded records |
+| Discussions/comments/issues/milestones | Edit capabilities, classification, counts/completion | Drafts, labels, progress/keyboard interaction |
+| Objects/subobjects | Quantities/transitions/reset conditions | Unsent decimal validation |
+| Projects/repositories | Sources, references/inspection modes, versions, statistics/Wiki history | Deep links, pagination, source rechecks, grouped references/Wiki formatting |
+| Journals | Reference candidates, work snapshots, actual/expected cumulative progress | Group selection, work rows/group charts, cancel stale requests |
+| Enterprises/organizations/teams/groups | Provisioning/management eligibility, valid organizations, teams/membership | Share organization queries during sessions and navigate after selection; attendance/journals/projects share group queries with separate pagination |
+| Identity/navigation/diagnostics | LINE verification, sessions/location validation | LIFF/browser APIs, invalid-identity cleanup, sidebar/focus/cancellation |
 
-功能測試涵蓋登入身分切換、請求重送、過期回應、分頁與編輯衝突。修改權限或工作狀態時，同步核對領域規則、契約回應與前端控制項。
+Tests cover identity switches, retries, stale responses, pagination/edit conflicts. Check domain rules, responses and controls together when changing permissions/work state.
 
-## 閱讀與修改入口
+<a id="閱讀與修改入口"></a>
 
-從 [components.json](components.json)、[next-env.d.ts](next-env.d.ts)、[next.config.ts](next.config.ts)、[package.json](package.json)、[postcss.config.mjs](postcss.config.mjs)、[src](src) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+## Reading and editing entry points
 
-## 相關規格
+Start with [components.json](components.json), [next-env.d.ts](next-env.d.ts), [next.config.ts](next.config.ts), [package.json](package.json), [postcss.config.mjs](postcss.config.mjs), [src](src); before editing, read [local agent guidance](AGENTS.md).
 
-[現行實作圖：頁面與身分生命週期](../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+<a id="相關規格"></a>
 
-[上層導覽](../README.md)
+## Related specifications
 
-## 下層文件入口
+[Current implementation diagram: page and identity lifecycle](../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+[Parent directory guide](../README.md)
+
+<a id="下層文件入口"></a>
+
+## Child documentation entry points
 
 - [tests](tests/README.md)

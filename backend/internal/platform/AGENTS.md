@@ -1,9 +1,21 @@
-# backend/internal/platform 工作指引
+<a id="backendinternalplatform-工作指引"></a>
 
-## 閱讀與修改入口
+# backend/internal/platform agent guidance
 
-先查閱[line](line/README.md)、[firestorekey](firestore/key)、[grpcstatus](grpcstatus)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：格式與資料相容](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [line](line/README.md), [firestorekey](firestore/key), [grpcstatus](grpcstatus), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: formats and data compatibility](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+## Applicable engineering conventions
+
+- **Dependencies:** Keep platform helpers limited to shared mechanisms and inject provider clients rather than embedding business policy.
+- **Reliability:** Propagate cancellation and typed failures, bound call deadlines and retry backoff, and assess persistent-failure isolation before introducing circuit breakers.
+- **Diagnostics:** Propagate correlation information and classify failures without logging secrets or full sensitive payloads.

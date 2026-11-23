@@ -1,96 +1,120 @@
-# HTTP API 契約
+<a id="http-api-契約"></a>
 
-管理 API 契約、產生設定與 TypeScript client。修改 API 輸入或輸出時，先更新契約，再重新產生 Go 與 TypeScript 檔案。
+# HTTP API contracts
 
-契約是介面來源；client 與產生設定供消費端使用，依契約重新產生型別。
+Maintains API contracts, generation settings and the TypeScript client. Change contracts before regenerating Go and TypeScript files whenever API inputs or outputs change.
 
-## 閱讀與修改入口
+Contracts define interfaces; consumers use the client and generation settings to regenerate contract types.
 
-修改端點或資料格式，從[契約能力索引](contract/README.md)選擇所屬領域。調整產生器時讀[產生設定指南](codegen/README.md)；使用 TypeScript client 時讀[客戶端指南](client/README.md)。修改前請讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[獨立Project](../docs/domains/project/project.md) · [React 前端生命週期](../docs/architecture/runtime/react-lifecycle.md)
+For endpoints or data formats, select the owning domain in the [contract capability index](contract/README.md). For generators, read the [generation settings guide](codegen/README.md); for TypeScript clients, read the [client guide](client/README.md). Read the [local agent guidance](AGENTS.md) before editing.
 
-工程群組／Project新增獨立入口；既有Repository-scoped Project路由由相容adapter呼叫同一用例，來源識別不再代表專案擁有權。資料與授權／相容界線見 [獨立Project](../docs/domains/project/project.md)，契約及生成碼遵循下方連結的生成流程，不手改generated檔。
+<a id="相關規格"></a>
 
-[contract/openapi.yaml](contract/openapi.yaml) 是公開 HTTP 契約的唯一組合入口。各能力維護自己的操作與格式，共用錯誤與認證位於 `contract/common/`；歸屬見[契約能力索引](contract/README.md)。不手改產生檔，業務核心不 import 生成套件。
+## Related specifications
 
-契約生成與檢查命令見[契約生成流程](../docs/development/tooling/api/change-api.md#契約生成流程)。
+[Independent projects](../docs/domains/project/project.md) · [React frontend lifecycle](../docs/architecture/runtime/react-lifecycle.md)
 
-瀏覽器控制器與 SessionProvider 的認證請求見 [React 前端生命週期](../docs/architecture/runtime/react-lifecycle.md)。
+Engineering groups and projects have independent entry points. Existing repository-scoped project routes use a compatibility adapter calling the same use cases; source identity no longer defines project ownership. See [independent projects](../docs/domains/project/project.md) for data, authorization and compatibility boundaries. Follow the linked generation workflow; do not edit generated files.
 
-## 相容性與 CI
+[contract/openapi.yaml](contract/openapi.yaml) is the sole composition entry point for public HTTP contracts. Capabilities own their operations and formats; shared errors and authentication live in `contract/common/`. See the [contract capability index](contract/README.md) for ownership. Do not edit generated files or import generated packages into the business core.
 
-api:check 驗證目前的 OpenAPI 契約、路由與產生碼同步。
+See the [contract generation workflow](../docs/development/tooling/api/change-api.md#契約生成流程) for generation and check commands.
 
-設定／身分、Session、Repository 與出勤操作（含請假登記）以 `contract/openapi.yaml` 及其參照檔為準，不在本頁重複維護數量。範圍是自家 MINI App HTTP API；LINE webhook、內部摘要工作與獨立定位示範不屬於此公開契約，不複製 LINE 官方 API。
+See the [React frontend lifecycle](../docs/architecture/runtime/react-lifecycle.md) for browser controllers and SessionProvider authentication requests.
 
-## 保持的資料語意
+<a id="相容性與-ci"></a>
 
-- 工時新增出勤、暫估合計與確認狀態；既有 Minutes 仍為已確認淨工時。EstimatedMinutes 已含 Minutes，不可重複相加，見 [工時計算](../docs/domains/attendance/worktime.md)。
-- 原有大小寫保留：班次回應為 RecordID/ClockInAt 等；更正輸入為 recordId/start 等。
-- null 與空陣列分開描述並保留。時間為 RFC3339；月份依 Asia/Taipei 解讀，跨月計算與完整摘要仍由出勤核心決定。
-- 座標使用 double，避免 Go 生成 float32 導致精度改變。工時 Duration 保留既有奈秒整數格式，Minutes 是已計算分鐘。
-- 明細使用 opaque cursor，預設 20 筆，上限 100；月摘要獨立，不因分頁縮減。既有空 pageSize/cursor 仍代表預設值。
-- 新客戶端應為同一更正草稿保存 Idempotency-Key，重試沿用；相同使用者／鍵／內容回原結果，內容不同回 409。舊客戶端可不帶鍵，但沒有跨請求防重保證。
-- 既有 groups 與 monthly 非分頁端點保留並標為 deprecated，不新增相容路由。
+## Compatibility and CI
 
-## 驗證邊界
+api:check verifies synchronization of current OpenAPI contracts, routes and generated code.
 
-出勤請求先通過 CSRF 與身分驗證（Cookie Session 或既有無 Cookie Bearer），再做 OpenAPI 結構驗證，最後進入既有授權與用例。已驗證身分僅快取於該請求 context，避免一個請求重複呼叫身分服務；Session 的跨請求狀態另存 Firestore，不等同於 request context 快取。未設定出勤時保留 503。HEAD 沿用 GET 語意。
+Configuration, identity, session, repository and attendance operations (including leave registration) are defined by `contract/openapi.yaml` and its references; do not duplicate counts here. This covers our MINI App HTTP API. LINE webhooks, internal summary jobs and the independent geolocation example are outside this public contract; do not duplicate official LINE APIs.
 
-OpenAPI 驗證不取代班次版本、群組成員、審核權限、位置時效與原子交易。位置／申請內容與 token 不會出現在 validator 錯誤訊息。保留 512／2048／16384 bytes 的既有請求上限。
+<a id="保持的資料語意"></a>
 
-執行期驗證請求；回應以測試驗證契約與新舊 DTO JSON 一致，沒有在每次正式回應上增加緩衝驗證。標準 CSRF 拒絕維持 text/plain 403，已列在寫入端點契約。
+## Preserved data semantics
 
-## 後端實作位置
+- Worktime includes attendance, estimated totals and confirmation status. Existing Minutes remains confirmed net worktime. EstimatedMinutes already includes Minutes; do not add them together. See [worktime calculation](../docs/domains/attendance/worktime.md).
+- Preserve existing casing: shift responses use RecordID/ClockInAt; correction inputs use recordId/start.
+- Define and preserve null separately from empty arrays. Times use RFC3339; months use Asia/Taipei. The attendance core remains responsible for cross-month calculation and complete summaries.
+- Coordinates use double to avoid precision changes from generated Go float32 values. Worktime Duration retains its existing integer nanosecond format; Minutes contains calculated minutes.
+- Detail lists use opaque cursors, defaulting to 20 items with a maximum of 100. Monthly summaries are independent and unaffected by pagination. Empty pageSize/cursor values retain default semantics.
+- New clients should retain an Idempotency-Key for each correction draft and reuse it on retries. The same user/key/content returns the original result; different content returns 409. Legacy clients may omit keys but have no cross-request deduplication guarantee.
+- Retain existing non-paginated groups and monthly endpoints as deprecated; do not add compatibility routes.
 
-生成碼與通用接線保留於 backend/internal/transport/http/api；出勤 handlers／DTO 映射與 runtime 驗證位於 business/attendance/adapter/http，身分入口位於 identity/http。核心型別不含 JSON／Firestore tags，資料層負責文件編碼與錯誤轉譯。
+<a id="驗證邊界"></a>
 
-Redocly lint／bundle 設定位於 `api/codegen/redocly.yaml`；根目錄的生成腳本明確帶入 `--config`，不依賴工作目錄自動尋找。
+## Validation boundaries
 
-## 目錄導覽與維護
+Attendance requests pass CSRF and authentication (cookie sessions or existing cookieless bearer credentials), then OpenAPI structural validation, then existing authorization and use cases. Cache verified identity only in the request context to avoid repeated identity-service calls within a request. Cross-request session state is stored separately in Firestore. Retain 503 when attendance is unconfigured. HEAD follows GET semantics.
 
-[契約來源](contract/README.md)按能力維護，[客戶端](client/README.md)與[生成設定](codegen/README.md)共用。契約變更依[生成流程](../docs/development/tooling/api/change-api.md#契約生成流程)驗證。若須對歷史版本做相容性比較，明列比較的 revision 與差異；目前的 `api:check` 驗證工作樹內的契約與生成結果。
+OpenAPI validation does not replace shift versions, group membership, review permissions, location freshness or atomic transactions. Validator errors must not expose locations, application content or tokens. Preserve existing request limits of 512/2048/16384 bytes.
 
-[本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
+Validate requests at runtime. Use tests for response contracts and JSON consistency between old and new DTOs rather than buffering every production response for validation. Standard CSRF rejection remains text/plain 403 and is documented in write endpoint contracts.
 
-## 巢狀指引
+<a id="後端實作位置"></a>
 
-- [契約來源](contract/AGENTS.md)：能力巢狀指引見 [契約索引](contract/README.md#巢狀指引)。
-- [共用客戶端](client/AGENTS.md)。
-- [生成設定](codegen/AGENTS.md)。
+## Backend implementation locations
 
-Issue 基礎操作、Discussion 基礎主題／留言及 Repository 標籤目錄已接入；Project／items 與 Repository milestones／statistics 已依基礎規格接入；Project fields／views 仍為雛形。
+Generated code and shared wiring remain in backend/internal/transport/http/api. Attendance handlers, DTO mapping and runtime validation live in business/attendance/adapter/http; identity entry points live in identity/http. Core types have no JSON/Firestore tags; storage adapters encode documents and translate errors.
 
-## 相關文件
+Redocly lint/bundle settings live in `api/codegen/redocly.yaml`. Root generation scripts explicitly pass `--config` instead of relying on working-directory discovery.
 
-- [文件索引：API](../docs/README.md#按模組閱讀)
-- [Session 與滑動續期](../docs/contracts/identity.md)
-- [HTTP 契約設計](../docs/contracts/http.md)
-- [資料契約](../docs/proposals/firestore-data-contracts.md)
-- [出勤查詢與更正](../docs/domains/attendance/queries.md)
+<a id="目錄導覽與維護"></a>
 
-- [群組請假登記](../docs/domains/attendance/leave.md)
+## Directory guide and maintenance
 
-- [目前模組與責任](../docs/architecture/runtime/code-layout.md)
+[Contract sources](contract/README.md) are organized by capability; the [client](client/README.md) and [generation settings](codegen/README.md) are shared. Validate contract changes through the [generation workflow](../docs/development/tooling/api/change-api.md#契約生成流程). For historical compatibility comparisons, state revisions and differences; current `api:check` checks contracts and generated output in the working tree.
 
-## Business 入口分類
+[Local guidance](AGENTS.md) · [Root README](../README.md) · [Root guidance](../AGENTS.md)
 
-公開 HTTP、事件與內部工作依[契約能力索引](contract/README.md)判定；Summary、Weather 的事件及內部工作維持原入口。
+<a id="巢狀指引"></a>
 
-- [群組 Repository](../docs/domains/repository/README.md)
-- [空間標籤目錄](../docs/domains/repository/labels.md)：目錄列出／建立，分類沿用 Issue／Discussion 更新；不含改名或刪除。
-- [空間事項第一階段](../docs/domains/repository/issue/design.md)：已接入公開 Issue 契約與生成型別；正式環境待驗收。
-- [空間討論與留言](../docs/domains/repository/discussion/design.md)：主題及單層留言契約，作者編輯。
+## Nested guidance
 
-- [Repository、Issue 與 Discussion 模型及 Connection 分頁規劃](../docs/proposals/platform/domain-model.md)：未來設計參考，現行 OpenAPI 契約維持原狀。
+- [Contract sources](contract/AGENTS.md): see the [contract index](contract/README.md#巢狀指引) for capability guidance.
+- [Shared client](client/AGENTS.md).
+- [Generation settings](codegen/AGENTS.md).
 
-- [里程碑](../docs/domains/repository/milestones.md)、[Project](../docs/domains/project/project.md)與[洞察（Insights）](../docs/domains/repository/insights.md)：正式契約與三層接線。
+Basic Issue operations, Discussion topics/comments and Repository label catalogs are wired. Project/items and Repository milestones/statistics follow their basic specifications; Project fields/views remain scaffolds.
 
-## 協作能力分佈與交付狀態
+<a id="相關文件"></a>
 
-已接線與規劃中的操作以[能力清單](contract/capabilities.json)為準，各操作的請求與回應見 [OpenAPI 契約](contract/openapi.yaml)。
+## Related documentation
 
-[現行實作圖：基礎入口](../docs/contracts/http.md#基礎入口)
+- [Documentation index: API](../docs/README.md#按模組閱讀)
+- [Sessions and sliding renewal](../docs/contracts/identity.md)
+- [HTTP contract design](../docs/contracts/http.md)
+- [Data contracts](../docs/proposals/firestore-data-contracts.md)
+- [Attendance queries and corrections](../docs/domains/attendance/queries.md)
+
+- [Group leave registration](../docs/domains/attendance/leave.md)
+
+- [Current modules and responsibilities](../docs/architecture/runtime/code-layout.md)
+
+<a id="business-入口分類"></a>
+
+## Business entry point classification
+
+Classify public HTTP, events and internal jobs through the [contract capability index](contract/README.md). Summary and Weather events and internal jobs retain their existing entry points.
+
+- [Group repositories](../docs/domains/repository/README.md)
+- [Space label catalog](../docs/domains/repository/labels.md): list/create catalog entries; classify through Issue/Discussion updates. No rename or deletion.
+- [Space issues, phase one](../docs/domains/repository/issue/design.md): public Issue contracts and generated types are wired; production acceptance remains pending.
+- [Space discussions and comments](../docs/domains/repository/discussion/design.md): topic and single-level comment contracts with author editing.
+
+- [Repository, Issue and Discussion models and Connection pagination proposal](../docs/proposals/platform/domain-model.md): future design reference; current OpenAPI contracts remain unchanged.
+
+- [Milestones](../docs/domains/repository/milestones.md), [Project](../docs/domains/project/project.md) and [Insights](../docs/domains/repository/insights.md): formal contracts and wiring across all three layers.
+
+<a id="協作能力分佈與交付狀態"></a>
+
+## Collaboration capability coverage and delivery status
+
+See the [capability inventory](contract/capabilities.json) for wired and planned operations, and the [OpenAPI contract](contract/openapi.yaml) for requests and responses.
+
+[Current implementation diagram: basic entry points](../docs/contracts/http.md#基礎入口)

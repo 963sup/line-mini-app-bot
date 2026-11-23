@@ -1,25 +1,33 @@
-# frontend/miniapp/src/business/journal 目錄導覽
+<a id="frontendminiappsrcbusinessjournal-目錄導覽"></a>
 
-組合工作日誌的工作區、輸入與查閱互動。
+# frontend/miniapp/src/business/journal directory guide
 
-在本功能就近維護畫面與互動，路由由 pages 組合，權限與結果以後端 API 為準。
+Composes journal workspaces, input/reading interactions.
 
-## 閱讀與修改入口
+Colocate feature UI/interactions; pages compose routes and backend APIs determine permissions/results.
 
-從 [GroupCharts.tsx](GroupCharts.tsx)、[WorkContext.tsx](WorkContext.tsx)、[Workspace.tsx](Workspace.tsx)、[Composer.tsx](Composer.tsx) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-- 側欄「快捷入口」：按「寫日誌」→ 選擇儲存庫 → 填寫並發布。工作牆依選取的儲存庫讀取日誌。
-- Dashboard：依日期及儲存庫篩選，透過 [GroupCharts.tsx](GroupCharts.tsx) 為每個有日誌的儲存庫顯示一張 shadcn 長條圖，逐項呈現今日實際及明日預計累計完成度。載入更多時，同儲存庫的日誌會加到同一張圖表。展開日誌明細可查看人員及原文連結。
-- Dashboard 圖表採用 shadcn 官方 [Bar](https://ui.shadcn.com/charts/bar#charts) 與 [Tooltip](https://ui.shadcn.com/charts/tooltip#charts) 的組合，提示顯示完整工作名稱和百分比。
+Start with [GroupCharts.tsx](GroupCharts.tsx), [WorkContext.tsx](WorkContext.tsx), [Workspace.tsx](Workspace.tsx), [Composer.tsx](Composer.tsx); before editing, read [local agent guidance](AGENTS.md).
 
-[現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+<a id="相關規格"></a>
 
-[上層導覽](../README.md)
+## Related specifications
 
-## 工作選項載入
+- Sidebar shortcuts: Write journal → select repository → fill/publish. Feed reads the selected repository only.
+- Dashboard filters dates/repositories. [GroupCharts.tsx](GroupCharts.tsx) draws one shadcn bar chart per repository with journals, showing actual today/expected tomorrow cumulative completion per work item. More pages merge into the same repository chart; expanded entries show personnel/source links.
+- Charts compose official shadcn [Bar](https://ui.shadcn.com/charts/bar#charts)/[Tooltip](https://ui.shadcn.com/charts/tooltip#charts), showing full work names/percentages.
 
-同一份日誌草稿內，相同儲存庫的工作列共用物件、子物件及空間的載入結果與進行中請求。失敗移除該筆結果，重試重新請求；建立空間後使該儲存庫的選項失效。關閉草稿或切換身分時取消請求並清除資料，不跨草稿或使用者保存。現行 API 仍須逐物件查詢子物件，尚未改成後端搜尋介面。
+[Current implementation diagram: page and identity lifecycle](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
 
-工作牆與撰寫表單分開載入；只有開啟撰寫流程才下載 Composer 與其表單相依。圖表仍按原本方式延遲載入。
+[Parent directory guide](../README.md)
+
+<a id="工作選項載入"></a>
+
+## Loading work options
+
+Within one journal draft, rows in the same repository share object/subobject/space results and in-flight requests. Failures remove entries for fresh retries; space creation invalidates options. Closing drafts/identity changes cancel/clear data without cross-draft/user storage. Subobjects still require per-object APIs rather than backend search.
+
+Feed and composer load separately; download Composer/form dependencies only when writing opens. Charts retain lazy loading.

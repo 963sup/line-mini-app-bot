@@ -1,11 +1,23 @@
-# backend/internal/transport/http/browser 工作指引
+<a id="backendinternaltransporthttpbrowser-工作指引"></a>
 
-## 閱讀與修改入口
+# backend/internal/transport/http/browser agent guidance
 
-先查閱[files.go](files.go)、[routes.go](routes.go)、[本目錄導覽](README.md)、[上層工作指引](../../../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 工作方式
+## Reading and editing entry points
 
-[現行實作圖：格式與資料相容](../../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [files.go](files.go), [routes.go](routes.go), [directory guide](README.md), [parent guidance](../../../AGENTS.md).
 
-[上層工作指引](../AGENTS.md)
+<a id="工作方式"></a>
+
+## Working approach
+
+[Current implementation diagram: formats and data compatibility](../../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+[parent guidance](../AGENTS.md)
+
+## Applicable engineering conventions
+
+- **Routes and compatibility:** Keep static exports, route registration and legacy redirects synchronized; preserve allowed query parameters without permitting external redirects.
+- **Security and caching:** Preserve CSP, private-page cache rules and asset integrity while changing page dispatch.
+- **Acceptance:** Build static assets and test real registered routes, redirects and missing-page behavior before removing an old page.

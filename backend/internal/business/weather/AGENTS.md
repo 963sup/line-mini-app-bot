@@ -1,15 +1,29 @@
-# backend/internal/business/weather 工作指引
+<a id="backendinternalbusinessweather-工作指引"></a>
 
-## 閱讀與修改入口
+# backend/internal/business/weather agent guidance
 
-先查閱[forecast](domain/entity/forecast)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：格式與資料相容](../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [forecast](domain/entity/forecast), [directory guide](README.md), [parent guidance](../AGENTS.md).
 
-## 收到可回覆的群組位置的維護與驗收
+<a id="相關規格"></a>
 
-以群組位置事件測試預報入口；非群組或無法回覆的事件不得觸發同一群組回覆流程。
+## Related specifications
 
-修改此規則時，核對[判定流程](../../../../docs/domains/weather/README.md#decision-flow)與[代表測試](adapter/line/forecast/forecast_test.go)。
+[Current implementation diagram: formats and data compatibility](../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+<a id="收到可回覆的群組位置的維護與驗收"></a>
+
+## Maintaining and verifying replyable group locations
+
+Test forecasts with group location events. Non-group or non-replyable events must not trigger the group reply flow.
+
+When changing this rule, check the [decision flow](../../../../docs/domains/weather/README.md#decision-flow) and [representative tests](adapter/line/forecast/forecast_test.go).
+
+## Applicable engineering conventions
+
+- **Domain, state and authorization:** Treat location inputs as purpose-limited data and make forecast validity, cache expiry and unavailable-result behavior explicit.
+- **Cache and reliability:** Scope cached forecasts by their documented location/time semantics, bound provider calls and distinguish expired, unavailable and valid results.
+- **Event acceptance:** Test replyable group events, invalid input and provider failure without introducing location history or attendance proof.

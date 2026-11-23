@@ -1,11 +1,15 @@
 # Attendance event
 
-已記錄的打卡事實。
+Recorded punch facts.
 
-## 實作與規則
+<a id="實作與規則"></a>
 
-[打卡事實](attendance.go) 記錄事件識別、時間、群組、順序與處理結果；[契約版本](version.go) 表示重播格式。這是已記錄的事實，並非要求執行打卡的命令；被拒絕的嘗試不能累加工時。
+## Implementation and rules
 
-## 驗證與入口
+[Punch facts](attendance.go) record event identity, time, group, order and results; [contract versions](version.go) identify replay formats. These are recorded facts rather than punch commands; rejected attempts cannot add worktime.
 
-繼承[模組工作指引](../../AGENTS.md)，依[模組驗證入口](../../README.md#規格與驗證)執行相關檢查。[上層導覽](../README.md)。
+<a id="驗證與入口"></a>
+
+## Verification and entry points
+
+Inherit [module guidance](../../AGENTS.md) and run applicable checks through [module verification](../../README.md#規格與驗證). [Parent directory guide](../README.md).

@@ -1,9 +1,21 @@
-# backend/internal/transport/line/navigation 工作指引
+<a id="backendinternaltransportlinenavigation-工作指引"></a>
 
-## 閱讀與修改入口
+# backend/internal/transport/line/navigation agent guidance
 
-先查閱[導覽事件](events.go)、[選單呈現](menu.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：格式與資料相容](../../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [navigation events](events.go), [menu presentation](menu.go), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: formats and data compatibility](../../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+## Applicable engineering conventions
+
+- **UI and identifiers:** Keep menu actions, aliases and deep-link targets consistent with shared menu definitions and registered page routes.
+- **Events and safety:** Route verified postbacks to existing operations; navigation hints never replace session or resource authorization.
+- **Compatibility:** Test old entry links and menu-action mappings when changing navigation, without publishing remote menus as a side effect.

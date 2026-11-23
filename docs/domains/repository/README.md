@@ -1,60 +1,66 @@
-# 個人與群組-repository
+# Personal and group repositories
 
-**已有實作** · [領域設計](#領域設計) · [核心流程](#decision-flow) · [判定實作](../../../backend/internal/business/repository/domain/entity/repository.go) · [程式目錄](../../../backend/internal/business/repository/README.md) · [維護指引](../../../backend/internal/business/repository/AGENTS.md)
+**Implemented** · [Domain design](#領域設計) · [Core flow](#decision-flow) · [Decision implementation](../../../backend/internal/business/repository/domain/entity/repository.go) · [Code](../../../backend/internal/business/repository/README.md) · [Guidance](../../../backend/internal/business/repository/AGENTS.md)
 
-## 領域設計
+<a id="領域設計"></a>
 
-**子域定位**　工程資源管理的核心候選。
+## Domain design
 
-**通用語言**　儲存庫具有識別碼、擁有者及啟用狀態；空間是庫內工作位置，與跨庫專案分開管理。
+**Subdomain classification:** core candidate for construction resource management.
 
-**上下文與契約**　Issue、Discussion、Object 等能力使用 Repository 的範圍與狀態；各自在交易中以最新儲存庫資料確認能否寫入。
+**Language:** repositories have IDs, owners and active state; spaces are internal locations, separate from cross-repository projects.
 
-Issue、Discussion 與 Object 是同一 Repository 上下文內的能力。Repository 定義庫內識別碼與版本上限，也擁有標籤、里程碑及工區目錄。Issue 與 Discussion 各自擁有內容修改規則；引用標籤或里程碑時，由其寫入交易使用 Repository 目錄驗證。Object 擁有自己的階層規則，庫內識別碼和工區範圍則沿用 Repository 契約。
+**Context/contracts:** Issue, Discussion and Object use Repository scope/state, checking current repository facts within write transactions.
 
-**驗收案例**　即使庫 ID 相符，只要擁有者已變更或狀態不再是 ACTIVE，就不能沿用舊授權完成受限操作。
+Issue, Discussion and Object are capabilities within the Repository context. Repository owns ID/version limits, labels, milestones and spaces. Issue/Discussion own content updates and validate referenced catalogs within write transactions. Object owns hierarchy rules while reusing Repository ID/space contracts.
 
-[對照實作或測試](../../../backend/internal/business/repository/domain/entity/repository.go) · [戰略設計與分類準則](../../references/ddd/README.md)
+**Acceptance:** matching IDs do not preserve authorization after owner changes or non-ACTIVE state.
 
-保存 Repository 及其空間、標籤、事項、討論與其他子能力的規格。
+[Implementation/tests](../../../backend/internal/business/repository/domain/entity/repository.go) · [Strategic classification criteria](../../references/ddd/README.md)
 
-Repository 範圍及功能授權在此說明，各子能力細節由對應文件維護。
+Specifications for Repositories and spaces, labels, issues, discussions and other capabilities.
 
-## 閱讀與修改入口
-[業務容器與 LINE 旅程](journey.md)說明能力分工、目標導覽、現行接線與驗收。
+This page owns Repository scope/authorization; capability documents own details.
 
-先查閱[spaces.md](spaces.md)、[議題規格](issue/design.md)、[組織與團隊歸屬契約](../../contracts/organization-team-ownership.md)。
+<a id="閱讀與修改入口"></a>
+
+## Reading and editing entry points
+[Containers/LINE journeys](journey.md) explains responsibilities, target navigation, wiring and acceptance.
+
+Start with [spaces.md](spaces.md), [Issue specifications](issue/design.md) and [organization/team ownership](../../contracts/organization-team-ownership.md).
 
 <a id="repository-capabilities"></a>
 
-## 容器內能力
+<a id="容器內能力"></a>
 
-以下能力共用 Repository 的資源範圍，各自維護操作規則與授權；文件集中在容器下，程式模組仍按能力分工。
+## Container capabilities
 
-| 能力 | 規格與驗收入口 |
+Capabilities share Repository scope but own operation/authorization rules. Documents are grouped by container; code remains separated by capability.
+
+| Capability | Specification/acceptance |
 |---|---|
-| 庫內工區 | [空間與 ID 責任](spaces.md) |
-| 議題 Issue | [能力入口與核心流程](issue/README.md) · [設計與操作契約](issue/design.md) |
-| 討論與留言 Discussion | [能力入口與核心流程](discussion/README.md) · [設計與操作契約](discussion/design.md) |
-| 物件與子物件 Object | [能力入口與核心流程](object/README.md) · [物件規格](object/design.md) · [物件範本](object/template.md) |
-| 標籤 | [標籤目錄與引用](labels.md) |
-| 里程碑 | [里程碑規格](milestones.md) |
-| 共用資源編號 | [編號規則](numbering.md) |
-| 洞察 Insights | [現況總覽與 Pulse](insights.md) |
-| 知識庫 Wiki | [頁面與修訂](wiki.md) |
-| 容器基礎驗收 | [完成界線](acceptance.md) |
+| Spaces | [Space/ID ownership](spaces.md) |
+| Issue | [Entry/core flow](issue/README.md) · [Design/contracts](issue/design.md) |
+| Discussion/comments | [Entry/core flow](discussion/README.md) · [Design/contracts](discussion/design.md) |
+| Object/subobjects | [Entry/core flow](object/README.md) · [Objects](object/design.md) · [Templates](object/template.md) |
+| Labels | [Catalog/references](labels.md) |
+| Milestones | [Specification](milestones.md) |
+| Shared numbering | [Numbering rules](numbering.md) |
+| Insights | [Overview/Pulse](insights.md) |
+| Wiki | [Pages/revisions](wiki.md) |
+| Container acceptance | [Completion boundaries](acceptance.md) |
 
-子物件由 `Object.parentId` 表示，規則併入[物件規格](object/design.md)，不另設 Subobject 領域文件。跨庫的 [Project](../project/README.md) 與獨立的 [Journal](../journal/README.md) 維持各自領域責任。
+`Object.parentId` represents subobjects governed by [object specifications](object/design.md); no separate Subobject domain documents. Cross-repository [Project](../project/README.md) and independent [Journal](../journal/README.md) retain their domains.
 
 <a id="個人與群組-repository"></a>
 
 ```mermaid
 flowchart LR
-  h["個人與群組 Repository"]
-  h --- n0["Repository 保存工程資料並管理庫內工區。跨庫<br/>引用與專案管理見 Project 功能規格。"]
-  n0 --- n0l0["庫內工區"]
+  h["Personal and group Repository"]
+  h --- n0["Repository stores construction data and spaces.<br/>See Project specifications for cross-repository references and management."]
+  n0 --- n0l0["Repository spaces"]
   click n0l0 "spaces.md"
-  n0 --- n0l1["Project 功能規格"]
+  n0 --- n0l1["Project specification"]
   click n0l1 "../project/project.md"
 ```
 
@@ -63,82 +69,82 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  h["範圍與資料"]
-  h --- n0["每個 LINE 群組一個 Bot 管理的空間，具有獨立 <br/>id 與 ownerId。 個人或群組由 LINE 事件綁定，<br/>目前未提供手動建庫、換綁或刪除入口。Bot 管理<br/>容器不授予使用者審核或讀取他人出勤的權限。"]
-  h --- n1["已驗簽的 LINE follow 事件用 UserID 建立個人<br/>庫，並寫入本人候選清單。"]
-  h --- n2["資料位於 channels/{channelId}/repositories/{<br/>id}，保存 id、ownerId、name、status、version<br/>、createdAt、updatedAt；內部另存最後事件時間<br/>及 ID。 repositoryOwnerBindings/{ownerId} 與<br/>容器在同一交易建立；ID 隨機產生，重送與併發<br/>沿用同一擁有者的綁定。 ACTIVE / INACTIVE 表<br/>示 Bot 群組入口狀態。離開保留資料，再加入沿<br/>用 ID。舊事件不得覆寫新狀態；同時間停用優先<br/>。版本只在公開狀態或名稱改變時遞增。 名稱是<br/>加入或首次互動時取得的群組名稱快照，查詢失敗<br/>時允許空白，後續事件會重試補齊；UI 顯示「群<br/>組空間」。不宣稱即時同步群組更名。"]
+  h["Scope and data"]
+  h --- n0["One bot-managed space per LINE group, with separate id/ownerId.<br/>LINE events bind personal/group owners; no manual creation, rebinding or deletion.<br/>Container management grants no review or other-person attendance access."]
+  h --- n1["Verified follow events create personal repositories by UserID and personal candidates."]
+  h --- n2["channels/{channelId}/repositories/{id} stores id, ownerId, name, status,<br/>version, createdAt/updatedAt plus internal last-event time/ID.<br/>repositoryOwnerBindings/{ownerId} and random-ID containers are created atomically;<br/>retries/concurrency reuse owner bindings. ACTIVE/INACTIVE tracks bot group entry.<br/>Leaving retains data; rejoining reuses IDs. Old events cannot replace newer state;<br/>inactivation wins equal timestamps. Versions increment only for public state/name changes.<br/>Names are join/first-interaction snapshots; failed queries allow blanks and later retries.<br/>UI falls back to Group space; no live rename synchronization is claimed."]
 ```
 
 <a id="操作契約"></a>
 
 ```mermaid
 flowchart LR
-  h["操作契約"]
-  h --- n0["欄位：Actor / Resource / Action<br/>觀察群組事件、建立／更新：驗證簽章的 Bot <br/>webhook；群組對應的 Repository；Observe"]
-  h --- n1["欄位：Context / Authority<br/>觀察群組事件、建立／更新：Messaging API <br/>channel 範圍、事件時間與 ID；只接受 active <br/>模式群組加入、離開、訊息、postback、成員加入<br/>事件"]
-  h --- n2["欄位：Policy / Decision<br/>觀察群組事件、建立／更新：groupId 格式有效；<br/>交易內讀取唯一綁定與現有容器，避免重複及舊事<br/>件覆寫；不消耗原事件，後續摘要與出勤照常執行"]
-  h --- n3["欄位：Result<br/>觀察群組事件、建立／更新：原子建立／更新容器<br/>與使用者候選索引；不搬遷或改寫既有摘要、出勤<br/>資料"]
-  h --- n4["欄位：重送／併發<br/>觀察群組事件、建立／更新：唯一綁定交易、固定<br/>新 ID 於重試外產生；相同事件不增加版本"]
-  h --- n5["欄位：Event / Audit<br/>觀察群組事件、建立／更新：保留最後來源事件 <br/>ID、來源時間及公開更新時間；不保存 token、訊<br/>息內容或個人 profile"]
+  h["Operation contracts"]
+  h --- n0["Actor / Resource / Action: verified bot webhook;<br/>group Repository; Observe to create/update from group events."]
+  h --- n1["Context / Authority: Messaging API channel, event time/ID;<br/>active-mode join, leave, message, postback and member-join group events only."]
+  h --- n2["Policy / Decision: valid groupId; transaction reads unique binding/container,<br/>preventing duplicates/stale overwrites. Do not consume events;<br/>summary and attendance continue normally."]
+  h --- n3["Result: atomically create/update containers and user candidates;<br/>do not move or rewrite summary/attendance history."]
+  h --- n4["Retries / concurrency: unique-binding transaction, fixed new ID outside retries;<br/>same event never increments version."]
+  h --- n5["Event / Audit: last source event ID/time and public update time;<br/>no tokens, message content or personal profiles."]
 ```
 
 ```mermaid
 flowchart LR
-  h["操作契約"]
-  h --- n0["欄位：Actor / Resource / Action<br/>列表／詳情查詢：現有 Cookie Session 或 <br/>Bearer 驗證的使用者；Repository；List / Get"]
-  h --- n1["欄位：Context / Authority<br/>列表／詳情查詢：候選來自已驗簽的事件。個人庫<br/>比對登入者與 ownerId；群組庫每次以 LINE <br/>group-member-profile 核驗當下成員資格"]
-  h --- n2["欄位：Policy / Decision<br/>列表／詳情查詢：只顯示 ACTIVE 且核驗成功的容<br/>器；不存在、停用或無權詳情統一 404；LINE 非 <br/>200/404 或無效 profile 為 503，不能推定有權"]
-  h --- n3["欄位：Result<br/>列表／詳情查詢：不可快取的基本資料；沒有摘要<br/>內容、他人出勤或管理能力"]
-  h --- n4["欄位：重送／併發<br/>列表／詳情查詢：讀取無副作用；成員關係為查詢<br/>當下的外部觀察，不宣稱跨 LINE/Firestore 原子<br/>快照"]
-  h --- n5["欄位：Event / Audit<br/>列表／詳情查詢：不為一般讀取另存個人資料或事<br/>件"]
+  h["Operation contracts"]
+  h --- n0["Actor / Resource / Action: cookie-session/bearer-authenticated user;<br/>Repository; List / Get."]
+  h --- n1["Context / Authority: verified-event candidates. Personal ownerId matches user;<br/>group repositories query live LINE group-member-profile on every read."]
+  h --- n2["Policy / Decision: show only ACTIVE verified containers.<br/>Missing, inactive or unauthorized details return 404.<br/>LINE errors other than 200/404 or invalid profiles return 503, never authorization."]
+  h --- n3["Result: non-cacheable basics; no summary content,<br/>other-person attendance or management capabilities."]
+  h --- n4["Retries / concurrency: reads have no side effects.<br/>Membership is a current external observation, not an atomic LINE/Firestore snapshot."]
+  h --- n5["Event / Audit: ordinary reads store no additional personal data/events."]
 ```
 
 <a id="api-與前端"></a>
 
 ```mermaid
 flowchart LR
-  h["API 與前端"]
-  h --- n0["GET /api/v1/repositories?cursor=...：一次讀<br/>取本人最多十筆互動候選，再核驗目前資格；可能<br/>回傳空頁及 nextCursor，需繼續下一頁。"]
-  h --- n1["GET /api/v1/repositories/{id}：核驗本人或當<br/>下群組成員資格；格式錯誤／不存在／無權均不揭<br/>露資料。"]
-  h --- n2["API 契約：Repository，由 OpenAPI 入口 組合；<br/>生成 Go/TS DTO，不手改產生碼。"]
+  h["API and frontend"]
+  h --- n0["GET /api/v1/repositories?cursor=... reads up to ten personal candidates<br/>then verifies current eligibility. Empty pages may have nextCursor; continue paging."]
+  h --- n1["GET /api/v1/repositories/{id} checks personal ownership/live membership.<br/>Malformed, missing or unauthorized IDs reveal no data."]
+  h --- n2["Repository API contracts compose through OpenAPI;<br/>generate Go/TS DTOs without manual edits."]
   n2 --- n2l0["Repository"]
   click n2l0 "../../../api/contract/repository/repositories.yaml"
-  n2 --- n2l1["OpenAPI 入口"]
+  n2 --- n2l1["OpenAPI entry point"]
   click n2l1 "../../../api/contract/openapi.yaml"
-  h --- n3["UI：側欄「空間」可展開已驗證使用者可開啟的空<br/>間，選取後在 <br/>/miniapp/repositories?selected=... 顯示既有<br/>詳情。原頁不再重複顯示另一份列表；既有 <br/>?id=... 及 repository／liff.state 群組入口仍<br/>相容。"]
-  h --- n4["側欄一般選取使用乾淨 selected 參數，不沿用打<br/>卡 launch／其他表單 query；既有 id／<br/>repository 群組專用入口只讀指定詳情，不讀一<br/>般列表、不於失敗後退回其他群組。這些參數只在<br/>空間頁解析，不把其他功能的 id 當空間 ID。"]
-  h --- n5["列表與詳情各自取消舊請求，並以 Session epoch<br/>、本人及作用域隔離可見狀態；登出／重新驗證立<br/>即隱藏舊資料，即使 transport 忽略取消也不得<br/>跨身分顯示。點選空間仍重新呼叫詳情 API 核驗<br/>，不以列表快取授權。"]
-  h --- n6["手機選取空間後關閉抽屜；定位頁保留正式空間頁<br/>連結，不建立虛假的本人空間資料。無 <br/>JavaScript 時提供原路由連結及啟用提示。"]
-  h --- n7["出勤連結只帶既有 group 查詢條件，不新增授權<br/>；摘要仍回原群組操作。"]
-  h --- n8["從成員加入、本人群組訊息或 postback 建立列表<br/>候選。未互動的既有群組成員需先互動；這不是完<br/>整群組成員清單。"]
+  h --- n3["Sidebar Spaces expands authorized spaces. Selection shows details at<br/>/miniapp/repositories?selected=... without duplicating the list.<br/>Existing ?id=... and repository/liff.state group entries remain compatible."]
+  h --- n4["Normal selection uses clean selected parameters, excluding launch/form queries.<br/>Legacy id/repository group entries read specified details only, never general lists<br/>or another group after failures. Parse IDs only on space pages."]
+  h --- n5["Cancel stale list/detail requests. Scope visible state by session epoch, user and scope.<br/>Logout/reverification hides old data even when transport ignores cancellation.<br/>Selection rechecks details through API; cached lists never authorize."]
+  h --- n6["Mobile selection closes drawers. Location pages link real spaces,<br/>never fabricate personal space data. Without JavaScript, retain links and notices."]
+  h --- n7["Attendance links carry existing group filters without new permissions;<br/>summaries remain group operations."]
+  h --- n8["Member-join, personal group messages/postbacks create candidates.<br/>Existing noninteracting members must interact first; candidates are not full rosters."]
 ```
 
 <a id="空間載入時序"></a>
 
-## 空間載入時序
+## Space loading sequence
 
-現行實作
+Current implementation
 
 ```mermaid
 sequenceDiagram
-  participant UI as 側欄或空間頁
+  participant UI as Sidebar or space page
   participant Context as RepositoryContext
   participant API as Repository API
-  alt 一般功能頁首次展開側欄或直接進入一般空間頁
-    UI->>Context: 載入空間列表
-    Context->>API: 查詢有權開啟的空間
-  else 群組專用入口或選取空間
-    UI->>Context: 載入指定詳情
-    Context->>API: 重新核驗該空間
+  alt First sidebar expansion or general space page
+    UI->>Context: Load space list
+    Context->>API: Query accessible spaces
+  else Group-specific entry or selected space
+    UI->>Context: Load specified details
+    Context->>API: Reverify this space
   end
-  API-->>Context: 回應
-  Context-->>UI: 僅套用目前本人、Session epoch 與作用域的回應
+  API-->>Context: Response
+  Context-->>UI: Apply only matching user, session epoch and scope
 ```
 
 ```mermaid
 flowchart LR
-  h["空間載入時序"]
-  h --- n0["business/repository/RepositoryContext.tsx 共<br/>用列表、分頁與詳情載入。空頁仍有 nextCursor <br/>時保留「載入更多空間」。讀取失敗時清除舊項目<br/>並提供重試，候選或停用空間不得開啟。身分改變<br/>時的共用清理規則見頁面與身分生命週期。"]
+  h["Space loading sequence"]
+  h --- n0["business/repository/RepositoryContext.tsx shares lists, pagination and details.<br/>Empty pages with nextCursor retain Load more spaces.<br/>Failures clear old items and offer retry; candidates/inactive spaces cannot open.<br/>See page/identity lifecycle for identity-change cleanup."]
   click n0 "../../architecture/runtime/react-lifecycle.md#頁面與身分生命週期"
 ```
 
@@ -146,21 +152,21 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  h["正式空間 UI 基礎雛形"]
-  h --- n0["正式空間沿用上述 List / Get 操作契約與身分隔<br/>離，以寬版卡片呈現已授權空間的基本資料與本人<br/>出勤入口。 正式頁內導覽由 <br/>frontend/miniapp/src/business/repository/navigation.ts<br/> 定義；Repository內容維持原有問題、討論、標<br/>籤及里程碑。專案改走獨立側欄／<br/>/miniapp/projects，舊入口僅導向帶明確Space／<br/>來源識別的新頁，不再在Repository View掛載<br/>Project業務。 總覽使用真實空間資料，問題已接<br/>入 問題第一階段，討論已接入 討論與留言，標籤<br/>目錄已接入 標籤規格；里程碑、專案及洞察<br/>依里程碑、Project 與 Insights 規格接入；公開稽核仍明<br/>示尚未開放，不回填示範資料。載入、核驗失敗、<br/>登出時不呈現空間內容。 既有 API、Bot 管理、<br/>成員核驗及共用編號規則不變。問題與討論／留言<br/>依各自獨立規格接入；標籤已接入問題／討論作者<br/>的分類操作；完成界線依 基礎雛形，里程碑、專<br/>案及洞察依本次授權另完成最小切片，不自動展開<br/>其他管理功能。 總覽為讀取畫面基礎整合；問題<br/>驗證另依功能規格，不代表其他協作業務或真實 <br/>LINE 裝置已驗收。"]
-  n0 --- n0l0["問題第一階段"]
+  h["Production space UI scaffold"]
+  h --- n0["Reuse List/Get contracts and identity isolation. Wide cards show authorized basics<br/>and personal attendance. navigation.ts defines page navigation.<br/>Keep Issues, Discussions, labels/milestones in Repository; Projects use independent<br/>sidebar /miniapp/projects. Legacy entries redirect with explicit Space/source identity,<br/>rather than mounting Project business in Repository View.<br/>Overview uses real data; Issues, Discussions, labels, milestones, Projects and Insights<br/>follow their specifications. Public audit remains unavailable without demo data.<br/>Hide contents on loading, failed verification or logout.<br/>Preserve APIs, bot management, membership and numbering. Author categorization owns labels.<br/>Respect scaffold boundaries and authorized slices without expanding management scope.<br/>Overview integration does not prove other capabilities or real LINE device acceptance."]
+  n0 --- n0l0["Issues phase one"]
   click n0l0 "issue/design.md"
-  n0 --- n0l1["討論與留言"]
+  n0 --- n0l1["Discussions and comments"]
   click n0l1 "discussion/design.md"
-  n0 --- n0l2["標籤規格"]
+  n0 --- n0l2["Label specification"]
   click n0l2 "labels.md"
-  n0 --- n0l3["里程碑"]
+  n0 --- n0l3["Milestones"]
   click n0l3 "milestones.md"
   n0 --- n0l4["Project"]
   click n0l4 "../project/project.md"
-  n0 --- n0l5["洞察（Insights）"]
+  n0 --- n0l5["Insights"]
   click n0l5 "insights.md"
-  n0 --- n0l6["基礎雛形"]
+  n0 --- n0l6["Basic scaffold"]
   click n0l6 "acceptance.md"
 ```
 
@@ -168,25 +174,25 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  h["啟用與遷移限制"]
-  h --- n0["沿用 GOOGLE_CLOUD_PROJECT、<br/>FIRESTORE_DATABASE_ID、Messaging API 設定；<br/>缺少設定時查詢回 503。 MINI App 與 Messaging<br/> API 使用者識別須在相同 LINE provider 下對應<br/>；無法匹配時不能通過成員核驗。 既有群組收到<br/>下一筆支援的可信事件時建立，不執行正式資料掃<br/>描或批次遷移。Summary / Attendance 歷史資料<br/>仍以 groupId 保存；容器原始切片只建立容器、<br/>解析介面與讀取 UI；問題、討論及標籤各依功能<br/>規格寫入，不搬遷既有出勤或摘要資料。"]
+  h["Activation and migration limits"]
+  h --- n0["Reuse GOOGLE_CLOUD_PROJECT, FIRESTORE_DATABASE_ID and Messaging API settings;<br/>missing configuration yields 503. MINI App/Messaging API IDs need the same Provider.<br/>Supported trusted events lazily create existing group containers; no production scans/migrations.<br/>Summary/Attendance history retains groupId. Original container slices add containers,<br/>resolution and reads; feature writes follow their specifications without migrating history."]
 ```
 
 <a id="查證與驗收"></a>
 
 ```mermaid
 flowchart LR
-  h["查證與驗收"]
-  h --- n0["LINE 官方來源 main：<br/>dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54，查<br/>閱 group chats、Messaging API reference 的 <br/>join/leave/group-member-profile，確認 404 不<br/>授權及成員 profile 的 userId。"]
-  h --- n1["Context7 /googleapis/google-cloud-go：<br/>Firestore RunTransaction 重試及先讀後寫；對<br/>照專案 firestore v1.29.2。Google Developer <br/>Knowledge 未在此聊天提供工具，使用官方 Go <br/>client 文件；未做雲端部署或資料操作。"]
-  h --- n2["Context7 /vercel/next.js/v16.4.5 與安裝版 <br/>static-export 指引：沿用 Pages Router、客戶<br/>端載入及靜態輸出。"]
-  h --- n3["Graphify 已定位 webhook、server、identity 及<br/>既有群組查詢；Repomix 使用本次限定範圍產物 <br/>/tmp/repository-before.xml，未涵蓋的指引與文<br/>件直接閱讀。"]
-  h --- n4["本機檢查結果於交付訊息列出；LINE 真實群組事<br/>件、正式 Firestore 併發與 iOS/Android 登入需<br/>另行環境驗收，不能以建置通過替代。"]
-  h --- n5["本次本機驗證：前端靜態建置與型別檢查、12 個<br/>既有前端測試、OpenAPI 產生碼同步／相容性、設<br/>定檢查、Go vet／既有 race 測試／build／lint<br/>／格式與漏洞檢查通過。獨立暫存 smoke 使用受<br/>控 store／身分與 LINE transport，確認未登入<br/>、非成員、停用、錯誤 cursor、profile 不符與 <br/>404／429 的拒絕語義；不代表 Firestore 真實交<br/>易或 LINE 整合驗收。未新增正式測試案例或工具<br/>。"]
-  h --- n6["LINE「選單 → 請選擇功能」與功能說明提供「空<br/>間」URI 入口，以既有 LIFF URL 加 <br/>repositories=1，首頁解析一般 query 或 <br/>liff.state 後導向空間頁。"]
-  h --- n7["群組空間入口由可信 groupId 查得 Repository <br/>ID，連結帶 repositories=1&amp;repository=&lt;id&gt;。<br/>一般 query 與 liff.state 均保留目標 ID；專用<br/>入口只查詳情，重新載入仍查同一 ID，失敗不退<br/>回列表。私訊入口維持本人列表。個人庫比對本人<br/>，群組庫以 ownerId 即時核驗成員；連結不是授<br/>權憑證，修改 ID 不授予其他群組權限。"]
-  h --- n8["群組專用入口本機驗證：以實際 Go 靜態頁路由、<br/>受控 LINE SDK／API 回應檢查一般 query、<br/>liff.state 與 404 情境；三者均只請求指定 <br/>Repository 詳情，重新載入不切換到列表，390px<br/> 無水平溢出。這不取代 LINE 裝置驗收。"]
-  h --- n9["工程項目新增與追蹤依 Objects 規格，與「問題<br/>」業務分開；不自動匯入 PDF 或授予他人編輯權<br/>。"]
+  h["Verification and acceptance"]
+  h --- n0["Official LINE main dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54:<br/>group chats, join/leave/group-member-profile; 404 never authorizes, check profile userId."]
+  h --- n1["Context7 /googleapis/google-cloud-go: RunTransaction retries and reads-before-writes,<br/>checked against firestore v1.29.2. Google Developer Knowledge unavailable;<br/>used official Go client docs without cloud deployment/data operations."]
+  h --- n2["Context7 /vercel/next.js/v16.4.5 and installed static-export guidance:<br/>retain Pages Router, client fetching and static export."]
+  h --- n3["Graphify located webhook/server/identity/group queries.<br/>Scoped Repomix /tmp/repository-before.xml; read omitted guidance directly."]
+  h --- n4["Delivery messages list local results. Live LINE events, production Firestore concurrency<br/>and iOS/Android login require separate acceptance; builds do not replace them."]
+  h --- n5["Historical local verification passed: static build/types, 12 frontend tests,<br/>OpenAPI generation/compatibility, configuration, Go vet/race/build/lint/format/vulnerabilities.<br/>Temporary controlled-store/identity/LINE smoke covered unauthenticated/nonmember/inactive,<br/>invalid cursors, profile mismatches and 404/429 rejection semantics.<br/>No live Firestore/LINE acceptance or new permanent tests/tools."]
+  h --- n6["LINE menu/help offers Spaces through existing LIFF URL with repositories=1.<br/>Home parses normal query/liff.state and routes to spaces."]
+  h --- n7["Trusted groupId resolves Repository ID; links use repositories=1&amp;repository=&lt;id&gt;.<br/>Query/liff.state retain targets. Dedicated entries read only details, including reload;<br/>failures do not fall back to lists. Direct chat lists personal candidates.<br/>Verify personal owner/live group membership; changing IDs grants no access."]
+  h --- n8["Historical dedicated-entry smoke used real Go routes and controlled LINE/API responses<br/>for normal queries, liff.state and 404. All requested specified details only,<br/>reload stayed scoped and 390px had no horizontal overflow. Not LINE-device acceptance."]
+  h --- n9["Construction item tracking follows Objects, separate from Issues.<br/>No automatic PDF imports or third-party edit grants."]
   click n9 "object/design.md"
 ```
 
@@ -194,24 +200,26 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  h["後續模型設計"]
-  h --- n0["內部共用編號基礎見 Repository 共用資源編號。<br/>問題與討論建立已接入，留言不占編號；本頁 Bot<br/> 管理、公開查詢及成員核驗規則保持原樣。"]
+  h["Future model design"]
+  h --- n0["Shared Repository numbering is used by Issue/Discussion creation;<br/>comments consume none. Bot, public queries and membership rules remain."]
   click n0 "numbering.md"
-  h --- n1["Repository 的實體、查詢、集合與 Connection <br/>分頁命名，以及 Issue／Discussion 的歸屬規劃<br/>，見 業務模型設計。該頁為後續開發參考，不變<br/>更本頁既有 REST、成員核驗與 Bot 管理模式。"]
+  h --- n1["See business model design for entity/query/collection/Connection naming<br/>and Issue/Discussion ownership proposals. Future references do not alter<br/>existing REST, membership verification or bot-managed behavior."]
   click n1 "../../proposals/platform/domain-model.md"
 ```
 
 <a id="decision-flow"></a>
 
-## 寫入庫內受限資源的判定流程
+<a id="寫入庫內受限資源的判定流程"></a>
+
+## Restricted repository write decision flow
 
 ```mermaid
 flowchart TD
-    start["寫入庫內受限資源"] --> gate{"目前擁有者與啟用狀態符合？"}
-    gate -->|是| ok["允許繼續資源操作"]
-    gate -->|否| stop["拒絕沿用舊授權"]
+    start["Write restricted repository resource"] --> gate{"Current owner and active state valid?"}
+    gate -->|Yes| ok["Continue resource operation"]
+    gate -->|No| stop["Reject stale authorization"]
 ```
 
-[入口適配器](../../../backend/internal/business/repository/adapter/http/routes.go) · [判定依據](../../../backend/internal/business/repository/domain/entity/repository.go) · [應用層輸出介面](../../../backend/internal/business/repository/application/port/repository.go) · [相關測試](../../../backend/internal/business/repository/adapter/firestore/labels_test.go)
+[Entry adapter](../../../backend/internal/business/repository/adapter/http/routes.go) · [Decision rules](../../../backend/internal/business/repository/domain/entity/repository.go) · [Application output port](../../../backend/internal/business/repository/application/port/repository.go) · [Related tests](../../../backend/internal/business/repository/adapter/firestore/labels_test.go)
 
-[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)
+[applicable guidance](../AGENTS.md) · [parent directory guide](../README.md)

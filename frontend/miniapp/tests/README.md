@@ -1,15 +1,21 @@
-# frontend/miniapp/tests 目錄導覽
+<a id="frontendminiapptests-目錄導覽"></a>
 
-保存 MINI App 的互動、請求生命週期與資料處理測試，以及測試用 DOM 設定。
+# frontend/miniapp/tests directory guide
 
-維護測試環境與可觀察的行為驗證，應用程式實作位於 src。
+MINI App interaction, request lifecycle/data tests and DOM setup.
 
-## 閱讀與修改入口
+Owns test environments/observable behavior checks; application code lives in src.
 
-從 [dom-setup.ts](dom-setup.ts)、[session-controls.tsx](session-controls.tsx)、[sidebar-dom.ts](sidebar-dom.ts)、[lifecycle.test.tsx](lifecycle.test.tsx)、[object-spaces.test.tsx](object-spaces.test.tsx)、[objects.test.tsx](objects.test.tsx) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：頁面與身分生命週期](../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+Start with [dom-setup.ts](dom-setup.ts), [session-controls.tsx](session-controls.tsx), [sidebar-dom.ts](sidebar-dom.ts), [lifecycle.test.tsx](lifecycle.test.tsx), [object-spaces.test.tsx](object-spaces.test.tsx), [objects.test.tsx](objects.test.tsx); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: page and identity lifecycle](../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+[Parent directory guide](../README.md)

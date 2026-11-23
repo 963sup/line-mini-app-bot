@@ -1,11 +1,15 @@
 # Attendance valueobject
 
-沒有識別的業務值與驗證。
+Identity-free business values and validation.
 
-## 實作與規則
+<a id="實作與規則"></a>
 
-[區間](interval.go) 與 [定位](position.go) 以值傳遞，驗證方法不修改接收者；[補正鍵](correction_key.go) 與 [請假鍵](leave_key.go) 驗證重送識別格式。為保留既有證據與序列化格式，區間仍可表示未結束或不合法時段，由計算回報異常。呼叫端不得原地修改共享切片中的值；需要調整時複製後替換。
+## Implementation and rules
 
-## 驗證與入口
+[Intervals](interval.go) and [locations](position.go) pass by value; validation does not mutate receivers. [Correction keys](correction_key.go) and [leave keys](leave_key.go) validate retry identifiers. To preserve evidence/serialization, intervals may represent open/invalid periods reported by calculation. Do not mutate shared slice values in place; copy and replace them.
 
-繼承[模組工作指引](../../AGENTS.md)，依[模組驗證入口](../../README.md#規格與驗證)執行相關檢查。[上層導覽](../README.md)。
+<a id="驗證與入口"></a>
+
+## Verification and entry points
+
+Inherit [module guidance](../../AGENTS.md) and run applicable checks through [module verification](../../README.md#規格與驗證). [Parent directory guide](../README.md).

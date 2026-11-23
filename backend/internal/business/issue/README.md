@@ -1,27 +1,37 @@
-# 空間問題
+<a id="空間問題"></a>
 
-[領域文件](../../../../docs/domains/repository/issue/README.md) · [全域索引](../../../../docs/domains/README.md#domain-matrix)
+# Space issues
 
-管理 Repository 中的問題事項及其狀態，維護問題專屬的操作與授權規則。
+[domain documentation](../../../../docs/domains/repository/issue/README.md) · [global index](../../../../docs/domains/README.md#domain-matrix)
 
-此目錄維護本領域或子能力的行為。HTTP、LINE 與 Firestore 依需要提供適配，授權和狀態規則歸資源所屬領域。
+Manages Repository issues, their states and Issue-specific operation/authorization rules.
 
-## 閱讀與修改入口
+This directory owns domain or sub-capability behavior. Add HTTP, LINE and Firestore adapters as needed; resource-owning domains control authorization and state.
 
-先查閱[issue.go](domain/entity/issue.go)、[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[問題規格](../../../../docs/domains/repository/issue/design.md) · [現行實作圖：格式與資料相容](../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [issue.go](domain/entity/issue.go), [local agent guidance](AGENTS.md).
 
-## 閱讀入口
+<a id="相關規格"></a>
 
-操作權限、狀態、API、資料與驗收依 [問題規格](../../../../docs/domains/repository/issue/design.md) 維護；本模組只保存對應業務實作。
+## Related specifications
 
-[現行實作圖：格式與資料相容](../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+[Issue specification](../../../../docs/domains/repository/issue/design.md) · [Current implementation diagram: formats and data compatibility](../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
 
-## 領域追蹤入口
+<a id="閱讀入口"></a>
 
-[領域規格](../../../../docs/domains/repository/issue/README.md) · [判定流程](../../../../docs/domains/repository/issue/README.md#decision-flow) · [代表測試](domain/entity/issue_test.go)
+## Reading entry points
 
-[上層導覽](../README.md)
+The [Issue specification](../../../../docs/domains/repository/issue/design.md) owns permissions, states, APIs, data and acceptance; this module contains corresponding implementation only.
+
+[Current implementation diagram: formats and data compatibility](../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+<a id="領域追蹤入口"></a>
+
+## Domain traceability entry points
+
+[domain specification](../../../../docs/domains/repository/issue/README.md) · [decision flow](../../../../docs/domains/repository/issue/README.md#decision-flow) · [representative tests](domain/entity/issue_test.go)
+
+[Parent directory guide](../README.md)

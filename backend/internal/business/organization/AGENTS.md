@@ -1,11 +1,19 @@
-# 組織 工作指引
+<a id="組織-工作指引"></a>
 
-適用於本領域，繼承[業務層指引](../AGENTS.md)。
+# Organization agent guidance
 
-## 移轉組織擁有權的維護與驗收
+Applies to this domain; inherit [business guidance](../AGENTS.md).
 
-將組織移轉給他人時，在同一交易以目前擁有者與成員資料判斷；非擁有者或非成員受讓者不能完成移轉。
+<a id="移轉組織擁有權的維護與驗收"></a>
 
-修改此規則時，核對[判定流程](../../../../docs/domains/organization/README.md#decision-flow)與[判定實作](adapter/firestore/store.go)。
+## Maintaining and verifying organization ownership transfer
 
-[目錄導覽](README.md)
+Evaluate current owner/membership in one transaction. Non-owners and non-member recipients cannot complete transfers.
+
+When changing this rule, check the [decision flow](../../../../docs/domains/organization/README.md#decision-flow) and [implementation](adapter/firestore/store.go).
+
+[directory guide](README.md)
+
+## Applicable engineering conventions
+
+- **Domain, state and authorization:** Evaluate ownership and membership together with transfers/removals; legacy document translation must not grant rights from unrelated owner fields.

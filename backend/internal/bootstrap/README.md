@@ -1,17 +1,23 @@
-# backend/internal/bootstrap 目錄導覽
+<a id="backendinternalbootstrap-目錄導覽"></a>
 
-組裝後端服務、業務依賴與各功能路由，將 HTTP、LINE 與資料存取轉接器接到業務層。
+# backend/internal/bootstrap directory guide
 
-啟動入口在 [server.go](server.go)，負責設定、路由註冊、資源釋放及關機。修改 Webhook 處理順序時查閱 [line.go](line.go)；組織建立對話與工程清單回覆由各自的業務 LINE 適配器處理。
+Composes backend services, dependencies and feature routes, connecting HTTP, LINE and data adapters to business logic.
 
-## 閱讀與修改入口
+[server.go](server.go) handles startup configuration, routes, resource release and shutdown. See [line.go](line.go) for webhook ordering. Domain LINE adapters handle organization creation conversations and construction list replies.
 
-從 [attendance.go](attendance.go)、[creation_line.go](../business/organization/adapter/line/creation_line.go)、[group.go](group.go)、[miniapp.go](miniapp.go)、[miniapp_test.go](miniapp_test.go)、[journal.go](journal.go)、[line.go](line.go)、[my_engineering.go](../business/repository/adapter/line/my_engineering.go)、[my_engineering_test.go](../business/repository/adapter/line/my_engineering_test.go) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 閱讀入口
+## Reading and editing entry points
 
-[現行實作圖：格式與資料相容](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [attendance.go](attendance.go), [creation_line.go](../business/organization/adapter/line/creation_line.go), [group.go](group.go), [miniapp.go](miniapp.go), [miniapp_test.go](miniapp_test.go), [journal.go](journal.go), [line.go](line.go), [my_engineering.go](../business/repository/adapter/line/my_engineering.go), [my_engineering_test.go](../business/repository/adapter/line/my_engineering_test.go); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="閱讀入口"></a>
 
-部署 Job 的 LINE 選單同步由 [line_navigation.go](line_navigation.go) 組裝，使用 Firestore 租約與有界 context；HTTP 服務啟動不發布。租約整合測試需隔離的 loopback Firestore emulator。
+## Reading entry points
+
+[Current implementation diagram: formats and data compatibility](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+[Parent directory guide](../README.md)
+
+[line_navigation.go](line_navigation.go) composes deployment-job menu synchronization with Firestore leases and bounded contexts. HTTP startup does not publish menus. Lease integration tests require an isolated loopback Firestore emulator.

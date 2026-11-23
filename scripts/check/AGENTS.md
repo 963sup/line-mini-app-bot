@@ -1,5 +1,13 @@
-# 設定檢查工作指引
+<a id="設定檢查工作指引"></a>
 
-本目錄沿用[上層指引](../AGENTS.md)。檢查失敗必須以非零狀態退出，讓 CI 能辨識失敗。
+# Configuration check guidance
 
-修改後依[腳本總覽](../README.md)執行對應檢查，入口見[本層說明](README.md)。
+Inherit [parent guidance](../AGENTS.md); failures must exit nonzero for CI detection.
+
+After changes, run checks from the [script overview](../README.md); see the [local README](README.md) for entry points.
+
+## Applicable engineering conventions
+
+- **Automated enforcement:** Validate the authoritative configuration/schema relationships and fail nonzero for drift, missing consumers or invalid definitions.
+- **Test integrity:** Keep checks deterministic and offline where specified; do not relax assertions, exclusions or baselines to hide a regression.
+- **Diagnostics:** Report the concrete offending path/rule while redacting secrets and leaving source files unchanged.

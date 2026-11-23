@@ -1,11 +1,19 @@
-# 企業 工作指引
+<a id="企業-工作指引"></a>
 
-適用於本領域，繼承[業務層指引](../AGENTS.md)。
+# Enterprise agent guidance
 
-## 建立企業的維護與驗收
+Applies to this domain; inherit [business guidance](../AGENTS.md).
 
-使用者能登入但缺少開通資格時，建立企業應失敗；查閱企業詳情也不等於取得變更擁有者的資格。
+<a id="建立企業的維護與驗收"></a>
 
-修改此規則時，核對[判定流程](../../../../docs/domains/enterprise/README.md#decision-flow)與[判定實作](adapter/firestore/store.go)。
+## Maintaining and verifying enterprise creation
 
-[目錄導覽](README.md)
+Enterprise creation must fail for authenticated users lacking provisioning eligibility. Reading details does not grant owner-change authority.
+
+When changing this rule, check the [decision flow](../../../../docs/domains/enterprise/README.md#decision-flow) and [implementation](adapter/firestore/store.go).
+
+[directory guide](README.md)
+
+## Applicable engineering conventions
+
+- **Domain, state and authorization:** Keep provisioning eligibility, enterprise ownership and team-management authority distinct, including retries returning an already-created enterprise.

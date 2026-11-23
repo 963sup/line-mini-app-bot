@@ -1,11 +1,15 @@
 # Attendance firestore
 
-文件映射、查詢與交易。
+Document mapping, queries and transactions.
 
-## 實作與規則
+<a id="實作與規則"></a>
 
-[打卡交易](attendance.go)、[補正交易](attendance_correction.go)、[文件映射](documents.go) 與 [索引查詢](attendance_query.go) 實作儲存 port。保存路徑、欄位名稱、核准證據與交易邊界保持既有契約。
+## Implementation and rules
 
-## 驗證與入口
+[Punch transactions](attendance.go), [correction transactions](attendance_correction.go), [document mapping](documents.go) and [index queries](attendance_query.go) implement storage ports. Preserve persistence paths, field names, approval evidence and transaction boundaries.
 
-繼承[模組工作指引](../../AGENTS.md)，依[模組驗證入口](../../README.md#規格與驗證)執行相關檢查。[上層導覽](../README.md)。
+<a id="驗證與入口"></a>
+
+## Verification and entry points
+
+Inherit [module guidance](../../AGENTS.md) and run applicable checks through [module verification](../../README.md#規格與驗證). [Parent directory guide](../README.md).

@@ -1,11 +1,15 @@
-# 組織 實作入口
+<a id="組織-實作入口"></a>
 
-[領域文件](../../../../docs/domains/organization/README.md) · [全域索引](../../../../docs/domains/README.md#domain-matrix)
+# Organization implementation entry points
 
-## 領域追蹤入口
+[domain documentation](../../../../docs/domains/organization/README.md) · [global index](../../../../docs/domains/README.md#domain-matrix)
 
-[領域規格](../../../../docs/domains/organization/README.md) · [判定流程](../../../../docs/domains/organization/README.md#decision-flow) · [判定實作](adapter/firestore/store.go)
+<a id="領域追蹤入口"></a>
 
-[三領域授權邊界](../../../../docs/contracts/organization-team-ownership.md#ownership-boundaries)
+## Domain traceability entry points
 
-[適用工作指引](AGENTS.md) · [上層導覽](../README.md)
+[domain specification](../../../../docs/domains/organization/README.md) · [decision flow](../../../../docs/domains/organization/README.md#decision-flow) · [decision implementation](adapter/firestore/store.go)
+
+[authorization boundaries across three domains](../../../../docs/contracts/organization-team-ownership.md#ownership-boundaries)
+
+[applicable guidance](AGENTS.md) · [parent directory guide](../README.md)

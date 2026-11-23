@@ -1,21 +1,27 @@
-# 空間標籤目錄
+<a id="空間標籤目錄"></a>
 
-提供 Repository 標籤的列表與建立畫面。
+# Space label catalog
 
-在本功能就近維護畫面與互動，路由由 pages 組合，權限與結果以後端 API 為準。
+Repository label listing/creation UI.
 
-## 閱讀與修改入口
+Colocate feature UI/interactions; pages compose routes and backend APIs determine permissions/results.
 
-先查閱[Picker.tsx](Picker.tsx)、[View.tsx](View.tsx)、[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[標籤規格](../../../../../../docs/domains/repository/labels.md) · [現行實作圖：空間載入時序](../../../../../../docs/domains/repository/README.md#空間載入時序)
+Start with [Picker.tsx](Picker.tsx), [View.tsx](View.tsx), [local agent guidance](AGENTS.md).
 
-僅提供列出及建立，操作、權限、資料與驗收依 [標籤規格](../../../../../../docs/domains/repository/labels.md)；不提供改名或刪除。分類引用由問題／討論自己的作者更新流程保存。
+<a id="相關規格"></a>
 
-`Picker` 共用目錄查詢及選取 UI，只修改父層草稿；透過問題／討論既有更新 API 保存。
+## Related specifications
 
-[現行實作圖：空間載入時序](../../../../../../docs/domains/repository/README.md#空間載入時序)
+[Label specification](../../../../../../docs/domains/repository/labels.md) · [Current implementation diagram: space loading](../../../../../../docs/domains/repository/README.md#空間載入時序)
 
-[上層導覽](../README.md)
+List/create only per [label specifications](../../../../../../docs/domains/repository/labels.md); no rename/delete. Issue/Discussion author-update flows persist references.
+
+`Picker` shares catalog queries/selection and changes parent drafts only; existing Issue/Discussion APIs persist them.
+
+[Current implementation diagram: space loading sequence](../../../../../../docs/domains/repository/README.md#空間載入時序)
+
+[Parent directory guide](../README.md)

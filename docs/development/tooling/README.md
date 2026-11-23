@@ -1,62 +1,60 @@
-# 工具與分析
+<a id="工具與分析"></a>
 
-保存工具鏈、版本管理、分析與 MCP 入口。
+# Tools and analysis
 
-工具使用方式放在此處，版本和可執行任務由 mise 維護。
+Toolchain, version management, analysis and MCP entry points.
 
-遇到具體工具需求再讀對應頁面；工具已安裝、已設定、可連線與操作成功是不同證據。
+Tool usage lives here; mise owns versions and executable tasks.
 
-## 工具文件目錄標準
+Read tool pages for concrete needs. Installed, configured, connected and successfully operated are different evidence.
 
-工具指南依主要用途歸類。通用操作放在 `shared/`，代理／MCP 頁引用它；領域專屬工具保留在前端、後端、API 或測試分類，不因有 MCP 就搬進 `agents/`。Agent Skills 與文件查詢 MCP 的主體用途屬代理，留在 `agents/`。
+<a id="工具文件目錄標準"></a>
+
+## Tool documentation directory standards
+
+Categorize by primary purpose. General operations belong in `shared/`, referenced by agent/MCP pages. Domain tools stay under frontend, backend, API or testing rather than moving to `agents/` for MCP support. Agent Skills/document-query MCPs belong in `agents/`.
 
 ```text
 docs/development/tooling/
 ├── README.md
-├── shared/                 # 跨領域共用工具
-├── frontend/               # 前端專屬工具
+├── shared/                 # Tools shared across domains
+├── frontend/               # Frontend tools
 │   ├── README.md
 │   ├── shadcn.md
 │   └── nextjs-devtools.md
-├── backend/                # 後端專屬工具
-├── api/                    # API 契約、產生與驗證工具
-├── testing/                # 測試與品質工具
-└── agents/                 # AI Agent 與 MCP 工具
+├── backend/                # Backend tools
+├── api/                    # Contract, generation and validation tools
+├── testing/                # Testing and quality tools
+└── agents/                 # AI agent and MCP tools
 ```
 
-## 日常工具入口
+<a id="日常工具入口"></a>
 
-| 需求 | 文件 |
+## Daily tool entry points
+
+| Need | Documentation |
 | --- | --- |
-| 查閱 GitHub 儲存庫、PR、CI 與 Wiki | [GitHub](shared/github.md) |
-| 修復 GitHub Actions／PR 紅燈 | [檢查失敗處理流程](shared/github.md#github-actionspr-檢查失敗) |
-| 使用 gcloud、登入與 ADC | [Google Cloud CLI](shared/gcloud.md) |
-| 渲染與驗收 Mermaid 圖表 | [Mermaid](shared/mermaid.md) |
-| 初始化共用工具鏈與 MCP | [初始化模式與操作](shared/toolchain-setup.md) |
-| 工具版本、任務與環境 | [mise](shared/mise.md)；版本與任務以 [mise.toml](../../../mise.toml)為準 |
-| Go 工具準備與開發操作 | [Go 開發](backend/go-development.md) |
-| Go 語言工具 | [gopls](backend/gopls.md) |
-| 修改與驗證 HTTP 契約 | [API 工具流程](api/change-api.md) |
-| LINE Rich Menu 圖片版面 | [格線與按鈕](frontend/rich-menu-layout.md) |
-| 產生 LINE Rich Menu 圖片與熱區 | [共用定義與產生器](shared/rich-menu-generator.md) |
-| Firestore 工具 | [後端工具與驗證](backend/firestore.md) |
-| 選擇測試與品質檢查 | [驗收矩陣與命令](testing/commands.md) |
-| 使用 Codex CLI 開啟專案或提交 Cloud 任務 | [Codex](agents/codex.md) |
-| 本機容器建置與 smoke 驗收 | [容器驗收](testing/container.md) |
-| 選擇或診斷 MCP | [MCP 索引](agents/README.md) |
-| 使用專案技能 | [Skills](agents/skills.md) |
-| 查詢程式關係 | [Graphify](shared/graphify.md) |
-| 打包限定原始碼 | [Repomix](shared/repomix.md) |
-| 產生本次交談的來源參考技能 | [Repomix 參考技能](shared/repomix.md#產生參考技能) |
-| 查 UI 元件與整合流程 | [前端工具入口](frontend/README.md) |
-| 檢查 Next.js 開發執行狀態 | [Next DevTools](frontend/nextjs-devtools.md) |
+| Set up tools, inspect GitHub CI, authenticate gcloud, render diagrams or generate artifacts | [Shared development tools](shared/README.md) |
+| Go tools/development | [Go development](backend/go-development.md) |
+| Go language tools | [gopls](backend/gopls.md) |
+| Change/verify HTTP contracts | [API tools](api/change-api.md) |
+| LINE Rich Menu layout | [Grids/buttons](frontend/rich-menu-layout.md) |
+| Firestore tools | [Backend tools/verification](backend/firestore.md) |
+| Select quality checks | [Acceptance matrix/commands](testing/commands.md) |
+| Open projects/submit Cloud tasks | [Codex](agents/codex.md) |
+| Local container build/smoke | [Container acceptance](../../operations/container-build.md#本機建置與-smoke-驗收) |
+| Select/diagnose MCP | [MCP index](agents/README.md) |
+| Project skills | [Skills](agents/skills.md) |
+| UI components/integration | [Frontend tools](frontend/README.md) |
 
-## 上游參考資料
+<a id="上游參考資料"></a>
 
-`frontend/shadcn-reference/snapshot/` 是上游參考快照，按索引搜尋所需頁面；不作為專案政策，也不全量載入。[查詢與更新方式](frontend/shadcn-reference/README.md)
+## Upstream references
 
-分析產物存放於任務暫存目錄，核對來源版本、實際涵蓋檔案及有效性；不在 docs 累積日期報告。
+`frontend/shadcn-reference/snapshot/` is an upstream snapshot: search its index as needed rather than loading it all or treating it as project policy. [Query/update instructions](frontend/shadcn-reference/README.md)
 
-[本目錄指引](AGENTS.md) · [父層指引](../../AGENTS.md) · [文件總入口](../../README.md)
+Keep analysis artifacts in task temporary directories. Check source versions, coverage and validity; do not accumulate dated reports under docs.
 
-[上層導覽](../README.md)
+[Local guidance](AGENTS.md) · [Parent guidance](../../AGENTS.md) · [Documentation entry](../../README.md)
+
+[Parent directory guide](../README.md)

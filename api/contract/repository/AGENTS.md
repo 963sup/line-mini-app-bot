@@ -1,23 +1,35 @@
-# Bot 管理的群組空間契約
+<a id="bot-管理的群組空間契約"></a>
 
-## 閱讀與修改入口
+# Bot-managed group space contracts
 
-先查閱[labels.yaml](labels.yaml)、[milestones.yaml](milestones.yaml)、[repositories.yaml](repositories.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[群組 Repository 規格](../../../docs/domains/repository/README.md) · [標籤規格](../../../docs/domains/repository/labels.md)
+Start with [labels.yaml](labels.yaml), [milestones.yaml](milestones.yaml), [repositories.yaml](repositories.yaml), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
 
-Project 和 Repository 各自保存一個 `ownerId`。LINE UserID（U）以登入本人核驗，GroupID（C）以當下群組成員資格核驗。Project 可連結多個 Repository，每筆來源引用各自授權。Space 隸屬 Repository。
+<a id="相關規格"></a>
 
-適用於本目錄及其子目錄；繼承 [上層指引](../AGENTS.md)，並遵循其引用的根目錄規則。此處只補充本範圍責任；使用者與主機指令優先，不增加外部寫入授權。
+## Related specifications
 
-## 職責與邊界
+[Group Repository specification](../../../docs/domains/repository/README.md) · [Label specification](../../../docs/domains/repository/labels.md)
 
-- 先讀 [群組 Repository 規格](../../../docs/domains/repository/README.md)；每個群組一個空間，由驗證簽章的 Bot 事件建立與更新。
-- 保留既有列表、詳情與分頁契約；不新增人工建立、刪除、換綁、擁有者或角色管理能力。
-- Repository ID 與 ownerId 分開；互動候選不是完整成員名冊，也不是授權。容器存取資格不自動授予子業務寫入或審核權。
-- Label 目錄依 [標籤規格](../../../docs/domains/repository/labels.md) 提供列出及建立，不含改名或刪除，引用沿用事項／討論作者更新。Milestone 與 statistics 依 [里程碑](../../../docs/domains/repository/milestones.md)、[儲存庫洞察（Insights）](../../../docs/domains/repository/insights.md)；Member 等未來能力先定義操作與擁有者；不得把互動候選當作 members API。
-- 子業務引用既有 Repository 歸屬，不由 Issue／Discussion 的寫入順便建立容器。
+Repository ownership uses LINE UserID (U) or GroupID (C); verify the logged-in user or current group membership accordingly. Project has its own user/organization Owner and optional source links; follow the Project specification rather than applying Repository Owner rules to Projects. Authorize each Project source reference separately. Spaces belong to Repositories.
 
-[現行實作圖：空間載入時序](../../../docs/domains/repository/README.md#空間載入時序)
+Applies to this directory and descendants. Inherit [parent guidance](../AGENTS.md) and its referenced root rules. This file adds only local responsibilities. User and host instructions take precedence; it grants no additional authorization for external writes.
+
+<a id="職責與邊界"></a>
+
+## Responsibilities and boundaries
+
+- Read the [group Repository specification](../../../docs/domains/repository/README.md) first. Each group has one space, created and updated by signature-verified bot events.
+- Preserve list, detail and pagination contracts. Do not add manual creation, deletion, rebinding, owner or role management.
+- Separate Repository ID and ownerId. Interaction candidates are neither a complete membership roster nor authorization. Container access does not automatically grant child business write or review permissions.
+- Label catalogs support list/create per the [label specification](../../../docs/domains/repository/labels.md), excluding rename/delete. References use Issue/Discussion author updates. Milestones/statistics follow [milestones](../../../docs/domains/repository/milestones.md) and [repository insights](../../../docs/domains/repository/insights.md). Define operations and ownership before future Member capabilities; interaction candidates are not a members API.
+- Child features reference existing Repository ownership. Issue/Discussion writes must not implicitly create containers.
+
+[Current implementation diagram: space loading sequence](../../../docs/domains/repository/README.md#空間載入時序)
+
+## Applicable engineering conventions
+
+- **Contract semantics:** Scope repository and child-resource queries explicitly; returning a repository or capability flag does not authorize a later write.

@@ -1,9 +1,21 @@
-# backend/internal/identity/line 工作指引
+<a id="backendinternalidentityline-工作指引"></a>
 
-## 閱讀與修改入口
+# backend/internal/identity/line agent guidance
 
-先查閱[verify.go](verify.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：續期交易與前端觸發](../../../../docs/contracts/identity.md#續期交易與前端觸發)
+Start with [verify.go](verify.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: renewal transaction and frontend triggers](../../../../docs/contracts/identity.md#續期交易與前端觸發)
+
+## Applicable engineering conventions
+
+- **Authentication and security:** Verify LINE credentials through the existing provider boundary; do not accept browser-supplied profile IDs as authenticated actors.
+- **Time and identifiers:** Preserve token/session identifier formats and expiry precision; distinguish UTC instants from local business dates.
+- **Reliability and tests:** Bound verification calls and test invalid, expired, revoked and cancelled cases at the changed boundary.

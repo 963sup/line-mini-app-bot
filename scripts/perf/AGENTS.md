@@ -1,5 +1,13 @@
-# Go 效能剖析工作指引
+<a id="go-效能剖析工作指引"></a>
 
-本目錄沿用[上層指引](../AGENTS.md)。剖析單一 Go 套件，輸出維持在 .artifacts/go。
+# Go profiling guidance
 
-修改後依[腳本總覽](../README.md)執行對應檢查，入口見[本層說明](README.md)。
+Inherit [parent guidance](../AGENTS.md); profile one Go package and keep output in .artifacts/go.
+
+After changes, run checks from the [script overview](../README.md); see the [local README](README.md) for entry points.
+
+## Applicable engineering conventions
+
+- **Measurement:** Profile a defined workload/package and compare before/after results under matching conditions; avoid optimization based only on code shape.
+- **Observability:** Use interpretable latency/allocation/CPU evidence and bounded metric dimensions rather than resource IDs as labels.
+- **Artifact lifecycle:** Keep profiles in the declared local artifact directory and exclude sensitive payloads or credentials.

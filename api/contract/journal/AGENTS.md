@@ -1,11 +1,21 @@
-# api/contract/journal 工作指引
+<a id="apicontractjournal-工作指引"></a>
 
-## 閱讀與修改入口
+# api/contract/journal agent guidance
 
-先查閱[journals.yaml](journals.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-遵循[上層指引](../AGENTS.md)。調整公開請求或回應前，先核對契約與呼叫端，再執行 API 契約檢查。 實作入口見[本目錄導覽](README.md)。
+Start with [journals.yaml](journals.yaml), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
 
-[現行實作圖：基礎入口](../../../docs/contracts/http.md#基礎入口)
+<a id="相關規格"></a>
+
+## Related specifications
+
+Follow [parent guidance](../AGENTS.md). Before changing public requests or responses, check contracts and callers, then run API contract checks. See the [directory guide](README.md) for implementation entry points.
+
+[Current implementation diagram: basic entry points](../../../docs/contracts/http.md#基礎入口)
+
+## Applicable engineering conventions
+
+- **Contract semantics:** Specify published journal visibility, source redaction, work-date representation and idempotent publication results together.

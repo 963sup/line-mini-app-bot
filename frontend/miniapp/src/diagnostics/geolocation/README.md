@@ -1,15 +1,21 @@
-# frontend/miniapp/src/diagnostics/geolocation 目錄導覽
+<a id="frontendminiappsrcdiagnosticsgeolocation-目錄導覽"></a>
 
-提供測試瀏覽器定位並呈現結果的診斷畫面。
+# frontend/miniapp/src/diagnostics/geolocation directory guide
 
-依層級維護本目錄的共用能力；功能畫面由 business 組織，頁面入口由 pages 接入。
+Browser geolocation testing/results UI.
 
-## 閱讀與修改入口
+Maintain shared capabilities by layer; business owns feature UI and pages owns entry points.
 
-從 [View.tsx](View.tsx) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：現有出勤整合檔案與責任](../../../../../docs/integrations/geolocation/browser-api.md#現有出勤整合檔案與責任)
+Start with [View.tsx](View.tsx); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: attendance integration files and responsibilities](../../../../../docs/integrations/geolocation/browser-api.md#現有出勤整合檔案與責任)
+
+[Parent directory guide](../README.md)

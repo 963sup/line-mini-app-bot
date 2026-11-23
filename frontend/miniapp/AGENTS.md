@@ -1,4 +1,6 @@
-# MINI App 開發指引
+<a id="mini-app-開發指引"></a>
+
+# MINI App development guidance
 
 <!-- BEGIN:nextjs-agent-rules -->
 
@@ -10,18 +12,30 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-## 架構與責任邊界
+<a id="架構與責任邊界"></a>
 
-依層級維護本目錄的共用能力；功能畫面由 business 組織，頁面入口由 pages 接入。
+## Architecture and responsibility boundaries
 
-## 閱讀與修改入口
+Maintain shared capabilities by layer; business owns feature UI and pages owns entry points.
 
-先查閱[components.json](components.json)、[next-env.d.ts](next-env.d.ts)、[next.config.ts](next.config.ts)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## shadcn 與 sidebar-07 保護
+## Reading and editing entry points
 
-任何 UI 任務先讀 [shared/ui/AGENTS.md](src/shared/ui/AGENTS.md) 的官方元件目錄、保護規則及 Skill／MCP 主動查詢流程；先探索、核對已安裝項目，再於應用層組合。
+Start with [components.json](components.json), [next-env.d.ts](next-env.d.ts), [next.config.ts](next.config.ts), [directory guide](README.md), [parent guidance](../AGENTS.md).
 
-遵循[前端元件保護規則](../AGENTS.md#shadcn-元件保護)。Codex 預設不得改寫 shared/ui 與 shell/sidebar-07 的樣式、結構或互動；新增需求在應用層組合，只有使用者當次明確授權才能修改官方元件。
+<a id="shadcn-與-sidebar-07-保護"></a>
 
-[現行實作圖：頁面與身分生命週期](../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+## shadcn and sidebar-07 protection
+
+Before UI work, read the catalog, protection and proactive Skill/MCP workflow in [shared/ui/AGENTS.md](src/shared/ui/AGENTS.md). Explore, check installed items, then compose application UI.
+
+Follow [frontend protection](../AGENTS.md#shadcn-元件保護). Codex must not rewrite shared/ui or shell/sidebar-07 styles, structure/interactions by default. Compose new needs in applications; official changes require explicit current-task authorization.
+
+[Current implementation diagram: page and identity lifecycle](../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+## Applicable engineering conventions
+
+- **Structure and builds:** Keep route composition in Pages Router and preserve static export; never make a page depend on unavailable per-request server execution.
+- **Components and forms:** Reuse protected components through public props and application composition, with accessible field labels and error feedback.
+- **Configuration and types:** Keep public runtime configuration separate from secrets and use the pinned workspace dependency/type-checking workflow.

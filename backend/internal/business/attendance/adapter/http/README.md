@@ -1,11 +1,15 @@
 # Attendance http
 
-HTTP 請求、認證接線與契約轉換。
+HTTP requests, authentication wiring and contract mapping.
 
-## 實作與規則
+<a id="實作與規則"></a>
 
-處理 HTTP 與 OpenAPI DTO 映射，入口為 [routes.go](routes.go)。身分來源是伺服器驗證結果，前端不能決定審核權。
+## Implementation and rules
 
-## 驗證與入口
+Handles HTTP/OpenAPI DTO mapping through [routes.go](routes.go). Identity comes from server verification; frontends cannot decide review permissions.
 
-繼承[模組工作指引](../../AGENTS.md)，依[模組驗證入口](../../README.md#規格與驗證)執行相關檢查。[上層導覽](../README.md)。
+<a id="驗證與入口"></a>
+
+## Verification and entry points
+
+Inherit [module guidance](../../AGENTS.md) and run applicable checks through [module verification](../../README.md#規格與驗證). [Parent directory guide](../README.md).

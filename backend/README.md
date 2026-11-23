@@ -1,70 +1,84 @@
-# Go 後端
+<a id="go-後端"></a>
 
-保存 Go 後端指令、套件與模組設定。
+# Go backend
 
-依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
+Stores Go backend commands, packages and module configuration.
 
-## 閱讀與修改入口
+Directories expose backend entry points or shared capabilities by purpose. Bootstrap wires services; domains own resource authorization and use cases.
 
-先查閱[package.json](package.json)、[turbo.json](turbo.json)、[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[獨立Project](../docs/domains/project/project.md) · [工程日誌與群組發布](../docs/domains/journal/journal.md)
+Start with [package.json](package.json), [turbo.json](turbo.json) and [local guidance](AGENTS.md).
 
-工程群組及Project各自保存核心、用例與adapters。Project不依賴Repository核心模型作父容器，只透過使用端定義的來源讀取port查事項；工程群組成員及來源資格分開核驗。現行邊界與遷移見 [獨立Project](../docs/domains/project/project.md)。
+<a id="相關規格"></a>
 
-## 目錄導覽與維護
+## Related specifications
 
-唯一可執行入口為 [main.go](main.go)。[business](internal/business) 依業務領域分工，[bootstrap](internal/bootstrap) 組裝服務，[identity](internal/identity) 處理身分與 Session，[httpapi](internal/transport/http/api) 保存 OpenAPI 契約接線與生成碼。
+[Independent projects](../docs/domains/project/project.md) · [Engineering journals and group publication](../docs/domains/journal/journal.md)
 
-業務核心、HTTP/LINE adapter 與 Firestore adapter 分層；共享組裝在 internal/bootstrap。修改 HTTP 格式先走 ../api 契約流程，不手改產生碼。憑證不得寫入 .env.example。
+Engineering groups and Projects each retain cores, use cases and adapters. Projects do not use Repository core models as parent containers; they read issues through consumer-defined source ports. Verify engineering-group membership and source eligibility separately. See [independent projects](../docs/domains/project/project.md) for current boundaries and migration.
 
-使用根目錄 scripts/tooling/tool-exec.sh；Go 修改依[變更驗收矩陣](../docs/development/tooling/testing/commands.md#變更驗收矩陣)執行 fmt-check、lint、check、build 與相關既有測試。純文件修改不冒稱應用測試已執行。
+<a id="目錄導覽與維護"></a>
 
-[本目錄指引](AGENTS.md) · [根目錄說明](../README.md) · [根目錄指引](../AGENTS.md)
+## Directory guide and maintenance
 
-## 相關文件
+The sole executable entry point is [main.go](main.go). [business](internal/business) is organized by domain; [bootstrap](internal/bootstrap) composes services; [identity](internal/identity) handles identity/sessions; [httpapi](internal/transport/http/api) owns OpenAPI wiring and generated code.
 
-- [工程日誌與群組發布](../docs/domains/journal/journal.md)
+Separate business cores, HTTP/LINE adapters and Firestore adapters; shared composition lives in internal/bootstrap. Follow ../api contract workflows before changing HTTP formats. Do not edit generated code or put credentials in .env.example.
 
-- [文件索引：Backend](../docs/README.md#按模組閱讀)
-- [Go browser Session 與滑動續期](../docs/contracts/identity.md)
-- [後端功能邊界](../docs/architecture/runtime/backend-boundaries.md)
-- [依賴規則](../docs/architecture/runtime/dependencies.md)
-- [Go 開發慣例](../docs/standards/go.md)
-- [可靠性與資料](../docs/proposals/webhook-delivery/design.md)
-- [API 契約工作流程](../api/README.md)
+Use the root scripts/tooling/tool-exec.sh. Follow the [acceptance matrix](../docs/development/tooling/testing/commands.md#變更驗收矩陣) for fmt-check, lint, check, build and relevant existing tests after Go changes. Do not claim application tests for documentation-only work.
 
-- [群組請假登記](../docs/domains/attendance/leave.md)
+[Local guidance](AGENTS.md) · [Root README](../README.md) · [Root guidance](../AGENTS.md)
 
-- [群組出勤看板與本人漏下班檢查](../docs/domains/attendance/board.md)
+<a id="相關文件"></a>
 
-- [目前模組與責任](../docs/architecture/runtime/code-layout.md)
+## Related documentation
 
-摘要的 [LINE 入口](internal/business/summary/adapter/line) 串接訊息收集與摘要指令。[Cloud Tasks 適配器](internal/business/summary/adapter/messaging/cloudtasks/summarization) 排程工作，[Firestore 適配器](internal/business/summary/adapter/firestore) 保存訊息與工作狀態。
-天氣預報由 [CWA 適配器](internal/business/weather/adapter/cwa/forecast) 取得資料，再由 [LINE 適配器](internal/business/weather/adapter/line/forecast) 組裝回覆。
-入口契約見 [Summary](../api/contract/summary/README.md) 與 [Weather](../api/contract/weather/README.md)。
+- [Engineering journals and group publication](../docs/domains/journal/journal.md)
 
-- [群組 Repository](../docs/domains/repository/README.md)
-- [基礎雛形與停止擴充界線](../docs/domains/repository/acceptance.md)
-- [空間標籤目錄](../docs/domains/repository/labels.md)：沿用 Repository client，建立名稱綁定及防重收據，不占共用編號。
-- [空間討論與留言](../docs/domains/repository/discussion/design.md)：獨立核心及 HTTP／Firestore adapters，重用既有 client 與編號。
-- [空間事項第一階段](../docs/domains/repository/issue/design.md)：核心、HTTP 與 Firestore 分層實作；正式環境待驗收。
-- [Repository 共用資源編號基礎](../docs/domains/repository/numbering.md)：內部交易介面，已由事項建立使用，不提供獨立公開分配 API。
+- [Documentation index: Backend](../docs/README.md#按模組閱讀)
+- [Go browser sessions and sliding renewal](../docs/contracts/identity.md)
+- [Backend feature boundaries](../docs/architecture/runtime/backend-boundaries.md)
+- [Dependency rules](../docs/architecture/runtime/dependencies.md)
+- [Go development conventions](../docs/standards/go.md)
+- [Reliability and data](../docs/proposals/webhook-delivery/design.md)
+- [API contract workflow](../api/README.md)
 
-- [里程碑](../docs/domains/repository/milestones.md)、[Project](../docs/domains/project/project.md)與[洞察（Insights）](../docs/domains/repository/insights.md)
+- [Group leave registration](../docs/domains/attendance/leave.md)
 
-## 協作能力分佈與交付狀態
+- [Group attendance boards and personal missing clock-out checks](../docs/domains/attendance/board.md)
 
-業務模組位於 [internal/business](internal/business)，服務組裝見 [bootstrap](internal/bootstrap)，各功能行為見[功能索引](../docs/domains/README.md)。
+- [Current modules and responsibilities](../docs/architecture/runtime/code-layout.md)
 
-[現行實作圖：格式與資料相容](../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+The summary [LINE entry point](internal/business/summary/adapter/line) connects collection and commands. The [Cloud Tasks adapter](internal/business/summary/adapter/messaging/cloudtasks/summarization) schedules jobs; the [Firestore adapter](internal/business/summary/adapter/firestore) stores messages and job state.
+The [CWA adapter](internal/business/weather/adapter/cwa/forecast) fetches forecasts and the [LINE adapter](internal/business/weather/adapter/line/forecast) composes replies.
+See [Summary](../api/contract/summary/README.md) and [Weather](../api/contract/weather/README.md) for entry contracts.
 
-## 單一執行入口
+- [Group repositories](../docs/domains/repository/README.md)
+- [Basic scaffolds and expansion limits](../docs/domains/repository/acceptance.md)
+- [Space label catalog](../docs/domains/repository/labels.md): reuses the Repository client, creates name bindings and deduplication receipts, and consumes no shared numbers.
+- [Space discussions and comments](../docs/domains/repository/discussion/design.md): independent core and HTTP/Firestore adapters; reuse existing clients and numbering.
+- [Space issues, phase one](../docs/domains/repository/issue/design.md): separate core, HTTP and Firestore layers; production acceptance pending.
+- [Shared Repository resource numbering](../docs/domains/repository/numbering.md): internal transaction interface used by Issue creation; no independent public allocation API.
 
-在儲存庫根目錄使用 `bash scripts/tooling/tool-exec.sh go -C backend run .` 啟動 HTTP 服務。`sync-line-navigation` 供部署 Job 使用；`check-firestore -document COLLECTION/DOCUMENT` 執行既有的唯讀連線檢查。服務組裝仍由 internal/bootstrap 負責。
+- [Milestones](../docs/domains/repository/milestones.md), [Project](../docs/domains/project/project.md) and [Insights](../docs/domains/repository/insights.md)
 
-開發階段的舊版 Project 遷移工具已退役，專用實作、測試與操作文件已刪除；啟動時不執行資料遷移。
+<a id="協作能力分佈與交付狀態"></a>
 
-Go Browser 測試會驗證 Next.js 匯出頁面。首次測試或前端頁面更新後，先在儲存庫根目錄執行 `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp build`，再執行 `bash scripts/tooling/tool-exec.sh mise run check`；不手動維護或提交 out/ 中的 HTML 產物。
+## Collaboration capability coverage and delivery status
+
+Business modules live in [internal/business](internal/business); [bootstrap](internal/bootstrap) composes services. See the [feature index](../docs/domains/README.md) for behavior.
+
+[Current implementation diagram: formats and data compatibility](../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+<a id="單一執行入口"></a>
+
+## Single executable entry point
+
+Start HTTP service from the root with `bash scripts/tooling/tool-exec.sh go -C backend run .`. `sync-line-navigation` is for deployment jobs; `check-firestore -document COLLECTION/DOCUMENT` runs the existing read-only connectivity check. internal/bootstrap still owns service composition.
+
+The development-era legacy Project migration tool, its implementation, tests and operating documents are retired. Startup does not migrate data.
+
+Go browser tests verify exported Next.js pages. Before first testing or after page changes, run `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp build` then `bash scripts/tooling/tool-exec.sh mise run check` from the root. Do not manually maintain or commit out/ HTML artifacts.

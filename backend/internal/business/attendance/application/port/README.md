@@ -1,11 +1,15 @@
 # Attendance port
 
-儲存、成員核驗與交易介面。
+Storage, membership and transaction interfaces.
 
-## 實作與規則
+<a id="實作與規則"></a>
 
-[一般儲存能力](store.go)、[打卡能力](punch.go)、[審核交易](review.go) 與 [月報讀取](monthly.go) 定義用例需要的輸出能力。Firestore 或 LINE 適配器實作介面。
+## Implementation and rules
 
-## 驗證與入口
+[General storage](store.go), [punch capabilities](punch.go), [review transactions](review.go) and [monthly reads](monthly.go) define use-case output needs, implemented by Firestore/LINE adapters.
 
-繼承[模組工作指引](../../AGENTS.md)，依[模組驗證入口](../../README.md#規格與驗證)執行相關檢查。[上層導覽](../README.md)。
+<a id="驗證與入口"></a>
+
+## Verification and entry points
+
+Inherit [module guidance](../../AGENTS.md) and run applicable checks through [module verification](../../README.md#規格與驗證). [Parent directory guide](../README.md).

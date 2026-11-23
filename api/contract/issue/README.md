@@ -1,15 +1,21 @@
-# api/contract/issue 目錄導覽
+<a id="apicontractissue-目錄導覽"></a>
 
-定義 Repository 事項、事項類型與留言的 API 契約。
+# api/contract/issue directory guide
 
-維護本能力的操作與 schema；根規格負責組合，公開格式由契約產生。
+Defines Repository issue, issue type and comment API contracts.
 
-## 閱讀與修改入口
+Maintain this capability's operations and schemas. Root specifications compose them; public formats are generated from contracts.
 
-從 [comments.yaml](comments.yaml)、[issues.yaml](issues.yaml)、[types.yaml](types.yaml) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：基礎入口](../../../docs/contracts/http.md#基礎入口)
+Start with [comments.yaml](comments.yaml), [issues.yaml](issues.yaml) and [types.yaml](types.yaml). Read the [local guidance](AGENTS.md) before editing.
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: basic entry points](../../../docs/contracts/http.md#基礎入口)
+
+[Parent directory guide](../README.md)

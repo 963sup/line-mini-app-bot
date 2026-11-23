@@ -1,9 +1,11 @@
-# 初始化工具環境、準備 Go 依賴
+<a id="初始化工具環境準備-go-依賴"></a>
 
-操作入口：deps。
+# Initialize tools and prepare Go dependencies
+
+Entry: deps.
 
 - [go-deps.sh](go-deps.sh)
 - [install-mise.sh](install-mise.sh)
 - [render-env.py](render-env.py)
 
-[腳本總覽](../README.md) · [本層工作指引](AGENTS.md)
+[Script overview](../README.md) · [Local guidance](AGENTS.md)

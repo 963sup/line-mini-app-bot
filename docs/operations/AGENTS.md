@@ -1,9 +1,17 @@
-# 維運文件指引
+<a id="維運文件指引"></a>
 
-沿用[文件指引](../AGENTS.md)，依[正式部署與維運索引](README.md)查找操作。
+# Operations documentation guidance
 
-維運手冊說明目標環境、操作者、前置條件、成功證據與失敗後恢復方式。區分儲存庫宣告、線上設定及驗收結果。平台契約連回對應整合頁；環境名稱、工具版本和機密綁定以各自的權威來源為準。
+Follow [documentation guidance](../AGENTS.md); find procedures through the [production index](README.md).
 
-更新手冊時核對命令來源、順序、連結與錨點。文件搬移不會套用線上設定。
+Runbooks specify targets, operators, prerequisites, success evidence/recovery. Distinguish declarations, live settings and acceptance. Link platform contracts to integrations; preserve authoritative environment names, versions and secret bindings.
 
-調整根目錄 `cloudbuild.yaml`、`Dockerfile` 或 `firestore.indexes.json` 時，核對[部署決策](../decisions/0003-cloud-run-primary.md)、目標環境的建置入口與上傳範圍。部署目標為 Cloud Run，分開管理建置與執行帳戶，並透過 Secret Manager 綁定機密。
+Verify command sources, order, links/anchors. Moving documents does not apply live settings.
+
+For root `cloudbuild.yaml`, `Dockerfile` or `firestore.indexes.json`, check [deployment decisions](../decisions/0003-cloud-run-primary.md), target build entry/upload scope. Deploy to Cloud Run with separate build/runtime accounts and Secret Manager bindings.
+
+## Applicable engineering conventions
+
+- **Deployment and versions:** Record the exact artifact/revision, target environment, health evidence and rollback path for an authorized deployment.
+- **Migration and cache:** Describe expand-contract ordering, index/data prerequisites and any required cache invalidation before retiring old structures.
+- **Security and observability:** Keep least-privilege identities and secret references explicit; use correlated structured logs, traces and bounded metrics for diagnosis.

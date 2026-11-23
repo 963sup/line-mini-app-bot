@@ -1,11 +1,15 @@
 # Attendance dto
 
-分頁、月報、看板及打卡回傳資料。
+Pagination, monthly reports, boards and punch results.
 
-## 實作與規則
+<a id="實作與規則"></a>
 
-[打卡結果](punch.go)、[月報](monthly.go)、[分頁](page.go)、[補正詳情](correction.go) 與 [看板](board.go) 為應用層輸入輸出資料，不承擔 HTTP 或 Firestore 序列化標籤。
+## Implementation and rules
 
-## 驗證與入口
+[Punch results](punch.go), [monthly reports](monthly.go), [pagination](page.go), [correction details](correction.go) and [boards](board.go) are application inputs/outputs without HTTP/Firestore serialization tags.
 
-繼承[模組工作指引](../../AGENTS.md)，依[模組驗證入口](../../README.md#規格與驗證)執行相關檢查。[上層導覽](../README.md)。
+<a id="驗證與入口"></a>
+
+## Verification and entry points
+
+Inherit [module guidance](../../AGENTS.md) and run applicable checks through [module verification](../../README.md#規格與驗證). [Parent directory guide](../README.md).

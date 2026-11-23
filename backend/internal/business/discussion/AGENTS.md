@@ -1,15 +1,27 @@
-# backend/internal/business/discussion 工作指引
+<a id="backendinternalbusinessdiscussion-工作指引"></a>
 
-## 閱讀與修改入口
+# backend/internal/business/discussion agent guidance
 
-先查閱[應用服務](application/service.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：最小實作邊界與驗證](../../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+Start with [application service](application/service.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
 
-## 調整討論分類的維護與驗收
+<a id="相關規格"></a>
 
-只具分類權限的成員可以調整分類；同一請求若夾帶內容修改，應拒絕越權變更。
+## Related specifications
 
-修改此規則時，核對[判定流程](../../../../docs/domains/repository/discussion/README.md#decision-flow)與[代表測試](domain/entity/classification_test.go)。
+[Current implementation diagram: minimal boundaries and verification](../../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+
+<a id="調整討論分類的維護與驗收"></a>
+
+## Maintaining and verifying discussion categorization
+
+Members with categorization-only permissions may recategorize, but requests also changing content must reject the unauthorized changes.
+
+When changing this rule, check the [decision flow](../../../../docs/domains/repository/discussion/README.md#decision-flow) and [representative tests](domain/entity/classification_test.go).
+
+## Applicable engineering conventions
+
+- **Domain, state and authorization:** Check content-edit and classification authority separately, and preserve comment/topic versions and lifecycle semantics on retries.

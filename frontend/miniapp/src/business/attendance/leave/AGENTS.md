@@ -1,9 +1,19 @@
-# frontend/miniapp/src/business/attendance/leave 工作指引
+<a id="frontendminiappsrcbusinessattendanceleave-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend/miniapp/src/business/attendance/leave agent guidance
 
-先查閱[View.tsx](View.tsx)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：最小流程](../../../../../../docs/domains/attendance/leave.md#最小流程)
+Start with [View.tsx](View.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: minimal flow](../../../../../../docs/domains/attendance/leave.md#最小流程)
+
+## Applicable engineering conventions
+
+- **Data, scope and state:** Distinguish registration from approval, preserve original uncertain submissions and handle expired launch links through the documented recovery path.

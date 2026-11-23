@@ -1,15 +1,21 @@
-# frontend/miniapp/src/business/subobject 目錄導覽
+<a id="frontendminiappsrcbusinesssubobject-目錄導覽"></a>
 
-子節點的畫面與互動由 Object 功能維護。權限與結果以後端 API 為準。
+# frontend/miniapp/src/business/subobject directory guide
 
-## 閱讀與修改入口
+Object owns child-node UI/interactions; backend APIs determine permissions/results.
 
-從 [Children.tsx](../object/Children.tsx) 開始。修改前讀 [Object 工作指引](../object/AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：物件與子物件歸屬](../../../../../docs/contracts/object-subobject-ownership.md#物件與子物件歸屬)
+Start with [Children.tsx](../object/Children.tsx); before editing, read  [Object agent guidance](../object/AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
 
-子物件的父子關係與階層限制見[物件規格](../../../../../docs/domains/repository/object/design.md)。
+## Related specifications
+
+[Current implementation diagram: object and subobject ownership](../../../../../docs/contracts/object-subobject-ownership.md#物件與子物件歸屬)
+
+[Parent directory guide](../README.md)
+
+See [object specifications](../../../../../docs/domains/repository/object/design.md) for hierarchy/parent relationships.

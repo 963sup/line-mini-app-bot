@@ -1,11 +1,15 @@
 # Attendance policy
 
-審核資格、重送與請假規則。
+Review eligibility, retries and leave rules.
 
-## 實作與規則
+<a id="實作與規則"></a>
 
-[審核政策](review.go) 判定獨立審核資格、相同決定重送及衝突；[請假政策](leave.go) 正規化並驗證請假登記。政策不讀資料庫；需要一致的事實由交易 port 提供。
+## Implementation and rules
 
-## 驗證與入口
+[Review policy](review.go) determines independent reviewer eligibility, repeated decisions and conflicts; [leave policy](leave.go) normalizes/validates registrations. Policies do not query databases; transaction ports supply consistent facts.
 
-繼承[模組工作指引](../../AGENTS.md)，依[模組驗證入口](../../README.md#規格與驗證)執行相關檢查。[上層導覽](../README.md)。
+<a id="驗證與入口"></a>
+
+## Verification and entry points
+
+Inherit [module guidance](../../AGENTS.md) and run applicable checks through [module verification](../../README.md#規格與驗證). [Parent directory guide](../README.md).

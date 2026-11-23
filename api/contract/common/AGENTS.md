@@ -1,17 +1,29 @@
-# 共用傳輸契約
+<a id="共用傳輸契約"></a>
 
-## 閱讀與修改入口
+# Shared transport contracts
 
-先查閱[transport.yaml](transport.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-適用於本目錄及其子目錄；繼承 [上層指引](../AGENTS.md)，並遵循其引用的根目錄規則。此處只補充本範圍責任；使用者與主機指令優先，不增加外部寫入授權。
+Start with [transport.yaml](transport.yaml), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
 
-## 職責與邊界
+<a id="相關規格"></a>
 
-- 僅管理真正共用的錯誤格式、認證方式及必要傳輸定義；不收納 Repository、Issue、Discussion、Project 或 Attendance 的業務模型。
-- 共用認證 scheme 只描述憑證形式，不代表取得群組、寫入或審核權限；各操作仍須定義自己的授權與失敗語義。
-- 修改共用定義須核對所有引用者及相容性，不依賴任何業務能力或組合入口。
+## Related specifications
 
-[現行實作圖：基礎入口](../../../docs/contracts/http.md#基礎入口)
+Applies to this directory and descendants. Inherit [parent guidance](../AGENTS.md) and its referenced root rules. This file adds only local responsibilities. User and host instructions take precedence; it grants no additional authorization for external writes.
+
+<a id="職責與邊界"></a>
+
+## Responsibilities and boundaries
+
+- Own only genuinely shared error formats, authentication and necessary transport definitions, excluding Repository, Issue, Discussion, Project and Attendance business models.
+- Shared authentication schemes describe credentials without granting group, write or review permissions. Each operation still defines authorization and failure semantics.
+- Check every consumer and compatibility when changing shared definitions. Do not depend on business capabilities or composition entry points.
+
+[Current implementation diagram: basic entry points](../../../docs/contracts/http.md#基礎入口)
+
+## Applicable engineering conventions
+
+- **Contract semantics:** Keep authentication schemes and the shared error envelope transport-only; use stable error codes and optional recovery fields without duplicating domain schemas.

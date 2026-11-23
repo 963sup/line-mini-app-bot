@@ -1,9 +1,19 @@
-# frontend/miniapp/src/business/attendance/corrections 工作指引
+<a id="frontendminiappsrcbusinessattendancecorrections-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend/miniapp/src/business/attendance/corrections agent guidance
 
-先查閱[Requests.tsx](Requests.tsx)、[View.tsx](View.tsx)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：更正提交重試](../../../../../../docs/domains/attendance/queries.md#更正提交重試)
+Start with [Requests.tsx](Requests.tsx), [View.tsx](View.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: correction submission retries](../../../../../../docs/domains/attendance/queries.md#更正提交重試)
+
+## Applicable engineering conventions
+
+- **Data, scope and state:** Preserve the exact correction body and retry key after an unknown submission; history pagination must not grant review authority.

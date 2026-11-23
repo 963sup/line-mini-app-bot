@@ -1,15 +1,21 @@
-# frontend/miniapp/src/identity 目錄導覽
+<a id="frontendminiappsrcidentity-目錄導覽"></a>
 
-管理 MINI App 登入狀態及前端與後端工作階段的接續。
+# frontend/miniapp/src/identity directory guide
 
-依層級維護本目錄的共用能力；功能畫面由 business 組織，頁面入口由 pages 接入。
+Manages MINI App login state and frontend/backend session continuity.
 
-## 閱讀與修改入口
+Maintain shared capabilities by layer; business owns feature UI and pages owns entry points.
 
-從 [Session.tsx](Session.tsx) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：續期交易與前端觸發](../../../../docs/contracts/identity.md#續期交易與前端觸發)
+Start with [Session.tsx](Session.tsx); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: renewal transaction and frontend triggers](../../../../docs/contracts/identity.md#續期交易與前端觸發)
+
+[Parent directory guide](../README.md)

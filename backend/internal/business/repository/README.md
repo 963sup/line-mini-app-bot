@@ -1,25 +1,35 @@
-# backend/internal/business/repository 目錄導覽
+<a id="backendinternalbusinessrepository-目錄導覽"></a>
 
-[領域文件](../../../../docs/domains/repository/README.md) · [全域索引](../../../../docs/domains/README.md#domain-matrix)
+# backend/internal/business/repository directory guide
 
-管理 Repository 的歸屬、查詢與編號，並承載 Space、標籤、里程碑、Wiki 與統計等子功能。
+[domain documentation](../../../../docs/domains/repository/README.md) · [global index](../../../../docs/domains/README.md#domain-matrix)
 
-此目錄維護本領域或子能力的行為。HTTP、LINE 與 Firestore 依需要提供適配，授權和狀態規則歸資源所屬領域。
+Manages Repository ownership, queries and numbering, with Space, labels, milestones, Wiki and statistics subfeatures.
 
-## 閱讀與修改入口
+This directory owns domain or sub-capability behavior. Add HTTP, LINE and Firestore adapters as needed; resource-owning domains control authorization and state.
 
-從 [numbering.go](domain/entity/numbering.go)、[repository.go](domain/entity/repository.go)、[firestore](adapter/firestore)、[http](adapter/http)、[labels](labels)、[line](adapter/line)、[milestones](milestones) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 閱讀入口
+## Reading and editing entry points
 
-[現行實作圖：空間載入時序](../../../../docs/domains/repository/README.md#空間載入時序)
+Start with [numbering.go](domain/entity/numbering.go), [repository.go](domain/entity/repository.go), [firestore](adapter/firestore), [http](adapter/http), [labels](labels), [line](adapter/line), [milestones](milestones); before editing, read [local agent guidance](AGENTS.md).
 
-## 領域追蹤入口
+<a id="閱讀入口"></a>
 
-[領域規格](../../../../docs/domains/repository/README.md) · [判定流程](../../../../docs/domains/repository/README.md#decision-flow) · [判定實作](domain/entity/repository.go)
+## Reading entry points
 
-[上層導覽](../README.md)
+[Current implementation diagram: space loading sequence](../../../../docs/domains/repository/README.md#空間載入時序)
 
-## 下層文件入口
+<a id="領域追蹤入口"></a>
+
+## Domain traceability entry points
+
+[domain specification](../../../../docs/domains/repository/README.md) · [decision flow](../../../../docs/domains/repository/README.md#decision-flow) · [decision implementation](domain/entity/repository.go)
+
+[Parent directory guide](../README.md)
+
+<a id="下層文件入口"></a>
+
+## Child documentation entry points
 
 - [statistics](statistics/README.md)

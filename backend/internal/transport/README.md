@@ -1,15 +1,21 @@
-# backend/internal/transport 目錄導覽
+<a id="backendinternaltransport-目錄導覽"></a>
 
-提供 HTTP 與 LINE 的共用傳輸工具，負責請求及回覆的協定處理。
+# backend/internal/transport directory guide
 
-[HTTP](http) 處理共用請求格式、靜態頁面與定位診斷。[LINE](line) 處理 Webhook 協定與事件派送，處理器由 bootstrap 依序註冊。
+Provides shared HTTP/LINE transport utilities for request/response protocols.
 
-## 閱讀與修改入口
+[HTTP](http) handles shared formats, static pages and location diagnostics. [LINE](line) handles webhook protocols/dispatch; bootstrap registers handlers in order.
 
-從 [http](http)、[line](line) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 閱讀入口
+## Reading and editing entry points
 
-[現行實作圖：格式與資料相容](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [http](http), [line](line); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="閱讀入口"></a>
+
+## Reading entry points
+
+[Current implementation diagram: formats and data compatibility](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+[Parent directory guide](../README.md)

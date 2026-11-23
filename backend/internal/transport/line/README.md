@@ -1,23 +1,33 @@
-# backend/internal/transport/line 目錄導覽
+<a id="backendinternaltransportline-目錄導覽"></a>
 
-## 用途與範圍
+# backend/internal/transport/line directory guide
 
-提供 LINE Webhook 簽章驗證與事件處理的傳輸工具，以及回覆協定。
+<a id="用途與範圍"></a>
 
-## 架構與責任邊界
+## Purpose and scope
 
-依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
+Provides LINE webhook signature validation, event transport and reply protocols.
 
-[navigation](navigation) 處理選單指令、postback 與回覆呈現。業務專屬指令由各領域的 LINE 適配器處理。
+<a id="架構與責任邊界"></a>
 
-## 閱讀與修改入口
+## Architecture and responsibility boundaries
 
-從 [group.go](group.go)、[reply.go](reply.go)、[group_test.go](group_test.go)、[webhook.go](webhook.go) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+Directories expose backend entry points or shared capabilities by purpose. Bootstrap wires services; domains own resource authorization and use cases.
 
-## 閱讀入口
+[navigation](navigation) handles menu commands, postbacks and replies. Domain LINE adapters handle business commands.
 
-[現行實作圖：基礎入口](../../../../docs/contracts/http.md#基礎入口)
+<a id="閱讀與修改入口"></a>
 
-[上層導覽](../README.md)
+## Reading and editing entry points
 
-群組成員 API 查詢由 [platform/line](../../platform/line/README.md) 實作，透過 bootstrap 注入各領域的 Membership port。
+Start with [group.go](group.go), [reply.go](reply.go), [group_test.go](group_test.go), [webhook.go](webhook.go); before editing, read [local agent guidance](AGENTS.md).
+
+<a id="閱讀入口"></a>
+
+## Reading entry points
+
+[Current implementation diagram: basic entry points](../../../../docs/contracts/http.md#基礎入口)
+
+[Parent directory guide](../README.md)
+
+[platform/line](../../platform/line/README.md) implements group membership queries, injected through bootstrap into domain Membership ports.

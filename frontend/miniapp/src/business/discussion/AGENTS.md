@@ -1,9 +1,19 @@
-# frontend/miniapp/src/business/discussion 工作指引
+<a id="frontendminiappsrcbusinessdiscussion-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend/miniapp/src/business/discussion agent guidance
 
-先查閱[Comments.tsx](Comments.tsx)、[View.tsx](View.tsx)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：最小實作邊界與驗證](../../../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+Start with [Comments.tsx](Comments.tsx), [View.tsx](View.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: minimal boundaries and verification](../../../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+
+## Applicable engineering conventions
+
+- **Data, scope and state:** Keep reply/edit drafts and pagination independent, and use separate server capabilities for editing and classification.

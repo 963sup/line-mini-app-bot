@@ -1,19 +1,21 @@
 # agent
 
-[領域文件](../../../../docs/domains/agent/README.md) · [全域索引](../../../../docs/domains/README.md#domain-matrix)
+[domain documentation](../../../../docs/domains/agent/README.md) · [global index](../../../../docs/domains/README.md#domain-matrix)
 
-依任務目標與目前結果，從允許的操作中選擇下一步。
+Choose the next allowed operation based on task goals and current results.
 
-遇到缺少來源頁碼的候選項目時，可選擇重讀授權範圍內的頁面，或回報需要人工確認。
+For candidates missing source page numbers, reread authorized pages or report the need for human confirmation.
 
-[補查與終止流程圖](../../../../docs/proposals/agent.md#design-diagram) · [維護指引](AGENTS.md)
+[Investigation and termination diagram](../../../../docs/proposals/agent.md#design-diagram) · [Maintenance guidance](AGENTS.md)
 
-[上層導覽](../README.md)
+[Parent directory guide](../README.md)
 
-目前進度：已實作唯讀證據補查。見[Go 骨架](application/port/investigate.go)。
+Status: read-only evidence investigation is implemented. See the [Go scaffold](application/port/investigate.go).
 
-## 模型接線
+<a id="模型接線"></a>
 
-呼叫端以 [NewInvestigator](../../bootstrap/agent.go) 注入會核驗身分、資源與來源版本的 PageReader，再呼叫 Investigate。設定 AGENT_PROVIDER 為 openai 或 gemini、AGENT_MODEL 為該供應商模型，並使用對應 API key。每一步最多讀取一個允許的頁面；只有原文中存在的引文可作為候選證據。業務欄位與單位仍由 呼叫端 驗證。
+## Model wiring
 
-[用例](application/investigator.go)透過消費端定義的 `QuoteModel` 取得候選引文或無結果；授權、步數上限與原文比對仍由用例負責。[模型 Adapter](adapter/genai/evidence.go)重用共用文字生成器，負責提示詞與 JSON 字串／null 的轉換，不把供應商格式帶進核心契約。
+Inject a PageReader verifying identity, resources and source versions through [NewInvestigator](../../bootstrap/agent.go), then call Investigate. Set AGENT_PROVIDER to openai or gemini, AGENT_MODEL to that provider's model and the corresponding API key. Read at most one allowed page per step; only quotations present in the source qualify as candidate evidence. Callers still validate business fields and units.
+
+The [use case](application/investigator.go) obtains candidate quotations or no result through consumer-defined `QuoteModel`. It still controls authorization, step limits and source matching. The [model adapter](adapter/genai/evidence.go) reuses shared text generation for prompts and JSON string/null conversion, keeping provider formats outside core contracts.

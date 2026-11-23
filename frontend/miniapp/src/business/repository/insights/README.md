@@ -1,19 +1,25 @@
-# 儲存庫洞察（Insights）
+<a id="儲存庫洞察insights"></a>
 
-呈現所選 Repository 的統計資料。
+# Repository Insights
 
-在本功能就近維護畫面與互動，路由由 pages 組合，權限與結果以後端 API 為準。
+Presents selected Repository statistics.
 
-## 閱讀與修改入口
+Colocate feature UI/interactions; pages compose routes and backend APIs determine permissions/results.
 
-先查閱[View.tsx](View.tsx)、[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[基礎規格](../../../../../../docs/domains/repository/insights.md) · [現行實作圖：空間載入時序](../../../../../../docs/domains/repository/README.md#空間載入時序)
+Start with [View.tsx](View.tsx), [local agent guidance](AGENTS.md).
 
-操作、權限、資料與驗收依 [基礎規格](../../../../../../docs/domains/repository/insights.md)。不擴充未授權功能；核心、HTTP 與 Firestore 各自保留責任，前端組合既有元件。
+<a id="相關規格"></a>
 
-[現行實作圖：空間載入時序](../../../../../../docs/domains/repository/README.md#空間載入時序)
+## Related specifications
 
-[上層導覽](../README.md)
+[basic specification](../../../../../../docs/domains/repository/insights.md) · [Current implementation diagram: space loading sequence](../../../../../../docs/domains/repository/README.md#空間載入時序)
+
+See the [basic specification](../../../../../../docs/domains/repository/insights.md) for operations, permissions, data and acceptance. Do not expand unauthorized scope. Keep core/HTTP/Firestore responsibilities separate; compose existing frontend components.
+
+[Current implementation diagram: space loading sequence](../../../../../../docs/domains/repository/README.md#空間載入時序)
+
+[Parent directory guide](../README.md)

@@ -1,15 +1,27 @@
-# backend/internal/business/issue 工作指引
+<a id="backendinternalbusinessissue-工作指引"></a>
 
-## 閱讀與修改入口
+# backend/internal/business/issue agent guidance
 
-先查閱[issue.go](domain/entity/issue.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：格式與資料相容](../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [issue.go](domain/entity/issue.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
 
-## 更新議題的維護與驗收
+<a id="相關規格"></a>
 
-建立者可關閉議題後重新開啟；只有分類權限的成員不能藉由分類操作修改內容。
+## Related specifications
 
-修改此規則時，核對[判定流程](../../../../docs/domains/repository/issue/README.md#decision-flow)與[代表測試](domain/entity/issue_test.go)。
+[Current implementation diagram: formats and data compatibility](../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+<a id="更新議題的維護與驗收"></a>
+
+## Maintaining and verifying Issue updates
+
+Creators may reopen closed Issues. Members with categorization-only permissions cannot change content through categorization.
+
+When changing this rule, check the [decision flow](../../../../docs/domains/repository/issue/README.md#decision-flow) and [representative tests](domain/entity/issue_test.go).
+
+## Applicable engineering conventions
+
+- **Domain, state and authorization:** Apply Issue-owned transition and edit policies without importing attendance approval states or granting content edits through classification.

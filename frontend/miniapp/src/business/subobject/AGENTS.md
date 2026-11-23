@@ -1,9 +1,19 @@
-# frontend/miniapp/src/business/subobject 工作指引
+<a id="frontendminiappsrcbusinesssubobject-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend/miniapp/src/business/subobject agent guidance
 
-先查閱[Object 工作指引](../object/AGENTS.md)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：物件與子物件歸屬](../../../../../docs/contracts/object-subobject-ownership.md#物件與子物件歸屬)
+Start with [Object agent guidance](../object/AGENTS.md), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: object and subobject ownership](../../../../../docs/contracts/object-subobject-ownership.md#物件與子物件歸屬)
+
+## Applicable engineering conventions
+
+- **Data, scope and state:** Reuse Object-owned types and editing flows for descendants; keep parent scope, branch focus and navigation locks distinct.

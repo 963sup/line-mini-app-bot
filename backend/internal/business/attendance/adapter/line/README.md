@@ -1,13 +1,17 @@
 # Attendance line
 
-LINE 事件與出勤訊息呈現。
+LINE events and attendance message presentation.
 
-## 實作與規則
+<a id="實作與規則"></a>
 
-[打卡入口](attendance.go) 與 [月報呈現](attendance_history.go) 隔離 LINE 協定；呈現用的群組名稱整理在 [共用呈現](../presentation/group.go)。
+## Implementation and rules
 
-群組核驗由 bootstrap 注入 [platform/line](../../../../platform/line/README.md) 至既有 application Membership port；HTTP adapter 保留允許、拒絕及暫時無法核驗的回應判定。
+[Punch entry points](attendance.go) and [monthly presentation](attendance_history.go) isolate LINE protocols. Group-name formatting lives in [shared presentation](../presentation/group.go).
 
-## 驗證與入口
+Bootstrap injects [platform/line](../../../../platform/line/README.md) into the existing application Membership port. HTTP adapters distinguish allowed, denied and temporarily unverifiable membership.
 
-繼承[模組工作指引](../../AGENTS.md)，依[模組驗證入口](../../README.md#規格與驗證)執行相關檢查。[上層導覽](../README.md)。
+<a id="驗證與入口"></a>
+
+## Verification and entry points
+
+Inherit [module guidance](../../AGENTS.md) and run applicable checks through [module verification](../../README.md#規格與驗證). [Parent directory guide](../README.md).

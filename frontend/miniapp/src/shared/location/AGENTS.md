@@ -1,13 +1,25 @@
-# frontend/miniapp/src/shared/location 工作指引
+<a id="frontendminiappsrcsharedlocation-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend/miniapp/src/shared/location agent guidance
 
-先查閱[position.ts](position.ts)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：現有出勤整合檔案與責任](../../../../../docs/integrations/geolocation/browser-api.md#現有出勤整合檔案與責任) · [瀏覽器定位規格](../../../../../docs/integrations/geolocation/browser-api.md)
+Start with [position.ts](position.ts), [directory guide](README.md), [parent guidance](../AGENTS.md).
 
-[現行實作圖：現有出勤整合檔案與責任](../../../../../docs/integrations/geolocation/browser-api.md#現有出勤整合檔案與責任)
+<a id="相關規格"></a>
 
-定位由瀏覽器 JavaScript 取得，Go 驗證不受信任的座標與操作權限。新增位置歷史或在場驗證須有產品契約。修改前先讀[瀏覽器定位規格](../../../../../docs/integrations/geolocation/browser-api.md)。
+## Related specifications
+
+[Current implementation diagram: attendance integration responsibilities](../../../../../docs/integrations/geolocation/browser-api.md#現有出勤整合檔案與責任) · [Geolocation specification](../../../../../docs/integrations/geolocation/browser-api.md)
+
+[Current implementation diagram: attendance integration files and responsibilities](../../../../../docs/integrations/geolocation/browser-api.md#現有出勤整合檔案與責任)
+
+Browser JavaScript obtains location; Go validates untrusted coordinates/permissions. Location history/presence validation requires product contracts. Read the [geolocation specification](../../../../../docs/integrations/geolocation/browser-api.md) first.
+
+## Applicable engineering conventions
+
+- **Types and time:** Preserve contract coordinate units, precision and sample timestamps; client checks provide feedback rather than trusted location authorization.
+- **Lifecycle and reliability:** Stop watchers/timers on completion, cancellation or unmount and ignore obsolete callbacks.
+- **Privacy:** Keep samples purpose-limited and do not add retention, background tracking or sensitive diagnostic logging implicitly.

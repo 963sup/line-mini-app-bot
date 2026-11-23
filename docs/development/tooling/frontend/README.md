@@ -1,9 +1,11 @@
-# 前端工具
+<a id="前端工具"></a>
 
-- [shadcn](shadcn.md)：查詢元件、registry 與專案整合方式。
-- [shadcn 本機參考庫](shadcn-reference/README.md)：搜尋元件文件與範例。
-- [Next DevTools](nextjs-devtools.md)：檢查執行中的 Next.js 頁面。
+# Frontend tools
 
-- [Rich Menu 版面](rich-menu-layout.md)：LINE 選單格線與圖片按鈕對應。
+- [shadcn](shadcn.md): components, registries and integration.
+- [Local shadcn references](shadcn-reference/README.md): component documentation/examples.
+- [Next DevTools](nextjs-devtools.md): inspect running Next.js pages.
 
-[工具總覽](../README.md)
+- [Rich Menu layout](rich-menu-layout.md): LINE menu grids and image/button mapping.
+
+[Tool overview](../README.md)

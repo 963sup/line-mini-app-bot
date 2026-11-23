@@ -1,5 +1,13 @@
-# 路由、MCP 與容器驗收工作指引
+<a id="路由mcp-與容器驗收工作指引"></a>
 
-本目錄沿用[上層指引](../AGENTS.md)。MCP 回歸使用隔離測試伺服器，容器驗收使用本機映像。
+# Route, MCP and container acceptance guidance
 
-修改後依[腳本總覽](../README.md)執行對應檢查，入口見[本層說明](README.md)。
+Inherit [parent guidance](../AGENTS.md); use isolated MCP test servers and local container images.
+
+After changes, run checks from the [script overview](../README.md); see the [local README](README.md) for entry points.
+
+## Applicable engineering conventions
+
+- **Test isolation:** Use controlled local MCP/container fixtures with explicit timeouts and process cleanup; do not depend on production credentials.
+- **Contract evidence:** Assert observable route, protocol and runtime behavior for success, denial and failure without mirroring implementation details.
+- **Delivery:** Report failed, passed and skipped cases separately and bind acceptance results to the tested revision.

@@ -1,15 +1,21 @@
-# backend/internal/identity/http 目錄導覽
+<a id="backendinternalidentityhttp-目錄導覽"></a>
 
-將身分驗證與工作階段接到 HTTP 層，處理登入請求及從 HTTP 請求取得身分。
+# backend/internal/identity/http directory guide
 
-依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
+Connects authentication/sessions to HTTP, handling login and request identity extraction.
 
-## 閱讀與修改入口
+Directories expose backend entry points or shared capabilities by purpose. Bootstrap wires services; domains own resource authorization and use cases.
 
-從 [identity.go](identity.go)、[session.go](session.go) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 閱讀入口
+## Reading and editing entry points
 
-[現行實作圖：續期交易與前端觸發](../../../../docs/contracts/identity.md#續期交易與前端觸發)
+Start with [identity.go](identity.go), [session.go](session.go); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="閱讀入口"></a>
+
+## Reading entry points
+
+[Current implementation diagram: renewal transaction and frontend triggers](../../../../docs/contracts/identity.md#續期交易與前端觸發)
+
+[Parent directory guide](../README.md)

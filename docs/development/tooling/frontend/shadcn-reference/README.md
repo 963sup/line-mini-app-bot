@@ -1,24 +1,32 @@
-# shadcn 本機參考庫
+<a id="shadcn-本機參考庫"></a>
 
-保存 shadcn 官方文件的本機參考入口。
+# Local shadcn references
 
-快照與索引依既有流程產生，專案的元件規則由前端 UI 指引維護。
+Local entry points for official shadcn documentation.
 
-## 閱讀與修改入口
+Existing workflows generate snapshots/indexes; frontend UI guidance owns project component rules.
 
-先查閱[snapshot/INDEX.md](snapshot/INDEX.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[生成索引](snapshot/INDEX.md) · [MIT 授權](LICENSE.md)
+Start with [snapshot/INDEX.md](snapshot/INDEX.md).
 
-此處保存官方 [Components](https://ui.shadcn.com/docs/components) 與 [AI Elements](https://ui.shadcn.com/docs/ai-elements) 入口列出的全部項目文件，供 Codex 搜尋選用。完整清單、用途、Base UI／Radix 連結及棄用提醒只由 [生成索引](snapshot/INDEX.md) 維護；不再手工複製元件目錄。
+<a id="相關規格"></a>
 
-## 搜尋與選用
+## Related specifications
 
-UI 任務先搜尋完整索引，再讀相關 Radix 文件及內嵌範例，最後以固定 CLI／registry 核對實際安裝內容。元件保護、主動選用與驗收遵循 [UI 指引](../../../../../frontend/miniapp/src/shared/ui/AGENTS.md#需求驅動的選用與驗收)。
+[Generated index](snapshot/INDEX.md) · [MIT license](LICENSE.md)
 
-從儲存庫根目錄執行：
+Contains every item linked by official [Components](https://ui.shadcn.com/docs/components)/[AI Elements](https://ui.shadcn.com/docs/ai-elements) entry pages for Codex discovery. The [generated index](snapshot/INDEX.md) alone maintains the full list, purposes, Base UI/Radix links and deprecations; do not duplicate catalogs manually.
+
+<a id="搜尋與選用"></a>
+
+## Search and selection
+
+For UI tasks, search the complete index, read relevant Radix docs/examples, then verify installed content with pinned CLI/registry. Follow [UI guidance](../../../../../frontend/miniapp/src/shared/ui/AGENTS.md#需求驅動的選用與驗收) for protection, proactive selection and acceptance.
+
+Run from the repository root:
 
 ```bash
 rg -n -i 'select|search|dialog|chat|reasoning' docs/development/tooling/frontend/shadcn-reference/snapshot/INDEX.md
@@ -26,38 +34,44 @@ rg -n '## |```tsx|Installation' docs/development/tooling/frontend/shadcn-referen
 bash scripts/tooling/tool-exec.sh shadcn info --json --cwd frontend/miniapp
 ```
 
-不要將整份參考庫注入每次任務。它不代表已安裝元件；文件中的別名、路由、`@latest`、模型服務及安裝命令都只是上游範例，不是專案規則或變更授權。依本專案的 base、aliases、Pages Router 及固定 CLI 調整用法。
+Do not inject the whole reference library into every task. It is not an installed-component list. Upstream aliases, routers, `@latest`, model services and install commands are examples, not project policy/authorization. Adapt to this project's base, aliases, Pages Router and pinned CLI.
 
-## 更新與完整性
+<a id="更新與完整性"></a>
 
-更新由 [下載腳本](../../../../../scripts/tooling/shadcn-reference.py) 負責，不需要額外 Python 套件：
+## Updates and integrity
+
+The [download script](../../../../../scripts/tooling/shadcn-reference.py) updates references without extra Python packages:
 
 ```bash
-# 下載當前官方目錄及每項的 Base UI／Radix Markdown；全部驗證後才替換舊快照。
+# Download the current official catalog and Base UI/Radix Markdown; replace snapshots only after validation.
 bash scripts/tooling/tool-exec.sh python3 scripts/tooling/shadcn-reference.py
 
-# 離線核對目錄覆蓋、檔案雜湊、來源、base 標記、索引與七日新鮮度。
+# Offline verification: coverage, hashes, sources, base markers, index and seven-day freshness.
 bash scripts/tooling/tool-exec.sh python3 scripts/tooling/shadcn-reference.py --check
 ```
 
-開始 UI 任務時先執行離線檢查；缺少、損壞或超過七日就主動更新，再搜尋索引。同次任務且快照未變時重用結果。更新失敗會保留舊快照，須明列其日期與受阻原因；舊資料只供探索，受影響的實作決策仍須取得當前官方文件／registry 證據。
+Run offline checks before UI work; proactively update missing, damaged or over-seven-day snapshots before searching. Reuse results if unchanged within a task. Failed updates preserve old snapshots; report dates/blockers. Old data supports exploration only; affected decisions require current official docs/registry evidence.
 
-[manifest.json](snapshot/manifest.json) 記錄每份文件的請求／最終網址、抓取時間、HTTP ETag／Last-Modified（若有）、SHA-256、官方描述、base 及棄用標記。索引來自當次官方入口，不固定寫死數量；更新途中若入口清單改變就停止，避免混入不完整目錄。HTTP 快照不是不可變 Git revision，也不保證所有頁面屬於同一部署版本；不宣稱與固定 CLI 同版。
+[manifest.json](snapshot/manifest.json) records requested/final URLs, fetch time, ETag/Last-Modified when present, SHA-256, descriptions, base and deprecation. Indexes come from current official entries without fixed counts; abort if catalogs change mid-update. HTTP snapshots are not immutable revisions or guaranteed to share a deployment version; do not claim matching pinned CLI versions.
 
-## 內容邊界與授權
+<a id="內容邊界與授權"></a>
 
-`snapshot/pages/` 保留上游 Markdown 原文及其已內嵌的程式範例，不手工修改。未遞迴下載外部 API、圖片、影片、示範專案、所有依賴或 `<ComponentSource>` 等未展開來源；需要實際元件原始碼時仍用固定 CLI 預覽。這是兩個官方入口列出的完整文件範圍，不是所有第三方 registry 或整個 shadcn 網站的鏡像。
+## Content boundaries and licensing
 
-同時保存兩種 base 供辨識差異，本專案仍優先使用 Radix。若官方網址和 frontmatter 的 base 不同，或文件已棄用，索引會標示，不把它冒充可直接安裝的 Radix 實作；例如 Radix Toast 文件要求改用 Sonner。
+`snapshot/pages/` preserves upstream Markdown/examples without manual edits. It does not recursively download external APIs, images, videos, demo projects, all dependencies or unexpanded sources such as `<ComponentSource>`. Use pinned CLI previews for component source. Coverage is the complete documentation listed by two official entry pages, not a mirror of all registries or shadcn's entire website.
 
-上游來源為 shadcn/ui，保留其 [MIT 授權](LICENSE.md)，與當次讀取的 [官方授權檔](https://github.com/shadcn-ui/ui/blob/main/LICENSE.md) 逐位元組核對；文件原文來源見 manifest。生成快照不套用自有 Markdown 的標題／連結重寫規範，其相對網址仍依官方網站解析。一般 Graphify／Repomix 分析排除生成快照，使用 `rg` 或直接讀取相關文件；參考庫說明、下載腳本與專案規則仍納入分析。
+Both bases are retained to distinguish differences; this project prefers Radix. Index base mismatches or deprecations rather than presenting them as installable Radix implementations; Radix Toast, for example, recommends Sonner.
 
-## 本次查證
+The upstream is shadcn/ui. Preserve its [MIT license](LICENSE.md), byte-compared against the fetched [official license](https://github.com/shadcn-ui/ui/blob/main/LICENSE.md); source URLs live in the manifest. Generated snapshots retain upstream headings/links, resolving relative URLs against the official site. Graphify/Repomix normally exclude snapshots; use `rg` or read relevant pages directly. Reference guidance, scripts and project rules remain analysis inputs.
 
-2026-11-18（Asia/Taipei）：直接讀取官方 Markdown 入口及各項文件，覆蓋與雜湊由腳本檢查。Graphify 用於定位工具關係，其 AST 圖不涵蓋全部文件規則；Repomix 用於專案指引交叉核對。Context7 本次 resolve 成功，但 query 達月額度，未宣稱取得新結果；CLI 預覽流程沿用本聊天先前已取得的 Context7 證據，下載格式則以當次官方回應驗證。未安裝應用元件或執行 UI／LINE 驗收。
+<a id="本次查證"></a>
 
-實際通過：下載及離線完整性檢查、`check-config.py`、維護文件的本機連結／錨點、`git diff --check`；以暫存副本確認文件損壞與過期會被拒絕、下載失敗保留舊快照。Repomix 交叉核對八個相關檔案；Graphify 已執行 AST 更新，未執行 LLM 語意抽取。
+## Verification for this update
 
-[工具索引](../../README.md) · [shadcn 工具指南](../shadcn.md) · [文件總索引](../../../../README.md)
+2026-11-18 (Asia/Taipei): read official Markdown entries/pages directly; scripts checked coverage/hashes. Graphify located tool relationships but its AST omits documentation rules; Repomix cross-checked guidance. Context7 resolve succeeded but queries hit monthly limits; no new results claimed. CLI previews reused earlier chat evidence; current official responses verified download formats. No components installed or UI/LINE acceptance performed.
 
-[適用工作指引](../../AGENTS.md)
+Passed: download/offline integrity, `check-config.py`, maintained-document local links/anchors and `git diff --check`; temporary copies verified rejection of damaged/stale documents and preservation on download failure. Repomix cross-checked eight files. Graphify AST updated without LLM extraction.
+
+[Tool index](../../README.md) · [shadcn guide](../shadcn.md) · [Documentation index](../../../../README.md)
+
+[applicable guidance](../../AGENTS.md)

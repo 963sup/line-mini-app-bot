@@ -1,15 +1,21 @@
-# frontend/miniapp/src/business/attendance/punch 目錄導覽
+<a id="frontendminiappsrcbusinessattendancepunch-目錄導覽"></a>
 
-處理打卡畫面、定位互動與打卡結果。
+# frontend/miniapp/src/business/attendance/punch directory guide
 
-在本功能就近維護畫面與互動，路由由 pages 組合，權限與結果以後端 API 為準。
+Punch screens, location interaction/results.
 
-## 閱讀與修改入口
+Colocate feature UI/interactions; pages compose routes and backend APIs determine permissions/results.
 
-從 [View.tsx](View.tsx) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：定位前預檢、狀態與時序](../../../../../../docs/domains/attendance/README.md#定位前預檢狀態與時序)
+Start with [View.tsx](View.tsx); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: location preflight, state and sequence](../../../../../../docs/domains/attendance/README.md#定位前預檢狀態與時序)
+
+[Parent directory guide](../README.md)

@@ -1,11 +1,15 @@
 # Attendance messaging
 
-保留訊息佇列入口，目前無實作。
+Reserved queue entry point; unimplemented.
 
-## 實作與規則
+<a id="實作與規則"></a>
 
-保留未來訊息佇列適配器位置，目前沒有消費者、發布者或註冊接線。確定佇列需求後在此實作 port，並定義重送與副作用語意。
+## Implementation and rules
 
-## 驗證與入口
+Reserved for future queue adapters, with no consumers, publishers or registration. Implement ports here after queue needs are confirmed; define redelivery and side-effect semantics.
 
-繼承[模組工作指引](../../AGENTS.md)，依[模組驗證入口](../../README.md#規格與驗證)執行相關檢查。[上層導覽](../README.md)。
+<a id="驗證與入口"></a>
+
+## Verification and entry points
+
+Inherit [module guidance](../../AGENTS.md) and run applicable checks through [module verification](../../README.md#規格與驗證). [Parent directory guide](../README.md).

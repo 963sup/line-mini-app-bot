@@ -1,19 +1,32 @@
-# 天氣事件契約
+<a id="天氣事件契約"></a>
 
-## 閱讀與修改入口
+# Weather event contracts
 
-先查閱[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[天氣功能](../../../docs/domains/weather/weather.md) · [現行實作圖：基礎入口](../../../docs/contracts/http.md#基礎入口)
+Start with the [directory guide](README.md) and [parent guidance](../AGENTS.md).
 
-適用於本目錄及其子目錄；繼承 [上層指引](../AGENTS.md)，並遵循其引用的根目錄規則。此處只補充本範圍責任；使用者與主機指令優先，不增加外部寫入授權。
+<a id="相關規格"></a>
 
-## 職責與邊界
+## Related specifications
 
-- 先讀 [既有入口契約](README.md) 與 [天氣功能](../../../docs/domains/weather/weather.md)。目前描述 LINE 事件入口，沒有公開 HTTP API。
-- 不為目錄一致建立空 OpenAPI、瀏覽器 client 或 MINI App 天氣畫面；不複製 LINE／CWA 官方 schema。
-- 保留位置輸入的用途、預報有效期、支援範圍與失敗語義；不得擴大成定位歷史、出勤證明或持續追蹤。
+[Weather feature](../../../docs/domains/weather/weather.md) · [Current implementation diagram: basic entry points](../../../docs/contracts/http.md#基礎入口)
 
-[現行實作圖：基礎入口](../../../docs/contracts/http.md#基礎入口)
+Applies to this directory and descendants. Inherit [parent guidance](../AGENTS.md) and its referenced root rules. This file adds only local responsibilities. User and host instructions take precedence; it grants no additional authorization for external writes.
+
+<a id="職責與邊界"></a>
+
+## Responsibilities and boundaries
+
+- Read [existing entry contracts](README.md) and the [weather feature](../../../docs/domains/weather/weather.md). These describe LINE event entry points, with no public HTTP API.
+- Do not create empty OpenAPI contracts, browser clients or MINI App weather screens for directory consistency, or duplicate official LINE/CWA schemas.
+- Preserve location input purpose, forecast validity, coverage and failure semantics. Do not expand into location history, attendance proof or continuous tracking.
+
+[Current implementation diagram: basic entry points](../../../docs/contracts/http.md#基礎入口)
+
+## Applicable engineering conventions
+
+- **Contract semantics:** Describe the existing event input and forecast validity without introducing a public endpoint or expanding location-data retention.
+- **Event compatibility:** Follow existing provider/event schemas and receiver version support; do not add HTTP generation or a CloudEvents envelope merely for uniformity.

@@ -1,15 +1,21 @@
-# frontend/miniapp/src/pages 目錄導覽
+<a id="frontendminiappsrcpages-目錄導覽"></a>
 
-保存 Next.js Pages Router 的頁面入口及全站初始化，從各功能模組組合畫面。
+# frontend/miniapp/src/pages directory guide
 
-解析路由並組合功能畫面；業務狀態與請求邏輯由對應功能模組維護。
+Next.js Pages Router entries/global initialization, composing feature modules.
 
-## 閱讀與修改入口
+Parses routes/composes screens; feature modules own state/requests.
 
-從 [_app.tsx](_app.tsx)、[_document.tsx](_document.tsx)、[index.tsx](index.tsx)、[location.tsx](location.tsx)、[miniapp](miniapp) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：頁面與身分生命週期](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+Start with [_app.tsx](_app.tsx), [_document.tsx](_document.tsx), [index.tsx](index.tsx), [location.tsx](location.tsx), [miniapp](miniapp); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: page and identity lifecycle](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+[Parent directory guide](../README.md)

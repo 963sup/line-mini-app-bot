@@ -1,25 +1,39 @@
-# 領域規則及驗收工作指引
+<a id="領域規則及驗收工作指引"></a>
 
-修改本目錄時沿用[上層指引](../AGENTS.md)，按任務查[本層索引](README.md)。
+# Domain rules and acceptance guidance
 
-## 職責與邊界
+Inherit [parent guidance](../AGENTS.md); select topics through the [local index](README.md).
 
-出勤、工時計算、天氣與摘要等跨模組功能流程及業務規則。
-同一功能的前端、API、後端規則集中描述；實作位置以連結指向模組，不複製多份規格。區分已實作、待驗收與未來規劃。
+<a id="職責與邊界"></a>
 
-## 維護與驗證
+## Responsibilities and boundaries
 
-更新索引與驗證連結依[文件維護指引](../AGENTS.md#驗證)。
+Cross-module flows/rules for attendance, worktime, weather, summaries and other features.
+Describe frontend/API/backend rules together; link implementation modules rather than duplicating specifications. Distinguish implemented, pending acceptance and future work.
 
-新增或修改功能文件時，使用 [操作契約範本](../contracts/business-operations.md#功能操作契約範本)，區分既有證據、目標行為與待確認規則，不擅自改變產品範圍。
+<a id="維護與驗證"></a>
 
-在對應功能文件回答六個問題：誰操作、操作什麼、做什麼、有沒有權限、符合哪些業務規則、成功後改變或回傳什麼；補充 Context、Authority、Decision 與依風險需要的 Event／Audit。
-區分系統允許／拒絕與業務核准／駁回；Merge 僅於採納提案時使用。
+## Maintenance and verification
 
-業務模型與契約名稱依[命名規範](../standards/naming.md#業務實體集合與-api-命名)。
+Update indexes/links per [documentation maintenance](../AGENTS.md#驗證).
 
-## 文件歸屬
+Use the [operation contract template](../contracts/business-operations.md#功能操作契約範本) when editing feature documents. Separate existing evidence, target behavior and unresolved rules; do not independently change product scope.
 
-每個領域以 README.md 導覽責任、核心流程、契約及驗收。單一主規格使用 design.md；已有多個明確主題時保留具體名稱。跨領域保證由[跨邊界契約](../contracts/README.md)統一維護，相關領域引用同一來源。待評估設計放在 docs/proposals。搬移時一併校正章節錨點、圖檔、Mermaid click 與 API 能力清單的路徑。
+Answer six questions: who acts, on what, doing what, with which permissions, under which rules, and with what changes/results? Add Context, Authority, Decision and risk-appropriate Event/Audit details.
+Separate system allow/deny from business approve/reject. Use Merge only for adopting proposals.
 
-獨立領域或容器入口固定為本目錄下的「領域名/README.md」。Repository 容器內的 Issue、Discussion、Object（含子物件與範本）文件放在 `repository/<能力>/`，由 Repository README 統一導覽；Project 與 Journal 保留獨立入口。能力子目錄沿用本指引，文件歸組不改變程式模組或業務權責。首頁先列狀態、設計、核心流程、驗收依據、程式目錄與維護指引；提案沿用同一入口，正文連回 proposals 的單一來源。新增或調整狀態時同步更新[全域矩陣](README.md#domain-matrix)。
+Follow [naming standards](../standards/naming.md#業務實體集合與-api-命名) for models/contracts.
+
+<a id="文件歸屬"></a>
+
+## Documentation ownership
+
+Domain READMEs route responsibilities, flows, contracts and acceptance. Use design.md for a single main specification; retain specific filenames for distinct topics. [Cross-boundary contracts](../contracts/README.md) own shared guarantees. Put candidate designs in docs/proposals. Update anchors, diagrams, Mermaid click links and API capability paths during moves.
+
+Domain/container entry points use domain-name/README.md here. Repository Issue/Discussion/Object documents (including subobjects/templates) live under `repository/<capability>/`, indexed by Repository README; Project/Journal remain independent. Grouping changes neither code modules nor business ownership. Start pages with status, design, flow, acceptance, code and guidance. Proposals link their single source; update the [global matrix](README.md#domain-matrix) when status changes.
+
+## Applicable engineering conventions
+
+- **Ubiquitous language:** Keep entity, resource, actor and operation terms consistent with the owning bounded context and its API contract.
+- **Business operations:** State authorization, legal transitions, transaction/version conditions, retry identity and lifecycle effects for the changed operation.
+- **Acceptance and evolution:** Link representative unit/integration/end-to-end evidence and describe persisted-data or compatibility migrations separately from target behavior.

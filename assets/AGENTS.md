@@ -1,23 +1,39 @@
-# assets 工作指引
+<a id="assets-工作指引"></a>
 
-## 閱讀與修改入口
+# assets agent guidance
 
-先查閱[line/richmenu](line/richmenu)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[文件索引](../docs/README.md)
+Start with [line/richmenu](line/richmenu), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
 
-適用於本目錄及其子目錄；先遵循 [根目錄 AGENTS.md](../AGENTS.md)，再套用較近的子目錄補充。使用者及主機指令優先；本檔不增加外部寫入授權。
+<a id="相關規格"></a>
 
-## 職責與邊界
+## Related specifications
 
-line/richmenu/ 保存兩張選單 JPEG 與既有操作指南。圖片由容器打包，對應 backend/cmd/richmenu CLI。
+[Documentation index](../docs/README.md)
 
-修改圖片時核對既有尺寸、點擊區域與用途；素材變更不等於 LINE 選單已更新。遠端發布須有明確授權。
+Applies to this directory and its descendants. Follow the [root AGENTS.md](../AGENTS.md), then nearer directory guidance. User and host instructions take precedence; this file grants no additional authorization for external writes.
 
-## 驗證
+<a id="職責與邊界"></a>
 
-閱讀 line/richmenu/README.md 並核對圖片尺寸與 Dockerfile 素材路徑；不以 Graphify 未收錄圖片推論素材不存在。
+## Responsibilities and boundaries
 
-命令除另有標示外均在儲存庫根目錄執行。閱讀 [本目錄 README](README.md) 與 [文件索引](../docs/README.md)；回報實際執行結果與限制。
+line/richmenu/ stores three menu JPEGs and existing operating guidance. Images are packaged in containers for the backend/cmd/richmenu CLI.
+
+When changing images, check dimensions, click regions and purpose. Asset changes do not update LINE menus; remote publication requires explicit authorization.
+
+<a id="驗證"></a>
+
+## Verification
+
+Read line/richmenu/README.md and check image dimensions and Dockerfile asset paths. Absence from Graphify does not establish that images are missing.
+
+Run commands from the repository root unless stated otherwise. Read the [local README](README.md) and [documentation index](../docs/README.md); report actual results and limitations.
+
+## Applicable engineering conventions
+
+- **Naming and formats:** Keep asset names, dimensions, formats and click-region definitions aligned with their existing consumers.
+- **Build reproducibility:** Verify source asset inclusion in generated menus and container contexts; do not edit packaged copies as independent sources.
+- **Lifecycle:** Distinguish replacing local assets from publishing remote menus, and preserve a recoverable prior version for an authorized publication.

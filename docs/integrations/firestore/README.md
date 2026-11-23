@@ -1,13 +1,15 @@
-# Firestore 整合
+<a id="firestore-整合"></a>
 
-| 要查的事 | 文件 |
+# Firestore integration
+
+| Question | Documentation |
 | --- | --- |
-| 連線、執行身分、IAM 與 client | [Firestore 整合契約](connection.md) |
-| 集合、文件歸屬、識別碼與保存格式 | [資料模型](data-model.md) |
-| 交易讀寫集合、併發、重試與冪等 | [交易與一致性](consistency.md) |
-| 查詢、游標、複合索引及驗收 | [查詢與索引](querying.md) |
-| TTL、刪除、保存與恢復 | [資料生命週期](lifecycle.md) |
-| 驗證連線或執行整合測試 | [唯讀連線](../../development/tooling/backend/firestore.md#唯讀連線檢查) · [本機 emulator](../../development/tooling/testing/firestore-emulator.md) |
-| 瀏覽器 Session 的文件、續期與 TTL | [Session 持久化](browser-session.md) |
+| Connectivity, runtime identity, IAM/client | [Integration contract](connection.md) |
+| Collections, ownership, IDs/formats | [Data model](data-model.md) |
+| Transaction read/write sets, concurrency/retries/idempotency | [Consistency](consistency.md) |
+| Queries, cursors, composite indexes/acceptance | [Queries/indexes](querying.md) |
+| TTL, deletion, retention/recovery | [Data lifecycle](lifecycle.md) |
+| Connectivity/integration testing | [Read-only connection](../../development/tooling/backend/firestore.md#唯讀連線檢查) · [Local emulator](../../development/tooling/testing/firestore-emulator.md) |
+| Browser session documents, renewal/TTL | [Session persistence](browser-session.md) |
 
-[外部整合索引](../README.md) · [資料儲存責任](../../architecture/data.md)
+[Integration index](../README.md) · [Storage responsibilities](../../architecture/data.md)

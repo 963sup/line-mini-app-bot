@@ -1,20 +1,32 @@
-# 身分與 Session 契約
+<a id="身分與-session-契約"></a>
 
-## 閱讀與修改入口
+# Identity and session contracts
 
-先查閱[identity.yaml](identity.yaml)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[Session 設計](../../../docs/contracts/identity.md) · [現行實作圖：續期交易與前端觸發](../../../docs/contracts/identity.md#續期交易與前端觸發)
+Start with [identity.yaml](identity.yaml), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
 
-適用於本目錄及其子目錄；繼承 [上層指引](../AGENTS.md)，並遵循其引用的根目錄規則。此處只補充本範圍責任；使用者與主機指令優先，不增加外部寫入授權。
+<a id="相關規格"></a>
 
-## 職責與邊界
+## Related specifications
 
-- 維護 MINI App 公開設定、本人與 Session 建立、續期、撤銷的既有契約。
-- 可信身分由後端驗證；客戶端輸入、登入或 profile 不等同 Repository 成員或其他業務操作權。
-- 保留現有 Cookie／Bearer、CSRF、錯誤及單例路徑相容性；不在公開 DTO 暴露憑證與服務端機密。
-- 修改前閱讀 [Session 設計](../../../docs/contracts/identity.md)。
+[Session design](../../../docs/contracts/identity.md) · [Current implementation diagram: renewal transaction and frontend triggers](../../../docs/contracts/identity.md#續期交易與前端觸發)
 
-[現行實作圖：續期交易與前端觸發](../../../docs/contracts/identity.md#續期交易與前端觸發)
+Applies to this directory and descendants. Inherit [parent guidance](../AGENTS.md) and its referenced root rules. This file adds only local responsibilities. User and host instructions take precedence; it grants no additional authorization for external writes.
+
+<a id="職責與邊界"></a>
+
+## Responsibilities and boundaries
+
+- Maintain existing MINI App public configuration, current-user and session creation, renewal and revocation contracts.
+- The backend verifies trusted identity. Client input, login and profiles do not establish Repository membership or other business permissions.
+- Preserve Cookie/Bearer, CSRF, errors and singleton-path compatibility. Do not expose credentials or server secrets in public DTOs.
+- Read [session design](../../../docs/contracts/identity.md) before editing.
+
+[Current implementation diagram: renewal transaction and frontend triggers](../../../docs/contracts/identity.md#續期交易與前端觸發)
+
+## Applicable engineering conventions
+
+- **Contract semantics:** Specify token/session expiry, CSRF requirements and revocation errors without implying that authentication grants business authorization.

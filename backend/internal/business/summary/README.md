@@ -1,21 +1,29 @@
-# backend/internal/business/summary 目錄導覽
+<a id="backendinternalbusinesssummary-目錄導覽"></a>
 
-[領域文件](../../../../docs/domains/summary/README.md) · [全域索引](../../../../docs/domains/README.md#domain-matrix)
+# backend/internal/business/summary directory guide
 
-負責 LINE 群組訊息蒐集與摘要流程，涵蓋訊息保存、摘要產生、排程及交付。
+[domain documentation](../../../../docs/domains/summary/README.md) · [global index](../../../../docs/domains/README.md#domain-matrix)
 
-此目錄維護本領域或子能力的行為。HTTP、LINE 與 Firestore 依需要提供適配，授權和狀態規則歸資源所屬領域。
+Owns LINE group message collection and summarization, including persistence, generation, scheduling and delivery.
 
-## 閱讀與修改入口
+This directory owns domain or sub-capability behavior. Add HTTP, LINE and Firestore adapters as needed; resource-owning domains control authorization and state.
 
-從 [errors.go](application/port/errors.go)、[firestore](adapter/firestore)、[line](adapter/line)、[messagecollection](application/messagecollection)、[summarization](application/summarization) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 閱讀入口
+## Reading and editing entry points
 
-[現行實作圖：資料與可靠性](../../../../docs/domains/summary/summary.md#資料與可靠性)
+Start with [errors.go](application/port/errors.go), [firestore](adapter/firestore), [line](adapter/line), [messagecollection](application/messagecollection), [summarization](application/summarization); before editing, read [local agent guidance](AGENTS.md).
 
-## 領域追蹤入口
+<a id="閱讀入口"></a>
 
-[領域規格](../../../../docs/domains/summary/README.md) · [判定流程](../../../../docs/domains/summary/README.md#decision-flow) · [判定實作](application/summarization/validation.go)
+## Reading entry points
 
-[上層導覽](../README.md)
+[Current implementation diagram: data and reliability](../../../../docs/domains/summary/summary.md#資料與可靠性)
+
+<a id="領域追蹤入口"></a>
+
+## Domain traceability entry points
+
+[domain specification](../../../../docs/domains/summary/README.md) · [decision flow](../../../../docs/domains/summary/README.md#decision-flow) · [decision implementation](application/summarization/validation.go)
+
+[Parent directory guide](../README.md)

@@ -1,19 +1,25 @@
-# backend/internal/architecture 目錄導覽
+<a id="backendinternalarchitecture-目錄導覽"></a>
 
-以架構測試檢查 Go 套件的依賴方向與分層邊界。
+# backend/internal/architecture directory guide
 
-依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
+Uses architecture tests to enforce Go dependency direction and layer boundaries.
 
-## 閱讀與修改入口
+Directories expose backend entry points or shared capabilities by purpose. Bootstrap wires services; domains own resource authorization and use cases.
 
-從 [boundaries_test.go](boundaries_test.go) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-測試涵蓋所有業務 `domain`／`application` 子套件的 SDK、外層依賴及 JSON／Firestore 格式標記，包含尚未列入具名依賴清單的新套件；HTTP adapter 子套件也不得直接引用儲存或模型供應商 SDK。依據為 [DDD 依賴規則](../../../docs/references/ddd/dependency-rule.md)。
+## Reading and editing entry points
 
-格式相容性由 adapter 驗證：[日誌保存格式與防重雜湊](../business/journal/adapter/firestore/payload_test.go)、[組織 HTTP 回應](../business/organization/adapter/http/responses_test.go)及[模型候選資料](../business/operations/adapter/openai/candidates_test.go)。架構測試不取代這些契約與整合案例。
+Start with [boundaries_test.go](boundaries_test.go). Read the [local guidance](AGENTS.md) before editing.
 
-## 閱讀入口
+Tests check SDK/outer-layer dependencies and JSON/Firestore tags in all business `domain`/`application` descendants, including new packages absent from named dependency lists. HTTP adapter descendants must not directly import storage or model-provider SDKs. See [DDD dependency rules](../../../docs/references/ddd/dependency-rule.md).
 
-[現行實作圖：格式與資料相容](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Adapters verify format compatibility through [journal persistence and deduplication hashes](../business/journal/adapter/firestore/payload_test.go), [organization HTTP responses](../business/organization/adapter/http/responses_test.go) and [model candidate data](../business/operations/adapter/openai/candidates_test.go). Architecture tests do not replace these contract/integration cases.
 
-[上層導覽](../README.md)
+<a id="閱讀入口"></a>
+
+## Reading entry points
+
+[Current implementation diagram: formats and data compatibility](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+[Parent directory guide](../README.md)

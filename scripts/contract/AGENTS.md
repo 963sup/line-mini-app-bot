@@ -1,5 +1,13 @@
-# API 能力與路由契約工作指引
+<a id="api-能力與路由契約工作指引"></a>
 
-本目錄沿用[上層指引](../AGENTS.md)。修改契約檢查後執行 pnpm api:check，核對產生碼與路由。
+# API capability and route contract guidance
 
-修改後依[腳本總覽](../README.md)執行對應檢查，入口見[本層說明](README.md)。
+Inherit [parent guidance](../AGENTS.md); after contract-check changes, run pnpm api:check and verify generated code/routes.
+
+After changes, run checks from the [script overview](../README.md); see the [local README](README.md) for entry points.
+
+## Applicable engineering conventions
+
+- **API and generation:** Verify operation ownership, route dispatch, registered consumers and generated signatures against the same contract revision.
+- **Compatibility:** Update consumer inventory when a call is added or removed while retaining supported public operations and stable errors.
+- **Acceptance:** Reproduce invalid contract/dispatch cases and preserve fail-closed checks; generated output is verified rather than patched.

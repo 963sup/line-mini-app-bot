@@ -1,9 +1,21 @@
-# frontend/miniapp/src/diagnostics/geolocation 工作指引
+<a id="frontendminiappsrcdiagnosticsgeolocation-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend/miniapp/src/diagnostics/geolocation agent guidance
 
-先查閱[View.tsx](View.tsx)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：現有出勤整合檔案與責任](../../../../../docs/integrations/geolocation/browser-api.md#現有出勤整合檔案與責任)
+Start with [View.tsx](View.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: attendance integration files and responsibilities](../../../../../docs/integrations/geolocation/browser-api.md#現有出勤整合檔案與責任)
+
+## Applicable engineering conventions
+
+- **Contract and types:** Send location samples through the diagnostic client using contract units and timestamps; never treat a sample as business authorization.
+- **Reliability and privacy:** Keep one active watcher/request, enforce its timeout and ignore late responses without persisting location history.
+- **UI states:** Present permission denial, invalid samples, cancellation and successful server validation distinctly.

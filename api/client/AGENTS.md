@@ -1,18 +1,32 @@
-# 共用 API 客戶端
+<a id="共用-api-客戶端"></a>
 
-## 閱讀與修改入口
+# Shared API client
 
-先查閱[package.json](package.json)、[tsconfig.json](tsconfig.json)、[turbo.json](turbo.json)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-適用於本目錄及其子目錄；繼承 [上層指引](../AGENTS.md)，並遵循其引用的根目錄規則。此處只補充本範圍責任；使用者與主機指令優先，不增加外部寫入授權。
+Start with [package.json](package.json), [tsconfig.json](tsconfig.json), [turbo.json](turbo.json), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
 
-## 職責與邊界
+<a id="相關規格"></a>
 
-- 維護公開 HTTP 的共用 TypeScript client；操作型別來自契約生成，不手改 generated 內容或手寫另一套 DTO。
-- 新業務沿用現有 createAPIClient 與前端 Session 認證請求，不按能力複製 client、登入或重試機制。
-- 內部 Summary worker 不加入瀏覽器 client；不把 token、服務帳戶憑證或服務端設定打包到前端。
-- 修改契約先執行上層生成與相容性流程；修改 client 行為另跑相關既有型別與消費端檢查。
+## Related specifications
 
-[現行實作圖：基礎入口](../../docs/contracts/http.md#基礎入口)
+Applies to this directory and descendants. Inherit [parent guidance](../AGENTS.md) and its referenced root rules. This file adds only local responsibilities. User and host instructions take precedence; it grants no additional authorization for external writes.
+
+<a id="職責與邊界"></a>
+
+## Responsibilities and boundaries
+
+- Maintain the shared TypeScript client for public HTTP. Generate operation types from contracts; do not edit generated content or write parallel DTOs.
+- Reuse createAPIClient and frontend session-authenticated requests for new features. Do not duplicate clients, login or retry mechanisms by capability.
+- Do not add the internal Summary worker to the browser client or bundle tokens, service-account credentials or server configuration into the frontend.
+- Follow parent generation and compatibility workflows for contract changes; also run relevant existing type and consumer checks for client behavior changes.
+
+[Current implementation diagram: basic entry points](../../docs/contracts/http.md#基礎入口)
+
+## Applicable engineering conventions
+
+- **Types and generation:** Export generated request/response types through the shared client; repair generation sources instead of adding handwritten parallel types.
+- **Identity and retries:** Keep credential, cancellation and retry behavior explicit per client; preserve the original request identity when an outcome is unknown.
+- **Compatibility:** Check existing client callers when changing defaults, serialization or error propagation; never bundle internal worker credentials.

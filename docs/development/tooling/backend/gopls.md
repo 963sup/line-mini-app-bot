@@ -9,8 +9,6 @@ Resolve Go symbols, references, diagnostics and affected packages.
 ## Prerequisites and configuration
 
 Installed with core Go tools. Meaningful application analysis requires a valid Go module and sources. Transport success alone does not prove workspace analysis works.
-Connection, timeouts and enabled tool names are owned by `.codex/config.toml`.
-Tool versions are owned by `mise.toml`; never copy token values into documentation.
 
 ## Operation
 
@@ -18,10 +16,4 @@ Reuse the verified host inventory; inspect tools/list when it is missing or stal
 
 ## Verification and failures
 
-```bash
-bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server gopls
-```
-
-This checks initialize, tools/list and configured allowlists. Verify a representative
-operation separately. For failures distinguish missing binary, network, credential,
-workspace prerequisites and host loading; see [troubleshooting](../../environment/troubleshooting.md).
+Follow [MCP diagnostics](../agents/README.md#mcp-診斷) with the service name `gopls`.

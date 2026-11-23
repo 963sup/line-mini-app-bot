@@ -1,13 +1,27 @@
-# frontend/miniapp/src 工作指引
+<a id="frontendminiappsrc-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend/miniapp/src agent guidance
 
-先查閱[business](business)、[diagnostics](diagnostics)、[identity](identity)、[navigation](navigation)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：頁面與身分生命週期](../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+Start with [business](business), [diagnostics](diagnostics), [identity](identity), [navigation](navigation), [directory guide](README.md), [parent guidance](../AGENTS.md).
 
-## 驗證入口
+<a id="相關規格"></a>
 
-從儲存庫根目錄執行 `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check` 做型別檢查。修改流程或互動時，執行相同命令並以 `test` 取代 `check`，核對受影響的登入狀態、請求失敗或重試行為。需要 LINE WebView 的流程另在對應環境驗證。
+## Related specifications
+
+[Current implementation diagram: page and identity lifecycle](../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+<a id="驗證入口"></a>
+
+## Verification entry points
+
+Run `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check` from root for types. For flows/interactions, replace `check` with `test` and verify affected identity, failures/retries. Verify LINE WebView flows in their target environments separately.
+
+## Applicable engineering conventions
+
+- **Structure:** Keep routes, identity, platform integration, business UI and shared mechanics in their existing responsibility directories.
+- **Types and dependencies:** Import generated contracts through the shared API client; avoid cross-feature imports of private state or duplicate transport types.
+- **Lifecycle:** Cancel obsolete reads and clear identity/resource-scoped data rather than allowing an old response to overwrite a new scope.

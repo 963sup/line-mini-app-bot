@@ -1,21 +1,29 @@
-# frontend/miniapp/src/business/repository 目錄導覽
+<a id="frontendminiappsrcbusinessrepository-目錄導覽"></a>
 
-管理 Repository 與空間的前端選取、頁內導覽及功能畫面組合。
+# frontend/miniapp/src/business/repository directory guide
 
-在本功能就近維護畫面與互動，路由由 pages 組合，權限與結果以後端 API 為準。
+Manages Repository/space selection, page navigation and feature composition.
 
-## 閱讀與修改入口
+Colocate feature UI/interactions; pages compose routes and backend APIs determine permissions/results.
 
-從 [NavigationGuard.tsx](NavigationGuard.tsx)、[RepositoryContext.tsx](RepositoryContext.tsx)、[Spaces.tsx](Spaces.tsx)、[View.tsx](View.tsx)、[labels](labels)、[milestones](milestones)、[navigation.ts](navigation.ts) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：空間載入時序](../../../../../docs/domains/repository/README.md#空間載入時序)
+Start with [NavigationGuard.tsx](NavigationGuard.tsx), [RepositoryContext.tsx](RepositoryContext.tsx), [Spaces.tsx](Spaces.tsx), [View.tsx](View.tsx), [labels](labels), [milestones](milestones), [navigation.ts](navigation.ts); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
 
-## 下層文件入口
+## Related specifications
+
+[Current implementation diagram: space loading sequence](../../../../../docs/domains/repository/README.md#空間載入時序)
+
+[Parent directory guide](../README.md)
+
+<a id="下層文件入口"></a>
+
+## Child documentation entry points
 
 - [insights](insights/README.md)
 
-各功能分頁使用 `next/dynamic`，開啟時才載入對應功能程式，沿用原本的未儲存表單保護與載入回饋。
+Tabs use `next/dynamic` to load features on opening, preserving unsaved-form guards/loading feedback.

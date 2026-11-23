@@ -1,27 +1,37 @@
-# 空間討論與留言
+<a id="空間討論與留言"></a>
 
-[領域文件](../../../../docs/domains/repository/discussion/README.md) · [全域索引](../../../../docs/domains/README.md#domain-matrix)
+# Space discussions and comments
 
-管理 Repository 中的討論串及留言，維護討論專屬的操作與授權規則。
+[domain documentation](../../../../docs/domains/repository/discussion/README.md) · [global index](../../../../docs/domains/README.md#domain-matrix)
 
-此目錄維護本領域或子能力的行為。HTTP、LINE 與 Firestore 依需要提供適配，授權和狀態規則歸資源所屬領域。
+Manages Repository discussion threads/comments and their operation/authorization rules.
 
-## 閱讀與修改入口
+This directory owns domain or sub-capability behavior. Add HTTP, LINE and Firestore adapters as needed; resource-owning domains control authorization and state.
 
-先查閱[應用服務](application/service.go)、[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[討論規格](../../../../docs/domains/repository/discussion/design.md) · [現行實作圖：最小實作邊界與驗證](../../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+Start with [application service](application/service.go), [local agent guidance](AGENTS.md).
 
-## 閱讀入口
+<a id="相關規格"></a>
 
-操作、權限、資料與驗收依 [討論規格](../../../../docs/domains/repository/discussion/design.md) 維護；本模組保存對應業務實作，不共用事項狀態。
+## Related specifications
 
-[現行實作圖：最小實作邊界與驗證](../../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+[Discussion specification](../../../../docs/domains/repository/discussion/design.md) · [Current implementation diagram: minimal boundaries and verification](../../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
 
-## 領域追蹤入口
+<a id="閱讀入口"></a>
 
-[領域規格](../../../../docs/domains/repository/discussion/README.md) · [判定流程](../../../../docs/domains/repository/discussion/README.md#decision-flow) · [代表測試](domain/entity/classification_test.go)
+## Reading entry points
 
-[上層導覽](../README.md)
+The [discussion specification](../../../../docs/domains/repository/discussion/design.md) owns operations, permissions, data and acceptance. This module implements them without sharing Issue states.
+
+[Current implementation diagram: minimal boundaries and verification](../../../../docs/domains/repository/discussion/design.md#最小實作邊界與驗證)
+
+<a id="領域追蹤入口"></a>
+
+## Domain traceability entry points
+
+[domain specification](../../../../docs/domains/repository/discussion/README.md) · [decision flow](../../../../docs/domains/repository/discussion/README.md#decision-flow) · [representative tests](domain/entity/classification_test.go)
+
+[Parent directory guide](../README.md)

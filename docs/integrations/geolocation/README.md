@@ -1,7 +1,9 @@
-# 瀏覽器定位
+<a id="瀏覽器定位"></a>
 
-[Web Geolocation API 整合契約](browser-api.md)說明定位權限、使用者同意、資料驗證與本機示範。打卡授權、儲存與業務規則由[出勤規格](../../domains/attendance/README.md)維護。
+# Browser geolocation
 
-`/location` 與 `POST /api/location/validate` 提供公開、無狀態的定位診斷。診斷不辨識本人、不寫入出勤資料，也不授予出勤權限。需要辨識使用者的流程依[瀏覽器 Session 契約](../../contracts/identity.md#session-套用範圍)及所屬領域的授權規則。
+The [Web Geolocation contract](browser-api.md) covers permission, consent, validation and local examples. [Attendance](../../domains/attendance/README.md) owns punch authorization, storage/rules.
 
-[外部整合索引](../README.md)
+`/location` and `POST /api/location/validate` provide public stateless diagnostics without identity, attendance writes or permissions. Identity-dependent flows follow [browser sessions](../../contracts/identity.md#session-套用範圍) and domain authorization.
+
+[Integration index](../README.md)

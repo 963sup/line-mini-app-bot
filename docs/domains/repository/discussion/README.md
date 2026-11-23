@@ -1,36 +1,42 @@
-# 討論
+<a id="討論"></a>
 
-**已有實作** · [設計規格](design.md) · [核心流程](#decision-flow) · [代表測試](../../../../backend/internal/business/discussion/domain/entity/classification_test.go) · [程式目錄](../../../../backend/internal/business/discussion/README.md) · [維護指引](../../../../backend/internal/business/discussion/AGENTS.md)
+# Discussion
 
-[前端畫面](../../../../frontend/miniapp/src/business/discussion/README.md) · [公開 API](../../../../api/contract/discussion/README.md)
+**Implemented** · [Design](design.md) · [Core flow](#decision-flow) · [Representative tests](../../../../backend/internal/business/discussion/domain/entity/classification_test.go) · [Code](../../../../backend/internal/business/discussion/README.md) · [Guidance](../../../../backend/internal/business/discussion/AGENTS.md)
 
-## 領域設計
+[Frontend](../../../../frontend/miniapp/src/business/discussion/README.md) · [Public API](../../../../api/contract/discussion/README.md)
 
-**子域定位**　協作支援候選。
+<a id="領域設計"></a>
 
-**通用語言**　討論串承載對話；留言是串內回應；分類描述討論的歸類。
+## Domain design
 
-**上下文與契約**　Repository 提供討論所屬範圍。Discussion 決定更新討論內容與更新分類各自需要的資格。
+**Subdomain classification:** collaboration supporting candidate.
 
-**驗收案例**　只具分類權限的成員可以調整分類；同一請求若夾帶內容修改，應拒絕越權變更。
+**Language:** threads hold conversations; comments are replies; categories classify discussions.
 
-[對照實作或測試](../../../../backend/internal/business/discussion/domain/entity/classification_test.go) · [戰略設計與分類準則](../../../references/ddd/README.md)
+**Context/contracts:** Repository supplies scope. Discussion separately authorizes content/category changes.
 
-討論串、留言與分類的行為由討論規格定義。
+**Acceptance:** categorization-only members may change categories but not bundled content updates.
 
-[領域設計與操作契約](design.md) · [後端實作入口](../../../../backend/internal/business/discussion/README.md)
+[Implementation/tests](../../../../backend/internal/business/discussion/domain/entity/classification_test.go) · [Strategic classification criteria](../../../references/ddd/README.md)
+
+Discussion specifications define threads, comments and categories.
+
+[Domain design/operation contracts](design.md) · [Backend entry](../../../../backend/internal/business/discussion/README.md)
 
 <a id="decision-flow"></a>
 
-## 調整討論分類的判定流程
+<a id="調整討論分類的判定流程"></a>
+
+## Discussion category decision flow
 
 ```mermaid
 flowchart TD
-    start["調整討論分類"] --> gate{"同時修改內容且缺編輯資格？"}
-    gate -->|是| ok["拒絕修改"]
-    gate -->|否| stop["依授權更新分類"]
+    start["Change category"] --> gate{"Content also changes without edit rights?"}
+    gate -->|Yes| ok["Reject update"]
+    gate -->|No| stop["Update category with authorization"]
 ```
 
-[入口適配器](../../../../backend/internal/business/discussion/adapter/http/routes.go) · [判定依據](../../../../backend/internal/business/discussion/domain/entity/classification_test.go) · [應用層輸出介面](../../../../backend/internal/business/discussion/application/port/store.go) · [相關測試](../../../../backend/internal/business/discussion/domain/entity/classification_test.go)
+[Entry adapter](../../../../backend/internal/business/discussion/adapter/http/routes.go) · [Decision rules](../../../../backend/internal/business/discussion/domain/entity/classification_test.go) · [Application output port](../../../../backend/internal/business/discussion/application/port/store.go) · [Related tests](../../../../backend/internal/business/discussion/domain/entity/classification_test.go)
 
-[適用工作指引](../../AGENTS.md) · [Repository 能力索引](../README.md#repository-capabilities) · [領域總覽](../../README.md)
+[Guidance](../../AGENTS.md) · [Repository capabilities](../README.md#repository-capabilities) · [Domain overview](../../README.md)

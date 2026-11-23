@@ -1,78 +1,92 @@
-# 基礎出勤
+# Basic attendance
 
-**已有實作** · [設計規格](strategy.md) · [核心流程](#decision-flow) · [代表測試](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) · [程式目錄](../../../backend/internal/business/attendance/README.md) · [維護指引](../../../backend/internal/business/attendance/AGENTS.md)
+**Implemented** · [Design](strategy.md) · [Core flow](#decision-flow) · [Representative tests](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) · [Code](../../../backend/internal/business/attendance/README.md) · [Guidance](../../../backend/internal/business/attendance/AGENTS.md)
 
-[出勤、各業務與 LINE 旅程](journey.md)
+[Attendance, business features and LINE journeys](journey.md)
 
-## 用途與範圍
+<a id="用途與範圍"></a>
 
-保存出勤、打卡、補卡、請假與審核的規格。
+## Purpose and scope
 
-設計入口：[子域分類與投資假設](strategy.md) · [上下文映射與整合契約](context-map.md) · [補正審核的戰術設計](correction-design.md)。本頁維護出勤的通用語言與業務邊界。
+Specifications for attendance, punches, corrections, leave and review.
 
-## 限界上下文
+Design entries: [subdomains/investment assumptions](strategy.md) · [context mapping/integration contracts](context-map.md) · [tactical correction design](correction-design.md). This page owns attendance language/boundaries.
 
-出勤（Attendance）回答三個問題：誰在某個群組的哪段時間出勤？這段時間有什麼證據？其中多少工時已可確認？同一人在不同群組的打卡狀態分開維護。一天可有多個班次，月報依班次與報表月份的重疊區間計算。
+<a id="限界上下文"></a>
 
-| 邊界 | 出勤取得或提供的事實 | 責任歸屬 |
+## Bounded context
+
+Attendance answers who attended in which group/time, what evidence supports it and how much worktime is confirmed. Maintain separate states per person/group. Multiple daily shifts are allowed; monthly reports intersect shifts with report months.
+
+| Boundary | Facts exchanged | Responsibility |
 |---|---|---|
-| 身分與群組 | 已驗證的操作者、此次操作綁定的群組 | 身分驗證由入口及身分模組完成；出勤依操作者與群組判斷能否打卡、查詢或審核。出勤自行讀取審核者的群組授權；群組成員身分本身不授予補正審核權。 |
-| LINE 與 MINI App | 群組操作、定位預檢、本人提交與結果顯示 | 入口將請求轉成交給出勤的操作。定位資料是一次打卡的證據；單純開啟頁面不成立打卡。 |
-| 排班與薪資 | 出勤提供已確認淨工時、暫估合計及待確認原因 | 現行出勤規格不定義應到班表、加班認定或薪資金額。 |
+| Identity/groups | Verified actor and operation-bound group | Entry/identity modules authenticate; Attendance determines punch/query/review eligibility and reads reviewer group authorization itself. Membership alone grants no correction-review rights. |
+| LINE/MINI App | Group actions, preflight, personal submission/results | Entry points translate requests into Attendance operations. Locations evidence individual punches; opening pages does not punch. |
+| Scheduling/payroll | Confirmed net worktime, estimated totals and pending reasons | Attendance currently defines neither expected schedules, overtime eligibility nor pay amounts. |
 
-## 通用語言
+<a id="通用語言"></a>
 
-| 用語 | 在本上下文的意義 |
+## Ubiquitous language
+
+| Term | Meaning here |
 |---|---|
-| 打卡事件（Event） | 一次具識別碼、動作、時間及結果的嘗試。遭拒的嘗試也有結果；只有被接受的動作才改變班次。 |
-| 班次（worktime.Session） | 同一人、同一群組的一次上班至下班。進行中的班次尚無結束時間；此處的 Session 與登入工作階段是不同概念。 |
-| 時間區間（Interval） | 以起訖時間表達的一段時間，用於裁切報表範圍、合併重疊時段與計算休息。它按時間值比較，沒有獨立識別碼。 |
-| 出勤紀錄（Record） | 可用識別碼找到的一個班次紀錄，保存時間、事件序列與補正版本；這是補正所指向的對象。 |
-| 休息確認 | 本人確認該班次的休息紀錄完整。空白休息清單仍需區分「確認無休息」與「尚未確認」。 |
-| 已確認淨工時／暫估合計 | 前者依完整且可確認的證據計算；後者已包含已確認部分。兩者不可相加。 |
-| 補正（介面亦稱補卡、更正） | 對指定出勤紀錄提出附理由的變更。提出申請、審核決定與生效後的紀錄是三件不同的事。 |
-| 請假登記 | 記錄本人在某群組的請假種類、期間與原因。登記本身不代表核准，也不會改寫出勤。 |
+| Punch Event | Identified attempt with action, time/result. Rejected attempts also have results; only accepted actions change shifts. |
+| Shift (worktime.Session) | One person's clock-in/out within one group. Open shifts lack end times; this Session differs from login sessions. |
+| Interval | Start/end values for clipping reports, merging overlaps and calculating breaks; value-comparable without identity. |
+| Attendance Record | Identifiable shift with times, event sequence and correction version; target of corrections. |
+| Break confirmation | Personal confirmation that breaks are complete. Empty lists distinguish confirmed no-break from unconfirmed. |
+| Confirmed net / Estimated total | Confirmed time requires complete verifiable evidence. Estimated total already includes confirmed time; never add them. |
+| Correction | Reasoned changes to a specified record. Request, review decision and effective record are distinct. |
+| Leave registration | Personal group leave type, period/reason. Registration neither approves leave nor changes attendance. |
 
-## 子域與業務能力
+<a id="子域與業務能力"></a>
 
-以下按現行業務責任劃分。這些能力共用出勤語言與規則，尚無獨立部署或各自建立限界上下文的需求。
+## Subdomains and capabilities
 
-| 能力 | 負責的決策 | 詳細規格 |
+Capabilities below share attendance language/rules by current responsibility. Independent deployments/contexts are not presently needed.
+
+| Capability | Decisions owned | Specification |
 |---|---|---|
-| 打卡與班次 | 此人此刻能否上班、開始休息、結束休息或下班；重送是否已處理 | [工時與狀態轉移](worktime.md) |
-| 工時計算 | 事件重播能否還原班次、跨月如何裁切、哪些分鐘可列為已確認 | [工時計算](worktime.md) |
-| 補正與審核 | 誰能提出、取消或決定申請；哪個紀錄版本及證據可用來核准 | [補正與稽核證據](worktime.md)、[查詢及重試](queries.md) |
-| 請假登記 | 請假輸入與重送是否合法；保存本人的登記 | [請假](leave.md) |
-| 個人查詢與群組看板 | 個人可查哪些紀錄；看板如何按不同人統計工作中、休息中、已結束 | [查詢](queries.md)、[看板](board.md) |
+| Punches/shifts | Clock-in, break-start/end and clock-out eligibility; processed retries | [Worktime/transitions](worktime.md) |
+| Worktime | Rebuild shifts from events, clip months and confirm minutes | [Calculation](worktime.md) |
+| Corrections/review | Submission, withdrawal, decisions and approval versions/evidence | [Evidence](worktime.md), [queries/retries](queries.md) |
+| Leave | Input/retry validity and personal registration persistence | [Leave](leave.md) |
+| Personal queries/group boards | Read scope and distinct-person working/resting/finished counts | [Queries](queries.md), [boards](board.md) |
 
-## 一致性與驗收
+<a id="一致性與驗收"></a>
 
-- **打卡。** 以人與群組為狀態邊界。定位預檢得到「需要位置」時，不能先建立班次或消耗成功打卡的收據。正式提交以交易套用狀態轉移；同一事件重送應取得原結果，不能新增第二個班次。
-- **補正。** 申請人可以取消自己的申請。核准者必須有該群組的審核資格，且不能是申請人。核准時須在同一筆交易重新核對目前紀錄、事件序列與時間重疊，再寫入核准證據與更新後的班次。驗收包括本人自審、重複核准，以及送審後原紀錄已改變。
-- **報表。** 未確認休息的班次不能因為休息清單為空就計為已確認淨工時。核准證據損壞時，月報須反映待確認狀態。月報與看板是讀取結果，不是可以直接修改班次的入口。
+## Consistency and acceptance
 
-## 分層現況與下一個設計決策
+- **Punches.** Bound state by person/group. needs_position preflight must not create shifts or consume successful receipts. Submit transitions transactionally; redelivery returns original results without extra shifts.
+- **Corrections.** Applicants may withdraw. Reviewers require group eligibility and must differ from applicants. Approval transactionally rechecks records, event sequences and overlaps before saving evidence/shifts. Cover self-review, repeat approval and records changed after submission.
+- **Reports.** Empty unconfirmed breaks must not count as confirmed net time. Damaged approval evidence yields pending confirmation. Reports/boards are read results, not direct shift-write entry points.
 
-領域層依 [entity](../../../backend/internal/business/attendance/domain/entity/README.md)、[valueobject](../../../backend/internal/business/attendance/domain/valueobject/README.md)、[service](../../../backend/internal/business/attendance/domain/service/README.md)、[event](../../../backend/internal/business/attendance/domain/event/README.md) 與 [policy](../../../backend/internal/business/attendance/domain/policy/README.md) 分工。班次與出勤紀錄維護身分和狀態；區間與定位提供值驗證；工時計算、補正套用與證據核對為領域運算；審核資格與重送衝突由政策判定。[Firestore 交易](../../../backend/internal/business/attendance/adapter/firestore/attendance_correction.go) 原子保存審核決定與核准證據。
+<a id="分層現況與下一個設計決策"></a>
 
-[審核用例](../../../backend/internal/business/attendance/application/command/review.go) 透過交易內的 port 核對授權、重送與補正結果。HTTP 與 LINE 共用[月報用例](../../../backend/internal/business/attendance/application/query/monthly.go)。排班、加班與薪資政策若納入產品，需另行確認其規則與歸屬。
+## Current layers and next design decisions
 
-## 相關規格
+Domains separate [entity](../../../backend/internal/business/attendance/domain/entity/README.md), [valueobject](../../../backend/internal/business/attendance/domain/valueobject/README.md), [service](../../../backend/internal/business/attendance/domain/service/README.md), [event](../../../backend/internal/business/attendance/domain/event/README.md) and [policy](../../../backend/internal/business/attendance/domain/policy/README.md). Records/shifts own identity/state; intervals/locations validate values; calculations, corrections/evidence are domain operations; policies decide reviewers/retry conflicts. [Firestore transactions](../../../backend/internal/business/attendance/adapter/firestore/attendance_correction.go) atomically store decisions/evidence.
 
-[本層規格與指引](../../../api/contract/attendance/README.md)
+The [review use case](../../../backend/internal/business/attendance/application/command/review.go) checks authorization, retries and correction results through transaction ports. HTTP/LINE share the [monthly use case](../../../backend/internal/business/attendance/application/query/monthly.go). Scheduling, overtime/payroll need separately confirmed rules/ownership if adopted.
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Local specifications and guidance](../../../api/contract/attendance/README.md)
 
 
 <a id="基礎出勤"></a>
 
 ```mermaid
 flowchart LR
-  h["基礎出勤"]
-  h --- n0["首版處理群組定位上下班，以及 1:1 分群查詢本<br/>人紀錄。群組指令／Postback 建立短效請求，<br/>MINI App 先確認操作結果，需要新增時才取得位<br/>置並提交後寫入出勤；部署與真實 LINE／<br/>Firestore 驗收需另外執行。 目前已有打卡、月<br/>紀錄、分頁與更正流程的程式實作；雲端設定、索<br/>引與渠道驗收須另外確認。 查詢、Web 分<br/>頁與更正重試 說明操作與啟用方式；工時計算與<br/>更正證據 說明計算規則。 基礎設施與接入 保留<br/>建置順序與環境限制，不代表功能尚未開始。 本<br/>次重構沿用既有檢查，不新增測試工程。"]
-  n0 --- n0l0["查詢、Web 分頁與更正重試"]
+  h["Basic attendance"]
+  h --- n0["Initial group location clock-in/out and personal records by group in direct chat.<br/>Commands/postbacks create short-lived requests. MINI App resolves results first,<br/>obtains location only for new actions, then submits attendance.<br/>Deployment and live LINE/Firestore acceptance are separate.<br/>Punch, monthly records, pagination and corrections have implementations;<br/>cloud settings, indexes and channel acceptance require verification.<br/>Query/retry and worktime/evidence guides own details.<br/>Infrastructure guidance records build order, not absence of features.<br/>This refactor reuses existing checks without adding test infrastructure."]
+  n0 --- n0l0["Queries, web pagination and correction retries"]
   click n0l0 "queries.md"
-  n0 --- n0l1["工時計算與更正證據"]
+  n0 --- n0l1["Worktime and correction evidence"]
   click n0l1 "worktime.md"
-  n0 --- n0l2["基礎設施與接入"]
+  n0 --- n0l2["Infrastructure and integration"]
   click n0l2 "../../development/environment/verification.md"
 ```
 
@@ -80,19 +94,19 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  h["最小操作"]
-  h --- n0["操作：上班<br/>行為：後端確認操作人員身分，保存上班時間，回<br/>傳操作結果。"]
-  h --- n1["操作：下班<br/>行為：後端確認操作人員身分，記錄對應出勤的下<br/>班時間，回傳操作結果。"]
-  h --- n2["操作：本人紀錄<br/>行為：僅回傳已驗證操作人員自己的出勤資料，至<br/>少包含上班時間與下班時間；尚未下班要明確呈現<br/>。"]
+  h["Minimal operations"]
+  h --- n0["Clock in: backend verifies identity, saves start time and returns result."]
+  h --- n1["Clock out: backend verifies identity, saves the matching shift end and returns result."]
+  h --- n2["Personal records: verified actor's own attendance only,<br/>including start/end and explicit unfinished status."]
 ```
 
 ```mermaid
 flowchart LR
-  h["最小操作"]
-  h --- n0["後端以可信身分識別操作人員，不接受前端自行指<br/>定他人的 user ID 作為授權。 打卡時間由後端產<br/>生，不直接信任前端傳入的時間。 資料保存失敗<br/>時不能回覆打卡成功。重複點擊或 LINE 重送不能<br/>悄悄新增重複紀錄。 只有上班沒有下班時，保留<br/>未完成狀態，不自行猜測下班時間。"]
-  h --- n1["群組輸入「出勤」可查人數看板，「補卡」開啟人<br/>工審核申請，「漏下班」仍可檢查本人未結束班次<br/>；詳見看板與漏下班檢查。"]
+  h["Minimal operations"]
+  h --- n0["Use trusted backend identity, never client-selected user IDs for authorization.<br/>Backend generates punch times. Failed persistence cannot report success.<br/>Repeated clicks/redelivery cannot silently duplicate records.<br/>Keep open shifts unfinished; never guess clock-out times."]
+  h --- n1["Group 出勤 command shows counts; 補卡 opens manual review;<br/>漏下班 checks personal open shifts. See board guidance."]
   click n1 "board.md"
-  h --- n2["群組已另提供最小請假登記；送出不代表核准，也<br/>不修改出勤。"]
+  h --- n2["Minimal group leave registration neither approves leave nor changes attendance."]
   click n2 "leave.md"
 ```
 
@@ -100,136 +114,136 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  h["原始首版範圍與後續實作"]
-  h --- n0["原始首版不包含排班、請假、加班審核、薪資、工<br/>作地點半徑判斷、人臉打卡、補登審核、管理員報<br/>表與通知推送。 已實作既有班次更正、無班次補<br/>卡、人工核准／駁回與本人撤回；補卡僅處理已結<br/>束班次，核准前有效紀錄不變。完整角色管理尚未<br/>提供，先沿用群組審核者白名單；詳見上述更正文<br/>件。 不為上述功能預建模組或通用框架；既有 <br/>LINE 能力矩陣是參考，不代表全部都要實作。"]
+  h["Original scope and later implementation"]
+  h --- n0["Original release excluded schedules, leave, overtime review, payroll,<br/>geofencing, face recognition, correction review, admin reports and notifications.<br/>Existing-shift corrections, missing-shift entries, manual decisions and withdrawal<br/>are now implemented for ended shifts; effective records stay unchanged before approval.<br/>Full role management is absent; use group reviewer allowlists.<br/>Do not prebuild speculative modules/frameworks; LINE capability lists are references."]
 ```
 
 <a id="已採用的首版規則"></a>
 
 ```mermaid
 flowchart LR
-  h["已採用的首版規則"]
-  h --- n0["Messaging API：群組輸入「打卡」取得 Flex 操<br/>作按鈕，每個按鈕以短效 launch capability 直<br/>開 MINI App。開頁後驗證 LINE 本人及群組成員<br/>資格，再建立綁定本人與動作的打卡請求；此時尚<br/>未打卡。"]
-  h --- n1["MINI App：使用者同意定位後，將 LINE ID token<br/>、requestId、latitude、longitude、<br/>accuracyMeters、capturedAt 送至 POST <br/>/api/v1/attendance/punches。後端驗證身分、請<br/>求歸屬與位置，再執行 Firestore 交易。拒絕定<br/>位不新增紀錄，不判斷半徑或在場真實性。"]
-  h --- n2["1:1 輸入「出勤紀錄」列出本人有紀錄的群組；輸<br/>入「出勤紀錄 編號」查該群最近五筆。群組查詢<br/>只回私訊引導，不開放 1:1 上下班。"]
-  h --- n3["各群組獨立計算；每人每群組同時只允許一段未完<br/>成出勤，一天可以多段。跨日下班關閉原本未完成<br/>紀錄。"]
-  h --- n4["顯示 Asia/Taipei，Firestore 保存 UTC。使用伺<br/>服器處理時間，不將事件時間當打卡時間；事件時<br/>間只用來拒絕早於最近處理事件的亂序操作。"]
-  h --- n5["重複上班回傳原上班時間；沒有未完成紀錄時下班<br/>明確拒絕。相同事件重送讀取原交易結果。"]
-  h --- n6["不需人員核准名單，也不查好友資格。共享操作卡<br/>可由原群組成員開啟，但須由伺服器再次查核成員<br/>資格；非成員不能使用。結果顯示在 MINI App，<br/>不將精確座標推送群組。"]
+  h["Adopted initial rules"]
+  h --- n0["Messaging API: group 打卡 command returns Flex actions with short-lived launch capabilities.<br/>MINI App verifies LINE identity/membership and binds a request to person/action.<br/>No punch has occurred yet."]
+  h --- n1["MINI App submits LINE ID token, requestId, latitude, longitude,<br/>accuracyMeters and capturedAt to POST /api/v1/attendance/punches after consent.<br/>Backend checks identity, ownership/location and executes a Firestore transaction.<br/>Denied location creates no record; no radius or physical-presence validation."]
+  h --- n2["Direct-chat 出勤紀錄 lists personal groups;<br/>出勤紀錄 編號 returns that group's latest five.<br/>Group queries guide users to direct chat; direct-chat punches are unavailable."]
+  h --- n3["Calculate each group independently: one open shift per person/group,<br/>multiple daily shifts allowed. Cross-day clock-out closes the existing open record."]
+  h --- n4["Display Asia/Taipei, persist UTC. Punches use server processing time;<br/>event time only rejects operations older than the latest processed event."]
+  h --- n5["Repeat clock-in returns original time; clock-out without an open record rejects.<br/>Redelivery reads the original transaction result."]
+  h --- n6["No personnel allowlist or friendship check. Shared cards require live server<br/>membership verification and reject nonmembers. Show results in MINI App;<br/>never push exact coordinates to groups."]
 ```
 
 <a id="啟用與資料"></a>
 
 ```mermaid
 flowchart LR
-  h["啟用與資料"]
-  h --- n0["設定 GOOGLE_CLOUD_PROJECT 與 <br/>LINE_MESSAGING_API_CHANNEL_ID 後初始化出勤資<br/>料庫；任一未設定則出勤關閉，打卡回覆尚未啟用<br/>。 可選用 FIRESTORE_DATABASE_ID（省略為 (<br/>default)）。 沿用既有 Messaging API secret／<br/>access token 與 runtime ADC，執行帳戶需具有<br/>指定資料庫讀寫權限。 定位打卡另需 MINI App <br/>的 Channel ID、LIFF ID、openid scope；<br/>Messaging API 與 MINI App 必須屬於同一 LINE <br/>Provider，否則兩邊 user ID 無法直接比對。<br/>LINE ID token 必須由伺服器驗證，不能相信前端<br/>自行指定的 userId/groupId。"]
-  h --- n1["LINE Developers Console 需開啟 Allow bot to <br/>join group chats，再邀請 Bot 入群。群組成員<br/>不必先各自加 Bot 好友；私訊查紀錄可先加好友<br/>開啟一對一。 舊有 ATTENDANCE_MEMBERS_JSON 設<br/>定不再讀取，不影響使用資格。私訊上下班只引導<br/>回群組，不建立另一套個人打卡。"]
-  h --- n2["資料位於 channels/{channelID}/users/{SHA256(<br/>userID)} 下："]
-  h --- n3["attendance/{SHA256([groupID,eventID])}：<br/>schemaVersion、groupID、clockInAt、<br/>clockOutAt（尚未下班則省略）。"]
+  h["Activation and data"]
+  h --- n0["Initialize attendance with GOOGLE_CLOUD_PROJECT and LINE_MESSAGING_API_CHANNEL_ID;<br/>missing either disables attendance with an unavailable reply.<br/>FIRESTORE_DATABASE_ID defaults to (default). Reuse Messaging API secret/token and ADC;<br/>runtime accounts need database read/write rights.<br/>Location punching requires MINI App Channel ID, LIFF ID and openid.<br/>Channels must share a Provider for matching user IDs.<br/>Verify ID tokens server-side; never trust client userId/groupId."]
+  h --- n1["Enable Allow bot to join group chats and invite the bot.<br/>Members need not friend the bot first; personal records may require direct-chat friendship.<br/>ATTENDANCE_MEMBERS_JSON is retired. Direct-chat punches guide users to groups,<br/>without a separate personal punching workflow."]
+  h --- n2["Data under channels/{channelID}/users/{SHA256(userID)}:"]
+  h --- n3["attendance/{SHA256([groupID,eventID])}: schemaVersion,<br/>groupID, clockInAt and clockOutAt, omitted for open shifts."]
   h --- n4["attendanceStates/{SHA256(groupID)}：recordID<br/>、lastEventTime。"]
-  h --- n5["attendanceEvents/{SHA256([groupID,eventID,<br/>action])}：code、record（原操作結果快照）。"]
-  h --- n6["定位打卡的 schemaVersion 為 2；上班／下班各<br/>自保存 clockInPosition／clockOutPosition（經<br/>緯度、精度、採樣時間）。舊版紀錄仍可讀取。 <br/>channels/{channelID}/punchRequests/{<br/>requestID} 保存原 groupID、userKey（雜湊）、<br/>eventID、action、eventTime、expiresAt；相同<br/>事件重送不延長原請求期限。同一請求重試讀取原<br/>交易結果，不能新增第二次打卡。未完成請求逾時<br/>不接受新的寫入。"]
-  h --- n7["複合 ID 使用 JSON array 編碼後雜湊。事件結果<br/>、出勤紀錄與狀態在同一交易提交；回覆在交易外<br/>發送。 查詢固定本人路徑。使用群組投影、月份範圍查詢與游標分頁。API 契約見 出勤查詢與更正。LINE 訊<br/>息已有畫面分頁，不能視為資料庫已分頁。 不儲<br/>存 reply token、完整事件或姓名；位置只隨打卡<br/>與去重結果保存，不建立持續定位歷史、不寫一般<br/>日誌。資料保存期尚待營運決策；去重結果不能先<br/>於可能重送期間刪除。punchRequests 可另設 <br/>expiresAt TTL；TTL 並非即時到期機制，程式仍<br/>自行檢查到期時間。"]
+  h --- n5["attendanceEvents/{SHA256([groupID,eventID,action])}:<br/>code and record snapshot of the original result."]
+  h --- n6["Location punches use schemaVersion 2 and clockInPosition/clockOutPosition<br/>(coordinates, accuracy, sample time); old records remain readable.<br/>channels/{channelID}/punchRequests/{requestID} stores original groupID, hashed userKey,<br/>eventID, action, eventTime and expiresAt. Redelivery never extends expiry.<br/>Retries read original receipts without duplicate punches; expired unfinished requests cannot write."]
+  h --- n7["Hash JSON-array composite IDs. Results, records and state commit in one transaction;<br/>send replies outside it. Queries use personal paths, group projections, month ranges/cursors.<br/>See attendance queries/corrections for contracts; message pagination is not database pagination.<br/>Store no reply tokens, full events or names. Locations remain with punches/deduplication,<br/>not tracking history or ordinary logs. Retention requires operations decisions;<br/>keep deduplication through possible redelivery windows.<br/>Optional expiresAt TTL is not immediate expiry; code still checks deadlines."]
   click n7 "queries.md"
-  h --- n8["官方契約核對：LINE 文件來源 <br/>line/line-developers-docs-source，main <br/>revision <br/>090500a12f9777995006d9fb5cafab8d83a792b2；<br/>LIFF 開啟與 query 傳遞、伺服器驗證身分、同 <br/>Provider 的使用者 ID。手機定位、Channel <br/>Provider 設定及真實 Firestore 交易仍需實機驗<br/>收。"]
-  n8 --- n8l0["LIFF 開啟與 query 傳遞"]
+  h --- n8["Official LINE source: line/line-developers-docs-source main<br/>090500a12f9777995006d9fb5cafab8d83a792b2.<br/>Checked LIFF opening/query forwarding, server identity and same-Provider user IDs.<br/>Device location, Provider settings and live Firestore transactions require real acceptance."]
+  n8 --- n8l0["LIFF opening and query forwarding"]
   click n8l0 "https://developers.line.biz/en/docs/liff/opening-liff-app/"
-  n8 --- n8l1["伺服器驗證身分"]
+  n8 --- n8l1["Server identity verification"]
   click n8l1 "https://developers.line.biz/en/docs/liff/using-user-profile/"
-  n8 --- n8l2["同 Provider 的使用者 ID"]
+  n8 --- n8l2["Same-Provider user IDs"]
   click n8l2 "https://developers.line.biz/en/docs/messaging-api/getting-user-ids/"
-  h --- n9["LINE Developers Console 必須啟用 Webhook <br/>redelivery。寫入或出勤回覆失敗回傳 503，允許<br/>重送； reply token 有效期與一次使用限制仍適<br/>用，去重保證不重複打卡，不保證每次回覆送達。<br/>遇回覆不明確時，私訊查詢本人紀錄。"]
+  h --- n9["Enable webhook redelivery in LINE Developers Console.<br/>Write/reply failures return 503 for retries; token expiry/single-use limits remain.<br/>Deduplication prevents repeated punches, not guaranteed delivery.<br/>Check personal records in direct chat for uncertain replies."]
 ```
 
 <a id="後續產品變更"></a>
 
 ```mermaid
 flowchart LR
-  h["後續產品變更"]
-  h --- n0["首期入口：Bot 或 MINI App 選定其一先接通；不<br/>預設兩者同步開發。"]
-  h --- n1["人員識別：LINE 身分如何對應允許打卡的人員，<br/>首次使用如何取得資格。"]
-  h --- n2["時間歸屬：顯示時區、跨日下班如何對應上班紀錄<br/>，以及是否允許一天多段出勤。"]
-  h --- n3["操作結果：重複上班／下班、沒有上班就下班時，<br/>明確拒絕或回傳既有結果的規則。"]
-  h --- n4["以上項目首版已依前節收斂；後續若改動，在本頁<br/>更新規則。 確認後才固定相應 API、Firestore <br/>路徑／欄位、唯一性與原子更新方式； 不在基礎<br/>設施尚未穩定時一次建完全部功能。"]
+  h["Later product changes"]
+  h --- n0["Initial entry: connect Bot or MINI App first; simultaneous development is not assumed."]
+  h --- n1["Identity: map LINE users to eligible personnel and define first-use eligibility."]
+  h --- n2["Time: display zone, cross-day shift matching and multiple daily shifts."]
+  h --- n3["Results: explicit rejection or replay rules for repeated/inapplicable punches."]
+  h --- n4["Initial rules are settled above; update this page for later changes.<br/>Confirm rules before fixing API, Firestore paths/fields, uniqueness/atomic updates.<br/>Do not build every feature before infrastructure stabilizes."]
 ```
 
 <a id="群組直達-mini-app待上線驗收"></a>
 
 ```mermaid
 flowchart LR
-  h["群組直達 MINI App（待上線驗收）"]
-  h --- n0["群組輸入「打卡」後，上班／下班／休息開始／休<br/>息結束／確認休息按鈕可直接開啟 LIFF。卡片各<br/>帶一個十分鐘的隨機 launch token，伺服器保存<br/>群組與動作；token 不含或信任使用者 ID。LIFF <br/>驗證本人後，伺服器以 Messaging API 群組成員<br/>查詢確認身分，成功才將同一卡片、同一人交換為<br/>固定 request ID。重開不延長有效期。舊式 <br/>?request= 連結與舊 postback 卡片已停用，需在<br/>群組重新輸入「打卡」取得新卡片。定位與提交沿<br/>用原本的授權、五分鐘位置新鮮度、出勤狀態機與<br/>交易回執。"]
-  h --- n1["上線前須確認 MINI App／LINE Login channel 與<br/> Messaging API channel 在同一 provider，否則<br/> user ID 不能對齊；需以真實群組測試 200／非<br/>成員／Bot 離群及 API 故障。共享卡片可被轉傳<br/>，但非原群組成員應拒絕。只有打卡 API 確認成<br/>功後，LIFF 內才嘗試關閉；權限或網路失敗保留<br/>頁面重試。視窗關閉不會自動向群組發送成功訊息<br/>。"]
+  h["Direct group MINI App links: production acceptance pending"]
+  h --- n0["Group 打卡 cards open LIFF for clock-in/out, break-start/end and confirmation.<br/>Each has a random ten-minute launch token storing group/action, never trusted user ID.<br/>Verify identity and live Messaging API membership before exchanging a fixed per-card/user request ID.<br/>Reopening never extends expiry. Old ?request= links/postback cards are disabled;<br/>request a new card. Existing authorization, five-minute location freshness,<br/>state machine and transaction receipts remain."]
+  h --- n1["Verify MINI App/LINE Login and Messaging API channels share a Provider.<br/>Test live membership success, nonmembers, bot departure and API failures.<br/>Forwarded cards reject nonmembers. Close LIFF only after confirmed success;<br/>permission/network failures keep retry UI. Closing sends no group success message."]
 ```
 
 <a id="定位前預檢狀態與時序"></a>
 
 ```mermaid
 flowchart LR
-  h["定位前預檢、狀態與時序"]
-  h --- n0["狀態機由後端 worktime.ApplyEvent 統一判斷；<br/>前端不以快取的上班狀態決定授權。 POST <br/>/api/v1/attendance/punches/preflight 只接收<br/>本人綁定的 requestId，沿用身分、CSRF、請求期<br/>限與交易驗證。 它是結果解析操作：可保存拒絕<br/>結果的收據，但不會建立成功打卡或保存位置。"]
+  h["Location preflight, state and sequence"]
+  h --- n0["Backend worktime.ApplyEvent owns transitions, never cached frontend state.<br/>POST /api/v1/attendance/punches/preflight takes a personally bound requestId<br/>and retains identity, CSRF, expiry and transaction checks.<br/>Resolution may persist rejection receipts but never successful punches or locations."]
 ```
 
 ```mermaid
 flowchart LR
-  h["定位前預檢、狀態與時序"]
-  h --- n0["目前狀態：同一請求已有交易收據<br/>要求動作：任一<br/>預檢結果：回原結果，即使目前狀態已改變；不定<br/>位"]
-  h --- n1["目前狀態：沒有未結束班次<br/>要求動作：上班<br/>預檢結果：needs_position"]
-  h --- n2["目前狀態：上班中或休息中<br/>要求動作：上班<br/>預檢結果：already_in 與原上班時間；不定位"]
-  h --- n3["目前狀態：沒有未結束班次<br/>要求動作：下班／休息／確認<br/>預檢結果：not_in；不定位"]
-  h --- n4["目前狀態：上班中<br/>要求動作：下班／休息開始／確認休息<br/>預檢結果：needs_position"]
-  h --- n5["目前狀態：上班中，沒有休息開始<br/>要求動作：休息結束<br/>預檢結果：not_resting；不定位"]
-  h --- n6["目前狀態：休息中<br/>要求動作：休息開始／確認休息<br/>預檢結果：already_resting／break_incomplete<br/>；不定位"]
-  h --- n7["目前狀態：休息中<br/>要求動作：下班／休息結束<br/>預檢結果：needs_position（仍須通過時間順序檢<br/>查）"]
-  h --- n8["目前狀態：請求比最後套用事件早<br/>要求動作：任一尚無收據的操作<br/>預檢結果：stale_event；不定位"]
-  h --- n9["目前狀態：請求到期且沒有收據，或不屬於本人<br/>要求動作：任一<br/>預檢結果：403；不定位、不新增打卡"]
-  h --- n10["目前狀態：無法確認後端狀態<br/>要求動作：任一<br/>預檢結果：顯示錯誤，可重試；不定位"]
+  h["Location preflight, state and sequence"]
+  h --- n0["Existing receipt; any action: replay original result despite changed state; no location."]
+  h --- n1["No open shift; clock in: needs_position."]
+  h --- n2["Working/resting; clock in: already_in and original start; no location."]
+  h --- n3["No open shift; clock out/break/confirm: not_in; no location."]
+  h --- n4["Working; clock out/start break/confirm breaks: needs_position."]
+  h --- n5["Working without break start; end break: not_resting; no location."]
+  h --- n6["Resting; start break/confirm: already_resting/break_incomplete; no location."]
+  h --- n7["Resting; clock out/end break: needs_position, subject to event ordering."]
+  h --- n8["Request predates last event; any unreceipted action: stale_event; no location."]
+  h --- n9["Expired unreceipted or non-owned request; any action: 403; no location/punch."]
+  h --- n10["Unknown backend state; any action: retryable error; no location."]
 ```
 
 ```mermaid
 flowchart LR
-  h["定位前預檢、狀態與時序"]
-  h --- n0["預檢與提交共用同一交易及狀態機。兩者的回應均<br/>保留 code、message，並以 accepted 表示本次或<br/>原收據已成功打卡。needs_position 不保留名額<br/>、不建立事件、收據或班次，也不保證稍後提交必<br/>定成功。 拒絕結果一旦寫入收據，同一 <br/>requestId 永遠重播該結果；若之後狀態改變，要<br/>回群組取得新操作卡。 所有成功的操作沿用既有<br/>定位要求（包含休息與確認休息），本次不變更位<br/>置證據政策。"]
-  h --- n1["現行實作"]
+  h["Location preflight, state and sequence"]
+  h --- n0["Preflight/submit share transactions and state machine; preserve code/message.<br/>accepted identifies current/original successful punches.<br/>needs_position reserves nothing, creates no event/receipt/shift and guarantees no later success.<br/>Persisted rejections replay forever for requestId; changed state needs a new group card.<br/>All successful actions, including breaks/confirmation, retain location evidence requirements."]
+  h --- n1["Current implementation"]
 ```
 
 ```mermaid
 sequenceDiagram
-  participant U as 使用者
+  participant U as User
   participant W as MINI App
-  participant A as 後端
+  participant A as Backend
   participant D as Firestore
-  participant G as 瀏覽器定位
-  U->>W: 開啟群組操作連結
-  W->>A: 驗證本人、成員資格，交換固定 requestId
+  participant G as Browser location
+  U->>W: Open group action link
+  W->>A: Verify identity/membership, exchange fixed requestId
   W->>A: preflight(requestId)
-  A->>D: 交易讀取請求、收據、群組狀態與班次
-  alt 已有收據或操作被拒絕
-    D-->>A: 原結果，或保存本次拒絕結果
-    A-->>W: 顯示確定結果，不定位
-  else 需要狀態變更
-    A-->>W: needs_position（沒有成功寫入）
-    W->>G: 取得本次位置
-    G-->>W: 位置或錯誤
-    W->>A: 定位成功才提交相同 requestId 與位置
-    A->>D: 交易重新驗證請求、收據、期限與最新狀態
-    D-->>A: 原結果、拒絕結果或原子寫入成功
-    A-->>W: 顯示最終結果
+  A->>D: Transaction reads request, receipt, group state and shift
+  alt Existing receipt or rejected action
+    D-->>A: Original result or persisted rejection
+    A-->>W: Definite result without location
+  else State change needed
+    A-->>W: needs_position without successful write
+    W->>G: Obtain current location
+    G-->>W: Location or error
+    W->>A: Submit same requestId with successful location
+    A->>D: Transaction rechecks request, receipt, expiry and current state
+    D-->>A: Original result, rejection or atomic success
+    A-->>W: Final result
   end
 ```
 
 ```mermaid
 flowchart LR
-  h["定位前預檢、狀態與時序"]
-  h --- n0["前端依序為 idle → exchanging → checking → <br/>locating → submitting → idle； 預檢有確定結<br/>果時直接從 checking 返回 idle；任一步驟失敗<br/>也返回 idle 並保留訊息。 定位只有收到 <br/>needs_position 後才能啟動；拒絕、斷線或無效<br/>預檢回應不能繼續。 定位期間若另一裝置完成操<br/>作，最終提交會依最新狀態拒絕或回傳原收據，不<br/>會依預檢快照新增重複紀錄。"]
-  h --- n1["定位失敗：不送出打卡；重試同一 requestId 時<br/>先重新預檢。"]
-  h --- n2["提交斷線／逾時：結果未知，不宣稱失敗或成功；<br/>重試先讀取收據。已有成功結果時直接顯示，不再<br/>定位。"]
-  h --- n3["離頁／登出：中止等待並以 generation 忽略遲到<br/>的 HTTP 或定位回應；已送出的交易無法撤回。"]
-  h --- n4["同頁操作失敗重試：保留同一 requestId 並先預<br/>檢；離頁、Session 重設或完整重新開頁則清除本<br/>頁快取並重新驗證 launch 有效期與群組資格，有<br/>效的同一卡片仍交換為相同 requestId。"]
-  h --- n5["超過期限：已有收據的本人 requestId 可重播；<br/>未完成請求禁止新增寫入。定位期間不會延長期限<br/>。"]
-  h --- n6["預檢與提交各有 5 秒後端期限、10 秒前端期限；<br/>群組連結交換為後端 8 秒、前端 10 秒。定位沿<br/>用 10 秒裝置 timeout 與 15 秒前端保護，不以<br/>延長等待掩蓋流程問題。"]
-  h --- n7["本次核對 LINE 官方來源 main <br/>dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54 的 <br/>伺服器使用使用者資料，保留伺服器驗證本人。 <br/>React 19.3.1 的非同步結果處理參照 Context7 <br/>/reactjs/react.dev 官方 useEffect cleanup 文<br/>件；Next.js 16.4.5 參照安裝包內 use-client <br/>指引。 Graphify／Repomix 輔助核對呼叫與來源<br/>覆蓋，不證明手機定位或資料庫整合已驗收。"]
+  h["Location preflight, state and sequence"]
+  h --- n0["UI: idle → exchanging → checking → locating → submitting → idle.<br/>Definite preflight results return checking to idle; failures retain messages.<br/>Only needs_position starts location; denial, disconnection or invalid responses stop.<br/>If another device acts during location, final submit uses current state/receipt,<br/>never duplicating from the preflight snapshot."]
+  h --- n1["Location failure: no submit; retry same requestId through preflight first."]
+  h --- n2["Submit disconnect/timeout: unknown result; retry resolves receipt first.<br/>Display existing success without locating again."]
+  h --- n3["Leave/logout: cancel waiting and ignore late HTTP/location results by generation;<br/>already submitted transactions cannot be recalled."]
+  h --- n4["Same-page retries keep requestId and preflight.<br/>Navigation, session reset or full reopening clears page caches and revalidates launch/membership;<br/>a valid same card still exchanges the same requestId."]
+  h --- n5["After expiry, owners may replay existing receipts but unfinished requests cannot write.<br/>Location acquisition never extends deadlines."]
+  h --- n6["Preflight/submit: backend 5s, frontend 10s.<br/>Launch exchange: backend 8s, frontend 10s.<br/>Location: device 10s, frontend guard 15s; do not hide flow defects by waiting longer."]
+  h --- n7["Checked official LINE main dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54<br/>server user-data guidance; retain server identity verification.<br/>React 19.3.1 async handling follows Context7 /reactjs/react.dev useEffect cleanup;<br/>Next.js 16.4.5 follows installed use-client guidance.<br/>Graphify/Repomix corroborate sources, not device/database acceptance."]
   click n7 "https://developers.line.biz/en/docs/liff/using-user-profile/"
 ```
 
@@ -237,22 +251,24 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  h["程式入口與命名"]
-  h --- n0["定位前的 HTTP /punches/preflight 由 <br/>PunchResolver.ResolvePunchAttempt 處理：它會<br/>讀取既有收據，或保存本次拒絕結果，因此不是純<br/>查詢。PunchSubmitter.SubmitPunch 接收定位後<br/>的提交；兩者共用 executePunch 的同一套交易與<br/> ApplyEvent，不複製狀態機。"]
-  h --- n1["交易以私有 punchCommand 明列使用者、群組、事<br/>件、ReceivedAt（伺服器接收時間）、<br/>EventTimeMillis（排序用毫秒時間）、位置與請<br/>求 ID，並以 Mode 明確區分 resolvePunch／<br/>recordPunch，不以缺少位置推測模式。 <br/>GroupHistoryReader 單獨提供本人歷史讀取，查<br/>詢不再要求同時具備定位提交能力。 <br/>RecordsOverlappingMonth 包含跨月及未結束班次<br/>；verifyAndRebuildRecords 會驗證事件／更正證<br/>據並重建回傳班次，不寫回資料庫。事件重播函數<br/>為 worktime.RebuildSessions。"]
+  h["Code entry points and naming"]
+  h --- n0["PunchResolver.ResolvePunchAttempt handles /punches/preflight.<br/>It reads receipts or persists rejection, so is not a pure query.<br/>PunchSubmitter.SubmitPunch handles located submissions;<br/>both share executePunch transactions and ApplyEvent without duplicate state machines."]
+  h --- n1["Private punchCommand explicitly carries user, group, event, ReceivedAt,<br/>EventTimeMillis ordering, position and request ID. Mode distinguishes resolvePunch/recordPunch,<br/>never inferred from absent location. GroupHistoryReader independently serves personal history.<br/>RecordsOverlappingMonth includes cross-month/open shifts.<br/>verifyAndRebuildRecords checks event/correction evidence and rebuilds without writes;<br/>event replay uses worktime.RebuildSessions."]
 ```
 
 <a id="decision-flow"></a>
 
-## 群組打卡的判定流程
+<a id="群組打卡的判定流程"></a>
+
+## Group punch decision flow
 
 ```mermaid
 flowchart TD
-    start["群組打卡"] --> gate{"目前班次可接受這次打卡？"}
-    gate -->|是| ok["記錄班次事件"]
-    gate -->|否| stop["回報狀態衝突"]
+    start["Group punch"] --> gate{"Current shift accepts this action?"}
+    gate -->|Yes| ok["Record shift event"]
+    gate -->|No| stop["Report state conflict"]
 ```
 
-[入口適配器](../../../backend/internal/business/attendance/adapter/http/routes.go) · [判定依據](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) · [應用層輸出介面](../../../backend/internal/business/attendance/application/port/errors.go) · [相關測試](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go)
+[Entry adapter](../../../backend/internal/business/attendance/adapter/http/routes.go) · [Decision rules](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) · [Application output port](../../../backend/internal/business/attendance/application/port/errors.go) · [Related tests](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go)
 
-[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)
+[applicable guidance](../AGENTS.md) · [parent directory guide](../README.md)

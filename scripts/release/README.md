@@ -1,7 +1,9 @@
-# 發布驗收
+<a id="發布驗收"></a>
 
-操作入口：release-smoke.py。
+# Release acceptance
+
+Entry: release-smoke.py.
 
 - [release-smoke.py](release-smoke.py)
 
-[腳本總覽](../README.md) · [本層工作指引](AGENTS.md)
+[Script overview](../README.md) · [Local guidance](AGENTS.md)

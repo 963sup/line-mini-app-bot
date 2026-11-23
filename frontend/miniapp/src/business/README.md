@@ -1,22 +1,30 @@
-# frontend/miniapp/src/business 目錄導覽
+<a id="frontendminiappsrcbusiness-目錄導覽"></a>
 
-遵循 **依功能組織（feature-based architecture）**。將同一功能的畫面、表單、狀態與型別化 API 呼叫就近維護，由 `pages/` 依路由組合。前端呈現輸入與操作結果，業務規則及權限由後端做最終判定。
+# frontend/miniapp/src/business directory guide
 
-問題、討論、留言、物件、專案及里程碑的內容編輯控制讀取 API 的 `canEdit`。子物件表單使用父物件的編輯能力。問題與討論的分類操作另有授權語意。日誌的關聯選項由群組查詢提供，瀏覽器負責選取、分頁及取消過期請求。
+Use **feature-based architecture**. Colocate screens, forms, state and typed API calls; `pages/` composes routes. Frontends present inputs/results; backends decide business rules/permissions.
 
-## 閱讀與修改入口
+Issue, Discussion, comment, Object, Project and Milestone editing uses API `canEdit`. Subobject forms use parent capabilities. Issue/Discussion classification has separate permissions. Journal relationship options come from group queries; browsers select, paginate/cancel stale requests.
 
-從 [attendance](attendance)、[discussion](discussion)、[enterprise](enterprise)、[issue](issue)、[journal](journal)、[object](object) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[MINI App 首頁路由](../pages/miniapp/index.tsx)組合 [Organization 操作](organization/OrganizationPage.tsx)、[團隊清單](team/OrganizationTeams.tsx)及[企業開通與管理](enterprise/Enterprise.tsx)。Organization 和 Team 由路由傳入同一個組織 ID，各自讀取自己的 API。Enterprise 開通提示由路由傳入側欄取得的資格結果。組織團隊與企業頁共用 [Team 操作表單](team/TeamActions.tsx)，接入既有管理歸屬及企業團隊指派／移除 API；各自負責請求與畫面狀態，後端判斷實際權限。
+Start with [attendance](attendance), [discussion](discussion), [enterprise](enterprise), [issue](issue), [journal](journal), [object](object); before editing, read [local agent guidance](AGENTS.md).
 
-[現行實作圖：頁面與身分生命週期](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+<a id="相關規格"></a>
 
-[上層導覽](../README.md)
+## Related specifications
 
-## 下層文件入口
+The [MINI App home route](../pages/miniapp/index.tsx) composes [Organization](organization/OrganizationPage.tsx), [team lists](team/OrganizationTeams.tsx) and [Enterprise provisioning/management](enterprise/Enterprise.tsx). Organization/Team receive the same organization ID but query separate APIs. Enterprise eligibility comes from sidebar results. Organization teams/Enterprise share [Team forms](team/TeamActions.tsx) for management assignment and enterprise assignment/removal, owning request/UI state while backends authorize.
+
+[Current implementation diagram: page and identity lifecycle](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+[Parent directory guide](../README.md)
+
+<a id="下層文件入口"></a>
+
+## Child documentation entry points
 
 - [project](project/README.md)
 - [repository](repository/README.md)

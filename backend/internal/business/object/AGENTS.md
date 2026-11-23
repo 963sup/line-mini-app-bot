@@ -1,15 +1,27 @@
-# backend/internal/business/object 工作指引
+<a id="backendinternalbusinessobject-工作指引"></a>
 
-## 閱讀與修改入口
+# backend/internal/business/object agent guidance
 
-先查閱[object.go](domain/entity/object.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：物件與子物件歸屬](../../../../docs/contracts/object-subobject-ownership.md#物件與子物件歸屬)
+Start with [object.go](domain/entity/object.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
 
-## 變更工項進度的維護與驗收
+<a id="相關規格"></a>
 
-總量為 5、完成量為 8 的工項應被拒絕；等值十進位表示不應產生不同的完成狀態。
+## Related specifications
 
-修改此規則時，核對[判定流程](../../../../docs/domains/repository/object/README.md#decision-flow)與[代表測試](application/progress_test.go)。
+[Current implementation diagram: object and subobject ownership](../../../../docs/contracts/object-subobject-ownership.md#物件與子物件歸屬)
+
+<a id="變更工項進度的維護與驗收"></a>
+
+## Maintaining and verifying work-item progress changes
+
+Reject work items with total 5 and completed 8. Equivalent decimal representations must produce the same completion state.
+
+When changing this rule, check the [decision flow](../../../../docs/domains/repository/object/README.md#decision-flow) and [representative tests](application/progress_test.go).
+
+## Applicable engineering conventions
+
+- **Domain, state and authorization:** Validate exact quantities, parent scope and legal progress transitions in the domain; record history only for committed, authorized version changes.

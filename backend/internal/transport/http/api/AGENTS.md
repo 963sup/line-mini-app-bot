@@ -1,9 +1,21 @@
-# backend/internal/transport/http/api 工作指引
+<a id="backendinternaltransporthttpapi-工作指引"></a>
 
-## 閱讀與修改入口
+# backend/internal/transport/http/api agent guidance
 
-先查閱[contract.go](contract.go)、[routes.go](routes.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：格式與資料相容](../../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [contract.go](contract.go), [routes.go](routes.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: formats and data compatibility](../../../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+## Applicable engineering conventions
+
+- **Contract wiring:** Register generated operations with their owning adapters and capability inventory; removed frontend calls require consumer-inventory review.
+- **Generation and types:** Change OpenAPI sources before regenerating handlers/types; do not patch generated signatures or bypass dispatch assertions.
+- **Authorization:** Keep middleware identity checks separate from resource permissions rechecked by the use case.

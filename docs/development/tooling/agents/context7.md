@@ -9,8 +9,6 @@ Look up version-matched library, language, framework, SDK and tool documentation
 ## Prerequisites and configuration
 
 Remote service; check current schemas in tools/list. Compare documentation versions with the relevant package manifest, lockfile, go.mod or mise.toml.
-Connection, timeouts and enabled tool names are owned by `.codex/config.toml`.
-Tool versions are owned by `mise.toml`; never copy token values into documentation.
 
 ## Operation
 
@@ -38,13 +36,7 @@ The two connections are separate. The project server uses no API key or credenti
 
 ## Verification and failures
 
-```bash
-bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server context7
-```
-
-This checks initialize, tools/list and configured allowlists. Verify a representative
-operation separately. For failures distinguish missing binary, network, credential,
-workspace prerequisites and host loading; see [troubleshooting](../../environment/troubleshooting.md).
+Follow [MCP diagnostics](README.md#mcp-診斷) with the service name `context7`.
 
 ## Source routing and evidence
 

@@ -1,33 +1,39 @@
-# Summary 既有入口契約
+<a id="summary-既有入口契約"></a>
 
-記錄群組訊息摘要的 LINE 互動與內部工作入口。
+# Existing Summary entry contracts
 
-此處描述 LINE 訊息蒐集、摘要與內部 worker 的契約。worker 由內部 OpenAPI 組合，LINE 事件入口由既有 Webhook 接入。
+Documents LINE interactions and internal job entry points for group message summaries.
 
-## 閱讀與修改入口
+Describes LINE message collection, summarization and internal worker contracts. Internal OpenAPI composes the worker; existing webhooks handle LINE events.
 
-先查閱[worker.yaml](worker.yaml)、[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[群聊摘要](../../../docs/domains/summary/summary.md) · [現行實作圖：資料與可靠性](../../../docs/domains/summary/summary.md#資料與可靠性)
+Start with [worker.yaml](worker.yaml) and [local guidance](AGENTS.md).
 
-本文件描述既有 LINE／內部工作入口，不加入公開 OpenAPI、不產生瀏覽器 client。
-完整產品規則與資料保存方式見 [群聊摘要](../../../docs/domains/summary/summary.md)。
+<a id="相關規格"></a>
 
-| 能力 | 入口與可信來源 | 輸入、規則與結果 | 後端 |
+## Related specifications
+
+[Group chat summaries](../../../docs/domains/summary/summary.md) · [Current implementation diagram: data and reliability](../../../docs/domains/summary/summary.md#資料與可靠性)
+
+This document describes existing LINE/internal job entries. It adds neither public OpenAPI operations nor a browser client.
+See [group chat summaries](../../../docs/domains/summary/summary.md) for complete product rules and persistence.
+
+| Capability | Entry and trusted source | Inputs, rules and results | Backend |
 | --- | --- | --- | --- |
-| MessageCollection | 共用 LINE webhook 驗證簽章後的群組文字／編輯／收回事件 | 一般文字靜默收集；指令排除；編輯與收回沿用既有版本失效規則 | business/summary/messagecollection、其 line/；共用 summary/firestore |
-| Summarization | 同一 webhook 的群組「摘要」指令 | 有效群組、使用者、event ID、reply token 及既有時效檢查；event ID 防重，建立工作並排程；完成工作不重排 | business/summary/summarization/line |
-| Summarization worker | POST /internal/summary；Google 工作身分 Bearer token 驗證 | JSON group（C 加 32 位小寫十六進位）、id（64 位小寫十六進位）；2048 bytes 上限、拒絕未知欄位與多份 JSON | business/summary/summarization/http |
+| MessageCollection | Group text/edit/unsend events after shared LINE webhook signature validation | Silently collect ordinary text, exclude commands; retain version invalidation for edits/unsends | business/summary/messagecollection, its line/; shared summary/firestore |
+| Summarization | Group summary command through the same webhook | Valid group, user, event ID, reply token and freshness checks; deduplicate by event ID, create/schedule jobs; do not reschedule completed jobs | business/summary/summarization/line |
+| Summarization worker | POST /internal/summary; Google job identity Bearer authentication | JSON group (C plus 32 lowercase hex digits), id (64 lowercase hex digits); 2048-byte limit; reject unknown fields and multiple JSON values | business/summary/summarization/http |
 
-worker 保持現有回應：204 無內容；401 unauthorized；400 invalid job；503 summary temporarily unavailable。
-佇列傳送小寫 group、id；handler 沿用 Go JSON decoder 的大小寫匹配，不藉重構改變接受格式。
-工作沿用租約、版本重查、結果保存與穩定 LINE retry key；模型或發送失敗交由既有工作重試。
-共用 LINE 組合入口在 business/summary/line，依序交給摘要指令與訊息收集；不讓收集模組依賴摘要生成。
+Preserve worker responses: 204 no content; 401 unauthorized; 400 invalid job; 503 summary temporarily unavailable.
+Queues send lowercase group/id. Handlers retain Go JSON decoder case matching; refactoring must not change accepted formats.
+Jobs retain leases, version rechecks, result persistence and stable LINE retry keys. Existing job retries handle model or delivery failures.
+The shared LINE composition entry in business/summary/line dispatches summary commands before message collection. Collection must not depend on summary generation.
 
-沒有既有 MINI App 畫面或公開 Summary HTTP API；不得把此內部工作端點當成瀏覽器 API。
+There is no existing MINI App screen or public Summary HTTP API; this internal job endpoint is not a browser API.
 
-[現行實作圖：資料與可靠性](../../../docs/domains/summary/summary.md#資料與可靠性)
+[Current implementation diagram: data and reliability](../../../docs/domains/summary/summary.md#資料與可靠性)
 
-[上層導覽](../README.md)
+[Parent directory guide](../README.md)

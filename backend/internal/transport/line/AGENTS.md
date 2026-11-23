@@ -1,11 +1,23 @@
-# backend/internal/transport/line 工作指引
+<a id="backendinternaltransportline-工作指引"></a>
 
-## 閱讀與修改入口
+# backend/internal/transport/line agent guidance
 
-先查閱[group.go](group.go)、[reply.go](reply.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 工作方式
+## Reading and editing entry points
 
-[現行實作圖：基礎入口](../../../../docs/contracts/http.md#基礎入口)
+Start with [group.go](group.go), [reply.go](reply.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
 
-群組成員 API 查詢由 [platform/line](../../platform/line/README.md) 實作，透過 bootstrap 注入各領域的 Membership port。
+<a id="工作方式"></a>
+
+## Working approach
+
+[Current implementation diagram: basic entry points](../../../../docs/contracts/http.md#基礎入口)
+
+[platform/line](../../platform/line/README.md) implements group membership queries, injected through bootstrap into domain Membership ports.
+
+## Applicable engineering conventions
+
+- **Events and identity:** Process only verified LINE events through existing schemas and stable event identifiers; observed users do not automatically gain resource access.
+- **Reliability and idempotency:** Respect reply-token lifetime and duplicate-delivery rules, with bounded outgoing calls and explicit failure handling.
+- **Logging:** Correlate event handling without recording tokens or unnecessary message content.

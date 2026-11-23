@@ -1,27 +1,45 @@
-# backend/internal/business/attendance 工作指引
+<a id="backendinternalbusinessattendance-工作指引"></a>
 
-## 用途與範圍
+# backend/internal/business/attendance agent guidance
 
-管理打卡、出勤紀錄、補卡、請假、審核與出勤看板。領域與應用層各依 [模組導覽](README.md#現行結構) 的職責套件分層。
+<a id="用途與範圍"></a>
 
-## 架構與責任邊界
+## Purpose and scope
 
-此目錄維護本領域或子能力的行為。HTTP、LINE 與 Firestore 依需要提供適配，授權和狀態規則歸資源所屬領域。
+Manages punches, records, corrections, leave, reviews and attendance boards. Domain/application packages follow responsibilities in the [module guide](README.md#現行結構).
 
-## 閱讀與修改入口
+<a id="架構與責任邊界"></a>
 
-先查閱[errors.go](application/port/errors.go)、[store.go](application/port/store.go)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+## Architecture and responsibility boundaries
 
-## 相關規格
+This directory owns domain or sub-capability behavior. Add HTTP, LINE and Firestore adapters as needed; resource-owning domains control authorization and state.
 
-[現行實作圖：定位前預檢、狀態與時序](../../../../docs/domains/attendance/README.md#定位前預檢狀態與時序)
+<a id="閱讀與修改入口"></a>
 
-## 分層約束
+## Reading and editing entry points
 
-本模組採用 domain/entity、valueobject、service、event、policy，以及 application/command、query、port、dto。新增 Go 檔必須放入對應職責套件，不能恢復舊的功能混合套件或用別名套件繞過拆分。依賴允許範圍由 `internal/architecture/boundaries_test.go` 檢查。領域層不持有查詢分頁與外部序列化標籤。`adapter/messaging`、`adapter/scheduler` 目前僅保留入口，不代表已實作。
+Start with [errors.go](application/port/errors.go), [store.go](application/port/store.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
 
-## 群組打卡的維護與驗收
+<a id="相關規格"></a>
 
-驗證同一人的不同群組班次分開維護，並覆蓋無法接受打卡的班次狀態。
+## Related specifications
 
-修改此規則時，核對[判定流程](../../../../docs/domains/attendance/README.md#decision-flow)與[代表測試](adapter/firestore/attendance_integration_test.go)。
+[Current implementation diagram: location preflight, state and sequence](../../../../docs/domains/attendance/README.md#定位前預檢狀態與時序)
+
+<a id="分層約束"></a>
+
+## Layering constraints
+
+Uses domain/entity, valueobject, service, event, policy and application/command, query, port, dto. Put new Go files in the corresponding responsibility package. Do not restore mixed feature packages or bypass separation through aliases. `internal/architecture/boundaries_test.go` checks allowed dependencies. Domains contain no query pagination or external serialization tags. `adapter/messaging` and `adapter/scheduler` are reserved entry points, not implementations.
+
+<a id="群組打卡的維護與驗收"></a>
+
+## Maintaining and verifying group punches
+
+Verify separate shifts for the same person across groups and cover shift states that reject punches.
+
+When changing this rule, check the [decision flow](../../../../docs/domains/attendance/README.md#decision-flow) and [representative tests](adapter/firestore/attendance_integration_test.go).
+
+## Applicable engineering conventions
+
+- **Domain, state and authorization:** Use the attendance contract's business time zone and domain transitions for punches, corrections and reviews; adapters must not independently recompute worktime.

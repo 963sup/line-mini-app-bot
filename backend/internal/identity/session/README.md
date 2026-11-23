@@ -1,15 +1,21 @@
-# backend/internal/identity/session 目錄導覽
+<a id="backendinternalidentitysession-目錄導覽"></a>
 
-管理應用程式工作階段的建立、驗證與有效期限，`firestore/` 負責保存工作階段。
+# backend/internal/identity/session directory guide
 
-依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
+Manages session creation, verification and expiry; `firestore/` persists sessions.
 
-## 閱讀與修改入口
+Directories expose backend entry points or shared capabilities by purpose. Bootstrap wires services; domains own resource authorization and use cases.
 
-從 [session.go](session.go)、[firestore](firestore) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 閱讀入口
+## Reading and editing entry points
 
-[現行實作圖：續期交易與前端觸發](../../../../docs/contracts/identity.md#續期交易與前端觸發)
+Start with [session.go](session.go), [firestore](firestore); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="閱讀入口"></a>
+
+## Reading entry points
+
+[Current implementation diagram: renewal transaction and frontend triggers](../../../../docs/contracts/identity.md#續期交易與前端觸發)
+
+[Parent directory guide](../README.md)

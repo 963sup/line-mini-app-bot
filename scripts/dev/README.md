@@ -1,8 +1,10 @@
-# 載入本機環境、啟動服務
+<a id="載入本機環境啟動服務"></a>
 
-操作入口：dev。
+# Load local environment and start services
+
+Entry: dev.
 
 - [dev-env.sh](dev-env.sh)
 - [run.sh](run.sh)
 
-[腳本總覽](../README.md) · [本層工作指引](AGENTS.md)
+[Script overview](../README.md) · [Local guidance](AGENTS.md)

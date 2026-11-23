@@ -1,15 +1,21 @@
-# frontend/miniapp/src/shared/time 目錄導覽
+<a id="frontendminiappsrcsharedtime-目錄導覽"></a>
 
-提供跨功能共用的時間處理工具。
+# frontend/miniapp/src/shared/time directory guide
 
-提供跨功能重用的元件或工具；特定業務流程留在使用它的功能模組。
+Shared time utilities.
 
-## 閱讀與修改入口
+Cross-feature reusable utilities/components; specific workflows remain in consuming features.
 
-從 [time.ts](time.ts) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：頁面與身分生命週期](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+Start with [time.ts](time.ts); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: page and identity lifecycle](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+[Parent directory guide](../README.md)

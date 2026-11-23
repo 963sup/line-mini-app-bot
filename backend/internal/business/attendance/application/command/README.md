@@ -1,11 +1,15 @@
 # Attendance command
 
-寫入用例。
+Write use cases.
 
-## 實作與規則
+<a id="實作與規則"></a>
 
-[補正審核](review.go) 在 port 提供的交易視圖內執行授權與領域判斷，保存核准證據及決定。不得在交易外提前取得版本後無條件覆寫。
+## Implementation and rules
 
-## 驗證與入口
+[Correction review](review.go) authorizes and evaluates domain rules within port-provided transaction views, storing approval evidence and decisions. Do not read versions outside transactions and overwrite unconditionally.
 
-繼承[模組工作指引](../../AGENTS.md)，依[模組驗證入口](../../README.md#規格與驗證)執行相關檢查。[上層導覽](../README.md)。
+<a id="驗證與入口"></a>
+
+## Verification and entry points
+
+Inherit [module guidance](../../AGENTS.md) and run applicable checks through [module verification](../../README.md#規格與驗證). [Parent directory guide](../README.md).

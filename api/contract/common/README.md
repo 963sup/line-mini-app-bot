@@ -1,15 +1,21 @@
-# api/contract/common 目錄導覽
+<a id="apicontractcommon-目錄導覽"></a>
 
-保存各領域 API 共用的 HTTP 傳輸契約。
+# api/contract/common directory guide
 
-維護共用的 HTTP 傳輸定義，例如認證與錯誤回應。領域操作與業務型別由各能力維護。
+Stores HTTP transport contracts shared across domain APIs.
 
-## 閱讀與修改入口
+Maintains shared HTTP transport definitions such as authentication and error responses. Capabilities own domain operations and business types.
 
-從 [transport.yaml](transport.yaml) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：基礎入口](../../../docs/contracts/http.md#基礎入口)
+Start with [transport.yaml](transport.yaml). Read the [local guidance](AGENTS.md) before editing.
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: basic entry points](../../../docs/contracts/http.md#基礎入口)
+
+[Parent directory guide](../README.md)

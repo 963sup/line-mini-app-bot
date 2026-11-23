@@ -1,34 +1,40 @@
-# 群組
+<a id="群組"></a>
 
-**已有實作** · [領域設計](#領域設計) · [核心流程](#decision-flow) · [代表測試](../../../backend/internal/linegroup/application/query/group_test.go) · [程式目錄](../../../backend/internal/linegroup/README.md) · [維護指引](../../../backend/internal/linegroup/AGENTS.md)
+# Group
 
-## 領域設計
+**Implemented** · [Domain design](#領域設計) · [Core flow](#decision-flow) · [Representative tests](../../../backend/internal/linegroup/application/query/group_test.go) · [Code](../../../backend/internal/linegroup/README.md) · [Guidance](../../../backend/internal/linegroup/AGENTS.md)
 
-**子域定位**　群組身分與探索的支援能力。
+<a id="領域設計"></a>
 
-**通用語言**　群組觀測是已驗簽事件帶來的群組狀態；候選成員是可供探索的人員線索。
+## Domain design
 
-**上下文與契約**　LINE 提供事件與成員查詢；Group 整理狀態並核驗成員資格。Team 另外決定管理歸屬。
+**Subdomain classification:** supporting group identity/discovery.
 
-**驗收案例**　曾在事件中出現的使用者即使被列為候選，仍須通過群組成員核驗才能取得受限資料。
+**Language:** observations are state from verified events; member candidates are discovery clues.
 
-[對照實作或測試](../../../backend/internal/linegroup/application/query/group.go) · [戰略設計與分類準則](../../references/ddd/README.md)
+**Context/contracts:** LINE supplies events/membership queries; Group organizes state and verifies membership. Team separately determines management affiliation.
 
-管理群組狀態與 LINE 群組事件。
+**Acceptance:** event-observed candidates still require membership verification for restricted data.
 
-[後端group 實作說明](../../../backend/internal/linegroup/README.md)
+[Implementation/tests](../../../backend/internal/linegroup/application/query/group.go) · [Strategic classification criteria](../../references/ddd/README.md)
+
+Manages group state and LINE events.
+
+[Backend group implementation](../../../backend/internal/linegroup/README.md)
 
 <a id="decision-flow"></a>
 
-## 查閱受限群組資料的判定流程
+<a id="查閱受限群組資料的判定流程"></a>
+
+## Restricted group read decision flow
 
 ```mermaid
 flowchart TD
-    start["查閱受限群組資料"] --> gate{"已核實群組成員資格？"}
-    gate -->|是| ok["允許查閱"]
-    gate -->|否| stop["拒絕查閱"]
+    start["Read restricted group data"] --> gate{"Membership verified?"}
+    gate -->|Yes| ok["Allow read"]
+    gate -->|No| stop["Deny read"]
 ```
 
-[入口適配器](../../../backend/internal/linegroup/adapter/http/routes.go) · [判定依據](../../../backend/internal/linegroup/application/query/group_test.go) · [應用層輸出介面](../../../backend/internal/linegroup/application/port/store.go) · [相關測試](../../../backend/internal/linegroup/application/query/group_test.go)
+[Entry adapter](../../../backend/internal/linegroup/adapter/http/routes.go) · [Decision rules](../../../backend/internal/linegroup/application/query/group_test.go) · [Application output port](../../../backend/internal/linegroup/application/port/store.go) · [Related tests](../../../backend/internal/linegroup/application/query/group_test.go)
 
-[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)
+[applicable guidance](../AGENTS.md) · [parent directory guide](../README.md)

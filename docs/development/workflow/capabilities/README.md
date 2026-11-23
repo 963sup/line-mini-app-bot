@@ -1,24 +1,28 @@
-# 單一代理能力入口
+<a id="單一代理能力入口"></a>
 
-目前代理直接執行任務，不建立子代理。能力是按需閱讀的指引，不是必須全部執行的階段；模型、MCP 與權限由目前工作階段提供。
+# Single-agent capability entry point
 
-依[環境入口的能力選擇表](../../environment/README.md#依任務選擇能力)選讀本目錄指引；選擇表集中維護於該處。
+The current agent executes tasks without subagents. Capabilities are on-demand guidance, not mandatory stages; the current session supplies model, MCP and permissions.
 
-先讀根 AGENTS.md 與目標目錄指引；專業文件中的唯讀或寫入限制適用於該階段。完成探索或審查後，才切換至授權的實作階段。自我審查不等於獨立 reviewer；需要獨立驗收時明列缺口。
+Select guidance using the [environment capability table](../../environment/README.md#依任務選擇能力), maintained there exclusively.
 
-工具入口見[工具索引](../../tooling/README.md)，命令見[驗收矩陣](../../tooling/testing/commands.md)，工作流程見[開始任務](../task-start.md)。
+Read root AGENTS.md and target guidance first. Professional guides' read/write restrictions apply within their stages; switch from exploration/review to authorized implementation afterward. Self-review is not independent review; report gaps when independence is required.
 
-## 執行流程
+See the [tool index](../../tooling/README.md), [acceptance matrix](../../tooling/testing/commands.md) and [task start](../task-start.md) for tools, commands and workflow.
 
-現行工作流程；來源為[任務規則](../task-start.md)與 `.codex/config.toml`，所有階段由同一代理執行。
+<a id="執行流程"></a>
+
+## Execution flow
+
+Current workflow, sourced from [task rules](../task-start.md) and `.codex/config.toml`; one agent executes every stage.
 
 ```mermaid
 flowchart LR
-  A[確認目標與風險] --> B[按需探索與設計]
-  B --> C[最小實作]
-  C --> D[唯讀自我審查]
-  D --> E[測試與驗證]
-  E --> F{符合驗收條件}
-  F -->|否| C
-  F -->|是| G[交付證據與剩餘風險]
+  A[Confirm goals and risks] --> B[Explore and design as needed]
+  B --> C[Minimal implementation]
+  C --> D[Read-only self-review]
+  D --> E[Test and verify]
+  E --> F{Acceptance criteria met}
+  F -->|No| C
+  F -->|Yes| G[Deliver evidence and remaining risks]
 ```

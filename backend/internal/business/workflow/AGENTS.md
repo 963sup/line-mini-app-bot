@@ -1,9 +1,17 @@
-# workflow 維護指引
+<a id="workflow-維護指引"></a>
 
-適用於本目錄及子目錄，繼承[業務層指引](../AGENTS.md)。責任範圍見[目錄說明](README.md)。
+# Workflow maintenance guidance
 
-記錄流程停在哪一步及等待的條件。恢復執行時沿用同一次寫入的識別碼。
+Applies to this directory/descendants; inherit [business guidance](../AGENTS.md). See the [directory guide](README.md) for scope.
 
-驗證方式：純文件變更檢查連結與 git diff --check；實作時，檢查確認前無寫入，並驗證寫入成功後中斷再恢復不會重複寫入。
+Record the paused step and waiting conditions; reuse the same write identifier on resumption.
 
-變更此領域的行為時，核對[確認與恢復流程圖](../../../../docs/proposals/workflow.md#design-diagram)，同步更新受影響的分支與驗收條件。
+Verification: documentation checks links and git diff --check. Implementations verify no writes before confirmation and no duplicate writes after interruption following successful writes.
+
+When behavior changes, check the [confirmation and recovery diagram](../../../../docs/proposals/workflow.md#design-diagram) and update affected branches and acceptance criteria.
+
+## Applicable engineering conventions
+
+- **Domain, state and authorization:** For implemented workflows, persist the resumable step and operation identity; interruption or repeated confirmation must not duplicate completed effects.
+- **State and idempotency:** Define legal pause/resume/complete transitions and reuse the original write identity when resuming implemented steps.
+- **Acceptance:** Keep proposed orchestration separate from deployed code and verify interruption before confirmation and after a successful side effect.

@@ -1,14 +1,16 @@
-# 執行架構
+<a id="執行架構"></a>
 
-從執行入口、程式位置與依賴方向追到實際的資料流。
+# Runtime architecture
 
-- [後端功能邊界](backend-boundaries.md)
-- [組織、企業與團隊的共用 Adapter](shared-adapters.md)
-- [目前目錄與責任](code-layout.md)
-- [套件依賴與圖譜](dependencies.md)
-- [line-平台架構總覽](overview.md)
-- [react-前端生命週期](react-lifecycle.md)
+Trace runtime entry points, code and dependency direction to actual data flows.
 
-[上層索引](../README.md)
+- [Backend feature boundaries](backend-boundaries.md)
+- [Shared organization, enterprise and team adapters](shared-adapters.md)
+- [Current directories/responsibilities](code-layout.md)
+- [Package dependencies/graphs](dependencies.md)
+- [LINE platform architecture](overview.md)
+- [React frontend lifecycle](react-lifecycle.md)
 
-[適用工作指引](../AGENTS.md)
+[Parent index](../README.md)
+
+[applicable guidance](../AGENTS.md)

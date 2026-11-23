@@ -1,9 +1,21 @@
-# frontend/miniapp/src/navigation 工作指引
+<a id="frontendminiappsrcnavigation-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend/miniapp/src/navigation agent guidance
 
-先查閱[home](home)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：頁面與身分生命週期](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+Start with [home](home), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: page and identity lifecycle](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+## Applicable engineering conventions
+
+- **Routes and identifiers:** Use registered route/query conventions and encode resource identifiers without embedding credentials.
+- **State and authorization:** Navigation visibility may reflect capabilities but cannot authorize a resource; preserve confirmation for dirty or uncertain writes.
+- **Compatibility:** Test deep links, reload and back navigation when changing routes or selected scope.

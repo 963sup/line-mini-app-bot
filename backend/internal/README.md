@@ -1,34 +1,40 @@
-# backend/internal 目錄導覽
+<a id="backendinternal-目錄導覽"></a>
 
-保存 Go 後端的內部套件。業務功能放在 `business/`，服務組裝放在 `bootstrap/`，其餘套件提供身分驗證、請求傳輸、導覽及資料存取等共用基礎能力。
+# backend/internal directory guide
 
-依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
+Stores internal Go backend packages. Features live in `business/`, service composition in `bootstrap/`; other packages provide shared identity, transport, navigation and data-access foundations.
 
-LINE 群組觀測與舊查詢相容層位於 [linegroup](linegroup/README.md)。
+Directories expose backend entry points or shared capabilities by purpose. Bootstrap wires services; domains own resource authorization and use cases.
 
-## 閱讀與修改入口
+[linegroup](linegroup/README.md) owns LINE group observation and legacy query compatibility.
 
-從 [architecture](architecture)、[靜態頁面](transport/http/browser)、[business](business)、[定位診斷](transport/http/geolocation)、[httpapi](transport/http/api)、[identity](identity) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## Bounded Context 分層範本
+## Reading and editing entry points
 
-以下是單一 Bounded Context 的**標準參考結構，實際按需採用**。此倉庫的業務 Context 位於 `backend/internal/business/<context>/`。簡單功能可維持較少的套件，只有出現明確的分工需求時才新增對應分層或子目錄。無須補齊整棵目錄樹，也無須僅為符合範本而搬移既有程式。
+Start with [architecture](architecture), [static pages](transport/http/browser), [business](business), [location diagnostics](transport/http/geolocation), [httpapi](transport/http/api) and [identity](identity). Read the [local guidance](AGENTS.md) before editing.
+
+<a id="bounded-context-分層範本"></a>
+
+## Bounded context layering reference
+
+This is a **standard reference structure, adopted as needed** for one bounded context. Business contexts live in `backend/internal/business/<context>/`. Simple features may use fewer packages; add layers/subdirectories only for clear responsibilities. Do not fill the entire tree or move code merely to match the template.
 
 ```text
 internal/business/
 └── <Bounded Context>/
-    ├── domain/                  # 領域層
+    ├── domain/                  # Domain layer
     │   ├── entity/              # Entity / Aggregate Root
     │   ├── valueobject/         # Value Object
     │   ├── service/             # Domain Service
     │   ├── event/               # Domain Event
     │   └── policy/              # Domain Policy
-    ├── application/             # 應用層
-    │   ├── command/             # 寫入操作 / Use Case
-    │   ├── query/               # 查詢操作 / Use Case
+    ├── application/             # Application layer
+    │   ├── command/             # Write operations / Use cases
+    │   ├── query/               # Queries / Use cases
     │   ├── port/                # Output Port / Interface
     │   └── dto/                 # Application DTO
-    └── adapter/                 # 適配器層
+    └── adapter/                 # Adapter layer
         ├── http/                # HTTP Handler
         ├── line/                # LINE Webhook / API
         ├── firestore/           # Database Adapter
@@ -36,18 +42,24 @@ internal/business/
         └── scheduler/           # Scheduled Trigger
 ```
 
-閱讀一項功能時，可從適配器找到入口，再追到應用層的使用案例及領域層的規則。外部請求與資料格式由適配器轉換，跨層接線由 `bootstrap/` 負責。
+Trace features from adapter entry points into application use cases and domain rules. Adapters convert external requests/data formats; `bootstrap/` wires layers together.
 
-## 驗證入口
+<a id="驗證入口"></a>
 
-Go 檢查與測試方式見[後端工作指引](../AGENTS.md#驗證)。涉及 Firestore 交易的整合測試，請查閱對應套件的測試與模擬器前置條件。
+## Verification entry points
 
-## 閱讀入口
+See [backend guidance](../AGENTS.md#驗證) for Go checks/tests. For Firestore transaction integration tests, check package tests and emulator prerequisites.
 
-[現行實作圖：格式與資料相容](../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+<a id="閱讀入口"></a>
 
-## 共用技術與入口
+## Reading entry points
 
-[platform](platform) 提供文件鍵、分頁游標與 gRPC 錯誤轉換。[bootstrap](bootstrap) 建立 client 並接線。[navigation](transport/line/navigation) 組裝跨功能選單。[httpapi](transport/http/api) 維護 OpenAPI 生成契約與路由分派。
+[Current implementation diagram: formats and data compatibility](../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
 
-[上層導覽](../README.md)
+<a id="共用技術與入口"></a>
+
+## Shared technology and entry points
+
+[platform](platform) provides document keys, pagination cursors and gRPC error mapping. [bootstrap](bootstrap) creates clients/wiring. [navigation](transport/line/navigation) builds cross-feature menus. [httpapi](transport/http/api) maintains generated OpenAPI contracts and dispatch.
+
+[Parent directory guide](../README.md)

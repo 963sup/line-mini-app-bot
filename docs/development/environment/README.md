@@ -1,43 +1,51 @@
-# 開發環境
+<a id="開發環境"></a>
 
-## 依任務選擇能力
+# Development environment
 
-每個使用此專案的聊天，由目前代理依下表選讀適用指引後執行；必讀要求由[根目錄 AGENTS.md](../../../AGENTS.md#從這裡開始)維護。同一任務可採用多項能力，不必讀完全部，也不啟動子代理。
+<a id="依任務選擇能力"></a>
 
-| 任務 | 指引 |
+## Select capabilities by task
+
+The current agent selects and reads applicable guidance below for each chat. [Root AGENTS.md](../../../AGENTS.md#從這裡開始) owns mandatory reading. Tasks may use multiple capabilities without reading all guides or starting subagents.
+
+| Task | Guidance |
 | --- | --- |
-| 計畫、範圍、風險與交付 | [規劃](../workflow/capabilities/planning.md) |
-| 原始碼、依賴與官方來源查證 | [探索](../workflow/capabilities/explorer.md) |
-| 模型、架構與交易邊界 | [設計](../workflow/capabilities/architect.md) |
-| 找出問題並修好 | [實作](../workflow/capabilities/implementer.md) → [驗證修復](../workflow/capabilities/tester.md) |
-| 唯讀檢視差異與風險 | [自我審查](../workflow/capabilities/reviewer.md) |
-| 回歸、契約與整合驗收 | [測試](../workflow/capabilities/tester.md) |
-| Markdown、Mermaid 與授權 Wiki 工作 | [文件](../workflow/capabilities/documentation.md) |
+| Planning, scope, risk/delivery | [Planning](../workflow/capabilities/planning.md) |
+| Source, dependencies/official verification | [Exploration](../workflow/capabilities/explorer.md) |
+| Models, architecture/transactions | [Design](../workflow/capabilities/architect.md) |
+| Diagnose and fix | [Implementation](../workflow/capabilities/implementer.md) → [Verify fixes](../workflow/capabilities/tester.md) |
+| Read-only diff/risk review | [Self-review](../workflow/capabilities/reviewer.md) |
+| Regression, contract/integration acceptance | [Testing](../workflow/capabilities/tester.md) |
+| Markdown, Mermaid/authorized Wiki work | [Documentation](../workflow/capabilities/documentation.md) |
 
-能力內容與階段邊界見[能力說明](../workflow/capabilities/README.md)。選讀能力不代表需要安裝工具、登入或啟動應用；環境操作依任務實際需要選擇。
+See [capabilities](../workflow/capabilities/README.md) for content/stage boundaries. Reading guidance does not require installation, login or application startup; perform environment operations only as needed.
 
-## 依環境選擇操作
+<a id="依環境選擇操作"></a>
 
-從儲存庫根目錄執行命令。Linux x64／arm64 需要 Bash、curl、tar、sha256sum 與 Python 3.11 以上。
+## Select operations by environment
 
-| 場景 | 操作入口 |
+Run commands from the root. Linux x64/arm64 requires Bash, curl, tar, sha256sum and Python 3.11+.
+
+| Scenario | Entry point |
 | --- | --- |
-| 準備或更新發布的 Codex Cloud 環境 | [Cloud 安裝、啟動與驗收](codex-cloud.md) |
-| 本機開發 | `bash scripts/bootstrap.sh core`，再按需求[啟動應用](#啟動應用) |
-| 本機需要 MCP 與雲端工具 | [初始化模式](../tooling/shared/toolchain-setup.md#一般開發與-mcp-安裝) |
-| 核對設定、啟動及分階段驗收 | [環境驗證](verification.md) |
-| 工具找不到、依賴或認證失敗 | [環境排查](troubleshooting.md) |
+| Prepare/update published Codex Cloud environments | [Cloud installation/startup/acceptance](codex-cloud.md) |
+| Local development | `bash scripts/bootstrap.sh core`, then [start applications](#啟動應用) as needed |
+| Local MCP/cloud tools | [Bootstrap modes](../tooling/shared/toolchain-setup.md#一般開發與-mcp-安裝) |
+| Configuration/startup/staged acceptance | [Environment verification](verification.md) |
+| Missing tools/dependency/authentication failures | [Troubleshooting](troubleshooting.md) |
 
-## 啟動應用
+<a id="啟動應用"></a>
 
-確認鎖定依賴已準備好，並依任務所需提供應用設定。分開執行下列命令，方便判斷問題來自 Next.js 或 Go。需要 API 的頁面，讓 Go 服務在預設 8080 埠提供請求。
+## Start applications
 
-| 需要驗證 | 啟動命令 | 就緒依據 |
+Prepare locked dependencies and required settings. Run commands separately to isolate Next.js/Go failures. Pages requiring APIs use Go on default port 8080.
+
+| Verification target | Startup command | Readiness evidence |
 | --- | --- | --- |
-| Next.js 頁面 | `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp dev` | 在 3000 埠開啟本次修改的頁面 |
-| Go HTTP 或瀏覽器呼叫的 API | `bash scripts/tooling/tool-exec.sh mise run dev` | 日誌顯示服務已啟動，實際請求所需路由並核對回應 |
-| Go 提供靜態頁面的整合 | 先用 `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp build` 生成靜態資源，再啟動 Go | 透過 Go 服務開啟目標頁面，核對資源與 API |
+| Next.js pages | `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp dev` | Open the changed page on port 3000 |
+| Go HTTP/browser APIs | `bash scripts/tooling/tool-exec.sh mise run dev` | Check startup logs, request routes and verify responses |
+| Go/static-page integration | Generate assets with `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp build`, then start Go | Open pages through Go and check assets/APIs |
 
-閱讀各程序的終端輸出。以前景程序執行時，用 Ctrl+C 結束。啟動與轉送依據：[Go 入口](../../../scripts/dev/run.sh) · [前端任務](../../../frontend/miniapp/package.json) · [開發環境 API 轉送](../../../frontend/miniapp/next.config.ts)。
+Read terminal output for each process; stop foreground processes with Ctrl+C. Sources: [Go entry](../../../scripts/dev/run.sh) · [Frontend tasks](../../../frontend/miniapp/package.json) · [Development API forwarding](../../../frontend/miniapp/next.config.ts).
 
-[開發手冊](../README.md)
+[Development handbook](../README.md)

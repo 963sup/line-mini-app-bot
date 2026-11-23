@@ -77,4 +77,4 @@ runs dispatch regression tests before validating contracts and generated output.
 
 ## 容器驗收入口
 
-本機建置、CA 前置條件與 smoke 涵蓋範圍見[容器驗收工具](container.md)。
+本機建置、CA 前置條件與 smoke 涵蓋範圍見[容器驗收工具](../../../operations/container-build.md#本機建置與-smoke-驗收)。

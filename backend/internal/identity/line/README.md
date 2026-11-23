@@ -1,15 +1,21 @@
-# backend/internal/identity/line 目錄導覽
+<a id="backendinternalidentityline-目錄導覽"></a>
 
-驗證 LINE 身分憑證，供 MINI App 登入建立可信的使用者身分。
+# backend/internal/identity/line directory guide
 
-依目錄用途提供後端入口或共用能力；服務接線由 bootstrap 負責，資源授權與使用案例歸各業務領域。
+Verifies LINE credentials to establish trusted MINI App login identities.
 
-## 閱讀與修改入口
+Directories expose backend entry points or shared capabilities by purpose. Bootstrap wires services; domains own resource authorization and use cases.
 
-從 [verify.go](verify.go)、[verify_test.go](verify_test.go) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 閱讀入口
+## Reading and editing entry points
 
-[現行實作圖：續期交易與前端觸發](../../../../docs/contracts/identity.md#續期交易與前端觸發)
+Start with [verify.go](verify.go), [verify_test.go](verify_test.go); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="閱讀入口"></a>
+
+## Reading entry points
+
+[Current implementation diagram: renewal transaction and frontend triggers](../../../../docs/contracts/identity.md#續期交易與前端觸發)
+
+[Parent directory guide](../README.md)

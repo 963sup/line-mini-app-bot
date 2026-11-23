@@ -1,13 +1,15 @@
-# 開發流程
+<a id="開發流程"></a>
 
-按工作階段查閱。跨模組時記錄檔案所有權與交付證據，單一範圍由主責直接完成。
+# Development workflow
 
-| 階段 | 入口 | 完成時應有 |
+Choose guidance by stage. Record file ownership/evidence across modules; the responsible agent completes individual scopes directly.
+
+| Stage | Entry | Completion evidence |
 | --- | --- | --- |
-| 開始 | [任務與分工](task-start.md) | 目標、範圍、工作樹、適用指引與檢查 |
-| 實作與審查 | [實作指引](implementation.md) | 從操作契約到實作與驗收的可追溯路徑 |
-| 除錯 | [系統化除錯](debugging.md) | 預期和實際結果、重現方式與因果證據 |
-| 交接 | [交接與證據重用](handoff.md) | 六欄摘要與接手後的第一個動作 |
-| 發布 | [版本控制與階段交付](publication.md) | 已驗證的提交、適用的 CI 與發布狀態 |
+| Start | [Tasks/responsibilities](task-start.md) | Goals, scope, worktree, guidance/checks |
+| Implementation/review | [Implementation](implementation.md) | Traceability from contracts to implementation/acceptance |
+| Debugging | [Systematic debugging](debugging.md) | Expected/actual results, reproduction and causal evidence |
+| Handoff | [Handoff/evidence reuse](handoff.md) | Six-field summary and first takeover action |
+| Publication | [Version control/milestones](publication.md) | Verified commits, applicable CI/publication status |
 
-[按任務開始](../README.md#按任務開始) · [驗收索引](../verification/README.md)
+[Start by task](../README.md#按任務開始) · [Acceptance index](../verification/README.md)

@@ -1,15 +1,21 @@
-# frontend/miniapp/src/business/attendance/approvals 目錄導覽
+<a id="frontendminiappsrcbusinessattendanceapprovals-目錄導覽"></a>
 
-呈現出勤審核清單與審核操作。
+# frontend/miniapp/src/business/attendance/approvals directory guide
 
-在本功能就近維護畫面與互動，路由由 pages 組合，權限與結果以後端 API 為準。
+Presents review lists/actions.
 
-## 閱讀與修改入口
+Colocate feature UI/interactions; pages compose routes and backend APIs determine permissions/results.
 
-從 [View.tsx](View.tsx) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：審核畫面狀態同步](../../../../../../docs/domains/attendance/queries.md#審核畫面狀態同步)
+Start with [View.tsx](View.tsx); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: review screen state synchronization](../../../../../../docs/domains/attendance/queries.md#審核畫面狀態同步)
+
+[Parent directory guide](../README.md)

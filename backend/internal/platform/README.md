@@ -1,15 +1,21 @@
-# backend/internal/platform 目錄導覽
+<a id="backendinternalplatform-目錄導覽"></a>
 
-提供外部平台與資料存取的共用機制，包含 LINE 群組成員查詢、Firestore 鍵值與游標處理，以及 gRPC 錯誤對應。
+# backend/internal/platform directory guide
 
-共用的鍵值編碼、游標與錯誤處理可由多個適配器使用。業務文件映射、交易與授權規則由對應的業務模組維護。
+Provides shared external-platform/data mechanisms: LINE membership queries, Firestore keys/cursors and gRPC error mapping.
 
-## 閱讀與修改入口
+Adapters share key encoding, cursors and errors. Domains own document mappings, transactions and authorization.
 
-從 [line](line/README.md)、[firestorekey](firestore/key)、[grpcstatus](grpcstatus) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 閱讀入口
+## Reading and editing entry points
 
-[現行實作圖：格式與資料相容](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [line](line/README.md), [firestorekey](firestore/key), [grpcstatus](grpcstatus); before editing, read [local agent guidance](AGENTS.md).
 
-[上層導覽](../README.md)
+<a id="閱讀入口"></a>
+
+## Reading entry points
+
+[Current implementation diagram: formats and data compatibility](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+[Parent directory guide](../README.md)

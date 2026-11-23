@@ -1,19 +1,27 @@
-# backend/internal/business 目錄導覽
+<a id="backendinternalbusiness-目錄導覽"></a>
 
-採用 **依業務領域拆分（package by domain）**。業務規則與使用案例放在負責該操作的套件，HTTP、LINE 與 Firestore 轉接器依領域分工。跨領域操作透過明確的介面協作；服務與路由的組裝由 `internal/bootstrap` 負責。
+# backend/internal/business directory guide
 
-此目錄維護本領域或子能力的行為。HTTP、LINE 與 Firestore 依需要提供適配，授權和狀態規則歸資源所屬領域。
+Use **package by domain**. Put business rules and use cases in the responsible package; organize HTTP, LINE and Firestore adapters by domain. Collaborate through explicit cross-domain interfaces; `internal/bootstrap` composes services and routes.
 
-## 閱讀與修改入口
+This directory owns domain or sub-capability behavior. Add HTTP, LINE and Firestore adapters as needed; resource-owning domains control authorization and state.
 
-從 [attendance](attendance)、[discussion](discussion)、[enterprise](enterprise)、[issue](issue)、[journal](journal)、[object](object) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 閱讀入口
+## Reading and editing entry points
 
-[現行實作圖：格式與資料相容](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+Start with [attendance](attendance), [discussion](discussion), [enterprise](enterprise), [issue](issue), [journal](journal), [object](object); before editing, read [local agent guidance](AGENTS.md).
 
-## 規劃中的業務領域
+<a id="閱讀入口"></a>
+
+## Reading entry points
+
+[Current implementation diagram: formats and data compatibility](../../../docs/architecture/runtime/backend-boundaries.md#格式與資料相容)
+
+<a id="規劃中的業務領域"></a>
+
+## Planned business domains
 
 [operations](operations/README.md) · [workflow](workflow/README.md) · [agent](agent/README.md) · [knowledge](knowledge/README.md)
 
-[上層導覽](../README.md)
+[Parent directory guide](../README.md)

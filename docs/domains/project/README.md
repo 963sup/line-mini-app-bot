@@ -1,36 +1,42 @@
-# 專案
+<a id="專案"></a>
 
-**已有實作** · [設計規格](project.md) · [核心流程](#decision-flow) · [代表測試](../../../backend/internal/business/project/application/reference_source_test.go) · [程式目錄](../../../backend/internal/business/project/README.md) · [維護指引](../../../backend/internal/business/project/AGENTS.md)
+# Project
 
-[Repository 業務容器、專案與 LINE 旅程](journey.md)
+**Implemented** · [Design](project.md) · [Core flow](#decision-flow) · [Representative tests](../../../backend/internal/business/project/application/reference_source_test.go) · [Code](../../../backend/internal/business/project/README.md) · [Guidance](../../../backend/internal/business/project/AGENTS.md)
 
-## 領域設計
+[Repository containers, projects and LINE journeys](journey.md)
 
-**子域定位**　跨庫工程協作的核心候選。
+<a id="領域設計"></a>
 
-**通用語言**　目標規格中，每個專案由一位使用者或一個組織擁有，可複製到另一個 Owner；專案擁有者與引用來源分開識別；連結表示可選來源，來源引用指向具體項目。
+## Domain design
 
-**上下文與契約**　Project 管理專案連結、引用與巡檢；Repository、Issue 等來源各自維護其物件與權限。
+**Subdomain classification:** core candidate for cross-repository construction collaboration.
 
-**驗收案例**　加入跨庫引用時應核對選定來源及其專案連結；持有專案權限不會自動授予其他儲存庫的來源讀權。
+**Language:** target Projects belong to users/organizations and can be copied to other Owners. Ownership differs from sources; links identify selectable sources; references identify concrete items.
 
-[對照實作或測試](../../../backend/internal/business/project/application/reference_source_test.go) · [戰略設計與分類準則](../../references/ddd/README.md)
+**Context/contracts:** Project owns links, references/inspections. Source domains such as Repository/Issue own objects and permissions.
 
-專案規格說明來源引用、巡檢與存取範圍。
+**Acceptance:** verify selected sources/links for cross-repository references; Project access grants no other-repository source access.
 
-[相關業務規格](project.md) · [後端project 實作說明](../../../backend/internal/business/project/README.md)
+[Implementation/tests](../../../backend/internal/business/project/application/reference_source_test.go) · [Strategic classification criteria](../../references/ddd/README.md)
+
+Project specifications define references, inspections and access scope.
+
+[Business specification](project.md) · [Backend project implementation](../../../backend/internal/business/project/README.md)
 
 <a id="decision-flow"></a>
 
-## 加入跨庫來源引用的判定流程
+<a id="加入跨庫來源引用的判定流程"></a>
+
+## Cross-repository reference decision flow
 
 ```mermaid
 flowchart TD
-    start["加入跨庫來源引用"] --> gate{"來源已連結且操作者可讀？"}
-    gate -->|是| ok["保存引用"]
-    gate -->|否| stop["拒絕引用"]
+    start["Add cross-repository reference"] --> gate{"Source linked and readable?"}
+    gate -->|Yes| ok["Save reference"]
+    gate -->|No| stop["Reject reference"]
 ```
 
-[入口適配器](../../../backend/internal/business/project/adapter/http/routes.go) · [判定依據](../../../backend/internal/business/project/application/reference_source_test.go) · [應用層輸出介面](../../../backend/internal/business/project/application/port/project.go) · [相關測試](../../../backend/internal/business/project/application/reference_source_test.go)
+[Entry adapter](../../../backend/internal/business/project/adapter/http/routes.go) · [Decision rules](../../../backend/internal/business/project/application/reference_source_test.go) · [Application output port](../../../backend/internal/business/project/application/port/project.go) · [Related tests](../../../backend/internal/business/project/application/reference_source_test.go)
 
-[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)
+[applicable guidance](../AGENTS.md) · [parent directory guide](../README.md)

@@ -1,9 +1,21 @@
-# frontend/miniapp/src/shell 工作指引
+<a id="frontendminiappsrcshell-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend/miniapp/src/shell agent guidance
 
-先查閱[AppFrame.tsx](AppFrame.tsx)、[OrganizationSwitcher.tsx](OrganizationSwitcher.tsx)、[ServiceSidebar.tsx](ServiceSidebar.tsx)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：頁面與身分生命週期](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+Start with [AppFrame.tsx](AppFrame.tsx), [OrganizationSwitcher.tsx](OrganizationSwitcher.tsx), [ServiceSidebar.tsx](ServiceSidebar.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: page and identity lifecycle](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+## Applicable engineering conventions
+
+- **Structure and UI:** Keep application framing, navigation and identity composition separate from feature forms and protected sidebar primitives.
+- **Scope and state:** Preserve intended routes and dirty/unknown-write guards across sidebar, account and organization changes.
+- **Accessibility:** Maintain semantic headings, skip navigation, focus behavior and responsive layouts through existing component APIs.

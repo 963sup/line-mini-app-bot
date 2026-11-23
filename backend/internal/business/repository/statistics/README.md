@@ -1,19 +1,27 @@
-# 空間統計
+<a id="空間統計"></a>
 
-提供 Repository 的統計查詢與結果模型，並透過 `http/` 提供 API。
+# Space statistics
 
-此目錄維護本領域或子能力的行為。HTTP、LINE 與 Firestore 依需要提供適配，授權和狀態規則歸資源所屬領域。
+Provides Repository statistics queries/results through `http/` APIs.
 
-## 閱讀與修改入口
+This directory owns domain or sub-capability behavior. Add HTTP, LINE and Firestore adapters as needed; resource-owning domains control authorization and state.
 
-先查閱[statistics.go](../domain/entity/statistics/statistics.go)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[基礎規格](../../../../../docs/domains/repository/insights.md)
+Start with [statistics.go](../domain/entity/statistics/statistics.go).
 
-## 閱讀入口
+<a id="相關規格"></a>
 
-操作、權限、資料與驗收依 [基礎規格](../../../../../docs/domains/repository/insights.md)。不擴充未授權功能；核心、HTTP 與 Firestore 各自保留責任，前端組合既有元件。
+## Related specifications
 
-[適用工作指引](../AGENTS.md) · [上層導覽](../README.md)
+[basic specification](../../../../../docs/domains/repository/insights.md)
+
+<a id="閱讀入口"></a>
+
+## Reading entry points
+
+See the [basic specification](../../../../../docs/domains/repository/insights.md) for operations, permissions, data and acceptance. Do not expand unauthorized scope. Keep core/HTTP/Firestore responsibilities separate; compose existing frontend components.
+
+[applicable guidance](../AGENTS.md) · [parent directory guide](../README.md)

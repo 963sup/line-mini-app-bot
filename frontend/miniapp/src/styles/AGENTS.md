@@ -1,9 +1,21 @@
-# frontend/miniapp/src/styles 工作指引
+<a id="frontendminiappsrcstyles-工作指引"></a>
 
-## 閱讀與修改入口
+# frontend/miniapp/src/styles agent guidance
 
-先查閱[globals.css](globals.css)、[本目錄導覽](README.md)、[上層工作指引](../AGENTS.md)。
+<a id="閱讀與修改入口"></a>
 
-## 相關規格
+## Reading and editing entry points
 
-[現行實作圖：頁面與身分生命週期](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+Start with [globals.css](globals.css), [directory guide](README.md), [parent guidance](../AGENTS.md).
+
+<a id="相關規格"></a>
+
+## Related specifications
+
+[Current implementation diagram: page and identity lifecycle](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
+
+## Applicable engineering conventions
+
+- **UI and formatting:** Use existing design tokens, theme variables and scoped utilities; do not override protected component internals globally.
+- **Compatibility:** Check narrow layouts, long content, contrast and focus visibility when changing shared styles.
+- **Builds:** Preserve the existing stylesheet/toolchain entry points and verify affected static output without adding a parallel styling system.
