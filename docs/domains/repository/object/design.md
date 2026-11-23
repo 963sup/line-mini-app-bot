@@ -4,7 +4,86 @@
 
 狀態：最小切片已完成本機實作與回歸驗證；正式 LINE／Firestore／手機環境待驗收。每個來源文件項次是一筆 Object，quantity 代表該項數量，不自動拆成單件資產。
 
-## 數量事件投遞
+## Object 後端分層結構
+
+物件、子物件與物件範本同屬 Object 限界上下文。**實作狀態：** 下列分層均已實作。LINE 指令已接入 webhook，訊息發布與排程在設定 Pub/Sub 主題後啟用。
+
+下圖列出模組內的檔案與職責。精確數量與建立者資格分別由 valueobject 和 policy 維護。[後端分層指引](../../../../backend/internal/AGENTS.md#bounded-context-分層範本) · [Object 模組](../../../../backend/internal/business/object/)
+
+```text
+backend/internal/business/
+└── object/
+    ├── AGENTS.md                      # Object 模組開發規範
+    ├── domain/                        # 領域模型與規則
+    │   ├── entity/                    # Object 實體、數量與進度轉換
+    │   │   ├── conversion_test.go     # 物件類型轉換測試
+    │   │   └── object.go              # Object 實體、數量、進度與編輯規則
+    │   ├── valueobject/               # 值物件
+    │   │   ├── quantity.go            # 精確十進位數量
+    │   │   └── quantity_test.go       # 數量格式、精度與等值比較
+    │   ├── service/                   # 範本正規化與實例化規則
+    │   │   └── template.go            # 範本正規化與物件建立計畫
+    │   ├── template/                  # 範本節點、樹形約束與版本快照
+    │   │   ├── version.go             # 範本節點、樹形約束與版本快照
+    │   │   └── version_test.go        # 樹形與版本快照測試
+    │   ├── event/                     # 領域事件
+    │   │   └── quantity_changed.go    # 物件數量變更事件
+    │   └── policy/                    # 獨立領域政策
+    │       └── edit.go                # 建立者編輯資格
+    ├── application/                   # 用例入口與儲存庫資格核對
+    │   ├── command/                   # 建立、更新物件，發布與套用範本
+    │   │   ├── object.go              # 建立與更新物件
+    │   │   └── templates.go           # 建立、發布及套用範本
+    │   ├── query/                     # 查詢物件、範本、數量異動，以及準備草稿
+    │   │   ├── drafts.go              # 依文件或施工條件準備草稿
+    │   │   ├── object.go              # 物件清單、詳情、數量歷史與文件候選
+    │   │   └── templates.go           # 查詢本庫與個人範本
+    │   ├── port/                      # 用例所需的儲存、查詢與草稿準備介面
+    │   │   ├── drafts.go              # 草稿準備介面與輸入
+    │   │   ├── object.go              # 儲存庫查詢、物件保存與數量歷史介面
+    │   │   └── template.go            # 範本保存與套用介面
+    │   ├── dto/                       # 用例輸入與結果
+    │   │   ├── draft.go               # 草稿、警告與候選對照
+    │   │   ├── object.go              # 物件分頁與數量異動結果
+    │   │   └── template.go            # 範本建立、分頁與實例化結果
+    │   ├── drafts.go                  # 草稿準備入口
+    │   ├── drafts_test.go             # 草稿準備與輸入驗證測試
+    │   ├── object.go                  # 物件操作入口與儲存庫資格核對
+    │   ├── object_test.go             # 物件用例測試
+    │   ├── progress_test.go           # 完成量與進度規則測試
+    │   ├── space_test.go              # 空間綁定與解除測試
+    │   ├── templates.go               # 範本操作入口與套用目標核對
+    │   └── templates_test.go          # 範本驗證與權限測試
+    └── adapter/                       # 外部介面與儲存技術的轉接
+        ├── http/                      # 接收 API 請求、呼叫用例、轉換回應
+        │   ├── drafts.go              # 草稿準備 API
+        │   ├── drafts_test.go         # 草稿 API 測試
+        │   ├── routes.go              # 物件 API 路由與請求處理
+        │   ├── routes_test.go         # 物件 HTTP 契約與權限測試
+        │   ├── templates.go           # 範本建立、查詢與套用 API
+        │   └── templates_test.go      # 範本 API 測試
+        ├── line/                      # LINE Webhook 或 API
+        │   ├── webhook.go             # LINE 物件操作入口
+        │   └── webhook_test.go        # 範本指令、連結與重送測試
+        ├── firestore/                 # 物件與範本的保存、交易及防重收據
+        │   ├── hierarchy_test.go      # 父子物件保存測試
+        │   ├── history.go             # 查詢儲存庫數量異動歷史
+        │   ├── progress_test.go       # 進度與版本更新測試
+        │   ├── space_test.go          # 空間綁定與儲存庫範圍測試
+        │   ├── store.go               # 物件讀寫、版本檢查與交易
+        │   ├── store_test.go          # 物件儲存測試
+        │   ├── templates.go           # 範本快照、改版、原子套用與防重收據
+        │   └── templates_test.go      # 範本交易、回滾、跨庫套用與改版測試
+        ├── messaging/                 # 訊息佇列
+        │   ├── publisher.go           # 發布物件領域事件
+        │   └── publisher_test.go      # Pub/Sub 主題、事件資料及識別碼測試
+        └── scheduler/                 # 排程觸發
+            └── handler.go             # 接收排程觸發並呼叫物件用例
+```
+
+### LINE 入口與數量事件投遞
+
+登入入口沿用既有 Mini App。LINE 收到「物件範本」文字指令時回覆範本庫連結，開啟後由既有 API 核對身分與儲存庫權限。
 
 設定 `OBJECT_QUANTITY_PUBSUB_TOPIC=projects/<project>/topics/<topic>` 可啟用數量異動投遞。主題須已建立，執行身分須有發布權限。啟用後，變更總數量時會在同一筆 Firestore 交易寫入物件、版本歷史及待送事件。事件包含頻道、儲存庫、物件、版本與前後數量及單位。未設定時沿用既有數量稽核。
 
@@ -51,15 +130,50 @@
 
 ## API 與保存
 
-- [權威來源為 物件契約，由既有 OpenAPI 入口生成<br> Go／TS 型別：](../../../../api/contract/object/objects.yaml)
+HTTP 請求與回應以 [Object OpenAPI 契約](../../../../api/contract/object/objects.yaml) 為準。Go 與 TypeScript 型別由此契約產生。
 
 - GET／POST /api/v1/repositories/{repositoryId}/objects；列表依不透明文件 ID 遞增分頁，不宣稱為建立時間或來源項次順序。
 
 - GET／PATCH /api/v1/repositories/{repositoryId}/objects/{id}。
 
-- 建立只收內容與可選來源欄位；新施作未提供完成量預設0，新非施作初始technical status為not_started。PATCH收完整內容、expectedVersion及可選completedQuantity／status；可選來源欄位省略時保留現值，明確空字串才清除；不做文件版本自動合併。
+- 建立只收內容與可選來源欄位；新施作已填總量與單位時，省略完成量會預設為 0。新非施作的初始 technical status 為 not_started。PATCH收完整內容、expectedVersion及可選completedQuantity／status；可選來源欄位省略時保留現值，明確空字串才清除；不做文件版本自動合併。
 
 - 資料位於 channels/{channelId}/repositories/{repositoryId}/objects/{id}；不改 Issue、共用編號計數器或既有資料。建立資源與防重收據同交易提交；交易 callback 不呼叫外部服務或發通知。
+
+### HTTP JSON 範例
+
+建立工項時，向 `POST /api/v1/repositories/{repositoryId}/objects` 傳送 `Content-Type: application/json` 與 `Idempotency-Key`（例如 `create-object-0001`）。身分可使用 Bearer 或 Cookie Session，後者寫入時另須提供 `X-CSRF-Token`。以下是 `ObjectCreation` 的請求本文，數量使用十進位字串以保留精度：
+
+```json
+{"name":"配電盤","type":"work","quantity":"12.5","unit":"組"}
+```
+
+建立成功回傳 HTTP 200，本文為契約中的 `Object`。查詢清單則回傳 `ObjectPage`，以下是查詢範圍內沒有物件時的完整回應：
+
+```json
+{"items":[],"nextCursor":""}
+```
+
+### Pub/Sub 數量事件的線上格式
+
+發布端將一筆事件序列化為 UTF-8 JSON，再以標準 Base64 編碼，放入 Pub/Sub REST 發布請求的 `messages[].data`。同一則訊息的 `attributes.type` 固定為 `object.quantity_changed`，`attributes.eventId` 是該次異動的穩定防重鍵。直接處理 REST 資料時先解 Base64；若訂閱端 SDK 已提供訊息本文的 bytes，直接解析 JSON 即可。[發布實作](../../../../backend/internal/business/object/adapter/messaging/publisher.go)
+
+以下是解碼後的完整本文範例。欄位名稱大小寫須與範例一致；`Version` 是物件修訂版號，型別為整數，異動前後數量則為字串。[事件型別](../../../../backend/internal/business/object/domain/event/quantity_changed.go)
+
+```json
+{
+  "ChannelID": "1234567890",
+  "RepositoryID": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "ObjectID": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "Version": 2,
+  "Change": {
+    "BeforeQuantity": "10",
+    "BeforeUnit": "組",
+    "AfterQuantity": "12.5",
+    "AfterUnit": "組"
+  }
+}
+```
 
 <a id="畫面與驗收"></a>
 
@@ -71,11 +185,11 @@
 
 - 實作位置：後端 object、前端 object；正式 LINE／Firestore／手機整合另行驗收，測試替身或 build 不代表正式環境通過。本輪驗證不將真實來源文件的 54 項寫入資料庫。
 
-  - [object](../../../../backend/internal/business/object/README.md)
+  - [object](../../../../backend/internal/business/object/)
 
-  - [object](../../../../frontend/miniapp/src/business/object/README.md)
+  - [object](../../../../frontend/miniapp/src/business/object/)
 
-[跨領域歸屬契約](../../../contracts/object-subobject-ownership.md) · [領域入口](README.md)
+[跨領域歸屬契約](../../../contracts/object-subobject-ownership.md) · [範本操作與權限](template.md#操作與權限)
 
 ## 從文件辨識候選
 
@@ -127,7 +241,7 @@ Agent 與 Knowledge 按需求接入。Agent 只補查本次授權的來源，回
 
 建立 Object 時可指定同一 Repository 中已存在的 `parentId`。省略時建立根節點。父、子和葉是依階層推導的角色。父連結建立後固定，因此新節點可以接到現有節點，更新內容不會改寫階層或產生循環。每個節點各自保存數量、單位與進度。一般 Object 清單仍使用既有分頁，回傳包含各層的 Object。
 
-手動建立及範本套用沿用相同的初始數量、進度與版本規則。子項與父物件共用 Object API 與 Firestore 集合。專案和日誌直接引用子項的 Object ID。ObjectTemplate 屬於獨立的範本模型，實例化會建立新的 Object 並保存範本來源和版本。
+根物件與子物件使用同一份表單。手動建立只需名稱，新增子物件時一併提交父 ID。儲存庫成員可在同庫的既有物件下建立子物件；編輯則以該子物件自身的建立者與版本核對。手動建立及範本套用沿用相同的初始數量、進度與版本規則。子項與父物件共用 Object API 與 Firestore 集合。專案和日誌直接引用子項的 Object ID。ObjectTemplate 屬於獨立的範本模型，實例化會建立新的 Object 並保存範本來源和版本。
 
 [ObjectTemplate 規格](template.md)
 

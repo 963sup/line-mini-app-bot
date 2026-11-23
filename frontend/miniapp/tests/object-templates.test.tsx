@@ -213,13 +213,22 @@ test("template creation and application preserve original retries and return the
     assert.equal(applies.length, 0);
     await f.select(rid, "目標儲存庫");
     await f.click("工程");
-    await f.fill("數量", "6400");
+    await f.fill("數量", "1.1234567");
+    assert.equal(
+      [...document.querySelectorAll<HTMLButtonElement>('button[type="submit"]')].find(
+        (button) => button.textContent === "建立 2 個物件",
+      )?.disabled,
+      true,
+    );
+    assert.equal(applies.length, 0);
+    await f.fill("數量", "9007199254740993.123456");
     await f.click("建立 2 個物件");
     await f.click("重試原範本請求");
     assert.equal(applies.length, 2);
     assert.deepEqual(applies[0], applies[1]);
     assert.deepEqual(applies[0].body, {
-      nodes: [{ ...snapshot.nodes[0], quantity: "6400" }, snapshot.nodes[1]],
+      templateVersion: 1,
+      nodes: [{ ...snapshot.nodes[0], quantity: "9007199254740993.123456" }, snapshot.nodes[1]],
     });
     assert.match(document.body.textContent!, /已建立 2 個物件/);
   } finally {
@@ -603,6 +612,44 @@ test("edit a saved personal template and apply its next version", async () => {
     await f.fill("物件名稱", "A 棟");
     await f.click("建立 2 個物件");
     assert.match(document.body.textContent!, /已建立 2 個物件/);
+  } finally {
+    await f.dispose();
+  }
+});
+
+test("a stale personal revision reloads the library before editing the latest version", async () => {
+  let currentVersion = 1;
+  const submitted: number[] = [];
+  const f = await fixture(async (request) => {
+    if (request.method === "GET")
+      return Response.json({ items: [{ ...snapshot, version: currentVersion }], nextCursor: "" });
+    const body = await request.json();
+    submitted.push(body.baseVersion);
+    if (body.baseVersion !== currentVersion)
+      return Response.json(
+        { error: { code: "version_conflict", message: "範本已有新版" } },
+        { status: 409 },
+      );
+    return Response.json({
+      ...snapshot,
+      name: body.name,
+      nodes: body.nodes,
+      version: ++currentVersion,
+    });
+  }, true);
+  try {
+    await f.click(snapshot.name + "v1");
+    await f.click("編輯範本");
+    currentVersion = 2;
+    await f.click("儲存為 v2");
+    assert.match(document.body.textContent!, /範本已有新版/);
+    assert.doesNotMatch(document.body.textContent!, /重試原範本請求/);
+    await f.click("返回範本庫");
+    await f.click("放棄修改");
+    await f.click(snapshot.name + "v2");
+    await f.click("編輯範本");
+    await f.click("儲存為 v3");
+    assert.deepEqual(submitted, [1, 2]);
   } finally {
     await f.dispose();
   }

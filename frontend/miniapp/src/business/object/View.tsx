@@ -1,12 +1,11 @@
 import { Candidates, type Selection } from "./Candidates";
 import { isPositiveQuantity, isValidCompletedQuantity } from "@/business/object/quantity";
 import React, { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { ChevronDownIcon, ChevronRightIcon, Folder, Pencil, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useRepositoryGuard } from "../repository/NavigationGuard";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { useDiscardChanges } from "@/shared/useDiscardChanges";
-import { AddChildButton, useChildCreation, View as ObjectChildren } from "./Children";
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/shared/ui/collapsible";
+import { ObjectRows, typeLabel, statusLabel, progressLabel } from "./Children";
 import { useSpaces } from "../repository/useSpaces";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
@@ -23,29 +22,11 @@ import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { FieldError, FieldGroup, FieldSet } from "@/shared/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
-import { Item, ItemGroup, ItemContent, ItemTitle, ItemFooter } from "@/shared/ui/item";
 
 type Resource = components["schemas"]["Object"];
 type Creation = components["schemas"]["ObjectCreation"];
 type Props = { repositoryId: string; initialObjectId?: string; documentTool?: boolean };
-const states = { not_started: "未開始", in_progress: "進行中", completed: "已完成" };
 const empty: Creation = { name: "" };
-const typeLabel = (type: string) =>
-  !type
-    ? "尚未分類"
-    : type === "work"
-      ? "施作"
-      : type === "non_work"
-        ? "非施作"
-        : `${type}（待確認）`;
-const statusLabel = (item: Resource) =>
-  !item.type ? "尚未設定" : item.type === "non_work" ? "不適用" : states[item.status];
-const progressLabel = (item: Resource) =>
-  item.type === "non_work"
-    ? "不適用"
-    : item.type === "work" && item.completedQuantity !== undefined
-      ? `${item.completedQuantity}/${item.quantity} ${item.unit}`
-      : "待補／待確認";
 const fields = [
   ["name", "物件名稱", 120],
   ["quantity", "數量", 25],
@@ -102,39 +83,26 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
   useEffect(() => {
     repositoryGuard.block(busy || uncertain || needsRefresh);
   }, [busy, uncertain, needsRefresh]);
-  const [expanded, setExpanded] = useState("");
-  const childCreation = useChildCreation(setExpanded);
-  const [subBlocked, setSubBlocked] = useState(false);
-  const subLock = useRef(false);
-  const subBlock = useCallback((value: boolean) => {
-    subLock.current = value;
-    setSubBlocked(value);
-  }, []);
+  const [branch, setBranch] = useState("");
+  const [changes, setChanges] = useState<Map<string, Resource>>(() => new Map());
+  const label = branch ? "子物件" : "物件";
   const lock = useRef(false),
     formNavigation = useRef(false),
     objectCreateAttempt = useRef<{ idempotencyKey: string; body: Creation } | null>(null);
   useEffect(() => {
     formNavigation.current = false;
   });
-  const canSubWrite = useCallback(
-    () =>
-      !formNavigation.current &&
-      !lock.current &&
-      !busy &&
-      !uncertain &&
-      !listBusy &&
-      !detailBusy &&
-      !needsRefresh &&
-      !dirty &&
-      !discard.isConfirming() &&
-      repositoryGuard.canWrite(),
-    [repositoryGuard.canWrite, busy, uncertain, listBusy, detailBusy, needsRefresh, dirty],
-  );
   const canEdit = selected?.canEdit === true;
+  const requiresCompletion =
+    content.type === "work" &&
+    (!!content.completedQuantity?.trim() ||
+      selected?.completedQuantity !== undefined ||
+      (!!content.quantity?.trim() &&
+        (selected?.type !== "work" || content.quantity !== selected.quantity)));
 
   const load = useCallback(
     (next = "") => {
-      if (!user || subLock.current) return;
+      if (!user) return;
       formNavigation.current = true;
       setListBusy(true);
       setLoaded(false);
@@ -166,7 +134,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
             setCursor(next);
           } else {
             setItems([]);
-            setExpanded("");
+            setChanges(new Map());
           }
           setListBusy(false);
           setListStatus(errorMessage(error));
@@ -207,10 +175,11 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
       return;
     }
     if (!detailBusy && !busy) focusEditor();
-  }, [mode, detailBusy, busy]);
+  }, [mode, branch, activeId, detailBusy, busy]);
   function clearEditor() {
     setInvalidField(null);
     setReview(undefined);
+    setBranch("");
     detail.cancel();
     setDetailBusy(false);
     setMode(null);
@@ -221,16 +190,20 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
     setStatus("");
   }
   function close() {
-    if (lock.current || uncertain || needsRefresh || subLock.current) return;
+    if (lock.current || uncertain) return;
     discard.navigate(() => {
       formNavigation.current = true;
       clearEditor();
+      setNeedsRefresh(false);
+      repositoryGuard.block(false);
     });
   }
   function saved(item: Resource, message: string) {
     if (mode === "create" && review)
       setCreatedCandidates((previous) => new Map(previous).set(review.id, item.id));
     setReview(undefined);
+    setChanges((previous) => new Map(previous).set(item.id, item));
+    setBranch("");
     setItems((previous) =>
       previous.some((value) => value.id === item.id)
         ? previous.map((value) => (value.id === item.id ? item : value))
@@ -248,17 +221,17 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
     setLoaded(true);
     setListStatus(message);
   }
-  function open(id: string, trigger?: HTMLElement, field = "name") {
+  function open(id: string, trigger?: HTMLElement, field = "name", location = "") {
     if (
       !user ||
-      subLock.current ||
       lock.current ||
-      uncertain ||
+      (uncertain && !needsRefresh) ||
       (needsRefresh && id !== activeId) ||
       formNavigation.current
     )
       return;
     discard.navigate(() => {
+      setBranch(location);
       editField.current = field;
       if (trigger) opener.current = trigger;
       formNavigation.current = true;
@@ -293,18 +266,34 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
       );
     });
   }
+  const openedInitialId = useRef("");
   useEffect(() => {
-    if (initialObjectId) open(initialObjectId);
-  }, [initialObjectId]);
-  function openCreateForm(trigger: HTMLElement, selection?: Selection) {
-    if (subLock.current || lock.current || uncertain || needsRefresh || formNavigation.current)
+    if (
+      !initialObjectId ||
+      openedInitialId.current === initialObjectId ||
+      listBusy ||
+      (!loaded && !listStatus)
+    )
       return;
+    openedInitialId.current = initialObjectId;
+    if (!mode) open(initialObjectId);
+  }, [initialObjectId, listBusy, loaded, listStatus, mode]);
+  function openCreateForm(
+    trigger: HTMLElement,
+    selection?: Selection,
+    parentId?: string,
+    location = "",
+    expand?: () => void,
+  ) {
+    if (lock.current || uncertain || needsRefresh || formNavigation.current) return;
     discard.navigate(() => {
       opener.current = trigger;
       formNavigation.current = true;
       read.cancel();
       setListBusy(false);
       clearEditor();
+      expand?.();
+      setBranch(location);
       setReview(selection);
       const candidate = selection?.candidate;
       editField.current = "name";
@@ -318,7 +307,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
               sourceDocument: selection!.filename,
               sourcePages: candidate.location ?? "",
             }
-          : { ...empty },
+          : { ...empty, parentId },
       );
       setNeedsRefresh(false);
       objectCreateAttempt.current = null;
@@ -329,7 +318,6 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
     if (
       discard.isConfirming() ||
       !user ||
-      subLock.current ||
       lock.current ||
       formNavigation.current ||
       needsRefresh ||
@@ -341,6 +329,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
       mode === "create"
         ? {
             name: content.name.trim(),
+            ...(content.parentId ? { parentId: content.parentId } : {}),
             ...(review
               ? {
                   description: content.description,
@@ -349,16 +338,9 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
                 }
               : {}),
           }
-        : ({
-            name: content.name,
-            description: "",
-            type: "",
-            quantity: "",
-            unit: "",
-            ...Object.fromEntries(
-              Object.entries(content).map(([key, value]) => [key, value?.trim() || ""]),
-            ),
-          } as Creation);
+        : (Object.fromEntries(
+            Object.entries(content).map(([key, value]) => [key, value?.trim() || ""]),
+          ) as Creation);
     setInvalidField(null);
     if (!body.name) {
       setStatus("");
@@ -370,7 +352,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
       setInvalidField("quantity");
       return;
     }
-    if (mode === "detail" && body.type === "work" && (body.quantity || body.completedQuantity)) {
+    if (mode === "detail" && requiresCompletion) {
       if (!body.unit) {
         setStatus("");
         setInvalidField("unit");
@@ -384,14 +366,14 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
     } else {
       delete body.completedQuantity;
     }
-    if (selected?.requiresProgressReset && body.type === "non_work") {
-      setStatus("請先將完成數改為0並儲存，再將類型改為非施作。");
+    if (selected?.requiresProgressReset && body.type !== "work") {
+      setStatus("請先將完成數改為0並儲存，再變更類型。");
       return;
     }
+    lock.current = true;
+    setBusy(true);
+    repositoryGuard.block(true);
     if (mode === "detail" && selected) {
-      lock.current = true;
-      setBusy(true);
-      repositoryGuard.block(true);
       setStatus("正在更新物件……");
       void write.run(
         (signal) =>
@@ -419,7 +401,9 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
         (error) => {
           lock.current = false;
           setBusy(false);
-          repositoryGuard.block(true);
+          const unknown = !rejectedAttempt(error, ["version_conflict"]);
+          repositoryGuard.block(unknown);
+          setUncertain(unknown);
           setNeedsRefresh(true);
           setStatus(errorMessage(error) + " 請重新讀取物件後再修改。");
         },
@@ -430,10 +414,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
       objectCreateAttempt.current = { idempotencyKey: crypto.randomUUID(), body };
     const attempt = objectCreateAttempt.current;
     const wasUnknown = uncertain;
-    lock.current = true;
-    setBusy(true);
     setUncertain(true);
-    repositoryGuard.block(true);
     setStatus("正在建立物件……");
     void write.run(
       (signal) =>
@@ -452,7 +433,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
       (item) => {
         lock.current = false;
         setBusy(false);
-        saved(item, "已建立物件。");
+        saved(item, branch ? "已建立子物件，父物件進度不變。" : "已建立物件。");
       },
       (error) => {
         lock.current = false;
@@ -469,12 +450,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
     );
   }
   const cancelButton = (
-    <Button
-      type="button"
-      variant="ghost"
-      disabled={busy || uncertain || needsRefresh || subBlocked}
-      onClick={close}
-    >
+    <Button type="button" variant="ghost" disabled={busy || uncertain} onClick={close}>
       {canEdit || mode === "create" ? "取消" : "關閉"}
     </Button>
   );
@@ -482,7 +458,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
     <section
       ref={editorPanel}
       tabIndex={-1}
-      aria-label={mode === "create" ? "新增物件" : "物件編輯"}
+      aria-label={branch ? undefined : mode === "create" ? "新增物件" : "物件編輯"}
       className="flex w-full min-w-0 flex-col items-start gap-3 rounded-lg border bg-background p-4 sm:max-w-3xl"
     >
       {mode === "create" && review && (
@@ -497,24 +473,24 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
       {mode === "detail" && !detailBusy && (!selected || needsRefresh) && (
         <Button
           variant="outline"
-          disabled={busy || detailBusy || subBlocked}
-          onClick={() => open(activeId)}
+          disabled={busy || detailBusy}
+          onClick={() => open(activeId, undefined, "name", branch)}
         >
-          重新讀取物件
+          重新讀取{label}
         </Button>
       )}
       {(mode === "create" || selected) && (
-        <form className="w-full" onSubmit={submit} onChange={() => setInvalidField(null)}>
+        <form
+          aria-label={branch ? "子物件編輯" : undefined}
+          className="w-full"
+          onSubmit={submit}
+          onChange={() => setInvalidField(null)}
+        >
           <FieldGroup className="gap-3">
             <FieldSet
               className="grid min-w-0 gap-3 sm:grid-cols-2"
               disabled={
-                busy ||
-                detailBusy ||
-                subBlocked ||
-                uncertain ||
-                needsRefresh ||
-                (mode === "detail" && !canEdit)
+                busy || detailBusy || uncertain || needsRefresh || (mode === "detail" && !canEdit)
               }
             >
               {mode === "detail" && (
@@ -531,7 +507,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
                           completedQuantity =
                             selected?.workConversionDefault === "quantity"
                               ? previous.quantity
-                              : selected?.workConversionDefault === "zero"
+                              : selected?.workConversionDefault === "zero" && previous.quantity
                                 ? "0"
                                 : (selected?.completedQuantity ?? "");
                         }
@@ -560,7 +536,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
                   return (
                     <React.Fragment key={key}>
                       <FormField data-invalid={invalid || undefined}>
-                        {label}
+                        {branch ? (key === "name" ? "子物件名稱" : `子物件${label}`) : label}
                         <Input
                           data-edit-field={key}
                           required={key === "name"}
@@ -641,7 +617,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
                   </FormField>
                   {content.type === "work" && (
                     <FormField data-invalid={invalidField === "completedQuantity" || undefined}>
-                      完成數
+                      {branch ? "子物件完成數" : "完成數"}
                       <Input
                         aria-invalid={invalidField === "completedQuantity" || undefined}
                         aria-describedby={
@@ -650,7 +626,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
                             : undefined
                         }
                         data-edit-field="completedQuantity"
-                        required={!!content.quantity}
+                        required={requiresCompletion}
                         inputMode="decimal"
                         maxLength={25}
                         value={content.completedQuantity || ""}
@@ -693,9 +669,13 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
                 <Button
                   className="self-start"
                   type="submit"
-                  disabled={busy || detailBusy || needsRefresh || subBlocked}
+                  disabled={busy || detailBusy || needsRefresh}
                 >
-                  {mode === "create" ? (uncertain ? "重試原物件建立請求" : "建立物件") : "儲存物件"}
+                  {mode === "create"
+                    ? uncertain
+                      ? `重試原${label}建立請求`
+                      : `建立${label}`
+                    : `儲存${label}`}
                 </Button>
               )}
               {cancelButton}
@@ -706,16 +686,17 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
       {mode === "detail" && !selected && cancelButton}
     </section>
   );
+  const locked = busy || detailBusy || uncertain || needsRefresh;
   if (documentTool)
     return (
       <>
         <Candidates
           repositoryId={repositoryId}
-          disabled={!user || !!mode || busy || uncertain || needsRefresh || subBlocked}
+          disabled={!user || !!mode || busy || uncertain || needsRefresh}
           created={createdCandidates}
           choose={(selection, trigger) => openCreateForm(trigger, selection)}
         />
-        {mode === "create" && editor}
+        {!branch && mode === "create" && editor}
         <ReadFeedback busy={false} plain={loaded} message={listStatus} label="" />
         {discard.dialog}
       </>
@@ -729,162 +710,47 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
           message={listStatus}
           label="正在讀取物件……"
           onRetry={
-            user && listStatus && !loaded && !busy && !subBlocked && !uncertain && !mode
+            user && listStatus && !loaded && !busy && !uncertain && !mode
               ? () => load(cursor)
               : undefined
           }
         />
-        {mode === "detail" && !items.some((item) => item.id === activeId) && (
+        {!branch && mode === "detail" && !items.some((item) => item.id === activeId) && (
           <PagePanel heading="物件詳情">{editor}</PagePanel>
         )}
-        <ItemGroup className="w-full min-w-0 gap-0">
-          {items.map((item) => (
-            <Collapsible
-              key={item.id}
-              open={expanded === item.id}
-              onOpenChange={(value) => {
-                if (
-                  subLock.current ||
-                  lock.current ||
-                  uncertain ||
-                  formNavigation.current ||
-                  discard.isConfirming()
-                )
-                  return;
-                formNavigation.current = true;
-                setExpanded(value ? item.id : "");
-              }}
-              className="w-full min-w-0"
-            >
-              <Item role="listitem" className="w-full min-w-0 border-0 px-0 py-0.5">
-                <ItemContent className="w-full min-w-0">
-                  <ItemTitle className="w-full min-w-0 max-w-full">
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="min-w-0 flex-1 justify-start font-normal"
-                        disabled={busy || detailBusy || uncertain || needsRefresh || subBlocked}
-                        aria-label={`子物件：${item.name}`}
-                        title={expanded === item.id ? "收合子物件" : "展開子物件"}
-                      >
-                        {expanded === item.id ? (
-                          <ChevronDownIcon aria-hidden="true" />
-                        ) : (
-                          <ChevronRightIcon aria-hidden="true" />
-                        )}
-                        <Folder aria-hidden="true" />
-                        <span className="truncate">{item.name}</span>
-                      </Button>
-                    </CollapsibleTrigger>
-                    <Button
-                      variant="link"
-                      aria-label={item.name}
-                      title={item.canEdit ? `編輯物件：${item.name}` : "物件詳情"}
-                      className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]"
-                      disabled={busy || detailBusy || uncertain || needsRefresh || subBlocked}
-                      onClick={(event) => open(item.id, event.currentTarget)}
-                    >
-                      {item.canEdit ? <Pencil aria-hidden="true" className="size-3.5" /> : "詳情"}
-                      <span className="sr-only">名稱：{item.name}</span>
-                    </Button>
-                    {item.canEdit && (
-                      <AddChildButton
-                        name={item.name}
-                        disabled={
-                          busy ||
-                          detailBusy ||
-                          uncertain ||
-                          needsRefresh ||
-                          !!mode ||
-                          (subBlocked && expanded !== item.id)
-                        }
-                        onClick={(trigger) => childCreation.add(item.id, trigger)}
-                      />
-                    )}
-                  </ItemTitle>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 ps-2 text-xs text-muted-foreground sm:ps-12">
-                    {(
-                      [
-                        [
-                          "數量",
-                          item.quantity && `${item.quantity} ${item.unit ?? ""}`.trim(),
-                          "quantity",
-                        ],
-                        ["類型", item.type && typeLabel(item.type), "type"],
-                        ["狀態", item.type && statusLabel(item), ""],
-                        [
-                          "進度",
-                          item.type && progressLabel(item),
-                          item.type === "work" ? "completedQuantity" : "",
-                        ],
-                      ] as const
-                    ).map(
-                      ([label, value, field]) =>
-                        value && (
-                          <p key={label} className="min-w-0 [overflow-wrap:anywhere]">
-                            {item.canEdit && field ? (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="h-auto whitespace-normal px-1 py-1 text-xs"
-                                disabled={
-                                  busy || detailBusy || uncertain || needsRefresh || subBlocked
-                                }
-                                onClick={(event) => open(item.id, event.currentTarget, field)}
-                              >
-                                {label}：{value}
-                              </Button>
-                            ) : (
-                              <>
-                                {label}：{value}
-                              </>
-                            )}
-                          </p>
-                        ),
-                    )}
-                  </div>
-                </ItemContent>
-                {mode === "detail" && activeId === item.id && <ItemFooter>{editor}</ItemFooter>}
-              </Item>
-              <CollapsibleContent className="min-w-0 ps-4 pt-1">
-                {expanded === item.id && (
-                  <ObjectChildren
-                    editorRef={childCreation.editor}
-                    repositoryId={repositoryId}
-                    objectId={item.id}
-                    canEdit={item.canEdit}
-                    parentEditing={!!mode}
-                    onEdit={() => {
-                      opener.current = null;
-                      clearEditor();
-                    }}
-                    onBlocked={subBlock}
-                    canWrite={canSubWrite}
-                  />
-                )}
-              </CollapsibleContent>
-            </Collapsible>
-          ))}
-        </ItemGroup>
+        <ObjectRows
+          items={items}
+          branch=""
+          tree={{
+            repositoryId,
+            activeId,
+            branch,
+            editor,
+            changes,
+            editingBranch: !!branch && !!mode,
+            locked,
+            open,
+            addChild: (trigger, parentId, location, expand) =>
+              openCreateForm(trigger, undefined, parentId, location, expand),
+          }}
+        />
         {loaded && cursor && (
           <Button
             variant="outline"
-            disabled={busy || listBusy || subBlocked || !!mode}
+            disabled={busy || listBusy || !!mode}
             onClick={() => load(cursor)}
           >
             載入更多物件
           </Button>
         )}
-        {mode === "create" && editor}
+        {!branch && mode === "create" && editor}
         <Button
           type="button"
           variant="ghost"
           size="sm"
           className="self-start"
           title="新增物件"
-          disabled={!user || busy || uncertain || needsRefresh || subBlocked || mode === "create"}
+          disabled={!user || locked || mode === "create"}
           onClick={(event) => openCreateForm(event.currentTarget)}
         >
           <Plus aria-hidden="true" />

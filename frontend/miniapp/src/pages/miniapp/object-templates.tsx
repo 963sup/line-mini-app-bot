@@ -8,7 +8,6 @@ import {
   RepositoryNavigationContext,
   useRepositoryNavigation,
 } from "@/business/repository/NavigationGuard";
-const ignore = () => {};
 function Library() {
   const { user, epoch } = useSession();
   return user ? (
@@ -42,11 +41,6 @@ function LibraryContent() {
         </PagePanel>
       ) : (
         <Templates
-          repositoryId=""
-          standalone
-          initiallyOpen
-          disabled={false}
-          onBlocked={ignore}
           onApplied={(result, repositoryId) =>
             setCreated({ repositoryId, root: result.rootObjectId, count: result.objectIds.length })
           }

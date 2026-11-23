@@ -1125,7 +1125,8 @@
       "specification": "docs/domains/repository/object/design.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx",
-        "frontend/miniapp/src/business/journal/WorkContext.tsx"
+        "frontend/miniapp/src/business/journal/WorkContext.tsx",
+        "frontend/miniapp/src/business/object/Children.tsx"
       ]
     },
     {
@@ -1648,9 +1649,7 @@
       "handler": "ListObjectTemplates",
       "core": "backend/internal/business/object/domain/template/version.go",
       "specification": "docs/domains/repository/object/template.md",
-      "consumers": [
-        "frontend/miniapp/src/business/object/Templates.tsx"
-      ]
+      "consumers": []
     },
     {
       "operationId": "createObjectTemplate",
@@ -1662,9 +1661,7 @@
       "handler": "CreateObjectTemplate",
       "core": "backend/internal/business/object/domain/template/version.go",
       "specification": "docs/domains/repository/object/template.md",
-      "consumers": [
-        "frontend/miniapp/src/business/object/Templates.tsx"
-      ]
+      "consumers": []
     },
     {
       "operationId": "getObjectTemplate",

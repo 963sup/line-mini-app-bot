@@ -1,14 +1,27 @@
-# ObjectTemplate 最小閉環
+# ObjectTemplate 領域規格
 
-ObjectTemplate 是 Object 領域內的獨立聚合；本庫範本歸屬單一 Repository，個人範本可跨儲存庫使用。現行流程為「建立 v1 → 選用 → 原子建立獨立 Object 樹 → 開啟結果」。範本核心不依賴 Object 實體、HTTP 或 Firestore；應用層協調兩種模型。
+ObjectTemplate 是 Object 領域內的獨立聚合。本庫範本歸屬單一儲存庫，個人範本歸屬持有人。套用範本時，應用層依確認的節點建立獨立的 Object 樹。
+
+## 現行操作與權限
+
+<a id="操作與權限"></a>
+
+| 操作       | 已實作的行為                                                                                                             |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 準備草稿   | 登入者可從文件或施工條件取得可編修的個人範本草稿。這一步只回傳草稿，使用者確認儲存後才建立範本。                         |
+| 建立與查詢 | 個人範本與本庫範本皆從 v1 開始。持有人可列出自己的範本，儲存庫成員可列出及讀取本庫範本。                                 |
+| 發布新版   | 個人範本持有人可提交同一範本 ID 和起始版本，發布下一版。起始版本過期時回傳 `409 version_conflict`。本庫範本目前只有 v1。 |
+| 套用範本   | 本庫範本限同庫套用。個人範本持有人可將目前版本套用到有建立權限的目標庫。後端一次建立整棵樹，物件保留建立時的來源版本。   |
+
+操作者取自已驗證的 Session 或 Bearer 憑證。列表每頁最多 20 筆，游標綁定操作者與查詢範圍。新的個人範本套用請求省略版本時預設為 v1，選到過期版本須重新選取。已成功的請求以原鍵及原內容重送時，即使範本已改版，仍回傳原結果。套用成功會回傳根物件 ID、所有新物件 ID 與父子關係。
+
+公開路徑、請求欄位與錯誤回應見 [Object OpenAPI 契約](../../../../api/contract/object/objects.yaml)。尚未實作的範圍見[後續範圍](#後續範圍)。
 
 ## 我的範本
 
-側邊欄選取個人範本後，按「編輯範本」可接續修改名稱、單位與階層。「儲存為 v2」等操作在同一範本 ID 上發布下一版。儲存時交易核對持有人與起始版本、封存上一版並更新清單；若版本已更新，返回範本庫重新載入。已建立的物件保留原版本來源。
+側邊欄選取個人範本後，按「編輯範本」可接續修改名稱、單位與階層。例如，編輯 v1 後按「儲存為 v2」，請求會帶入原範本的 `templateId` 和 `baseVersion: 1`。儲存時交易核對持有人與起始版本，封存上一版並更新範本。若版本已更新，使用者須返回範本庫重新載入。已建立的物件保留原版本來源。
 
-現行實作支援從空白或文件建立、列出個人範本與跨庫套用。實際文件辨識品質須以代表性原檔驗收。
-
-ObjectTemplate 維持為 Object 領域內的獨立聚合。個人範本由登入使用者持有，保存完整工項名稱與多層父子關係。數量一律留空，單位可選填。只有持有人可讀取及使用個人範本。
+個人範本保存完整工項名稱與多層父子關係。數量一律留空，單位可選填。只有持有人可讀取及使用個人範本。
 
 獨立工具使用 `GET /api/v1/object-templates` 與 `POST /api/v1/object-templates`，Actor 由 Session／Bearer 取得，沿用個人範本的保存與防重規則；未登入拒絕存取。套用仍使用既有目標庫 instances API，後端核驗目標權限。未知結果重試固定原目標、內容與識別碼。頁面重用既有 shadcn 元件與 Templates 面板，登入身分變更時清除舊狀態。
 
@@ -38,7 +51,7 @@ flowchart LR
     UI -.->|"確認建立"| Save["Object 既有範本建立命令"]
 ```
 
-來源：[草稿應用層](../../../../backend/internal/business/object/application/drafts.go)、[組裝](../../../../backend/internal/bootstrap/template_drafts.go)、[前端入口](../../../../frontend/miniapp/src/business/object/TemplatePreparation.tsx)。驗收涵蓋未登入及無效輸入不呼叫模型、辨識不寫入、分類與同名工項保留、數量排除、推導失敗可重試，以及使用者確認前不建立範本。
+實作入口見[草稿應用層](../../../../backend/internal/business/object/application/drafts.go)、[組裝](../../../../backend/internal/bootstrap/template_drafts.go)、[前端入口](../../../../frontend/miniapp/src/business/object/TemplatePreparation.tsx)。驗收涵蓋未登入及無效輸入不呼叫模型、辨識不寫入、分類與同名工項保留、數量排除、推導失敗可重試，以及使用者確認前不建立範本。
 
 ### 使用範本與建立物件
 
@@ -61,35 +74,21 @@ flowchart LR
 - 從文件建立時，核對跨行工項與不同分類下的同名工項。名稱裡的「6組」不能取代同列的「12 式」。儲存後確認數量留空。取消或辨識失敗時不得建立範本或物件。
 - 其他使用者不得讀取或使用該個人範本。持有人無權在目標庫建立時不得寫入。確認前零物件寫入，成功請求重試不得建立第二棵樹。
 
-## 現行操作與權限
-
-<a id="操作與權限"></a>
-
-Actor 取自既有 Session／Bearer 驗證後的 request context，前端不能指定建立者。本庫範本操作及個人範本套用沿用 Object 的 Repository 成員存取規則，由 `Repositories.Get` 確認目前成員與有效範圍；不是只有範本建立者能套用。
-
-| 操作       | 輸入與結果                                                                                                                   |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| 建立範本   | 名稱與節點樹，立即保存為不可修改的 v1，回傳完整快照。                                                                        |
-| 列出／讀取 | 同 Repository 的範本，列表每頁20筆，使用綁定操作者與範圍的 opaque cursor。                                                   |
-| 套用範本   | 範本 ID、重試鍵及選填父 Object ID，回傳新根 ID、所有 Object ID 與已建立的節點關係。個人範本依選取版本套用，舊客戶端預設 v1。 |
-
-公開格式與錯誤回應以 [Object 契約](../../../../api/contract/object/objects.yaml) 為準。路徑為 `/api/v1/repositories/{repositoryId}/object-templates`、`/{id}` 與 `/{id}/instances`。
-
 ## 輸入與領域規則
 
 - 範本名稱最多120字。節點 ID 在版本內唯一，為1至64字的英數、底線或連字號。每版只有一個根節點，其餘父節點必須存在，所有節點都可從根抵達，禁止循環。節點清單順序保留在版本與套用結果中；一般 Object 列表仍沿用既有排序。
-- 每棵樹最多100個節點，正規化後的建立內容 JSON 最多48,000 UTF-8 bytes，HTTP 本體上限沿用64 KiB。限制確保快照、收據與整棵樹能在單次交易內處理。
-- 節點保存名稱、說明、類型、預設數量與單位。應用層沿用 Object 的精確數量與內容驗證；帶數量的施作需有單位，套用時完成數由後端設為0。範本不保存實際完成數、施工日誌或驗收結果。
-- 範本與目標限定同一 Repository。選填父 Object 必須已存在於該範圍。套用時重新配置所有 ID 與父連結，根連至選填父節點；未提供即建立新根。
+- 正式範本每棵樹最多 100 個節點，正規化後的建立內容 JSON 最多 48,000 UTF-8 bytes。建立與改版的 HTTP 本體上限為 64 KiB。文件草稿請求另有上傳大小限制。限制確保快照、收據與整棵樹能在單次交易內處理。
+- 節點保存名稱，可帶說明、類型與單位。本庫範本可保存預設數量，個人範本在套用時才填寫本次數量。應用層沿用 Object 的精確數量驗證。帶數量的施作需有單位，建立時完成數為 0。範本不保存實際完成數、施工日誌或驗收結果。
+- 選填的父 Object 必須屬於目標儲存庫。套用時重新配置所有 ID 與父連結，根連至選填父節點；未提供即建立新根。
 - 每個 Object 保存不可修改的 `templateId`、`templateVersion`、`templateNodeId`。後續修改進度或內容保留來源，不會改動範本或另一棵實例樹。
 
 ## 一致性、重送與失敗
 
-建立範本及套用各有獨立的操作者／Repository／`Idempotency-Key` 收據。相同鍵與正規化內容重送回原結果，內容不同回409 `idempotency_conflict`。套用收據包含原始節點 ID、名稱與父連結；結果回放代表建立時狀態，目前內容由既有 Object 讀取 API 取得。
+建立或改版的收據屬於範本所在的個人或本庫範圍，套用收據屬於目標儲存庫。各自以操作者及 `Idempotency-Key` 識別請求。相同鍵與正規化內容重送回原結果，內容不同回409 `idempotency_conflict`。套用收據包含原始節點 ID、名稱與父連結；結果回放代表建立時狀態，目前內容由既有 Object 讀取 API 取得。
 
 Firestore adapter 在交易內重新檢查 Repository 的有效容器、範本快照及選填父節點，全部讀取先於寫入。Object 文件與套用收據一起提交；任何錯誤均不留下部分 Object 或成功收據。Repository 成員判定沿用目前服務的交易前存取查詢，未新增另一套授權機制。操作不呼叫 LINE，也沒有雲端部署副作用。
 
-儲存位置均位於 `channels/{channelId}/repositories/{repositoryId}` 下：`objectTemplates` 保存不可變版本；`objectTemplateCreationReceipts` 與 `objectTemplateInstanceReceipts` 保存重送結果；實際節點仍在既有 `objects` 集合。未提供來源欄位的既有 Object 維持可讀，不搬移舊 `subobjects`。
+本庫範本位於 `channels/{channelId}/repositories/{repositoryId}`，個人範本位於同一 channel 的 `personalObjectTemplateLibraries/{ownerKey}`。`objectTemplates` 保存目前快照，個人範本改版時將上一版封存至該範本之下。`objectTemplateCreationReceipts` 與來源範本同庫，`objectTemplateInstanceReceipts` 和實際建立的 `objects` 位於目標儲存庫。未提供來源欄位的既有 Object 維持可讀，不搬移舊 `subobjects`。
 
 錯誤包括400 `invalid_input`、404 `not_found`、409 `idempotency_conflict`／`version_conflict`，以及結果未確認時的503 `unavailable`。拒絕發生在寫入前或交易中；未知結果須保留原鍵與原內容重送，不能依掃描物件列表猜測成功與否。
 
@@ -104,16 +103,9 @@ Firestore adapter 在交易內重新檢查 Repository 的有效容器、範本�
 | Firestore | [templates.go](../../../../backend/internal/business/object/adapter/firestore/templates.go) 實作快照、分頁、交易及收據。                                                                                                  |
 | 組裝      | [repository.go](../../../../backend/internal/bootstrap/repository.go) 注入既有 Repository 服務及 Object store，不由 HTTP adapter 建立資料庫 client。                                                                      |
 
-服務方法均以 `context.Context` 為第一參數，沿用呼叫端取消與期限；HTTP 期限12秒。`actor` 來自可信驗證，其他字串與 DTO 是未信任輸入，由應用層驗證。
-
-- `CreateTemplate(ctx context.Context, actor, rid, key string, in dto.TemplateCreation) (dto.Template, error)`：驗證並建立 v1。
-- `ListTemplates(ctx context.Context, actor, rid, cursor string) (dto.TemplatePage, error)`：授權後分頁讀取。
-- `GetTemplate(ctx context.Context, actor, rid, id string) (dto.Template, error)`：授權後讀取指定快照。
-- `InstantiateTemplate(ctx context.Context, actor, rid, id, key, parentID string) (dto.TemplateInstance, error)`：授權、驗證、準備節點並原子套用。
-
-前端以 API 回傳的新根 ID 開啟既有 Object 編輯畫面，並呈現回傳樹的節點連結。第一版 UI 只編輯範本與節點名稱、父子選項；類型、數量、單位可由 API 提供預設，或建立後沿用 Object 畫面補充。階層有效性、權限與身分配置由 Go 決定，前端不連 Firestore。
-
 ## 驗證與限制
+
+草稿端點的回應與錯誤案例見 [HTTP 草稿測試](../../../../backend/internal/business/object/adapter/http/drafts_test.go)。個人範本發布 v2、版本衝突與重送的案例見 [Firestore 改版測試](../../../../backend/internal/business/object/adapter/firestore/templates_test.go)。
 
 [應用層測試](../../../../backend/internal/business/object/application/templates_test.go)、[HTTP 測試](../../../../backend/internal/business/object/adapter/http/templates_test.go)、[Firestore 交易測試](../../../../backend/internal/business/object/adapter/firestore/templates_test.go)與[前端互動測試](../../../../frontend/miniapp/tests/object-templates.test.tsx)涵蓋最小閉環、拒絕、重送及結果開啟。
 
@@ -132,4 +124,4 @@ Firestore 交易順序依 [Google 官方文件](https://docs.cloud.google.com/fi
 
 ## 後續範圍
 
-持久草稿、發布審核、本庫範本改版、退役、跨 Repository 共用及舊 `subobjects` 資料遷移尚未實作。未來若加入新版本，已建立的 Object 仍須保留原來源與獨立生命週期；不因目前領域核心能表達版本而宣稱相關產品流程已接通。
+跨請求保存與恢復未發布草稿、發布審核、本庫範本改版、範本退役、本庫範本跨庫共用及舊 `subobjects` 資料遷移尚未實作。

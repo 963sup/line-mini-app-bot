@@ -40,6 +40,7 @@ async function fixture(
   handle: (request: Request, actor: string) => Promise<Response>,
   integrated = false,
   documentTool = false,
+  initialObjectId?: string,
 ) {
   document.body.innerHTML = '<div id="root"></div>';
   window.history.replaceState(
@@ -94,7 +95,11 @@ async function fixture(
           {integrated ? (
             <RepositoryView />
           ) : (
-            <Objects repositoryId={repository} documentTool={documentTool} />
+            <Objects
+              repositoryId={repository}
+              documentTool={documentTool}
+              initialObjectId={initialObjectId}
+            />
           )}
         </Shell>,
       );
@@ -787,6 +792,56 @@ test("batch import only retries unknown selected rows with their original keys",
       [...document.querySelectorAll("a")].filter((a) => a.textContent === "查看已建立物件").length,
       2,
     );
+  } finally {
+    await f.dispose();
+  }
+});
+
+test("template result opens its root directly even when it is outside the first repository page", async () => {
+  let reads = 0;
+  const f = await fixture(
+    async (request) => {
+      if (new URL(request.url).pathname.endsWith("/" + oid)) {
+        reads++;
+        return Response.json(resource({ name: "套用結果" }));
+      }
+      return Response.json({ items: [], nextCursor: "" });
+    },
+    false,
+    false,
+    oid,
+  );
+  try {
+    assert.equal(
+      document.querySelector<HTMLInputElement>('[data-edit-field="name"]')?.value,
+      "套用結果",
+    );
+    assert.equal(reads, 1);
+    await f.click("取消");
+    assert.equal(document.querySelector('[data-edit-field="name"]'), null);
+    assert.equal(reads, 1);
+  } finally {
+    await f.dispose();
+  }
+});
+
+test("editing the name of legacy work preserves its absent completion", async () => {
+  const item = resource({ completedQuantity: undefined });
+  let patch: Record<string, unknown> | undefined;
+  const f = await fixture(async (request) => {
+    if (request.method === "PATCH") {
+      patch = await request.json();
+      return Response.json(item);
+    }
+    if (new URL(request.url).pathname.endsWith(oid)) return Response.json(item);
+    return Response.json({ items: [item], nextCursor: "" });
+  });
+  try {
+    await f.click("測試物件");
+    await f.fill("物件名稱", "舊工項");
+    await f.click("儲存物件");
+    assert.equal(patch?.name, "舊工項");
+    assert.ok(patch && !("completedQuantity" in patch));
   } finally {
     await f.dispose();
   }

@@ -1293,10 +1293,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List immutable v1 templates, in document ID order */
+        /** List the current templates in the repository or personal library in document ID order */
         get: operations["listObjectTemplates"];
         put?: never;
-        /** Validate a tree and create an immediately usable immutable v1 template */
+        /** Create a v1 template in the repository or personal library */
         post: operations["createObjectTemplate"];
         delete?: never;
         options?: never;
@@ -1348,7 +1348,7 @@ export interface paths {
         /** List personal templates across repositories */
         get: operations["listPersonalObjectTemplates"];
         put?: never;
-        /** Create a personal template independent of repositories */
+        /** Create a personal template or publish its next version */
         post: operations["createPersonalObjectTemplate"];
         delete?: never;
         options?: never;
@@ -1713,18 +1713,16 @@ export interface components {
             };
         };
         Object: {
-            name: string;
-            description: string;
-            /** @description Empty means unclassified; work or non_work when known. Historical free-form values remain supported. */
-            type: string;
-            unit: string;
+            name: components["schemas"]["ObjectName"];
+            description: components["schemas"]["ObjectDescription"];
+            type: components["schemas"]["ObjectType"];
+            unit: components["schemas"]["ObjectUnit"];
             sourceDocument: string;
             sourceRevision: string;
             sourceItemNo: string;
             sourcePages: string;
             materialCode: string;
-            /** @description Empty means not yet specified; otherwise a positive exact decimal. No fabricated quantity. */
-            quantity: string;
+            quantity: components["schemas"]["ObjectQuantity"];
             id: string;
             repositoryId: string;
             creatorId: string;
@@ -1739,13 +1737,12 @@ export interface components {
              * @enum {string}
              */
             status: "not_started" | "in_progress" | "completed";
-            /** @description Exact absolute completed quantity for work only; 0 <= completedQuantity <= quantity. Absent for non_work and legacy objects; new work defaults to 0. Omitted update preserves current value; conversion to work requires explicit value. */
-            completedQuantity?: string;
-            /** @description Parent Object in the same repository. Omit for a root Object. The parent is set on creation and cannot be changed. */
+            completedQuantity?: components["schemas"]["ObjectCompletedQuantity"];
+            /** @description Parent Object in the same repository. Omit for a root Object. A current member may attach a new child to an existing parent regardless of its creator. The parent is fixed on creation. */
             parentId?: string;
             /** @description Optional repository-owned business Space ID, never a LINE Group ID. Empty means unassigned; omitted update preserves the current assignment. The server verifies the same repository and channel. */
             spaceId?: string;
-            /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
+            /** @description Whether the authenticated actor may edit this object. Creating a child uses repository creation permission, independent of this flag. Writes recheck authorization. */
             canEdit: boolean;
             /**
              * @description When converting a legacy object to work, prefill zero or the current draft quantity. Otherwise let the user enter the value.
@@ -1762,32 +1759,28 @@ export interface components {
         };
         /** @description Create an object with its name only; classification, quantity, unit and space may be supplied later. No inferred defaults. */
         ObjectCreation: {
-            name: string;
-            description?: string;
-            /** @description Empty means unclassified; work or non_work when known. Historical free-form values remain supported. */
-            type?: string;
-            unit?: string;
+            name: components["schemas"]["ObjectName"];
+            description?: components["schemas"]["ObjectDescription"];
+            type?: components["schemas"]["ObjectType"];
+            unit?: components["schemas"]["ObjectUnit"];
             sourceDocument?: string;
             sourceRevision?: string;
             sourceItemNo?: string;
             sourcePages?: string;
             materialCode?: string;
-            /** @description Empty means not yet specified; otherwise a positive exact decimal. No fabricated quantity. */
-            quantity?: string;
-            /** @description Exact absolute completed quantity for work only; 0 <= completedQuantity <= quantity. Absent for non_work and legacy objects; new work defaults to 0. Omitted update preserves current value; conversion to work requires explicit value. */
-            completedQuantity?: string;
-            /** @description Parent Object in the same repository. Omit for a root Object. The parent is set on creation and cannot be changed. */
+            quantity?: components["schemas"]["ObjectQuantity"];
+            completedQuantity?: components["schemas"]["ObjectCompletedQuantity"];
+            /** @description Parent Object in the same repository. Omit for a root Object. A current member may attach a new child to an existing parent regardless of its creator. The parent is fixed on creation. */
             parentId?: string;
             /** @description Optional repository-owned business Space ID, never a LINE Group ID. Empty means unassigned; omitted update preserves the current assignment. The server verifies the same repository and channel. */
             spaceId?: string;
         };
         /** @description Replace core content; omitted optional source fields preserve current values, explicit empty strings clear. No document revision automatically changes another object. */
         ObjectUpdate: {
-            name: string;
-            description: string;
-            /** @description Empty means unclassified; work or non_work when known. Historical free-form values remain supported. */
-            type: string;
-            unit: string;
+            name: components["schemas"]["ObjectName"];
+            description: components["schemas"]["ObjectDescription"];
+            type: components["schemas"]["ObjectType"];
+            unit: components["schemas"]["ObjectUnit"];
             /** @description Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key. */
             sourceDocument?: string;
             /** @description Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key. */
@@ -1798,8 +1791,7 @@ export interface components {
             sourcePages?: string;
             /** @description Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key. */
             materialCode?: string;
-            /** @description Empty means not yet specified; otherwise a positive exact decimal. No fabricated quantity. */
-            quantity: string;
+            quantity: components["schemas"]["ObjectQuantity"];
             /**
              * @description Optional legacy status. Work status is derived from completedQuantity; explicit contradictory status is rejected. Omission preserves historical status.
              * @enum {string}
@@ -1807,8 +1799,7 @@ export interface components {
             status?: "not_started" | "in_progress" | "completed";
             /** Format: int64 */
             expectedVersion: number;
-            /** @description Exact absolute completed quantity for work only; 0 <= completedQuantity <= quantity. Absent for non_work and legacy objects; new work defaults to 0. Omitted update preserves current value; conversion to work requires explicit value. */
-            completedQuantity?: string;
+            completedQuantity?: components["schemas"]["ObjectCompletedQuantity"];
             /** @description Optional repository-owned business Space ID, never a LINE Group ID. Empty means unassigned; omitted update preserves the current assignment. The server verifies the same repository and channel. */
             spaceId?: string;
         };
@@ -2012,13 +2003,14 @@ export interface components {
         ObjectTemplateNode: {
             id: string;
             parentId?: string;
-            name: string;
-            description?: string;
-            type?: string;
+            name: components["schemas"]["ObjectName"];
+            description?: components["schemas"]["ObjectDescription"];
+            type?: components["schemas"]["ObjectType"];
+            /** @description Optional default for repository templates. Personal templates leave this empty until application. Supplied quantities follow Object exact-decimal rules. */
             quantity?: string;
-            unit?: string;
+            unit?: components["schemas"]["ObjectUnit"];
         };
-        /** @description Create v1, or publish the next personal revision by supplying templateId and baseVersion. */
+        /** @description Omit templateId and baseVersion to create v1. To publish the next personal version, supply both fields to POST /api/v1/object-templates. A stale baseVersion returns 409 version_conflict. */
         ObjectTemplateCreation: {
             name: string;
             nodes: components["schemas"]["ObjectTemplateNode"][];
@@ -2042,13 +2034,14 @@ export interface components {
             items: components["schemas"]["ObjectTemplate"][];
             nextCursor: string;
         };
-        /** @description Same Repository only. Optional parent must exist. All object writes, provenance and the actor/key receipt commit in one transaction. On an unknown response retry with the same Idempotency-Key and body. */
+        /** @description Repository templates apply within their repository. With scope=personal, the owner can apply a personal template to a target repository where they can create objects. The optional parent must belong to that target. Objects, provenance and the retry receipt commit in one transaction. Retry an unknown result with the original Idempotency-Key and body. */
         ObjectTemplateInstantiation: {
+            /** @description Required with scope=personal. Contains the retained nodes and their confirmed values. */
             nodes?: components["schemas"]["ObjectTemplateNode"][];
             parentId?: string;
             /**
              * Format: int64
-             * @description Personal snapshot version. Defaults to 1 for legacy clients.
+             * @description Defaults to 1. For a new personal instance, this must match the current personal template version. Repository templates accept only 1.
              */
             templateVersion?: number;
         };
@@ -2383,6 +2376,15 @@ export interface components {
         };
         /** @enum {string} */
         ProjectItemStatus: "todo" | "in_progress" | "done";
+        ObjectName: string;
+        ObjectDescription: string;
+        /** @description Empty means unclassified; work or non_work when known. Historical free-form values remain supported. */
+        ObjectType: string;
+        ObjectUnit: string;
+        /** @description Empty means not yet specified; otherwise a positive exact decimal. No fabricated quantity. */
+        ObjectQuantity: string;
+        /** @description Exact absolute completion for work with a total quantity and unit. Creation defaults it to zero for tracked work. On update, omission preserves existing completion; converting to tracked work requires an explicit value. */
+        ObjectCompletedQuantity: string;
         JournalProgress: {
             name: string;
             today?: number;
@@ -7987,7 +7989,7 @@ export interface operations {
                 scope?: "personal";
             };
             header: {
-                /** @description Scoped to actor, repository and this operation. Retry the original key and body after an unknown result. Same key with different normalized content returns idempotency_conflict (409). */
+                /** @description Scoped to the actor and selected template library. Retry an unknown result with the original key and body. Reusing a key with different normalized content returns 409 idempotency_conflict. */
                 "Idempotency-Key": string;
                 /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
                 "X-CSRF-Token"?: string;
@@ -8126,7 +8128,7 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
-                /** @description Scoped to actor, repository and this operation. Retry the original key and body after an unknown result. Same key with different normalized content returns idempotency_conflict (409). */
+                /** @description Scoped to the actor’s personal template library. Retry an unknown result with the original key and body. Reusing a key with different normalized content returns 409 idempotency_conflict. */
                 "Idempotency-Key": string;
                 /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
                 "X-CSRF-Token"?: string;

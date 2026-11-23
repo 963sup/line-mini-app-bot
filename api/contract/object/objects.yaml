@@ -388,7 +388,7 @@
     "/api/v1/repositories/{repositoryId}/object-templates": {
       "get": {
         "operationId": "listObjectTemplates",
-        "summary": "List immutable v1 templates, in document ID order",
+        "summary": "List the current templates in the repository or personal library in document ID order",
         "security": [
           {
             "bearerAuth": []
@@ -463,7 +463,7 @@
       },
       "post": {
         "operationId": "createObjectTemplate",
-        "summary": "Validate a tree and create an immediately usable immutable v1 template",
+        "summary": "Create a v1 template in the repository or personal library",
         "security": [
           {
             "bearerAuth": []
@@ -501,7 +501,7 @@
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]{16,128}$"
             },
-            "description": "Scoped to actor, repository and this operation. Retry the original key and body after an unknown result. Same key with different normalized content returns idempotency_conflict (409)."
+            "description": "Scoped to the actor and selected template library. Retry an unknown result with the original key and body. Reusing a key with different normalized content returns 409 idempotency_conflict."
           },
           {
             "in": "header",
@@ -788,7 +788,7 @@
       },
       "post": {
         "operationId": "createPersonalObjectTemplate",
-        "summary": "Create a personal template independent of repositories",
+        "summary": "Create a personal template or publish its next version",
         "security": [
           {
             "bearerAuth": []
@@ -806,7 +806,7 @@
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]{16,128}$"
             },
-            "description": "Scoped to actor, repository and this operation. Retry the original key and body after an unknown result. Same key with different normalized content returns idempotency_conflict (409)."
+            "description": "Scoped to the actor’s personal template library. Retry an unknown result with the original key and body. Reusing a key with different normalized content returns 409 idempotency_conflict."
           },
           {
             "in": "header",
@@ -1024,22 +1024,16 @@
         ],
         "properties": {
           "name": {
-            "type": "string",
-            "maxLength": 120,
-            "minLength": 1
+            "$ref": "#/components/schemas/ObjectName"
           },
           "description": {
-            "type": "string",
-            "maxLength": 8000
+            "$ref": "#/components/schemas/ObjectDescription"
           },
           "type": {
-            "type": "string",
-            "maxLength": 80,
-            "description": "Empty means unclassified; work or non_work when known. Historical free-form values remain supported."
+            "$ref": "#/components/schemas/ObjectType"
           },
           "unit": {
-            "type": "string",
-            "maxLength": 32
+            "$ref": "#/components/schemas/ObjectUnit"
           },
           "sourceDocument": {
             "type": "string",
@@ -1062,10 +1056,7 @@
             "maxLength": 120
           },
           "quantity": {
-            "type": "string",
-            "maxLength": 25,
-            "pattern": "^$|^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
-            "description": "Empty means not yet specified; otherwise a positive exact decimal. No fabricated quantity."
+            "$ref": "#/components/schemas/ObjectQuantity"
           },
           "id": {
             "type": "string",
@@ -1102,15 +1093,12 @@
             "description": "Derived from completedQuantity for managed work. For non_work this technical three-state value is retained only for compatibility; UI displays not applicable. Legacy records without progress retain their original status."
           },
           "completedQuantity": {
-            "type": "string",
-            "maxLength": 25,
-            "pattern": "^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
-            "description": "Exact absolute completed quantity for work only; 0 <= completedQuantity <= quantity. Absent for non_work and legacy objects; new work defaults to 0. Omitted update preserves current value; conversion to work requires explicit value."
+            "$ref": "#/components/schemas/ObjectCompletedQuantity"
           },
           "parentId": {
             "type": "string",
             "pattern": "^[a-f0-9]{32}$",
-            "description": "Parent Object in the same repository. Omit for a root Object. The parent is set on creation and cannot be changed."
+            "description": "Parent Object in the same repository. Omit for a root Object. A current member may attach a new child to an existing parent regardless of its creator. The parent is fixed on creation."
           },
           "spaceId": {
             "type": "string",
@@ -1119,7 +1107,7 @@
           },
           "canEdit": {
             "type": "boolean",
-            "description": "Whether the authenticated actor may edit the content. Writes recheck authorization."
+            "description": "Whether the authenticated actor may edit this object. Creating a child uses repository creation permission, independent of this flag. Writes recheck authorization."
           },
           "workConversionDefault": {
             "description": "When converting a legacy object to work, prefill zero or the current draft quantity. Otherwise let the user enter the value.",
@@ -1154,22 +1142,16 @@
         ],
         "properties": {
           "name": {
-            "type": "string",
-            "maxLength": 120,
-            "minLength": 1
+            "$ref": "#/components/schemas/ObjectName"
           },
           "description": {
-            "type": "string",
-            "maxLength": 8000
+            "$ref": "#/components/schemas/ObjectDescription"
           },
           "type": {
-            "type": "string",
-            "maxLength": 80,
-            "description": "Empty means unclassified; work or non_work when known. Historical free-form values remain supported."
+            "$ref": "#/components/schemas/ObjectType"
           },
           "unit": {
-            "type": "string",
-            "maxLength": 32
+            "$ref": "#/components/schemas/ObjectUnit"
           },
           "sourceDocument": {
             "type": "string",
@@ -1192,21 +1174,15 @@
             "maxLength": 120
           },
           "quantity": {
-            "type": "string",
-            "maxLength": 25,
-            "pattern": "^$|^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
-            "description": "Empty means not yet specified; otherwise a positive exact decimal. No fabricated quantity."
+            "$ref": "#/components/schemas/ObjectQuantity"
           },
           "completedQuantity": {
-            "type": "string",
-            "maxLength": 25,
-            "pattern": "^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
-            "description": "Exact absolute completed quantity for work only; 0 <= completedQuantity <= quantity. Absent for non_work and legacy objects; new work defaults to 0. Omitted update preserves current value; conversion to work requires explicit value."
+            "$ref": "#/components/schemas/ObjectCompletedQuantity"
           },
           "parentId": {
             "type": "string",
             "pattern": "^[a-f0-9]{32}$",
-            "description": "Parent Object in the same repository. Omit for a root Object. The parent is set on creation and cannot be changed."
+            "description": "Parent Object in the same repository. Omit for a root Object. A current member may attach a new child to an existing parent regardless of its creator. The parent is fixed on creation."
           },
           "spaceId": {
             "type": "string",
@@ -1229,22 +1205,16 @@
         ],
         "properties": {
           "name": {
-            "type": "string",
-            "maxLength": 120,
-            "minLength": 1
+            "$ref": "#/components/schemas/ObjectName"
           },
           "description": {
-            "type": "string",
-            "maxLength": 8000
+            "$ref": "#/components/schemas/ObjectDescription"
           },
           "type": {
-            "type": "string",
-            "maxLength": 80,
-            "description": "Empty means unclassified; work or non_work when known. Historical free-form values remain supported."
+            "$ref": "#/components/schemas/ObjectType"
           },
           "unit": {
-            "type": "string",
-            "maxLength": 32
+            "$ref": "#/components/schemas/ObjectUnit"
           },
           "sourceDocument": {
             "type": "string",
@@ -1272,10 +1242,7 @@
             "description": "Omitted preserves current value; empty string clears. Provenance only, not a uniqueness key."
           },
           "quantity": {
-            "type": "string",
-            "maxLength": 25,
-            "pattern": "^$|^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
-            "description": "Empty means not yet specified; otherwise a positive exact decimal. No fabricated quantity."
+            "$ref": "#/components/schemas/ObjectQuantity"
           },
           "status": {
             "type": "string",
@@ -1293,10 +1260,7 @@
             "maximum": 9007199254740991
           },
           "completedQuantity": {
-            "type": "string",
-            "maxLength": 25,
-            "pattern": "^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
-            "description": "Exact absolute completed quantity for work only; 0 <= completedQuantity <= quantity. Absent for non_work and legacy objects; new work defaults to 0. Omitted update preserves current value; conversion to work requires explicit value."
+            "$ref": "#/components/schemas/ObjectCompletedQuantity"
           },
           "spaceId": {
             "type": "string",
@@ -1425,25 +1389,21 @@
             "pattern": "^[A-Za-z0-9_-]{1,64}$"
           },
           "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 120
+            "$ref": "#/components/schemas/ObjectName"
           },
           "description": {
-            "type": "string",
-            "maxLength": 8000
+            "$ref": "#/components/schemas/ObjectDescription"
           },
           "type": {
-            "type": "string",
-            "maxLength": 80
+            "$ref": "#/components/schemas/ObjectType"
           },
           "quantity": {
             "type": "string",
-            "maxLength": 25
+            "maxLength": 25,
+            "description": "Optional default for repository templates. Personal templates leave this empty until application. Supplied quantities follow Object exact-decimal rules."
           },
           "unit": {
-            "type": "string",
-            "maxLength": 32
+            "$ref": "#/components/schemas/ObjectUnit"
           }
         }
       },
@@ -1454,7 +1414,7 @@
           "name",
           "nodes"
         ],
-        "description": "Create v1, or publish the next personal revision by supplying templateId and baseVersion.",
+        "description": "Omit templateId and baseVersion to create v1. To publish the next personal version, supply both fields to POST /api/v1/object-templates. A stale baseVersion returns 409 version_conflict.",
         "properties": {
           "name": {
             "type": "string",
@@ -1554,7 +1514,8 @@
             "maxItems": 100,
             "items": {
               "$ref": "#/components/schemas/ObjectTemplateNode"
-            }
+            },
+            "description": "Required with scope=personal. Contains the retained nodes and their confirmed values."
           },
           "parentId": {
             "type": "string",
@@ -1564,10 +1525,10 @@
             "type": "integer",
             "format": "int64",
             "minimum": 1,
-            "description": "Personal snapshot version. Defaults to 1 for legacy clients."
+            "description": "Defaults to 1. For a new personal instance, this must match the current personal template version. Repository templates accept only 1."
           }
         },
-        "description": "Same Repository only. Optional parent must exist. All object writes, provenance and the actor/key receipt commit in one transaction. On an unknown response retry with the same Idempotency-Key and body."
+        "description": "Repository templates apply within their repository. With scope=personal, the owner can apply a personal template to a target repository where they can create objects. The optional parent must belong to that target. Objects, provenance and the retry receipt commit in one transaction. Retry an unknown result with the original Idempotency-Key and body."
       },
       "ObjectTemplateInstance": {
         "type": "object",
@@ -1798,6 +1759,36 @@
             "type": "string"
           }
         }
+      },
+      "ObjectName": {
+        "type": "string",
+        "maxLength": 120,
+        "minLength": 1
+      },
+      "ObjectType": {
+        "type": "string",
+        "maxLength": 80,
+        "description": "Empty means unclassified; work or non_work when known. Historical free-form values remain supported."
+      },
+      "ObjectDescription": {
+        "type": "string",
+        "maxLength": 8000
+      },
+      "ObjectUnit": {
+        "type": "string",
+        "maxLength": 32
+      },
+      "ObjectQuantity": {
+        "type": "string",
+        "maxLength": 25,
+        "pattern": "^$|^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
+        "description": "Empty means not yet specified; otherwise a positive exact decimal. No fabricated quantity."
+      },
+      "ObjectCompletedQuantity": {
+        "type": "string",
+        "maxLength": 25,
+        "pattern": "^(0|[1-9][0-9]{0,17})(\\.[0-9]{1,6})?$",
+        "description": "Exact absolute completion for work with a total quantity and unit. Creation defaults it to zero for tracked work. On update, omission preserves existing completion; converting to tracked work requires an explicit value."
       }
     },
     "responses": {

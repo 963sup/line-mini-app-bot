@@ -245,8 +245,7 @@ test("unknown child create freezes exact identity, blocks parent navigation and 
     await f.click("子物件：測試物件");
     await f.click("在「測試物件」下新增子物件");
     await f.fill("子物件名稱", "測試工序");
-    await f.fill("子物件數量", "9007199254740993.123456");
-    await f.fill("子物件單位", "M2");
+    assert.equal(document.querySelectorAll('[aria-label="子物件"] form input').length, 1);
     await f.click("建立子物件");
     assert.equal(posts.length, 1);
     for (const label of ["子物件：測試物件", "子物件：另一父物件", "另一父物件"])
@@ -265,7 +264,7 @@ test("unknown child create freezes exact identity, blocks parent navigation and 
     await f.click("重試原子物件建立請求");
     assert.equal(posts.length, 2);
     assert.deepEqual(posts[0], posts[1]);
-    assert.equal((posts[0].body as { quantity: string }).quantity, "9007199254740993.123456");
+    assert.deepEqual(posts[0].body, { name: "測試工序", parentId: oid });
     assert.equal(parentWrites, 0);
     assert.match(document.body.textContent!, /父物件進度不變/);
   } finally {
@@ -273,23 +272,51 @@ test("unknown child create freezes exact identity, blocks parent navigation and 
   }
 });
 
-test("non-owner may read children but has no child write controls", async () => {
-  const f = await fixture(async (request) =>
-    Response.json(
-      new URL(request.url).searchParams.has("parentId")
-        ? { items: [child()], nextCursor: "" }
-        : { items: [resource({ canEdit: false, creatorId: "B" })], nextCursor: "" },
-    ),
-  );
+test("repository members can create children under another creator; editing follows each child's permission", async () => {
+  const posts: unknown[] = [];
+  const mine = child({ type: "", quantity: "", unit: "", completedQuantity: undefined });
+  const theirs = child({
+    id: other,
+    name: "別人的工序",
+    creatorId: "B",
+    canEdit: false,
+    type: "舊類型",
+  });
+  const f = await fixture(async (request) => {
+    const url = new URL(request.url);
+    if (request.method === "POST") {
+      posts.push(await request.json());
+      return Response.json(child({ id: "e".repeat(32), name: "新工序" }));
+    }
+    if (url.pathname.endsWith(sid)) return Response.json(mine);
+    if (url.pathname.endsWith(other)) return Response.json(theirs);
+    return Response.json({
+      items: url.searchParams.has("parentId")
+        ? [mine, theirs]
+        : [resource({ canEdit: false, creatorId: "B" })],
+      nextCursor: "",
+    });
+  });
   try {
-    await f.click("子物件：測試物件");
-    assert.match(document.body.textContent!, /測試工序/);
+    await f.click("在「測試物件」下新增子物件");
+    await f.fill("子物件名稱", "新工序");
+    await f.click("建立子物件");
+    assert.deepEqual(posts, [{ name: "新工序", parentId: oid }]);
+    await f.click("編輯子物件：測試工序");
     assert.equal(
-      [...document.querySelectorAll("button")].some(
-        (button) =>
-          button.textContent?.includes("新增子物件") || button.textContent?.includes("編輯子物件"),
-      ),
-      false,
+      document.querySelector<HTMLSelectElement>('[aria-label="子物件編輯"] select')?.value,
+      "",
+    );
+    await f.click("取消");
+    assert.equal(document.querySelector('[aria-label="編輯子物件：別人的工序"]'), null);
+    await f.click("別人的工序");
+    assert.equal(
+      document.querySelector<HTMLSelectElement>('[aria-label="子物件編輯"] select')?.value,
+      "舊類型",
+    );
+    assert.equal(
+      document.querySelector<HTMLFieldSetElement>('[aria-label="子物件編輯"] fieldset')?.disabled,
+      true,
     );
   } finally {
     await f.dispose();
@@ -364,7 +391,7 @@ test("child independent totals, exact CQ validation, nonwork N/A and PATCH versi
     await f.fill("子物件完成數", "100.000001");
     await f.click("儲存子物件");
     assert.equal(patches.length, 0);
-    assert.match(document.body.textContent!, /完成數須介於/);
+    assert.match(document.body.textContent!, /請填寫0至數量之間的完成數/);
     await f.fill("子物件完成數", "99.999999");
     await f.click("儲存子物件");
     assert.equal(patches[0].completedQuantity, "99.999999");
@@ -379,7 +406,7 @@ test("child independent totals, exact CQ validation, nonwork N/A and PATCH versi
       select.dispatchEvent(new window.Event("change", { bubbles: true }));
       await flush();
     });
-    assert.match(document.body.textContent!, /狀態與進度：不適用/);
+    assert.match(document.body.textContent!, /狀態：不適用進度：不適用/);
     await f.click("儲存子物件");
     assert.equal(patches[1].expectedVersion, 2);
     assert.ok(!("completedQuantity" in patches[1]));
