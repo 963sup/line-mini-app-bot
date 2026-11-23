@@ -47,6 +47,7 @@ import (
 	groupline "github.com/963sup/line-mini-app-bot/internal/linegroup/adapter/line"
 	firestoreplatform "github.com/963sup/line-mini-app-bot/internal/platform/firestore"
 	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
+	httptransport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/browser"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/geolocation"
@@ -54,6 +55,12 @@ import (
 
 func Run() (resultErr error) {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+	shutdownTelemetry := httptransport.NewTelemetry(slog.Default())
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		resultErr = errors.Join(resultErr, shutdownTelemetry(ctx))
+	}()
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -216,7 +223,7 @@ func Run() (resultErr error) {
 		return err
 	}
 	server := &http.Server{
-		Addr: net.JoinHostPort("", port), Handler: mux,
+		Addr: net.JoinHostPort("", port), Handler: httptransport.RequestDiagnostics(mux),
 		ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second,
 		WriteTimeout: 100 * time.Second, IdleTimeout: 60 * time.Second,
 	}

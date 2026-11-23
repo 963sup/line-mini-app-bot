@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"time"
 
+	httptransport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+
 	"cloud.google.com/go/firestore"
 	storage "github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/firestore"
 	httpadapter "github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/http/summarization"
@@ -40,7 +42,7 @@ func registerSummary(ctx context.Context, mux *http.ServeMux, firestoreConfigure
 	if e != nil || u.Scheme != "https" || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || u.Path != "/internal/summary" {
 		return nil, fmt.Errorf("SUMMARY_TASK_URL must be the HTTPS /internal/summary URL")
 	}
-	modelClient := &http.Client{Timeout: 45 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	modelClient := &http.Client{Transport: httptransport.TraceTransport{}, Timeout: 45 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	modelAdapter, err := summarizer.New(provider, key, model, modelClient)
 	if err != nil {
 		return nil, err
@@ -55,7 +57,7 @@ func registerSummary(ctx context.Context, mux *http.ServeMux, firestoreConfigure
 	}
 	auth.Timeout = 4 * time.Second
 	auth.CheckRedirect = modelClient.CheckRedirect
-	line, e := messaging_api.NewMessagingApiAPI(os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN"), messaging_api.WithHTTPClient(&http.Client{Timeout: 10 * time.Second}))
+	line, e := messaging_api.NewMessagingApiAPI(os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN"), messaging_api.WithHTTPClient(&http.Client{Transport: httptransport.TraceTransport{}, Timeout: 10 * time.Second}))
 	if e != nil {
 		return nil, e
 	}

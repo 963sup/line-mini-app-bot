@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"time"
 
+	httptransport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+
 	agentmodel "github.com/963sup/line-mini-app-bot/internal/business/agent/adapter/genai"
 	agent "github.com/963sup/line-mini-app-bot/internal/business/agent/application"
 	"github.com/963sup/line-mini-app-bot/internal/genai"
@@ -18,7 +20,7 @@ func NewInvestigator(pages agent.PageReader) (*agent.Investigator, error) {
 	if pages == nil || !regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]*$`).MatchString(model) {
 		return nil, errors.New("agent requires an authorized page reader and AGENT_MODEL")
 	}
-	client := &http.Client{Timeout: 45 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	client := &http.Client{Transport: httptransport.TraceTransport{}, Timeout: 45 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	var generator agentmodel.TextModel
 	switch os.Getenv("AGENT_PROVIDER") {
 	case "openai":

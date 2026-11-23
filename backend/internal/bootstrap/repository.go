@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	httptransport "github.com/963sup/line-mini-app-bot/internal/transport/http"
+
 	"cloud.google.com/go/firestore"
 	discussiondb "github.com/963sup/line-mini-app-bot/internal/business/discussion/adapter/firestore"
 	discussionapp "github.com/963sup/line-mini-app-bot/internal/business/discussion/application"
@@ -58,7 +60,7 @@ func newRepositories(firestoreConfigured bool, getFirestore func() (*firestore.C
 		return nil, nil, fmt.Errorf("cannot initialize repository database")
 	}
 	store := &repositorydb.Store{Client: client, ChannelID: channel}
-	return &repositoryApplication.Service{Store: store, Membership: &lineplatform.Membership{Token: token, Client: &http.Client{Timeout: time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}}, store, nil
+	return &repositoryApplication.Service{Store: store, Membership: &lineplatform.Membership{Token: token, Client: &http.Client{Transport: httptransport.TraceTransport{}, Timeout: time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}}, store, nil
 }
 
 func newMilestones(r *repositoryApplication.Service, store *repositorydb.Store) *repositoryApplicationMilestones.Service {
@@ -82,7 +84,7 @@ func newObjects(r *repositoryApplication.Service, store *repositorydb.Store) *ob
 	objects := &objectdb.Store{Client: store.Client, ChannelID: store.ChannelID}
 	service := &objectApplication.Service{QuantityHistory: objects, Templates: objects, PersonalTemplates: objects, Repositories: r, Store: objects}
 	if key, model := os.Getenv("OPENAI_API_KEY"), os.Getenv("AI_DOCUMENT_MODEL"); key != "" && model != "" {
-		client := openai.NewClient(option.WithAPIKey(key), option.WithBaseURL("https://api.openai.com/v1/"), option.WithMaxRetries(0), option.WithHTTPClient(&http.Client{Timeout: 2 * time.Minute, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}))
+		client := openai.NewClient(option.WithAPIKey(key), option.WithBaseURL("https://api.openai.com/v1/"), option.WithMaxRetries(0), option.WithHTTPClient(&http.Client{Transport: httptransport.TraceTransport{}, Timeout: 2 * time.Minute, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}))
 		extractor := &candidateai.Extractor{Responses: client.Responses, Model: model}
 		service.CandidateExtractor = extractor
 		service.TemplatePreparer = templatePreparation{operations: extractor}

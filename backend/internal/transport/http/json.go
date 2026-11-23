@@ -2,7 +2,10 @@ package httptransport
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 )
@@ -48,6 +51,7 @@ func writeError(w http.ResponseWriter, status int, code, message string, retrySa
 
 // WriteServiceError exposes the service message when running the local dev task.
 func WriteServiceError(w http.ResponseWriter, status int, code, message string, err error) {
+	logServiceError(w, status, code, err)
 	if os.Getenv("DEV_ERROR_DETAILS") == "1" {
 		message = err.Error()
 	}
@@ -55,10 +59,25 @@ func WriteServiceError(w http.ResponseWriter, status int, code, message string, 
 }
 
 func WriteResourceError(w http.ResponseWriter, status int, code, message string, err error, retrySameRequest bool) {
+	logServiceError(w, status, code, err)
 	if os.Getenv("DEV_ERROR_DETAILS") == "1" {
 		message = err.Error()
 	}
 	WriteRequestError(w, status, code, message, retrySameRequest)
+}
+
+// Log only server failures and allowlisted metadata. Error messages may contain
+// credentials, request bodies or personal data, including in wrapped errors.
+func logServiceError(w http.ResponseWriter, status int, code string, err error) {
+	if status < http.StatusInternalServerError {
+		return
+	}
+	var types []string
+	for current, depth := err, 0; current != nil && depth < 8; current, depth = errors.Unwrap(current), depth+1 {
+		types = append(types, fmt.Sprintf("%T", current))
+	}
+	slog.Error("HTTP service failure", "request_id", w.Header().Get("X-Request-ID"),
+		"trace_id", w.Header().Get("X-Trace-ID"), "status", status, "code", code, "error_types", types)
 }
 
 func ValidateUniqueQuery(w http.ResponseWriter, r *http.Request) bool {
