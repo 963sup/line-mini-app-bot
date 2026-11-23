@@ -1,12 +1,12 @@
 # Cloud Run 部署
 
-出勤查詢需要三個複合索引，定義在 [Firestore 索引清單](../../firestore.indexes.json)。自訂 Cloud Build 流程在發布前建立缺少的出勤索引，等待全部達到 `READY`。建置身分需要 Firestore 索引管理權限。使用 inline trigger 或其他部署平台時，在部署步驟前執行同一個檢查：
+出勤與物件數量歷史查詢所需的複合索引統一定義在 [Firestore 索引清單](../../firestore.indexes.json)。自訂 Cloud Build 流程在發布前建立缺少的 Firestore 複合索引，等待全部達到 `READY`。建置身分需要 Firestore 索引管理權限。使用 inline trigger 或其他部署平台時，在部署步驟前執行同一個檢查：
 
 ```sh
-python3 scripts/db/ensure-attendance-indexes.py "$PROJECT_ID"
+python3 scripts/db/ensure-firestore-indexes.py "$PROJECT_ID"
 ```
 
-指令預設使用 `(default)` 資料庫，可用第二個參數指定資料庫。它從 Cloud Build 執行身分或環境變數 `GOOGLE_OAUTH_ACCESS_TOKEN` 取得授權，只建立出勤索引並檢查狀態。Firebase CLI 也可從根目錄的 `firebase.json` 取得完整索引與欄位設定。
+指令預設使用 `(default)` 資料庫，可用第二個參數指定資料庫。它從 Cloud Build 執行身分或環境變數 `GOOGLE_OAUTH_ACCESS_TOKEN` 取得授權，依 `firestore.indexes.json` 建立全部 collection group 缺少的複合索引並檢查狀態；已存在的索引不重建，不刪除額外索引，失敗或等待逾時會中止發布。Firebase CLI 也可從根目錄的 `firebase.json` 取得完整索引與欄位設定。
 
 <a id="cloud-run-部署"></a>
 

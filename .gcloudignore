@@ -39,7 +39,8 @@
 !firestore.indexes.json
 
 !scripts/db/
-!scripts/db/ensure-attendance-indexes.py
+!scripts/db/ensure-firestore-indexes.py
+!scripts/db/ensure-field-policies.py
 !firebase.json
 
 # Local artifacts inside otherwise allowed application directories

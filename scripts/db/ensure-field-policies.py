@@ -7,7 +7,7 @@ import time
 from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
-_token = runpy.run_path(str(Path(__file__).with_name("ensure-attendance-indexes.py")))["token"]
+_token = runpy.run_path(str(Path(__file__).with_name("ensure-firestore-indexes.py")))["token"]
 
 
 def request(url, body=None):

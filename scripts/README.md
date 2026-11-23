@@ -23,7 +23,7 @@ Run from root. Each shell script owns one operation; bootstrap/mise compose mult
 | [build/](build/README.md) | Container images | container-build |
 | [release/](release/README.md) | Release acceptance | release-smoke.py |
 | [ops/](ops/README.md) | Cloud Run inspection | cloud-run-snapshot.py |
-| [db/](db/README.md) | Firestore indexes | ensure-attendance-indexes.py |
+| [db/](db/README.md) | Firestore indexes | ensure-firestore-indexes.py |
 | [tooling/](tooling/README.md) | Development/environment diagnostics | doctor, tool-exec.sh |
 | [mcp/](mcp/README.md) | Project MCP settings, connections/diagnostics | check-mcp-config, doctor-mcp |
 

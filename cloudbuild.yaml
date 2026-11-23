@@ -69,10 +69,10 @@ steps:
     entrypoint: python3
     args: ["scripts/db/ensure-field-policies.py", "$PROJECT_ID"]
 
-  - id: attendance-indexes
+  - id: firestore-indexes
     name: python:3.12-slim
     entrypoint: python3
-    args: ["scripts/db/ensure-attendance-indexes.py", "$PROJECT_ID"]
+    args: ["scripts/db/ensure-firestore-indexes.py", "$PROJECT_ID"]
 
   # A separate job publishes once per build, before exposing the new service.
   # Each build has its own immutable job template; channel publications share a lease.
