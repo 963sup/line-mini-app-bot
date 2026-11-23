@@ -101,7 +101,7 @@ func (s Store) Manage(ctx context.Context, user string, teamId, scope, managemen
 		if e != nil {
 			return nil, e
 		}
-		if team.Disabled || (team.MembershipMode != "" && team.MembershipMode != "legacy") || !slices.Contains(team.Managers, user) {
+		if team.Disabled || team.Status != "ACTIVE" || (team.MembershipMode != "" && team.MembershipMode != "legacy") || !slices.Contains(team.Managers, user) {
 			return nil, organizationDomainEntity.ErrNotFound
 		}
 		if team.Scope != "" && (team.Scope != scope || team.Manager != managementId) {
@@ -204,7 +204,7 @@ func (w assignmentWork) Scope() (teamdomain.AssignmentScope, error) {
 	if err != nil {
 		return teamdomain.AssignmentScope{}, err
 	}
-	return teamdomain.AssignmentScope{OrganizationActive: org.LegacyOrganizationEnabled(), EnterpriseID: org.Enterprise, TeamScope: team.Scope, TeamManagerID: team.Manager}, nil
+	return teamdomain.AssignmentScope{OrganizationActive: org.LegacyOrganizationEnabled(), TeamActive: team.Status == "ACTIVE", TeamDisabled: team.Disabled, EnterpriseID: org.Enterprise, TeamScope: team.Scope, TeamManagerID: team.Manager}, nil
 }
 
 func (w assignmentWork) Authority(enterpriseID, actor string) (teamdomain.AssignmentAuthority, error) {

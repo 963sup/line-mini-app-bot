@@ -2,13 +2,15 @@ package domain
 
 type AssignmentScope struct {
 	OrganizationActive bool
+	TeamActive         bool
+	TeamDisabled       bool
 	EnterpriseID       string
 	TeamScope          string
 	TeamManagerID      string
 }
 
 func (s AssignmentScope) AllowsAssignment() bool {
-	return s.OrganizationActive && s.TeamManagedByEnterprise()
+	return s.OrganizationActive && s.TeamActive && !s.TeamDisabled && s.TeamManagedByEnterprise()
 }
 
 func (s AssignmentScope) TeamManagedByEnterprise() bool {
