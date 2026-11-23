@@ -9,7 +9,7 @@ import (
 
 	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line/presentation"
+	"github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/presentation"
 	attendanceservice "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/service"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 )
@@ -86,15 +86,16 @@ func (b *Attendance) historyResult(ctx context.Context, group string, report att
 			out = r.ClockOutAt.In(zone).Format("01/02 15:04")
 		}
 		fmt.Fprintf(&text, "\n%s 上班 %s\n下班 %s\n", r.ClockInAt.In(zone).Format("01/02"), r.ClockInAt.In(zone).Format("15:04"), out)
-		work := attendanceservice.CalculateRecordAttendance(r)
-		if work.Uncalculable > 0 {
+		work, status := attendanceservice.CalculateRecordAttendance(r)
+		switch status {
+		case attendanceservice.RecordInvalid:
 			if work.AttendanceMinutes > 0 {
 				fmt.Fprintf(&text, "出勤 %d小時%d分・", work.AttendanceMinutes/60, work.AttendanceMinutes%60)
 			}
 			text.WriteString("資料未完整或有異常・暫無法計算工時\n")
-		} else if work.Unconfirmed > 0 {
+		case attendanceservice.RecordEstimated:
 			fmt.Fprintf(&text, "出勤 %d小時%d分・暫估工時 %d小時%d分（休息待確認）\n", work.AttendanceMinutes/60, work.AttendanceMinutes%60, work.EstimatedTotalMinutes/60, work.EstimatedTotalMinutes%60)
-		} else {
+		case attendanceservice.RecordConfirmed:
 			fmt.Fprintf(&text, "出勤 %d小時%d分・已確認工時 %d小時%d分\n", work.AttendanceMinutes/60, work.AttendanceMinutes%60, work.ConfirmedNetMinutes/60, work.ConfirmedNetMinutes%60)
 		}
 	}

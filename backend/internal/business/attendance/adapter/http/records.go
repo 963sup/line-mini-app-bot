@@ -20,13 +20,7 @@ type attendanceRecordView = generated.AttendanceRecord
 
 func recordView(r attendanceentity.Record) attendanceRecordView {
 	breaks := intervalViews(r.Breaks)
-	work := attendanceservice.CalculateRecordAttendance(r)
-	status := "confirmed"
-	if work.Uncalculable > 0 {
-		status = "invalid"
-	} else if work.Unconfirmed > 0 {
-		status = "estimated"
-	}
+	work, status := attendanceservice.CalculateRecordAttendance(r)
 	return generated.AttendanceRecord{AttendanceMinutes: &work.AttendanceMinutes, EstimatedMinutes: &work.EstimatedTotalMinutes, WorktimeStatus: &status, RecordID: r.RecordID, GroupID: r.GroupID, ClockInAt: r.ClockInAt, ClockOutAt: r.ClockOutAt, Revision: r.Revision, EventSequence: r.EventSequence, Breaks: &breaks, BreakStartedAt: r.BreakStartedAt, RestConfirmed: r.RestConfirmed, RebuildIssues: &r.RebuildIssues}
 }
 

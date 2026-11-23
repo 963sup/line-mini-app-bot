@@ -44,12 +44,25 @@ func recordSession(r attendanceentity.Record) attendanceentity.Session {
 	}
 }
 
+const (
+	RecordInvalid   = "invalid"
+	RecordEstimated = "estimated"
+	RecordConfirmed = "confirmed"
+)
+
 // CalculateRecordAttendance uses the same rules as monthly totals over the full shift.
-func CalculateRecordAttendance(r attendanceentity.Record) Result {
+func CalculateRecordAttendance(r attendanceentity.Record) (Result, string) {
 	end := r.ClockOutAt
 	if !end.After(r.ClockInAt) {
 		// Keep a nonempty calculation window so invalid clock times are reported.
 		end = r.ClockInAt.Add(time.Nanosecond)
 	}
-	return Calculate([]attendanceentity.Session{recordSession(r)}, r.ClockInAt, end)
+	work := Calculate([]attendanceentity.Session{recordSession(r)}, r.ClockInAt, end)
+	if work.Uncalculable > 0 {
+		return work, RecordInvalid
+	}
+	if work.Unconfirmed > 0 {
+		return work, RecordEstimated
+	}
+	return work, RecordConfirmed
 }

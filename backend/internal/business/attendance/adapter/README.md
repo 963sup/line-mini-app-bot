@@ -6,6 +6,7 @@
 
 - [http](http/README.md)：HTTP 請求、認證接線與契約轉換。
 - [line](line/README.md)：LINE 事件與訊息呈現。
+- [presentation](presentation/group.go)：HTTP 與 LINE 共用的群組名稱呈現。
 - [firestore](firestore/README.md)：文件映射、查詢與交易。
 - [messaging](messaging/README.md)：保留訊息佇列入口，目前無實作。
 - [scheduler](scheduler/README.md)：保留排程觸發入口，目前無實作。

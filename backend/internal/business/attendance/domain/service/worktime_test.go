@@ -123,3 +123,22 @@ func TestRejectedEventsDoNotPoisonReplay(t *testing.T) {
 		t.Fatalf("%+v %+v", issues, r)
 	}
 }
+
+func TestRecordWorktimeStatus(t *testing.T) {
+	start := at("2026-11-01T08:00:00+08:00")
+	shift := attendanceentity.Record{ClockInAt: start, ClockOutAt: start.Add(8 * time.Hour)}
+	_, status := CalculateRecordAttendance(shift)
+	if status != "estimated" {
+		t.Fatalf("unconfirmed rest: %s", status)
+	}
+	shift.RestConfirmed = true
+	_, status = CalculateRecordAttendance(shift)
+	if status != "confirmed" {
+		t.Fatalf("confirmed rest: %s", status)
+	}
+	shift.RebuildIssues = []string{"invalid_sequence"}
+	_, status = CalculateRecordAttendance(shift)
+	if status != "invalid" {
+		t.Fatalf("invalid shift with confirmed rest: %s", status)
+	}
+}

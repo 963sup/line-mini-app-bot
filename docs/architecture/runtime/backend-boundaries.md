@@ -20,7 +20,7 @@ flowchart LR
   h --- n5["目錄：business/discussion/adapter/http、<br/>business/discussion/adapter/firestore<br/>責任與允許依賴：分別擁有主題／留言 HTTP 契約<br/>及文件／交易；討論配置共用 number，留言不配<br/>置 number"]
   h --- n6["目錄：business/repository/application/labels、<br/>business/repository/adapter/http/labels<br/>責任與允許依賴：標籤目錄列出／建立與 HTTP 轉<br/>換；Firestore 實作保留於既有 <br/>repository/firestore，重用 client；共享 ID <br/>正規化及交易內引用核驗，實際分類寫入仍由 <br/>Issue／Discussion 負責"]
   h --- n7["目錄：business/attendance/adapter/firestore<br/>責任與允許依賴：文件 DTO、查詢／交易、錯誤轉<br/>譯、固定版本防重編碼"]
-  h --- n8["目錄：business/attendance/adapter/line、<br/>business/attendance/adapter/line/presentation<br/>責任與允許依賴：聊天流程、出勤卡片與不依賴 <br/>SDK 的共用呈現"]
+  h --- n8["目錄：business/attendance/adapter/line、<br/>business/attendance/adapter/presentation<br/>責任與允許依賴：聊天流程、出勤卡片與不依賴 <br/>SDK 的共用呈現"]
   h --- n9["目錄：business/summary/application/messagecollection、<br/>business/summary/adapter/line/messagecollection<br/>責任與允許依賴：訊息模型與收集契約；LINE 文<br/>字收集、編輯與收回，不依賴摘要生成"]
   h --- n10["目錄：business/summary/adapter/line<br/>責任與允許依賴：收集與摘要指令的組合入口，先<br/>處理指令，再靜默收集一般文字"]
   h --- n11["目錄：business/summary/application/summarization<br/>責任與允許依賴：摘要用例與能力契約；不依賴 <br/>SDK"]

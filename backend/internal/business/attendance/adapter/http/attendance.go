@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line/presentation"
+	"github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/presentation"
 	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
 )
 

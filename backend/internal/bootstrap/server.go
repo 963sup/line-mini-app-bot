@@ -17,7 +17,7 @@ import (
 
 	attendancehttp "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/http"
 	attendanceline "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line"
-	"github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line/presentation"
+	"github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/presentation"
 	discussionhttp "github.com/963sup/line-mini-app-bot/internal/business/discussion/adapter/http"
 	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
 	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/http"
