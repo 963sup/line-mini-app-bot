@@ -21,7 +21,7 @@
 `mise run install-graphify` 安裝上游 agents 版本到 [Graphify 技能目錄](../../../../.agents/skills/graphify/SKILL.md)。本專案不執行技能中的子代理派工；採用共用 Graphify CLI 的 AST 與文件圖流程。若任務需要語意分析，由目前代理在授權範圍內逐段核對來源，明列涵蓋限制，不宣稱已執行 worker。
 Repomix 與 repomix_skills 共用 repomix-explorer；generate_skill 是工具能力，不等於另一個 skill。
 截至 2026-11-08，在 github/github-mcp-server 與 golang/tools 的預設分支遞迴檔案樹未找到 SKILL.md；不聲稱整個 GitHub 沒有官方技能。
-Samber 的 46 個 golang-* skills 為使用者指定社群技能，不能標為 Go 官方發布。
+Samber 的 golang-* skills 為使用者指定社群技能，不能標為 Go 官方發布。
 
 ## 專案規則優先
 
@@ -44,9 +44,9 @@ CLI 來源為 [vercel-labs/skills](https://github.com/vercel-labs/skills)，工�
 CLI 安裝不等於批次安裝網站技能；add/update/remove 會修改技能檔案，僅在任務授權範圍使用。
 專案技能來源與內容雜湊由根目錄技能鎖檔維護。
 
-## Samber 完整安裝與 Codex plugins
+## Samber 技能與 Codex plugins
 
-Samber 使用 `npx skills add https://github.com/samber/cc-skills-golang --all` 安裝 46 個 skills。
+Samber 技能依目前專案需求保留通用 Go 開發指引。已移除目前程式與依賴未使用的 GraphQL、Wire、Dig、Fx、Cobra、Viper、Testify 與 Samber 套件專用技能。安裝清單以 `skills-lock.json` 及 `.agents/skills/` 為準。
 CLI 來源／內容 hash 記錄在根目錄 skills-lock.json。golang-gopls 早期手動安裝的 revision 為 bb1d43d98a3f8ab639a0042f90d0ec524e39a477，現行安裝以鎖檔內容雜湊為準。
 `--all` 同時選擇其他 agent 目標；本 repo 提交 canonical .agents/skills，Claude/Eve 額外副本留在本機。
 
