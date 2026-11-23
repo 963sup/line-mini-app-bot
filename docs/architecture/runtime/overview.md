@@ -44,7 +44,7 @@ architecture-beta
 
 ## 業務與共用系統基礎
 
-- 個人與群組可以擁有 Repository 和 Project。Space 是庫內工區；Project 透過引用跨庫收錄物件、子物件、問題與討論，讀取時核驗各來源庫的權限。Project 規格 · 庫內工區
+- 個人或群組擁有 Repository；個人或組織擁有 Project。Space 是庫內工區；Project 透過引用跨庫收錄物件、子物件、問題與討論，讀取時核驗各來源庫的權限。Project 規格 · 庫內工區
 
   - [Project 規格](../../domains/project/project.md)
 

@@ -135,7 +135,7 @@ When changing this module, you MUST check the [decision flow](../domains/reposit
 
 ## `backend/internal/business/journal/`
 
-When changing this module, you MUST check the [decision flow](../domains/journal/design.md) and [representative tests](../../backend/internal/business/journal/domain/entity/entry_test.go).
+When changing this module, you MUST check the [decision flow](../domains/journal/journal.md) and [representative tests](../../backend/internal/business/journal/domain/entity/entry_test.go).
 
 - **Domain, state and authorization.** MUST retain published content visibility while redacting unauthorized source data; preserve historical payload and receipt-hash encodings during model changes.
 
@@ -165,7 +165,7 @@ When changing this module, you MUST check the [decision flow](../domains/organiz
 
 ## `backend/internal/business/project/`
 
-When changing this module, you MUST check the [decision flow](../domains/project/design.md) and [representative tests](../../backend/internal/business/project/application/reference_source_test.go).
+When changing this module, you MUST check the [decision flow](../domains/project/project.md) and [representative tests](../../backend/internal/business/project/application/reference_source_test.go).
 
 - **Domain, state and authorization.** MUST authorize the Project Owner and each referenced source independently; copying creates a new resource identity without inheriting unauthorized source access.
 
@@ -177,7 +177,7 @@ When changing this module, you MUST check the [decision flow](../domains/reposit
 
 ## `backend/internal/business/summary/`
 
-When changing this module, you MUST check the [decision flow](../domains/summary/design.md) and [implementation](../../backend/internal/business/summary/application/summarization/validation.go).
+When changing this module, you MUST check the [decision flow](../domains/summary/summary.md) and [implementation](../../backend/internal/business/summary/application/summarization/validation.go).
 
 - **Domain, state and authorization.** MUST preserve source/citation identity, bounded model input and job expiry across retries; expired or inaccessible messages must not enter a new result.
 - **Concurrency and recovery.** MUST coordinate job leases, completion and deduplication at the existing storage boundary; repeated delivery must not duplicate publication.
@@ -191,7 +191,7 @@ When changing this module, you MUST check the [decision flow](../domains/team/de
 
 ## `backend/internal/business/weather/`
 
-When changing this module, you MUST check the [decision flow](../domains/weather/design.md) and [representative tests](../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go).
+When changing this module, you MUST check the [decision flow](../domains/weather/weather.md) and [representative tests](../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go).
 
 - **Domain, state and authorization.** MUST treat location inputs as purpose-limited data and make forecast validity, cache expiry and unavailable-result behavior explicit.
 - **Cache and reliability.** MUST scope cached forecasts by their documented location/time semantics, bound provider calls and distinguish expired, unavailable and valid results.

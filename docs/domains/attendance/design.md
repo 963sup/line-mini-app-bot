@@ -1,8 +1,8 @@
 # Basic attendance 設計
 
-**Implemented** · [Design](strategy.md) · [Core flow](#decision-flow) · [Representative tests](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) · [Module guidance](../../../backend/AGENTS.md)
+**現行實作** · [群組打卡判定](#decision-flow) · [代表測試](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) · [模組規則](../../../backend/AGENTS.md)
 
-[Attendance, business features and LINE journeys](journey.md)
+[Attendance, business features and LINE journeys](../../integrations/line/journey.md#attendance-journey)
 
 <a id="用途與範圍"></a>
 
@@ -10,7 +10,7 @@
 
 Specifications for attendance, punches, corrections, leave and review.
 
-Design entries: [subdomains/investment assumptions](strategy.md) · [context mapping/integration contracts](context-map.md) · [tactical correction design](correction-design.md). This page owns attendance language/boundaries.
+設計入口：[子域分類與投資假設](#出勤的子域分類與投資假設) · [上下文映射與整合契約](../../architecture/runtime/dependencies.md#attendance-context-map) · [補正設計](correction-design.md)。本頁維護出勤用語與邊界。
 
 <a id="限界上下文"></a>
 
@@ -54,6 +54,20 @@ Capabilities below share attendance language/rules by current responsibility. In
 | Personal queries/group boards | Read scope and distinct-person working/resting/finished counts         | [Queries](queries.md), [boards](board.md)              |
 
 <a id="一致性與驗收"></a>
+
+## 出勤的子域分類與投資假設
+
+員工下班時漏打卡，隔天補交一個下班時間。月報能否採用這個時間，取決於誰提出、誰核准、原紀錄是否已改變，以及休息證據是否完整。從這條流程可以辨認三組不同的業務能力。
+
+| 子域分類               | 出勤案例                                                   | 設計與投資依據                                                                                                                   |
+| ---------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| 核心候選（Core）       | 由打卡事件重建班次，保留人工補正證據，區分已確認與暫估工時 | 若使用者選用本產品的原因是工時可追溯，優先投入證據核對、並行審核與可重現的月報計算。仍需以實際採用理由驗證。                     |
+| 支援候選（Supporting） | 請假登記、群組出勤看板                                     | 支援群組日常運作。登記請假與實際出勤可以並存；看板計算不同人的目前狀態。若未來要判定「應到未到」，先確認班表與應到名單由誰提供。 |
+| 通用能力（Generic）    | 操作者身分驗證                                             | 出勤重用已驗證的身分，再自行判斷本人資料與群組審核資格。可替換身分驗證方案的條件，是出勤仍能可靠辨識同一操作者。                 |
+
+這些分類用於討論投資優先順序。現行模型將打卡、工時計算、補正、查詢與請假放在同一出勤限界上下文；子域分類本身不要求拆服務。若要拆出請假，應先找出它獨有的詞義、生命週期與規則，例如組織是否真的需要假額或核准流程。
+
+[工時計算](worktime.md) · [請假登記](leave.md) · [群組看板](board.md)
 
 ## Consistency and acceptance
 

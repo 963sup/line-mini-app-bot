@@ -23,4 +23,4 @@ LINE 選單的圖片版面與按鈕對應。共用 JSON、圖片產生及 Go 發
 | 2         | `rich-menu-transfer.JPG`  | 轉場支援 · 先確認原班次 · Postback `action=transfer`  |
 | 3         | `rich-menu-clock-out.JPG` | 下班 · 回原班次群組打卡 · Postback `action=clock-out` |
 
-主操作維持私訊指引。轉場支援不會結束 A 班次或新增 B 班次；實際班次操作依[出勤旅程](../../../domains/attendance/journey.md)。
+主操作維持私訊指引。轉場支援不會結束 A 班次或新增 B 班次；實際班次操作依[出勤旅程](../../../integrations/line/journey.md#attendance-journey)。

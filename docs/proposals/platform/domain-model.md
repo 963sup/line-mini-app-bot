@@ -1,10 +1,10 @@
-# repositoryissue-與-discussion-業務模型設計
+# Repository、Issue 與 Discussion 業務模型設計
 
 <a id="repositoryissue-與-discussion-業務模型設計"></a>
 
 ## Repository、Issue 與 Discussion 業務模型設計
 
-- [已確認的新邊界：Project 由個人或工程群組擁有，可跨庫收錄引用；預設來源庫、來源唯讀及相容／遷移規則見 獨立Project。本頁後方GitHub Projects素材與未定完整產品功能仍是參考，不能覆蓋已接受的工程群組身份、當下成員核驗與作者管理規則。](../../domains/project/project.md)
+- 已確認的新邊界：Project 由個人或組織擁有，可跨庫收錄引用；來源權限獨立核驗，規則見[Project 規格](../../domains/project/project.md)。本頁後方 GitHub Projects 素材與未定產品功能僅供參考，不覆蓋現行所有權與授權規則。
 
 - 狀態：後續開發設計參考，尚未核定完整產品規則；不構成現在實作、部署或資料遷移的要求。 整<br>理日期：2026-11-12。
 
@@ -57,7 +57,7 @@ Issue 與 Discussion 各自擁有狀態與操作；若未來需要互相連結�
 
 ## 日誌與專案的歸屬設計
 
-[Journal 為獨立業務，每篇以發布群組界定可見範圍。Feed 與 Dashboard 共用日誌資料。儲存庫或專案為工作明細上的可選引用。人員名單屬於當日整篇日誌。日誌設計與雛型範圍](../../domains/journal/journal.md)
+舊提案以發布群組界定每篇 Journal 的可見範圍，並將儲存庫作為工作明細的可選引用。現行新建日誌改由主儲存庫歸屬；舊群組日誌維持原查閱範圍。Feed 與 Dashboard 共用日誌資料，人員名單屬於當日整篇日誌。權威規則與歷史相容界線見[日誌規格](../../domains/journal/journal.md#目標規格日誌歸屬儲存庫)。
 
 <a id="rest-分頁與契約邊界"></a>
 

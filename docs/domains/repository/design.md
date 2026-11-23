@@ -26,7 +26,7 @@ This page owns Repository scope/authorization; capability documents own details.
 
 ## Reading and editing entry points
 
-[Containers/LINE journeys](journey.md) explains responsibilities, target navigation, wiring and acceptance.
+[Containers/LINE journeys](../../integrations/line/journey.md#repository-journey) explains responsibilities, target navigation, wiring and acceptance.
 
 Start with [spaces.md](spaces.md), [Issue specifications](issue/design.md) and [organization/team ownership](../../contracts/organization-team-ownership.md).
 
@@ -51,7 +51,17 @@ Capabilities share Repository scope but own operation/authorization rules. Docum
 | Wiki                 | [Pages/revisions](wiki.md)                                                                          |
 | Container acceptance | [Completion boundaries](acceptance.md)                                                              |
 
-`Object.parentId` represents subobjects governed by [object specifications](object/design.md); no separate Subobject domain documents. Cross-repository [Project](../project/design.md) and independent [Journal](../journal/design.md) retain their domains.
+`Object.parentId` represents subobjects governed by [object specifications](object/design.md); no separate Subobject domain documents. Cross-repository [Project](../project/project.md) and independent [Journal](../journal/journal.md) retain their domains.
+
+### 容器責任與內部能力
+
+| 責任       | 能力與邊界                                                                                                                                                                                                                                                                            |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 容器治理   | Repository 管理個人或群組擁有者、啟用狀態及庫內範圍。庫的讀取資格與資源的操作權分開判定。                                                                                                                                                                                             |
+| 共用能力   | [工區 Space](spaces.md)用於庫內分類。[標籤](labels.md)、[里程碑](milestones.md)與[共用編號](numbering.md)依各自規格供資源引用。工區沿用庫的存取範圍。                                                                                                                                 |
+| 業務資源   | [Object](object/design.md)管理工項階層與數量進度，[範本](object/template.md)用來建立獨立物件樹。個人範本依持有人及目標庫建立權限判定；庫範本依本庫範圍判定。[Issue](issue/design.md)追蹤異常與狀態，[Discussion](discussion/design.md)承載討論與留言，[Wiki](wiki.md)保存知識與修訂。 |
+| 衍生讀取   | [Insights](insights.md)提供庫內統計與現況。Pulse 屬規劃，稽核入口依[容器驗收界線](acceptance.md)判定。                                                                                                                                                                                |
+| 跨領域引用 | [Project](../project/project.md)獨立維護跨庫協作與進度。[Journal](../journal/journal.md)獨立維護日誌。開啟引用時依來源資源權限判定，來源狀態由來源領域維護。                                                                                                                          |
 
 <a id="個人與群組-repository"></a>
 

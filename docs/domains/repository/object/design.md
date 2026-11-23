@@ -91,6 +91,16 @@ backend/internal/business/
 
 <a id="範圍與欄位"></a>
 
+<a id="物件與子物件歸屬"></a>
+
+## 物件與子物件歸屬
+
+父物件與子項都是同一個儲存庫內的 `Object`。子項透過 `parentId` 指向父物件，兩者分別維護數量、單位、完成數與版本。
+
+- 使用 `GET /api/v1/repositories/{repositoryId}/objects?parentId={id}` 分頁列出直接子項。
+- 建立子項使用 `POST /api/v1/repositories/{repositoryId}/objects`，在請求本文帶入 `parentId`。編輯子項使用其自身的 Object ID 與版本。
+- 專案與工作日誌都引用子項自己的 Object ID。
+
 ## 範圍與欄位
 
 儲存庫內提供「物件」列表、詳情、手動新增與編輯。新增只填名稱；類型、數量、單位與空間確定後由建立者補充，不猜測預設值；核心不負責分類目錄、AI 模型、檔案解析、附件、價格／稅／付款／驗收、庫存、問題關聯或刪除。工序可逐層建立子物件，父子各自維護進度。詳見 [Object 階層](#object-階層)。
@@ -189,7 +199,7 @@ HTTP 請求與回應以 [Object OpenAPI 契約](../../../../api/contract/object/
 
   - [object](../../../../frontend/miniapp/src/business/object/)
 
-[跨領域歸屬契約](../../../contracts/object-subobject-ownership.md) · [範本操作與權限](template.md#操作與權限)
+[物件與子物件歸屬](#物件與子物件歸屬) · [範本操作與權限](template.md#操作與權限)
 
 ## 從文件辨識候選
 

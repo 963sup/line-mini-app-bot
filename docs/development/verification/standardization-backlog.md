@@ -130,7 +130,7 @@
 
 **P0 · 待驗收範圍定義 · 標準 1、9、26、30、34 · 責任：驗收規格**
 
-- 證據：[docs/development/verification/standardization.md](../../../docs/development/verification/standardization.md) 明確採四個 25% 里程碑，沒有「每項全部適用操作及已驗收數」；75% 不是全庫合規率，修一個案例不能推導整類完成。
+- 證據：[docs/development/verification/standardization.md](standardization.md) 明確採四個 25% 里程碑，沒有「每項全部適用操作及已驗收數」；75% 不是全庫合規率，修一個案例不能推導整類完成。
 - 調整：為每一項列適用資源／操作、必要案例、環境與非適用條件；把已完成、未驗證、阻塞分開計數。舊里程碑保留為歷史，後續另報有分母的驗收進度。
 - 關閉條件：36 類皆有可追溯驗收集合，分母變更留下原因；新問題不被藏在固定百分比裡；未知覆蓋不得算通過。
 - 前置：無；先維持現行相容行為。
@@ -141,7 +141,7 @@
 
 **P1 · 已知未完整交付 · 標準 1、2、18、19、20、21、22、23、25、26 · 責任：Organization／Membership**
 
-- 證據：[docs/domains/organization/design.md](../../../docs/domains/organization/design.md) 的獨立資格交付邊界要求建立、邀請、接受、People、Owner 移轉、退出／移除的完整入口；目前產品主線仍為 legacy。[backend/internal/business/membership/application/invitations.go](../../../backend/internal/business/membership/application/invitations.go) 的既有切片不等於完整模式切換。
+- 證據：[docs/domains/organization/design.md](../../domains/organization/design.md) 的獨立資格交付邊界要求建立、邀請、接受、People、Owner 移轉、退出／移除的完整入口；目前產品主線仍為 legacy。[backend/internal/business/membership/application/invitations.go](../../../backend/internal/business/membership/application/invitations.go) 的既有切片不等於完整模式切換。
 - 調整：按一個資源的完整操作閉環交付 Backend→API→Frontend，包含錯誤、重送與失去資格；不要先手改模式欄位。
 - 關閉條件：從正常入口完成全部步驟，並驗證唯一有效 Owner、重送不重新開權、移轉與退出競爭、撤權後導覽與下層資格失效。
 - 前置：A07／A08；依既定 Organization 規格，不套用 Enterprise 多 Owner。
@@ -152,7 +152,7 @@
 
 **P0 · 待決策 · 標準 1、17、18、19、20、23 · 責任：Team／渠道治理**
 
-- 證據：[docs/domains/team/design.md](../../../docs/domains/team/design.md) 的群組開通授權仍需渠道審核人員、可核驗獨立委任證據與效期；[docs/proposals/membership.md](../../../docs/proposals/membership.md) 的閉環清單列為啟用阻塞。
+- 證據：[docs/domains/team/design.md](../../domains/team/design.md) 的群組開通授權仍需渠道審核人員、可核驗獨立委任證據與效期；[docs/proposals/membership.md](../../proposals/membership.md) 的閉環清單列為啟用阻塞。
 - 調整：定案審核人員來源、證據、效期、撤銷及自審限制，落在同一權威規格。
 - 關閉條件：可判定誰能核發、何時失效、如何撤銷及何種證據有效；Bot 看過群組或申請人發過訊息不得自行升權。
 - 前置：無；先維持現行相容行為。
@@ -163,7 +163,7 @@
 
 **P1 · 已知未完整交付 · 標準 2、12、17、19、20、21、22、23、25 · 責任：Team／Membership／Bootstrap**
 
-- 證據：[docs/domains/team/design.md](../../../docs/domains/team/design.md) 描述申請、核發與交易消耗流程；[frontend/miniapp/src/business/team/TeamActions.tsx](../../../frontend/miniapp/src/business/team/TeamActions.tsx) 現行表單接線並未完成該治理閉環。
+- 證據：[docs/domains/team/design.md](../../domains/team/design.md) 描述申請、核發與交易消耗流程；[frontend/miniapp/src/business/team/TeamActions.tsx](../../../frontend/miniapp/src/business/team/TeamActions.tsx) 現行表單接線並未完成該治理閉環。
 - 調整：在既有 Team／Membership 邊界內實作契約與正常入口，不把管理授權、成員角色及 LINE 觀察混成一項。
 - 關閉條件：覆蓋自審拒絕、跨群組／帳號重放、審核前開通拒絕、撤銷與消耗競爭、Owner 換手、首任人員退出及原命令重送。
 - 前置：B02；適用上層 Organization／Enterprise 資格可用。
@@ -174,7 +174,7 @@
 
 **P0 · 待決策 · 標準 1、2、17、19、20、21 · 責任：Enterprise**
 
-- 證據：[docs/domains/enterprise/design.md](../../../docs/domains/enterprise/design.md) 明確列出多 Owner 權威、manager 可執行動作與最後 Owner 保護尚待定案。
+- 證據：[docs/domains/enterprise/design.md](../../domains/enterprise/design.md) 明確列出多 Owner 權威、manager 可執行動作與最後 Owner 保護尚待定案。
 - 調整：先定義角色可執行的具體操作、Owner 新增／撤銷／退出與版本競爭，再固定狀態與 API 契約。
 - 關閉條件：每個角色與狀態都有允許／拒絕結果；不複製 Organization 單一 Owner 指標，manager 不能自行升 Owner。
 - 前置：無；先維持現行相容行為。
@@ -185,7 +185,7 @@
 
 **P1 · 已知未完整交付 · 標準 12、18、19、20、21、22、23、25、26 · 責任：Enterprise／Membership**
 
-- 證據：[docs/domains/enterprise/design.md](../../../docs/domains/enterprise/design.md) 尚未完成直接成員加入、名單、退出、移除及重新加入入口；旗下組織可見性不代表直接企業資格。
+- 證據：[docs/domains/enterprise/design.md](../../domains/enterprise/design.md) 尚未完成直接成員加入、名單、退出、移除及重新加入入口；旗下組織可見性不代表直接企業資格。
 - 調整：依 B04 交付直接資格與正常入口，再接 Enterprise Team 消費端，保持直接與衍生資格可區分。
 - 關閉條件：建立、加入、退出、重加入、撤權及 Team 消費端均有正常流程、拒絕／重送與 generation 失效證據。
 - 前置：B04；不以旗下組織成員名單代替企業資格。
@@ -196,7 +196,7 @@
 
 **P1 · 已知未交付 · 標準 4、11、16、19、21、22、26、32 · 責任：資料遷移／各資源**
 
-- 證據：[docs/domains/organization/design.md](../../../docs/domains/organization/design.md) 列出資料準備、切換及回復未交付；[scripts/db/README.md](../../../scripts/db/) 的現有索引／欄位政策工具不是 Membership 遷移工具。[docs/proposals/firestore-data-contracts.md](../../../docs/proposals/firestore-data-contracts.md) 的 schemaVersion=1 是未實作提案。
+- 證據：[docs/domains/organization/design.md](../../domains/organization/design.md) 列出資料準備、切換及回復未交付；[scripts/db/README.md](../../../scripts/db/) 的現有索引／欄位政策工具不是 Membership 遷移工具。[docs/proposals/firestore-data-contracts.md](../../proposals/firestore-data-contracts.md) 的 schemaVersion=1 是未實作提案。
 - 調整：為每個切換建立舊／新 reader-writer 組合、試跑、可重跑準備、版本條件、切換檢查與回復界線，不在請求路徑無界回填。
 - 關閉條件：混合版本及部分失敗可重跑；回復不恢復已撤權資格、不覆寫新資料；資料與權限不變量經 staging 驗收。
 - 前置：B01／B05 對應正常入口完成；保存與刪除範圍依 B07。
@@ -207,7 +207,7 @@
 
 **P1 · 待決策 · 標準 2、16、17、21、23、26、28、35、36 · 責任：資料責任領域／營運**
 
-- 證據：[docs/proposals/firestore-data-contracts.md](../../../docs/proposals/firestore-data-contracts.md) 的保存期與刪除 SLA 依 P05 待定；[docs/proposals/membership.md](../../../docs/proposals/membership.md) 的獨立邀請、收據窗口與稽核保存待定。Summary 已有自身 24／48 小時規則，不代表全部資源採同一 TTL。
+- 證據：[docs/proposals/firestore-data-contracts.md](../../proposals/firestore-data-contracts.md) 的保存期與刪除 SLA 依 P05 待定；[docs/proposals/membership.md](../../proposals/membership.md) 的獨立邀請、收據窗口與稽核保存待定。Summary 已有自身 24／48 小時規則，不代表全部資源採同一 TTL。
 - 調整：按資料目的列出邀請、重送收據、稽核、訊息、附件與衍生資料的保留、清除、法律／產品限制及操作責任。
 - 關閉條件：每類資料有保存及刪除完成條件；刪除與未完成工作、重送、追溯及子集合相容；不得默認永久保存或任意套用共同 TTL。
 - 前置：無；先維持現行相容行為。
@@ -240,7 +240,7 @@
 
 **P1 · 待驗證 · 標準 5、10、11、20、25 · 責任：Attendance／Journal／Project／前端呈現**
 
-- 證據：[backend/internal/business/attendance/domain/service/worktime.go](../../../backend/internal/business/attendance/domain/service/worktime.go) 與 [docs/domains/attendance/worktime.md](../../../docs/domains/attendance/worktime.md) 定義工時；[frontend/miniapp/src/business/journal/Workspace.tsx](../../../frontend/miniapp/src/business/journal/Workspace.tsx) 使用業務日，[frontend/miniapp/src/business/project/Inspections.tsx](../../../frontend/miniapp/src/business/project/Inspections.tsx) 使用本地日期顯示。
+- 證據：[backend/internal/business/attendance/domain/service/worktime.go](../../../backend/internal/business/attendance/domain/service/worktime.go) 與 [docs/domains/attendance/worktime.md](../../domains/attendance/worktime.md) 定義工時；[frontend/miniapp/src/business/journal/Workspace.tsx](../../../frontend/miniapp/src/business/journal/Workspace.tsx) 使用業務日，[frontend/miniapp/src/business/project/Inspections.tsx](../../../frontend/miniapp/src/business/project/Inspections.tsx) 使用本地日期顯示。
 - 調整：分清 instant、業務日期、月界線與顯示時區；核對已確認／估計工時是否被相加，以及交易重試的時間採收到或提交時點。不能全域機械改成 UTC 顯示。
 - 關閉條件：跨午夜／跨月、進行中班次、端點時間、過期邊界與估計值均符合契約；前端不另做權威工時計算。兩個正在編輯的相關檔案須先完成所有權／版本確認。
 - 前置：無；先維持現行相容行為。
@@ -262,7 +262,7 @@
 
 **P1 · 待驗證 · 標準 21、22、23、27、35 · 責任：各寫入使用案例／Summary**
 
-- 證據：[docs/domains/repository/numbering.md](../../../docs/domains/repository/numbering.md) 記錄共用編號／收據；[backend/internal/business/summary/adapter/firestore/summary.go](../../../backend/internal/business/summary/adapter/firestore/summary.go) 與 [backend/internal/business/summary/adapter/messaging/cloudtasks/summarization/queue.go](../../../backend/internal/business/summary/adapter/messaging/cloudtasks/summarization/queue.go) 分別處理提交與入列。Summary 文件明定入列失敗由 LINE 重送恢復。
+- 證據：[docs/domains/repository/numbering.md](../../domains/repository/numbering.md) 記錄共用編號／收據；[backend/internal/business/summary/adapter/firestore/summary.go](../../../backend/internal/business/summary/adapter/firestore/summary.go) 與 [backend/internal/business/summary/adapter/messaging/cloudtasks/summarization/queue.go](../../../backend/internal/business/summary/adapter/messaging/cloudtasks/summarization/queue.go) 分別處理提交與入列。Summary 文件明定入列失敗由 LINE 重送恢復。
 - 調整：對各收據核對 actor/resource/type/content scope、回放時權限、保留窗口、版本與外部投遞；Summary 注入提交後入列失敗及回應遺失。先核對既有恢復路徑，再決定是否需要新 outbox。
 - 關閉條件：同鍵同內容只產生一次效果、不同內容衝突、撤權後不洩漏結果；已提交但未入列能依既定契約恢復，不能把固定 task ID 當原子跨服務交易。
 - 前置：無；先維持現行相容行為。
@@ -284,7 +284,7 @@
 
 **P1 · 待驗證 · 標準 7、9、15、30、31、34 · 責任：驗收／架構／生成工具**
 
-- 證據：[backend/internal/architecture/boundaries_test.go](../../../backend/internal/architecture/boundaries_test.go) 是靜態 Go import 檢查；[scripts/contract/check-compatibility.mts](../../../scripts/contract/check-compatibility.mts) 是保守結構比較；[scripts/generate/docs-graph.py](../../../scripts/generate/docs-graph.py) 不是語意驗證。[docs/development/verification/standardization.md](../../../docs/development/verification/standardization.md) 有先前快照測試證據。
+- 證據：[backend/internal/architecture/boundaries_test.go](../../../backend/internal/architecture/boundaries_test.go) 是靜態 Go import 檢查；[scripts/contract/check-compatibility.mts](../../../scripts/contract/check-compatibility.mts) 是保守結構比較；[scripts/generate/docs-graph.py](../../../scripts/generate/docs-graph.py) 不是語意驗證。[docs/development/verification/standardization.md](standardization.md) 有先前快照測試證據。
 - 調整：將已通過的檢查對應 commit、dirty paths、工具版本、案例及 SKIP；審查 frontend 邊界是否需要現有檢查能捕捉的具體反例，再增加門檻。
 - 關閉條件：每個結論有確切版本與涵蓋／不涵蓋範圍；生成同步不等於公開行為相容，圖譜不等於動態授權。未變更來源沿用有效證據，不每批重跑所有檢查。
 - 前置：無；先維持現行相容行為。
@@ -295,7 +295,7 @@
 
 **P1 · 環境待驗收 · 標準 16、17、18、27、31、32、33 · 責任：部署營運**
 
-- 證據：[docs/operations/cloud-run.md](../../../docs/operations/cloud-run.md) 區分 managed inline trigger 與 repository cloudbuild.yaml；[scripts/ops/cloud-run-snapshot.py](../../../scripts/ops/cloud-run-snapshot.py) 提供服務／revision metadata。此輪沒有讀取目標雲端實際狀態。
+- 證據：[docs/operations/cloud-run.md](../../operations/cloud-run.md) 區分 managed inline trigger 與 repository cloudbuild.yaml；[scripts/ops/cloud-run-snapshot.py](../../../scripts/ops/cloud-run-snapshot.py) 提供服務／revision metadata。此輪沒有讀取目標雲端實際狀態。
 - 調整：先唯讀核對 project/region/service、來源 SHA/image digest、runtime identity、IAM、Secret 數字版本與執行期設定，再依已授權發布範圍演練。
 - 關閉條件：目標來源、映像、Ready revision、traffic、必要路由與回復版本一致；回復不破壞資料格式。不得把修改 repository YAML 當 managed service 設定已改變。
 - 前置：需可用雲端唯讀身分；部署／切流量／回復依當次授權。
@@ -306,7 +306,7 @@
 
 **P1 · 環境待驗收 · 標準 2、11、17、21、26、32、36 · 責任：Firestore／資料營運**
 
-- 證據：[firestore.indexes.json](../../../firestore.indexes.json) 與 [scripts/db/ensure-field-policies.py](../../../scripts/db/ensure-field-policies.py) 僅代表宣告及工具；A01 證實來源上傳還有缺口。
+- 證據：[firestore.indexes.json](../../../firestore.indexes.json) 與 `scripts/db/ensure-field-policies.py`（盤點當時的腳本） 僅代表宣告及工具；A01 證實來源上傳還有缺口。
 - 調整：核對目標 database 的 composite indexes、TTL、單欄豁免與 IAM；在授權 staging 驗證等待就緒、錯誤／逾時及過期資料讀取行為。
 - 關閉條件：必要查詢實跑、索引／TTL 狀態符合宣告，過期資料即使未刪也不被讀出；不以 emulator 證明正式 IAM 或已部署 TTL。
 - 前置：先修 A01；套用政策與刪除資料另需對應環境授權。
@@ -317,7 +317,7 @@
 
 **P1 · 環境待驗收 · 標準 5、17、18、19、24、25、27 · 責任：LINE／身分／裝置**
 
-- 證據：[docs/operations/release-acceptance.md](../../../docs/operations/release-acceptance.md) 列出 iOS、Android、外部瀏覽器驗收；[docs/integrations/geolocation/browser-api.md](../../../docs/integrations/geolocation/browser-api.md) 有定位限制；本機 fixtures 不提供真實裝置證據。
+- 證據：[docs/operations/release-acceptance.md](../../operations/release-acceptance.md) 列出 iOS、Android、外部瀏覽器驗收；[docs/integrations/geolocation/browser-api.md](../../integrations/geolocation/browser-api.md) 有定位限制；本機 fixtures 不提供真實裝置證據。
 - 調整：依正常 LINE 入口測 Channel/Provider、liff.state、登入返回、過期／撤銷、定位拒絕／逾時／背景切換及私人資料清理。
 - 關閉條件：每個裝置／OS／LINE 版本分別記錄結果；不以 mock token、GPS 或獨立瀏覽器成功推論所有 LINE 裝置可用。
 - 前置：實際測試渠道、已配置 LIFF 與測試帳號／裝置。
@@ -328,7 +328,7 @@
 
 **P1 · 環境待驗收 · 標準 17、23、27、28、29、35 · 責任：Summary／外部依賴／營運**
 
-- 證據：[backend/internal/transport/http/telemetry.go](../../../backend/internal/transport/http/telemetry.go) 把 allowlisted OTel 資料輸出到結構化日誌，並非已配置 Cloud Trace／Monitoring；[docs/domains/summary/summary.md](../../../docs/domains/summary/summary.md) 列 OIDC、模型及真實 LINE 投遞仍需驗收。
+- 證據：[backend/internal/transport/http/telemetry.go](../../../backend/internal/transport/http/telemetry.go) 把 allowlisted OTel 資料輸出到結構化日誌，並非已配置 Cloud Trace／Monitoring；[docs/domains/summary/summary.md](../../domains/summary/summary.md) 列 OIDC、模型及真實 LINE 投遞仍需驗收。
 - 調整：驗證服務身分／audience、模型截斷與錯誤、429／timeout／未知 Push 結果、trace 串接、日誌查詢與告警；明確選定哪些 log exports 需轉成原生指標／trace。
 - 關閉條件：失敗分類、重送與期限符合契約；必要背景工作可追蹤，告警能被觸發與解除，敏感內容不進日誌；不把 OTel SDK 存在當告警已可用。
 - 前置：外部測試服務與授權；供應端憑證不寫入清單或日誌。
@@ -350,7 +350,7 @@
 
 **P2 · 需求與量測後決定 · 標準 1、6、7、27、29、35、36 · 責任：Workflow／Knowledge／Agent／外部整合**
 
-- 證據：[docs/proposals/domain-collaboration.md](../../../docs/proposals/domain-collaboration.md)、[docs/proposals/webhook-delivery/design.md](../../../docs/proposals/webhook-delivery/design.md) 與 [docs/proposals/knowledge.md](../../../docs/proposals/knowledge.md) 包含候選設計／部分元件，不是全部當前產品缺陷。
+- 證據：[跨領域協作提案](../../proposals/domain-collaboration.md)、[Webhook 投遞提案](../../proposals/webhook-delivery/design.md) 與 [Knowledge 領域設計](../../domains/knowledge/design.md) 包含候選設計／部分元件，不是全部當前產品缺陷。
 - 調整：逐能力寫清真實使用案例、現有同步／重送方案限制、可靠投遞或效能目標；有證據後才選 CloudEvents、outbox、worker、向量索引或快取。
 - 關閉條件：採用決策能對應具體需求、責任領域、版本及失敗／恢復驗收；未採用的候選能力不強制湊成微服務或通用平台。
 - 前置：無；先維持現行相容行為。
