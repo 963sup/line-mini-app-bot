@@ -5,6 +5,7 @@
 - [撰寫與驗證文件](documentation.md)
 - [開發原則與決策](engineering.md)
 - [產品與體驗設計原則](design.md)
+- [LINE MINI App UI 設計規格與十二個入口的驗收條件](miniapp-ui.md)
 - [Go 開發與驗收](go.md)
 - [業務實體、集合與 API 命名](naming.md)
 
