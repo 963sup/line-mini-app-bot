@@ -30,14 +30,13 @@ flowchart TB
 
 來源與限制：[根查證路由](../../../AGENTS.md#mandatory-documentation-verification) · [驗收矩陣](../tooling/testing/commands.md) · [證據重用](handoff.md#minimal-handoff-and-evidence-reuse)。本圖定義除錯流程，不代表已執行某次診斷。
 
-- Context7 先 resolve ID 再查適用版本，與安裝依賴比對；Codex、LINE 與 Google 採根指引的特定官方來源。查詢不可用時明列限制。
 - 區分觀察、推論、排除的假設與確認根因。AST／bundle 不證明執行結果；不收錄憑證或私人原始日誌。
 - 不吞錯、不削弱驗證或 assertions、不關檢查、不加無界重試；無關重構不納入修正。環境或依賴修復須明確協調。
 - 修正回歸時優先提供修正前失敗、修正後通過的證據。缺少憑證、重現或整合驗收時，明列缺口。
 
 ## Completion and handoff
 
-使用[六欄交接](handoff.md#minimal-handoff-and-evidence-reuse)，保留症狀與影響、版本／環境、重現命令、已確認因果鏈與檔案／行號或去識別日誌、排除假設、修改必要性、修正後重現結果、回歸命令／exit status／skips／涵蓋限制、文件來源與版本。發布另依任務授權及主機邊界。
+使用[六欄交接](handoff.md#minimal-handoff-and-evidence-reuse)，將原始重現、已確認因果鏈、排除假設及修改必要性填入 Evidence，將修正後重現、回歸結果與涵蓋限制填入 Checks。版本、範圍、來源及未驗證項目依[證據規範](../verification/evidence.md)記錄；發布另依任務授權及主機邊界。
 
 ## Configuration and activation
 

@@ -80,6 +80,4 @@ flowchart LR
 
 ## 持續檢查與修正
 
-依[操作符合性流程](../development/workflow/implementation.md#business-operation-compliance)用 Graphify 找關係、Repomix 與原文核對實作，涉及外部技術時用 Context7 查證，再修正並驗證任務範圍。工具輸出僅提供證據；授權仍依當次任務。
-
-巢狀指引按目錄範圍適用，專題文件需透過連結明確讀取。歷史查證使用 2026-11-11 的 Context7 `/openai/codex` 與上游 main，未固定提交；目前操作遵循[專案根指引](../../AGENTS.md)。[原查證來源](https://github.com/openai/codex/blob/main/codex-rs/protocol/src/prompts/base_instructions/default.md)
+依[操作符合性流程](../development/workflow/implementation.md#business-operation-compliance)定位與核對契約、實作，再驗證本次變更；適用案例與限制依[業務操作證據](../development/verification/evidence.md#business-operation-evidence)記錄。工具、官方來源與巢狀指引的適用方式以[專案根指引](../../AGENTS.md)為準，不在本契約另訂查證流程或增加操作授權。

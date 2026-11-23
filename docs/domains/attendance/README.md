@@ -75,138 +75,141 @@ The [review use case](../../../backend/internal/business/attendance/application/
 
 [Local specifications and guidance](../../../api/contract/attendance/README.md)
 
-
 <a id="基礎出勤"></a>
 
-```mermaid
-flowchart LR
-  h["Basic attendance"]
-  h --- n0["Initial group location clock-in/out and personal records by group in direct chat.<br/>Commands/postbacks create short-lived requests. MINI App resolves results first,<br/>obtains location only for new actions, then submits attendance.<br/>Deployment and live LINE/Firestore acceptance are separate.<br/>Punch, monthly records, pagination and corrections have implementations;<br/>cloud settings, indexes and channel acceptance require verification.<br/>Query/retry and worktime/evidence guides own details.<br/>Infrastructure guidance records build order, not absence of features.<br/>This refactor reuses existing checks without adding test infrastructure."]
-  n0 --- n0l0["Queries, web pagination and correction retries"]
-  click n0l0 "queries.md"
-  n0 --- n0l1["Worktime and correction evidence"]
-  click n0l1 "worktime.md"
-  n0 --- n0l2["Infrastructure and integration"]
-  click n0l2 "../../development/environment/verification.md"
-```
+## Basic attendance
+
+- Initial group location clock-in/out and personal records by group in direct chat.Commands/postbacks create short-lived requests. MINI App resolves results first,obtains location only for new actions, then submits attendance.Deployment and live LINE/Firestore acceptance are separate.Punch, monthly records, pagination and corrections have implementations;cloud settings, indexes and channel acceptance require verification.Query/retry and worktime/evidence guides own details.Infrastructure guidance records build order, not absence of features.This refactor reuses existing checks without adding test infrastructure.
+
+  - [Queries, web pagination and correction retries](queries.md)
+
+  - [Worktime and correction evidence](worktime.md)
+
+  - [Infrastructure and integration](../../development/environment/verification.md)
 
 <a id="最小操作"></a>
 
-```mermaid
-flowchart LR
-  h["Minimal operations"]
-  h --- n0["Clock in: backend verifies identity, saves start time and returns result."]
-  h --- n1["Clock out: backend verifies identity, saves the matching shift end and returns result."]
-  h --- n2["Personal records: verified actor's own attendance only,<br/>including start/end and explicit unfinished status."]
-```
+## Minimal operations
 
-```mermaid
-flowchart LR
-  h["Minimal operations"]
-  h --- n0["Use trusted backend identity, never client-selected user IDs for authorization.<br/>Backend generates punch times. Failed persistence cannot report success.<br/>Repeated clicks/redelivery cannot silently duplicate records.<br/>Keep open shifts unfinished; never guess clock-out times."]
-  h --- n1["Group 出勤 command shows counts; 補卡 opens manual review;<br/>漏下班 checks personal open shifts. See board guidance."]
-  click n1 "board.md"
-  h --- n2["Minimal group leave registration neither approves leave nor changes attendance."]
-  click n2 "leave.md"
-```
+- Clock in: backend verifies identity, saves start time and returns result.
+
+- Clock out: backend verifies identity, saves the matching shift end and returns result.
+
+- Personal records: verified actor's own attendance only,including start/end and explicit unfinished status.
+
+- Use trusted backend identity, never client-selected user IDs for authorization.Backend generates punch times. Failed persistence cannot report success.Repeated clicks/redelivery cannot silently duplicate records.Keep open shifts unfinished; never guess clock-out times.
+
+- [Group 出勤 command shows counts; 補卡 opens manual review;漏下班 checks personal open shifts. See board guidance.](board.md)
+
+- [Minimal group leave registration neither approves leave nor changes attendance.](leave.md)
 
 <a id="原始首版範圍與後續實作"></a>
 
-```mermaid
-flowchart LR
-  h["Original scope and later implementation"]
-  h --- n0["Original release excluded schedules, leave, overtime review, payroll,<br/>geofencing, face recognition, correction review, admin reports and notifications.<br/>Existing-shift corrections, missing-shift entries, manual decisions and withdrawal<br/>are now implemented for ended shifts; effective records stay unchanged before approval.<br/>Full role management is absent; use group reviewer allowlists.<br/>Do not prebuild speculative modules/frameworks; LINE capability lists are references."]
-```
+## Original scope and later implementation
+
+Original release excluded schedules, leave, overtime review, payroll,geofencing, face recognition, correction review, admin reports and notifications.Existing-shift corrections, missing-shift entries, manual decisions and withdrawalare now implemented for ended shifts; effective records stay unchanged before approval.Full role management is absent; use group reviewer allowlists.Do not prebuild speculative modules/frameworks; LINE capability lists are references.
 
 <a id="已採用的首版規則"></a>
 
-```mermaid
-flowchart LR
-  h["Adopted initial rules"]
-  h --- n0["Messaging API: group 打卡 command returns Flex actions with short-lived launch capabilities.<br/>MINI App verifies LINE identity/membership and binds a request to person/action.<br/>No punch has occurred yet."]
-  h --- n1["MINI App submits LINE ID token, requestId, latitude, longitude,<br/>accuracyMeters and capturedAt to POST /api/v1/attendance/punches after consent.<br/>Backend checks identity, ownership/location and executes a Firestore transaction.<br/>Denied location creates no record; no radius or physical-presence validation."]
-  h --- n2["Direct-chat 出勤紀錄 lists personal groups;<br/>出勤紀錄 編號 returns that group's latest five.<br/>Group queries guide users to direct chat; direct-chat punches are unavailable."]
-  h --- n3["Calculate each group independently: one open shift per person/group,<br/>multiple daily shifts allowed. Cross-day clock-out closes the existing open record."]
-  h --- n4["Display Asia/Taipei, persist UTC. Punches use server processing time;<br/>event time only rejects operations older than the latest processed event."]
-  h --- n5["Repeat clock-in returns original time; clock-out without an open record rejects.<br/>Redelivery reads the original transaction result."]
-  h --- n6["No personnel allowlist or friendship check. Shared cards require live server<br/>membership verification and reject nonmembers. Show results in MINI App;<br/>never push exact coordinates to groups."]
-```
+## Adopted initial rules
+
+- Messaging API: group 打卡 command returns Flex actions with short-lived launch capabilities.MINI App verifies LINE identity/membership and binds a request to person/action.No punch has occurred yet.
+
+- MINI App submits LINE ID token, requestId, latitude, longitude,accuracyMeters and capturedAt to POST /api/v1/attendance/punches after consent.Backend checks identity, ownership/location and executes a Firestore transaction.Denied location creates no record; no radius or physical-presence validation.
+
+- Direct-chat 出勤紀錄 lists personal groups;出勤紀錄 編號 returns that group's latest five.Group queries guide users to direct chat; direct-chat punches are unavailable.
+
+- Calculate each group independently: one open shift per person/group,multiple daily shifts allowed. Cross-day clock-out closes the existing open record.
+
+- Display Asia/Taipei, persist UTC. Punches use server processing time;event time only rejects operations older than the latest processed event.
+
+- Repeat clock-in returns original time; clock-out without an open record rejects.Redelivery reads the original transaction result.
+
+- No personnel allowlist or friendship check. Shared cards require live servermembership verification and reject nonmembers. Show results in MINI App;never push exact coordinates to groups.
 
 <a id="啟用與資料"></a>
 
-```mermaid
-flowchart LR
-  h["Activation and data"]
-  h --- n0["Initialize attendance with GOOGLE_CLOUD_PROJECT and LINE_MESSAGING_API_CHANNEL_ID;<br/>missing either disables attendance with an unavailable reply.<br/>FIRESTORE_DATABASE_ID defaults to (default). Reuse Messaging API secret/token and ADC;<br/>runtime accounts need database read/write rights.<br/>Location punching requires MINI App Channel ID, LIFF ID and openid.<br/>Channels must share a Provider for matching user IDs.<br/>Verify ID tokens server-side; never trust client userId/groupId."]
-  h --- n1["Enable Allow bot to join group chats and invite the bot.<br/>Members need not friend the bot first; personal records may require direct-chat friendship.<br/>ATTENDANCE_MEMBERS_JSON is retired. Direct-chat punches guide users to groups,<br/>without a separate personal punching workflow."]
-  h --- n2["Data under channels/{channelID}/users/{SHA256(userID)}:"]
-  h --- n3["attendance/{SHA256([groupID,eventID])}: schemaVersion,<br/>groupID, clockInAt and clockOutAt, omitted for open shifts."]
-  h --- n4["attendanceStates/{SHA256(groupID)}：recordID<br/>、lastEventTime。"]
-  h --- n5["attendanceEvents/{SHA256([groupID,eventID,action])}:<br/>code and record snapshot of the original result."]
-  h --- n6["Location punches use schemaVersion 2 and clockInPosition/clockOutPosition<br/>(coordinates, accuracy, sample time); old records remain readable.<br/>channels/{channelID}/punchRequests/{requestID} stores original groupID, hashed userKey,<br/>eventID, action, eventTime and expiresAt. Redelivery never extends expiry.<br/>Retries read original receipts without duplicate punches; expired unfinished requests cannot write."]
-  h --- n7["Hash JSON-array composite IDs. Results, records and state commit in one transaction;<br/>send replies outside it. Queries use personal paths, group projections, month ranges/cursors.<br/>See attendance queries/corrections for contracts; message pagination is not database pagination.<br/>Store no reply tokens, full events or names. Locations remain with punches/deduplication,<br/>not tracking history or ordinary logs. Retention requires operations decisions;<br/>keep deduplication through possible redelivery windows.<br/>Optional expiresAt TTL is not immediate expiry; code still checks deadlines."]
-  click n7 "queries.md"
-  h --- n8["Official LINE source: line/line-developers-docs-source main<br/>090500a12f9777995006d9fb5cafab8d83a792b2.<br/>Checked LIFF opening/query forwarding, server identity and same-Provider user IDs.<br/>Device location, Provider settings and live Firestore transactions require real acceptance."]
-  n8 --- n8l0["LIFF opening and query forwarding"]
-  click n8l0 "https://developers.line.biz/en/docs/liff/opening-liff-app/"
-  n8 --- n8l1["Server identity verification"]
-  click n8l1 "https://developers.line.biz/en/docs/liff/using-user-profile/"
-  n8 --- n8l2["Same-Provider user IDs"]
-  click n8l2 "https://developers.line.biz/en/docs/messaging-api/getting-user-ids/"
-  h --- n9["Enable webhook redelivery in LINE Developers Console.<br/>Write/reply failures return 503 for retries; token expiry/single-use limits remain.<br/>Deduplication prevents repeated punches, not guaranteed delivery.<br/>Check personal records in direct chat for uncertain replies."]
-```
+## Activation and data
+
+- Initialize attendance with GOOGLE_CLOUD_PROJECT and LINE_MESSAGING_API_CHANNEL_ID;missing either disables attendance with an unavailable reply.FIRESTORE_DATABASE_ID defaults to (default). Reuse Messaging API secret/token and ADC;runtime accounts need database read/write rights.Location punching requires MINI App Channel ID, LIFF ID and openid.Channels must share a Provider for matching user IDs.Verify ID tokens server-side; never trust client userId/groupId.
+
+- Enable Allow bot to join group chats and invite the bot.Members need not friend the bot first; personal records may require direct-chat friendship.ATTENDANCE_MEMBERS_JSON is retired. Direct-chat punches guide users to groups,without a separate personal punching workflow.
+
+- Data under channels/{channelID}/users/{SHA256(userID)}:
+
+- attendance/{SHA256([groupID,eventID])}: schemaVersion,groupID, clockInAt and clockOutAt, omitted for open shifts.
+
+- attendanceStates/{SHA256(groupID)}：recordID、lastEventTime。
+
+- attendanceEvents/{SHA256([groupID,eventID,action])}:code and record snapshot of the original result.
+
+- Location punches use schemaVersion 2 and clockInPosition/clockOutPosition(coordinates, accuracy, sample time); old records remain readable.channels/{channelID}/punchRequests/{requestID} stores original groupID, hashed userKey,eventID, action, eventTime and expiresAt. Redelivery never extends expiry.Retries read original receipts without duplicate punches; expired unfinished requests cannot write.
+
+- [Hash JSON-array composite IDs. Results, records and state commit in one transaction;send replies outside it. Queries use personal paths, group projections, month ranges/cursors.See attendance queries/corrections for contracts; message pagination is not database pagination.Store no reply tokens, full events or names. Locations remain with punches/deduplication,not tracking history or ordinary logs. Retention requires operations decisions;keep deduplication through possible redelivery windows.Optional expiresAt TTL is not immediate expiry; code still checks deadlines.](queries.md)
+
+- Official LINE source: line/line-developers-docs-source main090500a12f9777995006d9fb5cafab8d83a792b2.Checked LIFF opening/query forwarding, server identity and same-Provider user IDs.Device location, Provider settings and live Firestore transactions require real acceptance.
+
+  - [LIFF opening and query forwarding](https://developers.line.biz/en/docs/liff/opening-liff-app/)
+
+  - [Server identity verification](https://developers.line.biz/en/docs/liff/using-user-profile/)
+
+  - [Same-Provider user IDs](https://developers.line.biz/en/docs/messaging-api/getting-user-ids/)
+
+- Enable webhook redelivery in LINE Developers Console.Write/reply failures return 503 for retries; token expiry/single-use limits remain.Deduplication prevents repeated punches, not guaranteed delivery.Check personal records in direct chat for uncertain replies.
 
 <a id="後續產品變更"></a>
 
-```mermaid
-flowchart LR
-  h["Later product changes"]
-  h --- n0["Initial entry: connect Bot or MINI App first; simultaneous development is not assumed."]
-  h --- n1["Identity: map LINE users to eligible personnel and define first-use eligibility."]
-  h --- n2["Time: display zone, cross-day shift matching and multiple daily shifts."]
-  h --- n3["Results: explicit rejection or replay rules for repeated/inapplicable punches."]
-  h --- n4["Initial rules are settled above; update this page for later changes.<br/>Confirm rules before fixing API, Firestore paths/fields, uniqueness/atomic updates.<br/>Do not build every feature before infrastructure stabilizes."]
-```
+## Later product changes
+
+- Initial entry: connect Bot or MINI App first; simultaneous development is not assumed.
+
+- Identity: map LINE users to eligible personnel and define first-use eligibility.
+
+- Time: display zone, cross-day shift matching and multiple daily shifts.
+
+- Results: explicit rejection or replay rules for repeated/inapplicable punches.
+
+- Initial rules are settled above; update this page for later changes.Confirm rules before fixing API, Firestore paths/fields, uniqueness/atomic updates.Do not build every feature before infrastructure stabilizes.
 
 <a id="群組直達-mini-app待上線驗收"></a>
 
-```mermaid
-flowchart LR
-  h["Direct group MINI App links: production acceptance pending"]
-  h --- n0["Group 打卡 cards open LIFF for clock-in/out, break-start/end and confirmation.<br/>Each has a random ten-minute launch token storing group/action, never trusted user ID.<br/>Verify identity and live Messaging API membership before exchanging a fixed per-card/user request ID.<br/>Reopening never extends expiry. Old ?request= links/postback cards are disabled;<br/>request a new card. Existing authorization, five-minute location freshness,<br/>state machine and transaction receipts remain."]
-  h --- n1["Verify MINI App/LINE Login and Messaging API channels share a Provider.<br/>Test live membership success, nonmembers, bot departure and API failures.<br/>Forwarded cards reject nonmembers. Close LIFF only after confirmed success;<br/>permission/network failures keep retry UI. Closing sends no group success message."]
-```
+## Direct group MINI App links: production acceptance pending
+
+- Group 打卡 cards open LIFF for clock-in/out, break-start/end and confirmation.Each has a random ten-minute launch token storing group/action, never trusted user ID.Verify identity and live Messaging API membership before exchanging a fixed per-card/user request ID.Reopening never extends expiry. Old ?request= links/postback cards are disabled;request a new card. Existing authorization, five-minute location freshness,state machine and transaction receipts remain.
+
+- Verify MINI App/LINE Login and Messaging API channels share a Provider.Test live membership success, nonmembers, bot departure and API failures.Forwarded cards reject nonmembers. Close LIFF only after confirmed success;permission/network failures keep retry UI. Closing sends no group success message.
 
 <a id="定位前預檢狀態與時序"></a>
 
-```mermaid
-flowchart LR
-  h["Location preflight, state and sequence"]
-  h --- n0["Backend worktime.ApplyEvent owns transitions, never cached frontend state.<br/>POST /api/v1/attendance/punches/preflight takes a personally bound requestId<br/>and retains identity, CSRF, expiry and transaction checks.<br/>Resolution may persist rejection receipts but never successful punches or locations."]
-```
+## Location preflight, state and sequence
 
-```mermaid
-flowchart LR
-  h["Location preflight, state and sequence"]
-  h --- n0["Existing receipt; any action: replay original result despite changed state; no location."]
-  h --- n1["No open shift; clock in: needs_position."]
-  h --- n2["Working/resting; clock in: already_in and original start; no location."]
-  h --- n3["No open shift; clock out/break/confirm: not_in; no location."]
-  h --- n4["Working; clock out/start break/confirm breaks: needs_position."]
-  h --- n5["Working without break start; end break: not_resting; no location."]
-  h --- n6["Resting; start break/confirm: already_resting/break_incomplete; no location."]
-  h --- n7["Resting; clock out/end break: needs_position, subject to event ordering."]
-  h --- n8["Request predates last event; any unreceipted action: stale_event; no location."]
-  h --- n9["Expired unreceipted or non-owned request; any action: 403; no location/punch."]
-  h --- n10["Unknown backend state; any action: retryable error; no location."]
-```
+Backend worktime.ApplyEvent owns transitions, never cached frontend state.POST /api/v1/attendance/punches/preflight takes a personally bound requestIdand retains identity, CSRF, expiry and transaction checks.Resolution may persist rejection receipts but never successful punches or locations.
 
-```mermaid
-flowchart LR
-  h["Location preflight, state and sequence"]
-  h --- n0["Preflight/submit share transactions and state machine; preserve code/message.<br/>accepted identifies current/original successful punches.<br/>needs_position reserves nothing, creates no event/receipt/shift and guarantees no later success.<br/>Persisted rejections replay forever for requestId; changed state needs a new group card.<br/>All successful actions, including breaks/confirmation, retain location evidence requirements."]
-  h --- n1["Current implementation"]
-```
+- Existing receipt; any action: replay original result despite changed state; no location.
+
+- No open shift; clock in: needs_position.
+
+- Working/resting; clock in: already_in and original start; no location.
+
+- No open shift; clock out/break/confirm: not_in; no location.
+
+- Working; clock out/start break/confirm breaks: needs_position.
+
+- Working without break start; end break: not_resting; no location.
+
+- Resting; start break/confirm: already_resting/break_incomplete; no location.
+
+- Resting; clock out/end break: needs_position, subject to event ordering.
+
+- Request predates last event; any unreceipted action: stale_event; no location.
+
+- Expired unreceipted or non-owned request; any action: 403; no location/punch.
+
+- Unknown backend state; any action: retryable error; no location.
+
+- Preflight/submit share transactions and state machine; preserve code/message.accepted identifies current/original successful punches.needs_position reserves nothing, creates no event/receipt/shift and guarantees no later success.Persisted rejections replay forever for requestId; changed state needs a new group card.All successful actions, including breaks/confirmation, retain location evidence requirements.
+
+- Current implementation
 
 ```mermaid
 sequenceDiagram
@@ -233,28 +236,29 @@ sequenceDiagram
   end
 ```
 
-```mermaid
-flowchart LR
-  h["Location preflight, state and sequence"]
-  h --- n0["UI: idle → exchanging → checking → locating → submitting → idle.<br/>Definite preflight results return checking to idle; failures retain messages.<br/>Only needs_position starts location; denial, disconnection or invalid responses stop.<br/>If another device acts during location, final submit uses current state/receipt,<br/>never duplicating from the preflight snapshot."]
-  h --- n1["Location failure: no submit; retry same requestId through preflight first."]
-  h --- n2["Submit disconnect/timeout: unknown result; retry resolves receipt first.<br/>Display existing success without locating again."]
-  h --- n3["Leave/logout: cancel waiting and ignore late HTTP/location results by generation;<br/>already submitted transactions cannot be recalled."]
-  h --- n4["Same-page retries keep requestId and preflight.<br/>Navigation, session reset or full reopening clears page caches and revalidates launch/membership;<br/>a valid same card still exchanges the same requestId."]
-  h --- n5["After expiry, owners may replay existing receipts but unfinished requests cannot write.<br/>Location acquisition never extends deadlines."]
-  h --- n6["Preflight/submit: backend 5s, frontend 10s.<br/>Launch exchange: backend 8s, frontend 10s.<br/>Location: device 10s, frontend guard 15s; do not hide flow defects by waiting longer."]
-  h --- n7["Checked official LINE main dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54<br/>server user-data guidance; retain server identity verification.<br/>React 19.3.1 async handling follows Context7 /reactjs/react.dev useEffect cleanup;<br/>Next.js 16.4.5 follows installed use-client guidance.<br/>Graphify/Repomix corroborate sources, not device/database acceptance."]
-  click n7 "https://developers.line.biz/en/docs/liff/using-user-profile/"
-```
+- UI: idle → exchanging → checking → locating → submitting → idle.Definite preflight results return checking to idle; failures retain messages.Only needs_position starts location; denial, disconnection or invalid responses stop.If another device acts during location, final submit uses current state/receipt,never duplicating from the preflight snapshot.
+
+- Location failure: no submit; retry same requestId through preflight first.
+
+- Submit disconnect/timeout: unknown result; retry resolves receipt first.Display existing success without locating again.
+
+- Leave/logout: cancel waiting and ignore late HTTP/location results by generation;already submitted transactions cannot be recalled.
+
+- Same-page retries keep requestId and preflight.Navigation, session reset or full reopening clears page caches and revalidates launch/membership;a valid same card still exchanges the same requestId.
+
+- After expiry, owners may replay existing receipts but unfinished requests cannot write.Location acquisition never extends deadlines.
+
+- Preflight/submit: backend 5s, frontend 10s.<br>Launch exchange: backend 8s, frontend 10s.<br>Location: device 10s, frontend guard 15s; do not hide flow defects by waiting longer.
+
+- [Checked official LINE main dea09dc6e63fc5c6a3754abfbb304fc6fce4cc54server user-data guidance; retain server identity verification.React 19.3.1 async handling follows Context7 /reactjs/react.dev useEffect cleanup;Next.js 16.4.5 follows installed use-client guidance.Graphify/Repomix corroborate sources, not device/database acceptance.](https://developers.line.biz/en/docs/liff/using-user-profile/)
 
 <a id="程式入口與命名"></a>
 
-```mermaid
-flowchart LR
-  h["Code entry points and naming"]
-  h --- n0["PunchResolver.ResolvePunchAttempt handles /punches/preflight.<br/>It reads receipts or persists rejection, so is not a pure query.<br/>PunchSubmitter.SubmitPunch handles located submissions;<br/>both share executePunch transactions and ApplyEvent without duplicate state machines."]
-  h --- n1["Private punchCommand explicitly carries user, group, event, ReceivedAt,<br/>EventTimeMillis ordering, position and request ID. Mode distinguishes resolvePunch/recordPunch,<br/>never inferred from absent location. GroupHistoryReader independently serves personal history.<br/>RecordsOverlappingMonth includes cross-month/open shifts.<br/>verifyAndRebuildRecords checks event/correction evidence and rebuilds without writes;<br/>event replay uses worktime.RebuildSessions."]
-```
+## Code entry points and naming
+
+- PunchResolver.ResolvePunchAttempt handles /punches/preflight.It reads receipts or persists rejection, so is not a pure query.PunchSubmitter.SubmitPunch handles located submissions;both share executePunch transactions and ApplyEvent without duplicate state machines.
+
+- Private punchCommand explicitly carries user, group, event, ReceivedAt,EventTimeMillis ordering, position and request ID. Mode distinguishes resolvePunch/recordPunch,never inferred from absent location. GroupHistoryReader independently serves personal history.RecordsOverlappingMonth includes cross-month/open shifts.verifyAndRebuildRecords checks event/correction evidence and rebuilds without writes;event replay uses worktime.RebuildSessions.
 
 <a id="decision-flow"></a>
 
