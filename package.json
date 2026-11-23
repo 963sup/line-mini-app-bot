@@ -12,7 +12,8 @@
     "check": "pnpm api:check && python3 scripts/check/check-config.py && turbo run check",
     "test": "turbo run test",
     "build": "turbo run build",
-    "scripts:typecheck": "tsc -p tsconfig.scripts.json"
+    "scripts:typecheck": "tsc -p tsconfig.scripts.json",
+    "api:compat": "node --test scripts/test/check-compatibility.test.mts && node scripts/contract/check-compatibility.mts"
   },
   "devDependencies": {
     "turbo": "2.11.10",
