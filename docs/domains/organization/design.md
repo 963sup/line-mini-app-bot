@@ -71,40 +71,4 @@ Team 透過交易內的資格讀取契約取得目前 Owner 判定、首任候�
 
 ## 後端分層結構
 
-下列為[Organization 後端模組](../../../backend/internal/business/organization/)的完整檔案樹，包含實作、測試與目錄文件。
-
-**範圍**　此樹列出「組織」模組根目錄內的 19 個檔案。檔名以 `_test.go` 結尾的是測試；同名檔案依所在目錄區分職責。
-
-**分層對照**　共通範本中，以下路徑未在此模組根目錄下獨立設置：`domain/valueobject/`、`domain/service/`、`domain/event/`、`domain/policy/`、`application/command/`、`application/port/`、`adapter/messaging/`、`adapter/scheduler/`。子功能的分層以樹中實際路徑為準。
-
-```text
-backend/internal/business/organization/
-├── adapter/                                  # 外部系統轉接
-│   ├── firestore/                            # Firestore 保存與查詢
-│   │   ├── conversation.go                   # 對話狀態（讀寫 Firestore 資料）；Conversation
-│   │   ├── conversation_test.go              # 驗證對話狀態（讀寫 Firestore 資料）；TestCreationConversation
-│   │   └── store.go                          # 資料存取（讀寫 Firestore 資料）；Store、Context
-│   ├── http/                                 # HTTP 入口
-│   │   ├── responses.go                      # 回應資料（處理 HTTP 請求與回應）
-│   │   ├── responses_test.go                 # 驗證回應資料（處理 HTTP 請求與回應）；TestContextResponseContract
-│   │   ├── routes.go                         # API路由（處理 HTTP 請求與回應）；Store、Handler
-│   │   └── routes_test.go                    # 驗證API路由（處理 HTTP 請求與回應）；TestWorkspaceLifecycle
-│   └── line/                                 # LINE 整合
-│       ├── creation_line.go                  # LINE建立流程（處理 LINE 互動）；Conversation、CreationHandler
-│       └── creation_line_test.go             # 驗證LINE建立流程（處理 LINE 互動）；TestCreationRepliesOnlyToPrivateMessages
-├── application/                              # 應用用例
-│   ├── dto/                                  # 用例資料型別
-│   │   ├── context.go                        # 操作上下文（定義傳遞資料）；VisibleOrganization、Option
-│   │   └── creation.go                       # 建立流程（定義傳遞資料）；CreationReply
-│   ├── query/                                # 查詢用例
-│   │   └── context.go                        # 操作上下文（執行讀取用例）；BuildContext、BuildContextWithNavigation
-│   ├── context_test.go                       # 驗證操作上下文；TestContext
-│   └── transfer.go                           # 所有權移轉；OwnershipWork、OwnershipStore
-├── domain/                                   # 領域模型與規則
-│   └── entity/                               # 實體與聚合
-│       ├── access_test.go                    # 驗證存取資格（維護領域狀態與規則）；TestLegacyOrganizationVisibility
-│       ├── errors.go                         # 錯誤分類（維護領域狀態與規則）
-│       ├── model.go                          # 領域模型（維護領域狀態與規則）；Organization、LegacyEnabled
-│       └── ownership.go                      # 所有權（維護領域狀態與規則）；TransferOwnership
-└── AGENTS.md                                 # 本目錄開發指引
-```
+[organization 模組原始碼](../../../backend/internal/business/organization/) · [代表測試](../../../backend/internal/business/organization/domain/entity/access_test.go) · [六邊形分層與依賴方向](../../architecture/runtime/backend-boundaries.md#六邊形分層參考)

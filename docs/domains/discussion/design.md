@@ -27,7 +27,7 @@
 ## API 與資料責任
 
 - 契約由
-  [討論契約](../../../../api/contract/discussion/discussions.yaml)與[留言契約](../../../../api/contract/discussion/comments.yaml)
+  [討論契約](../../../api/contract/discussion/discussions.yaml)與[留言契約](../../../api/contract/discussion/comments.yaml)
   擁有，經既有 OpenAPI 入口生成 Go／TS 型別；不修改既有相容性 baseline。
 
 | 操作       | 路徑                                                                        | 行為與限制                  |
@@ -54,9 +54,9 @@
   client 與編號能力。前端 business/discussion 由正式空間「討論」入口組合既有官方 UI；不修改 primitives、既有出勤或事項模型。 前端分開取消列表、
   主題、留言與寫入請求，切換空間／主題或身分時隔離資料。編輯失敗先重新讀取。
 
-  - [business/discussion](../../../../backend/internal/business/discussion/application/service.go)
+  - [business/discussion](../../../backend/internal/business/discussion/application/service.go)
 
-  - [business/discussion](../../../../frontend/miniapp/src/business/discussion/View.tsx)
+  - [business/discussion](../../../frontend/miniapp/src/business/discussion/View.tsx)
 
 - 現行實作
 
@@ -104,37 +104,8 @@ sequenceDiagram
   smoke 確認正式空間入口、發起主題及留言的連點鎖與原鍵重試、主題作者不能代改他人留言、編輯衝突後重新讀取、切換主題隔離及登出後拒收遲到留言。驗證檔案與 Java
   runtime 僅放 /tmp；不代表真實 LINE 裝置、正式資料庫或部署已驗收。
 
-- [標籤分類透過既有更新的可選 labelIds 接入，目前成員可套用或移除；省略欄位保留、空陣列清除、同空間及版本規則依 標籤引用切片。既有建立防重雜湊不變。](../labels.md#標籤引用切片)
+- [標籤分類透過既有更新的可選 labelIds 接入，目前成員可套用或移除；省略欄位保留、空陣列清除、同空間及版本規則依 標籤引用切片。既有建立防重雜湊不變。](../repository/labels.md#標籤引用切片)
 
 ## 後端分層結構
 
-下列為[Discussion 後端模組](../../../../backend/internal/business/discussion/)的完整檔案樹，包含實作、測試與目錄文件。
-
-**範圍**　此樹列出「討論」模組根目錄內的 11 個檔案。檔名以 `_test.go` 結尾的是測試；同名檔案依所在目錄區分職責。
-
-**分層對照**　共通範本中，以下路徑未在此模組根目錄下獨立設置：`domain/valueobject/`、`domain/service/`、`domain/event/`、`domain/policy/`、`adapter/line/`、`adapter/messaging/`、`adapter/scheduler/`。子功能的分層以樹中實際路徑為準。
-
-```text
-backend/internal/business/discussion/
-├── adapter/                                  # 外部系統轉接
-│   ├── firestore/                            # Firestore 保存與查詢
-│   │   ├── comments.go                       # 留言（讀寫 Firestore 資料）；ListComments、CreateComment
-│   │   └── store.go                          # 資料存取（讀寫 Firestore 資料）；Numberer、Store
-│   └── http/                                 # HTTP 入口
-│       └── routes.go                         # API路由（處理 HTTP 請求與回應）；Register、ListDiscussions
-├── application/                              # 應用用例
-│   ├── command/                              # 寫入用例
-│   │   └── service.go                        # 應用用例（執行寫入用例）；Service、Create
-│   ├── dto/                                  # 用例資料型別
-│   │   └── page.go                           # 分頁資料（定義傳遞資料）
-│   ├── port/                                 # 外部能力介面
-│   │   └── store.go                          # 資料存取（定義用例所需介面）；Access、Scope
-│   ├── query/                                # 查詢用例
-│   │   └── service.go                        # 應用用例（執行讀取用例）；Service、List
-│   └── service.go                            # 應用用例；New
-├── domain/                                   # 領域模型與規則
-│   └── entity/                               # 實體與聚合
-│       ├── classification_test.go            # 驗證分類（維護領域狀態與規則）；TestMemberClassificationCannotEditContent
-│       └── discussion.go                     # 討論（維護領域狀態與規則）；Discussion、CanEdit
-└── AGENTS.md                                 # 本目錄開發指引
-```
+[discussion 模組原始碼](../../../backend/internal/business/discussion/) · [代表測試](../../../backend/internal/business/discussion/domain/entity/classification_test.go) · [六邊形分層與依賴方向](../../architecture/runtime/backend-boundaries.md#六邊形分層參考)

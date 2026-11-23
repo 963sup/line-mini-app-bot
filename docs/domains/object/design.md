@@ -8,12 +8,11 @@
 
 物件、子物件與物件範本同屬 Object 限界上下文。**實作狀態：** 下列分層均已實作。LINE 指令已接入 webhook，訊息發布與排程在設定 Pub/Sub 主題後啟用。
 
-下圖列出模組內的檔案與職責。精確數量與建立者資格分別由 valueobject 和 policy 維護。[後端分層指引](../../../../backend/AGENTS.md) · [Object 模組](../../../../backend/internal/business/object/)
+下圖列出模組內的檔案與職責。精確數量與建立者資格分別由 valueobject 和 policy 維護。[後端分層指引](../../../backend/AGENTS.md) · [Object 模組](../../../backend/internal/business/object/)
 
 ```text
 backend/internal/business/
 └── object/
-    ├── AGENTS.md                      # Object 模組開發規範
     ├── domain/                        # 領域模型與規則
     │   ├── entity/                    # Object 實體、數量與進度轉換
     │   │   ├── conversion_test.go     # 物件類型轉換測試
@@ -136,11 +135,40 @@ backend/internal/business/
 
 - 群組成員核驗屬當下外部觀察，不能和 Firestore 組成原子快照；交易仍核對容器啟用及群組綁定。讀取資格不自動授予修改他人資源的權限。身分或來源服務不可用時拒絕，不以快取或 UI 按鈕取代授權。
 
+### 群組庫的物件操作判定
+
+現行群組庫操作的判定示意。個人庫的授權及所有請求格式依本頁規格與 OpenAPI。
+
+```mermaid
+flowchart TD
+  A["Session／Bearer 取得可信身分"] --> B{"目前為群組成員，且儲存庫 ACTIVE、群組綁定相符？"}
+  B -->|否| deny["拒絕；不揭露資源、不改資料"]
+  B -->|是| scope{"操作哪一層？"}
+  scope -->|物件| op["Repository → Object"]
+  scope -->|子項| parent{"父 Object 存在且屬於同一 Repository？"}
+  parent -->|否| deny
+  parent -->|是| child["Repository → Object，使用 parentId 連結父項"]
+  op -->|讀取| read["回傳列表或詳情；無寫入副作用"]
+  child -->|讀取| read
+  op -->|建立| create["驗證內容與建立鍵"]
+  op -->|修改| owner{"操作者是該 Object 建立者？"}
+  child -->|建立| create
+  child -->|修改| owner
+  owner -->|否| deny
+  owner -->|修改| version{"目標 Object 的 expectedVersion 相符？"}
+  version -->|否| conflict["409：重讀後再決定"]
+  version -->|是| update["驗證內容；有效變更才更新目標與版本"]
+  create --> key{"同範圍內的建立鍵？"}
+  key -->|新鍵| commit["同一交易建立資源與專用收據，初始版本 1"]
+  key -->|已用且內容相同| original["返回原資源"]
+  key -->|已用但內容不同| reject["409：建立內容衝突"]
+```
+
 <a id="api-與保存"></a>
 
 ## API 與保存
 
-HTTP 請求與回應以 [Object OpenAPI 契約](../../../../api/contract/object/objects.yaml) 為準。Go 與 TypeScript 型別由此契約產生。
+HTTP 請求與回應以 [Object OpenAPI 契約](../../../api/contract/object/objects.yaml) 為準。Go 與 TypeScript 型別由此契約產生。
 
 - GET／POST /api/v1/repositories/{repositoryId}/objects；列表依不透明文件 ID 遞增分頁，不宣稱為建立時間或來源項次順序。
 
@@ -166,9 +194,9 @@ HTTP 請求與回應以 [Object OpenAPI 契約](../../../../api/contract/object/
 
 ### Pub/Sub 數量事件的線上格式
 
-發布端將一筆事件序列化為 UTF-8 JSON，再以標準 Base64 編碼，放入 Pub/Sub REST 發布請求的 `messages[].data`。同一則訊息的 `attributes.type` 固定為 `object.quantity_changed`，`attributes.eventId` 是該次異動的穩定防重鍵。直接處理 REST 資料時先解 Base64；若訂閱端 SDK 已提供訊息本文的 bytes，直接解析 JSON 即可。[發布實作](../../../../backend/internal/business/object/adapter/messaging/publisher.go)
+發布端將一筆事件序列化為 UTF-8 JSON，再以標準 Base64 編碼，放入 Pub/Sub REST 發布請求的 `messages[].data`。同一則訊息的 `attributes.type` 固定為 `object.quantity_changed`，`attributes.eventId` 是該次異動的穩定防重鍵。直接處理 REST 資料時先解 Base64；若訂閱端 SDK 已提供訊息本文的 bytes，直接解析 JSON 即可。[發布實作](../../../backend/internal/business/object/adapter/messaging/publisher.go)
 
-以下是解碼後的完整本文範例。欄位名稱大小寫須與範例一致；`Version` 是物件修訂版號，型別為整數，異動前後數量則為字串。[事件型別](../../../../backend/internal/business/object/domain/event/quantity_changed.go)
+以下是解碼後的完整本文範例。欄位名稱大小寫須與範例一致；`Version` 是物件修訂版號，型別為整數，異動前後數量則為字串。[事件型別](../../../backend/internal/business/object/domain/event/quantity_changed.go)
 
 ```json
 {
@@ -195,9 +223,9 @@ HTTP 請求與回應以 [Object OpenAPI 契約](../../../../api/contract/object/
 
 - 實作位置：後端 object、前端 object；正式 LINE／Firestore／手機整合另行驗收，測試替身或 build 不代表正式環境通過。本輪驗證不將真實來源文件的 54 項寫入資料庫。
 
-  - [object](../../../../backend/internal/business/object/)
+  - [object](../../../backend/internal/business/object/)
 
-  - [object](../../../../frontend/miniapp/src/business/object/)
+  - [object](../../../frontend/miniapp/src/business/object/)
 
 [物件與子物件歸屬](#物件與子物件歸屬) · [範本操作與權限](template.md#操作與權限)
 
@@ -207,7 +235,7 @@ HTTP 請求與回應以 [Object OpenAPI 契約](../../../../api/contract/object/
 
 辨識只回傳候選、引文、來源位置與模型回應。畫面列出每筆候選，讓使用者核對原件、補正數量與單位、選擇類型，再透過既有物件建立操作確認寫入。試算表每張工作表最多處理前 1,000 列，其他文件也可能漏列。候選留在當前畫面，重新辨識會產生新的結果。
 
-[文件辨識能力與領域分工](../../../proposals/domain-collaboration.md)
+[文件辨識能力與領域分工](../../proposals/domain-collaboration.md)
 
 ### 候選覆核與匯入流程
 
@@ -259,7 +287,7 @@ Agent 與 Knowledge 按需求接入。Agent 只補查本次授權的來源，回
 
 ## 數量原位編輯與儲存庫稽核
 
-目前已接通既有物件更新、數量歷史查詢與儲存庫「稽核」分頁。查詢使用 `GET /api/v1/repositories/{repositoryId}/object-quantity-changes`，部署前須先建立 [Firestore 索引](../../../../firestore.indexes.json)。以下原位編輯互動待實作。
+目前已接通既有物件更新、數量歷史查詢與儲存庫「稽核」分頁。查詢使用 `GET /api/v1/repositories/{repositoryId}/object-quantity-changes`，部署前須先建立 [Firestore 索引](../../../firestore.indexes.json)。以下原位編輯互動待實作。
 
 使用者在「物件」分頁點選可編輯物件或子物件的數量，在原欄位修改並確認。取消時還原原值；只有確認才送出寫入。數量沿用精確十進位字串。後端依現行物件規則核對寫入權限、起始版本及完成量，保留未編輯欄位。版本衝突時提示重新讀取，讓使用者看過最新數量後再決定。
 

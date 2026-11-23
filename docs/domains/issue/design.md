@@ -10,7 +10,7 @@
 
 ## 問題生命週期
 
-Repository 擁有 Issue 的開啟與關閉狀態。問題建立者可以直接關閉開啟中的問題，也可以重新開啟；Go 核驗操作權與版本。專案內的操作與驗收見[專案項目進度](../../project/project.md#project-item-progress)。
+Repository 提供資源範圍，Issue 維護自己的開啟與關閉狀態。問題建立者可以直接關閉開啟中的問題，也可以重新開啟；Go 核驗操作權與版本。專案內的操作與驗收見[專案項目進度](../project/project.md#project-item-progress)。
 
 相容實作沿用 API 的 `completed` 表示已關閉，保留既有 `in_progress`
 與變更紀錄。新版入口直接關閉或重開，舊客戶端仍可送出原有轉換。
@@ -22,7 +22,7 @@ Repository 擁有 Issue 的開啟與關閉狀態。問題建立者可以直接�
 
 ## 範圍與產品決策
 
-- [2026-11-13 先以 Graphify CLI、Repomix CLI 及原始碼核對 正式空間雛形，未發現阻擋此讀取雛形的結構或方向問題，再進入問題切片。 使用者確認：核驗成員皆可讀取與建立問題；僅建立者可修改及變更自己問題的狀態。首版採待處理、進行中、已完成，不含指派或審核。](../design.md)
+- [2026-11-13 先以 Graphify CLI、Repomix CLI 及原始碼核對 正式空間雛形，未發現阻擋此讀取雛形的結構或方向問題，再進入問題切片。 使用者確認：核驗成員皆可讀取與建立問題；僅建立者可修改及變更自己問題的狀態。首版採待處理、進行中、已完成，不含指派或審核。](../repository/design.md)
 
 - 每個問題歸屬既有 Repository；不新增空間、人類管理員、刪除、附件、通知、留言或專案功能。 讀取資格與寫入政策分開檢查，不影響出勤、補卡或原群組摘要授權。問題完成不代表施工驗收或業務核准。
 
@@ -32,11 +32,32 @@ Repository 擁有 Issue 的開啟與關閉狀態。問題建立者可以直接�
 
 現行實作（問題、討論、留言）
 
-[依目前成員身分、操作及資源作者判定讀寫結果（Mermaid 原始檔）](../diagrams/repository-contributions.mermaid)
+依目前成員身分、操作及資源作者判定讀寫結果。
 
-- [Mermaid 原始檔。讀取無寫入副作用，不額外保存個資；游標綁定渠道、空間、本人與查詢條件。無權空間或不存在的目標回 404。更新交易重新核對容器、資源歸屬、作者與版本，拒絕時不改資料。有效修改記錄操作者、時間與版本，問題另記前後狀態，不發外部通知。](../diagrams/repository-contributions.mermaid)
+```mermaid
+flowchart TB
+  member{"可信 Session／Bearer：空間已啟用，且為目前成員？"}
+  member -->|未登入| auth["401"]
+  member -->|空間不存在或無讀取資格| hidden["404"]
+  member -->|是| action{"執行哪項操作？"}
+  action -->|列表或詳情| read["只讀取指定空間與主題；不存在回 404"]
+  action -->|建立| kind{"建立哪種資源？"}
+  kind -->|問題或討論| numbered["原子配置空間共用 number，保存資源及建立收據"]
+  kind -->|留言| comment["核對主題歸屬；保存留言與該主題收據，不占號"]
+  action -->|編輯| owner{"本人是被編輯資源的作者？"}
+  owner -->|否| forbidden["403；主題作者也不能代改他人留言"]
+  owner -->|是| version{"expectedVersion 符合？"}
+  version -->|否| conflict["409；重讀後再決定"]
+  version -->|是| change{"編輯哪種資源？"}
+  change -->|問題| issue["依問題生命週期驗證內容與目標狀態"]
+  change -->|討論或留言| text["驗證內容；編輯留言不改主題內容版本"]
+  issue --> save["有效變更才遞增版本並保存變更紀錄"]
+  text --> save
+```
 
-- [建立時由伺服器給定作者、ID 與時間。問題從 open 開始，與討論共用空間編號與收據；留言的建立鍵限定於同一主題與本人。相同鍵及正規化內容返回原資源，不同內容回 409。建立結果不明時沿用原內容與鍵；編輯結果不明時先重讀再決定。](../numbering.md)
+- 讀取無寫入副作用，不額外保存個資；游標綁定渠道、空間、本人與查詢條件。無權空間或不存在的目標回 404。更新交易重新核對容器、資源歸屬、作者與版本，拒絕時不改資料。有效修改記錄操作者、時間與版本，問題另記前後狀態，不發外部通知。
+
+- [建立時由伺服器給定作者、ID 與時間。問題從 open 開始，與討論共用空間編號與收據；留言的建立鍵限定於同一主題與本人。相同鍵及正規化內容返回原資源，不同內容回 409。建立結果不明時沿用原內容與鍵；編輯結果不明時先重讀再決定。](../repository/numbering.md)
 
 - 標題去除首尾空白後須有 1–120 個 Unicode 字元；內容去除首尾空白後最多 8000 個字元。HTTP
   JSON 上限 65536 bytes，不接受未知欄位。識別碼、number、操作者與版本來源不可由建立請求指定。
@@ -45,7 +66,7 @@ Repository 擁有 Issue 的開啟與關閉狀態。問題建立者可以直接�
 
 ## API、查詢及資料
 
-- [契約唯一來源為 issues.yaml，由既有 OpenAPI 入口組合及生成 Go／TS 型別。](../../../../api/contract/issue/issues.yaml)
+- [契約唯一來源為 issues.yaml，由既有 OpenAPI 入口組合及生成 Go／TS 型別。](../../../api/contract/issue/issues.yaml)
 
 | 操作  | 路徑                                              | 行為與限制                                               |
 | ----- | ------------------------------------------------- | -------------------------------------------------------- |
@@ -71,13 +92,13 @@ Repository 擁有 Issue 的開啟與關閉狀態。問題建立者可以直接�
 
 ## 實作歸屬與前端
 
-- [核心：用例、建立資格、建立者權限、內容正規化與狀態轉換；不依賴 HTTP／Firestore DTO。](../../../../backend/internal/business/issue/domain/entity/issue.go)
+- [核心：用例、建立資格、建立者權限、內容正規化與狀態轉換；不依賴 HTTP／Firestore DTO。](../../../backend/internal/business/issue/domain/entity/issue.go)
 
-- [HTTP：生成路由與 DTO，沿用既有身份／CSRF，認證後驗證契約，再進用例。](../../../../backend/internal/business/issue/adapter/http/routes.go)
+- [HTTP：生成路由與 DTO，沿用既有身份／CSRF，認證後驗證契約，再進用例。](../../../backend/internal/business/issue/adapter/http/routes.go)
 
-- [Firestore：文件轉換、查詢、建立防重與交易；由 bootstrap 注入既有 Repository client 及編號介面，不另建連線。](../../../../backend/internal/business/issue/adapter/firestore/store.go)
+- [Firestore：文件轉換、查詢、建立防重與交易；由 bootstrap 注入既有 Repository client 及編號介面，不另建連線。](../../../backend/internal/business/issue/adapter/firestore/store.go)
 
-- [問題畫面：由正式空間入口組合，透過既有 Session client 載入；不將 API 或規則放進 Shell／shared/ui。](../../../../frontend/miniapp/src/business/issue/View.tsx)
+- [問題畫面：由正式空間入口組合，透過既有 Session client 載入；不將 API 或規則放進 Shell／shared/ui。](../../../frontend/miniapp/src/business/issue/View.tsx)
 
 - 列表、詳情、寫入各有請求取消及世代檢查；登出、重新驗證或空間切換清除舊內容。新增連點由同步鎖阻擋；結果不明時鎖定原內容並沿用建立鍵重試。修改失敗後先重新讀取，不覆蓋新版本。
   建立鍵僅保留於本次畫面，重新開頁或離開問題前應先確認不明結果，不能宣稱跨重新整理防重。
@@ -109,39 +130,8 @@ Repository 擁有 Issue 的開啟與關閉狀態。問題建立者可以直接�
   維持原 HTTP 失敗語義；受影響套件與分層檢查、後續完整既有 race
   suite 均通過。
 
-- [標籤分類透過既有更新的可選 labelIds 接入，目前成員可套用或移除；省略欄位保留、空陣列清除、同空間及版本規則依 標籤引用切片。既有建立防重雜湊不變。](../labels.md#標籤引用切片)
+- [標籤分類透過既有更新的可選 labelIds 接入，目前成員可套用或移除；省略欄位保留、空陣列清除、同空間及版本規則依 標籤引用切片。既有建立防重雜湊不變。](../repository/labels.md#標籤引用切片)
 
 ## 後端分層結構
 
-下列為[Issue 後端模組](../../../../backend/internal/business/issue/)的完整檔案樹，包含實作、測試與目錄文件。
-
-**範圍**　此樹列出「議題」模組根目錄內的 12 個檔案。檔名以 `_test.go` 結尾的是測試；同名檔案依所在目錄區分職責。
-
-**分層對照**　共通範本中，以下路徑未在此模組根目錄下獨立設置：`domain/valueobject/`、`domain/service/`、`domain/event/`、`adapter/line/`、`adapter/messaging/`、`adapter/scheduler/`。子功能的分層以樹中實際路徑為準。
-
-```text
-backend/internal/business/issue/
-├── adapter/                                  # 外部系統轉接
-│   ├── firestore/                            # Firestore 保存與查詢
-│   │   └── store.go                          # 資料存取（讀寫 Firestore 資料）；Numberer、Store
-│   └── http/                                 # HTTP 入口
-│       └── routes.go                         # API路由（處理 HTTP 請求與回應）；Register、ListIssues
-├── application/                              # 應用用例
-│   ├── command/                              # 寫入用例
-│   │   └── issue.go                          # 議題（執行寫入用例）；Operations、Create
-│   ├── dto/                                  # 用例資料型別
-│   │   └── page.go                           # 分頁資料（定義傳遞資料）；Page、Filter
-│   ├── port/                                 # 外部能力介面
-│   │   └── store.go                          # 資料存取（定義用例所需介面）；Access、Scope
-│   ├── query/                                # 查詢用例
-│   │   └── issue.go                          # 議題（執行讀取用例）；Operations、List
-│   └── service.go                            # 應用用例；New
-├── domain/                                   # 領域模型與規則
-│   ├── entity/                               # 實體與聚合
-│   │   ├── classification_test.go            # 驗證分類（維護領域狀態與規則）；TestMemberClassificationCannotEditContent
-│   │   ├── issue.go                          # 議題（維護領域狀態與規則）；Issue、CanEdit
-│   │   └── issue_test.go                     # 驗證議題（維護領域狀態與規則）；TestCloseAndReopenExistingIssues
-│   └── policy/                               # 領域政策
-│       └── state.go                          # 狀態；ValidState、CanTransition
-└── AGENTS.md                                 # 本目錄開發指引
-```
+[issue 模組原始碼](../../../backend/internal/business/issue/) · [代表測試](../../../backend/internal/business/issue/domain/entity/issue_test.go) · [六邊形分層與依賴方向](../../architecture/runtime/backend-boundaries.md#六邊形分層參考)

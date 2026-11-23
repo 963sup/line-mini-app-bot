@@ -20,9 +20,9 @@
 
 ## 獨立 Membership 的讀取邊界
 
-團隊文件的 `membershipMode` 選定授權來源。空值及 `legacy` 沿用既有 LINE 群組資格；`membership` 只採獨立成員關係。未知模式、停用團隊或不存在的資格均不放行。Team 擁有管理歸屬與團隊狀態；Membership 擁有成員關係及上層資格判定。Bootstrap 將查詢能力接到組織與企業團隊列表，與各自的候選團隊讀取共用 Firestore 交易。
+Team 擁有管理歸屬與團隊狀態，並將管理範圍交給 [Membership 判定資格](../membership/design.md#現行讀取與授權)。組織與企業團隊列表在讀取候選 Team 的同一筆 Firestore 交易內核對資格。
 
-獨立模式須同時存在 Team 的有效 `member` 或 `maintainer` 關係、由管理歸屬指定的有效上層關係，且上層 generation 要與 Team 關係保存的版本一致。Enterprise Team 指派只是組織的候選來源；在組織列表中仍須先具備該組織可見資格。LINE 群組資料與原有群組操作繼續適用自身的資格規則。
+Enterprise Team 指派只是組織的候選來源；在組織列表中仍須先具備該組織可見資格。LINE 群組資料與原有群組操作繼續適用自身的資格規則。
 
 Team 管理歸屬操作拒絕沿用獨立模式團隊的舊管理者欄位。維護成員資格與變更團隊管理歸屬是兩項不同能力。
 
@@ -70,31 +70,4 @@ Organization Team 須先完成 Organization 的獨立資格閉環；Enterprise T
 
 ## 後端分層結構
 
-下列為[Team 後端模組](../../../backend/internal/business/team/)的完整檔案樹，包含實作、測試與目錄文件。
-
-**範圍**　此樹列出「團隊」模組根目錄內的 13 個檔案。檔名以 `_test.go` 結尾的是測試；同名檔案依所在目錄區分職責。
-
-**分層對照**　共通範本中，以下路徑未在此模組根目錄下獨立設置：`domain/entity/`、`domain/valueobject/`、`domain/service/`、`domain/event/`、`domain/policy/`、`application/command/`、`application/query/`、`application/port/`、`adapter/line/`、`adapter/messaging/`、`adapter/scheduler/`。子功能的分層以樹中實際路徑為準。
-
-```text
-backend/internal/business/team/
-├── adapter/                                  # 外部系統轉接
-│   ├── firestore/                            # Firestore 保存與查詢
-│   │   ├── activation_test.go                # 驗證團隊啟用（讀寫 Firestore 資料）；TestObservedTeamCanOpenWithLINEAndParentAuthority
-│   │   ├── assignment_lifecycle_test.go      # 驗證管理歸屬變更（讀寫 Firestore 資料）；TestTeamWritesRequireActiveLifecycle
-│   │   ├── group_catalog.go                  # 群組目錄（讀寫 Firestore 資料）；GroupCatalog、Get
-│   │   ├── group_catalog_test.go             # 驗證群組目錄（讀寫 Firestore 資料）；TestGroupCatalogUsesFormalTeamQualification、TestLINEObservationWritesOnlyTeamAndRejectsOlderEvents
-│   │   ├── line_observation.go               # LINE群組觀察（讀寫 Firestore 資料）；LINEObservation、GetByID
-│   │   └── store.go                          # 資料存取（讀寫 Firestore 資料）；Store、ApplyGroupObservation
-│   └── http/                                 # HTTP 入口
-│       ├── responses.go                      # 回應資料（處理 HTTP 請求與回應）
-│       └── routes.go                         # API路由（處理 HTTP 請求與回應）；Store、Handler
-├── application/                              # 應用用例
-│   ├── dto/                                  # 用例資料型別
-│   │   └── model.go                          # 領域模型（定義傳遞資料）；Option、Listing
-│   └── assignment.go                         # 管理歸屬；AssignmentWork、AssignmentStore
-├── domain/                                   # 領域模型與規則
-│   ├── assignment.go                         # 管理歸屬；AssignmentScope、AllowsAssignment
-│   └── member_policy.go                      # 成員資格政策；CanManageMember
-└── AGENTS.md                                 # 本目錄開發指引
-```
+[team 模組原始碼](../../../backend/internal/business/team/) · [代表測試](../../../backend/internal/business/team/adapter/firestore/assignment_lifecycle_test.go) · [六邊形分層與依賴方向](../../architecture/runtime/backend-boundaries.md#六邊形分層參考)

@@ -10,9 +10,43 @@
 
 未來設計
 
-[Webhook 批次回覆、Inbox 交易與 Outbox Push 發送狀態（Mermaid 原始檔）](webhook-lifecycle.mermaid)
+下圖涵蓋 Webhook 批次回覆、Inbox 交易與 Outbox Push 發送狀態。
 
-- [編輯生命週期圖](webhook-lifecycle.mermaid)
+```mermaid
+flowchart TB
+  subgraph ingress["Webhook：按批次回覆 LINE"]
+    verify["按渠道驗證原始 body 簽章，再解析事件"] --> store["逐筆以渠道與事件 ID 建立 Inbox；已存在則保留原狀"]
+    store -->|全批保存完成或空批次| ok["HTTP 200：已接收"]
+    store -->|保存失敗| unavailable["HTTP 503：可重送整批"]
+  end
+
+  subgraph inbox["Inbox：每筆事件獨立處理"]
+    pending["pending"] -->|原子領取租約| processing["processing：依 user／group 分派"]
+    processing -->|版本檢查後回收過期租約| pending
+    processing -->|暫時失敗| waitIn["retry_wait"]
+    waitIn -->|到期重領| processing
+    processing -->|範圍外或無操作| ignored["ignored"]
+    processing -->|永久失敗或達上限| failedIn["failed"]
+    processing --> tx["同一 Firestore 交易：寫入業務變更，標記 completed，有通知意圖時建立 Outbox"]
+  end
+
+  subgraph outbox["Outbox：Push 發送"]
+    queued["pending"] -->|原子領取| leased["leased"]
+    leased -->|發送前租約過期| queued
+    leased -->|先保存意圖及固定 retry key| sending["sending：呼叫 LINE API"]
+    sending -->|已接受或確認相同 key 已接受| accepted["accepted：LINE 已接受請求"]
+    sending -->|明確可重試| retry["retry_wait"]
+    sending -->|逾時或中斷，結果不明| unknown["unknown"]
+    unknown -->|可安全去重，沿用 key| retry
+    unknown -->|逾去重期限或無法判斷| manual["manual_review"]
+    retry -->|到期重領| leased
+    retry -->|達重試上限| failedOut["failed"]
+    sending -->|永久錯誤| failedOut
+  end
+
+  store -->|每筆新事件保存成功| pending
+  tx -->|交易已提交且有 Push 工作| queued
+```
 
 - Firestore 交易先讀後寫，callback 中不呼叫 LINE。isRedelivery 僅供參考；亂序事件依版本與事件時間判斷，未知來源需觀測，Unsend 依保存政策移除或停止使用內容。
 

@@ -7,8 +7,8 @@ Optional [LINE integration](docs/integrations/line/setup.md) provides direct and
 Current capabilities are tracked in the [domain index](docs/domains/):
 
 - [Attendance](docs/domains/attendance/design.md): clock-in/out, breaks, records, corrections, leave registration, review and group boards. Attendance state is maintained separately for each person and group; location evidence does not enforce a work radius.
-- Repository features include issues, discussions, objects and subobjects, templates, labels, milestones, insights and Wiki. Projects and journals have separate entry points in the [feature documentation](docs/domains/).
-- Enterprise, organization and team management, chat summaries, weather and PDF text extraction have implementations. The domain index distinguishes implemented capabilities from proposals.
+- [Repository](docs/domains/repository/design.md) owns the container, spaces, labels, milestones, insights and Wiki. [Issue](docs/domains/issue/design.md), [Discussion](docs/domains/discussion/design.md), [Object and templates](docs/domains/object/design.md), [Project](docs/domains/project/project.md) and [Journal](docs/domains/journal/journal.md) have their own specifications.
+- Enterprise, organization and team management, [Membership](docs/domains/membership/design.md), chat summaries, weather and PDF text extraction have implementations. The domain index distinguishes implemented capabilities from proposals.
 
 The [Go + Next.js/React geolocation example](docs/integrations/geolocation/browser-api.md) is available at `http://localhost:8080/location`. It sends browser coordinates to Go for validation without storing them.
 

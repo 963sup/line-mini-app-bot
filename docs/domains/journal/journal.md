@@ -113,7 +113,7 @@ Journal 表示一篇工作日誌，集合路徑使用 /api/v1/journals。Feed �
 
 **Context/contracts:** source domains provide resources/visibility; Journal decides visible work-row fields. Publication does not transfer source ownership.
 
-**Current acceptance:** readers losing source access retain work names/progress but cannot obtain source names/IDs through journals.
+**Current acceptance:** an authorized journal reader who loses access only to a referenced source retains work names/progress but cannot obtain source names/IDs through the journal. Losing access to the journal's owning Repository or legacy group blocks the journal itself.
 
 [Implementation/tests](../../../backend/internal/business/journal/domain/entity/entry_test.go) · [Strategic classification criteria](../../references/ddd/design-guide.md)
 
@@ -138,33 +138,4 @@ flowchart TD
 
 ### 後端分層結構
 
-下列為[Journal 後端模組](../../../backend/internal/business/journal/)的完整檔案樹，包含實作、測試與目錄文件。
-
-**範圍**　此樹列出「工作日誌」模組根目錄內的 12 個檔案。檔名以 `_test.go` 結尾的是測試；同名檔案依所在目錄區分職責。
-
-**分層對照**　共通範本中，以下路徑未在此模組根目錄下獨立設置：`domain/valueobject/`、`domain/service/`、`domain/event/`、`domain/policy/`、`application/command/`、`adapter/line/`、`adapter/messaging/`、`adapter/scheduler/`。子功能的分層以樹中實際路徑為準。
-
-```text
-backend/internal/business/journal/
-├── adapter/                                  # 外部系統轉接
-│   ├── firestore/                            # Firestore 保存與查詢
-│   │   ├── payload.go                        # 提交內容（讀寫 Firestore 資料）
-│   │   ├── payload_test.go                   # 驗證提交內容（讀寫 Firestore 資料）；TestPayloadCompatibility
-│   │   ├── store.go                          # 資料存取（讀寫 Firestore 資料）；Store、Create
-│   │   └── store_test.go                     # 驗證資料存取（讀寫 Firestore 資料）；TestPublishingAndScopedPagination、TestReferenceRedactionCoversBothDays
-│   └── http/                                 # HTTP 入口
-│       ├── routes.go                         # API路由（處理 HTTP 請求與回應）；Register、CreateJournal
-│       └── routes_test.go                    # 驗證API路由（處理 HTTP 請求與回應）；TestJournalRoutes
-├── application/                              # 應用用例
-│   ├── dto/                                  # 用例資料型別
-│   │   └── page.go                           # 分頁資料（定義傳遞資料）
-│   ├── port/                                 # 外部能力介面
-│   │   └── operations.go                     # 操作（定義用例所需介面）；Operations
-│   └── query/                                # 查詢用例
-│       └── references.go                     # 來源引用（執行讀取用例）；GroupCatalog、ReferenceCatalog
-├── domain/                                   # 領域模型與規則
-│   └── entity/                               # 實體與聚合
-│       ├── entry.go                          # 日誌項目（維護領域狀態與規則）；ApplyReferenceCheck、Entry
-│       └── entry_test.go                     # 驗證日誌項目（維護領域狀態與規則）；TestApplyReferenceCheck
-└── AGENTS.md                                 # 本目錄開發指引
-```
+[journal 模組原始碼](../../../backend/internal/business/journal/) · [代表測試](../../../backend/internal/business/journal/domain/entity/entry_test.go) · [六邊形分層與依賴方向](../../architecture/runtime/backend-boundaries.md#六邊形分層參考)

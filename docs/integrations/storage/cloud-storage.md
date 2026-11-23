@@ -1,6 +1,6 @@
 # Cloud Storage 檔案儲存簡要規格
 
-**狀態：工程附件的候選方案。** 保存 PDF、工程圖、照片與匯出檔案；Firestore 保存附件識別、擁有者、作用域及檔案版本關聯。沿用[工程平台提案](../../proposals/line-engineering/)的分工，不宣稱上傳功能已實作。
+**狀態：工程附件的候選方案。** 保存 PDF、工程圖、照片與匯出檔案；Firestore 保存附件識別、擁有者、作用域及檔案版本關聯。沿用[工程平台提案](../../proposals/line-engineering/design.md)的分工，不宣稱上傳功能已實作。
 
 ## 最小流程
 
@@ -29,4 +29,4 @@ Firestore 與 Storage 沒有共同業務交易，以 pending／ready／failed �
 
 [官方 Signed URL 說明](https://docs.cloud.google.com/storage/docs/access-control/signed-urls)，查證範圍見[Google 整合總覽](../google-cloud/)。
 
-[Eventarc](../google-cloud/event-processing.md#eventarc) · [Document AI](../google-cloud/document-processing.md#document-ai) · [儲存索引](../../architecture/data.md)
+[Eventarc](../google-cloud/background-jobs.md#eventarc) · [Document AI](../google-cloud/document-processing.md#document-ai) · [儲存索引](../../architecture/data.md)

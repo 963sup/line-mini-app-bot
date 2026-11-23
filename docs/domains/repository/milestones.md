@@ -35,6 +35,6 @@
 
   - [OpenAPI 來源](../../../api/contract/repository/milestones.yaml)
 
-  - [事項規格](issue/design.md)
+  - [事項規格](../issue/design.md)
 
   - [驗收矩陣](../../development/tooling/testing/commands.md)

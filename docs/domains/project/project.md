@@ -26,7 +26,7 @@
 
 ## 專案項目進度
 
-每個 Project item 各自保存待辦、進行中或完成。缺少欄位的既有項目讀為待辦。來源狀態依[問題生命週期](../repository/issue/design.md#issue-lifecycle)、工程物件或巡檢規則讀取。畫面分別標示「本專案進度」與「來源狀態」。更新進度沿用 Project 編輯權、版本檢查與交易；來源讀權仍由來源庫核驗。
+每個 Project item 各自保存待辦、進行中或完成。缺少欄位的既有項目讀為待辦。來源狀態依[問題生命週期](../issue/design.md#issue-lifecycle)、工程物件或巡檢規則讀取。畫面分別標示「本專案進度」與「來源狀態」。更新進度沿用 Project 編輯權、版本檢查與交易；來源讀權仍由來源庫核驗。
 
 驗收時，將同一 Issue 加入維修與稽核兩個 Project。完成維修項目後重新載入兩個看板，只有維修項目顯示完成，稽核項目保留原進度，來源 Issue 仍為開啟。關閉來源 Issue 後，兩個看板的來源狀態都應反映關閉，各自的專案進度保留。
 
@@ -64,7 +64,7 @@
 
 - 舊 /api/v1/repositories/{repositoryId}/projects... 保留相容 adapter，解析來源庫及其擁有者 後呼叫同一組用例，不維護第二份授權或寫入邏輯。原回應、ID、版本、防重及分頁契約依相容檢查保留。
 
-- 舊Repository統計的projects欄位相容回報以該Repository為來源的專案數，依唯一保存位置讀取；這是唯讀來源關聯統計，不表示Repository擁有或可寫Project。
+- 舊 Repository 統計的 `projects` 欄位相容回報以該 Repository 為初始來源（`defaultRepositoryId`）的專案數；後來才連結該庫的專案不計入。這是唯讀相容統計，不表示 Repository 擁有或可寫 Project。
 
 - 正式專案頁為 /miniapp/projects，URL 保存 owner／Project 選取；側欄「專案」與「儲存庫」同層。Project 頁透過本人 Session 與組織導覽資料選擇 Owner，不需要 RepositoryProvider 作為 Project 生命週期。
 
@@ -204,53 +204,4 @@ flowchart TD
 
 ### 後端分層結構
 
-下列為[Project 後端模組](../../../backend/internal/business/project/)的完整檔案樹，包含實作、測試與目錄文件。
-
-**範圍**　此樹列出「專案」模組根目錄內的 30 個檔案。檔名以 `_test.go` 結尾的是測試；同名檔案依所在目錄區分職責。
-
-**分層對照**　共通範本中，以下路徑未在此模組根目錄下獨立設置：`domain/valueobject/`、`domain/service/`、`domain/event/`、`domain/policy/`、`application/command/`、`application/query/`、`adapter/line/`、`adapter/messaging/`、`adapter/scheduler/`。子功能的分層以樹中實際路徑為準。
-
-```text
-backend/internal/business/project/
-├── adapter/                                  # 外部系統轉接
-│   ├── firestore/                            # Firestore 保存與查詢
-│   │   ├── testdata/
-│   │   │   └── project_browser.py
-│   │   ├── access_test.go                    # 驗證存取資格（讀寫 Firestore 資料）；TestSourceHydrationFailurePreservesProjectMetadata、TestOwnerProjectStorageRightsAndLegacyAlias
-│   │   ├── browser_test.go                   # 驗證瀏覽器入口（讀寫 Firestore 資料）；TestProjectSettingsBrowserRoundTrip
-│   │   ├── inspections.go                    # 查驗紀錄（讀寫 Firestore 資料）；Inspections
-│   │   ├── items.go                          # 項目（讀寫 Firestore 資料）；Progress、ListItems
-│   │   ├── ownership_test.go                 # 驗證所有權（讀寫 Firestore 資料）；TestProjectOwnershipIndependentOfSelectedRepository
-│   │   ├── references.go                     # 來源引用（讀寫 Firestore 資料）；ListReferences、ChangeReference
-│   │   ├── references_test.go                # 驗證來源引用（讀寫 Firestore 資料）；TestEmulatorProjectTypedReferencesLatestAndRevokedSources
-│   │   └── store.go                          # 資料存取（讀寫 Firestore 資料）；AuthorizeOrganization、Get
-│   ├── group/
-│   │   └── access.go                         # 存取資格；Access、AuthorizeGroup
-│   ├── http/                                 # HTTP 入口
-│   │   ├── inspections.go                    # 查驗紀錄（處理 HTTP 請求與回應）；ListInspectionSubmissions、SubmitInspection
-│   │   ├── references.go                     # 來源引用（處理 HTTP 請求與回應）；ListProjectReferences、AddProjectReference
-│   │   ├── references_test.go                # 驗證來源引用（處理 HTTP 請求與回應）；TestReferencePostHasIdentityRetryWithoutCreationHeader、TestReferenceInspectionModes
-│   │   ├── routes.go                         # API路由（處理 HTTP 請求與回應）；Register、ListProjects
-│   │   └── storage_error_test.go             # 驗證保存錯誤轉換（處理 HTTP 請求與回應）；TestStorageFailureResponse、TestDevelopmentStorageFailureResponse
-│   └── repository/
-│       └── sources.go                        # 來源清單；Sources、Authorize
-├── application/                              # 應用用例
-│   ├── dto/                                  # 用例資料型別
-│   │   ├── project.go                        # 專案（定義傳遞資料）；Page
-│   │   └── references.go                     # 來源引用（定義傳遞資料）；ReferencePage
-│   ├── port/                                 # 外部能力介面
-│   │   ├── project.go                        # 專案（定義用例所需介面）；Groups、Sources
-│   │   └── references.go                     # 來源引用（定義用例所需介面）；ReferenceStateStore
-│   ├── access_test.go                        # 驗證存取資格；TestGroupProjectMetadataSurvivesSourceDenial、TestSourceHydrationFailurePreservesCanonicalMetadata
-│   ├── inspections.go                        # 查驗紀錄；Inspections
-│   ├── project.go                            # 專案；Service、List
-│   ├── reference_source_test.go              # 驗證引用來源；TestReferenceSource
-│   ├── references.go                         # 來源引用；ListReferences、AddReference
-│   └── references_test.go                    # 驗證來源引用；TestReferenceIdentityAndIndependentAuthorization
-├── domain/                                   # 領域模型與規則
-│   └── entity/                               # 實體與聚合
-│       ├── inspections.go                    # 查驗紀錄（維護領域狀態與規則）；InspectionSubmission
-│       ├── project.go                        # 專案（維護領域狀態與規則）；IsOrganizationOwner、Valid
-│       └── references.go                     # 來源引用（維護領域狀態與規則）；Reference、SupportsInspection
-└── AGENTS.md                                 # 本目錄開發指引
-```
+[project 模組原始碼](../../../backend/internal/business/project/) · [代表測試](../../../backend/internal/business/project/application/access_test.go) · [六邊形分層與依賴方向](../../architecture/runtime/backend-boundaries.md#六邊形分層參考)

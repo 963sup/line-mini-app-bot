@@ -31,7 +31,7 @@ accepted 與 revoked 在此示例為終態；若需求允許恢復，應另定�
 
 ## 現行程式對照
 
-[Issue 規格](../../domains/repository/issue/design.md#issue-lifecycle)允許關閉後重新開啟，因此 closed 不能直接當作終態。[ApplyUpdate](../../../backend/internal/business/issue/domain/entity/issue.go)核對轉換與版本。[Object.WorkStatus](../../../backend/internal/business/object/domain/entity/object.go)從總量和完成量推導狀態，不能額外保存互相矛盾的進度判定。
+[Issue 規格](../../domains/issue/design.md#issue-lifecycle)允許關閉後重新開啟，因此 closed 不能直接當作終態。[ApplyUpdate](../../../backend/internal/business/issue/domain/entity/issue.go)核對轉換與版本。[Object.WorkStatus](../../../backend/internal/business/object/domain/entity/object.go)從總量和完成量推導狀態，不能額外保存互相矛盾的進度判定。
 
 ## 驗證與設計產出
 

@@ -43,7 +43,7 @@ Invariant 是模型在約定的一致性邊界內、每次成功操作後都必�
 
 ## 現行例子與測試分工
 
-[Object.WorkStatus](../../../backend/internal/business/object/domain/entity/object.go)使用精確十進位比較。對已知總量的施作，核心條件為 `total > 0` 且 `0 <= done <= total`；`done = 0`、介於兩者、等於總量，分別推導不同狀態。這個命題只適用於已驗證的施作數量，不將缺值或非施作強行當成零；完整規則見[物件規格](../../domains/repository/object/design.md)。
+[Object.WorkStatus](../../../backend/internal/business/object/domain/entity/object.go)使用精確十進位比較。對已知總量的施作，核心條件為 `total > 0` 且 `0 <= done <= total`；`done = 0`、介於兩者、等於總量，分別推導不同狀態。這個命題只適用於已驗證的施作數量，不將缺值或非施作強行當成零；完整規則見[物件規格](../../domains/object/design.md)。
 
 | 案例 | 要驗證的結果 |
 |---|---|

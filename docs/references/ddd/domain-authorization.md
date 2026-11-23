@@ -27,7 +27,7 @@ Authority 表示權限來源與有效範圍；Policy 可描述授權條件或業
 ## 專案對照
 
 - [CanReview](../../../backend/internal/business/attendance/domain/policy/review.go)同時核對群組範圍與審核者不是申請人；具體規則由[出勤規格](../../domains/attendance/queries.md)維護。
-- [Issue.ApplyUpdate](../../../backend/internal/business/issue/domain/entity/issue.go)區分內容／狀態修改與分類更新，並檢查版本。可分類不代表能改他人內容；操作範圍見[議題規格](../../domains/repository/issue/design.md)。
+- [Issue.ApplyUpdate](../../../backend/internal/business/issue/domain/entity/issue.go)區分內容／狀態修改與分類更新，並檢查版本。可分類不代表能改他人內容；操作範圍見[議題規格](../../domains/issue/design.md)。
 
 這些是原始碼證據，不代表本次已執行整合測試，也不要求建立通用授權引擎。
 

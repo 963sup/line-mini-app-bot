@@ -43,6 +43,8 @@ flowchart LR
 
 ## 最小可驗證情境：指定儲存庫的日誌草稿
 
+以下為目標旅程。日誌歸屬與可寫條件以[日誌規格](../domains/journal/journal.md)及[儲存庫規格](../domains/repository/design.md)為準。
+
 1. 使用者指定 B 庫。Workflow 從可信身分取得授權情境，委派 Agent 使用少量唯讀操作查工項；如需規範，再向 Knowledge 取帶版本的依據。證據不足時列出缺項。
 2. 使用者查看候選與來源。確認綁定操作者、候選版本、B 庫與 `CreateJournal` 命令。任何一項變更都要求重新確認。
 3. 跨請求執行前先保存確認及穩定提交識別碼。命令重新檢查權限與日誌規則，成功後以日誌收據完成。結果未知時先查原結果，或沿用原識別碼安全重試。
@@ -51,11 +53,13 @@ flowchart LR
 
 ## 物件呼叫文件辨識能力
 
-Object 的應用層先核對呼叫者與儲存庫，再呼叫 Operations 的文件候選擷取介面。Bootstrap 按 `AI_DOCUMENT_MODEL` 和既有 OpenAI 憑證注入適配器。這條內部接線只回傳候選；正式物件仍由 Object 建立。
+現行[Object 應用服務](../../backend/internal/business/object/application/object.go)先核對呼叫者與儲存庫，再呼叫 Operations 的文件候選擷取介面。[組裝入口](../../backend/internal/bootstrap/repository.go)按 `AI_DOCUMENT_MODEL` 和既有 OpenAI 憑證注入適配器。這條內部接線只回傳候選；正式物件仍由 Object 建立。
 
 適配器透過 Responses API 在同一個請求中使用 `input_file` 傳送原檔，並以 `text.format` 指定嚴格的 JSON Schema。候選包含名稱、十進位數量字串、單位、來源位置與引文；數量、單位及位置允許 null。完成、拒答、截斷和無效輸出各有對應的結果，呼叫端可檢視模型回應。每次重送都會重新辨識且可能計費。[File inputs](https://developers.openai.com/api/docs/guides/file-inputs?api-mode=responses) · [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs#supported-schemas)
 
 ### 物件入口與驗收
+
+物件操作以[候選覆核規格](../domains/object/design.md#從文件辨識候選)與 [OpenAPI](../../api/contract/object/objects.yaml) 為準。
 
 1. 物件 API 提供候選辨識操作，契約定義檔案類型、上傳大小、候選及錯誤回應。驗收時確認無權限時不會呼叫模型，拒答與截斷可和零筆候選區分。
 2. 物件畫面提供選檔與覆核。顯示原始數量、單位、位置與引文，讓使用者修正後透過既有建立操作逐筆送出。重送建立時沿用同一建立鍵。

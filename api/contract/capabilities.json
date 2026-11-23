@@ -89,7 +89,7 @@
       "contract": "issue/issues.yaml",
       "adapter": "backend/internal/business/issue/adapter/http/routes.go",
       "core": "backend/internal/business/issue/domain/entity/issue.go",
-      "specification": "docs/domains/repository/issue/design.md"
+      "specification": "docs/domains/issue/design.md"
     },
     "issue.types": {
       "kind": "scaffold",
@@ -107,7 +107,7 @@
       "contract": "discussion/discussions.yaml",
       "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "core": "backend/internal/business/discussion/application/service.go",
-      "specification": "docs/domains/repository/discussion/design.md"
+      "specification": "docs/domains/discussion/design.md"
     },
     "discussion.categories": {
       "kind": "scaffold",
@@ -119,7 +119,7 @@
       "contract": "discussion/comments.yaml",
       "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "core": "backend/internal/business/discussion/application/service.go",
-      "specification": "docs/domains/repository/discussion/design.md"
+      "specification": "docs/domains/discussion/design.md"
     },
     "project": {
       "contract": "project/projects.yaml",
@@ -167,7 +167,7 @@
       "contract": "object/objects.yaml",
       "adapter": "backend/internal/business/object/adapter/http/routes.go",
       "core": "backend/internal/business/object/domain/entity/object.go",
-      "specification": "docs/domains/repository/object/design.md"
+      "specification": "docs/domains/object/design.md"
     },
     "project.references": {
       "contract": "project/references.yaml",
@@ -651,7 +651,7 @@
       "adapter": "backend/internal/business/issue/adapter/http/routes.go",
       "handler": "ListIssues",
       "core": "backend/internal/business/issue/domain/entity/issue.go",
-      "specification": "docs/domains/repository/issue/design.md",
+      "specification": "docs/domains/issue/design.md",
       "consumers": [
         "frontend/miniapp/src/business/issue/View.tsx",
         "frontend/miniapp/src/business/project/Items.tsx"
@@ -666,7 +666,7 @@
       "adapter": "backend/internal/business/issue/adapter/http/routes.go",
       "handler": "CreateIssue",
       "core": "backend/internal/business/issue/domain/entity/issue.go",
-      "specification": "docs/domains/repository/issue/design.md",
+      "specification": "docs/domains/issue/design.md",
       "consumers": [
         "frontend/miniapp/src/business/issue/View.tsx"
       ]
@@ -680,7 +680,7 @@
       "adapter": "backend/internal/business/issue/adapter/http/routes.go",
       "handler": "GetIssue",
       "core": "backend/internal/business/issue/domain/entity/issue.go",
-      "specification": "docs/domains/repository/issue/design.md",
+      "specification": "docs/domains/issue/design.md",
       "consumers": [
         "frontend/miniapp/src/business/issue/View.tsx"
       ]
@@ -694,7 +694,7 @@
       "adapter": "backend/internal/business/issue/adapter/http/routes.go",
       "handler": "UpdateIssue",
       "core": "backend/internal/business/issue/domain/entity/issue.go",
-      "specification": "docs/domains/repository/issue/design.md",
+      "specification": "docs/domains/issue/design.md",
       "consumers": [
         "frontend/miniapp/src/business/issue/View.tsx"
       ]
@@ -708,7 +708,7 @@
       "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "handler": "ListDiscussions",
       "core": "backend/internal/business/discussion/application/service.go",
-      "specification": "docs/domains/repository/discussion/design.md",
+      "specification": "docs/domains/discussion/design.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/View.tsx"
       ]
@@ -722,7 +722,7 @@
       "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "handler": "CreateDiscussion",
       "core": "backend/internal/business/discussion/application/service.go",
-      "specification": "docs/domains/repository/discussion/design.md",
+      "specification": "docs/domains/discussion/design.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/View.tsx"
       ]
@@ -736,7 +736,7 @@
       "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "handler": "GetDiscussion",
       "core": "backend/internal/business/discussion/application/service.go",
-      "specification": "docs/domains/repository/discussion/design.md",
+      "specification": "docs/domains/discussion/design.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/View.tsx"
       ]
@@ -750,7 +750,7 @@
       "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "handler": "UpdateDiscussion",
       "core": "backend/internal/business/discussion/application/service.go",
-      "specification": "docs/domains/repository/discussion/design.md",
+      "specification": "docs/domains/discussion/design.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/View.tsx"
       ]
@@ -764,7 +764,7 @@
       "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "handler": "ListDiscussionComments",
       "core": "backend/internal/business/discussion/application/service.go",
-      "specification": "docs/domains/repository/discussion/design.md",
+      "specification": "docs/domains/discussion/design.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/Comments.tsx"
       ]
@@ -778,7 +778,7 @@
       "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "handler": "CreateDiscussionComment",
       "core": "backend/internal/business/discussion/application/service.go",
-      "specification": "docs/domains/repository/discussion/design.md",
+      "specification": "docs/domains/discussion/design.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/Comments.tsx"
       ]
@@ -792,7 +792,7 @@
       "adapter": "backend/internal/business/discussion/adapter/http/routes.go",
       "handler": "UpdateDiscussionComment",
       "core": "backend/internal/business/discussion/application/service.go",
-      "specification": "docs/domains/repository/discussion/design.md",
+      "specification": "docs/domains/discussion/design.md",
       "consumers": [
         "frontend/miniapp/src/business/discussion/Comments.tsx"
       ]
@@ -1122,7 +1122,7 @@
       "adapter": "backend/internal/business/object/adapter/http/routes.go",
       "handler": "ListObjects",
       "core": "backend/internal/business/object/domain/entity/object.go",
-      "specification": "docs/domains/repository/object/design.md",
+      "specification": "docs/domains/object/design.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx",
         "frontend/miniapp/src/business/journal/WorkContext.tsx",
@@ -1138,7 +1138,7 @@
       "adapter": "backend/internal/business/object/adapter/http/routes.go",
       "handler": "CreateObject",
       "core": "backend/internal/business/object/domain/entity/object.go",
-      "specification": "docs/domains/repository/object/design.md",
+      "specification": "docs/domains/object/design.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx"
       ]
@@ -1152,7 +1152,7 @@
       "adapter": "backend/internal/business/object/adapter/http/routes.go",
       "handler": "GetObject",
       "core": "backend/internal/business/object/domain/entity/object.go",
-      "specification": "docs/domains/repository/object/design.md",
+      "specification": "docs/domains/object/design.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx"
       ]
@@ -1166,7 +1166,7 @@
       "adapter": "backend/internal/business/object/adapter/http/routes.go",
       "handler": "UpdateObject",
       "core": "backend/internal/business/object/domain/entity/object.go",
-      "specification": "docs/domains/repository/object/design.md",
+      "specification": "docs/domains/object/design.md",
       "consumers": [
         "frontend/miniapp/src/business/object/View.tsx"
       ]
@@ -1578,7 +1578,7 @@
       "adapter": "backend/internal/business/object/adapter/http/routes.go",
       "handler": "ExtractObjectCandidates",
       "core": "backend/internal/business/object/domain/entity/object.go",
-      "specification": "docs/domains/repository/object/design.md",
+      "specification": "docs/domains/object/design.md",
       "consumers": [
         "frontend/miniapp/src/business/object/Candidates.tsx"
       ]
@@ -1648,7 +1648,7 @@
       "adapter": "backend/internal/business/object/adapter/http/templates.go",
       "handler": "ListObjectTemplates",
       "core": "backend/internal/business/object/domain/template/version.go",
-      "specification": "docs/domains/repository/object/template.md",
+      "specification": "docs/domains/object/template.md",
       "consumers": []
     },
     {
@@ -1660,7 +1660,7 @@
       "adapter": "backend/internal/business/object/adapter/http/templates.go",
       "handler": "CreateObjectTemplate",
       "core": "backend/internal/business/object/domain/template/version.go",
-      "specification": "docs/domains/repository/object/template.md",
+      "specification": "docs/domains/object/template.md",
       "consumers": []
     },
     {
@@ -1672,7 +1672,7 @@
       "adapter": "backend/internal/business/object/adapter/http/templates.go",
       "handler": "GetObjectTemplate",
       "core": "backend/internal/business/object/domain/template/version.go",
-      "specification": "docs/domains/repository/object/template.md",
+      "specification": "docs/domains/object/template.md",
       "consumers": []
     },
     {
@@ -1684,7 +1684,7 @@
       "adapter": "backend/internal/business/object/adapter/http/templates.go",
       "handler": "InstantiateObjectTemplate",
       "core": "backend/internal/business/object/domain/template/version.go",
-      "specification": "docs/domains/repository/object/template.md",
+      "specification": "docs/domains/object/template.md",
       "consumers": [
         "frontend/miniapp/src/business/object/Templates.tsx"
       ]
@@ -1698,7 +1698,7 @@
       "adapter": "backend/internal/business/object/adapter/http/templates.go",
       "handler": "ListPersonalObjectTemplates",
       "core": "backend/internal/business/object/domain/template/version.go",
-      "specification": "docs/domains/repository/object/template.md",
+      "specification": "docs/domains/object/template.md",
       "consumers": [
         "frontend/miniapp/src/business/object/Templates.tsx"
       ]
@@ -1712,7 +1712,7 @@
       "adapter": "backend/internal/business/object/adapter/http/templates.go",
       "handler": "CreatePersonalObjectTemplate",
       "core": "backend/internal/business/object/domain/template/version.go",
-      "specification": "docs/domains/repository/object/template.md",
+      "specification": "docs/domains/object/template.md",
       "consumers": [
         "frontend/miniapp/src/business/object/Templates.tsx"
       ]
@@ -1726,7 +1726,7 @@
       "adapter": "backend/internal/business/object/adapter/http/drafts.go",
       "handler": "PrepareObjectTemplateDraft",
       "core": "backend/internal/business/object/application/drafts.go",
-      "specification": "docs/domains/repository/object/template.md",
+      "specification": "docs/domains/object/template.md",
       "consumers": [
         "frontend/miniapp/src/business/object/TemplatePreparation.tsx"
       ]
@@ -1740,7 +1740,7 @@
       "adapter": "backend/internal/business/object/adapter/http/routes.go",
       "handler": "ListObjectQuantityChanges",
       "core": "backend/internal/business/object/domain/entity/object.go",
-      "specification": "docs/domains/repository/object/design.md",
+      "specification": "docs/domains/object/design.md",
       "consumers": [
         "frontend/miniapp/src/business/object/QuantityHistory.tsx"
       ]

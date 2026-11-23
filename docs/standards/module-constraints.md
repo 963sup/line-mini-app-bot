@@ -117,7 +117,7 @@ When changing this module, you MUST check the [decision flow](../domains/attenda
 
 ## `backend/internal/business/discussion/`
 
-When changing this module, you MUST check the [decision flow](../domains/repository/discussion/design.md) and [representative tests](../../backend/internal/business/discussion/domain/entity/classification_test.go).
+When changing this module, you MUST check the [decision flow](../domains/discussion/design.md) and [representative tests](../../backend/internal/business/discussion/domain/entity/classification_test.go).
 
 - **Domain, state and authorization.** MUST check content-edit and classification authority separately, and preserve comment/topic versions and lifecycle semantics on retries.
 
@@ -129,7 +129,7 @@ When changing this module, you MUST check the [decision flow](../domains/enterpr
 
 ## `backend/internal/business/issue/`
 
-When changing this module, you MUST check the [decision flow](../domains/repository/issue/design.md) and [representative tests](../../backend/internal/business/issue/domain/entity/issue_test.go).
+When changing this module, you MUST check the [decision flow](../domains/issue/design.md) and [representative tests](../../backend/internal/business/issue/domain/entity/issue_test.go).
 
 - **Domain, state and authorization.** MUST apply Issue-owned transition and edit policies without importing attendance approval states or granting content edits through classification.
 
@@ -147,7 +147,7 @@ When changing this module, you MUST check the [decision flow](../domains/journal
 
 ## `backend/internal/business/object/`
 
-When changing this module, you MUST check the [decision flow](../domains/repository/object/design.md) and [representative tests](../../backend/internal/business/object/application/progress_test.go).
+When changing this module, you MUST check the [decision flow](../domains/object/design.md) and [representative tests](../../backend/internal/business/object/application/progress_test.go).
 
 - **Domain, state and authorization.** MUST validate exact quantities, parent scope and legal progress transitions in the domain; record history only for committed, authorized version changes.
 
@@ -571,12 +571,6 @@ When changing this module, you MUST check the [decision flow](../integrations/li
 - **Code generation.** MUST derive outputs only from declared schemas/assets/sources using pinned tools, then compare artifact paths and consumer references.
 - **Determinism and types.** MUST preserve generated names, serialization and target-language signatures; repeated runs on identical inputs must not introduce unexplained drift.
 - **Lifecycle.** MUST keep temporary output isolated and clean it after failure; never hand-edit generated files as a substitute for fixing their source.
-
-## `scripts/mcp/`
-
-- **Integration contracts.** MUST preserve MCP framing, initialization and tool schema/version boundaries; distinguish transport probes from host tool exposure.
-- **Reliability and cleanup.** MUST bound process/call lifetimes, close streams and terminate spawned process groups on failure or cancellation.
-- **Identity and diagnostics.** MUST check the appropriate credential scope without printing tokens, and keep read-only probes separate from authorized writes.
 
 ## `scripts/ops/`
 

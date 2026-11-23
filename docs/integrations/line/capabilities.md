@@ -135,7 +135,7 @@ LIFF 參考對 `groupId` 的說明：
 
 > “This property was discontinued.”
 
-[LIFF API](https://developers.line.biz/en/reference/liff/) · [Context](https://developers.line.biz/en/reference/liff/#get-context) · [Permanent Link](https://developers.line.biz/en/docs/line-mini-app/develop/permanent-links/) · [Service Message](https://developers.line.biz/en/docs/line-mini-app/develop/service-messages/) · [MINI App 啟動與登入](mini-app-setup.md)
+[LIFF API](https://developers.line.biz/en/reference/liff/) · [Context](https://developers.line.biz/en/reference/liff/#get-context) · [Permanent Link](https://developers.line.biz/en/docs/line-mini-app/develop/permanent-links/) · [Service Message](https://developers.line.biz/en/docs/line-mini-app/develop/service-messages/) · [MINI App 啟動與登入](setup.md#mini-app-setup)
 
 ### 群組與 MINI App 的整合對照
 

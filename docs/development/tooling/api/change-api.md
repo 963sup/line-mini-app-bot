@@ -34,4 +34,4 @@ bash scripts/tooling/tool-exec.sh pnpm api:check
 
 API 檢查器的涵蓋範圍與限制見[API 契約檢查](../testing/commands.md#api-contract-verification)。
 
-[操作配方](../../recipes/)
+[領域行為與前端變更流程](../../workflow/implementation.md#修改領域行為)

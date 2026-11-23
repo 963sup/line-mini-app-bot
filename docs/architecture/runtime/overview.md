@@ -65,6 +65,6 @@ architecture-beta
 | 修改模組與依賴     | [目前目錄](code-layout.md)、[後端邊界](backend-boundaries.md)                                             |
 | 修改資料與交易     | [Firestore 整合](../../integrations/firestore/connection.md)                                              |
 | 準備裝置或部署驗收 | [整合與發布驗收](../../operations/release-acceptance.md)、[Cloud Run 部署](../../operations/cloud-run.md) |
-| 比較現況與目標     | [工程平台目標架構](../../proposals/line-engineering/)                                                     |
+| 比較現況與目標     | [工程平台目標架構](../../proposals/line-engineering/design.md)                                            |
 
 <a id="文件路由-1"></a>

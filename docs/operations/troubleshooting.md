@@ -2,7 +2,7 @@
 
 <a id="troubleshooting"></a>
 
-依下列流程定位正式建置、部署與同步失敗。工具安裝、Go 及 MCP 問題見[開發環境排查](../development/environment/troubleshooting.md)。
+從失敗通知、build ID、revision 或來源提交開始，確認目標專案、區域、服務與實際 trigger。工具安裝、Go 及 MCP 問題見[開發環境排查](../development/environment/troubleshooting.md)。
 
 <a id="cloud-buildcloud-run-與部署後同步"></a>
 
@@ -12,6 +12,8 @@
 | 部署          | 映像 digest、目標服務、revision 建立狀態、身分、IAM 與必要機密的引用 |
 | 執行          | 最新 revision 的 Ready 狀態、目前流量、受影響路由與應用日誌          |
 | LINE 導航同步 | 實際執行入口、目標渠道及同步前置條件                                 |
+
+取得第一個失敗步驟的原始錯誤，核對同一提交的程式、映像與入口。若問題與執行環境有關，以同一映像或執行身分查證，並區分實際 trigger、Dockerfile 與手動 YAML 的作用。
 
 ## Cloud Build、Cloud Run 與部署後同步
 
@@ -47,3 +49,7 @@ flowchart TB
 
 - [Cloud Run 回滾](https://docs.cloud.google.com/run/docs/rollouts-rollbacks-traffic-migration)
 - [Artifact Registry 映像管理](https://docs.cloud.google.com/artifact-registry/docs/docker/manage-images)
+
+## 診斷交付與修復驗收
+
+記錄失敗步驟與原始證據、受影響提交、目前承接流量的 revision、服務影響與下一步。缺少雲端讀取權限時，列出缺少的[驗證證據](../development/verification/evidence.md#cloud-run-and-browser-location)。修復後依[驗收矩陣](../development/tooling/testing/commands.md)執行設定或容器檢查，再按[發布驗收](release-acceptance.md)記錄正式環境結果。

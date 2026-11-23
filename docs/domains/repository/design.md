@@ -28,7 +28,7 @@ This page owns Repository scope/authorization; capability documents own details.
 
 [Containers/LINE journeys](../../integrations/line/journey.md#repository-journey) explains responsibilities, target navigation, wiring and acceptance.
 
-Start with [spaces.md](spaces.md), [Issue specifications](issue/design.md) and [organization/team ownership](../../contracts/organization-team-ownership.md).
+Start with [spaces.md](spaces.md), [Issue specifications](../issue/design.md) and [organization/team ownership](../../contracts/organization-team-ownership.md).
 
 <a id="repository-capabilities"></a>
 
@@ -36,32 +36,32 @@ Start with [spaces.md](spaces.md), [Issue specifications](issue/design.md) and [
 
 ## Container capabilities
 
-Capabilities share Repository scope but own operation/authorization rules. Documents are grouped by container; code remains separated by capability.
+Capabilities share Repository scope but own operation/authorization rules. Each resource specification is maintained in its own domain. This page indexes those resources and owns the shared container rules.
 
-| Capability           | Specification/acceptance                                                                            |
-| -------------------- | --------------------------------------------------------------------------------------------------- |
-| Spaces               | [Space/ID ownership](spaces.md)                                                                     |
-| Issue                | [Entry/core flow](issue/design.md) · [Design/contracts](issue/design.md)                            |
-| Discussion/comments  | [Entry/core flow](discussion/design.md) · [Design/contracts](discussion/design.md)                  |
-| Object/subobjects    | [Entry/core flow](object/design.md) · [Objects](object/design.md) · [Templates](object/template.md) |
-| Labels               | [Catalog/references](labels.md)                                                                     |
-| Milestones           | [Specification](milestones.md)                                                                      |
-| Shared numbering     | [Numbering rules](numbering.md)                                                                     |
-| Insights             | [Overview/Pulse](insights.md)                                                                       |
-| Wiki                 | [Pages/revisions](wiki.md)                                                                          |
-| Container acceptance | [Completion boundaries](acceptance.md)                                                              |
+| Capability           | Specification/acceptance                                                                |
+| -------------------- | --------------------------------------------------------------------------------------- |
+| Spaces               | [Space/ID ownership](spaces.md)                                                         |
+| Issue                | [Issue design and contracts](../issue/design.md)                                        |
+| Discussion/comments  | [Discussion design and contracts](../discussion/design.md)                              |
+| Object/subobjects    | [Object design and contracts](../object/design.md) · [Templates](../object/template.md) |
+| Labels               | [Catalog/references](labels.md)                                                         |
+| Milestones           | [Specification](milestones.md)                                                          |
+| Shared numbering     | [Numbering rules](numbering.md)                                                         |
+| Insights             | [Overview/Pulse](insights.md)                                                           |
+| Wiki                 | [Pages/revisions](wiki.md)                                                              |
+| Container acceptance | [Completion boundaries](acceptance.md)                                                  |
 
-`Object.parentId` represents subobjects governed by [object specifications](object/design.md); no separate Subobject domain documents. Cross-repository [Project](../project/project.md) and independent [Journal](../journal/journal.md) retain their domains.
+`Object.parentId` represents subobjects governed by [object specifications](../object/design.md); no separate Subobject domain documents. Cross-repository [Project](../project/project.md) and independent [Journal](../journal/journal.md) retain their domains.
 
 ### 容器責任與內部能力
 
-| 責任       | 能力與邊界                                                                                                                                                                                                                                                                            |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 容器治理   | Repository 管理個人或群組擁有者、啟用狀態及庫內範圍。庫的讀取資格與資源的操作權分開判定。                                                                                                                                                                                             |
-| 共用能力   | [工區 Space](spaces.md)用於庫內分類。[標籤](labels.md)、[里程碑](milestones.md)與[共用編號](numbering.md)依各自規格供資源引用。工區沿用庫的存取範圍。                                                                                                                                 |
-| 業務資源   | [Object](object/design.md)管理工項階層與數量進度，[範本](object/template.md)用來建立獨立物件樹。個人範本依持有人及目標庫建立權限判定；庫範本依本庫範圍判定。[Issue](issue/design.md)追蹤異常與狀態，[Discussion](discussion/design.md)承載討論與留言，[Wiki](wiki.md)保存知識與修訂。 |
-| 衍生讀取   | [Insights](insights.md)提供庫內統計與現況。Pulse 屬規劃，稽核入口依[容器驗收界線](acceptance.md)判定。                                                                                                                                                                                |
-| 跨領域引用 | [Project](../project/project.md)獨立維護跨庫協作與進度。[Journal](../journal/journal.md)獨立維護日誌。開啟引用時依來源資源權限判定，來源狀態由來源領域維護。                                                                                                                          |
+| 責任       | 能力與邊界                                                                                                                                                                                                                                                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 容器治理   | Repository 管理個人或群組擁有者、啟用狀態及庫內範圍。庫的讀取資格與資源的操作權分開判定。                                                                                                                                                                                                         |
+| 共用能力   | [工區 Space](spaces.md)用於庫內分類。[標籤](labels.md)、[里程碑](milestones.md)與[共用編號](numbering.md)依各自規格供資源引用。工區沿用庫的存取範圍。                                                                                                                                             |
+| 業務資源   | [Object](../object/design.md)管理工項階層與數量進度，[範本](../object/template.md)用來建立獨立物件樹。個人範本依持有人及目標庫建立權限判定；庫範本依本庫範圍判定。[Issue](../issue/design.md)追蹤異常與狀態，[Discussion](../discussion/design.md)承載討論與留言，[Wiki](wiki.md)保存知識與修訂。 |
+| 衍生讀取   | [Insights](insights.md)提供庫內統計與現況。Pulse 屬規劃，稽核入口依[容器驗收界線](acceptance.md)判定。                                                                                                                                                                                            |
+| 跨領域引用 | [Project](../project/project.md)獨立維護跨庫協作與進度。[Journal](../journal/journal.md)獨立維護日誌。開啟引用時依來源資源權限判定，來源狀態由來源領域維護。                                                                                                                                      |
 
 <a id="個人與群組-repository"></a>
 
@@ -165,11 +165,11 @@ sequenceDiagram
 
 ## Production space UI scaffold
 
-- Reuse List/Get contracts and identity isolation. Wide cards show authorized basicsand personal attendance. navigation.ts defines page navigation.Keep Issues, Discussions, labels/milestones in Repository; Projects use independentsidebar /miniapp/projects. Legacy entries redirect with explicit Space/source identity,rather than mounting Project business in Repository View.Overview uses real data; Issues, Discussions, labels, milestones, Projects and Insightsfollow their specifications. The [Audit tab](object/design.md#數量原位編輯與儲存庫稽核) shows committed object quantity changes for readers authorized on the selected repository. Broader public audit remains unavailable. Hide contents on loading, failed verification or logout.Preserve APIs, bot management, membership and numbering. Author categorization owns labels.Respect scaffold boundaries and authorized slices without expanding management scope.Overview integration does not prove other capabilities or real LINE device acceptance.
+- Reuse List/Get contracts and identity isolation. Wide cards show authorized basicsand personal attendance. navigation.ts defines page navigation.Keep Issues, Discussions, labels/milestones in Repository; Projects use independentsidebar /miniapp/projects. Legacy entries redirect with explicit Space/source identity,rather than mounting Project business in Repository View.Overview uses real data; Issues, Discussions, labels, milestones, Projects and Insightsfollow their specifications. The [Audit tab](../object/design.md#數量原位編輯與儲存庫稽核) shows committed object quantity changes for readers authorized on the selected repository. Broader public audit remains unavailable. Hide contents on loading, failed verification or logout.Preserve APIs, bot management, membership and numbering. Author categorization owns labels.Respect scaffold boundaries and authorized slices without expanding management scope.Overview integration does not prove other capabilities or real LINE device acceptance.
 
-  - [Issues phase one](issue/design.md)
+  - [Issues phase one](../issue/design.md)
 
-  - [Discussions and comments](discussion/design.md)
+  - [Discussions and comments](../discussion/design.md)
 
   - [Label specification](labels.md)
 
@@ -209,7 +209,7 @@ Reuse GOOGLE_CLOUD_PROJECT, FIRESTORE_DATABASE_ID and Messaging API settings;mis
 
 - Historical dedicated-entry smoke used real Go routes and controlled LINE/API responsesfor normal queries, liff.state and 404. All requested specified details only,reload stayed scoped and 390px had no horizontal overflow. Not LINE-device acceptance.
 
-- [Construction item tracking follows Objects, separate from Issues.No automatic PDF imports or third-party edit grants.](object/design.md)
+- [Construction item tracking follows Objects, separate from Issues.No automatic PDF imports or third-party edit grants.](../object/design.md)
 
 <a id="後續模型設計"></a>
 
@@ -238,97 +238,4 @@ flowchart TD
 
 ## 後端分層結構
 
-下列為[Personal and group repositories 後端模組](../../../backend/internal/business/repository/)的完整檔案樹，包含實作、測試與目錄文件。
-
-**範圍**　此樹列出「儲存庫」模組根目錄內的 52 個檔案。檔名以 `_test.go` 結尾的是測試；同名檔案依所在目錄區分職責。
-
-**分層對照**　共通範本中，以下路徑未在此模組根目錄下獨立設置：`domain/valueobject/`、`domain/service/`、`domain/event/`、`domain/policy/`、`application/command/`、`application/query/`、`adapter/messaging/`、`adapter/scheduler/`。子功能的分層以樹中實際路徑為準。
-
-```text
-backend/internal/business/repository/
-├── adapter/                                  # 外部系統轉接
-│   ├── firestore/                            # Firestore 保存與查詢
-│   │   ├── space/
-│   │   │   ├── store.go                      # 資料存取（讀寫 Firestore 資料）；Store、Get
-│   │   │   └── store_test.go                 # 驗證資料存取（讀寫 Firestore 資料）；TestEmulatorSpaceReceiptsScopeAndPagination
-│   │   ├── labels.go                         # 標籤（讀寫 Firestore 資料）；ValidateLabelIDs、ListLabels
-│   │   ├── labels_test.go                    # 驗證標籤（讀寫 Firestore 資料）；TestRenameLabelPreservesIdentityAndCreationReplay
-│   │   ├── milestones.go                     # 里程碑（讀寫 Firestore 資料）；GetMilestone、ListMilestones
-│   │   ├── numbering.go                      # 資源編號（讀寫 Firestore 資料）；CreateNumberedResource、GetResourceNumber
-│   │   ├── statistics.go                     # 統計（讀寫 Firestore 資料）；Statistics
-│   │   ├── store.go                          # 資料存取（讀寫 Firestore 資料）；Store、Observe
-│   │   └── wiki.go                           # Wiki頁面（讀寫 Firestore 資料）；GetWiki、ListWiki
-│   ├── http/                                 # HTTP 入口
-│   │   ├── labels/
-│   │   │   └── routes.go                     # API路由（處理 HTTP 請求與回應）；Register、ListLabels
-│   │   ├── milestones/
-│   │   │   ├── routes.go                     # API路由（處理 HTTP 請求與回應）；Register、ListMilestones
-│   │   │   └── storage_error_test.go         # 驗證保存錯誤轉換（處理 HTTP 請求與回應）；TestStorageFailureResponse、TestMilestoneCompletionPercent
-│   │   ├── space/
-│   │   │   ├── routes.go                     # API路由（處理 HTTP 請求與回應）；Register、ListRepositorySpaces
-│   │   │   └── routes_test.go                # 驗證API路由（處理 HTTP 請求與回應）；TestHTTPAuthorityAndIDBoundary、TestRepositoryFailureDetails
-│   │   ├── statistics/
-│   │   │   ├── routes.go                     # API路由（處理 HTTP 請求與回應）；Register、GetRepositoryStatistics
-│   │   │   └── routes_test.go                # 驗證API路由（處理 HTTP 請求與回應）；TestStatisticsRouteMethods
-│   │   ├── wiki/
-│   │   │   ├── routes.go                     # API路由（處理 HTTP 請求與回應）；Register、GetWikiPage
-│   │   │   └── routes_test.go                # 驗證API路由（處理 HTTP 請求與回應）；TestWikiMembershipAndRevisions
-│   │   ├── routes.go                         # API路由（處理 HTTP 請求與回應）；Authenticator、Register
-│   │   └── routes_test.go                    # 驗證API路由（處理 HTTP 請求與回應）；TestViewGroupID
-│   └── line/                                 # LINE 整合
-│       ├── my_engineering.go                 # 我的工程清單（處理 LINE 互動）；MyEngineering
-│       ├── my_engineering_test.go            # 驗證我的工程清單（處理 LINE 互動）；TestMyEngineeringUsesPrivateIdentityAndCurrentMembership
-│       ├── observer.go                       # 事件觀察處理（處理 LINE 互動）；Observer、Observe
-│       └── observer_test.go                  # 驗證事件觀察處理（處理 LINE 互動）；TestObserverPreservesDomainNameLifecycleAndFailures、TestFollowCreatesPersonalRepositoryObservation
-├── application/                              # 應用用例
-│   ├── dto/                                  # 用例資料型別
-│   │   ├── labels/
-│   │   │   └── labels.go                     # 標籤（定義傳遞資料）；Page
-│   │   ├── milestones/
-│   │   │   └── milestone.go                  # 里程碑（定義傳遞資料）；Page
-│   │   ├── space/
-│   │   │   └── space.go                      # 空間（定義傳遞資料）；Page
-│   │   └── repository.go                     # 儲存庫（定義傳遞資料）；Page
-│   ├── labels/
-│   │   └── labels.go                         # 標籤；Service、List
-│   ├── milestones/
-│   │   └── milestone.go                      # 里程碑；Service、List
-│   ├── port/                                 # 外部能力介面
-│   │   ├── labels/
-│   │   │   └── labels.go                     # 標籤（定義用例所需介面）；Repositories、Store
-│   │   ├── milestones/
-│   │   │   └── milestone.go                  # 里程碑（定義用例所需介面）；Repositories、Store
-│   │   ├── space/
-│   │   │   └── space.go                      # 空間（定義用例所需介面）；Repositories、Store
-│   │   ├── statistics/
-│   │   │   └── statistics.go                 # 統計（定義用例所需介面）；Repositories、Store
-│   │   ├── wiki/
-│   │   │   └── wiki.go                       # Wiki頁面（定義用例所需介面）；WriteTarget、WriteState
-│   │   └── repository.go                     # 儲存庫（定義用例所需介面）；Store、Membership
-│   ├── space/
-│   │   ├── space.go                          # 空間；Service、List
-│   │   └── space_test.go                     # 驗證空間；TestServiceAuthorityAndInput
-│   ├── statistics/
-│   │   └── statistics.go                     # 統計；Service、Get
-│   ├── wiki/
-│   │   ├── revision_test.go                  # 驗證修訂版本；TestRevisionAtVersionLimit
-│   │   ├── wiki.go                           # Wiki頁面；Service、Save
-│   │   └── wiki_test.go                      # 驗證Wiki頁面；TestCreateReplayAfterEditDoesNotAddRevision
-│   ├── repository.go                         # 儲存庫；Service、Get
-│   └── repository_test.go                    # 驗證儲存庫；TestListForOwnerPreservesAuthorizationAndContinuation、TestGetRejectsInactiveRepositoryForItsOwner
-├── domain/                                   # 領域模型與規則
-│   └── entity/                               # 實體與聚合
-│       ├── labels/
-│       │   └── labels.go                     # 標籤（維護領域狀態與規則）；Label、NormalizeName
-│       ├── milestones/
-│       │   └── milestone.go                  # 里程碑（維護領域狀態與規則）；Milestone、CanEdit
-│       ├── space/
-│       │   └── space.go                      # 空間（維護領域狀態與規則）；Space、NormalizeName
-│       ├── statistics/
-│       │   └── statistics.go                 # 統計（維護領域狀態與規則）；Statistics
-│       ├── wiki/
-│       │   └── wiki.go                       # Wiki頁面（維護領域狀態與規則）；Page、Validate
-│       ├── numbering.go                      # 資源編號（維護領域狀態與規則）；NumberedCreation、Valid
-│       └── repository.go                     # 儲存庫（維護領域狀態與規則）；ValidOwner、ValidID
-└── AGENTS.md                                 # 本目錄開發指引
-```
+[repository 模組原始碼](../../../backend/internal/business/repository/) · [代表測試](../../../backend/internal/business/repository/application/repository_test.go) · [六邊形分層與依賴方向](../../architecture/runtime/backend-boundaries.md#六邊形分層參考)

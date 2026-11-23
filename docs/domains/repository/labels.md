@@ -84,8 +84,32 @@
 
 現行實作
 
-[問題與討論的分類更新，以及里程碑本身的狀態轉換（Mermaid 原始檔）](diagrams/resource-classification.mermaid)
+問題與討論的分類更新，以及里程碑本身的狀態轉換。
 
-- [Mermaid 原始檔。問題與討論沿用既有 PATCH，留言不套用標籤。標籤建立者沒有因此取得修改他人內容的權限。過期版本回 409；任何引用驗證失敗都不提交更新。成功只改該資源與既有更新紀錄（操作者、版本、時間），標籤與共用編號不變，也不產生通知或公開稽核端點。](diagrams/resource-classification.mermaid)
+```mermaid
+flowchart TB
+  actor["Session／Bearer 核驗本人、當下群組成員與啟用的儲存庫"] --> target{"正在編輯哪個資源？"}
+  target -->|問題或討論| edit["目前成員可整理分類；僅作者可改正文或問題狀態；核驗 expectedVersion"]
+  edit --> labels{"labelIds：問題與討論"}
+  edit -->|僅問題| milestone{"milestoneId"}
+  labels -->|省略| keep["保留原關聯"]
+  milestone -->|省略| keep
+  labels -->|空陣列| clear["清除該欄位的關聯"]
+  milestone -->|null| clear
+  labels -->|非空陣列| many["最多十個相異、格式有效的同庫標籤；集合忽略順序"]
+  labels -->|null 或無效輸入| refuse["拒絕；不寫入"]
+  milestone -->|指定 ID| one["驗證同庫的一個里程碑"]
+  many -->|驗證失敗| refuse
+  one -->|驗證失敗| refuse
+  many -->|有效| write["同一更新交易核對權限、版本及引用；內容有變才更新資源版本"]
+  one -->|有效| write
+  clear --> write
+  keep --> write
+  target -->|里程碑本身| own["里程碑建立者，提交里程碑的 expectedVersion"]
+  own --> state["手動完成 open → completed，或重開 completed → open"]
+  progress["依目前所屬問題計算完成比例"] -.-> display["僅供顯示，100% 也不觸發完成"]
+```
+
+- 問題與討論沿用既有 PATCH，留言不套用標籤。標籤建立者沒有因此取得修改他人內容的權限。過期版本回 409；任何引用驗證失敗都不提交更新。成功只改該資源與既有更新紀錄（操作者、版本、時間），標籤與共用編號不變，也不產生通知或公開稽核端點。
 
 - 既有未含 labelIds 的資料讀作空集合，HTTP 新回應提供陣列（可選欄位，不回 null），舊更新請求省略欄位時不清空關聯。既有建立收據 v1 雜湊與 ID／number 分配完全不變，不掃描或回填歷史資料。 核心只共用 labels.NormalizeIDs 這個實際跨業務需要的值驗證；各領域保留自己的用例及版本規則。Firestore adapters 透過小型 LabelValidator 介面，在同一交易的寫入前驗證引用，由 bootstrap 注入既有 Repository Store，不建立共通操作引擎或新 client。 前端共用 business/repository/labels/Picker，透過既有目錄 API 分頁讀取名稱；載入或失敗不清除目前選取，讀取更多頁不觸發表單送出。目前成員選取或移除分類後沿用資源版本與衝突處理。

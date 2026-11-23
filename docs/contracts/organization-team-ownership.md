@@ -2,7 +2,21 @@
 
 實作範圍：組織與 Team API、Firestore 寫入、側欄切換及團隊清單。文件路徑均位於 channels/{channelId} 下。現行群組資料與授權行為見[儲存庫規格](../domains/repository/design.md)。
 
-[企業、組織與團隊歸屬圖（Mermaid）](diagrams/organization-team.mermaid)
+## 企業、組織與團隊歸屬
+
+現行實作
+
+```mermaid
+flowchart TB
+  U["User"] -->|"ownerUserId"| O["Organization"]
+  E["Enterprise"] -->|"旗下組織"| O
+  E -->|"管理"| ET["Enterprise Team"]
+  O -->|"管理"| OT["Organization Team"]
+  ET -->|"可指派至多個旗下組織"| O
+  ET --> I["teamId = LINE groupId"]
+  OT --> I
+  O -->|"個別授權"| R["Repository"]
+```
 
 ## 管理操作與既有資料
 
@@ -17,7 +31,24 @@
 
 ## LINE 一對一建立入口
 
-[LINE 私訊建立流程圖（Mermaid）](diagrams/private-chat-creation.mermaid)
+現行實作
+
+```mermaid
+flowchart TB
+  A["已驗證的 LINE 私訊事件"] --> B{"此事件已處理？"}
+  B -->|"是"| C["回傳原結果"]
+  B -->|"建立組織"| D["詢問名稱，等待五分鐘"]
+  B -->|"建立企業"| E{"有可用開通資格？"}
+  E -->|"有"| D
+  E -->|"無"| F["告知無資格並結束"]
+  D -->|"取消或逾時"| G["結束對話"]
+  D -->|"名稱無效"| D
+  D -->|"有效組織名稱"| H["交易：建立資源、設定 Owner、結束對話、記錄結果"]
+  D -->|"有效企業名稱"| I{"交易內重新檢查資格"}
+  I -->|"有"| H
+  I -->|"無"| F
+  H --> J["回覆名稱與開啟 MINI App 按鈕"]
+```
 
 在私訊輸入「建立組織」或「建立企業」，五分鐘內回覆名稱即可建立；輸入「取消」結束。建立企業時，詢問名稱及實際建立時都檢查開通資格。已驗證的 webhook 決定建立者身分。成功回覆附上對應 MINI App 入口。對話狀態依渠道與使用者隔離；資源建立、結束對話及事件回覆紀錄在同一個 Firestore 交易完成，重送同一事件會取得原結果。群組事件沿用原有 Team 流程。
 

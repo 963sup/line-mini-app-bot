@@ -20,9 +20,9 @@
 
 - Issue 基礎操作已依 事項規格 接入；Discussion 基礎主題與單層留言依 討論規格 接入，其他擴充仍為後續設計。
 
-  - [事項規格](../../domains/repository/issue/design.md)
+  - [事項規格](../../domains/issue/design.md)
 
-  - [討論規格](../../domains/repository/discussion/design.md)
+  - [討論規格](../../domains/discussion/design.md)
 
 - [本專案使用 REST／OpenAPI。GitHub 文件僅作業務資源、關係與功能分類的設計參考；不將其介面技術、查詢形式或型別結構列為本專案規劃。HTTP 來源見 OpenAPI 契約。](../../../api/)
 
@@ -47,9 +47,9 @@
 
 - 業務：Repository<br>設計責任：容器識別、群組綁定、可見性與入口狀態<br>必須保留的邊界：既有 Bot 管理模式維持；取得容器資格不自動授予所有子業務操作權
 
-- [業務：Issue<br>設計責任：可追蹤事項及其生命週期<br>必須保留的邊界：基礎欄位、建立者權限與生命週期依 事項規格；指派等擴充待確認，不套用出勤審核權](../../domains/repository/issue/design.md)
+- [業務：Issue<br>設計責任：可追蹤事項及其生命週期<br>必須保留的邊界：基礎欄位、建立者權限與生命週期依 事項規格；指派等擴充待確認，不套用出勤審核權](../../domains/issue/design.md)
 
-- [業務：Discussion<br>設計責任：討論主題及其互動規則<br>必須保留的邊界：基礎主題、作者編輯與單層留言依 討論規格；分類、解答、鎖定與轉換另定](../../domains/repository/discussion/design.md)
+- [業務：Discussion<br>設計責任：討論主題及其互動規則<br>必須保留的邊界：基礎主題、作者編輯與單層留言依 討論規格；分類、解答、鎖定與轉換另定](../../domains/discussion/design.md)
 
 Issue 與 Discussion 各自擁有狀態與操作；若未來需要互相連結或轉換，另訂識別、授權、原子性及追溯規則。 Repository 停用時子資源如何讀寫、保存多久、能否移轉或刪除，均須明確設計，不能推定連帶刪除。
 
@@ -204,7 +204,7 @@ Table、Board 與 Roadmap 是同一批專案項目的不同呈現方式，不各
 
 ## 後續開發文件與實作順序
 
-1. [Repository 維持 既有功能文件；Issue 與 Discussion 開發時分別建立 docs/domains/repository/issue/design.md、docs/domains/repository/discussion/design.md，並加入功能索引。](../../domains/repository/design.md)
+1. [Repository](../../domains/repository/design.md) 維護容器規則，由獨立的 [Issue](../../domains/issue/design.md) 與 [Discussion](../../domains/discussion/design.md) 領域頁維護各自的操作與規格。
 
 2. [功能文件先按 操作契約範本 補齊每個操作：誰操作、對象、行為、權限、業務條件及成功結果；Context、Authority、Decision 與必要 Audit 明確記錄。](../../contracts/business-operations.md#功能操作契約範本)
 
@@ -226,6 +226,6 @@ Table、Board 與 Roadmap 是同一批專案項目的不同呈現方式，不各
 
 - 本專案介面沿用 REST／OpenAPI；Issue 基礎操作與資料保存依 事項規格；Discussion 基礎操作依 討論規格；本參考頁未啟用其他分類／專案管理 API 或遷移。
 
-  - [事項規格](../../domains/repository/issue/design.md)
+  - [事項規格](../../domains/issue/design.md)
 
-  - [討論規格](../../domains/repository/discussion/design.md)
+  - [討論規格](../../domains/discussion/design.md)

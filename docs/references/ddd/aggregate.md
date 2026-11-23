@@ -58,7 +58,7 @@ Aggregate 不等於一份資料庫文件，但若拆成多份文件，仍須說�
 
 跨聚合以身分引用，必要時經公開契約查詢事實。引用不授予修改對方的權限，也不保證未來仍存在或可讀；失效、刪除及資格變動須有明確語意。跨上下文的資料不應由消費者直接寫入。
 
-例如 Repository 是 Issue、Discussion、Object 的資源範圍，[領域文件](../../domains/repository/design.md)集中在同一容器，仍不足以推定整庫是單一聚合。Object 的 `parentId` 也是關係資訊；是否需要整棵樹共同提交，應依[物件與範本規格](../../domains/repository/object/template.md)及實際交易逐案判定。
+例如 Repository 是 Issue、Discussion、Object 的資源範圍，[儲存庫規格](../../domains/repository/design.md)記錄共用容器範圍，仍不足以推定整庫是單一聚合。Object 的 `parentId` 也是關係資訊；是否需要整棵樹共同提交，應依[物件與範本規格](../../domains/object/template.md)及實際交易逐案判定。
 
 若某操作需要同時更新多個聚合，明列共同交易的理由、衝突與載入成本；若採分次提交，明列中間狀態、重試、補償及規則可容忍的延遲。不要以「跨聚合必須非同步」替代需求分析。
 

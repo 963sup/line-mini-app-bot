@@ -1,6 +1,6 @@
 # 組織、企業與團隊的共用 Adapter
 
-Enterprise、Organization 與 Team 共用 HTTP 和 Firestore 轉接工具。授權、所有權與移轉資格由各領域依[歸屬契約](../../contracts/organization-team-ownership.md)決定。共用交易工具不形成獨立業務領域。
+[Enterprise](../../domains/enterprise/design.md)、[Organization](../../domains/organization/design.md) 與 [Team](../../domains/team/design.md) 共用 HTTP 和 Firestore 轉接工具。授權、所有權與移轉資格由各領域依[歸屬契約](../../contracts/organization-team-ownership.md)決定。共用交易工具不形成獨立業務領域。
 
 | 元件                                                                               | 責任                                                                                            |
 | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
