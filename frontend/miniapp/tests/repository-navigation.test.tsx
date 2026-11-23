@@ -80,7 +80,7 @@ test("sidebar selection retains general catalog but reauthorizes the selected re
     assert.equal(repositoryRequests(f.requests).filter((r) => new URL(r.url).pathname.endsWith("/" + b)).length, 1);
     assert.match(document.body.textContent!, /選取空間/);
     assert.ok(document.querySelector(`a[href="/miniapp/repositories?selected=${a}"]`));
-    assert.ok(document.querySelector(`a[href="/miniapp/history?group=C${b}"]`));
+    assert.ok(document.querySelector(`a[href="/miniapp/attendance?tab=history&group=C${b}"]`));
     assert.equal(document.querySelectorAll('a[href*="selected="]').length, 2, "detail page must not duplicate sidebar list");
   } finally { await f.dispose(); }
 });
@@ -90,7 +90,7 @@ test("repository without a group ID has no attendance entry", async () => {
     Response.json({ ...space(a), groupId: undefined }));
   try {
     assert.match(document.body.textContent!, /空間資料/);
-    assert.equal(document.querySelector('a[href*="/miniapp/history?group="]'), null);
+    assert.equal(document.querySelector('a[href*="/miniapp/attendance?tab=history&group="]'), null);
   } finally { await f.dispose(); }
 });
 

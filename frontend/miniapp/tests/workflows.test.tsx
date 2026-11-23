@@ -365,55 +365,46 @@ test("geolocation abort, permission failure, invalid coordinates and synchronous
     launch,
   );
 });
-test("month reads are cancelled on reload and private records clear on logout", async () => {
+test("personal history ignores legacy group filters and switches months automatically", async () => {
+  let decemberReads = 0;
   const f = await fixture(<History />, "?group=g1&month=2026-11", async (r, next) => {
-    const response = await next(r);
-    if (r.url.includes("/records?")) return Response.json({ items: [{ ...record, RestConfirmed: false, AttendanceMinutes: 60, EstimatedMinutes: 60, WorktimeStatus: "estimated" }], nextCursor: "" });
-    if (r.url.includes("/summary?")) return Response.json({ Calculation: { Minutes: 0, Pending: 1, EstimatedMinutes: 60, AttendanceMinutes: 60, Unconfirmed: 1, Uncalculable: 0, OtherNoticeCount: 2 }, count: 1 });
-    return response;
+    const url = new URL(r.url);
+    if (!url.pathname.endsWith("/records")) return next(r);
+    if (url.searchParams.get("month") === "2026-12") {
+      if (++decemberReads === 1) return new Response(null, { status: 503 });
+      return Response.json({ items: [], nextCursor: "" });
+    }
+    return Response.json({
+      items: [record, { ...record, RecordID: "r2", GroupID: "g2" }],
+      nextCursor: "",
+    });
   });
   try {
-    const metrics = [...f.node("month-summary").querySelectorAll("dt")];
-    const value = (label: string) => metrics.find(term => term.textContent === label)?.nextElementSibling?.textContent;
-    assert.equal(value("全月暫估合計"), "60 分鐘");
-    assert.equal(value("其中已確認"), "0 分鐘");
-    assert.equal(value("休息待確認"), "1 筆");
-    assert.equal(value("無法計算"), "0");
-    assert.equal(value("其他異常／提醒"), "2 筆");
-    assert.match(f.node("record-list").textContent!, /暫估工時 60 分鐘（休息待確認）/);
-    let resolve!: (value: Response) => void;
-    const old = f.setHandler(async (r) =>
-      r.url.includes("/records?")
-        ? new Promise<Response>((r) => (resolve = r))
-        : old(r),
-    );
-    await f.click("load-month");
+    const initial = f.requests.find((r) => new URL(r.url).pathname.endsWith("/records"))!;
+    assert.equal(new URL(initial.url).searchParams.has("group"), false);
+    assert.equal(new URLSearchParams(location.search).has("group"), false);
+    assert.match(f.node("record-list").innerHTML, /group=g2.*record=r2/);
+    assert.equal(document.getElementById("next-records"), null);
     await act(async () => {
       const input = f.node<HTMLInputElement>("history-month");
-      const setter = Object.getOwnPropertyDescriptor(
-        window.HTMLInputElement.prototype,
-        "value",
-      )!.set!;
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!;
       setter.call(input, "2026-12");
       input.dispatchEvent(new Event("input", { bubbles: true }));
-      input.dispatchEvent(new Event("change", { bubbles: true }));
       await flush();
     });
-    // Trigger cancellation through another explicit read as well, independent of DOM event implementation.
-    await f.click("load-groups");
+    assert.equal(new URLSearchParams(location.search).get("month"), "2026-12");
+    assert.match(f.node("history").textContent!, /無法載入出勤紀錄/);
+    assert.doesNotMatch(f.node("history").textContent!, /本月沒有出勤紀錄/);
     await act(async () => {
-      resolve(
-        Response.json({
-          items: [{ ...record, RecordID: "obsolete" }],
-          nextCursor: "",
-        }),
-      );
+      [...f.node("history").querySelectorAll("button")]
+        .find((button) => button.textContent === "重試讀取")!.click();
       await flush();
     });
-    assert.doesNotMatch(f.node("record-list").textContent!, /obsolete/);
+    assert.equal(decemberReads, 2);
+    assert.match(f.node("history").textContent!, /本月沒有出勤紀錄/);
+    assert.equal(document.getElementById("record-list"), null);
     await f.click("logout");
-    assert.equal(f.node("record-list").children.length, 0);
-    assert.equal(f.node("month-summary").textContent, "");
+    assert.equal(document.getElementById("record-list"), null);
   } finally {
     await f.dispose();
   }
@@ -432,7 +423,7 @@ test("review controls and details clear on logout", async () => {
     await f.dispose();
   }
 });
-test("cursor pagination keeps the full monthly summary and navigates back", async () => {
+test("personal history navigates with cursors without loading a group summary", async () => {
   const f = await fixture(
     <History />,
     "?group=g1&month=2026-11",
@@ -458,13 +449,12 @@ test("cursor pagination keeps the full monthly summary and navigates back", asyn
     assert.match(f.node("record-list").innerHTML, /page1/);
     await f.click("next-records");
     assert.match(f.node("record-list").innerHTML, /page2/);
-    assert.match(f.node("month-summary").textContent!, /60/);
     assert.equal(f.node("record-page").textContent, "第 2 頁");
     await f.click("previous-records");
     assert.match(f.node("record-list").innerHTML, /page1/);
     assert.equal(
-      f.requests.filter((r) => r.url.includes("/monthly/summary")).length,
-      1,
+      f.requests.filter((r) => r.url.includes("/monthly/summary") || r.url.includes("/groups/page")).length,
+      0,
     );
   } finally {
     await f.dispose();
@@ -475,11 +465,15 @@ test("correction double submit and ambiguous retry retain the original key and b
     <Correction />,
     "?group=g1&record=r1",
     async (r, next) =>
-      r.url.endsWith("/corrections")
+      new URL(r.url).pathname.endsWith("/records/r1")
+        ? Response.json({ ...record, ClockOutAt: "0001-01-01T00:00:00Z" })
+        : r.url.endsWith("/corrections")
         ? Promise.reject(new TypeError("network"))
         : next(r),
   );
   try {
+    assert.equal(document.getElementById("correction-start"), null);
+    await f.input("correction-end", "2026-11-01T18:00");
     await f.input("correction-reason", "Reason");
     await f.click("correction-confirm");
     const submit = () =>
@@ -508,6 +502,7 @@ test("correction double submit and ambiguous retry retain the original key and b
       posts[1].headers.get("Idempotency-Key"),
     );
     assert.equal((await posts[0].clone().json()).reason, "Reason");
+    assert.equal((await posts[0].clone().json()).start, new Date(record.ClockInAt).toISOString());
     await f.input("correction-reason", "Changed");
     await act(async () => {
       submit();
@@ -542,7 +537,7 @@ test("correction double submit and ambiguous retry retain the original key and b
     const body=await post.clone().json();
     assert.equal(body.groupId,"g1");
     assert.equal("recordId" in body,false);
-    await missing.click("requests-load");
+    assert.match(missing.node("correction-status").textContent!, /等待審核/);
     assert.match(missing.node("requests-list").textContent!,/已駁回/);
     assert.match(missing.node("requests-list").textContent!,/請提供出勤佐證/);
   } finally { await missing.dispose(); }
@@ -813,9 +808,8 @@ test("new-shift corrections discover membership groups before any attendance rec
       ? Response.json({ items: [{ id: "g1", groupId: "g1", name: "First group" }], nextCursor: "" })
       : next(r));
   try {
-    const select = f.node<HTMLSelectElement>("correction-group");
-    assert.equal(select.options[1].value, "g1");
-    assert.equal(select.options[1].textContent, "First group");
+    assert.equal(document.getElementById("correction-group"), null);
+    assert.equal(f.node<HTMLFieldSetElement>("correction-fields").disabled, false);
     assert.ok(f.requests.some(r => new URL(r.url).pathname === "/api/v1/groups"));
     assert.equal(f.requests.some(r => new URL(r.url).pathname.endsWith("/groups/page")), false);
   } finally { await f.dispose(); }
@@ -864,16 +858,52 @@ test("expired leave launch offers history instead of retrying an unusable link",
   }finally{await f.dispose();}
 });
 
-test("a denied corrections reload clears previously readable requests",async()=>{
-  let denied=false;
-  const f=await fixture(<Correction />,"",async(r,next)=>new URL(r.url).pathname.endsWith("/corrections")
-    ? denied ? Response.json({error:{code:"forbidden",message:"權限已變更"}},{status:403}) : Response.json({items:[{id:"c1",status:"pending",reason:"私人申請內容",start:record.ClockInAt,end:record.ClockOutAt}],nextCursor:""}) : next(r));
-  try{
-    await f.click("requests-load");assert.match(f.node("requests-list").textContent!,/私人申請內容/);
-    denied=true;await f.click("requests-load");assert.doesNotMatch(f.node("requests-list").textContent!,/私人申請內容/);
+test("personal corrections load automatically and distinguish older results from pending requests", async () => {
+  const f = await fixture(<Correction />, "?group=g1", async (r, next) =>
+    new URL(r.url).pathname.endsWith("/corrections")
+      ? Response.json({
+          items: [
+            { id: "c1", status: "pending", reason: "較早待審核", createdAt: "2020-01-01T00:00:00Z" },
+            { id: "c2", status: "approved", reason: "較早已結案", createdAt: "2020-01-01T00:00:00Z" },
+          ],
+          nextCursor: "",
+        })
+      : next(r));
+  try {
+    assert.equal(document.getElementById("requests-load"), null);
+    assert.equal(document.getElementById("correction-group"), null);
+    assert.match(f.node("requests-list").textContent!, /較早待審核/);
+    assert.doesNotMatch(f.node("requests-list").textContent!, /較早已結案/);
+    await act(async () => {
+      [...document.querySelectorAll("button")].find((button) => button.textContent === "查看較早的申請")!.click();
+      await flush();
+    });
+    assert.match(f.node("requests-list").textContent!, /較早已結案/);
+  } finally {
+    await f.dispose();
+  }
+});
+
+test("a denied corrections page clears previously readable requests", async () => {
+  const f = await fixture(<Correction />, "?group=g1", async (r, next) => {
+    const url = new URL(r.url);
+    if (!url.pathname.endsWith("/corrections")) return next(r);
+    return url.searchParams.get("cursor")
+      ? Response.json({ error: { code: "forbidden", message: "權限已變更" } }, { status: 403 })
+      : Response.json({ items: [{ id: "c1", status: "pending", reason: "私人申請內容" }], nextCursor: "page2" });
+  });
+  try {
+    assert.match(f.node("requests-list").textContent!, /私人申請內容/);
+    await act(async () => {
+      [...document.querySelectorAll("button")].find((button) => button.textContent === "載入更多申請")!.click();
+      await flush();
+    });
+    assert.doesNotMatch(f.node("requests-list").textContent!, /私人申請內容/);
     assert.match(document.body.textContent!, /權限已變更/);
-    assert.doesNotMatch(document.body.textContent!, /目前沒有補卡審核權限/);
-  }finally{await f.dispose();}
+    assert.match(f.node("requests-load").textContent!, /重試讀取申請/);
+  } finally {
+    await f.dispose();
+  }
 });
 
 test("enterprise creation retains its original name after a lost response and later denial", async () => {
@@ -921,6 +951,7 @@ test("enterprise management denial refreshes permissions and removes stale data"
     assert.doesNotMatch(document.body.textContent!,/新增企業 Owner|加入組織|過期組織/);
   } finally {await f.dispose();}
 });
+
 
 test("organization team binding uses the selected scope and reloads its list", async () => {
   let bound = false, reads = 0;

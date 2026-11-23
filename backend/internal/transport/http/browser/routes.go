@@ -6,6 +6,14 @@ import (
 	"strings"
 )
 
+func redirectAttendance(w http.ResponseWriter, r *http.Request, tab string) {
+	query := r.URL.Query()
+	query.Set("tab", tab)
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Referrer-Policy", "no-referrer")
+	http.Redirect(w, r, "/miniapp/attendance?"+query.Encode(), http.StatusTemporaryRedirect)
+}
+
 func serveMiniApp(w http.ResponseWriter, r *http.Request) {
 	page := ""
 	switch r.URL.Path {
@@ -21,11 +29,15 @@ func serveMiniApp(w http.ResponseWriter, r *http.Request) {
 		} else if journal {
 			page = "miniapp/feed.html"
 		} else if leave {
-			page = "miniapp/leave.html"
+			redirectAttendance(w, r, "leave")
+			return
 		} else if query.Has("launch") || query.Has("liff.state") {
 			page = "miniapp/punch.html"
 		}
-	case "/miniapp/object-recognition", "/miniapp/object-templates", "/miniapp/poppler", "/miniapp/history", "/miniapp/correction", "/miniapp/review", "/miniapp/punch", "/miniapp/leave", "/miniapp/repositories", "/miniapp/projects", "/miniapp/dashboard", "/miniapp/feed":
+	case "/miniapp/history", "/miniapp/leave", "/miniapp/correction", "/miniapp/review":
+		redirectAttendance(w, r, strings.TrimPrefix(r.URL.Path, "/miniapp/"))
+		return
+	case "/miniapp/attendance", "/miniapp/object-recognition", "/miniapp/object-templates", "/miniapp/poppler", "/miniapp/punch", "/miniapp/repositories", "/miniapp/projects", "/miniapp/dashboard", "/miniapp/feed":
 		page = strings.TrimPrefix(r.URL.Path, "/") + ".html"
 	default:
 		http.NotFound(w, r)
@@ -49,7 +61,7 @@ func Register(mux *http.ServeMux) error {
 	if err := Validate(); err != nil {
 		return err
 	}
-	for _, route := range []string{"/miniapp/object-recognition", "/miniapp/object-templates", "/miniapp/poppler", "/miniapp", "/miniapp/history", "/miniapp/correction", "/miniapp/review", "/miniapp/punch", "/miniapp/leave", "/miniapp/repositories", "/miniapp/projects", "/miniapp/dashboard", "/miniapp/feed"} {
+	for _, route := range []string{"/miniapp/object-recognition", "/miniapp/object-templates", "/miniapp/poppler", "/miniapp", "/miniapp/attendance", "/miniapp/history", "/miniapp/correction", "/miniapp/review", "/miniapp/punch", "/miniapp/leave", "/miniapp/repositories", "/miniapp/projects", "/miniapp/dashboard", "/miniapp/feed"} {
 		mux.HandleFunc("GET "+route, serveMiniApp)
 	}
 	mux.Handle("GET /assets/", Assets())

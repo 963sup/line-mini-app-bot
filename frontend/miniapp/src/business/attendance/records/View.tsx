@@ -1,15 +1,12 @@
 import { FieldSet } from "@/shared/ui/field";
 import { ButtonGroup, ButtonGroupText } from "@/shared/ui/button-group";
-import { Badge } from "@/shared/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableCaption } from "@/shared/ui/table";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { FormField } from "@/shared/FormField";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
-import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Input } from "@/shared/ui/input";
-import { Status } from "@/shared/Status";
 import { useEffect, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "../../../identity/Session";
@@ -17,313 +14,181 @@ import { useLatestRequest, errorMessage } from "../../../shared/http/lifecycle";
 import { taiwan, displayTime } from "../../../shared/time/time";
 type S = components["schemas"];
 export function View() {
-  const { user, request } = useSession(),
-    groupsRead = useLatestRequest(),
-    monthRead = useLatestRequest();
-  const [groups, setGroups] = useState<S["GroupItem"][]>([]),
-    [group, setGroup] = useState(""),
-    [month, setMonth] = useState(""),
-    [groupCursor, setGroupCursor] = useState(""),
-    [groupsBusy, setGroupsBusy] = useState(false);
-  const [records, setRecords] = useState<S["AttendanceRecord"][]>([]),
-    [summary, setSummary] = useState<S["MonthlySummary"] | null>(null),
-    [page, setPage] = useState(0),
-    [cursors, setCursors] = useState([""]),
-    [next, setNext] = useState(""),
-    [busy, setBusy] = useState(false),
-    [loaded, setLoaded] = useState(false),
-    [status, setStatus] = useState("請先完成身分驗證。");
+  const { user, request } = useSession();
+  const monthRead = useLatestRequest();
+  const [month, setMonth] = useState("");
+  const [records, setRecords] = useState<S["AttendanceRecord"][]>([]);
+  const [page, setPage] = useState(0);
+  const [cursors, setCursors] = useState([""]);
+  const [next, setNext] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [failure, setFailure] = useState<{ message: string; target: number; cursor: string }>();
+
   function clear() {
     monthRead.cancel();
     setRecords([]);
-    setSummary(null);
     setCursors([""]);
     setPage(0);
     setNext("");
     setBusy(false);
     setLoaded(false);
+    setFailure(undefined);
   }
-  function loadRecords({ target = 0, selected = group, selectedMonth = month, cursor = cursors[target] || "", withSummary = false }:
-    {target?:number; selected?:string; selectedMonth?:string; cursor?:string; withSummary?:boolean}) {
-    if (!/^\d{4}-\d{2}$/.test(selectedMonth)) {
-      setStatus("請選擇月份。");
-      return;
-    }
+
+  function loadRecords(selectedMonth: string, target = 0, cursor = cursors[target] || "") {
+    if (!user || !/^\d{4}-(0[1-9]|1[0-2])$/.test(selectedMonth)) return;
     setBusy(true);
-    setStatus("正在讀取紀錄……");
-    const query = { month: selectedMonth, ...(selected ? { group: selected } : {}) };
-    window.history.replaceState(
-      null,
-      "",
-      "/miniapp/history?" + new URLSearchParams(query),
-    );
+    setFailure(undefined);
+    const url = new URL(location.href);
+    url.searchParams.delete("group");
+    url.searchParams.set("month", selectedMonth);
+    window.history.replaceState(window.history.state, "", url);
     void monthRead.run(
-      async (signal) => {
-        const [data, total] = await Promise.all([
-          request(
-            (c, s) =>
-              c.GET("/api/v1/attendance/records", {
-                signal: s,
-                params: { query: { ...query, pageSize: 20, cursor } },
-              }),
-            { signal },
-          ),
-          withSummary && selected
-            ? request(
-                (c, s) =>
-                  c.GET("/api/v1/attendance/monthly/summary", {
-                    signal: s,
-                    params: { query: { group: selected, month: selectedMonth } },
-                  }),
-                { signal },
-              )
-            : null,
-        ]);
-        return { data, total };
-      },
-      ({ data, total }) => {
-        setRecords(data.items || []);
-        if (total) setSummary(total);
-        setNext(data.nextCursor || "");
-        setPage(target);
-        setLoaded(true);
-        setBusy(false);
-        setStatus(
-          data.items?.length
-            ? "顯示本人班次。"
-            : "本頁沒有班次。",
-        );
-      },
-      (error) => {
-        const httpStatus=(error as {httpStatus?:number}).httpStatus;
-        if (withSummary || httpStatus === 401 || httpStatus === 403 || httpStatus === 404) clear();
-        else setBusy(false);
-        setStatus(errorMessage(error));
-      },
-    );
-  }
-  function loadGroups(append = false) {
-    setGroupsBusy(true);
-    void groupsRead.run(
       (signal) => request(
-        (c, s) => c.GET("/api/v1/attendance/groups/page", {
+        (c, s) => c.GET("/api/v1/attendance/records", {
           signal: s,
-          params: { query: { pageSize: 20, cursor: append ? groupCursor : "" } },
+          params: { query: { month: selectedMonth, pageSize: 20, cursor } },
         }),
         { signal },
       ),
       (data) => {
-        setGroups((previous) => {
-          const all = new Map((append ? previous : []).map((g) => [g.id, g]));
-          for (const g of data.items) all.set(g.id, g);
-          return [...all.values()];
-        });
-        setGroupCursor(data.nextCursor || "");
-        setGroupsBusy(false);
+        setRecords(data.items || []);
+        setNext(data.nextCursor || "");
+        setPage(target);
+        setLoaded(true);
+        setBusy(false);
       },
       (error) => {
-        setGroupsBusy(false);
-        setStatus(errorMessage(error));
+        const httpStatus = (error as { httpStatus?: number }).httpStatus;
+        if (httpStatus === 401 || httpStatus === 403 || httpStatus === 404) clear();
+        setBusy(false);
+        setFailure({ message: errorMessage(error), target, cursor });
       },
     );
   }
+
   useEffect(() => {
-    const params = new URLSearchParams(location.search),
-      g = params.get("group") || "",
-      m = /^\d{4}-\d{2}$/.test(params.get("month") || "")
-        ? params.get("month")!
-        : taiwan(new Date().toISOString()).slice(0, 7);
+    const requestedMonth = new URLSearchParams(location.search).get("month") || "";
+    const initialMonth = /^\d{4}-(0[1-9]|1[0-2])$/.test(requestedMonth)
+      ? requestedMonth
+      : taiwan(new Date().toISOString()).slice(0, 7);
     clear();
-    setGroups([]);
-    setGroupCursor("");
-    setGroupsBusy(false);
-    setStatus("請先完成身分驗證。");
-    setGroup(g);
-    setMonth(m);
-    if (user) loadRecords({ selected: g, selectedMonth: m, withSummary: true, cursor: "" });
-    return () => {
-      groupsRead.cancel();
-      monthRead.cancel();
-    };
+    setMonth(initialMonth);
+    loadRecords(initialMonth, 0, "");
+    return () => monthRead.cancel();
   }, [user, request]);
+
   return (
     <PagePanel id="history" heading="我的出勤紀錄">
       <p>
         <a
           className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
-          href={
-            "/miniapp/correction?" + new URLSearchParams(group ? { group } : {})
-          }
+          href={"/miniapp/attendance?" + new URLSearchParams({ tab: "correction", ...(month ? { month } : {}) })}
         >
-          補卡申請（漏上班、漏下班或整班皆漏）
+          申請補卡
         </a>
       </p>
-      <p className="text-sm leading-relaxed text-muted-foreground">
-        預設顯示本人所有群組的班次。選取群組後可同時查看該群組的整月工時摘要。
-      </p>
-      <FieldSet
-        className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
-        id="history-controls"
-        disabled={!user}
-      >
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-          <Button
-            id="load-groups"
-            disabled={groupsBusy}
-            onClick={() => loadGroups()}
-          >
-            選擇群組篩選
-          </Button>
-          <Button
-            id="more-groups"
-            hidden={!groupCursor}
-            disabled={groupsBusy}
-            onClick={() => loadGroups(true)}
-          >
-            載入更多群組
-          </Button>
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField>
-            群組（選填）
-            <NativeSelect
-              id="history-group"
-              disabled={groupsBusy || (!groups.length && !group)}
-              aria-busy={groupsBusy}
-              value={group}
-              onChange={(e) => {
-                clear();
-                setGroup(e.target.value);
-                setStatus("條件已變更，請重新查詢。");
-              }}
-            >
-              <NativeSelectOption value="">所有群組</NativeSelectOption>
-              {group && !groups.some((g) => g.id === group) && <NativeSelectOption value={group}>{group}</NativeSelectOption>}
-              {groups.map((g) => (
-                <NativeSelectOption key={g.id} value={g.id}>
-                  {g.name}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </FormField>
-          <FormField>
-            月份
-            <Input
-              id="history-month"
-              type="month"
-              required
-              value={month}
-              onChange={(e) => {
-                clear();
-                setMonth(e.target.value);
-                setStatus("條件已變更，請重新查詢。");
-              }}
-            />
-          </FormField>
-        </div>
-        <Button
-          id="load-month"
-          onClick={() => {
-            clear();
-            loadRecords({withSummary:true,cursor:""});
-          }}
-        >
-          查詢月紀錄
-        </Button>
+      <FieldSet id="history-controls" disabled={!user}>
+        <FormField>
+          月份
+          <Input
+            id="history-month"
+            type="month"
+            required
+            value={month}
+            onChange={(e) => {
+              const selectedMonth = e.target.value;
+              clear();
+              setMonth(selectedMonth);
+              loadRecords(selectedMonth, 0, "");
+            }}
+          />
+        </FormField>
       </FieldSet>
-      <Status id="history-status" role="status">
-        {status}
-      </Status>
-      <section id="month-summary" aria-label="全月工時摘要" hidden={!summary} className="my-4 space-y-3">
-        {summary && <>
-          <dl className="grid grid-cols-2 gap-3">
-            <div><dt>全月暫估合計</dt><dd className="text-xl font-semibold">{summary.Calculation.EstimatedMinutes ?? summary.Calculation.Minutes} 分鐘</dd></div>
-            <div><dt>其中已確認</dt><dd className="text-xl font-semibold">{summary.Calculation.Minutes} 分鐘</dd></div>
-            <div><dt>出勤時數（未扣休息）</dt><dd>{summary.Calculation.AttendanceMinutes ?? "—"} 分鐘</dd></div>
-            <div><dt>班次</dt><dd>{summary.count} 班</dd></div>
-          </dl>
-          <dl className="flex flex-wrap gap-3">
-            {([["休息待確認", summary.Calculation.Unconfirmed], ["無法計算", summary.Calculation.Uncalculable],
-              ["其他異常／提醒", summary.Calculation.OtherNoticeCount]] as const)
-              .map(([label, count]) => <div key={label} className="flex items-center gap-1">
-                <dt>{label}</dt><dd>{count ? <Badge variant="secondary">{count} 筆</Badge> : count ?? "—"}</dd>
-              </div>)}
-          </dl>
-          <p className="text-sm text-muted-foreground">合計裁切本月區間；明細為完整班次。暫估非薪資結算，正常／加班分類待認定。</p>
-        </>}
-      </section>
-      {busy && <ReadFeedback busy label="正在讀取出勤明細" />}
-      <Table aria-busy={busy}>
-        <TableCaption>本人班次明細；工時單位為分鐘</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead>群組</TableHead>
-            <TableHead>上班</TableHead>
-            <TableHead>下班</TableHead>
-            <TableHead>工時與狀態</TableHead>
-            <TableHead>操作</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody id="record-list">
-          {records.map((record) => (
-            <TableRow key={record.RecordID}>
-              <TableCell>{groups.find((g) => g.id === record.GroupID)?.name || record.GroupID}</TableCell>
-              <TableCell>{displayTime(record.ClockInAt)}</TableCell>
-              <TableCell>{displayTime(record.ClockOutAt)}</TableCell>
-              <TableCell className="whitespace-normal min-w-48">
-              {record.WorktimeStatus === "invalid"
-                ? `；${(record.AttendanceMinutes ?? 0) > 0 ? `出勤 ${record.AttendanceMinutes} 分鐘；` : ""}資料未完整或有異常，暫無法計算工時`
-                : record.WorktimeStatus === "estimated"
-                  ? `；出勤 ${record.AttendanceMinutes} 分鐘；暫估工時 ${record.EstimatedMinutes} 分鐘（休息待確認）`
-                  : record.WorktimeStatus === "confirmed"
-                    ? `；出勤 ${record.AttendanceMinutes} 分鐘；已確認工時 ${record.EstimatedMinutes} 分鐘`
-                    : !record.RestConfirmed
-                      ? "；休息待確認"
-                      : ""}
-              </TableCell>
-              <TableCell>
-                <Button asChild variant="link">
-                  <a href={"/miniapp/correction?" + new URLSearchParams({ group: record.GroupID, month, record: record.RecordID })}>
-                    查看班次並提出更正
-                  </a>
-                </Button>
-              </TableCell>
+      {!user && <p role="status">請先完成身分驗證。</p>}
+      {user && !month && <p role="status">請選擇月份。</p>}
+      {user && <ReadFeedback
+        busy={busy}
+        label="正在讀取出勤紀錄"
+        message={failure && "無法載入出勤紀錄。" + failure.message}
+        onRetry={failure && (() => loadRecords(month, failure.target, failure.cursor))}
+      />}
+      {user && records.length > 0 && (
+        <Table aria-busy={busy}>
+          <TableCaption>本人班次明細；工時單位為分鐘</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>群組</TableHead>
+              <TableHead>上班</TableHead>
+              <TableHead>下班</TableHead>
+              <TableHead>工時與狀態</TableHead>
+              <TableHead>操作</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      {loaded && !busy && !records.length && (
+          </TableHeader>
+          <TableBody id="record-list">
+            {records.map((record) => (
+              <TableRow key={record.RecordID}>
+                <TableCell>{record.GroupID}</TableCell>
+                <TableCell>{displayTime(record.ClockInAt)}</TableCell>
+                <TableCell>{displayTime(record.ClockOutAt)}</TableCell>
+                <TableCell className="whitespace-normal min-w-48">
+                {record.WorktimeStatus === "invalid"
+                  ? `；${(record.AttendanceMinutes ?? 0) > 0 ? `出勤 ${record.AttendanceMinutes} 分鐘；` : ""}資料未完整或有異常，暫無法計算工時`
+                  : record.WorktimeStatus === "estimated"
+                    ? `；出勤 ${record.AttendanceMinutes} 分鐘；暫估工時 ${record.EstimatedMinutes} 分鐘（休息待確認）`
+                    : record.WorktimeStatus === "confirmed"
+                      ? `；出勤 ${record.AttendanceMinutes} 分鐘；已確認工時 ${record.EstimatedMinutes} 分鐘`
+                      : !record.RestConfirmed
+                        ? "；休息待確認"
+                        : ""}
+                </TableCell>
+                <TableCell>
+                  <Button asChild variant="link">
+                    <a href={"/miniapp/attendance?tab=correction&" + new URLSearchParams({ group: record.GroupID, month, record: record.RecordID })}>
+                      查看／補卡
+                    </a>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+      {user && loaded && !busy && !failure && !records.length && (
         <Empty>
           <EmptyHeader>
-            <EmptyTitle>本頁沒有班次</EmptyTitle>
-            <EmptyDescription>可調整群組或月份後重新查詢。</EmptyDescription>
+            <EmptyTitle>{page === 0 ? "本月沒有出勤紀錄" : "本頁沒有出勤紀錄"}</EmptyTitle>
+            <EmptyDescription>可選擇其他月份，或在漏打卡時申請補卡。</EmptyDescription>
           </EmptyHeader>
         </Empty>
       )}
-      <ButtonGroup aria-label="出勤紀錄分頁" className="mt-4">
-        <Button
-          id="previous-records"
-          disabled={!user || busy || page === 0}
-          onClick={() => loadRecords({target:page-1})}
-        >
-          上一頁
-        </Button>
-        <ButtonGroupText id="record-page" aria-live="polite">{loaded && `第 ${page + 1} 頁`}</ButtonGroupText>
-        <Button
-          id="next-records"
-          disabled={!user || busy || !next}
-          onClick={() => {
-            setCursors((old) => {
-              const a = [...old];
-              a[page + 1] = next;
-              return a;
-            });
-            loadRecords({target:page+1,cursor:next});
-          }}
-        >
-          下一頁
-        </Button>
-      </ButtonGroup>
+      {user && (page > 0 || next) && (
+        <ButtonGroup aria-label="出勤紀錄分頁" className="mt-4">
+          <Button
+            id="previous-records"
+            disabled={!user || busy || page === 0}
+            onClick={() => loadRecords(month, page - 1)}
+          >
+            上一頁
+          </Button>
+          <ButtonGroupText id="record-page" aria-live="polite">{loaded && `第 ${page + 1} 頁`}</ButtonGroupText>
+          <Button
+            id="next-records"
+            disabled={!user || busy || !next}
+            onClick={() => {
+              setCursors((old) => {
+                const a = [...old];
+                a[page + 1] = next;
+                return a;
+              });
+              loadRecords(month, page + 1, next);
+            }}
+          >
+            下一頁
+          </Button>
+        </ButtonGroup>
+      )}
     </PagePanel>
   );
 }

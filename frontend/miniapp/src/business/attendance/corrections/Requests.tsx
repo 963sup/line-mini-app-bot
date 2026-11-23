@@ -39,9 +39,12 @@ export function Requests({
     [next, setNext] = useState(""),
     [status, setStatus] = useState(""),
     [busy, setBusy] = useState(false),
-    [loaded, setLoaded] = useState(false);
+    [loaded, setLoaded] = useState(false),
+    [showHistory, setShowHistory] = useState(false),
+    [failed, setFailed] = useState(false);
   const load = useCallback((cursor = "") => {
     setBusy(true);
+    setFailed(false);
     setLoaded(false);
     setStatus("正在查詢……");
     void runRead(
@@ -73,6 +76,7 @@ export function Requests({
       (error) => {
         setBusy(false);
         setItems([]);
+        setFailed(true);
         setNext("");
         onClearReview?.();
         setStatus(review && (error as { httpStatus?: number }).httpStatus === 403
@@ -83,6 +87,8 @@ export function Requests({
   }, [review, request, runRead, onClearReview]);
   useEffect(() => {
     setItems([]);
+    setFailed(false);
+    setShowHistory(false);
     setLoaded(false);
     setNext("");
     if (user) load();
@@ -112,18 +118,27 @@ export function Requests({
       },
     );
   }
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const visible = review || showHistory ? items : items.filter((item) =>
+    item.status === "pending" || !(Date.parse(item.reviewedAt || item.createdAt || "") < cutoff),
+  );
   return (
-    <PagePanel heading={review ? "待我審核" : "查看申請結果"}>
+    <PagePanel heading={review ? "待我審核" : "補卡申請進度"}>
       <FieldSet
         className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
         disabled={!user || busy || disabled}
       >
-        <Button id="requests-load" onClick={() => load()}>
-          {review ? "重新整理待辦" : "查詢本人申請"}
-        </Button>
+        {(review || failed) && <Button id="requests-load" onClick={() => load()}>
+          {review ? "重新整理待辦" : "重試讀取申請"}
+        </Button>}
+        {!review && loaded && (next || visible.length !== items.length || showHistory) && (
+          <Button variant="outline" onClick={() => setShowHistory((value) => !value)}>
+            {showHistory ? "只看近期與待審核申請" : "查看較早的申請"}
+          </Button>
+        )}
         {busy && <ReadFeedback busy label="正在處理申請清單" />}
         <ItemGroup id="requests-list" className="gap-3" aria-busy={busy}>
-          {items.map((item) => (
+          {visible.map((item) => (
             <Item key={item.id} role="listitem" variant="outline">
               <ItemContent className="min-w-0">
                 <ItemTitle>{review ? item.applicantName || "姓名未留存，請依申請編號核對" : "補卡／時間更正"}</ItemTitle>
@@ -145,7 +160,7 @@ export function Requests({
             </Item>
           ))}
         </ItemGroup>
-        {loaded && !busy && !items.length && <Empty><EmptyHeader><EmptyTitle>{next ? "本頁沒有待處理申請，可繼續查看" : "目前沒有申請"}</EmptyTitle></EmptyHeader></Empty>}
+        {loaded && !busy && !visible.length && <Empty><EmptyHeader><EmptyTitle>{next ? "本頁沒有符合的申請，可繼續查看" : "目前沒有符合的申請"}</EmptyTitle></EmptyHeader></Empty>}
         {next && <Button onClick={() => load(next)}>載入更多申請</Button>}
       </FieldSet>
       <Status role="status">{status}</Status>

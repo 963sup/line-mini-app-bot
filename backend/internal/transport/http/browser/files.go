@@ -36,7 +36,7 @@ func Root() string {
 func ReadFile(name string) ([]byte, error) { return fs.ReadFile(os.DirFS(Root()), name) }
 
 func Validate() error {
-	for _, name := range []string{"miniapp/object-recognition.html", "miniapp/object-templates.html", "miniapp/poppler.html", "miniapp.html", "miniapp/history.html", "miniapp/correction.html", "miniapp/review.html", "miniapp/punch.html", "miniapp/leave.html", "miniapp/repositories.html", "miniapp/projects.html", "miniapp/dashboard.html", "miniapp/feed.html", "location.html"} {
+	for _, name := range []string{"miniapp/object-recognition.html", "miniapp/object-templates.html", "miniapp/poppler.html", "miniapp.html", "miniapp/punch.html", "miniapp/attendance.html", "miniapp/repositories.html", "miniapp/projects.html", "miniapp/dashboard.html", "miniapp/feed.html", "location.html"} {
 		if _, err := ReadFile(name); err != nil {
 			return err
 		}

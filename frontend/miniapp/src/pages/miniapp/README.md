@@ -6,7 +6,7 @@
 
 ## 閱讀與修改入口
 
-從 [correction.tsx](correction.tsx)、[dashboard.tsx](dashboard.tsx)、[feed.tsx](feed.tsx)、[history.tsx](history.tsx)、[index.tsx](index.tsx) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
+從 [attendance.tsx](attendance.tsx)、[dashboard.tsx](dashboard.tsx)、[feed.tsx](feed.tsx)、[index.tsx](index.tsx) 開始。修改前讀[本目錄工作指引](AGENTS.md)。
 
 ## 相關規格
 

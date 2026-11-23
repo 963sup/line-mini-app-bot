@@ -92,7 +92,7 @@ function Content() {
               {selected.groupId && <PagePanel heading="出勤與群組服務">
                 <a
                   className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
-                  href={"/miniapp/history?" + new URLSearchParams({ group: selected.groupId })}
+                  href={"/miniapp/attendance?tab=history&" + new URLSearchParams({ group: selected.groupId })}
                 >
                   查看本人出勤
                 </a>

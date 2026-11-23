@@ -7,7 +7,7 @@ const destinations = [
   { title: "動態", href: "/miniapp/feed", icon: List },
   { title: "儲存庫", href: "/miniapp/repositories", icon: FolderOpen },
   { title: "專案", href: "/miniapp/projects", icon: Layers },
-  { title: "出勤紀錄", href: "/miniapp/history", icon: ClipboardList },
+  { title: "出勤紀錄", href: "/miniapp/attendance?tab=history", icon: ClipboardList },
 ];
 
 export function View() {

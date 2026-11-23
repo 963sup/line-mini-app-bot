@@ -81,9 +81,9 @@ function Content({
     }
     else if (correction)
       location.replace(
-        "/miniapp/correction?" + new URLSearchParams({ group: correction }),
+        "/miniapp/attendance?tab=correction&" + new URLSearchParams({ group: correction }),
       );
-    else if (leave) location.replace("/miniapp/leave" + location.search);
+    else if (leave) { params.set("tab", "leave"); location.replace("/miniapp/attendance?" + params); }
     else if (params.has("launch") || params.has("liff.state"))
       location.replace("/miniapp/punch" + location.search);
   }, [workflow, ready]);

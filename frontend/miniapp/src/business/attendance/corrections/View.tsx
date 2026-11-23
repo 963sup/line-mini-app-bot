@@ -3,7 +3,7 @@ import { FormField } from "@/shared/FormField";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
 import { Checkbox } from "@/shared/ui/checkbox";
-import { Field, FieldLabel, FieldGroup, FieldSet, FieldLegend } from "@/shared/ui/field";
+import { Field, FieldLabel, FieldGroup, FieldSet } from "@/shared/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
@@ -25,8 +25,11 @@ export function View() {
     [newShift, setNewShift] = useState(false),
     [groups, setGroups] = useState<S["GroupItem"][]>([]),
     [groupCursor, setGroupCursor] = useState(""),
+    [groupLoading, setGroupLoading] = useState(false),
+    [groupError, setGroupError] = useState(""),
     [start, setStart] = useState(""),
     [end, setEnd] = useState(""),
+    [editBothTimes, setEditBothTimes] = useState(false),
     [breaks, setBreaks] = useState<{ Start: string; End: string }[]>([]),
     [reason, setReason] = useState(""),
     [confirmed, setConfirmed] = useState(false),
@@ -34,25 +37,33 @@ export function View() {
     [busy, setBusy] = useState(false),
     [refreshVersion, setRefreshVersion] = useState(0),
     [status, setStatus] = useState("請先完成身分驗證。"),
-    [back, setBack] = useState("/miniapp/history");
+    [back, setBack] = useState("/miniapp/attendance?tab=history");
   const lock = useRef(false),
     attempt = useRef<{ body: S["CorrectionSubmission"]; key: string } | null>(null);
   useEffect(() => {
     const params = new URLSearchParams(location.search),
       group = params.get("group") || "",
       record = params.get("record") || "",
-      query = new URLSearchParams();
-    if (group) query.set("group", group);
+      query = new URLSearchParams({ tab: "history" });
     if (params.get("month")) query.set("month", params.get("month")!);
-    setBack("/miniapp/history?" + query);
+    setBack("/miniapp/attendance?" + query);
     setGroup(group);
     setGroups([]);
     setGroupCursor("");
     setNewShift(!record);
+    setSelected(null);
+    setStart("");
+    setEnd("");
+    setEditBothTimes(false);
+    setBreaks([]);
+    setReason("");
+    setConfirmed(false);
+    setGroupLoading(false);
+    setGroupError("");
+    setStatus(user ? "" : "請先完成身分驗證。");
     if (!user) return;
     if (!record) {
-      loadGroups();
-      setStatus("");
+      if (!group) loadGroups();
       return groupsRead.cancel;
     }
     if (!group || !validID(record)) {
@@ -131,7 +142,7 @@ export function View() {
           setUncertain(false);
           setRefreshVersion((value) => value + 1);
           setStatus(
-            `申請已受理。編號：${data.id}。`,
+            `已送出，等待審核。申請編號：${data.id}。`,
           );
         },
         (error) => {
@@ -150,22 +161,33 @@ export function View() {
     }
   }
   function loadGroups(append = false) {
+    setGroupLoading(true);
+    setGroupError("");
     void groupsRead.run(
       (signal) => memberGroups(request, signal, append ? groupCursor : undefined),
       (data) => {
+        setGroupLoading(false);
         const options = data.items;
         setGroups(previous => append ? [...previous, ...options] : options);
         if (!append && !options.length && !data.nextCursor && !group) {
           setStatus("目前沒有可選群組。請在原 LINE 群組輸入「補卡」開啟表單。");
         }
+        if (!append && options.length === 1 && !data.nextCursor) setGroup(options[0].id);
         setGroupCursor(data.nextCursor);
       },
-      (error) => setStatus(errorMessage(error)),
+      (error) => {
+        setGroupLoading(false);
+        setGroupError(errorMessage(error));
+      },
     );
   }
+  const originalStart = selected ? taiwan(selected.ClockInAt) : "";
+  const originalEnd = selected ? taiwan(selected.ClockOutAt) : "";
+  const oneTimeMissing = !!selected && !!originalStart !== !!originalEnd;
+  const needsGroupPicker = newShift && (!group || groups.length > 1 || !!groupCursor);
   return (
     <>
-      <PagePanel heading="補卡／時間更正申請">
+      <PagePanel heading={newShift ? "申請補卡" : "更正出勤紀錄"}>
         <p>
           班次結束後申請，核准後生效。
         </p>
@@ -178,39 +200,41 @@ export function View() {
             查看出勤紀錄
           </a>
         </p>
-        {newShift && (
+        {needsGroupPicker && (
           <FieldSet
             className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
             disabled={!user || busy || uncertain}
           >
-            <Button onClick={() => loadGroups()}>載入本人群組</Button>
-            <FormField>
-              群組
-              <NativeSelect
-                id="correction-group"
-                value={group}
-                onChange={(e) => setGroup(e.target.value)}
-              >
-                <NativeSelectOption value="">請選擇群組</NativeSelectOption>
-                {group && !groups.some((g) => g.id === group) && (
-                  <NativeSelectOption value={group}>
-                    目前群組
-                  </NativeSelectOption>
-                )}
-                {groups.map((g) => (
-                  <NativeSelectOption key={g.id} value={g.id}>
-                    {g.name}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
-            </FormField>
+            {groupLoading && <p role="status">正在讀取群組……</p>}
+            {groupError && <div role="alert">
+              <p>{groupError}</p>
+              <Button onClick={() => loadGroups()}>重試讀取群組</Button>
+            </div>}
+            {(groups.length > 0 || !!groupCursor) && (
+              <FormField>
+                群組
+                <NativeSelect
+                  id="correction-group"
+                  value={group}
+                  onChange={(e) => setGroup(e.target.value)}
+                >
+                  <NativeSelectOption value="">請選擇群組</NativeSelectOption>
+                  {groups.map((g) => (
+                    <NativeSelectOption key={g.id} value={g.id}>
+                      {g.name}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </FormField>
+            )}
             {groupCursor && (
               <Button onClick={() => loadGroups(true)}>載入更多群組</Button>
             )}
           </FieldSet>
         )}
+        {newShift && group && !needsGroupPicker && <p>群組：{groups[0]?.name || group}</p>}
         {selected && <p id="record-description">
-          原班次：{displayTime(selected.ClockInAt)} → {displayTime(selected.ClockOutAt)}
+          原班次：{originalStart ? displayTime(selected.ClockInAt) : "缺上班時間"} → {originalEnd ? displayTime(selected.ClockOutAt) : "缺下班時間"}
         </p>}
         <form id="correction-form" onSubmit={submitCorrection}>
           <FieldGroup>
@@ -220,7 +244,7 @@ export function View() {
               disabled={!user || (!selected && !newShift) || !group || busy || uncertain}
             >
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField>
+                {(!oneTimeMissing || editBothTimes || !originalStart) && <FormField>
                   上班時間
                   <Input
                     id="correction-start"
@@ -230,8 +254,8 @@ export function View() {
                     value={start}
                     onChange={(e) => setStart(e.target.value)}
                   />
-                </FormField>
-                <FormField>
+                </FormField>}
+                {(!oneTimeMissing || editBothTimes || !originalEnd) && <FormField>
                   下班時間
                   <Input
                     id="correction-end"
@@ -241,12 +265,19 @@ export function View() {
                     value={end}
                     onChange={(e) => setEnd(e.target.value)}
                   />
-                </FormField>
+                </FormField>}
               </div>
-              <FieldSet className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60">
-                <FieldLegend className="px-1 text-sm font-semibold">
-                  實際休息區間
-                </FieldLegend>
+              {oneTimeMissing && !editBothTimes && (
+                <Button type="button" variant="outline" onClick={() => setEditBothTimes(true)}>
+                  {originalStart ? "也要更正上班時間" : "也要更正下班時間"}
+                </Button>
+              )}
+              <details
+                key={selected?.RecordID || "new-shift"}
+                className="space-y-3"
+                onInvalidCapture={(event) => { event.currentTarget.open = true; }}
+              >
+                <summary className="cursor-pointer">休息時間（{breaks.length ? `${breaks.length} 段` : "未填寫"}）</summary>
                 <div id="correction-breaks">
                   {breaks.map((b, index) => (
                     <div key={index}>
@@ -290,7 +321,7 @@ export function View() {
                 >
                   新增休息區間
                 </Button>
-              </FieldSet>
+              </details>
               <FormField>
                 申請原因
                 <Textarea
@@ -309,7 +340,7 @@ export function View() {
                   onCheckedChange={(checked) => setConfirmed(checked === true)}
                 />
                 <FieldLabel htmlFor="correction-confirm">
-                  已確認實際工作與休息時間；沒有休息區間代表本班無可扣除的休息。
+                  我已確認上下班及休息時間。未填休息時間表示沒有休息。
                 </FieldLabel>
               </Field>
               <Button id="submit-correction" type="submit">

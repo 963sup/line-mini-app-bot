@@ -38,9 +38,8 @@ func TestMiniAppAttendanceGetsDedicatedPage(t *testing.T) {
 		{"/miniapp?liff.state=%3Fjournal%3D1", false, `"page":"/miniapp/feed"`},
 		{"/miniapp?launch=token", true, "確認並完成打卡"},
 		{"/miniapp?liff.state=%3Flaunch%3Dtoken", true, "確認並完成打卡"},
-		{"/miniapp/history?group=g&month=2026-11", false, `id="record-list"`},
-		{"/miniapp/correction?group=g&record=r", false, `id="correction-form"`},
-		{"/miniapp/review", false, `id="review-details"`},
+		{"/miniapp/attendance", false, "出勤紀錄"},
+		{"/miniapp/attendance?tab=review", false, "補卡審核"},
 	} {
 		recorder := httptest.NewRecorder()
 		serveMiniApp(recorder, httptest.NewRequest("GET", tc.url, nil))
@@ -72,5 +71,25 @@ func TestObjectRecognitionToolRoute(t *testing.T) {
 	mux.ServeHTTP(response, httptest.NewRequest("GET", "/miniapp/object-recognition", nil))
 	if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), `"page":"/miniapp/object-recognition"`) {
 		t.Fatalf("object recognition tool page not served (HTTP %d)", response.Code)
+	}
+}
+
+func TestLegacyAttendanceLinksPreserveQuery(t *testing.T) {
+	mux := http.NewServeMux()
+	if err := Register(mux); err != nil {
+		t.Fatal(err)
+	}
+	for source, target := range map[string]string{
+		"/miniapp/history?month=2026-11":       "/miniapp/attendance?month=2026-11&tab=history",
+		"/miniapp/correction?group=g&record=r": "/miniapp/attendance?group=g&record=r&tab=correction",
+		"/miniapp/review?id=r":                 "/miniapp/attendance?id=r&tab=review",
+		"/miniapp/leave?leave=token":           "/miniapp/attendance?leave=token&tab=leave",
+		"/miniapp?liff.state=%3Fleave%3Dtoken": "/miniapp/attendance?liff.state=%3Fleave%3Dtoken&tab=leave",
+	} {
+		recorder := httptest.NewRecorder()
+		mux.ServeHTTP(recorder, httptest.NewRequest("GET", source, nil))
+		if recorder.Code != http.StatusTemporaryRedirect || recorder.Header().Get("Location") != target {
+			t.Errorf("%s got %d %s, want 307 %s", source, recorder.Code, recorder.Header().Get("Location"), target)
+		}
 	}
 }

@@ -51,12 +51,6 @@ function ProjectSidebar(props: ServiceSidebarProps) {
 
 function NavigationSidebar({ workflow, account, repositoryItem, ...props }: ServiceSidebarProps) {
   const { setOpenMobile } = useSidebar();
-  const attendance = [
-    { title: "出勤紀錄", url: "/miniapp/history", workflow: "history" },
-    { title: "請假紀錄", url: "/miniapp/leave", workflow: "leave" },
-    { title: "補卡與更正", url: "/miniapp/correction", workflow: "correction" },
-    { title: "補卡審核", url: "/miniapp/review", workflow: "review" },
-  ].map((item) => ({ ...item, isActive: item.workflow === workflow }));
   const items: NavItem[] = [
     {
       title: "首頁",
@@ -73,9 +67,8 @@ function NavigationSidebar({ workflow, account, repositoryItem, ...props }: Serv
     {
       title: "出勤服務",
       icon: ClipboardList,
-      isActive:
-        attendance.some((item) => item.isActive) || workflow === "punch",
-      items: attendance,
+      url: "/miniapp/attendance",
+      isActive: workflow === "attendance" || workflow === "punch",
     },
   ];
   return (
@@ -90,7 +83,7 @@ function NavigationSidebar({ workflow, account, repositoryItem, ...props }: Serv
             <SidebarMenu>
               {[
                 { title: "寫日誌", url: "/miniapp/feed?compose=1", icon: SquarePen },
-                { title: "申請補卡", url: "/miniapp/correction", icon: ClipboardPenLine },
+                { title: "申請補卡", url: "/miniapp/attendance?tab=correction", icon: ClipboardPenLine },
               ].map(({ title, url, icon: Icon }) => (
                 <SidebarMenuItem key={url}>
                   <SidebarMenuButton asChild tooltip={title} onClick={() => setOpenMobile(false)}>
