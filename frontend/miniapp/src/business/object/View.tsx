@@ -1,7 +1,7 @@
 import { Candidates, type Selection } from "./Candidates";
 import { isPositiveQuantity, isValidCompletedQuantity } from "@/business/object/quantity";
 import React, { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { ChevronDownIcon, ChevronRightIcon, Plus } from "lucide-react";
+import { ChevronDownIcon, ChevronRightIcon, Folder, Pencil, Plus } from "lucide-react";
 import { useRepositoryGuard } from "../repository/NavigationGuard";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { useDiscardChanges } from "@/shared/useDiscardChanges";
@@ -23,7 +23,7 @@ import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { FieldError, FieldGroup, FieldSet } from "@/shared/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
-import { Item, ItemGroup, ItemContent, ItemTitle, ItemActions, ItemFooter } from "@/shared/ui/item";
+import { Item, ItemGroup, ItemContent, ItemTitle, ItemFooter } from "@/shared/ui/item";
 
 type Resource = components["schemas"]["Object"];
 type Creation = components["schemas"]["ObjectCreation"];
@@ -73,17 +73,22 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
     repositoryId,
     mode === "detail",
   );
-  const [invalidField, setInvalidField] = useState<"quantity" | "completedQuantity" | null>(null);
+  const [invalidField, setInvalidField] = useState<
+    "name" | "unit" | "quantity" | "completedQuantity" | null
+  >(null);
   const [content, setContent] = useState<Creation>(empty);
   const [review, setReview] = useState<Selection>();
-  const [createdCandidates, setCreatedCandidates] = useState<Set<string>>(() => new Set());
+  const [createdCandidates, setCreatedCandidates] = useState<Map<string, string>>(() => new Map());
   const baseline = useRef<Creation>(empty);
   const dirty = !!mode && JSON.stringify(content) !== JSON.stringify(baseline.current);
-  const nameInput = useRef<HTMLInputElement>(null),
+  const editField = useRef("name"),
     editorPanel = useRef<HTMLElement>(null),
     opener = useRef<HTMLElement | null>(null);
   function focusEditor() {
-    if (nameInput.current && !nameInput.current.matches(":disabled")) nameInput.current.focus();
+    const input = editorPanel.current?.querySelector<HTMLElement>(
+      `[data-edit-field="${editField.current}"]`,
+    );
+    if (input && !input.matches(":disabled")) input.focus();
     else editorPanel.current?.focus();
   }
   const discard = useDiscardChanges(dirty, focusEditor);
@@ -224,7 +229,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
   }
   function saved(item: Resource, message: string) {
     if (mode === "create" && review)
-      setCreatedCandidates((previous) => new Set(previous).add(review.id));
+      setCreatedCandidates((previous) => new Map(previous).set(review.id, item.id));
     setReview(undefined);
     setItems((previous) =>
       previous.some((value) => value.id === item.id)
@@ -240,9 +245,10 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
     setNeedsRefresh(false);
     objectCreateAttempt.current = null;
     repositoryGuard.block(false);
+    setLoaded(true);
     setListStatus(message);
   }
-  function open(id: string, trigger?: HTMLElement) {
+  function open(id: string, trigger?: HTMLElement, field = "name") {
     if (
       !user ||
       subLock.current ||
@@ -253,6 +259,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
     )
       return;
     discard.navigate(() => {
+      editField.current = field;
       if (trigger) opener.current = trigger;
       formNavigation.current = true;
       read.cancel();
@@ -300,6 +307,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
       clearEditor();
       setReview(selection);
       const candidate = selection?.candidate;
+      editField.current = "name";
       setMode("create");
       setContent(
         candidate
@@ -353,7 +361,8 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
           } as Creation);
     setInvalidField(null);
     if (!body.name) {
-      setStatus("請填寫物件名稱。");
+      setStatus("");
+      setInvalidField("name");
       return;
     }
     if (mode === "detail" && body.quantity && !isPositiveQuantity(body.quantity)) {
@@ -363,7 +372,8 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
     }
     if (mode === "detail" && body.type === "work" && (body.quantity || body.completedQuantity)) {
       if (!body.unit) {
-        setStatus("追蹤進度時請補填單位。");
+        setStatus("");
+        setInvalidField("unit");
         return;
       }
       if (!isValidCompletedQuantity(body.completedQuantity, body.quantity || "")) {
@@ -458,12 +468,22 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
       },
     );
   }
+  const cancelButton = (
+    <Button
+      type="button"
+      variant="ghost"
+      disabled={busy || uncertain || needsRefresh || subBlocked}
+      onClick={close}
+    >
+      {canEdit || mode === "create" ? "取消" : "關閉"}
+    </Button>
+  );
   const editor = (
     <section
       ref={editorPanel}
       tabIndex={-1}
       aria-label={mode === "create" ? "新增物件" : "物件編輯"}
-      className="flex w-full min-w-0 flex-col gap-3"
+      className="flex w-full min-w-0 flex-col items-start gap-3 rounded-lg border bg-background p-4 sm:max-w-3xl"
     >
       {mode === "create" && review && (
         <aside>
@@ -484,10 +504,10 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
         </Button>
       )}
       {(mode === "create" || selected) && (
-        <form onSubmit={submit} onChange={() => setInvalidField(null)}>
-          <FieldGroup>
+        <form className="w-full" onSubmit={submit} onChange={() => setInvalidField(null)}>
+          <FieldGroup className="gap-3">
             <FieldSet
-              className="grid min-w-0 gap-4"
+              className="grid min-w-0 gap-3 sm:grid-cols-2"
               disabled={
                 busy ||
                 detailBusy ||
@@ -501,6 +521,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
                 <FormField>
                   類型
                   <NativeSelect
+                    data-edit-field="type"
                     value={content.type}
                     onChange={(event) => {
                       const type = event.target.value;
@@ -535,18 +556,18 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
               {fields
                 .filter(([key]) => mode === "detail" || key === "name")
                 .map(([key, label, max]) => {
-                  const invalid = key === "quantity" && invalidField === key;
+                  const invalid = invalidField === key;
                   return (
                     <React.Fragment key={key}>
                       <FormField data-invalid={invalid || undefined}>
                         {label}
                         <Input
-                          ref={key === "name" ? nameInput : undefined}
+                          data-edit-field={key}
                           required={key === "name"}
                           maxLength={max}
                           inputMode={key === "quantity" ? "decimal" : undefined}
                           aria-invalid={invalid || undefined}
-                          aria-describedby={invalid ? "object-quantity-error" : undefined}
+                          aria-describedby={invalid ? `object-${key}-error` : undefined}
                           value={content[key] || ""}
                           onChange={(event) =>
                             setContent((previous) => ({ ...previous, [key]: event.target.value }))
@@ -554,8 +575,12 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
                         />
                       </FormField>
                       {invalid && (
-                        <FieldError id="object-quantity-error">
-                          請填寫大於零的數量（最多18位整數及6位小數）。
+                        <FieldError id={`object-${key}-error`}>
+                          {key === "name"
+                            ? "請填寫物件名稱。"
+                            : key === "unit"
+                              ? "追蹤進度時請補填單位。"
+                              : "請填寫大於零的數量（最多18位整數及6位小數）。"}
                         </FieldError>
                       )}
                     </React.Fragment>
@@ -624,6 +649,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
                             ? "object-completed-error"
                             : undefined
                         }
+                        data-edit-field="completedQuantity"
                         required={!!content.quantity}
                         inputMode="decimal"
                         maxLength={25}
@@ -662,22 +688,22 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
               )}
             </FieldSet>
 
-            {(mode === "create" || canEdit) && (
-              <Button type="submit" disabled={busy || detailBusy || needsRefresh || subBlocked}>
-                {mode === "create" ? (uncertain ? "重試原物件建立請求" : "建立物件") : "儲存物件"}
-              </Button>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {(mode === "create" || canEdit) && (
+                <Button
+                  className="self-start"
+                  type="submit"
+                  disabled={busy || detailBusy || needsRefresh || subBlocked}
+                >
+                  {mode === "create" ? (uncertain ? "重試原物件建立請求" : "建立物件") : "儲存物件"}
+                </Button>
+              )}
+              {cancelButton}
+            </div>
           </FieldGroup>
         </form>
       )}
-      <Button
-        type="button"
-        variant="outline"
-        disabled={busy || uncertain || needsRefresh || subBlocked}
-        onClick={close}
-      >
-        {canEdit || mode === "create" ? "取消" : "關閉"}
-      </Button>
+      {mode === "detail" && !selected && cancelButton}
     </section>
   );
   if (documentTool)
@@ -690,7 +716,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
           choose={(selection, trigger) => openCreateForm(trigger, selection)}
         />
         {mode === "create" && editor}
-        <ReadFeedback busy={false} message={listStatus} label="" />
+        <ReadFeedback busy={false} plain={loaded} message={listStatus} label="" />
         {discard.dialog}
       </>
     );
@@ -699,6 +725,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
       <div className="flex w-full min-w-0 flex-col gap-4">
         <ReadFeedback
           busy={listBusy}
+          plain={loaded}
           message={listStatus}
           label="正在讀取物件……"
           onRetry={
@@ -710,7 +737,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
         {mode === "detail" && !items.some((item) => item.id === activeId) && (
           <PagePanel heading="物件詳情">{editor}</PagePanel>
         )}
-        <ItemGroup className="w-full min-w-0 gap-1">
+        <ItemGroup className="w-full min-w-0 gap-0">
           {items.map((item) => (
             <Collapsible
               key={item.id}
@@ -729,13 +756,14 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
               }}
               className="w-full min-w-0"
             >
-              <Item role="listitem" className="w-full min-w-0 border-0 px-0 py-1">
+              <Item role="listitem" className="w-full min-w-0 border-0 px-0 py-0.5">
                 <ItemContent className="w-full min-w-0">
-                  <ItemTitle className="min-w-0 max-w-full">
+                  <ItemTitle className="w-full min-w-0 max-w-full">
                     <CollapsibleTrigger asChild>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="sm"
+                        className="min-w-0 flex-1 justify-start font-normal"
                         disabled={busy || detailBusy || uncertain || needsRefresh || subBlocked}
                         aria-label={`子物件：${item.name}`}
                         title={expanded === item.id ? "收合子物件" : "展開子物件"}
@@ -745,16 +773,20 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
                         ) : (
                           <ChevronRightIcon aria-hidden="true" />
                         )}
+                        <Folder aria-hidden="true" />
+                        <span className="truncate">{item.name}</span>
                       </Button>
                     </CollapsibleTrigger>
                     <Button
                       variant="link"
                       aria-label={item.name}
+                      title={item.canEdit ? `編輯物件：${item.name}` : "物件詳情"}
                       className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]"
                       disabled={busy || detailBusy || uncertain || needsRefresh || subBlocked}
                       onClick={(event) => open(item.id, event.currentTarget)}
                     >
-                      名稱：{item.name}
+                      {item.canEdit ? <Pencil aria-hidden="true" className="size-3.5" /> : "詳情"}
+                      <span className="sr-only">名稱：{item.name}</span>
                     </Button>
                     {item.canEdit && (
                       <AddChildButton
@@ -771,35 +803,49 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
                       />
                     )}
                   </ItemTitle>
-                  {item.quantity && (
-                    <p className="whitespace-normal [overflow-wrap:anywhere]">
-                      數量：{item.quantity} {item.unit}
-                    </p>
-                  )}
-                  {item.type && (
-                    <p className="whitespace-normal [overflow-wrap:anywhere]">
-                      類型：{typeLabel(item.type)}
-                    </p>
-                  )}
-                  {item.type && <p>狀態：{statusLabel(item)}</p>}
-                  {item.type && (
-                    <p className="whitespace-normal [overflow-wrap:anywhere]">
-                      進度：{progressLabel(item)}
-                    </p>
-                  )}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 ps-2 text-xs text-muted-foreground sm:ps-12">
+                    {(
+                      [
+                        [
+                          "數量",
+                          item.quantity && `${item.quantity} ${item.unit ?? ""}`.trim(),
+                          "quantity",
+                        ],
+                        ["類型", item.type && typeLabel(item.type), "type"],
+                        ["狀態", item.type && statusLabel(item), ""],
+                        [
+                          "進度",
+                          item.type && progressLabel(item),
+                          item.type === "work" ? "completedQuantity" : "",
+                        ],
+                      ] as const
+                    ).map(
+                      ([label, value, field]) =>
+                        value && (
+                          <p key={label} className="min-w-0 [overflow-wrap:anywhere]">
+                            {item.canEdit && field ? (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-auto whitespace-normal px-1 py-1 text-xs"
+                                disabled={
+                                  busy || detailBusy || uncertain || needsRefresh || subBlocked
+                                }
+                                onClick={(event) => open(item.id, event.currentTarget, field)}
+                              >
+                                {label}：{value}
+                              </Button>
+                            ) : (
+                              <>
+                                {label}：{value}
+                              </>
+                            )}
+                          </p>
+                        ),
+                    )}
+                  </div>
                 </ItemContent>
-                <ItemActions className="flex-wrap">
-                  {item.canEdit && (
-                    <Button
-                      variant="outline"
-                      aria-label={`編輯物件：${item.name}`}
-                      disabled={busy || detailBusy || uncertain || needsRefresh || subBlocked}
-                      onClick={(event) => open(item.id, event.currentTarget)}
-                    >
-                      編輯
-                    </Button>
-                  )}
-                </ItemActions>
                 {mode === "detail" && activeId === item.id && <ItemFooter>{editor}</ItemFooter>}
               </Item>
               <CollapsibleContent className="min-w-0 ps-4 pt-1">
@@ -831,18 +877,18 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
             載入更多物件
           </Button>
         )}
-        {mode === "create" && <PagePanel heading="新增物件">{editor}</PagePanel>}
+        {mode === "create" && editor}
         <Button
           type="button"
           variant="ghost"
-          size="icon"
+          size="sm"
           className="self-start"
           title="新增物件"
           disabled={!user || busy || uncertain || needsRefresh || subBlocked || mode === "create"}
           onClick={(event) => openCreateForm(event.currentTarget)}
         >
           <Plus aria-hidden="true" />
-          <span className="sr-only">新增物件</span>
+          新增物件
         </Button>
       </div>
       {discard.dialog}

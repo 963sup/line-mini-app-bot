@@ -100,7 +100,7 @@ async function fixture(
     async click(text: string) {
       await act(async () => {
         const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(
-          (node) => node.textContent === text || node.getAttribute("aria-label") === text,
+          (node) => (node.getAttribute("aria-label") ?? node.textContent) === text,
         );
         assert.ok(node, `missing ${text}`);
         pressButton(node);
@@ -564,10 +564,10 @@ test("arrow keeps expanded children through parent editing and each edit returns
   });
   try {
     const trigger = document.querySelector<HTMLButtonElement>('[aria-label="子物件：測試物件"]')!;
-    assert.equal(trigger.textContent, "");
+    assert.equal(trigger.textContent, "測試物件");
     assert.ok(trigger.querySelector("svg"));
     await f.click("子物件：測試物件");
-    await f.click("編輯物件：測試物件");
+    await f.click("測試物件");
     assert.equal(trigger.getAttribute("aria-expanded"), "true");
     assert.equal(reads, 1);
     assert.equal(document.querySelectorAll("form").length, 1);
@@ -581,12 +581,9 @@ test("arrow keeps expanded children through parent editing and each edit returns
       document.activeElement,
       document.querySelector('[aria-label="編輯子物件：測試工序"]'),
     );
-    await f.click("編輯物件：測試物件");
+    await f.click("測試物件");
     await f.click("取消");
-    assert.equal(
-      document.activeElement,
-      document.querySelector('[aria-label="編輯物件：測試物件"]'),
-    );
+    assert.equal(document.activeElement, document.querySelector('[aria-label="測試物件"]'));
     assert.equal(trigger.getAttribute("aria-expanded"), "true");
     assert.equal(reads, 1);
   } finally {

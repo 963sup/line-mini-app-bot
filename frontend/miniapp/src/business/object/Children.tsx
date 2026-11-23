@@ -1,5 +1,5 @@
 import { flushSync } from "react-dom";
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, Folder, Plus } from "lucide-react";
 import { isPositiveQuantity, isValidCompletedQuantity } from "@/business/object/quantity";
 import {
   useCallback,
@@ -24,6 +24,7 @@ import {
 import { FormField } from "@/shared/FormField";
 import { Status } from "@/shared/Status";
 import { Button } from "@/shared/ui/button";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/shared/ui/collapsible";
 import { Item, ItemGroup, ItemContent, ItemTitle, ItemActions, ItemFooter } from "@/shared/ui/item";
 import { Input } from "@/shared/ui/input";
 import { FieldGroup, FieldSet } from "@/shared/ui/field";
@@ -92,6 +93,8 @@ type Props = {
   onBlocked: (value: boolean) => void;
   canWrite: () => boolean;
 };
+
+const emptyChildrenMessage = "尚無子物件。";
 
 export function View(props: Props) {
   const { user, epoch } = useSession();
@@ -203,7 +206,7 @@ function Content({
           setItems((previous) => (next ? [...previous, ...children] : children));
           setCursor(page.nextCursor);
           setLoading(false);
-          setReadStatus(!next && !page.nextCursor && !children.length ? "尚無子物件。" : "");
+          setReadStatus(!next && !page.nextCursor && !children.length ? emptyChildrenMessage : "");
         },
         (error) => {
           if (next && isTemporaryReadError(error)) {
@@ -530,6 +533,7 @@ function Content({
     <section aria-label="子物件" className="grid min-w-0 gap-3">
       {editing && !selected && editor}
       <ReadFeedback
+        plain={failedPage === null}
         busy={loading}
         message={readStatus}
         label="正在讀取子物件……"
@@ -541,76 +545,84 @@ function Content({
       />
       <ItemGroup className="min-w-0 gap-1">
         {items.map((item) => (
-          <Item role="listitem" key={item.id} className="min-w-0 border-0 px-0 py-1">
-            <ItemContent className="min-w-0">
-              <ItemTitle className="min-w-0 max-w-full">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`子物件：${item.name}`}
-                  aria-expanded={expanded === item.id}
-                  disabled={busy || uncertain || editing || parentEditing || branchBlocked}
-                  onClick={() => setExpanded((previous) => (previous === item.id ? "" : item.id))}
-                >
-                  {expanded === item.id ? <ChevronDown /> : <ChevronRight />}
-                </Button>
-                {item.canEdit && canEdit ? (
+          <Collapsible
+            key={item.id}
+            open={expanded === item.id}
+            onOpenChange={(value) => setExpanded(value ? item.id : "")}
+          >
+            <Item role="listitem" className="min-w-0 border-0 px-0 py-1">
+              <ItemContent className="min-w-0">
+                <ItemTitle className="w-full min-w-0 max-w-full">
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="min-w-0 flex-1 justify-start font-normal"
+                      aria-label={`子物件：${item.name}`}
+                      aria-expanded={expanded === item.id}
+                      disabled={busy || uncertain || editing || parentEditing || branchBlocked}
+                    >
+                      {expanded === item.id ? <ChevronDown /> : <ChevronRight />}
+                      <Folder />
+                      <span className="truncate">{item.name}</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  {item.canEdit && canEdit ? (
+                    <Button
+                      variant="link"
+                      aria-label={item.name}
+                      className="h-auto min-w-0 max-w-full whitespace-normal text-left [overflow-wrap:anywhere]"
+                      disabled={busy || uncertain || branchBlocked}
+                      onClick={(event) => edit(item, event.currentTarget)}
+                    >
+                      詳情
+                    </Button>
+                  ) : null}
+                  {canEdit && item.canEdit && (
+                    <AddChildButton
+                      name={item.name}
+                      disabled={busy || uncertain || editing || parentEditing || branchBlocked}
+                      onClick={(trigger) => childCreation.add(item.id, trigger)}
+                    />
+                  )}
+                </ItemTitle>
+                <p className="whitespace-normal [overflow-wrap:anywhere]">
+                  {item.quantity} {item.unit} ·{" "}
+                  {item.type === "work"
+                    ? `施作 · ${states[item.status]} · ${item.completedQuantity}/${item.quantity} ${item.unit}`
+                    : "非施作 · 狀態與進度不適用"}
+                </p>
+              </ItemContent>
+              {item.canEdit && canEdit && (
+                <ItemActions>
                   <Button
-                    variant="link"
-                    aria-label={item.name}
-                    className="h-auto min-w-0 max-w-full whitespace-normal text-left [overflow-wrap:anywhere]"
+                    variant="outline"
+                    aria-label={`編輯子物件：${item.name}`}
                     disabled={busy || uncertain || branchBlocked}
                     onClick={(event) => edit(item, event.currentTarget)}
                   >
-                    {item.name}
+                    編輯
                   </Button>
-                ) : (
-                  item.name
-                )}
-                {canEdit && item.canEdit && (
-                  <AddChildButton
-                    name={item.name}
-                    disabled={busy || uncertain || editing || parentEditing || branchBlocked}
-                    onClick={(trigger) => childCreation.add(item.id, trigger)}
+                </ItemActions>
+              )}
+              {editing && selected?.id === item.id && <ItemFooter>{editor}</ItemFooter>}
+              {expanded === item.id && !editing && !parentEditing && (
+                <CollapsibleContent className="w-full min-w-0 ps-4">
+                  <View
+                    editorRef={childCreation.editor}
+                    repositoryId={repositoryId}
+                    objectId={item.id}
+                    canEdit={item.canEdit}
+                    parentEditing={false}
+                    onEdit={onEdit}
+                    onBlocked={setBranchBlocked}
+                    canWrite={canWrite}
                   />
-                )}
-              </ItemTitle>
-              <p className="whitespace-normal [overflow-wrap:anywhere]">
-                {item.quantity} {item.unit} ·{" "}
-                {item.type === "work"
-                  ? `施作 · ${states[item.status]} · ${item.completedQuantity}/${item.quantity} ${item.unit}`
-                  : "非施作 · 狀態與進度不適用"}
-              </p>
-            </ItemContent>
-            {item.canEdit && canEdit && (
-              <ItemActions>
-                <Button
-                  variant="outline"
-                  aria-label={`編輯子物件：${item.name}`}
-                  disabled={busy || uncertain || branchBlocked}
-                  onClick={(event) => edit(item, event.currentTarget)}
-                >
-                  編輯
-                </Button>
-              </ItemActions>
-            )}
-            {editing && selected?.id === item.id && <ItemFooter>{editor}</ItemFooter>}
-            {expanded === item.id && !editing && !parentEditing && (
-              <div className="w-full min-w-0 ps-4">
-                <View
-                  editorRef={childCreation.editor}
-                  repositoryId={repositoryId}
-                  objectId={item.id}
-                  canEdit={item.canEdit}
-                  parentEditing={false}
-                  onEdit={onEdit}
-                  onBlocked={setBranchBlocked}
-                  canWrite={canWrite}
-                />
-              </div>
-            )}
-          </Item>
+                </CollapsibleContent>
+              )}
+            </Item>
+          </Collapsible>
         ))}
       </ItemGroup>
       {cursor && failedPage === null && (

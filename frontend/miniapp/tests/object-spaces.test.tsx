@@ -85,9 +85,10 @@ async function fixture(handle: (request: Request) => Promise<Response>, Panel = 
   return {
     async click(text: string) {
       await act(async () => {
-        const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(
-          (node) => node.textContent === text || node.getAttribute("aria-label") === text,
-        );
+        const buttons = [...document.querySelectorAll<HTMLButtonElement>("button")];
+        const node =
+          buttons.find((node) => node.getAttribute("aria-label") === text) ??
+          buttons.find((node) => !node.hasAttribute("aria-label") && node.textContent === text);
         assert.ok(node, `missing ${text}`);
         node.click();
         await flush();

@@ -106,7 +106,7 @@ async function fixture(
     async click(text: string) {
       await act(async () => {
         const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(
-          (node) => node.textContent === text || node.getAttribute("aria-label") === text,
+          (node) => (node.getAttribute("aria-label") ?? node.textContent) === text,
         );
         assert.ok(node, `missing ${text}`);
         pressButton(node);
@@ -480,7 +480,8 @@ test("work completion editing uses exact decimals and non-work omits completion 
     );
   });
   try {
-    await f.click("測試物件");
+    await f.click("數量：11 SET");
+    assert.equal(document.activeElement?.getAttribute("data-edit-field"), "quantity");
     await f.fill("數量", "9007199254740993.123455");
     await f.fill("完成數", "9007199254740993.123456");
     await f.click("儲存物件");
@@ -619,7 +620,7 @@ test("object editor stays in its row, cancel preserves a draft until confirmed, 
     );
   });
   try {
-    await f.click("編輯物件：測試物件");
+    await f.click("測試物件");
     const row = document.querySelector('[aria-label="測試物件"]')!.closest('[data-slot="item"]')!;
     assert.ok(row.querySelector("form"));
     assert.equal(document.querySelectorAll("form").length, 1);
@@ -646,7 +647,7 @@ test("object editor stays in its row, cancel preserves a draft until confirmed, 
     assert.equal(document.querySelector("form"), null);
     assert.ok(document.querySelector('[aria-label="更新名稱"]'));
     assert.ok(document.querySelector('[aria-label="另一物件"]'));
-    await f.click("編輯物件：更新名稱");
+    await f.click("更新名稱");
     await f.fill("物件名稱", "放棄內容");
     await f.click("取消");
     await f.click("放棄修改");
@@ -666,7 +667,10 @@ test("document candidates require review and use the object creation form", asyn
         return Response.json({
           status: "completed",
           rawResponse: "test response",
-          candidates: [{ name: "電纜", quantity: "2.50", location: "第 1 行", quote: "電纜 2.50" }],
+          candidates: [
+            { name: "電纜", quantity: "2.50", location: "第 1 行", quote: "電纜 2.50" },
+            { name: "配管", quote: "" },
+          ],
         });
       }
       if (request.method === "POST") {
@@ -691,6 +695,7 @@ test("document candidates require review and use the object creation form", asyn
       input.dispatchEvent(new window.Event("change", { bubbles: true }));
     });
     await f.click("辨識候選");
+    assert.match(document.body.textContent ?? "", /引文待核對/);
     await f.click("覆核並填入新增表單");
     assert.equal(writes.length, 0);
     await f.click("建立物件");
@@ -701,6 +706,11 @@ test("document candidates require review and use the object creation form", asyn
       sourceDocument: "list.txt",
       sourcePages: "第 1 行",
     });
+    const links = [...document.querySelectorAll("a")].filter(
+      (link) => link.textContent === "查看已建立物件",
+    );
+    assert.equal(links.length, 1);
+    assert.equal(new URL(links[0].href).searchParams.get("object"), oid);
     assert.ok(
       [...document.querySelectorAll("button")].find((b) => b.textContent === "已建立")?.disabled,
     );
@@ -728,6 +738,59 @@ test("work conversion uses the API preset and the edited exact quantity", async 
     await f.selectType("work");
     await f.click("儲存物件");
     assert.equal(patch?.completedQuantity, "9007199254740993.123456");
+  } finally {
+    await f.dispose();
+  }
+});
+
+test("batch import only retries unknown selected rows with their original keys", async () => {
+  const posts: { key: string | null; body: { name: string } }[] = [];
+  const f = await fixture(
+    async (request) => {
+      if (new URL(request.url).pathname.endsWith("/candidates")) {
+        return Response.json({
+          status: "completed",
+          candidates: ["電纜", "配管", "開關"].map((name) => ({ name, quote: name })),
+        });
+      }
+      if (request.method === "POST") {
+        const body = await request.json();
+        posts.push({ key: request.headers.get("Idempotency-Key"), body });
+        if (posts.length === 2) throw new Error("network lost");
+        return Response.json(resource({ id: posts.length === 1 ? oid : other }));
+      }
+      return Response.json({ items: [], nextCursor: "" });
+    },
+    false,
+    true,
+  );
+  try {
+    await act(async () => {
+      const input = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+      Object.defineProperty(input, "files", { value: [new window.File(["abc"], "list.txt")] });
+      input.dispatchEvent(new window.Event("change", { bubbles: true }));
+    });
+    await f.click("辨識候選");
+    await act(async () => {
+      const boxes = document.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+      boxes[0].click();
+      boxes[1].click();
+    });
+    assert.equal(posts.length, 0);
+    await f.click("確認匯入 2 筆");
+    assert.deepEqual(
+      posts.map(({ body }) => body.name),
+      ["電纜", "配管"],
+    );
+    assert.ok(posts[0].key && posts[1].key);
+    assert.notEqual(posts[0].key, posts[1].key);
+    await f.click("重試 1 筆未確認結果");
+    assert.equal(posts.length, 3);
+    assert.deepEqual(posts[2], posts[1]);
+    assert.equal(
+      [...document.querySelectorAll("a")].filter((a) => a.textContent === "查看已建立物件").length,
+      2,
+    );
   } finally {
     await f.dispose();
   }

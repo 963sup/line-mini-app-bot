@@ -15,7 +15,6 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { FieldGroup, FieldSet, FieldLegend } from "@/shared/ui/field";
-import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 
 type Snapshot = components["schemas"]["ObjectTemplate"];
@@ -52,10 +51,10 @@ function treeRows(nodes: Creation["nodes"], folded: string[] = []) {
     siblings.push(node);
     children.set(parent, siblings);
   }
-  const rows: { node: Node; depth: number }[] = [];
+  const rows: { node: Node; depth: number; hasChildren: boolean }[] = [];
   function visit(parent: string, depth: number) {
     for (const node of children.get(parent) ?? []) {
-      rows.push({ node, depth });
+      rows.push({ node, depth, hasChildren: children.has(node.id) });
       if (!folded.includes(node.id)) visit(node.id, depth + 1);
     }
   }
@@ -121,6 +120,7 @@ export function Templates({
   const [busy, setBusy] = useState(false),
     [reading, setReading] = useState(false),
     [message, setMessage] = useState("");
+  const [success, setSuccess] = useState(false);
   const [uncertain, setUncertain] = useState(false);
   const attempt = useRef<Attempt | null>(null),
     lock = useRef(false),
@@ -176,6 +176,7 @@ export function Templates({
         },
         (error) => {
           setReading(false);
+          setSuccess(false);
           setMessage(errorMessage(error));
         },
       );
@@ -231,6 +232,7 @@ export function Templates({
         guard.block(false);
         attempt.current = null;
       }
+      setSuccess(false);
       setMessage(errorMessage(error) + " 結果未確認時，請重試原請求。");
     };
     const settled = () => {
@@ -264,6 +266,7 @@ export function Templates({
           ),
         (snapshot) => {
           settled();
+          setSuccess(true);
           setItems((previous) => [snapshot, ...previous.filter((item) => item.id !== snapshot.id)]);
           setSelected(snapshot.id);
           setCreating(false);
@@ -296,6 +299,7 @@ export function Templates({
           ),
         (result) => {
           settled();
+          setSuccess(true);
           read.cancel();
           setMessage(`已建立 ${result.objectIds.length} 個物件。`);
           setOpen(standalone);
@@ -407,7 +411,12 @@ export function Templates({
             aria-label="物件範本操作"
             className="flex min-w-0 flex-col gap-4 outline-none"
           >
-            <ReadFeedback busy={reading || busy} message={message} label="正在讀取範本……" />
+            <ReadFeedback
+              plain={success}
+              busy={reading || busy}
+              message={message}
+              label="正在讀取範本……"
+            />
             {method === "choose" && (
               <div className="grid gap-3">
                 <Button
@@ -495,14 +504,7 @@ export function Templates({
                   </nav>
                 )}
                 {!reading && !busy && !message && !items.length && (
-                  <Empty>
-                    <EmptyHeader>
-                      <EmptyTitle>尚無範本，請先建立。</EmptyTitle>
-                      <EmptyDescription>
-                        選擇「新增範本」，整理可重複使用的物件與工序。
-                      </EmptyDescription>
-                    </EmptyHeader>
-                  </Empty>
+                  <p className="text-sm text-muted-foreground">尚無範本。</p>
                 )}
                 {cursor && (
                   <Button
@@ -682,7 +684,7 @@ export function Templates({
                       </h3>
                     )}
                     <ul aria-label="範本內容">
-                      {treeRows(visibleNodes, folded).map(({ node, depth }) => {
+                      {treeRows(visibleNodes, folded).map(({ node, depth, hasChildren }) => {
                         const index = review?.result.candidateIndexByNode?.[node.id];
                         const candidate =
                           index === undefined ? undefined : review?.result.candidates[index];
@@ -692,7 +694,7 @@ export function Templates({
                           <TreeRow key={node.id} depth={depth}>
                             <Collapsible>
                               <div className="flex items-start gap-1">
-                                {visibleNodes.some((child) => child.parentId === node.id) ? (
+                                {hasChildren ? (
                                   <Button
                                     type="button"
                                     size="icon-sm"
