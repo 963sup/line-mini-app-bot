@@ -682,6 +682,23 @@ test("expanding a child reads its own branch and collapsing hides the grandchild
   }
 });
 
+test("root list shows imported children only beneath their parent", async () => {
+  const f = await fixture(async (request) => {
+    const parent = new URL(request.url).searchParams.get("parentId");
+    return Response.json({
+      items: parent === oid ? [child()] : [resource(), child()],
+      nextCursor: "",
+    });
+  });
+  try {
+    assert.equal(document.querySelectorAll('[aria-label="測試工序"]').length, 0);
+    await f.click("子物件：測試物件");
+    assert.equal(document.querySelectorAll('[aria-label="測試工序"]').length, 1);
+  } finally {
+    await f.dispose();
+  }
+});
+
 for (const nested of [false, true]) {
   test(`${nested ? "child" : "root"} object pagination retries transient errors and drops denied pages`, async () => {
     const cursors: (string | null)[] = [];

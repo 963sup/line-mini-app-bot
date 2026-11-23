@@ -719,7 +719,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
           <PagePanel heading="物件詳情">{editor}</PagePanel>
         )}
         <ObjectRows
-          items={items}
+          items={items.filter((item) => !item.parentId)}
           branch=""
           tree={{
             repositoryId,
