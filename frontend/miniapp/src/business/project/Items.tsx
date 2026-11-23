@@ -38,6 +38,10 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
   const pending = useRef<{ body: Addition } | { itemId: string; version: number } | null>(null);
   const linked = (project.linkedRepositoryIds ?? [initialRepositoryId]).includes(sourceRepositoryId);
   const canEdit = project.canEdit, sourceAvailable = linked && !!sourceRepositoryId && (sourceRepositoryId !== initialRepositoryId || project.sourceAvailable !== false);
+  const selectSource = useCallback((id: string) => {
+    catalog.cancel(); parents.cancel();
+    setChoice(""); setParent(""); setOptions([]); setObjects([]); setSourceRepositoryId(id);
+  }, [catalog.cancel, parents.cancel]);
   useEffect(() => { selecting.current = false; });
   useEffect(() => () => onBlocked(false), [onBlocked]);
   function block(value: boolean) { unknown.current = value; setUncertain(value); onBlocked(value); }
@@ -163,7 +167,7 @@ export function Items({ ownerId, sourceRepositoryId: initialRepositoryId, projec
     })}</ItemGroup></section>;})}
     {loaded&&!items.length&&<Empty><EmptyHeader><EmptyTitle>尚未收錄來源。</EmptyTitle>{canEdit && <EmptyDescription>請從下方選擇來源儲存庫與項目。</EmptyDescription>}</EmptyHeader></Empty>}
     {cursor&&<Button type="button" variant="outline" disabled={readBusy||busy||uncertain} onClick={()=>load(cursor)}>載入更多專案引用</Button>}
-    {canEdit && <SourcePicker ownerId="" initialSource="" value={sourceRepositoryId} disabled={disabled||needsRefresh||busy||uncertain} onChange={id => { catalog.cancel(); parents.cancel(); setChoice(""); setParent(""); setOptions([]); setObjects([]); setSourceRepositoryId(id); }} />}
+    {canEdit && <SourcePicker ownerId="" initialSource="" value={sourceRepositoryId} disabled={disabled||needsRefresh||busy||uncertain} onChange={selectSource} />}
     {canEdit && sourceRepositoryId && <Button type="button" variant="outline" disabled={disabled||needsRefresh||busy||uncertain} onClick={()=>updateProject()}>{linked ? "解除儲存庫連結" : "連結此儲存庫"}</Button>}
     {canEdit && (sourceAvailable ? <FieldGroup>
       <FieldSet><FieldLegend>來源種類</FieldLegend>

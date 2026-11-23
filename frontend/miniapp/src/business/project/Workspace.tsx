@@ -5,7 +5,7 @@ import { useSession } from "@/identity/Session";
 import { PagePanel } from "@/shared/PagePanel";
 import { Status } from "@/shared/Status";
 import { Button } from "@/shared/ui/button";
-import { View } from "./View";
+import { View, type EditorNavigation } from "./View";
 
 type CopySource = { ownerId: string; projectId: string };
 type Route = { owner: string; project: string; source: string; copyFrom?: CopySource };
@@ -40,15 +40,39 @@ function AuthenticatedWorkspace() {
   useEffect(() => { navigating.current = false; });
   const [route, setRoute] = useState<Route>(emptyRoute);
   const [ready, setReady] = useState(false);
+  const editor = useRef<EditorNavigation>(null);
+  const historyIndex = useRef(0);
   useEffect(() => {
     const update = () => {
       const next = readRoute();
       setRoute({ ...next, owner: next.owner || user?.userId || "" });
       setReady(true);
     };
+    const history = window.history;
+    historyIndex.current = history.state?.projectIndex ?? 0;
+    history.replaceState({ ...history.state, projectIndex: historyIndex.current }, "");
+    let restoring = false;
+    const traverse = (event: PopStateEvent) => {
+      const target: number | undefined = event.state?.projectIndex;
+      if (restoring && target === historyIndex.current) {
+        restoring = false;
+        event.stopImmediatePropagation();
+        return;
+      }
+      if (target !== undefined && target !== historyIndex.current &&
+          (blocked.current || editor.current?.allowHistoryChange() === false)) {
+        // popstate fires after the URL moves. Return to the original entry without truncating forward history.
+        event.stopImmediatePropagation();
+        restoring = true;
+        history.go(historyIndex.current - target);
+        return;
+      }
+      historyIndex.current = target ?? 0;
+      update();
+    };
     update();
-    window.addEventListener("popstate", update);
-    return () => window.removeEventListener("popstate", update);
+    window.addEventListener("popstate", traverse, true);
+    return () => window.removeEventListener("popstate", traverse, true);
   }, [user?.userId]);
 
   const navigate = useCallback((owner: string, project = "", source = "", copyFrom?: CopySource) => {
@@ -63,7 +87,7 @@ function AuthenticatedWorkspace() {
       query.set("fromProject", copyFrom.projectId);
     }
     if (source) query.set("source", source);
-    window.history.pushState(null, "", "/miniapp/projects" + (query.size ? "?" + query : ""));
+    window.history.pushState({ projectIndex: ++historyIndex.current }, "", "/miniapp/projects" + (query.size ? "?" + query : ""));
     setRoute(next);
   }, []);
 
@@ -78,7 +102,11 @@ function AuthenticatedWorkspace() {
           return <Button key={owner.id} variant={current ? "default" : "outline"}
             className="h-auto min-h-11 max-w-full whitespace-normal text-left [overflow-wrap:anywhere]"
             disabled={writeBlocked} aria-current={current ? "page" : undefined}
-            onClick={() => navigate(owner.id)}>
+            onClick={() => {
+              const select = () => navigate(owner.id);
+              if (editor.current) editor.current.navigate(select);
+              else select();
+            }}>
             {current && <Check aria-hidden="true" />}
             {owner.name}
           </Button>;
@@ -89,6 +117,7 @@ function AuthenticatedWorkspace() {
     </PagePanel>
     {user && (active || route.owner === user.userId) && <View
       key={route.owner}
+      ref={editor}
       ownerId={route.owner}
       projectId={route.project}
       initialSource={route.source}

@@ -508,3 +508,49 @@ test("project list keeps the first page and retries the failed cursor", async ()
     assert.match(document.body.textContent!, /第二頁專案/);
   } finally { await f.dispose(); }
 });
+
+test("owner navigation preserves a project draft until discard is confirmed", async () => {
+  const f = await fixture(`/miniapp/projects?owner=${sa}&project=new`, normal);
+  try {
+    await f.select("來源儲存庫", rid);
+    await f.click("Group B");
+    assert.equal(new URLSearchParams(location.search).get("owner"), sa);
+    await f.click("繼續編輯");
+    assert.equal(document.querySelector<HTMLSelectElement>("form select")!.value, rid);
+    await f.click("Group B");
+    await f.click("放棄修改");
+    assert.equal(new URLSearchParams(location.search).get("owner"), sb);
+  } finally { await f.dispose(); }
+});
+
+test("clearing a prefilled project source is an edit and restoring it makes the form clean", async () => {
+  const f = await fixture(`/miniapp/projects?owner=${sa}&project=new&source=${rid}`, normal);
+  try {
+    assert.equal(document.querySelector<HTMLSelectElement>("form select")!.value, rid);
+    await f.select("來源儲存庫", "");
+    await f.click("Group B");
+    await f.click("繼續編輯");
+    assert.equal(document.querySelector<HTMLSelectElement>("form select")!.value, "");
+    await f.select("來源儲存庫", rid);
+    await f.click("Group B");
+    assert.equal(new URLSearchParams(location.search).get("owner"), sb);
+  } finally { await f.dispose(); }
+});
+
+test("a rejected project update stays editable without rereading the project", async () => {
+  let writes = 0;
+  const f = await fixture(`/miniapp/projects?owner=${sa}&project=${pid}`, async request => {
+    if (request.method !== "PATCH") return normal(request);
+    writes++;
+    return writes === 1
+      ? Response.json({error:{code:"invalid_input",message:"欄位無效",retrySameRequest:false}}, {status:400})
+      : Response.json(project);
+  });
+  try {
+    await f.click("儲存內容");
+    assert.match(document.body.textContent!, /欄位無效/);
+    assert.equal(document.querySelector<HTMLInputElement>('input[maxlength="120"]')!.matches(":disabled"), false);
+    await f.click("儲存內容");
+    assert.equal(writes, 2);
+  } finally { await f.dispose(); }
+});

@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useImperativeHandle, type Ref, useRef, useState, type FormEvent } from "react";
 import { ChevronRight } from "lucide-react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
 import { isTemporaryReadError, rejectedAttempt, useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
+import { useDiscardChanges } from "@/shared/useDiscardChanges";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { PagePanel } from "@/shared/PagePanel";
 import { FormField } from "@/shared/FormField";
@@ -21,7 +22,12 @@ import { Item, ItemGroup } from "@/shared/ui/item";
 type Project = components["schemas"]["Project"];
 type Creation = components["schemas"]["OwnerProjectCreation"];
 
-export function View({ ownerId, projectId, initialSource, copyFrom, destinations, onCopy, onSelect, onBlocked, canWrite }: { ownerId: string; projectId: string; initialSource: string; copyFrom?: Creation["copyFrom"]; destinations: {id:string;name:string}[]; onCopy:(destination:string)=>void; onSelect: (id: string) => void; onBlocked: (value: boolean) => void; canWrite: () => boolean }) {
+export type EditorNavigation = {
+  navigate: (action: () => void) => void;
+  allowHistoryChange: () => boolean;
+};
+
+export function View({ ref, ownerId, projectId, initialSource, copyFrom, destinations, onCopy, onSelect, onBlocked, canWrite }: { ref?: Ref<EditorNavigation>; ownerId: string; projectId: string; initialSource: string; copyFrom?: Creation["copyFrom"]; destinations: {id:string;name:string}[]; onCopy:(destination:string)=>void; onSelect: (id: string) => void; onBlocked: (value: boolean) => void; canWrite: () => boolean }) {
   const { user, request } = useSession();
   const { run: readRun, cancel: cancelRead } = useLatestRequest();
   const detailRequest = useLatestRequest(), write = useLatestRequest();
@@ -34,7 +40,9 @@ export function View({ ownerId, projectId, initialSource, copyFrom, destinations
   const selected = detail?.id === projectId ? detail : null;
   const [title, setTitle] = useState(""), [body, setBody] = useState("");
   const [settingsDraft, setSettingsDraft] = useState<Project["settings"]>();
-  const [sourceRepositoryId, setSourceRepositoryId] = useState("");
+  const [prefilledSource, setPrefilledSource] = useState("");
+  const [chosenSource, setChosenSource] = useState<string>();
+  const sourceRepositoryId = chosenSource ?? prefilledSource;
   const [busy, setBusy] = useState(false), [detailBusy, setDetailBusy] = useState(false);
   const [uncertain, setUncertain] = useState(false), [needsRefresh, setNeedsRefresh] = useState(false);
   const [status, setStatus] = useState("");
@@ -42,15 +50,22 @@ export function View({ ownerId, projectId, initialSource, copyFrom, destinations
   const [referencesBlocked, setReferencesBlocked] = useState(false);
   const referenceBlock = useCallback((value: boolean) => { referenceLock.current = value; setReferencesBlocked(value); onBlocked(value || lock.current || unknown.current); }, [onBlocked]);
   const block = useCallback((value: boolean) => { unknown.current = value; onBlocked(value || referenceLock.current); }, [onBlocked]);
+  const editorHeading = useRef<HTMLSpanElement>(null);
+  const dirty = mode === "create" ? !!(title || body || sourceRepositoryId !== prefilledSource) :
+    !!selected && (!!settingsDraft || title !== selected.title || body !== selected.body);
+  const discard = useDiscardChanges(dirty, () => editorHeading.current?.focus());
+  useImperativeHandle(ref, () => ({
+    navigate: discard.navigate,
+    allowHistoryChange: () => !discard.isConfirming() && (!dirty || window.confirm("放棄未儲存的修改？")),
+  }));
   useEffect(() => { navigation.current = false; });
   useEffect(() => () => onBlocked(false), [onBlocked]);
   useEffect(() => {
-    if (!busy && !uncertain && !referencesBlocked) return;
+    if (!dirty && !busy && !uncertain && !referencesBlocked) return;
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
     window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn);
-  }, [busy, uncertain, referencesBlocked]);
+  }, [dirty, busy, uncertain, referencesBlocked]);
   const attempt = useRef<{ key: string; body: Creation } | null>(null);
-  const editorHeading = useRef<HTMLSpanElement>(null);
   const focusOnOpen = useRef(false);
   useEffect(() => {
     if (mode && focusOnOpen.current && editorHeading.current) {
@@ -103,7 +118,7 @@ export function View({ ownerId, projectId, initialSource, copyFrom, destinations
   useEffect(() => {
     detailRequest.cancel(); write.cancel(); lock.current = false; block(false);
     setBusy(false); setDetailBusy(false); setSelected(null); setMode(null); setUncertain(false); setNeedsRefresh(false); setStatus(""); attempt.current = null;
-    setSourceRepositoryId("");
+    setPrefilledSource(""); setChosenSource(undefined);
     if (projectId === "new") { setMode("create"); setTitle(""); setBody(""); }
     else if (projectId) {
       if (/^[0-9a-f]{32}$/.test(projectId)) open(projectId);
@@ -117,14 +132,15 @@ export function View({ ownerId, projectId, initialSource, copyFrom, destinations
       editorHeading.current?.focus();
       return;
     }
-    focusOnOpen.current = true;
-    navigation.current = true;
-    onSelect("new"); detailRequest.cancel(); setDetailBusy(false); setSelected(null); setMode("create");
-    setTitle(""); setBody(""); setUncertain(false); setNeedsRefresh(false); setStatus(""); attempt.current = null;
+    discard.navigate(() => {
+      focusOnOpen.current = true;
+      navigation.current = true;
+      onSelect("new");
+    });
   }
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (!user || lock.current || referenceLock.current || navigation.current || needsRefresh || !canWrite()) return;
+    if (discard.isConfirming() || !user || lock.current || referenceLock.current || navigation.current || needsRefresh || !canWrite()) return;
     if (mode === "detail") { if (selected) save(); return; }
     const content = { title: title.trim(), body: body.trim(), defaultRepositoryId: copyFrom ? undefined : sourceRepositoryId || undefined, copyFrom };
     if (!content.title) { setStatus("請填寫專案標題。"); return; }
@@ -139,8 +155,11 @@ export function View({ ownerId, projectId, initialSource, copyFrom, destinations
       (item) => { lock.current = false; setBusy(false); show(item); onSelect(item.id); setStatus("已建立專案。"); load(); },
       (error) => {
         lock.current = false; setBusy(false);
-        if (!wasUnknown && rejectedAttempt(error)) { setUncertain(false); block(false); }
-        setStatus(errorMessage(error) + " 結果未確認時請沿用原內容重試，或先查詢專案；重新開頁前請先確認紀錄。");
+        if (!wasUnknown && rejectedAttempt(error)) {
+          setUncertain(false); block(false); setStatus(errorMessage(error));
+        } else {
+          setStatus(errorMessage(error) + " 結果未確認，請沿用原內容重試。");
+        }
       },
     );
   }
@@ -154,8 +173,12 @@ export function View({ ownerId, projectId, initialSource, copyFrom, destinations
       }), { signal }),
       (item) => { lock.current = false; setBusy(false); show(item); setStatus("已更新專案。"); load(); },
       (error) => {
-        lock.current = false; setBusy(false); setNeedsRefresh(true);
+        lock.current = false; setBusy(false);
         const rejected = rejectedAttempt(error, ["version_conflict", "conflict"]);
+        if (rejected && (error as { code?: string })?.code === "invalid_input") {
+          block(false); setStatus(errorMessage(error)); return;
+        }
+        setNeedsRefresh(true);
         if (rejected) block(false); else { block(true); setUncertain(true); }
         setStatus(errorMessage(error) + " 請重新讀取專案以確認更新結果，再修改。");
       },
@@ -178,9 +201,11 @@ export function View({ ownerId, projectId, initialSource, copyFrom, destinations
               onClick={() => {
                 if (lock.current || unknown.current || referenceLock.current || !canWrite()) return;
                 if (projectId === item.id) { editorHeading.current?.focus(); return; }
-                focusOnOpen.current = true;
-                navigation.current = true;
-                onSelect(item.id);
+                discard.navigate(() => {
+                  focusOnOpen.current = true;
+                  navigation.current = true;
+                  onSelect(item.id);
+                });
               }}>
               <span className="min-w-0 font-medium [overflow-wrap:anywhere]">{item.title}</span>
               <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -195,11 +220,11 @@ export function View({ ownerId, projectId, initialSource, copyFrom, destinations
       <Status role="status">{status}</Status>
       {mode === "detail" && /^[a-f0-9]{32}$/.test(projectId) && <div className="flex flex-wrap items-center gap-2">
 
-        {selected && copyDestinations.length > 0 && <FormField className="min-w-0 max-w-full" labelClassName="[&_[data-slot=native-select-wrapper]]:max-w-full">複製到另一個擁有者<NativeSelect value="" disabled={busy || detailBusy || uncertain || referencesBlocked} onChange={event => { if(event.target.value) onCopy(event.target.value); }}>
+        {selected && copyDestinations.length > 0 && <FormField className="min-w-0 max-w-full" labelClassName="[&_[data-slot=native-select-wrapper]]:max-w-full">複製到另一個擁有者<NativeSelect value="" disabled={busy || detailBusy || uncertain || referencesBlocked} onChange={event => { const destination = event.target.value; if (destination) discard.navigate(() => onCopy(destination)); }}>
           <NativeSelectOption value="">選擇副本目的地</NativeSelectOption>
           {copyDestinations.map(owner => <NativeSelectOption key={owner.id} value={owner.id}>{owner.name}</NativeSelectOption>)}
         </NativeSelect></FormField>}
-        <Button variant="outline" disabled={busy || detailBusy || referencesBlocked} onClick={() => open(projectId)}>重新讀取專案</Button>
+        <Button variant="outline" disabled={busy || detailBusy || referencesBlocked} onClick={() => needsRefresh ? open(projectId) : discard.navigate(() => open(projectId))}>重新讀取專案</Button>
       </div>}
       {(mode === "create" || selected) && <form onSubmit={submit}>
         <FieldGroup>
@@ -211,7 +236,7 @@ export function View({ ownerId, projectId, initialSource, copyFrom, destinations
             </Field>
             {selected && <SettingsEditor editable={canEdit} value={settingsDraft ?? selected.settings ?? {fields:[], views:[]}} onChange={setSettingsDraft} />}
           </FieldSet>
-          {mode === "create" && !copyFrom && <SourcePicker key={ownerId} ownerId={ownerId} initialSource={initialSource} value={sourceRepositoryId} onChange={setSourceRepositoryId} disabled={busy || uncertain} />}
+          {mode === "create" && !copyFrom && <SourcePicker key={ownerId} ownerId={ownerId} initialSource={initialSource} value={sourceRepositoryId} onPrefill={setPrefilledSource} onChange={setChosenSource} disabled={busy || uncertain} />}
 
           {(mode === "create" || canEdit) && <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={busy || needsRefresh || referencesBlocked}>{mode === "create" ? uncertain ? "重試原建立請求" : "建立專案" : "儲存內容"}</Button>
@@ -219,6 +244,7 @@ export function View({ ownerId, projectId, initialSource, copyFrom, destinations
         </FieldGroup>
       </form>}
     </PagePanel>}
-    {selected && <Items key={selected.id+":"+selected.version} ownerId={ownerId} sourceRepositoryId={selected.defaultRepositoryId ?? ""} project={selected} disabled={busy||detailBusy||needsRefresh||!!settingsDraft||title!==selected.title||body!==selected.body} canWrite={() => !navigation.current && !lock.current && !unknown.current && !detailBusy && !needsRefresh && title === selected.title && body === selected.body && canWrite()} onBlocked={referenceBlock} onChange={(item)=>{show(item);load();}} onRefresh={()=>open(selected.id)} />}
+    {selected && <Items key={selected.id+":"+selected.version} ownerId={ownerId} sourceRepositoryId={selected.defaultRepositoryId ?? ""} project={selected} disabled={busy||detailBusy||needsRefresh||dirty} canWrite={() => !navigation.current && !lock.current && !unknown.current && !detailBusy && !needsRefresh && !dirty && !discard.isConfirming() && canWrite()} onBlocked={referenceBlock} onChange={(item)=>{show(item);load();}} onRefresh={()=>open(selected.id)} />}
+    {discard.dialog}
   </div>;
 }

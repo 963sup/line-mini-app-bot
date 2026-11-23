@@ -10,8 +10,8 @@ import { Button } from "@/shared/ui/button";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 
 type Repository = components["schemas"]["Repository"];
-export function SourcePicker({ ownerId, initialSource, value, onChange, disabled }: {
-  ownerId: string; initialSource: string; value: string; onChange: (id: string) => void; disabled: boolean;
+export function SourcePicker({ ownerId, initialSource, value, onChange, onPrefill, disabled }: {
+  ownerId: string; initialSource: string; value: string; onPrefill?: (id: string) => void; onChange: (id: string) => void; disabled: boolean;
 }) {
   const { request, user } = useSession();
   const list = useLatestRequest(), detail = useLatestRequest();
@@ -28,10 +28,14 @@ export function SourcePicker({ ownerId, initialSource, value, onChange, disabled
       setCursor(page.nextCursor); setBusy(false);
     }, error => {
       if (isTemporaryReadError(error)) setCursor(next);
-      else { setItems([]); detail.cancel(); }
+      else {
+        setItems([]); detail.cancel();
+        onChange("");
+        onPrefill?.("");
+      }
       setBusy(false); setListError(errorMessage(error));
     });
-  }, [user, ownerId, request, list.run, detail.cancel]);
+  }, [user, ownerId, request, list.run, detail.cancel, onPrefill, onChange]);
   useEffect(() => { load(); return list.cancel; }, [load, list.cancel]);
   useEffect(() => {
     if (!user || !initialSource || !/^[0-9a-f]{32}$/.test(initialSource)) return;
@@ -40,10 +44,10 @@ export function SourcePicker({ ownerId, initialSource, value, onChange, disabled
     }), { signal }), item => {
       if (ownerId && item.ownerId !== ownerId) { setStatus("來源擁有者不符或無法讀取。"); return; }
       setItems(previous => [...new Map([...previous, item].map(value => [value.id, value])).values()]);
-      onChange(item.id);
+      (onPrefill ?? onChange)(item.id);
     }, error => setStatus(errorMessage(error)));
     return detail.cancel;
-  }, [user, initialSource, ownerId, request, detail.run, detail.cancel, onChange]);
+  }, [user, initialSource, ownerId, request, detail.run, detail.cancel, onPrefill, onChange]);
   return <>
     <FormField>來源儲存庫（選填）<NativeSelect value={value} disabled={disabled || busy || !items.length} onChange={event => onChange(event.target.value)}>
       <NativeSelectOption value="">不指定來源儲存庫</NativeSelectOption>

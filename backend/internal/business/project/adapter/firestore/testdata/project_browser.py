@@ -28,6 +28,20 @@ with sync_playwright() as playwright:
     field = page.get_by_label
     page.goto(base + "/miniapp/projects")
     button("新增專案").click()
+    field("標題", exact=True).fill("Unsaved project")
+    draft_url = page.url
+    page.once("dialog", lambda dialog: dialog.dismiss())
+    with page.expect_event("dialog"):
+        page.evaluate("history.back()")
+    expect(page).to_have_url(draft_url)
+    expect(field("標題", exact=True)).to_have_value("Unsaved project")
+    page.once("dialog", lambda dialog: dialog.accept())
+    with page.expect_event("dialog"):
+        page.evaluate("history.back()")
+    expect(button("新增專案")).to_be_visible()
+    page.evaluate("history.forward()")
+    expect(page).to_have_url(draft_url)
+    expect(field("標題", exact=True)).to_have_value("")
     field("標題", exact=True).fill("Maintenance")
     button("建立專案").click()
     button("新增欄位").click()
