@@ -447,7 +447,11 @@ func TestCopyPersonalProjectToOrganization(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	t.Cleanup(func() {
+		if err := client.Close(); err != nil {
+			t.Errorf("close Firestore client: %v", err)
+		}
+	})
 	store := &projectDB.Store{Client: client, ChannelID: "copy-" + strconv.FormatInt(time.Now().UnixNano(), 10)}
 	root := client.Collection("channels").Doc(store.ChannelID)
 	actor := "U" + strings.Repeat("a", 32)

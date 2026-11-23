@@ -29,7 +29,7 @@ func TestProjectSettingsBrowserRoundTrip(t *testing.T) {
 		t.Skip("set MINIAPP_BROWSER_EXPORT to the built miniapp out directory")
 	}
 	host, _, err := net.SplitHostPort(os.Getenv("FIRESTORE_EMULATOR_HOST"))
-	if err != nil || !(host == "localhost" || net.ParseIP(host).IsLoopback()) {
+	if err != nil || host != "localhost" && !net.ParseIP(host).IsLoopback() {
 		t.Fatal("requires a loopback Firestore emulator")
 	}
 	if _, err := os.Stat(filepath.Join(out, "miniapp", "projects.html")); err != nil {
@@ -40,7 +40,11 @@ func TestProjectSettingsBrowserRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	t.Cleanup(func() {
+		if err := client.Close(); err != nil {
+			t.Errorf("close Firestore client: %v", err)
+		}
+	})
 	channel := uuid.NewString()
 	actor := "U" + strings.Repeat("a", 32)
 	orgs := orgdb.Store{DB: client, Channel: channel}

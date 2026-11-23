@@ -124,7 +124,7 @@ func (s *Service) Create(ctx context.Context, actor, rid, key string, c projectD
 		return projectDomainEntity.Project{}, e
 	}
 	if c.CopyOwnerID != "" || c.CopyProjectID != "" {
-		if r.Legacy || c.SourceRepositoryID != "" || !projectDomainEntity.ValidID(c.CopyProjectID) || !(identity.IsUserOwnerID(c.CopyOwnerID) || projectDomainEntity.IsOrganizationOwner(c.CopyOwnerID)) {
+		if r.Legacy || c.SourceRepositoryID != "" || !projectDomainEntity.ValidID(c.CopyProjectID) || !identity.IsUserOwnerID(c.CopyOwnerID) && !projectDomainEntity.IsOrganizationOwner(c.CopyOwnerID) {
 			return projectDomainEntity.Project{}, projectDomainEntity.ErrInput
 		}
 		if _, err := s.resolveProjectScope(ctx, actor, c.CopyOwnerID); err != nil {

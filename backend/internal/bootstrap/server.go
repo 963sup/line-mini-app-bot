@@ -3,7 +3,6 @@ package bootstrap
 import (
 	"context"
 	"errors"
-	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	"log/slog"
 	"net"
 	"net/http"
@@ -11,6 +10,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 
 	"cloud.google.com/go/firestore"
 
