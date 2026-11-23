@@ -52,7 +52,7 @@ test("children lazy load only expanded parent, recover read errors, native trigg
     assert.equal(reads.length,0);const trigger=document.querySelector<HTMLButtonElement>('[aria-label="子物件：測試物件"]')!;
     trigger.focus();assert.equal(document.activeElement,trigger);assert.equal(trigger.tagName,"BUTTON");assert.equal(trigger.getAttribute("aria-expanded"),"false");
     await f.click("子物件：測試物件");assert.equal(reads.length,1);assert.match(document.body.textContent!,/讀取失敗/);assert.equal(trigger.getAttribute("aria-expanded"),"true");assert.ok(trigger.getAttribute("aria-controls"));
-    await f.click("重新讀取子物件清單");assert.match(document.body.textContent!,/測試工序/);assert.equal(reads.length,2);assert.ok(reads.every(path=>path.includes(oid)));
+    await f.click("重試讀取");assert.match(document.body.textContent!,/測試工序/);assert.equal(document.querySelector('[aria-label="子物件"]')!.textContent?.includes("重試讀取"), false);assert.equal(reads.length,2);assert.ok(reads.every(path=>path.includes(oid)));
     assert.equal(document.querySelectorAll('button button').length,0);
     await f.click("子物件：測試物件");assert.equal(document.querySelector('[aria-label="子物件"]'),null);
   }finally{await f.dispose();}
@@ -69,7 +69,7 @@ test("unknown child create freezes exact identity, blocks parent navigation and 
     return Response.json({items:[resource(),resource({id:other,name:"另一父物件"})],nextCursor:""});
   });
   try{
-    await f.click("子物件：測試物件");await f.click("新增子物件");await f.fill("子物件名稱","測試工序");await f.fill("子物件數量","9007199254740993.123456");await f.fill("子物件單位","M2");await f.click("建立子物件");
+    await f.click("子物件：測試物件");await f.click("在「測試物件」下新增子物件");await f.fill("子物件名稱","測試工序");await f.fill("子物件數量","9007199254740993.123456");await f.fill("子物件單位","M2");await f.click("建立子物件");
     assert.equal(posts.length,1);for(const label of ['子物件：測試物件','子物件：另一父物件','另一父物件'])assert.equal(document.querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!.disabled,true);
     assert.equal([...document.querySelectorAll<HTMLButtonElement>('button')].find(button=>button.textContent==='新增物件')!.disabled,true);
     await f.click("子物件：測試物件");assert.ok(document.querySelector('[aria-label="子物件"]'));
@@ -88,7 +88,7 @@ test("unknown then forbidden preserves original child create retry identity",asy
   if(request.method==='POST'){attempts.push({key:request.headers.get('Idempotency-Key'),body:await request.json()});if(attempts.length===1)throw new Error('unknown');if(attempts.length===2)return Response.json({error:{code:'forbidden',message:'forbidden'}},{status:403});return Response.json(child());}
   return Response.json({items:new URL(request.url).searchParams.has("parentId")?[]:[resource()],nextCursor:""});
  });
- try{await f.click('子物件：測試物件');await f.click('新增子物件');await f.fill('子物件名稱','原始內容');await f.click('建立子物件');await f.click('重試原子物件建立請求');assert.equal(document.querySelector<HTMLButtonElement>('[aria-label="子物件：測試物件"]')!.disabled,true);await f.click('重試原子物件建立請求');assert.equal(attempts.length,3);assert.deepEqual(attempts[0],attempts[1]);assert.deepEqual(attempts[0],attempts[2]);}finally{await f.dispose();}
+ try{await f.click('子物件：測試物件');await f.click('在「測試物件」下新增子物件');await f.fill('子物件名稱','原始內容');await f.click('建立子物件');await f.click('重試原子物件建立請求');assert.equal(document.querySelector<HTMLButtonElement>('[aria-label="子物件：測試物件"]')!.disabled,true);await f.click('重試原子物件建立請求');assert.equal(attempts.length,3);assert.deepEqual(attempts[0],attempts[1]);assert.deepEqual(attempts[0],attempts[2]);}finally{await f.dispose();}
 });
 
 test("child independent totals, exact CQ validation, nonwork N/A and PATCH version recovery",async()=>{
@@ -124,7 +124,7 @@ for(const first of ['child','parent'])test(`child write and parent navigation ha
   return Response.json({items:new URL(request.url).searchParams.has("parentId")?[]:[resource()],nextCursor:""});
  },true);
  try{
-  await f.click('物件');await f.click('子物件：測試物件');await f.click('新增子物件');await f.fill('子物件名稱','同步子工序');const form=document.querySelector('[aria-label="子物件"] form')!;const tab=document.querySelector<HTMLButtonElement>('[aria-label="問題"]')!;
+  await f.click('物件');await f.click('子物件：測試物件');await f.click('在「測試物件」下新增子物件');await f.fill('子物件名稱','同步子工序');const form=document.querySelector('[aria-label="子物件"] form')!;const tab=document.querySelector<HTMLButtonElement>('[aria-label="問題"]')!;
   await act(async()=>{if(first==='child'){form.dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));pressButton(tab);}else{pressButton(tab);form.dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));}await flush();});
   assert.equal(posts,first==='child'?1:0,'navigation confirmation protects the child draft');if(first==='parent')assert.ok(document.querySelector('[role=alertdialog]'));if(first==='child'){assert.equal(tab.disabled,true);assert.match(document.body.textContent!,/重試原子物件建立請求/);}
  }finally{await f.dispose();}
@@ -161,7 +161,7 @@ test("child name opens a fresh inline editor; failure retains draft and cancel d
     const row = document.querySelector('[aria-label="測試工序"]')!.closest('[data-slot="item"]')!;
     assert.ok(row.querySelector("form")); assert.equal(reads, 1);
     await f.fill("子物件名稱", "尚未儲存");
-    await f.click("新增子物件"); await f.click("繼續編輯"); await f.click("取消"); await f.click("繼續編輯");
+    await f.click("在「測試物件」下新增子物件"); await f.click("繼續編輯"); await f.click("取消"); await f.click("繼續編輯");
     assert.equal(writes, 0); assert.equal(row.querySelector<HTMLInputElement>("input")!.value,"尚未儲存");
     await f.click("儲存子物件"); assert.equal(writes, 1);
     assert.equal(row.querySelector<HTMLInputElement>("input")!.value,"尚未儲存");
@@ -221,5 +221,25 @@ test("fresh child detail controls edit permission and progress reset", async () 
     await act(async()=>{form.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true})); await flush();});
     assert.equal(writes,0);
     await f.click("關閉");
+  } finally { await f.dispose(); }
+});
+
+test("expanding a child reads its own branch and collapsing hides the grandchild", async () => {
+  const parents: string[] = [];
+  const f = await fixture(async request => {
+    const parent = new URL(request.url).searchParams.get("parentId");
+    if (parent) parents.push(parent);
+    const items = parent === sid ? [child({ id: other, parentId: sid, name: "導通測試" })] : parent === oid ? [child()] : [resource()];
+    return Response.json({ items, nextCursor: "" });
+  });
+  try {
+    await f.click("子物件：測試物件");
+    assert.deepEqual(parents, [oid]);
+    await f.click("子物件：測試工序");
+    assert.deepEqual(parents, [oid, sid]);
+    assert.ok(document.querySelector('[aria-label="導通測試"]'));
+    await f.click("子物件：測試工序");
+    assert.equal(document.querySelector('[aria-label="導通測試"]'), null);
+    assert.ok(document.querySelector('[aria-label="測試工序"]'));
   } finally { await f.dispose(); }
 });

@@ -60,10 +60,12 @@ test("template creation and application preserve original retries and return the
   }, true);
   try {
     await f.click("新增範本"); await f.click("從空白建立");
-    await f.fill("物件名稱", "工程"); await f.click("新增節點"); await f.fill("節點 2 名稱", "工序");
+    await f.fill("物件名稱", "工程"); await f.click("在工程下新增子項"); await f.fill("子項名稱", "工序"); await f.click("在工序下新增子項"); await act(async () => { const inputs = document.querySelectorAll("textarea"); const last = inputs[inputs.length - 1]; Object.getOwnPropertyDescriptor(Object.getPrototypeOf(last), "value")!.set!.call(last, "檢查"); last.dispatchEvent(new window.Event("input", { bubbles: true })); });
     await f.click("建立範本");
     assert.equal([...document.querySelectorAll<HTMLInputElement>('[aria-label="物件範本操作"] input')].every(n => n.matches(":disabled")), true);
     await f.click("重試原範本請求");
+    const { nodes } = creates[0].body as { nodes: typeof snapshot.nodes };
+    assert.equal(nodes[2].parentId, nodes[1].id);
     assert.equal(creates.length, 2); assert.deepEqual(creates[0], creates[1]);
     await f.click("使用範本");
     assert.equal(applies.length, 0);
@@ -116,8 +118,7 @@ test("personal library uses the existing editor and submits only after confirmat
     await f.click("新增範本"); await f.click("從空白建立");
     assert.doesNotMatch(document.body.textContent!, /根物件名稱|範本名稱/);
     await f.fill("物件名稱", "工程");
-    await f.click("工項設定");
-    await f.fill("節點 1 單位", "米");
+    await f.fill("單位", "米");
     await f.click("建立範本");
     await f.click("使用範本");
     assert.equal(calls.length, 1);
@@ -309,7 +310,7 @@ test("edit a saved personal template and apply its next version", async () => {
     return Response.json({...instance, templateVersion: 2});
   }, true);
   try {
-    await f.select(tid); await f.click("編輯範本");
+    await f.click(snapshot.name + "v1"); await f.click("編輯範本");
     await f.fill("物件名稱", "新版"); await f.click("儲存為 v2");
     assert.match(document.body.textContent!, /新版 · v2/);
     await f.click("使用範本"); await f.select(rid, "目標儲存庫"); await f.click("新版"); await f.fill("物件名稱", "A 棟"); await f.click("建立 2 個物件");

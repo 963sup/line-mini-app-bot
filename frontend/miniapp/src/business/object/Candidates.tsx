@@ -58,8 +58,7 @@ export function Candidates({ repositoryId, disabled, created, choose }: {
     }, error => { locked.current = false; setBusy(false); setMessage(errorMessage(error)); });
   }
 
-  return <details className="my-3">
-    <summary>從文件辨識物件</summary>
+  return <section aria-label="文件辨識" className="grid gap-3">
     <p>辨識時會將原檔送至 OpenAI，格式依 Responses API 支援範圍判定，每檔最多 8 MiB。試算表每張工作表最多處理前 1,000 列。<a href="https://developers.openai.com/api/docs/guides/file-inputs" target="_blank" rel="noreferrer">官方文件格式與限制</a></p>
     <label>來源文件<Input type="file" disabled={busy} onChange={e => {
       setFile(e.target.files?.[0]); setResult(undefined); setMessage("");
@@ -78,5 +77,5 @@ export function Candidates({ repositoryId, disabled, created, choose }: {
         </Button>}
       </article>;
     })}
-  </details>;
+  </section>;
 }

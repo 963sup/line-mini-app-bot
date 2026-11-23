@@ -1,11 +1,11 @@
 import { Candidates, type Selection } from "./Candidates";
 import { isPositiveQuantity, isValidCompletedQuantity } from "@/business/object/quantity";
 import React, { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronDownIcon, ChevronRightIcon, Plus } from "lucide-react";
 import { useRepositoryGuard } from "../repository/NavigationGuard";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { useDiscardChanges } from "@/shared/useDiscardChanges";
-import { View as ObjectChildren } from "./Children";
+import { AddChildButton, useChildCreation, View as ObjectChildren } from "./Children";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/shared/ui/collapsible";
 import { useSpaces } from "../repository/useSpaces";
 import type { components } from "@repo/api-client";
@@ -19,11 +19,10 @@ import { Textarea } from "@/shared/ui/textarea";
 import { FieldError, FieldGroup, FieldSet } from "@/shared/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
 import { Item, ItemGroup, ItemContent, ItemTitle, ItemActions, ItemFooter } from "@/shared/ui/item";
-import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
 
 type Resource = components["schemas"]["Object"];
 type Creation = components["schemas"]["ObjectCreation"];
-type Props = { repositoryId: string; initialObjectId?: string };
+type Props = { repositoryId: string; initialObjectId?: string; documentTool?: boolean };
 const states = { not_started: "未開始", in_progress: "進行中", completed: "已完成" };
 const empty: Creation = { name: "" };
 const typeLabel = (type: string) => !type ? "尚未分類" : type === "work" ? "施作" : type === "non_work" ? "非施作" : `${type}（待確認）`;
@@ -38,7 +37,7 @@ export function View(props: Props) {
   return <Content key={`${props.repositoryId}:${epoch}:${user?.userId || ""}`} {...props} />;
 }
 
-function Content({ repositoryId, initialObjectId }: Props) {
+function Content({ repositoryId, initialObjectId, documentTool }: Props) {
   const { user, request } = useSession();
   const read = useLatestRequest(), detail = useLatestRequest(), write = useLatestRequest();
   const [items, setItems] = useState<Resource[]>([]), [cursor, setCursor] = useState("");
@@ -62,6 +61,7 @@ function Content({ repositoryId, initialObjectId }: Props) {
   const [busy, setBusy] = useState(false), [detailBusy, setDetailBusy] = useState(false), [uncertain, setUncertain] = useState(false), [needsRefresh, setNeedsRefresh] = useState(false), [status, setStatus] = useState("");
   useEffect(() => { repositoryGuard.block(busy || uncertain || needsRefresh); }, [busy, uncertain, needsRefresh]);
   const [expanded, setExpanded] = useState("");
+  const childCreation = useChildCreation(setExpanded);
   const [subBlocked, setSubBlocked] = useState(false);
   const subLock = useRef(false);
   const subBlock = useCallback((value: boolean) => { subLock.current = value; setSubBlocked(value); }, []);
@@ -80,7 +80,7 @@ function Content({ repositoryId, initialObjectId }: Props) {
       setCursor(page.nextCursor); setListBusy(false); setLoaded(true); setListStatus("");
     }, error => { setItems([]); setListBusy(false); setListStatus(errorMessage(error)); });
   }, [user, request, repositoryId, read.run]);
-  useEffect(() => { load(); return read.cancel; }, [load, read.cancel]);
+  useEffect(() => { if (!documentTool) load(); return read.cancel; }, [documentTool, load, read.cancel]);
   function show(item: Resource) {
     setInvalidField(null);
     setSelected(item); setActiveId(item.id); baseline.current = { name: item.name, description: item.description, type: item.type, quantity: item.quantity, unit: item.unit,
@@ -228,24 +228,27 @@ function Content({ repositoryId, initialObjectId }: Props) {
       </FieldGroup></form>}
       <Button type="button" variant="outline" disabled={busy || uncertain || needsRefresh || subBlocked} onClick={close}>{canEdit || mode === "create" ? "取消" : "關閉"}</Button>
     </section>;
-  return <>
-    <PagePanel heading="物件" description="先記下物件名稱，其他資料確定後再補。成員可新增，僅建立者可編輯。" className="w-full min-w-0">
-      <div className="mb-4 flex flex-wrap gap-2">
-        <Button disabled={!user || busy || uncertain || needsRefresh || subBlocked} onClick={event => openCreateForm(event.currentTarget)}>新增物件</Button>
-      </div>
+  if (documentTool) return <>
       <Candidates repositoryId={repositoryId} disabled={!user || !!mode || busy || uncertain || needsRefresh || subBlocked} created={createdCandidates} choose={(selection, trigger) => openCreateForm(trigger, selection)} />
+    {mode === "create" && editor}
+    <ReadFeedback busy={false} message={listStatus} label="" />
+    {discard.dialog}
+  </>;
+  return <>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+
       <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取物件……" onRetry={user && listStatus && !loaded && !busy && !subBlocked && !uncertain && !mode ? () => load() : undefined} />
-      {mode === "create" && <PagePanel heading="新增物件">{editor}</PagePanel>}
       {mode === "detail" && !items.some(item => item.id === activeId) && <PagePanel heading="物件詳情">{editor}</PagePanel>}
-      <ItemGroup className="w-full min-w-0 gap-3">{items.map(item => <Collapsible key={item.id} open={expanded === item.id} onOpenChange={value => {
+      <ItemGroup className="w-full min-w-0 gap-1">{items.map(item => <Collapsible key={item.id} open={expanded === item.id} onOpenChange={value => {
         if (subLock.current || lock.current || uncertain || formNavigation.current || discard.isConfirming()) return;
         formNavigation.current = true; setExpanded(value ? item.id : "");
       }} className="w-full min-w-0">
-        <Item role="listitem" variant="outline" className="w-full min-w-0">
+        <Item role="listitem" className="w-full min-w-0 border-0 px-0 py-1">
           <ItemContent className="w-full min-w-0">
             <ItemTitle className="min-w-0 max-w-full">
               <CollapsibleTrigger asChild><Button variant="ghost" size="icon" disabled={busy || detailBusy || uncertain || needsRefresh || subBlocked} aria-label={`子物件：${item.name}`} title={expanded === item.id ? "收合子物件" : "展開子物件"}>{expanded === item.id ? <ChevronDownIcon aria-hidden="true" /> : <ChevronRightIcon aria-hidden="true" />}</Button></CollapsibleTrigger>
               <Button variant="link" aria-label={item.name} className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || detailBusy || uncertain || needsRefresh || subBlocked} onClick={event => open(item.id, event.currentTarget)}>名稱：{item.name}</Button>
+              {item.canEdit && <AddChildButton name={item.name} disabled={busy || detailBusy || uncertain || needsRefresh || !!mode || (subBlocked && expanded !== item.id)} onClick={trigger => childCreation.add(item.id, trigger)} />}
             </ItemTitle>
             {item.quantity && <p className="whitespace-normal [overflow-wrap:anywhere]">數量：{item.quantity} {item.unit}</p>}
             {item.type && <p className="whitespace-normal [overflow-wrap:anywhere]">類型：{typeLabel(item.type)}</p>}
@@ -257,11 +260,14 @@ function Content({ repositoryId, initialObjectId }: Props) {
           </ItemActions>
           {mode === "detail" && activeId === item.id && <ItemFooter>{editor}</ItemFooter>}
         </Item>
-        <CollapsibleContent className="min-w-0 ps-6 pt-3 sm:ps-10">{expanded === item.id && <ObjectChildren repositoryId={repositoryId} objectId={item.id} canEdit={item.canEdit} parentEditing={!!mode} onEdit={() => { opener.current = null; clearEditor(); }} onBlocked={subBlock} canWrite={canSubWrite}/>}</CollapsibleContent>
+        <CollapsibleContent className="min-w-0 ps-4 pt-1">{expanded === item.id && <ObjectChildren editorRef={childCreation.editor} repositoryId={repositoryId} objectId={item.id} canEdit={item.canEdit} parentEditing={!!mode} onEdit={() => { opener.current = null; clearEditor(); }} onBlocked={subBlock} canWrite={canSubWrite}/>}</CollapsibleContent>
       </Collapsible>)}</ItemGroup>
-      {loaded && !items.length && <Empty><EmptyHeader><EmptyTitle>尚無物件</EmptyTitle><EmptyDescription>選擇「新增物件」建立第一筆物件。</EmptyDescription></EmptyHeader></Empty>}
       {cursor && <Button variant="outline" disabled={busy || listBusy || subBlocked || !!mode} onClick={() => load(cursor)}>載入更多物件</Button>}
-    </PagePanel>
+      {mode === "create" && <PagePanel heading="新增物件">{editor}</PagePanel>}
+      <Button type="button" variant="ghost" size="icon" className="self-start" title="新增物件" disabled={!user || busy || uncertain || needsRefresh || subBlocked || mode === "create"} onClick={event => openCreateForm(event.currentTarget)}>
+        <Plus aria-hidden="true" /><span className="sr-only">新增物件</span>
+      </Button>
+    </div>
     {discard.dialog}
   </>;
 }

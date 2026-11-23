@@ -62,3 +62,15 @@ func TestMiniAppAttendanceGetsDedicatedPage(t *testing.T) {
 		}
 	}
 }
+
+func TestObjectRecognitionToolRoute(t *testing.T) {
+	mux := http.NewServeMux()
+	if err := Register(mux); err != nil {
+		t.Fatal(err)
+	}
+	response := httptest.NewRecorder()
+	mux.ServeHTTP(response, httptest.NewRequest("GET", "/miniapp/object-recognition", nil))
+	if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), `"page":"/miniapp/object-recognition"`) {
+		t.Fatalf("object recognition tool page not served (HTTP %d)", response.Code)
+	}
+}

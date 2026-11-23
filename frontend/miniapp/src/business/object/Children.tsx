@@ -1,5 +1,7 @@
+import { flushSync } from "react-dom";
+import { ChevronDown, ChevronRight, Plus } from "lucide-react";
 import { isPositiveQuantity, isValidCompletedQuantity } from "@/business/object/quantity";
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useImperativeHandle, useEffect, useRef, useState, type Ref, type FormEvent } from "react";
 import { useRepositoryGuard } from "../repository/NavigationGuard";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { useDiscardChanges } from "@/shared/useDiscardChanges";
@@ -18,15 +20,37 @@ type Resource = components["schemas"]["Object"];
 type Creation = { name: string; type: "work" | "non_work"; quantity: string; unit: string; completedQuantity?: string };
 const initial: Creation = { name: "", type: "work", quantity: "1", unit: "SET", completedQuantity: "0" };
 const states = { not_started: "未開始", in_progress: "進行中", completed: "已完成" };
-type Props = { repositoryId: string; objectId: string; canEdit: boolean; parentEditing: boolean; onEdit: () => void; onBlocked: (value: boolean) => void; canWrite: () => boolean };
+type BranchEditor = { add: (trigger: HTMLElement) => void };
+
+export function useChildCreation(setExpanded: (id: string) => void) {
+  const editor = useRef<BranchEditor>(null);
+  function add(id: string, trigger: HTMLElement) {
+    // Mount the correct branch before asking its existing editor to open.
+    flushSync(() => setExpanded(id));
+    editor.current?.add(trigger);
+  }
+  return { editor, add };
+}
+
+export function AddChildButton({ name, disabled, onClick }: { name: string; disabled: boolean; onClick: (trigger: HTMLElement) => void }) {
+  const label = `在「${name}」下新增子物件`;
+  return <Button type="button" variant="ghost" size="icon" title={label} aria-label={label} disabled={disabled} onClick={event => onClick(event.currentTarget)}><Plus /></Button>;
+}
+
+type Props = { editorRef: Ref<BranchEditor>; repositoryId: string; objectId: string; canEdit: boolean; parentEditing: boolean; onEdit: () => void; onBlocked: (value: boolean) => void; canWrite: () => boolean };
 
 export function View(props: Props) {
   const { user, epoch } = useSession();
   return <Content key={`${props.repositoryId}:${props.objectId}:${user?.userId}:${epoch}`} {...props} />;
 }
-function Content({ repositoryId, objectId, canEdit, parentEditing, onEdit, onBlocked, canWrite }: Props) {
+function Content({ editorRef, repositoryId, objectId, canEdit, parentEditing, onEdit, onBlocked, canWrite }: Props) {
   const { request } = useSession(), read = useLatestRequest(), write = useLatestRequest();
+  const [expanded, setExpanded] = useState("");
+  const childCreation = useChildCreation(setExpanded);
+  useImperativeHandle(editorRef, () => ({ add(trigger) { if (!branchBlocked) edit(null, trigger); } }));
+  const [branchBlocked, setBranchBlocked] = useState(false);
   const [items, setItems] = useState<Resource[]>([]), [cursor, setCursor] = useState("");
+  const [failedPage, setFailedPage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false), [readStatus, setReadStatus] = useState("");
   const [selected, setSelected] = useState<Resource | null>(null), [editing, setEditing] = useState(false), [content, setContent] = useState<Creation>(initial);
   const [busy, setBusy] = useState(false), [uncertain, setUncertain] = useState(false), [refresh, setRefresh] = useState(false), [status, setStatus] = useState("");
@@ -51,14 +75,14 @@ function Content({ repositoryId, objectId, canEdit, parentEditing, onEdit, onBlo
   const block = (value: boolean) => { repositoryGuard.block(value); unknown.current = value; setUncertain(value); onBlocked(value); };
   useEffect(() => { navigation.current = false; });
   useEffect(() => () => onBlocked(false), [onBlocked]);
-  useEffect(() => { onBlocked(busy || uncertain || dirty); }, [busy, uncertain, dirty, onBlocked]);
+  useEffect(() => { onBlocked(busy || uncertain || dirty || branchBlocked); }, [busy, uncertain, dirty, branchBlocked, onBlocked]);
   const load = useCallback((next = "") => {
     if (lock.current || unknown.current) return;
-    setLoading(true); setReadStatus("");
+    setLoading(true); setFailedPage(null); setReadStatus("");
     void read.run(signal => request((client, s) => client.GET("/api/v1/repositories/{repositoryId}/objects", {signal: s, params: {path: {repositoryId}, query: {parentId: objectId, cursor: next || undefined}}}), {signal}), page => {
       const children = page.items;
       setItems(previous => next ? [...previous, ...children] : children); setCursor(page.nextCursor); setLoading(false); setReadStatus(!next && !page.nextCursor && !children.length ? "尚無子物件。" : "");
-    }, error => { setLoading(false); setReadStatus(errorMessage(error)); });
+    }, error => { setFailedPage(next); setLoading(false); setReadStatus(errorMessage(error)); });
   }, [repositoryId, objectId, request, read.run]);
   useEffect(() => { load(); return read.cancel; }, [load, read.cancel]);
   function close() {
@@ -70,7 +94,8 @@ function Content({ repositoryId, objectId, canEdit, parentEditing, onEdit, onBlo
   function edit(item: Resource | null, trigger: HTMLElement) {
     if (!canEdit || (item && !item.canEdit) || lock.current || unknown.current || !repositoryGuard.canWrite() || !canWrite()) return;
     discard.navigate(() => {
-      opener.current = trigger; onEdit(); read.cancel(); setLoading(false);
+      opener.current = trigger; onEdit();
+      if (item) { read.cancel(); setLoading(false); }
       navigation.current = true; setSelected(item); setEditing(true); setRefresh(false); setStatus(""); pending.current = null;
       baseline.current = item ? {name: item.name, type: item.type === "non_work" ? "non_work" : "work", quantity: item.quantity || "", unit: item.unit || "", completedQuantity: item.completedQuantity} : {...initial};
       setContent(baseline.current);
@@ -120,20 +145,21 @@ function Content({ repositoryId, objectId, canEdit, parentEditing, onEdit, onBlo
       <Button type="button" variant="outline" disabled={busy || uncertain} onClick={close}>{editable ? "取消" : "關閉"}</Button>
     </FieldGroup></form>;
   return <section aria-label="子物件" className="grid min-w-0 gap-3">
-    <p>子物件數量與單位獨立；父物件進度仍由人工維護，不會加總子物件完成數。</p>
-    <ReadFeedback busy={loading} message={readStatus} label="正在讀取子物件……" />
-    <Button variant="outline" disabled={loading || busy || uncertain || editing} onClick={() => load()}>重新讀取子物件清單</Button>
-    <ItemGroup className="min-w-0 gap-3">{items.map(item => <Item role="listitem" variant="outline" key={item.id} className="min-w-0">
+
+    {editing && !selected && editor}
+    <ReadFeedback busy={loading} message={readStatus} label="正在讀取子物件……" onRetry={failedPage !== null && !busy && !uncertain && !editing && !branchBlocked ? () => load(failedPage) : undefined} />
+    <ItemGroup className="min-w-0 gap-1">{items.map(item => <Item role="listitem" key={item.id} className="min-w-0 border-0 px-0 py-1">
       <ItemContent className="min-w-0">
-        <ItemTitle className="min-w-0 max-w-full">{item.canEdit && canEdit ? <Button variant="link" aria-label={item.name} className="h-auto min-w-0 max-w-full whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || uncertain} onClick={event => edit(item, event.currentTarget)}>{item.name}</Button> : item.name}</ItemTitle>
+        <ItemTitle className="min-w-0 max-w-full"><Button type="button" variant="ghost" size="icon" aria-label={`子物件：${item.name}`} aria-expanded={expanded === item.id} disabled={busy || uncertain || editing || parentEditing || branchBlocked} onClick={() => setExpanded(previous => previous === item.id ? "" : item.id)}>{expanded === item.id ? <ChevronDown /> : <ChevronRight />}</Button>{item.canEdit && canEdit ? <Button variant="link" aria-label={item.name} className="h-auto min-w-0 max-w-full whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || uncertain || branchBlocked} onClick={event => edit(item, event.currentTarget)}>{item.name}</Button> : item.name}{canEdit && item.canEdit && <AddChildButton name={item.name} disabled={busy || uncertain || editing || parentEditing || branchBlocked} onClick={trigger => childCreation.add(item.id, trigger)} />}</ItemTitle>
       <p className="whitespace-normal [overflow-wrap:anywhere]">{item.quantity} {item.unit} · {item.type === "work" ? `施作 · ${states[item.status]} · ${item.completedQuantity}/${item.quantity} ${item.unit}` : "非施作 · 狀態與進度不適用"}</p>
       </ItemContent>
-      {item.canEdit && canEdit && <ItemActions><Button variant="outline" aria-label={`編輯子物件：${item.name}`} disabled={busy || uncertain} onClick={event => edit(item, event.currentTarget)}>編輯</Button></ItemActions>}
+      {item.canEdit && canEdit && <ItemActions><Button variant="outline" aria-label={`編輯子物件：${item.name}`} disabled={busy || uncertain || branchBlocked} onClick={event => edit(item, event.currentTarget)}>編輯</Button></ItemActions>}
       {editing && selected?.id === item.id && <ItemFooter>{editor}</ItemFooter>}
+      {expanded === item.id && !editing && !parentEditing && <div className="w-full min-w-0 ps-4">
+        <View editorRef={childCreation.editor} repositoryId={repositoryId} objectId={item.id} canEdit={item.canEdit} parentEditing={false} onEdit={onEdit} onBlocked={setBranchBlocked} canWrite={canWrite} />
+      </div>}
     </Item>)}</ItemGroup>
-    {cursor && <Button disabled={loading || busy || uncertain || editing} onClick={() => load(cursor)}>載入更多子物件</Button>}
-    {canEdit && <Button disabled={busy || uncertain} onClick={event => edit(null, event.currentTarget)}>新增子物件</Button>}
-    {editing && !selected && editor}
+    {cursor && failedPage === null && <Button disabled={loading || busy || uncertain || editing || branchBlocked} onClick={() => load(cursor)}>載入更多子物件</Button>}
     {discard.dialog}
 
   </section>;

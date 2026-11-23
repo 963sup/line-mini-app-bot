@@ -11,7 +11,7 @@ import { View as RepositoryView } from "../src/business/repository/View";
 const rid = "a".repeat(32), other = "b".repeat(32), oid = "c".repeat(32);
 const resource = (overrides = {}) => ({ id: oid, repositoryId: rid, name: "測試物件", description: "完整工作說明", type: "work", completedQuantity: "0", quantity: "11", unit: "SET", status: "not_started", sourceDocument: "sample-contract", sourceRevision: "v0", sourceItemNo: "40", sourcePages: "2-3", materialCode: "sample", canEdit: true, creatorId: "A", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", ...overrides });
 const flush = async () => { for (let i = 0; i < 10; i++) await new Promise<void>(resolve => setImmediate(resolve)); };
-async function fixture(handle: (request: Request, actor: string) => Promise<Response>, integrated = false) {
+async function fixture(handle: (request: Request, actor: string) => Promise<Response>, integrated = false, documentTool = false) {
   document.body.innerHTML = '<div id="root"></div>';
   window.history.replaceState(null, "", integrated ? `/miniapp/repositories?selected=${rid}` : "/miniapp/projects");
   let actor = "A", repository = rid;
@@ -28,7 +28,7 @@ async function fixture(handle: (request: Request, actor: string) => Promise<Resp
     return handle(request, actor);
   };
   const root = createRoot(document.getElementById("root")!);
-  const render = async () => { await act(async () => { root.render(<Shell title="測試" workflow={integrated ? "repositories" : "projects"}>{integrated ? <RepositoryView /> : <Objects repositoryId={repository} />}</Shell>); await flush(); }); };
+  const render = async () => { await act(async () => { root.render(<Shell title="測試" workflow={integrated ? "repositories" : "projects"}>{integrated ? <RepositoryView /> : <Objects repositoryId={repository} documentTool={documentTool} />}</Shell>); await flush(); }); };
   await render();
   return {
     async click(text: string) { await act(async () => { const node = [...document.querySelectorAll<HTMLButtonElement>("button")].find(node => node.textContent === text || node.getAttribute("aria-label") === text); assert.ok(node, `missing ${text}`); pressButton(node); await flush(); }); },
@@ -187,7 +187,7 @@ test("object list displays five labeled lines and omits source item metadata", a
  const f=await fixture(async()=>Response.json({items:[resource({name,type:"Engineering",sourceItemNo:"450",quantity:"9007199254740993.123456"})],nextCursor:""}));
  try {
   const item=document.querySelector('[data-slot="item-group"] [data-slot="item"]')!;
-  assert.equal(item.tagName,"DIV");assert.equal(item.querySelectorAll("button").length,3);assert.equal(item.querySelectorAll("button button").length,0);
+  assert.equal(item.tagName,"DIV");assert.ok(item.querySelector(`[aria-label="在「${name}」下新增子物件"]`));assert.equal(item.querySelectorAll("button button").length,0);
   assert.match(item.textContent!,/9007199254740993\.123456 SET/);
   const lines=[...item.querySelectorAll('[data-slot="item-title"] button[data-variant="link"],p')].map(node=>node.textContent);
   assert.deepEqual(lines,[`名稱：${name}`,"數量：9007199254740993.123456 SET","類型：Engineering（待確認）","狀態：未開始","進度：待補／待確認"]);
@@ -305,7 +305,7 @@ test("document candidates require review and use the object creation form", asyn
     }
     if (request.method === "POST") { writes.push(await request.json()); return Response.json(resource()); }
     return Response.json({items: [], nextCursor: ""});
-  });
+  }, false, true);
   try {
     await act(async () => {
       const input = document.querySelector<HTMLInputElement>('input[type="file"]')!;

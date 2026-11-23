@@ -105,6 +105,7 @@ function NavigationSidebar({ workflow, account, repositoryItem, ...props }: Serv
         <noscript><a href={repositoryItem?.url || "/miniapp/repositories"}>儲存庫（請啟用 JavaScript 載入清單）</a></noscript>
         <NavProjects
           projects={[
+            { name: "從文件辨識物件", url: "/miniapp/object-recognition", icon: FileText, isActive: workflow === "object-recognition" },
             { name: "物件範本", url: "/miniapp/object-templates", icon: Copy, isActive: workflow === "object-templates" },
             { name: "PDF 文字擷取", url: "/miniapp/poppler", icon: FileText, isActive: workflow === "poppler" },
             {
