@@ -12,7 +12,6 @@ import {
 } from "@/shared/ui/combobox";
 import { Field, FieldLabel, FieldLegend, FieldSet } from "@/shared/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
-import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { FormField } from "@/shared/FormField";
 import { Status } from "@/shared/Status";
@@ -37,12 +36,11 @@ const roles = { management: "管理職", control: "管制人員", workers: "施�
 const workDate = () =>
   new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Taipei" }).format(new Date());
 type Option = { id: string; name: string };
-type Target = { type: "repository"; id: string; name: string };
 function Rows({
   title,
   rows,
   change,
-  targets,
+  repository,
   request,
   workOptions,
   onPending,
@@ -50,7 +48,7 @@ function Rows({
   title: string;
   rows: string[];
   change: (v: string[]) => void;
-  targets: Target[];
+  repository: Option;
   request: Request;
   workOptions: WorkOptionsLoader;
   onPending: (id: string, value: boolean) => void;
@@ -58,9 +56,9 @@ function Rows({
   const options = React.useMemo(
     () => [
       { label: "無關聯", value: "" },
-      ...targets.map((t) => ({ label: `儲存庫 · ${t.name}`, value: t.type + t.id })),
+      { label: `儲存庫 · ${repository.name}`, value: "repository" + repository.id },
     ],
-    [targets],
+    [repository.id, repository.name],
   );
   return (
     <div className="grid min-w-0 grid-cols-1 gap-3">
@@ -70,7 +68,7 @@ function Rows({
           id={id}
           index={i}
           options={options}
-          targets={targets}
+          repository={repository}
           request={request}
           workOptions={workOptions}
           onPending={onPending}
@@ -92,7 +90,7 @@ function WorkRow({
   id,
   index: i,
   options,
-  targets,
+  repository,
   request,
   workOptions,
   remove,
@@ -101,7 +99,7 @@ function WorkRow({
   id: string;
   index: number;
   options: { label: string; value: string }[];
-  targets: Target[];
+  repository: Option;
   request: Request;
   workOptions: WorkOptionsLoader;
   remove: () => void;
@@ -115,9 +113,6 @@ function WorkRow({
     setLocked(value);
     onPending(id, value);
   };
-  const repository = targets.find(
-    (t) => t.type === "repository" && t.type + t.id === reference?.value,
-  );
   return (
     <FieldSet className="min-w-0 rounded-lg border p-3">
       <FieldLegend>第 {i + 1} 項</FieldLegend>
@@ -166,7 +161,7 @@ function WorkRow({
           </ComboboxContent>
         </Combobox>
       </Field>
-      {repository && (
+      {reference?.value === "repository" + repository.id && (
         <WorkContext
           key={repository.id}
           id={id}
@@ -273,7 +268,6 @@ function Composer({
   const [date, setDate] = useState(workDate);
   const [today, setToday] = useState(["first"]),
     [tomorrow, setTomorrow] = useState<string[]>([]);
-  const targets: Target[] = [{ type: "repository", id: repository.id, name: repository.name }];
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   const publishAttempt = useRef<{ body: Draft; key: string } | null>(null),
@@ -356,16 +350,13 @@ function Composer({
               .map((s) => s.trim())
               .filter(Boolean);
           const row = (id: string) => {
-            const t = targets.find((t) => t.type + t.id === get(id + "ref"));
+            const name = get(id + "name");
+            if (get(id + "ref") !== "repository" + repository.id) return { name };
             return {
-              name: get(id + "name"),
-              reference: t ? { type: t.type, id: t.id } : undefined,
-              ...(t?.type === "repository"
-                ? {
-                    objectId: get(id + "object") || undefined,
-                    spaceIds: form.getAll(id + "space").map(String),
-                  }
-                : {}),
+              name,
+              reference: { type: "repository" as const, id: repository.id },
+              objectId: get(id + "object") || undefined,
+              spaceIds: form.getAll(id + "space").map(String),
             };
           };
           const body: Draft = {
@@ -427,7 +418,7 @@ function Composer({
               title="今日工作"
               rows={today}
               change={setToday}
-              targets={targets}
+              repository={repository}
               request={request}
               workOptions={workOptions}
               onPending={onPending}
@@ -439,7 +430,7 @@ function Composer({
               title="明日計畫"
               rows={tomorrow}
               change={setTomorrow}
-              targets={targets}
+              repository={repository}
               request={request}
               workOptions={workOptions}
               onPending={onPending}
@@ -527,10 +518,16 @@ export function ComposeView({
     return () => controller.abort();
   }, [request, revision, repositoryId]);
 
+  const noRepositories = !error && repositories?.length === 0;
+
   return (
     <>
-      <PagePanel heading="施工儲存庫">
-        <div className="flex flex-wrap items-center gap-3">
+      <PagePanel heading={noRepositories ? "目前沒有可選擇的施工儲存庫" : "施工儲存庫"}>
+        <div
+          className={
+            noRepositories ? "flex flex-col items-start gap-3" : "flex flex-wrap items-center gap-3"
+          }
+        >
           {error ? (
             <Alert variant="destructive">
               <AlertDescription>
@@ -548,11 +545,7 @@ export function ComposeView({
           ) : !repositories ? (
             <ReadFeedback busy label="正在讀取儲存庫……" />
           ) : !repositories.length ? (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>目前沒有可選擇的儲存庫。</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
+            <p>寫日誌前，需要先有可使用的施工儲存庫。</p>
           ) : repositoryId ? (
             <p>{repositories[0]?.name || repositoryId}</p>
           ) : (
@@ -586,7 +579,7 @@ export function ComposeView({
                 });
             }}
           >
-            取消填寫
+            {noRepositories ? "返回" : "取消填寫"}
           </Button>
           {discard.dialog}
         </div>
