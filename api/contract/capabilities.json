@@ -23,31 +23,31 @@
       "contract": "attendance/records.yaml",
       "adapter": "backend/internal/business/attendance/adapter/http/records.go",
       "core": "backend/internal/business/attendance/application/port/store.go",
-      "specification": "docs/domains/attendance/queries.md"
+      "specification": "docs/domains/attendance/design.md"
     },
     "attendance.corrections": {
       "contract": "attendance/corrections.yaml",
       "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "core": "backend/internal/business/attendance/domain/service/correction.go",
-      "specification": "docs/domains/attendance/queries.md"
+      "specification": "docs/domains/attendance/design.md"
     },
     "attendance.approvals": {
       "contract": "attendance/approvals.yaml",
       "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "core": "backend/internal/business/attendance/domain/policy/review.go",
-      "specification": "docs/domains/attendance/queries.md"
+      "specification": "docs/domains/attendance/design.md"
     },
     "attendance.leave": {
       "contract": "attendance/leave.yaml",
       "adapter": "backend/internal/business/attendance/adapter/http/leave.go",
       "core": "backend/internal/business/attendance/domain/entity/leave.go",
-      "specification": "docs/domains/attendance/leave.md"
+      "specification": "docs/domains/attendance/design.md"
     },
     "attendance.worktime": {
       "contract": "attendance/worktime.yaml",
       "adapter": "backend/internal/business/attendance/adapter/http/records.go",
       "core": "backend/internal/business/attendance/domain/service/worktime.go",
-      "specification": "docs/domains/attendance/worktime.md"
+      "specification": "docs/domains/attendance/design.md"
     },
     "summary.summarization": {
       "contract": "summary/worker.yaml",
@@ -69,21 +69,21 @@
     },
     "attendance.board": {
       "kind": "event",
-      "document": "docs/domains/attendance/board.md",
+      "document": "docs/domains/attendance/design.md",
       "core": "backend/internal/business/attendance/application/dto/board.go",
-      "specification": "docs/domains/attendance/board.md"
+      "specification": "docs/domains/attendance/design.md"
     },
     "repository.labels": {
       "contract": "repository/labels.yaml",
       "adapter": "backend/internal/business/repository/adapter/http/labels/routes.go",
       "core": "backend/internal/business/repository/domain/entity/labels/labels.go",
-      "specification": "docs/domains/repository/labels.md"
+      "specification": "docs/domains/repository/design.md"
     },
     "repository.milestones": {
       "contract": "repository/milestones.yaml",
       "adapter": "backend/internal/business/repository/adapter/http/milestones/routes.go",
       "core": "backend/internal/business/repository/domain/entity/milestones/milestone.go",
-      "specification": "docs/domains/repository/milestones.md"
+      "specification": "docs/domains/repository/design.md"
     },
     "issue": {
       "contract": "issue/issues.yaml",
@@ -149,7 +149,7 @@
       "contract": "repository/statistics.yaml",
       "adapter": "backend/internal/business/repository/adapter/http/statistics/routes.go",
       "core": "backend/internal/business/repository/domain/entity/statistics/statistics.go",
-      "specification": "docs/domains/repository/insights.md"
+      "specification": "docs/domains/repository/design.md"
     },
     "group": {
       "contract": "group/groups.yaml",
@@ -179,7 +179,7 @@
       "contract": "repository/spaces.yaml",
       "adapter": "backend/internal/business/repository/adapter/http/space/routes.go",
       "core": "backend/internal/business/repository/domain/entity/space/space.go",
-      "specification": "docs/domains/repository/spaces.md"
+      "specification": "docs/domains/repository/design.md"
     },
     "journal": {
       "contract": "journal/journals.yaml",
@@ -197,7 +197,7 @@
       "contract": "repository/wiki.yaml",
       "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
       "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
-      "specification": "docs/domains/repository/wiki.md"
+      "specification": "docs/domains/repository/design.md"
     },
     "organization": {
       "contract": "organization/context.yaml",
@@ -392,7 +392,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "ListAttendanceGroups",
       "core": "backend/internal/business/attendance/application/port/store.go",
-      "specification": "docs/domains/attendance/queries.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
@@ -405,7 +405,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/records.go",
       "handler": "ListAttendanceGroupPage",
       "core": "backend/internal/business/attendance/application/port/store.go",
-      "specification": "docs/domains/attendance/queries.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
@@ -418,7 +418,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/records.go",
       "handler": "GetAttendanceDailyHeadcount",
       "core": "backend/internal/business/attendance/application/port/store.go",
-      "specification": "docs/domains/attendance/queries.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [
         "frontend/miniapp/src/business/journal/Composer.tsx"
       ]
@@ -432,7 +432,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/records.go",
       "handler": "ListAttendanceRecords",
       "core": "backend/internal/business/attendance/application/port/store.go",
-      "specification": "docs/domains/attendance/queries.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/records/View.tsx"
       ],
@@ -447,7 +447,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/records.go",
       "handler": "GetAttendanceRecord",
       "core": "backend/internal/business/attendance/application/port/store.go",
-      "specification": "docs/domains/attendance/queries.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/View.tsx"
       ],
@@ -462,7 +462,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "GetAttendanceMonthlyReport",
       "core": "backend/internal/business/attendance/application/port/store.go",
-      "specification": "docs/domains/attendance/queries.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
@@ -475,7 +475,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/records.go",
       "handler": "GetAttendanceMonthlySummary",
       "core": "backend/internal/business/attendance/application/port/store.go",
-      "specification": "docs/domains/attendance/queries.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
@@ -488,7 +488,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "ProposeAttendanceCorrection",
       "core": "backend/internal/business/attendance/domain/service/correction.go",
-      "specification": "docs/domains/attendance/queries.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/Requests.tsx",
         "frontend/miniapp/src/business/attendance/corrections/View.tsx"
@@ -504,7 +504,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "ListAttendanceCorrections",
       "core": "backend/internal/business/attendance/domain/service/correction.go",
-      "specification": "docs/domains/attendance/queries.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/Requests.tsx",
         "frontend/miniapp/src/business/attendance/corrections/View.tsx"
@@ -520,7 +520,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "GetAttendanceCorrectionStatus",
       "core": "backend/internal/business/attendance/domain/service/correction.go",
-      "specification": "docs/domains/attendance/queries.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
@@ -533,7 +533,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "CancelAttendanceCorrection",
       "core": "backend/internal/business/attendance/domain/service/correction.go",
-      "specification": "docs/domains/attendance/queries.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/corrections/Requests.tsx"
       ],
@@ -548,7 +548,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "GetAttendanceCorrectionReview",
       "core": "backend/internal/business/attendance/domain/policy/review.go",
-      "specification": "docs/domains/attendance/queries.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/approvals/View.tsx"
       ],
@@ -563,7 +563,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "ApproveAttendanceCorrection",
       "core": "backend/internal/business/attendance/domain/policy/review.go",
-      "specification": "docs/domains/attendance/queries.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/approvals/View.tsx"
       ],
@@ -578,7 +578,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "RejectAttendanceCorrection",
       "core": "backend/internal/business/attendance/domain/policy/review.go",
-      "specification": "docs/domains/attendance/queries.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/approvals/View.tsx"
       ],
@@ -593,7 +593,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/attendance_correction.go",
       "handler": "ListAttendanceReviewerGroups",
       "core": "backend/internal/business/attendance/domain/policy/review.go",
-      "specification": "docs/domains/attendance/queries.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
@@ -606,7 +606,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/leave.go",
       "handler": "ListOwnLeaveRequests",
       "core": "backend/internal/business/attendance/domain/entity/leave.go",
-      "specification": "docs/domains/attendance/leave.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/leave/View.tsx"
       ],
@@ -621,7 +621,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/leave.go",
       "handler": "SubmitLeaveRequest",
       "core": "backend/internal/business/attendance/domain/entity/leave.go",
-      "specification": "docs/domains/attendance/leave.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/leave/View.tsx"
       ],
@@ -806,7 +806,7 @@
       "adapter": "backend/internal/business/repository/adapter/http/labels/routes.go",
       "handler": "ListLabels",
       "core": "backend/internal/business/repository/domain/entity/labels/labels.go",
-      "specification": "docs/domains/repository/labels.md",
+      "specification": "docs/domains/repository/design.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/labels/View.tsx",
         "frontend/miniapp/src/business/repository/labels/Picker.tsx"
@@ -821,7 +821,7 @@
       "adapter": "backend/internal/business/repository/adapter/http/labels/routes.go",
       "handler": "CreateLabel",
       "core": "backend/internal/business/repository/domain/entity/labels/labels.go",
-      "specification": "docs/domains/repository/labels.md",
+      "specification": "docs/domains/repository/design.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/labels/View.tsx"
       ]
@@ -835,7 +835,7 @@
       "adapter": "backend/internal/business/repository/adapter/http/labels/routes.go",
       "handler": "RenameLabel",
       "core": "backend/internal/business/repository/domain/entity/labels/labels.go",
-      "specification": "docs/domains/repository/labels.md",
+      "specification": "docs/domains/repository/design.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/labels/View.tsx"
       ]
@@ -849,7 +849,7 @@
       "adapter": "backend/internal/business/repository/adapter/http/milestones/routes.go",
       "handler": "ListMilestones",
       "core": "backend/internal/business/repository/domain/entity/milestones/milestone.go",
-      "specification": "docs/domains/repository/milestones.md",
+      "specification": "docs/domains/repository/design.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx",
         "frontend/miniapp/src/business/repository/milestones/Picker.tsx"
@@ -864,7 +864,7 @@
       "adapter": "backend/internal/business/repository/adapter/http/milestones/routes.go",
       "handler": "CreateMilestone",
       "core": "backend/internal/business/repository/domain/entity/milestones/milestone.go",
-      "specification": "docs/domains/repository/milestones.md",
+      "specification": "docs/domains/repository/design.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx"
       ]
@@ -878,7 +878,7 @@
       "adapter": "backend/internal/business/repository/adapter/http/milestones/routes.go",
       "handler": "GetMilestone",
       "core": "backend/internal/business/repository/domain/entity/milestones/milestone.go",
-      "specification": "docs/domains/repository/milestones.md",
+      "specification": "docs/domains/repository/design.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx"
       ]
@@ -892,7 +892,7 @@
       "adapter": "backend/internal/business/repository/adapter/http/milestones/routes.go",
       "handler": "UpdateMilestone",
       "core": "backend/internal/business/repository/domain/entity/milestones/milestone.go",
-      "specification": "docs/domains/repository/milestones.md",
+      "specification": "docs/domains/repository/design.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/milestones/View.tsx"
       ]
@@ -990,7 +990,7 @@
       "adapter": "backend/internal/business/repository/adapter/http/statistics/routes.go",
       "handler": "GetRepositoryStatistics",
       "core": "backend/internal/business/repository/domain/entity/statistics/statistics.go",
-      "specification": "docs/domains/repository/insights.md",
+      "specification": "docs/domains/repository/design.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/insights/View.tsx"
       ]
@@ -1222,7 +1222,7 @@
       "adapter": "backend/internal/business/repository/adapter/http/space/routes.go",
       "handler": "ListRepositorySpaces",
       "core": "backend/internal/business/repository/domain/entity/space/space.go",
-      "specification": "docs/domains/repository/spaces.md",
+      "specification": "docs/domains/repository/design.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/useSpaces.ts",
         "frontend/miniapp/src/business/journal/WorkContext.tsx"
@@ -1237,7 +1237,7 @@
       "adapter": "backend/internal/business/repository/adapter/http/space/routes.go",
       "handler": "CreateRepositorySpace",
       "core": "backend/internal/business/repository/domain/entity/space/space.go",
-      "specification": "docs/domains/repository/spaces.md",
+      "specification": "docs/domains/repository/design.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/Spaces.tsx",
         "frontend/miniapp/src/business/journal/WorkContext.tsx"
@@ -1252,7 +1252,7 @@
       "adapter": "backend/internal/business/repository/adapter/http/space/routes.go",
       "handler": "GetRepositorySpace",
       "core": "backend/internal/business/repository/domain/entity/space/space.go",
-      "specification": "docs/domains/repository/spaces.md",
+      "specification": "docs/domains/repository/design.md",
       "consumers": []
     },
     {
@@ -1337,7 +1337,7 @@
       ],
       "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
       "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
-      "specification": "docs/domains/repository/wiki.md"
+      "specification": "docs/domains/repository/design.md"
     },
     {
       "operationId": "createWikiPage",
@@ -1351,7 +1351,7 @@
       ],
       "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
       "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
-      "specification": "docs/domains/repository/wiki.md"
+      "specification": "docs/domains/repository/design.md"
     },
     {
       "operationId": "getWikiPage",
@@ -1365,7 +1365,7 @@
       ],
       "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
       "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
-      "specification": "docs/domains/repository/wiki.md"
+      "specification": "docs/domains/repository/design.md"
     },
     {
       "operationId": "updateWikiPage",
@@ -1379,7 +1379,7 @@
       ],
       "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
       "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
-      "specification": "docs/domains/repository/wiki.md"
+      "specification": "docs/domains/repository/design.md"
     },
     {
       "operationId": "listWikiRevisions",
@@ -1393,7 +1393,7 @@
       ],
       "core": "backend/internal/business/repository/domain/entity/wiki/wiki.go",
       "adapter": "backend/internal/business/repository/adapter/http/wiki/routes.go",
-      "specification": "docs/domains/repository/wiki.md"
+      "specification": "docs/domains/repository/design.md"
     },
     {
       "operationId": "getProjectReferenceState",
@@ -1648,7 +1648,7 @@
       "adapter": "backend/internal/business/object/adapter/http/templates.go",
       "handler": "ListObjectTemplates",
       "core": "backend/internal/business/object/domain/template/version.go",
-      "specification": "docs/domains/object/template.md",
+      "specification": "docs/domains/object/design.md",
       "consumers": []
     },
     {
@@ -1660,7 +1660,7 @@
       "adapter": "backend/internal/business/object/adapter/http/templates.go",
       "handler": "CreateObjectTemplate",
       "core": "backend/internal/business/object/domain/template/version.go",
-      "specification": "docs/domains/object/template.md",
+      "specification": "docs/domains/object/design.md",
       "consumers": []
     },
     {
@@ -1672,7 +1672,7 @@
       "adapter": "backend/internal/business/object/adapter/http/templates.go",
       "handler": "GetObjectTemplate",
       "core": "backend/internal/business/object/domain/template/version.go",
-      "specification": "docs/domains/object/template.md",
+      "specification": "docs/domains/object/design.md",
       "consumers": []
     },
     {
@@ -1684,7 +1684,7 @@
       "adapter": "backend/internal/business/object/adapter/http/templates.go",
       "handler": "InstantiateObjectTemplate",
       "core": "backend/internal/business/object/domain/template/version.go",
-      "specification": "docs/domains/object/template.md",
+      "specification": "docs/domains/object/design.md",
       "consumers": [
         "frontend/miniapp/src/business/object/Templates.tsx"
       ]
@@ -1698,7 +1698,7 @@
       "adapter": "backend/internal/business/object/adapter/http/templates.go",
       "handler": "ListPersonalObjectTemplates",
       "core": "backend/internal/business/object/domain/template/version.go",
-      "specification": "docs/domains/object/template.md",
+      "specification": "docs/domains/object/design.md",
       "consumers": [
         "frontend/miniapp/src/business/object/Templates.tsx"
       ]
@@ -1712,7 +1712,7 @@
       "adapter": "backend/internal/business/object/adapter/http/templates.go",
       "handler": "CreatePersonalObjectTemplate",
       "core": "backend/internal/business/object/domain/template/version.go",
-      "specification": "docs/domains/object/template.md",
+      "specification": "docs/domains/object/design.md",
       "consumers": [
         "frontend/miniapp/src/business/object/Templates.tsx"
       ]
@@ -1726,7 +1726,7 @@
       "adapter": "backend/internal/business/object/adapter/http/drafts.go",
       "handler": "PrepareObjectTemplateDraft",
       "core": "backend/internal/business/object/application/drafts.go",
-      "specification": "docs/domains/object/template.md",
+      "specification": "docs/domains/object/design.md",
       "consumers": [
         "frontend/miniapp/src/business/object/TemplatePreparation.tsx"
       ]
@@ -1782,7 +1782,7 @@
     {
       "owner": "attendance.board",
       "action": "Board",
-      "contract": "docs/domains/attendance/board.md",
+      "contract": "docs/domains/attendance/design.md",
       "adapter": "backend/internal/business/attendance/adapter/line/board.go",
       "handler": "replyGroupStatus",
       "note": "Existing LINE-only query; no public HTTP operation."

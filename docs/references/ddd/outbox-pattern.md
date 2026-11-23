@@ -1,6 +1,6 @@
 # 交易式待送紀錄（Transactional Outbox）
 
-**採用方式：按需。** 本頁為進階設計參考，不是目前架構的必要條件，也不表示專案已實作此模式。採用前須以具體用例、替代方案及成本評估決定，必要時依既有 ADR 流程記錄。
+**採用方式：按需。** 依具體用例、替代方案與成本決定是否採用。
 
 Outbox 將業務資料變更與待發布訊息保存在同一筆本機交易，再由提交後的投遞步驟發送。它銜接的是「提交業務資料」與「保留發布意圖」，不是將遠端服務納入本機交易。
 
@@ -54,4 +54,4 @@ flowchart TD
 
 [一致性](consistency.md) · [領域事件](domain-event.md) · [Saga](saga.md)
 
-[DDD 設計索引](design-guide.md) · [現行驗收基線](../../development/tooling/testing/commands.md)
+[DDD 設計索引](design-guide.md)

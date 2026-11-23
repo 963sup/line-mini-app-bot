@@ -14,7 +14,7 @@ Factory 屬於戰術設計概念，不新增一個限界上下文，也不等同
 | Repository | 載入與保存 Aggregate。重建既有物件須保留原識別、版本與歷史狀態，不重跑「新建」業務流程。 |
 | Bootstrap | 組裝服務與技術依賴；建立 SDK client 或注入 adapter 不等於領域 Factory。 |
 
-本專案的採用原則：純領域 Factory 不直接呼叫 HTTP、LINE 或 Firestore，不在建立過程發通知或提交交易。需要最新資料才能成立的規則，由 Application 在一致性邊界內取得事實並協調；Factory 對傳入值驗證成功，不代表資料庫唯一性、授權或併發檢查已完成。
+純領域 Factory 不直接呼叫 HTTP、Webhook 或資料庫，不在建立過程發通知或提交交易。需要最新資料才能成立的規則，由 Application 在一致性邊界內取得事實並協調；Factory 對傳入值驗證成功，不代表資料庫唯一性、授權或併發檢查已完成。
 
 ## 如何選擇實作形式
 
@@ -25,7 +25,7 @@ Factory 屬於戰術設計概念，不新增一個限界上下文，也不等同
 
 ## 成員管理設計例子
 
-以下為未來設計示例，不表示 Membership 已實作或 Aggregate 邊界已定案。
+以下以建立成員邀請為例。
 
 若成員管理規則要求「新範圍建立時必須有首位 Owner」，可由 `OpenScope` 的建立函數一次產生範圍與初始 Owner 關係，拒絕缺少建立者的輸入。Application 再協調資源建立及成員資料原子保存。
 
@@ -35,6 +35,6 @@ Factory 屬於戰術設計概念，不新增一個限界上下文，也不等同
 
 記錄建立入口、輸入事實的提供者、建立時必須成立的規則、回傳的 Aggregate 邊界與失敗結果。區分新建與持久資料重建，說明哪些規則仍需交易保證；驗收時核對無效輸入不產生可用半成品、重建不觸發新建副作用。
 
-概念依據：Eric Evans，[*Domain-Driven Design Reference*，2015-03，Factories](https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf)。2026-11-21 核對；上述純領域與套件安排是本專案的採用原則。
+概念依據：Eric Evans，[*Domain-Driven Design Reference*，2015-03，Factories](https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf)。2026-11-21 核對。
 
 [七階段設計流程](design-process.md) · [限界上下文](bounded-context.md) · [Aggregate](aggregate.md) · [Invariant](invariant.md) · [Repository](repository.md) · [DDD 設計索引](design-guide.md)

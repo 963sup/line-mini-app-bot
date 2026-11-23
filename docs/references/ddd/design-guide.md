@@ -1,13 +1,6 @@
 # DDD 設計
 
-這裡是設計參考。判定現行行為時，先核對[領域規格](../../AGENTS.md)、[已接受 ADR](../../decisions/)與公開契約。各頁的業務示例用來解釋單一概念，即使名詞相同，也不能拼成已實作規格。
-
-## 維護約束
-
-- 新增概念頁 MUST 說明定義、適用條件、責任邊界、可辨識狀態的例子、設計產出及來源；MUST NOT 為每個名詞預建空目錄。
-- 概念間 MUST 使用連結引用；具體業務政策 MUST 只保留在所屬權威規格。
-- 圖表 MUST 依[文件規範](../../standards/documentation.md#圖表狀態與入口)標明狀態並完成適用的 Mermaid 渲染。
-- 本目錄變更 MUST 核對問題索引、相對連結、錨點及來源。文件查閱與格式檢查 MUST NOT 被報告為功能驗收。
+供 Codex 按問題查閱 DDD 與六邊形架構。先用戰略設計理解業務、通用語言與限界上下文，再用戰術設計表達模型與不變條件，最後用 Port 與 Adapter 保護模型邊界。各頁範例用於解釋概念。
 
 ## 如何使用
 
@@ -29,21 +22,9 @@
 | 資料提交後如何避免遺失發布意圖？ | [Outbox（按需）](outbox-pattern.md#提交與失敗窗口圖) |
 | 跨領域交換什麼，是否需要事件？ | [上下文映射](context-mapping.md)、[整合模式](context-mapping-patterns.md)、[Domain Event](domain-event.md) |
 
-### 把概念用到現行程式：補正審核
+## 設計問題與產出
 
-若任務是「核准補正後請求重送，可否再套用一次？」，先看[出勤規格](../../domains/attendance/design.md)，再沿下表找答案。把「使用者有權作決定」「本次決定是否已處理」與「哪些寫入必須一起成功」分開核對。
-
-| 要證明的事 | 現行證據 | 判斷邊界 |
-| --- | --- | --- |
-| 誰能核准、拒絕或撤回？ | [ReviewCorrection](../../../backend/internal/business/attendance/application/command/review.go) 對撤回核對本人，核准與拒絕則取得審核群組並呼叫 CanReview。 | 僅憑前端顯示按鈕，無法推論授權成功。 |
-| 重送時會再套用班次修正嗎？ | 同一用例先讀 PreviousDecision，再以 NeedsDecision 判斷是否繼續；只有需要處理的核准才會進入 SaveApproval。 | 先查既有決定與稽核紀錄的判定，再決定是否需要新的[冪等](idempotency.md)機制。 |
-| 寫入失敗或兩人同時操作時呢？ | 從[交易介面](../../../backend/internal/business/attendance/application/port/review.go)追到[Firestore 實作](../../../backend/internal/business/attendance/adapter/firestore/attendance_correction.go)，對照[整合測試](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go)。 | 用例呼叫 SaveApproval 與 SaveDecision 的順序無法單獨證明原子性。逐案指出測試覆蓋、未覆蓋與執行所需環境。 |
-
-交付設計時寫出一個具體反例、負責判斷的模型或用例，以及能區分正確與錯誤結果的驗證。若契約或產品規格沒有決定衝突時誰勝出，保留該問題供決策，不從設計範例推定答案。
-
-## 專案設計知識的涵蓋範圍
-
-對本專案，一項設計應能回答下列問題並交出可查核的證據。新能力逐項評估，局部修正只追受影響項目。資料不足時，記錄需要哪位規則擁有者決定、哪種測試或觀測能分辨選項。
+一項設計應能回答下列問題並交出可查核的證據。新能力逐項評估，局部修正只追受影響項目。資料不足時，記錄需要哪位規則擁有者決定、哪種測試或觀測能分辨選項。
 
 | 決策 | 入口 | 可交付的證據 |
 | --- | --- | --- |
@@ -95,11 +76,11 @@
 
 六邊形架構是承載業務模型的架構方法，不是 DDD 的同義詞。CQRS、Event Sourcing、微服務與通用事件平台不因採用本索引而成為必要條件。
 
-[Go 檔案樹示範、職責對照與實作限制](hexagonal-architecture.md#go-檔案配置範例)提供按需拆分的參考。
+[附用途註解的 Go 檔案樹與實作限制](hexagonal-architecture.md#go-檔案配置範例)提供按需拆分的參考。
 
 ## 進階模式：按需採用
 
-以下文件只提供選型與設計參考，不是每個領域都必須採用的模式，也不表示已部署相關基礎設施。採用時先比較較簡單方案，明列必要性、失敗語意與維運成本；不因文件存在就改變現行 ADR 或驗收基線。
+以下模式按問題選用。選擇前先比較較簡單的方案，說明必要性、失敗語意與維運成本。
 
 | 主題 | 按需採用的條件 |
 | --- | --- |
@@ -147,18 +128,6 @@
 | 何時提交與發布？如何處理衝突及重送？ | [交易](transaction.md#提交與發布)、[Outbox](outbox-pattern.md)、[樂觀並行控制](optimistic-concurrency.md#圖解)、[冪等](idempotency.md#圖解) |
 | 跨交易失敗如何恢復？誰維護流程進度？ | [Saga](saga.md#圖解)、[Process Manager](process-manager.md#圖解) |
 
-## 來源與適用範圍
+## 來源
 
-2026-11-22 核對 [Microsoft 戰術 DDD](https://learn.microsoft.com/en-us/azure/architecture/microservices/model/tactical-domain-driven-design)的聚合、不變條件與身分引用概念，以及 [EventStorming 官方方法](https://www.eventstorming.com/)。採用建模概念，不沿用其微服務部署前提；本專案的共同交易取捨由[聚合設計](aggregate.md)與功能規格說明。
-
-線上來源未固定文件提交版本。現行規則範例另連到本庫程式與測試；概念文件及原始碼核對不代表已執行功能驗收。
-
-## 維護與驗證
-
-見[文件工作指引](../../AGENTS.md)。
-
-## 相關規格
-
-[業務操作模型](../../contracts/business-operations.md) · [現行後端功能邊界](../../architecture/runtime/backend-boundaries.md) · [已接受 ADR](../../decisions/) · [領域規格](../../AGENTS.md)
-
-[適用工作指引](../../AGENTS.md) · [上層導覽](../../AGENTS.md)
+[Microsoft 戰術 DDD](https://learn.microsoft.com/en-us/azure/architecture/microservices/model/tactical-domain-driven-design)介紹聚合、不變條件與身分引用。[EventStorming](https://www.eventstorming.com/)介紹以業務事件探索領域的工作坊方法。

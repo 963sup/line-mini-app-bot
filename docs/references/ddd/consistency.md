@@ -21,9 +21,9 @@
 
 ## Unit of Work 與重試
 
-Unit of Work 定義一次提交中可以使用的 Repository／Reader 能力及生命週期。本專案核心契約不暴露 SDK transaction；Adapter 將這些能力綁定至同一技術交易。共用資料庫 client 或沿用同一 request context 不代表共用交易。
+Unit of Work 定義一次提交中可以使用的 Repository／Reader 能力及生命週期。核心契約可將 SDK 交易物件留在 Adapter 內；Adapter 將這些能力綁定至同一技術交易。共用資料庫 client 或沿用同一 request context 不代表共用交易。
 
-callback 若可能重跑，內部不得發送 LINE 訊息或進行不可撤回副作用。識別碼、服務端時間及請求指紋如何固定，須依用例明定；失敗嘗試不能洩漏為成功結果。
+callback 若可能重跑，內部不得發送 外部訊息或進行不可撤回副作用。識別碼、服務端時間及請求指紋如何固定，須依用例明定；失敗嘗試不能洩漏為成功結果。
 
 ## 冪等與結果未知
 
@@ -33,6 +33,6 @@ callback 若可能重跑，內部不得發送 LINE 訊息或進行不可撤回�
 
 ## 設計產出與核對
 
-記錄原子邊界、讀寫集合、版本、撤權生效時間、可觀察中間狀態、重送與取消語意。驗收條件可列併發及故障情境；實際新增或執行檢查須遵循[現行驗收基線](../../development/tooling/testing/commands.md)。
+記錄原子邊界、讀寫集合、版本、撤權生效時間、可觀察中間狀態、重送與取消語意。驗收條件可列併發及故障情境。
 
 [Aggregate](aggregate.md) · [領域事件](domain-event.md) · [Saga（按需）](saga.md) · [Outbox（按需）](outbox-pattern.md) · [六邊形架構](hexagonal-architecture.md) · [DDD 設計索引](design-guide.md)

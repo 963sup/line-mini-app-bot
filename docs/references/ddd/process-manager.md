@@ -1,6 +1,6 @@
 # 流程管理器（Process Manager）
 
-**採用方式：按需。** 本頁為進階設計參考，不是目前架構的必要條件，也不表示專案已實作此模式。採用前須以具體用例、替代方案及成本評估決定，必要時依既有 ADR 流程記錄。
+**採用方式：按需。** 依具體用例、替代方案與成本決定是否採用。
 
 Process Manager 根據目前流程狀態與收到的事件，決定下一個應發出的命令。適合需要跨事件等待、關聯回覆、逾時或續跑的流程；不只是把多個函數集中在一個 Service。
 
@@ -39,8 +39,8 @@ Process Manager 著重流程決策與狀態；Saga 著重跨局部交易的一�
 
 列出流程圖或狀態表、輸入事件、輸出命令、等待／取消／逾時、重啟恢復、流程版本遷移與人工介入方式。長期流程不能因部署新版而失去原本的續跑語意。
 
-來源：[Enterprise Integration Patterns：Process Manager](https://www.enterpriseintegrationpatterns.com/patterns/messaging/ProcessManager.html)，2026-11-21 查閱。持久化與恢復項目為本專案評估長期流程時的設計要求。
+來源：[Enterprise Integration Patterns：Process Manager](https://www.enterpriseintegrationpatterns.com/patterns/messaging/ProcessManager.html)，2026-11-21 查閱。
 
 [Saga](saga.md) · [領域事件](domain-event.md) · [Outbox](outbox-pattern.md)
 
-[DDD 設計索引](design-guide.md) · [現行驗收基線](../../development/tooling/testing/commands.md)
+[DDD 設計索引](design-guide.md)

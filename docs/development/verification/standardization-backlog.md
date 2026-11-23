@@ -240,7 +240,7 @@
 
 **P1 · 待驗證 · 標準 5、10、11、20、25 · 責任：Attendance／Journal／Project／前端呈現**
 
-- 證據：[backend/internal/business/attendance/domain/service/worktime.go](../../../backend/internal/business/attendance/domain/service/worktime.go) 與 [docs/domains/attendance/worktime.md](../../domains/attendance/worktime.md) 定義工時；[frontend/miniapp/src/business/journal/Workspace.tsx](../../../frontend/miniapp/src/business/journal/Workspace.tsx) 使用業務日，[frontend/miniapp/src/business/project/Inspections.tsx](../../../frontend/miniapp/src/business/project/Inspections.tsx) 使用本地日期顯示。
+- 證據：[backend/internal/business/attendance/domain/service/worktime.go](../../../backend/internal/business/attendance/domain/service/worktime.go) 與 [docs/domains/attendance/design.md](../../domains/attendance/design.md#worktime) 定義工時；[frontend/miniapp/src/business/journal/Workspace.tsx](../../../frontend/miniapp/src/business/journal/Workspace.tsx) 使用業務日，[frontend/miniapp/src/business/project/Inspections.tsx](../../../frontend/miniapp/src/business/project/Inspections.tsx) 使用本地日期顯示。
 - 調整：分清 instant、業務日期、月界線與顯示時區；核對已確認／估計工時是否被相加，以及交易重試的時間採收到或提交時點。不能全域機械改成 UTC 顯示。
 - 關閉條件：跨午夜／跨月、進行中班次、端點時間、過期邊界與估計值均符合契約；前端不另做權威工時計算。兩個正在編輯的相關檔案須先完成所有權／版本確認。
 - 前置：無；先維持現行相容行為。
@@ -262,7 +262,7 @@
 
 **P1 · 待驗證 · 標準 21、22、23、27、35 · 責任：各寫入使用案例／Summary**
 
-- 證據：[docs/domains/repository/numbering.md](../../domains/repository/numbering.md) 記錄共用編號／收據；[backend/internal/business/summary/adapter/firestore/summary.go](../../../backend/internal/business/summary/adapter/firestore/summary.go) 與 [backend/internal/business/summary/adapter/messaging/cloudtasks/summarization/queue.go](../../../backend/internal/business/summary/adapter/messaging/cloudtasks/summarization/queue.go) 分別處理提交與入列。Summary 文件明定入列失敗由 LINE 重送恢復。
+- 證據：[docs/domains/repository/design.md](../../domains/repository/design.md#numbering) 記錄共用編號／收據；[backend/internal/business/summary/adapter/firestore/summary.go](../../../backend/internal/business/summary/adapter/firestore/summary.go) 與 [backend/internal/business/summary/adapter/messaging/cloudtasks/summarization/queue.go](../../../backend/internal/business/summary/adapter/messaging/cloudtasks/summarization/queue.go) 分別處理提交與入列。Summary 文件明定入列失敗由 LINE 重送恢復。
 - 調整：對各收據核對 actor/resource/type/content scope、回放時權限、保留窗口、版本與外部投遞；Summary 注入提交後入列失敗及回應遺失。先核對既有恢復路徑，再決定是否需要新 outbox。
 - 關閉條件：同鍵同內容只產生一次效果、不同內容衝突、撤權後不洩漏結果；已提交但未入列能依既定契約恢復，不能把固定 task ID 當原子跨服務交易。
 - 前置：無；先維持現行相容行為。

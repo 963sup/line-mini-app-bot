@@ -4,7 +4,7 @@
 
 各任務的入口、Action 與 Webhook 對照見 [LINE 任務接線表](wiring.md)。
 
-本頁集中跨領域入口與目標旅程：[出勤](#attendance-journey)、[專案](#project-journey)、[儲存庫](#repository-journey)、[日誌](#journal-journey)。業務判定分別以[出勤查詢](../../domains/attendance/queries.md)、[Project](../../domains/project/project.md)、[Repository](../../domains/repository/design.md)及[Journal](../../domains/journal/journal.md)規格為準。
+本頁集中跨領域入口與目標旅程：[出勤](#attendance-journey)、[專案](#project-journey)、[儲存庫](#repository-journey)、[日誌](#journal-journey)。業務判定分別以[出勤查詢](../../domains/attendance/design.md#queries)、[Project](../../domains/project/project.md)、[Repository](../../domains/repository/design.md)及[Journal](../../domains/journal/journal.md)規格為準。
 
 未來設計。此圖描述目標體驗，現有接線與待驗收項目見下表。
 
@@ -52,12 +52,12 @@ flowchart TD
 
 讓員工在正確群組完成打卡，清楚知道是否已記錄，並能私下處理缺漏。讓審核者找到需要處理的申請，讓團隊掌握可共享的出勤概況。業務規則以[出勤上下文與整合契約](../../architecture/runtime/dependencies.md#attendance-context-map)為準。
 
-| 業務                  | 與出勤的邊界                                                                                                                                                             |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 打卡與工時            | 依本人、群組、班次與必要證據判定。已確認工時與暫估工時分開顯示。[工時規格](../../domains/attendance/worktime.md)                                                         |
-| 補卡與請假            | 顯示送出、待處理與已決定的差異；補卡核准前維持原有效紀錄。[補正審核](../../domains/attendance/queries.md#單筆補正的審核判定) · [請假](../../domains/attendance/leave.md) |
-| Repository 與 Project | 工程入口可帶群組情境；庫與專案權限不會授予出勤查閱或審核權。                                                                                                             |
-| Journal、排班與薪資   | 日誌記錄作業，出勤記錄群組班次。排班、加班核定和薪資依各自契約處理。                                                                                                     |
+| 業務                  | 與出勤的邊界                                                                                                                                                                           |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 打卡與工時            | 依本人、群組、班次與必要證據判定。已確認工時與暫估工時分開顯示。[工時規格](../../domains/attendance/design.md#worktime)                                                                |
+| 補卡與請假            | 顯示送出、待處理與已決定的差異；補卡核准前維持原有效紀錄。[補正審核](../../domains/attendance/design.md#queries-單筆補正的審核判定) · [請假](../../domains/attendance/design.md#leave) |
+| Repository 與 Project | 工程入口可帶群組情境；庫與專案權限不會授予出勤查閱或審核權。                                                                                                                           |
+| Journal、排班與薪資   | 日誌記錄作業，出勤記錄群組班次。排班、加班核定和薪資依各自契約處理。                                                                                                                   |
 
 ### 現況與目標
 

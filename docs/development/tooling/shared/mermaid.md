@@ -17,7 +17,7 @@ Mermaid v13 的 `mermaid` 套件內建 `mermaid render`，與舊版 `@mermaid-js
 | 問題與討論       | [Issue](../../../domains/issue/design.md)、[Discussion](../../../domains/discussion/design.md)：各自狀態與資料，不自動推進物件進度 |
 | 授權與寫入流程   | [操作模型](../../../contracts/business-operations.md)：區分主體、資源、權限、領域規則、交易與結果                                  |
 
-以 `GroupID` 識別 LINE 群組，以 `SpaceID` 識別 Repository 內的工區。[庫內工區](../../../domains/repository/spaces.md)
+以 `GroupID` 識別 LINE 群組，以 `SpaceID` 識別 Repository 內的工區。[庫內工區](../../../domains/repository/design.md#spaces)
 
 圖表須註明來源版本、相關未提交變更及已實作／提案／待確認狀態，不以舊圖譜或規劃文件代替現行程式證據。
 

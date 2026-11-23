@@ -72,7 +72,7 @@ flowchart LR
 | 成功與失敗各改變什麼？       | 比對版本及事件序列、時段與重疊，通過後更新投影與 revision，寫入決定。原始事件保留；交易失敗不提交部分結果。[ApplyCorrection](../../backend/internal/business/attendance/domain/service/correction.go) · [SaveApproval](../../backend/internal/business/attendance/adapter/firestore/attendance_correction.go) |
 | 稽核記錄包含什麼？           | 核准交易建立 proposal、before、after、reviewerKey 與 approvedAt。[Firestore 核准寫入](../../backend/internal/business/attendance/adapter/firestore/attendance_correction.go)                                                                                                                                  |
 
-這是原始碼對照，產品細節見[查詢與更正](../domains/attendance/queries.md)與[工時計算](../domains/attendance/worktime.md)。變更入口時，仍須從身分來源追到使用案例，依[代表整合測試](../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go)及適用驗收確認。
+這是原始碼對照，產品細節見[查詢與更正](../domains/attendance/design.md#queries)與[工時計算](../domains/attendance/design.md#worktime)。變更入口時，仍須從身分來源追到使用案例，依[代表整合測試](../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go)及適用驗收確認。
 
 ## 功能契約範本
 

@@ -4,7 +4,7 @@ DDD Repository 提供以 Aggregate 為單位的載入與保存能力，讓業務
 
 ## 邊界與契約
 
-以業務識別及需要的操作定義介面，避免將 collection 名稱、SDK transaction 或通用 CRUD 查詢器傳入核心。介面可放在需要它的內層；本專案由 Application 定義用例需要的 Port，實作放在儲存 Adapter。
+以業務識別及需要的操作定義介面，避免將 collection 名稱、SDK transaction 或通用 CRUD 查詢器傳入核心。用例需要的 Port 可由 Application 定義，儲存 Adapter 提供實作。
 
 新增與重建必須分開：載入既有 Aggregate 不得重新分配 ID、重設 joinedAt 或發出「已建立」通知。重建也不能直接信任損壞資料；須有相容性檢查與失敗策略，避免把舊資料當成新建輸入重新套用所有現行規則。
 

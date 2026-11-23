@@ -6,7 +6,7 @@ Domain Service 表達有業務意義、但不自然屬於單一 Entity 或 Value
 
 Entity 擁有自身合法轉換；Factory 負責建立；Application 協調讀取、授權、交易與外部行為。Domain Service 負責領域決策，不處理 HTTP 格式、SDK 錯誤或依賴組裝。
 
-本專案優先讓 Domain Service 取得已準備好的模型與事實，回傳決策或值，不直接連接外部技術。若決策需要新的事實，由 Application 透過 Port 取得，並說明其時效與一致性；不是把 I/O 隱藏進純函數。
+優先讓 Domain Service 取得已準備好的模型與事實，回傳決策或值，不直接連接外部技術。若決策需要新的事實，由 Application 透過 Port 取得，並說明其時效與一致性；不是把 I/O 隱藏進純函數。
 
 ## 設計例子
 

@@ -114,10 +114,10 @@ block-beta
 
 - 里程碑、專案與統計的操作及保存規格見 里程碑、Project與統計。repository/milestones 與 project 各自保留核心及 HTTP adapter；Milestone 由既有 Repository Firestore Store 保存，Project adapter 注入同一 client；repository/statistics 只讀。
 
-  - [里程碑](../../domains/repository/milestones.md)
+  - [里程碑](../../domains/repository/design.md#milestones)
 
   - [Project](../../domains/project/project.md)
 
-  - [洞察（Insights）](../../domains/repository/insights.md)
+  - [洞察（Insights）](../../domains/repository/design.md#insights)
 
 - [後續分層構想見未來套件依賴方向。](dependencies.md#允許方向)

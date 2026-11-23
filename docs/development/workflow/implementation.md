@@ -35,7 +35,7 @@ additional writes.
 3. 依[業務符合性流程](#business-operation-compliance)同步規格、判斷與實作。影響 API 時，也走[契約配方](../tooling/api/change-api.md)。
 4. 依[驗收矩陣](../tooling/testing/commands.md#變更驗收矩陣)執行既有適用案例，記錄能支持哪些授權、重送、交易或併發結論。
 
-完成時指出改動的權威規格、Go 符號、寫入位置與已驗證的結果。若缺少整合證據，用補卡範例的方式寫出仍須核對的交易或併發行為。[補卡審核的規格到程式範例](../../references/ddd/design-guide.md#把概念用到現行程式補正審核)
+完成時指出改動的權威規格、Go 符號、寫入位置與已驗證的結果。若缺少整合證據，用補卡範例的方式寫出仍須核對的交易或併發行為。[補卡審核的規格到程式範例](../../domains/attendance/design.md#補正審核與重送)
 
 ## 修改 MINI App 前端
 

@@ -47,33 +47,8 @@ flowchart TB
 
 ### 六邊形架構：一次用例如何執行
 
-開發與維運指引。實線表示執行時呼叫。HTTP、LINE 和排程是可能的入站方式；下圖以讀寫資料為例，外部服務與訊息系統也可由各自的出站 Adapter 接入。
+[執行時互動圖](hexagonal-architecture.md#執行時互動)說明 HTTP、Webhook 或排程如何驅動用例，以及應用如何透過出站 Adapter 使用資料庫、外部服務或訊息系統。[程式碼依賴圖](hexagonal-architecture.md#程式碼依賴)說明出站 Adapter 如何依賴核心契約並由 Bootstrap 注入。
 
-```mermaid
-flowchart LR
-    IN["入站 Adapter<br/>HTTP、LINE 或排程"]
-    subgraph CORE["應用核心"]
-        API["入站 Port：用例方法"]
-        APP["Application：協調用例"]
-        DOMAIN["Domain：模型與規則"]
-        PORT["出站 Port：用例所需能力"]
-        API --> APP
-        APP --> DOMAIN
-        APP --> PORT
-    end
-    OUT["出站 Adapter<br/>例如 Firestore Adapter"]
-    DB["Firestore"]
-    IN --> API
-    PORT --> OUT
-    OUT --> DB
-```
+[六邊形架構](hexagonal-architecture.md#執行與程式碼依賴)分開呈現執行與程式碼依賴，[交易](transaction.md#提交與發布)呈現提交和發布的時間差。
 
-程式碼依賴方向需另外核對：出站 Adapter 依賴並實作核心需要的契約，由 Bootstrap 注入。參見[程式碼依賴圖](hexagonal-architecture.md#程式碼依賴)。
-
-[六邊形架構](hexagonal-architecture.md#執行與程式碼依賴)分開呈現執行與程式碼依賴，[交易](transaction.md#提交與發布)呈現提交和發布的時間差。可將 Markdown 圍欄內的圖表原始碼存為 `diagram.mmd`，從儲存庫根目錄執行。
-
-```sh
-bash scripts/tooling/tool-exec.sh mermaid render diagram.mmd --format svg > diagram.svg
-```
-
-使用專案鎖定的 `mermaid@13.0.0-alpha.3`，版本及操作方式見 [Mermaid 專案指引](../../development/tooling/shared/mermaid.md)。概念資料以匿名 Context7 查閱 [Domain-Driven Hexagon](https://github.com/sairyss/domain-driven-hexagon)，文件索引未固定 revision。Context7 另查得 [Mermaid CLI](https://github.com/mermaid-js/mermaid-cli) 的 `mmdc` 用法，渲染命令以專案鎖定版本為準。
+概念參考：[Domain-Driven Hexagon](https://github.com/sairyss/domain-driven-hexagon)。

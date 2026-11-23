@@ -1,6 +1,6 @@
 # 讀寫職責分離（CQRS）
 
-**採用方式：按需。** 本頁為進階設計參考，不是目前架構的必要條件，也不表示專案已實作此模式。採用前須以具體用例、替代方案及成本評估決定，必要時依既有 ADR 流程記錄。
+**採用方式：按需。** 依具體用例、替代方案與成本決定是否採用。
 
 CQRS 將更新狀態與讀取資料的責任分開，允許各自使用符合目的的模型。它可以共用資料庫，也不要求事件匯流排、非同步或 Event Sourcing。
 
@@ -41,4 +41,4 @@ flowchart LR
 
 [Application Service](application-service.md) · [一致性](consistency.md) · [Event Sourcing](event-sourcing.md)
 
-[DDD 設計索引](design-guide.md) · [現行驗收基線](../../development/tooling/testing/commands.md)
+[DDD 設計索引](design-guide.md)

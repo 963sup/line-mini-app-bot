@@ -48,7 +48,7 @@ architecture-beta
 
   - [Project 規格](../../domains/project/project.md)
 
-  - [庫內工區](../../domains/repository/spaces.md)
+  - [庫內工區](../../domains/repository/design.md#spaces)
 
 - 出勤、日誌、群聊摘要與天氣各自維護操作規格與驗收條件。持久 Inbox、通用 Outbox、租約 worker 與管理後台的構想另存於平台規劃。功能索引 · 平台規劃圖
 

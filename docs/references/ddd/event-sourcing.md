@@ -1,6 +1,6 @@
 # 事件溯源（Event Sourcing）
 
-**採用方式：按需。** 本頁為進階設計參考，不是目前架構的必要條件，也不表示專案已實作此模式。採用前須以具體用例、替代方案及成本評估決定，必要時依既有 ADR 流程記錄。
+**採用方式：按需。** 依具體用例、替代方案與成本決定是否採用。
 
 Event Sourcing 使用持久事件序列作為狀態權威來源，透過依序套用事件重建模型。目前狀態表、Audit 或已發送的 Domain Event，不能單憑存在就稱為 Event Sourcing。
 
@@ -34,4 +34,4 @@ Event Sourcing 不要求微服務或 CQRS；CQRS 也不要求 Event Sourcing。�
 
 [CQRS](cqrs.md) · [領域事件](domain-event.md) · [一致性](consistency.md)
 
-[DDD 設計索引](design-guide.md) · [現行驗收基線](../../development/tooling/testing/commands.md)
+[DDD 設計索引](design-guide.md)

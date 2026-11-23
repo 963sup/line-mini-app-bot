@@ -8,7 +8,7 @@
 
 ## 示例
 
-核心呼叫保存 Port 時，Firestore Adapter 在編譯時仍依賴核心契約。
+核心呼叫保存 Port 時，資料庫 Adapter 在編譯時仍依賴核心契約。
 
 ## 延伸閱讀
 

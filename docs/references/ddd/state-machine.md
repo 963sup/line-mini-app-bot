@@ -17,7 +17,7 @@
 
 ## 示例：可撤銷的邀請
 
-以下僅為方法示例，未宣稱專案已有 Invitation 功能。
+以下示範邀請的狀態轉換。
 
 | 來源 | 操作 | Guard | 目標／拒絕 |
 |---|---|---|---|
@@ -29,9 +29,9 @@
 
 accepted 與 revoked 在此示例為終態；若需求允許恢復，應另定具名轉換。時間到期可只是 Guard，不必假定有背景工作改寫狀態。
 
-## 現行程式對照
+## 終態與衍生狀態
 
-[Issue 規格](../../domains/issue/design.md#issue-lifecycle)允許關閉後重新開啟，因此 closed 不能直接當作終態。[ApplyUpdate](../../../backend/internal/business/issue/domain/entity/issue.go)核對轉換與版本。[Object.WorkStatus](../../../backend/internal/business/object/domain/entity/object.go)從總量和完成量推導狀態，不能額外保存互相矛盾的進度判定。
+允許重新開啟的狀態不是終態。若狀態可以從權威數值推導，例如完成量等於總量時為完成，避免另外保存可能互相矛盾的標記。
 
 ## 驗證與設計產出
 
