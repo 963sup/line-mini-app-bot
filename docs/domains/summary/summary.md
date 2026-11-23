@@ -46,7 +46,7 @@
 
 - summaryJobs/{hash(eventID)}：Job 欄位。Sources 僅存訊息 ID，不複製原文；Result 僅暫存以供 Push 重試，工作結束清空 Result。
 
-- summaryMessages、summaryJobs 的 ExpireAt TTL 與 Text、Result 索引豁免由 [Firestore 設定清單](../../../firestore.indexes.json)宣告，[部署前檢查](../../../scripts/db/ensure-field-policies.py)套用並等待就緒；本地宣告不代表目標資料庫已套用。 TTL 可能延遲刪除，程式讀取仍會排除過期資料。工作期限也受最早來源到期時間限制，避免重試沿用過期內容。 一般查詢只按 OccurredAt 範圍／倒序限制100筆，再按時間正序送模型；每次模型輸入最多約24KB JSON，超出時僅採可容納的部分並標示採用筆數。 保存來源 user ID 不等於驗證真實身分，也不代表發言為事實。
+- summaryMessages、summaryJobs 的 ExpireAt TTL 與 Text、Result 索引豁免由 [Firestore 設定清單](../../../firestore.indexes.json)宣告，[部署前檢查](../../../scripts/db/ensure-firestore.py)套用並等待就緒；本地宣告不代表目標資料庫已套用。 TTL 可能延遲刪除，程式讀取仍會排除過期資料。工作期限也受最早來源到期時間限制，避免重試沿用過期內容。 一般查詢只按 OccurredAt 範圍／倒序限制100筆，再按時間正序送模型；每次模型輸入最多約24KB JSON，超出時僅採可容納的部分並標示採用筆數。 保存來源 user ID 不等於驗證真實身分，也不代表發言為事實。
 
 - 訊息以穩定 message ID 原子建立；命令以 event ID 原子建立工作；Cloud Tasks 也使用固定 task ID。佇列建立失敗回傳503，由 LINE 重送恢復。
 

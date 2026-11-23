@@ -64,15 +64,10 @@ steps:
       - push
       - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REPOSITORY}/${_SERVICE}:$BUILD_ID'
 
-  - id: firestore-field-policies
-    name: gcr.io/google.com/cloudsdktool/google-cloud-cli:592.0.0-slim
-    entrypoint: python3
-    args: ["scripts/db/ensure-field-policies.py", "$PROJECT_ID"]
-
-  - id: firestore-indexes
+  - id: firestore
     name: python:3.12-slim
     entrypoint: python3
-    args: ["scripts/db/ensure-firestore-indexes.py", "$PROJECT_ID"]
+    args: ["scripts/db/ensure-firestore.py", "$PROJECT_ID"]
 
   # A separate job publishes once per build, before exposing the new service.
   # Each build has its own immutable job template; channel publications share a lease.
