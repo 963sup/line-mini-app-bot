@@ -6,6 +6,8 @@ import { ReadFeedback } from "@/shared/ReadFeedback";
 export function RouteContent({ label, children }: { label: string; children: ReactNode }) {
   const { isReady } = useRouter();
   const [ready, setReady] = useState(false);
-  useEffect(() => { setReady(isReady); }, [isReady]);
+  useEffect(() => {
+    setReady(isReady);
+  }, [isReady]);
   return ready ? children : <ReadFeedback busy label={label} />;
 }

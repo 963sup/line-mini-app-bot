@@ -21,10 +21,7 @@ export function locate(signal: AbortSignal): Promise<Position> {
       reject(error);
     };
     const stop = () => fail(aborted());
-    const timer = setTimeout(
-      () => fail(new Error("定位等待逾時，請檢查權限後重試。")),
-      15000,
-    );
+    const timer = setTimeout(() => fail(new Error("定位等待逾時，請檢查權限後重試。")), 15000);
     if (signal.aborted) {
       stop();
       return;

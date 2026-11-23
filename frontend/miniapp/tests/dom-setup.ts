@@ -30,5 +30,13 @@ class TestResizeObserver {
   unobserve() {}
   disconnect() {}
 }
-Object.defineProperty(globalThis, "ResizeObserver", { value: TestResizeObserver, configurable: true, writable: true });
-Object.defineProperty(window, "ResizeObserver", { value: TestResizeObserver, configurable: true, writable: true });
+Object.defineProperty(globalThis, "ResizeObserver", {
+  value: TestResizeObserver,
+  configurable: true,
+  writable: true,
+});
+Object.defineProperty(window, "ResizeObserver", {
+  value: TestResizeObserver,
+  configurable: true,
+  writable: true,
+});

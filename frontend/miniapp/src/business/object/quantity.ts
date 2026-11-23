@@ -11,5 +11,10 @@ export function isPositiveQuantity(value: string): boolean {
 }
 
 export function isValidCompletedQuantity(value: string | undefined, total: string): boolean {
-  return value !== undefined && decimal.test(value) && decimal.test(total) && scaled(value) <= scaled(total);
+  return (
+    value !== undefined &&
+    decimal.test(value) &&
+    decimal.test(total) &&
+    scaled(value) <= scaled(total)
+  );
 }

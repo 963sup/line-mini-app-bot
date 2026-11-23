@@ -42,10 +42,12 @@ export function View() {
       if (active.current !== c) return;
       setStatus("正在驗證位置……");
       timer = setTimeout(() => c.abort(), 10000);
-      const {data,error} = await untilAbort(
+      const { data, error } = await untilAbort(
         createLocationClient(location.origin).POST("/api/location/validate", {
-          body: value, signal: c.signal,
-        }), c.signal,
+          body: value,
+          signal: c.signal,
+        }),
+        c.signal,
       );
       if (active.current !== c) return;
       if (data?.valid !== true) throw new Error(error?.error || "位置驗證失敗。");
@@ -63,7 +65,10 @@ export function View() {
     }
   }
   return (
-    <PagePanel heading="定位測試" description="取得裝置目前位置，再交由伺服器驗證，不會儲存。結果包含座標、估計精度與採樣時間。">
+    <PagePanel
+      heading="定位測試"
+      description="取得裝置目前位置，再交由伺服器驗證，不會儲存。結果包含座標、估計精度與採樣時間。"
+    >
       <div className="flex flex-wrap items-center gap-2">
         <Button id="locate" disabled={busy} onClick={start}>
           {busy && <Spinner data-icon="inline-start" aria-label="處理中" />}
@@ -73,11 +78,19 @@ export function View() {
       <Status id="status" role="status">
         {status}
       </Status>
-      {!position && !busy && !status && <Empty><EmptyHeader>
-        <EmptyTitle>尚未取得位置</EmptyTitle>
-        <EmptyDescription>按「取得位置並驗證」，並允許瀏覽器使用位置資訊。</EmptyDescription>
-      </EmptyHeader></Empty>}
-      <dl className="grid gap-4 text-sm sm:grid-cols-2 [&_dt]:font-medium [&_dd]:break-all [&_dd]:text-muted-foreground" id="result" hidden={!position}>
+      {!position && !busy && !status && (
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>尚未取得位置</EmptyTitle>
+            <EmptyDescription>按「取得位置並驗證」，並允許瀏覽器使用位置資訊。</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      )}
+      <dl
+        className="grid gap-4 text-sm sm:grid-cols-2 [&_dt]:font-medium [&_dd]:break-all [&_dd]:text-muted-foreground"
+        id="result"
+        hidden={!position}
+      >
         <div>
           <dt>緯度</dt>
           <dd id="latitude">{position?.latitude}</dd>
@@ -99,7 +112,9 @@ export function View() {
         </div>
         <div>
           <dt>伺服器驗證</dt>
-          <dd id="validation"><Badge variant={valid ? "secondary" : "outline"}>{valid ? "通過" : "尚未驗證"}</Badge></dd>
+          <dd id="validation">
+            <Badge variant={valid ? "secondary" : "outline"}>{valid ? "通過" : "尚未驗證"}</Badge>
+          </dd>
         </div>
       </dl>
     </PagePanel>

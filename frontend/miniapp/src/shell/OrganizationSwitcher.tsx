@@ -4,12 +4,7 @@ import Router from "next/router";
 import { useOrganizationSelection } from "@/business/organization/OrganizationSelection";
 import { Building2, ChevronsUpDown } from "lucide-react";
 import { useOptionalSession } from "@/identity/Session";
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/shared/ui/sidebar";
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/shared/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -29,7 +24,7 @@ export function OrganizationSwitcher() {
           <SidebarMenuButton size="lg" asChild>
             <div role="status" aria-label="組織切換狀態" aria-busy={session?.busy ?? false}>
               <Building2 aria-hidden="true" />
-              <span>{session?.busy ? "正在驗證身分…" : session?.status ?? "尚未驗證身分"}</span>
+              <span>{session?.busy ? "正在驗證身分…" : (session?.status ?? "尚未驗證身分")}</span>
             </div>
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -71,23 +66,16 @@ function Switcher() {
         {context?.canSwitch ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <SidebarMenuButton
-                size="lg"
-                aria-label="切換組織"
-                disabled={saving}
-              >
+              <SidebarMenuButton size="lg" aria-label="切換組織" disabled={saving}>
                 {label}
                 <ChevronsUpDown />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              side={isMobile ? "bottom" : "right"}
-              align="start"
-            >
+            <DropdownMenuContent side={isMobile ? "bottom" : "right"} align="start">
               <DropdownMenuLabel>切換組織</DropdownMenuLabel>
               <DropdownMenuRadioGroup
                 value={context.selected?.organizationId}
-                onValueChange={id => select(id, onSelected)}
+                onValueChange={(id) => select(id, onSelected)}
               >
                 {context.groups.map((group) => (
                   <React.Fragment key={group.enterpriseId ?? "independent"}>
@@ -108,10 +96,7 @@ function Switcher() {
                       <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
                     )}
                     {group.organizations.map((org) => (
-                      <DropdownMenuRadioItem
-                        key={org.organizationId}
-                        value={org.organizationId}
-                      >
+                      <DropdownMenuRadioItem key={org.organizationId} value={org.organizationId}>
                         {org.name} {org.detail}
                       </DropdownMenuRadioItem>
                     ))}
@@ -123,16 +108,21 @@ function Switcher() {
         ) : context?.selected ? (
           <SidebarMenuButton size="lg" asChild>
             <Link
-              href={"/miniapp?" + new URLSearchParams({
-                organization: context.selected.organizationId,
-              })}
+              href={
+                "/miniapp?" +
+                new URLSearchParams({
+                  organization: context.selected.organizationId,
+                })
+              }
             >
               {label}
             </Link>
           </SidebarMenuButton>
         ) : (
           <SidebarMenuButton size="lg" asChild>
-            <div role="status" aria-busy={!context && !error}>{label}</div>
+            <div role="status" aria-busy={!context && !error}>
+              {label}
+            </div>
           </SidebarMenuButton>
         )}
         {context?.enterprises?.map((ent) => (

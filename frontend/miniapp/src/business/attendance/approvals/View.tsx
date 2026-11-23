@@ -20,9 +20,7 @@ export function View() {
     lock = useRef(false);
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [id, setID] = useState(""),
-    [proposal, setProposal] = useState<
-      components["schemas"]["CorrectionReview"] | null
-    >(null),
+    [proposal, setProposal] = useState<components["schemas"]["CorrectionReview"] | null>(null),
     [reviewed, setReviewed] = useState(""),
     [reason, setReason] = useState(""),
     [busy, setBusy] = useState(false),
@@ -72,7 +70,10 @@ export function View() {
     setStatus(reject ? "正在駁回申請……" : "正在核准申請……");
     void decisionRequest.run(
       (signal) =>
-        request<components["schemas"]["CorrectionApproved"] | components["schemas"]["CorrectionDecisionResult"]>(
+        request<
+          | components["schemas"]["CorrectionApproved"]
+          | components["schemas"]["CorrectionDecisionResult"]
+        >(
           (c, s) =>
             reject
               ? c.POST("/api/v1/attendance/corrections/{id}/reject", {
@@ -91,16 +92,13 @@ export function View() {
         clearReview();
         lock.current = false;
         setBusy(false);
-        setStatus(
-          reject
-            ? "已駁回，原紀錄不變。"
-            : "已核准。員工可查詢申請結果並重新載入月紀錄。",
-        );
+        setStatus(reject ? "已駁回，原紀錄不變。" : "已核准。員工可查詢申請結果並重新載入月紀錄。");
       },
       (error) => {
         lock.current = false;
         setBusy(false);
-        clearReview();setStatus(errorMessage(error));
+        clearReview();
+        setStatus(errorMessage(error));
       },
     );
   }
@@ -120,9 +118,7 @@ export function View() {
         }}
       />
       <PagePanel heading="授權審核者">
-        <p>
-          取得員工提供的申請編號後，先讀取內容再核准。權限由伺服器確認，不能審核自己的申請。
-        </p>
+        <p>取得員工提供的申請編號後，先讀取內容再核准。權限由伺服器確認，不能審核自己的申請。</p>
         <FieldSet
           className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
           id="review-controls"
@@ -145,40 +141,58 @@ export function View() {
           <Button id="review-correction" onClick={loadCorrection}>
             讀取審核內容
           </Button>
-          <section id="review-details" aria-label="申請內容" hidden={!proposal} className="grid gap-3">
-            {proposal && <>
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="break-all font-medium">申請 {reviewed}</h3>
-                <Badge variant="outline">{correctionStatus(proposal.status)}</Badge>
-              </div>
-              <p>申請人：{proposal.applicantName || "姓名未留存，請依申請編號核對"}</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                <Item variant="outline"><ItemContent>
-                  <ItemTitle>原班次</ItemTitle>
-                  {proposal.before ? <>
-                    <p>上班：{displayTime(proposal.before.ClockInAt)}</p>
-                    <p>下班：{displayTime(proposal.before.ClockOutAt)}</p>
-                  </> : <p>{proposal.newRecord ? "無原班次，申請新增補卡" : "請核對原班次"}</p>}
-                </ItemContent></Item>
-                <Item variant="outline"><ItemContent>
-                  <ItemTitle>申報班次</ItemTitle>
-                  <p>上班：{displayTime(proposal.start)}</p>
-                  <p>下班：{displayTime(proposal.end)}</p>
-                  <p>休息：{proposal.breaks?.map(b => `${displayTime(b.Start)} ～ ${displayTime(b.End)}`).join("；") || "無"}</p>
-                  <p>休息完整確認：{proposal.restConfirmed ? "是" : "否"}</p>
-                </ItemContent></Item>
-              </div>
-              <p className="whitespace-pre-wrap break-words">申請原因：{proposal.reason}</p>
-              <p className="whitespace-pre-wrap break-words">審核理由：{proposal.decisionReason || "—"}</p>
-            </>}
+          <section
+            id="review-details"
+            aria-label="申請內容"
+            hidden={!proposal}
+            className="grid gap-3"
+          >
+            {proposal && (
+              <>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="break-all font-medium">申請 {reviewed}</h3>
+                  <Badge variant="outline">{correctionStatus(proposal.status)}</Badge>
+                </div>
+                <p>申請人：{proposal.applicantName || "姓名未留存，請依申請編號核對"}</p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Item variant="outline">
+                    <ItemContent>
+                      <ItemTitle>原班次</ItemTitle>
+                      {proposal.before ? (
+                        <>
+                          <p>上班：{displayTime(proposal.before.ClockInAt)}</p>
+                          <p>下班：{displayTime(proposal.before.ClockOutAt)}</p>
+                        </>
+                      ) : (
+                        <p>{proposal.newRecord ? "無原班次，申請新增補卡" : "請核對原班次"}</p>
+                      )}
+                    </ItemContent>
+                  </Item>
+                  <Item variant="outline">
+                    <ItemContent>
+                      <ItemTitle>申報班次</ItemTitle>
+                      <p>上班：{displayTime(proposal.start)}</p>
+                      <p>下班：{displayTime(proposal.end)}</p>
+                      <p>
+                        休息：
+                        {proposal.breaks
+                          ?.map((b) => `${displayTime(b.Start)} ～ ${displayTime(b.End)}`)
+                          .join("；") || "無"}
+                      </p>
+                      <p>休息完整確認：{proposal.restConfirmed ? "是" : "否"}</p>
+                    </ItemContent>
+                  </Item>
+                </div>
+                <p className="whitespace-pre-wrap break-words">申請原因：{proposal.reason}</p>
+                <p className="whitespace-pre-wrap break-words">
+                  審核理由：{proposal.decisionReason || "—"}
+                </p>
+              </>
+            )}
           </section>
           <Button
             id="approve-correction"
-            disabled={
-              !reviewed ||
-              reviewed !== id.trim() ||
-              !proposal?.canApprove
-            }
+            disabled={!reviewed || reviewed !== id.trim() || !proposal?.canApprove}
             onClick={() => submitReviewDecision("approve")}
           >
             核准已讀取的申請
@@ -194,12 +208,7 @@ export function View() {
           </FormField>
           <Button
             id="reject-correction"
-            disabled={
-              !reviewed ||
-              reviewed !== id.trim() ||
-              !reason.trim() ||
-              !proposal?.canReject
-            }
+            disabled={!reviewed || reviewed !== id.trim() || !reason.trim() || !proposal?.canReject}
             onClick={() => submitReviewDecision("reject")}
           >
             駁回已讀取的申請

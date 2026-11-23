@@ -8,8 +8,7 @@ import { useSession } from "../../../identity/Session";
 import { errorMessage } from "../../../shared/http/lifecycle";
 import { locate } from "../../../shared/location/position";
 
-const unknownResult =
-  "打卡結果尚未確認；請先私訊查詢本人紀錄。重試仍使用同一打卡連結。";
+const unknownResult = "打卡結果尚未確認；請先私訊查詢本人紀錄。重試仍使用同一打卡連結。";
 
 export function View() {
   const { user, request, close, autoPunch, punchNotice } = useSession(),
@@ -40,8 +39,7 @@ export function View() {
           { signal, timeoutMs: 10000 },
         );
         if (signal.aborted) return;
-        if (!/^[a-f0-9]{64}$/.test(data.requestId))
-          throw new Error("打卡連結回應無效。");
+        if (!/^[a-f0-9]{64}$/.test(data.requestId)) throw new Error("打卡連結回應無效。");
         cached.current = data.requestId;
       }
       setStatus("正在確認這次操作是否需要打卡……");
@@ -80,11 +78,7 @@ export function View() {
         { signal, timeoutMs: 10000 },
       );
       if (signal.aborted) return;
-      if (
-        typeof data.code !== "string" ||
-        typeof data.message !== "string" ||
-        !data.message
-      )
+      if (typeof data.code !== "string" || typeof data.message !== "string" || !data.message)
         throw new Error(unknownResult);
       setStatus(data.message);
       if (data.accepted === true) close();
@@ -92,8 +86,7 @@ export function View() {
       if (!signal.aborted)
         setStatus(
           attempt.submitting &&
-            (error instanceof TypeError ||
-              (error instanceof Error && error.name === "AbortError"))
+            (error instanceof TypeError || (error instanceof Error && error.name === "AbortError"))
             ? unknownResult
             : errorMessage(error),
         );
@@ -113,12 +106,11 @@ export function View() {
       active.current = null;
     };
     const hide = () => {
-      const message =
-        active.current?.submitting
-          ? unknownResult
-          : active.current
-            ? "頁面切換使操作中斷；返回後請按打卡按鈕重新確認。"
-            : "";
+      const message = active.current?.submitting
+        ? unknownResult
+        : active.current
+          ? "頁面切換使操作中斷；返回後請按打卡按鈕重新確認。"
+          : "";
       punchNotice.current = message;
       cancel();
       cached.current = "";
@@ -145,21 +137,9 @@ export function View() {
     };
   }, [user, launch, start, autoPunch]);
   return (
-    <PagePanel
-      id="attendance"
-      className="bg-secondary"
-      hidden={!launch}
-      heading="確認並完成打卡"
-    >
-      <p>
-        先確認打卡狀態；需要新增紀錄時才取得位置，保存本次位置、精度與採樣時間。
-      </p>
-      <Button
-        id="punch"
-        disabled={busy}
-        aria-busy={busy}
-        onClick={start}
-      >
+    <PagePanel id="attendance" className="bg-secondary" hidden={!launch} heading="確認並完成打卡">
+      <p>先確認打卡狀態；需要新增紀錄時才取得位置，保存本次位置、精度與採樣時間。</p>
+      <Button id="punch" disabled={busy} aria-busy={busy} onClick={start}>
         {busy && <Spinner aria-label="處理中" />}
         確認並完成打卡
       </Button>

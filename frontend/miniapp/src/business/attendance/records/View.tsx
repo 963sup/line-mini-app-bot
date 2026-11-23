@@ -1,6 +1,14 @@
 import { FieldSet } from "@/shared/ui/field";
 import { ButtonGroup, ButtonGroupText } from "@/shared/ui/button-group";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableCaption } from "@/shared/ui/table";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableCaption,
+} from "@/shared/ui/table";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { FormField } from "@/shared/FormField";
@@ -45,13 +53,15 @@ export function View() {
     url.searchParams.set("month", selectedMonth);
     window.history.replaceState(window.history.state, "", url);
     void monthRead.run(
-      (signal) => request(
-        (c, s) => c.GET("/api/v1/attendance/records", {
-          signal: s,
-          params: { query: { month: selectedMonth, pageSize: 20, cursor } },
-        }),
-        { signal },
-      ),
+      (signal) =>
+        request(
+          (c, s) =>
+            c.GET("/api/v1/attendance/records", {
+              signal: s,
+              params: { query: { month: selectedMonth, pageSize: 20, cursor } },
+            }),
+          { signal },
+        ),
       (data) => {
         setRecords(data.items || []);
         setNext(data.nextCursor || "");
@@ -84,7 +94,10 @@ export function View() {
       <p>
         <a
           className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
-          href={"/miniapp/attendance?" + new URLSearchParams({ tab: "correction", ...(month ? { month } : {}) })}
+          href={
+            "/miniapp/attendance?" +
+            new URLSearchParams({ tab: "correction", ...(month ? { month } : {}) })
+          }
         >
           申請補卡
         </a>
@@ -108,12 +121,14 @@ export function View() {
       </FieldSet>
       {!user && <p role="status">請先完成身分驗證。</p>}
       {user && !month && <p role="status">請選擇月份。</p>}
-      {user && <ReadFeedback
-        busy={busy}
-        label="正在讀取出勤紀錄"
-        message={failure && "無法載入出勤紀錄。" + failure.message}
-        onRetry={failure && (() => loadRecords(month, failure.target, failure.cursor))}
-      />}
+      {user && (
+        <ReadFeedback
+          busy={busy}
+          label="正在讀取出勤紀錄"
+          message={failure && "無法載入出勤紀錄。" + failure.message}
+          onRetry={failure && (() => loadRecords(month, failure.target, failure.cursor))}
+        />
+      )}
       {user && records.length > 0 && (
         <Table aria-busy={busy}>
           <TableCaption>本人班次明細；工時單位為分鐘</TableCaption>
@@ -133,19 +148,28 @@ export function View() {
                 <TableCell>{displayTime(record.ClockInAt)}</TableCell>
                 <TableCell>{displayTime(record.ClockOutAt)}</TableCell>
                 <TableCell className="whitespace-normal min-w-48">
-                {record.WorktimeStatus === "invalid"
-                  ? `；${(record.AttendanceMinutes ?? 0) > 0 ? `出勤 ${record.AttendanceMinutes} 分鐘；` : ""}資料未完整或有異常，暫無法計算工時`
-                  : record.WorktimeStatus === "estimated"
-                    ? `；出勤 ${record.AttendanceMinutes} 分鐘；暫估工時 ${record.EstimatedMinutes} 分鐘（休息待確認）`
-                    : record.WorktimeStatus === "confirmed"
-                      ? `；出勤 ${record.AttendanceMinutes} 分鐘；已確認工時 ${record.EstimatedMinutes} 分鐘`
-                      : !record.RestConfirmed
-                        ? "；休息待確認"
-                        : ""}
+                  {record.WorktimeStatus === "invalid"
+                    ? `；${(record.AttendanceMinutes ?? 0) > 0 ? `出勤 ${record.AttendanceMinutes} 分鐘；` : ""}資料未完整或有異常，暫無法計算工時`
+                    : record.WorktimeStatus === "estimated"
+                      ? `；出勤 ${record.AttendanceMinutes} 分鐘；暫估工時 ${record.EstimatedMinutes} 分鐘（休息待確認）`
+                      : record.WorktimeStatus === "confirmed"
+                        ? `；出勤 ${record.AttendanceMinutes} 分鐘；已確認工時 ${record.EstimatedMinutes} 分鐘`
+                        : !record.RestConfirmed
+                          ? "；休息待確認"
+                          : ""}
                 </TableCell>
                 <TableCell>
                   <Button asChild variant="link">
-                    <a href={"/miniapp/attendance?tab=correction&" + new URLSearchParams({ group: record.GroupID, month, record: record.RecordID })}>
+                    <a
+                      href={
+                        "/miniapp/attendance?tab=correction&" +
+                        new URLSearchParams({
+                          group: record.GroupID,
+                          month,
+                          record: record.RecordID,
+                        })
+                      }
+                    >
                       查看／補卡
                     </a>
                   </Button>
@@ -172,7 +196,9 @@ export function View() {
           >
             上一頁
           </Button>
-          <ButtonGroupText id="record-page" aria-live="polite">{loaded && `第 ${page + 1} 頁`}</ButtonGroupText>
+          <ButtonGroupText id="record-page" aria-live="polite">
+            {loaded && `第 ${page + 1} 頁`}
+          </ButtonGroupText>
           <Button
             id="next-records"
             disabled={!user || busy || !next}

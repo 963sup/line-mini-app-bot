@@ -18,8 +18,7 @@ type ShellProps = {
 
 export function Shell(props: ShellProps) {
   const { workflow } = props;
-  if (workflow === "projects")
-    return <Content {...props} />;
+  if (workflow === "projects") return <Content {...props} />;
 
   return (
     <RepositoryProvider workflow={workflow}>
@@ -58,7 +57,10 @@ function Content({
         const query = new URL(nested, location.origin).searchParams;
         for (const key of ["enterprise", "organization"]) {
           const id = query.get(key);
-          if (id) { location.replace("/miniapp?" + new URLSearchParams({[key]: id})); return; }
+          if (id) {
+            location.replace("/miniapp?" + new URLSearchParams({ [key]: id }));
+            return;
+          }
         }
         repositories ||= query.has("repositories");
         repository ||= query.get("repository") || "";
@@ -71,21 +73,22 @@ function Content({
     } catch {}
     if (repositories)
       location.replace(
-        "/miniapp/repositories" +
-          (repository ? "?" + new URLSearchParams({ id: repository }) : ""),
+        "/miniapp/repositories" + (repository ? "?" + new URLSearchParams({ id: repository }) : ""),
       );
     else if (journal) {
       const target = new URLSearchParams();
       if (journalCompose) target.set("compose", "1");
-      if (journalCompose && /^[a-f0-9]{32}$/.test(journalRepository)) target.set("repositoryId", journalRepository);
+      if (journalCompose && /^[a-f0-9]{32}$/.test(journalRepository))
+        target.set("repositoryId", journalRepository);
       location.replace("/miniapp/feed" + (target.size ? "?" + target : ""));
-    }
-    else if (correction)
+    } else if (correction)
       location.replace(
         "/miniapp/attendance?tab=correction&" + new URLSearchParams({ group: correction }),
       );
-    else if (leave) { params.set("tab", "leave"); location.replace("/miniapp/attendance?" + params); }
-    else if (params.has("launch") || params.has("liff.state"))
+    else if (leave) {
+      params.set("tab", "leave");
+      location.replace("/miniapp/attendance?" + params);
+    } else if (params.has("launch") || params.has("liff.state"))
       location.replace("/miniapp/punch" + location.search);
   }, [workflow, ready]);
   const canLogin = session.ready && !session.user && !session.inClient && !session.busy;
@@ -131,17 +134,24 @@ function Content({
         ],
       }}
     >
-      <div
-        className="flex min-w-0 flex-col gap-4"
-        key={epoch}
-      >
+      <div className="flex min-w-0 flex-col gap-4" key={epoch}>
         {!session.user && (
           <Status aria-label="LINE 身分狀態" aria-busy={session.busy}>
             <p>{session.status}</p>
             {!session.busy && (
               <div className="mt-2 flex flex-wrap gap-2">
-                {canLogin && <Button type="button" onClick={session.login}>使用 LINE 登入</Button>}
-                <Button type="button" variant={canLogin ? "outline" : "default"} onClick={session.verify}>{verifyLabel}</Button>
+                {canLogin && (
+                  <Button type="button" onClick={session.login}>
+                    使用 LINE 登入
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant={canLogin ? "outline" : "default"}
+                  onClick={session.verify}
+                >
+                  {verifyLabel}
+                </Button>
               </div>
             )}
           </Status>

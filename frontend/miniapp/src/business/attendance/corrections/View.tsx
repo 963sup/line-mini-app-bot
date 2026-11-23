@@ -33,7 +33,7 @@ export function View() {
     [breaks, setBreaks] = useState<{ Start: string; End: string }[]>([]),
     [reason, setReason] = useState(""),
     [confirmed, setConfirmed] = useState(false),
-    [uncertain,setUncertain] = useState(false),
+    [uncertain, setUncertain] = useState(false),
     [busy, setBusy] = useState(false),
     [refreshVersion, setRefreshVersion] = useState(0),
     [status, setStatus] = useState("請先完成身分驗證。"),
@@ -101,26 +101,33 @@ export function View() {
     event.preventDefault();
     if (lock.current || !user || (!selected && !newShift) || !group) return;
     try {
-      const body: S["CorrectionSubmission"] = (uncertain && attempt.current) ? attempt.current.body : {
-        groupId: selected?.GroupID || group,
-        ...(selected
-          ? {
-              recordId: selected.RecordID,
-              expectedRevision: selected.Revision,
-              expectedEventSequence: selected.EventSequence,
-            }
-          : {}),
-        reason,
-        start: timestamp(start),
-        end: timestamp(end),
-        breaks: breaks.map((b) => ({
-          Start: timestamp(b.Start),
-          End: timestamp(b.End),
-        })),
-        restConfirmed: confirmed,
-      };
+      const body: S["CorrectionSubmission"] =
+        uncertain && attempt.current
+          ? attempt.current.body
+          : {
+              groupId: selected?.GroupID || group,
+              ...(selected
+                ? {
+                    recordId: selected.RecordID,
+                    expectedRevision: selected.Revision,
+                    expectedEventSequence: selected.EventSequence,
+                  }
+                : {}),
+              reason,
+              start: timestamp(start),
+              end: timestamp(end),
+              breaks: breaks.map((b) => ({
+                Start: timestamp(b.Start),
+                End: timestamp(b.End),
+              })),
+              restConfirmed: confirmed,
+            };
       const retry = uncertain;
-      if (!attempt.current || (!retry && JSON.stringify(attempt.current.body) !== JSON.stringify(body))) attempt.current = {body,key:crypto.randomUUID()};
+      if (
+        !attempt.current ||
+        (!retry && JSON.stringify(attempt.current.body) !== JSON.stringify(body))
+      )
+        attempt.current = { body, key: crypto.randomUUID() };
       const key = attempt.current.key;
       lock.current = true;
       setBusy(true);
@@ -141,19 +148,21 @@ export function View() {
           setBusy(false);
           setUncertain(false);
           setRefreshVersion((value) => value + 1);
-          setStatus(
-            `已送出，等待審核。申請編號：${data.id}。`,
-          );
+          setStatus(`已送出，等待審核。申請編號：${data.id}。`);
         },
         (error) => {
           lock.current = false;
           setBusy(false);
-          const unknown = retry || !rejectedAttempt(error, ["invalid_correction","invalid_idempotency_key","not_member"]);
-          if (!unknown) attempt.current=null;
+          const unknown =
+            retry ||
+            !rejectedAttempt(error, [
+              "invalid_correction",
+              "invalid_idempotency_key",
+              "not_member",
+            ]);
+          if (!unknown) attempt.current = null;
           setUncertain(unknown);
-          setStatus(
-            errorMessage(error) + " 結果未確認時，請保留本頁並以相同內容重試。",
-          );
+          setStatus(errorMessage(error) + " 結果未確認時，請保留本頁並以相同內容重試。");
         },
       );
     } catch (error) {
@@ -168,7 +177,7 @@ export function View() {
       (data) => {
         setGroupLoading(false);
         const options = data.items;
-        setGroups(previous => append ? [...previous, ...options] : options);
+        setGroups((previous) => (append ? [...previous, ...options] : options));
         if (!append && !options.length && !data.nextCursor && !group) {
           setStatus("目前沒有可選群組。請在原 LINE 群組輸入「補卡」開啟表單。");
         }
@@ -188,9 +197,7 @@ export function View() {
   return (
     <>
       <PagePanel heading={newShift ? "申請補卡" : "更正出勤紀錄"}>
-        <p>
-          班次結束後申請，核准後生效。
-        </p>
+        <p>班次結束後申請，核准後生效。</p>
         <p>
           <a
             className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
@@ -206,10 +213,12 @@ export function View() {
             disabled={!user || busy || uncertain}
           >
             {groupLoading && <p role="status">正在讀取群組……</p>}
-            {groupError && <div role="alert">
-              <p>{groupError}</p>
-              <Button onClick={() => loadGroups()}>重試讀取群組</Button>
-            </div>}
+            {groupError && (
+              <div role="alert">
+                <p>{groupError}</p>
+                <Button onClick={() => loadGroups()}>重試讀取群組</Button>
+              </div>
+            )}
             {(groups.length > 0 || !!groupCursor) && (
               <FormField>
                 群組
@@ -227,15 +236,16 @@ export function View() {
                 </NativeSelect>
               </FormField>
             )}
-            {groupCursor && (
-              <Button onClick={() => loadGroups(true)}>載入更多群組</Button>
-            )}
+            {groupCursor && <Button onClick={() => loadGroups(true)}>載入更多群組</Button>}
           </FieldSet>
         )}
         {newShift && group && !needsGroupPicker && <p>群組：{groups[0]?.name || group}</p>}
-        {selected && <p id="record-description">
-          原班次：{originalStart ? displayTime(selected.ClockInAt) : "缺上班時間"} → {originalEnd ? displayTime(selected.ClockOutAt) : "缺下班時間"}
-        </p>}
+        {selected && (
+          <p id="record-description">
+            原班次：{originalStart ? displayTime(selected.ClockInAt) : "缺上班時間"} →{" "}
+            {originalEnd ? displayTime(selected.ClockOutAt) : "缺下班時間"}
+          </p>
+        )}
         <form id="correction-form" onSubmit={submitCorrection}>
           <FieldGroup>
             <FieldSet
@@ -244,28 +254,32 @@ export function View() {
               disabled={!user || (!selected && !newShift) || !group || busy || uncertain}
             >
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {(!oneTimeMissing || editBothTimes || !originalStart) && <FormField>
-                  上班時間
-                  <Input
-                    id="correction-start"
-                    type="datetime-local"
-                    step="1"
-                    required
-                    value={start}
-                    onChange={(e) => setStart(e.target.value)}
-                  />
-                </FormField>}
-                {(!oneTimeMissing || editBothTimes || !originalEnd) && <FormField>
-                  下班時間
-                  <Input
-                    id="correction-end"
-                    type="datetime-local"
-                    step="1"
-                    required
-                    value={end}
-                    onChange={(e) => setEnd(e.target.value)}
-                  />
-                </FormField>}
+                {(!oneTimeMissing || editBothTimes || !originalStart) && (
+                  <FormField>
+                    上班時間
+                    <Input
+                      id="correction-start"
+                      type="datetime-local"
+                      step="1"
+                      required
+                      value={start}
+                      onChange={(e) => setStart(e.target.value)}
+                    />
+                  </FormField>
+                )}
+                {(!oneTimeMissing || editBothTimes || !originalEnd) && (
+                  <FormField>
+                    下班時間
+                    <Input
+                      id="correction-end"
+                      type="datetime-local"
+                      step="1"
+                      required
+                      value={end}
+                      onChange={(e) => setEnd(e.target.value)}
+                    />
+                  </FormField>
+                )}
               </div>
               {oneTimeMissing && !editBothTimes && (
                 <Button type="button" variant="outline" onClick={() => setEditBothTimes(true)}>
@@ -275,9 +289,13 @@ export function View() {
               <details
                 key={selected?.RecordID || "new-shift"}
                 className="space-y-3"
-                onInvalidCapture={(event) => { event.currentTarget.open = true; }}
+                onInvalidCapture={(event) => {
+                  event.currentTarget.open = true;
+                }}
               >
-                <summary className="cursor-pointer">休息時間（{breaks.length ? `${breaks.length} 段` : "未填寫"}）</summary>
+                <summary className="cursor-pointer">
+                  休息時間（{breaks.length ? `${breaks.length} 段` : "未填寫"}）
+                </summary>
                 <div id="correction-breaks">
                   {breaks.map((b, index) => (
                     <div key={index}>
@@ -292,9 +310,7 @@ export function View() {
                             onChange={(e) =>
                               setBreaks((old) =>
                                 old.map((v, i) =>
-                                  i === index
-                                    ? { ...v, [field]: e.target.value }
-                                    : v,
+                                  i === index ? { ...v, [field]: e.target.value } : v,
                                 ),
                               )
                             }
@@ -303,9 +319,7 @@ export function View() {
                       ))}
                       <Button
                         type="button"
-                        onClick={() =>
-                          setBreaks((old) => old.filter((_, i) => i !== index))
-                        }
+                        onClick={() => setBreaks((old) => old.filter((_, i) => i !== index))}
                       >
                         移除
                       </Button>
@@ -315,9 +329,7 @@ export function View() {
                 <Button
                   id="add-break"
                   type="button"
-                  onClick={() =>
-                    setBreaks((old) => [...old, { Start: "", End: "" }])
-                  }
+                  onClick={() => setBreaks((old) => [...old, { Start: "", End: "" }])}
                 >
                   新增休息區間
                 </Button>
@@ -347,7 +359,11 @@ export function View() {
                 送出申請
               </Button>
             </FieldSet>
-            {uncertain && <Button type="submit" disabled={busy}>重試原申請</Button>}
+            {uncertain && (
+              <Button type="submit" disabled={busy}>
+                重試原申請
+              </Button>
+            )}
           </FieldGroup>
         </form>
         <Status id="correction-status" role="status">

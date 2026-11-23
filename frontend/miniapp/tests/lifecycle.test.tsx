@@ -5,21 +5,27 @@ import { rejectedAttempt, untilAbort } from "../src/shared/http/lifecycle";
 function deferred() {
   let resolve!: (value: string) => void;
   let reject!: (error: Error) => void;
-  const promise = new Promise<string>((yes, no) => { resolve = yes; reject = no; });
+  const promise = new Promise<string>((yes, no) => {
+    resolve = yes;
+    reject = no;
+  });
   return { promise, resolve, reject };
 }
 
 function trackedSignal() {
   const controller = new AbortController();
   const signal = controller.signal;
-  let added = 0, removed = 0;
+  let added = 0,
+    removed = 0;
   const add = signal.addEventListener.bind(signal);
   const remove = signal.removeEventListener.bind(signal);
   signal.addEventListener = ((...args: Parameters<typeof add>) => {
-    added++; return add(...args);
+    added++;
+    return add(...args);
   }) as typeof add;
   signal.removeEventListener = ((...args: Parameters<typeof remove>) => {
-    removed++; return remove(...args);
+    removed++;
+    return remove(...args);
   }) as typeof remove;
   return { controller, signal, counts: () => ({ added, removed }) };
 }
@@ -61,7 +67,10 @@ test("uncancelled work preserves values and the original error, releasing listen
   assert.deepEqual(success.counts(), { added: 1, removed: 1 });
   const failure = trackedSignal();
   const error = new Error("transport failure");
-  await assert.rejects(untilAbort(Promise.reject(error), failure.signal), (actual) => actual === error);
+  await assert.rejects(
+    untilAbort(Promise.reject(error), failure.signal),
+    (actual) => actual === error,
+  );
   assert.deepEqual(failure.counts(), { added: 1, removed: 1 });
 });
 

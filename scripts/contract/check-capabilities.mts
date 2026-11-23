@@ -16,7 +16,14 @@ interface Inventory {
   capabilities: Record<string, { contract?: string }>;
   resources: { entity: string; collection: string; path: string }[];
   namingExceptions: Record<string, string>;
-  events: { owner: string; contract: string; adapter: string; handler: string; action: string; note: string }[];
+  events: {
+    owner: string;
+    contract: string;
+    adapter: string;
+    handler: string;
+    action: string;
+    note: string;
+  }[];
 }
 const root = realpathSync(resolve(import.meta.dirname, "../.."));
 const contract = join(root, "api/contract");
@@ -29,7 +36,10 @@ function source(name: string): string {
 }
 
 function record(value: Json | undefined): Record<string, Json> {
-  assert(value !== null && typeof value === "object" && !Array.isArray(value), "Expected JSON object");
+  assert(
+    value !== null && typeof value === "object" && !Array.isArray(value),
+    "Expected JSON object",
+  );
   return value;
 }
 
@@ -51,8 +61,10 @@ function pointer(value: Json | undefined, fragment: string): Json {
   assert(fragment.startsWith("/"), `Invalid JSON pointer: ${fragment}`);
   for (const part of fragment.slice(1).split("/")) {
     const key = part.replaceAll("~1", "/").replaceAll("~0", "~");
-    assert(value !== null && typeof value === "object" && Object.hasOwn(value, key),
-      `Missing JSON pointer: ${fragment}`);
+    assert(
+      value !== null && typeof value === "object" && Object.hasOwn(value, key),
+      `Missing JSON pointer: ${fragment}`,
+    );
     value = Array.isArray(value) ? value[Number(key)] : value[key];
     assert(value !== undefined, `Missing JSON pointer: ${fragment}`);
   }
@@ -62,7 +74,10 @@ function pointer(value: Json | undefined, fragment: string): Json {
 function reference(path: string, ref: string): [string, string] {
   const hash = ref.indexOf("#");
   const file = hash < 0 ? ref : ref.slice(0, hash);
-  return [file ? realpathSync(resolve(dirname(path), file)) : path, hash < 0 ? "" : ref.slice(hash + 1)];
+  return [
+    file ? realpathSync(resolve(dirname(path), file)) : path,
+    hash < 0 ? "" : ref.slice(hash + 1),
+  ];
 }
 
 function hasHandler(text: string, handler: string): boolean {
@@ -78,7 +93,10 @@ for (const entry of readdirSync(contract, { recursive: true, withFileTypes: true
   const path = realpathSync(join(entry.parentPath, entry.name));
   docs.set(path, JSON.parse(readFileSync(path, "utf8")) as Json);
 }
-const roots = new Map([[join(contract, "openapi.yaml"), "public"], [join(contract, "internal-openapi.yaml"), "internal"]]);
+const roots = new Map([
+  [join(contract, "openapi.yaml"), "public"],
+  [join(contract, "internal-openapi.yaml"), "internal"],
+]);
 const graph = new Map<string, Set<string>>();
 for (const [path, document] of docs) {
   const dependencies = new Set<string>();
@@ -87,7 +105,10 @@ for (const [path, document] of docs) {
     assert(docs.has(target), `External or missing reference: ${path}: ${ref}`);
     pointer(docs.get(target), fragment);
     if (target !== path) dependencies.add(target);
-    assert(roots.has(path) || !roots.has(target), `Capability references composition root: ${path}: ${ref}`);
+    assert(
+      roots.has(path) || !roots.has(target),
+      `Capability references composition root: ${path}: ${ref}`,
+    );
   }
   graph.set(path, dependencies);
 }
@@ -106,7 +127,10 @@ for (const path of docs.keys()) visit(path);
 const operations = new Map<string, [string, string, string, string]>();
 function onlyRef(value: Json): string {
   const item = record(value);
-  assert(Object.keys(item).length === 1 && typeof item.$ref === "string", "Expected a reference-only entry in composition root");
+  assert(
+    Object.keys(item).length === 1 && typeof item.$ref === "string",
+    "Expected a reference-only entry in composition root",
+  );
   return item.$ref;
 }
 for (const [path, audience] of roots) {
@@ -119,7 +143,10 @@ for (const [path, audience] of roots) {
     for (const [method, operation] of Object.entries(record(pointer(docs.get(target), fragment)))) {
       if (!methods.has(method)) continue;
       const id = record(operation).operationId;
-      assert(typeof id === "string" && !operations.has(id), `Missing or duplicate operationId: ${id}`);
+      assert(
+        typeof id === "string" && !operations.has(id),
+        `Missing or duplicate operationId: ${id}`,
+      );
       operations.set(id, [audience, method.toUpperCase(), route, target]);
     }
   }
@@ -132,37 +159,59 @@ for (const operation of inventory.operations) {
   registered.add(id);
   const file = inventory.capabilities[operation.owner]?.contract;
   assert(file, `Missing capability contract: ${id}`);
-  assert.deepEqual(operations.get(id), [operation.audience, operation.method, operation.path,
-    realpathSync(resolve(contract, file))], `Operation ownership/route mismatch: ${id}`);
+  assert.deepEqual(
+    operations.get(id),
+    [operation.audience, operation.method, operation.path, realpathSync(resolve(contract, file))],
+    `Operation ownership/route mismatch: ${id}`,
+  );
   const text = source(operation.adapter);
   assert(hasHandler(text, operation.handler), `Missing adapter method: ${id}`);
-  assert(!["http.NewServeMux()", "r.URL.Query().Get(", 'r.PathValue("'].some(part => text.includes(part)),
-    `Adapter re-parses generated routing: ${id}`);
+  assert(
+    !["http.NewServeMux()", "r.URL.Query().Get(", 'r.PathValue("'].some((part) =>
+      text.includes(part),
+    ),
+    `Adapter re-parses generated routing: ${id}`,
+  );
   source(operation.core);
   source(operation.specification);
   for (const consumer of operation.consumers) {
     const text = source(consumer);
-    assert(operation.audience !== "public" || text.includes(`"${operation.path}"`), `Stale consumer: ${id}: ${consumer}`);
+    assert(
+      operation.audience !== "public" || text.includes(`"${operation.path}"`),
+      `Stale consumer: ${id}: ${consumer}`,
+    );
   }
 }
 checkDispatch(source, inventory.operations);
 assert.deepEqual(registered, new Set(operations.keys()), "Unowned operations");
-const owned = Object.values(inventory.capabilities).flatMap(capability =>
-  capability.contract ? [realpathSync(resolve(contract, capability.contract))] : []);
-assert.deepEqual(new Set(docs.keys()), new Set([...roots.keys(), ...owned, join(contract, "common/transport.yaml")]),
-  "Unclassified contract source (assign its capability first)");
+const owned = Object.values(inventory.capabilities).flatMap((capability) =>
+  capability.contract ? [realpathSync(resolve(contract, capability.contract))] : [],
+);
+assert.deepEqual(
+  new Set(docs.keys()),
+  new Set([...roots.keys(), ...owned, join(contract, "common/transport.yaml")]),
+  "Unclassified contract source (assign its capability first)",
+);
 
 for (const { entity, collection, path } of inventory.resources) {
-  assert(/^[A-Z]/.test(entity) && entity.toLowerCase() !== collection && collection.endsWith("s"),
-    `Review singular entity/plural collection: ${entity}/${collection}`);
+  assert(
+    /^[A-Z]/.test(entity) && entity.toLowerCase() !== collection && collection.endsWith("s"),
+    `Review singular entity/plural collection: ${entity}/${collection}`,
+  );
   assert.equal(path.split("/").at(-1), collection, `Collection path mismatch: ${path}`);
-  assert([...docs.values()].some(doc => Object.hasOwn(record(record(record(doc).components ?? {}).schemas ?? {}), entity)),
-    `Missing resource schema: ${entity}`);
+  assert(
+    [...docs.values()].some((doc) =>
+      Object.hasOwn(record(record(record(doc).components ?? {}).schemas ?? {}), entity),
+    ),
+    `Missing resource schema: ${entity}`,
+  );
 }
 for (const [, , route] of operations.values()) {
-  assert(Object.hasOwn(inventory.namingExceptions, route) ||
-    inventory.resources.some(({ path }) => route === path || route.startsWith(path + "/")),
-  `Unclassified resource path or naming exception: ${route}`);
+  assert(
+    Object.hasOwn(inventory.namingExceptions, route) ||
+      inventory.resources.some(({ path }) => route === path || route.startsWith(path + "/")),
+    `Unclassified resource path or naming exception: ${route}`,
+  );
 }
 for (const event of inventory.events) {
   assert(Object.hasOwn(inventory.capabilities, event.owner), "Unknown event capability");
@@ -170,4 +219,6 @@ for (const event of inventory.events) {
   assert(hasHandler(source(event.adapter), event.handler), "Missing event adapter");
   assert(event.owner && event.action && event.note, "Incomplete event contract");
 }
-console.log(`PASS: ${operations.size} operations, ${docs.size} contract sources, ${inventory.events.length} event entries; ownership, references, naming and dispatch`);
+console.log(
+  `PASS: ${operations.size} operations, ${docs.size} contract sources, ${inventory.events.length} event entries; ownership, references, naming and dispatch`,
+);

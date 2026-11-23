@@ -16,19 +16,40 @@ const tabs = [
 
 export default function Page() {
   const router = useRouter();
-  const selected = tabs.find(tab => tab.id === router.query.tab) ?? tabs[0];
+  const selected = tabs.find((tab) => tab.id === router.query.tab) ?? tabs[0];
 
   const applying = selected.id === "correction" && !router.query.record;
-  return <Shell title={applying ? "申請補卡" : "出勤服務"} workflow="attendance" shortcut={applying ? "correction" : undefined}>
-    <Tabs value={selected.id} onValueChange={tab => {
-      if (router.isReady) void router.push({ pathname: "/miniapp/attendance", query: { tab } }, undefined, { shallow: true });
-    }}>
-      <TabsList aria-label="出勤服務" className="grid w-full group-data-[orientation=horizontal]/tabs:h-auto grid-cols-2 sm:grid-cols-4">
-        {tabs.map(({ id, label }) => <TabsTrigger key={id} value={id}>{label}</TabsTrigger>)}
-      </TabsList>
-      <TabsContent key={selected.id} value={selected.id}>
-        <RouteContent label="正在開啟出勤服務……"><selected.View /></RouteContent>
-      </TabsContent>
-    </Tabs>
-  </Shell>;
+  return (
+    <Shell
+      title={applying ? "申請補卡" : "出勤服務"}
+      workflow="attendance"
+      shortcut={applying ? "correction" : undefined}
+    >
+      <Tabs
+        value={selected.id}
+        onValueChange={(tab) => {
+          if (router.isReady)
+            void router.push({ pathname: "/miniapp/attendance", query: { tab } }, undefined, {
+              shallow: true,
+            });
+        }}
+      >
+        <TabsList
+          aria-label="出勤服務"
+          className="grid w-full group-data-[orientation=horizontal]/tabs:h-auto grid-cols-2 sm:grid-cols-4"
+        >
+          {tabs.map(({ id, label }) => (
+            <TabsTrigger key={id} value={id}>
+              {label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent key={selected.id} value={selected.id}>
+          <RouteContent label="正在開啟出勤服務……">
+            <selected.View />
+          </RouteContent>
+        </TabsContent>
+      </Tabs>
+    </Shell>
+  );
 }

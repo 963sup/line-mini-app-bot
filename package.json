@@ -13,13 +13,16 @@
     "test": "turbo run test",
     "build": "turbo run build",
     "scripts:typecheck": "tsc -p tsconfig.scripts.json",
-    "api:compat": "node --test scripts/test/check-compatibility.test.mts && node scripts/contract/check-compatibility.mts"
+    "api:compat": "node --test scripts/test/check-compatibility.test.mts && node scripts/contract/check-compatibility.mts",
+    "format:check": "prettier --check \"frontend/miniapp/src/**/*.{ts,tsx}\" \"frontend/miniapp/tests/**/*.{ts,tsx}\" \"api/client/src/**/*.ts\" \"scripts/**/*.mts\"",
+    "format": "prettier --write \"frontend/miniapp/src/**/*.{ts,tsx}\" \"frontend/miniapp/tests/**/*.{ts,tsx}\" \"api/client/src/**/*.ts\" \"scripts/**/*.mts\""
   },
   "devDependencies": {
-    "turbo": "2.11.10",
     "@redocly/cli": "2.15.0",
+    "@types/node": "26.6.6",
     "openapi-typescript": "7.13.0",
-    "typescript": "5.9.3",
-    "@types/node": "26.6.6"
+    "prettier": "3.10.1",
+    "turbo": "2.11.10",
+    "typescript": "5.9.3"
   }
 }

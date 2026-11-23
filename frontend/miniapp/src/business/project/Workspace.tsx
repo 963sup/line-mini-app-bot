@@ -32,12 +32,18 @@ export function Workspace() {
 function AuthenticatedWorkspace() {
   const { user } = useSession();
   const { context, error, refresh } = useOrganizationSelection();
-  const organizations = context?.groups.flatMap(group => group.organizations) ?? [];
-  const blocked = useRef(false), navigating = useRef(false);
+  const organizations = context?.groups.flatMap((group) => group.organizations) ?? [];
+  const blocked = useRef(false),
+    navigating = useRef(false);
   const [writeBlocked, setWriteBlocked] = useState(false);
-  const onBlocked = useCallback((value: boolean) => { blocked.current = value; setWriteBlocked(value); }, []);
+  const onBlocked = useCallback((value: boolean) => {
+    blocked.current = value;
+    setWriteBlocked(value);
+  }, []);
   const canWrite = useCallback(() => !navigating.current, []);
-  useEffect(() => { navigating.current = false; });
+  useEffect(() => {
+    navigating.current = false;
+  });
   const [route, setRoute] = useState<Route>(emptyRoute);
   const [ready, setReady] = useState(false);
   const editor = useRef<EditorNavigation>(null);
@@ -59,8 +65,11 @@ function AuthenticatedWorkspace() {
         event.stopImmediatePropagation();
         return;
       }
-      if (target !== undefined && target !== historyIndex.current &&
-          (blocked.current || editor.current?.allowHistoryChange() === false)) {
+      if (
+        target !== undefined &&
+        target !== historyIndex.current &&
+        (blocked.current || editor.current?.allowHistoryChange() === false)
+      ) {
         // popstate fires after the URL moves. Return to the original entry without truncating forward history.
         event.stopImmediatePropagation();
         restoring = true;
@@ -75,58 +84,92 @@ function AuthenticatedWorkspace() {
     return () => window.removeEventListener("popstate", traverse, true);
   }, [user?.userId]);
 
-  const navigate = useCallback((owner: string, project = "", source = "", copyFrom?: CopySource) => {
-    if (blocked.current) return;
-    navigating.current = true;
-    const next = { owner, project, source, copyFrom };
-    const query = new URLSearchParams();
-    if (owner) query.set("owner", owner);
-    if (project) query.set("project", project);
-    if (copyFrom) {
-      query.set("fromOwner", copyFrom.ownerId);
-      query.set("fromProject", copyFrom.projectId);
-    }
-    if (source) query.set("source", source);
-    window.history.pushState({ projectIndex: ++historyIndex.current }, "", "/miniapp/projects" + (query.size ? "?" + query : ""));
-    setRoute(next);
-  }, []);
+  const navigate = useCallback(
+    (owner: string, project = "", source = "", copyFrom?: CopySource) => {
+      if (blocked.current) return;
+      navigating.current = true;
+      const next = { owner, project, source, copyFrom };
+      const query = new URLSearchParams();
+      if (owner) query.set("owner", owner);
+      if (project) query.set("project", project);
+      if (copyFrom) {
+        query.set("fromOwner", copyFrom.ownerId);
+        query.set("fromProject", copyFrom.projectId);
+      }
+      if (source) query.set("source", source);
+      window.history.pushState(
+        { projectIndex: ++historyIndex.current },
+        "",
+        "/miniapp/projects" + (query.size ? "?" + query : ""),
+      );
+      setRoute(next);
+    },
+    [],
+  );
 
-  const owners = user ? [{ id: user.userId, name: "我的個人專案" }, ...organizations.map(org => ({ id: org.organizationId, name: org.name }))] : [];
-  const active = organizations.some(org => org.organizationId === route.owner);
-  const selectProject = useCallback((id: string) => navigate(route.owner, id, route.source), [navigate, route.owner, route.source]);
-  return <div className="flex min-w-0 flex-col gap-4">
-    <PagePanel heading="專案擁有者">
-      <nav aria-label="專案擁有者" className="flex flex-wrap gap-2">
-        {owners.map(owner => {
-          const current = owner.id === route.owner;
-          return <Button key={owner.id} variant={current ? "default" : "outline"}
-            className="h-auto min-h-11 max-w-full whitespace-normal text-left [overflow-wrap:anywhere]"
-            disabled={writeBlocked} aria-current={current ? "page" : undefined}
-            onClick={() => {
-              const select = () => navigate(owner.id);
-              if (editor.current) editor.current.navigate(select);
-              else select();
-            }}>
-            {current && <Check aria-hidden="true" />}
-            {owner.name}
-          </Button>;
-        })}
-      </nav>
-      {error && <><Status role="status">{error}</Status><Button onClick={refresh}>重試讀取組織</Button></>}
-      {ready && context && !active && route.owner !== user?.userId && <Status role="status">無法開啟此組織。</Status>}
-    </PagePanel>
-    {user && (active || route.owner === user.userId) && <View
-      key={route.owner}
-      ref={editor}
-      ownerId={route.owner}
-      projectId={route.project}
-      initialSource={route.source}
-      copyFrom={route.copyFrom}
-      destinations={owners}
-      onCopy={destination => navigate(destination, "new", "", { ownerId: route.owner, projectId: route.project })}
-      onSelect={selectProject}
-      onBlocked={onBlocked}
-      canWrite={canWrite}
-    />}
-  </div>;
+  const owners = user
+    ? [
+        { id: user.userId, name: "我的個人專案" },
+        ...organizations.map((org) => ({ id: org.organizationId, name: org.name })),
+      ]
+    : [];
+  const active = organizations.some((org) => org.organizationId === route.owner);
+  const selectProject = useCallback(
+    (id: string) => navigate(route.owner, id, route.source),
+    [navigate, route.owner, route.source],
+  );
+  return (
+    <div className="flex min-w-0 flex-col gap-4">
+      <PagePanel heading="專案擁有者">
+        <nav aria-label="專案擁有者" className="flex flex-wrap gap-2">
+          {owners.map((owner) => {
+            const current = owner.id === route.owner;
+            return (
+              <Button
+                key={owner.id}
+                variant={current ? "default" : "outline"}
+                className="h-auto min-h-11 max-w-full whitespace-normal text-left [overflow-wrap:anywhere]"
+                disabled={writeBlocked}
+                aria-current={current ? "page" : undefined}
+                onClick={() => {
+                  const select = () => navigate(owner.id);
+                  if (editor.current) editor.current.navigate(select);
+                  else select();
+                }}
+              >
+                {current && <Check aria-hidden="true" />}
+                {owner.name}
+              </Button>
+            );
+          })}
+        </nav>
+        {error && (
+          <>
+            <Status role="status">{error}</Status>
+            <Button onClick={refresh}>重試讀取組織</Button>
+          </>
+        )}
+        {ready && context && !active && route.owner !== user?.userId && (
+          <Status role="status">無法開啟此組織。</Status>
+        )}
+      </PagePanel>
+      {user && (active || route.owner === user.userId) && (
+        <View
+          key={route.owner}
+          ref={editor}
+          ownerId={route.owner}
+          projectId={route.project}
+          initialSource={route.source}
+          copyFrom={route.copyFrom}
+          destinations={owners}
+          onCopy={(destination) =>
+            navigate(destination, "new", "", { ownerId: route.owner, projectId: route.project })
+          }
+          onSelect={selectProject}
+          onBlocked={onBlocked}
+          canWrite={canWrite}
+        />
+      )}
+    </div>
+  );
 }

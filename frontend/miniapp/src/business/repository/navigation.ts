@@ -1,4 +1,15 @@
-import { BookOpen, ChartNoAxesCombined, LayoutDashboard, CircleDot, MessagesSquare, Tags, Flag, History, Layers, Package } from "lucide-react";
+import {
+  BookOpen,
+  ChartNoAxesCombined,
+  LayoutDashboard,
+  CircleDot,
+  MessagesSquare,
+  Tags,
+  Flag,
+  History,
+  Layers,
+  Package,
+} from "lucide-react";
 
 export const navigation = [
   { title: "總覽", icon: LayoutDashboard },

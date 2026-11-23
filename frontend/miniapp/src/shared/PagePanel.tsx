@@ -8,11 +8,18 @@ export function PagePanel({
   children,
   className,
   ...props
-}: React.ComponentProps<typeof Card> & { heading: React.ReactNode; description?: React.ReactNode }) {
+}: React.ComponentProps<typeof Card> & {
+  heading: React.ReactNode;
+  description?: React.ReactNode;
+}) {
   return (
     <Card className={cn("min-w-0 gap-4 py-4 sm:gap-6 sm:py-6", className)} {...props}>
       <CardHeader className="min-w-0 px-4 sm:px-6">
-        <CardTitle role="heading" aria-level={2} className="min-w-0 text-base leading-snug [overflow-wrap:anywhere]">
+        <CardTitle
+          role="heading"
+          aria-level={2}
+          className="min-w-0 text-base leading-snug [overflow-wrap:anywhere]"
+        >
           {heading}
         </CardTitle>
         {description && <CardDescription>{description}</CardDescription>}

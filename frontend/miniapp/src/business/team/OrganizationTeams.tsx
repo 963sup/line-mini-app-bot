@@ -7,14 +7,12 @@ import { PagePanel } from "@/shared/PagePanel";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import type { components } from "@repo/api-client";
 
-export function OrganizationTeams({
-  organizationId,
-}: {
-  organizationId: string;
-}) {
+export function OrganizationTeams({ organizationId }: { organizationId: string }) {
   const { request, user } = useSession(),
     { run, cancel } = useLatestRequest();
-  const [result, setResult] = useState<components["schemas"]["OrganizationTeamsResponse"] | string | null>(null);
+  const [result, setResult] = useState<
+    components["schemas"]["OrganizationTeamsResponse"] | string | null
+  >(null);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!user) return;
@@ -39,16 +37,36 @@ export function OrganizationTeams({
   const data = typeof result === "string" ? null : result;
   return (
     <PagePanel heading="組織團隊">
-      <ReadFeedback busy={result === null} label="載入團隊中…" message={error}
-        onRetry={error ? () => setAttempt(value => value + 1) : undefined} />
-      {data && (data.teams.length ? (
-        <ul className="divide-y">
-          {data.teams.map(team => <li key={team.teamId}>
-            <TeamSummary name={team.name || team.teamId} management={team.managementScope === "enterprise" ? "企業團隊" : "組織團隊"} auditStatus={team.auditHistoryStatus} />
-          </li>)}
-        </ul>
-      ) : <p className="text-sm text-muted-foreground">尚無可見團隊。</p>)}
-      {data?.canBindTeam && <TeamManagement key={organizationId} scope="organization" managementId={organizationId} onChanged={() => setAttempt(value => value + 1)} />}
+      <ReadFeedback
+        busy={result === null}
+        label="載入團隊中…"
+        message={error}
+        onRetry={error ? () => setAttempt((value) => value + 1) : undefined}
+      />
+      {data &&
+        (data.teams.length ? (
+          <ul className="divide-y">
+            {data.teams.map((team) => (
+              <li key={team.teamId}>
+                <TeamSummary
+                  name={team.name || team.teamId}
+                  management={team.managementScope === "enterprise" ? "企業團隊" : "組織團隊"}
+                  auditStatus={team.auditHistoryStatus}
+                />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">尚無可見團隊。</p>
+        ))}
+      {data?.canBindTeam && (
+        <TeamManagement
+          key={organizationId}
+          scope="organization"
+          managementId={organizationId}
+          onChanged={() => setAttempt((value) => value + 1)}
+        />
+      )}
     </PagePanel>
   );
 }

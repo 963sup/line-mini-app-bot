@@ -38,8 +38,7 @@ interface Session {
 const Context = createContext<Session | null>(null);
 function unwrap<T>({ data, error, response }: Result<T>): T {
   if (!response.ok) {
-    const detail = (error as components["schemas"]["APIError"] | undefined)
-      ?.error;
+    const detail = (error as components["schemas"]["APIError"] | undefined)?.error;
     throw Object.assign(new Error(detail?.message || "伺服器無法完成請求。"), {
       code: detail?.code,
       conflictReason: detail?.conflictReason,
@@ -125,18 +124,22 @@ export function SessionProvider({
         return;
       }
       const token = liff.getIDToken();
-      if (!token)
-        throw new Error("無法取得 LINE 身分，請確認 openid scope 並重新登入。");
+      if (!token) throw new Error("無法取得 LINE 身分，請確認 openid scope 並重新登入。");
       setStatus("正在由伺服器驗證 LINE 身分……");
       const session = await untilAbort(
         createAPIClient(location.origin, token)
-          .POST("/api/v1/session", { body: {}, params: { header: { Origin: location.origin } }, signal: c.signal })
+          .POST("/api/v1/session", {
+            body: {},
+            params: { header: { Origin: location.origin } },
+            signal: c.signal,
+          })
           .then(unwrap),
         c.signal,
       );
       if (current !== generation.current) return;
       const data = session.user;
-      if (!data.userId || !session.csrfToken || !Number.isFinite(Date.parse(session.expiresAt))) throw new Error("身分回應無效。");
+      if (!data.userId || !session.csrfToken || !Number.isFinite(Date.parse(session.expiresAt)))
+        throw new Error("身分回應無效。");
       csrf.current = session.csrfToken;
       expiresAt.current = Date.parse(session.expiresAt);
       lastActivity.current = Date.now();
@@ -144,16 +147,26 @@ export function SessionProvider({
       setUser(data);
       setStatus("本人身分驗證成功。");
       // Profile is display-only; authorization continues to use the server session.
-      void untilAbort(liff.getProfile(), AbortSignal.timeout(5000)).then((profile) => {
-        if (current !== generation.current || profile.userId !== data.userId || !profile.pictureUrl) return;
-        const picture = new URL(profile.pictureUrl);
-        if (picture.protocol === "https:" && picture.hostname === "profile.line-scdn.net") {
-          setPictureUrl(picture.href);
-        }
-      }).catch(() => { /* Missing profile permission must not block login. */ });
+      void untilAbort(liff.getProfile(), AbortSignal.timeout(5000))
+        .then((profile) => {
+          if (
+            current !== generation.current ||
+            profile.userId !== data.userId ||
+            !profile.pictureUrl
+          )
+            return;
+          const picture = new URL(profile.pictureUrl);
+          if (picture.protocol === "https:" && picture.hostname === "profile.line-scdn.net") {
+            setPictureUrl(picture.href);
+          }
+        })
+        .catch(() => {
+          /* Missing profile permission must not block login. */
+        });
     } catch (error) {
       if (current === generation.current) {
-        const status = error instanceof Error && "httpStatus" in error ? error.httpStatus : undefined;
+        const status =
+          error instanceof Error && "httpStatus" in error ? error.httpStatus : undefined;
         setStatus(status ? `HTTP ${status} · ${errorMessage(error)}` : errorMessage(error));
       }
     } finally {
@@ -164,22 +177,35 @@ export function SessionProvider({
   }, [reset, sdkLoader]);
   const refreshIfDue = useCallback(async () => {
     const now = Date.now();
-    if (!actor.current || !csrf.current || loggingOut.current ||
-        document.visibilityState === "hidden" || now - lastActivity.current > 120000 ||
-        expiresAt.current - now > 600000) return;
+    if (
+      !actor.current ||
+      !csrf.current ||
+      loggingOut.current ||
+      document.visibilityState === "hidden" ||
+      now - lastActivity.current > 120000 ||
+      expiresAt.current - now > 600000
+    )
+      return;
     if (refreshPending.current) return refreshPending.current;
     if (now - lastRefreshAttempt.current < 60000) return;
     lastRefreshAttempt.current = now;
-    const current = generation.current, c = new AbortController();
+    const current = generation.current,
+      c = new AbortController();
     active.current.add(c);
     const timer = setTimeout(() => c.abort(), 10000);
     const pending = (async () => {
       try {
         const result = await untilAbort(
-          createAPIClient(location.origin, undefined, csrf.current)
-            .POST("/api/v1/session/refresh", {
-              body: {}, params: { header: { Origin: location.origin, "X-CSRF-Token": csrf.current } }, signal: c.signal,
-            }), c.signal);
+          createAPIClient(location.origin, undefined, csrf.current).POST(
+            "/api/v1/session/refresh",
+            {
+              body: {},
+              params: { header: { Origin: location.origin, "X-CSRF-Token": csrf.current } },
+              signal: c.signal,
+            },
+          ),
+          c.signal,
+        );
         if (current !== generation.current) throw aborted();
         if (result.response.status === 401 || result.response.status === 403) {
           reset();
@@ -188,8 +214,12 @@ export function SessionProvider({
         }
         const value = unwrap(result);
         if (current !== generation.current) throw aborted();
-        if (value.user.userId !== actor.current?.userId || value.csrfToken !== csrf.current ||
-            !Number.isFinite(Date.parse(value.expiresAt))) throw new Error("登入續期回應無效，請重新驗證。");
+        if (
+          value.user.userId !== actor.current?.userId ||
+          value.csrfToken !== csrf.current ||
+          !Number.isFinite(Date.parse(value.expiresAt))
+        )
+          throw new Error("登入續期回應無效，請重新驗證。");
         expiresAt.current = Date.parse(value.expiresAt);
       } finally {
         clearTimeout(timer);
@@ -197,41 +227,47 @@ export function SessionProvider({
       }
     })();
     refreshPending.current = pending;
-    try { await pending; }
-    finally { if (refreshPending.current === pending) refreshPending.current = null; }
-  }, [reset]);
-  const request: Request = useCallback(async (operation, options = {}) => {
-    const current = generation.current,
-      liff = sdk.current;
-    if (!actor.current || !csrf.current || !liff?.isLoggedIn())
-      throw new Error("請先完成身分驗證。");
-    await refreshIfDue();
-    if (current !== generation.current) throw aborted();
-    const c = new AbortController(),
-      stop = () => c.abort();
-    active.current.add(c);
-    options.signal?.addEventListener("abort", stop, { once: true });
-    if (options.signal?.aborted) c.abort();
-    const timer = setTimeout(stop, options.timeoutMs ?? 15000);
     try {
-      const result = await untilAbort(
-        operation(createAPIClient(location.origin, undefined, csrf.current), c.signal),
-        c.signal,
-      );
-      if (current === generation.current && result.response.status === 401) {
-        reset();
-        csrf.current = "";
-        setStatus("登入已失效，請重新驗證身分。");
-      }
-      const data = unwrap(result);
-      if (current !== generation.current) throw aborted();
-      return data;
+      await pending;
     } finally {
-      clearTimeout(timer);
-      active.current.delete(c);
-      options.signal?.removeEventListener("abort", stop);
+      if (refreshPending.current === pending) refreshPending.current = null;
     }
-  }, [reset, refreshIfDue]);
+  }, [reset]);
+  const request: Request = useCallback(
+    async (operation, options = {}) => {
+      const current = generation.current,
+        liff = sdk.current;
+      if (!actor.current || !csrf.current || !liff?.isLoggedIn())
+        throw new Error("請先完成身分驗證。");
+      await refreshIfDue();
+      if (current !== generation.current) throw aborted();
+      const c = new AbortController(),
+        stop = () => c.abort();
+      active.current.add(c);
+      options.signal?.addEventListener("abort", stop, { once: true });
+      if (options.signal?.aborted) c.abort();
+      const timer = setTimeout(stop, options.timeoutMs ?? 15000);
+      try {
+        const result = await untilAbort(
+          operation(createAPIClient(location.origin, undefined, csrf.current), c.signal),
+          c.signal,
+        );
+        if (current === generation.current && result.response.status === 401) {
+          reset();
+          csrf.current = "";
+          setStatus("登入已失效，請重新驗證身分。");
+        }
+        const data = unwrap(result);
+        if (current !== generation.current) throw aborted();
+        return data;
+      } finally {
+        clearTimeout(timer);
+        active.current.delete(c);
+        options.signal?.removeEventListener("abort", stop);
+      }
+    },
+    [reset, refreshIfDue],
+  );
   useEffect(() => {
     void verify();
     const hide = () => {
@@ -250,7 +286,9 @@ export function SessionProvider({
     };
   }, [verify, reset, invalidate]);
   useEffect(() => {
-    const renew = () => { void refreshIfDue().catch(() => {}); };
+    const renew = () => {
+      void refreshIfDue().catch(() => {});
+    };
     const activity = (event: Event) => {
       if (!event.isTrusted) return;
       lastActivity.current = Date.now();
@@ -263,7 +301,8 @@ export function SessionProvider({
     const timer = setInterval(renew, 60000);
     return () => {
       clearInterval(timer);
-      for (const name of ["pointerdown", "keydown", "touchstart", "wheel"]) window.removeEventListener(name, activity);
+      for (const name of ["pointerdown", "keydown", "touchstart", "wheel"])
+        window.removeEventListener(name, activity);
       document.removeEventListener("visibilitychange", renew);
     };
   }, [refreshIfDue]);
@@ -275,11 +314,13 @@ export function SessionProvider({
     setBusy(true);
     setStatus("正在撤銷登入……");
     try {
-      const result = await createAPIClient(location.origin, undefined, csrf.current)
-        .DELETE("/api/v1/session", {
+      const result = await createAPIClient(location.origin, undefined, csrf.current).DELETE(
+        "/api/v1/session",
+        {
           params: { header: { Origin: location.origin } },
           signal: AbortSignal.timeout(10000),
-        });
+        },
+      );
       if (!result.response.ok) throw new Error("伺服器登出尚未確認，請重試登出。");
       csrf.current = "";
       const liff = sdk.current;
@@ -324,19 +365,7 @@ export function SessionProvider({
       autoPunch,
       punchNotice,
     }),
-    [
-      user,
-      pictureUrl,
-      epoch,
-      status,
-      busy,
-      ready,
-      inClient,
-      request,
-      verify,
-      logout,
-      close,
-    ],
+    [user, pictureUrl, epoch, status, busy, ready, inClient, request, verify, logout, close],
   );
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
@@ -346,4 +375,6 @@ export function useSession() {
   return value;
 }
 
-export function useOptionalSession() { return useContext(Context); }
+export function useOptionalSession() {
+  return useContext(Context);
+}

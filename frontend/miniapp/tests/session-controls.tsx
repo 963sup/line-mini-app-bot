@@ -7,10 +7,7 @@ import { useSession } from "../src/identity/Session";
 export function SessionControls() {
   const s = useSession();
   return (
-    <Card
-      className="mb-3 gap-4 rounded-2xl p-4 sm:p-6"
-      aria-labelledby="identity-heading"
-    >
+    <Card className="mb-3 gap-4 rounded-2xl p-4 sm:p-6" aria-labelledby="identity-heading">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-semibold" id="identity-heading">
           身分
@@ -35,20 +32,11 @@ export function SessionControls() {
           >
             驗證
           </Button>
-          <Button
-            id="logout"
-            hidden={!s.canLogout}
-            disabled={s.busy}
-            onClick={s.logout}
-          >
+          <Button id="logout" hidden={!s.canLogout} disabled={s.busy} onClick={s.logout}>
             登出
           </Button>
           {!s.ready && !s.busy && (
-            <Button
-              onClick={s.verify}
-              title="重試初始化"
-              aria-label="重試初始化"
-            >
+            <Button onClick={s.verify} title="重試初始化" aria-label="重試初始化">
               重試
             </Button>
           )}

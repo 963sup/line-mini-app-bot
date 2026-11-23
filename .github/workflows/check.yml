@@ -118,6 +118,8 @@ jobs:
           else
             echo 'No previous commit exists for this first push; no historical compatibility comparison.'
           fi
+      - name: Check owned TypeScript formatting
+        run: bash scripts/tooling/tool-exec.sh pnpm format:check
       - name: Verify API contract
         run: bash scripts/tooling/tool-exec.sh pnpm api:check
       - name: Build frontend

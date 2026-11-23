@@ -22,9 +22,7 @@ export function loadSDK(): Promise<Liff> {
       const script = document.createElement("script");
       script.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
       script.onload = () =>
-        window.liff
-          ? resolve(window.liff)
-          : reject(new Error("LINE SDK 未載入。"));
+        window.liff ? resolve(window.liff) : reject(new Error("LINE SDK 未載入。"));
       script.onerror = () => {
         script.remove();
         reject(new Error("無法載入 LINE SDK，請確認網路後重試。"));
