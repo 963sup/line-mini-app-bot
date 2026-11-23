@@ -20,6 +20,25 @@ contract/openapi.yaml 僅組合公開契約；能力歸屬與引用規則遵循 
 
 先修改契約，再由根目錄 pnpm api:generate 更新 Go/TS 產生碼；不手改 generated 檔。業務核心不依賴 HTTP DTO。
 
+## Contract & Compatibility Gate
+
+適用於公開與內部 HTTP 契約、DTO、Client 及生成流程。依 contract、client 與 codegen 的巢狀指引執行。
+
+### 契約與相容性
+
+- MUST 以 OpenAPI 為 HTTP 契約的唯一權威來源。先在 [capabilities.json](contract/capabilities.json) 核對能力歸屬、資源語意、資料所有權及消費端，區分公開 HTTP、內部 Worker HTTP 與非 HTTP 事件。
+- MUST 定義操作的 Request、Response、狀態碼、認證、錯誤與必要的重送語意，沿用共用錯誤及認證定義。API 描述可觀察的行為，業務規則、狀態轉換與授權決策由 Backend 執行。客戶端傳入的 Actor、角色、權限或判斷結果不得作為可信授權依據。
+- MUST 維持公開路徑、欄位、型別、錯誤及行為相容。破壞性變更須先確認需求、受影響呼叫端與遷移策略。
+
+### 最小化與驗收
+
+- SHOULD 優先擴充語意相符的操作，回傳消費端需要的資料，減少傳輸與重複組裝。MUST NOT 為單一畫面破壞資源語意或其他消費端相容性，也不得強行共用語意不同的 Schema。
+- MUST NOT 為單一欄位或假設需求堆疊 DTO、Wrapper、Schema 或轉換器。沿用現有生成設定與共用 Client，避免重複端點、平行契約或額外 Generator。
+- MUST 先確認 Backend 業務行為，再依 Contract → Generate → Backend Adapter → Frontend Consumer 同步。檢視 Go、TypeScript 產生碼差異與所有受影響消費端，禁止手改生成檔或複製傳輸型別。
+- MUST 依下方驗證流程執行 `pnpm api:check`，核對操作歸屬、Schema 引用及生成結果，排除循環引用、無效定義與契約漂移。歷史相容性須另指定 base revision 比較。對變更操作驗證成功、拒絕、錯誤及適用的重送情境。
+
+**完成條件**為操作語意明確、契約與兩端實作一致、無重複定義或無效端點，且適用相容性檢查通過。無法驗證時列出缺口，禁止放寬契約或更換比較基準來通過驗收。
+
 ## 驗證
 
 從根目錄執行 bash scripts/tooling/tool-exec.sh pnpm api:check。歷史相容性比較須明列 base revision 及結果；檢查範圍見 [API 工作流程](README.md#目錄導覽與維護)。

@@ -16,6 +16,31 @@ miniapp/ 為 Next.js／React workspace；src/pages/ 提供路由，business/atte
 
 進入 miniapp/ 先讀其 AGENTS.md 與安裝版本的 Next.js 指引。HTTP 呼叫透過 @repo/api-client；位置由瀏覽器取得，後端驗證。不手改建置輸出。
 
+## Thin Client & UI Gate
+
+適用於 Next.js Pages Router、React、LINE MINI App 的元件、頁面、互動與資料流程。沿用 [Mini App 工作指引](miniapp/AGENTS.md)與下方 shadcn 官方元件保護規則。
+
+### 職責與資料
+
+- MUST 透過 `@repo/api-client` 與生成型別讀寫 API。前端處理呈現、互動、畫面資料及 UI 狀態。MUST NOT 複製業務 DTO、HTTP Client、授權決策、權威計算、一致性規則或業務狀態轉換。欄位驗證只提供即時回饋。
+- MUST 沿用既有 Session、LINE 身分、定位與重送流程。區分載入、成功、空資料、拒絕、失敗與結果未確認，依契約決定可否重送。不可由按鈕狀態或請求送出推定業務成功。
+- MUST 維持路由、Shell、Identity、Platform、Business、Shared 的責任邊界。發現重複時先查來源、呼叫端及影響範圍。業務責任移回 Backend，傳輸結構變更先走 API 契約流程。
+
+### 元件、渲染與狀態
+
+- MUST 遵循已安裝版本的 Pages Router 指引與[正式靜態匯出設定](miniapp/next.config.ts)。可預先產生的內容在建置時處理。Session、LIFF、定位與登入後資料依既有瀏覽器流程取得。不得為套用新模式而引入逐請求 SSR 或遷移路由。
+- MUST 優先組合既有 shadcn/ui、設計系統與共用元件，保留鍵盤操作、可及名稱、響應式版面及載入回饋。遵守官方 primitives、Sidebar 與生成檔的修改限制。SHOULD 使用語意化 HTML、既有 Tailwind utilities、tokens 與 variants，減少多餘 DOM、重複 CSS 與全域覆蓋。
+- MUST 區分伺服器資料、局部 UI 狀態與可直接推導的值。SHOULD 在使用處持有狀態，於 render 推導畫面資料，以事件處理使用者動作，僅在需要與外部系統同步時使用 Effect。避免同步多份狀態、重複請求、無必要的瀑布式請求與輪詢。
+- MUST NOT 在多頁複製 API mapping、Session、錯誤處理或相同互動流程。也不得僅為單一情境、假設需求或形式一致新增 Hook、Wrapper、Provider、全域 Store、Adapter、Factory 或通用元件，或為減少行數而混合責任、增加分支。
+- SHOULD 優先刪除死碼、重用元件，減少 hydration、Client JavaScript 與重複渲染。以實際需求及量測證據決定是否增加 memoization、dynamic import、第三方依賴或特殊效能機制。
+
+### 變更與驗收
+
+- MUST 依[驗收矩陣](../docs/development/tooling/testing/commands.md#變更驗收矩陣)與下方驗證流程執行 `pnpm --filter @repo/miniapp check`、相關測試及必要的靜態建置。
+- MUST 從受影響的頁面核對正常、載入、空資料、錯誤、拒絕與關鍵互動。UI 變更另核對相關畫面的可及性、響應式呈現，以及受影響的效能指標。
+
+**完成條件**為業務權威留在 Backend，畫面只保留必要狀態、邏輯與依賴，且既有互動、API 相容性與適用驗收通過。失敗時繼續修正，無法驗證時明列阻礙。
+
 ## 驗證
 
 修改互動時，核對使用此模組的頁面與 miniapp 測試。

@@ -16,6 +16,25 @@
 
 業務核心、HTTP/LINE adapter 與 Firestore adapter 分層；共享組裝在 internal/bootstrap。修改 HTTP 格式先走 ../api 契約流程，不手改產生碼。憑證不得寫入 .env.example。
 
+## Domain & Reliability Gate
+
+適用於 Go 後端的新增、修改與重構。依既有領域指引實作，沿用下方驗證流程。
+
+### 業務與架構
+
+- MUST 先釐清業務目標、所屬 Bounded Context、狀態、資料關係及現有呼叫鏈。各領域擁有自己的資料與狀態，跨領域透過明確契約協作，禁止循環依賴。
+- MUST 由所屬領域掌握業務規則、權威計算與狀態轉換，由使用案例協調授權與一致性。從可信 Session 或已驗證的 LINE 身分取得 Actor，按資源、動作、政策及目前狀態決策。MUST NOT 信任客戶端宣告的角色或權限。
+- MUST 維持 Domain、Use Case、Port、Adapter 與 Bootstrap 的依賴方向。HTTP DTO、Firestore 儲存格式、LINE SDK 與框架型別留在外層。Handler 與 Adapter 不得重算領域結果或另訂授權規則。
+- MUST 對可能併發、重送或部分成功的操作定義交易邊界、冪等條件及失敗語意。變更公開行為或持久化格式前，核對消費端、歷史文件的讀寫相容性及遷移風險。
+
+### 最小化與驗收
+
+- SHOULD 優先刪除、搬移、合併或復用既有 Go 實作。MUST NOT 僅為單一實作、假設需求或形式一致新增介面、Service、Factory、Manager、Registry 或通用引擎，也不得為共用而合併不同領域規則。
+- MUST 從原始症狀追查呼叫端，集中修正根因。涉及 HTTP 格式時依 [API 工作流程](../api/README.md)修改契約並重新生成。
+- MUST 依下方驗證要求覆蓋成功、拒絕、失敗及關鍵邊界。涉及 Firestore 交易、併發、重送或持久資料相容性時，執行[既有 Emulator 整合驗收](../docs/development/tooling/testing/commands.md#firestore-integration)。
+
+**完成條件**為業務權威唯一、依賴方向正確、授權與一致性經驗證，且適用檢查通過。驗收失敗時繼續修正，受阻時列明無法驗證的情境。
+
 ## 驗證
 
 修改套件行為時，檢查呼叫端與受影響的 Go 測試。
