@@ -15,3 +15,5 @@
 ## 模型接線
 
 呼叫端以 [NewInvestigator](../../bootstrap/agent.go) 注入會核驗身分、資源與來源版本的 PageReader，再呼叫 Investigate。設定 AGENT_PROVIDER 為 openai 或 gemini、AGENT_MODEL 為該供應商模型，並使用對應 API key。每一步最多讀取一個允許的頁面；只有原文中存在的引文可作為候選證據。業務欄位與單位仍由 呼叫端 驗證。
+
+[用例](application/investigator.go)透過消費端定義的 `QuoteModel` 取得候選引文或無結果；授權、步數上限與原文比對仍由用例負責。[模型 Adapter](adapter/genai/evidence.go)重用共用文字生成器，負責提示詞與 JSON 字串／null 的轉換，不把供應商格式帶進核心契約。

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	agentmodel "github.com/963sup/line-mini-app-bot/internal/business/agent/adapter/genai"
 	"github.com/963sup/line-mini-app-bot/internal/business/agent/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/genai"
 )
@@ -44,7 +45,7 @@ func TestAgentProviderAndEvidenceBoundary(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			switch a.Model.(type) {
+			switch a.Model.(agentmodel.EvidenceModel).Generator.(type) {
 			case *genai.OpenAI:
 				if provider != "openai" {
 					t.Fatal(provider)
@@ -57,7 +58,7 @@ func TestAgentProviderAndEvidenceBoundary(t *testing.T) {
 				t.Fatal("unexpected provider")
 			}
 			reply := &agentReply{value: "\"數量 20 SET\""}
-			a.Model = reply
+			a.Model = agentmodel.EvidenceModel{Generator: reply}
 			task := port.Investigation{Actor: "actor", Repository: "repo", SourceRevision: "v1", AllowedPages: []int{7, 8}, StepLimit: 1}
 			evidence, err := a.Investigate(context.Background(), task)
 			if err != nil || len(evidence) != 1 || evidence[0].Page != 7 || evidence[0].Quote != "數量 20 SET" {

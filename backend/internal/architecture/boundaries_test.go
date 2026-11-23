@@ -100,6 +100,8 @@ func TestDependencyBoundaries(t *testing.T) {
 		}
 		rel, _ := filepath.Rel(root, path)
 		dir := filepath.ToSlash(filepath.Dir(rel))
+		parts := strings.Split(dir, "/")
+		businessCore := len(parts) >= 3 && parts[0] == "business" && (parts[2] == "application" || parts[2] == "domain")
 		file, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
 		if err != nil {
 			return err
@@ -112,13 +114,12 @@ func TestDependencyBoundaries(t *testing.T) {
 			if dir == "business/operations/application" && strings.HasPrefix(dependency, module) {
 				t.Errorf("operation contract %s depends on business implementation %s", rel, dependency)
 			}
-			parts := strings.Split(dir, "/")
-			if len(parts) >= 3 && parts[0] == "business" && (parts[2] == "application" || parts[2] == "domain") {
+			if businessCore {
 				if !strings.HasPrefix(dependency, module) && (strings.Contains(strings.Split(dependency, "/")[0], ".") || dependency == "net/http" || dependency == "database/sql") {
 					t.Errorf("%s imports infrastructure %s", rel, dependency)
 				}
 				target := strings.TrimPrefix(dependency, module)
-				if strings.HasPrefix(dependency, module) && (strings.Contains(target, "/adapter/") || strings.HasPrefix(target, "transport/") || parts[2] == "domain" && strings.Contains(target+"/", "/application/")) {
+				if strings.HasPrefix(dependency, module) && (strings.Contains(target+"/", "/adapter/") || strings.HasPrefix(target+"/", "platform/") || strings.HasPrefix(target+"/", "transport/") || parts[2] == "domain" && strings.Contains(target+"/", "/application/")) {
 					t.Errorf("%s imports outer layer %s", rel, dependency)
 				}
 			}
@@ -157,8 +158,8 @@ func TestDependencyBoundaries(t *testing.T) {
 			if strings.HasPrefix(dir, "business/summary/application/messagecollection") && strings.HasPrefix(dependency, module+"business/summary/application/summarization") {
 				t.Errorf("message collection %s depends on summarization %s", rel, dependency)
 			}
-			if strings.HasSuffix(dir, "/http") && dir != "transport/http" {
-				for _, outgoing := range []string{"/firestore", "/cloudtasks", "/summarizer", "/cwa", "/identity/line", "/identity/google"} {
+			if strings.Contains(dir+"/", "/adapter/http/") || strings.HasSuffix(dir, "/http") && dir != "transport/http" {
+				for _, outgoing := range []string{"/firestore", "/cloudtasks", "/summarizer", "/cwa", "/poppler", "/openai", "/identity/line", "/identity/google"} {
 					if strings.HasPrefix(dependency, module) && strings.Contains(dependency, outgoing) {
 						t.Errorf("HTTP adapter %s constructs outgoing adapter %s", rel, dependency)
 					}
@@ -179,7 +180,7 @@ func TestDependencyBoundaries(t *testing.T) {
 				t.Errorf("transport depends on application feature: %s", dependency)
 			}
 		}
-		if _, isCore := core[dir]; isCore {
+		if _, isCore := core[dir]; isCore || businessCore {
 			ast.Inspect(file, func(node ast.Node) bool {
 				field, ok := node.(*ast.Field)
 				if ok && field.Tag != nil {

@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"time"
 
+	agentmodel "github.com/963sup/line-mini-app-bot/internal/business/agent/adapter/genai"
 	agent "github.com/963sup/line-mini-app-bot/internal/business/agent/application"
 	"github.com/963sup/line-mini-app-bot/internal/genai"
 )
@@ -18,7 +19,7 @@ func NewInvestigator(pages agent.PageReader) (*agent.Investigator, error) {
 		return nil, errors.New("agent requires an authorized page reader and AGENT_MODEL")
 	}
 	client := &http.Client{Timeout: 45 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
-	var generator agent.TextModel
+	var generator agentmodel.TextModel
 	switch os.Getenv("AGENT_PROVIDER") {
 	case "openai":
 		key := os.Getenv("OPENAI_API_KEY")
@@ -35,5 +36,5 @@ func NewInvestigator(pages agent.PageReader) (*agent.Investigator, error) {
 	default:
 		return nil, errors.New("AGENT_PROVIDER must be openai or gemini")
 	}
-	return &agent.Investigator{Model: generator, Pages: pages}, nil
+	return &agent.Investigator{Model: agentmodel.EvidenceModel{Generator: generator}, Pages: pages}, nil
 }

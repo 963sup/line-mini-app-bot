@@ -36,8 +36,9 @@ func (source) ReadPage(_ context.Context, actor, repository, revision string, pa
 
 type model struct{}
 
-func (model) Generate(context.Context, string, string) (string, error) {
-	return `"Installed 2 units"`, nil
+func (model) Quote(context.Context, string) (*string, error) {
+	quote := "Installed 2 units"
+	return &quote, nil
 }
 
 func TestPreparationComposesOptionalCapabilities(t *testing.T) {
