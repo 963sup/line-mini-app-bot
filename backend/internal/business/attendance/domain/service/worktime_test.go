@@ -21,7 +21,13 @@ func TestCalculateBreaksOverlapAndMonth(t *testing.T) {
 	from := at("2026-11-01T00:00:00+08:00")
 	to := from.AddDate(0, 1, 0)
 	sessions := []attendanceentity.Session{{ID: "overnight", Start: at("2026-10-31T22:00:00+08:00"), End: at("2026-11-01T06:00:00+08:00"), RestConfirmed: true, Breaks: []attendancevalueobject.Interval{{Start: at("2026-11-01T01:00:00+08:00"), End: at("2026-11-01T02:00:00+08:00")}, {Start: at("2026-11-01T01:30:00+08:00"), End: at("2026-11-01T02:30:00+08:00")}}}}
+	breaks := sessions[0].Breaks
+	breaks[0], breaks[1] = breaks[1], breaks[0]
+	before := [2]attendancevalueobject.Interval{breaks[0], breaks[1]}
 	result := Calculate(sessions, from, to)
+	if [2]attendancevalueobject.Interval(breaks) != before {
+		t.Fatal("Calculate reordered the supplied breaks")
+	}
 	if result.ConfirmedNetMinutes != 270 || result.Pending != 0 {
 		t.Fatalf("%+v", result)
 	}

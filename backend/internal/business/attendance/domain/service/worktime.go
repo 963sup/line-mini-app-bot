@@ -139,8 +139,7 @@ func Calculate(sessions []attendanceentity.Session, from, to time.Time) Result {
 		if code == "" {
 			attendance = append(attendance, clipped([]attendancevalueobject.Interval{{Start: s.Start, End: s.End}}, from, to)...)
 		}
-		breaks := append([]attendancevalueobject.Interval(nil), s.Breaks...)
-		for _, b := range breaks {
+		for _, b := range s.Breaks {
 			if !b.ValidWithin(s.Start, s.End) {
 				code = "invalid_break"
 			}
@@ -158,7 +157,7 @@ func Calculate(sessions []attendanceentity.Session, from, to time.Time) Result {
 			estimated = append(estimated, clipped([]attendancevalueobject.Interval{{Start: s.Start, End: s.End}}, from, to)...)
 			continue
 		}
-		breaks = union(breaks)
+		breaks := union(append([]attendancevalueobject.Interval(nil), s.Breaks...))
 		cursor := s.Start
 		pieces := []attendancevalueobject.Interval{}
 		for _, b := range breaks {
@@ -175,10 +174,9 @@ func Calculate(sessions []attendanceentity.Session, from, to time.Time) Result {
 		estimated = append(estimated, pieces...)
 	}
 	// Overlap is retained as an anomaly and counted once, never double paid.
-	sorted := append([]attendancevalueobject.Interval(nil), estimated...)
-	sort.Slice(sorted, func(i, j int) bool { return sorted[i].Start.Before(sorted[j].Start) })
+	sort.Slice(estimated, func(i, j int) bool { return estimated[i].Start.Before(estimated[j].Start) })
 	var last time.Time
-	for _, p := range sorted {
+	for _, p := range estimated {
 		if p.Start.Before(last) {
 			r.Issues = append(r.Issues, Issue{Code: "overlapping_work"})
 		}
