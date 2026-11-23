@@ -73,9 +73,9 @@ export function View({repositoryId, initialId}: {repositoryId:string; initialId:
       },e=>{
         lock.current=false;
         const {code, conflictReason} = e as {code?:string; conflictReason?:string};
-        const unknown=!page && (uncertain || !rejectedAttempt(e, ["conflict"]));
-        guard.block(unknown);setUncertain(unknown);setCompare(!!page && code==="conflict" && (!conflictReason || conflictReason==="stale_version"));
-        fail(e, unknown);
+        const unknown = uncertain || !rejectedAttempt(e, ["conflict"]);
+        guard.block(unknown);setUncertain(unknown);setCompare(!!page && (unknown || (code==="conflict" && (!conflictReason || conflictReason==="stale_version"))));
+        fail(e, unknown && !page);
       });
   }
   return <PagePanel heading="知識庫 Wiki" description="整理儲存庫的共用知識，並保留每次編輯的版本紀錄。">
@@ -110,13 +110,13 @@ export function View({repositoryId, initialId}: {repositoryId:string; initialId:
       <FieldGroup>
         <FormField>標題<Input ref={titleInput} required maxLength={120} disabled={busy||uncertain} value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})}/></FormField>
         <FormField>Markdown 內容<Textarea rows={12} className="min-h-64" maxLength={32000} disabled={busy||uncertain} value={draft.body} onChange={e=>setDraft({...draft,body:e.target.value})}/></FormField>
-      {compare && <Button type="button" disabled={busy} onClick={()=>{setBusy(true);void run(signal=>request((c,s)=>c.GET(detail,{signal:s,params:{path}}),{signal}),p=>{setPage(p);setCompare(false);setBusy(false);setMessage("已載入目前版本。請比對草稿後再儲存。");},fail);}}>讀取目前版本以比對</Button>}
+      {compare && <Button type="button" disabled={busy} onClick={()=>{setBusy(true);void run(signal=>request((c,s)=>c.GET(detail,{signal:s,params:{path}}),{signal}),p=>{setPage(p);setCompare(false);setUncertain(false);guard.block(false);setBusy(false);setMessage("已載入目前版本。請比對草稿後再儲存。");},fail);}}>讀取目前版本以比對</Button>}
       {page && <Collapsible key={page.version}>
         <CollapsibleTrigger asChild><Button type="button" variant="outline" className="h-auto max-w-full whitespace-normal text-left"><span className="min-w-0 break-words">對照第 {page.version} 版 · {page.title}</span></Button></CollapsibleTrigger>
         <CollapsibleContent><Markdown body={page.body}/></CollapsibleContent>
       </Collapsible>}
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" disabled={busy||compare}>{uncertain?"重試原建立請求":"儲存"}</Button>
+        <Button type="submit" disabled={busy||compare}>{uncertain && !page?"重試原建立請求":"儲存"}</Button>
         <Button type="button" variant="outline" disabled={busy||uncertain} onClick={()=>{setDraft(null);setCompare(false);setMessage("");}}>取消編輯</Button>
       </div>
       </FieldGroup>

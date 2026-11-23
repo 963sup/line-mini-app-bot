@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
-import { useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
+import { useLatestRequest, errorMessage, isTemporaryReadError } from "@/shared/http/lifecycle";
 import { PagePanel } from "@/shared/PagePanel";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { Button } from "@/shared/ui/button";
@@ -26,7 +26,10 @@ export function QuantityHistory({ repositoryId }: { repositoryId: string }) {
       setItems(previous => next ? [...previous, ...page.items] : page.items);
       setCursor(page.nextCursor);
       setBusy(false);
-    }, failure => { setError(errorMessage(failure)); setBusy(false); });
+    }, failure => {
+      if (!isTemporaryReadError(failure)) { setItems([]); setCursor(""); }
+      setError(errorMessage(failure)); setBusy(false);
+    });
   }, [repositoryId, run, request]);
   useEffect(() => { if (user) load(""); return cancel; }, [load, user, epoch, cancel]);
   return <PagePanel heading="物件數量修改歷史">

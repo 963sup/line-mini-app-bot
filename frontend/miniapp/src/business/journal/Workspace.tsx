@@ -11,7 +11,7 @@ import { Input } from "@/shared/ui/input";
 import { FieldGroup } from "@/shared/ui/field";
 import { Badge } from "@/shared/ui/badge";
 import { Item, ItemContent, ItemGroup, ItemTitle } from "@/shared/ui/item";
-import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
+import { errorMessage, isTemporaryReadError, useLatestRequest } from "@/shared/http/lifecycle";
 import { Status } from "@/shared/Status";
 import { collect } from "./pagination";
 import type { components } from "@repo/api-client";
@@ -85,9 +85,13 @@ function View({dashboard,request,detail,repositoryId: initialRepositoryId}:{dash
     void list.run(async signal=>{
       if(detail){const entry=await request((c,s)=>c.GET("/api/v1/journals/{journalId}",{signal:s,params:{path:{journalId:detail}}}),{signal});return {items:[entry],nextCursor:""};}
       return request((c,s)=>c.GET("/api/v1/journals",{signal:s,params:{query:{includeProgress:dashboard||undefined,repositoryId,workDate:date||undefined,cursor:next||undefined}}}),{signal});
-    },page=>{setEntries(old=>next?[...old,...page.items]:page.items);setCursor(page.nextCursor);setBusy(false);},e=>{setEntries([]);setBusy(false);setError(errorMessage(e));});
+    },page=>{setEntries(old=>next?[...old,...page.items]:page.items);setCursor(page.nextCursor);setBusy(false);},e=>{
+      if (isTemporaryReadError(e)) setCursor(next);
+      else setEntries([]);
+      setBusy(false); setError(errorMessage(e));
+    });
   }
-  useEffect(()=>{load();return list.cancel;},[date,revision,detail,dashboard,request,repositoryId]);
+  useEffect(()=>{load();return list.cancel;},[date,detail,dashboard,request,repositoryId]);
   const repositoryName = repositories?.find(repo=>repo.id===repositoryId)?.name;
   const renderEntry = (j:Journal) => <PagePanel key={j.id} heading={j.workDate+" · "+(repositoryName||"工程日誌")}>
     <dl className="grid gap-3 text-sm sm:grid-cols-3">
@@ -123,10 +127,11 @@ function View({dashboard,request,detail,repositoryId: initialRepositoryId}:{dash
         </NativeSelect></FormField> : <Empty><EmptyHeader><EmptyTitle>目前沒有可用的儲存庫。</EmptyTitle></EmptyHeader></Empty>)}
     {(dashboard||!!repositoryId)&&!detail&&<FormField>工作日期<Input type="date" value={date} onChange={e=>setDate(e.target.value)}/></FormField>}
     </FieldGroup>
-    {(error || catalogError) && <ReadFeedback busy={false} message={error || catalogError} onRetry={() => reload(v => v + 1)} />}
+    {catalogError && <ReadFeedback busy={false} message={catalogError} onRetry={() => reload(v => v + 1)} />}
+    {error && <ReadFeedback busy={false} message={error} onRetry={() => load(cursor)} />}
   </PagePanel>
   <ReadFeedback busy={busy} label="正在讀取日誌……" />
   {(detail||repositoryId)&&!busy&&!error&&!catalogError&&!entries.length&&<Empty><EmptyHeader><EmptyTitle>目前條件下沒有日誌。</EmptyTitle></EmptyHeader></Empty>}
   {dashboard?<RepositoryChart entries={entries} name={repositoryName||repositoryId} renderEntry={renderEntry}/>:entries.map(renderEntry)}
-  {cursor&&<Button disabled={busy} onClick={()=>load(cursor)}>載入更多</Button>}</div>;
+  {cursor&&!error&&<Button disabled={busy} onClick={()=>load(cursor)}>載入更多</Button>}</div>;
 }

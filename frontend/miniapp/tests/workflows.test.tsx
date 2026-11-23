@@ -1,3 +1,4 @@
+import { QuantityHistory } from "../src/business/object/QuantityHistory";
 import { OrganizationPage } from "../src/business/organization/OrganizationPage";
 import { OrganizationTeams } from "../src/business/team/OrganizationTeams";
 import { pressButton } from "./sidebar-dom";
@@ -998,7 +999,9 @@ test("enterprise teams bind, assign and remove through existing APIs and retain 
       writes++;
       return writes === 1
         ? Response.json({ error: { code: "unavailable", message: "連線中斷", retrySameRequest: true } }, { status: 503 })
-        : new Response(null, { status: 204 });
+        : writes === 2
+          ? Response.json({ error: { code: "invalid_input", message: "本次被拒絕", retrySameRequest: false } }, { status: 400 })
+          : new Response(null, { status: 204 });
     }
     return next(r);
   });
@@ -1017,12 +1020,15 @@ test("enterprise teams bind, assign and remove through existing APIs and retain 
     // Even if the controls are changed programmatically, retry sends the original request.
     assignment.querySelector<HTMLSelectElement>('[name="organizationId"]')!.value = "org2";
     await act(async () => { assignment.requestSubmit(); await flush(); });
+    assert.ok(assignment.querySelector("fieldset")!.disabled, "a later rejection cannot resolve an earlier unknown outcome");
+    await act(async () => { assignment.requestSubmit(); await flush(); });
+    assert.deepEqual(calls[1], calls[3]);
     assert.deepEqual(calls[1], calls[2]);
     assert.equal(calls[2].path, "/api/v1/organizations/org1/enterprise-teams/group1");
     assignment.querySelector<HTMLSelectElement>('[name="action"]')!.value = "remove";
     await act(async () => { assignment.requestSubmit(); await flush(); });
-    assert.equal(calls[3].method, "DELETE");
-    assert.equal(calls[3].path, "/api/v1/organizations/org2/enterprise-teams/group1");
+    assert.equal(calls[4].method, "DELETE");
+    assert.equal(calls[4].path, "/api/v1/organizations/org2/enterprise-teams/group1");
     assert.equal(reads, 4);
   } finally { await f.dispose(); }
 });
@@ -1084,3 +1090,56 @@ for (const scope of ["企業", "組織"]) {
     } finally { await f.dispose(); }
   });
 }
+
+test("enterprise management retries only the original action and target", async () => {
+  const owners: string[] = [];
+  let saved = "";
+  const f = await fixture(<Enterprise id="hq" onSaved={id => { saved = id; }} />, "", async (r, next) => {
+    if (r.url.endsWith("/enterprises/hq")) return Response.json({id:"hq", name:"企業", canManage:true, teams:[], organizations:[]});
+    if (!r.url.endsWith("/owners")) return next(r);
+    owners.push((await r.json()).userId);
+    if (owners.length === 1) return Response.json({error:{code:"unavailable", message:"待確認", retrySameRequest:true}}, {status:503});
+    if (owners.length === 2) return Response.json({error:{code:"invalid_input", message:"拒絕", retrySameRequest:false}}, {status:400});
+    return Response.json({id:"hq", name:"企業"});
+  });
+  try {
+    const tab = [...document.querySelectorAll<HTMLElement>('[role="tab"]')].find(t => t.textContent === "企業管理")!;
+    await act(async () => { pressButton(tab as HTMLButtonElement); await flush(); });
+    const owner = [...document.forms].find(form => form.textContent?.includes("新增企業 Owner"))!;
+    const org = [...document.forms].find(form => form.textContent?.includes("加入組織"))!;
+    const input = owner.querySelector("input")!;
+    input.value = "member-A";
+    const submit = async () => act(async () => { owner.requestSubmit(); await flush(); });
+    await submit();
+    assert.equal(org.querySelector("button")!.disabled, true);
+    input.value = "member-B";
+    await submit();
+    assert.equal(input.readOnly, true);
+    await submit();
+    assert.deepEqual(owners, ["member-A","member-A","member-A"]);
+    assert.equal(saved, "hq");
+  } finally { await f.dispose(); }
+});
+
+test("quantity history keeps pages on interruption and clears them when access is denied", async () => {
+  let attempts = 0;
+  const f = await fixture(<QuantityHistory repositoryId="repo" />, "", async (r, next) => {
+    const url = new URL(r.url);
+    if (!url.pathname.endsWith("object-quantity-changes")) return next(r);
+    if (!url.searchParams.get("cursor")) return Response.json({items:[{objectId:"obj",version:1,name:"私人數量紀錄",afterQuantity:"2",at:"2026-11-23T00:00:00Z"}],nextCursor:"page2"});
+    assert.equal(url.searchParams.get("cursor"), "page2");
+    const status = ++attempts === 1 ? 503 : 403;
+    return Response.json({error:{code:status === 403 ? "forbidden" : "unavailable",message:"讀取失敗"}}, {status});
+  });
+  try {
+    async function click(text: string) {
+      const button = [...document.querySelectorAll("button")].find(item => item.textContent === text)!;
+      await act(async () => { button.click(); await flush(); });
+    }
+    await click("載入更早紀錄");
+    assert.match(document.body.textContent!, /私人數量紀錄/);
+    await click("重試讀取");
+    assert.equal(attempts, 2);
+    assert.doesNotMatch(document.body.textContent!, /私人數量紀錄/);
+  } finally { await f.dispose(); }
+});

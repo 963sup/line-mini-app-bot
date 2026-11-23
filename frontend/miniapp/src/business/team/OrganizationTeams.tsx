@@ -14,18 +14,11 @@ export function OrganizationTeams({
 }) {
   const { request, user } = useSession(),
     { run, cancel } = useLatestRequest();
-  const [teams, setTeams] = useState<
-    components["schemas"]["OrganizationTeamOption"][]
-  >([]);
-  const [canBindTeam, setCanBindTeam] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [result, setResult] = useState<components["schemas"]["OrganizationTeamsResponse"] | string | null>(null);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!user) return;
-    setTeams([]);
-    setLoading(true);
-    setError("");
+    setResult(null);
     void run(
       (signal) =>
         request(
@@ -36,31 +29,26 @@ export function OrganizationTeams({
             }),
           { signal },
         ),
-      ({ teams, canBindTeam }) => {
-        setCanBindTeam(canBindTeam);
-        setTeams(teams);
-        setLoading(false);
-      },
-      (e) => {
-        setError(errorMessage(e));
-        setLoading(false);
-      },
+      setResult,
+      (e) => setResult(errorMessage(e) || "讀取團隊失敗，請重試。"),
     );
     return cancel;
   }, [request, user, organizationId, run, cancel, attempt]);
   if (!user) return null;
+  const error = typeof result === "string" ? result : undefined;
+  const data = typeof result === "string" ? null : result;
   return (
     <PagePanel heading="組織團隊">
-      <ReadFeedback busy={loading} label="載入團隊中…" message={error}
+      <ReadFeedback busy={result === null} label="載入團隊中…" message={error}
         onRetry={error ? () => setAttempt(value => value + 1) : undefined} />
-      {!loading && !error && (teams.length ? (
+      {data && (data.teams.length ? (
         <ul className="divide-y">
-          {teams.map(team => <li key={team.teamId}>
+          {data.teams.map(team => <li key={team.teamId}>
             <TeamSummary name={team.name || team.teamId} management={team.managementScope === "enterprise" ? "企業團隊" : "組織團隊"} auditStatus={team.auditHistoryStatus} />
           </li>)}
         </ul>
       ) : <p className="text-sm text-muted-foreground">尚無可見團隊。</p>)}
-      {!loading && !error && canBindTeam && <TeamManagement key={organizationId} scope="organization" managementId={organizationId} onChanged={() => setAttempt(value => value + 1)} />}
+      {data?.canBindTeam && <TeamManagement key={organizationId} scope="organization" managementId={organizationId} onChanged={() => setAttempt(value => value + 1)} />}
     </PagePanel>
   );
 }

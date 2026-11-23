@@ -10,6 +10,8 @@ import { Button } from "@/shared/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { PagePanel } from "@/shared/PagePanel";
 
+type EnterpriseAction = "create" | "owner" | "organization";
+
 export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
   id: string;
   canCreate?: boolean;
@@ -18,9 +20,10 @@ export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
 }) {
   const { request, user } = useSession(),
     { run, cancel } = useLatestRequest();
+  const write = useLatestRequest();
   const [view, setView] = useState<components["schemas"]["Enterprise"]>(),
     [busy, setBusy] = useState(false),
-    [retryName, setRetryName] = useState(""),
+    [pending, setPending] = useState<{ kind: EnterpriseAction; value: string }>(),
     [revision, setRevision] = useState(0),
     [readFailed, setReadFailed] = useState(false),
     [message, setMessage] = useState("");
@@ -55,16 +58,18 @@ export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
     refreshTeams();
   };
   function form(
-    kind: "create" | "owner" | "organization",
+    kind: EnterpriseAction,
     label: string,
     action: string,
   ) {
+    const retry = pending?.kind === kind;
+    const blocked = busy || (!!pending && !retry);
     return (
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          if (writing.current) return;
-          const value = retryName || String(
+          if (writing.current || blocked) return;
+          const value = pending?.value ?? String(
             new FormData(event.currentTarget).get("value") ?? "",
           ).trim();
           if (!value) return;
@@ -72,7 +77,7 @@ export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
           setBusy(true);
           setMessage("");
           const params = { path: { enterpriseId: id } };
-          void run(
+          void write.run(
             (signal) =>
               request(
                 (api, s) =>
@@ -97,21 +102,18 @@ export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
                         ),
                 { signal },
               ),
-            (v) => onSaved(v.id),
+            (v) => { setPending(undefined); onSaved(v.id); },
             (e) => {
               writing.current = false;
               setBusy(false);
-              if (kind === "create" && (retryName || !rejectedAttempt(e, ["conflict"]))) {
-                setRetryName(value);
-                setMessage(errorMessage(e) + " 建立結果待確認，請沿用原企業名稱重試。");
-                return;
-              }
+              const unknown = retry || !rejectedAttempt(e, ["conflict", "not_configured"]);
+              if (unknown) setPending({ kind, value });
               const status = (e as {httpStatus?: number})?.httpStatus;
               if (kind !== "create" && (status === 401 || status === 403 || status === 404)) {
                 setView(undefined);
                 setRevision(previous => previous + 1);
               }
-              setMessage(errorMessage(e));
+              setMessage(errorMessage(e) + (unknown ? " 結果待確認，請沿用原資料重試。" : ""));
             },
           );
         }}
@@ -119,9 +121,9 @@ export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
       >
         <label>
           {label}
-          <Input name="value" required readOnly={!!retryName} disabled={busy} />
+          <Input name="value" required defaultValue={retry ? pending?.value : undefined} readOnly={retry} disabled={blocked} />
         </label>
-        <Button disabled={busy}>{retryName ? "重試原企業名稱" : action}</Button>
+        <Button disabled={blocked}>{retry ? kind === "create" ? "重試原企業名稱" : "重試原操作" : action}</Button>
       </form>
     );
   }

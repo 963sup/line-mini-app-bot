@@ -283,7 +283,9 @@ test("Wiki creation retries the same request and conflicting edits preserve the 
     }
     if(req.method==="PATCH"){
       versions.push((await req.json()).expectedVersion);
-      return versions.length===1?Response.json({error:{code:"conflict",message:"版本已更新"}},{status:409}):response(3);
+      if (versions.length === 1) return Response.json({error:{code:"conflict",message:"版本已更新"}},{status:409});
+      if (versions.length === 2) return Response.json({error:{code:"unavailable",retrySameRequest:true,message:"結果待確認"}},{status:503});
+      return response(3);
     }
     if(req.url.endsWith(id))return response(versions.length?2:1);
     return Response.json({items:[],nextCursor:""});
@@ -311,6 +313,11 @@ test("Wiki creation retries the same request and conflicting edits preserve the 
     assert.match(comparison().textContent!,/對照第 2 版/);
     assert.equal(comparison().getAttribute("aria-expanded"),"false","a fresh server version resets comparison state");
     await f.click("儲存");assert.deepEqual(versions,[1,2]);
+    assert.equal(document.querySelector("textarea")?.disabled, true);
+    await f.click("讀取目前版本以比對");
+    assert.equal(document.querySelector("textarea")?.value,"我的修訂");
+    assert.equal(document.querySelector("textarea")?.disabled, false);
+    await f.click("儲存");assert.deepEqual(versions,[1,2,2]);
   }finally{await f.dispose();}
 });
 

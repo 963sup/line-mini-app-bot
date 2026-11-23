@@ -1,7 +1,7 @@
 import { useRef, useState, type ReactNode } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
-import { errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
+import { errorMessage, rejectedAttempt, useLatestRequest } from "@/shared/http/lifecycle";
 import { FormField } from "@/shared/FormField";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -12,7 +12,7 @@ async function teamWrite(operation: Promise<{ response: Response; error?: unknow
   return { ...result, data: result.response.status === 204 ? null : undefined };
 }
 
-// Keep an uncertain write tied to its original inputs until it is confirmed or rejected.
+// A later rejection only describes that attempt; it cannot resolve a prior unknown result.
 function TeamAction({ label, children, execute, onChanged, onDenied }: {
   label: string; children: ReactNode;
   execute: (data: FormData, signal: AbortSignal) => Promise<unknown>;
@@ -41,8 +41,8 @@ function TeamAction({ label, children, execute, onChanged, onDenied }: {
     }, error => {
       writing.current = false;
       setBusy(false);
-      const response = error as { retrySameRequest?: boolean; httpStatus?: number } | undefined;
-      const uncertain = response?.retrySameRequest ?? (response?.httpStatus === undefined);
+      const response = error as { httpStatus?: number } | undefined;
+      const uncertain = retry || !rejectedAttempt(error, ["conflict", "not_configured"]);
       if (!uncertain) pending.current = null;
       setRetry(uncertain);
       setMessage(errorMessage(error) + (uncertain ? " 結果待確認，請重試原操作。" : ""));

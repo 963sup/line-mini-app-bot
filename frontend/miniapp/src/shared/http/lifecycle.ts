@@ -1,3 +1,4 @@
+import type { components } from "@repo/api-client";
 import { useCallback, useEffect, useRef } from "react";
 export function aborted() {
   return new DOMException("操作已中止或逾時，請重試。", "AbortError");
@@ -28,7 +29,7 @@ export function untilAbort<T>(
 }
 // New servers supply recovery guidance. Preserve each older endpoint's error contract during rollout.
 export function rejectedAttempt(error: unknown, legacyConflicts: readonly string[] = ["idempotency_conflict"]): boolean {
-  const detail = error as { retrySameRequest?: boolean; code?: string } | null;
+  const detail = error as Partial<components["schemas"]["APIError"]["error"]> | null;
   if (typeof detail?.retrySameRequest === "boolean") return !detail.retrySameRequest;
   return !!detail?.code && (["invalid_input", "forbidden", "not_found"].includes(detail.code) || legacyConflicts.includes(detail.code));
 }
