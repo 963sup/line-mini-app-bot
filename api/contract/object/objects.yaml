@@ -928,6 +928,72 @@
           }
         }
       }
+    },
+    "/api/v1/repositories/{repositoryId}/object-quantity-changes": {
+      "get": {
+        "operationId": "listObjectQuantityChanges",
+        "summary": "List quantity changes for a current repository member, newest first",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repositoryId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectQuantityChangePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "401": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ObjectForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "415": {
+            "$ref": "#/components/responses/ObjectError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ObjectError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1659,6 +1725,69 @@
             "items": {
               "$ref": "#/components/schemas/ObjectTemplateDraftNode"
             }
+          }
+        }
+      },
+      "ObjectQuantityChange": {
+        "type": "object",
+        "required": [
+          "objectId",
+          "name",
+          "actor",
+          "at",
+          "beforeQuantity",
+          "beforeUnit",
+          "afterQuantity",
+          "afterUnit",
+          "version"
+        ],
+        "properties": {
+          "objectId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "actor": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "beforeQuantity": {
+            "type": "string"
+          },
+          "beforeUnit": {
+            "type": "string"
+          },
+          "afterQuantity": {
+            "type": "string"
+          },
+          "afterUnit": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ObjectQuantityChangePage": {
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObjectQuantityChange"
+            }
+          },
+          "nextCursor": {
+            "type": "string"
           }
         }
       }

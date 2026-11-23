@@ -1,10 +1,10 @@
+import { TeamSummary } from "./TeamSummary";
+import { TeamManagement } from "./TeamActions";
 import { useEffect, useState } from "react";
 import { useSession } from "@/identity/Session";
 import { useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
 import { PagePanel } from "@/shared/PagePanel";
 import { ReadFeedback } from "@/shared/ReadFeedback";
-import { Badge } from "@/shared/ui/badge";
-import { Item, ItemContent, ItemGroup, ItemTitle } from "@/shared/ui/item";
 import type { components } from "@repo/api-client";
 
 export function OrganizationTeams({
@@ -17,11 +17,13 @@ export function OrganizationTeams({
   const [teams, setTeams] = useState<
     components["schemas"]["OrganizationTeamOption"][]
   >([]);
+  const [canBindTeam, setCanBindTeam] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!user) return;
+    setTeams([]);
     setLoading(true);
     setError("");
     void run(
@@ -34,7 +36,8 @@ export function OrganizationTeams({
             }),
           { signal },
         ),
-      ({ teams }) => {
+      ({ teams, canBindTeam }) => {
+        setCanBindTeam(canBindTeam);
         setTeams(teams);
         setLoading(false);
       },
@@ -45,22 +48,19 @@ export function OrganizationTeams({
     );
     return cancel;
   }, [request, user, organizationId, run, cancel, attempt]);
+  if (!user) return null;
   return (
     <PagePanel heading="組織團隊">
       <ReadFeedback busy={loading} label="載入團隊中…" message={error}
         onRetry={error ? () => setAttempt(value => value + 1) : undefined} />
       {!loading && !error && (teams.length ? (
-        <ItemGroup className="divide-y">
-          {teams.map(team => (
-            <Item key={team.teamId} role="listitem" size="sm">
-              <ItemContent className="min-w-0">
-                <ItemTitle className="block max-w-full break-words">{team.name || team.teamId}</ItemTitle>
-              </ItemContent>
-              <Badge variant="outline">{team.managementScope === "enterprise" ? "企業團隊" : "組織團隊"}</Badge>
-            </Item>
-          ))}
-        </ItemGroup>
+        <ul className="divide-y">
+          {teams.map(team => <li key={team.teamId}>
+            <TeamSummary name={team.name || team.teamId} management={team.managementScope === "enterprise" ? "企業團隊" : "組織團隊"} auditStatus={team.auditHistoryStatus} />
+          </li>)}
+        </ul>
       ) : <p className="text-sm text-muted-foreground">尚無可見團隊。</p>)}
+      {!loading && !error && canBindTeam && <TeamManagement key={organizationId} scope="organization" managementId={organizationId} onChanged={() => setAttempt(value => value + 1)} />}
     </PagePanel>
   );
 }

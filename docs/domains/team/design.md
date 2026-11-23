@@ -13,6 +13,12 @@
 既有出勤與摘要繼續以原 groupId 查詢。既有群組在明確綁定前維持未歸屬；組織所有權本身不授予 LINE 群組資料讀取權。
 
 
+## 現行前端接線
+
+組織團隊頁與企業團隊分頁共用 [Team 操作表單](../../../frontend/miniapp/src/business/team/TeamActions.tsx)。組織團隊依後端 `canBindTeam` 顯示綁定，企業團隊依 `canManageTeams` 顯示綁定及指派。這些旗標表示對上層資源的操作能力，寫入時仍核對指定的群組與組織。綁定使用既有 `PUT /api/v1/teams/{teamId}/management`，不帶 `initialMaintainerUserId`，沿用後端既有授權，不啟用獨立 Membership。企業指派與移除從後端回傳的團隊及 `assignableOrganizations` 選項選取，呼叫既有 `PUT`／`DELETE /api/v1/organizations/{organizationId}/enterprise-teams/{teamId}`。
+
+成功回應後重新讀取清單；拒絕顯示後端錯誤，結果未知時保留原請求供重試，不從列表推算寫入結果。尚未具備後端所需資格的團隊仍會被拒絕；此接線不建立角色、不核發群組管理授權，也不代表下述首次開通流程完成。[前端回歸測試](../../../frontend/miniapp/tests/workflows.test.tsx)涵蓋範圍、指派、移除、204 成功及原請求重試；真實 LINE／Firestore 操作另待環境驗收。
+
 ## 獨立 Membership 的讀取邊界
 
 團隊文件的 `membershipMode` 選定授權來源。空值及 `legacy` 沿用既有 LINE 群組資格；`membership` 只採獨立成員關係。未知模式、停用團隊或不存在的資格均不放行。Team 擁有管理歸屬與團隊狀態；Membership 擁有成員關係及上層資格判定。Bootstrap 將查詢能力接到組織與企業團隊列表，與各自的候選團隊讀取共用 Firestore 交易。

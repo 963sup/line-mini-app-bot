@@ -172,6 +172,7 @@ type ObjectServer interface {
 	GetObjectTemplate(w http.ResponseWriter, r *http.Request, repositoryId string, id string)
 	InstantiateObjectTemplate(w http.ResponseWriter, r *http.Request, repositoryId string, id string, params generated.InstantiateObjectTemplateParams)
 	ExtractObjectCandidates(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ExtractObjectCandidatesParams)
+	ListObjectQuantityChanges(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ListObjectQuantityChangesParams)
 	ListObjects(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.ListObjectsParams)
 	CreateObject(w http.ResponseWriter, r *http.Request, repositoryId string, params generated.CreateObjectParams)
 	GetObject(w http.ResponseWriter, r *http.Request, repositoryId string, id string)

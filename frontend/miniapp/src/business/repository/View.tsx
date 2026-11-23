@@ -5,7 +5,7 @@ import { Button } from "@/shared/ui/button";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { useSession } from "@/identity/Session";
 import { RepositoryNavigationContext, useRepositoryNavigation } from "./NavigationGuard";
-import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
+import { QuantityHistory } from "../object/QuantityHistory";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useRepositories } from "./RepositoryContext";
 import { navigation } from "./navigation";
@@ -108,11 +108,7 @@ function Content() {
             <TabsContent value="Wiki"><Wiki repositoryId={selected.id} initialId={wikiId} /></TabsContent>
             <TabsContent value="洞察"><Insights repositoryId={selected.id} /></TabsContent>
             <TabsContent value="稽核">
-              <PagePanel heading="稽核">
-                <Empty><EmptyHeader>
-                  <EmptyTitle>稽核尚未開放</EmptyTitle>
-                </EmptyHeader></Empty>
-              </PagePanel>
+              <QuantityHistory key={selected.id} repositoryId={selected.id} />
             </TabsContent>
           </Tabs>
         </>

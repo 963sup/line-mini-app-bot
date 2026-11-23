@@ -10,6 +10,9 @@
           },
           "name": {
             "type": "string"
+          },
+          "auditHistoryStatus": {
+            "$ref": "../common/transport.yaml#/components/schemas/AuditHistoryStatus"
           }
         },
         "required": [

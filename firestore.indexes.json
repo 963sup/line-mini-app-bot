@@ -1,6 +1,15 @@
 {
   "indexes": [
     {
+      "collectionGroup": "changes",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "after.repositoryId", "order": "ASCENDING" },
+        { "fieldPath": "at", "order": "DESCENDING" },
+        { "fieldPath": "__name__", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "attendance",
       "queryScope": "COLLECTION",
       "fields": [

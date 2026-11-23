@@ -149,6 +149,7 @@ func RegisterObjects(public *http.ServeMux, handler ObjectServer, wrap func(http
 	public.Handle("GET /api/v1/repositories/{repositoryId}/object-templates/{id}", routes)
 	public.Handle("POST /api/v1/repositories/{repositoryId}/object-templates/{id}/instances", routes)
 	public.Handle("POST /api/v1/repositories/{repositoryId}/objects/candidates", routes)
+	public.Handle("GET /api/v1/repositories/{repositoryId}/object-quantity-changes", routes)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/objects", routes)
 	public.Handle("POST /api/v1/repositories/{repositoryId}/objects", routes)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/objects/{id}", routes)

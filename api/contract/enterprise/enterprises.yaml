@@ -429,8 +429,22 @@
               "$ref": "types.yaml#/components/schemas/EnterpriseLink"
             }
           },
+          "assignableOrganizations": {
+            "type": "array",
+            "description": "Organizations eligible for legacy enterprise team assignment by the current actor.",
+            "items": {
+              "$ref": "types.yaml#/components/schemas/EnterpriseLink"
+            }
+          },
+          "canManageTeams": {
+            "type": "boolean",
+            "description": "Whether the actor has legacy enterprise authority for team binding and assignment. Writes also check the requested targets."
+          },
           "canManage": {
             "type": "boolean"
+          },
+          "auditHistoryStatus": {
+            "$ref": "../common/transport.yaml#/components/schemas/AuditHistoryStatus"
           }
         },
         "required": [
@@ -438,7 +452,10 @@
           "name",
           "organizations",
           "teams",
-          "canManage"
+          "canManage",
+          "canManageTeams",
+          "assignableOrganizations",
+          "auditHistoryStatus"
         ]
       },
       "EnterpriseOwnerRequest": {

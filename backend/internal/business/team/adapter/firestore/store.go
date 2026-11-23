@@ -70,6 +70,11 @@ func (s Store) IsTeamMember(ctx context.Context, teamID, actor string) (bool, er
 	return err == nil && result != nil && *result, err
 }
 
+func canBindTeam(target orgstore.Document, owner bool, user string) bool {
+	return !target.Disabled && (target.MembershipMode == "" || target.MembershipMode == "legacy") &&
+		(owner || slices.Contains(target.Managers, user))
+}
+
 func (s Store) Manage(ctx context.Context, user string, teamId, scope, managementId string) error {
 	_, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*struct{}, error) {
 		if !groupvalueobject.ValidID(teamId) || uuid.Validate(managementId) != nil || (scope != "organization" && scope != "enterprise") {
@@ -79,15 +84,14 @@ func (s Store) Manage(ctx context.Context, user string, teamId, scope, managemen
 		if e != nil {
 			return nil, e
 		}
-		if target.Disabled || (target.MembershipMode != "" && target.MembershipMode != "legacy") ||
-			(scope == "organization" && !target.LegacyOrganizationEnabled()) {
+		if scope == "organization" && !target.LegacyOrganizationEnabled() {
 			return nil, organizationDomainEntity.ErrNotFound
 		}
 		owner := target.Owner == user
 		if scope == "enterprise" {
 			owner = target.IsOwner(user)
 		}
-		if !owner && !slices.Contains(target.Managers, user) {
+		if !canBindTeam(target, owner, user) {
 			return nil, organizationDomainEntity.ErrNotFound
 		}
 		ref := root.Collection("teams").Doc(teamId)
@@ -268,7 +272,7 @@ func (s Store) List(ctx context.Context, user string, organizationId string) (*t
 				candidates[doc.Ref.ID] = team
 			}
 		}
-		result := teamApplicationDto.Listing{Teams: []teamApplicationDto.Option{}}
+		result := teamApplicationDto.Listing{Teams: []teamApplicationDto.Option{}, CanBindTeam: org.LegacyOrganizationEnabled() && canBindTeam(org, org.Owner == user, user)}
 		for id, team := range candidates {
 			switch team.MembershipMode {
 			case "membership":

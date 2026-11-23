@@ -21,3 +21,7 @@ type Store interface {
 	Create(context.Context, repositoryDomainEntity.Repository, string, string, objectDomainEntity.Content) (objectDomainEntity.Object, error)
 	Update(context.Context, repositoryDomainEntity.Repository, string, string, objectDomainEntity.Update) (objectDomainEntity.Object, error)
 }
+
+type QuantityHistory interface {
+	ListQuantityChanges(context.Context, repositoryDomainEntity.Repository, string, string) (objectApplicationDto.QuantityChangePage, error)
+}

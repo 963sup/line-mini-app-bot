@@ -1739,6 +1739,20 @@
       "consumers": [
         "frontend/miniapp/src/business/object/TemplatePreparation.tsx"
       ]
+    },
+    {
+      "operationId": "listObjectQuantityChanges",
+      "audience": "public",
+      "method": "GET",
+      "path": "/api/v1/repositories/{repositoryId}/object-quantity-changes",
+      "owner": "object",
+      "adapter": "backend/internal/business/object/adapter/http/routes.go",
+      "handler": "ListObjectQuantityChanges",
+      "core": "backend/internal/business/object/domain/entity/object.go",
+      "specification": "docs/domains/repository/object/design.md",
+      "consumers": [
+        "frontend/miniapp/src/business/object/QuantityHistory.tsx"
+      ]
     }
   ],
   "events": [

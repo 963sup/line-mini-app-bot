@@ -186,7 +186,9 @@ func (s *objectServer) UpdateObject(w http.ResponseWriter, r *http.Request, rid,
 		return
 	}
 	u := objectDomainEntity.Update{SpaceID: in.SpaceId, Content: objectDomainEntity.Content{CompletedQuantity: value(in.CompletedQuantity), Name: in.Name, Description: in.Description, Type: in.Type, Quantity: in.Quantity, Unit: in.Unit, SourceDocument: value(in.SourceDocument), SourceRevision: value(in.SourceRevision), SourceItemNo: value(in.SourceItemNo), SourcePages: value(in.SourcePages), MaterialCode: value(in.MaterialCode)}, Status: statusValue(in.Status), CompletedQuantity: in.CompletedQuantity, ExpectedVersion: in.ExpectedVersion, Sources: objectDomainEntity.SourceUpdate{SourceDocument: in.SourceDocument, SourceRevision: in.SourceRevision, SourceItemNo: in.SourceItemNo, SourcePages: in.SourcePages, MaterialCode: in.MaterialCode}}
-	i, e := s.service.Update(r.Context(), identity.UserID(r.Context()), rid, id, u)
+	actor, _ := identity.FromContext(r.Context())
+	u.ActorDisplayName = actor.Name
+	i, e := s.service.Update(r.Context(), actor.ID, rid, id, u)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(i, identity.UserID(r.Context())))
 	}
@@ -245,4 +247,16 @@ func templateVersion(n int64) *int64 {
 		return nil
 	}
 	return &n
+}
+
+func (s *objectServer) ListObjectQuantityChanges(w http.ResponseWriter, r *http.Request, rid string, p generated.ListObjectQuantityChangesParams) {
+	page, err := s.service.ListQuantityChanges(r.Context(), identity.UserID(r.Context()), rid, value(p.Cursor))
+	if writeError(w, err) {
+		return
+	}
+	items := make([]generated.ObjectQuantityChange, 0, len(page.Items))
+	for _, c := range page.Items {
+		items = append(items, generated.ObjectQuantityChange{ObjectId: c.ObjectID, Name: c.Name, Version: c.Version, Actor: c.Actor, At: c.At, BeforeQuantity: c.BeforeQuantity, BeforeUnit: c.BeforeUnit, AfterQuantity: c.AfterQuantity, AfterUnit: c.AfterUnit})
+	}
+	transport.WriteJSON(w, 200, generated.ObjectQuantityChangePage{Items: items, NextCursor: page.NextCursor})
 }

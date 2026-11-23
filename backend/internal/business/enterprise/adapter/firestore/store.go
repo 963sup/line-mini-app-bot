@@ -150,7 +150,7 @@ func (s Store) Enterprise(ctx context.Context, user, id string) (*dto.Detail, er
 		legacy := legacyEnterpriseEnabled(ent)
 		owner := legacy && ent.IsOwner(user)
 		admin := owner || (legacy && slices.Contains(ent.Managers, user))
-		view := dto.Detail{ID: id, Name: ent.Name, CanManage: owner, Organizations: []dto.Link{}, Teams: []dto.Link{}}
+		view := dto.Detail{ID: id, Name: ent.Name, CanManage: owner, CanManageTeams: admin, Organizations: []dto.Link{}, Teams: []dto.Link{}}
 		docs, e := tx.Documents(root.Collection("organizations").Where("enterpriseId", "==", id)).GetAll()
 		if e != nil {
 			return nil, e
@@ -166,6 +166,9 @@ func (s Store) Enterprise(ctx context.Context, user, id string) (*dto.Detail, er
 				if e != nil {
 					return nil, e
 				}
+			}
+			if view.CanManageTeams && org.LegacyOrganizationEnabled() {
+				view.AssignableOrganizations = append(view.AssignableOrganizations, dto.Link{ID: d.Ref.ID, Name: org.Name})
 			}
 			if visible {
 				view.Organizations = append(view.Organizations, dto.Link{ID: d.Ref.ID, Name: org.Name})

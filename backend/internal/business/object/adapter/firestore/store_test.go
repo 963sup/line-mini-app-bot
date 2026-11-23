@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -259,5 +260,54 @@ func TestEmulatorListPaginatesWithoutMissingOrDuplicateObjects(t *testing.T) {
 	}
 	if _, err := store.Get(ctx, other, got.ID); !errors.Is(err, objectDomainEntity.ErrNotFound) {
 		t.Fatalf("get must not leak another repository: %v", err)
+	}
+}
+
+func TestQuantityHistoryReadsCommittedVersions(t *testing.T) {
+	ctx, s, r := emulatorStore(t)
+	c := testContent()
+	obj, err := s.Create(ctx, r, "author", "history-create-0001", c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := range 27 {
+		c.Quantity = strconv.Itoa(12 + i)
+		obj, err = s.Update(ctx, r, "author", obj.ID, objectDomainEntity.Update{Content: c, ExpectedVersion: obj.Version, ActorDisplayName: "測試成員"})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	// A later edit to another field, a no-op, and a rejected stale write
+	// must not appear in quantity history.
+	c.Name = "renamed after quantity change"
+	obj, err = s.Update(ctx, r, "author", obj.ID, objectDomainEntity.Update{Content: c, ExpectedVersion: obj.Version})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = s.Update(ctx, r, "author", obj.ID, objectDomainEntity.Update{Content: c, ExpectedVersion: obj.Version}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = s.Update(ctx, r, "author", obj.ID, objectDomainEntity.Update{Content: c, ExpectedVersion: 1}); !errors.Is(err, objectDomainEntity.ErrConflict) {
+		t.Fatal(err)
+	}
+	page, err := s.ListQuantityChanges(ctx, r, "author", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(page.Items) != 25 || page.Items[0].AfterQuantity != "38" || page.Items[0].Actor != "測試成員" || page.Items[0].At.IsZero() || page.Items[0].Name != testContent().Name {
+		t.Fatalf("unexpected first page: %+v", page)
+	}
+	next, err := s.ListQuantityChanges(ctx, r, "author", page.NextCursor)
+	if err != nil || len(next.Items) != 2 || next.Items[1].BeforeQuantity != "11" || next.NextCursor != "" {
+		t.Fatalf("unexpected next page: %+v %v", next, err)
+	}
+	if _, err = s.ListQuantityChanges(ctx, r, "other", page.NextCursor); !errors.Is(err, objectDomainEntity.ErrInput) {
+		t.Fatalf("cursor reused by different actor: %v", err)
+	}
+	other := *s
+	other.ChannelID = "different-channel"
+	foreign, err := other.ListQuantityChanges(ctx, r, "author", "")
+	if err != nil || len(foreign.Items) != 0 {
+		t.Fatalf("channel isolation: %+v %v", foreign, err)
 	}
 }

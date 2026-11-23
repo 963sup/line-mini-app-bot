@@ -16,7 +16,7 @@
 
 [對照實作或測試](../../../../backend/internal/business/object/application/progress_test.go) · [戰略設計與分類準則](../../../references/ddd/README.md)
 
-工項規格涵蓋數量、進度與狀態。
+工項規格涵蓋數量、進度與狀態。[數量原位編輯與儲存庫稽核](design.md#quantity-audit)記載已接通的歷史查詢、待實作的原位編輯與驗收條件。
 
 [領域設計與操作契約](design.md) · [後端實作入口](../../../../backend/internal/business/object/README.md)
 

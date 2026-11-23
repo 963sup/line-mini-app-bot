@@ -1,3 +1,4 @@
+import { AuditTab, AuditPanel } from "@/shared/AuditTab";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
@@ -141,10 +142,11 @@ export function OrganizationPage({ organizationId, children, onChanged, onLeave 
         <Badge variant="secondary">{roster.isOwner ? "擁有者" : "成員"}</Badge>
       </header>
       <Tabs key={organizationId} defaultValue="members">
-        <TabsList aria-label="組織功能" className="w-full">
+        <TabsList aria-label="組織功能" className="h-auto w-full flex-wrap">
           <TabsTrigger value="members">成員</TabsTrigger>
           <TabsTrigger value="teams">組織團隊</TabsTrigger>
           <TabsTrigger value="management">組織管理</TabsTrigger>
+          {roster.auditHistoryStatus === "unavailable" && <AuditTab />}
         </TabsList>
         <TabsContent value="members">
           <PagePanel heading="成員">
@@ -197,6 +199,7 @@ export function OrganizationPage({ organizationId, children, onChanged, onLeave 
             </div>
           </PagePanel>
         </TabsContent>
+        {roster.auditHistoryStatus === "unavailable" && <AuditPanel scope={roster.organizationName} />}
       </Tabs>
     </>}
   </>;

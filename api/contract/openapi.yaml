@@ -244,6 +244,9 @@
     },
     "/api/v1/object-template-drafts": {
       "$ref": "./object/objects.yaml#/paths/~1api~1v1~1object-template-drafts"
+    },
+    "/api/v1/repositories/{repositoryId}/object-quantity-changes": {
+      "$ref": "./object/objects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1object-quantity-changes"
     }
   },
   "components": {
@@ -469,6 +472,15 @@
       },
       "ObjectTemplateInstanceNode": {
         "$ref": "./object/objects.yaml#/components/schemas/ObjectTemplateInstanceNode"
+      },
+      "ObjectQuantityChange": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectQuantityChange"
+      },
+      "ObjectQuantityChangePage": {
+        "$ref": "./object/objects.yaml#/components/schemas/ObjectQuantityChangePage"
+      },
+      "AuditHistoryStatus": {
+        "$ref": "./common/transport.yaml#/components/schemas/AuditHistoryStatus"
       }
     },
     "securitySchemes": {

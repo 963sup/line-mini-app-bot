@@ -7,5 +7,6 @@ type Option struct {
 }
 
 type Listing struct {
-	Teams []Option
+	Teams       []Option
+	CanBindTeam bool
 }

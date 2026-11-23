@@ -60,6 +60,7 @@ type SourceUpdate struct{ SourceDocument, SourceRevision, SourceItemNo, SourcePa
 
 type Update struct {
 	Content
+	ActorDisplayName  string // Authenticated identity metadata; never populated from the update body.
 	Status            string
 	ExpectedVersion   int64
 	CompletedQuantity *string

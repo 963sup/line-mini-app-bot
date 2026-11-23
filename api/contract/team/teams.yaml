@@ -418,7 +418,8 @@
         "required": [
           "teamId",
           "name",
-          "managementScope"
+          "managementScope",
+          "auditHistoryStatus"
         ],
         "properties": {
           "teamId": {
@@ -429,15 +430,23 @@
           },
           "managementScope": {
             "type": "string"
+          },
+          "auditHistoryStatus": {
+            "$ref": "../common/transport.yaml#/components/schemas/AuditHistoryStatus"
           }
         }
       },
       "OrganizationTeamsResponse": {
         "type": "object",
         "required": [
-          "teams"
+          "teams",
+          "canBindTeam"
         ],
         "properties": {
+          "canBindTeam": {
+            "type": "boolean",
+            "description": "Whether the actor may request legacy binding to this organization. The write also checks the selected group."
+          },
           "teams": {
             "type": "array",
             "items": {

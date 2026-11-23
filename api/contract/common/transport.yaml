@@ -24,7 +24,12 @@
               "conflictReason": {
                 "description": "Optional reason for a Wiki conflict. The top-level error code remains conflict.",
                 "type": "string",
-                "enum": ["stale_version", "duplicate_title", "creation_key", "version_limit"]
+                "enum": [
+                  "stale_version",
+                  "duplicate_title",
+                  "creation_key",
+                  "version_limit"
+                ]
               },
               "message": {
                 "type": "string"
@@ -32,6 +37,16 @@
             }
           }
         }
+      },
+      "AuditHistoryStatus": {
+        "type": "string",
+        "description": "Availability of the audit history reader for this visible scope. Unavailable does not mean there have been no changes.",
+        "enum": [
+          "unavailable"
+        ],
+        "x-enum-varnames": [
+          "AuditHistoryStatusUnavailable"
+        ]
       }
     },
     "securitySchemes": {

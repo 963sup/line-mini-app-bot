@@ -1,3 +1,6 @@
+import { OrganizationPage } from "../src/business/organization/OrganizationPage";
+import { OrganizationTeams } from "../src/business/team/OrganizationTeams";
+import { pressButton } from "./sidebar-dom";
 import { Enterprise } from "../src/business/enterprise/Enterprise";
 import React from "react";
 import { test } from "node:test";
@@ -907,6 +910,9 @@ test("enterprise management denial refreshes permissions and removes stale data"
     return next(r);
   });
   try {
+    assert.ok(document.body.textContent?.includes("過期組織"));
+    const management = [...document.querySelectorAll<HTMLElement>('[role="tab"]')].find(tab => tab.textContent === "企業管理")!;
+    await act(async () => { pressButton(management as HTMLButtonElement); await flush(); });
     const owner = [...document.querySelectorAll("form")].find(form => form.textContent?.includes("新增企業 Owner"))!;
     owner.querySelector("input")!.value="member";
     await act(async () => {owner.requestSubmit();await flush();});
@@ -915,3 +921,135 @@ test("enterprise management denial refreshes permissions and removes stale data"
     assert.doesNotMatch(document.body.textContent!,/新增企業 Owner|加入組織|過期組織/);
   } finally {await f.dispose();}
 });
+
+test("organization team binding uses the selected scope and reloads its list", async () => {
+  let bound = false, reads = 0;
+  const f = await fixture(<OrganizationTeams organizationId="org1" />, "", async (r, next) => {
+    if (r.url.endsWith("/teams/group1/management")) {
+      assert.equal(r.method, "PUT");
+      assert.deepEqual(await r.json(), { managementScope: "organization", managementId: "org1" });
+      bound = true;
+      return new Response(null, { status: 204 });
+    }
+    if (r.url.endsWith("/organizations/org1/teams")) {
+      reads++;
+      return Response.json({ canBindTeam: true, teams: bound ? [{ teamId: "group1", name: "排班組", managementScope: "organization" }] : [] });
+    }
+    return next(r);
+  });
+  try {
+    const form = document.querySelector("form")!;
+    form.querySelector("input")!.value = "group1";
+    await act(async () => { form.requestSubmit(); await flush(); });
+    assert.ok(bound);
+    assert.equal(reads, 2);
+    assert.match(document.body.textContent!, /排班組/);
+  } finally { await f.dispose(); }
+});
+
+test("enterprise teams bind, assign and remove through existing APIs and retain uncertain inputs", async () => {
+  let reads = 0, writes = 0;
+  const calls: { method: string; path: string; body?: unknown }[] = [];
+  const f = await fixture(<Enterprise id="hq" onSaved={() => {}} />, "", async (r, next) => {
+    if (r.url.endsWith("/enterprises/hq")) {
+      reads++;
+      return Response.json({ id: "hq", name: "總公司", canManage: false, canManageTeams: true,
+        organizations: [{ id: "ineligible", name: "僅供查看" }],
+        assignableOrganizations: [{ id: "org1", name: "台灣" }, { id: "org2", name: "日本" }],
+        teams: [{ id: "group1", name: "資安組" }] });
+    }
+    if (r.url.endsWith("/teams/group1/management")) {
+      calls.push({ method: r.method, path: new URL(r.url).pathname, body: await r.json() });
+      return new Response(null, { status: 204 });
+    }
+    if (r.url.includes("/enterprise-teams/")) {
+      calls.push({ method: r.method, path: new URL(r.url).pathname });
+      writes++;
+      return writes === 1
+        ? Response.json({ error: { code: "unavailable", message: "連線中斷", retrySameRequest: true } }, { status: 503 })
+        : new Response(null, { status: 204 });
+    }
+    return next(r);
+  });
+  try {
+    const tab = [...document.querySelectorAll<HTMLButtonElement>('[role="tab"]')].find(t => t.textContent === "企業團隊")!;
+    await act(async () => { pressButton(tab); await flush(); });
+    const binding = document.querySelector("form")!;
+    binding.querySelector("input")!.value = "group1";
+    await act(async () => { binding.requestSubmit(); await flush(); });
+    assert.deepEqual(calls[0].body, { managementScope: "enterprise", managementId: "hq" });
+    const assignment = [...document.querySelectorAll("form")].find(f => f.textContent?.includes("送出指派設定"))!;
+    assert.doesNotMatch(assignment.textContent!, /僅供查看/);
+    await act(async () => { assignment.requestSubmit(); await flush(); });
+    assert.match(assignment.textContent!, /結果待確認/);
+    assert.ok(assignment.querySelector("fieldset")!.disabled);
+    // Even if the controls are changed programmatically, retry sends the original request.
+    assignment.querySelector<HTMLSelectElement>('[name="organizationId"]')!.value = "org2";
+    await act(async () => { assignment.requestSubmit(); await flush(); });
+    assert.deepEqual(calls[1], calls[2]);
+    assert.equal(calls[2].path, "/api/v1/organizations/org1/enterprise-teams/group1");
+    assignment.querySelector<HTMLSelectElement>('[name="action"]')!.value = "remove";
+    await act(async () => { assignment.requestSubmit(); await flush(); });
+    assert.equal(calls[3].method, "DELETE");
+    assert.equal(calls[3].path, "/api/v1/organizations/org2/enterprise-teams/group1");
+    assert.equal(reads, 4);
+  } finally { await f.dispose(); }
+});
+
+
+test("team binding denial stays visible and enterprise permissions refresh", async () => {
+  let denied = false;
+  let finishRefresh!: () => void;
+  const refresh = new Promise<void>(resolve => { finishRefresh = resolve; });
+  const f = await fixture(<Enterprise id="hq" onSaved={() => {}} />, "", async (r, next) => {
+    if (r.url.endsWith("/teams/group1/management")) {
+      denied = true;
+      return Response.json({ error: { code: "forbidden", message: "團隊管理權限已變更", retrySameRequest: false } }, { status: 403 });
+    }
+    if (r.url.endsWith("/enterprises/hq")) {
+      if (denied) await refresh;
+      return Response.json({ id: "hq", name: "總公司", canManage: !denied, canManageTeams: !denied, organizations: [], teams: [] });
+    }
+    return next(r);
+  });
+  try {
+    await act(async () => { pressButton([...document.querySelectorAll<HTMLButtonElement>('[role="tab"]')].find(t => t.textContent === "企業團隊")!); await flush(); });
+    const form = document.querySelector("form")!;
+    form.querySelector("input")!.value = "group1";
+    await act(async () => { form.requestSubmit(); await flush(); });
+    assert.ok(denied);
+    assert.doesNotMatch(document.body.textContent!, /綁定團隊|送出指派設定/);
+    await act(async () => { finishRefresh(); await flush(); });
+    assert.match(document.body.textContent!, /團隊管理權限已變更/);
+    assert.doesNotMatch(document.body.textContent!, /綁定團隊|送出指派設定|企業管理/);
+  } finally { await f.dispose(); }
+});
+
+for (const scope of ["企業", "組織"]) {
+  test(scope + " audit tab and its team's audit tab keep separate scopes", async () => {
+    const view = scope === "企業" ? <Enterprise id="hq" onSaved={() => {}} /> :
+      <OrganizationPage organizationId="org1" onChanged={() => {}} onLeave={() => {}}><OrganizationTeams organizationId="org1" /></OrganizationPage>;
+    const team = { id: "g1", teamId: "g1", name: "排班組", managementScope: "organization", auditHistoryStatus: "unavailable" };
+    const f = await fixture(view, "", async (request, next) => {
+      const path = new URL(request.url).pathname;
+      if (path.endsWith("/enterprises/hq")) return Response.json({ id:"hq", name:"測試企業", organizations:[], teams:[team], auditHistoryStatus:"unavailable" });
+      if (path.endsWith("/org1/members")) return Response.json({ organizationName:"測試組織", members:[], auditHistoryStatus:"unavailable" });
+      if (path.endsWith("/org1/teams")) return Response.json({ teams:[team] });
+      return next(request);
+    });
+    const clickTab = async (list: string, label: string) => {
+      const tabs = document.querySelector(`[role=tablist][aria-label="${list}"]`);
+      const tab = [...tabs!.querySelectorAll<HTMLButtonElement>("[role=tab]")].find(item => item.textContent === label);
+      assert.ok(tab);
+      await act(async () => { pressButton(tab); await flush(); });
+    };
+    try {
+      await clickTab(scope+"功能", "稽核");
+      assert.match(document.body.textContent!, new RegExp("測試"+scope+"的修改歷史尚未開放查詢"));
+      await clickTab(scope+"功能", scope+"團隊");
+      document.querySelector("details")!.open = true;
+      await clickTab("排班組團隊功能", "稽核");
+      assert.match(document.body.textContent!, /排班組的修改歷史尚未開放查詢/);
+    } finally { await f.dispose(); }
+  });
+}

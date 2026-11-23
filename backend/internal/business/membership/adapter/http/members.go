@@ -51,7 +51,8 @@ func (h Handler) ListOrganizationMembers(w http.ResponseWriter, r *http.Request,
 			return nil, err
 		}
 		result := generated.OrganizationMembers{
-			OrganizationName: roster.Name, CanLeave: roster.CanLeave, CanRemove: roster.CanRemove, IsOwner: roster.IsOwner, CanTransferOwnership: roster.CanTransferOwnership,
+			AuditHistoryStatus: generated.AuditHistoryStatusUnavailable,
+			OrganizationName:   roster.Name, CanLeave: roster.CanLeave, CanRemove: roster.CanRemove, IsOwner: roster.IsOwner, CanTransferOwnership: roster.CanTransferOwnership,
 			Members: make([]generated.OrganizationMember, 0, len(roster.People)),
 		}
 		for _, person := range roster.People {

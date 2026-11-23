@@ -19,6 +19,7 @@ import (
 var creationKey = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
 
 type Service struct {
+	QuantityHistory    objectApplicationPort.QuantityHistory
 	TemplatePreparer   TemplatePreparer
 	Templates          objectApplicationPort.TemplateStore
 	PersonalTemplates  objectApplicationPort.PersonalTemplateStore
@@ -107,4 +108,18 @@ func (s *Service) Update(ctx context.Context, actor, rid, id string, u objectDom
 		return objectDomainEntity.Object{}, objectDomainEntity.ErrNotFound
 	}
 	return s.Store.Update(ctx, r, actor, id, u)
+}
+
+func (s *Service) ListQuantityChanges(ctx context.Context, actor, rid, cursor string) (objectApplicationDto.QuantityChangePage, error) {
+	r, err := s.scope(ctx, actor, rid)
+	if err != nil {
+		return objectApplicationDto.QuantityChangePage{}, err
+	}
+	if len(cursor) > 1024 {
+		return objectApplicationDto.QuantityChangePage{}, objectDomainEntity.ErrInput
+	}
+	if s.QuantityHistory == nil {
+		return objectApplicationDto.QuantityChangePage{}, objectDomainEntity.ErrUnavailable
+	}
+	return s.QuantityHistory.ListQuantityChanges(ctx, r, actor, cursor)
 }

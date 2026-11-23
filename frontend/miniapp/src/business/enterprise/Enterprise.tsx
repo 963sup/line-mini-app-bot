@@ -1,9 +1,14 @@
+import { TeamSummary } from "../team/TeamSummary";
+import { AuditTab, AuditPanel } from "@/shared/AuditTab";
+import { EnterpriseTeamAssignment, TeamManagement } from "@/business/team/TeamActions";
 import { useEffect, useRef, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
 import { useLatestRequest, errorMessage, rejectedAttempt } from "@/shared/http/lifecycle";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { PagePanel } from "@/shared/PagePanel";
 
 export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
   id: string;
@@ -19,6 +24,7 @@ export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
     [revision, setRevision] = useState(0),
     [readFailed, setReadFailed] = useState(false),
     [message, setMessage] = useState("");
+  const [checkingTeamAccess, setCheckingTeamAccess] = useState(false);
   const writing = useRef(false);
   const create = id === "new";
   const eligibilityMessage = create && (canCreate === undefined
@@ -37,11 +43,17 @@ export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
             }),
           { signal },
         ),
-      setView,
+      value => { setView(value); setCheckingTeamAccess(false); },
       (e) => {setView(undefined);setReadFailed(true);setMessage(errorMessage(e));},
     );
     return cancel;
   }, [id, create, user, request, run, cancel, revision]);
+  const refreshTeams = () => setRevision(value => value + 1);
+  const teamDenied = (error: unknown) => {
+    setMessage(errorMessage(error));
+    setCheckingTeamAccess(true);
+    refreshTeams();
+  };
   function form(
     kind: "create" | "owner" | "organization",
     label: string,
@@ -122,24 +134,39 @@ export function Enterprise({ id, canCreate, eligibilityError, onSaved }: {
       {view && (
         <>
           <h2>{view.name}</h2>
-          <h3>組織</h3>
-          <ul>
-            {view.organizations.map((o) => (
-              <li key={o.id}>{o.name}</li>
-            ))}
-          </ul>
-          <h3>企業團隊</h3>
-          <ul>
-            {view.teams.map((t) => (
-              <li key={t.id}>{t.name || t.id}</li>
-            ))}
-          </ul>
-          {view.canManage && (
-            <>
-              {form("organization", "組織 ID", "加入組織")}
-              {form("owner", "LINE 使用者 ID", "新增企業 Owner")}
-            </>
-          )}
+          <Tabs key={`${id}:${view.canManage}`} defaultValue="organizations">
+            <TabsList aria-label="企業功能" className="h-auto w-full flex-wrap">
+              <TabsTrigger value="organizations">旗下組織</TabsTrigger>
+              <TabsTrigger value="teams">企業團隊</TabsTrigger>
+              {view.canManage && <TabsTrigger value="management">企業管理</TabsTrigger>}
+              {view.auditHistoryStatus === "unavailable" && <AuditTab />}
+            </TabsList>
+            <TabsContent value="organizations">
+              <PagePanel heading="旗下組織">
+                {view.organizations.length ? <ul>
+                  {view.organizations.map((o) => <li key={o.id}>{o.name}</li>)}
+                </ul> : <p className="text-sm text-muted-foreground">尚無可見的旗下組織。</p>}
+              </PagePanel>
+            </TabsContent>
+            <TabsContent value="teams">
+              <PagePanel heading="企業團隊">
+                {view.teams.length ? <ul>
+                  {view.teams.map((t) => <li key={t.id}><TeamSummary name={t.name || t.id} management="企業團隊" auditStatus={t.auditHistoryStatus} /></li>)}
+                </ul> : <p className="text-sm text-muted-foreground">尚無可見的企業團隊。</p>}
+                {view.canManageTeams && !checkingTeamAccess && <>
+                  <TeamManagement scope="enterprise" managementId={id} onChanged={refreshTeams} onDenied={teamDenied} />
+                  <EnterpriseTeamAssignment enterprise={view} onChanged={refreshTeams} onDenied={teamDenied} />
+                </>}
+              </PagePanel>
+            </TabsContent>
+            {view.canManage && <TabsContent value="management">
+              <PagePanel heading="企業管理">
+                {form("organization", "組織 ID", "加入組織")}
+                {form("owner", "LINE 使用者 ID", "新增企業 Owner")}
+              </PagePanel>
+            </TabsContent>}
+            {view.auditHistoryStatus === "unavailable" && <AuditPanel scope={view.name} />}
+          </Tabs>
         </>
       )}
     </section>

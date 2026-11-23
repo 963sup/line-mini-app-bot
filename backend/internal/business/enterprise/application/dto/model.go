@@ -6,9 +6,11 @@ type Link struct {
 }
 
 type Detail struct {
-	ID            string
-	Name          string
-	CanManage     bool
-	Organizations []Link
-	Teams         []Link
+	ID                      string
+	Name                    string
+	CanManage               bool
+	CanManageTeams          bool
+	Organizations           []Link
+	AssignableOrganizations []Link
+	Teams                   []Link
 }

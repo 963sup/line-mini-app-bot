@@ -1373,6 +1373,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/repositories/{repositoryId}/object-quantity-changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List quantity changes for a current repository member, newest first */
+        get: operations["listObjectQuantityChanges"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2043,6 +2060,28 @@ export interface components {
             parentId: string;
             name: string;
         };
+        ObjectQuantityChange: {
+            objectId: string;
+            name: string;
+            actor: string;
+            /** Format: date-time */
+            at: string;
+            beforeQuantity: string;
+            beforeUnit: string;
+            afterQuantity: string;
+            afterUnit: string;
+            /** Format: int64 */
+            version: number;
+        };
+        ObjectQuantityChangePage: {
+            items: components["schemas"]["ObjectQuantityChange"][];
+            nextCursor: string;
+        };
+        /**
+         * @description Availability of the audit history reader for this visible scope. Unavailable does not mean there have been no changes.
+         * @enum {string}
+         */
+        AuditHistoryStatus: "unavailable";
         GroupItem: {
             id: string;
             name: string;
@@ -2347,6 +2386,7 @@ export interface components {
         EnterpriseLink: {
             id: string;
             name: string;
+            auditHistoryStatus?: components["schemas"]["AuditHistoryStatus"];
         };
         OrganizationContext: {
             groups: components["schemas"]["OrganizationGroup"][];
@@ -2385,6 +2425,7 @@ export interface components {
             canRemove: boolean;
             isOwner: boolean;
             canTransferOwnership: boolean;
+            auditHistoryStatus: components["schemas"]["AuditHistoryStatus"];
         };
         TeamManagement: {
             /** @enum {string} */
@@ -2397,8 +2438,11 @@ export interface components {
             teamId: string;
             name: string;
             managementScope: string;
+            auditHistoryStatus: components["schemas"]["AuditHistoryStatus"];
         };
         OrganizationTeamsResponse: {
+            /** @description Whether the actor may request legacy binding to this organization. The write also checks the selected group. */
+            canBindTeam: boolean;
             teams: components["schemas"]["OrganizationTeamOption"][];
         };
         Enterprise: {
@@ -2406,7 +2450,12 @@ export interface components {
             name: string;
             organizations: components["schemas"]["EnterpriseLink"][];
             teams: components["schemas"]["EnterpriseLink"][];
+            /** @description Organizations eligible for legacy enterprise team assignment by the current actor. */
+            assignableOrganizations: components["schemas"]["EnterpriseLink"][];
+            /** @description Whether the actor has legacy enterprise authority for team binding and assignment. Writes also check the requested targets. */
+            canManageTeams: boolean;
             canManage: boolean;
+            auditHistoryStatus: components["schemas"]["AuditHistoryStatus"];
         };
         EnterpriseOwnerRequest: {
             userId: string;
@@ -8105,6 +8154,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ObjectTemplateDraftResult"];
+                };
+            };
+            400: components["responses"]["ObjectError"];
+            401: components["responses"]["ObjectError"];
+            403: components["responses"]["ObjectForbidden"];
+            404: components["responses"]["ObjectError"];
+            409: components["responses"]["ObjectError"];
+            415: components["responses"]["ObjectError"];
+            503: components["responses"]["ObjectError"];
+        };
+    };
+    listObjectQuantityChanges: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                repositoryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized result; no-store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObjectQuantityChangePage"];
                 };
             };
             400: components["responses"]["ObjectError"];

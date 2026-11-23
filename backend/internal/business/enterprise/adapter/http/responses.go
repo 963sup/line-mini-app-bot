@@ -28,8 +28,14 @@ func enterpriseResponse(value *dto.Detail, err error) (any, error) {
 	if err != nil || value == nil {
 		return nil, err
 	}
+	teams := enterpriseLinks(value.Teams)
+	status := generated.AuditHistoryStatusUnavailable
+	for i := range teams {
+		teams[i].AuditHistoryStatus = &status
+	}
 	return generated.Enterprise{
-		Id: value.ID, Name: value.Name, CanManage: value.CanManage,
-		Organizations: enterpriseLinks(value.Organizations), Teams: enterpriseLinks(value.Teams),
+		AuditHistoryStatus: status,
+		Id:                 value.ID, Name: value.Name, CanManage: value.CanManage, CanManageTeams: value.CanManageTeams,
+		Organizations: enterpriseLinks(value.Organizations), AssignableOrganizations: enterpriseLinks(value.AssignableOrganizations), Teams: teams,
 	}, nil
 }

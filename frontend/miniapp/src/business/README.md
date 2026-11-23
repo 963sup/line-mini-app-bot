@@ -10,7 +10,7 @@
 
 ## 相關規格
 
-[MINI App 首頁路由](../pages/miniapp/index.tsx)組合 [Organization 操作](organization/OrganizationPage.tsx)、[團隊清單](team/OrganizationTeams.tsx)及[企業開通與管理](enterprise/Enterprise.tsx)。Organization 和 Team 由路由傳入同一個組織 ID，各自讀取自己的 API。Enterprise 開通提示由路由傳入側欄取得的資格結果。這三個功能模組不互相匯入；各自負責請求與畫面狀態，後端判斷實際權限。
+[MINI App 首頁路由](../pages/miniapp/index.tsx)組合 [Organization 操作](organization/OrganizationPage.tsx)、[團隊清單](team/OrganizationTeams.tsx)及[企業開通與管理](enterprise/Enterprise.tsx)。Organization 和 Team 由路由傳入同一個組織 ID，各自讀取自己的 API。Enterprise 開通提示由路由傳入側欄取得的資格結果。組織團隊與企業頁共用 [Team 操作表單](team/TeamActions.tsx)，接入既有管理歸屬及企業團隊指派／移除 API；各自負責請求與畫面狀態，後端判斷實際權限。
 
 [現行實作圖：頁面與身分生命週期](../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
 

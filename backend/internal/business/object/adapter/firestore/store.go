@@ -295,7 +295,7 @@ func (s *Store) Update(ctx context.Context, r repositoryDomainEntity.Repository,
 		if e = tx.Set(ref, encode(result)); e != nil {
 			return e
 		}
-		return tx.Create(ref.Collection("changes").Doc(strconv.FormatInt(result.Version, 10)), map[string]any{"actorId": actor, "version": result.Version, "at": result.UpdatedAt, "before": encode(current), "after": encode(result)})
+		return tx.Create(ref.Collection("changes").Doc(strconv.FormatInt(result.Version, 10)), map[string]any{"actorId": actor, "actorName": u.ActorDisplayName, "version": result.Version, "at": result.UpdatedAt, "before": encode(current), "after": encode(result)})
 	})
 	if err != nil {
 		return objectDomainEntity.Object{}, err
