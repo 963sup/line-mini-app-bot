@@ -10,7 +10,7 @@ check_links = runpy.run_path(
 )["check_documentation_links"]
 
 
-class DocumentationLinksTests(unittest.TestCase):
+class DocumentationFixture:
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)
@@ -23,6 +23,7 @@ class DocumentationLinksTests(unittest.TestCase):
         path.write_text(content)
         return path
 
+class DocumentationLinksTests(DocumentationFixture, unittest.TestCase):
     def test_nested_guidance_and_untracked_files_are_checked(self):
         for name in ("api/AGENTS.md", "backend/README.md", "frontend/README.md"):
             with self.subTest(name=name):
@@ -55,6 +56,35 @@ class DocumentationLinksTests(unittest.TestCase):
         self.write("README.md", '# Root\n[Target](<docs/topic name.md#explicit%20anchor>)\n')
         self.write("docs/topic name.md", '# Topic\n<a id="explicit anchor"></a>\n')
         self.assertEqual(check_links(self.root), 2)
+
+
+class ExtendedDocumentationLinksTests(DocumentationFixture, unittest.TestCase):
+    def test_reference_html_and_mermaid_targets(self):
+        self.write("docs/topic.md", '# Target\n<a id="stable"></a>\n')
+        examples = {
+            "reference": '[Topic][ref]\n[ref]: docs/topic.md#stable "Title"\n',
+            "html": '<a\n href="docs/topic.md#stable">Topic</a>\n',
+            "diagram": '```mermaid\nflowchart LR\n a["A"]\n click a "docs/topic.md#stable"\n```\n',
+        }
+        for name, content in examples.items():
+            with self.subTest(name=name):
+                self.write("README.md", '# Root\n' + content)
+                self.assertEqual(check_links(self.root), 2)
+                self.write("README.md", '# Root\n' + content.replace("#stable", "#missing"))
+                with self.assertRaisesRegex(ValueError, "Broken documentation anchor"):
+                    check_links(self.root)
+                self.write("README.md", '# Root\n' + content.replace("docs/topic.md#stable", "missing.md"))
+                with self.assertRaisesRegex(ValueError, "Broken documentation link"):
+                    check_links(self.root)
+
+    def test_standalone_mermaid_and_literal_examples(self):
+        self.write("README.md", '# Root\n```html\n<a href="missing.md">Example</a>\n```\n'
+                   '~~~text\n[ref]: missing.md\n~~~\n`<a href="missing.md">literal</a>`\n')
+        diagram = self.write("flow.mermaid", 'flowchart LR\n a["A"]\n click a href "README.md#root"\n')
+        self.assertEqual(check_links(self.root), 2)
+        diagram.write_text('flowchart LR\n a["A"]\n click a "missing.md"\n')
+        with self.assertRaisesRegex(ValueError, "flow.mermaid:3"):
+            check_links(self.root)
 
 
 if __name__ == "__main__":

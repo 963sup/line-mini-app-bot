@@ -132,16 +132,18 @@ jobs:
         run: |
           bash scripts/tooling/tool-exec.sh mise run fmt-check
           bash scripts/tooling/tool-exec.sh mise run lint
-          bash scripts/tooling/tool-exec.sh mise run check
+          bash scripts/tooling/tool-exec.sh go -C backend mod verify
+          bash scripts/tooling/tool-exec.sh go -C backend vet ./...
           bash scripts/tooling/tool-exec.sh mise run build
           bash scripts/tooling/tool-exec.sh mise run vuln
 
-      - name: Verify project creation and browser workflows against Firestore
+      - name: Verify complete Go race suite and browser workflows against Firestore
         shell: bash
         env:
           FIRESTORE_EMULATOR_HOST: 127.0.0.1:8080
           MINIAPP_BROWSER_EXPORT: ${{ github.workspace }}/frontend/miniapp/out
         run: |
+          set -euo pipefail
           source scripts/dev/dev-env.sh
           python3 -m venv "$RUNNER_TEMP/project-browser"
           "$RUNNER_TEMP/project-browser/bin/pip" install "$PLAYWRIGHT_PACKAGE"
@@ -159,13 +161,12 @@ jobs:
             sleep 2
           done
 
+          bash scripts/tooling/tool-exec.sh go -C backend list ./... > "$RUNNER_TEMP/go-packages.txt"
           bash scripts/tooling/tool-exec.sh --tool go bash -c '
             source "$RUNNER_TEMP/project-browser/bin/activate"
-            exec go -C backend test ./internal/business/project/adapter/firestore \
-              -count=1 -v -run "^(TestPersonalRepositoryAndProject|TestProjectSettingsBrowserRoundTrip)$"
-          ' | tee "$RUNNER_TEMP/project-browser.log"
-          grep -q '^--- PASS: TestProjectSettingsBrowserRoundTrip (' "$RUNNER_TEMP/project-browser.log"
-          grep -q '^--- PASS: TestPersonalRepositoryAndProject (' "$RUNNER_TEMP/project-browser.log"
+            exec go -C backend test -race -count=1 -json ./...
+          ' | tee "$RUNNER_TEMP/go-acceptance.jsonl"
+          python3 scripts/check/check-go-test-results.py "$RUNNER_TEMP/go-acceptance.jsonl" "$RUNNER_TEMP/go-packages.txt"
 
   container:
     needs: configuration

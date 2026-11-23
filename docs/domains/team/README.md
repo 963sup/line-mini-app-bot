@@ -35,7 +35,7 @@ flowchart TD
     gate -->|No| stop["Reject authorization or report conflict"]
 ```
 
-[Entry adapter](../../../backend/internal/business/team/adapter/http/routes.go) · [Decision rules](../../../backend/internal/business/team/adapter/firestore/store.go) · No independent Go tests found here; check implementation against acceptance cases above
+[Entry adapter](../../../backend/internal/business/team/adapter/http/routes.go) · [Decision rules](../../../backend/internal/business/team/adapter/firestore/store.go) · [Lifecycle regression](../../../backend/internal/business/team/adapter/firestore/assignment_lifecycle_test.go) · [Activation regression](../../../backend/internal/business/team/adapter/firestore/activation_test.go) · [Qualification and observation regressions](../../../backend/internal/business/team/adapter/firestore/group_catalog_test.go). These require a loopback Firestore emulator; file presence alone does not establish executed acceptance.
 
 [authorization boundaries across three domains](../../contracts/organization-team-ownership.md#ownership-boundaries)
 
