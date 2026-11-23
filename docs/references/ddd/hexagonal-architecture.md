@@ -148,55 +148,69 @@ AcceptInvitation(actor, command):
 
 ## Go 檔案配置範例
 
-這棵檔案樹供 Codex 按用途選用。尖括號是待替換的名稱。先確認用例與依賴，再建立所需檔案；小模組可合併套件。
+這棵檔案樹從 API 契約開始，再展開 Go 後端分層與前端入口。尖括號是待替換的名稱。先確認用例與依賴，再建立所需檔案；小模組可合併套件。
 
 ```text
-<project>/                                        # 專案根目錄
-└── internal/                                     # 專案內部 Go 套件
-    ├── business/                                 # 按限界上下文組織業務能力
-    │   └── <bounded-context>/                    # 一套通用語言、模型與業務規則的適用範圍
-    │       ├── domain/                           # 領域模型、狀態轉換與不變條件
-    │       │   ├── entity/                       # 以穩定身分追蹤狀態與生命週期
-    │       │   │   ├── <entity>.go               # 依身分辨識實體，維護實體自己的合法狀態
-    │       │   │   ├── <aggregate-root>.go       # 聚合的異動入口，維護成員之間的不變條件
-    │       │   │   └── <aggregate-root>_test.go  # 驗證合法轉換、拒絕後狀態與聚合不變條件
-    │       │   ├── valueobject/                  # 依內容判等、沒有獨立身分的領域值
-    │       │   │   ├── <value-object>.go         # 封裝值的正規化、合法性、等值比較與運算
-    │       │   │   └── <value-object>_test.go    # 驗證合法值、非法值、邊界與等值比較
-    │       │   ├── service/                      # 不自然歸屬單一實體或值物件的領域運算
-    │       │   │   └── <domain-service>.go       # 依傳入模型與事實執行領域決策
-    │       │   ├── policy/                       # 集中表達可獨立辨識的業務政策
-    │       │   │   └── <policy>.go               # 依明確事實判斷允許條件與拒絕原因
-    │       │   ├── event/                        # 表達已發生的業務事實
-    │       │   │   └── <domain-event>.go         # 記錄事實及必要識別，由外圍協調發布
-    │       │   └── factory/                      # 封裝複雜模型的建立
-    │       │       └── <factory>.go              # 建立滿足初始不變條件的領域物件
-    │       ├── application/                      # 協調用例、授權事實及提交順序
-    │       │   ├── command/                      # 寫入用例與狀態異動
-    │       │   │   ├── <command>.go              # 公開入站用例，取得事實、套用規則並協調提交
-    │       │   │   └── <command>_test.go         # 以替身驗證成功、拒絕、重送與依賴失敗
-    │       │   ├── query/                        # 查詢用例與讀取投影
-    │       │   │   └── <query>.go                # 公開入站用例，核對可見性並回傳查詢結果
-    │       │   ├── dto/                          # 用例邊界的輸入與輸出
-    │       │   │   └── <use-case-dto>.go         # 表達用例輸入及結果，供 Adapter 轉換
-    │       │   └── port/                         # 用例需要的出站能力契約
-    │       │       ├── <output-port>.go          # 定義外部操作、結果、錯誤與取消語意
-    │       │       └── <unit-of-work-port>.go    # 定義必須共用一次提交的讀寫能力
-    │       └── adapter/                          # 轉接核心契約與外部技術
-    │           ├── http/                         # HTTP 入站 Adapter
-    │           │   ├── <handler>.go              # 驗證身分與輸入、呼叫用例、轉換回應
-    │           │   └── <handler>_test.go         # 驗證請求解析、身分傳遞與公開錯誤映射
-    │           ├── messaging/                    # 訊息入站與出站 Adapter
-    │           │   ├── <consumer>.go             # 驗證並轉換外部訊息，再驅動用例
-    │           │   └── <publisher>.go            # 將待發布的事實轉成外部訊息
-    │           ├── storage/                      # 持久化出站 Adapter
-    │           │   ├── <repository>.go           # 保存與重建聚合，轉換持久化格式及錯誤
-    │           │   ├── <unit-of-work>.go         # 將用例讀寫能力綁定到同一筆技術交易
-    │           │   └── <repository>_test.go      # 以實際支援的儲存環境驗證版本衝突、回滾與重送
-    │           └── external/                     # 外部服務或其他上下文的出站 Adapter
-    │               └── <client>.go               # 呼叫外部契約，轉譯資料與失敗語意
-    └── bootstrap/                                # 組裝根，管理外部依賴與啟停
-        └── <bounded-context>.go                  # 建立具體 Adapter、注入用例並註冊入口
+<project>/                                            # 專案根目錄
+├── api/                                              # OpenAPI HTTP 契約與 TypeScript API 客戶端
+│   ├── contract/                                     # 維護公開 API 的 OpenAPI 來源
+│   │   ├── openapi.yaml                              # 定義公開 API 入口，引用各業務契約
+│   │   └── <bounded-context>/                        # 按業務上下文組織 HTTP 契約
+│   │       └── <capability>.yaml                     # 先定義操作、請求、回應、認證與錯誤
+│   └── client/                                       # 提供前端共用的型別與請求介面
+│       └── src/                                      # API 客戶端套件的入口與生成碼
+│           ├── client.ts                             # 封裝型別化的 HTTP 呼叫
+│           └── generated/                            # 由 OpenAPI 生成的前端型別
+│               └── schema.ts                         # 公開 API 的路徑、輸入與回應型別
+├── backend/                                          # 實作 API 契約，執行用例與業務規則
+│   └── internal/                                     # 專案內部 Go 套件
+│       ├── business/                                 # 按限界上下文組織業務能力
+│       │   └── <bounded-context>/                    # 一套通用語言、模型與業務規則的適用範圍
+│       │       ├── domain/                           # 領域模型、狀態轉換與不變條件
+│       │       │   ├── entity/                       # 以穩定身分追蹤狀態與生命週期
+│       │       │   │   ├── <entity>.go               # 依身分辨識實體，維護實體自己的合法狀態
+│       │       │   │   ├── <aggregate-root>.go       # 聚合的異動入口，維護成員之間的不變條件
+│       │       │   │   └── <aggregate-root>_test.go  # 驗證合法轉換、拒絕後狀態與聚合不變條件
+│       │       │   ├── valueobject/                  # 依內容判等、沒有獨立身分的領域值
+│       │       │   │   ├── <value-object>.go         # 封裝值的正規化、合法性、等值比較與運算
+│       │       │   │   └── <value-object>_test.go    # 驗證合法值、非法值、邊界與等值比較
+│       │       │   ├── service/                      # 不自然歸屬單一實體或值物件的領域運算
+│       │       │   │   └── <domain-service>.go       # 依傳入模型與事實執行領域決策
+│       │       │   ├── policy/                       # 集中表達可獨立辨識的業務政策
+│       │       │   │   └── <policy>.go               # 依明確事實判斷允許條件與拒絕原因
+│       │       │   ├── event/                        # 表達已發生的業務事實
+│       │       │   │   └── <domain-event>.go         # 記錄事實及必要識別，由外圍協調發布
+│       │       │   └── factory/                      # 封裝複雜模型的建立
+│       │       │       └── <factory>.go              # 建立滿足初始不變條件的領域物件
+│       │       ├── application/                      # 協調用例、授權事實及提交順序
+│       │       │   ├── command/                      # 寫入用例與狀態異動
+│       │       │   │   ├── <command>.go              # 公開入站用例，取得事實、套用規則並協調提交
+│       │       │   │   └── <command>_test.go         # 以替身驗證成功、拒絕、重送與依賴失敗
+│       │       │   ├── query/                        # 查詢用例與讀取投影
+│       │       │   │   └── <query>.go                # 公開入站用例，核對可見性並回傳查詢結果
+│       │       │   ├── dto/                          # 用例邊界的輸入與輸出
+│       │       │   │   └── <use-case-dto>.go         # 表達用例輸入及結果，供 Adapter 轉換
+│       │       │   └── port/                         # 用例需要的出站能力契約
+│       │       │       ├── <output-port>.go          # 定義外部操作、結果、錯誤與取消語意
+│       │       │       └── <unit-of-work-port>.go    # 定義必須共用一次提交的讀寫能力
+│       │       └── adapter/                          # 轉接核心契約與外部技術
+│       │           ├── http/                         # HTTP 入站 Adapter
+│       │           │   ├── <handler>.go              # 驗證身分與輸入、呼叫用例、轉換回應
+│       │           │   └── <handler>_test.go         # 驗證請求解析、身分傳遞與公開錯誤映射
+│       │           ├── messaging/                    # 訊息入站與出站 Adapter
+│       │           │   ├── <consumer>.go             # 驗證並轉換外部訊息，再驅動用例
+│       │           │   └── <publisher>.go            # 將待發布的事實轉成外部訊息
+│       │           ├── storage/                      # 持久化出站 Adapter
+│       │           │   ├── <repository>.go           # 保存與重建聚合，轉換持久化格式及錯誤
+│       │           │   ├── <unit-of-work>.go         # 將用例讀寫能力綁定到同一筆技術交易
+│       │           │   └── <repository>_test.go      # 以實際支援的儲存環境驗證版本衝突、回滾與重送
+│       │           └── external/                     # 外部服務或其他上下文的出站 Adapter
+│       │               └── <client>.go               # 呼叫外部契約，轉譯資料與失敗語意
+│       └── bootstrap/                                # 組裝根，管理外部依賴與啟停
+│           └── <bounded-context>.go                  # 建立具體 Adapter、注入用例並註冊入口
+└── frontend/                                         # TypeScript、Next.js 與 shadcn/ui 前端
+    └── <app>/src/business/<capability>/              # 按能力組織前端畫面與互動
+        └── <view>.tsx                                # 用 shadcn/ui 呈現與處理輸入，透過 API 客戶端呼叫後端
 ```
 
 ### Go 實作的關鍵限制

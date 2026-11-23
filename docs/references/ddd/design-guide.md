@@ -76,7 +76,7 @@
 
 六邊形架構是承載業務模型的架構方法，不是 DDD 的同義詞。CQRS、Event Sourcing、微服務與通用事件平台不因採用本索引而成為必要條件。
 
-[附用途註解的 Go 檔案樹與實作限制](hexagonal-architecture.md#go-檔案配置範例)提供按需拆分的參考。
+[API、Go 後端與前端示範檔案樹](hexagonal-architecture.md#go-檔案配置範例)提供按需拆分的參考。
 
 ## 進階模式：按需採用
 
