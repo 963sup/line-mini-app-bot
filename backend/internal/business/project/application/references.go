@@ -34,6 +34,9 @@ func (s *Service) ListReferences(ctx context.Context, actor, ownerID, pid, curso
 	if len(cursor) > 1024 {
 		return projectApplicationDto.ReferencePage{}, projectDomainEntity.ErrInput
 	}
+	if r.SourceRepositoryID == "" {
+		return s.Store.ListReferences(ctx, r, actor, pid, cursor, false)
+	}
 	_, e = s.Sources.Authorize(ctx, actor, r.SourceRepositoryID, r.OwnerID)
 	if errors.Is(e, context.Canceled) || errors.Is(e, context.DeadlineExceeded) {
 		return projectApplicationDto.ReferencePage{}, e

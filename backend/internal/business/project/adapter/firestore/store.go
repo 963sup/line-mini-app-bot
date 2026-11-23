@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"time"
 
+	orgstore "github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
+
 	"github.com/963sup/line-mini-app-bot/internal/platform/grpcstatus"
 
 	"github.com/963sup/line-mini-app-bot/internal/identity"
@@ -31,8 +33,9 @@ type (
 		ChannelID string
 	}
 	projectDocument struct {
-		SchemaVersion int64  `firestore:"schemaVersion"`
-		ID            string `firestore:"id"`
+		Settings      projectDomainEntity.Settings `firestore:"settings"`
+		SchemaVersion int64                        `firestore:"schemaVersion"`
+		ID            string                       `firestore:"id"`
 
 		OwnerID             string    `firestore:"ownerId"`
 		DefaultRepositoryID string    `firestore:"defaultRepositoryId"`
@@ -46,13 +49,13 @@ type (
 )
 
 func encodeProject(i projectDomainEntity.Project) projectDocument {
-	return projectDocument{SchemaVersion: 1, ID: i.ID, OwnerID: i.OwnerID, DefaultRepositoryID: i.DefaultRepositoryID, Title: i.Title, Body: i.Body, CreatorID: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
+	return projectDocument{Settings: i.Settings, SchemaVersion: 1, ID: i.ID, OwnerID: i.OwnerID, DefaultRepositoryID: i.DefaultRepositoryID, Title: i.Title, Body: i.Body, CreatorID: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt}
 }
 
 // Repository-scoped API callers additionally
 // restrict results to projects created with that default repository.
 func (d projectDocument) belongsTo(scope projectApplicationPort.Scope) bool {
-	return identity.ValidOwner(d.OwnerID) && d.OwnerID == scope.OwnerID && projectDomainEntity.ValidID(d.DefaultRepositoryID) &&
+	return (identity.ValidOwner(d.OwnerID) || projectDomainEntity.IsOrganizationOwner(d.OwnerID)) && d.OwnerID == scope.OwnerID && ((!scope.Legacy && d.DefaultRepositoryID == "") || projectDomainEntity.ValidID(d.DefaultRepositoryID)) &&
 		(!scope.Legacy || scope.SourceRepositoryID == "" || scope.SourceRepositoryID == d.DefaultRepositoryID)
 }
 
@@ -71,11 +74,14 @@ func decodeProject(snap *db.DocumentSnapshot, err error, scope projectApplicatio
 	if e != nil || d.SchemaVersion != 1 || d.ID != snap.Ref.ID || !projectDomainEntity.ValidID(d.ID) || !d.belongsTo(scope) || c.Title != d.Title || c.Body != d.Body || d.CreatorID == "" || d.Version < 1 || d.Version > projectDomainEntity.MaxVersion || d.CreatedAt.IsZero() || d.UpdatedAt.Before(d.CreatedAt) {
 		return projectDomainEntity.Project{}, projectDomainEntity.ErrUnavailable
 	}
-	return projectDomainEntity.Project{ID: d.ID, DefaultRepositoryID: d.DefaultRepositoryID, OwnerID: d.OwnerID, Title: d.Title, Body: d.Body, CreatorID: d.CreatorID, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
+	return projectDomainEntity.Project{Settings: d.Settings, ID: d.ID, DefaultRepositoryID: d.DefaultRepositoryID, OwnerID: d.OwnerID, Title: d.Title, Body: d.Body, CreatorID: d.CreatorID, Version: d.Version, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt}, nil
 }
 
 func (s *Store) ownerDoc(id string) *db.DocumentRef {
 	collection := "groups"
+	if projectDomainEntity.IsOrganizationOwner(id) {
+		collection = "organizations"
+	}
 	if identity.IsUserOwnerID(id) {
 		collection = "users"
 	}
@@ -87,6 +93,12 @@ func (s *Store) repositoryRef(id string) *db.DocumentRef {
 }
 
 func (s *Store) ready() bool { return s != nil && s.Client != nil && s.ChannelID != "" }
+func (s *Store) AuthorizeOrganization(ctx context.Context, actor, owner string) error {
+	return s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+		return s.checkProjectOwner(tx, projectApplicationPort.Scope{OwnerID: owner, Actor: actor}, s.ownerDoc(owner))
+	})
+}
+
 func (s *Store) checkProjectOwner(tx *db.Transaction, r projectApplicationPort.Scope, parent *db.DocumentRef) error {
 	if identity.IsUserOwnerID(r.OwnerID) {
 		if r.OwnerID != r.Actor {
@@ -100,6 +112,16 @@ func (s *Store) checkProjectOwner(tx *db.Transaction, r projectApplicationPort.S
 			return projectDomainEntity.ErrNotFound
 		}
 		return e
+	}
+	if projectDomainEntity.IsOrganizationOwner(r.OwnerID) {
+		var org orgstore.Document
+		if err := snap.DataTo(&org); err != nil {
+			return err
+		}
+		if !org.VisibleLegacyOrganization(r.Actor) {
+			return projectDomainEntity.ErrNotFound
+		}
+		return nil
 	}
 	var d struct {
 		ID, GroupID, Status string
@@ -213,14 +235,38 @@ func (s *Store) Create(ctx context.Context, r projectApplicationPort.Scope, acto
 		Title   string `json:"title"`
 		Body    string `json:"body"`
 	}{1, c.Title, c.Body})
+	if c.CopyProjectID != "" {
+		payload = firestorekey.JSONDigest([]string{payload, c.CopyOwnerID, c.CopyProjectID})
+	}
 	parent := s.ownerDoc(r.OwnerID)
-	receipt := parent.Collection("projectCreationScopes").Doc(r.SourceRepositoryID).Collection("receipts").Doc(firestorekey.JSONDigest([]string{actor, key}))
+	creationScope := r.SourceRepositoryID
+	if creationScope == "" {
+		creationScope = "without-source"
+	}
+	receipt := parent.Collection("projectCreationScopes").Doc(creationScope).Collection("receipts").Doc(firestorekey.JSONDigest([]string{actor, key}))
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		if e := s.checkProjectOwner(tx, r, parent); e != nil {
 			return e
 		}
-		if e := s.checkSourceRepository(tx, projectDomainEntity.Source{ID: r.SourceRepositoryID, OwnerID: r.OwnerID}); e != nil {
-			return e
+		if r.SourceRepositoryID != "" {
+			if e := s.checkSourceRepository(tx, projectDomainEntity.Source{ID: r.SourceRepositoryID, OwnerID: r.OwnerID}); e != nil {
+				return e
+			}
+		}
+		var settings projectDomainEntity.Settings
+		if c.CopyProjectID != "" {
+			sourceOwner := s.ownerDoc(c.CopyOwnerID)
+			sourceScope := projectApplicationPort.Scope{OwnerID: c.CopyOwnerID, Actor: actor}
+			if err := s.checkProjectOwner(tx, sourceScope, sourceOwner); err != nil {
+				return err
+			}
+			sourceProject := sourceOwner.Collection("projects").Doc(c.CopyProjectID)
+			snapshot, err := tx.Get(sourceProject)
+			source, err := decodeProject(snapshot, err, sourceScope)
+			if err != nil {
+				return err
+			}
+			settings = source.Settings
 		}
 		snap, e := tx.Get(receipt)
 		if e == nil {
@@ -241,11 +287,14 @@ func (s *Store) Create(ctx context.Context, r projectApplicationPort.Scope, acto
 			return e
 		}
 		i := projectDomainEntity.Project{ID: id, DefaultRepositoryID: r.SourceRepositoryID, OwnerID: r.OwnerID, Title: c.Title, Body: c.Body, CreatorID: actor, Version: 1, CreatedAt: now, UpdatedAt: now}
+		i.Settings = settings
 		if e := tx.Create(parent.Collection("projects").Doc(id), encodeProject(i)); e != nil {
 			return e
 		}
-		if e := tx.Create(parent.Collection("projects").Doc(id).Collection("linkedRepositories").Doc(r.SourceRepositoryID), map[string]string{"repositoryId": r.SourceRepositoryID}); e != nil {
-			return e
+		if r.SourceRepositoryID != "" {
+			if e := tx.Create(parent.Collection("projects").Doc(id).Collection("linkedRepositories").Doc(r.SourceRepositoryID), map[string]string{"repositoryId": r.SourceRepositoryID}); e != nil {
+				return e
+			}
 		}
 		return tx.Create(receipt, projectReceipt{id, payload, 1})
 	})

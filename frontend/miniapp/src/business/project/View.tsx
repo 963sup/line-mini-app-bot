@@ -9,6 +9,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { FieldGroup, FieldSet } from "@/shared/ui/field";
+import { SettingsEditor } from "./SettingsEditor";
 import { Items } from "./Items";
 import { SourcePicker } from "./SourcePicker";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
@@ -17,7 +18,7 @@ import { Item, ItemGroup, ItemContent, ItemTitle } from "@/shared/ui/item";
 type Project = components["schemas"]["Project"];
 type Creation = components["schemas"]["OwnerProjectCreation"];
 
-export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, canWrite }: { ownerId: string; projectId: string; initialSource: string; onSelect: (id: string) => void; onBlocked: (value: boolean) => void; canWrite: () => boolean }) {
+export function View({ ownerId, projectId, initialSource, copyFrom, destinations, onCopy, onSelect, onBlocked, canWrite }: { ownerId: string; projectId: string; initialSource: string; copyFrom?: Creation["copyFrom"]; destinations: {id:string;name:string}[]; onCopy:(destination:string)=>void; onSelect: (id: string) => void; onBlocked: (value: boolean) => void; canWrite: () => boolean }) {
   const { user, request } = useSession();
   const { run: readRun, cancel: cancelRead } = useLatestRequest();
   const detailRequest = useLatestRequest(), write = useLatestRequest();
@@ -28,6 +29,7 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
   const [detail, setSelected] = useState<Project | null>(null);
   const selected = detail?.id === projectId ? detail : null;
   const [title, setTitle] = useState(""), [body, setBody] = useState("");
+  const [settingsDraft, setSettingsDraft] = useState<Project["settings"]>();
   const [sourceRepositoryId, setSourceRepositoryId] = useState("");
   const [busy, setBusy] = useState(false), [detailBusy, setDetailBusy] = useState(false);
   const [uncertain, setUncertain] = useState(false), [needsRefresh, setNeedsRefresh] = useState(false);
@@ -66,7 +68,7 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
   useEffect(() => { load(); return cancelRead; }, [load, cancelRead]);
 
   const show = useCallback((item: Project) => {
-    setSelected(item); setTitle(item.title); setBody(item.body); setMode("detail");
+    setSettingsDraft(undefined); setSelected(item); setTitle(item.title); setBody(item.body); setMode("detail");
     setNeedsRefresh(false); setUncertain(false); attempt.current = null; block(false);
   }, [block]);
   const open = useCallback((id: string) => {
@@ -100,8 +102,8 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
     event.preventDefault();
     if (!user || lock.current || referenceLock.current || navigation.current || needsRefresh || !canWrite()) return;
     if (mode === "detail") { if (selected) save(); return; }
-    const content = { title: title.trim(), body: body.trim(), defaultRepositoryId: sourceRepositoryId };
-    if (!content.title || !sourceRepositoryId) { setStatus("請填寫專案標題並選擇來源儲存庫。"); return; }
+    const content = { title: title.trim(), body: body.trim(), defaultRepositoryId: copyFrom ? undefined : sourceRepositoryId || undefined, copyFrom };
+    if (!content.title) { setStatus("請填寫專案標題。"); return; }
     if (!uncertain || !attempt.current) attempt.current = { key: crypto.randomUUID(), body: content };
     const pending = attempt.current;
     const wasUnknown = unknown.current;
@@ -124,7 +126,7 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
     lock.current = true; block(true); setBusy(true); setStatus("正在更新專案……");
     void write.run(
       (signal) => request((client, s) => client.PATCH("/api/v1/owners/{ownerId}/projects/{id}", {
-        signal: s, params: { path: { ownerId, id } }, body: { title: title.trim(), body: body.trim(), expectedVersion: selected.version },
+        signal: s, params: { path: { ownerId, id } }, body: { title: title.trim(), body: body.trim(), expectedVersion: selected.version, settings: settingsDraft },
       }), { signal }),
       (item) => { lock.current = false; setBusy(false); show(item); setStatus("已更新專案。"); load(); },
       (error) => {
@@ -136,7 +138,7 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
     );
   }
   return <div className="flex min-w-0 flex-col gap-4">
-    <PagePanel heading="專案" description="建立個人或群組專案，並整理相關的物件、問題與討論。">
+    <PagePanel heading="專案" description="建立個人或組織專案，並整理相關的物件、問題與討論。">
       <div className="flex flex-wrap gap-2">
         <Button disabled={!user || busy || uncertain || referencesBlocked} onClick={openCreateForm}>新增專案</Button>
         <Button variant="outline" disabled={!user || listBusy || busy || uncertain || referencesBlocked} onClick={() => load()}>重新載入專案</Button>
@@ -154,18 +156,23 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
       {loaded && !items.length && <Empty><EmptyHeader><EmptyTitle>{cursor ? "本頁沒有專案" : "目前沒有專案"}</EmptyTitle><EmptyDescription>{cursor ? "請繼續載入下一頁。" : "可建立新的專案。"}</EmptyDescription></EmptyHeader></Empty>}
       {cursor && <Button variant="outline" disabled={listBusy || busy || uncertain || referencesBlocked} onClick={() => load(cursor)}>載入更多專案</Button>}
     </PagePanel>
-    {mode && <PagePanel heading={mode === "create" ? "新增專案" : "專案詳情"} description={selected && <span className="block [overflow-wrap:anywhere]">{selected.title}</span>}>
+    {mode && <PagePanel heading={mode === "create" ? copyFrom ? "建立專案副本" : "新增專案" : "專案詳情"} description={selected && <span className="block [overflow-wrap:anywhere]">{selected.title}</span>}>
       <Status role="status">{status}</Status>
       {mode === "detail" && /^[a-f0-9]{32}$/.test(projectId) && <div className="flex flex-wrap items-center gap-2">
 
+        {selected && <FormField>複製到另一個擁有者<select value="" disabled={busy || detailBusy || uncertain || referencesBlocked} onChange={event => { if(event.target.value) onCopy(event.target.value); }}>
+          <option value="">選擇副本目的地</option>
+          {destinations.filter(owner => owner.id !== ownerId).map(owner => <option key={owner.id} value={owner.id}>{owner.name}</option>)}
+        </select></FormField>}
         <Button variant="outline" disabled={busy || detailBusy || referencesBlocked} onClick={() => open(projectId)}>重新讀取專案</Button>
       </div>}
       {(mode === "create" || selected) && <form onSubmit={submit}>
         <FieldGroup>
-          {mode === "create" && <SourcePicker key={ownerId} ownerId={ownerId} initialSource={initialSource} value={sourceRepositoryId} onChange={setSourceRepositoryId} disabled={busy || uncertain} />}
+          {mode === "create" && !copyFrom && <SourcePicker key={ownerId} ownerId={ownerId} initialSource={initialSource} value={sourceRepositoryId} onChange={setSourceRepositoryId} disabled={busy || uncertain} />}
           <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || referencesBlocked || uncertain || needsRefresh || (mode === "detail" && !canEdit)}>
             <FormField>標題<Input required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} /></FormField>
             <FormField>內容<Textarea className="min-h-40" maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} /></FormField>
+            {selected && <SettingsEditor editable={canEdit} value={settingsDraft ?? selected.settings ?? {fields:[], views:[]}} onChange={setSettingsDraft} />}
           </FieldSet>
 
           {(mode === "create" || canEdit) && <div className="flex flex-wrap gap-2">
@@ -174,6 +181,6 @@ export function View({ ownerId, projectId, initialSource, onSelect, onBlocked, c
         </FieldGroup>
       </form>}
     </PagePanel>}
-    {selected && <Items key={selected.id+":"+selected.version} ownerId={ownerId} sourceRepositoryId={selected.defaultRepositoryId} project={selected} disabled={busy||detailBusy||needsRefresh||title!==selected.title||body!==selected.body} canWrite={() => !navigation.current && !lock.current && !unknown.current && !detailBusy && !needsRefresh && title === selected.title && body === selected.body && canWrite()} onBlocked={referenceBlock} onChange={(item)=>{show(item);load();}} onRefresh={()=>open(selected.id)} />}
+    {selected && <Items key={selected.id+":"+selected.version} ownerId={ownerId} sourceRepositoryId={selected.defaultRepositoryId ?? ""} project={selected} disabled={busy||detailBusy||needsRefresh||!!settingsDraft||title!==selected.title||body!==selected.body} canWrite={() => !navigation.current && !lock.current && !unknown.current && !detailBusy && !needsRefresh && title === selected.title && body === selected.body && canWrite()} onBlocked={referenceBlock} onChange={(item)=>{show(item);load();}} onRefresh={()=>open(selected.id)} />}
   </div>;
 }

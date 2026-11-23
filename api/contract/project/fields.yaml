@@ -1,9 +1,38 @@
 {
-  "x-status": "scaffold",
+  "x-status": "implemented",
   "x-owner": "project.fields",
-  "x-description": "Project field definitions; distinct from item field values. Structure only; no operations or schemas defined. Complete the feature specification before adding a public contract.",
   "paths": {},
   "components": {
-    "schemas": {}
+    "schemas": {
+      "ProjectField": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "options"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "options": {
+            "type": "array",
+            "maxItems": 32,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            }
+          }
+        }
+      }
+    }
   }
 }

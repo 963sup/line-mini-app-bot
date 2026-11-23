@@ -8,7 +8,7 @@
 
 [現行實作圖：最小來源引用骨架](../../../../docs/domains/project/project.md#最小來源引用骨架)
 
-Project 和 Repository 各自保存一個 `ownerId`。LINE UserID（U）以登入本人核驗，GroupID（C）以當下群組成員資格核驗。Project 可連結多個 Repository，每筆來源引用各自授權。Space 隸屬 Repository。
+Project 與 Repository 分別核驗擁有者。Project Owner 為使用者或組織；個人核驗登入本人，組織核驗組織存取資格。Project 可連結多個 Repository，每筆來源引用各自授權。Space 隸屬 Repository。
 
 ## 加入跨庫來源引用的維護與驗收
 

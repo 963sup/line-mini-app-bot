@@ -75,7 +75,8 @@ Repository milestones／statistics 與 Project／items 已依 [里程碑](../../
 
 - Issue：[types.yaml](issue/types.yaml)（IssueType）、[comments.yaml](issue/comments.yaml)。
 - Discussion：[categories.yaml](discussion/categories.yaml)。
-- Project：[fields.yaml](project/fields.yaml)、[views.yaml](project/views.yaml)；projects／items 已接入。
+
+Project 的欄位與檢視由專案讀取與更新端點提供，型別見 [fields.yaml](project/fields.yaml) 與 [views.yaml](project/views.yaml)。
 
 以上是能力契約片段，不是可獨立啟動或呼叫的完整 OpenAPI 文件。實作時先補功能操作規格，再填入對應 paths／schemas、接入組合入口、更新能力清單與生成碼，並驗證相容性；既有 Repository 仍由 Bot 建立。
 

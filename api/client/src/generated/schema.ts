@@ -1626,9 +1626,10 @@ export interface components {
             /** @description False means source counts/details are unavailable; numeric count fields must not be shown as observed zero. */
             sourceAvailable?: boolean;
             linkedRepositoryIds?: string[];
-            defaultRepositoryId: string;
+            defaultRepositoryId?: string;
             /** @description Whether the authenticated actor may edit the content. Writes recheck authorization. */
             canEdit: boolean;
+            settings?: components["schemas"]["ProjectSettings"];
         };
         ProjectCreation: {
             title: string;
@@ -1645,6 +1646,7 @@ export interface components {
                 itemId: string;
                 status: components["schemas"]["ProjectItemStatus"];
             };
+            settings?: components["schemas"]["ProjectSettings"];
         };
         ProjectPage: {
             items: components["schemas"]["Project"][];
@@ -1704,7 +1706,11 @@ export interface components {
         OwnerProjectCreation: {
             title: string;
             body: string;
-            defaultRepositoryId: string;
+            defaultRepositoryId?: string;
+            copyFrom?: {
+                ownerId: string;
+                projectId: string;
+            };
         };
         Object: {
             name: string;
@@ -2360,6 +2366,20 @@ export interface components {
         CorrectionDecisionResult: {
             /** @enum {string} */
             status: "rejected" | "cancelled";
+        };
+        ProjectField: {
+            id: string;
+            name: string;
+            options: string[];
+        };
+        ProjectView: {
+            id: string;
+            name: string;
+            fieldId: string;
+        };
+        ProjectSettings: {
+            fields: components["schemas"]["ProjectField"][];
+            views: components["schemas"]["ProjectView"][];
         };
         /** @enum {string} */
         ProjectItemStatus: "todo" | "in_progress" | "done";

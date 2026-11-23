@@ -1,9 +1,33 @@
 {
-  "x-status": "scaffold",
+  "x-status": "implemented",
   "x-owner": "project.views",
-  "x-description": "Saved Project presentation and query settings. Structure only; no operations or schemas defined. Complete the feature specification before adding a public contract.",
   "paths": {},
   "components": {
-    "schemas": {}
+    "schemas": {
+      "ProjectView": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "fieldId"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "fieldId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          }
+        }
+      }
+    }
   }
 }

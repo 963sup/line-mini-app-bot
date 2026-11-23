@@ -134,16 +134,16 @@
       "specification": "docs/domains/project/project.md"
     },
     "project.fields": {
-      "kind": "scaffold",
       "contract": "project/fields.yaml",
-      "specification": "docs/proposals/platform/domain-model.md",
-      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
+      "specification": "docs/domains/project/project.md"
     },
     "project.views": {
-      "kind": "scaffold",
       "contract": "project/views.yaml",
-      "specification": "docs/proposals/platform/domain-model.md",
-      "note": "Structure only; not exposed by either OpenAPI entry point. No API, adapter or persistence implemented."
+      "adapter": "backend/internal/business/project/adapter/http/routes.go",
+      "core": "backend/internal/business/project/domain/entity/project.go",
+      "specification": "docs/domains/project/project.md"
     },
     "repository.statistics": {
       "contract": "repository/statistics.yaml",
@@ -1019,9 +1019,7 @@
       "handler": "GetGroup",
       "core": "backend/internal/business/team/adapter/firestore/group_catalog.go",
       "specification": "docs/domains/project/project.md",
-      "consumers": [
-        "frontend/miniapp/src/business/project/Workspace.tsx"
-      ]
+      "consumers": []
     },
     {
       "operationId": "listOwnerProjects",

@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"context"
 	"errors"
+	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	"log/slog"
 	"net"
 	"net/http"
@@ -10,8 +11,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
-	groupquery "github.com/963sup/line-mini-app-bot/internal/linegroup/application/query"
 
 	"cloud.google.com/go/firestore"
 
@@ -180,16 +179,17 @@ func Run() (resultErr error) {
 	httpapi.RegisterMembership(mux, membershiphttp.Handler{Service: invitations, Auth: auth})
 	httpapi.RegisterEnterprises(mux, enterpriseHandler)
 	httpapi.RegisterTeams(mux, teamHandler)
-	var resourceGroups *groupquery.Service
 	var groupCatalog grouphttp.Catalog
 	if groupStore != nil {
 		teamStore := teamdb.Store{
 			DB: groupStore.Client, Channel: groupStore.ChannelID, TeamMember: membershipdb.TeamMember,
 		}
-		resourceGroups = &groupquery.Service{Teams: teamStore}
 		groupCatalog = teamdb.GroupCatalog{Store: teamStore}
 	}
-	projects := newProjects(resourceGroups, groupStore, repositories)
+	var projects *projectApplication.Service
+	if sessionStore != nil {
+		projects = newProjects(sessionStore.Client, os.Getenv("LINE_MESSAGING_API_CHANNEL_ID"), repositories)
+	}
 	journalhttp.Register(mux, newJournals(groupCatalog, groupStore, repositories, projects), auth)
 	grouphttp.Register(mux, groupCatalog, auth)
 	repositoryhttp.Register(mux, repositories, auth)

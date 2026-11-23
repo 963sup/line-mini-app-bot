@@ -19,7 +19,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^[UC][a-f0-9]{32}$"
+              "pattern": "^(U[a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$"
             }
           },
           {
@@ -96,7 +96,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^[UC][a-f0-9]{32}$"
+              "pattern": "^(U[a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$"
             }
           },
           {

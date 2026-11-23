@@ -91,7 +91,18 @@ func view(i projectDomainEntity.Project, actor string) generated.Project {
 	if i.LinkedRepositoryIDs == nil {
 		i.LinkedRepositoryIDs = []string{}
 	}
-	return generated.Project{CanEdit: i.CanEdit(actor), Id: i.ID, Title: i.Title, Body: i.Body, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, IssueCount: i.IssueCount, CompletedIssueCount: i.CompletedIssueCount, OwnerId: i.OwnerID, DefaultRepositoryId: i.DefaultRepositoryID, LinkedRepositoryIds: &i.LinkedRepositoryIDs, SourceAvailable: &i.SourceAvailable}
+	var source *string
+	if i.DefaultRepositoryID != "" {
+		source = &i.DefaultRepositoryID
+	}
+	settings := generated.ProjectSettings{Fields: []generated.ProjectField{}, Views: []generated.ProjectView{}}
+	for _, f := range i.Settings.Fields {
+		settings.Fields = append(settings.Fields, generated.ProjectField{Id: f.ID, Name: f.Name, Options: append([]string{}, f.Options...)})
+	}
+	for _, v := range i.Settings.Views {
+		settings.Views = append(settings.Views, generated.ProjectView{Id: v.ID, Name: v.Name, FieldId: v.FieldID})
+	}
+	return generated.Project{Settings: &settings, CanEdit: i.CanEdit(actor), Id: i.ID, Title: i.Title, Body: i.Body, CreatorId: i.CreatorID, Version: i.Version, CreatedAt: i.CreatedAt, UpdatedAt: i.UpdatedAt, IssueCount: i.IssueCount, CompletedIssueCount: i.CompletedIssueCount, OwnerId: i.OwnerID, DefaultRepositoryId: source, LinkedRepositoryIds: &i.LinkedRepositoryIDs, SourceAvailable: &i.SourceAvailable}
 }
 
 func writeError(w http.ResponseWriter, e error) bool {
@@ -159,6 +170,16 @@ func (s *projectServer) UpdateProject(w http.ResponseWriter, r *http.Request, re
 		return
 	}
 	update := projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: input.Title, Body: input.Body}, ExpectedVersion: input.ExpectedVersion}
+	if input.Settings != nil {
+		settings := projectDomainEntity.Settings{}
+		for _, f := range input.Settings.Fields {
+			settings.Fields = append(settings.Fields, projectDomainEntity.Field{ID: f.Id, Name: f.Name, Options: f.Options})
+		}
+		for _, v := range input.Settings.Views {
+			settings.Views = append(settings.Views, projectDomainEntity.View{ID: v.Id, Name: v.Name, FieldID: v.FieldId})
+		}
+		update.Settings = &settings
+	}
 	if input.ItemProgress != nil {
 		update.ItemID, update.ItemStatus = input.ItemProgress.ItemId, string(input.ItemProgress.Status)
 	}
@@ -221,7 +242,19 @@ func (s *projectServer) CreateOwnerProject(w http.ResponseWriter, r *http.Reques
 	if !transport.ReadJSON(w, r, &input, "資料無效。") {
 		return
 	}
-	value, e := s.service.Create(r.Context(), identity.UserID(r.Context()), ownerId, p.IdempotencyKey, projectDomainEntity.Content{Title: input.Title, Body: input.Body, SourceRepositoryID: input.DefaultRepositoryId})
+	source := ""
+	if input.DefaultRepositoryId != nil {
+		source = *input.DefaultRepositoryId
+		if !projectDomainEntity.ValidID(source) {
+			writeError(w, projectDomainEntity.ErrInput)
+			return
+		}
+	}
+	content := projectDomainEntity.Content{Title: input.Title, Body: input.Body, SourceRepositoryID: source}
+	if input.CopyFrom != nil {
+		content.CopyOwnerID, content.CopyProjectID = input.CopyFrom.OwnerId, input.CopyFrom.ProjectId
+	}
+	value, e := s.service.Create(r.Context(), identity.UserID(r.Context()), ownerId, p.IdempotencyKey, content)
 	if !writeError(w, e) {
 		transport.WriteJSON(w, 200, view(value, identity.UserID(r.Context())))
 	}

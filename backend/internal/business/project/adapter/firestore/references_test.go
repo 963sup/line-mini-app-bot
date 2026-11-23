@@ -1,7 +1,6 @@
 package firestore_test
 
 import (
-	projectgroup "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/group"
 	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
 )
@@ -23,10 +22,6 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-
-	spaceDB "github.com/963sup/line-mini-app-bot/internal/linegroup/adapter/firestore"
-	groupquery "github.com/963sup/line-mini-app-bot/internal/linegroup/application/query"
-	groupevent "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/event"
 
 	projectDB "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/firestore"
 	projectHTTP "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/http"
@@ -53,9 +48,8 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	}
 	defer func() { _ = client.Close() }()
 	root := client.Collection("channels").Doc("isolated-refs")
-	gid, rid := "C"+strings.Repeat("a", 32), strings.Repeat("b", 32)
-	groups := &spaceDB.Store{Client: client, ChannelID: root.ID}
-	if e = groups.Observe(ctx, groupevent.Observation{GroupID: gid, Status: "ACTIVE", EventID: "synthetic-join", At: time.Now().UTC(), Users: []string{"owner"}}); e != nil {
+	gid, rid := "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", strings.Repeat("b", 32)
+	if _, e = root.Collection("organizations").Doc(gid).Set(ctx, map[string]any{"ownerUserId": "owner", "memberUserIds": []string{"member"}}); e != nil {
 		t.Fatal(e)
 	}
 	repository := root.Collection("repositories").Doc(rid)
@@ -78,7 +72,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	}
 	access := &sourceAccess{root: root}
 	store := &projectDB.Store{Client: client, ChannelID: root.ID}
-	svc := &projectApplication.Service{Groups: projectgroup.Access{Groups: &groupquery.Service{Store: groups, Membership: membership{}}}, Sources: access, Store: store}
+	svc := &projectApplication.Service{AuthorizeOrganization: store.AuthorizeOrganization, Sources: access, Store: store}
 	project, e := svc.Create(ctx, "owner", gid, "typed-reference-project", projectDomainEntity.Content{Title: "Existing project", SourceRepositoryID: rid})
 	if e != nil {
 		t.Fatal(e)
@@ -125,7 +119,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 	if ids["issue"] != oldIssueID {
 		t.Fatal("duplicate legacy issue")
 	}
-	raw, e := root.Collection("groups").Doc(gid).Collection("projects").Doc(project.ID).Collection("items").Documents(ctx).GetAll()
+	raw, e := root.Collection("organizations").Doc(gid).Collection("projects").Doc(project.ID).Collection("items").Documents(ctx).GetAll()
 	if e != nil || len(raw) != 4 {
 		t.Fatal(e)
 	}
@@ -147,7 +141,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 			t.Fatal("source changed", string(encoded), string(wanted))
 		}
 	}
-	before, e := root.Collection("groups").Doc(gid).Collection("projects").Doc(project.ID).Get(ctx)
+	before, e := root.Collection("organizations").Doc(gid).Collection("projects").Doc(project.ID).Get(ctx)
 	if e != nil {
 		t.Fatal(e)
 	}

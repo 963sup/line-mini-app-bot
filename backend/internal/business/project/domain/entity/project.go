@@ -2,11 +2,17 @@ package entity
 
 import (
 	"errors"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
 )
+
+// Organization owners use the canonical UUID stored by the organization domain.
+var organizationID = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
+
+func IsOrganizationOwner(id string) bool { return organizationID.MatchString(id) }
 
 var ErrInput = errors.New("invalid project input")
 
@@ -22,7 +28,50 @@ var ErrUnavailable = errors.New("project unavailable")
 
 var ErrSourceUnavailable = errors.New("project source unavailable")
 
+type (
+	Field struct {
+		ID, Name string
+		Options  []string
+	}
+	View     struct{ ID, Name, FieldID string }
+	Settings struct {
+		Fields []Field
+		Views  []View
+	}
+)
+
+func (s Settings) Valid() bool {
+	if len(s.Fields) > 32 || len(s.Views) > 32 {
+		return false
+	}
+	label := func(name string) bool {
+		return name != "" && name == strings.TrimSpace(name) && utf8.ValidString(name) && utf8.RuneCountInString(name) <= 80
+	}
+	fields, views := map[string]bool{}, map[string]bool{}
+	for _, f := range s.Fields {
+		if !ValidID(f.ID) || fields[f.ID] || !label(f.Name) || len(f.Options) > 32 {
+			return false
+		}
+		fields[f.ID] = true
+		options := map[string]bool{}
+		for _, o := range f.Options {
+			if options[o] || !label(o) {
+				return false
+			}
+			options[o] = true
+		}
+	}
+	for _, v := range s.Views {
+		if !ValidID(v.ID) || views[v.ID] || !label(v.Name) || !fields[v.FieldID] {
+			return false
+		}
+		views[v.ID] = true
+	}
+	return true
+}
+
 type Project struct {
+	Settings                                                 Settings
 	ID, DefaultRepositoryID, OwnerID, Title, Body, CreatorID string
 	LinkedRepositoryIDs                                      []string
 	SourceAvailable                                          bool
@@ -33,9 +82,10 @@ type Project struct {
 
 func (v Project) CanEdit(actor string) bool { return actor != "" && actor == v.CreatorID }
 
-type Content struct{ Title, Body, SourceRepositoryID string }
+type Content struct{ Title, Body, SourceRepositoryID, CopyOwnerID, CopyProjectID string }
 
 type Update struct {
+	Settings *Settings
 	Content
 	ExpectedVersion                      int64
 	LinkRepositoryID, UnlinkRepositoryID string
@@ -72,7 +122,15 @@ func ApplyUpdate(current Project, actor string, input Update) (Project, error) {
 	if e != nil {
 		return Project{}, e
 	}
-	if c.Title == current.Title && c.Body == current.Body {
+	settingsChanged := false
+	if input.Settings != nil {
+		if !input.Settings.Valid() {
+			return Project{}, ErrInput
+		}
+		settingsChanged = !reflect.DeepEqual(*input.Settings, current.Settings)
+		current.Settings = *input.Settings
+	}
+	if !settingsChanged && c.Title == current.Title && c.Body == current.Body {
 		return current, nil
 	}
 	if current.Version >= MaxVersion {

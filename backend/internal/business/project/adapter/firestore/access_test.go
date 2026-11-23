@@ -294,7 +294,10 @@ func TestOwnerProjectStorageRightsAndLegacyAlias(t *testing.T) {
 	}
 	canonicalPath := "/api/v1/owners/" + gid + "/projects/" + created.ID
 	legacyPath := "/api/v1/repositories/" + rid + "/projects/" + created.ID
-	for _, path := range []string{canonicalPath, legacyPath} {
+	if code, _ := call(http.MethodGet, canonicalPath, "member", ""); code != 400 {
+		t.Fatalf("group Owner accepted: %d", code)
+	}
+	for _, path := range []string{legacyPath} {
 		if code, body := call(http.MethodGet, path, "member", ""); code != 200 || body["id"] != created.ID || body["version"] != float64(2) || body["issueCount"] != float64(1) {
 			t.Fatalf("canonical/legacy HTTP read alias %s: %d %+v", path, code, body)
 		}
@@ -305,10 +308,10 @@ func TestOwnerProjectStorageRightsAndLegacyAlias(t *testing.T) {
 			t.Fatalf("outsider HTTP must deny %s: %d", path, code)
 		}
 	}
-	if code, _ := call(http.MethodPatch, canonicalPath, "member", `{"title":"forbidden","body":"","expectedVersion":2}`); code != 403 {
+	if code, _ := call(http.MethodPatch, legacyPath, "member", `{"title":"forbidden","body":"","expectedVersion":2}`); code != 403 {
 		t.Fatalf("HTTP project creator rule: %d", code)
 	}
-	if code, _ := call(http.MethodPatch, canonicalPath, "owner", `{"title":"stale","body":"","expectedVersion":1}`); code != 409 {
+	if code, _ := call(http.MethodPatch, legacyPath, "owner", `{"title":"stale","body":"","expectedVersion":1}`); code != 409 {
 		t.Fatalf("HTTP shared version CAS: %d", code)
 	}
 	source.denied = true
@@ -432,5 +435,85 @@ func TestPersonalRepositoryAndProject(t *testing.T) {
 	repo, err := groupDoc.Get(ctx)
 	if err != nil || repo.Data()["ownerId"] != group {
 		t.Fatal("group repository owner changed", err)
+	}
+}
+
+func TestCopyPersonalProjectToOrganization(t *testing.T) {
+	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
+		t.Skip("requires FIRESTORE_EMULATOR_HOST")
+	}
+	ctx := t.Context()
+	client, err := db.NewClient(ctx, "project-copy-test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+	store := &projectDB.Store{Client: client, ChannelID: "copy-" + strconv.FormatInt(time.Now().UnixNano(), 10)}
+	root := client.Collection("channels").Doc(store.ChannelID)
+	actor := "U" + strings.Repeat("a", 32)
+	org := "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+	orgRef := root.Collection("organizations").Doc(org)
+	if _, err = orgRef.Set(ctx, map[string]any{"ownerUserId": actor}); err != nil {
+		t.Fatal(err)
+	}
+	svc := projectApplication.Service{Store: store, Sources: &sourceAccess{root: root}, AuthorizeOrganization: store.AuthorizeOrganization}
+	original, err := svc.Create(ctx, actor, actor, "original-make-0001", projectDomainEntity.Content{Title: "Original"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	from := root.Collection("users").Doc(actor).Collection("projects").Doc(original.ID)
+	fieldID := strings.Repeat("f", 32)
+	settings := projectDomainEntity.Settings{Fields: []projectDomainEntity.Field{{ID: fieldID, Name: "Priority", Options: []string{"High", "Low"}}}, Views: []projectDomainEntity.View{{ID: strings.Repeat("a", 32), Name: "Triage", FieldID: fieldID}}}
+	original, err = svc.Update(ctx, actor, actor, original.ID, projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: original.Title}, ExpectedVersion: original.Version, Settings: &settings})
+	if err != nil {
+		t.Fatal(err)
+	}
+	invalid := projectDomainEntity.Settings{Views: settings.Views}
+	_, err = svc.Update(ctx, actor, actor, original.ID, projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: original.Title}, ExpectedVersion: original.Version, Settings: &invalid})
+	if !errors.Is(err, projectDomainEntity.ErrInput) {
+		t.Fatal("dangling view reference accepted", err)
+	}
+	_, err = svc.Update(ctx, actor, actor, original.ID, projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: original.Title}, ExpectedVersion: original.Version - 1, Settings: &settings})
+	if !errors.Is(err, projectDomainEntity.ErrConflict) {
+		t.Fatal("stale settings update accepted", err)
+	}
+	if _, err = from.Collection("items").Doc("local").Set(ctx, map[string]any{"title": "Private"}); err != nil {
+		t.Fatal(err)
+	}
+	input := projectDomainEntity.Content{Title: "Copy", CopyOwnerID: actor, CopyProjectID: original.ID}
+	copy, err := svc.Create(ctx, actor, org, "project-copy-0001", input)
+	if err != nil || copy.ID == original.ID || copy.OwnerID != org || copy.DefaultRepositoryID != "" {
+		t.Fatal(copy, err)
+	}
+	again, err := svc.Create(ctx, actor, org, "project-copy-0001", input)
+	if err != nil || again.ID != copy.ID {
+		t.Fatal(again, err)
+	}
+	dest := orgRef.Collection("projects").Doc(copy.ID)
+	if !reflect.DeepEqual(copy.Settings, settings) {
+		t.Fatalf("copied settings: %+v", copy.Settings)
+	}
+	if _, err = dest.Collection("items").Doc("local").Get(ctx); status.Code(err) != codes.NotFound {
+		t.Fatal(err)
+	}
+	copy.Settings.Fields[0].Name = "Severity"
+	_, err = svc.Update(ctx, actor, org, copy.ID, projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: copy.Title}, ExpectedVersion: copy.Version, Settings: &copy.Settings})
+	if err != nil {
+		t.Fatal(err)
+	}
+	unchanged, err := svc.Get(ctx, actor, actor, original.ID)
+	if err != nil || !reflect.DeepEqual(unchanged.Settings, settings) {
+		t.Fatal("copy changed original", err)
+	}
+	outsider := "U" + strings.Repeat("b", 32)
+	if _, err = svc.Create(ctx, outsider, outsider, "project-copy-denied", input); !errors.Is(err, projectDomainEntity.ErrNotFound) {
+		t.Fatal("source read should be denied", err)
+	}
+	input.Title = "Changed"
+	if _, err = svc.Create(ctx, actor, org, "project-copy-0001", input); !errors.Is(err, projectDomainEntity.ErrCreationConflict) {
+		t.Fatal(err)
+	}
+	if _, err = svc.Create(ctx, "U"+strings.Repeat("b", 32), org, "project-copy-0002", input); !errors.Is(err, projectDomainEntity.ErrNotFound) {
+		t.Fatal(err)
 	}
 }

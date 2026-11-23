@@ -59,9 +59,9 @@ func (m *referenceMemory) ReferencePresent(context.Context, projectApplicationPo
 }
 
 func TestReferencePostHasIdentityRetryWithoutCreationHeader(t *testing.T) {
-	gid, rid, pid := "C"+strings.Repeat("a", 32), strings.Repeat("b", 32), strings.Repeat("c", 32)
+	gid, rid, pid := "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", strings.Repeat("b", 32), strings.Repeat("c", 32)
 	m := &referenceMemory{project: projectDomainEntity.Project{ID: pid, DefaultRepositoryID: rid, OwnerID: gid, CreatorID: "owner", Title: "Project", Version: 1}}
-	svc := &projectApplication.Service{Groups: referenceGroups{}, Sources: referenceSources{}, Store: m}
+	svc := &projectApplication.Service{AuthorizeOrganization: func(context.Context, string, string) error { return nil }, Groups: referenceGroups{}, Sources: referenceSources{}, Store: m}
 	mux := http.NewServeMux()
 	Register(mux, svc, referenceAuth{})
 	base := "/api/v1/owners/" + gid + "/projects"

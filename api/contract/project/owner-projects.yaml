@@ -19,7 +19,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^[UC][a-f0-9]{32}$"
+              "pattern": "^(U[a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$"
             }
           },
           {
@@ -83,7 +83,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^[UC][a-f0-9]{32}$"
+              "pattern": "^(U[a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$"
             }
           },
           {
@@ -169,7 +169,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^[UC][a-f0-9]{32}$"
+              "pattern": "^(U[a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$"
             }
           },
           {
@@ -234,7 +234,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^[UC][a-f0-9]{32}$"
+              "pattern": "^(U[a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$"
             }
           },
           {
@@ -319,7 +319,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^[UC][a-f0-9]{32}$"
+              "pattern": "^(U[a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$"
             }
           },
           {
@@ -392,7 +392,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^[UC][a-f0-9]{32}$"
+              "pattern": "^(U[a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$"
             }
           },
           {
@@ -476,7 +476,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^[UC][a-f0-9]{32}$"
+              "pattern": "^(U[a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$"
             }
           },
           {
@@ -559,8 +559,7 @@
         "additionalProperties": false,
         "required": [
           "title",
-          "body",
-          "defaultRepositoryId"
+          "body"
         ],
         "properties": {
           "title": {
@@ -575,6 +574,24 @@
           "defaultRepositoryId": {
             "type": "string",
             "pattern": "^[a-f0-9]{32}$"
+          },
+          "copyFrom": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ownerId",
+              "projectId"
+            ],
+            "properties": {
+              "ownerId": {
+                "type": "string",
+                "pattern": "^(U[a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$"
+              },
+              "projectId": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{32}$"
+              }
+            }
           }
         }
       }

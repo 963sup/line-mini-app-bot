@@ -44,7 +44,7 @@ export function SourcePicker({ ownerId, initialSource, value, onChange, disabled
     return detail.cancel;
   }, [user, initialSource, ownerId, request, detail.run, detail.cancel, onChange]);
   return <>
-    <FormField>來源儲存庫<NativeSelect required value={value} disabled={disabled || busy} onChange={event => onChange(event.target.value)}>
+    <FormField>來源儲存庫<NativeSelect value={value} disabled={disabled || busy} onChange={event => onChange(event.target.value)}>
       <NativeSelectOption value="">請選擇有權讀取的來源</NativeSelectOption>
       {items.map(item => <NativeSelectOption key={item.id} value={item.id}>{item.name || "群組儲存庫"}</NativeSelectOption>)}
     </NativeSelect></FormField>

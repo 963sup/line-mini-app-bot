@@ -317,7 +317,6 @@
           "issueCount",
           "completedIssueCount",
           "ownerId",
-          "defaultRepositoryId",
           "canEdit"
         ],
         "properties": {
@@ -366,7 +365,7 @@
           },
           "ownerId": {
             "type": "string",
-            "pattern": "^[UC][a-f0-9]{32}$"
+            "pattern": "^(U[a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$"
           },
           "sourceAvailable": {
             "type": "boolean",
@@ -386,6 +385,9 @@
           "canEdit": {
             "type": "boolean",
             "description": "Whether the authenticated actor may edit the content. Writes recheck authorization."
+          },
+          "settings": {
+            "$ref": "#/components/schemas/ProjectSettings"
           }
         }
       },
@@ -456,6 +458,9 @@
                 "$ref": "#/components/schemas/ProjectItemStatus"
               }
             }
+          },
+          "settings": {
+            "$ref": "#/components/schemas/ProjectSettings"
           }
         }
       },
@@ -486,6 +491,30 @@
           "in_progress",
           "done"
         ]
+      },
+      "ProjectSettings": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "fields",
+          "views"
+        ],
+        "properties": {
+          "fields": {
+            "type": "array",
+            "maxItems": 32,
+            "items": {
+              "$ref": "./fields.yaml#/components/schemas/ProjectField"
+            }
+          },
+          "views": {
+            "type": "array",
+            "maxItems": 32,
+            "items": {
+              "$ref": "./views.yaml#/components/schemas/ProjectView"
+            }
+          }
+        }
       }
     },
     "responses": {

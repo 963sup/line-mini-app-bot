@@ -14,16 +14,23 @@ import (
 var creationKey = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
 
 type Service struct {
-	Groups  projectApplicationPort.Groups
-	Sources projectApplicationPort.Sources
-	Store   projectApplicationPort.Store
+	AuthorizeOrganization func(context.Context, string, string) error
+	Groups                projectApplicationPort.Groups
+	Sources               projectApplicationPort.Sources
+	Store                 projectApplicationPort.Store
 }
 
 func (s *Service) resolveProjectScope(ctx context.Context, actor, id string) (projectApplicationPort.Scope, error) {
-	if s == nil || s.Groups == nil || s.Sources == nil || s.Store == nil {
+	if s == nil || s.Sources == nil || s.Store == nil {
 		return projectApplicationPort.Scope{}, projectDomainEntity.ErrUnavailable
 	}
 	scope := projectApplicationPort.Scope{OwnerID: id, Actor: actor}
+	if projectDomainEntity.IsOrganizationOwner(id) {
+		if s.AuthorizeOrganization == nil {
+			return scope, projectDomainEntity.ErrUnavailable
+		}
+		return scope, s.AuthorizeOrganization(ctx, actor, id)
+	}
 	if !identity.ValidOwner(id) {
 		// Repository-scoped routes resolve and authorize their source first.
 		if !projectDomainEntity.ValidID(id) {
@@ -41,6 +48,9 @@ func (s *Service) resolveProjectScope(ctx context.Context, actor, id string) (pr
 		}
 		return scope, nil
 	}
+	if s.Groups == nil {
+		return scope, projectDomainEntity.ErrNotFound
+	}
 	ownerID, err := s.Groups.AuthorizeGroup(ctx, actor, scope.OwnerID)
 	if err != nil {
 		return projectApplicationPort.Scope{}, err
@@ -50,6 +60,10 @@ func (s *Service) resolveProjectScope(ctx context.Context, actor, id string) (pr
 }
 
 func (s *Service) progress(ctx context.Context, r projectApplicationPort.Scope, p *projectDomainEntity.Project) error {
+	if p.DefaultRepositoryID == "" && !r.Legacy {
+		p.SourceAvailable = false
+		return nil
+	}
 	_, err := s.Sources.Authorize(ctx, r.Actor, p.DefaultRepositoryID, r.OwnerID)
 	if err != nil {
 		if r.Legacy || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
@@ -109,14 +123,24 @@ func (s *Service) Create(ctx context.Context, actor, rid, key string, c projectD
 	if e != nil {
 		return projectDomainEntity.Project{}, e
 	}
+	if c.CopyOwnerID != "" || c.CopyProjectID != "" {
+		if r.Legacy || c.SourceRepositoryID != "" || !projectDomainEntity.ValidID(c.CopyProjectID) || !(identity.IsUserOwnerID(c.CopyOwnerID) || projectDomainEntity.IsOrganizationOwner(c.CopyOwnerID)) {
+			return projectDomainEntity.Project{}, projectDomainEntity.ErrInput
+		}
+		if _, err := s.resolveProjectScope(ctx, actor, c.CopyOwnerID); err != nil {
+			return projectDomainEntity.Project{}, err
+		}
+	}
 	if r.Legacy {
 		c.SourceRepositoryID = r.SourceRepositoryID
 	}
-	if !projectDomainEntity.ValidID(c.SourceRepositoryID) {
-		return projectDomainEntity.Project{}, projectDomainEntity.ErrInput
-	}
-	if _, e = s.Sources.Authorize(ctx, actor, c.SourceRepositoryID, r.OwnerID); e != nil {
-		return projectDomainEntity.Project{}, e
+	if c.SourceRepositoryID != "" {
+		if !projectDomainEntity.ValidID(c.SourceRepositoryID) {
+			return projectDomainEntity.Project{}, projectDomainEntity.ErrInput
+		}
+		if _, e = s.Sources.Authorize(ctx, actor, c.SourceRepositoryID, r.OwnerID); e != nil {
+			return projectDomainEntity.Project{}, e
+		}
 	}
 	r.SourceRepositoryID = c.SourceRepositoryID
 	c, e = projectDomainEntity.Normalize(c)
@@ -228,6 +252,9 @@ func (s *Service) ListItems(ctx context.Context, actor, rid, id, cursor string) 
 	if e != nil {
 		return projectDomainEntity.ItemPage{}, e
 	}
+	if value.DefaultRepositoryID == "" && !r.Legacy {
+		return projectDomainEntity.ItemPage{Items: []projectDomainEntity.Item{}}, nil
+	}
 	if _, e = s.Sources.Authorize(ctx, actor, value.DefaultRepositoryID, r.OwnerID); e != nil {
 		return projectDomainEntity.ItemPage{}, e
 	}
@@ -256,4 +283,13 @@ func (s *Service) ChangeItem(ctx context.Context, actor, rid, id, target string,
 		e = s.progress(ctx, r, &result)
 	}
 	return result, e
+}
+
+// OwnerID returns the owner visible to the actor through the normal read path.
+func (s *Service) OwnerID(ctx context.Context, actor, ownerID, id string) (string, error) {
+	item, err := s.Get(ctx, actor, ownerID, id)
+	if err != nil {
+		return "", err
+	}
+	return item.OwnerID, nil
 }

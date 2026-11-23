@@ -6,8 +6,8 @@ import "./sidebar-dom";
 import { Shell } from "./shell-fixture";
 import { Workspace } from "../src/business/project/Workspace";
 
-const sa = "C" + "a".repeat(32), sb = "C" + "b".repeat(32), rid = "c".repeat(32), pid = "d".repeat(32);
-const group = (id: string) => ({ id, groupId: id, name: id === sa ? "Group A" : "Group B", status: "ACTIVE", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" });
+const sa = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", sb = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", rid = "c".repeat(32), pid = "d".repeat(32);
+const organizationContext = { groups: [{ label: "Organizations", organizations: [{organizationId:sa, name:"Group A"}, {organizationId:sb, name:"Group B"}] }], selected:null, enterprises:[] };
 const project = { id: pid, ownerId: sa, defaultRepositoryId: rid, title: "Project A", body: "Project body", canEdit: true, creatorId: "A", version: 3, issueCount: 0, completedIssueCount: 0, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" };
 const repository = { id: rid, ownerId: sa, name: "Source A", status: "ACTIVE", version: 1, createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z" };
 const flush = async () => { for (let i = 0; i < 10; i++) await new Promise<void>(resolve => setImmediate(resolve)); };
@@ -58,9 +58,7 @@ async function fixture(path: string, handle: (request: Request, actor: string) =
 
 async function normal(request: Request): Promise<Response> {
   const path = new URL(request.url).pathname;
-  if (path === "/api/v1/groups") return Response.json({ items: [group(sa), group(sb)], nextCursor: "" });
-  if (path === "/api/v1/groups/" + sa) return Response.json(group(sa));
-  if (path === "/api/v1/groups/" + sb) return Response.json(group(sb));
+  if (path === "/api/v1/me/organization-context") return Response.json(organizationContext);
   if (path.endsWith("/projects")) return Response.json({ items: path.includes(sa) ? [project] : [], nextCursor: "" });
   if (path.endsWith("/projects/" + pid)) return Response.json(project);
   if (path.endsWith("/references") || path.endsWith("/items") || path.endsWith("/issues")) return Response.json({ items: [], nextCursor: "" });
@@ -93,14 +91,14 @@ test("Project deep links and popstate reauthorize Group and reset previous Proje
     assert.ok(!document.body.textContent!.includes("Project body"));
     await f.route(`/miniapp/projects?owner=${sa}&project=${pid}`);
     assert.ok(document.body.textContent!.includes("Project body"));
-    assert.equal(f.requests.filter(request => new URL(request.url).pathname === `/api/v1/groups/${sa}`).length, 2);
+    assert.equal(f.requests.filter(request => new URL(request.url).pathname === `/api/v1/owners/${sa}/projects/${pid}`).length, 2);
   } finally { await f.dispose(); }
 });
 
 test("identity changes reject late Group detail even when fetch ignores cancellation", async () => {
   let finish!: (response: Response) => void;
   const f = await fixture(`/miniapp/projects?owner=${sa}&project=${pid}`, async (request, actor) => {
-    if (new URL(request.url).pathname === `/api/v1/groups/${sa}`) {
+    if (new URL(request.url).pathname === "/api/v1/me/organization-context") {
       if (actor === "A") return new Promise(resolve => { finish = resolve; });
       return Response.json({ error: { code: "not_found", message: "群組不可讀取" } }, { status: 404 });
     }
@@ -108,7 +106,7 @@ test("identity changes reject late Group detail even when fetch ignores cancella
   });
   try {
     await f.verifyAs("B");
-    await act(async () => { finish(Response.json(group(sa))); await flush(); });
+    await act(async () => { finish(Response.json(organizationContext)); await flush(); });
     assert.ok(document.body.textContent!.includes("群組不可讀取"));
     assert.ok(!document.body.textContent!.includes("Project body"));
     assert.ok(!f.requests.some(request => new URL(request.url).pathname === `/api/v1/owners/${sa}/projects/${pid}`));
@@ -414,5 +412,76 @@ test("temporary pagination failure preserves references and retries the same cur
     await f.click("載入更多專案引用");
     assert.deepEqual(cursors,[null,"next","next"]);
     assert.match(document.body.textContent!, /第二頁問題/);
+  } finally { await f.dispose(); }
+});
+
+
+test("copy selects a destination and submits the source project without linking repositories", async () => {
+  const posts: unknown[] = [];
+  const f = await fixture(`/miniapp/projects?owner=${sa}&project=${pid}`, async request => {
+    if (request.method === "POST") {
+      assert.equal(new URL(request.url).pathname, `/api/v1/owners/${sb}/projects`);
+      posts.push(await request.json());
+      return Response.json({...project, ownerId:sb, id:"e".repeat(32), defaultRepositoryId:undefined});
+    }
+    return normal(request);
+  });
+  try {
+    await f.select("複製到另一個擁有者", sb);
+    const input = document.querySelector<HTMLInputElement>('input[maxlength="120"]')!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!.call(input, "Audit copy");
+      input.dispatchEvent(new Event("input", { bubbles: true })); await flush();
+    });
+    await f.click("建立專案");
+    assert.deepEqual(posts,[{title:"Audit copy",body:"",copyFrom:{ownerId:sa,projectId:pid}}]);
+    assert.equal(new URLSearchParams(location.search).get("project"),"e".repeat(32));
+  } finally { await f.dispose(); }
+});
+
+test("save field options and a view, then edit the copied settings independently", async () => {
+  type Settings = import("@repo/api-client").components["schemas"]["ProjectSettings"];
+  const copyId = "e".repeat(32);
+  const projects = new Map<string, typeof project & { settings?: Settings }>([[pid, project]]);
+  const f = await fixture(`/miniapp/projects?owner=${sa}&project=${pid}`, async request => {
+    const path = new URL(request.url).pathname;
+    const id = path.split("/").at(-1)!;
+    if (request.method === "PATCH" && projects.has(id)) {
+      const input = await request.json();
+      const current = projects.get(id)!;
+      assert.equal(input.expectedVersion, current.version);
+      const updated = {...current, settings:input.settings, version:current.version+1};
+      projects.set(id,updated);
+      return Response.json(updated);
+    }
+    if (request.method === "POST" && path.endsWith("/projects")) {
+      const input = await request.json();
+      assert.deepEqual(input.copyFrom,{ownerId:sa,projectId:pid});
+      const copy = {...structuredClone(projects.get(pid)!), ownerId:sb, id:copyId, title:input.title, version:1};
+      projects.set(copyId,copy);
+      return Response.json(copy);
+    }
+    if (projects.has(id)) return Response.json(projects.get(id));
+    return normal(request);
+  });
+  async function fill(label: string, value: string) {
+    const element = [...document.querySelectorAll("label")].find(node => node.textContent?.startsWith(label))?.querySelector("input,textarea");
+    assert.ok(element, label);
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element),"value")!.set!.call(element,value);
+      element.dispatchEvent(new Event("input",{bubbles:true}));
+      await flush();
+    });
+  }
+  try {
+    await f.click("新增欄位"); await fill("欄位名稱","Priority"); await fill("選項","High\nLow");
+    await f.click("新增檢視"); await fill("檢視名稱","Triage"); await f.click("儲存內容");
+    const settings = projects.get(pid)!.settings!;
+    assert.deepEqual(settings.fields[0].options,["High","Low"]);
+    assert.equal(settings.views[0].fieldId,settings.fields[0].id);
+    await f.select("複製到另一個擁有者",sb); await fill("標題","Audit"); await f.click("建立專案");
+    await fill("欄位名稱","Severity"); await f.click("儲存內容");
+    assert.equal(projects.get(copyId)!.settings!.fields[0].name,"Severity");
+    assert.equal(projects.get(pid)!.settings!.fields[0].name,"Priority");
   } finally { await f.dispose(); }
 });
