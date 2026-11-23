@@ -394,6 +394,48 @@ func TestPersonalRepositoryAndProject(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Both public routes replay the same sourced creation. Omitting the source
+	// selects a separate receipt even when the actor, owner and key are unchanged.
+	t.Run("creation key scope across HTTP routes", func(t *testing.T) {
+		mux := http.NewServeMux()
+		projectHTTP.Register(mux, &svc, auth{})
+		legacyPath := "/api/v1/repositories/" + rid + "/projects"
+		ownerPath := "/api/v1/owners/" + owner + "/projects"
+		for _, tc := range []struct {
+			path, payload string
+			status        int
+			replay        bool
+		}{
+			{legacyPath, `{"title":"工程","body":""}`, http.StatusOK, true},
+			{ownerPath, `{"title":" 工程 ","body":"","defaultRepositoryId":"` + rid + `"}`, http.StatusOK, true},
+			{legacyPath, `{"title":"Different","body":""}`, http.StatusConflict, false},
+			{ownerPath, `{"title":"工程","body":""}`, http.StatusOK, false},
+		} {
+			req := httptest.NewRequest(http.MethodPost, tc.path, strings.NewReader(tc.payload))
+			req.Header.Set("X-Test-Actor", owner)
+			req.Header.Set("Idempotency-Key", "personal-project-0001")
+			req.Header.Set("Content-Type", "application/json")
+			rec := httptest.NewRecorder()
+			mux.ServeHTTP(rec, req)
+			if rec.Code != tc.status {
+				t.Fatalf("POST %s: got %d, want %d: %s", tc.path, rec.Code, tc.status, rec.Body)
+			}
+			var body struct {
+				ID    string
+				Error struct{ Code string }
+			}
+			if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+				t.Fatal(err)
+			}
+			if tc.status == http.StatusConflict {
+				if body.Error.Code != "idempotency_conflict" {
+					t.Fatalf("changed payload: got %q", body.Error.Code)
+				}
+			} else if body.ID == "" || (body.ID == value.ID) != tc.replay {
+				t.Fatalf("POST %s: got ID %q, original %q, want replay %t", tc.path, body.ID, value.ID, tc.replay)
+			}
+		}
+	})
 	doc, err := root.Collection("users").Doc(owner).Collection("projects").Doc(value.ID).Get(ctx)
 	if err != nil || doc.Data()["ownerId"] != owner {
 		t.Fatal("personal project storage", err)

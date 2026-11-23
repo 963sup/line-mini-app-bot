@@ -87,14 +87,7 @@
             }
           },
           {
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9_-]{16,128}$"
-            },
-            "description": "Reuse the same key and normalized content after an ambiguous result. Scoped to the verified actor and repository across resource types."
+            "$ref": "./projects.yaml#/components/parameters/ProjectCreationKey"
           },
           {
             "in": "header",

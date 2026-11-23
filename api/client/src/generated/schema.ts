@@ -2671,7 +2671,10 @@ export interface components {
             };
         };
     };
-    parameters: never;
+    parameters: {
+        /** @description Project creation is deduplicated per verified actor, target owner and initial source repository (including no source). After an ambiguous result, retry the same key and normalized content in the same scope. The owner and legacy repository endpoints share the receipt for the same scope. Reusing the key there with different content returns 409 idempotency_conflict. */
+        ProjectCreationKey: string;
+    };
     requestBodies: never;
     headers: never;
     pathItems: never;
@@ -5234,8 +5237,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
-                /** @description Reuse the same key and normalized content after an ambiguous result. Scoped to the verified actor and repository across resource types. */
-                "Idempotency-Key": string;
+                /** @description Project creation is deduplicated per verified actor, target owner and initial source repository (including no source). After an ambiguous result, retry the same key and normalized content in the same scope. The owner and legacy repository endpoints share the receipt for the same scope. Reusing the key there with different content returns 409 idempotency_conflict. */
+                "Idempotency-Key": components["parameters"]["ProjectCreationKey"];
                 /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
                 "X-CSRF-Token"?: string;
             };
@@ -5618,8 +5621,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
-                /** @description Reuse the same key and normalized content after an ambiguous result. Scoped to the verified actor and repository across resource types. */
-                "Idempotency-Key": string;
+                /** @description Project creation is deduplicated per verified actor, target owner and initial source repository (including no source). After an ambiguous result, retry the same key and normalized content in the same scope. The owner and legacy repository endpoints share the receipt for the same scope. Reusing the key there with different content returns 409 idempotency_conflict. */
+                "Idempotency-Key": components["parameters"]["ProjectCreationKey"];
                 /** @description Required for Cookie Session writes; validated by the existing session authenticator. */
                 "X-CSRF-Token"?: string;
             };

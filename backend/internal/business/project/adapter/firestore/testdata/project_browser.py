@@ -43,8 +43,24 @@ with sync_playwright() as playwright:
     expect(page).to_have_url(draft_url)
     expect(field("標題", exact=True)).to_have_value("")
     field("標題", exact=True).fill("Maintenance")
+    personal_projects = f"{base}/api/v1/owners/{actor}/projects"
+    committed_ids = []
+
+    def drop_create_response(route):
+        assert route.request.method == "POST"
+        response = route.fetch(headers={**route.request.headers, "X-Test-Actor": actor})
+        assert response.ok, response.status
+        committed_ids.append(response.json()["id"])
+        route.abort("connectionreset")
+
+    page.route(personal_projects, drop_create_response, times=1)
     button("建立專案").click()
+    button("重試原建立請求").click()
     button("新增欄位").click()
+    assert parse_qs(urlparse(page.url).query)["project"] == committed_ids
+    listing = page.request.get(personal_projects, headers={"X-Test-Actor": actor})
+    assert listing.ok, listing.status
+    assert [project["id"] for project in listing.json()["items"]] == committed_ids
     original = page.url
     field("欄位名稱").fill("Priority")
     field("選項（每行一項）").fill("High\nLow")
