@@ -243,3 +243,31 @@ test("expanding a child reads its own branch and collapsing hides the grandchild
     assert.ok(document.querySelector('[aria-label="測試工序"]'));
   } finally { await f.dispose(); }
 });
+
+for (const nested of [false, true]) {
+  test(`${nested ? "child" : "root"} object pagination retries transient errors and drops denied pages`, async () => {
+    const cursors: (string | null)[] = [];
+    const item = nested ? child() : resource();
+    const f = await fixture(async request => {
+      const url = new URL(request.url);
+      if (!url.pathname.endsWith("/objects")) return Response.json({ items: [], nextCursor: "" });
+      const query = url.searchParams;
+      if (nested && !query.has("parentId")) return Response.json({ items: [resource()], nextCursor: "" });
+      cursors.push(query.get("cursor"));
+      if (cursors.length === 1) return Response.json({ items: [item], nextCursor: "more" });
+      if (cursors.length === 4) return Response.json({ items: [], nextCursor: "" });
+      const status = cursors.length === 2 ? 503 : 403;
+      return Response.json({ error: { code: status === 503 ? "unavailable" : "forbidden", message: "讀取失敗" } }, { status });
+    });
+    try {
+      if (nested) await f.click("子物件：測試物件");
+      await f.click(nested ? "載入更多子物件" : "載入更多物件");
+      const row = () => document.querySelector(`button[aria-label="${item.name}"]`);
+      assert.ok(row(), "temporary failure should keep loaded rows");
+      await f.click("重試讀取");
+      assert.ok(!row(), "access denial should clear loaded rows");
+      await f.click("重試讀取");
+      assert.deepEqual(cursors, [null, "more", "more", null]);
+    } finally { await f.dispose(); }
+  });
+}

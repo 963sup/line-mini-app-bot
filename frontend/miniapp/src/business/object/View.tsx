@@ -10,7 +10,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/shared/ui
 import { useSpaces } from "../repository/useSpaces";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
-import { rejectedAttempt, errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
+import { rejectedAttempt, errorMessage, isTemporaryReadError, useLatestRequest } from "@/shared/http/lifecycle";
 import { PagePanel } from "@/shared/PagePanel";
 import { FormField } from "@/shared/FormField";
 import { Button } from "@/shared/ui/button";
@@ -78,7 +78,16 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
     void read.run(signal => request((client, s) => client.GET("/api/v1/repositories/{repositoryId}/objects", { signal: s, params: { path: { repositoryId }, query: { cursor: next || undefined } } }), { signal }), page => {
       setItems(previous => [...new Map([...(next ? previous : []), ...page.items].map(item => [item.id, item])).values()]);
       setCursor(page.nextCursor); setListBusy(false); setLoaded(true); setListStatus("");
-    }, error => { setItems([]); setListBusy(false); setListStatus(errorMessage(error)); });
+    }, error => {
+      if (next && isTemporaryReadError(error)) {
+        setCursor(next);
+      } else {
+        setItems([]);
+        setExpanded("");
+      }
+      setListBusy(false);
+      setListStatus(errorMessage(error));
+    });
   }, [user, request, repositoryId, read.run]);
   useEffect(() => { if (!documentTool) load(); return read.cancel; }, [documentTool, load, read.cancel]);
   function show(item: Resource) {
@@ -237,7 +246,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
   return <>
     <div className="flex w-full min-w-0 flex-col gap-4">
 
-      <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取物件……" onRetry={user && listStatus && !loaded && !busy && !subBlocked && !uncertain && !mode ? () => load() : undefined} />
+      <ReadFeedback busy={listBusy} message={listStatus} label="正在讀取物件……" onRetry={user && listStatus && !loaded && !busy && !subBlocked && !uncertain && !mode ? () => load(cursor) : undefined} />
       {mode === "detail" && !items.some(item => item.id === activeId) && <PagePanel heading="物件詳情">{editor}</PagePanel>}
       <ItemGroup className="w-full min-w-0 gap-1">{items.map(item => <Collapsible key={item.id} open={expanded === item.id} onOpenChange={value => {
         if (subLock.current || lock.current || uncertain || formNavigation.current || discard.isConfirming()) return;
@@ -262,7 +271,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
         </Item>
         <CollapsibleContent className="min-w-0 ps-4 pt-1">{expanded === item.id && <ObjectChildren editorRef={childCreation.editor} repositoryId={repositoryId} objectId={item.id} canEdit={item.canEdit} parentEditing={!!mode} onEdit={() => { opener.current = null; clearEditor(); }} onBlocked={subBlock} canWrite={canSubWrite}/>}</CollapsibleContent>
       </Collapsible>)}</ItemGroup>
-      {cursor && <Button variant="outline" disabled={busy || listBusy || subBlocked || !!mode} onClick={() => load(cursor)}>載入更多物件</Button>}
+      {loaded && cursor && <Button variant="outline" disabled={busy || listBusy || subBlocked || !!mode} onClick={() => load(cursor)}>載入更多物件</Button>}
       {mode === "create" && <PagePanel heading="新增物件">{editor}</PagePanel>}
       <Button type="button" variant="ghost" size="icon" className="self-start" title="新增物件" disabled={!user || busy || uncertain || needsRefresh || subBlocked || mode === "create"} onClick={event => openCreateForm(event.currentTarget)}>
         <Plus aria-hidden="true" /><span className="sr-only">新增物件</span>

@@ -7,7 +7,7 @@ import { ReadFeedback } from "@/shared/ReadFeedback";
 import { useDiscardChanges } from "@/shared/useDiscardChanges";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
-import { rejectedAttempt, errorMessage, useLatestRequest } from "@/shared/http/lifecycle";
+import { rejectedAttempt, errorMessage, isTemporaryReadError, useLatestRequest } from "@/shared/http/lifecycle";
 import { FormField } from "@/shared/FormField";
 import { Status } from "@/shared/Status";
 import { Button } from "@/shared/ui/button";
@@ -82,7 +82,18 @@ function Content({ editorRef, repositoryId, objectId, canEdit, parentEditing, on
     void read.run(signal => request((client, s) => client.GET("/api/v1/repositories/{repositoryId}/objects", {signal: s, params: {path: {repositoryId}, query: {parentId: objectId, cursor: next || undefined}}}), {signal}), page => {
       const children = page.items;
       setItems(previous => next ? [...previous, ...children] : children); setCursor(page.nextCursor); setLoading(false); setReadStatus(!next && !page.nextCursor && !children.length ? "尚無子物件。" : "");
-    }, error => { setFailedPage(next); setLoading(false); setReadStatus(errorMessage(error)); });
+    }, error => {
+      if (next && isTemporaryReadError(error)) {
+        setFailedPage(next);
+      } else {
+        setItems([]);
+        setCursor("");
+        setExpanded("");
+        setFailedPage("");
+      }
+      setLoading(false);
+      setReadStatus(errorMessage(error));
+    });
   }, [repositoryId, objectId, request, read.run]);
   useEffect(() => { load(); return read.cancel; }, [load, read.cancel]);
   function close() {
