@@ -2509,6 +2509,10 @@ export interface components {
             nodes: components["schemas"]["ObjectTemplateDraftNode"][];
         };
         ObjectTemplateDraftResult: {
+            /** @description Draft node ID to its zero-based index in candidates. Grouping nodes have no entry. */
+            candidateIndexByNode?: {
+                [key: string]: number;
+            };
             draft: components["schemas"]["ObjectTemplateDraft"];
             warnings: string[];
             candidates: components["schemas"]["ObjectCandidate"][];

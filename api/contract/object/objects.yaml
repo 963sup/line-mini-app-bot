@@ -1667,6 +1667,14 @@
           "candidates"
         ],
         "properties": {
+          "candidateIndexByNode": {
+            "type": "object",
+            "description": "Draft node ID to its zero-based index in candidates. Grouping nodes have no entry.",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
           "draft": {
             "$ref": "#/components/schemas/ObjectTemplateDraft"
           },

@@ -53,5 +53,5 @@ func (s *objectServer) PrepareObjectTemplateDraft(w http.ResponseWriter, r *http
 			candidates[i].CategoryPath = &c.CategoryPath
 		}
 	}
-	transport.WriteJSON(w, 200, generated.ObjectTemplateDraftResult{Draft: generated.ObjectTemplateDraft{Name: result.Draft.Name, Nodes: nodes}, Warnings: result.Warnings, Candidates: candidates})
+	transport.WriteJSON(w, 200, generated.ObjectTemplateDraftResult{CandidateIndexByNode: &result.CandidateIndexByNode, Draft: generated.ObjectTemplateDraft{Name: result.Draft.Name, Nodes: nodes}, Warnings: result.Warnings, Candidates: candidates})
 }

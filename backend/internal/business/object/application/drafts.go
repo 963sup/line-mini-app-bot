@@ -20,9 +20,10 @@ type DraftPreparation struct {
 }
 
 type TemplateDraft struct {
-	Draft      dto.TemplateCreation
-	Warnings   []string
-	Candidates []operations.Candidate
+	Draft                dto.TemplateCreation
+	Warnings             []string
+	Candidates           []operations.Candidate
+	CandidateIndexByNode map[string]int
 }
 
 // TemplatePreparer is owned by Object; bootstrap adapts the preparation workflow.
@@ -64,9 +65,9 @@ func (s *Service) PrepareTemplateDraft(ctx context.Context, actor string, in Dra
 	if name == "" {
 		name = "文件範本"
 	}
-	result := TemplateDraft{Draft: dto.TemplateCreation{Name: name, Nodes: []template.Node{{ID: "root", Name: name}}}, Warnings: []string{}, Candidates: candidates}
+	result := TemplateDraft{Draft: dto.TemplateCreation{Name: name, Nodes: []template.Node{{ID: "root", Name: name}}}, Warnings: []string{}, Candidates: candidates, CandidateIndexByNode: make(map[string]int, len(candidates))}
 	headings := map[string]string{}
-	for _, c := range candidates {
+	for i, c := range candidates {
 		parent := "root"
 		for _, heading := range c.CategoryPath {
 			heading = strings.TrimSpace(heading)
@@ -86,7 +87,9 @@ func (s *Service) PrepareTemplateDraft(ctx context.Context, actor string, in Dra
 		if c.Unit != nil {
 			unit = *c.Unit
 		}
-		result.Draft.Nodes = append(result.Draft.Nodes, template.Node{ID: fmt.Sprintf("n%d", len(result.Draft.Nodes)), ParentID: parent, Name: c.Name, Unit: unit})
+		id := fmt.Sprintf("n%d", len(result.Draft.Nodes))
+		result.CandidateIndexByNode[id] = i
+		result.Draft.Nodes = append(result.Draft.Nodes, template.Node{ID: id, ParentID: parent, Name: c.Name, Unit: unit})
 	}
 	if in.Source == "procedure" {
 		result.Warnings = append(result.Warnings, "工序為推導建議，未經施工規範驗證；請核對工法、順序與適用條件。節點順序不代表可執行的前置依賴。")

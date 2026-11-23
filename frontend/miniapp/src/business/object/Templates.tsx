@@ -163,9 +163,6 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied, initia
   function editNode(id: string, patch: NodePatch) {
     setPlan(previous => previous && updateNode(previous, id, patch));
   }
-  const parents = new Set(review?.result.draft.nodes.map(node => node.parentId));
-  const leaves = review?.result.draft.nodes.filter(node => node.parentId && !parents.has(node.id)) ?? [];
-  const evidence = new Map(leaves.map((node, i) => [node.id, review?.result.candidates[i]]));
   const focusChild = useRef<string | null>(null);
   function addChild(parentId: string) {
     const child = { id: crypto.randomUUID(), parentId, name: "" };
@@ -232,10 +229,12 @@ export function Templates({ repositoryId, disabled, onBlocked, onApplied, initia
       </FieldSet></FieldGroup></form>}
       {creating && draft.nodes.length > 100 && <p role="alert">範本最多 100 個節點（含根物件），請移除不需要的工序後再儲存。</p>}
       {!plan && !method && (creating || snapshot) && <form onSubmit={event => creating ? create(event) : event.preventDefault()}><FieldGroup><FieldSet disabled={busy || uncertain}>
+        {review && !review.result.candidateIndexByNode && review.result.candidates.map((candidate, i) => <Evidence key={i} candidate={candidate} source={review.source} />)}
         {review?.result.warnings.map((warning, i) => <p role="status" key={i}>{warning}</p>)}
         {snapshot && (!creating || draft.templateId) && <h3 className="font-semibold">{snapshot.name} · v{snapshot.version}</h3>}
         <ul aria-label="範本內容">{treeRows(visibleNodes, folded).map(({ node, depth }) => {
-          const candidate = evidence.get(node.id);
+          const index = review?.result.candidateIndexByNode?.[node.id];
+          const candidate = index === undefined ? undefined : review?.result.candidates[index];
           const nameLabel = node.parentId ? "子項名稱" : "物件名稱";
           const collapsed = folded.includes(node.id);
           return <TreeRow key={node.id} depth={depth}><Collapsible>

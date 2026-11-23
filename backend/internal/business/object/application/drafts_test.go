@@ -39,6 +39,12 @@ func TestTemplateDraftPreparation(t *testing.T) {
 		t.Fatal(err)
 	}
 	nodes := result.Draft.Nodes
+	for index, id := range []string{"n3", "n5", "n6"} {
+		got, ok := result.CandidateIndexByNode[id]
+		if !ok || got != index {
+			t.Fatalf("candidate for %s: %d, %t", id, got, ok)
+		}
+	}
 	if result.Draft.Name != "工程" || len(nodes) != 7 || nodes[3].ParentID == nodes[5].ParentID || nodes[5].ParentID != nodes[6].ParentID {
 		t.Fatalf("lost hierarchy: %+v", nodes)
 	}

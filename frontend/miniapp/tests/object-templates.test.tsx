@@ -148,11 +148,11 @@ test("document extraction creates only an editable personal draft and preserves 
         {id:"e",parentId:"b",name:"接地工程"},
         {id:"f",parentId:"e",name:"地板保護",unit:"式"},
         {id:"g",parentId:"e",name:"搬運定位（=6組）",unit:"式"},
-      ]}, warnings: [], candidates: [
-        { name: "（一）SCADA站內工程：\n既設161kv RTU", quote: "既設161kv RTU", quantity: "1", unit: "SET" },
+      ]}, candidateIndexByNode: {a:3,d:0,f:1,g:2}, warnings: [], candidates: [
         { categoryPath: ["電力系統", "高壓配電"], name: "地板保護", quote: "地板保護 1 式", quantity: "1", unit: "式" },
         { categoryPath: ["電力系統", "接地工程"], name: "地板保護", quote: "地板保護 1 式", quantity: "1", unit: "式" },
         { categoryPath: ["電力系統", "接地工程"], name: "搬運定位（=6組）", quote: "搬運定位（=6組） 12 式", quantity: "12", unit: "式" },
+        { name: "（一）SCADA站內工程：\n既設161kv RTU", quote: "既設161kv RTU", quantity: "1", unit: "SET" },
       ] });
     }
     if (url.pathname.endsWith("/instances")) assert.equal(url.searchParams.get("scope"), "personal");
@@ -171,6 +171,8 @@ test("document extraction creates only an editable personal draft and preserves 
       pressButton([...panel.querySelectorAll<HTMLButtonElement>("button")].find(button => button.textContent === "辨識候選")!);
       await flush();
     });
+    const moving = [...document.querySelectorAll("textarea")].find(field => field.value.includes("搬運定位"));
+    assert.match(moving?.closest("li")?.textContent ?? "", /搬運定位（=6組） 12 式/);
     assert.match(document.body.textContent!, /12 式/);
     assert.equal(saves.length, 0);
     await f.click("建立範本");
@@ -236,7 +238,7 @@ test("standalone procedure suggestions remain drafts until reviewed and explicit
       preparations++;
       assert.deepEqual(await request.json(), {source:"procedure",name:"浴室防水",conditions:"水泥基面"});
       if (preparations===1) return Response.json({error:"provider_error",message:"暫時無法推導"},{status:503});
-      return Response.json({draft,warnings:["工序為推導建議，請核對。"],candidates:[{name:"基面處理",quote:"需先確認基面狀態",quantity:null,unit:null,location:null}]});
+      return Response.json({draft,candidateIndexByNode:{"server-step":0},warnings:["工序為推導建議，請核對。"],candidates:[{name:"基面處理",quote:"需先確認基面狀態",quantity:null,unit:null,location:null}]});
     }
     assert.equal(path,"/api/v1/object-templates");
     saves.push(await request.json());return Response.json({...snapshot,...draft,repositoryId:""});
