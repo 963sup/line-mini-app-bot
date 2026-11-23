@@ -21,7 +21,7 @@ import {
 import { rejectedAttempt, errorMessage } from "@/shared/http/lifecycle";
 
 type Space = components["schemas"]["RepositorySpace"];
-type Choice = { id: string; objectId: string; name: string; spaceId?: string };
+type Choice = { id: string; name: string; spaceId?: string };
 import { collect } from "./pagination";
 
 type WorkOptions = { choices: Choice[]; spaces: Space[] };
@@ -71,7 +71,6 @@ export function useWorkOptions(request: Request): WorkOptionsLoader {
               const parent = object.parentId ? byId.get(object.parentId) : undefined;
               return {
                 id: object.id,
-                objectId: object.id,
                 name: parent ? parent.name + " › " + object.name : object.name,
                 spaceId: object.spaceId,
               };
@@ -193,6 +192,7 @@ export function WorkContext({
       if (alive.current) setCreating(false);
     }
   }
+  const pickerDisabled = busy || !!error || !!pending.current;
   return (
     <div
       className="grid min-w-0 grid-cols-1 gap-3"
@@ -215,10 +215,10 @@ export function WorkContext({
             setSelected(value?.spaceId ? spaces.filter((s) => s.id === value.spaceId) : []);
           }}
           itemToStringLabel={(item) => item.name}
-          disabled={busy || !!error || !!pending.current}
+          disabled={pickerDisabled}
         >
           <ComboboxInput
-            disabled={busy || !!error || !!pending.current}
+            disabled={pickerDisabled}
             id={id + "target"}
             placeholder="搜尋物件或子物件"
             showClear
@@ -236,7 +236,7 @@ export function WorkContext({
             </ComboboxList>
           </ComboboxContent>
         </Combobox>
-        <input type="hidden" name={id + "object"} value={target?.objectId || ""} />
+        <input type="hidden" name={id + "object"} value={target?.id || ""} />
       </Field>
       <Field>
         <FieldLabel htmlFor={id + "spaces"}>實際作業空間（選填，可複選）</FieldLabel>
@@ -249,7 +249,7 @@ export function WorkContext({
           }}
           itemToStringLabel={(item) => item.name}
           isItemEqualToValue={(a, b) => a.id === b.id}
-          disabled={busy || !!error || !!pending.current}
+          disabled={pickerDisabled}
         >
           <ComboboxChips>
             <ComboboxValue>
