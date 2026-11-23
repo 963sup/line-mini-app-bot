@@ -57,10 +57,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
     else editorPanel.current?.focus();
   }
   const discard = useDiscardChanges(dirty, focusEditor);
-  const guard = useRepositoryGuard(dirty, focusEditor);
-  useEffect(() => {
-    guard.block(busy || uncertain || needsRefresh);
-  }, [busy, uncertain, needsRefresh]);
+  const guard = useRepositoryGuard(dirty, focusEditor, { busy, uncertain, needsRefresh });
   useEffect(() => {
     navigating.current = false;
   });

@@ -31,10 +31,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
     attempt = useRef<{ key: string; name: string } | null>(null);
   const [editing, setEditing] = useState<Label | null>(null);
   const input = useRef<HTMLInputElement>(null);
-  const guard = useRepositoryGuard(!!name, () => input.current?.focus());
-  useEffect(() => {
-    guard.block(busy || uncertain);
-  }, [busy, uncertain]);
+  const guard = useRepositoryGuard(!!name, () => input.current?.focus(), { busy, uncertain });
   const reconcile = useRef<{ id: string; name: string } | null>(null);
   const load = useCallback(
     (nextCursor = "") => {

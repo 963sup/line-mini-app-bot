@@ -73,16 +73,13 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
     else editorPanel.current?.focus();
   }
   const discard = useDiscardChanges(dirty, focusEditor);
-  const repositoryGuard = useRepositoryGuard(dirty, focusEditor);
   const [activeId, setActiveId] = useState("");
   const [busy, setBusy] = useState(false),
     [detailBusy, setDetailBusy] = useState(false),
     [uncertain, setUncertain] = useState(false),
     [needsRefresh, setNeedsRefresh] = useState(false),
     [status, setStatus] = useState("");
-  useEffect(() => {
-    repositoryGuard.block(busy || uncertain || needsRefresh);
-  }, [busy, uncertain, needsRefresh]);
+  const repositoryGuard = useRepositoryGuard(dirty, focusEditor, { busy, uncertain, needsRefresh });
   const [branch, setBranch] = useState("");
   const [changes, setChanges] = useState<Map<string, Resource>>(() => new Map());
   const label = branch ? "子物件" : "物件";

@@ -66,10 +66,11 @@ export function View({ repositoryId }: { repositoryId: string }) {
   const titleInput = useRef<HTMLInputElement>(null);
   const focusEditor = () => titleInput.current?.focus();
   const discard = useDiscardChanges(dirty, focusEditor);
-  const guard = useRepositoryGuard(dirty, focusEditor);
-  useEffect(() => {
-    guard.block(busy || createOutcomeUnknown || needsRefresh);
-  }, [busy, createOutcomeUnknown, needsRefresh]);
+  const guard = useRepositoryGuard(dirty, focusEditor, {
+    busy,
+    uncertain: createOutcomeUnknown,
+    needsRefresh,
+  });
   useEffect(() => {
     if (!detailBusy) navigating.current = false;
   }, [mode, detailBusy]);

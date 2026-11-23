@@ -61,7 +61,11 @@ export function useRepositoryNavigation() {
   };
 }
 
-export function useRepositoryGuard(dirty: boolean, focus: () => void) {
+export function useRepositoryGuard(
+  dirty: boolean,
+  focus: () => void,
+  writeState?: { busy: boolean; uncertain: boolean; needsRefresh?: boolean },
+) {
   const context = useContext(RepositoryNavigationContext),
     id = useId();
   const current = useRef<Guard>({ dirty, focus, blocked: false });
@@ -79,5 +83,9 @@ export function useRepositoryGuard(dirty: boolean, focus: () => void) {
     [context, id],
   );
   const canWrite = useCallback(() => context?.canWrite() !== false, [context]);
+  const { busy, uncertain = false, needsRefresh = false } = writeState ?? {};
+  useEffect(() => {
+    if (busy !== undefined) block(busy || uncertain || needsRefresh);
+  }, [block, busy, uncertain, needsRefresh]);
   return { block, canWrite };
 }

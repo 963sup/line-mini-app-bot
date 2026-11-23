@@ -50,11 +50,8 @@ export function Comments({
   const input = useRef<HTMLTextAreaElement>(null);
   const dirty = !!body || (!!editing && editBody !== editing.body);
   const focusEditor = () => input.current?.focus();
-  const guard = useRepositoryGuard(dirty, focusEditor);
+  const guard = useRepositoryGuard(dirty, focusEditor, { busy, uncertain, needsRefresh });
   const discard = useDiscardChanges(dirty, focusEditor);
-  useEffect(() => {
-    guard.block(busy || uncertain || needsRefresh);
-  }, [busy, uncertain, needsRefresh]);
   useEffect(() => {
     onWriteStateChange(busy || uncertain || needsRefresh || dirty);
   }, [busy, uncertain, needsRefresh, dirty, onWriteStateChange]);

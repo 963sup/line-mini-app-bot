@@ -112,11 +112,8 @@ export function Templates({ onApplied }: Props) {
     panel = useRef<HTMLElement>(null);
   const focus = () => panel.current?.focus();
   const dirty = !!plan || (creating && JSON.stringify(draft) !== JSON.stringify(initial()));
-  const guard = useRepositoryGuard(dirty, focus),
+  const guard = useRepositoryGuard(dirty, focus, { busy, uncertain }),
     discard = useDiscardChanges(dirty, focus);
-  useEffect(() => {
-    guard.block(busy || uncertain);
-  }, [busy, uncertain, guard.block]);
   const load = useCallback(
     (next = "") => {
       setReading(true);
