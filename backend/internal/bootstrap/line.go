@@ -13,6 +13,7 @@ import (
 	attendance "github.com/963sup/line-mini-app-bot/internal/business/attendance/adapter/line"
 	membershipline "github.com/963sup/line-mini-app-bot/internal/business/membership/adapter/line"
 	membershipapp "github.com/963sup/line-mini-app-bot/internal/business/membership/application"
+	objectline "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/line"
 	organizationline "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/line"
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/line"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
@@ -88,6 +89,7 @@ func registerLINE(mux *http.ServeMux, appURL, endpointURL string, punches *atten
 				reply, handled := weather.ReplyForEvent(ctx, event, client)
 				return reply, handled, nil
 			}},
+			objectline.Handler(appURL),
 			navigation.Handler(appURL, endpointURL, repositoryID),
 		},
 	}

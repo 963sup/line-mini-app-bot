@@ -39,3 +39,5 @@
 | `接受邀請 邀請碼`、`撤銷邀請 邀請碼` | 依邀請狀態與權限接受或撤銷邀請。                                              |
 
 [工程入口實作](../../../backend/internal/business/repository/adapter/line/my_engineering.go) · [建立流程實作](../../../backend/internal/business/organization/adapter/line/creation_line.go) · [邀請指令實作](../../../backend/internal/business/membership/adapter/line/invitations.go)
+
+「物件範本」回覆個人範本庫的 Mini App 連結。開啟後沿用登入流程，套用時核對目標儲存庫權限。[Object 規格](../../domains/repository/object/design.md)
