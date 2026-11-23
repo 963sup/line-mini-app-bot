@@ -2,11 +2,7 @@
 
 <a id="工時計算第一階段"></a>
 
-- ```text
-  backend/internal/business/attendance/domain/service
-   是不依賴 LINE、Firestore 或薪資規則的純函數
-  模組。
-  ```
+`backend/internal/business/attendance/domain/service` 是純函數模組，獨立於 LINE、Firestore 與薪資規則。
 
 - RebuildSessions：依事件順序與時間重播、按事件 ID 去重，回傳班次 Session 與異常；不是單純建立 Interval。 衝突事件及不合法順序會列出異常，相關輸入不作已確認或暫估工時計算。
 
@@ -36,6 +32,8 @@
 
 ## 共用狀態規則與事件重建
 
+### 狀態規則
+
 現行實作
 
 ```mermaid
@@ -50,7 +48,9 @@ flowchart TB
   REBUILD -->|異常| PENDING["列為待確認，保留原因"]
 ```
 
-## 共用狀態規則與事件重建
+<a id="共用狀態規則與事件重建-1"></a>
+
+### 事件重建與結果
 
 - ApplyEvent 產生結果代碼與班次、休息狀態。新休息開始或結束會取消先前確認。同一事件 ID 的內容須一致。舊版缺失的歷史維持缺失，重建異常時以待確認狀態取代投影的已確認旗標。
 
@@ -98,13 +98,13 @@ stale 表示原紀錄已變動，須重送或撤回。invalid 表示核准證據
 
 - [ValidateEventStream 在重建前檢查契約版本、群組／班次身分、事件 ID 唯一性、 從 1 起連續序號及投影期望事件數。月報只讀本月相關班次的完整原始事件流， 避免為一次月查詢讀取整個群組的所有歷史事件。班次索引支援相容與最佳化模式， 啟用、回填與分頁條件見 出勤查詢。 CalculateMonthlyAttendance 統一回傳紀錄、計算、事件與更正 ID，供聊天及 API 共用。](queries.md)
 
-- 新增 API 均使用現有 LINE ID token 認證：
+- 下列 API 沿用既有 LINE 身分驗證，支援 Session Cookie 或 LINE ID token：
 
-- GET /api/v1/attendance/monthly?group=群組<br>ID&month=YYYY-MM：只讀登入者本人的月報，包含班次 ID、revision 與 eventSequence。
+- `GET /api/v1/attendance/monthly?group={groupId}&month=YYYY-MM`：只讀登入者本人的月報，包含班次 ID、revision 與 eventSequence。
 
 - POST /api/v1/attendance/corrections：JSON 提交 groupId、recordId、expectedRevision、expectedEventSequence、reason、start、end、breaks、restConfirmed。時間使用帶時區的 RFC3339；休息區間使用 Start／End。指定 recordId 時對本人既有班次提案；省略 recordId 時申請新增缺失班次。兩者都不直接更動有效紀錄。
 
-- POST /api/v1/attendance/corrections/{id}<br>/approve：核准提案，僅授權審核者可用且不可自審。
+- `POST /api/v1/attendance/corrections/{id}/approve`：核准提案，僅授權審核者可用且不可自審。
 
 - 審核權限由受信任管理者預先配置 channels/{channel}/attendanceReviewers/{員工雜湊鍵} 中的 groups 字串陣列；LINE 群組身分不自動授權。沒有配置時任何人均無法核准。 核准交易重新檢查事件序號與更正版本，防止提出後又打卡或其他更正被覆蓋。 核准後保存不可變的提案、修改前後內容、審核者與時間；不覆寫原始事件。 如果補齊尚未下班的班次，交易同時清除該班次的活動指標。 已核准更正的投影用於月報，來源包含 correction ID；重送核准不會再新增版本。 已提供補卡／時間更正表單、本人申請清單、授權群組申請清單與核准／駁回操作。無原班次可申請新增；目前僅受理已結束班次的完整實際上下班與休息區間，仍在工作且漏上班者須於班次結束後申報，不能填寫假的下班時間。
 
@@ -146,12 +146,12 @@ flowchart TB
 
 - API Calculation 的舊 Minutes／Duration／Intervals 維持已確認淨工時的意義，新增：
 
-| 欄位 | 意義 |
-| --- | --- |
-| AttendanceMinutes | 上下班及證據有效的出勤時數，尚未扣休息；休息區間異常仍可保留出勤時數 |
-| EstimatedMinutes | 暫估合計：已確認班次扣休息，加上休息未確認完整班次的出勤區間；已包含 Minutes，不可再相加 |
-| Unconfirmed | 完整、可暫估但休息待確認的班次數 |
-| Uncalculable | 缺上／下班、時間／休息區間異常或事件證據無效，無法計算工時的班次數 |
+| 欄位              | 意義                                                                                     |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| AttendanceMinutes | 上下班及證據有效的出勤時數，尚未扣休息；休息區間異常仍可保留出勤時數                     |
+| EstimatedMinutes  | 暫估合計：已確認班次扣休息，加上休息未確認完整班次的出勤區間；已包含 Minutes，不可再相加 |
+| Unconfirmed       | 完整、可暫估但休息待確認的班次數                                                         |
+| Uncalculable      | 缺上／下班、時間／休息區間異常或事件證據無效，無法計算工時的班次數                       |
 
 - Pending 保留待處理總筆數，為 Unconfirmed 加 Uncalculable。rest_unconfirmed 是待確認 原因，不代表該班次沒有暫估工時；實際異常仍在 Issues。新欄位採相容的額外回應欄位， 沒有任意刷新 frozen API baseline。清單／單筆 AttendanceRecord 另提供完整班次的 AttendanceMinutes、EstimatedMinutes、WorktimeStatus（confirmed／estimated／invalid）。
 

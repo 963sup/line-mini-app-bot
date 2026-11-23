@@ -52,17 +52,9 @@
 
 ## 目前實作
 
-- ```text
-  backend/main.go → internal/bootstrap → 各功
-  能入口與整合實作。 核心只依賴標準庫與明確的
-  純核心子套件。HTTP 使用生成 DTO 與所需能力介
-  面，Firestore 使用獨立 document structs 並轉
-  譯技術錯誤；HTTP 不依賴儲存 SDK。 共用傳輸不
-   import 功能，OpenAPI 接線只依賴生成型別與
-  http.Handler。LINE 與 HTTP 共用由 bootstrap 注
-  入的出勤 store／時區／群組名稱能力，HTTP 不
-  再從 LINE handler 取得依賴。
-  ```
+後端由 `backend/main.go` 經 `internal/bootstrap` 組裝功能入口與整合實作。核心只依賴標準庫與明確的純核心子套件。HTTP 使用生成的 DTO 與所需能力介面；Firestore adapter 使用獨立的 document structs 並轉譯技術錯誤，HTTP 不依賴儲存 SDK。
+
+共用傳輸不 import 功能，OpenAPI 接線只依賴生成型別與 `http.Handler`。bootstrap 為 LINE 與 HTTP 注入共用的出勤 store、時區與群組名稱能力。
 
 - [規則與驗證見 後端功能邊界。Go 的隱式介面與直接依賴由編譯及架構檢查約束，Graphify 用於輔助探索而非動態正確性證明。](backend-boundaries.md)
 
@@ -89,28 +81,30 @@ flowchart LR
   OUT --> SDK[外部 SDK]
 ```
 
-## 允許方向
+<a id="允許方向-1"></a>
+
+### 套件匯入規則
 
 圖表示 compile-time import；Use Case 執行時透過介面呼叫 adapter。Go 使用隱式介面實作，組裝時可驗證相容性。
 
-| 套件 | 允許 | 禁止 |
-| --- | --- | --- |
-| domain | 標準庫、明確核准的領域值型別 | HTTP、LINE、Firestore、Garr、application、adapter |
-| application | 所屬 domain、所需的小介面；有向且明確的跨模組契約 | adapters、SDK、組裝入口 |
-| HTTP adapter | application、請求／回應轉換 | 直接寫 Firestore、跳過 Use Case 授權 |
-| 外部 adapter | application 契約、domain、對應 SDK | import HTTP handlers、依賴 bootstrap |
-| bootstrap | 設定、applications、adapters | 業務判斷 |
+| 套件         | 允許                                              | 禁止                                              |
+| ------------ | ------------------------------------------------- | ------------------------------------------------- |
+| domain       | 標準庫、明確核准的領域值型別                      | HTTP、LINE、Firestore、Garr、application、adapter |
+| application  | 所屬 domain、所需的小介面；有向且明確的跨模組契約 | adapters、SDK、組裝入口                           |
+| HTTP adapter | application、請求／回應轉換                       | 直接寫 Firestore、跳過 Use Case 授權              |
+| 外部 adapter | application 契約、domain、對應 SDK                | import HTTP handlers、依賴 bootstrap              |
+| bootstrap    | 設定、applications、adapters                      | 業務判斷                                          |
 
 ## 現行跨領域核心契約
 
 [架構檢查](../../../backend/internal/architecture/boundaries_test.go)對所有 business domain／application 套件套用跨領域限制：相同領域仍遵守分層；跨領域的確切目標套件必須列於允許清單。未登記的新套件不能繞過此限制。清單只核准必要契約，不授予其他領域的資料存取或業務決策權。
 
-| 使用端 | 被引用的權威契約 | 保留理由與限制 |
-| --- | --- | --- |
-| Issue、Discussion、Object | Repository 的資源範圍與領域值；Issue／Discussion 使用其標籤值 | 這些能力屬於 Repository 容器；各自的內容與狀態仍由原領域維護。[容器與能力](../../domains/repository/README.md) |
-| Object application | Operations 的文件處理介面 | 經使用案例契約取得候選資訊，不直接依賴模型 SDK。[操作邊界](../../domains/operations/README.md) |
-| Organization application | Membership 的成員識別值 | 所有權移轉解析既有成員引用；不把 Membership 模式切換或成員資格決策搬進 Organization。[移轉實作](../../../backend/internal/business/organization/application/transfer.go) |
-| Enterprise command | Enterprise 自有操作錯誤 | 核心不再引用 Organization 錯誤；[HTTP adapter](../../../backend/internal/business/enterprise/adapter/http/responses.go) 於既有傳輸邊界翻譯，保留公共 status／code 與儲存錯誤相容。[核心錯誤](../../../backend/internal/business/enterprise/domain/errors.go) |
+| 使用端                    | 被引用的權威契約                                              | 保留理由與限制                                                                                                                                                                                                                                               |
+| ------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Issue、Discussion、Object | Repository 的資源範圍與領域值；Issue／Discussion 使用其標籤值 | 這些能力屬於 Repository 容器；各自的內容與狀態仍由原領域維護。[容器與能力](../../domains/repository/README.md)                                                                                                                                               |
+| Object application        | Operations 的文件處理介面                                     | 經使用案例契約取得候選資訊，不直接依賴模型 SDK。[操作邊界](../../domains/operations/README.md)                                                                                                                                                               |
+| Organization application  | Membership 的成員識別值                                       | 所有權移轉解析既有成員引用；不把 Membership 模式切換或成員資格決策搬進 Organization。[移轉實作](../../../backend/internal/business/organization/application/transfer.go)                                                                                     |
+| Enterprise command        | Enterprise 自有操作錯誤                                       | 核心不再引用 Organization 錯誤；[HTTP adapter](../../../backend/internal/business/enterprise/adapter/http/responses.go) 於既有傳輸邊界翻譯，保留公共 status／code 與儲存錯誤相容。[核心錯誤](../../../backend/internal/business/enterprise/domain/errors.go) |
 
 [反例驗收](../../../backend/internal/architecture/boundaries_regression_test.go)以臨時最小儲存庫執行真正的掃描器，確認未核准的跨領域依賴被拒、同領域及上述必要契約保留。這是靜態 import 保證，不代替交易、授權或業務驗收。
 

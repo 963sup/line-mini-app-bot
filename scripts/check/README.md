@@ -16,3 +16,7 @@ Cloud Build coverage checks literal `scripts/...` entries and statically discove
 Regression cases: `bash scripts/tooling/tool-exec.sh python3 -m unittest discover -s scripts/test -p 'test_documentation_links.py'`.
 
 [Script overview](../README.md) · [Local guidance](AGENTS.md)
+
+## Markdown
+
+Run `bash scripts/tooling/tool-exec.sh pnpm docs:check` to check formatting and lint, or `bash scripts/tooling/tool-exec.sh pnpm docs:format` to apply formatting. See the [documentation standards](../../docs/standards/documentation.md#增量驗證) for scope and other checks.

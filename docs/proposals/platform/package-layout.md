@@ -2,10 +2,7 @@
 
 - 路徑 · 主要符號／責任
 
-- ```text
-  backend/internal/httpapi/webhook/handler.go ·
-  Handler.ServeHTTP；驗簽、轉換、可靠接收
-  ```
+- `backend/internal/httpapi/webhook/handler.go` · `Handler.ServeHTTP` 驗簽、轉換並可靠接收事件。
 
 - internal/direct/application/handle_postback.go ·Service.HandlePostback；個人操作與授權
 
@@ -174,14 +171,14 @@ flowchart TD
 
 以下模組表是後續平台能力參考，不預建全部目錄或介面。
 
-| 模組 | 身分與狀態 | 使用案例與授權 |
-| --- | --- | --- |
-| direct | User、DirectConversation、個人資源 | Message/Postback、Follow/Unfollow、Unsend；資源擁有權 |
-| group | Group、GroupRole、群組資源 | Message/Postback、Join/Leave、成員事件、Unsend；群組角色與資源權限 |
-| identity | 經驗證的 LINE 身分、session | 驗證預期 channel 與有效性；不信任前端 profile 或 decoded token |
-| templates | 模板與不可變發布版本 | 驗證、測試發送、發布、回復 |
-| richmenu | 選單、圖片參照、alias、指派 | 預設／個人化／切換；統一以 Messaging API 管理 |
-| jobs | Inbox/Outbox 狀態、租約、typed target | 領取、重試、完成、人工處理 |
+| 模組      | 身分與狀態                            | 使用案例與授權                                                     |
+| --------- | ------------------------------------- | ------------------------------------------------------------------ |
+| direct    | User、DirectConversation、個人資源    | Message/Postback、Follow/Unfollow、Unsend；資源擁有權              |
+| group     | Group、GroupRole、群組資源            | Message/Postback、Join/Leave、成員事件、Unsend；群組角色與資源權限 |
+| identity  | 經驗證的 LINE 身分、session           | 驗證預期 channel 與有效性；不信任前端 profile 或 decoded token     |
+| templates | 模板與不可變發布版本                  | 驗證、測試發送、發布、回復                                         |
+| richmenu  | 選單、圖片參照、alias、指派           | 預設／個人化／切換；統一以 Messaging API 管理                      |
+| jobs      | Inbox/Outbox 狀態、租約、typed target | 領取、重試、完成、人工處理                                         |
 
 群組 userId 可能缺少，需個人權限的操作拒絕執行。平台群組管理角色須明確綁定，不假設 LINE 提供完整管理員名單。 群組內容對成員可見，私人結果導向 MINI App／一對一。群組不提供 Rich Menu。 新產品只支援 user/group；room 是仍有官方相容支援的歷史來源，不宣稱 API 全部已淘汰。 Service Message 待資格與模板確認後使用獨立 adapter，不當作任意 Flex Push。
 

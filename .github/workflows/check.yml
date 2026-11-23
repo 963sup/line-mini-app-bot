@@ -52,6 +52,22 @@ jobs:
         with:
           python-version: "3.12"
       - run: python3 scripts/check/check-config.py
+      - name: Prepare development tooling directory
+        run: sudo install -d -m 0755 -o "$(id -u)" -g "$(id -g)" /workspace/tooling
+      - name: Set up mise
+        uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+        with:
+          minimum_release_age: 0s
+          fetch_from_github: false
+          mise_dir: /workspace/tooling/mise-data
+          install: false
+          env: false
+      - name: Check Markdown formatting and syntax
+        run: |
+          mise trust mise.toml
+          bash scripts/tooling/tool-exec.sh mise install --locked node npm:pnpm
+          bash scripts/tooling/tool-exec.sh pnpm install --frozen-lockfile --filter line-mini-app-bot
+          bash scripts/tooling/tool-exec.sh pnpm docs:check
       - name: Offline tooling regressions
         if: steps.changes.outputs.run_application == 'true'
         run: python3 -m unittest discover -s scripts/test -p 'test_*.py'

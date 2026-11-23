@@ -8,10 +8,10 @@
 
 ## 1. 命名與來源
 
-| 前綴 | 所屬產品 | 規則 |
-| --- | --- | --- |
-| LINE_MESSAGING_API_ | LINE Messaging API | 官方帳號、Webhook、Reply／Push 與 Rich Menu |
-| LINE_MINI_APP_ | LINE MINI App | LIFF、身分驗證、MINI App Channel 與 Service Message |
+| 前綴                | 所屬產品           | 規則                                                |
+| ------------------- | ------------------ | --------------------------------------------------- |
+| LINE_MESSAGING_API_ | LINE Messaging API | 官方帳號、Webhook、Reply／Push 與 Rich Menu         |
+| LINE_MINI_APP_      | LINE MINI App      | LIFF、身分驗證、MINI App Channel 與 Service Message |
 
 Go 欄位可對應為 MessagingAPI 與 MiniApp 兩組設定，禁止兩組憑證互相回退。 本機、測試與正式部署沿用相同變數名稱，由不同部署環境注入各自的值。
 
@@ -19,11 +19,11 @@ Go 欄位可對應為 MessagingAPI 與 MiniApp 兩組設定，禁止兩組憑證
 
 ## 2. Messaging API
 
-| 環境變數 | 用途 | 機密 | 必要條件 |
-| --- | --- | --- | --- |
-| LINE_MESSAGING_API_CHANNEL_ID | 明確識別 Messaging API Channel | 否 | 啟用 Messaging API 時 |
-| LINE_MESSAGING_API_CHANNEL_SECRET | 驗證 Webhook 簽章 | 是 | 接收 Webhook 時 |
-| LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN | 呼叫 Reply／Push、Rich Menu 等 API | 是 | 使用預先簽發 token 發送時 |
+| 環境變數                                | 用途                               | 機密 | 必要條件                  |
+| --------------------------------------- | ---------------------------------- | ---- | ------------------------- |
+| LINE_MESSAGING_API_CHANNEL_ID           | 明確識別 Messaging API Channel     | 否   | 啟用 Messaging API 時     |
+| LINE_MESSAGING_API_CHANNEL_SECRET       | 驗證 Webhook 簽章                  | 是   | 接收 Webhook 時           |
+| LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN | 呼叫 Reply／Push、Rich Menu 等 API | 是   | 使用預先簽發 token 發送時 |
 
 Channel access token 須依官方選定的 token 類型管理有效期與輪替；若改用即時簽發， 另行設計金鑰與簽發設定，不把 client assertion 或私鑰塞入 access token 欄位。
 
@@ -31,13 +31,9 @@ Channel access token 須依官方選定的 token 類型管理有效期與輪替�
 
 ## 3. MINI App
 
-- 環境變數：LINE_MINI_APP_ENV<br>值：developing（預設）、review、publishedGo 同時選定公開 Channel ID、LIFF ID 與 Endpoint URL；未知階段或選定組缺失／非法值使服務啟動失敗。
+以 `LINE_MINI_APP_ENV` 選擇部署階段。各階段的 Channel ID、LIFF ID、Endpoint URL、啟動驗證與舊鍵相容性見[公開環境設定](#公開環境設定)。
 
-- 公開設定由根 .env.example 列出三階段鍵名，Go server/miniapp.go 統一讀取及驗證。舊 LINE_MINI_APP_CHANNEL_ID 與 LINE_MINI_APP_LIFF_ID 不再讀取；不會覆寫所選環境或成為額外 audience。
-
-- Endpoint URL 由所選階段的 ENDPOINT_URL 提供，不再讀取 LINE_MINI_APP_WEB_URL；桌面 Flex 使用此設定，不從請求 Host 或 postback 推導。
-
-- 環境變數：LINE_MINI_APP_CHANNEL_ACCESS_TOKEN<br>用途：呼叫 MINI App Service Message API<br>機密：是<br>必要條件：啟用 Service Message 且採預先簽發 token 時
+啟用 MINI App Service Message 且採預先簽發 token 時，使用機密變數 `LINE_MINI_APP_CHANNEL_ACCESS_TOKEN` 呼叫 Service Message API。
 
 - MINI App 的 Developing／Review／Published 有不同內部 Channel；每個部署只選擇一個環境的 Channel／LIFF 設定，不接受其他環境的 token，不得混用。Messaging API 與 MINI App 即使位於相同 Provider，也使用各自的 Channel 憑證。
 
@@ -57,12 +53,12 @@ Channel access token 須依官方選定的 token 類型管理有效期與輪替�
 
 ## 4. 不放進固定環境變數的資料
 
-| 資料 | 正確位置 |
-| --- | --- |
+| 資料                                    | 正確位置                                             |
+| --------------------------------------- | ---------------------------------------------------- |
 | 使用者 LINE ID token／LIFF access token | 請求或安全的使用者 session；按流程驗證，不記錄於日誌 |
-| Service notification token | 按使用者操作／session 安全保存，發送後更新最新值 |
-| Webhook reply token | 短效事件處理資料，不作全域設定或長期排程憑證 |
-| user ID、group ID | 具存取控制的業務資料，不作服務共用認證 |
+| Service notification token              | 按使用者操作／session 安全保存，發送後更新最新值     |
+| Webhook reply token                     | 短效事件處理資料，不作全域設定或長期排程憑證         |
+| user ID、group ID                       | 具存取控制的業務資料，不作服務共用認證               |
 
 <a id="5-注入與驗證"></a>
 
@@ -86,11 +82,11 @@ Channel access token 須依官方選定的 token 類型管理有效期與輪替�
 
 根目錄 [.env.example](../../../.env.example) 列出十個公開設定變數；[Go MINI App 設定](../../../backend/internal/bootstrap/miniapp.go) 是唯一讀取與驗證入口。範例值可替換為其他產品的 Channel、LIFF 與 Endpoint，程式不內建個人 ID 或主機。
 
-| LINE_MINI_APP_ENV | 所選變數前綴 |
-| --- | --- |
+| LINE_MINI_APP_ENV  | 所選變數前綴              |
+| ------------------ | ------------------------- |
 | developing（預設） | LINE_MINI_APP_DEVELOPING_ |
-| review | LINE_MINI_APP_REVIEW_ |
-| published | LINE_MINI_APP_PUBLISHED_ |
+| review             | LINE_MINI_APP_REVIEW_     |
+| published          | LINE_MINI_APP_PUBLISHED_  |
 
 每個前綴包含 `CHANNEL_ID`、`LIFF_ID`、`ENDPOINT_URL`。僅所選組必填：Channel ID 為數字字串；LIFF ID 非空且與 Channel ID 前綴配對；Endpoint 必須是無 credentials／fragment 的絕對 HTTPS URL，可保留路徑與 query。未知階段或所選組缺失／非法值會在啟動時回報變數名稱，不輸出設定內容。未選組不影響啟動。
 

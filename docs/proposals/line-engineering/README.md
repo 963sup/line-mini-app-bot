@@ -110,7 +110,7 @@ Do not substitute these IDs. ChannelID, UserID, GroupID and RepositoryIDrepresen
 
 - User ↔ official account
 
-- ---
+---
 
 - Primary identifier
 
@@ -122,7 +122,7 @@ Do not substitute these IDs. ChannelID, UserID, GroupID and RepositoryIDrepresen
 
 - Multiple users ↔ official account
 
-- ---
+---
 
 - Primary identifier
 
@@ -134,13 +134,30 @@ Do not substitute these IDs. ChannelID, UserID, GroupID and RepositoryIDrepresen
 
 - Direct-chat event
 
-{<br>  "source": {<br>    "type": "user",<br>    "userId": "Uxxxxxxxx"  }}
+```json
+{
+  "source": {
+    "type": "user",
+    "userId": "Uxxxxxxxx"
+  }
+}
+```
 
-## 3. Direct chat versus group chat
+<a id="3-direct-chat-versus-group-chat-1"></a>
+
+### Group event payload
 
 LINE group message event
 
-{<br>  "source": {<br>    "type": "group",<br>    "groupId": "Cxxxxxxxx",<br>    "userId": "Uxxxxxxxx"  }}
+```json
+{
+  "source": {
+    "type": "group",
+    "groupId": "Cxxxxxxxx",
+    "userId": "Uxxxxxxxx"
+  }
+}
+```
 
 - IDs are illustrative. Not all group events include userId;never perform personally authorized operations without an identified actor.
 
@@ -252,13 +269,15 @@ Example: one user participates in three groups:
 
 [Flow D: operations, uploads and notifications: Mermaid source](diagrams/engineering-notification.mermaid)
 
-## Flow D: operations, uploads and notifications
+### Flow D: operations, uploads and notifications
 
 [Edit Mermaid source](diagrams/engineering-notification.mermaid)
 
 Choose one upload approach:
 
-## Flow D: construction operations, uploads and notifications
+<a id="flow-d-construction-operations-uploads-and-notifications-1"></a>
+
+### Upload options
 
 - MINI App → Go → Storage: small/few attachments.Simplest implementation; traffic passes through Go.
 
@@ -300,13 +319,24 @@ Do not duplicate data across the two stores.
 
 Target schema, not a claim that current databases use these paths.
 
-users/{userId}sessions/{sessionHash}channels/{messagingChannelId}/  repositoryOwnerBindings/{ownerId}  users/{userId}/projects/{projectId}/  groups/{groupId}/projects/{projectId}/    linkedRepositories/{repositoryId}    items/{referenceId}  # ProjectReference: sourceRepositoryId, sourceType, sourceId      inspectionSubmissions/{submissionId}  repositories/{repositoryId}/    spaces/{spaceId}    objects/{objectId}  # spaceId points to work area; moving preserves object ID      subobjects/{subobjectId}    issues/{issueId}    discussions/{discussionId}    attachments/{attachmentId}    journals/{journalId}
+users/{userId}sessions/{sessionHash}channels/{messagingChannelId}/ repositoryOwnerBindings/{ownerId} users/{userId}/projects/{projectId}/ groups/{groupId}/projects/{projectId}/ linkedRepositories/{repositoryId} items/{referenceId} # ProjectReference: sourceRepositoryId, sourceType, sourceId inspectionSubmissions/{submissionId} repositories/{repositoryId}/ spaces/{spaceId} objects/{objectId} # spaceId points to work area; moving preserves object ID subobjects/{subobjectId} issues/{issueId} discussions/{discussionId} attachments/{attachmentId} journals/{journalId}
 
 - repositoryOwnerBindings/{ownerId} uniquely binds groups/Repositories;Firestore transactions prevent redelivery duplicates.
 
 - attachments/{attachmentId} may store:
 
-{<br>  "repositoryId": "repo_001",<br>  "ownerType": "inspectionSubmission",<br>  "ownerId": "work_001",<br>  "storagePath": "repositories/repo_001/attachments/file_001",<br>  "uploadedBy": "U001",<br>  "contentType": "image/jpeg",<br>  "status": "ready",<br>  "generation": "123456789"}
+```json
+{
+  "repositoryId": "repo_001",
+  "ownerType": "inspectionSubmission",
+  "ownerId": "work_001",
+  "storagePath": "repositories/repo_001/attachments/file_001",
+  "uploadedBy": "U001",
+  "contentType": "image/jpeg",
+  "status": "ready",
+  "generation": "123456789"
+}
+```
 
 generation references file versions. Preserve inspection evidencerather than overwriting original bytes.
 
@@ -314,7 +344,7 @@ generation references file versions. Preserve inspection evidencerather than ove
 
 ## Firebase Storage organization
 
-bucket/  repositories/    repo_001/      attachments/        file_001        file_002        file_003    repo_002/      attachments/        file_004
+bucket/ repositories/ repo_001/ attachments/ file_001 file_002 file_003 repo_002/ attachments/ file_004
 
 - Storage keys need not mirror business hierarchy.Firestore ownerType/ownerId associates attachments with Objects, Projects or submissions,avoiding mass file moves when business objects move.
 
@@ -374,23 +404,20 @@ LINE membership alone is insufficient authorization.
 
 [Project specifications own current ownership, links and paths.Compare current/target designs below.](../../domains/project/project.md)
 
-- GroupID: current direct Repository binding; retain as construction entry.
+| Resource           | Current                                                                            | Target                                                                                                                                                                                             |
+| ------------------ | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GroupID            | Direct Repository binding                                                          | Retain as construction entry                                                                                                                                                                       |
+| Space              | Group means LINE group and Space means work area                                   | Reserve Space for work areas and GroupID for groups                                                                                                                                                |
+| Project            | Personal/group owners, multiple sources, ownerId lookup and purpose-based sections | Use the initial repository as a default source. Do not show one repository’s numbers as total progress                                                                                             |
+| Inspection history | Stores submitted source versions. Reads verify Project, link and source access     | Check active objects and versions on submit. On historical reads check membership, links and source rights. Retain submissions for removed objects and block reads for unlinked or revoked sources |
+| Repository         | Construction sources                                                               | Construction root container                                                                                                                                                                        |
+| Attachments        | Complete implementation unconfirmed                                                | Firestore metadata plus Firebase Storage                                                                                                                                                           |
+| Direct chat        | Attendance and My projects                                                         | Open MINI App with currently authorized projects                                                                                                                                                   |
+| MINI App           | Go sessions and static frontend                                                    | Retain both and unify resource authorization                                                                                                                                                       |
 
-- Space: current Group means LINE group and Space means work area.<br>Target: reserve Space for work areas and GroupID for groups.
+<a id="9-current-repository-versus-target-design-1"></a>
 
-- Project: personal/group owners, multiple sources, ownerId lookup and purpose-based sections.<br>Target: initial repository is only a default source; do not show one repository's numbers as total progress.
-
-- Inspection history stores submitted source versions; reads verify Project/link/source access.<br>Target: submit checks active objects/versions; historical reads check membership/links/source rights.Removed objects retain saved submissions; unlinked/revoked sources block reads.
-
-- Repository: currently construction sources; target construction root container.
-
-- Attachments: complete implementation unconfirmed;target Firestore metadata plus Firebase Storage.
-
-- Direct chat: attendance/My projects exist;target opens MINI App with currently authorized projects.
-
-- MINI App: existing Go sessions/static frontend;target retains them and unifies resource authorization.
-
-## 9. Current Repository versus target design
+### Pending acceptance
 
 End-to-end upload/group-notification acceptance remains pending.
 

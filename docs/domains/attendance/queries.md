@@ -18,15 +18,16 @@
 
 ## 查詢 API
 
-所有請求仍以 LINE ID token 在伺服器驗證本人，不能提供他人的 user ID。回應不快取。新版列表／詳情不回傳精確位置或原始事件證據。
+伺服器以 Session Cookie 或 LINE ID token 驗證本人，不接受指定他人的 user ID。回應不快取；新版列表與詳情不公開精確位置或原始事件證據。
 
-- GET 路徑（前綴 /api/v1/attendance）：/groups/page<br>參數：pageSize、cursor<br>回應：items（id/name）、nextCursor、asOf、queryMode
+下表均為 GET，路徑前綴為 `/api/v1/attendance`。參數型別與回應結構見[出勤 OpenAPI](../../../api/contract/attendance/records.yaml)。
 
-- GET 路徑（前綴 /api/v1/attendance）：/monthly/summary<br>參數：group、month（YYYY-MM）<br>回應：完整月份 Calculation、count、asOf
-
-- GET 路徑（前綴 /api/v1/attendance）：/records<br>參數：group、month、pageSize、cursor<br>回應：items、nextCursor、asOf、queryMode
-
-- GET 路徑（前綴 /api/v1/attendance）：/records/{id}<br>參數：group<br>回應：本人該群組的班次詳情／版本
+| 用途         | 路徑               | 查詢參數                                             | 回應與範圍                                             |
+| ------------ | ------------------ | ---------------------------------------------------- | ------------------------------------------------------ |
+| 選群組       | `/groups/page`     | `pageSize`、`cursor`                                 | `items`（id、name）、`nextCursor`、`asOf`、`queryMode` |
+| 查單群月摘要 | `/monthly/summary` | `group`、`month`（YYYY-MM）                          | 完整月份 Calculation、`count`、`asOf`                  |
+| 列出本人班次 | `/records`         | `month`、`pageSize`、`cursor`；可選 `group` 篩選單群 | `items`、`nextCursor`、`asOf`、`queryMode`             |
+| 查班次明細   | `/records/{id}`    | `group`                                              | 本人在該群組的班次詳情與版本                           |
 
 - pageSize 預設20、範圍1–100；cursor 必須與本人、channel、群組／月份與排序版本相符，無效回400 invalid_cursor。班次排序為上班時間DESC、下班時間DESC（未下班的零值排在同上班時間的已下班班次之後）、文件ID DESC，以完整排序欄位消歧義，不使用offset。沒有下一頁時 nextCursor 為空。上一頁由瀏覽器保存已使用的cursor。
 

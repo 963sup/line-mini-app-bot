@@ -9,17 +9,20 @@
     "dev": "turbo run build --filter @repo/miniapp && turbo run dev",
     "api:generate": "node scripts/generate/api-generate.mts",
     "api:check": "pnpm scripts:typecheck && node --test scripts/test/check-dispatch.test.mts scripts/test/check-resource-semantics.test.mts && node scripts/contract/check-capabilities.mts && node scripts/generate/api-generate.mts --check",
-    "check": "pnpm api:check && python3 scripts/check/check-config.py && turbo run check",
+    "check": "pnpm docs:check && pnpm api:check && python3 scripts/check/check-config.py && turbo run check",
     "test": "turbo run test",
     "build": "turbo run build",
     "scripts:typecheck": "tsc -p tsconfig.scripts.json",
     "api:compat": "node --test scripts/test/check-compatibility.test.mts && node scripts/contract/check-compatibility.mts",
     "format:check": "prettier --check \"frontend/miniapp/src/**/*.{ts,tsx}\" \"frontend/miniapp/tests/**/*.{ts,tsx}\" \"api/client/src/**/*.ts\" \"scripts/**/*.mts\"",
-    "format": "prettier --write \"frontend/miniapp/src/**/*.{ts,tsx}\" \"frontend/miniapp/tests/**/*.{ts,tsx}\" \"api/client/src/**/*.ts\" \"scripts/**/*.mts\""
+    "format": "prettier --write \"frontend/miniapp/src/**/*.{ts,tsx}\" \"frontend/miniapp/tests/**/*.{ts,tsx}\" \"api/client/src/**/*.ts\" \"scripts/**/*.mts\"",
+    "docs:format": "python3 scripts/check/markdown.py write",
+    "docs:check": "python3 scripts/check/markdown.py check && python3 scripts/check/markdown.py lint"
   },
   "devDependencies": {
     "@redocly/cli": "2.15.0",
     "@types/node": "26.6.6",
+    "markdownlint-cli2": "0.24.2",
     "openapi-typescript": "7.13.0",
     "prettier": "3.10.1",
     "turbo": "2.11.10",

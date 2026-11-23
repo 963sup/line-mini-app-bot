@@ -18,6 +18,19 @@ bash scripts/tooling/tool-exec.sh mise run repomix
 
 ## 產生參考技能
 
+### 更新本專案參考技能
+
+從專案根目錄執行：
+
+```bash
+bash scripts/tooling/tool-exec.sh repomix \
+  --skill-generate repomix-reference-line-mini-app-bot \
+  --skill-output .agents/skills/repomix-reference-line-mini-app-bot \
+  --ignore '.mise/locks/**' --force
+```
+
+### 產生任務專用參考包
+
 需要[交接原始碼](../../workflow/handoff.md#sidebar-handoff)時，可產生限定於該任務的參考包。
 
 用簡短、好識別的用途名稱，例如 `repomix-reference-codex-cloud`。同一用途沿用名稱，來源版本記在 Evidence。

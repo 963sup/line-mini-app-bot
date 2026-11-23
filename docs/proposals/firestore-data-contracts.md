@@ -12,30 +12,36 @@
 
 所有資料以 channels/{channelID} 隔離。ID 需驗證不含 slash／路徑控制字元；不得直接拼接任意請求路徑。 時間使用 Firestore timestamp／Go time.Time UTC；版本與 attempt 使用整數，optional 欄位省略而非空字串混用。
 
-| 相對 collection | 文件 ID | 必要欄位／語義 |
-| --- | --- | --- |
-| users | LINE userId | schemaVersion、createdAt、updatedAt；profile 非必要不保存 |
-| groups | LINE groupId | schemaVersion、botState(active/left)、updatedAt；加入事件不自動設定 owner |
-| groups/{groupID}/roles | userId | role、grantEvidenceRef、grantedBy、updatedAt；role 值待 P02 |
-| webhookEvents | webhookEventId | schemaVersion、eventType、sourceType、sourceID(可缺)、actorID(可缺)、occurredAt、receivedAt、status、attempt、leaseVersion、必要處理 payload |
-| outbox | SHA-256(eventID + useCase + actionSlot) 的具名 canonical 編碼 | schemaVersion、jobKind、targetType(user/group)、targetID、status、payloadVersion、內容快照、retryKey、attempt、nextRunAt、leaseVersion、createdAt |
-| flexTemplates/{templateID}/versions | immutable version ID | schemaVersion、content、altText、createdAt、createdBy、validationStatus |
-| richMenus | 本地 menu ID | schemaVersion、LINE richMenuId(建立後)、發布狀態、imageRef、updatedAt |
-| auditLogs | 隨機 ID | actorRef、action、resourceRef、occurredAt、outcome；不含 token／完整 payload |
+| 相對 collection                     | 文件 ID                                                       | 必要欄位／語義                                                                                                                                    |
+| ----------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| users                               | LINE userId                                                   | schemaVersion、createdAt、updatedAt；profile 非必要不保存                                                                                         |
+| groups                              | LINE groupId                                                  | schemaVersion、botState(active/left)、updatedAt；加入事件不自動設定 owner                                                                         |
+| groups/{groupID}/roles              | userId                                                        | role、grantEvidenceRef、grantedBy、updatedAt；role 值待 P02                                                                                       |
+| webhookEvents                       | webhookEventId                                                | schemaVersion、eventType、sourceType、sourceID(可缺)、actorID(可缺)、occurredAt、receivedAt、status、attempt、leaseVersion、必要處理 payload      |
+| outbox                              | SHA-256(eventID + useCase + actionSlot) 的具名 canonical 編碼 | schemaVersion、jobKind、targetType(user/group)、targetID、status、payloadVersion、內容快照、retryKey、attempt、nextRunAt、leaseVersion、createdAt |
+| flexTemplates/{templateID}/versions | immutable version ID                                          | schemaVersion、content、altText、createdAt、createdBy、validationStatus                                                                           |
+| richMenus                           | 本地 menu ID                                                  | schemaVersion、LINE richMenuId(建立後)、發布狀態、imageRef、updatedAt                                                                             |
+| auditLogs                           | 隨機 ID                                                       | actorRef、action、resourceRef、occurredAt、outcome；不含 token／完整 payload                                                                      |
 
 - Outbox ID：用 JSON array 編碼 [channelID,eventID,useCase,actionSlot] 再 SHA-256，避免字串串接碰撞；API 操作另以 scoped idempotency key 定義事件來源。 retryKey 在交易外產生並於首次建立固定保存；重試不更換。payload 不保存 reply token 或長期使用者認證。 Inbox 的 reply token／敏感 payload 如確有必要，最小化保存、限制存取且按短期政策清理；尚無保存政策前不開正式流量。
 
-- 租約欄位：leaseOwner、leaseUntil、leaseVersion；每次領取遞增 version。terminal<br> 欄位：completedAt、errorCode、上游 request ID；不得保存原始機密錯誤。
+提案中的 Outbox 依工作狀態記錄以下欄位：
+
+| 時機           | 寫入內容                                                                      |
+| -------------- | ----------------------------------------------------------------------------- |
+| 領取工作       | 設定 `leaseOwner`、`leaseUntil`，每次領取遞增 `leaseVersion`。                |
+| 工作完成       | 在終態記錄 `completedAt`；有上游 request ID 時一併記錄供追查。                |
+| 工作以失敗結束 | 記錄終態時間、`errorCode` 與可用的上游 request ID；不得保存含機密的原始錯誤。 |
 
 <a id="查詢與索引需求"></a>
 
 ## 查詢與索引需求
 
-| 查詢 | 複合索引欄位（ASC） |
-| --- | --- |
-| 到期待執行 | status、nextRunAt、__name__（穩定排序） |
-| 可回收租約 | status、leaseUntil、__name__ |
-| 稽核列表 | resourceRef、occurredAt（列表若倒序則該欄 DESC） |
+| 查詢       | 複合索引欄位（ASC）                              |
+| ---------- | ------------------------------------------------ |
+| 到期待執行 | status、nextRunAt、`__name__`（穩定排序）        |
+| 可回收租約 | status、leaseUntil、`__name__`                   |
+| 稽核列表   | resourceRef、occurredAt（列表若倒序則該欄 DESC） |
 
 索引檔以實際查詢生成並在 staging 驗證；此表不是已部署索引。禁用大型 payload/content 的非必要單欄索引。 批次查詢有上限、游標分頁，避免 offset 與全庫掃描。資料遷移採 schemaVersion reader 相容與可重跑 migration；不得在請求路徑無界遷移。 TTL 僅在終態加 expireAt，工作中不可被 TTL 清除；刪除父文件不假設子集合一起刪除，刪除作業需列出所有子集合與驗證。
 

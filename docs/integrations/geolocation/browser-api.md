@@ -24,7 +24,7 @@ bash scripts/tooling/tool-exec.sh mise run dev
 
 POST /api/location/validate，Content-Type 為 application/json，body 上限 2 KiB。 不啟用跨來源 CORS，使用 Go CrossOriginProtection 拒絕瀏覽器跨來源寫入請求。
 
-{<br>  "latitude": 25.033,<br>  "longitude": 121.5654,<br>  "accuracyMeters": 20,<br>  "capturedAt": "2026-11-08T00:00:00Z"}
+{<br> "latitude": 25.033,<br> "longitude": 121.5654,<br> "accuracyMeters": 20,<br> "capturedAt": "2026-11-08T00:00:00Z"}
 
 - 範例時間請替換為目前時間。四欄皆必填，不接受 null、額外欄位或多個 JSON 值。 示範僅接受採樣時間在伺服器時間前 5 分鐘至後 1 分鐘之間；這是輸入新鮮度檢查， 不是出勤業務規則，不限制定位精度上限。0,0 是合法座標，缺欄不視為 0<br>。 成功回應 200 {"valid":true,"receivedAt":"<br>..."}；錯誤回應為 {"error":"..."}。 無效欄位／JSON 為 400、body 過大為 413、不支援的 Content-Type 為 415。 跨來源拒絕由 Go middleware 回應 403 純文字，錯誤 method 為 405。
 
@@ -60,12 +60,12 @@ POST /api/location/validate，Content-Type 為 application/json，body 上限 2 
 
 ## Go 接收契約（示範與出勤 route 均已實作）
 
-| 欄位 | JSON／Go | 驗證 |
-| --- | --- | --- |
-| 緯度 | latitude／Latitude float64 | 有限數，[-90,90] |
-| 經度 | longitude／Longitude float64 | 有限數，[-180,180] |
-| 精度 | accuracyMeters／AccuracyMeters float64 | 有限、非負，公尺；不是可信證明 |
-| 採樣時間 | capturedAt／CapturedAt time.Time | JS timestamp 轉 RFC3339 UTC；過舊／未來門檻依業務契約 |
+| 欄位     | JSON／Go                               | 驗證                                                  |
+| -------- | -------------------------------------- | ----------------------------------------------------- |
+| 緯度     | latitude／Latitude float64             | 有限數，[-90,90]                                      |
+| 經度     | longitude／Longitude float64           | 有限數，[-180,180]                                    |
+| 精度     | accuracyMeters／AccuracyMeters float64 | 有限、非負，公尺；不是可信證明                        |
+| 採樣時間 | capturedAt／CapturedAt time.Time       | JS timestamp 轉 RFC3339 UTC；過舊／未來門檻依業務契約 |
 
 Go 另產生 receivedAt，不信任客戶端時間；必填數值用 pointer／存在性檢查，不能把缺欄誤當合法 0。 不收集不必要的 altitude、heading、speed。出勤 route 依功能契約驗證定位新鮮度；目前只保存單次打卡位置，不設定精度上限或地理圍欄，也不宣稱到場判定。 驗證 session、CSRF、資源權限與 body limit；不接受任意 userId/groupId 作身分。 位置可偽造，不能作付款、身分或高風險授權唯一條件。精確位置不寫一般日誌、不自動推到群組。 出勤只把單次定位附在該次打卡紀錄，不建立持續定位歷史 collection。保存期與刪除政策仍須在正式營運前確立。
 
@@ -73,37 +73,13 @@ Go 另產生 receivedAt，不信任客戶端時間；必填數值用 pointer／�
 
 ## 現有出勤整合檔案與責任
 
-- ```text
-  backend/internal/business/attendance/adapter/http/punch.go
-  ：註冊 POST /api/v1/attendance/punches，驗證
-   LINE 身分、請求內容與原群組打卡請求。
-  ```
-
-- ```text
-  frontend/miniapp/src/business/attendance/punch/View.tsx
-  ：由 MINI App 取得單次定位並提交；只負責採樣
-  、UI 與請求，不決定授權。
-  ```
-
-- ```text
-  backend/internal/identity/http/identity.go：
-  提供可共用的 LINE 身分驗證；後端不信任前端自
-  行傳入的 user ID。
-  ```
-
-- ```text
-  backend/internal/business/attendance/adapter/firestore/attendance.go
-  ：在交易中驗證短效打卡請求，隔離群組狀態並保
-  存單次定位。
-  ```
-
-- ```text
-  backend/internal/transport/http/geolocation/geolocation.go
-   與
-  frontend/miniapp/src/diagnostics/geolocation/
-  {View.tsx,style.css}：保留獨立定位示範，不寫
-  入出勤資料。
-  ```
+| 實作入口                                                                                                                                                        | 責任                                                                               |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| [打卡 HTTP 入口](../../../backend/internal/business/attendance/adapter/http/punch.go)                                                                           | 處理 `POST /api/v1/attendance/punches`，驗證 LINE 身分、請求內容與原群組打卡請求。 |
+| [打卡畫面](../../../frontend/miniapp/src/business/attendance/punch/View.tsx)                                                                                    | 取得單次定位、呈現畫面並提交請求；授權由後端判定。                                 |
+| [身分驗證](../../../backend/internal/identity/http/identity.go)                                                                                                 | 驗證 LINE 身分，不採信前端自行提供的 user ID。                                     |
+| [出勤儲存](../../../backend/internal/business/attendance/adapter/firestore/attendance.go)                                                                       | 在交易中驗證短效打卡請求，隔離群組狀態並保存單次定位。                             |
+| [定位示範入口](../../../backend/internal/transport/http/geolocation/geolocation.go)、[示範畫面](../../../frontend/miniapp/src/diagnostics/geolocation/View.tsx) | 提供獨立定位示範，不寫入出勤資料。                                                 |
 
 - 現行實作
 

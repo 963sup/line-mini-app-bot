@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD041 -- GitHub embeds this template in an issue or pull request. -->
+
 ## 問題與變更
 
 說明具體問題、修改內容與預期行為。

@@ -10,14 +10,7 @@
 
 ## 在 Codex 使用本專案的參考技能
 
-關係不清楚時先用 [Graphify CLI](../shared/graphify.md#operation) 找相關路徑。已有本機參考包時，直接用下方技能查詢；首次使用或需要更新快照時，才從專案根目錄執行：
-
-```bash
-bash scripts/tooling/tool-exec.sh repomix \
-  --skill-generate repomix-reference-line-mini-app-bot \
-  --skill-output .agents/skills/repomix-reference-line-mini-app-bot \
-  --ignore '.mise/locks/**' --force
-```
+關係不清楚時先用 [Graphify CLI](../shared/graphify.md#operation) 找相關路徑。已有本機參考包時，直接用下方技能查詢；首次使用或需要更新快照時，請依[更新本專案參考技能](../shared/repomix.md#更新本專案參考技能)操作。
 
 在 Codex 聊天中選取技能，指定要查的問題：
 
@@ -25,7 +18,7 @@ bash scripts/tooling/tool-exec.sh repomix \
 $repomix-reference-line-mini-app-bot 請從參考包查出勤 Rich Menu 的畫布尺寸與三欄寬度，並與目前的 JSON 定義核對。
 ```
 
-要重現這個查詢，可在 `references/files.md` 搜尋 `## File: backend/internal/transport/line/navigation/attendance-rich-menu.json`，把該節的 `width`、`height`、`tabWidths` 與[目前定義](../../../../backend/internal/transport/line/navigation/attendance-rich-menu.json)比較。參考包是生成當下的快照，來源變更後可重跑上方命令。若聊天未列出技能，先執行 `bash scripts/tooling/tool-exec.sh skills list --agent codex` 檢查本機安裝，再從此專案開啟新工作階段。
+要重現這個查詢，可在 `references/files.md` 搜尋 `## File: backend/internal/transport/line/navigation/attendance-rich-menu.json`，把該節的 `width`、`height`、`tabWidths` 與[目前定義](../../../../backend/internal/transport/line/navigation/attendance-rich-menu.json)比較。參考包是生成當下的快照，來源變更後可依上述步驟更新。若聊天未列出技能，先執行 `bash scripts/tooling/tool-exec.sh skills list --agent codex` 檢查本機安裝，再從此專案開啟新工作階段。
 
 <a id="operation"></a>
 

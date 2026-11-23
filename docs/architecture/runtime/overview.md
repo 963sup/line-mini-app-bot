@@ -60,20 +60,11 @@ architecture-beta
 
 ## 文件路由
 
-- 任務：修改模組與依賴<br>維護位置：目前目錄、後端邊界
+| 任務               | 參考文件                                                                                                  |
+| ------------------ | --------------------------------------------------------------------------------------------------------- |
+| 修改模組與依賴     | [目前目錄](code-layout.md)、[後端邊界](backend-boundaries.md)                                             |
+| 修改資料與交易     | [Firestore 整合](../../integrations/firestore/connection.md)                                              |
+| 準備裝置或部署驗收 | [整合與發布驗收](../../operations/release-acceptance.md)、[Cloud Run 部署](../../operations/cloud-run.md) |
+| 比較現況與目標     | [工程平台目標架構](../../proposals/line-engineering/README.md#一完整系統總架構)                           |
 
-  - [目前目錄](code-layout.md)
-
-  - [後端邊界](backend-boundaries.md)
-
-- [任務：修改資料與交易<br>維護位置：Firestore 整合](../../integrations/firestore/connection.md)
-
-- 任務：準備裝置或部署驗收<br>維護位置：整合與發布驗收、Cloud Run 部署
-
-  - [整合與發布驗收](../../operations/release-acceptance.md)
-
-  - [Cloud Run 部署](../../operations/cloud-run.md)
-
-## 文件路由
-
-[與現況比較時可對照工程平台目標架構。](../../proposals/line-engineering/README.md#一完整系統總架構)
+<a id="文件路由-1"></a>

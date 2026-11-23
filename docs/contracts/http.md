@@ -38,11 +38,13 @@ flowchart TD
 
 ## API 一致性
 
-- 公開 API 以 /api/v1 為前綴。共用 JSON 錯誤包含 error.code 與 error.message，例如 {"error<br>":{"code":"forbidden","message":"operation not allowed"}}。各端點的媒體類型與 HTTP 狀態碼以 OpenAPI 為準。共用契約 · 錯誤回應實作
+公開 API 使用 `/api/v1` 前綴。各端點的媒體類型與 HTTP 狀態碼見 OpenAPI；共用錯誤回應包含 `error.code` 和 `error.message`。
 
-  - [共用契約](../../api/contract/common/transport.yaml)
+```json
+{"error":{"code":"forbidden","message":"operation not allowed"}}
+```
 
-  - [錯誤回應實作](../../backend/internal/transport/http/json.go)
+[共用契約](../../api/contract/common/transport.yaml) · [錯誤回應實作](../../backend/internal/transport/http/json.go)
 
 - [Cookie Session 的建立、續期、撤銷及 CSRF 檢查見 Session 契約。](identity.md)
 

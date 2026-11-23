@@ -24,17 +24,17 @@ flowchart TB
 
 下表命令從儲存庫根目錄透過 `bash scripts/tooling/tool-exec.sh <command>` 執行；`git diff --check` 除外。流程依下表與[證據限制](../../verification/evidence.md#evidence-limits)，不代表本次變更已通過所列檢查。
 
-| 變更類型 | 必要的既有檢查 | 條件式證據與限制 |
-| --- | --- | --- |
-| Markdown | `git diff --check`；核對變更頁面的本機路徑、標題錨點與相關索引 | 不執行無關應用測試；圖形變更依[文件規範](../../../standards/documentation.md#增量驗證)渲染 |
-| 設定、腳本、Agent 設定 | `python3 scripts/check/check-config.py`；相關既有腳本檢查或 smoke check | 依腳本實際影響補相應類型；不為驗證文件執行部署或外部寫入 |
-| Go 行為 | 開發時執行受影響套件的既有測試；交付前執行 `mise run fmt-check`、`mise run lint`、`mise run check`、`mise run build`、`mise run vuln` | `check` 已含模組驗證、vet 與完整 race 測試，不重複執行全套 race；不得格式化他人檔案 |
-| 公開 HTTP API | 依 [API 流程](../../../../api/README.md)更新契約與生成碼，執行 `pnpm api:check`；Go／前端變更另套對應列 | 核對相容性、認證、錯誤格式及既有行為；不手改產生檔；歷史相容性比較需另列 base revision |
-| 前端 | `pnpm --filter @repo/miniapp check`、`pnpm --filter @repo/miniapp test` | 靜態輸出、路由或資產變更另執行 `pnpm --filter @repo/miniapp build`；UI 另核對[元件規範](../../../../frontend/miniapp/src/shared/ui/AGENTS.md)與相關畫面 |
-| 依賴 | 核對 manifest 與鎖檔；執行受影響工作區的既有檢查 | Go 執行模組下載／驗證及 `mise run vuln`；不把下載成功當整合通過 |
-| Firestore | 套用 Go／API 對應列；核對功能契約中的路徑、授權、交易、防重與相容性，依[整合驗收流程](#firestore-integration)執行適用測試 | 索引或遷移須依既有指南驗證；沒有真實資料庫證據時，讀寫與交易整合仍待驗收 |
-| LINE 身分／Webhook | 套用 Go／API／前端對應列，檢查既有案例涵蓋的無效簽章／token、越權與重送 | 未涵蓋者列為證據缺口；真實渠道及裝置另驗收 |
-| Cloud Run／定位 | 套用設定與受影響程式的對應列；依[環境驗收要求](../../verification/evidence.md#cloud-run-and-browser-location)記錄 | 設定檢查、編譯與 mock 均不取代部署或裝置驗收 |
+| 變更類型               | 必要的既有檢查                                                                                                                        | 條件式證據與限制                                                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Markdown               | `pnpm docs:check`、`git diff --check`；核對變更頁面的本機路徑、標題錨點與相關索引                                                     | 不執行無關應用測試；圖形變更依[文件規範](../../../standards/documentation.md#增量驗證)渲染                                                              |
+| 設定、腳本、Agent 設定 | `python3 scripts/check/check-config.py`；相關既有腳本檢查或 smoke check                                                               | 依腳本實際影響補相應類型；不為驗證文件執行部署或外部寫入                                                                                                |
+| Go 行為                | 開發時執行受影響套件的既有測試；交付前執行 `mise run fmt-check`、`mise run lint`、`mise run check`、`mise run build`、`mise run vuln` | `check` 已含模組驗證、vet 與完整 race 測試，不重複執行全套 race；不得格式化他人檔案                                                                     |
+| 公開 HTTP API          | 依 [API 流程](../../../../api/README.md)更新契約與生成碼，執行 `pnpm api:check`；Go／前端變更另套對應列                               | 核對相容性、認證、錯誤格式及既有行為；不手改產生檔；歷史相容性比較需另列 base revision                                                                  |
+| 前端                   | `pnpm --filter @repo/miniapp check`、`pnpm --filter @repo/miniapp test`                                                               | 靜態輸出、路由或資產變更另執行 `pnpm --filter @repo/miniapp build`；UI 另核對[元件規範](../../../../frontend/miniapp/src/shared/ui/AGENTS.md)與相關畫面 |
+| 依賴                   | 核對 manifest 與鎖檔；執行受影響工作區的既有檢查                                                                                      | Go 執行模組下載／驗證及 `mise run vuln`；不把下載成功當整合通過                                                                                         |
+| Firestore              | 套用 Go／API 對應列；核對功能契約中的路徑、授權、交易、防重與相容性，依[整合驗收流程](#firestore-integration)執行適用測試             | 索引或遷移須依既有指南驗證；沒有真實資料庫證據時，讀寫與交易整合仍待驗收                                                                                |
+| LINE 身分／Webhook     | 套用 Go／API／前端對應列，檢查既有案例涵蓋的無效簽章／token、越權與重送                                                               | 未涵蓋者列為證據缺口；真實渠道及裝置另驗收                                                                                                              |
+| Cloud Run／定位        | 套用設定與受影響程式的對應列；依[環境驗收要求](../../verification/evidence.md#cloud-run-and-browser-location)記錄                     | 設定檢查、編譯與 mock 均不取代部署或裝置驗收                                                                                                            |
 
 命令定義以 [mise.toml](../../../../mise.toml)、[根 package.json](../../../../package.json) 與[前端 package.json](../../../../frontend/miniapp/package.json)為準。模組局部操作仍由各 README 維護，本頁集中決定何時需要執行。
 

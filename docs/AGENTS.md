@@ -8,12 +8,7 @@ Inherit [root guidance](../AGENTS.md). Follow [documentation standards](standard
 
 ## Responsibilities and boundaries
 
-Define reader goals, rule ownership and verifiable evidence before choosing document locations. Every rule MUST have one authority; other documents summarize or link.
-
-- `domains/` owns domain rules/invariants. Cross-boundary contracts own shared identity, authorization, events and API semantics; domain documents explain applications and representative cases.
-- `architecture/` explains system composition/operation; `integrations/` explains external-service integration, configuration and verification. External capabilities do not establish project implementation/deployment.
-- Accepted decisions belong in `decisions/`; proposals in `proposals/`. External concepts/sources may live in `references/`; adopted project rules remain with their responsible category.
-- `development/`, `operations/` and `standards/` own development, operations and engineering standards respectively. Tool versions, connection settings and secrets retain their authoritative sources.
+Locate the owning category and authority through the [repository documentation standard](standards/documentation.md#分類命名與權威). Use the topic's own specifications and evidence to validate any change.
 
 <a id="目錄配置"></a>
 
@@ -25,7 +20,7 @@ Choose the owning category from the [directory responsibilities](README.md#目�
 
 ## File and directory naming
 
-Files/directories MUST reflect actual responsibilities and business semantics with cohesion, single responsibility, clarity and consistency. Use lowercase English `kebab-case`, standard domain terminology and no vague names, redundant parent semantics/prefixes or unnecessary abbreviations. Use `README.md` for directory entry points, `AGENTS.md` for agent guidance and four-digit numbers plus `kebab-case` for ADRs. Rename only to improve semantics/boundaries, updating all references; do not refactor merely for naming uniformity.
+Follow the [repository naming rules for documentation](standards/documentation.md#分類命名與權威). When a rename clarifies ownership or meaning, update inbound references and preserve stable anchors.
 
 <a id="主題子目錄"></a>
 
@@ -49,6 +44,5 @@ Check relative paths, sources, anchors and indexes. Validate diagram meaning/ren
 
 ## Applicable engineering conventions
 
-- **Documentation authority:** Assign each rule, contract and decision one owning topic; maintain references and anchors instead of duplicating its full text.
 - **Models and compatibility:** Distinguish implemented behavior, proposed designs and migration requirements, using the same domain names as code and contracts.
 - **Acceptance:** Verify changed local links and diagrams against sources; record actual evidence and limitations without declaring unexecuted tests successful.
