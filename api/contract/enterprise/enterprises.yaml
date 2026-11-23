@@ -3,7 +3,7 @@
     "/api/v1/enterprises": {
       "post": {
         "summary": "Create an enterprise or return the one already provisioned for this account",
-        "description": "A repeated request returns the existing enterprise when the caller still owns it. The submitted name applies only on initial creation.",
+        "description": "Provisioning eligibility must remain enabled. A repeated request returns the existing enterprise only when it is not disabled, its membershipMode is empty or legacy, and the caller still owns it. Revoked eligibility, changed ownership, disabled enterprises and other membership modes return 403 forbidden without creating another enterprise or modifying the entitlement. The submitted name applies only on initial creation.",
         "operationId": "createEnterprise",
         "security": [
           {
@@ -45,7 +45,7 @@
             }
           },
           "403": {
-            "description": "Request failed",
+            "description": "Provisioning eligibility or current enterprise lifecycle/ownership does not permit creation or replay.",
             "content": {
               "application/json": {
                 "schema": {

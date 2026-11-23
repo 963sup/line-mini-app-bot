@@ -120,7 +120,7 @@ func CreateInTransaction(tx *firestore.Transaction, root *firestore.DocumentRef,
 		if e != nil {
 			return nil, e
 		}
-		if !existing.IsOwner(user) {
+		if !legacyEnterpriseEnabled(existing) || !existing.IsOwner(user) {
 			return nil, organizationDomainEntity.ErrForbidden
 		}
 		return &dto.Link{ID: g.EnterpriseID, Name: existing.Name}, nil

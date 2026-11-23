@@ -93,3 +93,15 @@
 - `mise run fmt-check`、`lint`、`check`、`build`、`vuln`：通過；`check` 使用 loopback emulator 執行，包含模組驗證、vet 與 race suite，沿用仍有效的快取。漏洞檢查未發現可達漏洞。
 - `pnpm format:check`、`pnpm check`：通過，包含契約／生成碼、型別、靜態輸出與設定檢查；前端 171 項及 Python 23 項回歸通過。
 - 文件本機連結／錨點及 whitespace 檢查通過。DDD 參考資料及上游快照維持原狀；沒有執行雲端寫入或資料模式切換。
+
+## 第二輪：企業開通重送的生命週期
+
+基準為上一輪已發布的 `2f4b46d1`。現行 `POST /api/v1/enterprises` 在開通收據已有 enterpriseId 時，只核對舊 Owner 欄位；企業已停用、切至 `membership` 或未知模式仍回 200。這讓建立重送的授權與現行 legacy 企業生命週期不一致。
+
+修正沿用 Enterprise 已有的 `legacyEnterpriseEnabled` 判斷，在原交易內同時核對目前開通資格、企業生命週期與 Owner，不新增授權來源、資源或資料遷移。OpenAPI 補上既有 403 的具體語意，重新生成 Go 與 TypeScript 契約；有效的空值／legacy 模式及舊單一 Owner 格式仍可回放。
+
+[HTTP／Firestore 回歸案例](../../../backend/internal/business/enterprise/adapter/firestore/provisioning_test.go)涵蓋八種狀態。修正前，停用、獨立模式與未知模式三例錯回 200；修正後八例通過，並核對回應、企業筆數，以及企業與開通資格均未被重送改寫。既有 Bot 建立對話的 emulator／race 案例亦通過。
+
+36 項里程碑維持：1–25、27–36 各 75%，26 為 50%，等權平均 74.3%。本輪增加第 2、17、19、20、21、23 項的具體證據，不將單一操作修復當成整項全庫驗收完成。尚未啟用獨立 Membership、修改正式資料或執行部署。
+
+本輪發布驗證以獨立 Git index 快照為準，排除其他工作中的工時計算與 Journal 表單修改。`go test -race -p=2 ./...`（loopback emulator）、lint、vet、release build、漏洞檢查均通過；API 生成同步、對 `2f4b46d1` 的契約相容性比較、前端型別、文件連結／錨點及 whitespace 檢查亦通過。首次全套驗證因磁碟滿而中斷，清理已完成工作快照及可重建 Go 快取後重跑；快照的 browser 測試補齊既有靜態輸出後通過，未把環境失敗列為成功證據。DDD 的 69 個參考檔案維持原狀。

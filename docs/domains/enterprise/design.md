@@ -13,7 +13,7 @@
 | 操作 | 後端規則與前端呈現 |
 |---|---|
 | 顯示入口 | 組織 context 一併回傳 enterprises 與 canCreateEnterprise；空企業也對其 Owner 顯示。側欄直接使用回應。 |
-| POST /api/v1/enterprises | 名稱為 1–120 字。後端於交易內核對登入者資格、建立企業、加入第一位 Owner 並記錄 enterpriseId。重送同一開通請求回傳既有企業。 |
+| POST /api/v1/enterprises | 名稱為 1–120 字。後端於交易內核對登入者資格、建立企業、加入第一位 Owner 並記錄 enterpriseId。重送時仍在同一交易核對開通資格有效、既有企業未停用且處於空值／legacy 模式，並確認操作者仍為 Owner；符合才回傳既有企業。資格撤銷、失去 Owner、企業停用或模式不符時回 403，不建立第二家企業、不修改資格或回傳舊企業內容。 |
 | GET /api/v1/enterprises/{enterpriseId} | 企業 Owner 與管理者可看旗下組織及企業團隊清單；一般組織成員只看本人可見組織及已指派且通過 LINE 成員核驗的 Team。只有 Owner 收到 canManage=true。 |
 | POST /api/v1/enterprises/{enterpriseId}/owners | 現任企業 Owner 可新增另一位 Owner；交易保留原有 Owner，支援既有 ownerUserId。 |
 | POST /api/v1/enterprises/{enterpriseId}/organizations | 操作者須同時擁有企業與目標組織；已屬其他企業回 409。獨立組織可繼續單獨運作。 |
