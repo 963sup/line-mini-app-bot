@@ -35,3 +35,15 @@ flowchart TD
 ```
 
 驗收先選一個包含兩個庫的專案，測試開啟指定項目、加入有效來源、來源失權與版本衝突。確認更新專案進度不改寫來源狀態，並量測首次完成率、找到指定項目時間與重選次數。
+
+## 瀏覽器閉環驗收
+
+先建置 MINI App 靜態頁面，啟動本機 Firestore emulator，並準備 Python Playwright 與 Chromium。在 backend 目錄執行：
+
+```bash
+MINIAPP_BROWSER_EXPORT="$(cd ../frontend/miniapp/out && pwd)" \
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 \
+go test -count=1 -run '^TestProjectSettingsBrowserRoundTrip$' ./internal/business/project/adapter/firestore
+```
+
+測試透過瀏覽器建立個人專案、儲存欄位與檢視、複製到組織，最後重新開啟兩份專案，核對欄位名稱、選項及檢視引用。組織與專案資料經 Go HTTP 處理器讀寫 emulator；LINE 登入與 session 使用測試身分。
