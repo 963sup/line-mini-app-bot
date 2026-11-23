@@ -36,9 +36,9 @@
 
 - 需求：摘要／天氣<br>規格與不可破壞的契約：摘要入口、天氣入口<br>主要修改入口：backend/internal/business/summary/、weather/forecast/；不自動加入公開 HTTP 契約
 
-  - [摘要入口](../../../api/contract/summary/)
+  - [摘要入口](../../../api/contract/summary/worker.yaml)
 
-  - [天氣入口](../../../api/contract/weather/)
+  - [天氣入口](../../domains/weather/design.md)
 
 - [需求：Firestore 欄位、交易或遷移<br>規格與不可破壞的契約：所屬功能規格與資料契約適用範圍<br>主要修改入口：功能 firestore/ adapter；索引 firestore.indexes.json；已退役的舊 Project 遷移不再提供](dependencies.md#契約與不變條件的維護位置)
 
