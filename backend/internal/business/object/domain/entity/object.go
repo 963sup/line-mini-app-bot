@@ -1,16 +1,15 @@
 package entity
 
 import (
-	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
-)
-
-import (
 	"errors"
 	"math/big"
 	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/policy"
+	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/valueobject"
 )
 
 var ErrProgressRemoval = errors.New("completed work cannot become non-work")
@@ -27,7 +26,9 @@ var ErrCreationConflict = errors.New("object creation key conflict")
 
 var ErrUnavailable = errors.New("object storage unavailable")
 
-var decimal = regexp.MustCompile(`^(0|[1-9][0-9]{0,17})(\.[0-9]{1,6})?$`)
+const maxObjectVersion int64 = 1<<53 - 1 // Largest exact integer in the public JSON contract.
+
+var resourceID = regexp.MustCompile(`^[0-9a-f]{32}$`)
 
 type Content struct {
 	ParentID          string
@@ -54,7 +55,20 @@ type Object struct {
 	CreatedAt, UpdatedAt                time.Time
 }
 
-func (v Object) CanEdit(actor string) bool { return actor != "" && actor == v.CreatorID }
+// New validates the prepared content for a manual object or a template node.
+// Creation defaults are applied before persistence so legacy inputs retain absent completion.
+func New(id, repositoryID, creatorID string, content Content, at time.Time) (Object, error) {
+	content, err := Normalize(content)
+	if err != nil {
+		return Object{}, err
+	}
+	return Object{
+		Content: content, ID: id, RepositoryID: repositoryID, CreatorID: creatorID,
+		Status: content.InitialStatus(), Version: 1, CreatedAt: at, UpdatedAt: at,
+	}, nil
+}
+
+func (v Object) CanEdit(actor string) bool { return policy.CanEdit(actor, v.CreatorID) }
 
 type SourceUpdate struct{ SourceDocument, SourceRevision, SourceItemNo, SourcePages, MaterialCode *string }
 
@@ -87,42 +101,46 @@ func ValidStatus(s string) bool {
 	}
 }
 
-// WorkStatus uses exact rational comparison after decimal validation.
+// WorkStatus compares exact decimal quantities.
 func WorkStatus(total, done string) (string, error) {
-	if !decimal.MatchString(total) || !decimal.MatchString(done) {
-		return "", ErrInput
-	}
-	quantity, ok := new(big.Rat).SetString(total)
-	if !ok || quantity.Sign() <= 0 {
-		return "", ErrInput
-	}
-	completed, ok := new(big.Rat).SetString(done)
-	if !ok || completed.Sign() < 0 || completed.Cmp(quantity) > 0 {
+	quantity, ok := valueobject.ParseQuantity(total)
+	completed, valid := valueobject.ParseQuantity(done)
+	if !ok || !valid || quantity.IsZero() || completed.Compare(quantity) > 0 {
 		return "", ErrInput
 	}
 	switch {
-	case completed.Sign() == 0:
+	case completed.IsZero():
 		return StatusNotStarted, nil
-	case completed.Cmp(quantity) == 0:
+	case completed.Compare(quantity) == 0:
 		return StatusCompleted, nil
 	default:
 		return StatusInProgress, nil
 	}
 }
 
-func canonicalDecimal(s string) string {
-	if strings.Contains(s, ".") {
-		return strings.TrimRight(strings.TrimRight(s, "0"), ".")
+// NormalizeCreation supplies the initial completed quantity for new tracked work.
+func NormalizeCreation(c Content) (Content, error) {
+	if strings.TrimSpace(c.Type) == TypeWork && strings.TrimSpace(c.Quantity) != "" && c.CompletedQuantity == "" {
+		c.CompletedQuantity = "0"
 	}
-	return s
+	return Normalize(c)
+}
+
+// InitialStatus derives the initial state of normalized creation content.
+func (c Content) InitialStatus() string {
+	if c.Type == TypeWork && c.CompletedQuantity != "" {
+		status, _ := WorkStatus(c.Quantity, c.CompletedQuantity)
+		return status
+	}
+	return StatusNotStarted
 }
 
 func Normalize(c Content) (Content, error) {
-	if c.ParentID != "" && !repositoryDomainEntity.ValidID(c.ParentID) {
+	if c.ParentID != "" && !resourceID.MatchString(c.ParentID) {
 		return Content{}, ErrInput
 	}
 	c.SpaceID = strings.TrimSpace(c.SpaceID)
-	if c.SpaceID != "" && !repositoryDomainEntity.ValidID(c.SpaceID) {
+	if c.SpaceID != "" && !resourceID.MatchString(c.SpaceID) {
 		return Content{}, ErrInput
 	}
 	fields := []struct {
@@ -137,14 +155,12 @@ func Normalize(c Content) (Content, error) {
 		}
 	}
 	c.Quantity = strings.TrimSpace(c.Quantity)
-	if c.Quantity != "" && !decimal.MatchString(c.Quantity) {
-		return Content{}, ErrInput
-	}
-	if strings.Contains(c.Quantity, ".") {
-		c.Quantity = strings.TrimRight(strings.TrimRight(c.Quantity, "0"), ".")
-	}
-	if c.Quantity == "0" {
-		return Content{}, ErrInput
+	if c.Quantity != "" {
+		q, ok := valueobject.ParseQuantity(c.Quantity)
+		if !ok || q.IsZero() {
+			return Content{}, ErrInput
+		}
+		c.Quantity = q.String()
 	}
 	if c.CompletedQuantity != "" {
 		c.CompletedQuantity = strings.TrimSpace(c.CompletedQuantity)
@@ -154,7 +170,8 @@ func Normalize(c Content) (Content, error) {
 		if _, e := WorkStatus(c.Quantity, c.CompletedQuantity); e != nil {
 			return Content{}, e
 		}
-		c.CompletedQuantity = canonicalDecimal(c.CompletedQuantity)
+		done, _ := valueobject.ParseQuantity(c.CompletedQuantity)
+		c.CompletedQuantity = done.String()
 	}
 	return c, nil
 }
@@ -249,7 +266,7 @@ func ApplyUpdate(current Object, actor string, input Update) (Object, error) {
 	if current.Content == c && current.Status == status {
 		return current, nil
 	}
-	if current.Version >= repositoryDomainEntity.MaxResourceNumber {
+	if current.Version >= maxObjectVersion {
 		return Object{}, ErrConflict
 	}
 	current.Content = c

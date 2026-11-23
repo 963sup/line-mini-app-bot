@@ -9,10 +9,10 @@ import (
 	"time"
 
 	db "cloud.google.com/go/firestore"
-	"github.com/963sup/line-mini-app-bot/internal/business/object/application"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/service"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/template"
 	repository "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
@@ -68,8 +68,8 @@ func templateDecode(snap *db.DocumentSnapshot, err error, rid string) (dto.Templ
 	for i, n := range d.Nodes {
 		nodes[i] = template.Node{ID: n.ID, ParentID: n.ParentID, Name: n.Name, Description: n.Description, Type: n.Type, Quantity: n.Quantity, Unit: n.Unit}
 	}
-	raw := dto.TemplateCreation{Name: d.Name, Nodes: nodes}
-	normalized, e := application.NormalizeTemplate(raw)
+	raw := service.Definition{Name: d.Name, Nodes: nodes}
+	normalized, e := service.NormalizeTemplate(raw)
 	if e != nil || !reflect.DeepEqual(raw, normalized) || d.SchemaVersion != 1 || d.Version < 1 || !repository.ValidID(d.ID) || d.ID != snap.Ref.ID || d.RepositoryID != rid || d.CreatorID == "" || d.CreatedAt.IsZero() {
 		return dto.Template{}, entity.ErrUnavailable
 	}
@@ -282,7 +282,7 @@ func (s *Store) InstantiateTemplate(ctx context.Context, r repository.Repository
 	if len(edits) != 0 {
 		nodes = edits[0]
 	}
-	if snapshot.RepositoryID != r.ID || snapshot.Version != 1 || len(plan) != len(nodes) || len(plan) == 0 || len(plan) > application.MaxTemplateNodes {
+	if snapshot.RepositoryID != r.ID || snapshot.Version != 1 || len(plan) != len(nodes) || len(plan) == 0 || len(plan) > service.MaxTemplateNodes {
 		return dto.TemplateInstance{}, entity.ErrInput
 	}
 	return s.instantiateTemplate(ctx, r, actor, key, snapshot, parentID, nodes, plan, len(edits) != 0, false)
@@ -369,7 +369,7 @@ func (s *Store) instantiateTemplate(ctx context.Context, r repository.Repository
 			if current.Version != snapshot.Version {
 				return entity.ErrConflict
 			}
-			_, creationPlan, e = application.PlanTemplateInstance(current, nodes)
+			_, creationPlan, e = service.PlanTemplateInstance(current.Version, service.Definition{Name: current.Name, Nodes: current.Nodes}, nodes)
 			if e != nil {
 				return e
 			}
@@ -390,11 +390,13 @@ func (s *Store) instantiateTemplate(ctx context.Context, r repository.Repository
 			if n.ParentID != "" {
 				c.ParentID = ids[n.ParentID]
 			}
-			c, e = entity.Normalize(c)
+			object, e := entity.New(refs[i].ID, r.ID, actor, c, now)
 			if e != nil {
 				return e
 			}
-			object := entity.Object{Content: c, ID: refs[i].ID, RepositoryID: r.ID, CreatorID: actor, Status: initialStatus(c), Version: 1, CreatedAt: now, UpdatedAt: now, TemplateID: snapshot.ID, TemplateVersion: snapshot.Version, TemplateNodeID: n.ID}
+			object.TemplateID = snapshot.ID
+			object.TemplateVersion = snapshot.Version
+			object.TemplateNodeID = n.ID
 			if e = tx.Create(refs[i], encode(object)); e != nil {
 				return e
 			}

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/963sup/line-mini-app-bot/internal/business/object/application/command"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
 	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
 )
@@ -53,7 +54,7 @@ func TestTemplateDraftPreparation(t *testing.T) {
 			t.Fatal("document quantity copied into template")
 		}
 	}
-	if _, err := NormalizeTemplate(result.Draft); err != nil {
+	if _, err := command.NormalizeTemplate(result.Draft); err != nil {
 		t.Fatal(err)
 	}
 	p.candidates[0].Name = strings.Repeat("長", 121)

@@ -213,7 +213,7 @@ func TestEmulatorEditedTemplate(t *testing.T) {
 func TestEmulatorPersonalTemplateAcrossRepositories(t *testing.T) {
 	ctx, store, r := emulatorStore(t)
 	repos := &templateRepositories{r: r}
-	service := application.Service{Repositories: repos, Store: store, Templates: store, PersonalTemplates: store}
+	service := application.Service{Repositories: repos, Store: store, PersonalTemplates: store}
 	nodes := []template.Node{{ID: "root", Name: "電力系統"}, {ID: "cable", ParentID: "root", Name: "線材", Unit: "米"}}
 	created, err := service.CreatePersonalTemplate(ctx, "alice", "create-personal-key", dto.TemplateCreation{Name: "電力", Nodes: nodes})
 	if err != nil {
@@ -317,5 +317,53 @@ func TestEmulatorPersonalTemplateRevision(t *testing.T) {
 	newer, err := s.InstantiatePersonalTemplate(ctx, "alice", r.ID, original.ID, "apply-new-version", "", updated.Nodes, 2)
 	if err != nil || newer.TemplateVersion != 2 {
 		t.Fatalf("new instance %+v %v", newer, err)
+	}
+}
+
+func TestEmulatorManualAndTemplateChildrenShareObjectRules(t *testing.T) {
+	ctx, store, repo := emulatorStore(t)
+	service := application.Service{Repositories: &templateRepositories{r: repo}, Store: store, PersonalTemplates: store}
+	parent, err := service.Create(ctx, "bob", repo.ID, "create-parent-object", entity.Content{Name: "parent"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := entity.Content{Name: "child", ParentID: parent.ID}
+	manual, err := service.Create(ctx, "alice", repo.ID, "manual-child-object", want)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshot, err := service.CreatePersonalTemplate(ctx, "alice", "create-child-template", dto.TemplateCreation{
+		Name: "child template", Nodes: []template.Node{{ID: "root", Name: want.Name}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	instance, err := service.InstantiatePersonalTemplate(ctx, "alice", repo.ID, snapshot.ID, "apply-child-template", parent.ID, snapshot.Nodes, snapshot.Version)
+	if err != nil {
+		t.Fatal(err)
+	}
+	applied, err := service.Get(ctx, "alice", repo.ID, instance.RootObjectID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, obj := range []entity.Object{manual, applied} {
+		if obj.Content != want || obj.Version != 1 || obj.Status != entity.StatusNotStarted || !obj.CanEdit("alice") || obj.CanEdit("bob") {
+			t.Fatalf("unexpected new child %+v", obj)
+		}
+		edit := entity.Update{Content: entity.Content{Name: "edited", Quantity: "9007199254740993.123456", Unit: "m"}, ExpectedVersion: 1}
+		if _, err := service.Update(ctx, "bob", repo.ID, obj.ID, edit); !errors.Is(err, entity.ErrForbidden) {
+			t.Fatalf("parent creator edit: %v", err)
+		}
+		saved, err := service.Update(ctx, "alice", repo.ID, obj.ID, edit)
+		if err != nil || saved.ParentID != parent.ID || saved.Quantity != edit.Quantity || saved.Version != 2 || saved.TemplateID != obj.TemplateID || saved.TemplateVersion != obj.TemplateVersion {
+			t.Fatalf("changed child %+v, error %v", saved, err)
+		}
+	}
+	if manual.TemplateID != "" || applied.TemplateID != snapshot.ID || applied.TemplateVersion != snapshot.Version || applied.TemplateNodeID != "root" {
+		t.Fatalf("unexpected provenance: manual %+v, applied %+v", manual, applied)
+	}
+	persisted, err := service.Get(ctx, "bob", repo.ID, parent.ID)
+	if err != nil || persisted.Version != parent.Version || persisted.Content != parent.Content {
+		t.Fatalf("parent changed: %+v, %v", persisted, err)
 	}
 }

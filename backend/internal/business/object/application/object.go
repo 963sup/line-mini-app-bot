@@ -1,123 +1,92 @@
 package application
 
 import (
-	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
-	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
-)
-
-import (
 	"context"
 	"errors"
-	"regexp"
-	"strings"
 
-	objectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
-	objectApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/object/application/port"
-	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+	"github.com/963sup/line-mini-app-bot/internal/business/object/application/command"
+	"github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
+	"github.com/963sup/line-mini-app-bot/internal/business/object/application/port"
+	"github.com/963sup/line-mini-app-bot/internal/business/object/application/query"
+	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
+	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
+	repository "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
-var creationKey = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
-
 type Service struct {
-	QuantityHistory    objectApplicationPort.QuantityHistory
+	QuantityHistory    port.QuantityHistory
 	TemplatePreparer   TemplatePreparer
-	Templates          objectApplicationPort.TemplateStore
-	PersonalTemplates  objectApplicationPort.PersonalTemplateStore
+	Templates          port.TemplateStore
+	PersonalTemplates  port.PersonalTemplateStore
 	CandidateExtractor operations.CandidateExtractor
-	Repositories       objectApplicationPort.Repositories
-	Store              objectApplicationPort.Store
+	Repositories       port.Repositories
+	Store              port.Store
 }
 
-func (s *Service) scope(ctx context.Context, actor, id string) (repositoryDomainEntity.Repository, error) {
+func (s *Service) scope(ctx context.Context, actor, id string) (repository.Repository, error) {
 	if s == nil || s.Store == nil || s.Repositories == nil {
-		return repositoryDomainEntity.Repository{}, objectDomainEntity.ErrUnavailable
+		return repository.Repository{}, entity.ErrUnavailable
 	}
-	if actor == "" || !repositoryDomainEntity.ValidID(id) {
-		return repositoryDomainEntity.Repository{}, objectDomainEntity.ErrNotFound
+	if actor == "" || !repository.ValidID(id) {
+		return repository.Repository{}, entity.ErrNotFound
 	}
 	r, err := s.Repositories.Get(ctx, actor, id)
-	if errors.Is(err, repositoryDomainEntity.ErrNotFound) {
-		return repositoryDomainEntity.Repository{}, objectDomainEntity.ErrNotFound
+	if errors.Is(err, repository.ErrNotFound) {
+		return repository.Repository{}, entity.ErrNotFound
 	}
 	if err != nil {
-		return repositoryDomainEntity.Repository{}, err
+		return repository.Repository{}, err
 	}
 	// Membership is checked by Repositories.Get; active identity/scope is still explicit here.
-	if r.ID != id || r.Status != "ACTIVE" || !repositoryDomainEntity.ValidOwner(r.OwnerID) {
-		return repositoryDomainEntity.Repository{}, objectDomainEntity.ErrNotFound
+	if r.ID != id || r.Status != "ACTIVE" || !repository.ValidOwner(r.OwnerID) {
+		return repository.Repository{}, entity.ErrNotFound
 	}
 	return r, nil
 }
 
-// ExtractCandidates authorizes the document request without creating objects.
 func (s *Service) ExtractCandidates(ctx context.Context, actor, repositoryID string, document operations.Document) (operations.Extraction, error) {
 	if _, err := s.scope(ctx, actor, repositoryID); err != nil {
 		return operations.Extraction{}, err
 	}
-	if s.CandidateExtractor == nil {
-		return operations.Extraction{}, objectDomainEntity.ErrUnavailable
-	}
-	return s.CandidateExtractor.ExtractCandidates(ctx, document)
+	return query.ExtractCandidates(ctx, s.CandidateExtractor, document)
 }
 
-func (s *Service) List(ctx context.Context, actor, id, cursor string, parent ...string) (objectApplicationDto.Page, error) {
+func (s *Service) List(ctx context.Context, actor, id, cursor string, parent ...string) (dto.Page, error) {
 	r, e := s.scope(ctx, actor, id)
 	if e != nil {
-		return objectApplicationDto.Page{}, e
+		return dto.Page{}, e
 	}
-	if len(cursor) > 1024 || (len(parent) > 0 && parent[0] != "" && !repositoryDomainEntity.ValidID(parent[0])) {
-		return objectApplicationDto.Page{}, objectDomainEntity.ErrInput
-	}
-	return s.Store.List(ctx, r, actor, cursor, parent...)
+	return query.List(ctx, s.Store, r, actor, cursor, parent...)
 }
 
-func (s *Service) Get(ctx context.Context, actor, rid, id string) (objectDomainEntity.Object, error) {
+func (s *Service) Get(ctx context.Context, actor, rid, id string) (entity.Object, error) {
 	r, e := s.scope(ctx, actor, rid)
 	if e != nil {
-		return objectDomainEntity.Object{}, e
+		return entity.Object{}, e
 	}
-	if !repositoryDomainEntity.ValidID(id) {
-		return objectDomainEntity.Object{}, objectDomainEntity.ErrNotFound
-	}
-	return s.Store.Get(ctx, r, id)
+	return query.Get(ctx, s.Store, r, id)
 }
 
-func (s *Service) Create(ctx context.Context, actor, rid, key string, c objectDomainEntity.Content) (objectDomainEntity.Object, error) {
+func (s *Service) Create(ctx context.Context, actor, rid, key string, c entity.Content) (entity.Object, error) {
 	r, e := s.scope(ctx, actor, rid)
 	if e != nil {
-		return objectDomainEntity.Object{}, e
+		return entity.Object{}, e
 	}
-	if strings.TrimSpace(c.Type) == objectDomainEntity.TypeWork && strings.TrimSpace(c.Quantity) != "" && c.CompletedQuantity == "" {
-		c.CompletedQuantity = "0"
-	}
-	c, e = objectDomainEntity.Normalize(c)
-	if e != nil || !creationKey.MatchString(key) {
-		return objectDomainEntity.Object{}, objectDomainEntity.ErrInput
-	}
-	return s.Store.Create(ctx, r, actor, key, c)
+	return command.Create(ctx, s.Store, r, actor, key, c)
 }
 
-func (s *Service) Update(ctx context.Context, actor, rid, id string, u objectDomainEntity.Update) (objectDomainEntity.Object, error) {
+func (s *Service) Update(ctx context.Context, actor, rid, id string, u entity.Update) (entity.Object, error) {
 	r, e := s.scope(ctx, actor, rid)
 	if e != nil {
-		return objectDomainEntity.Object{}, e
+		return entity.Object{}, e
 	}
-	if !repositoryDomainEntity.ValidID(id) {
-		return objectDomainEntity.Object{}, objectDomainEntity.ErrNotFound
-	}
-	return s.Store.Update(ctx, r, actor, id, u)
+	return command.Update(ctx, s.Store, r, actor, id, u)
 }
 
-func (s *Service) ListQuantityChanges(ctx context.Context, actor, rid, cursor string) (objectApplicationDto.QuantityChangePage, error) {
+func (s *Service) ListQuantityChanges(ctx context.Context, actor, rid, cursor string) (dto.QuantityChangePage, error) {
 	r, err := s.scope(ctx, actor, rid)
 	if err != nil {
-		return objectApplicationDto.QuantityChangePage{}, err
+		return dto.QuantityChangePage{}, err
 	}
-	if len(cursor) > 1024 {
-		return objectApplicationDto.QuantityChangePage{}, objectDomainEntity.ErrInput
-	}
-	if s.QuantityHistory == nil {
-		return objectApplicationDto.QuantityChangePage{}, objectDomainEntity.ErrUnavailable
-	}
-	return s.QuantityHistory.ListQuantityChanges(ctx, r, actor, cursor)
+	return query.ListQuantityChanges(ctx, s.QuantityHistory, r, actor, cursor)
 }

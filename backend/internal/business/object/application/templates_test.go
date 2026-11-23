@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/963sup/line-mini-app-bot/internal/business/object/application/command"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/template"
@@ -42,7 +43,7 @@ func (s *templateStoreStub) InstantiateTemplate(_ context.Context, _ repository.
 func TestTemplateValidationAndAuthority(t *testing.T) {
 	rid := strings.Repeat("a", 32)
 	base := dto.TemplateCreation{Name: " 範本 ", Nodes: []template.Node{{ID: "root", Name: " 根 "}, {ID: "child", ParentID: "root", Name: " 施工 ", Type: "work", Quantity: "2.000000", Unit: "組"}}}
-	normalized, e := NormalizeTemplate(base)
+	normalized, e := command.NormalizeTemplate(base)
 	if e != nil || normalized.Name != "範本" || normalized.Nodes[1].Quantity != "2" {
 		t.Fatal(normalized, e)
 	}
@@ -59,7 +60,7 @@ func TestTemplateValidationAndAuthority(t *testing.T) {
 		{Name: "x", Nodes: []template.Node{{ID: "r", Name: "x"}, {ID: "s", ParentID: "missing", Name: "y"}}},
 	}
 	for _, in := range cases {
-		if _, e := NormalizeTemplate(in); !errors.Is(e, entity.ErrInput) {
+		if _, e := command.NormalizeTemplate(in); !errors.Is(e, entity.ErrInput) {
 			t.Fatalf("accepted %+v: %v", in, e)
 		}
 	}
@@ -67,7 +68,7 @@ func TestTemplateValidationAndAuthority(t *testing.T) {
 	for i := range 101 {
 		tooLarge.Nodes = append(tooLarge.Nodes, template.Node{ID: strings.Repeat("a", i+1), Name: "x"})
 	}
-	if _, e := NormalizeTemplate(tooLarge); !errors.Is(e, entity.ErrInput) {
+	if _, e := command.NormalizeTemplate(tooLarge); !errors.Is(e, entity.ErrInput) {
 		t.Fatal(e)
 	}
 	store := &templateStoreStub{snapshot: dto.Template{ID: rid, RepositoryID: rid, Version: 1, Nodes: normalized.Nodes}}

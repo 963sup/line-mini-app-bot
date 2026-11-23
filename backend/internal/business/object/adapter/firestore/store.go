@@ -248,7 +248,10 @@ func (s *Store) Create(ctx context.Context, r repositoryDomainEntity.Repository,
 				return parentErr
 			}
 		}
-		result = objectDomainEntity.Object{Content: c, ID: id, RepositoryID: r.ID, CreatorID: actor, Status: initialStatus(c), Version: 1, CreatedAt: now, UpdatedAt: now}
+		result, e = objectDomainEntity.New(id, r.ID, actor, c, now)
+		if e != nil {
+			return e
+		}
 		if e = tx.Create(ref, encode(result)); e != nil {
 			return e
 		}
@@ -301,14 +304,6 @@ func (s *Store) Update(ctx context.Context, r repositoryDomainEntity.Repository,
 		return objectDomainEntity.Object{}, err
 	}
 	return result, nil
-}
-
-func initialStatus(c objectDomainEntity.Content) string {
-	if c.Type == objectDomainEntity.TypeWork && c.CompletedQuantity != "" {
-		status, _ := objectDomainEntity.WorkStatus(c.Quantity, c.CompletedQuantity)
-		return status
-	}
-	return objectDomainEntity.StatusNotStarted
 }
 
 // validateSpace reads only below the current channel/repository parent. Business
