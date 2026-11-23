@@ -68,6 +68,28 @@
       "collectionGroup": "sessions",
       "fieldPath": "*",
       "indexes": []
+    },
+    {
+      "collectionGroup": "summaryMessages",
+      "fieldPath": "ExpireAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "summaryJobs",
+      "fieldPath": "ExpireAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "summaryMessages",
+      "fieldPath": "Text",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "summaryJobs",
+      "fieldPath": "Result",
+      "indexes": []
     }
   ]
 }

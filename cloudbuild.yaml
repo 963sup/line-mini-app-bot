@@ -19,6 +19,10 @@ steps:
       - 'LINE_MINI_APP_PUBLISHED_ENDPOINT_URL=${_MINI_APP_PUBLISHED_ENDPOINT_URL}'
       - 'SECRET_VERSION=${_CHANNEL_SECRET_VERSION}'
       - 'TOKEN_VERSION=${_CHANNEL_ACCESS_TOKEN_VERSION}'
+      - 'MINI_VERSION=${_MINI_APP_CHANNEL_SECRET_VERSION}'
+      - 'GEMINI_VERSION=${_GEMINI_API_KEY_VERSION}'
+      - 'OPENAI_VERSION=${_OPENAI_API_KEY_VERSION}'
+      - 'CWA_VERSION=${_CWA_API_KEY_VERSION}'
     args:
       - -ceu
       - |
@@ -36,10 +40,11 @@ steps:
         [[ "$${!channel_key}" =~ ^[0-9]+$ && "$${!liff_key}" == "$${!channel_key}-"?* && -n "$${!endpoint_key}" ]] || {
           echo 'Set the selected MINI App Channel ID, matching LIFF ID and Endpoint URL.' >&2; exit 2;
         }
-        [[ "$${SECRET_VERSION}" =~ ^[1-9][0-9]*$ ]] &&
-        [[ "$${TOKEN_VERSION}" =~ ^[1-9][0-9]*$ ]] || {
-          echo 'Secret versions must be positive version numbers, not latest.' >&2; exit 2;
-        }
+        for version_key in SECRET_VERSION TOKEN_VERSION MINI_VERSION GEMINI_VERSION OPENAI_VERSION CWA_VERSION; do
+          [[ "$${!version_key}" =~ ^[1-9][0-9]*$ ]] || {
+            echo "$${version_key} must be a positive Secret version number." >&2; exit 2;
+          }
+        done
 
   - id: build
     name: gcr.io/cloud-builders/docker
@@ -58,6 +63,11 @@ steps:
     args:
       - push
       - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_ARTIFACT_REPOSITORY}/${_SERVICE}:$BUILD_ID'
+
+  - id: firestore-field-policies
+    name: gcr.io/google.com/cloudsdktool/google-cloud-cli:592.0.0-slim
+    entrypoint: python3
+    args: ["scripts/db/ensure-field-policies.py", "$PROJECT_ID"]
 
   - id: attendance-indexes
     name: python:3.12-slim
@@ -168,7 +178,8 @@ substitutions:
   _SUMMARY_TASK_QUEUE: 'projects/bubbly-area-513305-s0/locations/asia-east1/queues/line-summary-tasks'
   _SUMMARY_TASK_URL: 'https://line-mini-app-bot-jtghegqd7q-de.a.run.app/internal/summary'
   _SUMMARY_TASK_SERVICE_ACCOUNT: 'line-summary-task@bubbly-area-513305-s0.iam.gserviceaccount.com'
-  _GEMINI_API_KEY_VERSION: 'latest'
+  # Required at submission: select an existing numeric Secret version.
+  _GEMINI_API_KEY_VERSION: ''
   _OPENAI_API_KEY_VERSION: '1'
   _CWA_API_KEY_VERSION: '1'
 
