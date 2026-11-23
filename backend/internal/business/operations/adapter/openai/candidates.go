@@ -18,6 +18,20 @@ type Extractor struct {
 	Model     string
 }
 
+// candidatePayload owns the model provider's JSON format, independently of the application contract.
+type candidatePayload struct {
+	CategoryPath []string `json:"categoryPath"`
+	Name         string   `json:"name"`
+	Quantity     *string  `json:"quantity"`
+	Unit         *string  `json:"unit"`
+	Location     *string  `json:"location"`
+	Quote        string   `json:"quote"`
+}
+
+func (c candidatePayload) candidate() operations.Candidate {
+	return operations.Candidate(c)
+}
+
 func candidateFormat() responses.ResponseTextConfigParam {
 	text := map[string]any{"type": "string"}
 	nullable := map[string]any{"type": []string{"string", "null"}}
@@ -56,7 +70,7 @@ func (e *Extractor) ExtractCandidates(ctx context.Context, doc operations.Docume
 	if err != nil {
 		return operations.Extraction{}, operations.ErrProvider
 	}
-	result := operations.Extraction{RawResponse: json.RawMessage(response.RawJSON())}
+	result := operations.Extraction{RawResponse: []byte(response.RawJSON())}
 	if response.Status == responses.ResponseStatusIncomplete {
 		return result, operations.ErrIncomplete
 	}
@@ -71,16 +85,18 @@ func (e *Extractor) ExtractCandidates(ctx context.Context, doc operations.Docume
 		}
 	}
 	var output struct {
-		Candidates []operations.Candidate `json:"candidates"`
+		Candidates []candidatePayload `json:"candidates"`
 	}
 	if json.Unmarshal([]byte(response.OutputText()), &output) != nil || output.Candidates == nil {
 		return result, operations.ErrInvalidOutput
 	}
+	candidates := make([]operations.Candidate, 0, len(output.Candidates))
 	for _, c := range output.Candidates {
 		if strings.TrimSpace(c.Name) == "" || strings.TrimSpace(c.Quote) == "" {
 			return result, operations.ErrInvalidOutput
 		}
+		candidates = append(candidates, c.candidate())
 	}
-	result.Candidates = output.Candidates
+	result.Candidates = candidates
 	return result, nil
 }

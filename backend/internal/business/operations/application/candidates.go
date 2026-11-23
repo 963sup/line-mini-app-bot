@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 )
 
@@ -20,18 +19,18 @@ type Document struct {
 }
 
 type Candidate struct {
-	CategoryPath []string `json:"categoryPath"`
-	Name         string   `json:"name"`
-	Quantity     *string  `json:"quantity"`
-	Unit         *string  `json:"unit"`
-	Location     *string  `json:"location"`
-	Quote        string   `json:"quote"`
+	CategoryPath []string
+	Name         string
+	Quantity     *string
+	Unit         *string
+	Location     *string
+	Quote        string
 }
 
 // Extraction contains provider diagnostics even when interpreting a response fails.
 type Extraction struct {
 	Candidates  []Candidate
-	RawResponse json.RawMessage
+	RawResponse []byte
 }
 
 type CandidateExtractor interface {

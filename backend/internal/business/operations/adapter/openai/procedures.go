@@ -32,18 +32,19 @@ func (e *Extractor) SuggestProcedures(ctx context.Context, name, conditions stri
 		}
 	}
 	var output struct {
-		Candidates []operations.Candidate `json:"candidates"`
+		Candidates []candidatePayload `json:"candidates"`
 	}
 	if response.Status != responses.ResponseStatusCompleted || json.Unmarshal([]byte(response.OutputText()), &output) != nil || len(output.Candidates) == 0 || len(output.Candidates) > 40 {
 		return nil, operations.ErrInvalidOutput
 	}
-	for i, c := range output.Candidates {
+	candidates := make([]operations.Candidate, 0, len(output.Candidates))
+	for _, c := range output.Candidates {
 		if strings.TrimSpace(c.Name) == "" || strings.TrimSpace(c.Quote) == "" || len(c.CategoryPath) > 8 {
 			return nil, operations.ErrInvalidOutput
 		}
-		output.Candidates[i].Quantity = nil
-		output.Candidates[i].Unit = nil
-		output.Candidates[i].Location = nil
+		candidate := c.candidate()
+		candidate.Quantity, candidate.Unit, candidate.Location = nil, nil, nil
+		candidates = append(candidates, candidate)
 	}
-	return output.Candidates, nil
+	return candidates, nil
 }

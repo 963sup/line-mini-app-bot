@@ -6,7 +6,6 @@ import (
 	"mime"
 	"net/http"
 
-	"github.com/963sup/line-mini-app-bot/internal/business/operations/adapter/poppler"
 	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
@@ -62,17 +61,17 @@ func (h *Handler) ExtractPopplerText(w http.ResponseWriter, r *http.Request, _ g
 		status, code, message = 504, "extraction_timeout", "PDF 轉換逾時，請縮小文件後再試。"
 	case errors.Is(err, context.Canceled):
 		return
-	case errors.Is(err, poppler.ErrUnavailable):
+	case errors.Is(err, operations.ErrExtractorUnavailable):
 		status, code, message = 503, "tool_unavailable", "PDF 文字擷取工具尚未安裝。"
-	case errors.Is(err, poppler.ErrOutputLimit):
+	case errors.Is(err, operations.ErrTextLimit):
 		status, code, message = 422, "output_limit", "擷取文字超過 8 MiB 上限。"
-	case errors.Is(err, poppler.ErrPermission):
+	case errors.Is(err, operations.ErrDocumentPermission):
 		status, code, message = 422, "pdf_permission", "PDF 權限不允許擷取文字。"
 	case errors.Is(err, operations.ErrInvalidDocument):
 		status, code, message = 400, "invalid_document", "PDF 無效、損壞或無法開啟。"
-	case errors.Is(err, poppler.ErrOpenOutput):
+	case errors.Is(err, operations.ErrTextOutput):
 		code, message = "output_failed", "無法讀取轉換輸出。"
-	case errors.Is(err, poppler.ErrEncoding):
+	case errors.Is(err, operations.ErrTextEncoding):
 		code, message = "invalid_encoding", "轉換輸出不是有效 UTF-8。"
 	}
 	transport.WriteAPIError(w, status, code, message)

@@ -19,13 +19,8 @@ const maxTextBytes = 8 << 20
 
 // Extraction errors can be inspected with errors.Is without exposing PDF content.
 var (
-	ErrUnavailable = errors.New("pdftotext unavailable")
-	ErrOutputLimit = errors.New("pdftotext output limit exceeded")
-	ErrOpenPDF     = errors.New("pdftotext cannot open PDF")
-	ErrOpenOutput  = errors.New("pdftotext cannot open output")
-	ErrPermission  = errors.New("pdftotext PDF permission denied")
-	ErrConversion  = errors.New("pdftotext conversion failed")
-	ErrEncoding    = errors.New("pdftotext output is not UTF-8")
+	ErrOpenPDF    = errors.New("pdftotext cannot open PDF")
+	ErrConversion = errors.New("pdftotext conversion failed")
 )
 
 type Extractor struct{}
@@ -63,11 +58,11 @@ func (*Extractor) ExtractText(ctx context.Context, doc operations.Document) (str
 	}
 	// Check the writer separately: process exit errors may mask a copy failure.
 	if output.exceeded {
-		return "", errors.Join(operations.ErrInvalidDocument, ErrOutputLimit)
+		return "", errors.Join(operations.ErrInvalidDocument, operations.ErrTextLimit)
 	}
 	if err != nil {
 		if errors.Is(err, exec.ErrNotFound) {
-			return "", errors.Join(operations.ErrProvider, ErrUnavailable)
+			return "", errors.Join(operations.ErrProvider, operations.ErrExtractorUnavailable)
 		}
 		var exit *exec.ExitError
 		if errors.As(err, &exit) {
@@ -75,15 +70,15 @@ func (*Extractor) ExtractText(ctx context.Context, doc operations.Document) (str
 			case 1:
 				return "", errors.Join(operations.ErrInvalidDocument, ErrOpenPDF)
 			case 2:
-				return "", errors.Join(operations.ErrProvider, ErrOpenOutput)
+				return "", errors.Join(operations.ErrProvider, operations.ErrTextOutput)
 			case 3:
-				return "", errors.Join(operations.ErrInvalidDocument, ErrPermission)
+				return "", errors.Join(operations.ErrInvalidDocument, operations.ErrDocumentPermission)
 			}
 		}
 		return "", errors.Join(operations.ErrProvider, ErrConversion)
 	}
 	if !utf8.Valid(output.Bytes()) {
-		return "", errors.Join(operations.ErrProvider, ErrEncoding)
+		return "", errors.Join(operations.ErrProvider, operations.ErrTextEncoding)
 	}
 	return cleanText(output.String()), nil
 }

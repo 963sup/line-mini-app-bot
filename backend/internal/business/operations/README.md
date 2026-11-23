@@ -10,7 +10,7 @@
 
 ## PDF 文字擷取基礎接線
 
-`application.DocumentTextExtractor` 定義文字擷取介面，`adapter/poppler` 使用執行環境的 `pdftotext` 實作。bootstrap 將 adapter 注入 object service，預留給未來匯入用例；工具測試用例透過獨立的 `DocumentTextService` 呼叫此介面，既有 OpenAI 文件解析及 Firestore 寫入流程維持原行為。Dockerfile 的執行階段安裝 `poppler-utils`。
+`application.DocumentTextExtractor` 定義文字擷取介面，`adapter/poppler` 使用執行環境的 `pdftotext` 實作。bootstrap 將 adapter 注入 `DocumentTextService`，供 PDF 文字擷取端點呼叫。Dockerfile 的執行階段安裝 `poppler-utils`。
 
 Adapter 使用 stdin/stdout，不建立暫存檔；限制輸入及文字輸出各 8 MiB、轉換時間 30 秒，保留 UTF-8 文字、版面與分頁。尚未實作文字轉業務 JSON 或自動儲存。
 

@@ -24,10 +24,8 @@ type Service struct {
 	Templates          objectApplicationPort.TemplateStore
 	PersonalTemplates  objectApplicationPort.PersonalTemplateStore
 	CandidateExtractor operations.CandidateExtractor
-	// DocumentTextExtractor is reserved for a future PDF import use case.
-	DocumentTextExtractor operations.DocumentTextExtractor
-	Repositories          objectApplicationPort.Repositories
-	Store                 objectApplicationPort.Store
+	Repositories       objectApplicationPort.Repositories
+	Store              objectApplicationPort.Store
 }
 
 func (s *Service) scope(ctx context.Context, actor, id string) (repositoryDomainEntity.Repository, error) {

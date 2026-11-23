@@ -19,11 +19,12 @@ func TestFileResponseContract(t *testing.T) {
 		want                      error
 		count                     int
 	}{
-		{"candidate", "completed", "output_text", `{"candidates":[{"name":"電纜","quantity":"2.50","unit":"M","location":null,"quote":"電纜 2.50 M"}]}`, "工項.txt", "text/plain", nil, 1},
+		{"candidate", "completed", "output_text", `{"candidates":[{"categoryPath":["電氣"],"name":"電纜","quantity":"2.50","unit":"M","location":"1F","quote":"電纜 2.50 M"}]}`, "工項.txt", "text/plain", nil, 1},
 		{"empty", "completed", "output_text", `{"candidates":[]}`, "工項.pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", nil, 0},
 		{"refused", "completed", "refusal", "refused", "工項.xls", "application/vnd.ms-excel", operations.ErrRefused, 0},
 		{"truncated", "incomplete", "output_text", "{", "工項.html", "text/html", operations.ErrIncomplete, 0},
 		{"invalid", "completed", "output_text", "{}", "工項.unknown-format", "application/octet-stream", operations.ErrInvalidOutput, 0},
+		{"invalid later row", "completed", "output_text", `{"candidates":[{"name":"電纜","quote":"source"},{"name":"","quote":"invalid"}]}`, "工項.txt", "text/plain", operations.ErrInvalidOutput, 0},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +71,12 @@ func TestFileResponseContract(t *testing.T) {
 			result, err := extractor.ExtractCandidates(t.Context(), operations.Document{Filename: tc.filename, Data: []byte("abc")})
 			if !errors.Is(err, tc.want) || len(result.Candidates) != tc.count || !json.Valid(result.RawResponse) {
 				t.Fatalf("candidates=%v error=%v", result.Candidates, err)
+			}
+			if tc.count == 1 {
+				c := result.Candidates[0]
+				if len(c.CategoryPath) != 1 || c.CategoryPath[0] != "電氣" || c.Name != "電纜" || c.Quantity == nil || *c.Quantity != "2.50" || c.Unit == nil || *c.Unit != "M" || c.Location == nil || *c.Location != "1F" || c.Quote != "電纜 2.50 M" {
+					t.Fatalf("provider fields lost: %+v", c)
+				}
 			}
 		})
 	}
