@@ -26,7 +26,8 @@ func TestUnregisteredBusinessContextBoundaries(t *testing.T) {
 		{"known package cannot add another context", "business/issue/domain/entity", "business/organization/domain/entity", true},
 		{"same context remains local", "business/future/application", "business/future/domain", false},
 		{"approved ownership member reference", "business/organization/application", "business/membership/domain", false},
-		{"approved enterprise error compatibility", "business/enterprise/application/command", "business/organization/domain/entity", false},
+		{"enterprise cannot borrow organization core errors", "business/enterprise/application/command", "business/organization/domain/entity", true},
+		{"enterprise owns its operation errors", "business/enterprise/application/command", "business/enterprise/domain", false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			root := t.TempDir()

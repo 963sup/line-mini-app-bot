@@ -25,8 +25,8 @@ func TestDependencyBoundaries(t *testing.T) {
 		"business/issue/domain/entity":       {"business/issue/domain/policy", "business/repository/domain/entity", "business/repository/domain/entity/labels"},
 		// Organization owns transfers; Membership owns opaque member references.
 		"business/organization/application": {"business/organization/domain/entity", "business/membership/domain"},
-		// Preserve existing Enterprise error compatibility until its contract is migrated.
-		"business/enterprise/application/command":             {"business/enterprise/application/dto", "business/enterprise/application/port", "business/organization/domain/entity"},
+		// Enterprise owns its operation errors; HTTP adapters preserve compatibility.
+		"business/enterprise/application/command":             {"business/enterprise/application/dto", "business/enterprise/application/port", "business/enterprise/domain"},
 		"business/workflow/application":                       {},
 		"business/agent/application":                          {"business/agent/application/port"},
 		"business/agent/application/port":                     {},
