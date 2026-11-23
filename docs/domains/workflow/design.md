@@ -1,10 +1,10 @@
 # Workflow 設計
 
-**Proposal** · [Design](../../proposals/workflow.md) · [Core flow](../../proposals/workflow.md#design-diagram) · [Acceptance](../../proposals/domain-collaboration.md) · [Module guidance](../../../backend/internal/business/workflow/AGENTS.md)
+**Proposal** · [Design](../../proposals/workflow.md) · [Core flow](../../proposals/workflow.md#design-diagram) · [Acceptance](../../proposals/domain-collaboration.md) · [Module guidance](../../../backend/AGENTS.md)
 
 Manages explicit step ordering, waiting conditions and progress.
 
-[Domain guidance](../AGENTS.md)
+[Domain guidance](../../AGENTS.md)
 
 ## 後端分層結構
 

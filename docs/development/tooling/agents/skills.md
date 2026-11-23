@@ -3,17 +3,17 @@
 > 安裝範圍：本儲存庫 `.agents/skills/`。新安裝來源與固定 commit 見 `skills-lock.json`。
 > 安裝檔案不代表當前聊天已重新載入，亦不代表 MCP 連線與實際操作已驗收。
 
-| Skill                          | 來源                                            | 用途                                                                                             |
-| ------------------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| gcloud                         | google/skills（官方）                           | CLI 指令核對與操作規則                                                                           |
-| cloud-run-basics               | google/skills（官方）                           | Cloud Run 部署與服務身分                                                                         |
-| retrieving-developer-knowledge | google/skills（官方）                           | Google 官方文件查詢                                                                              |
-| golang-gopls                   | samber/cc-skills-golang（使用者指定社群）       | Go 語意探索、診斷、重構                                                                          |
-| context7-mcp                   | upstash/context7（官方）                        | 版本相符文件查詢                                                                                 |
-| repomix-explorer               | yamadashy/repomix（官方）                       | CLI 打包、搜尋、分析                                                                             |
-| openai-docs                    | openai/skills（官方）                           | OpenAI／Codex 官方文件                                                                           |
-| shadcn                         | shadcn/ui（官方；CLI lock 見 skills-lock.json） | 元件、registry、preset、MCP 工作流程；[專案規則](../../../../frontend/AGENTS.md#shadcn-任務入口) |
-| graphify                       | 既有 Graphify CLI 安裝                          | 程式關係圖查詢                                                                                   |
+| Skill                          | 來源                                            | 用途                                                                             |
+| ------------------------------ | ----------------------------------------------- | -------------------------------------------------------------------------------- |
+| gcloud                         | google/skills（官方）                           | CLI 指令核對與操作規則                                                           |
+| cloud-run-basics               | google/skills（官方）                           | Cloud Run 部署與服務身分                                                         |
+| retrieving-developer-knowledge | google/skills（官方）                           | Google 官方文件查詢                                                              |
+| golang-gopls                   | samber/cc-skills-golang（使用者指定社群）       | Go 語意探索、診斷、重構                                                          |
+| context7-mcp                   | upstash/context7（官方）                        | 版本相符文件查詢                                                                 |
+| repomix-explorer               | yamadashy/repomix（官方）                       | CLI 打包、搜尋、分析                                                             |
+| openai-docs                    | openai/skills（官方）                           | OpenAI／Codex 官方文件                                                           |
+| shadcn                         | shadcn/ui（官方；CLI lock 見 skills-lock.json） | 元件、registry、preset、MCP 工作流程；[專案規則](../../../../frontend/AGENTS.md) |
+| graphify                       | 既有 Graphify CLI 安裝                          | 程式關係圖查詢                                                                   |
 
 ## MCP 對應與搜尋範圍
 

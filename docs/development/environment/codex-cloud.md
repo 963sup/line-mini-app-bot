@@ -16,17 +16,30 @@ Linux x64／arm64 下載資訊由 [mise.lock](../../../mise.lock) 鎖定，pnpm 
 
 ## 啟動與更新
 
-**Start skill** 應從 checkout 根目錄透過專案 wrapper 執行命令。需使用應用時，依[啟動表](./)選服務，核對目標路由及日誌。發布狀態保存已準備的檔案與快取，執行中的程序需於工作階段啟動。
+**Start skill** 應從 checkout 根目錄透過專案 wrapper 執行命令。需使用應用時，依[啟動表](#本機服務啟動)選服務，核對目標路由及日誌。發布狀態保存已準備的檔案與快取，執行中的程序需於工作階段啟動。
 
 Codex CLI 與 Cloud 任務提交方式見 [Codex 操作](../tooling/agents/codex.md#開啟專案與提交-cloud-任務)。
 
 工具設定或依賴鎖檔變更時，重新執行初始化並發布更新的環境。從新聊天驗收已發布的狀態。若需比較速度，分開記錄空快取準備與重用快取時的耗時。
 
+## 本機服務啟動
+
+完成依賴準備後，從儲存庫根目錄按需啟動，各服務使用獨立終端：
+
+| 服務     | 命令                                             | 入口與前置條件                                                                               |
+| -------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| Go API   | `bash scripts/tooling/tool-exec.sh mise run dev` | 預設 `8080`，可用 `PORT` 覆寫；應用設定依[設定指南](../../operations/configuration.md)       |
+| MINI App | `bash scripts/tooling/tool-exec.sh pnpm dev`     | Next.js 使用 `3000`；根任務先建置 MINI App 及其相依套件，開發 `/api` 轉送至 `localhost:8080` |
+
+若覆寫 Go 埠，須同步核對前端轉送目標。啟動後以本次任務的實際路由與日誌確認服務，結束時在對應終端停止程序。啟動成功不代替功能或裝置驗收。
+
+命令來源：[Go 啟動腳本](../../../scripts/dev/run.sh)、[根任務](../../../package.json)、[前端任務](../../../frontend/miniapp/package.json)及[開發轉送設定](../../../frontend/miniapp/next.config.ts)。
+
 ## 新環境驗收
 
 1. 在新 checkout 確認安裝工具與工作區依賴。若還要執行完整專案 `pnpm check` 或 Go 格式及 lint，先透過 wrapper 執行 `mise run install-core`。
 2. 執行 `bash scripts/tooling/tool-exec.sh mise run check` 與 `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check`，並依任務驗收實際入口。
-3. 在新聊天依 [MCP 主機載入檢查](../tooling/agents/)。
+3. 在新聊天依 [MCP 主機載入檢查](troubleshooting.md#設定與-mcp-診斷)。
 4. 若任務需要 Cloud Run 或 Firestore Toolbox，依主機方式提供 ADC。使用憑證檔時，`GOOGLE_APPLICATION_CREDENTIALS` 須指向任務執行時可讀的檔案。以目標資源的唯讀操作確認登入身分及 IAM。參見 [Google 工具指引](../tooling/shared/gcloud.md)。
 
 記錄所驗證的快照、命令、結果與尚缺的環境證據。[驗收索引](../verification/) · [環境排查](troubleshooting.md)

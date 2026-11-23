@@ -116,23 +116,23 @@ No license has been selected. All rights are reserved under [LICENSE](LICENSE).
 
 ## Nested directory guide
 
-Select the target directory below. Read AGENTS.md files along the path from the repository root to the target, and use the nearest README.md for implementation entry points. For cross-module questions, start with [documentation by task](docs/). Follow the [nested documentation maintenance standards](AGENTS.md#nested-documentation-maintenance-standards) when adding or editing guidance.
+Select the target directory below. The root AGENTS.md supplies global rules; the listed module AGENTS.md adds only constraints unique to that module. Directory purpose and navigation stay in this README, while detailed specifications live under `docs/`. Read [module constraints](docs/standards/module-constraints.md) only for an affected lower-level path. Follow the [nested instruction standard](AGENTS.md#nested-instruction-standard) when adding or editing guidance.
 
-| Directory or file                           | Description                                                                                                      | Agent guidance                                   |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| `.agents/`                                  | [Skill maintenance](docs/development/tooling/agents/skills.md)                                                   | [Root guidance](AGENTS.md)                       |
-| `.codex/`                                   | [Codex configuration](.codex/config.toml) · [CLI operations](docs/development/tooling/agents/codex.md)           | [Root guidance](AGENTS.md)                       |
-| `.github/`                                  | [GitHub operations](docs/development/tooling/shared/github.md) · [CI configuration](.github/workflows/check.yml) | [Root guidance](AGENTS.md)                       |
-| `.vscode/`                                  | [Workspace tasks](.vscode/tasks.json) · [Editor settings](.vscode/settings.json)                                 | [Root guidance](AGENTS.md)                       |
-| `api/`                                      | [HTTP API contracts](api/)                                                                                       | [AGENTS.md](api/AGENTS.md)                       |
-| `assets/`                                   | [Application assets](assets/)                                                                                    | [AGENTS.md](assets/AGENTS.md)                    |
-| `backend/`                                  | [Go backend](backend/)                                                                                           | [AGENTS.md](backend/AGENTS.md)                   |
-| `cloudbuild.yaml`, `firestore.indexes.json` | [Deployment and index configuration](docs/operations/)                                                           | [Operations guidance](docs/operations/AGENTS.md) |
-| `docs/`                                     | [Project documentation](docs/)                                                                                   | [AGENTS.md](docs/AGENTS.md)                      |
-| `scripts/`                                  | [Script tooling](scripts/)                                                                                       | [AGENTS.md](scripts/AGENTS.md)                   |
-| `frontend/`                                 | [MINI App frontend](frontend/)                                                                                   | [AGENTS.md](frontend/AGENTS.md)                  |
+| Directory or file                           | Description                                                                                                      | Agent guidance                  |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `.agents/`                                  | [Skill maintenance](docs/development/tooling/agents/skills.md)                                                   | [Root guidance](AGENTS.md)      |
+| `.codex/`                                   | [Codex configuration](.codex/config.toml) · [CLI operations](docs/development/tooling/agents/codex.md)           | [Root guidance](AGENTS.md)      |
+| `.github/`                                  | [GitHub operations](docs/development/tooling/shared/github.md) · [CI configuration](.github/workflows/check.yml) | [Root guidance](AGENTS.md)      |
+| `.vscode/`                                  | [Workspace tasks](.vscode/tasks.json) · [Editor settings](.vscode/settings.json)                                 | [Root guidance](AGENTS.md)      |
+| `api/`                                      | [HTTP API contracts](api/)                                                                                       | [AGENTS.md](api/AGENTS.md)      |
+| `assets/`                                   | [Application assets](assets/)                                                                                    | [AGENTS.md](assets/AGENTS.md)   |
+| `backend/`                                  | [Go backend](backend/)                                                                                           | [AGENTS.md](backend/AGENTS.md)  |
+| `cloudbuild.yaml`, `firestore.indexes.json` | [Deployment and index configuration](docs/operations/)                                                           | [Root guidance](AGENTS.md)      |
+| `docs/`                                     | [Project documentation](docs/)                                                                                   | [AGENTS.md](docs/AGENTS.md)     |
+| `scripts/`                                  | [Script tooling](scripts/)                                                                                       | [AGENTS.md](scripts/AGENTS.md)  |
+| `frontend/`                                 | [MINI App frontend](frontend/)                                                                                   | [AGENTS.md](frontend/AGENTS.md) |
 
-When entering `frontend/miniapp/`, also read its [Next.js guidance](frontend/miniapp/AGENTS.md).
+For lower-level safety, compatibility and business constraints, use the matching section in [module constraints](docs/standards/module-constraints.md).
 
 <a id="業務操作開發原則"></a>
 

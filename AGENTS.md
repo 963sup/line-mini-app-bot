@@ -34,7 +34,7 @@ Follow rule 18 to start a task. See the [nested directory guide](README.md#巢�
 20. **Source Verification**: Verify local behavior against the current checkout's source and actual execution; verify external behavior against official documentation for the applicable version. Prioritize assumptions and failure risks that affect decisions. Reuse verified evidence while its version, source and applicability remain valid. Documentation research does not replace behavioral acceptance.
 21. **Targeted Exploration**: Start exploration with a concrete question. Prefer available Graphify tools to locate unfamiliar dependencies; search source directly for known identifiers. Check graph and Repomix findings against the current working tree. Stop expanding searches once the evidence answers the question.
 22. **Pinned Toolchain**: Prefer existing tools, use [mise.toml](mise.toml) as the version source and run tools through project wrappers or existing installation tasks. If a tool is missing, check its declared version and installation state; do not independently upgrade tools, change lockfiles or install undeclared packages. Build with repository tooling and dependency locks so a clean checkout can be rebuilt from the same inputs.
-23. **Documentation Ownership**: Use READMEs to explain directory purposes, entry points and specifications. Add AGENTS.md only for local rules not covered by parent guidance; specify scope, parent guidance, local responsibilities and verification. When behavior changes, check entry points, links and commands. API documentation references OpenAPI. Record reasons and tradeoffs for architectural decisions affecting multiple modules or difficult to reverse in existing decision documents or ADRs.
+23. **Documentation Ownership**: README files own directory purposes and navigation. Authoritative topic documents own detailed specifications. Nested AGENTS.md files exist only for mandatory constraints that their parent cannot cover; they MUST NOT repeat, paraphrase or copy parent rules. Merge or remove instructions without independent value. Preserve safety, compatibility, business and architectural constraints in the nearest module rule or authoritative topic document. When behavior changes, check entry points, links and commands. API documentation references OpenAPI. Record reasons and tradeoffs for architectural decisions affecting multiple modules or difficult to reverse in existing decision documents or ADRs.
 24. **Regression Verification**: Rerun the original case after a fix. For new or moved files, verify behavior with the [acceptance matrix](docs/development/tooling/testing/commands.md#變更驗收矩陣). For cross-directory moves, check the source, destination and callers. For Firestore transactions, concurrency, retries or persisted-data compatibility, proactively check, prepare and rerun emulator tests using the [integration acceptance workflow](docs/development/tooling/testing/commands.md#firestore-integration). Choose verification by risk: unit tests for domain rules, integration or contract tests for storage and service boundaries, and end-to-end tests for critical user flows.
 25. **Failure Isolation**: If tools are unavailable, graphs are stale or packages omit content, verify against available sources and record limitations. Defer only decisions dependent on missing evidence; continue independent work.
 26. **Verified Delivery**: At delivery, compare results with specifications and acceptance criteria. Report implementation locations, capabilities used, actual checks, results and applicable versions. Distinguish completed changes, verified behavior and remaining limitations.
@@ -52,11 +52,12 @@ Follow rule 18 to start a task. See the [nested directory guide](README.md#巢�
 
 <a id="巢狀文件維護標準"></a>
 
-## Nested documentation maintenance standards
+## Nested instruction standard
 
-- Update **README.md** with actual architecture, data flow, execution steps and test commands when needed.
-- In **AGENTS.md**, identify responsibilities and items requiring synchronization when authorization, data compatibility, transactions or generated code are involved.
-- Clearly distinguish the current structure, mandatory rules and optional reference templates. Create sections and subdirectories only when needed. State prerequisites for verification requiring special environments.
+- Root AGENTS.md owns global execution rules. Top-level module AGENTS.md files contain only mandatory module constraints.
+- Nested AGENTS.md files are exceptional. Keep one only when a narrower path has a safety, compatibility, business or generated-source restriction that cannot be expressed by its module parent or authoritative specification.
+- Every rule uses `MUST`, `MUST NOT`, `SHOULD` or `MAY`, names its scope and states a verifiable condition. Do not include directory tours, file lists, start-here links or copied parent rules.
+- Consolidated path-specific constraints live in [module constraints](docs/standards/module-constraints.md) and are read only for the affected path. Hexagonal backend boundaries remain in [backend module rules](backend/AGENTS.md#hexagonal-architecture) and the [runtime boundary specification](docs/architecture/runtime/backend-boundaries.md).
 
 <a id="cli-discovery"></a>
 <a id="按需安裝工具"></a>
@@ -73,7 +74,7 @@ Sources: mise 2026.11.3 `exec --help` and [official settings](https://mise.jdx.d
 
 ## Mandatory documentation verification
 
-- **External behavior**: Choose official sources using the [tooling and sign-in guidance](docs/development/tooling/agents/AGENTS.md). For Context7, resolve the library ID first, then query for the project's dependency version. On quota limits, use the [fallback workflow](docs/development/tooling/agents/context7.md#anonymous-fallback).
+- **External behavior**: Choose official sources using the [tooling and sign-in guidance](docs/AGENTS.md). For Context7, resolve the library ID first, then query for the project's dependency version. On quota limits, use the [fallback workflow](docs/development/tooling/agents/context7.md#anonymous-fallback).
 
 <a id="單一代理與能力選用"></a>
 

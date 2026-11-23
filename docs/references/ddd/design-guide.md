@@ -1,6 +1,13 @@
 # DDD 設計
 
-這裡是設計參考。判定現行行為時，先核對[領域規格](../../domains/AGENTS.md)、[已接受 ADR](../../decisions/)與公開契約。各頁的業務示例用來解釋單一概念，即使名詞相同，也不能拼成已實作規格。
+這裡是設計參考。判定現行行為時，先核對[領域規格](../../AGENTS.md)、[已接受 ADR](../../decisions/)與公開契約。各頁的業務示例用來解釋單一概念，即使名詞相同，也不能拼成已實作規格。
+
+## 維護約束
+
+- 新增概念頁 MUST 說明定義、適用條件、責任邊界、可辨識狀態的例子、設計產出及來源；MUST NOT 為每個名詞預建空目錄。
+- 概念間 MUST 使用連結引用；具體業務政策 MUST 只保留在所屬權威規格。
+- 圖表 MUST 依[文件規範](../../standards/documentation.md#圖表狀態與入口)標明狀態並完成適用的 Mermaid 渲染。
+- 本目錄變更 MUST 核對問題索引、相對連結、錨點及來源。文件查閱與格式檢查 MUST NOT 被報告為功能驗收。
 
 ## 如何使用
 
@@ -148,10 +155,10 @@
 
 ## 維護與驗證
 
-見[本層工作指引](AGENTS.md)。
+見[文件工作指引](../../AGENTS.md)。
 
 ## 相關規格
 
-[業務操作模型](../../contracts/business-operations.md) · [現行後端功能邊界](../../architecture/runtime/backend-boundaries.md) · [已接受 ADR](../../decisions/) · [領域規格](../../domains/AGENTS.md)
+[業務操作模型](../../contracts/business-operations.md) · [現行後端功能邊界](../../architecture/runtime/backend-boundaries.md) · [已接受 ADR](../../decisions/) · [領域規格](../../AGENTS.md)
 
-[適用工作指引](../../architecture/AGENTS.md) · [上層導覽](../../architecture/AGENTS.md)
+[適用工作指引](../../AGENTS.md) · [上層導覽](../../AGENTS.md)

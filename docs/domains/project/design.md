@@ -2,7 +2,7 @@
 
 # Project 設計
 
-**Implemented** · [Design](project.md) · [Core flow](#decision-flow) · [Representative tests](../../../backend/internal/business/project/application/reference_source_test.go) · [Module guidance](../../../backend/internal/business/project/AGENTS.md)
+**Implemented** · [Design](project.md) · [Core flow](#decision-flow) · [Representative tests](../../../backend/internal/business/project/application/reference_source_test.go) · [Module guidance](../../../backend/AGENTS.md)
 
 [Repository containers, projects and LINE journeys](journey.md)
 
@@ -18,11 +18,11 @@
 
 **Acceptance:** verify selected sources/links for cross-repository references; Project access grants no other-repository source access.
 
-[Implementation/tests](../../../backend/internal/business/project/application/reference_source_test.go) · [Strategic classification criteria](../../references/ddd/AGENTS.md)
+[Implementation/tests](../../../backend/internal/business/project/application/reference_source_test.go) · [Strategic classification criteria](../../references/ddd/design-guide.md)
 
 Project specifications define references, inspections and access scope.
 
-[Business specification](project.md) · [Backend project implementation](../../../backend/internal/business/project/AGENTS.md)
+[Business specification](project.md) · [Backend project implementation](../../../backend/AGENTS.md)
 
 <a id="decision-flow"></a>
 
@@ -39,7 +39,7 @@ flowchart TD
 
 [Entry adapter](../../../backend/internal/business/project/adapter/http/routes.go) · [Decision rules](../../../backend/internal/business/project/application/reference_source_test.go) · [Application output port](../../../backend/internal/business/project/application/port/project.go) · [Related tests](../../../backend/internal/business/project/application/reference_source_test.go)
 
-[Domain guidance](../AGENTS.md)
+[Domain guidance](../../AGENTS.md)
 
 ## 後端分層結構
 

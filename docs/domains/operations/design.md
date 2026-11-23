@@ -2,11 +2,11 @@
 
 # Business operations 設計
 
-**Generic operation model proposed** · [Design](../../proposals/operations.md) · [Core flow](../../proposals/operations.md#design-diagram) · [Acceptance](../../proposals/domain-collaboration.md) · [Module guidance](../../../backend/internal/business/operations/AGENTS.md)
+**Generic operation model proposed** · [Design](../../proposals/operations.md) · [Core flow](../../proposals/operations.md#design-diagram) · [Acceptance](../../proposals/domain-collaboration.md) · [Module guidance](../../../backend/AGENTS.md)
 
-Plans reusable typed operations delegating to rule-owning domains. [PDF extraction](../../../backend/internal/business/operations/adapter/http/poppler_test.go) is implemented. [Production operations](../../operations/AGENTS.md) owns Cloud Run deployment/recovery.
+Plans reusable typed operations delegating to rule-owning domains. [PDF extraction](../../../backend/internal/business/operations/adapter/http/poppler_test.go) is implemented. [Production operations](../../AGENTS.md) owns Cloud Run deployment/recovery.
 
-[Domain guidance](../AGENTS.md)
+[Domain guidance](../../AGENTS.md)
 
 ## 後端分層結構
 

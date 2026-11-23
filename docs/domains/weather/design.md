@@ -2,7 +2,7 @@
 
 # Weather 設計
 
-**Implemented** · [Design](weather.md) · [Core flow](#decision-flow) · [Representative tests](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go) · [Module guidance](../../../backend/internal/business/weather/AGENTS.md)
+**Implemented** · [Design](weather.md) · [Core flow](#decision-flow) · [Representative tests](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go) · [Module guidance](../../../backend/AGENTS.md)
 
 <a id="領域設計"></a>
 
@@ -16,11 +16,11 @@
 
 **Acceptance:** group locations trigger forecasts; non-group/non-replyable events cannot trigger that reply flow.
 
-[Implementation/tests](../../../backend/internal/business/weather/adapter/line/forecast/forecast.go) · [Strategic classification criteria](../../references/ddd/AGENTS.md)
+[Implementation/tests](../../../backend/internal/business/weather/adapter/line/forecast/forecast.go) · [Strategic classification criteria](../../references/ddd/design-guide.md)
 
 See weather specifications for queries/LINE interaction.
 
-[Business specification](weather.md) · [Backend weather implementation](../../../backend/internal/business/weather/AGENTS.md)
+[Business specification](weather.md) · [Backend weather implementation](../../../backend/AGENTS.md)
 
 <a id="decision-flow"></a>
 
@@ -37,7 +37,7 @@ flowchart TD
 
 [Entry adapter](../../../backend/internal/business/weather/adapter/cwa/forecast/cwa.go) · [Decision rules](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go) · [Related tests](../../../backend/internal/business/weather/adapter/line/forecast/forecast_test.go)
 
-[Domain guidance](../AGENTS.md)
+[Domain guidance](../../AGENTS.md)
 
 ## 後端分層結構
 

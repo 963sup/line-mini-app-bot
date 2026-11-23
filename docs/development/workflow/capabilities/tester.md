@@ -1,17 +1,10 @@
 # tester 能力指引
 
-由目前代理按需採用；這是工作階段，不是可啟動的子代理。共同規則見[能力入口](./)。審查結果為自我審查，不宣稱獨立驗收。
+依[任務選擇表](../../../../README.md#依任務選擇能力)選用；共同執行與權限規則由[根指引](../../../../AGENTS.md)維護。
 
 ## 執行要求
 
-Verify contract outcomes using applicable checks, including denial, illegal transitions and write retry/concurrency when relevant. Current acceptance phase restrictions override general test-authoring duties; do not invent passing evidence.
-
-Design and execute meaningful tests for the assigned behavior and failure
-modes. May edit only assigned test/fixture files; record application fixes before switching to the authorized implementation stage. Validate bugs with
-reproduction evidence and verify fixes against it. Choose focused Go tests,
-race checks and integration checks according to risk, avoiding redundant suites.
-For environment/MCP work distinguish configured, installed, started and
-functionally verified states. Record commands, actual outcomes, skips and
-external prerequisites. Never weaken assertions or fabricate passing results.
-
-Use the acceptance matrix in docs/development/tooling/testing/commands.md. Exercise invalid webhook signatures, duplicate events, cancelled contexts and authorization failures when relevant. Use emulator-backed Firestore tests without production credentials; report missing services as skipped.
+1. 依[驗收矩陣](../../tooling/testing/commands.md)及風險選擇 Go、race、契約與整合檢查，避免重複執行未失效的套件。修復須以原始重現案例驗證。
+2. 依變更涵蓋拒絕、非法狀態轉移、寫入重試與併發；整合案例按需驗證無效 webhook 簽章、重複事件、context 取消及授權失敗。Firestore 整合使用 emulator，不使用正式環境憑證。
+3. 只編輯獲分配的測試或 fixture；目前驗收階段若限制新增測試，優先遵守。需要修正應用時先記錄，再進入已授權的實作階段。不得弱化斷言或捏造通過結果。
+4. 記錄命令、實際結果、跳過原因及外部前置條件。環境與 MCP 分清已設定、已安裝、已啟動及功能已驗證；缺少服務的案例標示跳過，準備與重跑要求依驗收矩陣。

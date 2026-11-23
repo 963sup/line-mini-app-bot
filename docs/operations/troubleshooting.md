@@ -43,8 +43,7 @@ flowchart TB
 
 ## 歷史快照與查證界線
 
-- 文件中的 revision、Secret 綁定與 IAM 紀錄只代表其標示日期；不能當作即時現況。 本次文件整理未查詢雲端服務，未執行部署、同步或清理。 Google skills 與 Developer Knowledge MCP 未在本側聊提供可用入口，改查 Google 官方 Cloud Run 回滾 及 Artifact Registry 映像管理。 本頁沒有新增 gcloud 指令；執行命令前仍須依安裝版本的 leaf help 核對。
+文件中的 revision、Secret 綁定與 IAM 紀錄只代表其標示日期，不能當作即時現況。執行命令前，依安裝版本的 leaf help 核對語法；回復與清理另參照官方文件：
 
-  - [Cloud Run 回滾](https://docs.cloud.google.com/run/docs/rollouts-rollbacks-traffic-migration)
-
-  - [Artifact Registry 映像管理](https://docs.cloud.google.com/artifact-registry/docs/docker/manage-images)
+- [Cloud Run 回滾](https://docs.cloud.google.com/run/docs/rollouts-rollbacks-traffic-migration)
+- [Artifact Registry 映像管理](https://docs.cloud.google.com/artifact-registry/docs/docker/manage-images)

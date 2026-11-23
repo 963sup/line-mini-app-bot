@@ -2,7 +2,7 @@
 
 # Group chat summaries 設計
 
-**Implemented** · [Design](summary.md) · [Core flow](#decision-flow) · [Decision implementation](../../../backend/internal/business/summary/application/summarization/validation.go) · [Module guidance](../../../backend/internal/business/summary/AGENTS.md)
+**Implemented** · [Design](summary.md) · [Core flow](#decision-flow) · [Decision implementation](../../../backend/internal/business/summary/application/summarization/validation.go) · [Module guidance](../../../backend/AGENTS.md)
 
 <a id="領域設計"></a>
 
@@ -16,11 +16,11 @@
 
 **Acceptance:** model changes still validate citations; missing/out-of-range citations reject persistence/delivery.
 
-[Implementation/tests](../../../backend/internal/business/summary/application/summarization/validation.go) · [Strategic classification criteria](../../references/ddd/AGENTS.md)
+[Implementation/tests](../../../backend/internal/business/summary/application/summarization/validation.go) · [Strategic classification criteria](../../references/ddd/design-guide.md)
 
 Specifications cover collection, generation and citations.
 
-[Business specification](summary.md) · [Backend summary implementation](../../../backend/internal/business/summary/AGENTS.md)
+[Business specification](summary.md) · [Backend summary implementation](../../../backend/AGENTS.md)
 
 <a id="decision-flow"></a>
 
@@ -37,7 +37,7 @@ flowchart TD
 
 [Entry adapter](../../../backend/internal/business/summary/adapter/http/summarization/summary.go) · [Decision rules](../../../backend/internal/business/summary/application/summarization/validation.go) · [Application output port](../../../backend/internal/business/summary/application/port/errors.go) · [Related tests](../../../backend/internal/business/summary/adapter/firestore/documents_test.go)
 
-[Domain guidance](../AGENTS.md)
+[Domain guidance](../../AGENTS.md)
 
 ## 後端分層結構
 

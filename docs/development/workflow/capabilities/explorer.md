@@ -5,7 +5,7 @@
 ## 執行要求
 
 - 已知路徑或符號時直接查原始碼。Go 符號與引用用 gopls；設定用對應解析器核對，執行行為用實測確認。
-- 關係不清楚時，用 [Graphify](../../tooling/agents/graphify.md) 定位，再從目前 checkout 核對呼叫端、影響範圍及驗收入口。只有任務指定更新圖譜時才重建對應產物。
+- 關係不清楚時，用 [Graphify](../../tooling/agents/graphify.md) 定位，再從目前 checkout 核對呼叫端、影響範圍及驗收入口。圖譜更新時機依[根圖譜規則](../../../../AGENTS.md#graphify)，不因探索而一律重建產物。
 - 跨檔查詢可搜尋既有的 [$repomix-reference-line-mini-app-bot](../../tooling/agents/repomix-skills.md)。需要限定來源時，依 [Repomix 指南](../../tooling/agents/repomix.md)與本機 `.agents/skills/repomix-explorer/SKILL.md` 打包，保留排除規則與安全掃描，只寫入指定的未追蹤產物。
 - 查外部行為時，依[官方來源規則](../../../../AGENTS.md#mandatory-documentation-verification)與 [Context7 指南](../../tooling/agents/context7.md)比對版本、做法及限制。記錄 library ID、網址、支持結論的原文與待確認處。LINE SDK 與 Firestore 範例須對照 go.mod；LINE ID token 使用 LINE 驗證。已發布的 Git ref 依 [GitHub 指南](../../tooling/agents/github.md)另行核對。
 

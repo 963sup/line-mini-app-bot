@@ -2,7 +2,7 @@
 
 # Journal 設計
 
-**Implemented** · [Design](journal.md) · [Core flow](#decision-flow) · [Representative tests](../../../backend/internal/business/journal/domain/entity/entry_test.go) · [Module guidance](../../../backend/internal/business/journal/AGENTS.md)
+**Implemented** · [Design](journal.md) · [Core flow](#decision-flow) · [Representative tests](../../../backend/internal/business/journal/domain/entity/entry_test.go) · [Module guidance](../../../backend/AGENTS.md)
 
 [Repository ownership target](journal.md#目標規格日誌歸屬儲存庫) · [Journal, business and LINE journeys](journey.md)
 
@@ -18,11 +18,11 @@
 
 **Current acceptance:** readers losing source access retain work names/progress but cannot obtain source names/IDs through journals.
 
-[Implementation/tests](../../../backend/internal/business/journal/domain/entity/entry_test.go) · [Strategic classification criteria](../../references/ddd/AGENTS.md)
+[Implementation/tests](../../../backend/internal/business/journal/domain/entity/entry_test.go) · [Strategic classification criteria](../../references/ddd/design-guide.md)
 
 Journal specifications define work content, references and visibility.
 
-[Business specification](journal.md) · [Backend journal implementation](../../../backend/internal/business/journal/AGENTS.md)
+[Business specification](journal.md) · [Backend journal implementation](../../../backend/AGENTS.md)
 
 <a id="decision-flow"></a>
 
@@ -39,7 +39,7 @@ flowchart TD
 
 [Entry adapter](../../../backend/internal/business/journal/adapter/http/routes.go) · [Decision rules](../../../backend/internal/business/journal/domain/entity/entry_test.go) · [Application output port](../../../backend/internal/business/journal/application/port/operations.go) · [Related tests](../../../backend/internal/business/journal/domain/entity/entry_test.go)
 
-[Domain guidance](../AGENTS.md)
+[Domain guidance](../../AGENTS.md)
 
 ## 後端分層結構
 

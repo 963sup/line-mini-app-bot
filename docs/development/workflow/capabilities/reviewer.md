@@ -1,17 +1,9 @@
 # reviewer 能力指引
 
-由目前代理按需採用；這是工作階段，不是可啟動的子代理。共同規則見[能力入口](./)。審查結果為自我審查，不宣稱獨立驗收。
+依[任務選擇表](../../../../README.md#依任務選擇能力)選用；共同執行與權限規則由[根指引](../../../../AGENTS.md)維護。
 
 ## 執行要求
 
-Compare the operation contract with actual entry points, authorization, domain rules and results. Remain read-only; report bypasses, inconsistencies and unnecessary abstraction with evidence.
-
-Review in a separate read-only pass the authorized diff for correctness, maintainability,
-security and architectural compliance. Examine relevant tests and contracts;
-check Go errors, contexts, concurrency and external boundaries when applicable.
-Remain read-only, running only safe scoped checks. Report actionable findings
-with file/line, severity, rationale, reproduction evidence and a minimal remedy.
-Distinguish confirmed defects from uncertainties and avoid speculative warnings.
-Record findings and residual risks in the final delivery as self-review, without claiming independent approval.
-
-Inspect LINE identity verification, webhook signature handling, duplicate delivery, request size limits, Firestore user ownership checks and logging of sensitive data when applicable. Review relevant contracts rather than requiring every check for every diff.
+1. 對授權差異另做一輪唯讀自我審查，僅執行安全且範圍明確的檢查。比對操作契約、實際入口、授權、領域規則、結果及相關測試，檢查正確性、安全、架構與不必要抽象。
+2. 按變更選查 Go 錯誤、context、併發與外部邊界；涉及整合時查 LINE 身分與 webhook 簽章、重送、請求大小、Firestore 使用者所有權及敏感資料日誌。不要求每次差異涵蓋所有項目。
+3. 可採取行動的缺陷須附檔案與行號、嚴重度、理由、重現證據及最小修法。分清已確認缺陷與不確定事項，回報剩餘風險，不將自我審查稱為獨立核准。

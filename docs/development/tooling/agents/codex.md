@@ -12,6 +12,6 @@
 
 ## 專案設定與驗證
 
-Skills 與 MCP 由 [.codex/config.toml](../../../../.codex/config.toml) 維護；工具版本與任務由 [mise.toml](../../../../mise.toml) 維護。設定影響後續載入此 checkout 的工作階段；目前聊天的工具曝光仍須依[載入檢查](./)核對。執行 `bash scripts/tooling/tool-exec.sh python3 scripts/check/check-config.py` 驗證專案設定及能力指引。
+Skills 與 MCP 由 [.codex/config.toml](../../../../.codex/config.toml) 維護；工具版本與任務由 [mise.toml](../../../../mise.toml) 維護。設定影響後續載入此 checkout 的工作階段；目前聊天的工具曝光仍須依[載入檢查](../../environment/troubleshooting.md#設定與-mcp-診斷)核對。執行 `bash scripts/tooling/tool-exec.sh python3 scripts/check/check-config.py` 驗證專案設定及能力指引。
 
 VS Code 從儲存庫根目錄開啟，使用「Tasks: Run Task」執行[工作區任務](../../../../.vscode/tasks.json)：Go 環境準備、環境診斷、Go 應用檢查與儲存庫設定檢查。

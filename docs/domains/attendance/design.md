@@ -1,6 +1,6 @@
 # Basic attendance 設計
 
-**Implemented** · [Design](strategy.md) · [Core flow](#decision-flow) · [Representative tests](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) · [Module guidance](../../../backend/internal/business/attendance/AGENTS.md)
+**Implemented** · [Design](strategy.md) · [Core flow](#decision-flow) · [Representative tests](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) · [Module guidance](../../../backend/AGENTS.md)
 
 [Attendance, business features and LINE journeys](journey.md)
 
@@ -73,7 +73,7 @@ The [review use case](../../../backend/internal/business/attendance/application/
 
 ## Related specifications
 
-[Local specifications and guidance](../../../api/contract/attendance/AGENTS.md)
+[Local specifications and guidance](../../../api/AGENTS.md)
 
 <a id="基礎出勤"></a>
 
@@ -275,7 +275,7 @@ flowchart TD
 
 [Entry adapter](../../../backend/internal/business/attendance/adapter/http/routes.go) · [Decision rules](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) · [Application output port](../../../backend/internal/business/attendance/application/port/errors.go) · [Related tests](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go)
 
-[Domain guidance](../AGENTS.md)
+[Domain guidance](../../AGENTS.md)
 
 ## 後端分層結構
 

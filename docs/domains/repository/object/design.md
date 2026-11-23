@@ -8,7 +8,7 @@
 
 物件、子物件與物件範本同屬 Object 限界上下文。**實作狀態：** 下列分層均已實作。LINE 指令已接入 webhook，訊息發布與排程在設定 Pub/Sub 主題後啟用。
 
-下圖列出模組內的檔案與職責。精確數量與建立者資格分別由 valueobject 和 policy 維護。[後端分層指引](../../../../backend/internal/AGENTS.md#bounded-context-分層範本) · [Object 模組](../../../../backend/internal/business/object/)
+下圖列出模組內的檔案與職責。精確數量與建立者資格分別由 valueobject 和 policy 維護。[後端分層指引](../../../../backend/AGENTS.md) · [Object 模組](../../../../backend/internal/business/object/)
 
 ```text
 backend/internal/business/

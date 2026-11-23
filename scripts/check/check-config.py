@@ -198,12 +198,40 @@ def check_capability_routes(index, guides):
             raise ValueError(f"Capability selection table does not link to {guide.name}")
 
 
+def check_agent_guides(root):
+    allowed = {
+        "AGENTS.md",
+        "api/AGENTS.md",
+        "assets/AGENTS.md",
+        "backend/AGENTS.md",
+        "docs/AGENTS.md",
+        "frontend/AGENTS.md",
+        "scripts/AGENTS.md",
+    }
+    names = subprocess.check_output(
+        ["git", "ls-files", "-co", "--exclude-standard", "--", "*AGENTS.md"], cwd=root, text=True
+    ).splitlines()
+    actual = {
+        name
+        for name in names
+        if not ({".agents", ".claude", "node_modules"} & set(Path(name).parts))
+        and (root / name).is_file()
+    }
+    unexpected = sorted(actual - allowed)
+    missing = sorted(allowed - actual)
+    if unexpected:
+        raise ValueError("Nested AGENTS.md must be consolidated: " + ", ".join(unexpected))
+    if missing:
+        raise ValueError("Missing module AGENTS.md: " + ", ".join(missing))
+
+
 def check():
     codex_dir = ROOT / ".codex"
     config = tomllib.loads((codex_dir / "config.toml").read_text())
     mise = tomllib.loads((ROOT / "mise.toml").read_text())
     if "agents" in config or list((codex_dir / "agents").glob("*.toml")):
         raise ValueError("Subagent registrations must be removed")
+    check_agent_guides(ROOT)
     capabilities = ROOT / "docs/development/workflow/capabilities"
     for name in ("planning", "architect", "explorer", "implementer", "reviewer", "tester", "documentation"):
         if not (capabilities / (name + ".md")).is_file():

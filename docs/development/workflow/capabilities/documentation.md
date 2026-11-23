@@ -1,39 +1,12 @@
 # documentation 能力指引
 
-由目前代理按需採用；這是工作階段，不是可啟動的子代理。共同規則見[能力入口](./)。審查結果為自我審查，不宣稱獨立驗收。
+依[任務選擇表](../../../../README.md#依任務選擇能力)選用；共同執行與權限規則由[根指引](../../../../AGENTS.md)維護。
 
 ## 執行要求
 
-Apply these documentation capabilities in the current chat. Read AGENTS.md, the applicable
-nested instructions, docs/standards/documentation.md and docs/development/tooling/testing/commands.md
-before editing. The documentation policy is authoritative; reference it rather
-than duplicating its principles in role instructions or other documents.
-
-Own only the documentation files or diagram hunks within the authorized task and the necessary
-direct references included in that ownership. Apply the policy's workflow and
-autonomous-repair boundaries. You may directly write and repair those documents;
-preserve existing user changes and coordinate ownership before touching any
-additional file. Record required code, tooling or configuration changes and check their task scope before implementation.
-
-For codebase questions follow the root Graphify and current-source corroboration
-rules. For technical claims follow the root official-source/Context7 routing;
-consult docs/development/tooling/agents/openai-docs.md for Codex questions. Reuse still-applicable
-evidence, distinguish product decisions from technical facts, and leave unsupported
-or conflicting claims unresolved with a concrete explanation. For business
-documentation also read docs/contracts/business-operations.md and the compliance
-workflow in docs/development/workflow/implementation.md#business-operation-compliance. Do not invent or change product rules.
-
-Validate the assigned diff, local links and heading anchors, source references,
-and relevant commands using checks actually available in the repository. Run
-git diff --check; run the existing configuration check when configuration changes
-are part of the assignment. Do not claim a Markdown linter, command, runtime or
-integration passed unless it was actually exercised. Check that consolidation
-preserved valid knowledge, constraints and navigation.
-
-Report changed paths, repaired violations, sources/revisions, actual checks and
-remaining uncertainties in the final delivery. Do not spawn subagents. Publishing and deployment require task authorization.
-External publication is limited to explicitly authorized Wiki edits. Use the current session model, permissions and MCP servers;
-these instructions do not create a separate sandbox or additional authorization.
-Use scripts/tooling/tool-exec.sh for repository tooling.
-
-For assigned Mermaid diagrams follow docs/development/tooling/shared/mermaid.md: retain editable source and distinguish current, proposed and unknown relationships. Match diagram type to the question, check authority, references and transaction boundaries against the domain contract, render locally and review semantic accuracy independently. For authorized Wiki maintenance follow docs/development/tooling/shared/github.md#wiki-publication and report the published URL and verified revision. Wiki authorization does not extend to repository pushes or deployment.
+1. 編輯前讀取適用的 AGENTS.md、[文件規範](../../../standards/documentation.md)與[驗收矩陣](../../tooling/testing/commands.md)。文件規範統一維護編寫、所有權、自主修正及驗證要求，本頁不另訂一份。
+2. 僅修改任務範圍內的文件、圖表與必要直接引用，保留既有變更；擴充檔案範圍前確認所有權。需改程式、工具或設定時，先確認其任務授權。
+3. 程式與外部技術敘述依根指引查證；Codex 問題另查 [OpenAI 文件指引](../../tooling/agents/openai-docs.md)。業務文件先讀[操作模型](../../../contracts/business-operations.md)及[符合性流程](../implementation.md#business-operation-compliance)，不自行新增產品決策。證據不足或衝突時列出具體待確認事項。
+4. 依文件規範驗證差異、連結、錨點、來源及相關命令，確認精簡後保留有效知識、限制與導航。透過 `scripts/tooling/tool-exec.sh` 執行專案工具；交付列出修改位置、依據版本、實際檢查及限制，未執行者不得宣稱通過。
+5. 圖表依 [Mermaid 指引](../../tooling/shared/mermaid.md)保留可編輯來源，區分現況、提案與未知；選擇適合問題的圖形，核對權威來源、引用及交易邊界，並本機渲染及檢查語意。
+6. 僅在明確授權下依 [Wiki 發布流程](../../tooling/shared/github.md#wiki-publication)編輯 Wiki，回報網址與核實版本；此授權不延伸至儲存庫推送或部署。使用目前聊天的模型、權限與可用工具。

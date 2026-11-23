@@ -4,6 +4,34 @@
 
 第三階段已完成 HTTP、領域與持久化格式的分離；公開 OpenAPI、資料文件與交易語意保持相容。
 
+## 六邊形分層參考
+
+每個 bounded context 位於 `backend/internal/business/<context>/`，依實際責任採用下列結構。簡單功能可以少用層級；不得為了符合範本而建立空套件或搬移程式碼。
+
+```text
+internal/business/
+└── <Bounded Context>/
+    ├── domain/                  # Domain layer
+    │   ├── entity/              # Entity / Aggregate Root
+    │   ├── valueobject/         # Value Object
+    │   ├── service/             # Domain Service
+    │   ├── event/               # Domain Event
+    │   └── policy/              # Domain Policy
+    ├── application/             # Application layer
+    │   ├── command/             # Write operations / Use cases
+    │   ├── query/               # Queries / Use cases
+    │   ├── port/                # Output Port / Interface
+    │   └── dto/                 # Application DTO
+    └── adapter/                 # Adapter layer
+        ├── http/                # HTTP Handler
+        ├── line/                # LINE Webhook / API
+        ├── firestore/           # Database Adapter
+        ├── messaging/           # Message Queue Adapter
+        └── scheduler/           # Scheduled Trigger
+```
+
+依賴必須指向內層。Application 協調領域規則並定義所需介面；Adapter 呼叫 use case 或實作 output port；Domain 不依賴 HTTP、LINE 或 Firestore；`bootstrap/` 負責組裝依賴。
+
 - [目錄：business/attendance/domain、business/attendance/application<br>責任與允許依賴：各子功能的模型、規則與能力契約；依賴方向見 目前模組與責任](code-layout.md)
 
 - 目錄：business/attendance/adapter/http<br>責任與允許依賴：出勤 HTTP、生成 DTO 轉換、認證後的契約驗證；依賴消費端 Authenticator 介面

@@ -1,19 +1,10 @@
 # architect 能力指引
 
-由目前代理按需採用；這是工作階段，不是可啟動的子代理。共同規則見[能力入口](./)。審查結果為自我審查，不宣稱獨立驗收。
+依[任務選擇表](../../../../README.md#依任務選擇能力)選用；共同執行與權限規則由[根指引](../../../../AGENTS.md)維護。
 
 ## 執行要求
 
-For domain boundaries, invariants, retries or cross-context contracts, select the relevant question in docs/references/ddd/ and trace it to current domain specifications, code and tests. Distinguish a design option from verified behavior.
-
-Define resource scope, authority, domain invariants and transaction consistency. Reuse existing identity and use cases; require actual needs before shared abstractions.
-
-Design system architecture, compare technical choices and define module
-boundaries and dependency direction. Inspect current requirements and source
-before deciding. Prefer net/http and standard-library mechanisms when adequate.
-Keep Go interfaces consumer-owned and abstractions proportional to current
-requirements. Explain tradeoffs, invariants, affected packages and acceptance
-criteria. Do not implement features outside an explicitly assigned design scope.
-Record architecture decisions and acceptance constraints.
-
-For this Go service prefer explicit constructor injection and consumer-owned interfaces. Define HTTP, LINE and Firestore boundaries; specify timeout, transaction and idempotency requirements before adding abstractions.
+1. 先核對需求、現行領域規格、程式與測試。涉及領域邊界、不變量、重試或跨領域契約時，按問題查閱 [DDD 參考](../../../references/ddd/)，區分設計選項與已驗證行為。
+2. 定義資源範圍、授權、不變量、模組責任與依賴方向，以及 HTTP、LINE、Firestore 邊界的逾時、交易一致性與冪等要求。
+3. 重用既有身分模型與使用案例；標準庫及 `net/http` 足夠時優先採用。Go 使用明確的建構函式注入及由使用端擁有的小介面，僅為當前需求增加抽象。
+4. 記錄方案取捨、受影響套件、架構決策及驗收條件。設計任務不自行擴張為功能實作。

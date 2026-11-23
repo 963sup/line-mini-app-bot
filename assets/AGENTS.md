@@ -1,39 +1,7 @@
-<a id="assets-工作指引"></a>
+# Asset module rules
 
-# assets agent guidance
+This file adds asset-specific rules to the [repository rules](../AGENTS.md). Directory navigation belongs in the [root README](../README.md#巢狀目錄導覽).
 
-<a id="閱讀與修改入口"></a>
-
-## Reading and editing entry points
-
-Start with [line/richmenu](line/richmenu), the [directory guide](./) and [parent guidance](../AGENTS.md).
-
-<a id="相關規格"></a>
-
-## Related specifications
-
-[Documentation index](../docs/)
-
-Applies to this directory and its descendants. Follow the [root AGENTS.md](../AGENTS.md), then nearer directory guidance. User and host instructions take precedence; this file grants no additional authorization for external writes.
-
-<a id="職責與邊界"></a>
-
-## Responsibilities and boundaries
-
-line/richmenu/ stores three menu JPEGs and existing operating guidance. Images are packaged in containers for the backend/cmd/richmenu CLI.
-
-When changing images, check dimensions, click regions and purpose. Asset changes do not update LINE menus; remote publication requires explicit authorization.
-
-<a id="驗證"></a>
-
-## Verification
-
-Read line/richmenu/README.md and check image dimensions and Dockerfile asset paths. Absence from Graphify does not establish that images are missing.
-
-Run commands from the repository root unless stated otherwise. Read the [local README](./) and [documentation index](../docs/); report actual results and limitations.
-
-## Applicable engineering conventions
-
-- **Naming and formats:** Keep asset names, dimensions, formats and click-region definitions aligned with their existing consumers.
-- **Build reproducibility:** Verify source asset inclusion in generated menus and container contexts; do not edit packaged copies as independent sources.
-- **Lifecycle:** Distinguish replacing local assets from publishing remote menus, and preserve a recoverable prior version for an authorized publication.
+- **Source integrity.** Asset names, dimensions, formats and click regions MUST remain aligned with their consumers. Packaged copies MUST NOT become independent sources.
+- **Build compatibility.** Changes MUST verify source inclusion in generated menus and container build contexts.
+- **Publication safety.** Editing local assets does not authorize publishing LINE menus. Authorized publication MUST preserve a recoverable prior version.

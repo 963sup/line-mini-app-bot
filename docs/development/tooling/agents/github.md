@@ -41,4 +41,4 @@ by its exposed schema, not by the REST request body.
 
 ## Verification and failures
 
-Follow [MCP diagnostics](./) with the service name `github`.
+Follow [MCP diagnostics](../../environment/troubleshooting.md#設定與-mcp-診斷) with the service name `github`.

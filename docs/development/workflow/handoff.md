@@ -38,8 +38,8 @@ flowchart TB
 適用邊界：
 
 - HEAD 相同不足以證明證據有效；須核對相關 dirty paths、query／bundle 範圍與來源版本。Context7 只重用相同問題與版本涵蓋的結果；Repomix 另核對包含／排除路徑。
-- 每位實際探索程式的代理仍須執行首次 Graphify query；只消費已提供證據而未探索者不必另造查詢。新問題、過期圖譜或矛盾觀察須重新定位並核對當前來源。
-- MCP inventory 與連線重用依 [工具操作指南](../tooling/agents/)；host／server／allowlist、服務、角色或來源不符會使相關證據失效。註冊成功不等於 runtime 驗收。
+- 探索工具依[根指引](../../../AGENTS.md#graphify)按問題選用；新問題、過期圖譜或矛盾觀察須重新定位並核對當前來源，不因交接而強制新增查詢。
+- MCP inventory 與連線重用依 [工具操作指南](../environment/troubleshooting.md#設定與-mcp-診斷)；host／server／allowlist、服務、角色或來源不符會使相關證據失效。註冊成功不等於 runtime 驗收。
 - reviewer 依獨立判斷補足挑戰結論所需的證據；流程不限制必要審查。
 
 交接需求時，將需求 ID 對到用例、實際檔案或函數與代表測試；HTTP 拒絕、重送與失敗須連到相應契約。版本以 [mise.toml](../../../mise.toml) 和 [Go 模組](../../../backend/go.mod) 為準。圖譜和打包可定位來源，行為仍需適用的驗收證據。
@@ -82,7 +82,7 @@ Open issues｜先讀 NeedsDecision 對既有核准紀錄的判斷，再對照交
 
 Read [acceptance](../tooling/testing/commands.md) before choosing checks. The root AGENTS.md routes
 roles to relevant documents. Resolve routine issues within the authorized scope;
-report host restrictions accurately. Consult [MCP guidance](../tooling/agents/)
+report host restrictions accurately. Consult [MCP guidance](../environment/troubleshooting.md#設定與-mcp-診斷)
 for tool selection and transport diagnostics. Integration does not grant permission
 to push or deploy. The user-established [publication default](publication.md#repository-publication)
 is separate authorization, not permission inferred from delegation.
