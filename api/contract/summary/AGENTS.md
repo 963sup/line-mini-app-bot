@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [worker.yaml](worker.yaml), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
+Start with [worker.yaml](worker.yaml), the [directory guide](./) and [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
@@ -20,7 +20,7 @@ Applies to this directory and descendants. Inherit [parent guidance](../AGENTS.m
 
 ## Responsibilities and boundaries
 
-- Read [existing entry contracts](README.md) and the [summary feature](../../../docs/domains/summary/summary.md). Describe message collection, summary commands and internal workers separately.
+- Read [existing entry contracts](./) and the [summary feature](../../../docs/domains/summary/summary.md). Describe message collection, summary commands and internal workers separately.
 - `../internal-openapi.yaml` composes worker contracts and generates internal DTOs. Do not include them in browser clients or replace job identity with browser sessions.
 - Preserve inputs, request limits, case compatibility, responses, retries, leases and failure semantics. Do not duplicate official LINE event schemas.
 - Add public Summary APIs only when new feature specifications explicitly require them.

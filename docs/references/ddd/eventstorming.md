@@ -32,4 +32,4 @@ EventStorming 是跨角色共同探索業務的工作坊方法。適合詞義有
 
 方法來源：[EventStorming 官方說明](https://www.eventstorming.com/)。採協作探索方法，不預設事件驅動部署。
 
-[領域建模](domain-modeling.md) · [設計流程](design-process.md) · [通用語言](ubiquitous-language.md) · [模型審查](domain-model-review.md) · [DDD 索引](README.md)
+[領域建模](domain-modeling.md) · [設計流程](design-process.md) · [通用語言](ubiquitous-language.md) · [模型審查](domain-model-review.md) · [DDD 索引](design-guide.md)

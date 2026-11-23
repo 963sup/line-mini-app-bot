@@ -12,4 +12,4 @@ AcceptInvitation 回傳已提交結果或具名拒絕；HTTP 狀態由入站 Ada
 
 ## 延伸閱讀
 
-[port](port.md) · [driving-adapter](driving-adapter.md) · [use-case](use-case.md) · [DDD 設計索引](README.md)
+[port](port.md) · [driving-adapter](driving-adapter.md) · [use-case](use-case.md) · [DDD 設計索引](design-guide.md)

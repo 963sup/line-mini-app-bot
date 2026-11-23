@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[value-object](value-object.md) · [domain-error](domain-error.md) · [DDD 設計索引](README.md)
+[value-object](value-object.md) · [domain-error](domain-error.md) · [DDD 設計索引](design-guide.md)

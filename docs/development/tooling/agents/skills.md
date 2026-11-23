@@ -58,7 +58,7 @@ codex plugin add python-development@claude-code-workflows
 ```
 
 本次觀測 python-development 為 1.2.4；這是安裝紀錄，不是重建版本鎖定。
-安裝不授權 plugin 自動進行對外操作，目前代理依[能力指引](../../workflow/capabilities/README.md)選用所需能力，文件查證依根目錄指引。
+安裝不授權 plugin 自動進行對外操作，目前代理依[能力指引](../../workflow/capabilities/)選用所需能力，文件查證依根目錄指引。
 
 ## shadcn 官方 skill
 

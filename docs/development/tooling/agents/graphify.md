@@ -20,6 +20,6 @@ CLI 建圖、排除規則與更新方式見 [Graphify CLI](../shared/graphify.md
 
 ## Verification and failures
 
-Follow [MCP diagnostics](README.md#mcp-診斷) with the service name `graphify`.
+Follow [MCP diagnostics](./) with the service name `graphify`.
 
-若 CLI 查詢成功但 MCP 初始化逾時，先確認本機伺服器是否回傳 JSON-RPC，再依[主機載入檢查](README.md#project-loading-check)確認目前聊天使用的服務與索引。
+若 CLI 查詢成功但 MCP 初始化逾時，先確認本機伺服器是否回傳 JSON-RPC，再依[主機載入檢查](./)確認目前聊天使用的服務與索引。

@@ -7,4 +7,4 @@ Enterprise、Organization 與 Team 共用 HTTP 和 Firestore 轉接工具。授�
 | [orghttp](../../../backend/internal/business/internal/adapter/http/response.go)    | 驗證呼叫者、解碼請求並映射回應。未通過身分驗證時，不呼叫業務操作；資源歸屬衝突映射為 HTTP 409。 |
 | [orgstore](../../../backend/internal/business/internal/adapter/firestore/store.go) | 提供 Channel 範圍的資料讀取與交易工具。操作權限與一致性範圍由呼叫端決定。                       |
 
-[後端功能邊界](backend-boundaries.md) · [依賴規則](dependencies.md) · [執行架構索引](README.md)
+[後端功能邊界](backend-boundaries.md) · [依賴規則](dependencies.md) · [執行架構索引](./)

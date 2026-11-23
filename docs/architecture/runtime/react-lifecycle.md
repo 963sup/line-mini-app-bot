@@ -31,7 +31,7 @@ stateDiagram-v2
   Revalidating --> Active: 重新核驗成功
 ```
 
-- [pages/_app.tsx 透過 MiniAppLayout 讓/miniapp 頁面共用身分與組織 context。身分世代改變時，Shell 重建功能子樹並清除舊資料、表單及重試狀態。空間載入由 Shell 內的RepositoryProvider 管理，詳見空間載入時序。](../../domains/repository/README.md#空間載入時序)
+- [pages/_app.tsx 透過 MiniAppLayout 讓/miniapp 頁面共用身分與組織 context。身分世代改變時，Shell 重建功能子樹並清除舊資料、表單及重試狀態。空間載入由 Shell 內的RepositoryProvider 管理，詳見空間載入時序。](../../domains/repository/design.md)
 
 - [樣式編譯、Preflight、utilities 與歷史 CSS 移除範圍集中於 CSS 編譯與版面。樣式入口保留主題變數與必要的 base layer。](../../development/tooling/frontend/shadcn.md#css-編譯與版面)
 

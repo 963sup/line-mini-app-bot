@@ -12,4 +12,4 @@ HTTP Adapter 將具名拒絕轉為公開回應，資料庫 Adapter 將版本前�
 
 ## 延伸閱讀
 
-[driving-adapter](driving-adapter.md) · [driven-adapter](driven-adapter.md) · [DDD 設計索引](README.md)
+[driving-adapter](driving-adapter.md) · [driven-adapter](driven-adapter.md) · [DDD 設計索引](design-guide.md)

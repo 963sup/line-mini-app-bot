@@ -30,4 +30,4 @@ Report LINE iOS/Android and external-browser acceptance separately; mocks do not
 
 測試與回歸證據依[工程決策與交付要求](../../../AGENTS.md#工程決策與交付要求)。純文件變更驗證連結與 whitespace；Codex 設定或能力指引變更另跑 check-config。
 
-[驗收矩陣](../tooling/testing/commands.md#變更驗收矩陣) · [驗收索引](README.md)
+[驗收矩陣](../tooling/testing/commands.md#變更驗收矩陣) · [驗收索引](./)

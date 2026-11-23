@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [application service](application/service.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [application service](application/service.go), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
@@ -20,7 +20,7 @@ Start with [application service](application/service.go), [directory guide](READ
 
 Members with categorization-only permissions may recategorize, but requests also changing content must reject the unauthorized changes.
 
-When changing this rule, check the [decision flow](../../../../docs/domains/repository/discussion/README.md#decision-flow) and [representative tests](domain/entity/classification_test.go).
+When changing this rule, check the [decision flow](../../../../docs/domains/repository/discussion/design.md) and [representative tests](domain/entity/classification_test.go).
 
 ## Applicable engineering conventions
 

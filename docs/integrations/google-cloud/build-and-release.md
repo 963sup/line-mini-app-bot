@@ -56,4 +56,4 @@ Writer、Reader 與刪除權限分開；清理前核對目前服務及保留回�
 
 [官方文件](https://docs.cloud.google.com/artifact-registry/docs/repositories)。[Cloud Build](#cloud-build) · [發布驗收](../../operations/release-acceptance.md)。
 
-[Google 服務索引與查證範圍](README.md#sources)
+[Google 服務索引與查證範圍](./)

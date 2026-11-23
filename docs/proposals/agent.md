@@ -1,6 +1,6 @@
 # Agent 領域設計
 
-狀態：提案。目錄入口見[領域導覽](../../backend/internal/business/agent/README.md)。
+狀態：提案。目錄入口見[領域導覽](../../backend/internal/business/agent/)。
 
 Agent 依任務目標與目前證據選擇下一步。呼叫端指定可讀資源、允許的[操作](operations.md)及步數上限。每次模型提出操作，由執行端核對唯讀工具清單、授權與參數。模型只交回候選、證據及停止原因。未來若抽出共用模型用戶端，可放在 `backend/internal/genai`；業務欄位與驗證仍歸使用它的領域。
 

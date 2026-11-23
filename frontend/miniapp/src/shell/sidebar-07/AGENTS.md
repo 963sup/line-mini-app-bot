@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [app-sidebar.tsx](app-sidebar.tsx), [nav-main.tsx](nav-main.tsx), [nav-projects.tsx](nav-projects.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [app-sidebar.tsx](app-sidebar.tsx), [nav-main.tsx](nav-main.tsx), [nav-projects.tsx](nav-projects.tsx), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 

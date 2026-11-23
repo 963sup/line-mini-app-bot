@@ -24,4 +24,4 @@ Application Service 執行一個明確用例，安排取得事實、領域決策
 
 列明 Actor、Resource、Action、Authority、前置條件、讀寫集合、版本、防重與結果。具體操作契約沿用[業務操作模型](../../contracts/business-operations.md)，不在本頁複製完整政策。
 
-[Domain Service](domain-service.md) · [一致性](consistency.md) · [六邊形架構](hexagonal-architecture.md) · [DDD 設計索引](README.md)
+[Domain Service](domain-service.md) · [一致性](consistency.md) · [六邊形架構](hexagonal-architecture.md) · [DDD 設計索引](design-guide.md)

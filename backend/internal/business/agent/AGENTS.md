@@ -2,7 +2,7 @@
 
 # agent maintenance guidance
 
-Applies to this directory/descendants; inherit [business guidance](../AGENTS.md). See the [directory guide](README.md) for scope.
+Applies to this directory/descendants; inherit [business guidance](../AGENTS.md). See the [directory guide](./) for scope.
 
 Declare allowed operations, readable resources and step limits for each task. Validate model-proposed calls before execution.
 

@@ -10,7 +10,7 @@
 
   - [基礎設施](../../development/environment/verification.md)
 
-  - [基礎出勤](../../domains/attendance/README.md)
+  - [基礎出勤](../../domains/attendance/design.md)
 
 <a id="第一個可實作切片"></a>
 
@@ -52,7 +52,7 @@
 
   - [分階段落地](../../development/environment/verification.md)
 
-  - [基礎出勤](../../domains/attendance/README.md)
+  - [基礎出勤](../../domains/attendance/design.md)
 
 <a id="後續平台擴充參考"></a>
 

@@ -77,7 +77,7 @@
 
 **P1 · 已修復；本地驗收通過 · 標準 9、30、34 · 責任：Team 文件**
 
-- 證據：[docs/domains/team/README.md](../../../docs/domains/team/README.md) 仍有 “No independent Go tests found here”；實際已有 [backend/internal/business/team/adapter/firestore/activation_test.go](../../../backend/internal/business/team/adapter/firestore/activation_test.go)、[backend/internal/business/team/adapter/firestore/group_catalog_test.go](../../../backend/internal/business/team/adapter/firestore/group_catalog_test.go) 及生命週期案例。
+- 證據：[docs/domains/team/README.md](../../domains/team/design.md) 仍有 “No independent Go tests found here”；實際已有 [backend/internal/business/team/adapter/firestore/activation_test.go](../../../backend/internal/business/team/adapter/firestore/activation_test.go)、[backend/internal/business/team/adapter/firestore/group_catalog_test.go](../../../backend/internal/business/team/adapter/firestore/group_catalog_test.go) 及生命週期案例。
 - 調整：批次核對各 domain README 的現行實作、測試入口與已執行證據，歷史 smoke 記錄保留日期與限制，不誤當當前覆蓋。
 - 關閉條件：每個現行領域都有正確代表測試入口及環境前提；測試檔存在與案例實跑分開描述；本機連結／錨點通過。
 - 前置：無；先維持現行相容行為。
@@ -196,7 +196,7 @@
 
 **P1 · 已知未交付 · 標準 4、11、16、19、21、22、26、32 · 責任：資料遷移／各資源**
 
-- 證據：[docs/domains/organization/design.md](../../../docs/domains/organization/design.md) 列出資料準備、切換及回復未交付；[scripts/db/README.md](../../../scripts/db/README.md) 的現有索引／欄位政策工具不是 Membership 遷移工具。[docs/proposals/firestore-data-contracts.md](../../../docs/proposals/firestore-data-contracts.md) 的 schemaVersion=1 是未實作提案。
+- 證據：[docs/domains/organization/design.md](../../../docs/domains/organization/design.md) 列出資料準備、切換及回復未交付；[scripts/db/README.md](../../../scripts/db/) 的現有索引／欄位政策工具不是 Membership 遷移工具。[docs/proposals/firestore-data-contracts.md](../../../docs/proposals/firestore-data-contracts.md) 的 schemaVersion=1 是未實作提案。
 - 調整：為每個切換建立舊／新 reader-writer 組合、試跑、可重跑準備、版本條件、切換檢查與回復界線，不在請求路徑無界回填。
 - 關閉條件：混合版本及部分失敗可重跑；回復不恢復已撤權資格、不覆寫新資料；資料與權限不變量經 staging 驗收。
 - 前置：B01／B05 對應正常入口完成；保存與刪除範圍依 B07。
@@ -402,7 +402,7 @@
 
 ## 業務目錄覆蓋
 
-下表是盤點導航，不重新定義領域規則；詳情以[領域矩陣](../../domains/README.md#domain-matrix)、各規格及能力清單為準。Go 檔案數含測試，測試檔數不等於案例數或已執行數。
+下表是盤點導航，不重新定義領域規則；詳情以[領域矩陣](../../domains/)、各規格及能力清單為準。Go 檔案數含測試，測試檔數不等於案例數或已執行數。
 
 | 目錄                                                            | Go／測試檔數 | 本輪追蹤範圍                                                                       |
 | --------------------------------------------------------------- | -----------: | ---------------------------------------------------------------------------------- |

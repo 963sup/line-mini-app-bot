@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [fields.yaml](fields.yaml), [inspection-submissions.yaml](inspection-submissions.yaml), [items.yaml](items.yaml), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
+Start with [fields.yaml](fields.yaml), [inspection-submissions.yaml](inspection-submissions.yaml), [items.yaml](items.yaml), the [directory guide](./) and [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 

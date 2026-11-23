@@ -58,4 +58,4 @@ Invariant 是模型在約定的一致性邊界內、每次成功操作後都必�
 
 每條規則列出適用時間點、擁有者、所需事實、拒絕結果與一致性方式。用成功、非法轉換及併發反例檢查規則，實際驗收依既有階段政策。
 
-[狀態機](state-machine.md) · [領域授權](domain-authorization.md) · [模型審查](domain-model-review.md) · [Aggregate](aggregate.md) · [Factory](factory.md) · [一致性](consistency.md) · [DDD 設計索引](README.md)
+[狀態機](state-machine.md) · [領域授權](domain-authorization.md) · [模型審查](domain-model-review.md) · [Aggregate](aggregate.md) · [Factory](factory.md) · [一致性](consistency.md) · [DDD 設計索引](design-guide.md)

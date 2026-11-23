@@ -29,8 +29,8 @@
 
 ## 專案入口與驗收
 
-公開 HTTP 以 [OpenAPI 工作流程](../../../api/README.md)與[能力清單](../../../api/contract/capabilities.json)為來源；操作語意連回[業務操作模型](../../contracts/business-operations.md)及[領域規格](../../domains/README.md)。程序內 Port 的責任見[出站埠](driven-port.md)。
+公開 HTTP 以 [OpenAPI 工作流程](../../../api/)與[能力清單](../../../api/contract/capabilities.json)為來源；操作語意連回[業務操作模型](../../contracts/business-operations.md)及[領域規格](../../domains/)。程序內 Port 的責任見[出站埠](driven-port.md)。
 
 驗收至少包含提供方與消費方對同一例子的理解、錯誤映射、舊版相容組合、權限失效、重送與結果未知。型別或產生碼一致不能證明業務語意相容；交付時列出未驗證的消費端。
 
-[上下文映射](context-mapping.md) · [整合事件](integration-event.md) · [領域錯誤](domain-error.md) · [架構測試](architecture-testing.md) · [DDD 索引](README.md)
+[上下文映射](context-mapping.md) · [整合事件](integration-event.md) · [領域錯誤](domain-error.md) · [架構測試](architecture-testing.md) · [DDD 索引](design-guide.md)

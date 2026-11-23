@@ -28,4 +28,4 @@ Domain Event 表示領域中已發生且值得讓其他行為知道的事實，�
 
 概念參考：[Microsoft Learn：領域事件](https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/domain-events-design-implementation)。不直接採用其 .NET mediator 或微服務前提。
 
-[Application Service](application-service.md) · [一致性](consistency.md) · [Outbox（按需）](outbox-pattern.md) · [Event Sourcing（按需）](event-sourcing.md) · [DDD 設計索引](README.md)
+[Application Service](application-service.md) · [一致性](consistency.md) · [Outbox（按需）](outbox-pattern.md) · [Event Sourcing（按需）](event-sourcing.md) · [DDD 設計索引](design-guide.md)

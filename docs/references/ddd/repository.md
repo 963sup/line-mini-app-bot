@@ -18,4 +18,4 @@ People 清單可由 Reader Port 直接回傳投影，不必為顯示姓名載入
 
 列出載入／保存單位、重建責任、版本衝突、交易生命週期與格式轉換。不要為每張資料表建立一個 Repository，也不因採用此概念引入通用 Repository 框架。
 
-[Aggregate](aggregate.md) · [Factory](factory.md) · [六邊形架構](hexagonal-architecture.md) · [DDD 設計索引](README.md)
+[Aggregate](aggregate.md) · [Factory](factory.md) · [六邊形架構](hexagonal-architecture.md) · [DDD 設計索引](design-guide.md)

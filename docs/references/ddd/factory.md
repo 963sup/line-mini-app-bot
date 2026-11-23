@@ -37,4 +37,4 @@ Factory 屬於戰術設計概念，不新增一個限界上下文，也不等同
 
 概念依據：Eric Evans，[*Domain-Driven Design Reference*，2015-03，Factories](https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf)。2026-11-21 核對；上述純領域與套件安排是本專案的採用原則。
 
-[七階段設計流程](design-process.md) · [限界上下文](bounded-context.md) · [Aggregate](aggregate.md) · [Invariant](invariant.md) · [Repository](repository.md) · [DDD 設計索引](README.md)
+[七階段設計流程](design-process.md) · [限界上下文](bounded-context.md) · [Aggregate](aggregate.md) · [Invariant](invariant.md) · [Repository](repository.md) · [DDD 設計索引](design-guide.md)

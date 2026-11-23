@@ -6,13 +6,13 @@
 
 ## Reading and editing entry points
 
-Start with [line/richmenu](line/richmenu), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
+Start with [line/richmenu](line/richmenu), the [directory guide](./) and [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
 ## Related specifications
 
-[Documentation index](../docs/README.md)
+[Documentation index](../docs/)
 
 Applies to this directory and its descendants. Follow the [root AGENTS.md](../AGENTS.md), then nearer directory guidance. User and host instructions take precedence; this file grants no additional authorization for external writes.
 
@@ -30,7 +30,7 @@ When changing images, check dimensions, click regions and purpose. Asset changes
 
 Read line/richmenu/README.md and check image dimensions and Dockerfile asset paths. Absence from Graphify does not establish that images are missing.
 
-Run commands from the repository root unless stated otherwise. Read the [local README](README.md) and [documentation index](../docs/README.md); report actual results and limitations.
+Run commands from the repository root unless stated otherwise. Read the [local README](./) and [documentation index](../docs/); report actual results and limitations.
 
 ## Applicable engineering conventions
 

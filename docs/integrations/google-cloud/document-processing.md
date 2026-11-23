@@ -56,4 +56,4 @@ Go 核對可見資料 → 經模型 Adapter 提交限定內容 → 驗證輸出�
 
 [官方文件](https://docs.cloud.google.com/vertex-ai/docs/generative-ai/learn/overview)。[Document AI](#document-ai) · [業務操作模型](../../contracts/business-operations.md)。
 
-[Google 服務索引與查證範圍](README.md#sources)
+[Google 服務索引與查證範圍](./)

@@ -29,7 +29,7 @@ flowchart TB
 | Markdown               | `pnpm docs:check`、`git diff --check`；核對變更頁面的本機路徑、標題錨點與相關索引                                                     | 不執行無關應用測試；圖形變更依[文件規範](../../../standards/documentation.md#增量驗證)渲染                                                              |
 | 設定、腳本、Agent 設定 | `python3 scripts/check/check-config.py`；相關既有腳本檢查或 smoke check                                                               | 依腳本實際影響補相應類型；不為驗證文件執行部署或外部寫入                                                                                                |
 | Go 行為                | 開發時執行受影響套件的既有測試；交付前執行 `mise run fmt-check`、`mise run lint`、`mise run check`、`mise run build`、`mise run vuln` | `check` 已含模組驗證、vet 與完整 race 測試，不重複執行全套 race；不得格式化他人檔案                                                                     |
-| 公開 HTTP API          | 依 [API 流程](../../../../api/README.md)更新契約與生成碼，執行 `pnpm api:check`；Go／前端變更另套對應列                               | 核對相容性、認證、錯誤格式及既有行為；不手改產生檔；歷史相容性比較需另列 base revision                                                                  |
+| 公開 HTTP API          | 依 [API 流程](../../../../api/)更新契約與生成碼，執行 `pnpm api:check`；Go／前端變更另套對應列                                        | 核對相容性、認證、錯誤格式及既有行為；不手改產生檔；歷史相容性比較需另列 base revision                                                                  |
 | 前端                   | `pnpm --filter @repo/miniapp check`、`pnpm --filter @repo/miniapp test`                                                               | 靜態輸出、路由或資產變更另執行 `pnpm --filter @repo/miniapp build`；UI 另核對[元件規範](../../../../frontend/miniapp/src/shared/ui/AGENTS.md)與相關畫面 |
 | 依賴                   | 核對 manifest 與鎖檔；執行受影響工作區的既有檢查                                                                                      | Go 執行模組下載／驗證及 `mise run vuln`；不把下載成功當整合通過                                                                                         |
 | Firestore              | 套用 Go／API 對應列；核對功能契約中的路徑、授權、交易、防重與相容性，依[整合驗收流程](#firestore-integration)執行適用測試             | 索引或遷移須依既有指南驗證；沒有真實資料庫證據時，讀寫與交易整合仍待驗收                                                                                |
@@ -63,7 +63,7 @@ These tasks do not create test cases or benchmarks. Storage acceptance follows t
 
 工具安裝見 [mise tooling](../shared/mise.md)。交接時沿用仍適用的[檢查證據](../../workflow/handoff.md#minimal-handoff-and-evidence-reuse)。
 
-[驗收索引](../../verification/README.md)
+[驗收索引](../../verification/)
 
 ## API contract verification
 

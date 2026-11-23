@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[application-service](application-service.md) · [driving-port](driving-port.md) · [DDD 設計索引](README.md)
+[application-service](application-service.md) · [driving-port](driving-port.md) · [DDD 設計索引](design-guide.md)

@@ -2,7 +2,7 @@
 
 # Domain rules and acceptance guidance
 
-Inherit [parent guidance](../AGENTS.md); select topics through the [local index](README.md).
+Inherit [parent guidance](../AGENTS.md); select topics through the [local index](./).
 
 <a id="職責與邊界"></a>
 
@@ -28,9 +28,9 @@ Follow [naming standards](../standards/naming.md#業務實體集合與-api-命�
 
 ## Documentation ownership
 
-Domain READMEs route responsibilities, flows, contracts and acceptance. Use design.md for a single main specification; retain specific filenames for distinct topics. [Cross-boundary contracts](../contracts/README.md) own shared guarantees. Put candidate designs in docs/proposals. Update anchors, diagrams, Mermaid click links and API capability paths during moves.
+Each domain keeps its responsibilities, flows, contracts and acceptance criteria in `<domain>/design.md`. Keep distinct topics in named files and link proposals to their source. [Cross-boundary contracts](../contracts/) own shared guarantees. Update inbound links, diagrams and API capability paths when moving specifications.
 
-Domain/container entry points use domain-name/README.md here. Repository Issue/Discussion/Object documents (including subobjects/templates) live under `repository/<capability>/`, indexed by Repository README; Project/Journal remain independent. Grouping changes neither code modules nor business ownership. Start pages with status, design, flow, acceptance, code and guidance. Proposals link their single source; update the [global matrix](README.md#domain-matrix) when status changes.
+[Repository design](repository/design.md#repository-capabilities) indexes Issue, Discussion and Object, including subobjects and templates. Project and Journal retain their own design files. [LINE group compatibility](../integrations/line/group-compatibility.md) documents group discovery and membership checks.
 
 ## Applicable engineering conventions
 

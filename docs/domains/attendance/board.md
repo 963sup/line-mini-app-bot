@@ -70,11 +70,11 @@ flowchart TB
 
 - 功能索引 · 出勤總覽 · 文件總索引
 
-  - [功能索引](../README.md)
+  - [功能索引](../)
 
-  - [出勤總覽](README.md)
+  - [出勤總覽](design.md)
 
-  - [文件總索引](../../README.md)
+  - [文件總索引](../../)
 
 - 本次本機結果：fmt-check、lint（0 issues）、mise check（mod verify／vet／既有Go race suite）、mise build、設定檢查及 git diff --check 通過；Graphify 已更新。govulncheck 呼叫路徑未發現漏洞，仍列出3個未被呼叫的相依模組漏洞。Firestore emulator 未設定，既有整合測試明確skip，新增看板查詢及提醒交易仍待外部驗收。
 

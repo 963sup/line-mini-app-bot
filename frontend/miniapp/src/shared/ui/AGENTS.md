@@ -6,13 +6,13 @@
 
 ## Reading and editing entry points
 
-Start with [LICENSE.md](LICENSE.md), [accordion.tsx](accordion.tsx), [alert-dialog.tsx](alert-dialog.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [LICENSE.md](LICENSE.md), [accordion.tsx](accordion.tsx), [alert-dialog.tsx](alert-dialog.tsx), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
 ## Related specifications
 
-[Local references](../../../../../docs/development/tooling/frontend/shadcn-reference/README.md) · [Generated index](../../../../../docs/development/tooling/frontend/shadcn-reference/snapshot/INDEX.md)
+[Local references](../../../../../docs/development/tooling/frontend/shadcn-reference/) · [Generated index](../../../../../docs/development/tooling/frontend/shadcn-reference/snapshot/INDEX.md)
 
 Applies here and below; follow [MINI App guidance](../../../AGENTS.md)/[root guidance](../../../../../AGENTS.md). This is the `aliases.ui` (`@/shared/ui`) resolution directory for `components.json`, storing official shadcn components. Keep business composition outside it.
 
@@ -58,7 +58,7 @@ Only after previews confirm necessary new official files without overwrites, run
 Applies to all frontend UI work. Guidance-only changes verify documentation without demo screens.
 
 1. **Define purpose first.** Specify operations, density, mobile/desktop constraints/states before component choices. Do not reshape business flows around components. Preserve authorization, forms, errors/unknown-result retry contracts.
-2. **Search by purpose.** Check [snapshot freshness](../../../../../docs/development/tooling/frontend/shadcn-reference/README.md), full Components/AI Elements indexes and relevant docs beyond installed items; then official registry compositions/examples. Compare candidates when tradeoffs exist; directly reuse suitable patterns without artificial alternatives.
+2. **Search by purpose.** Check [snapshot freshness](../../../../../docs/development/tooling/frontend/shadcn-reference/), full Components/AI Elements indexes and relevant docs beyond installed items; then official registry compositions/examples. Compare candidates when tradeoffs exist; directly reuse suitable patterns without artificial alternatives.
 3. **Add as needed.** Official `@shadcn` is the specified default; no registry clarification needed. UI requests authorize required missing components after safe preview, without per-item confirmation. Keep necessary dependencies/output only. For overwrites, first compose existing components; otherwise apply protection authorization above.
 4. **Compose applications.** Prefer public props, variants/official patterns. Check imports, base, child components/dependencies after adding; do not rebuild existing controls. Explore [AI Elements](https://ui.shadcn.com/docs/ai-elements) only for AI/chat needs, verifying registries/dependencies/APIs; names do not justify model services.
 5. **Verify behavior/screens.** Run frontend types, tests/builds for UI changes. Use browsers for desktop/narrow layouts, long text/overflow, keyboard, focus entry/return, accessible names and applicable loading/empty/error/disabled/submitting states. Compilation alone proves no UX completion. Report browser/credential gaps; do not claim LINE-device acceptance.
@@ -78,9 +78,9 @@ These are exploration directions, not fixed recipes; verify official examples fo
 
 ## Complete official catalog
 
-The [local references](../../../../../docs/development/tooling/frontend/shadcn-reference/README.md)/[generated index](../../../../../docs/development/tooling/frontend/shadcn-reference/snapshot/INDEX.md) exclusively own complete Components/AI Elements lists, purposes, both bases/examples. Do not duplicate snapshots/counts. Search first, then read Radix pages; listings do not establish installed, supported or matching-base usability.
+The [local references](../../../../../docs/development/tooling/frontend/shadcn-reference/)/[generated index](../../../../../docs/development/tooling/frontend/shadcn-reference/snapshot/INDEX.md) exclusively own complete Components/AI Elements lists, purposes, both bases/examples. Do not duplicate snapshots/counts. Search first, then read Radix pages; listings do not establish installed, supported or matching-base usability.
 
-Follow reference update/integrity instructions; latest official catalogs reveal additions/renames. See [shadcn tooling](../../../../../docs/development/tooling/frontend/shadcn.md)/[frontend entry](../../../../README.md) for checks, sources/MCP diagnostics. Guidance-only work checks links/whitespace; installation/composition follows frontend checks. Source research does not establish UI, device or integration acceptance.
+Follow reference update/integrity instructions; latest official catalogs reveal additions/renames. See [shadcn tooling](../../../../../docs/development/tooling/frontend/shadcn.md)/[frontend entry](../../../../) for checks, sources/MCP diagnostics. Guidance-only work checks links/whitespace; installation/composition follows frontend checks. Source research does not establish UI, device or integration acceptance.
 
 [Current implementation diagram: page and identity lifecycle](../../../../../docs/architecture/runtime/react-lifecycle.md#頁面與身分生命週期)
 

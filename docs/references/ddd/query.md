@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[cqrs](cqrs.md) · [eventual-consistency](eventual-consistency.md) · [DDD 設計索引](README.md)
+[cqrs](cqrs.md) · [eventual-consistency](eventual-consistency.md) · [DDD 設計索引](design-guide.md)

@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [_app.tsx](_app.tsx), [_document.tsx](_document.tsx), [index.tsx](index.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [_app.tsx](_app.tsx), [_document.tsx](_document.tsx), [index.tsx](index.tsx), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 

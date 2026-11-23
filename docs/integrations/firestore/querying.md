@@ -28,4 +28,4 @@
 
 檢查空結果、同值排序、下一頁、非法游標、跨本人／跨庫／跨篩選重用、資料增刪及權限失效。emulator 上查詢成功不能證明正式複合索引已存在；另確認目標環境、索引狀態及代表負載。未做正式觀測時列為未驗證。
 
-[資料配置](data-model.md) · [交易與一致性](consistency.md) · [資料生命週期](lifecycle.md) · [儲存索引](README.md)
+[資料配置](data-model.md) · [交易與一致性](consistency.md) · [資料生命週期](lifecycle.md) · [儲存索引](./)

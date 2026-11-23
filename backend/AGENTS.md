@@ -6,13 +6,13 @@
 
 ## Reading and editing entry points
 
-Start with [package.json](package.json), [turbo.json](turbo.json), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
+Start with [package.json](package.json), [turbo.json](turbo.json), the [directory guide](./) and [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
 ## Related specifications
 
-[Documentation index](../docs/README.md) · [Module entry points](../docs/README.md#按模組閱讀)
+[Documentation index](../docs/) · [Module entry points](../docs/)
 
 Applies to this directory and its descendants. Follow the [root AGENTS.md](../AGENTS.md), then nearer directory guidance. User and host instructions take precedence; this file grants no additional authorization for external writes.
 
@@ -42,7 +42,7 @@ Applies to Go backend additions, changes and refactors. Follow domain guidance a
 ### Minimal changes and acceptance
 
 - SHOULD prefer removing, moving, merging or reusing Go code. MUST NOT add interfaces, services, factories, managers, registries or generic engines solely for one implementation, hypothetical needs or uniformity, or merge distinct domain rules for reuse.
-- MUST trace callers from the original symptom and fix root causes together. For HTTP formats, change contracts and regenerate through the [API workflow](../api/README.md).
+- MUST trace callers from the original symptom and fix root causes together. For HTTP formats, change contracts and regenerate through the [API workflow](../api/).
 - MUST verify success, rejection, failure and key boundaries as specified below. For Firestore transactions, concurrency, retries or persistence compatibility, run [existing emulator integration acceptance](../docs/development/tooling/testing/commands.md#firestore-integration).
 
 **Completion criteria**: one business authority, correct dependencies, verified authorization/consistency and passing applicable checks. Continue fixing acceptance failures; identify unverifiable cases when blocked.
@@ -55,13 +55,13 @@ Check callers and affected Go tests when changing package behavior.
 
 Use the root scripts/tooling/tool-exec.sh. Follow the [acceptance matrix](../docs/development/tooling/testing/commands.md#變更驗收矩陣) for fmt-check, lint, check, build and relevant existing tests after Go changes. Do not claim application tests for documentation-only work.
 
-Run commands from the repository root unless stated otherwise. Read the [local README](README.md) and [documentation index](../docs/README.md); report actual results and limitations.
+Run commands from the repository root unless stated otherwise. Read the [local README](./) and [documentation index](../docs/); report actual results and limitations.
 
 <a id="文件閱讀路由"></a>
 
 ## Documentation routing
 
-Choose sources through [related module documentation](README.md#相關文件) and [module entry points](../docs/README.md#按模組閱讀). Maintain local purposes and commands in this module's README; organize cross-module architecture, feature and operations documents by topic under docs. Follow the [documentation maintenance guidance](../docs/AGENTS.md#主題子目錄) when updating indexes.
+Choose sources through [related module documentation](./) and [module entry points](../docs/). Maintain local purposes and commands in this module's README; organize cross-module architecture, feature and operations documents by topic under docs. Follow the [documentation maintenance guidance](../docs/AGENTS.md#主題子目錄) when updating indexes.
 
 ## Business Operation
 

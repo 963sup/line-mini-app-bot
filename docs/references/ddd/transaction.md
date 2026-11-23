@@ -30,4 +30,4 @@ sequenceDiagram
 
 ## 延伸閱讀
 
-[consistency](consistency.md) · [unit-of-work](unit-of-work.md) · [outbox-pattern](outbox-pattern.md) · [DDD 設計索引](README.md)
+[consistency](consistency.md) · [unit-of-work](unit-of-work.md) · [outbox-pattern](outbox-pattern.md) · [DDD 設計索引](design-guide.md)

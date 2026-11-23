@@ -39,4 +39,4 @@ accepted 與 revoked 在此示例為終態；若需求允許恢復，應另定�
 
 產出須包含規則擁有者、轉換表、Guard 所需事實與交易邊界、可辨識錯誤及驗收案例。狀態值新增時，依[契約演進](model-evolution.md)核對舊讀端行為。
 
-[不變條件](invariant.md) · [領域授權](domain-authorization.md) · [冪等](idempotency.md) · [領域測試](domain-testing.md) · [DDD 索引](README.md)
+[不變條件](invariant.md) · [領域授權](domain-authorization.md) · [冪等](idempotency.md) · [領域測試](domain-testing.md) · [DDD 索引](design-guide.md)

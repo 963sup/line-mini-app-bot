@@ -6,13 +6,13 @@
 
 ## Reading and editing entry points
 
-Start with [miniapp](miniapp), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [miniapp](miniapp), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
 ## Related specifications
 
-[Documentation index](../docs/README.md) · [Module entry points](../docs/README.md#按模組閱讀)
+[Documentation index](../docs/) · [Module entry points](../docs/)
 
 Applies to this directory and its descendants. Follow the [root AGENTS.md](../AGENTS.md), then nearer directory guidance. User and host instructions take precedence; this file grants no additional authorization for external writes.
 
@@ -63,13 +63,13 @@ Check consuming pages and miniapp tests when changing interactions.
 
 From root, use tool-exec.sh for pnpm --filter @repo/miniapp check and relevant existing tests; build when static output is needed. API changes also follow ../api/README.md.
 
-Run commands from the repository root unless stated otherwise. Read the [local README](README.md) and [documentation index](../docs/README.md); report actual results and limitations.
+Run commands from the repository root unless stated otherwise. Read the [local README](./) and [documentation index](../docs/); report actual results and limitations.
 
 <a id="文件閱讀路由"></a>
 
 ## Documentation routing
 
-Choose sources through [related module documentation](README.md#相關文件) and [module entry points](../docs/README.md#按模組閱讀). Maintain local purposes and commands in this module's README; organize cross-module architecture, feature and operations documents by topic under docs. Follow the [documentation maintenance guidance](../docs/AGENTS.md#主題子目錄) when updating indexes.
+Choose sources through [related module documentation](./) and [module entry points](../docs/). Maintain local purposes and commands in this module's README; organize cross-module architecture, feature and operations documents by topic under docs. Follow the [documentation maintenance guidance](../docs/AGENTS.md#主題子目錄) when updating indexes.
 
 ## Business Operation
 
@@ -89,7 +89,7 @@ Review operation results using [frontend, API and backend responsibilities and r
 
 ## shadcn task entry point
 
-For every frontend UI task, proactively read [component protection/Skill/MCP workflow](miniapp/src/shared/ui/AGENTS.md), then check [reference freshness](../docs/development/tooling/frontend/shadcn-reference/README.md) and search complete Components/AI Elements indexes/docs. No repeated user invocation is needed. The reference library alone generates indexes; follow UI host-exposure diagnostics for absent MCP tools.
+For every frontend UI task, proactively read [component protection/Skill/MCP workflow](miniapp/src/shared/ui/AGENTS.md), then check [reference freshness](../docs/development/tooling/frontend/shadcn-reference/) and search complete Components/AI Elements indexes/docs. No repeated user invocation is needed. The reference library alone generates indexes; follow UI host-exposure diagnostics for absent MCP tools.
 Follow its requirements-driven selection/acceptance section for component choices, additions and verification. Complete the current task without limiting candidates to installed components or expanding into unsolicited redesigns.
 
 Before shadcn/ui, components.json, registry, preset or MCP work, all roles read [.agents/skills/shadcn/SKILL.md](../.agents/skills/shadcn/SKILL.md) and relevant references. See the [tool guide](../docs/development/tooling/frontend/shadcn.md) for usage/verification.

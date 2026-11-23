@@ -6,7 +6,7 @@
 
   - [LINE Developers 文件來源](https://github.com/line/line-developers-docs-source)
 
-  - [基礎出勤範圍](../../domains/attendance/README.md)
+  - [基礎出勤範圍](../../domains/attendance/design.md)
 
 <a id="messaging-api-訊息類型"></a>
 

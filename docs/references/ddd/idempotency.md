@@ -27,4 +27,4 @@ flowchart TD
 
 ## 延伸閱讀
 
-[command](command.md) · [transaction](transaction.md) · [integration-event](integration-event.md) · [DDD 設計索引](README.md)
+[command](command.md) · [transaction](transaction.md) · [integration-event](integration-event.md) · [DDD 設計索引](design-guide.md)

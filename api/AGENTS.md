@@ -2,13 +2,13 @@
 
 # api agent guidance
 
-See the [API workflow](README.md) for directory responsibilities, generation and verification commands. Read the relevant guidance before editing [contract](contract/AGENTS.md), [codegen](codegen/AGENTS.md) or [client](client/AGENTS.md).
+See the [API workflow](./) for directory responsibilities, generation and verification commands. Read the relevant guidance before editing [contract](contract/AGENTS.md), [codegen](codegen/AGENTS.md) or [client](client/AGENTS.md).
 
 <a id="相關規格"></a>
 
 ## Related specifications
 
-[Business entity, collection and API naming](../docs/standards/naming.md#業務實體集合與-api-命名) · [Documentation index](../docs/README.md)
+[Business entity, collection and API naming](../docs/standards/naming.md#業務實體集合與-api-命名) · [Documentation index](../docs/)
 
 Applies to this directory and its descendants. Follow the [root AGENTS.md](../AGENTS.md), then nearer directory guidance. User and host instructions take precedence; this file grants no additional authorization for external writes.
 
@@ -16,7 +16,7 @@ Applies to this directory and its descendants. Follow the [root AGENTS.md](../AG
 
 ## Nested guidance
 
-Read the relevant guidance before entering [contract](contract/AGENTS.md), [client](client/AGENTS.md) or [codegen](codegen/AGENTS.md). Capability directories under contract also inherit contract/AGENTS.md. Each level adds only its own responsibilities without duplicating parent rules. See the [directory guide](README.md#巢狀指引).
+Read the relevant guidance before entering [contract](contract/AGENTS.md), [client](client/AGENTS.md) or [codegen](codegen/AGENTS.md). Capability directories under contract also inherit contract/AGENTS.md. Each level adds only its own responsibilities without duplicating parent rules. See the [directory guide](./).
 
 <a id="職責與邊界"></a>
 
@@ -24,7 +24,7 @@ Read the relevant guidance before entering [contract](contract/AGENTS.md), [clie
 
 Before changing contracts, read [business entity, collection and API naming](../docs/standards/naming.md#業務實體集合與-api-命名). Name model types, collections, queries and paths by their semantics. Preserve existing singleton and public-contract compatibility exceptions; do not manually change generated names.
 
-contract/openapi.yaml only composes public contracts. Follow the [contract capability index](contract/README.md) for ownership and references. Each capability owns its operations and DTOs; shared errors and authentication belong in common/. Capability files must not reference the root entry point. Keep client/ and codegen/ shared rather than duplicating them per capability.
+contract/openapi.yaml only composes public contracts. Follow the [contract capability index](contract/) for ownership and references. Each capability owns its operations and DTOs; shared errors and authentication belong in common/. Capability files must not reference the root entry point. Keep client/ and codegen/ shared rather than duplicating them per capability.
 
 Change contracts first, then run pnpm api:generate from the root to update Go/TS output. Do not edit generated files manually. The business core must not depend on HTTP DTOs.
 
@@ -55,15 +55,15 @@ Applies to public and internal HTTP contracts, DTOs, clients and generation. Fol
 
 ## Verification
 
-Run bash scripts/tooling/tool-exec.sh pnpm api:check from the repository root. State the base revision and results for historical compatibility comparisons. See the [API workflow](README.md#目錄導覽與維護) for check coverage.
+Run bash scripts/tooling/tool-exec.sh pnpm api:check from the repository root. State the base revision and results for historical compatibility comparisons. See the [API workflow](./) for check coverage.
 
-Run commands from the repository root unless stated otherwise. Read the [local README](README.md) and [documentation index](../docs/README.md); report actual results and limitations.
+Run commands from the repository root unless stated otherwise. Read the [local README](./) and [documentation index](../docs/); report actual results and limitations.
 
 <a id="文件閱讀路由"></a>
 
 ## Documentation routing
 
-Choose sources through [related module documentation](README.md#相關文件) and [module entry points](../docs/README.md#按模組閱讀). Maintain local purposes and commands in this module's README; organize cross-module architecture, feature and operations documents by topic under docs. Follow the [documentation maintenance guidance](../docs/AGENTS.md#主題子目錄) when updating indexes.
+Choose sources through [related module documentation](./) and [module entry points](../docs/). Maintain local purposes and commands in this module's README; organize cross-module architecture, feature and operations documents by topic under docs. Follow the [documentation maintenance guidance](../docs/AGENTS.md#主題子目錄) when updating indexes.
 
 ## Business Operation
 

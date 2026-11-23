@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[domain-event](domain-event.md) · [integration-event](integration-event.md) · [outbox-pattern](outbox-pattern.md) · [DDD 設計索引](README.md)
+[domain-event](domain-event.md) · [integration-event](integration-event.md) · [outbox-pattern](outbox-pattern.md) · [DDD 設計索引](design-guide.md)

@@ -8,7 +8,7 @@ Rich Menu 由部署流程自動同步，不需人工發布。程式入口為 ser
 
 [部署設定](../../cloudbuild.yaml) 在映像推送後建立每個 Build 專用的 Cloud Run Job，等待選單同步成功後才部署 HTTP 服務，成功後移除 Job。失敗 Job 保留供診斷。未改變的選單不寫入 LINE；Alias 切換不是原子操作，失敗重跑會收斂。
 
-[導航](../../backend/internal/transport/line/navigation/menu.go) 定義內容與 上班、轉場支援與下班的三個 Alias；[平台機制](../../backend/internal/platform/line/richmenu/README.md) 負責圖片、發布、Alias、預設選單與安全清理；[bootstrap](../../backend/internal/bootstrap/line_navigation.go) 讀取所選 MINI App 設定並注入依賴。圖片維持 assets/line/richmenu/*.JPG，映像內為 /assets/line/richmenu/，大小為 2500×1686、最多 1 MiB。
+[導航](../../backend/internal/transport/line/navigation/menu.go) 定義內容與 上班、轉場支援與下班的三個 Alias；[平台機制](../../backend/internal/platform/line/richmenu/) 負責圖片、發布、Alias、預設選單與安全清理；[bootstrap](../../backend/internal/bootstrap/line_navigation.go) 讀取所選 MINI App 設定並注入依賴。圖片維持 assets/line/richmenu/*.JPG，映像內為 /assets/line/richmenu/，大小為 2500×1686、最多 1 MiB。
 
 [素材與按鈕配置](../integrations/line/wiring.md#rich-menu-圖片與按鈕配置)列出檔案、熱區與動作。
 

@@ -112,4 +112,4 @@ HTTP 或 CloudEvent 觸發 → 驗證來源及操作身分 → 冪等處理指�
 
 [官方文件](https://docs.cloud.google.com/workflows/docs/overview)。[Document AI](document-processing.md#document-ai) · [Tasks](background-jobs.md#cloud-tasks)。
 
-[Google 服務索引與查證範圍](README.md#sources)
+[Google 服務索引與查證範圍](./)

@@ -2,7 +2,7 @@
 
 # Workflow maintenance guidance
 
-Applies to this directory/descendants; inherit [business guidance](../AGENTS.md). See the [directory guide](README.md) for scope.
+Applies to this directory/descendants; inherit [business guidance](../AGENTS.md). See the [directory guide](./) for scope.
 
 Record the paused step and waiting conditions; reuse the same write identifier on resumption.
 

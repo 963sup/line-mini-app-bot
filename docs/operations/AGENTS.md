@@ -2,7 +2,7 @@
 
 # Operations documentation guidance
 
-Follow [documentation guidance](../AGENTS.md); find procedures through the [production index](README.md).
+Follow [documentation guidance](../AGENTS.md); find procedures through the [production index](./).
 
 Runbooks specify targets, operators, prerequisites, success evidence/recovery. Distinguish declarations, live settings and acceptance. Link platform contracts to integrations; preserve authoritative environment names, versions and secret bindings.
 

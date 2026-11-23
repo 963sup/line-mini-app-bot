@@ -6,11 +6,13 @@
 
 ## Reading and editing entry points
 
-Start with [object.go](domain/entity/object.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with the [Object entity](domain/entity/object.go) and [template service](domain/service/template.go). Follow the [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
 ## Related specifications
+
+[Object design](../../../../docs/domains/repository/object/design.md) · [ObjectTemplate operations and permissions](../../../../docs/domains/repository/object/template.md#操作與權限) · [OpenAPI contract](../../../../api/contract/object/objects.yaml)
 
 [Current implementation diagram: object and subobject ownership](../../../../docs/contracts/object-subobject-ownership.md#物件與子物件歸屬)
 
@@ -20,7 +22,7 @@ Start with [object.go](domain/entity/object.go), [directory guide](README.md), [
 
 Reject work items with total 5 and completed 8. Equivalent decimal representations must produce the same completion state.
 
-When changing this rule, check the [decision flow](../../../../docs/domains/repository/object/README.md#decision-flow) and [representative tests](application/progress_test.go).
+When changing this rule, check the [decision flow](../../../../docs/domains/repository/object/design.md) and [representative tests](application/progress_test.go).
 
 ## Applicable engineering conventions
 

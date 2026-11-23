@@ -6,13 +6,13 @@
 
 ## Reading and editing entry points
 
-Start with [Picker.tsx](Picker.tsx), [View.tsx](View.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [Picker.tsx](Picker.tsx), [View.tsx](View.tsx), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
 ## Related specifications
 
-[Current implementation diagram: space loading sequence](../../../../../../docs/domains/repository/README.md#空間載入時序)
+[Current implementation diagram: space loading sequence](../../../../../../docs/domains/repository/design.md)
 
 ## Applicable engineering conventions
 

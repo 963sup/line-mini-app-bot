@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[aggregate](aggregate.md) · [invariant](invariant.md) · [optimistic-concurrency](optimistic-concurrency.md) · [DDD 設計索引](README.md)
+[aggregate](aggregate.md) · [invariant](invariant.md) · [optimistic-concurrency](optimistic-concurrency.md) · [DDD 設計索引](design-guide.md)

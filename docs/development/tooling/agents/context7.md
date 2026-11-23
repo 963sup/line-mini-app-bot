@@ -36,7 +36,7 @@ The two connections are separate. The project server uses no API key or credenti
 
 ## Verification and failures
 
-Follow [MCP diagnostics](README.md#mcp-診斷) with the service name `context7`.
+Follow [MCP diagnostics](./) with the service name `context7`.
 
 ## Source routing and evidence
 

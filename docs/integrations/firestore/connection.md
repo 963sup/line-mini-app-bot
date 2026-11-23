@@ -38,4 +38,4 @@ Go server SDK 使用應用身分及 IAM，不能依賴瀏覽器 Security Rules �
 
 2026-11-22 查閱官方 Standard Firestore 的[交易](https://firebase.google.com/docs/firestore/manage-data/transactions)、[Server SDK 權限](https://firebase.google.com/docs/firestore/security/rules-conditions)、[TTL](https://firebase.google.com/docs/firestore/ttl)及[刪除](https://firebase.google.com/docs/firestore/manage-data/delete-data)文件，對照本庫 Adapter 與 SDK 版本。這些是線上文件，未固定官方文件提交版本；本次未執行雲端設定查詢或整合測試。
 
-[儲存索引](README.md) · [資料契約演進](../../references/ddd/model-evolution.md)
+[儲存索引](./) · [資料契約演進](../../references/ddd/model-evolution.md)

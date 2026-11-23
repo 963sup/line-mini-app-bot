@@ -12,4 +12,4 @@ AcceptInvitation 指定目標邀請，InvitationAccepted 表示已發生的事�
 
 ## 延伸閱讀
 
-[domain-command](domain-command.md) · [query](query.md) · [idempotency](idempotency.md) · [DDD 設計索引](README.md)
+[domain-command](domain-command.md) · [query](query.md) · [idempotency](idempotency.md) · [DDD 設計索引](design-guide.md)

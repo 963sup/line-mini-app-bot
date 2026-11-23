@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [issue.go](domain/entity/issue.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [issue.go](domain/entity/issue.go), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
@@ -20,7 +20,7 @@ Start with [issue.go](domain/entity/issue.go), [directory guide](README.md), [pa
 
 Creators may reopen closed Issues. Members with categorization-only permissions cannot change content through categorization.
 
-When changing this rule, check the [decision flow](../../../../docs/domains/repository/issue/README.md#decision-flow) and [representative tests](domain/entity/issue_test.go).
+When changing this rule, check the [decision flow](../../../../docs/domains/repository/issue/design.md) and [representative tests](domain/entity/issue_test.go).
 
 ## Applicable engineering conventions
 

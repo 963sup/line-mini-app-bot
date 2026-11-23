@@ -16,7 +16,7 @@
 
 - [命名政策只有一份：命名規範。本頁保存三個主要業務的應用對照及後續資源模型參考。](../../standards/naming.md#業務實體集合與-api-命名)
 
-- [Repository 既有功能、授權及 REST 入口見 群組 Repository。本頁不取代其已實作規格。](../../domains/repository/README.md)
+- [Repository 既有功能、授權及 REST 入口見 群組 Repository。本頁不取代其已實作規格。](../../domains/repository/design.md)
 
 - Issue 基礎操作已依 事項規格 接入；Discussion 基礎主題與單層留言依 討論規格 接入，其他擴充仍為後續設計。
 
@@ -24,7 +24,7 @@
 
   - [討論規格](../../domains/repository/discussion/design.md)
 
-- [本專案使用 REST／OpenAPI。GitHub 文件僅作業務資源、關係與功能分類的設計參考；不將其介面技術、查詢形式或型別結構列為本專案規劃。HTTP 來源見 OpenAPI 契約。](../../../api/README.md)
+- [本專案使用 REST／OpenAPI。GitHub 文件僅作業務資源、關係與功能分類的設計參考；不將其介面技術、查詢形式或型別結構列為本專案規劃。HTTP 來源見 OpenAPI 契約。](../../../api/)
 
 <a id="實體集合與-rest-資源命名"></a>
 
@@ -204,7 +204,7 @@ Table、Board 與 Roadmap 是同一批專案項目的不同呈現方式，不各
 
 ## 後續開發文件與實作順序
 
-1. [Repository 維持 既有功能文件；Issue 與 Discussion 開發時分別建立 docs/domains/repository/issue/design.md、docs/domains/repository/discussion/design.md，並加入功能索引。](../../domains/repository/README.md)
+1. [Repository 維持 既有功能文件；Issue 與 Discussion 開發時分別建立 docs/domains/repository/issue/design.md、docs/domains/repository/discussion/design.md，並加入功能索引。](../../domains/repository/design.md)
 
 2. [功能文件先按 操作契約範本 補齊每個操作：誰操作、對象、行為、權限、業務條件及成功結果；Context、Authority、Decision 與必要 Audit 明確記錄。](../../contracts/business-operations.md#功能操作契約範本)
 

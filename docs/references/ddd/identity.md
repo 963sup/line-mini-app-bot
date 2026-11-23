@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[entity](entity.md) · [aggregate-root](aggregate-root.md) · [DDD 設計索引](README.md)
+[entity](entity.md) · [aggregate-root](aggregate-root.md) · [DDD 設計索引](design-guide.md)

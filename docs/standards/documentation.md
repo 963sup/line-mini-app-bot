@@ -23,16 +23,16 @@ MUST 表示必要，MUST NOT 表示禁止，SHOULD 表示有具體理由才可�
 
 ## 分類、命名與權威
 
-依[目錄責任](../README.md#目錄責任)選擇存放位置。跨模組文件放在對應分類，模組入口和局部指引與程式碼同目錄。每頁由對應模組或分類的維護者負責；跨模組規則的文件變更由受影響模組共同審閱。
+依[目錄責任](../)選擇存放位置。跨模組文件放在對應分類，模組入口和局部指引與程式碼同目錄。每頁由對應模組或分類的維護者負責；跨模組規則的文件變更由受影響模組共同審閱。
 
-| 文件類型   | 權威與存放位置                                                                                                                                                                                        |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 規範       | 工程慣例由 [standards](README.md) 維護，業務規則由 [domains](../domains/README.md) 維護。HTTP 欄位、型別與錯誤引用 [OpenAPI](../../api/README.md)，共用語意引用 [contracts](../contracts/README.md)。 |
-| 設計       | [architecture](../architecture/README.md) 記錄現行結構，[proposals](../proposals/README.md) 記錄尚未採用的設計，[decisions](../decisions/README.md) 保存已接受決策的理由。                            |
-| 教學與操作 | [development](../development/README.md) 說明開發任務，[operations](../operations/README.md) 說明維運步驟。前置條件、指令與成功證據一起維護，規則連回權威位置。                                        |
-| 參考       | [references](../references/README.md) 解釋外部概念，[integrations](../integrations/README.md) 記錄現行整合方式。外部能力引用對應版本的官方文件。                                                      |
+| 文件類型   | 權威與存放位置                                                                                                                                                             |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 規範       | 工程慣例由 [standards](design.md) 維護，業務規則由 [domains](../domains/) 維護。HTTP 欄位、型別與錯誤引用 [OpenAPI](../../api/)，共用語意引用 [contracts](../contracts/)。 |
+| 設計       | [architecture](../architecture/) 記錄現行結構，[proposals](../proposals/) 記錄尚未採用的設計，[decisions](../decisions/) 保存已接受決策的理由。                            |
+| 教學與操作 | [development](../development/) 說明開發任務，[operations](../operations/) 說明維運步驟。前置條件、指令與成功證據一起維護，規則連回權威位置。                               |
+| 參考       | [references](../references/) 解釋外部概念，[integrations](../integrations/) 記錄現行整合方式。外部能力引用對應版本的官方文件。                                             |
 
-自有專題檔案與 `docs/` 下的目錄用英文小寫 kebab-case。與程式碼並置的文件沿用模組路徑。保留 README、AGENTS、GitHub 平台約定名稱及四位數 ADR 前綴。使用[專案命名](naming.md)與[領域索引](../domains/README.md)中的詞彙，避免把不同領域的同名概念合併；採用新術語時先在負責的領域定義，再更新契約與引用。
+自有專題檔案與 `docs/` 下的目錄用英文小寫 kebab-case。與程式碼並置的文件沿用模組路徑。保留 README、AGENTS、GitHub 平台約定名稱及四位數 ADR 前綴。使用[專案命名](naming.md)與[領域索引](../domains/)中的詞彙，避免把不同領域的同名概念合併；採用新術語時先在負責的領域定義，再更新契約與引用。
 
 README 為讀者導覽，AGENTS.md 為代理指引。根目錄 AGENTS.md 定義共通要求，巢狀檔案說明路徑範圍、父層、局部責任與驗證，局部事項按[根指引](../../AGENTS.md#共通工程規則)的適用順序處理。上游技能指引依來源保留。
 

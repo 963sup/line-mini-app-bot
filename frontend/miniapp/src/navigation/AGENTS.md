@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [home](home), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [home](home), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 

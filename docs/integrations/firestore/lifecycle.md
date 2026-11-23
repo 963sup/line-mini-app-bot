@@ -4,7 +4,7 @@
 
 ## 區分業務失效與實體清除
 
-Repository 的 ACTIVE／INACTIVE 表示入口狀態，[Repository 規格](../../domains/repository/README.md)保留離開後資料與重加入識別。不能把停用解讀成可刪除整庫。
+Repository 的 ACTIVE／INACTIVE 表示入口狀態，[Repository 規格](../../domains/repository/design.md)保留離開後資料與重加入識別。不能把停用解讀成可刪除整庫。
 
 每類資料列出失效依據、保存用途、保留期間的決策者、讀取遮蔽、清除範圍及必要稽核。缺少產品或法規決策時保留待確認，不替使用者設定期限。
 
@@ -30,4 +30,4 @@ TTL 清理不代表完成整個業務保留政策。收據、稽核、索引投�
 
 交付資料分類、保存／失效／清除責任表、孤兒處理、遷移與回復界線、備份狀態證據及演練結果。尚未決定期限、尚未檢查雲端設定或尚未演練恢復時，逐項列為待確認。
 
-[資料配置](data-model.md) · [查詢與索引](querying.md) · [模型演進](../../references/ddd/model-evolution.md) · [儲存索引](README.md)
+[資料配置](data-model.md) · [查詢與索引](querying.md) · [模型演進](../../references/ddd/model-evolution.md) · [儲存索引](./)

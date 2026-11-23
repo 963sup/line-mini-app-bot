@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [AppFrame.tsx](AppFrame.tsx), [OrganizationSwitcher.tsx](OrganizationSwitcher.tsx), [ServiceSidebar.tsx](ServiceSidebar.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [AppFrame.tsx](AppFrame.tsx), [OrganizationSwitcher.tsx](OrganizationSwitcher.tsx), [ServiceSidebar.tsx](ServiceSidebar.tsx), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 

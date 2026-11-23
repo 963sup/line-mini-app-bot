@@ -12,4 +12,4 @@ Team 查 Organization 資格時把不可用、查無資格與結果過期分開�
 
 ## 延伸閱讀
 
-[context-map](context-map.md) · [anti-corruption-layer](anti-corruption-layer.md) · [integration-event](integration-event.md) · [DDD 設計索引](README.md)
+[context-map](context-map.md) · [anti-corruption-layer](anti-corruption-layer.md) · [integration-event](integration-event.md) · [DDD 設計索引](design-guide.md)

@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [architecture](architecture), [static pages](transport/http/browser), [business](business), [location diagnostics](transport/http/geolocation), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
+Start with [architecture](architecture), [static pages](transport/http/browser), [business](business), [location diagnostics](transport/http/geolocation), the [directory guide](./) and [parent guidance](../AGENTS.md).
 
 <a id="bounded-context-分層範本"></a>
 

@@ -38,7 +38,7 @@
 
 - 首版僅做 基礎出勤：上班、下班與本人紀錄。 首期入口、人員資格、時間歸屬與重複操作規則集中在功能規格確認；補登不納入首版。 依 分階段落地 先完成執行與部署基礎、再完成資料與 LINE 接入， 最後實作出勤；不一步到位。不預設會員管理、排班、薪資或通知功能。
 
-  - [基礎出勤](../domains/attendance/README.md)
+  - [基礎出勤](../domains/attendance/design.md)
 
   - [分階段落地](../development/environment/verification.md)
 

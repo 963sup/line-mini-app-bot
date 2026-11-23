@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [internal-openapi.yaml](internal-openapi.yaml), [openapi.yaml](openapi.yaml), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
+Start with [internal-openapi.yaml](internal-openapi.yaml), [openapi.yaml](openapi.yaml), the [directory guide](./) and [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
@@ -21,7 +21,7 @@ Applies to this directory and descendants. Inherit [parent guidance](../AGENTS.m
 ## Responsibilities and boundaries
 
 - `openapi.yaml` composes public HTTP; `internal-openapi.yaml` composes internal worker HTTP. Entry points maintain only metadata and `$ref`; operations and DTOs belong to their capabilities.
-- Maintain unique ownership through the [capability index](README.md). Capability files must not reference composition entry points. Cross-capability references follow ownership direction without cycles.
+- Maintain unique ownership through the [capability index](./). Capability files must not reference composition entry points. Cross-capability references follow ownership direction without cycles.
 - Put shared transport definitions in common, but do not move business models there merely because they have several users. Name folders by capability; follow parent entity and REST resource naming rules.
 - Keep scaffolds for Issue types/comments, Discussion categories and Project fields/views. Do not compose empty paths/schemas. Project/items and Repository milestones/statistics are wired according to [projects and source references](../../docs/domains/project/project.md), [milestones](../../docs/domains/repository/milestones.md) and [repository insights](../../docs/domains/repository/insights.md). Specify other operations before adding contracts or implementations.
 - For new operations, update the [capability inventory](capabilities.json), adapters, consumers and feature specifications together. Do not add HTTP APIs for event entry points merely for directory consistency.

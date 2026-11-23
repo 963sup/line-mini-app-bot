@@ -23,4 +23,4 @@ bundle or connection for related reads instead of initializing once per file.
 
 ## Verification and failures
 
-Follow [MCP diagnostics](README.md#mcp-診斷) with the service name `repomix`.
+Follow [MCP diagnostics](./) with the service name `repomix`.

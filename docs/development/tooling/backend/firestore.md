@@ -19,4 +19,4 @@ bash scripts/tooling/tool-exec.sh go -C backend run . check-firestore -document 
 | 修改查詢、分頁或複合索引       | [查詢與索引](../../../integrations/firestore/querying.md) · [專案索引宣告](../../../../firestore.indexes.json)                |
 | 確認文件歸屬、TTL、清理與恢復  | [資料模型](../../../integrations/firestore/data-model.md) · [資料生命週期](../../../integrations/firestore/lifecycle.md)      |
 
-執行身分、IAM、Session 保存等主題見 [Firestore 整合索引](../../../integrations/firestore/README.md)。
+執行身分、IAM、Session 保存等主題見 [Firestore 整合索引](../../../integrations/firestore/)。

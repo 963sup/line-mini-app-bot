@@ -10,9 +10,9 @@ Applies to this domain; inherit [business guidance](../AGENTS.md).
 
 Evaluate current owner/membership in one transaction. Non-owners and non-member recipients cannot complete transfers.
 
-When changing this rule, check the [decision flow](../../../../docs/domains/organization/README.md#decision-flow) and [implementation](adapter/firestore/store.go).
+When changing this rule, check the [decision flow](../../../../docs/domains/organization/design.md) and [implementation](adapter/firestore/store.go).
 
-[directory guide](README.md)
+[directory guide](./)
 
 ## Applicable engineering conventions
 

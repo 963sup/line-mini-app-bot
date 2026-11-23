@@ -22,7 +22,7 @@
 
   - [根指引](../../../AGENTS.md#mandatory-documentation-verification)
 
-  - [ADR 流程](../README.md#architecture-decision-records)
+  - [ADR 流程](../)
 
 <a id="契約與不變條件的維護位置"></a>
 
@@ -30,13 +30,13 @@
 
 - [契約：Project 所有權、群組資格與來源授權<br>權威維護位置：Project 規格<br>導航時的界線：不從來源 Repository 推導 Project 所有權](../../domains/project/project.md)
 
-- [契約：Repository 內資源、編號與交易防重<br>權威維護位置：Repository 功能索引<br>導航時的界線：各功能保存自己的規則與相容例外](../../domains/README.md#儲存庫)
+- [契約：Repository 內資源、編號與交易防重<br>權威維護位置：Repository 功能索引<br>導航時的界線：各功能保存自己的規則與相容例外](../../domains/)
 
-- [契約：出勤狀態、工時與重送<br>權威維護位置：出勤功能索引<br>導航時的界線：依具體操作契約判定，不另維護通用業務狀態](../../domains/README.md#出勤)
+- [契約：出勤狀態、工時與重送<br>權威維護位置：出勤功能索引<br>導航時的界線：依具體操作契約判定，不另維護通用業務狀態](../../domains/)
 
 - 契約：HTTP 格式、Session 與身分<br>權威維護位置：OpenAPI、Session<br>導航時的界線：HTTP 結構驗證不取代業務授權
 
-  - [OpenAPI](../../../api/README.md)
+  - [OpenAPI](../../../api/)
 
   - [Session](../../contracts/identity.md)
 
@@ -44,7 +44,7 @@
 
   - [資料契約](../../proposals/firestore-data-contracts.md)
 
-  - [可靠性索引](../README.md#可靠性設計參考)
+  - [可靠性索引](../)
 
 - [契約：業務操作的共用描述方式<br>權威維護位置：操作模型<br>導航時的界線：功能文件填具體操作；本頁只提供定位](../../contracts/business-operations.md)
 
@@ -101,8 +101,8 @@ flowchart LR
 
 | 使用端                    | 被引用的權威契約                                              | 保留理由與限制                                                                                                                                                                                                                                               |
 | ------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Issue、Discussion、Object | Repository 的資源範圍與領域值；Issue／Discussion 使用其標籤值 | 這些能力屬於 Repository 容器；各自的內容與狀態仍由原領域維護。[容器與能力](../../domains/repository/README.md)                                                                                                                                               |
-| Object application        | Operations 的文件處理介面                                     | 經使用案例契約取得候選資訊，不直接依賴模型 SDK。[操作邊界](../../domains/operations/README.md)                                                                                                                                                               |
+| Issue、Discussion、Object | Repository 的資源範圍與領域值；Issue／Discussion 使用其標籤值 | 這些能力屬於 Repository 容器；各自的內容與狀態仍由原領域維護。[容器與能力](../../domains/repository/design.md)                                                                                                                                               |
+| Object application        | Operations 的文件處理介面                                     | 經使用案例契約取得候選資訊，不直接依賴模型 SDK。[操作邊界](../../domains/operations/design.md)                                                                                                                                                               |
 | Organization application  | Membership 的成員識別值                                       | 所有權移轉解析既有成員引用；不把 Membership 模式切換或成員資格決策搬進 Organization。[移轉實作](../../../backend/internal/business/organization/application/transfer.go)                                                                                     |
 | Enterprise command        | Enterprise 自有操作錯誤                                       | 核心不再引用 Organization 錯誤；[HTTP adapter](../../../backend/internal/business/enterprise/adapter/http/responses.go) 於既有傳輸邊界翻譯，保留公共 status／code 與儲存錯誤相容。[核心錯誤](../../../backend/internal/business/enterprise/domain/errors.go) |
 

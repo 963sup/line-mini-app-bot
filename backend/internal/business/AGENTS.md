@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [attendance](attendance), [discussion](discussion), [enterprise](enterprise), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [attendance](attendance), [discussion](discussion), [enterprise](enterprise), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 

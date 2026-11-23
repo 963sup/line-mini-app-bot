@@ -25,7 +25,7 @@
 
 直接輸入 `上班`、`下班`、`休息開始`、`休息結束` 或 `確認休息` 會收到操作引導。出勤只在完成 `打卡` 選單中的驗證流程後寫入。群組也可分享位置查天氣，這是位置訊息操作。
 
-[出勤指令實作](../../../backend/internal/business/attendance/adapter/line/attendance.go) · [摘要指令實作](../../../backend/internal/business/summary/adapter/line/summarization/commands.go) · [出勤規格](../../domains/attendance/README.md)
+[出勤指令實作](../../../backend/internal/business/attendance/adapter/line/attendance.go) · [摘要指令實作](../../../backend/internal/business/summary/adapter/line/summarization/commands.go) · [出勤規格](../../domains/attendance/design.md)
 
 ## 私聊
 

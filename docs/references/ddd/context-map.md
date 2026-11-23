@@ -16,4 +16,4 @@ flowchart LR
 
 **設計產出**　圖旁附上關係的依據、圖例及範圍。現況與目標若不同，分圖說明。
 
-[DDD 設計索引](README.md)
+[DDD 設計索引](design-guide.md)

@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [use-highlighted-code.ts](use-highlighted-code.ts), [use-mobile.ts](use-mobile.ts), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [use-highlighted-code.ts](use-highlighted-code.ts), [use-mobile.ts](use-mobile.ts), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 

@@ -6,7 +6,7 @@ Applies to this directory and descendants; inherit [business guidance](../AGENTS
 
 Filter queries by trusted identity, organization and scope. Verify drafts/withdrawn versions are excluded from new tasks and entries are inaccessible to other organizations. For documentation, check relative links and git diff --check.
 
-[directory guide](README.md)
+[directory guide](./)
 
 ## Applicable engineering conventions
 

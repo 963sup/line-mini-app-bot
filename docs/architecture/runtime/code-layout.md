@@ -16,15 +16,15 @@
 
 - 需求：公開 API 格式或操作<br>規格與不可破壞的契約：API 工作流程、契約索引<br>主要修改入口：api/contract/ → 生成 Go／TS → 對應 business/*/http 與前端呼叫端
 
-  - [API 工作流程](../../../api/README.md)
+  - [API 工作流程](../../../api/)
 
-  - [契約索引](../../../api/contract/README.md)
+  - [契約索引](../../../api/contract/)
 
-- [需求：出勤、工時、更正與請假<br>規格與不可破壞的契約：出勤索引<br>主要修改入口：backend/internal/business/attendance/、frontend/miniapp/src/business/attendance/](../../domains/README.md#出勤)
+- [需求：出勤、工時、更正與請假<br>規格與不可破壞的契約：出勤索引<br>主要修改入口：backend/internal/business/attendance/、frontend/miniapp/src/business/attendance/](../../domains/)
 
 - [需求：Project 所有權與跨來源存取<br>規格與不可破壞的契約：獨立 Project<br>主要修改入口：backend/internal/business/project/、group/ 與來源讀取 adapter；前端 business/project/](../../domains/project/project.md)
 
-- [需求：Repository、物件、Issue、Discussion<br>規格與不可破壞的契約：功能與資料規則<br>主要修改入口：backend/internal/business/ 對應功能、各自 HTTP／Firestore adapter；前端對應 business/](../../domains/README.md#儲存庫)
+- [需求：Repository、物件、Issue、Discussion<br>規格與不可破壞的契約：功能與資料規則<br>主要修改入口：backend/internal/business/ 對應功能、各自 HTTP／Firestore adapter；前端對應 business/](../../domains/)
 
 - 需求：Session、登入與請求認證<br>規格與不可破壞的契約：Session 契約、HTTP 契約<br>主要修改入口：backend/internal/identity/、frontend/miniapp/src/identity/
 
@@ -36,9 +36,9 @@
 
 - 需求：摘要／天氣<br>規格與不可破壞的契約：摘要入口、天氣入口<br>主要修改入口：backend/internal/business/summary/、weather/forecast/；不自動加入公開 HTTP 契約
 
-  - [摘要入口](../../../api/contract/summary/README.md)
+  - [摘要入口](../../../api/contract/summary/)
 
-  - [天氣入口](../../../api/contract/weather/README.md)
+  - [天氣入口](../../../api/contract/weather/)
 
 - [需求：Firestore 欄位、交易或遷移<br>規格與不可破壞的契約：所屬功能規格與資料契約適用範圍<br>主要修改入口：功能 firestore/ adapter；索引 firestore.indexes.json；已退役的舊 Project 遷移不再提供](dependencies.md#契約與不變條件的維護位置)
 

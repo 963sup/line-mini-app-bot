@@ -34,4 +34,4 @@ Event Sourcing 不要求微服務或 CQRS；CQRS 也不要求 Event Sourcing。�
 
 [CQRS](cqrs.md) · [領域事件](domain-event.md) · [一致性](consistency.md)
 
-[DDD 設計索引](README.md) · [現行驗收基線](../../development/tooling/testing/commands.md)
+[DDD 設計索引](design-guide.md) · [現行驗收基線](../../development/tooling/testing/commands.md)

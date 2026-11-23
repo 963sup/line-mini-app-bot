@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[dependency-inversion](dependency-inversion.md) · [architecture-testing](architecture-testing.md) · [DDD 設計索引](README.md)
+[dependency-inversion](dependency-inversion.md) · [architecture-testing](architecture-testing.md) · [DDD 設計索引](design-guide.md)

@@ -6,13 +6,15 @@
 
 ## Reading and editing entry points
 
-Start with [objects.yaml](objects.yaml), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
+For contract changes, follow the [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
 ## Related specifications
 
-Follow [parent guidance](../AGENTS.md). Before changing public requests or responses, check contracts and callers, then run API contract checks. See the [directory guide](README.md) for implementation entry points.
+[Object design](../../../docs/domains/repository/object/design.md) · [ObjectTemplate operations and permissions](../../../docs/domains/repository/object/template.md#操作與權限) · [OpenAPI contract](objects.yaml)
+
+Before changing public requests or responses, check the [HTTP handlers](../../../backend/internal/business/object/adapter/http/) and their callers, then run the API contract checks.
 
 [Current implementation diagram: object and subobject ownership](../../../docs/contracts/object-subobject-ownership.md#物件與子物件歸屬)
 

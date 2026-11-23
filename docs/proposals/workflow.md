@@ -1,6 +1,6 @@
 # Workflow 領域設計
 
-狀態：提案。目錄入口見[領域導覽](../../backend/internal/business/workflow/README.md)。
+狀態：提案。目錄入口見[領域導覽](../../backend/internal/business/workflow/)。
 
 Workflow 定義固定步驟、等待條件及恢復位置。步驟可以呼叫 [Operations](operations.md) 執行工作，也可以委派有界任務給 [Agent](agent.md)，再按回傳結果繼續。需要跨請求恢復時才引入持久化，儲存格式與公開 API 留待使用案例決定。
 

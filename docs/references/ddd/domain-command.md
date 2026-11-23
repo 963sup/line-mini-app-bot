@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[command](command.md) · [domain-event](domain-event.md) · [DDD 設計索引](README.md)
+[command](command.md) · [domain-event](domain-event.md) · [DDD 設計索引](design-guide.md)

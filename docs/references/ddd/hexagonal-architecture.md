@@ -236,4 +236,4 @@ backend/
 
 概念來源：[Alistair Cockburn：Hexagonal Architecture 原文](https://alistair.cockburn.us/hexagonal-architecture)，2005-09-04 v0.9，2026-11-21 查閱。匿名 Context7 另查 `/sairyss/domain-driven-hexagon` 作概念交叉核對，未固定 revision；不照搬其 TypeScript 類別結構。本文對 Go 契約、核心純度、組裝與工作單元的安排為本專案採用方式，現行規則以已連結的契約為準。
 
-[DDD 設計索引](README.md) · [Application Service](application-service.md) · [上下文整合模式](context-mapping-patterns.md) · [Factory](factory.md)
+[DDD 設計索引](design-guide.md) · [Application Service](application-service.md) · [上下文整合模式](context-mapping-patterns.md) · [Factory](factory.md)

@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [files.go](files.go), [routes.go](routes.go), [directory guide](README.md), [parent guidance](../../../AGENTS.md).
+Start with [files.go](files.go), [routes.go](routes.go), [directory guide](./), [parent guidance](../../../AGENTS.md).
 
 <a id="工作方式"></a>
 

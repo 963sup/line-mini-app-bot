@@ -84,4 +84,4 @@ Go 建立具名工作 → 以服務身分呼叫 worker → 核對操作狀態 �
 
 [官方文件](https://docs.cloud.google.com/run/docs/create-jobs)。[資料演進](../../references/ddd/model-evolution.md) · [Scheduler](#cloud-scheduler)。
 
-[Google 服務索引與查證範圍](README.md#sources)
+[Google 服務索引與查證範圍](./)

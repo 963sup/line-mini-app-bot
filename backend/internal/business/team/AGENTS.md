@@ -10,9 +10,9 @@ Applies to this domain; inherit [business guidance](../AGENTS.md).
 
 Reassigning a managed team to another manager must conflict. Actors with target organization management permissions must also pass team-side administrator checks.
 
-When changing this rule, check the [decision flow](../../../../docs/domains/team/README.md#decision-flow) and [implementation](adapter/firestore/store.go).
+When changing this rule, check the [decision flow](../../../../docs/domains/team/design.md) and [implementation](adapter/firestore/store.go).
 
-[directory guide](README.md)
+[directory guide](./)
 
 ## Applicable engineering conventions
 

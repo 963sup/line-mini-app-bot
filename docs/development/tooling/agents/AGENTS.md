@@ -2,7 +2,7 @@
 
 # MCP and tool source verification guidance
 
-Follow [tool documentation guidance](../AGENTS.md); find tool entries in the [local index](README.md).
+Follow [tool documentation guidance](../AGENTS.md); find tool entries in the [local index](./).
 
 <a id="官方來源"></a>
 

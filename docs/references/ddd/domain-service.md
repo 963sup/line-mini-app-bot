@@ -18,4 +18,4 @@ Entity 擁有自身合法轉換；Factory 負責建立；Application 協調讀�
 
 概念參考：[Microsoft Learn：戰術 DDD](https://learn.microsoft.com/en-us/azure/architecture/microservices/model/tactical-domain-driven-design)。僅採概念，不採其微服務部署前提。
 
-[Entity](entity.md) · [Application Service](application-service.md) · [DDD 設計索引](README.md)
+[Entity](entity.md) · [Application Service](application-service.md) · [DDD 設計索引](design-guide.md)

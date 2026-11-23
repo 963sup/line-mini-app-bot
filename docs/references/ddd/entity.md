@@ -18,4 +18,4 @@ Entity 應透過具名業務行為改變狀態，維持自己負責的規則。�
 
 概念參考：[Microsoft Learn：戰術 DDD](https://learn.microsoft.com/en-us/azure/architecture/microservices/model/tactical-domain-driven-design)。僅採概念，不採其微服務部署前提。
 
-[Value Object](value-object.md) · [Aggregate](aggregate.md) · [DDD 設計索引](README.md)
+[Value Object](value-object.md) · [Aggregate](aggregate.md) · [DDD 設計索引](design-guide.md)

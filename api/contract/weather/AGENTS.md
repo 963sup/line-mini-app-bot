@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with the [directory guide](README.md) and [parent guidance](../AGENTS.md).
+Start with the [directory guide](./) and [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
@@ -20,7 +20,7 @@ Applies to this directory and descendants. Inherit [parent guidance](../AGENTS.m
 
 ## Responsibilities and boundaries
 
-- Read [existing entry contracts](README.md) and the [weather feature](../../../docs/domains/weather/weather.md). These describe LINE event entry points, with no public HTTP API.
+- Read [existing entry contracts](./) and the [weather feature](../../../docs/domains/weather/weather.md). These describe LINE event entry points, with no public HTTP API.
 - Do not create empty OpenAPI contracts, browser clients or MINI App weather screens for directory consistency, or duplicate official LINE/CWA schemas.
 - Preserve location input purpose, forecast validity, coverage and failure semantics. Do not expand into location history, attendance proof or continuous tracking.
 

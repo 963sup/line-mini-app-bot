@@ -46,7 +46,7 @@ Tailwind 4 的 `components.json` 不指定舊式 Tailwind config 檔案。
 ## sidebar-07 應用外框
 
 官方 `@shadcn/sidebar-07` 已透過固定版本 CLI 的 `add` 安裝，依既有功能調整資料與路由。
-[整合來源與責任](../../../../frontend/miniapp/src/shell/sidebar-07/README.md) 記錄 AppSidebar、NavMain、NavProjects、NavUser、TeamSwitcher、SidebarRail 與 Breadcrumb 頁首的歸屬。
+[整合來源與責任](../../../../frontend/miniapp/src/shell/sidebar-07/) 記錄 AppSidebar、NavMain、NavProjects、NavUser、TeamSwitcher、SidebarRail 與 Breadcrumb 頁首的歸屬。
 既有 primitives 不覆寫，只補裝 Breadcrumb 與 Collapsible；不保留示例 dashboard、假帳號或尚未實作的操作。
 
 ## 官方圖表範例
@@ -76,17 +76,17 @@ bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server sha
 本機直接啟動成功不代表目前聊天 host 已載入 server；更新設定後需重新啟動或重新載入 Codex，再確認 host 曝光的工具。
 MCP 可提供 registry 資訊及新增命令；若回傳命令使用浮動版本，應改用本專案 mise 固定 CLI。生成、覆寫或安裝仍須遵循當次任務授權。
 
-前端改動沿用 [前端檢查](../../../../frontend/README.md)，並檢查窄螢幕外框、控制項與警告內容；MCP handshake 不代替 UI 或整合驗收。
+前端改動沿用 [前端檢查](../../../../frontend/)，並檢查窄螢幕外框、控制項與警告內容；MCP handshake 不代替 UI 或整合驗收。
 
 查證來源：Context7 `/websites/ui_shadcn` 的 [components.json](https://ui.shadcn.com/docs/components-json)、[monorepo](https://ui.shadcn.com/docs/monorepo) 與 [MCP](https://ui.shadcn.com/docs/mcp)。文件描述目前 workspace 的配置方式；實際版本以工具與套件權威檔案為準，LINE 實機驗收另行記錄。
 
 ## 自主接線
 
-依[共用 MCP 排查流程](../agents/README.md#project-loading-check)處理。shadcn 專用準備命令為 `bash scripts/tooling/tool-exec.sh mise run ensure-shadcn`，會準備鎖定依賴並檢查握手與工具清單。原生驗收使用唯讀 registry 查詢。
+依[共用 MCP 排查流程](../agents/)處理。shadcn 專用準備命令為 `bash scripts/tooling/tool-exec.sh mise run ensure-shadcn`，會準備鎖定依賴並檢查握手與工具清單。原生驗收使用唯讀 registry 查詢。
 
 ## 官方能力索引與適用範圍
 
-本頁維護功能入口、專案路徑及實測狀態；[元件目錄 AGENTS.md](../../../../frontend/miniapp/src/shared/ui/AGENTS.md) 保存禁止修改規則及 Codex 主動使用 Skill／MCP 的流程；完整目錄與文件統一由 [本機參考庫](shadcn-reference/README.md) 生成及維護。該參考庫供探索與按需安裝，不代表全部已安裝；每次使用仍核對官方網站／registry，實際已安裝清單以 CLI `info --json` 為準。前端 UI 任務應先讀該指引，使用公開 props／variants 在應用層組合，避免直接修改官方元件。
+本頁維護功能入口、專案路徑及實測狀態；[元件目錄 AGENTS.md](../../../../frontend/miniapp/src/shared/ui/AGENTS.md) 保存禁止修改規則及 Codex 主動使用 Skill／MCP 的流程；完整目錄與文件統一由 [本機參考庫](shadcn-reference/) 生成及維護。該參考庫供探索與按需安裝，不代表全部已安裝；每次使用仍核對官方網站／registry，實際已安裝清單以 CLI `info --json` 為準。前端 UI 任務應先讀該指引，使用公開 props／variants 在應用層組合，避免直接修改官方元件。
 
 | 能力        | 官方入口／操作                                                                                             | 本專案狀態與邊界                                                                                                                    |
 | ----------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
@@ -136,7 +136,7 @@ bash scripts/tooling/tool-exec.sh shadcn add @shadcn/button --dry-run --cwd fron
 
 ## 驗證紀錄
 
-2026-11-18（Asia/Taipei）參考庫：下載官方入口列出的 Components 與 AI Elements，保存兩種 base 的 Markdown 與內嵌範例；完整數量與來源只維護於 [生成索引／manifest](shadcn-reference/README.md)。移除 UI 指引的手工元件表，根指引、前端入口與 shadcn 角色統一指向參考庫。上游頁面不改寫，一般分析按需排除生成快照；未安裝應用元件。Context7 本次 query 達月額度限制，未宣稱新查證成功；官方 Markdown 回應及覆蓋／雜湊由下載腳本直接驗證。
+2026-11-18（Asia/Taipei）參考庫：下載官方入口列出的 Components 與 AI Elements，保存兩種 base 的 Markdown 與內嵌範例；完整數量與來源只維護於 [生成索引／manifest](shadcn-reference/)。移除 UI 指引的手工元件表，根指引、前端入口與 shadcn 角色統一指向參考庫。上游頁面不改寫，一般分析按需排除生成快照；未安裝應用元件。Context7 本次 query 達月額度限制，未宣稱新查證成功；官方 Markdown 回應及覆蓋／雜湊由下載腳本直接驗證。
 
 2026-11-18（Asia/Taipei）：補齊[需求驅動的選用與驗收](../../../../frontend/miniapp/src/shared/ui/AGENTS.md#需求驅動的選用與驗收)，明確指定官方 registry、任務內按需新增與 UI 驗收要求。Context7 `/shadcn-ui/ui` 核對上游 Skill 的組合及 CLI 預覽流程；該來源不保證與固定版本完全同版，本機固定 CLI `4.23.0` 的 `--version`、`info --json`、`docs dialog sheet --base radix --json`、`search @shadcn -q drawer`、`add --help` 均成功，辨識 30 個已安裝元件並找到 3 個 drawer 相關項目。Repomix `1.18.1` 打包 5 個相關指引／設定檔並交叉核對；Graphify query 成功，但 AST 關係未完整涵蓋文件規則，未將其當作指引正確性的證據。此聊天未曝光 shadcn MCP，已用固定 CLI 完成查詢；未新增元件、修改上游 Skill、執行 UI 測試或宣稱瀏覽器／LINE 驗收。
 

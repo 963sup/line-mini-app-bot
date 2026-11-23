@@ -12,4 +12,4 @@ HTTP Handler 從經驗證的身分建立用例輸入，避免採信 payload 宣�
 
 ## 延伸閱讀
 
-[adapter](adapter.md) · [driving-port](driving-port.md) · [DDD 設計索引](README.md)
+[adapter](adapter.md) · [driving-port](driving-port.md) · [DDD 設計索引](design-guide.md)

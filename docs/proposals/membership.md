@@ -305,4 +305,4 @@ People 預設只回有效成員，每頁重新驗證目前可見性，跨頁允�
 
 目前待定規則及其啟用阻塞範圍統一見 [閉環判定與待定規則](#閉環判定與待定規則)。Team 的角色管理政策以領域規格為準；Organization 單一 Owner 與 Enterprise 多 Owner 不混用。
 
-[提案索引](README.md) · [現行組織與 Team 契約](../contracts/organization-team-ownership.md) · [操作模型](../contracts/business-operations.md)
+[提案索引](./) · [現行組織與 Team 契約](../contracts/organization-team-ownership.md) · [操作模型](../contracts/business-operations.md)

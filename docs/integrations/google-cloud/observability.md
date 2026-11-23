@@ -84,4 +84,4 @@
 
 [官方文件](https://docs.cloud.google.com/trace/docs/overview)。[Logging](#cloud-logging) · [Monitoring](#cloud-monitoring)。
 
-[Google 服務索引與查證範圍](README.md#sources)
+[Google 服務索引與查證範圍](./)

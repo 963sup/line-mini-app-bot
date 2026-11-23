@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [group.go](application/query/group.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [group.go](application/query/group.go), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
@@ -20,7 +20,7 @@ Start with [group.go](application/query/group.go), [directory guide](README.md),
 
 Users observed in events still need verified group membership to access restricted data, even when listed as candidates.
 
-When changing this rule, check the [decision flow](../../../docs/domains/group/README.md#decision-flow) and [representative tests](application/query/group_test.go).
+When changing this rule, check the [decision flow](../../../docs/integrations/line/group-compatibility.md#decision-flow) and [representative tests](application/query/group_test.go).
 
 ## Applicable engineering conventions
 

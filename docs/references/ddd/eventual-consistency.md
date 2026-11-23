@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[consistency](consistency.md) · [query](query.md) · [integration-event](integration-event.md) · [DDD 設計索引](README.md)
+[consistency](consistency.md) · [query](query.md) · [integration-event](integration-event.md) · [DDD 設計索引](design-guide.md)

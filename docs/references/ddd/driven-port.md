@@ -12,4 +12,4 @@ InvitationStore.Save 接受預期版本，版本不符時回傳衝突。
 
 ## 延伸閱讀
 
-[port](port.md) · [driven-adapter](driven-adapter.md) · [repository](repository.md) · [DDD 設計索引](README.md)
+[port](port.md) · [driven-adapter](driven-adapter.md) · [repository](repository.md) · [DDD 設計索引](design-guide.md)

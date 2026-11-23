@@ -17,7 +17,7 @@
 
 ## README.md
 
-A LICENSE file MUST exist in every project. The README is the project's front page — make it simple, clear, and scannable. A copy-paste template with empty sections is available at [templates/README.md](../assets/templates/README.md).
+A LICENSE file MUST exist in every project. The README is the project's front page — make it simple, clear, and scannable. A copy-paste template with empty sections is available at [README template](../assets/templates/readme-template.md).
 
 ### Section Order
 

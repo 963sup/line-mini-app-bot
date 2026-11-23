@@ -56,4 +56,4 @@
 
 [官方文件](https://docs.cloud.google.com/data-studio/data-credentials)。[BigQuery](#bigquery) · [IAM](workload-identity.md#iam)。
 
-[Google 服務索引與查證範圍](README.md#sources)
+[Google 服務索引與查證範圍](./)

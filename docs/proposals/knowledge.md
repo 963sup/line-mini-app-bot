@@ -1,6 +1,6 @@
 # Knowledge 領域設計
 
-狀態：提案。[領域導覽](../../backend/internal/business/knowledge/README.md)
+狀態：提案。[領域導覽](../../backend/internal/business/knowledge/)
 
 Knowledge 管理知識從提出到撤回的過程。每個版本保存條目識別碼、內容、來源、所屬組織、適用範圍及審核紀錄。以 PDF 匯入為例，「某版型應讀契約數量欄」可以成為條目；單張文件中的數量仍屬該次匯入。規則的業務意義由 呼叫端 判定。
 

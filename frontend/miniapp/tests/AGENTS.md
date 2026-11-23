@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [dom-setup.ts](dom-setup.ts), [session-controls.tsx](session-controls.tsx), [sidebar-dom.ts](sidebar-dom.ts), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [dom-setup.ts](dom-setup.ts), [session-controls.tsx](session-controls.tsx), [sidebar-dom.ts](sidebar-dom.ts), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 

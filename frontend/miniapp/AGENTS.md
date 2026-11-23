@@ -22,7 +22,7 @@ Maintain shared capabilities by layer; business owns feature UI and pages owns e
 
 ## Reading and editing entry points
 
-Start with [components.json](components.json), [next-env.d.ts](next-env.d.ts), [next.config.ts](next.config.ts), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [components.json](components.json), [next-env.d.ts](next-env.d.ts), [next.config.ts](next.config.ts), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="shadcn-與-sidebar-07-保護"></a>
 

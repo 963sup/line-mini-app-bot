@@ -22,4 +22,4 @@ ResourceRef 可識別外部資源，但自身沒有需追蹤的生命週期，�
 
 概念參考：[Microsoft Learn：戰術 DDD](https://learn.microsoft.com/en-us/azure/architecture/microservices/model/tactical-domain-driven-design)。僅採概念，不採其微服務部署前提。
 
-[Entity](entity.md) · [Invariant](invariant.md) · [DDD 設計索引](README.md)
+[Entity](entity.md) · [Invariant](invariant.md) · [DDD 設計索引](design-guide.md)

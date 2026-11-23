@@ -29,4 +29,4 @@ sequenceDiagram
 
 ## 延伸閱讀
 
-[transaction](transaction.md) · [aggregate-root](aggregate-root.md) · [DDD 設計索引](README.md)
+[transaction](transaction.md) · [aggregate-root](aggregate-root.md) · [DDD 設計索引](design-guide.md)

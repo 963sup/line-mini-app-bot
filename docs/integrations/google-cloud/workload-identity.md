@@ -56,4 +56,4 @@
 
 [官方文件](https://docs.cloud.google.com/secret-manager/docs/overview)。[部署規格](../../operations/cloud-run.md) · [IAM](#iam)。
 
-[Google 服務索引與查證範圍](README.md#sources)
+[Google 服務索引與查證範圍](./)

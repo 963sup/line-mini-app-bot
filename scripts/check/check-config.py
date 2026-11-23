@@ -205,11 +205,11 @@ def check():
     if "agents" in config or list((codex_dir / "agents").glob("*.toml")):
         raise ValueError("Subagent registrations must be removed")
     capabilities = ROOT / "docs/development/workflow/capabilities"
-    for name in ("README", "planning", "architect", "explorer", "implementer", "reviewer", "tester", "documentation"):
+    for name in ("planning", "architect", "explorer", "implementer", "reviewer", "tester", "documentation"):
         if not (capabilities / (name + ".md")).is_file():
             raise ValueError(f"Missing capability guide: {name}")
     guides = list(capabilities.glob("*.md"))
-    check_capability_routes(ROOT / "docs/development/environment/README.md", guides)
+    check_capability_routes(ROOT / "README.md", guides)
     for guide in guides:
         for reference in re.findall(r"docs/[A-Za-z0-9_./-]+\.md", guide.read_text()):
             if not (ROOT / reference).is_file():

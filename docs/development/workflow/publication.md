@@ -11,4 +11,4 @@
 
 GitHub MCP 與 Git CLI 的使用見 [GitHub 工具指南](../tooling/shared/github.md)。推送、CI 與正式部署分別核對，見 [發布驗收](../../operations/release-acceptance.md)。
 
-[開發流程索引](README.md)
+[開發流程索引](./)

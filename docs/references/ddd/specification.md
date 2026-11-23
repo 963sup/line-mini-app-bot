@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[domain-policy](domain-policy.md) · [invariant](invariant.md) · [DDD 設計索引](README.md)
+[domain-policy](domain-policy.md) · [invariant](invariant.md) · [DDD 設計索引](design-guide.md)

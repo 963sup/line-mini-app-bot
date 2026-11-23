@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[transaction](transaction.md) · [driven-adapter](driven-adapter.md) · [DDD 設計索引](README.md)
+[transaction](transaction.md) · [driven-adapter](driven-adapter.md) · [DDD 設計索引](design-guide.md)

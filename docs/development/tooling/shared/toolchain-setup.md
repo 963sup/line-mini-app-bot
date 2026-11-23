@@ -8,7 +8,7 @@ Install script、Start skill、更新與新聊天驗收由 [Codex Cloud 環境�
 
 以下流程涵蓋明確指定的 `core`、`mcp` 或 `all`。省略模式時使用 `cloud`。
 
-`mcp` 與 `all` 完成本機工具準備後即可結束。需要驗證連線時，依 [MCP 診斷](../agents/README.md#mcp-診斷)選擇單一或全部服務。
+`mcp` 與 `all` 完成本機工具準備後即可結束。需要驗證連線時，依 [MCP 診斷](../agents/)選擇單一或全部服務。
 
 **開發與維運指引**
 

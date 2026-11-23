@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [group.go](group.go), [reply.go](reply.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [group.go](group.go), [reply.go](reply.go), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="工作方式"></a>
 
@@ -14,7 +14,7 @@ Start with [group.go](group.go), [reply.go](reply.go), [directory guide](README.
 
 [Current implementation diagram: basic entry points](../../../../docs/contracts/http.md#基礎入口)
 
-[platform/line](../../platform/line/README.md) implements group membership queries, injected through bootstrap into domain Membership ports.
+[platform/line](../../platform/line/) implements group membership queries, injected through bootstrap into domain Membership ports.
 
 ## Applicable engineering conventions
 

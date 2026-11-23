@@ -12,4 +12,4 @@ Firestore Adapter 在同一工作單元內使用交易物件保存邀請及防�
 
 ## 延伸閱讀
 
-[adapter](adapter.md) · [driven-port](driven-port.md) · [unit-of-work](unit-of-work.md) · [DDD 設計索引](README.md)
+[adapter](adapter.md) · [driven-port](driven-port.md) · [unit-of-work](unit-of-work.md) · [DDD 設計索引](design-guide.md)

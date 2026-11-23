@@ -12,7 +12,7 @@ Use backend `canEdit` for content-edit controls. Test disabled capabilities whil
 
 ## Reading and editing entry points
 
-Start with [attendance](attendance), [discussion](discussion), [enterprise](enterprise), [issue](issue), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [attendance](attendance), [discussion](discussion), [enterprise](enterprise), [issue](issue), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 

@@ -1,6 +1,6 @@
 # 儲存模型與資料歸屬
 
-本頁整理目前 Firestore 保存入口及新增資料設計的核對方式。具體欄位與業務規則由[領域規格](../../domains/README.md)維護；通用 schemaVersion、Inbox／Outbox 等仍依[資料契約提案](../../proposals/firestore-data-contracts.md)評估，不能當作全庫現行保證。
+本頁整理目前 Firestore 保存入口及新增資料設計的核對方式。具體欄位與業務規則由[領域規格](../../domains/)維護；通用 schemaVersion、Inbox／Outbox 等仍依[資料契約提案](../../proposals/firestore-data-contracts.md)評估，不能當作全庫現行保證。
 
 ## 現行配置與證據
 
@@ -9,7 +9,7 @@
 | Repository     | `channels/{channelId}/repositories/{id}`；擁有者綁定另存 `repositoryOwnerBindings`，使用者候選另存 `repositoryUsers` | [Repository store](../../../backend/internal/business/repository/adapter/firestore/store.go) |
 | Object         | Repository 下的 `objects`；父子關係由 `parentId` 表示；建立收據另存 `objectCreationReceipts`                         | [Object store](../../../backend/internal/business/object/adapter/firestore/store.go)         |
 | Wiki           | Repository 下的 `wikiPages` 與 `wikiTitles`；每頁有 `revisions` 子集合                                               | [Wiki store](../../../backend/internal/business/repository/adapter/firestore/wiki.go)        |
-| 出勤           | 依現行出勤 adapter 的路徑與資料轉譯保存，不因 Repository 文件歸組而搬移                                              | [出勤 adapter](../../../backend/internal/business/attendance/adapter/firestore/README.md)    |
+| 出勤           | 依現行出勤 adapter 的路徑與資料轉譯保存，不因 Repository 文件歸組而搬移                                              | [出勤 adapter](../../../backend/internal/business/attendance/adapter/firestore/)             |
 | 瀏覽器 Session | 保存方式與有效期檢查由身分能力維護                                                                                   | [Session 設計](../../contracts/identity.md)                                                  |
 
 這是代表資料的定位表，不是完整集合清單。Firestore 子集合階層不等於 DDD 聚合；父文件存在、授權、唯一性與引用完整性都須查核相應用例及交易。
@@ -32,4 +32,4 @@
 
 驗證編碼／解碼、缺值、非法值、舊格式、跨作用域引用、唯一性競爭與拒絕後狀態。模型測試不能代替儲存整合；正式資料分布仍須另行觀測。
 
-[交易與一致性](consistency.md) · [查詢與索引](querying.md) · [資料生命週期](lifecycle.md) · [儲存索引](README.md)
+[交易與一致性](consistency.md) · [查詢與索引](querying.md) · [資料生命週期](lifecycle.md) · [儲存索引](./)

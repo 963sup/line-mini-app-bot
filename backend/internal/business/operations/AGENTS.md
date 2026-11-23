@@ -2,7 +2,7 @@
 
 # Operations maintenance guidance
 
-Applies to this directory/descendants; inherit [business guidance](../AGENTS.md). See the [directory guide](README.md) for scope.
+Applies to this directory/descendants; inherit [business guidance](../AGENTS.md). See the [directory guide](./) for scope.
 
 Describe inputs, results, side effects and retries for new operations. Callers supply trusted identities; resource-owning domains authorize.
 

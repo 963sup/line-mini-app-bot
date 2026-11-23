@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [attendance.go](attendance.go), [creation_line.go](../business/organization/adapter/line/creation_line.go), [group.go](group.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [attendance.go](attendance.go), [creation_line.go](../business/organization/adapter/line/creation_line.go), [group.go](group.go), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 

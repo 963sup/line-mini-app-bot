@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [geolocation.go](geolocation.go), [directory guide](README.md), [parent guidance](AGENTS.md).
+Start with [geolocation.go](geolocation.go), [directory guide](./), [parent guidance](AGENTS.md).
 
 <a id="工作方式"></a>
 

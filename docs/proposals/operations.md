@@ -1,6 +1,6 @@
 # Operations 領域設計
 
-狀態：提案。目錄入口見[領域導覽](../../backend/internal/business/operations/README.md)。
+狀態：提案。目錄入口見[領域導覽](../../backend/internal/business/operations/)。
 
 資源領域可以呼叫 Operations 提供的 AI 能力。API 與 [Workflow](workflow.md) 可呼叫具名操作。[Agent](agent.md) 只可呼叫列入允許清單的唯讀操作。寫入由具名業務命令執行，重新核驗當下權限及資源狀態，並回傳正式結果或收據。每個操作定義輸入、結果及副作用，透過介面委派資源領域執行。授權沿用[業務操作模型](../contracts/business-operations.md)，由資源領域依可信呼叫者及資源範圍判定。
 

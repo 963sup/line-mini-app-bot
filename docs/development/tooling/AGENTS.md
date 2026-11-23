@@ -2,7 +2,7 @@
 
 # Tool versions, operations and diagnostics guidance
 
-Inherit [parent guidance](../AGENTS.md); select topics through the [local index](README.md).
+Inherit [parent guidance](../AGENTS.md); select topics through the [local index](./).
 
 <a id="職責與邊界"></a>
 
@@ -15,7 +15,7 @@ Distinguish installation, configuration, connectivity and actual operations. Cov
 
 ## Filing documentation
 
-Choose directories by primary purpose using [tool documentation standards](README.md#工具文件目錄標準). Categorize frontend, backend, API, testing and quality tools accordingly; shared development tools belong in `shared/`. Agent collaboration, Skills and general MCP settings belong in `agents/`.
+Choose directories by primary purpose using [tool documentation standards](./). Categorize frontend, backend, API, testing and quality tools accordingly; shared development tools belong in `shared/`. Agent collaboration, Skills and general MCP settings belong in `agents/`.
 
 Domain-specific guides stay in their domain even when called through MCP. Standard shadcn/Next DevTools paths are `frontend/shadcn.md`/`frontend/nextjs-devtools.md`, indexed by `frontend/README.md`. Other categories link the same guides.
 

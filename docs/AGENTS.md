@@ -2,7 +2,7 @@
 
 # docs agent guidance
 
-Inherit [root guidance](../AGENTS.md). Follow [documentation standards](standards/documentation.md); readers start at [documentation by task](README.md#按任務開始).
+Inherit [root guidance](../AGENTS.md). Follow [documentation standards](standards/documentation.md); readers start at [documentation by task](./).
 
 <a id="職責與邊界"></a>
 
@@ -14,7 +14,7 @@ Locate the owning category and authority through the [repository documentation s
 
 ## Directory layout
 
-Choose the owning category from the [directory responsibilities](README.md#目錄責任). Create a topic page when it has distinct material to maintain. Keep existing locations unless a move improves discovery or clarifies ownership.
+Choose the owning category from the [directory responsibilities](./). Create a topic page when it has distinct material to maintain. Keep existing locations unless a move improves discovery or clarifies ownership.
 
 <a id="文件與目錄命名規範"></a>
 
@@ -34,7 +34,7 @@ Follow the [repository naming rules for documentation](standards/documentation.m
 
 ## Diagram maintenance
 
-Topic pages MUST own diagrams and implementation/acceptance evidence. Label current implementation, future design, development/operations guidance or current/proposed comparisons per [documentation standards](standards/documentation.md#圖表狀態與入口). Update direct references and affected category entries; preserve referenced anchors. List only frequently used cross-topic diagrams in the [project entry point](README.md#日常開發看哪張圖).
+Topic pages MUST own diagrams and implementation/acceptance evidence. Label current implementation, future design, development/operations guidance or current/proposed comparisons per [documentation standards](standards/documentation.md#圖表狀態與入口). Update direct references and affected category entries; preserve referenced anchors. List only frequently used cross-topic diagrams in the [project entry point](./).
 
 <a id="驗證"></a>
 

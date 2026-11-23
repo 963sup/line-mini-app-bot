@@ -20,4 +20,4 @@ Dockerfile 使用 `RUN --mount=type=secret,id=build-ca`，建置器必須支援�
 
 正式部署的流量與回復驗收見[發布驗收](release-acceptance.md)。
 
-[Dockerfile](../../Dockerfile) · [Cloud Run 部署](cloud-run.md) · [正式維運索引](README.md)
+[Dockerfile](../../Dockerfile) · [Cloud Run 部署](cloud-run.md) · [正式維運索引](./)

@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [Object agent guidance](../object/AGENTS.md), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [Object agent guidance](../object/AGENTS.md), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 

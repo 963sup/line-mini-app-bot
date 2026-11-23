@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [errors.go](application/port/errors.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [errors.go](application/port/errors.go), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
@@ -20,7 +20,7 @@ Start with [errors.go](application/port/errors.go), [directory guide](README.md)
 
 Check citations after model changes. Reject storage/delivery when citations are missing or outside source scope.
 
-When changing this rule, check the [decision flow](../../../../docs/domains/summary/README.md#decision-flow) and [implementation](application/summarization/validation.go).
+When changing this rule, check the [decision flow](../../../../docs/domains/summary/design.md) and [implementation](application/summarization/validation.go).
 
 ## Applicable engineering conventions
 

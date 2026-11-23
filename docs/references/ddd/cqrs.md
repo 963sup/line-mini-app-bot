@@ -41,4 +41,4 @@ flowchart LR
 
 [Application Service](application-service.md) · [一致性](consistency.md) · [Event Sourcing](event-sourcing.md)
 
-[DDD 設計索引](README.md) · [現行驗收基線](../../development/tooling/testing/commands.md)
+[DDD 設計索引](design-guide.md) · [現行驗收基線](../../development/tooling/testing/commands.md)

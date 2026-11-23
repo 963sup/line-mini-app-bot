@@ -4,7 +4,7 @@
 
 Inherit [parent guidance](../AGENTS.md); Cloud Run status queries stay read-only.
 
-After changes, run checks from the [script overview](../README.md); see the [local README](README.md) for entry points.
+After changes, run checks from the [script overview](../); see the [local README](./) for entry points.
 
 ## Applicable engineering conventions
 

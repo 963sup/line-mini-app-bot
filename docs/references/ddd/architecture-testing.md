@@ -21,8 +21,8 @@
 | 公開介面是否相容 | 對照既有請求、狀態碼、錯誤與產生碼 | 使用者是否有權操作實際資源 |
 | 原始碼依賴方向 | [Go 邊界測試](../../../backend/internal/architecture/boundaries_test.go) | 規則是否真的由正確的上下文負責 |
 
-現有出勤用例與儲存測試可從[補正審核案例](README.md#把概念用到現行程式補正審核)追查。上述版本衝突案例是設計驗收範例，需讀對應測試的斷言才能列為已覆蓋。
+現有出勤用例與儲存測試可從[補正審核案例](design-guide.md#把概念用到現行程式補正審核)追查。上述版本衝突案例是設計驗收範例，需讀對應測試的斷言才能列為已覆蓋。
 
 ## 延伸閱讀
 
-[dependency-rule](dependency-rule.md) · [domain-testing](domain-testing.md) · [driven-adapter](driven-adapter.md) · [DDD 設計索引](README.md)
+[dependency-rule](dependency-rule.md) · [domain-testing](domain-testing.md) · [driven-adapter](driven-adapter.md) · [DDD 設計索引](design-guide.md)

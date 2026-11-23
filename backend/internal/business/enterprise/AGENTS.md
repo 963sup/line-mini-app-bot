@@ -10,9 +10,9 @@ Applies to this domain; inherit [business guidance](../AGENTS.md).
 
 Enterprise creation must fail for authenticated users lacking provisioning eligibility. Reading details does not grant owner-change authority.
 
-When changing this rule, check the [decision flow](../../../../docs/domains/enterprise/README.md#decision-flow) and [implementation](adapter/firestore/store.go).
+When changing this rule, check the [decision flow](../../../../docs/domains/enterprise/design.md) and [implementation](adapter/firestore/store.go).
 
-[directory guide](README.md)
+[directory guide](./)
 
 ## Applicable engineering conventions
 

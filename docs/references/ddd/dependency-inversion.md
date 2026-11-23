@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[dependency-rule](dependency-rule.md) · [driven-port](driven-port.md) · [composition-root](composition-root.md) · [DDD 設計索引](README.md)
+[dependency-rule](dependency-rule.md) · [driven-port](driven-port.md) · [composition-root](composition-root.md) · [DDD 設計索引](design-guide.md)

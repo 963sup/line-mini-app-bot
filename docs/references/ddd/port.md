@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[driving-port](driving-port.md) · [driven-port](driven-port.md) · [DDD 設計索引](README.md)
+[driving-port](driving-port.md) · [driven-port](driven-port.md) · [DDD 設計索引](design-guide.md)

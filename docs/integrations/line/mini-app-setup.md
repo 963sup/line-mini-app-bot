@@ -20,7 +20,7 @@
 
 - 登出呼叫 `DELETE /api/v1/session`
   撤銷伺服器狀態並清除Cookie；失敗時保留重試入口， 不能只清畫面就宣稱已登出。撤銷應用 Session不等於撤銷 LINE 帳號授權。 期限、續期、Cookie 優先順序、既有 Bearer相容性及錯誤處理以
-  [Session契約](../../contracts/identity.md)為單一來源；路徑與請求格式見[API 契約](../../../api/README.md)。
+  [Session契約](../../contracts/identity.md)為單一來源；路徑與請求格式見[API 契約](../../../api/)。
 
 - 程式接入不代表 MINI
   App 已完成 Channel 建立、資格確認或發布審查。本機可看頁面與未設定提示；真實登入需要正確的 HTTPS

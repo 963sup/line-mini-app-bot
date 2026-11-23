@@ -2,7 +2,7 @@
 
 # Collaboration, debugging, delivery and acceptance guidance
 
-Inherit [parent guidance](../AGENTS.md); select topics through the [local index](README.md).
+Inherit [parent guidance](../AGENTS.md); select topics through the [local index](./).
 
 <a id="職責與邊界"></a>
 

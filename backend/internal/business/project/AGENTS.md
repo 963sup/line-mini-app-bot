@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [inspections.go](domain/entity/inspections.go), [project.go](domain/entity/project.go), [references.go](domain/entity/references.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [inspections.go](domain/entity/inspections.go), [project.go](domain/entity/project.go), [references.go](domain/entity/references.go), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="工作方式"></a>
 
@@ -22,7 +22,7 @@ Project and Repository verify owners separately. Project Owners are users or org
 
 Check selected sources and project links when adding cross-repository references. Project permissions do not grant source-read access in other repositories.
 
-When changing this rule, check the [decision flow](../../../../docs/domains/project/README.md#decision-flow) and [representative tests](application/reference_source_test.go).
+When changing this rule, check the [decision flow](../../../../docs/domains/project/design.md) and [representative tests](application/reference_source_test.go).
 
 ## Applicable engineering conventions
 

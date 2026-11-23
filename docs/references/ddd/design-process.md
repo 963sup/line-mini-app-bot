@@ -14,4 +14,4 @@
 
 完成各階段後依[模型審查](domain-model-review.md)核對規則擁有者、反例、公開契約與設計驗收證據。
 
-核對專案已實作的行為與下一批設計目標，見[出勤規格](../../domains/attendance/README.md)。[DDD 設計索引](README.md)
+核對專案已實作的行為與下一批設計目標，見[出勤規格](../../domains/attendance/design.md)。[DDD 設計索引](design-guide.md)

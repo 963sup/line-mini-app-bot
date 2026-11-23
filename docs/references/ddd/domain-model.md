@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[domain-modeling](domain-modeling.md) · [entity](entity.md) · [DDD 設計索引](README.md)
+[domain-modeling](domain-modeling.md) · [entity](entity.md) · [DDD 設計索引](design-guide.md)

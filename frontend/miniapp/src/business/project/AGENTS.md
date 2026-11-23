@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [Inspections.tsx](Inspections.tsx), [Items.tsx](Items.tsx), [SourcePicker.tsx](SourcePicker.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [Inspections.tsx](Inspections.tsx), [Items.tsx](Items.tsx), [SourcePicker.tsx](SourcePicker.tsx), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 

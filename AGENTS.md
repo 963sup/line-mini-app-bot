@@ -29,7 +29,7 @@ Follow rule 18 to start a task. See the [nested directory guide](README.md#巢�
 15. **Minimal Change & Continuous Validation**: Analyze dependencies, root causes and impact before applying the smallest necessary fix. Validate types, contracts, test results, security, compatibility and core behavior according to each change's impact.
 16. **Continuous Simplification**: Continuously remove or consolidate duplicate, conflicting, outdated, invalid and unnecessary code, abstractions, dependencies, configuration, documentation and processes. Measure before and after improvements and verify behavior with regression checks.
 17. **Task Scope & Acceptance**: Clarify the actual goal, constraints and acceptance criteria from the user's description. Use first principles to choose the smallest reliable solution and suitable tools. Prioritize by impact and risk; investigate root causes when acceptance fails. Finish when criteria are met or a blocker cannot be resolved independently. Report evidence and follow-up work for out-of-scope findings separately.
-18. **Applicable Instructions**: Before starting each task, MUST read the [environment and capability entry point](docs/development/environment/README.md#依任務選擇能力), select applicable capabilities and read their full guidance before substantive work. Do not read only capability names or skip guidance from memory. Within the same task, reuse guidance already read if it is unchanged; reselect when scope changes. Before editing, read every applicable AGENTS.md along the target file's directory path. Within host permissions and the user's task scope, the root AGENTS.md defines common rules; nearer AGENTS.md files take precedence for local matters.
+18. **Applicable Instructions**: Before starting each task, MUST read the [environment and capability entry point](README.md#依任務選擇能力), select applicable capabilities and read their full guidance before substantive work. Do not read only capability names or skip guidance from memory. Within the same task, reuse guidance already read if it is unchanged; reselect when scope changes. Before editing, read every applicable AGENTS.md along the target file's directory path. Within host permissions and the user's task scope, the root AGENTS.md defines common rules; nearer AGENTS.md files take precedence for local matters.
 19. **Single-Agent Execution**: The current agent handles planning, exploration, design, implementation, self-review, testing and documentation without starting subagents or delegating to an orchestrator. Preserve existing changes and upstream skills; identify self-review accurately. Tools and capabilities do not grant additional authorization for external writes.
 20. **Source Verification**: Verify local behavior against the current checkout's source and actual execution; verify external behavior against official documentation for the applicable version. Prioritize assumptions and failure risks that affect decisions. Reuse verified evidence while its version, source and applicability remain valid. Documentation research does not replace behavioral acceptance.
 21. **Targeted Exploration**: Start exploration with a concrete question. Prefer available Graphify tools to locate unfamiliar dependencies; search source directly for known identifiers. Check graph and Repomix findings against the current working tree. Stop expanding searches once the evidence answers the question.
@@ -67,7 +67,7 @@ Follow rule 18 to start a task. See the [nested directory guide](README.md#巢�
 - Before locating or running a CLI, check installed versions from the repository root with `bash scripts/tooling/tool-exec.sh mise ls --installed`. If the wrapper cannot find mise, check `/workspace/tooling/bin/mise` and `/workspace/tooling/mise-data/installs`.
 - Run an individual tool with `bash scripts/tooling/tool-exec.sh <command> [arguments]`; the wrapper prepares tools at declared versions. `mise run` may prepare the entire task environment. For compound commands, list declared tools explicitly, for example `bash scripts/tooling/tool-exec.sh --tool node --tool npm:repomix bash -c 'repomix --version'`.
 - If Graphify is missing, run `mise run install-graphify`.
-- Confirm separately which MCP tools the chat can call. If a service is missing, a call fails or comprehensive acceptance is needed, follow the [shared troubleshooting workflow](docs/development/tooling/agents/README.md#project-loading-check) and continue independent work.
+- Confirm separately which MCP tools the chat can call. If a service is missing, a call fails or comprehensive acceptance is needed, follow the [shared troubleshooting workflow](docs/development/tooling/agents/) and continue independent work.
 
 Sources: mise 2026.11.3 `exec --help` and [official settings](https://mise.jdx.dev/configuration/settings.html#exec_auto_install).
 
@@ -79,7 +79,7 @@ Sources: mise 2026.11.3 `exec --help` and [official settings](https://mise.jdx.d
 
 ## Single-agent execution and capability selection
 
-Read professional guidance by task through the [capability entry point](docs/development/workflow/capabilities/README.md); see [starting a task](docs/development/workflow/task-start.md) for the workflow. Control tool calls, context and intermediate artifacts according to acceptance needs; avoid repeated analysis and unnecessary work splitting.
+Read professional guidance by task through the [capability entry point](docs/development/workflow/capabilities/); see [starting a task](docs/development/workflow/task-start.md) for the workflow. Control tool calls, context and intermediate artifacts according to acceptance needs; avoid repeated analysis and unnecessary work splitting.
 
 When diagrams clarify architecture, data relationships, flows or states, proactively validate and render them with the project's pinned local Mermaid v13 CLI. See the [Mermaid tooling guide](docs/development/tooling/shared/mermaid.md).
 
@@ -104,7 +104,7 @@ For cross-file queries, use the [exploration guide](docs/development/workflow/ca
 
 Before creating, editing or reviewing any owned Markdown, MUST read and follow the [documentation standards](docs/standards/documentation.md). The current agent uses documentation capability guidance as needed, confirms file ownership and independently fixes evidence-backed issues within scope without expanding into a repository-wide rewrite.
 
-Use the [development handbook](docs/development/README.md#按任務開始) to select environment guidance, workflows, recipes and acceptance checks. See the [MCP guide](docs/development/tooling/agents/README.md) for tool selection and diagnostics.
+Use the [development handbook](docs/development/) to select environment guidance, workflows, recipes and acceptance checks. See the [MCP guide](docs/development/tooling/agents/) for tool selection and diagnostics.
 
 For implementation handoffs, follow [handoff and evidence reuse](docs/development/workflow/handoff.md#minimal-handoff-and-evidence-reuse) and the [naming standards](docs/standards/naming.md).
 

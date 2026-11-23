@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [package.json](package.json), [tsconfig.json](tsconfig.json), [turbo.json](turbo.json), the [directory guide](README.md) and [parent guidance](../AGENTS.md).
+Start with [package.json](package.json), [tsconfig.json](tsconfig.json), [turbo.json](turbo.json), the [directory guide](./) and [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 

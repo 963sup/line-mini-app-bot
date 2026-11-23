@@ -35,4 +35,4 @@ Authority 表示權限來源與有效範圍；Policy 可描述授權條件或業
 
 每個 Action 交付允許／拒絕矩陣、事實提供方、資料新鮮度、交易重查點與錯誤映射。至少涵蓋本人／他人、同庫／跨庫、停用資源、資格服務不可用、過期版本及檢查後資格改變。拒絕後不得留下部分業務寫入；交易競爭須以儲存整合測試驗證。
 
-[領域政策](domain-policy.md) · [狀態機](state-machine.md) · [不變條件](invariant.md) · [模型審查](domain-model-review.md) · [DDD 索引](README.md)
+[領域政策](domain-policy.md) · [狀態機](state-machine.md) · [不變條件](invariant.md) · [模型審查](domain-model-review.md) · [DDD 索引](design-guide.md)

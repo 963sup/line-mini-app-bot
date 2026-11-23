@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [forecast](domain/entity/forecast), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [forecast](domain/entity/forecast), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
@@ -20,7 +20,7 @@ Start with [forecast](domain/entity/forecast), [directory guide](README.md), [pa
 
 Test forecasts with group location events. Non-group or non-replyable events must not trigger the group reply flow.
 
-When changing this rule, check the [decision flow](../../../../docs/domains/weather/README.md#decision-flow) and [representative tests](adapter/line/forecast/forecast_test.go).
+When changing this rule, check the [decision flow](../../../../docs/domains/weather/design.md) and [representative tests](adapter/line/forecast/forecast_test.go).
 
 ## Applicable engineering conventions
 

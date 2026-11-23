@@ -52,7 +52,7 @@ architecture-beta
 
 - 出勤、日誌、群聊摘要與天氣各自維護操作規格與驗收條件。持久 Inbox、通用 Outbox、租約 worker 與管理後台的構想另存於平台規劃。功能索引 · 平台規劃圖
 
-  - [功能索引](../../domains/README.md)
+  - [功能索引](../../domains/)
 
   - [平台規劃圖](../../proposals/platform/package-layout.md#後續平台擴充參考流程)
 
@@ -65,6 +65,6 @@ architecture-beta
 | 修改模組與依賴     | [目前目錄](code-layout.md)、[後端邊界](backend-boundaries.md)                                             |
 | 修改資料與交易     | [Firestore 整合](../../integrations/firestore/connection.md)                                              |
 | 準備裝置或部署驗收 | [整合與發布驗收](../../operations/release-acceptance.md)、[Cloud Run 部署](../../operations/cloud-run.md) |
-| 比較現況與目標     | [工程平台目標架構](../../proposals/line-engineering/README.md#一完整系統總架構)                           |
+| 比較現況與目標     | [工程平台目標架構](../../proposals/line-engineering/)                                                     |
 
 <a id="文件路由-1"></a>

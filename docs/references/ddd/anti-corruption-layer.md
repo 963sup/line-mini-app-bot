@@ -24,4 +24,4 @@ flowchart LR
 
 ## 延伸閱讀
 
-[bounded-context-integration](bounded-context-integration.md) · [driven-adapter](driven-adapter.md) · [DDD 設計索引](README.md)
+[bounded-context-integration](bounded-context-integration.md) · [driven-adapter](driven-adapter.md) · [DDD 設計索引](design-guide.md)

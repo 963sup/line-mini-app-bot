@@ -12,4 +12,4 @@
 
 ## 延伸閱讀
 
-[invariant](invariant.md) · [adapter](adapter.md) · [DDD 設計索引](README.md)
+[invariant](invariant.md) · [adapter](adapter.md) · [DDD 設計索引](design-guide.md)

@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [FormField.tsx](FormField.tsx), [PagePanel.tsx](PagePanel.tsx), [ReadFeedback.tsx](ReadFeedback.tsx), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [FormField.tsx](FormField.tsx), [PagePanel.tsx](PagePanel.tsx), [ReadFeedback.tsx](ReadFeedback.tsx), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 

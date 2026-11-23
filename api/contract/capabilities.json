@@ -11,13 +11,13 @@
       "contract": "repository/repositories.yaml",
       "adapter": "backend/internal/business/repository/adapter/http/routes.go",
       "core": "backend/internal/business/repository/domain/entity/repository.go",
-      "specification": "docs/domains/repository/README.md"
+      "specification": "docs/domains/repository/design.md"
     },
     "attendance.punch": {
       "contract": "attendance/punch.yaml",
       "adapter": "backend/internal/business/attendance/adapter/http/attendance_launch.go",
       "core": "backend/internal/business/attendance/application/port/punch.go",
-      "specification": "docs/domains/attendance/README.md"
+      "specification": "docs/domains/attendance/design.md"
     },
     "attendance.records": {
       "contract": "attendance/records.yaml",
@@ -57,13 +57,13 @@
     },
     "summary.messagecollection": {
       "kind": "event",
-      "document": "api/contract/summary/README.md",
+      "document": "docs/domains/summary/summary.md",
       "core": "backend/internal/business/summary/domain/entity/messagecollection/message.go",
       "specification": "docs/domains/summary/summary.md"
     },
     "weather.forecast": {
       "kind": "event",
-      "document": "api/contract/weather/README.md",
+      "document": "docs/domains/weather/weather.md",
       "core": "backend/internal/business/weather/domain/entity/forecast/forecast.go",
       "specification": "docs/domains/weather/weather.md"
     },
@@ -225,7 +225,7 @@
       "contract": "operations/poppler.yaml",
       "adapter": "backend/internal/business/operations/adapter/http/poppler.go",
       "core": "backend/internal/business/operations/application/document.go",
-      "specification": "backend/internal/business/operations/README.md"
+      "specification": "docs/domains/operations/design.md"
     },
     "membership": {
       "contract": "organization/membership.yaml",
@@ -317,7 +317,7 @@
       "adapter": "backend/internal/business/repository/adapter/http/routes.go",
       "handler": "ListRepositories",
       "core": "backend/internal/business/repository/domain/entity/repository.go",
-      "specification": "docs/domains/repository/README.md",
+      "specification": "docs/domains/repository/design.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/RepositoryContext.tsx"
       ],
@@ -332,7 +332,7 @@
       "adapter": "backend/internal/business/repository/adapter/http/routes.go",
       "handler": "GetRepository",
       "core": "backend/internal/business/repository/domain/entity/repository.go",
-      "specification": "docs/domains/repository/README.md",
+      "specification": "docs/domains/repository/design.md",
       "consumers": [
         "frontend/miniapp/src/business/repository/RepositoryContext.tsx"
       ],
@@ -347,7 +347,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/attendance_launch.go",
       "handler": "ExchangeAttendanceLaunch",
       "core": "backend/internal/business/attendance/application/port/punch.go",
-      "specification": "docs/domains/attendance/README.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/punch/View.tsx"
       ],
@@ -362,7 +362,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/punch.go",
       "handler": "SubmitAttendancePunch",
       "core": "backend/internal/business/attendance/application/port/punch.go",
-      "specification": "docs/domains/attendance/README.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/punch/View.tsx"
       ],
@@ -377,7 +377,7 @@
       "adapter": "backend/internal/business/attendance/adapter/http/attendance_preflight.go",
       "handler": "PreflightAttendancePunch",
       "core": "backend/internal/business/attendance/application/port/punch.go",
-      "specification": "docs/domains/attendance/README.md",
+      "specification": "docs/domains/attendance/design.md",
       "consumers": [
         "frontend/miniapp/src/business/attendance/punch/View.tsx"
       ],
@@ -1592,7 +1592,7 @@
       "adapter": "backend/internal/business/operations/adapter/http/poppler.go",
       "handler": "ExtractPopplerText",
       "core": "backend/internal/business/operations/application/document.go",
-      "specification": "backend/internal/business/operations/README.md",
+      "specification": "docs/domains/operations/design.md",
       "consumers": [
         "frontend/miniapp/src/business/operations/Poppler.tsx"
       ]
@@ -1750,7 +1750,7 @@
     {
       "owner": "repository",
       "action": "Observe",
-      "contract": "docs/domains/repository/README.md",
+      "contract": "docs/domains/repository/design.md",
       "adapter": "backend/internal/business/repository/adapter/line/observer.go",
       "handler": "Observe",
       "note": "Verified webhook drives the container lifecycle; no public create/update API."
@@ -1758,7 +1758,7 @@
     {
       "owner": "summary.messagecollection",
       "action": "Collect/Edit/Recall",
-      "contract": "api/contract/summary/README.md",
+      "contract": "docs/domains/summary/summary.md",
       "adapter": "backend/internal/business/summary/adapter/line/messagecollection/collection.go",
       "handler": "Observe",
       "note": "LINE event contract, not a browser HTTP operation."
@@ -1766,7 +1766,7 @@
     {
       "owner": "summary.summarization",
       "action": "Request summary",
-      "contract": "api/contract/summary/README.md",
+      "contract": "docs/domains/summary/summary.md",
       "adapter": "backend/internal/business/summary/adapter/line/summarization/commands.go",
       "handler": "Reply",
       "note": "LINE command schedules the internal HTTP operation."
@@ -1774,7 +1774,7 @@
     {
       "owner": "weather.forecast",
       "action": "Forecast",
-      "contract": "api/contract/weather/README.md",
+      "contract": "docs/domains/weather/weather.md",
       "adapter": "backend/internal/business/weather/adapter/line/forecast/forecast.go",
       "handler": "ReplyForEvent",
       "note": "LINE location event; no public HTTP operation."

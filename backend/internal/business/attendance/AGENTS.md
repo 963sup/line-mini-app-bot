@@ -6,7 +6,7 @@
 
 ## Purpose and scope
 
-Manages punches, records, corrections, leave, reviews and attendance boards. Domain/application packages follow responsibilities in the [module guide](README.md#現行結構).
+Manages punches, records, corrections, leave, reviews and attendance boards. Domain/application packages follow responsibilities in the [module guide](./).
 
 <a id="架構與責任邊界"></a>
 
@@ -18,13 +18,13 @@ This directory owns domain or sub-capability behavior. Add HTTP, LINE and Firest
 
 ## Reading and editing entry points
 
-Start with [errors.go](application/port/errors.go), [store.go](application/port/store.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [errors.go](application/port/errors.go), [store.go](application/port/store.go), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
 ## Related specifications
 
-[Current implementation diagram: location preflight, state and sequence](../../../../docs/domains/attendance/README.md#定位前預檢狀態與時序)
+[Current implementation diagram: location preflight, state and sequence](../../../../docs/domains/attendance/design.md)
 
 <a id="分層約束"></a>
 
@@ -38,7 +38,7 @@ Uses domain/entity, valueobject, service, event, policy and application/command,
 
 Verify separate shifts for the same person across groups and cover shift states that reject punches.
 
-When changing this rule, check the [decision flow](../../../../docs/domains/attendance/README.md#decision-flow) and [representative tests](adapter/firestore/attendance_integration_test.go).
+When changing this rule, check the [decision flow](../../../../docs/domains/attendance/design.md) and [representative tests](adapter/firestore/attendance_integration_test.go).
 
 ## Applicable engineering conventions
 

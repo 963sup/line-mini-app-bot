@@ -6,7 +6,7 @@
 
 ## Reading and editing entry points
 
-Start with [operations.go](application/port/operations.go), [directory guide](README.md), [parent guidance](../AGENTS.md).
+Start with [operations.go](application/port/operations.go), [directory guide](./), [parent guidance](../AGENTS.md).
 
 <a id="相關規格"></a>
 
@@ -20,7 +20,7 @@ Start with [operations.go](application/port/operations.go), [directory guide](RE
 
 Readers losing source access after publication may still see work names/progress, but journals must not expose source names or IDs.
 
-When changing this rule, check the [decision flow](../../../../docs/domains/journal/README.md#decision-flow) and [representative tests](domain/entity/entry_test.go).
+When changing this rule, check the [decision flow](../../../../docs/domains/journal/design.md) and [representative tests](domain/entity/entry_test.go).
 
 [Existing publication operation contract and flow](../../../../docs/domains/journal/journal.md#正式群組發布的操作契約)
 

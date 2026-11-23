@@ -22,4 +22,4 @@ schemaVersion=1 缺少原始 LINE exp，只允許原固定期限內使用；refr
 
 firestore.indexes.json 宣告 sessions.expiresAt TTL 與索引豁免，其他 Session 欄位不建索引。提交設定不代表雲端已套用。TTL 通常在過期後 24 小時內清理，過期文件仍可能被查到；清理失效只影響保留時間與費用，不延長登入效力。
 
-[索引宣告](../../../firestore.indexes.json) · [Firestore 整合索引](README.md)
+[索引宣告](../../../firestore.indexes.json) · [Firestore 整合索引](./)

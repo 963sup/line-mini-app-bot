@@ -12,4 +12,4 @@ InvitationAccepted 可對外提供處理必要的識別，內部拒絕原因無�
 
 ## 延伸閱讀
 
-[domain-event](domain-event.md) · [outbox-pattern](outbox-pattern.md) · [bounded-context-integration](bounded-context-integration.md) · [DDD 設計索引](README.md)
+[domain-event](domain-event.md) · [outbox-pattern](outbox-pattern.md) · [bounded-context-integration](bounded-context-integration.md) · [DDD 設計索引](design-guide.md)

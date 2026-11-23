@@ -22,4 +22,4 @@
 
 ## 延伸閱讀
 
-[design-process](design-process.md) · [domain-model](domain-model.md) · [domain-testing](domain-testing.md) · [DDD 設計索引](README.md)
+[design-process](design-process.md) · [domain-model](domain-model.md) · [domain-testing](domain-testing.md) · [DDD 設計索引](design-guide.md)

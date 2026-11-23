@@ -17,4 +17,4 @@ flowchart LR
 
 審核交易從本 Channel 的 `attendanceReviewers` 讀取可審核的群組。這條規則不能由 LINE 群組成員資格或前端角色標籤取代。現行資料也不足以判定團隊之間採用 Partnership 或 Shared Kernel。排班與薪資未有交換契約，故未列為現行上下游。
 
-[出勤 API 契約](../../../api/contract/attendance/README.md) · [LINE 入口](../../../backend/internal/business/attendance/adapter/line/attendance.go) · [審核交易](../../../backend/internal/business/attendance/adapter/firestore/attendance_correction.go)
+[出勤 API 契約](../../../api/contract/attendance/) · [LINE 入口](../../../backend/internal/business/attendance/adapter/line/attendance.go) · [審核交易](../../../backend/internal/business/attendance/adapter/firestore/attendance_correction.go)

@@ -8,13 +8,13 @@ Diagnose Codex agents, MCP and configuration.
 
 ## Prerequisites and configuration
 
-See [shared MCP settings and diagnostics](README.md#mcp-診斷).
+See [shared MCP settings and diagnostics](./).
 
 Remote documentation service; network required. A website 403 does not imply MCP is unavailable.
 
 ## Operation
 
-Use the host’s native search_openai_docs and fetch_openai_doc tools. If missing, follow the [project loading check](README.md#project-loading-check).
+Use the host’s native search_openai_docs and fetch_openai_doc tools. If missing, follow the [project loading check](./).
 
 ## Codex configuration policy
 

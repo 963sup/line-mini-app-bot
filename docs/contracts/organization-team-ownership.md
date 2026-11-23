@@ -1,6 +1,6 @@
 # Organization 所有權與 Team 歸屬
 
-實作範圍：組織與 Team API、Firestore 寫入、側欄切換及團隊清單。文件路徑均位於 channels/{channelId} 下。現行群組資料與授權行為見[儲存庫規格](../domains/repository/README.md)。
+實作範圍：組織與 Team API、Firestore 寫入、側欄切換及團隊清單。文件路徑均位於 channels/{channelId} 下。現行群組資料與授權行為見[儲存庫規格](../domains/repository/design.md)。
 
 [企業、組織與團隊歸屬圖（Mermaid）](diagrams/organization-team.mermaid)
 

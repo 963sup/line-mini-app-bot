@@ -149,7 +149,7 @@ For the full comment format, deprecated markers, interface docs, and file-level 
 
 ## Step 4: README Structure
 
-README SHOULD follow this exact section order. Copy the template from [templates/README.md](./assets/templates/README.md):
+README SHOULD follow this exact section order. Copy the template from [README template](./assets/templates/readme-template.md):
 
 1. **Title** — project name as `# heading`
 2. **Badges** — shields.io pictograms (Go version, license, CI, coverage, Go Report Card...)

@@ -29,4 +29,4 @@ Inspect existing pages and preserve their language, navigation and unrelated con
 
 Wiki 發布需要明確授權，不能由一般文件修改或儲存庫權限推定。
 
-[工具索引](../README.md)
+[工具索引](../)
