@@ -1,10 +1,10 @@
+import { Check } from "lucide-react";
 import { useOrganizationSelection } from "@/business/organization/OrganizationSelection";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "@/identity/Session";
 import { PagePanel } from "@/shared/PagePanel";
 import { Status } from "@/shared/Status";
 import { Button } from "@/shared/ui/button";
-import { Item, ItemGroup, ItemContent, ItemTitle } from "@/shared/ui/item";
 import { View } from "./View";
 
 type CopySource = { ownerId: string; projectId: string };
@@ -67,28 +67,37 @@ function AuthenticatedWorkspace() {
     setRoute(next);
   }, []);
 
+  const owners = user ? [{ id: user.userId, name: "我的個人專案" }, ...organizations.map(org => ({ id: org.organizationId, name: org.name }))] : [];
   const active = organizations.some(org => org.organizationId === route.owner);
   const selectProject = useCallback((id: string) => navigate(route.owner, id, route.source), [navigate, route.owner, route.source]);
   return <div className="flex min-w-0 flex-col gap-4">
+    <PagePanel heading="專案擁有者">
+      <nav aria-label="專案擁有者" className="flex flex-wrap gap-2">
+        {owners.map(owner => {
+          const current = owner.id === route.owner;
+          return <Button key={owner.id} variant={current ? "default" : "outline"}
+            className="h-auto min-h-11 max-w-full whitespace-normal text-left [overflow-wrap:anywhere]"
+            disabled={writeBlocked} aria-current={current ? "page" : undefined}
+            onClick={() => navigate(owner.id)}>
+            {current && <Check aria-hidden="true" />}
+            {owner.name}
+          </Button>;
+        })}
+      </nav>
+      {error && <><Status role="status">{error}</Status><Button onClick={refresh}>重試讀取組織</Button></>}
+      {ready && context && !active && route.owner !== user?.userId && <Status role="status">無法開啟此組織。</Status>}
+    </PagePanel>
     {user && (active || route.owner === user.userId) && <View
       key={route.owner}
       ownerId={route.owner}
       projectId={route.project}
       initialSource={route.source}
       copyFrom={route.copyFrom}
-      destinations={[{ id: user.userId, name: "我的個人專案" }, ...organizations.map(org => ({ id: org.organizationId, name: org.name }))]}
+      destinations={owners}
       onCopy={destination => navigate(destination, "new", "", { ownerId: route.owner, projectId: route.project })}
       onSelect={selectProject}
       onBlocked={onBlocked}
       canWrite={canWrite}
     />}
-    <PagePanel heading="專案擁有者">
-      <Button disabled={writeBlocked} onClick={() => user && navigate(user.userId)}>我的個人專案</Button>
-      <ItemGroup>{organizations.map(org => <Item key={org.organizationId}><ItemContent><ItemTitle>
-        <Button variant="link" disabled={writeBlocked} aria-current={org.organizationId === route.owner ? "page" : undefined} onClick={() => navigate(org.organizationId)}>{org.name}</Button>
-      </ItemTitle></ItemContent></Item>)}</ItemGroup>
-      {error && <><Status role="status">{error}</Status><Button onClick={refresh}>重試讀取組織</Button></>}
-      {ready && context && !active && route.owner !== user?.userId && <Status role="status">無法開啟此組織。</Status>}
-    </PagePanel>
   </div>;
 }

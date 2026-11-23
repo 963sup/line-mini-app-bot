@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
 import { errorMessage, isTemporaryReadError, useLatestRequest } from "@/shared/http/lifecycle";
+import { FieldDescription } from "@/shared/ui/field";
 import { FormField } from "@/shared/FormField";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { Status } from "@/shared/Status";
@@ -44,10 +45,11 @@ export function SourcePicker({ ownerId, initialSource, value, onChange, disabled
     return detail.cancel;
   }, [user, initialSource, ownerId, request, detail.run, detail.cancel, onChange]);
   return <>
-    <FormField>來源儲存庫<NativeSelect value={value} disabled={disabled || busy} onChange={event => onChange(event.target.value)}>
-      <NativeSelectOption value="">請選擇有權讀取的來源</NativeSelectOption>
+    <FormField>來源儲存庫（選填）<NativeSelect value={value} disabled={disabled || busy || !items.length} onChange={event => onChange(event.target.value)}>
+      <NativeSelectOption value="">不指定來源儲存庫</NativeSelectOption>
       {items.map(item => <NativeSelectOption key={item.id} value={item.id}>{item.name || "群組儲存庫"}</NativeSelectOption>)}
     </NativeSelect></FormField>
+    {!busy && !listError && !cursor && !items.length && <FieldDescription>目前沒有可選的儲存庫，可直接建立空白專案。</FieldDescription>}
     <ReadFeedback busy={busy} message={listError} label="正在讀取來源儲存庫……" onRetry={listError && !disabled ? () => load(cursor) : undefined} />
     <Status role="status">{status}</Status>
     {!listError && cursor && <Button type="button" variant="outline" disabled={disabled || busy} onClick={() => load(cursor)}>載入更多來源儲存庫</Button>}

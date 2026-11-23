@@ -129,6 +129,8 @@ test("canonical create retries retain source, payload and key after an unknown r
       Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!.call(input, "Same project");
       input.dispatchEvent(new Event("input", { bubbles: true })); await flush();
     });
+    await f.click("繼續填寫專案");
+    assert.equal(input.value, "Same project");
     await f.click("建立專案"); await f.click("重試原建立請求");
     assert.equal(posts.length, 2); assert.deepEqual(posts[0], posts[1]);
     assert.deepEqual(posts[0].body, { title: "Same project", body: "", defaultRepositoryId: rid });
@@ -207,7 +209,8 @@ test("unknown reference add retains body after forbidden retry and blocks metada
  });
  try{
   await f.select('選擇既有',sourceId);await f.click('加入專案');
-  for(const label of ['Group B','新增專案','重新載入專案'])assert.equal([...document.querySelectorAll<HTMLButtonElement>('button')].find(node=>node.textContent===label)!.disabled,true);
+  assert.equal([...document.querySelectorAll('button')].some(node => node.textContent === '重新載入專案'), false);
+  for(const label of ['Group B','新增專案'])assert.equal([...document.querySelectorAll<HTMLButtonElement>('button')].find(node=>node.textContent===label)!.disabled,true);
   await f.click('Group B');assert.equal(new URLSearchParams(location.search).get('owner'),sa);
   await act(async()=>{document.querySelector('form')!.dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));await flush();});assert.equal(metadataWrites,0);
   await f.click('重試原引用操作');assert.equal([...document.querySelectorAll<HTMLButtonElement>('button')].find(node=>node.textContent==='Group B')!.disabled,true);
@@ -483,5 +486,25 @@ test("save field options and a view, then edit the copied settings independently
     await fill("欄位名稱","Severity"); await f.click("儲存內容");
     assert.equal(projects.get(copyId)!.settings!.fields[0].name,"Severity");
     assert.equal(projects.get(pid)!.settings!.fields[0].name,"Priority");
+  } finally { await f.dispose(); }
+});
+
+test("project list keeps the first page and retries the failed cursor", async () => {
+  const cursors: (string | null)[] = [];
+  const f = await fixture(`/miniapp/projects?owner=${sa}`, async request => {
+    const url = new URL(request.url);
+    if (!url.pathname.endsWith("/projects")) return normal(request);
+    cursors.push(url.searchParams.get("cursor"));
+    if (cursors.length === 2) throw new TypeError("network offline");
+    return Response.json(cursors.length === 1
+      ? { items: [project], nextCursor: "next" }
+      : { items: [{ ...project, id: "2".repeat(32), title: "第二頁專案" }], nextCursor: "" });
+  });
+  try {
+    await f.click("載入更多專案");
+    assert.ok(document.body.textContent!.includes(project.title));
+    await f.click("重試讀取");
+    assert.deepEqual(cursors, [null, "next", "next"]);
+    assert.match(document.body.textContent!, /第二頁專案/);
   } finally { await f.dispose(); }
 });

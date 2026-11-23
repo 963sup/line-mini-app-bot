@@ -1,19 +1,22 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { ChevronRight } from "lucide-react";
 import type { components } from "@repo/api-client";
 import { useSession } from "@/identity/Session";
-import { rejectedAttempt, useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
+import { isTemporaryReadError, rejectedAttempt, useLatestRequest, errorMessage } from "@/shared/http/lifecycle";
+import { ReadFeedback } from "@/shared/ReadFeedback";
 import { PagePanel } from "@/shared/PagePanel";
 import { FormField } from "@/shared/FormField";
 import { Status } from "@/shared/Status";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
-import { FieldGroup, FieldSet } from "@/shared/ui/field";
+import { Field, FieldGroup, FieldLabel, FieldSet } from "@/shared/ui/field";
 import { SettingsEditor } from "./SettingsEditor";
 import { Items } from "./Items";
 import { SourcePicker } from "./SourcePicker";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
-import { Item, ItemGroup, ItemContent, ItemTitle } from "@/shared/ui/item";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { Item, ItemGroup } from "@/shared/ui/item";
 
 type Project = components["schemas"]["Project"];
 type Creation = components["schemas"]["OwnerProjectCreation"];
@@ -24,6 +27,7 @@ export function View({ ownerId, projectId, initialSource, copyFrom, destinations
   const detailRequest = useLatestRequest(), write = useLatestRequest();
   const [items, setItems] = useState<Project[]>([]), [cursor, setCursor] = useState("");
   const [listBusy, setListBusy] = useState(false), [loaded, setLoaded] = useState(false);
+  const [retryCursor, setRetryCursor] = useState<string | null>(null);
   const [listStatus, setListStatus] = useState("");
   const [mode, setMode] = useState<"create" | "detail" | null>(null);
   const [detail, setSelected] = useState<Project | null>(null);
@@ -46,10 +50,20 @@ export function View({ ownerId, projectId, initialSource, copyFrom, destinations
     window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn);
   }, [busy, uncertain, referencesBlocked]);
   const attempt = useRef<{ key: string; body: Creation } | null>(null);
+  const editorHeading = useRef<HTMLSpanElement>(null);
+  const focusOnOpen = useRef(false);
+  useEffect(() => {
+    if (mode && focusOnOpen.current && editorHeading.current) {
+      editorHeading.current.focus();
+      focusOnOpen.current = false;
+    }
+  }, [mode, projectId]);
+  const copyDestinations = destinations.filter(owner => owner.id !== ownerId);
   const canEdit = selected?.canEdit === true;
 
   const load = useCallback((nextCursor = "") => {
     if (!user || referenceLock.current) return;
+    setRetryCursor(null);
     setListBusy(true); setLoaded(false); setCursor("");
     if (!nextCursor) setItems([]);
     setListStatus("正在讀取專案……");
@@ -62,7 +76,12 @@ export function View({ ownerId, projectId, initialSource, copyFrom, destinations
         setCursor(page.nextCursor); setListBusy(false); setLoaded(true);
         setListStatus(page.nextCursor ? "可繼續載入更多專案。" : "已讀取完畢。");
       },
-      (error) => { setItems([]); setListBusy(false); setLoaded(false); setListStatus(errorMessage(error)); },
+      (error) => {
+        if (isTemporaryReadError(error)) setRetryCursor(nextCursor);
+        else setItems([]);
+        setListBusy(false);
+        setListStatus(errorMessage(error));
+      },
     );
   }, [user, request, ownerId, readRun]);
   useEffect(() => { load(); return cancelRead; }, [load, cancelRead]);
@@ -94,6 +113,11 @@ export function View({ ownerId, projectId, initialSource, copyFrom, destinations
   }, [projectId, open, detailRequest.cancel, write.cancel, block]);
   function openCreateForm() {
     if (lock.current || unknown.current || referenceLock.current || !canWrite()) return;
+    if (mode === "create") {
+      editorHeading.current?.focus();
+      return;
+    }
+    focusOnOpen.current = true;
     navigation.current = true;
     onSelect("new"); detailRequest.cancel(); setDetailBusy(false); setSelected(null); setMode("create");
     setTitle(""); setBody(""); setUncertain(false); setNeedsRefresh(false); setStatus(""); attempt.current = null;
@@ -140,40 +164,54 @@ export function View({ ownerId, projectId, initialSource, copyFrom, destinations
   return <div className="flex min-w-0 flex-col gap-4">
     <PagePanel heading="專案" description="建立個人或組織專案，並整理相關的物件、問題與討論。">
       <div className="flex flex-wrap gap-2">
-        <Button disabled={!user || busy || uncertain || referencesBlocked} onClick={openCreateForm}>新增專案</Button>
-        <Button variant="outline" disabled={!user || listBusy || busy || uncertain || referencesBlocked} onClick={() => load()}>重新載入專案</Button>
+        <Button disabled={!user || busy || uncertain || referencesBlocked} onClick={openCreateForm}>{mode === "create" ? "繼續填寫專案" : "新增專案"}</Button>
       </div>
-      <Status role="status">{listStatus}</Status>
+      {listBusy || retryCursor !== null ? <ReadFeedback busy={listBusy} label="正在讀取專案……" message={listStatus}
+        onRetry={retryCursor !== null && !busy && !uncertain && !referencesBlocked ? () => load(retryCursor) : undefined} />
+        : loaded ? <span role="status" className="sr-only">{listStatus}</span> : <Status role="status">{listStatus}</Status>}
       {!mode && <Status role="status">{status}</Status>}
-      <ItemGroup className="gap-3">
-        {items.map((item) => <Item key={item.id} variant="outline" role="listitem">
-          <ItemContent className="min-w-0">
-            <ItemTitle className="min-w-0 max-w-full"><Button variant="link" className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]" disabled={busy || detailBusy || uncertain || referencesBlocked} onClick={() => { if (lock.current || unknown.current || referenceLock.current || !canWrite()) return; navigation.current = true; onSelect(item.id); }}>{item.title}</Button></ItemTitle>
-
-          </ItemContent>
-        </Item>)}
-      </ItemGroup>
+      {items.length > 0 && <ItemGroup className="gap-3" aria-label="專案列表">
+        {items.map(item => <div key={item.id} role="listitem">
+          <Item asChild variant="outline" size="sm" className="min-h-11 w-full cursor-pointer flex-nowrap justify-between text-left hover:bg-accent disabled:cursor-default disabled:opacity-50">
+            <button type="button" aria-current={projectId === item.id ? "page" : undefined}
+              disabled={busy || detailBusy || uncertain || referencesBlocked}
+              onClick={() => {
+                if (lock.current || unknown.current || referenceLock.current || !canWrite()) return;
+                if (projectId === item.id) { editorHeading.current?.focus(); return; }
+                focusOnOpen.current = true;
+                navigation.current = true;
+                onSelect(item.id);
+              }}>
+              <span className="min-w-0 font-medium [overflow-wrap:anywhere]">{item.title}</span>
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            </button>
+          </Item>
+        </div>)}
+      </ItemGroup>}
       {loaded && !items.length && <Empty><EmptyHeader><EmptyTitle>{cursor ? "本頁沒有專案" : "目前沒有專案"}</EmptyTitle><EmptyDescription>{cursor ? "請繼續載入下一頁。" : "可建立新的專案。"}</EmptyDescription></EmptyHeader></Empty>}
       {cursor && <Button variant="outline" disabled={listBusy || busy || uncertain || referencesBlocked} onClick={() => load(cursor)}>載入更多專案</Button>}
     </PagePanel>
-    {mode && <PagePanel heading={mode === "create" ? copyFrom ? "建立專案副本" : "新增專案" : "專案詳情"} description={selected && <span className="block [overflow-wrap:anywhere]">{selected.title}</span>}>
+    {mode && <PagePanel heading={<span ref={editorHeading} tabIndex={-1} className="scroll-mt-20">{mode === "create" ? copyFrom ? "建立專案副本" : "新增專案" : "專案詳情"}</span>} description={selected && <span className="block [overflow-wrap:anywhere]">{selected.title}</span>}>
       <Status role="status">{status}</Status>
       {mode === "detail" && /^[a-f0-9]{32}$/.test(projectId) && <div className="flex flex-wrap items-center gap-2">
 
-        {selected && <FormField>複製到另一個擁有者<select value="" disabled={busy || detailBusy || uncertain || referencesBlocked} onChange={event => { if(event.target.value) onCopy(event.target.value); }}>
-          <option value="">選擇副本目的地</option>
-          {destinations.filter(owner => owner.id !== ownerId).map(owner => <option key={owner.id} value={owner.id}>{owner.name}</option>)}
-        </select></FormField>}
+        {selected && copyDestinations.length > 0 && <FormField className="min-w-0 max-w-full" labelClassName="[&_[data-slot=native-select-wrapper]]:max-w-full">複製到另一個擁有者<NativeSelect value="" disabled={busy || detailBusy || uncertain || referencesBlocked} onChange={event => { if(event.target.value) onCopy(event.target.value); }}>
+          <NativeSelectOption value="">選擇副本目的地</NativeSelectOption>
+          {copyDestinations.map(owner => <NativeSelectOption key={owner.id} value={owner.id}>{owner.name}</NativeSelectOption>)}
+        </NativeSelect></FormField>}
         <Button variant="outline" disabled={busy || detailBusy || referencesBlocked} onClick={() => open(projectId)}>重新讀取專案</Button>
       </div>}
       {(mode === "create" || selected) && <form onSubmit={submit}>
         <FieldGroup>
-          {mode === "create" && !copyFrom && <SourcePicker key={ownerId} ownerId={ownerId} initialSource={initialSource} value={sourceRepositoryId} onChange={setSourceRepositoryId} disabled={busy || uncertain} />}
           <FieldSet className="grid min-w-0 gap-4" disabled={busy || detailBusy || referencesBlocked || uncertain || needsRefresh || (mode === "detail" && !canEdit)}>
             <FormField>標題<Input required maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} /></FormField>
-            <FormField>內容<Textarea className="min-h-40" maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} /></FormField>
+            <Field>
+              <FieldLabel htmlFor="project-body">內容</FieldLabel>
+              <Textarea id="project-body" className="min-h-40" maxLength={8000} value={body} onChange={(e) => setBody(e.target.value)} />
+            </Field>
             {selected && <SettingsEditor editable={canEdit} value={settingsDraft ?? selected.settings ?? {fields:[], views:[]}} onChange={setSettingsDraft} />}
           </FieldSet>
+          {mode === "create" && !copyFrom && <SourcePicker key={ownerId} ownerId={ownerId} initialSource={initialSource} value={sourceRepositoryId} onChange={setSourceRepositoryId} disabled={busy || uncertain} />}
 
           {(mode === "create" || canEdit) && <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={busy || needsRefresh || referencesBlocked}>{mode === "create" ? uncertain ? "重試原建立請求" : "建立專案" : "儲存內容"}</Button>
