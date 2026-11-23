@@ -41,14 +41,14 @@
 - 前置：無；先維持現行相容行為。
 
 - 本輪實施：`.gcloudignore` 已放行必要腳本（已整合並行索引提交 `40f1f98a`），並把 Cloud Build 靜態 script entry 與 sibling Python helper 的來源閉包納入 check-config。四個離線反例／正常案例通過；實際 gcloud 上傳清單同時包含欄位政策與索引 helper。檢查器對尚未支援的 SDK include 指令明確失敗；動態路徑仍需另行發布驗證。
-- 實施提交：`40f1f98a（上傳基線）／76ef1291（驗收閘門）`；遠端結果待本輪推送後讀回。
+- 實施提交：`40f1f98a（上傳基線）／76ef1291（驗收閘門）`；遠端驗收見本輪共用 CI 證據。
 
 
 <a id="a02"></a>
 
 ### A02｜CI 的 emulator 驗收只涵蓋兩個 Project 案例
 
-**P0 · 已修復；待遠端 CI 驗收 · 標準 17、19、20、21、22、23、30、34 · 責任：CI／儲存驗收**
+**P0 · 已修復；遠端 CI 驗收通過 · 標準 17、19、20、21、22、23、30、34 · 責任：CI／儲存驗收**
 
 - 證據：[.github/workflows/check.yml](../../../.github/workflows/check.yml) 先執行 mise run check，之後才啟動 emulator；後段只選 TestPersonalRepositoryAndProject 與 TestProjectSettingsBrowserRoundTrip。[backend/internal/business/enterprise/adapter/firestore/provisioning_test.go](../../../backend/internal/business/enterprise/adapter/firestore/provisioning_test.go) 與 [backend/internal/business/team/adapter/firestore/assignment_lifecycle_test.go](../../../backend/internal/business/team/adapter/firestore/assignment_lifecycle_test.go) 在缺少 FIRESTORE_EMULATOR_HOST 時會 SKIP。
 - 調整：列出所有依賴 emulator 的測試與實際 CI 執行範圍，統一 emulator 啟動、清理及整合測試階段；保留瀏覽器個別前置條件。
@@ -56,7 +56,7 @@
 - 前置：無；先維持現行相容行為。
 
 - 本輪實施：CI 改為 emulator 及 Playwright 就緒後跑完整 fresh race JSON suite，對照 go list 的預期套件，拒絕失敗、缺席與 skipped test cases。修正後首次本機實跑 168 套件、494 個測試／子案例全部通過，零案例跳過；新增結果檢查器的四項反例／正常測試。最終重新執行為 169 個套件、510 個測試／子案例通過，零案例跳過。
-- 實施提交：`76ef1291`；遠端結果待本輪推送後讀回。
+- 實施提交：`76ef1291`；遠端驗收見本輪共用 CI 證據。
 
 
 <a id="a03"></a>
@@ -71,7 +71,7 @@
 - 前置：無；先維持現行相容行為。
 
 - 本輪實施：Enterprise command 使用自有 domain 錯誤；HTTP adapter 翻譯到既有傳輸相容分類，保留 errors.Is 與公共 403／404／409。核心架構例外已移除。九個命令授權／副作用情境、四個 HTTP 相容情境及九個架構正反案例通過。共享 legacy adapter／儲存錯誤分類仍保留，不宣稱所有領域錯誤都已重構。
-- 實施提交：`0924735e`；遠端結果待本輪推送後讀回。
+- 實施提交：`0924735e`；遠端驗收見本輪共用 CI 證據。
 
 
 <a id="a04"></a>
@@ -86,7 +86,7 @@
 - 前置：無；先維持現行相容行為。
 
 - 本輪實施：已移除 Team 導覽的錯誤聲明，連到生命週期、開通及資格／觀察三個代表測試檔，並標示 loopback emulator 前提與「檔案存在不等於已執行」。全域搜尋已無此錯誤聲明。
-- 實施提交：`76ef1291`；遠端結果待本輪推送後讀回。
+- 實施提交：`76ef1291`；遠端驗收見本輪共用 CI 證據。
 
 
 <a id="a05"></a>
@@ -101,7 +101,7 @@
 - 前置：無；先維持現行相容行為。
 
 - 本輪實施：文件檢查新增 reference definitions、HTML href、fenced Mermaid click 與獨立 .mermaid 目的地；文件圖共用同一解析器。新增目的地缺失、錨點缺失、獨立圖及 literal 範例驗收，六項文件測試通過。Setext 與遠端網址可達性仍明列範圍外。
-- 實施提交：`76ef1291`；遠端結果待本輪推送後讀回。
+- 實施提交：`76ef1291`；遠端驗收見本輪共用 CI 證據。
 
 
 <a id="a06"></a>
@@ -127,7 +127,7 @@
 - 前置：無；先維持現行相容行為。
 
 - 本輪實施：23 個資源條目均加入 owner／kind，以 format version 2 明確區分 resource、projection、command-result；owner 必須匹配實際操作。補三項正常／未知分類／錯誤歸屬／重複路徑回歸。保留所有公開 URI、schema 名稱、儲存識別及 HTTP API 版本；解釋 entity 是既有公開 schema 名稱而非 Aggregate 登記。
-- 實施提交：`7498c7bd`；遠端結果待本輪推送後讀回。
+- 實施提交：`7498c7bd`；遠端驗收見本輪共用 CI 證據。
 
 
 <a id="a08"></a>
@@ -365,7 +365,7 @@
 
 既有里程碑仍為 **1–25、27–36 各 75%，26 為 50%，平均 74.3%**，權威與歷史見[標準化驗收紀錄](standardization.md)。以下列的是每類的盤點入口與下一份必要證據，並不把未發現問題當成 100% 合規。A08 完成後再提供有適用範圍及分母的驗收比例。
 
-以下分母是各標準關聯的整改卡，不是全部業務操作／環境的測試數；「本地完成」包含 A02 的本機驗收，其遠端 CI 狀態另外追蹤。沒有關聯卡片填「—」，不推算成 100%。全清單本地完成 **6／28（21.4%）**；A08 的業務驗收分母仍未建立。
+以下分母是各標準關聯的整改卡，不是全部業務操作／環境的測試數；「本地完成」的六張卡亦已通過本輪遠端 CI。沒有關聯卡片填「—」，不推算成 100%。全清單本地完成 **6／28（21.4%）**；A08 的業務驗收分母仍未建立。
 
 | 標準 | 本地完成／關聯卡 | 整改卡完成率 | 仍待處理／驗收 |
 | --- | ---: | ---: | --- |
@@ -454,10 +454,12 @@
 
 ## 本輪實施進度
 
-已實施 A01、A02、A03、A04、A05、A07 六張卡；A02 在本機已通過，遠端 runner 尚待驗收。其餘卡片維持原狀態，不因規則或測試存在就標成完成。B02／B04／B07 的產品決策仍未提供，使用者指示「能處理的先處理」，因此維持 legacy 行為，先完成不依賴這些決策的工作。
+已實施 A01、A02、A03、A04、A05、A07 六張卡；A02 的本機與遠端 runner 驗收均已通過。其餘卡片維持原狀態，不因規則或測試存在就標成完成。B02／B04／B07 的產品決策仍未提供，使用者指示「能處理的先處理」，因此維持 legacy 行為，先完成不依賴這些決策的工作。
 
 A08 尚未關閉：目前有 28 張整改卡的有限分母，但仍沒有全部業務操作／環境的已完成驗收分母。後續回報將另列卡片進度；既有 36 項 75%／50% 為歷史里程碑，不能用本輪六項修正推算成全庫完成率。
 
 本輪共用驗收：38 項 Python 回歸通過（含已整合的索引工具基線）；API 生成／路由／型別檢查與 14 項 dispatch／resource semantics 測試通過；相對基準 `e087d96d` 的公開及內部 API 結構相容性比較通過；Go 格式、lint、模組驗證、vet、race、build、vuln 通過，漏洞檢查未發現可達漏洞。靜態前端已建置；全套 JSON 驗收包含真實 loopback emulator 與已鎖定 Playwright 的 browser 案例。文件與來源上傳驗證沒有送出雲端建置或改動正式資料。
 
 隔離快照以 `40f1f98a` 為基準重新通過設定／引用與 38 項 Python 回歸；實際 gcloud 上傳清單包含現行 ensure-firestore-indexes.py 及 ensure-field-policies.py。另有並行前端變更維持工作樹，未納入本輪提交或發布驗收。
+
+遠端共用驗收：[GitHub Actions 45131718514](https://github.com/963sup/line-mini-app-bot/actions/runs/45131718514) 對應 `30d1152c318b68cb738fd848e31dff4088f8e4ef`，configuration、container、go 均成功；完整 Firestore／browser race 閘門回報 169 個套件、510 個測試／子案例通過、零案例跳過。此結果驗證上述六張卡的提交內容，不涵蓋其他並行工作樹修改或正式環境驗收。
