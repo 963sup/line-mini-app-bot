@@ -23,9 +23,15 @@
 
 出勤的 `ResolvePunchAttempt` 可能保存拒絕收據，`SubmitPunch` 提交定位操作；`verifyAndRebuildRecords` 驗證證據並重建紀錄，`RebuildSessions` 重播事件產生班次，`RecordsOverlappingMonth` 含跨月重疊。複雜交易可用具名命令表達身分、時間單位與模式；短方法不必包裝。資料層在公開方法轉譯技術錯誤，避免為每個方法新增轉呼叫的同名 Operation。[出勤套件](../../backend/internal/business/attendance/)
 
+## 前端命名
+
+- 自有 React 元件及型別 MUST 使用 PascalCase。以單一元件為主的檔案 SHOULD 依元件命名，例如 [Shell.tsx](../../frontend/miniapp/src/shell/Shell.tsx)；業務目錄的畫面入口可沿用 `View.tsx`。
+- 一般 TypeScript 函式 MUST 使用 camelCase，例如 `isTemporaryReadError`。Hook 函式 MUST 使用 `use` 加大寫字母起首的名稱；專門維護一個自有 Hook 的檔案 SHOULD 與該 Hook 同名，例如 [useSpaces.ts](../../frontend/miniapp/src/business/repository/useSpaces.ts)。同一主題包含多個函式時，檔案可按職責命名，例如 [lifecycle.ts](../../frontend/miniapp/src/shared/http/lifecycle.ts)。
+- 上游 shadcn 元件及配套 Hook MUST 保留原有檔名與匯入路徑，例如 [use-mobile.ts](../../frontend/miniapp/src/shared/hooks/use-mobile.ts) 匯出 `useIsMobile`。Next.js 路由與生成檔沿用框架或產生器的命名。
+
 ## 目前檔案命名
 
-Go 檔用 snake_case，文件、Shell／Python 腳本及 Web JS／CSS 依專案慣例用 kebab-case。不同語言依各自慣例；不依檔案行數拆分。下列是現行入口：
+Go 檔用 snake_case，文件、Shell／Python 腳本及 Web JS／CSS 依專案慣例用 kebab-case。Python 測試模組 MUST 使用 unittest 可探索的 `test_*.py`，多字以底線分隔，例如 [test_documentation_links.py](../../scripts/test/test_documentation_links.py)。不同語言依各自慣例；不依檔案行數拆分。下列是現行入口：
 
 - [出勤實體](../../backend/internal/business/attendance/domain/entity/record.go)、[儲存 Port](../../backend/internal/business/attendance/application/port/store.go)、[事件序列驗證](../../backend/internal/business/attendance/domain/service/event_stream.go)、[打卡啟動憑證](../../backend/internal/business/attendance/adapter/firestore/attendance_launch.go)。
 - [摘要持久化](../../backend/internal/business/summary/adapter/firestore/summary.go)與[模型整合](../../backend/internal/business/summary/adapter/summarizer/summarization/client.go)分開；後者按 client、Gemini 與 OpenAI 的責任分檔。

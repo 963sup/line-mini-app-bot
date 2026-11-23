@@ -2,8 +2,9 @@
 
 This file adds frontend-specific rules to the [repository rules](../AGENTS.md). Directory purposes belong in the [root README](../README.md#巢狀目錄導覽). Detailed path constraints are indexed in [module constraints](../docs/standards/module-constraints.md).
 
-- **MCP tools.** Use `shadcn` for registry items and component examples, and `next-devtools` to inspect a running local Next.js development server when diagnosing routes or runtime errors. If unavailable, follow the [MCP registration and recovery steps](../AGENTS.md#mcp-selection-and-registration).
+- **MCP tools.** Contributors SHOULD use `shadcn` for registry items and component examples, and `next-devtools` to inspect a running local Next.js development server when diagnosing routes or runtime errors. If a required server is unavailable, contributors MUST follow the [MCP registration and recovery steps](../AGENTS.md#mcp-selection-and-registration).
 - **Runtime.** The MINI App MUST remain compatible with its installed Next.js Pages Router and static export. Before changing framework behavior, read the matching installed documentation under `frontend/miniapp/node_modules/next/dist/docs/`. Pages MUST NOT depend on per-request server execution.
+- **Naming.** New components, functions, hooks and files MUST follow the [frontend naming conventions](../docs/standards/naming.md#前端命名).
 - **TypeScript.** The MINI App MUST keep `strict` enabled. New code MUST narrow `unknown` inputs before use and MUST NOT use `any`, unchecked assertions, or suppression comments to bypass contract or state checks.
 - **Thin client.** API reads and writes MUST use `@repo/api-client` and generated types. The browser owns presentation, interaction and local UI state. It MUST NOT duplicate authorization, authoritative calculations, transitions or transport DTOs.
 - **Boundaries.** Pages compose Shell and feature modules. Identity, Platform, Business and Shared dependencies MUST retain their existing direction. Provider profiles and hidden controls MUST NOT be treated as business authorization.

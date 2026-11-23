@@ -2,7 +2,7 @@
 
 This file adds API-specific rules to the [repository rules](../AGENTS.md). Directory purposes and entry points belong in the [root README](../README.md#巢狀目錄導覽). Detailed path constraints are indexed in [module constraints](../docs/standards/module-constraints.md).
 
-- **MCP tools.** Use `context7` for version-specific OpenAPI tooling and generator behavior, and `gopls` to trace affected generated Go types into their adapter callers. If unavailable, follow the [MCP registration and recovery steps](../AGENTS.md#mcp-selection-and-registration).
+- **MCP tools.** Contributors SHOULD use `context7` for version-specific OpenAPI tooling and generator behavior, and `gopls` to trace affected generated Go types into their adapter callers. If a required server is unavailable, contributors MUST follow the [MCP registration and recovery steps](../AGENTS.md#mcp-selection-and-registration).
 - **Contract authority.** OpenAPI MUST remain the sole authority for HTTP requests, responses, status codes, authentication and stable errors. Business rules and authorization remain in the backend domain.
 - **Ownership.** Each operation and DTO MUST have one owning capability. Shared transport definitions MAY be referenced, but business models MUST NOT be moved into common schemas merely because several consumers use them.
 - **Wire conventions.** New or changed operations MUST follow the [resource and operation naming rules](../docs/standards/naming.md#業務實體集合與-api-命名) and the [HTTP conventions](../docs/contracts/http.md#api-一致性). Existing published identifiers retain the compatibility rule below.

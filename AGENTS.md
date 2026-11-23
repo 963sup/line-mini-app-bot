@@ -74,10 +74,11 @@ Sources: mise 2026.11.3 `exec --help` and [official settings](https://mise.jdx.d
 
 ## MCP selection and registration
 
-- For dependency documentation, use `context7` as described below. For Codex or OpenAI API documentation, use `openaiDeveloperDocs`. Use `graphify` to trace relationships and `repomix` to inspect a scoped source bundle. Select additional servers by the target module's AGENTS.md.
-- When a required tool is unavailable, first check the active chat's tool list and run `codex mcp list` and `codex mcp get <name>` from the checkout root. Server names, URLs, pinned commands, working directories and environment settings come from the [project MCP configuration](.codex/config.toml).
-- If the registration is missing, use `codex mcp add <name> --url <url>` for an HTTP server (for example, `codex mcp add openaiDeveloperDocs --url https://developers.openai.com/mcp`). For a local server, install its pinned executable using the project toolchain if needed, then use `codex mcp add <name> -- <command> [args...]`. The command writes a user-level registration. Preserve the project's required environment, working directory and approval settings when using a user-level entry.
-- If already registered, diagnose the existing entry using the [MCP troubleshooting guide](docs/development/environment/troubleshooting.md). Reopen Codex from the checkout root and verify that the new chat exposes the intended tools with a read-only call.
+- Contributors SHOULD use `context7` for dependency documentation, `openaiDeveloperDocs` for Codex or OpenAI API documentation, `graphify` to trace relationships and `repomix` to inspect a scoped source bundle. Select additional servers by the target module's AGENTS.md.
+- A server is required only when the user explicitly requests it or the task’s acceptance criteria depend on a capability that available tools and source inspection cannot provide. Otherwise, contributors SHOULD use the available evidence.
+- When a required tool is unavailable, contributors MUST first check the active chat's tool list and run `codex mcp list` and `codex mcp get <name>` from the checkout root. Server names, URLs, pinned commands, working directories and environment settings come from the [project MCP configuration](.codex/config.toml).
+- If the required registration is missing, contributors MUST use `codex mcp add <name> --url <url>` for an HTTP server (for example, `codex mcp add openaiDeveloperDocs --url https://developers.openai.com/mcp`). For a local server, install its pinned executable using the project toolchain if needed, then use `codex mcp add <name> -- <command> [args...]`. The command writes a user-level registration. Preserve the project's required environment, working directory and approval settings when using a user-level entry.
+- If the required server is already registered but unavailable, contributors MUST diagnose the existing entry using the [MCP troubleshooting guide](docs/development/environment/troubleshooting.md). Reopen Codex from the checkout root and verify that the new chat exposes the intended tools with a read-only call.
 
 ## Mandatory documentation verification
 
@@ -103,7 +104,7 @@ Rules:
 - Local graph changes after incremental updates are expected and do not prevent queries.
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
-- After modifying code, run `bash scripts/tooling/tool-exec.sh mise run graphify-update` to refresh the code graph without API calls.
+- Contributors MUST run `bash scripts/tooling/tool-exec.sh mise run graphify-update` when an edit changes indexed structure (for example, a package move or a changed call relationship), or when acceptance relies on a current code graph and the local graph is missing or stale. A copy-only edit that leaves indexed relationships intact MAY skip the rebuild.
 - Code graphs are generated locally and ignored by Git. During read-only queries, update the current checkout's graph only if it is stale and current dependency information is needed.
 
 For cross-file queries, use the [exploration guide](docs/development/workflow/capabilities/explorer.md) to select existing reference skills or scoped packaging. Report stale-graph limitations and corroborate findings with current sources.

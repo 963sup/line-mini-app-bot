@@ -54,7 +54,7 @@ additional writes.
 2. 區分缺陷、工具盲點與待確認需求；記錄規格、根因、影響及驗收條件，只修改本次授權範圍並保留既有變更。
 3. 從正常入口完成使用案例及各分支；遇到不明行為依[除錯流程](debugging.md)定位。
 4. 唯讀自我審查契約與實作，再依[驗收矩陣](../tooling/testing/commands.md)執行相關檢查。自我審查不等於獨立審查，不把工具成功等同業務正確，也不無限重跑全庫檢查。
-5. 程式修改後依[根指引](../../../AGENTS.md)更新 Graphify 與受影響來源包；沿用仍有效的[既有證據](handoff.md#minimal-handoff-and-evidence-reuse)。
+5. 依[程式圖重建條件](../../../AGENTS.md#graphify)判斷是否更新 Graphify，並更新受影響的來源包；沿用仍有效的[既有證據](handoff.md#minimal-handoff-and-evidence-reuse)。
 6. 依[六欄交接](handoff.md#minimal-handoff-and-evidence-reuse)交付發現、規格依據、修改位置、實際檢查與剩餘限制；範圍外事項另列。
 
 目前代理直接完成上述工作，不啟動子代理。此流程不增加 push、部署或資料遷移授權。
