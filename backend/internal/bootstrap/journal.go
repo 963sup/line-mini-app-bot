@@ -13,5 +13,5 @@ func newJournals(groups journalquery.GroupCatalog, store *groupdb.Store, reposit
 	if groups == nil || store == nil || repositories == nil || projects == nil {
 		return nil
 	}
-	return &journaldb.Store{Client: store.Client, Channel: store.ChannelID, ReferenceCatalog: journalquery.ReferenceCatalog{Groups: groups, Repositories: repositories, Projects: projects}}
+	return &journaldb.Store{Client: store.Client, Channel: store.ChannelID, ReferenceCatalog: journalquery.ReferenceCatalog{Groups: groups, RepositoryOwner: repositories.OwnerID, ProjectOwner: projects.OwnerID}}
 }

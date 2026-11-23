@@ -69,19 +69,19 @@ func (s *Store) group(ctx context.Context, actor, group string) error {
 func (s *Store) reference(ctx context.Context, actor, group string, r journalentity.Reference) error {
 	switch r.Kind {
 	case "repository":
-		item, e := s.Repositories.Get(ctx, actor, r.ID)
+		owner, e := s.RepositoryOwner(ctx, actor, r.ID)
 		if e != nil {
 			return missing(e)
 		}
-		if item.OwnerID == group {
+		if owner == group {
 			return nil
 		}
 	case "project":
-		item, e := s.Projects.Get(ctx, actor, group, r.ID)
+		owner, e := s.ProjectOwner(ctx, actor, group, r.ID)
 		if e != nil {
 			return missing(e)
 		}
-		if item.OwnerID == group {
+		if owner == group {
 			return nil
 		}
 	}
@@ -89,18 +89,28 @@ func (s *Store) reference(ctx context.Context, actor, group string, r journalent
 }
 
 func (s *Store) checkRefs(ctx context.Context, actor string, d journalentity.Draft, redact bool, cache map[journalentity.Reference]error) error {
-	return d.CheckReferences(redact, func(r journalentity.Reference) error {
-		e, ok := cache[r]
-		if !ok {
-			if d.RepositoryID != "" && r.Kind == "repository" && r.ID != d.RepositoryID {
-				e = journalentity.ErrNotFound
-			} else {
-				e = s.reference(ctx, actor, d.GroupID, r)
+	for _, rows := range [][]journalentity.Work{d.Today, d.Tomorrow} {
+		for i := range rows {
+			work := &rows[i]
+			if work.Reference == nil {
+				continue
 			}
-			cache[r] = e
+			r := *work.Reference
+			err, ok := cache[r]
+			if !ok {
+				if d.RepositoryID != "" && r.Kind == "repository" && r.ID != d.RepositoryID {
+					err = journalentity.ErrNotFound
+				} else {
+					err = s.reference(ctx, actor, d.GroupID, r)
+				}
+				cache[r] = err
+			}
+			if err := work.ApplyReferenceCheck(err, redact); err != nil {
+				return err
+			}
 		}
-		return e
-	})
+	}
+	return nil
 }
 
 // snapshotWork checks repository-scoped sources and captures names in the publish transaction.
@@ -164,17 +174,17 @@ func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d jo
 	if d.GroupID != "" || !repositoryDomainEntity.ValidID(d.RepositoryID) {
 		return journalentity.Entry{}, journalentity.ErrInput
 	}
-	repository, e := s.Repositories.Get(ctx, actorID, d.RepositoryID)
+	owner, e := s.RepositoryOwner(ctx, actorID, d.RepositoryID)
 	if e != nil {
 		return journalentity.Entry{}, missing(e)
 	}
 	scope := d
-	scope.GroupID = repository.OwnerID
+	scope.GroupID = owner
 	if e := s.checkRefs(ctx, actorID, scope, false, map[journalentity.Reference]error{}); e != nil {
 		return journalentity.Entry{}, e
 	}
 	entryID := firestorekey.Digest([]byte(actorID + "\x00" + idempotencyKey))[:32]
-	body, e := json.Marshal(d)
+	body, e := json.Marshal(draftData(d))
 	if e != nil {
 		return journalentity.Entry{}, e
 	}
@@ -220,7 +230,7 @@ func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d jo
 				}
 			}
 		}
-		payload, e := json.Marshal(entry)
+		payload, e := json.Marshal(entryData(entry))
 		if e != nil {
 			return e
 		}
@@ -238,8 +248,9 @@ func decode(snap *db.DocumentSnapshot) (journalentity.Entry, string, error) {
 	if e := snap.DataTo(&row); e != nil {
 		return item, "", e
 	}
-	e := json.Unmarshal([]byte(row.Payload), &item)
-	return item, row.Order, e
+	var payload entryPayload
+	e := json.Unmarshal([]byte(row.Payload), &payload)
+	return payload.model(), row.Order, e
 }
 
 func (s *Store) Get(ctx context.Context, actor, id string) (journalentity.Entry, error) {
@@ -254,11 +265,11 @@ func (s *Store) Get(ctx context.Context, actor, id string) (journalentity.Entry,
 	var entries *db.CollectionRef
 	owner := r.Group
 	if r.Repository != "" {
-		repository, err := s.Repositories.Get(ctx, actor, r.Repository)
+		repositoryOwner, err := s.RepositoryOwner(ctx, actor, r.Repository)
 		if err != nil {
 			return journalentity.Entry{}, missing(err)
 		}
-		owner = repository.OwnerID
+		owner = repositoryOwner
 		entries = s.repositoryEntries(r.Repository)
 	} else {
 		if e = s.group(ctx, actor, r.Group); e != nil {
@@ -287,11 +298,11 @@ func (s *Store) List(ctx context.Context, actor string, f journaldto.Filter) (jo
 		if f.GroupID != "" || !repositoryDomainEntity.ValidID(f.RepositoryID) {
 			return journaldto.Page{}, journalentity.ErrInput
 		}
-		repository, err := s.Repositories.Get(ctx, actor, f.RepositoryID)
+		repositoryOwner, err := s.RepositoryOwner(ctx, actor, f.RepositoryID)
 		if err != nil {
 			return journaldto.Page{}, missing(err)
 		}
-		owner = repository.OwnerID
+		owner = repositoryOwner
 		scopeKey += "\x00" + f.RepositoryID
 	}
 	scope := firestorekey.Digest([]byte(scopeKey)) + "/"

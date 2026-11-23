@@ -65,7 +65,8 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	store.Repositories = &repositoryApplication.Service{Store: &repodb.Store{Client: client, ChannelID: channel}, Membership: membership{}}
+	repositories := &repositoryApplication.Service{Store: &repodb.Store{Client: client, ChannelID: channel}, Membership: membership{}}
+	store.RepositoryOwner = repositories.OwnerID
 	draft := journalentity.Draft{RepositoryID: rid, WorkDate: time.Date(2026, 11, 18, 0, 0, 0, 0, time.UTC), Today: []journalentity.Work{{Name: "鋪設", Percent: 40}}}
 	entry, e := store.Create(ctx, "writer", "key", draft)
 	if e != nil {
@@ -106,7 +107,8 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	}
 
 	// A linked repository can become unavailable while the publishing group remains readable.
-	store.Projects = &projectapp.Service{Groups: projectgroup.Access{Groups: &groupquery.Service{Store: groups, Membership: membership{}}}, Store: &projectdb.Store{Client: client, ChannelID: channel}, Sources: projectsources.Sources{Repositories: store.Repositories}}
+	projects := &projectapp.Service{Groups: projectgroup.Access{Groups: &groupquery.Service{Store: groups, Membership: membership{}}}, Store: &projectdb.Store{Client: client, ChannelID: channel}, Sources: projectsources.Sources{Repositories: repositories}}
+	store.ProjectOwner = projects.OwnerID
 	draft.Today[0].Reference = &journalentity.Reference{Kind: "repository", ID: rid}
 	objectID, childID, spaceID := strings.Repeat("c", 32), strings.Repeat("d", 32), strings.Repeat("e", 32)
 	object := repo.Collection("objects").Doc(objectID)
@@ -233,5 +235,20 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	}
 	if _, e := store.Create(ctx, "writer", "denied-source", draft); !errors.Is(e, journalentity.ErrNotFound) {
 		t.Fatalf("inactive source: %v", e)
+	}
+}
+
+func TestReferenceRedactionCoversBothDays(t *testing.T) {
+	ref := journalentity.Reference{Kind: "repository", ID: "hidden"}
+	work := journalentity.Work{Name: "task", Reference: &ref, ObjectName: "private"}
+	draft := journalentity.Draft{Today: []journalentity.Work{work}, Tomorrow: []journalentity.Work{work}}
+	cache := map[journalentity.Reference]error{ref: journalentity.ErrNotFound}
+	if err := (&Store{}).checkRefs(t.Context(), "reader", draft, true, cache); err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range []journalentity.Work{draft.Today[0], draft.Tomorrow[0]} {
+		if row.Reference != nil || row.ObjectName != "" || row.Name != "task" {
+			t.Fatalf("unexpected redacted work: %+v", row)
+		}
 	}
 }

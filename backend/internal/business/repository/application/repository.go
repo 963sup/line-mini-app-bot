@@ -72,3 +72,12 @@ func (s *Service) allowed(ctx context.Context, user string, r repositoryDomainEn
 	}
 	return s.Membership.IsMember(ctx, r.OwnerID, user)
 }
+
+// OwnerID returns the owner visible to the actor through the normal read path.
+func (s *Service) OwnerID(ctx context.Context, actor, id string) (string, error) {
+	item, err := s.Get(ctx, actor, id)
+	if err != nil {
+		return "", err
+	}
+	return item.OwnerID, nil
+}
