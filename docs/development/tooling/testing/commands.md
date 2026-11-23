@@ -59,7 +59,7 @@ Use stringer through package-specific `go:generate` directives when needed.
 `profile ./path/to/package` accepts one package and writes a test binary, CPU
 and memory profiles under `.artifacts/go/`. Inspect with
 `go tool pprof .artifacts/go/profile.test .artifacts/go/cpu.pprof`.
-These tasks do not create test cases or benchmarks. No Firestore Emulator is used.
+These tasks do not create test cases or benchmarks. Storage acceptance follows the [Firestore integration workflow](#firestore-integration); pure domain and architecture checks do not require an emulator.
 
 工具安裝見 [mise tooling](../shared/mise.md)。交接時沿用仍適用的[檢查證據](../../workflow/handoff.md#minimal-handoff-and-evidence-reuse)。
 

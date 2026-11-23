@@ -18,6 +18,15 @@ func TestDependencyBoundaries(t *testing.T) {
 		t.Fatal(err)
 	}
 	core := map[string][]string{
+		// Issues use Repository-owned scope and label values, not its adapters.
+		"business/issue/application/command": {"business/issue/application/port", "business/issue/domain/entity", "business/repository/domain/entity"},
+		"business/issue/application/port":    {"business/issue/application/dto", "business/issue/domain/entity", "business/repository/domain/entity"},
+		"business/issue/application/query":   {"business/issue/application/dto", "business/issue/application/port", "business/issue/domain/entity", "business/issue/domain/policy", "business/repository/domain/entity"},
+		"business/issue/domain/entity":       {"business/issue/domain/policy", "business/repository/domain/entity", "business/repository/domain/entity/labels"},
+		// Organization owns transfers; Membership owns opaque member references.
+		"business/organization/application": {"business/organization/domain/entity", "business/membership/domain"},
+		// Preserve existing Enterprise error compatibility until its contract is migrated.
+		"business/enterprise/application/command":             {"business/enterprise/application/dto", "business/enterprise/application/port", "business/organization/domain/entity"},
 		"business/workflow/application":                       {},
 		"business/agent/application":                          {"business/agent/application/port"},
 		"business/agent/application/port":                     {},
@@ -119,6 +128,10 @@ func TestDependencyBoundaries(t *testing.T) {
 					t.Errorf("%s imports infrastructure %s", rel, dependency)
 				}
 				target := strings.TrimPrefix(dependency, module)
+				targetParts := strings.Split(target, "/")
+				if strings.HasPrefix(dependency, module) && len(targetParts) >= 2 && targetParts[0] == "business" && targetParts[1] != parts[1] && !slices.Contains(core[dir], target) {
+					t.Errorf("%s imports unapproved cross-domain dependency %s", rel, dependency)
+				}
 				if strings.HasPrefix(dependency, module) && (strings.Contains(target+"/", "/adapter/") || strings.HasPrefix(target+"/", "platform/") || strings.HasPrefix(target+"/", "transport/") || parts[2] == "domain" && strings.Contains(target+"/", "/application/")) {
 					t.Errorf("%s imports outer layer %s", rel, dependency)
 				}

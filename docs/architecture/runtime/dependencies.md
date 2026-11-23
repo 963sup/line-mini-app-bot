@@ -101,6 +101,19 @@ flowchart LR
 | 外部 adapter | application 契約、domain、對應 SDK | import HTTP handlers、依賴 bootstrap |
 | bootstrap | 設定、applications、adapters | 業務判斷 |
 
+## 現行跨領域核心契約
+
+[架構檢查](../../../backend/internal/architecture/boundaries_test.go)對所有 business domain／application 套件套用跨領域限制：相同領域仍遵守分層；跨領域的確切目標套件必須列於允許清單。未登記的新套件不能繞過此限制。清單只核准必要契約，不授予其他領域的資料存取或業務決策權。
+
+| 使用端 | 被引用的權威契約 | 保留理由與限制 |
+| --- | --- | --- |
+| Issue、Discussion、Object | Repository 的資源範圍與領域值；Issue／Discussion 使用其標籤值 | 這些能力屬於 Repository 容器；各自的內容與狀態仍由原領域維護。[容器與能力](../../domains/repository/README.md) |
+| Object application | Operations 的文件處理介面 | 經使用案例契約取得候選資訊，不直接依賴模型 SDK。[操作邊界](../../domains/operations/README.md) |
+| Organization application | Membership 的成員識別值 | 所有權移轉解析既有成員引用；不把 Membership 模式切換或成員資格決策搬進 Organization。[移轉實作](../../../backend/internal/business/organization/application/transfer.go) |
+| Enterprise command | Organization 的既有錯誤值 | 這是保留既有 HTTP／錯誤相容性的耦合；不是共用領域模型的許可。未來若拆除，須先核對錯誤映射及契約，不在整理時直接換碼。[目前使用端](../../../backend/internal/business/enterprise/application/command/enterprise.go) |
+
+[反例驗收](../../../backend/internal/architecture/boundaries_regression_test.go)以臨時最小儲存庫執行真正的掃描器，確認未核准的跨領域依賴被拒、同領域及上述必要契約保留。這是靜態 import 保證，不代替交易、授權或業務驗收。
+
 <a id="跨模組規則"></a>
 
 ## 跨模組規則
