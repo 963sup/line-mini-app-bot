@@ -16,7 +16,7 @@ Google Cloud project using the [official quickstart](https://developers.google.c
 Supply the key through the host's secret/environment settings before launching Codex.
 Restart or reload Codex after configuration or environment changes.
 
-Verify with `bash scripts/tooling/tool-exec.sh mise run doctor-google-knowledge`.
+Open `/mcp` in Codex and check that the Developer Knowledge tools appear.
 Missing credentials and HTTP authentication errors are failures, not successful verification.
 Once loaded, use the server's actual exposed search/retrieval tools; names may vary by release.
 
@@ -25,7 +25,7 @@ Once loaded, use the server's actual exposed search/retrieval tools; names may v
 Use the [Google-maintained local server](https://github.com/googleapis/gcloud-mcp/tree/main/packages/gcloud-mcp)
 with the existing Google Cloud CLI. Both versions are pinned in `mise.toml`.
 Install with `bash scripts/tooling/tool-exec.sh mise run install-cloud`, then verify discovery
-with `bash scripts/tooling/tool-exec.sh mise run doctor-gcloud`.
+with `/mcp` in Codex.
 
 The local server uses the authenticated gcloud account and the `CLOUDSDK_CONFIG`
 directory supplied by the runtime. It exposes `run_gcloud_command`; approval mode

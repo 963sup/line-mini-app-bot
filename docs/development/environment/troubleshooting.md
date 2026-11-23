@@ -18,12 +18,10 @@
 
 依序區分設定、服務連線、主機載入與功能驗收，不以其中一項成功代替其他項目：
 
-1. 核對 [.codex/config.toml](../../../.codex/config.toml) 的服務名稱、transport 與 allowlist。Codex CLI 可透過 `bash scripts/tooling/tool-exec.sh python3 scripts/mcp/check-host-config.py` 比對有效註冊；此結果不代表桌面聊天已載入工具。
-2. 對有問題的服務執行 `bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server <服務名稱> --list-tools`，檢查 initialize、tools/list 及工具 schema。只有需要全服務診斷且具備網路與必要憑證時，才執行 `mise run doctor-mcp`。
+1. 核對 [.codex/config.toml](../../../.codex/config.toml) 的服務名稱、transport 與 allowlist。從受信任的儲存庫根目錄使用 `codex mcp list` 核對註冊，以 `codex mcp get <服務名稱>` 檢視設定；此結果不代表桌面聊天已載入工具。
+2. 在互動式 Codex 使用 `/mcp` 查看服務狀態與工具清單。
 3. 在目前聊天檢查實際曝光的工具。若缺少，核對主機選用的專案、信任與載入設定，再使用主機支援的重新載入方式。專案 CLI 註冊與主機 connector 可能不同，以實際 schema 為準。
 4. 使用任務所需的代表性唯讀操作驗證目標資源。記錄 host、server、失敗階段與原始錯誤；條件未變時沿用已診斷結果，不反覆重試逾時。
-
-實作來源：[CLI 註冊比對](../../../scripts/mcp/check-host-config.py)與[服務診斷](../../../scripts/mcp/mcp-doctor.py)。
 
 Codex 設定查 [OpenAI Docs MCP](../tooling/agents/openai-docs.md)，版本專屬行為查 [Context7](../tooling/agents/context7.md)。維持主機提供的 `HOME`、`CODEX_HOME` 與憑證設定，記錄錯誤時遮蔽認證標頭和機密值。
 

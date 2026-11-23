@@ -6,7 +6,7 @@ Explore graph relationships before broad source reads.
 
 ## Prerequisites and configuration
 
-Requires Graphify installed by install-mcp and the graph path configured in Codex. AST extraction may omit TOML and runtime behavior; corroborate with source/gopls.
+Requires Graphify installed by `mise run install-graphify` and the graph path configured in Codex. AST extraction may omit TOML and runtime behavior; corroborate with source/gopls.
 
 ## Operation
 

@@ -41,7 +41,7 @@ bash scripts/tooling/tool-exec.sh repomix \
 bash scripts/tooling/tool-exec.sh repomix . \
   --skill-generate repomix-reference-codex-cloud \
   --skill-output .agents/skills/repomix-reference-codex-cloud \
-  --include '.codex/config.toml,docs/development/tooling/agents/codex.md,mise.toml,scripts/bootstrap.sh,scripts/setup/**,scripts/dev/**,scripts/mcp/**,scripts/tooling/tool-exec.sh' \
+  --include '.codex/config.toml,docs/development/tooling/agents/codex.md,mise.toml,scripts/bootstrap.sh,scripts/setup/**,scripts/dev/**,scripts/tooling/tool-exec.sh' \
   --ignore '**/node_modules/**,**/__pycache__/**,**/.env*,**/*credentials*.json,.agents/**,.claude/**,graphify-out/**' \
   --force
 ```

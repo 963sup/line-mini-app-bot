@@ -69,7 +69,7 @@ Tailwind 4 的 `components.json` 不指定舊式 Tailwind config 檔案。
 Codex 以 `frontend/miniapp` 為工作目錄，透過 `npx` 啟動 shadcn MCP，讀取該目錄的 `components.json`。
 
 ```bash
-bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server shadcn
+codex mcp get shadcn
 ```
 
 分別驗證安裝、設定解析、initialize／tools/list，以及一個 registry 查詢等代表性唯讀操作。
@@ -82,7 +82,7 @@ MCP 可提供 registry 資訊及新增命令；若回傳命令使用浮動版本
 
 ## 自主接線
 
-依[共用 MCP 排查流程](../../environment/troubleshooting.md#設定與-mcp-診斷)處理。shadcn 專用準備命令為 `bash scripts/tooling/tool-exec.sh mise run ensure-shadcn`，會準備鎖定依賴並檢查握手與工具清單。原生驗收使用唯讀 registry 查詢。
+依[共用 MCP 排查流程](../../environment/troubleshooting.md#設定與-mcp-診斷)處理。shadcn 專用準備命令為 `bash scripts/tooling/tool-exec.sh mise run install-shadcn`，會安裝固定版本。工具清單可在 Codex 用 `/mcp` 確認。原生驗收使用唯讀 registry 查詢。
 
 ## 官方能力索引與適用範圍
 

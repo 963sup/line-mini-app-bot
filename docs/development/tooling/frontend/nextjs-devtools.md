@@ -1,13 +1,10 @@
 # Next.js DevTools MCP
 
-`next-devtools` 為 Next.js 專家的按需 runtime connector；不取代 Context7、安裝版文件或應用測試。連線設定由 `.codex/config.toml` 維護，工具清單採用服務預設值，固定版本與安裝任務只維護於 `mise.toml`。
+`next-devtools` 為 Next.js 專家的按需 runtime connector；不取代 Context7、安裝版文件或應用測試。連線設定由 `.codex/config.toml` 維護，工具清單採用服務預設值，工具版本見 `mise.toml`。
 
 ## 安裝與前置條件
 
-```bash
-bash scripts/tooling/tool-exec.sh mise run install-next-devtools
-bash scripts/tooling/tool-exec.sh python3 scripts/mcp/mcp-doctor.py --server next-devtools
-```
+使用 `codex mcp get next-devtools` 核對設定，在互動式 Codex 用 `/mcp` 確認工具清單。
 
 Codex 在 `frontend/miniapp` 透過 `npx` 啟動專案固定版本的 connector。
 
