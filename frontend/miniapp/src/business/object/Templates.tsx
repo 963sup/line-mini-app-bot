@@ -480,11 +480,11 @@ export function Templates({
                       <Button
                         key={item.id}
                         variant={selected === item.id ? "secondary" : "ghost"}
-                        aria-pressed={selected === item.id}
+                        aria-expanded={selected === item.id}
                         className="justify-between"
                         disabled={creating || busy || uncertain}
                         onClick={() => {
-                          setSelected(item.id);
+                          setSelected((current) => (current === item.id ? "" : item.id));
                           setFolded([]);
                         }}
                       >

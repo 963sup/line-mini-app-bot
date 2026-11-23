@@ -205,6 +205,10 @@ test("template creation and application preserve original retries and return the
     assert.equal(nodes[2].parentId, nodes[1].id);
     assert.equal(creates.length, 2);
     assert.deepEqual(creates[0], creates[1]);
+    await f.click("範本v1");
+    assert.doesNotMatch(document.body.textContent ?? "", /使用範本/);
+    await f.click("範本v1");
+    assert.match(document.body.textContent ?? "", /使用範本/);
     await f.click("使用範本");
     assert.equal(applies.length, 0);
     await f.select(rid, "目標儲存庫");
