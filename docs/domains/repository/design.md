@@ -225,3 +225,100 @@ flowchart TD
 [Entry adapter](../../../backend/internal/business/repository/adapter/http/routes.go) · [Decision rules](../../../backend/internal/business/repository/domain/entity/repository.go) · [Application output port](../../../backend/internal/business/repository/application/port/repository.go) · [Related tests](../../../backend/internal/business/repository/adapter/firestore/labels_test.go)
 
 [Domain guidance](../AGENTS.md)
+
+## 後端分層結構
+
+下列為[Personal and group repositories 後端模組](../../../backend/internal/business/repository/)的完整檔案樹，包含實作、測試與目錄文件。
+
+**範圍**　此樹列出「儲存庫」模組根目錄內的 52 個檔案。檔名以 `_test.go` 結尾的是測試；同名檔案依所在目錄區分職責。
+
+**分層對照**　共通範本中，以下路徑未在此模組根目錄下獨立設置：`domain/valueobject/`、`domain/service/`、`domain/event/`、`domain/policy/`、`application/command/`、`application/query/`、`adapter/messaging/`、`adapter/scheduler/`。子功能的分層以樹中實際路徑為準。
+
+```text
+backend/internal/business/repository/
+├── adapter/                                  # 外部系統轉接
+│   ├── firestore/                            # Firestore 保存與查詢
+│   │   ├── space/
+│   │   │   ├── store.go                      # 資料存取（讀寫 Firestore 資料）；Store、Get
+│   │   │   └── store_test.go                 # 驗證資料存取（讀寫 Firestore 資料）；TestEmulatorSpaceReceiptsScopeAndPagination
+│   │   ├── labels.go                         # 標籤（讀寫 Firestore 資料）；ValidateLabelIDs、ListLabels
+│   │   ├── labels_test.go                    # 驗證標籤（讀寫 Firestore 資料）；TestRenameLabelPreservesIdentityAndCreationReplay
+│   │   ├── milestones.go                     # 里程碑（讀寫 Firestore 資料）；GetMilestone、ListMilestones
+│   │   ├── numbering.go                      # 資源編號（讀寫 Firestore 資料）；CreateNumberedResource、GetResourceNumber
+│   │   ├── statistics.go                     # 統計（讀寫 Firestore 資料）；Statistics
+│   │   ├── store.go                          # 資料存取（讀寫 Firestore 資料）；Store、Observe
+│   │   └── wiki.go                           # Wiki頁面（讀寫 Firestore 資料）；GetWiki、ListWiki
+│   ├── http/                                 # HTTP 入口
+│   │   ├── labels/
+│   │   │   └── routes.go                     # API路由（處理 HTTP 請求與回應）；Register、ListLabels
+│   │   ├── milestones/
+│   │   │   ├── routes.go                     # API路由（處理 HTTP 請求與回應）；Register、ListMilestones
+│   │   │   └── storage_error_test.go         # 驗證保存錯誤轉換（處理 HTTP 請求與回應）；TestStorageFailureResponse、TestMilestoneCompletionPercent
+│   │   ├── space/
+│   │   │   ├── routes.go                     # API路由（處理 HTTP 請求與回應）；Register、ListRepositorySpaces
+│   │   │   └── routes_test.go                # 驗證API路由（處理 HTTP 請求與回應）；TestHTTPAuthorityAndIDBoundary、TestRepositoryFailureDetails
+│   │   ├── statistics/
+│   │   │   ├── routes.go                     # API路由（處理 HTTP 請求與回應）；Register、GetRepositoryStatistics
+│   │   │   └── routes_test.go                # 驗證API路由（處理 HTTP 請求與回應）；TestStatisticsRouteMethods
+│   │   ├── wiki/
+│   │   │   ├── routes.go                     # API路由（處理 HTTP 請求與回應）；Register、GetWikiPage
+│   │   │   └── routes_test.go                # 驗證API路由（處理 HTTP 請求與回應）；TestWikiMembershipAndRevisions
+│   │   ├── routes.go                         # API路由（處理 HTTP 請求與回應）；Authenticator、Register
+│   │   └── routes_test.go                    # 驗證API路由（處理 HTTP 請求與回應）；TestViewGroupID
+│   └── line/                                 # LINE 整合
+│       ├── my_engineering.go                 # 我的工程清單（處理 LINE 互動）；MyEngineering
+│       ├── my_engineering_test.go            # 驗證我的工程清單（處理 LINE 互動）；TestMyEngineeringUsesPrivateIdentityAndCurrentMembership
+│       ├── observer.go                       # 事件觀察處理（處理 LINE 互動）；Observer、Observe
+│       └── observer_test.go                  # 驗證事件觀察處理（處理 LINE 互動）；TestObserverPreservesDomainNameLifecycleAndFailures、TestFollowCreatesPersonalRepositoryObservation
+├── application/                              # 應用用例
+│   ├── dto/                                  # 用例資料型別
+│   │   ├── labels/
+│   │   │   └── labels.go                     # 標籤（定義傳遞資料）；Page
+│   │   ├── milestones/
+│   │   │   └── milestone.go                  # 里程碑（定義傳遞資料）；Page
+│   │   ├── space/
+│   │   │   └── space.go                      # 空間（定義傳遞資料）；Page
+│   │   └── repository.go                     # 儲存庫（定義傳遞資料）；Page
+│   ├── labels/
+│   │   └── labels.go                         # 標籤；Service、List
+│   ├── milestones/
+│   │   └── milestone.go                      # 里程碑；Service、List
+│   ├── port/                                 # 外部能力介面
+│   │   ├── labels/
+│   │   │   └── labels.go                     # 標籤（定義用例所需介面）；Repositories、Store
+│   │   ├── milestones/
+│   │   │   └── milestone.go                  # 里程碑（定義用例所需介面）；Repositories、Store
+│   │   ├── space/
+│   │   │   └── space.go                      # 空間（定義用例所需介面）；Repositories、Store
+│   │   ├── statistics/
+│   │   │   └── statistics.go                 # 統計（定義用例所需介面）；Repositories、Store
+│   │   ├── wiki/
+│   │   │   └── wiki.go                       # Wiki頁面（定義用例所需介面）；WriteTarget、WriteState
+│   │   └── repository.go                     # 儲存庫（定義用例所需介面）；Store、Membership
+│   ├── space/
+│   │   ├── space.go                          # 空間；Service、List
+│   │   └── space_test.go                     # 驗證空間；TestServiceAuthorityAndInput
+│   ├── statistics/
+│   │   └── statistics.go                     # 統計；Service、Get
+│   ├── wiki/
+│   │   ├── revision_test.go                  # 驗證修訂版本；TestRevisionAtVersionLimit
+│   │   ├── wiki.go                           # Wiki頁面；Service、Save
+│   │   └── wiki_test.go                      # 驗證Wiki頁面；TestCreateReplayAfterEditDoesNotAddRevision
+│   ├── repository.go                         # 儲存庫；Service、Get
+│   └── repository_test.go                    # 驗證儲存庫；TestListForOwnerPreservesAuthorizationAndContinuation、TestGetRejectsInactiveRepositoryForItsOwner
+├── domain/                                   # 領域模型與規則
+│   └── entity/                               # 實體與聚合
+│       ├── labels/
+│       │   └── labels.go                     # 標籤（維護領域狀態與規則）；Label、NormalizeName
+│       ├── milestones/
+│       │   └── milestone.go                  # 里程碑（維護領域狀態與規則）；Milestone、CanEdit
+│       ├── space/
+│       │   └── space.go                      # 空間（維護領域狀態與規則）；Space、NormalizeName
+│       ├── statistics/
+│       │   └── statistics.go                 # 統計（維護領域狀態與規則）；Statistics
+│       ├── wiki/
+│       │   └── wiki.go                       # Wiki頁面（維護領域狀態與規則）；Page、Validate
+│       ├── numbering.go                      # 資源編號（維護領域狀態與規則）；NumberedCreation、Valid
+│       └── repository.go                     # 儲存庫（維護領域狀態與規則）；ValidOwner、ValidID
+└── AGENTS.md                                 # 本目錄開發指引
+```

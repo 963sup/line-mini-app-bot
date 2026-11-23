@@ -68,3 +68,43 @@ Team 透過交易內的資格讀取契約取得目前 Owner 判定、首任候�
 驗收須從正常入口完成建立、邀請、接受、名單、移轉及退出／移除，並核對重送不重新開權、移轉與退出併發仍有有效 Owner、撤權後選單及下層資格立即失效。切換後重新加入產生新世代，不能恢復舊 Team 資格。資料準備、切換執行入口及回復工具尚待實作與環境驗收；未完成前 MUST 維持 legacy 模式。
 
 [跨領域歸屬契約](../../contracts/organization-team-ownership.md)
+
+## 後端分層結構
+
+下列為[Organization 後端模組](../../../backend/internal/business/organization/)的完整檔案樹，包含實作、測試與目錄文件。
+
+**範圍**　此樹列出「組織」模組根目錄內的 19 個檔案。檔名以 `_test.go` 結尾的是測試；同名檔案依所在目錄區分職責。
+
+**分層對照**　共通範本中，以下路徑未在此模組根目錄下獨立設置：`domain/valueobject/`、`domain/service/`、`domain/event/`、`domain/policy/`、`application/command/`、`application/port/`、`adapter/messaging/`、`adapter/scheduler/`。子功能的分層以樹中實際路徑為準。
+
+```text
+backend/internal/business/organization/
+├── adapter/                                  # 外部系統轉接
+│   ├── firestore/                            # Firestore 保存與查詢
+│   │   ├── conversation.go                   # 對話狀態（讀寫 Firestore 資料）；Conversation
+│   │   ├── conversation_test.go              # 驗證對話狀態（讀寫 Firestore 資料）；TestCreationConversation
+│   │   └── store.go                          # 資料存取（讀寫 Firestore 資料）；Store、Context
+│   ├── http/                                 # HTTP 入口
+│   │   ├── responses.go                      # 回應資料（處理 HTTP 請求與回應）
+│   │   ├── responses_test.go                 # 驗證回應資料（處理 HTTP 請求與回應）；TestContextResponseContract
+│   │   ├── routes.go                         # API路由（處理 HTTP 請求與回應）；Store、Handler
+│   │   └── routes_test.go                    # 驗證API路由（處理 HTTP 請求與回應）；TestWorkspaceLifecycle
+│   └── line/                                 # LINE 整合
+│       ├── creation_line.go                  # LINE建立流程（處理 LINE 互動）；Conversation、CreationHandler
+│       └── creation_line_test.go             # 驗證LINE建立流程（處理 LINE 互動）；TestCreationRepliesOnlyToPrivateMessages
+├── application/                              # 應用用例
+│   ├── dto/                                  # 用例資料型別
+│   │   ├── context.go                        # 操作上下文（定義傳遞資料）；VisibleOrganization、Option
+│   │   └── creation.go                       # 建立流程（定義傳遞資料）；CreationReply
+│   ├── query/                                # 查詢用例
+│   │   └── context.go                        # 操作上下文（執行讀取用例）；BuildContext、BuildContextWithNavigation
+│   ├── context_test.go                       # 驗證操作上下文；TestContext
+│   └── transfer.go                           # 所有權移轉；OwnershipWork、OwnershipStore
+├── domain/                                   # 領域模型與規則
+│   └── entity/                               # 實體與聚合
+│       ├── access_test.go                    # 驗證存取資格（維護領域狀態與規則）；TestLegacyOrganizationVisibility
+│       ├── errors.go                         # 錯誤分類（維護領域狀態與規則）
+│       ├── model.go                          # 領域模型（維護領域狀態與規則）；Organization、LegacyEnabled
+│       └── ownership.go                      # 所有權（維護領域狀態與規則）；TransferOwnership
+└── AGENTS.md                                 # 本目錄開發指引
+```

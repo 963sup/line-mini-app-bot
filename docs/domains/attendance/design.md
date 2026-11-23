@@ -276,3 +276,107 @@ flowchart TD
 [Entry adapter](../../../backend/internal/business/attendance/adapter/http/routes.go) · [Decision rules](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go) · [Application output port](../../../backend/internal/business/attendance/application/port/errors.go) · [Related tests](../../../backend/internal/business/attendance/adapter/firestore/attendance_integration_test.go)
 
 [Domain guidance](../AGENTS.md)
+
+## 後端分層結構
+
+下列為[Basic attendance 後端模組](../../../backend/internal/business/attendance/)的完整檔案樹，包含實作、測試與目錄文件。
+
+**範圍**　此樹列出「出勤」模組根目錄內的 75 個檔案。檔名以 `_test.go` 結尾的是測試；同名檔案依所在目錄區分職責。
+
+**分層對照**　共通範本中，以下路徑未在此模組根目錄下獨立設置：。子功能的分層以樹中實際路徑為準。
+
+```text
+backend/internal/business/attendance/
+├── adapter/                                  # 外部系統轉接
+│   ├── firestore/                            # Firestore 保存與查詢
+│   │   ├── attendance.go                     # 出勤（讀寫 Firestore 資料）；Attendance、Groups
+│   │   ├── attendance_correction.go          # 出勤補正（讀寫 Firestore 資料）；ProposeCorrection、ProposeCorrectionOnce
+│   │   ├── attendance_integration_test.go    # 驗證出勤整合流程（讀寫 Firestore 資料）；TestAttendanceCorrectionRoundTrip、TestLaunchExchangeIsStableAndScoped
+│   │   ├── attendance_launch.go              # 出勤啟動憑證（讀寫 Firestore 資料）；CreateLaunch、ExchangeLaunch
+│   │   ├── attendance_query.go               # 出勤分頁查詢（讀寫 Firestore 資料）；GroupsPage、RecordsPage
+│   │   ├── board.go                          # 班表看板（讀寫 Firestore 資料）；CurrentShift、GroupBoard
+│   │   ├── documents.go                      # 保存文件格式（讀寫 Firestore 資料）
+│   │   ├── documents_test.go                 # 驗證保存文件格式（讀寫 Firestore 資料）；TestReceiptHashRetainsLegacyEncoding、TestTechnicalErrorsPassThroughStorage
+│   │   ├── errors.go                         # 錯誤分類（讀寫 Firestore 資料）
+│   │   ├── leave.go                          # 請假（讀寫 Firestore 資料）；CreateLeaveLaunch、LeaveGroup
+│   │   ├── legacy_layout_test.go             # 驗證舊版資料配置（讀寫 Firestore 資料）
+│   │   └── ports.go                          # 外部能力介面（讀寫 Firestore 資料）；Punch、SubmitPunch
+│   ├── http/                                 # HTTP 入口
+│   │   ├── testdata/
+│   │   │   ├── legacy-monthly-empty.json
+│   │   │   └── legacy-monthly-nil.json
+│   │   ├── attendance.go                     # 出勤（處理 HTTP 請求與回應）；Attendance、NewAttendance
+│   │   ├── attendance_correction.go          # 出勤補正（處理 HTTP 請求與回應）；ProposeAttendanceCorrection、ApproveAttendanceCorrection
+│   │   ├── attendance_launch.go              # 出勤啟動憑證（處理 HTTP 請求與回應）；ExchangeAttendanceLaunch
+│   │   ├── attendance_launch_test.go         # 驗證出勤啟動憑證（處理 HTTP 請求與回應）
+│   │   ├── attendance_preflight.go           # 打卡前置檢查（處理 HTTP 請求與回應）；PreflightAttendancePunch
+│   │   ├── attendance_test.go                # 驗證出勤（處理 HTTP 請求與回應）；TestAttendanceBrowserRequiresAuthentication、TestCorrectionActionsForAuthorizedScope
+│   │   ├── contract_dto.go                   # 請求與回應資料轉換（處理 HTTP 請求與回應）
+│   │   ├── contract_validation.go            # API契約驗證（處理 HTTP 請求與回應）
+│   │   ├── contract_validation_test.go       # 驗證API契約驗證（處理 HTTP 請求與回應）；TestContractRejectsInvalidRequestsBeforeStore、TestContractPreservesAuthAndIdempotency
+│   │   ├── identity_test.go                  # 驗證身分（處理 HTTP 請求與回應）
+│   │   ├── leave.go                          # 請假（處理 HTTP 請求與回應）；ListOwnLeaveRequests、SubmitLeaveRequest
+│   │   ├── location.go                       # 定位資料（處理 HTTP 請求與回應）
+│   │   ├── punch.go                          # 打卡（處理 HTTP 請求與回應）；SubmitAttendancePunch
+│   │   ├── records.go                        # 紀錄查詢（處理 HTTP 請求與回應）；ListAttendanceGroupPage、ListAttendanceRecords
+│   │   ├── request_validation_test.go        # 驗證請求欄位驗證（處理 HTTP 請求與回應）；TestLocationNumberInRange、TestRequestIDPattern
+│   │   └── routes.go                         # API路由（處理 HTTP 請求與回應）；RegisterAttendanceAPI
+│   ├── line/                                 # LINE 整合
+│   │   ├── attendance.go                     # 出勤（處理 LINE 互動）；Attendance、Reply
+│   │   ├── attendance_history.go             # 出勤歷史（處理 LINE 互動）；HistoryGroupName
+│   │   ├── attendance_launch_test.go         # 驗證出勤啟動憑證（處理 LINE 互動）；TestGroupCardOpensLIFFDirectly
+│   │   ├── attendance_test.go                # 驗證出勤（處理 LINE 互動）；TestAttendanceLegacyHistory、TestOldActionPostbacksAreIgnored
+│   │   ├── board.go                          # 班表看板（處理 LINE 互動）
+│   │   └── menu.go                           # 操作選單（處理 LINE 互動）；AttendanceMenu
+│   └── presentation/
+│       └── group.go                          # 群組；GroupName
+├── application/                              # 應用用例
+│   ├── command/                              # 寫入用例
+│   │   └── review.go                         # 審核（執行寫入用例）；ApproveCorrection、RejectCorrection
+│   ├── dto/                                  # 用例資料型別
+│   │   ├── board.go                          # 班表看板（定義傳遞資料）；Board
+│   │   ├── correction.go                     # 出勤補正（定義傳遞資料）；CorrectionDetails、CorrectionPage
+│   │   ├── monthly.go                        # 月報（定義傳遞資料）；MonthlyReport
+│   │   ├── page.go                           # 分頁資料（定義傳遞資料）；GroupPage、RecordPage
+│   │   └── punch.go                          # 打卡（定義傳遞資料）；PunchResult
+│   ├── port/                                 # 外部能力介面
+│   │   ├── errors.go                         # 錯誤分類（定義用例所需介面）
+│   │   ├── monthly.go                        # 月報（定義用例所需介面）；MonthlyReader
+│   │   ├── punch.go                          # 打卡（定義用例所需介面）；PunchSubmitter、PunchResolver
+│   │   ├── review.go                         # 審核（定義用例所需介面）；CorrectionReviewRunner、ReviewTransaction
+│   │   └── store.go                          # 資料存取（定義用例所需介面）；Store、GroupHistoryReader
+│   └── query/                                # 查詢用例
+│       └── monthly.go                        # 月報（執行讀取用例）；ReadMonthlyReport
+├── domain/                                   # 領域模型與規則
+│   ├── entity/                               # 實體與聚合
+│   │   ├── correction.go                     # 出勤補正（維護領域狀態與規則）；Correction
+│   │   ├── errors.go                         # 錯誤分類（維護領域狀態與規則）
+│   │   ├── leave.go                          # 請假（維護領域狀態與規則）；Leave
+│   │   ├── record.go                         # 紀錄（維護領域狀態與規則）；Record
+│   │   ├── session.go                        # 工作階段（維護領域狀態與規則）；Session
+│   │   └── state.go                          # 狀態（維護領域狀態與規則）；State
+│   ├── event/                                # 領域事件
+│   │   ├── attendance.go                     # 出勤；Event
+│   │   └── version.go                        # 版本
+│   ├── policy/                               # 領域政策
+│   │   ├── leave.go                          # 請假；NormalizeLeave
+│   │   ├── review.go                         # 審核；CanReview、Decision
+│   │   └── review_test.go                    # 驗證審核；TestDecisionRetries
+│   ├── service/                              # 領域服務
+│   │   ├── approval.go                       # 核准決策；VerifyCorrection
+│   │   ├── approval_test.go                  # 驗證核准決策；TestVerifyCorrectionRejectsChangedEvidence
+│   │   ├── correction.go                     # 出勤補正；ApplyCorrection
+│   │   ├── correction_test.go                # 驗證出勤補正；TestCorrectionIsVersionedAndDoesNotMutateOriginal
+│   │   ├── event_stream.go                   # 事件序列；ValidateEventStream
+│   │   ├── event_stream_test.go              # 驗證事件序列；TestValidateEventStream
+│   │   ├── monthly.go                        # 月報；MonthlyReport、CalculateMonthlyAttendance
+│   │   ├── transition.go                     # 狀態轉換；Outcome、ApplyEvent
+│   │   ├── worktime.go                       # 工時；Issue、Result
+│   │   └── worktime_test.go                  # 驗證工時；TestCalculateBreaksOverlapAndMonth、TestIncompleteAndLegacyAreNotGuessed
+│   └── valueobject/                          # 值物件
+│       ├── correction_key.go                 # 補正識別鍵（定義值與合法範圍）；ValidCorrectionKey
+│       ├── interval.go                       # 時間區間（定義值與合法範圍）；Interval、ValidWithin
+│       ├── leave_key.go                      # 請假識別鍵（定義值與合法範圍）；ValidLeaveKey
+│       └── position.go                       # 位置座標（定義值與合法範圍）；Position、ValidAt
+└── AGENTS.md                                 # 本目錄開發指引
+```

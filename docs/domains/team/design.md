@@ -67,3 +67,34 @@ Organization Team 須先完成 Organization 的獨立資格閉環；Enterprise T
 4. Owner 回既有團隊區，從已核發給自己的群組與有效組織成員中選首任 maintainer。請求使用授權識別碼及組織成員代碼，後端解析真實身分。開通交易重新核對授權、啟用中的群組、目前 Owner、首任上層資格及尚未綁定狀態，原子消耗授權並完成前節的開通寫入。相同命令重送只回放原結果，且須重新核對目前可見性。已使用的授權不可用於另一組織、操作者或群組，撤銷未使用授權也不會改寫已開通 Team 的角色。
 
 前端只呈現申請狀態、Bot 挑戰指示、可開通群組及成員選項。LINE Adapter 驗證事件並傳入可信事實，Team 管理申請、授權和開通，Membership 提供交易內的上層資格及首任關係，Bootstrap 組裝依賴。驗收須覆蓋自審拒絕、跨群組或跨帳號重放、審核前開通拒絕、撤銷與消耗競爭、Owner 換手及接任者退出後拒絕開通。正式入口須在 OpenAPI 契約定案及測試通過後啟用。
+
+## 後端分層結構
+
+下列為[Team 後端模組](../../../backend/internal/business/team/)的完整檔案樹，包含實作、測試與目錄文件。
+
+**範圍**　此樹列出「團隊」模組根目錄內的 13 個檔案。檔名以 `_test.go` 結尾的是測試；同名檔案依所在目錄區分職責。
+
+**分層對照**　共通範本中，以下路徑未在此模組根目錄下獨立設置：`domain/entity/`、`domain/valueobject/`、`domain/service/`、`domain/event/`、`domain/policy/`、`application/command/`、`application/query/`、`application/port/`、`adapter/line/`、`adapter/messaging/`、`adapter/scheduler/`。子功能的分層以樹中實際路徑為準。
+
+```text
+backend/internal/business/team/
+├── adapter/                                  # 外部系統轉接
+│   ├── firestore/                            # Firestore 保存與查詢
+│   │   ├── activation_test.go                # 驗證團隊啟用（讀寫 Firestore 資料）；TestObservedTeamCanOpenWithLINEAndParentAuthority
+│   │   ├── assignment_lifecycle_test.go      # 驗證管理歸屬變更（讀寫 Firestore 資料）；TestTeamWritesRequireActiveLifecycle
+│   │   ├── group_catalog.go                  # 群組目錄（讀寫 Firestore 資料）；GroupCatalog、Get
+│   │   ├── group_catalog_test.go             # 驗證群組目錄（讀寫 Firestore 資料）；TestGroupCatalogUsesFormalTeamQualification、TestLINEObservationWritesOnlyTeamAndRejectsOlderEvents
+│   │   ├── line_observation.go               # LINE群組觀察（讀寫 Firestore 資料）；LINEObservation、GetByID
+│   │   └── store.go                          # 資料存取（讀寫 Firestore 資料）；Store、ApplyGroupObservation
+│   └── http/                                 # HTTP 入口
+│       ├── responses.go                      # 回應資料（處理 HTTP 請求與回應）
+│       └── routes.go                         # API路由（處理 HTTP 請求與回應）；Store、Handler
+├── application/                              # 應用用例
+│   ├── dto/                                  # 用例資料型別
+│   │   └── model.go                          # 領域模型（定義傳遞資料）；Option、Listing
+│   └── assignment.go                         # 管理歸屬；AssignmentWork、AssignmentStore
+├── domain/                                   # 領域模型與規則
+│   ├── assignment.go                         # 管理歸屬；AssignmentScope、AllowsAssignment
+│   └── member_policy.go                      # 成員資格政策；CanManageMember
+└── AGENTS.md                                 # 本目錄開發指引
+```

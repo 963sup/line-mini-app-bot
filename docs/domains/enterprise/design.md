@@ -36,3 +36,38 @@
 所有獨立資格寫入遵循 [Membership 交易與重送契約](../../proposals/membership.md#原子操作與重送契約)。切換須涵蓋企業詳情、導覽、Team 開通與指派的所有授權讀寫；未完成時不得啟用 membership 模式。驗收須證明直接與衍生資格可區分、最後 Owner 不可撤除、manager 不能自行升 Owner，以及企業撤權再加入不恢復舊 Team 資格。角色、入口與權威格式未定案的部分須保留為阻塞，不能以編譯或列表可見宣稱閉環。
 
 [跨領域歸屬契約](../../contracts/organization-team-ownership.md)
+
+## 後端分層結構
+
+下列為[Enterprise 後端模組](../../../backend/internal/business/enterprise/)的完整檔案樹，包含實作、測試與目錄文件。
+
+**範圍**　此樹列出「企業」模組根目錄內的 13 個檔案。檔名以 `_test.go` 結尾的是測試；同名檔案依所在目錄區分職責。
+
+**分層對照**　共通範本中，以下路徑未在此模組根目錄下獨立設置：`domain/entity/`、`domain/valueobject/`、`domain/service/`、`domain/event/`、`adapter/line/`、`adapter/messaging/`、`adapter/scheduler/`。子功能的分層以樹中實際路徑為準。
+
+```text
+backend/internal/business/enterprise/
+├── adapter/                                  # 外部系統轉接
+│   ├── firestore/                            # Firestore 保存與查詢
+│   │   ├── provisioning_test.go              # 驗證企業建立資格（讀寫 Firestore 資料）；TestProvisioningReplayRevalidatesLifecycle
+│   │   └── store.go                          # 資料存取（讀寫 Firestore 資料）；Store、Provisioning
+│   └── http/                                 # HTTP 入口
+│       ├── responses.go                      # 回應資料（處理 HTTP 請求與回應）
+│       ├── responses_test.go                 # 驗證回應資料（處理 HTTP 請求與回應）；TestEnterpriseErrorsPreservePublicHTTPContract
+│       └── routes.go                         # API路由（處理 HTTP 請求與回應）；Handler、CreateEnterprise
+├── application/                              # 應用用例
+│   ├── command/                              # 寫入用例
+│   │   ├── enterprise.go                     # 企業（執行寫入用例）；Create、AddOwner
+│   │   └── enterprise_test.go                # 驗證企業（執行寫入用例）；TestEnterpriseCommandsOwnErrorsAndRejectWithoutWrites
+│   ├── dto/                                  # 用例資料型別
+│   │   └── model.go                          # 領域模型（定義傳遞資料）；Link、Detail
+│   ├── port/                                 # 外部能力介面
+│   │   └── store.go                          # 資料存取（定義用例所需介面）；Store、EnterpriseFacts
+│   └── query/                                # 查詢用例
+│       └── enterprise.go                     # 企業（執行讀取用例）；Detail
+├── domain/                                   # 領域模型與規則
+│   ├── policy/                               # 領域政策
+│   │   └── provisioning.go                   # 企業建立資格；CanProvision
+│   └── errors.go                             # 錯誤分類
+└── AGENTS.md                                 # 本目錄開發指引
+```

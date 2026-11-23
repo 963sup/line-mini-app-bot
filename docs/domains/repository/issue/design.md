@@ -110,3 +110,38 @@ Repository 擁有 Issue 的開啟與關閉狀態。問題建立者可以直接�
   suite 均通過。
 
 - [標籤分類透過既有更新的可選 labelIds 接入，目前成員可套用或移除；省略欄位保留、空陣列清除、同空間及版本規則依 標籤引用切片。既有建立防重雜湊不變。](../labels.md#標籤引用切片)
+
+## 後端分層結構
+
+下列為[Issue 後端模組](../../../../backend/internal/business/issue/)的完整檔案樹，包含實作、測試與目錄文件。
+
+**範圍**　此樹列出「議題」模組根目錄內的 12 個檔案。檔名以 `_test.go` 結尾的是測試；同名檔案依所在目錄區分職責。
+
+**分層對照**　共通範本中，以下路徑未在此模組根目錄下獨立設置：`domain/valueobject/`、`domain/service/`、`domain/event/`、`adapter/line/`、`adapter/messaging/`、`adapter/scheduler/`。子功能的分層以樹中實際路徑為準。
+
+```text
+backend/internal/business/issue/
+├── adapter/                                  # 外部系統轉接
+│   ├── firestore/                            # Firestore 保存與查詢
+│   │   └── store.go                          # 資料存取（讀寫 Firestore 資料）；Numberer、Store
+│   └── http/                                 # HTTP 入口
+│       └── routes.go                         # API路由（處理 HTTP 請求與回應）；Register、ListIssues
+├── application/                              # 應用用例
+│   ├── command/                              # 寫入用例
+│   │   └── issue.go                          # 議題（執行寫入用例）；Operations、Create
+│   ├── dto/                                  # 用例資料型別
+│   │   └── page.go                           # 分頁資料（定義傳遞資料）；Page、Filter
+│   ├── port/                                 # 外部能力介面
+│   │   └── store.go                          # 資料存取（定義用例所需介面）；Access、Scope
+│   ├── query/                                # 查詢用例
+│   │   └── issue.go                          # 議題（執行讀取用例）；Operations、List
+│   └── service.go                            # 應用用例；New
+├── domain/                                   # 領域模型與規則
+│   ├── entity/                               # 實體與聚合
+│   │   ├── classification_test.go            # 驗證分類（維護領域狀態與規則）；TestMemberClassificationCannotEditContent
+│   │   ├── issue.go                          # 議題（維護領域狀態與規則）；Issue、CanEdit
+│   │   └── issue_test.go                     # 驗證議題（維護領域狀態與規則）；TestCloseAndReopenExistingIssues
+│   └── policy/                               # 領域政策
+│       └── state.go                          # 狀態；ValidState、CanTransition
+└── AGENTS.md                                 # 本目錄開發指引
+```
