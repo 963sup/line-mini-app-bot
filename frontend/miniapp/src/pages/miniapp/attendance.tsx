@@ -1,3 +1,4 @@
+import { RouteContent } from "@/shell/RouteContent";
 import { useRouter } from "next/router";
 import { View as Records } from "@/business/attendance/records/View";
 import { View as Leave } from "@/business/attendance/leave/View";
@@ -17,7 +18,8 @@ export default function Page() {
   const router = useRouter();
   const selected = tabs.find(tab => tab.id === router.query.tab) ?? tabs[0];
 
-  return <Shell title="出勤服務" workflow="attendance">
+  const applying = selected.id === "correction" && !router.query.record;
+  return <Shell title={applying ? "申請補卡" : "出勤服務"} workflow="attendance" shortcut={applying ? "correction" : undefined}>
     <Tabs value={selected.id} onValueChange={tab => {
       if (router.isReady) void router.push({ pathname: "/miniapp/attendance", query: { tab } }, undefined, { shallow: true });
     }}>
@@ -25,7 +27,7 @@ export default function Page() {
         {tabs.map(({ id, label }) => <TabsTrigger key={id} value={id}>{label}</TabsTrigger>)}
       </TabsList>
       <TabsContent key={selected.id} value={selected.id}>
-        {router.isReady && <selected.View />}
+        <RouteContent label="正在開啟出勤服務……"><selected.View /></RouteContent>
       </TabsContent>
     </Tabs>
   </Shell>;

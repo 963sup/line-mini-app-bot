@@ -5,26 +5,29 @@ import { RepositoryProvider, useRepositories } from "../business/repository/Repo
 import { AppFrame } from "./AppFrame";
 import { repositoryNavigation } from "./repository-navigation";
 import type { NavItem } from "./sidebar-07/nav-main";
+import { Button } from "../shared/ui/button";
 import { Status } from "../shared/Status";
-export function Shell({
-  title,
-  workflow,
-  children,
-}: {
+import type { Shortcut } from "./ServiceSidebar";
+
+type ShellProps = {
   title: string;
   workflow: string;
   children: ReactNode;
-}) {
+  shortcut?: Shortcut;
+};
+
+export function Shell(props: ShellProps) {
+  const { workflow } = props;
   if (workflow === "projects")
-    return <Content title={title} workflow={workflow}>{children}</Content>;
+    return <Content {...props} />;
 
   return (
     <RepositoryProvider workflow={workflow}>
-      <RepositoryContent title={title} workflow={workflow}>{children}</RepositoryContent>
+      <RepositoryContent {...props} />
     </RepositoryProvider>
   );
 }
-function RepositoryContent(props: { title: string; workflow: string; children: ReactNode }) {
+function RepositoryContent(props: ShellProps) {
   const spaces = useRepositories();
   return <Content {...props} repositoryItem={repositoryNavigation(spaces, props.workflow)} />;
 }
@@ -33,10 +36,8 @@ function Content({
   workflow,
   children,
   repositoryItem,
-}: {
-  title: string;
-  workflow: string;
-  children: ReactNode;
+  shortcut,
+}: ShellProps & {
   repositoryItem?: NavItem;
 }) {
   const session = useSession();
@@ -87,10 +88,13 @@ function Content({
     else if (params.has("launch") || params.has("liff.state"))
       location.replace("/miniapp/punch" + location.search);
   }, [workflow, ready]);
+  const canLogin = session.ready && !session.user && !session.inClient && !session.busy;
+  const verifyLabel = session.ready || session.busy ? "重新驗證身分" : "重試初始化";
   return (
     <AppFrame
       title={title}
       workflow={workflow}
+      shortcut={shortcut}
       wide={workflow === "repositories" || workflow === "projects"}
       repositoryItem={repositoryItem}
       account={{
@@ -99,10 +103,7 @@ function Content({
         avatar: session.pictureUrl,
         status: session.status,
         actions: [
-          ...(session.ready &&
-          !session.user &&
-          !session.inClient &&
-          !session.busy
+          ...(canLogin
             ? [
                 {
                   id: "login",
@@ -113,8 +114,7 @@ function Content({
             : []),
           {
             id: "verify",
-            label:
-              session.ready || session.busy ? "重新驗證身分" : "重試初始化",
+            label: verifyLabel,
             onSelect: session.verify,
             disabled: session.busy,
           },
@@ -132,18 +132,17 @@ function Content({
       }}
     >
       <div
-        className="flex flex-col gap-3"
+        className="flex min-w-0 flex-col gap-4"
         key={epoch}
       >
         {!session.user && (
           <Status aria-label="LINE 身分狀態" aria-busy={session.busy}>
             <p>{session.status}</p>
             {!session.busy && (
-              <p>
-                請開啟側欄底部的「LINE 身分」選單，
-                {session.ready ? "登入或重新驗證身分。" : "重試初始化。"}
-                手機可點左上角開啟側欄。
-              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {canLogin && <Button type="button" onClick={session.login}>使用 LINE 登入</Button>}
+                <Button type="button" variant={canLogin ? "outline" : "default"} onClick={session.verify}>{verifyLabel}</Button>
+              </div>
             )}
           </Status>
         )}

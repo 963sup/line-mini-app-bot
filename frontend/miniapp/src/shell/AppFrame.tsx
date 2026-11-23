@@ -2,7 +2,7 @@ import React from "react";
 import Head from "next/head";
 import Link from "next/link";
 import type { NavItem } from "./sidebar-07/nav-main";
-import { ServiceSidebar } from "./ServiceSidebar";
+import { ServiceSidebar, type Shortcut } from "./ServiceSidebar";
 import type { AccountMenu } from "./sidebar-07/nav-user";
 import {
   Breadcrumb,
@@ -17,6 +17,7 @@ import {
   SidebarProvider,
   SidebarInset,
   SidebarTrigger,
+  useSidebar,
 } from "@/shared/ui/sidebar";
 import { cn } from "@/shared/utils";
 
@@ -27,7 +28,20 @@ type FrameProps = {
   account?: AccountMenu;
   repositoryItem?: NavItem;
   wide?: boolean;
+  shortcut?: Shortcut;
 };
+
+function NavigationTrigger() {
+  const { isMobile, openMobile, open } = useSidebar();
+  const trigger = React.useRef<HTMLButtonElement>(null);
+  const wasOpenMobile = React.useRef(false);
+  React.useEffect(() => {
+    if (isMobile && wasOpenMobile.current && !openMobile) trigger.current?.focus({ preventScroll: true });
+    wasOpenMobile.current = openMobile;
+  }, [isMobile, openMobile]);
+  return <SidebarTrigger ref={trigger} aria-label="切換側欄" aria-expanded={isMobile ? openMobile : open}
+    className="size-11 shrink-0 md:size-9" />;
+}
 
 export function AppFrame({
   title,
@@ -36,6 +50,7 @@ export function AppFrame({
   account,
   repositoryItem,
   wide = false,
+  shortcut,
 }: FrameProps) {
   const guest = {
     name: "定位診斷",
@@ -50,23 +65,24 @@ export function AppFrame({
       <a href="#page-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-background focus:p-3">跳至主要內容</a>
       <ServiceSidebar
         workflow={workflow}
+        shortcut={shortcut}
         account={account || guest}
         repositoryItem={repositoryItem}
       />
-      <SidebarInset className="min-w-0">
-        <header className="flex min-h-14 items-center gap-3 border-b px-4 sm:px-6">
-          <SidebarTrigger aria-label="切換側欄" />
+      <SidebarInset className="min-w-0 bg-muted">
+        <header className="z-20 flex min-h-14 items-center gap-2 border-b bg-background px-3 max-md:sticky max-md:top-0 sm:gap-3 sm:px-6">
+          <NavigationTrigger />
           <Separator orientation="vertical" className="data-[orientation=vertical]:h-4" />
           <Breadcrumb aria-label="頁面導覽">
             <BreadcrumbList>
               {(workflow !== "home" || title !== "首頁") && <>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink asChild><Link href="/miniapp">首頁</Link></BreadcrumbLink>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild className="inline-flex min-h-11 items-center"><Link href="/miniapp">首頁</Link></BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbSeparator />
               </>}
               <BreadcrumbItem>
-                <h1 className="text-base font-semibold"><BreadcrumbPage>{title}</BreadcrumbPage></h1>
+                <h1><BreadcrumbPage className="text-base font-semibold leading-snug">{title}</BreadcrumbPage></h1>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>

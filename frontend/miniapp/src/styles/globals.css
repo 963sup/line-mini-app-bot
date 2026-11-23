@@ -92,3 +92,10 @@
 [data-slot="sidebar"][data-mobile="true"] {
   --sidebar-width: 18rem;
 }
+
+/* Keep focused controls and anchor targets below the mobile page header. */
+@media (width < 48rem) {
+  html:has([data-slot="sidebar-trigger"]) {
+    scroll-padding-block-start: 4rem;
+  }
+}

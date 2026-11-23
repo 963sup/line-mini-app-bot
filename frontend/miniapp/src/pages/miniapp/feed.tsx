@@ -1,3 +1,4 @@
+import { RouteContent } from "@/shell/RouteContent";
 import { useRouter } from "next/router";
 import { Shell } from "../../shell/Shell";
 import { JournalWorkspace } from "../../business/journal/Workspace";
@@ -9,8 +10,8 @@ export default function Page() {
   const composing = router.query.compose === "1" && !router.query.journalId;
 
   return (
-    <Shell title={composing ? "寫日誌" : "動態"} workflow="feed">
-      {router.isReady ? (
+    <Shell title={composing ? "寫日誌" : "動態"} workflow="feed" shortcut={composing ? "compose" : undefined}>
+      <RouteContent label="正在開啟日誌……">
         <JournalWorkspace
           dashboard={false}
           repositoryId={repositoryId}
@@ -22,7 +23,7 @@ export default function Page() {
             void router.replace({ pathname: "/miniapp/feed", query: repositoryId ? { repositoryId } : {} });
           } : undefined}
         />
-      ) : <p role="status">正在開啟日誌……</p>}
+      </RouteContent>
     </Shell>
   );
 }
