@@ -406,9 +406,7 @@
       "handler": "ListAttendanceGroupPage",
       "core": "backend/internal/business/attendance/application/port/store.go",
       "specification": "docs/domains/attendance/queries.md",
-      "consumers": [
-        "frontend/miniapp/src/business/attendance/records/View.tsx"
-      ],
+      "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
     {
@@ -478,9 +476,7 @@
       "handler": "GetAttendanceMonthlySummary",
       "core": "backend/internal/business/attendance/application/port/store.go",
       "specification": "docs/domains/attendance/queries.md",
-      "consumers": [
-        "frontend/miniapp/src/business/attendance/records/View.tsx"
-      ],
+      "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
     {
