@@ -242,24 +242,26 @@ export function Comments({
       heading="留言"
       description="空間成員可留言，每則留言由自己的作者編輯；目前提供單層留言。"
     >
-      <Button
-        variant="outline"
-        disabled={!user || readBusy || busy || uncertain}
-        onClick={() => {
-          if (recoveryTarget.current) {
-            load();
-            return;
-          }
-          discard.navigate(() => {
-            setBody("");
-            setEditBody("");
-            setEditing(null);
-            load();
-          });
-        }}
-      >
-        重新載入留言
-      </Button>
+      {(needsRefresh || !!listStatus) && (
+        <Button
+          variant="outline"
+          disabled={!user || readBusy || busy || uncertain}
+          onClick={() => {
+            if (recoveryTarget.current) {
+              load();
+              return;
+            }
+            discard.navigate(() => {
+              setBody("");
+              setEditBody("");
+              setEditing(null);
+              load();
+            });
+          }}
+        >
+          重新載入留言
+        </Button>
+      )}
       <ReadFeedback busy={readBusy} message={listStatus} label="正在讀取留言……" />
       <ItemGroup className="gap-3">
         {items.map((item) => (

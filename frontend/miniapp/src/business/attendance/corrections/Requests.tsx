@@ -147,9 +147,9 @@ export function Requests({
         className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
         disabled={!user || busy || disabled}
       >
-        {(review || failed) && (
+        {failed && (
           <Button id="requests-load" onClick={() => load()}>
-            {review ? "重新整理待辦" : "重試讀取申請"}
+            重試讀取申請
           </Button>
         )}
         {!review && loaded && (next || visible.length !== items.length || showHistory) && (

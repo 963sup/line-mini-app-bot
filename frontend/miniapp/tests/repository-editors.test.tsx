@@ -224,8 +224,8 @@ for (const [name, collection] of [
       );
       const reload = [...document.querySelectorAll<HTMLButtonElement>("button")].find(
         (node) => node.textContent === "重新載入空間",
-      )!;
-      assert.equal(reload.disabled, true);
+      );
+      assert.equal(reload, undefined);
       await f.click("重試原建立請求");
       assert.equal(attempts.length, 3);
       assert.deepEqual(attempts[0], attempts[1]);
@@ -237,7 +237,7 @@ for (const [name, collection] of [
 }
 
 for (const name of ["討論", "標籤"] as const)
-  test(`${name}: tab and repository reload confirm drafts without submitting`, async () => {
+  test(`${name}: tab changes confirm drafts without submitting`, async () => {
     let writes = 0;
     const f = await fixture(async (request) => {
       if (request.method === "POST") writes++;
@@ -248,7 +248,7 @@ for (const name of ["討論", "標籤"] as const)
         await f.click("發起討論");
         await f.fill("標題", "保留討論");
       } else await f.fill("標籤名稱", "保留標籤");
-      await f.click("重新載入空間");
+      await f.click("物件");
       assert.ok(document.querySelector("[role=alertdialog]"));
       await f.click("繼續編輯");
       await f.click("物件");

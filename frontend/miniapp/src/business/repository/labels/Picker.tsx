@@ -99,11 +99,6 @@ export function Picker({
         </Field>
       ))}
       <div className="flex flex-wrap gap-2">
-        {!failed && (
-          <Button type="button" variant="outline" disabled={!user || busy} onClick={() => load()}>
-            重新載入分類標籤
-          </Button>
-        )}
         {!failed && cursor && (
           <Button type="button" variant="outline" disabled={busy} onClick={() => load(cursor)}>
             載入更多分類標籤

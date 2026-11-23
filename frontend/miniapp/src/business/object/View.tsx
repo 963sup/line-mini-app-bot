@@ -494,7 +494,7 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
         </aside>
       )}
       <ReadFeedback busy={detailBusy} message={status} label="正在讀取物件……" />
-      {mode === "detail" && (
+      {mode === "detail" && !detailBusy && (!selected || needsRefresh) && (
         <Button
           variant="outline"
           disabled={busy || detailBusy || subBlocked}

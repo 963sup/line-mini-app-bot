@@ -352,9 +352,11 @@ export function View({ repositoryId }: { repositoryId: string }) {
       <ReadFeedback busy={detailBusy} message={status} label="正在讀取問題……" />
       {mode === "detail" && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <Button variant="outline" disabled={busy || detailBusy} onClick={() => open(activeId)}>
-            重新讀取問題
-          </Button>
+          {!detailBusy && (!selected || needsRefresh) && (
+            <Button variant="outline" disabled={busy || detailBusy} onClick={() => open(activeId)}>
+              重新讀取問題
+            </Button>
+          )}
         </div>
       )}
       {(mode === "create" || selected) && (

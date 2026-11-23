@@ -611,8 +611,9 @@ test("fresh child detail controls edit permission and progress reset", async () 
     await f.click("儲存子物件");
     assert.match(document.body.textContent!, /請先將完成數改為0/);
     editable = false;
-    await f.click("重新讀取子物件");
+    await f.click("取消");
     await f.click("放棄修改");
+    await f.click("編輯子物件：測試工序");
     const form = document.querySelector<HTMLFormElement>('form[aria-label="子物件編輯"]')!;
     assert.equal(form.querySelector("fieldset")?.disabled, true);
     assert.equal(form.querySelector('button[type="submit"]'), null);

@@ -527,15 +527,17 @@ export function View({
                   </NativeSelect>
                 </FormField>
               )}
-              <Button
-                variant="outline"
-                disabled={busy || detailBusy || referencesBlocked}
-                onClick={() =>
-                  needsRefresh ? open(projectId) : discard.navigate(() => open(projectId))
-                }
-              >
-                重新讀取專案
-              </Button>
+              {!detailBusy && (needsRefresh || !selected) && (
+                <Button
+                  variant="outline"
+                  disabled={busy || detailBusy || referencesBlocked}
+                  onClick={() =>
+                    needsRefresh ? open(projectId) : discard.navigate(() => open(projectId))
+                  }
+                >
+                  重新讀取專案
+                </Button>
+              )}
             </div>
           )}
           {(mode === "create" || selected) && (

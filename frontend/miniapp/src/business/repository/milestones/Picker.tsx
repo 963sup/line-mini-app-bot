@@ -90,11 +90,7 @@ export function Picker({
           ))}
         </NativeSelect>
       </FormField>
-      {!status && (
-        <Button type="button" variant="outline" disabled={busy} onClick={() => load()}>
-          重新載入可選里程碑
-        </Button>
-      )}
+
       {!status && cursor && (
         <Button type="button" variant="outline" disabled={busy} onClick={() => load(cursor)}>
           載入更多可選里程碑

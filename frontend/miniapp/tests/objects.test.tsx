@@ -337,15 +337,15 @@ test("repository exposes Problems and Objects and retains an uncertain creation 
     assert.equal(
       [...document.querySelectorAll<HTMLButtonElement>("button")].find(
         (node) => node.textContent === "重新載入空間",
-      )!.disabled,
-      true,
+      ),
+      undefined,
     );
   } finally {
     await f.dispose();
   }
 });
 
-for (const first of ["create", "reload", "tab"] as const) {
+for (const first of ["create", "tab"] as const) {
   test(`Object write and parent navigation handshake is synchronous (${first} first)`, async () => {
     let posts = 0;
     const f = await fixture(async (request) => {
@@ -360,17 +360,13 @@ for (const first of ["create", "reload", "tab"] as const) {
       await f.click("新增物件");
       await f.fill("物件名稱", "同步建立");
       const form = document.querySelector("form")!;
-      const reload = [...document.querySelectorAll<HTMLButtonElement>("button")].find(
-        (node) => node.textContent === "重新載入空間",
-      )!;
       const tab = document.querySelector<HTMLButtonElement>('[aria-label="問題"]')!;
       await act(async () => {
         if (first === "create") {
           form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
-          reload.click();
           pressButton(tab);
         } else {
-          pressButton(first === "reload" ? reload : tab);
+          pressButton(tab);
           form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
         }
         await flush();

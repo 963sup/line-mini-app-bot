@@ -80,7 +80,7 @@ function Content() {
       <section className="flex min-w-0 flex-col gap-4" aria-label="空間">
         {selectedID ? (
           <>
-            {!selected && (
+            {!selected && canLoad && !detailBusy && detailStatus && (
               <Button
                 disabled={!canLoad || detailBusy || guard.blocked}
                 onClick={() => guard.navigate(reloadDetail)}
@@ -147,15 +147,6 @@ function Content() {
               <h2 className="min-w-0 text-2xl font-semibold tracking-tight [overflow-wrap:anywhere]">
                 {selected.name || "儲存庫"}
               </h2>
-              {selectedID && (
-                <Button
-                  variant="outline"
-                  disabled={!canLoad || detailBusy || guard.blocked}
-                  onClick={() => guard.navigate(reloadDetail)}
-                >
-                  重新載入空間
-                </Button>
-              )}
             </div>
             <Tabs
               value={page}

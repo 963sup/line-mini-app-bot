@@ -523,14 +523,16 @@ export function Items({
       description="顯示來源最新內容。加入或移出專案只變更引用，不會修改來源、授予來源編輯權或加總不同來源的進度。"
     >
       <Status role="status">{status}</Status>
-      <Button
-        type="button"
-        variant="outline"
-        disabled={busy || uncertain || disabled}
-        onClick={onRefresh}
-      >
-        重新讀取專案與引用
-      </Button>
+      {(needsRefresh || (!readBusy && !loaded && !!status)) && (
+        <Button
+          type="button"
+          variant="outline"
+          disabled={busy || uncertain || disabled}
+          onClick={onRefresh}
+        >
+          重新讀取專案與引用
+        </Button>
+      )}
       {uncertain && (
         <>
           <Button type="button" disabled={busy} onClick={() => change()}>
@@ -740,14 +742,16 @@ export function Items({
                     ))}
                   </NativeSelect>
                 </FormField>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={disabled || needsRefresh || busy || uncertain || parentBusy}
-                  onClick={() => loadParents()}
-                >
-                  重新讀取父物件
-                </Button>
+                {!parentBusy && !!parentStatus && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={disabled || needsRefresh || busy || uncertain || parentBusy}
+                    onClick={() => loadParents()}
+                  >
+                    重新讀取父物件
+                  </Button>
+                )}
                 {parentCursor && (
                   <Button
                     type="button"
@@ -794,16 +798,18 @@ export function Items({
             >
               加入專案
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={
-                disabled || catalogBusy || busy || uncertain || (kind === "subobject" && !parent)
-              }
-              onClick={() => loadCatalog()}
-            >
-              重新讀取可收錄來源
-            </Button>
+            {!catalogBusy && !!catalogStatus && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={
+                  disabled || catalogBusy || busy || uncertain || (kind === "subobject" && !parent)
+                }
+                onClick={() => loadCatalog()}
+              >
+                重新讀取可收錄來源
+              </Button>
+            )}
             {catalogCursor && (
               <Button
                 type="button"

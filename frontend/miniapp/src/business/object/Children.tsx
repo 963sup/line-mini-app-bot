@@ -435,7 +435,7 @@ function Content({
     >
       <FieldGroup>
         <Status role="status">{status}</Status>
-        {selected && (
+        {selected && refresh && (
           <Button
             type="button"
             variant="outline"

@@ -342,9 +342,11 @@ export function View({ repositoryId }: { repositoryId: string }) {
         ))}
       {mode === "detail" && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <Button variant="outline" disabled={busy || detailBusy} onClick={() => open(activeId)}>
-            重新讀取里程碑
-          </Button>
+          {!detailBusy && (!selected || needsRefresh) && (
+            <Button variant="outline" disabled={busy || detailBusy} onClick={() => open(activeId)}>
+              重新讀取里程碑
+            </Button>
+          )}
         </div>
       )}
       {(mode === "create" || selected) && (
