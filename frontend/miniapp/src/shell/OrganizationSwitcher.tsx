@@ -21,7 +21,11 @@ export function OrganizationSwitcher() {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton size="lg" asChild>
+          <SidebarMenuButton
+            size="lg"
+            className="group-data-[collapsible=icon]:justify-center"
+            asChild
+          >
             <div role="status" aria-label="組織切換狀態" aria-busy={session?.busy ?? false}>
               <Building2 aria-hidden="true" />
               <span className="group-data-[collapsible=icon]:hidden">
@@ -68,7 +72,12 @@ function Switcher() {
         {context?.canSwitch ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <SidebarMenuButton size="lg" aria-label="切換組織" disabled={saving}>
+              <SidebarMenuButton
+                size="lg"
+                className="group-data-[collapsible=icon]:justify-center"
+                aria-label="切換組織"
+                disabled={saving}
+              >
                 {label}
                 <ChevronsUpDown
                   className="ml-auto group-data-[collapsible=icon]:hidden"
@@ -111,7 +120,11 @@ function Switcher() {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : context?.selected ? (
-          <SidebarMenuButton size="lg" asChild>
+          <SidebarMenuButton
+            size="lg"
+            className="group-data-[collapsible=icon]:justify-center"
+            asChild
+          >
             <Link
               href={
                 "/miniapp?" +
@@ -124,7 +137,11 @@ function Switcher() {
             </Link>
           </SidebarMenuButton>
         ) : (
-          <SidebarMenuButton size="lg" asChild>
+          <SidebarMenuButton
+            size="lg"
+            className="group-data-[collapsible=icon]:justify-center"
+            asChild
+          >
             <div role="status" aria-busy={!context && !error}>
               {label}
             </div>
