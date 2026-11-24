@@ -1,6 +1,7 @@
 package firestore
 
 import (
+	spacestore "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore/space"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
@@ -299,7 +300,7 @@ func (s *Store) Update(ctx context.Context, r repositoryDomainEntity.Repository,
 			return e
 		}
 		if change, changed := event.QuantityChange(current.Quantity, current.Unit, result.Quantity, result.Unit); changed && s.QueueQuantityEvents {
-			revision := event.Revision{ChannelID: s.ChannelID, RepositoryID: r.ID, ObjectID: id, Version: result.Version, Change: change}
+			revision := event.Revision{OccurredAt: result.UpdatedAt.UTC().Format(time.RFC3339Nano), ChannelID: s.ChannelID, RepositoryID: r.ID, ObjectID: id, Version: result.Version, Change: change}
 			if err := tx.Create(s.quantityOutbox().Doc(firestorekey.JSONDigest([]string{s.ChannelID, r.ID, id, strconv.FormatInt(result.Version, 10)})), revision); err != nil {
 				return err
 			}
@@ -321,22 +322,14 @@ func validateSpace(tx *db.Transaction, parent *db.DocumentRef, rid, id string) e
 	if !repositoryDomainEntity.ValidID(id) {
 		return objectDomainEntity.ErrInput
 	}
-	snap, err := tx.Get(parent.Collection("spaces").Doc(id))
+	err := spacestore.CheckAssignment(tx, parent, id)
 	if status.Code(err) == codes.NotFound {
 		return objectDomainEntity.ErrInput
 	}
 	if err != nil {
 		return err
 	}
-	var d struct {
-		SchemaVersion int64  `firestore:"schemaVersion"`
-		ID            string `firestore:"id"`
-		RepositoryID  string `firestore:"repositoryId"`
-	}
-	if err := snap.DataTo(&d); err != nil {
-		return err
-	}
-	if d.SchemaVersion != 1 || d.ID != id || d.RepositoryID != rid {
+	if parent.ID != rid {
 		return objectDomainEntity.ErrInput
 	}
 	return nil
@@ -406,6 +399,8 @@ func (s *Store) PendingQuantityEvents(ctx context.Context) ([]event.PendingRevis
 		if err := doc.DataTo(&rev); err != nil || rev.ChannelID != s.ChannelID {
 			// Keep malformed records pending and continue the scan past their IDs.
 			rev = event.Revision{}
+		} else if rev.OccurredAt == "" {
+			rev.OccurredAt = doc.CreateTime.UTC().Format(time.RFC3339Nano)
 		}
 		pending = append(pending, event.PendingRevision{ID: doc.Ref.ID, Revision: rev})
 	}
@@ -423,4 +418,20 @@ func (s *Store) quantityCursor() *db.DocumentRef {
 func (s *Store) MarkQuantityEventAttempt(ctx context.Context, id string) error {
 	_, err := s.quantityCursor().Set(ctx, map[string]any{"lastId": id})
 	return err
+}
+
+// ReferenceName snapshots the Object name in the transaction publishing its reference.
+func ReferenceName(tx *db.Transaction, channel *db.DocumentRef, repositoryID, id string) (string, error) {
+	snap, err := tx.Get(channel.Collection("repositories").Doc(repositoryID).Collection("objects").Doc(id))
+	if err != nil {
+		return "", err
+	}
+	var d document
+	if err := snap.DataTo(&d); err != nil {
+		return "", err
+	}
+	if d.ID != id || d.RepositoryID != repositoryID || d.Name == "" {
+		return "", status.Error(codes.NotFound, "object reference")
+	}
+	return d.Name, nil
 }

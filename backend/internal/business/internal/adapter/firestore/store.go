@@ -42,7 +42,6 @@ type Document struct {
 	Manager           string   `firestore:"managementId"`
 }
 
-
 func Read(tx *firestore.Transaction, ref *firestore.DocumentRef) (Document, error) {
 	snap, e := tx.Get(ref)
 	if e != nil {
@@ -72,4 +71,10 @@ func (d Document) LegacyOrganizationEnabled() bool {
 
 func (d Document) VisibleLegacyOrganization(user string) bool {
 	return d.LegacyOrganization().VisibleLegacy(user)
+}
+
+// OrganizationVisible evaluates the Organization policy on the caller's transaction snapshot.
+func OrganizationVisible(tx *firestore.Transaction, ref *firestore.DocumentRef, actor string) (bool, error) {
+	org, err := Read(tx, ref)
+	return org.VisibleLegacyOrganization(actor), err
 }

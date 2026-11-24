@@ -99,28 +99,3 @@ func TestLegacyGroupContextDoesNotAcceptBusinessGroupID(t *testing.T) {
 		t.Fatal("invalid group context must not reach group membership")
 	}
 }
-
-type teamQualificationFunc func(context.Context, string, string) (bool, error)
-
-func (f teamQualificationFunc) IsTeamMember(ctx context.Context, id, actor string) (bool, error) {
-	return f(ctx, id, actor)
-}
-
-func TestResourceGroupRequiresFormalTeamMembership(t *testing.T) {
-	id := "C" + strings.Repeat("a", 32)
-	for _, allowed := range []bool{false, true} {
-		s := groupquery.Service{Teams: teamQualificationFunc(func(_ context.Context, teamID, actor string) (bool, error) {
-			if teamID != id || actor != "actor" {
-				t.Fatalf("unexpected authority scope: %q %q", teamID, actor)
-			}
-			return allowed, nil
-		})}
-		got, err := s.Get(context.Background(), "actor", id)
-		if allowed && (err != nil || got.ID != id) {
-			t.Fatalf("active membership did not authorize: %+v %v", got, err)
-		}
-		if !allowed && !errors.Is(err, groupentity.ErrNotFound) {
-			t.Fatalf("missing membership must deny without LINE fallback: %v", err)
-		}
-	}
-}

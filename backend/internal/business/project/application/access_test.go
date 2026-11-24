@@ -167,10 +167,10 @@ func TestSourceHydrationFailurePreservesCanonicalMetadata(t *testing.T) {
 			}
 		})
 	}
-	st := &progressFailureStore{store: store{item: projectDomainEntity.Project{ID: pid, OwnerID: gid, DefaultRepositoryID: rid, CreatorID: "owner", Title: "before", Version: 1}}, failure: hydration}
+	st := &progressFailureStore{store: store{item: projectDomainEntity.Project{ID: pid, OwnerID: gid, DefaultRepositoryID: rid, CreatorID: "owner", Title: "before", Version: 1}}, failure: context.DeadlineExceeded}
 	svc := &application.Service{Groups: &groups{}, Sources: &sources{space: gid}, Store: st}
 	updated, err := svc.Update(ctx, "owner", gid, pid, projectDomainEntity.Update{Content: projectDomainEntity.Content{Title: "after"}, ExpectedVersion: 1})
-	if err != nil || updated.Version != 2 || st.item.Title != "after" || updated.SourceAvailable {
+	if err != nil || updated.Version != 2 || st.item.Title != "after" || updated.SourceAvailable || updated.IssueCount != 0 || updated.CompletedIssueCount != 0 {
 		t.Fatalf("committed own metadata update reported failure: %+v %v", updated, err)
 	}
 }

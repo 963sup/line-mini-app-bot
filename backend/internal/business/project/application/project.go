@@ -83,6 +83,18 @@ func (s *Service) progress(ctx context.Context, r projectApplicationPort.Scope, 
 	return err
 }
 
+// committed returns the write outcome even when optional progress cannot be read.
+func (s *Service) committed(ctx context.Context, r projectApplicationPort.Scope, p projectDomainEntity.Project, err error) (projectDomainEntity.Project, error) {
+	if err != nil {
+		return p, err
+	}
+	if err := s.progress(ctx, r, &p); err != nil {
+		p.SourceAvailable = false
+		p.IssueCount, p.CompletedIssueCount = 0, 0
+	}
+	return p, nil
+}
+
 func (s *Service) List(ctx context.Context, actor, rid, cursor string) (projectApplicationDto.Page, error) {
 	r, e := s.resolveProjectScope(ctx, actor, rid)
 	if e != nil {
@@ -148,10 +160,7 @@ func (s *Service) Create(ctx context.Context, actor, rid, key string, c projectD
 		return projectDomainEntity.Project{}, projectDomainEntity.ErrInput
 	}
 	value, e := s.Store.Create(ctx, r, actor, key, c)
-	if e == nil {
-		e = s.progress(ctx, r, &value)
-	}
-	return value, e
+	return s.committed(ctx, r, value, e)
 }
 
 func (s *Service) Update(ctx context.Context, actor, rid, id string, input projectDomainEntity.Update) (projectDomainEntity.Project, error) {
@@ -186,10 +195,7 @@ func (s *Service) Update(ctx context.Context, actor, rid, id string, input proje
 	value, e := s.Store.RunUpdate(ctx, r, id, func(work projectApplicationPort.UpdateWork) error {
 		return updateProject(work, actor, input)
 	})
-	if e == nil {
-		e = s.progress(ctx, r, &value)
-	}
-	return value, e
+	return s.committed(ctx, r, value, e)
 }
 
 func updateProject(work projectApplicationPort.UpdateWork, actor string, input projectDomainEntity.Update) error {
@@ -279,10 +285,7 @@ func (s *Service) ChangeItem(ctx context.Context, actor, rid, id, target string,
 	}
 	r.SourceRepositoryID = value.DefaultRepositoryID
 	result, e := s.Store.ChangeItem(ctx, r, actor, id, target, add, version)
-	if e == nil {
-		e = s.progress(ctx, r, &result)
-	}
-	return result, e
+	return s.committed(ctx, r, result, e)
 }
 
 // OwnerID returns the owner visible to the actor through the normal read path.

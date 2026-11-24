@@ -14,7 +14,7 @@ import (
 )
 
 func TestPublishQuantityRevision(t *testing.T) {
-	revision := event.Revision{ChannelID: "channel", ObjectID: "object", Version: 2}
+	revision := event.Revision{OccurredAt: "2026-11-24T00:00:00Z", ChannelID: "channel", ObjectID: "object", Version: 2}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" || r.URL.Path != "/v1/projects/example/topics/events:publish" {
 			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
@@ -28,7 +28,7 @@ func TestPublishQuantityRevision(t *testing.T) {
 		msg := request.Messages[0]
 		payload, err := base64.StdEncoding.DecodeString(msg.Data)
 		var got event.Revision
-		if err != nil || json.Unmarshal(payload, &got) != nil || got != revision || msg.Attributes["eventId"] != "revision-id" {
+		if err != nil || json.Unmarshal(payload, &got) != nil || got != revision || msg.Attributes["eventId"] != "revision-id" || msg.Attributes["schemaVersion"] != "1" {
 			t.Error("incorrect revision", got)
 		}
 		w.Header().Set("Content-Type", "application/json")

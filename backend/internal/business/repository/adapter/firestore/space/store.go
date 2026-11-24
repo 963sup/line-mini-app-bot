@@ -202,3 +202,37 @@ func (s *Store) Create(ctx context.Context, r repositoryDomainEntity.Repository,
 	}
 	return result, nil
 }
+
+// Reference reads the scoped Space identity and label in the caller's transaction.
+func reference(tx *db.Transaction, repository *db.DocumentRef, id string) (name string, version int64, err error) {
+	snap, err := tx.Get(repository.Collection("spaces").Doc(id))
+	if err != nil {
+		return "", 0, err
+	}
+	var d document
+	if err := snap.DataTo(&d); err != nil {
+		return "", 0, err
+	}
+	if d.ID != id || d.RepositoryID != repository.ID {
+		return "", 0, status.Error(codes.NotFound, "space reference")
+	}
+	return d.Name, d.SchemaVersion, nil
+}
+
+// ReferenceName returns the label captured by a journal in its publish transaction.
+func ReferenceName(tx *db.Transaction, channel *db.DocumentRef, repositoryID, id string) (string, error) {
+	name, _, err := reference(tx, channel.Collection("repositories").Doc(repositoryID), id)
+	if err == nil && name == "" {
+		return "", status.Error(codes.NotFound, "space name")
+	}
+	return name, err
+}
+
+// CheckAssignment validates a current-schema Space under the authorized Repository.
+func CheckAssignment(tx *db.Transaction, repository *db.DocumentRef, id string) error {
+	_, version, err := reference(tx, repository, id)
+	if err == nil && version != 1 {
+		return status.Error(codes.NotFound, "space schema")
+	}
+	return err
+}

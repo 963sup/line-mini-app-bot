@@ -222,3 +222,16 @@ func (s *Store) Candidates(ctx context.Context, user, value, ownerID string) (re
 	}
 	return page, nil
 }
+
+// ActiveOwner checks the repository binding in the caller's write transaction.
+func ActiveOwner(tx *db.Transaction, channel *db.DocumentRef, id, owner string) (bool, error) {
+	snap, err := tx.Get(channel.Collection("repositories").Doc(id))
+	if err != nil {
+		return false, err
+	}
+	var d document
+	if err := snap.DataTo(&d); err != nil {
+		return false, err
+	}
+	return d.ID == id && d.OwnerID == owner && d.Status == "ACTIVE", nil
+}

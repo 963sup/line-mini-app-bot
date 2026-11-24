@@ -3,6 +3,9 @@ package firestore
 
 import (
 	journalquery "github.com/963sup/line-mini-app-bot/internal/business/journal/application/query"
+	objectstore "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/firestore"
+	repostore "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
+	spacestore "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore/space"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
@@ -88,7 +91,7 @@ func (s *Store) reference(ctx context.Context, actor, group string, r journalent
 	return journalentity.ErrNotFound
 }
 
-func (s *Store) checkRefs(ctx context.Context, actor string, d journalentity.Draft, redact bool, cache map[journalentity.Reference]error) error {
+func (s *Store) checkRefs(ctx context.Context, actor, owner string, d journalentity.Draft, redact bool, cache map[journalentity.Reference]error) error {
 	for _, rows := range [][]journalentity.Work{d.Today, d.Tomorrow} {
 		for i := range rows {
 			work := &rows[i]
@@ -101,7 +104,7 @@ func (s *Store) checkRefs(ctx context.Context, actor string, d journalentity.Dra
 				if d.RepositoryID != "" && r.Kind == "repository" && r.ID != d.RepositoryID {
 					err = journalentity.ErrNotFound
 				} else {
-					err = s.reference(ctx, actor, d.GroupID, r)
+					err = s.reference(ctx, actor, owner, r)
 				}
 				cache[r] = err
 			}
@@ -114,44 +117,22 @@ func (s *Store) checkRefs(ctx context.Context, actor string, d journalentity.Dra
 }
 
 // snapshotWork checks repository-scoped sources and captures names in the publish transaction.
-func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journalentity.Work) error {
+func (s *Store) snapshotWork(tx *db.Transaction, w *journalentity.Work) error {
 	if w.ObjectID == "" && len(w.SpaceIDs) == 0 {
 		return nil
 	}
 	if w.Reference == nil || w.Reference.Kind != "repository" || len(w.SpaceIDs) > 20 {
 		return journalentity.ErrInput
 	}
-	repo := s.root().Collection("repositories").Doc(w.Reference.ID)
-	snap, err := tx.Get(repo)
-	if err != nil {
-		return missing(err)
-	}
-	if snap.Data()["ownerId"] != group || snap.Data()["status"] != "ACTIVE" {
-		return journalentity.ErrNotFound
-	}
-	readName := func(ref *db.DocumentRef) (string, error) {
-		snap, err := tx.Get(ref)
-		if err != nil {
-			return "", missing(err)
-		}
-		data := snap.Data()
-		if data["id"] != ref.ID || data["repositoryId"] != w.Reference.ID {
-			return "", journalentity.ErrNotFound
-		}
-		name, ok := data["name"].(string)
-		if !ok || name == "" {
-			return "", journalentity.ErrNotFound
-		}
-		return name, nil
-	}
+	rid := w.Reference.ID
+	var err error
 	if w.ObjectID != "" {
 		if !repositoryDomainEntity.ValidID(w.ObjectID) {
 			return journalentity.ErrInput
 		}
-		object := repo.Collection("objects").Doc(w.ObjectID)
-		w.ObjectName, err = readName(object)
+		w.ObjectName, err = objectstore.ReferenceName(tx, s.root(), rid, w.ObjectID)
 		if err != nil {
-			return err
+			return missing(err)
 		}
 	}
 	w.SpaceNames = nil
@@ -161,9 +142,9 @@ func (s *Store) snapshotWork(tx *db.Transaction, group string, w *journalentity.
 			return journalentity.ErrInput
 		}
 		seen[id] = true
-		name, err := readName(repo.Collection("spaces").Doc(id))
+		name, err := spacestore.ReferenceName(tx, s.root(), rid, id)
 		if err != nil {
-			return err
+			return missing(err)
 		}
 		w.SpaceNames = append(w.SpaceNames, name)
 	}
@@ -178,9 +159,7 @@ func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d jo
 	if e != nil {
 		return journalentity.Entry{}, missing(e)
 	}
-	scope := d
-	scope.GroupID = owner
-	if e := s.checkRefs(ctx, actorID, scope, false, map[journalentity.Reference]error{}); e != nil {
+	if e := s.checkRefs(ctx, actorID, owner, d, false, map[journalentity.Reference]error{}); e != nil {
 		return journalentity.Entry{}, e
 	}
 	entryID := firestorekey.Digest([]byte(actorID + "\x00" + idempotencyKey))[:32]
@@ -213,11 +192,11 @@ func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d jo
 		if status.Code(e) != codes.NotFound {
 			return e
 		}
-		snap, err := tx.Get(s.root().Collection("repositories").Doc(d.RepositoryID))
+		active, err := repostore.ActiveOwner(tx, s.root(), d.RepositoryID, owner)
 		if err != nil {
 			return missing(err)
 		}
-		if snap.Data()["ownerId"] != scope.GroupID || snap.Data()["status"] != "ACTIVE" {
+		if !active {
 			return journalentity.ErrNotFound
 		}
 		// Copy rows so retries never mutate the caller's draft or its request hash.
@@ -225,7 +204,7 @@ func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d jo
 		entry.Tomorrow = append([]journalentity.Work(nil), d.Tomorrow...)
 		for _, rows := range [][]journalentity.Work{entry.Today, entry.Tomorrow} {
 			for i := range rows {
-				if e = s.snapshotWork(tx, scope.GroupID, &rows[i]); e != nil {
+				if e = s.snapshotWork(tx, &rows[i]); e != nil {
 					return e
 				}
 			}
@@ -283,9 +262,7 @@ func (s *Store) Get(ctx context.Context, actor, id string) (journalentity.Entry,
 	}
 	item, _, e := decode(snap)
 	if e == nil {
-		scope := item.Draft
-		scope.GroupID = owner
-		e = s.checkRefs(ctx, actor, scope, true, map[journalentity.Reference]error{})
+		e = s.checkRefs(ctx, actor, owner, item.Draft, true, map[journalentity.Reference]error{})
 	}
 	return item, e
 }
@@ -374,15 +351,14 @@ func (s *Store) List(ctx context.Context, actor string, f journaldto.Filter) (jo
 	}
 	caches := map[string]map[journalentity.Reference]error{}
 	for _, r := range rows {
-		scope := r.item.Draft
+		g := r.item.GroupID
 		if f.RepositoryID != "" {
-			scope.GroupID = owner
+			g = owner
 		}
-		g := scope.GroupID
 		if caches[g] == nil {
 			caches[g] = map[journalentity.Reference]error{}
 		}
-		if e := s.checkRefs(ctx, actor, scope, true, caches[g]); e != nil {
+		if e := s.checkRefs(ctx, actor, g, r.item.Draft, true, caches[g]); e != nil {
 			return journaldto.Page{}, e
 		}
 		page.Items = append(page.Items, r.item)

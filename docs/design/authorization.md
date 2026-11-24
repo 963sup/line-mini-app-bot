@@ -31,6 +31,8 @@ flowchart LR
 
 若權限、資源狀態與寫入必須針對同一版本判斷，adapter 應在同一 Firestore transaction 內讀取並提交。外部 LINE 資格無法納入 Firestore 原子快照時，必須說明觀察時點、失敗方式與可接受風險。
 
+群組庫操作使用本次請求取得的 LINE 成員查詢結果，查詢失敗時拒絕操作。成功查詢至 Firestore 提交之間可能發生撤權，包含交易重試所花的時間；LINE 查詢的 timeout 只限制查詢時間。產品若要求撤權與寫入具備相同提交順序，資格須由能參與該交易的權威來源提供。
+
 ## 拒絕與記錄
 
 未登入、無權限、狀態不允許與版本衝突是不同結果，應映射為穩定錯誤 code。稽核依風險記錄 actor reference、resource、action、時間與結果，不記錄 token 或完整敏感 payload。
