@@ -19,10 +19,10 @@ import {
 } from "lucide-react";
 import { RepositoryProvider, useRepositories } from "../business/repository/RepositoryContext";
 import { repositoryNavigation } from "./repository_navigation";
-import { NavMain, type NavItem } from "./sidebar_07/nav_main";
+import { NavMain, type NavItem } from "./navigation/nav_main";
 import { Button } from "@/shared/ui/button";
-import { NavProjects } from "./sidebar_07/nav_projects";
-import { NavUser, type AccountMenu } from "./sidebar_07/nav_user";
+import { NavProjects } from "./navigation/nav_projects";
+import { NavUser, type AccountMenu } from "./navigation/nav_user";
 import { OrganizationSwitcher } from "@/shell/OrganizationSwitcher";
 import {
   Sidebar,

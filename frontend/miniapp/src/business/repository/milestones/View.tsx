@@ -1,4 +1,4 @@
-import { Progress } from "@/shared/ui/progress";
+import { Progress } from "./MilestoneProgress";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useRepositoryGuard } from "../NavigationGuard";
 import { useDiscardChanges } from "@/shared/useDiscardChanges";

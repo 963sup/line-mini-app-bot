@@ -114,3 +114,10 @@ Flex 只允許下列已證明無法由原生 Template 完整表達的案例。�
 - 每個 Message／Template 建構測試必須確認具體 SDK 型別、顯示名稱、Action、Payload、適用情境與 URI 資源範圍。
 - Webhook 測試必須確認命令與 postback 唯一、無效參數不被處理、私聊與群組規則不互相越界。
 - MINI App 實機驗收與 Webhook mock 證據必須分開記錄。
+
+## 平台整合責任
+
+- SHOULD centralize shared LINE platform capabilities.
+- SHOULD NOT introduce duplicate ownership of LINE commands or postback actions.
+- SHOULD NOT introduce independent LINE Messaging API clients outside approved composition boundaries.
+- SHOULD NOT treat provider acceptance as proof of message delivery or user receipt.

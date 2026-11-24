@@ -12,10 +12,9 @@ Follow rule 18 to start a task. See the [nested directory guide](README.md#%E5%B
 
 ## Normative engineering requirements
 
-All contributors and agents MUST read and comply with the repository-wide
-[MUST](docs/standards/must.md), [MUST NOT](docs/standards/must_not.md),
-[SHOULD](docs/standards/should.md), [SHOULD NOT](docs/standards/should_not.md), and
-[MAY](docs/standards/may.md) standards before performing engineering work. LINE
+All contributors and agents MUST read and comply with the
+[engineering standard](docs/standards/engineering.md) and the applicable
+[domain standards](docs/README.md#規範) before performing engineering work. LINE
 interaction changes MUST also follow the [LINE interaction standard](docs/standards/line_interactions.md).
 These keywords use the RFC 2119 and RFC 8174 meanings. A SHOULD or SHOULD NOT
 may be overridden only when the exception, rationale, impact, and selected
