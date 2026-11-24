@@ -9,7 +9,7 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 )
 
-func journalURL(appURL string, repositoryIDs ...string) string {
+func JournalURL(appURL string, repositoryIDs ...string) string {
 	if appURL == "" {
 		return ""
 	}
@@ -49,29 +49,7 @@ func RepositoryURL(appURL string, group bool, ids ...string) string {
 	return u.String()
 }
 
-func Help(group bool, appURL, desktopURL string, repositoryIDs ...string) messaging_api.MessageInterface {
-	title := "LINE 功能選單"
-	description := "輸入「出勤紀錄」查詢本人紀錄，或輸入「建立組織」「建立企業」開始建立。"
-	if group {
-		title = "群組功能選單"
-		description = "點選下方按鈕：打卡、出勤、請假登記或補卡申請。請假送出不代表核准；歷史出勤請私訊查詢。分享位置可查天氣，輸入「摘要」整理群聊。"
-	}
-	buttons := []messaging_api.FlexComponentInterface{}
-	if group {
-		for _, entry := range []struct{ label, command string }{
-			{"打卡", "打卡"}, {"出勤", "出勤"}, {"請假登記", "請假"}, {"補卡申請", "補卡"},
-		} {
-			buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.MessageAction{Label: entry.label, Text: entry.command}})
-			if entry.command == "打卡" && journalURL(appURL, repositoryIDs...) != "" {
-				buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.UriAction{Label: "日誌", Uri: journalURL(appURL, repositoryIDs...)}})
-			}
-		}
-	} else {
-		buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.PostbackAction{Label: "出勤紀錄", Data: "action=attendance-history"}})
-	}
-	if link := RepositoryURL(appURL, group, repositoryIDs...); link != "" {
-		buttons = append(buttons, &messaging_api.FlexButton{Action: &messaging_api.UriAction{Label: "空間", Uri: link}})
-	}
+func HelpCard(title, description string, buttons []messaging_api.FlexComponentInterface, appURL, desktopURL string) messaging_api.MessageInterface {
 	if appURL != "" {
 		buttons = append(buttons, &messaging_api.FlexButton{
 			Style:  "primary",
@@ -91,35 +69,6 @@ func Help(group bool, appURL, desktopURL string, repositoryIDs ...string) messag
 			Footer: &messaging_api.FlexBox{Layout: "vertical", Contents: buttons},
 		},
 	}
-}
-
-// QuickMenu puts each supported command in a separate reply chip.
-func QuickMenu(group bool, appURL string, repositoryIDs ...string) messaging_api.MessageInterface {
-	items := []messaging_api.QuickReplyItem{}
-	add := func(label, command string) {
-		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.MessageAction{Label: label, Text: command}})
-	}
-	if group {
-		add("打卡", "打卡")
-		if link := journalURL(appURL, repositoryIDs...); link != "" {
-			items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.UriAction{Label: "日誌", Uri: link}})
-		}
-		add("出勤", "出勤")
-		add("請假", "請假")
-		add("補卡", "補卡")
-		add("摘要", "摘要")
-	} else {
-		add("出勤紀錄", "出勤紀錄")
-		add("建立組織", "建立組織")
-		add("建立企業", "建立企業")
-	}
-	if link := RepositoryURL(appURL, group, repositoryIDs...); link != "" {
-		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.UriAction{Label: "空間", Uri: link}})
-	}
-	if appURL != "" {
-		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.PostbackAction{Label: "MINI App", Data: "action=miniapp"}})
-	}
-	return &messaging_api.TextMessage{Text: "請選擇功能：", QuickReply: &messaging_api.QuickReply{Items: items}}
 }
 
 // miniAppAction uses only the configured endpoint, never a request host or postback URL.

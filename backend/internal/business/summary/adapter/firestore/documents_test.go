@@ -73,3 +73,71 @@ func TestSummaryDocumentBoundaryCompatibility(t *testing.T) {
 		}
 	}
 }
+
+func TestDuplicateUnsendKeepsSubsequentJobCurrent(t *testing.T) {
+	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
+		t.Skip("requires Firestore emulator")
+	}
+	ctx := t.Context()
+	client, err := db.NewClient(ctx, "summary-boundary-local-test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+	s := Summary{Client: client, ChannelID: "test"}
+	group := fmt.Sprint(time.Now().UnixNano())
+	if err := s.Unsend(ctx, group, "source"); err != nil {
+		t.Fatal(err)
+	}
+	job, err := s.Command(ctx, group, "new-command", "摘要", time.Now().UnixMilli())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Unsend(ctx, group, "source"); err != nil {
+		t.Fatal(err)
+	}
+	if ok, err := s.Current(ctx, job); err != nil || !ok {
+		t.Fatalf("new job invalidated by duplicate unsend: %v", err)
+	}
+}
+
+func TestRecoverPendingJobAfterMissingQueueDispatch(t *testing.T) {
+	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
+		t.Skip("requires Firestore emulator")
+	}
+	ctx := t.Context()
+	client, err := db.NewClient(ctx, "summary-recovery-test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+	s := Summary{Client: client, ChannelID: fmt.Sprint(time.Now().UnixNano())}
+	job, err := s.Command(ctx, "group", "event", "摘要", time.Now().UnixMilli())
+	if err != nil {
+		t.Fatal(err)
+	}
+	ref := s.group("group").Collection("summaryJobs").Doc(job.ID)
+	if _, err := ref.Update(ctx, []db.Update{{Path: "Cutoff", Value: time.Now().Add(-time.Hour)}}); err != nil {
+		t.Fatal(err)
+	}
+	calls := 0
+	drain := func(ctx context.Context, group, id string) error {
+		claimed, ok, err := s.Claim(ctx, group, id)
+		if err != nil {
+			return err
+		}
+		if !ok || claimed.RetryKey != job.RetryKey {
+			t.Fatal("missing original job and push key")
+		}
+		calls++
+		return s.Done(ctx, claimed)
+	}
+	for i := 0; i < 3; i++ {
+		if err := s.RecoverPending(ctx, drain); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if calls != 1 {
+		t.Fatalf("recovered %d times", calls)
+	}
+}

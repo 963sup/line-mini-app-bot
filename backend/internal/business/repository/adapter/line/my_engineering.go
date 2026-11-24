@@ -12,6 +12,12 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
+func EngineeringHandler(appURL string, catalog *repositoryApplication.Service) transport.Handler {
+	return transport.Handler{Owner: "repository", Commands: []string{"我的工程"}, Failure: "repository temporarily unavailable", Handle: func(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
+		return MyEngineering(ctx, event, appURL, catalog)
+	}}
+}
+
 func MyEngineering(ctx context.Context, event webhook.EventInterface, appURL string, catalog *repositoryApplication.Service) (transport.Reply, bool, error) {
 	msg, ok := event.(webhook.MessageEvent)
 	if !ok || !transport.CanReply(msg.Mode, msg.ReplyToken, msg.DeliveryContext) {

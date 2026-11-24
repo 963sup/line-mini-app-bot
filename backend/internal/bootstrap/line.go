@@ -21,7 +21,6 @@ import (
 	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 	navigation "github.com/963sup/line-mini-app-bot/internal/transport/line/navigation"
-	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
 func registerLINE(mux *http.ServeMux, config messagingConfig, bot *lineplatform.Messaging, appURL, endpointURL string, punches *attendance.Attendance, summaries *summary.Summary, repositories *repositoryline.Observer, groups *groupline.Observer, catalog *repositoryApplication.Service, creation organizationline.Conversation, invitations *membershipapp.Service) func(context.Context, string) string {
@@ -45,24 +44,19 @@ func registerLINE(mux *http.ServeMux, config messagingConfig, bot *lineplatform.
 		EarlyCommands: []transport.Handler{
 			membershipline.Handler(invitations),
 			organizationline.CreationHandler(creation, appURL),
-			{Handle: func(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
-				return repositoryline.MyEngineering(ctx, event, appURL, catalog)
-			}, Failure: "repository temporarily unavailable"},
+			repositoryline.EngineeringHandler(appURL, catalog),
 		},
 		Observers: []transport.Observer{
 			{Observe: groups.Observe, Failure: "space temporarily unavailable"},
 			{Observe: repositories.Observe, Failure: "repository temporarily unavailable"},
 		},
 		Commands: []transport.Handler{
-			{Handle: summaries.Reply, Failure: "summary temporarily unavailable"},
+			summaries.Handler(),
 			{Handle: summaries.Collect, Failure: "summary temporarily unavailable"},
-			{Handle: punches.Reply, Failure: "attendance unavailable; retry safely", RetryOnSendFailure: true},
-			{Handle: func(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
-				reply, handled := weather.ReplyForEvent(ctx, event, client)
-				return reply, handled, nil
-			}},
+			punches.Handler(),
+			weather.Handler(client),
 			objectline.Handler(appURL),
-			navigation.Menu{StickerPackageID: os.Getenv("LINE_MENU_STICKER_PACKAGE_ID"), StickerID: os.Getenv("LINE_MENU_STICKER_ID")}.Handler(appURL, endpointURL, repositoryID),
+			navigation.Menu{StickerPackageID: os.Getenv("LINE_MENU_STICKER_PACKAGE_ID"), StickerID: os.Getenv("LINE_MENU_STICKER_ID"), Help: helpMenu, QuickMenu: quickMenu, PrivateActions: attendance.NavigationActions()}.Handler(appURL, endpointURL, repositoryID),
 		},
 	}
 	if repositories != nil {

@@ -45,25 +45,47 @@ export function Candidates({
   created?: ReadonlyMap<string, string>;
   choose?: (selection: Selection, trigger: HTMLButtonElement) => void;
 }) {
-  const { request } = useSession();
+  const { request, user } = useSession();
+  const storageKey = JSON.stringify(["object-import", user?.userId, repositoryId]);
   const { run } = useLatestRequest();
   const writes = useLatestRequest();
   const [selected, setSelected] = useState<Map<string, string>>(() => new Map());
   const [outcomes, setOutcomes] = useState<Map<string, ImportResult>>(() => new Map());
-  const [pending, setPending] = useState<ImportRow[]>([]);
+  const [restored] = useState(() => {
+    try {
+      const raw = user && choose && window.sessionStorage.getItem(storageKey);
+      if (!raw) return { rows: [] as ImportRow[] };
+      const rows: ImportRow[] = JSON.parse(raw);
+      if (
+        !Array.isArray(rows) ||
+        !rows.every(
+          (row) =>
+            typeof row?.id === "string" &&
+            typeof row.key === "string" &&
+            typeof row.body?.name === "string",
+        )
+      )
+        throw new Error("invalid receipt");
+      return { rows };
+    } catch {
+      return { rows: [] as ImportRow[], unavailable: true };
+    }
+  });
+  const [pending, setPending] = useState(restored.rows);
   const [importing, setImporting] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const guard = useRepositoryGuard(selected.size > 0, () => heading.current?.focus());
   const recovery = importing || pending.length > 0;
 
   function importRows() {
-    if (!file || !result || disabled || locked.current || !guard.canWrite()) return;
+    if (!user || !choose || restored.unavailable || disabled || locked.current || !guard.canWrite())
+      return;
     const rows = pending.length
       ? pending
-      : result.candidates.flatMap((candidate, index) => {
+      : (result?.candidates ?? []).flatMap((candidate, index) => {
           const id = `${batch}-${index}`;
           const name = selected.get(id)?.trim();
-          if (!name || created?.has(id) || outcomes.get(id)?.objectId) return [];
+          if (!file || !name || created?.has(id) || outcomes.get(id)?.objectId) return [];
           return [
             {
               id,
@@ -78,12 +100,18 @@ export function Candidates({
           ];
         });
     if (!rows.length) return;
+    try {
+      window.sessionStorage.setItem(storageKey, JSON.stringify(rows));
+    } catch {
+      setMessage("無法保存重試紀錄，請確認瀏覽器允許分頁儲存後再匯入。");
+      return;
+    }
     locked.current = true;
     guard.block(true);
     setImporting(true);
     void writes.run(
       async (signal) => {
-        const unknown: ImportRow[] = [];
+        const remaining = new Map(rows.map((row) => [row.id, row]));
         for (const row of rows) {
           if (signal.aborted) break;
           try {
@@ -106,23 +134,28 @@ export function Candidates({
               next.delete(row.id);
               return next;
             });
+            remaining.delete(row.id);
           } catch (error) {
             if (signal.aborted) break;
             const uncertain = pending.length > 0 || !rejectedAttempt(error);
-            if (uncertain) unknown.push(row);
+            if (!uncertain) remaining.delete(row.id);
             setOutcomes((previous) =>
               new Map(previous).set(row.id, {
                 message: uncertain ? `結果未確認：${errorMessage(error)}` : errorMessage(error),
               }),
             );
           }
+          if (remaining.size)
+            window.sessionStorage.setItem(storageKey, JSON.stringify([...remaining.values()]));
+          else window.sessionStorage.removeItem(storageKey);
         }
-        return unknown;
+        return [...remaining.values()];
       },
       (unknown) => {
         locked.current = false;
         setPending(unknown);
         setImporting(false);
+        if (!result && !unknown.length) setMessage("已確認先前的物件匯入結果。");
         guard.block(unknown.length > 0);
       },
       (error) => {
@@ -222,6 +255,9 @@ export function Candidates({
       >
         辨識候選
       </Button>
+      {restored.unavailable && (
+        <p role="alert">無法讀取匯入重試紀錄。請先核對既有物件再處理此分頁的儲存設定。</p>
+      )}
       <p role="status">{busy ? "正在辨識文件……" : message}</p>
       {result?.candidates.length ? (
         <h3 ref={heading} tabIndex={-1}>
@@ -236,14 +272,20 @@ export function Candidates({
               disabled={disabled || recovery}
               onCheckedChange={(checked) =>
                 setSelected((previous) =>
-                  checked ? new Map(available.map(({ id, name }) => [id, previous.get(id) ?? name])) : new Map(),
+                  checked
+                    ? new Map(available.map(({ id, name }) => [id, previous.get(id) ?? name]))
+                    : new Map(),
                 )
               }
             />
             全選
           </label>
-          <p role="status">已選 {selected.size}／{available.length} 筆可匯入候選</p>
-          <p>批次匯入會儲存名稱、引文、來源檔名與頁面位置。需要填寫數量、單位或分類時，請使用單筆覆核表單。</p>
+          <p role="status">
+            已選 {selected.size}／{available.length} 筆可匯入候選
+          </p>
+          <p>
+            批次匯入會儲存名稱、引文、來源檔名與頁面位置。需要填寫數量、單位或分類時，請使用單筆覆核表單。
+          </p>
         </div>
       )}
       {result?.candidates.map((candidate, index) => {
@@ -324,8 +366,10 @@ export function Candidates({
           type="button"
           disabled={
             disabled ||
+            !!restored.unavailable ||
             importing ||
-            (!pending.length && (!selected.size || [...selected.values()].some((name) => !name.trim())))
+            (!pending.length &&
+              (!selected.size || [...selected.values()].some((name) => !name.trim())))
           }
           onClick={importRows}
         >

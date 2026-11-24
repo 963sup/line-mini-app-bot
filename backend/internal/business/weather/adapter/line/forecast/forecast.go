@@ -17,6 +17,13 @@ type ForecastLookup interface {
 	Lookup(context.Context, float64, float64, string) (weatherDomainEntityForecast.Forecast, error)
 }
 
+func Handler(client ForecastLookup) transport.Handler {
+	return transport.Handler{Handle: func(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
+		reply, handled := ReplyForEvent(ctx, event, client)
+		return reply, handled, nil
+	}}
+}
+
 func ReplyForEvent(ctx context.Context, event webhook.EventInterface, client ForecastLookup) (transport.Reply, bool) {
 	e, ok := event.(webhook.MessageEvent)
 	if !ok || !transport.CanReply(e.Mode, e.ReplyToken, e.DeliveryContext) {

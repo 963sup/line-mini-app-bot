@@ -27,10 +27,25 @@ jobs:
           cache-dependency-path: backend/go.sum
       - run: npm install --global pnpm@12.18.0
       - run: pnpm install --frozen-lockfile
+      - run: pnpm api:check
+      - run: python3 scripts/check/check-config.py
       - run: pnpm --filter @repo/miniapp check
       - run: pnpm --filter @repo/miniapp test
       - run: pnpm --filter @repo/miniapp build
-      - name: Run Go tests including architecture boundaries and regressions
-        run: go -C backend test ./...
+      - name: Install browser integration tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/browser"
+          "$RUNNER_TEMP/browser/bin/pip" install playwright==1.62.0
+          "$RUNNER_TEMP/browser/bin/playwright" install --with-deps chromium
+          echo "$RUNNER_TEMP/browser/bin" >> "$GITHUB_PATH"
+      - name: Run Go, Firestore and browser integration tests
+        env:
+          MINIAPP_BROWSER_EXPORT: ${{ github.workspace }}/frontend/miniapp/out
+        run: |
+          set -euo pipefail
+          go -C backend list ./... > "$RUNNER_TEMP/packages"
+          bash scripts/test/firestore-emulator.sh -json ./... | tee "$RUNNER_TEMP/go-results"
+          python3 scripts/check/check-go-test-results.py "$RUNNER_TEMP/go-results" "$RUNNER_TEMP/packages"
       - run: go -C backend vet ./...
       - run: go -C backend build ./...
+      - run: pnpm docs:check

@@ -13,6 +13,9 @@ type (
 		Message messaging_api.MessageInterface
 	}
 	Handler struct {
+		Owner              string
+		Commands           []string
+		Postbacks          []string
 		Handle             func(context.Context, webhook.EventInterface) (Reply, bool, error)
 		Failure            string
 		RetryOnSendFailure bool

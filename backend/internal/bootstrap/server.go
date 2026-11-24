@@ -19,6 +19,9 @@ import (
 	discussionhttp "github.com/963sup/line-mini-app-bot/internal/business/discussion/adapter/http"
 	enterprisedb "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/firestore"
 	enterprisehttp "github.com/963sup/line-mini-app-bot/internal/business/enterprise/adapter/http"
+	explorehttp "github.com/963sup/line-mini-app-bot/internal/business/explore/adapter/http"
+	explorerepository "github.com/963sup/line-mini-app-bot/internal/business/explore/adapter/repository"
+	explorequery "github.com/963sup/line-mini-app-bot/internal/business/explore/application/query"
 	issuehttp "github.com/963sup/line-mini-app-bot/internal/business/issue/adapter/http"
 	journalhttp "github.com/963sup/line-mini-app-bot/internal/business/journal/adapter/http"
 	membershipdb "github.com/963sup/line-mini-app-bot/internal/business/membership/adapter/firestore"
@@ -29,7 +32,6 @@ import (
 	operationshttp "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/http/document"
 	objectmessages "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/messaging"
 	poppler "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/poppler"
-	objectscheduler "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/scheduler"
 	objectcommand "github.com/963sup/line-mini-app-bot/internal/business/object/application/command"
 	operations "github.com/963sup/line-mini-app-bot/internal/business/object/application/document"
 	organizationdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
@@ -44,6 +46,7 @@ import (
 	statisticshttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/statistics"
 	wikihttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/wiki"
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/line"
+	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http"
 	grouphttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http/group"
@@ -55,6 +58,7 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/browser"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/geolocation"
 	"google.golang.org/api/pubsub/v1"
+	"sync"
 )
 
 func Run() (resultErr error) {
@@ -143,7 +147,7 @@ func Run() (resultErr error) {
 			return err
 		}
 	}
-	summaries, err := registerSummary(context.Background(), mux, messaging, lineConfig.channel, firestoreConfigured, getFirestore)
+	summaries, recoverSummaries, err := registerSummary(context.Background(), mux, messaging, lineConfig.channel, firestoreConfigured, getFirestore)
 	if err != nil {
 		return err
 	}
@@ -215,6 +219,7 @@ func Run() (resultErr error) {
 	journalhttp.Register(mux, newJournals(groupCatalog, groupStore, repositories, projects), auth)
 	grouphttp.Register(mux, groupCatalog, auth)
 	repositoryhttp.Register(mux, repositories, auth)
+	explorehttp.Register(mux, explorequery.Service{Repositories: explorerepository.Source{Discovery: repositoryApplication.Discovery{Store: repositoryStore}}}, auth)
 	wikihttp.Register(mux, newWiki(repositories, repositoryStore), auth)
 	labelhttp.Register(mux, newLabels(repositories, repositoryStore), auth)
 	milestonehttp.Register(mux, newMilestones(repositories, repositoryStore), auth)
@@ -239,7 +244,11 @@ func Run() (resultErr error) {
 		WriteTimeout: 100 * time.Second, IdleTimeout: 60 * time.Second,
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
+	var workers sync.WaitGroup
+	defer func() { stop(); workers.Wait() }()
+	if recoverSummaries != nil {
+		workers.Go(func() { runDelivery(ctx, "summary", 90*time.Second, recoverSummaries) })
+	}
 	if topic := os.Getenv("OBJECT_QUANTITY_PUBSUB_TOPIC"); topic != "" {
 		if repositoryStore == nil || !regexp.MustCompile(`^projects/[a-zA-Z0-9-]+/topics/[A-Za-z][A-Za-z0-9._~%+-]{2,254}$`).MatchString(topic) {
 			return errors.New("invalid Object event configuration: repository storage and full Pub/Sub topic required")
@@ -250,14 +259,11 @@ func Run() (resultErr error) {
 		}
 		publisher := objectmessages.Publisher{Client: client, Topic: topic}
 		store := objectevents.Store{Client: repositoryStore.Client, ChannelID: repositoryStore.ChannelID}
-		done := make(chan struct{})
-		go func() {
-			defer close(done)
-			objectscheduler.Run(ctx, func(batch context.Context) error {
+		workers.Go(func() {
+			runDelivery(ctx, "object_quantity", 50*time.Second, func(batch context.Context) error {
 				return objectcommand.DeliverQuantityEvents(batch, &store, publisher.Publish)
 			})
-		}()
-		defer func() { stop(); <-done }()
+		})
 	}
 	result := make(chan error, 1)
 	slog.Info("server starting", "port", port)

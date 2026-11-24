@@ -32,3 +32,9 @@ flowchart LR
 ## 證據界線
 
 映像建置、設定解析與 mock 通過不代表部署成功；revision Ready 不代表 LINE、Firestore、任務與真實裝置流程通過。正式結果需記錄目標環境、revision、時間、檢查與回退狀態。
+
+## 背景投遞與候選驗收
+
+使用版本控制的 cloudbuild.yaml 更新既有服務時，候選以獨立 tag 建立、暫不切換流量。驗證候選的公開 LIFF 設定、靜態物件辨識頁及匿名存取本人端點的 401，確認通過才更新導航並將流量切到已驗證的 revision。首次建立服務需先有可承接流量的 revision。候選失敗須保存先前 revision、流量與 LINE 選單識別供回復。
+
+此部署配置保留至少一個實例並配置持續 CPU，以便在沒有使用者請求時處理數量事件及摘要。這會產生閒置運算成本。需發布數量事件的環境必須設定 OBJECT_QUANTITY_PUBSUB_TOPIC 及發布權限。正式驗收應核對實際 trigger 使用此配置、revision 的 CPU／流量、Cloud Tasks 佇列及 OIDC 身分、Pub/Sub 接收與去重、Firestore TTL／index 和積壓告警；記錄具名 revision 與去識別化結果。

@@ -23,7 +23,7 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-func registerSummary(ctx context.Context, mux *http.ServeMux, bot *lineplatform.Messaging, channel string, firestoreConfigured bool, getFirestore func() (*firestore.Client, error)) (*lineadapter.Summary, error) {
+func registerSummary(ctx context.Context, mux *http.ServeMux, bot *lineplatform.Messaging, channel string, firestoreConfigured bool, getFirestore func() (*firestore.Client, error)) (*lineadapter.Summary, func(context.Context) error, error) {
 	provider := os.Getenv("SUMMARY_PROVIDER")
 	keyName := "GEMINI_API_KEY"
 	if provider == "openai" {
@@ -31,35 +31,35 @@ func registerSummary(ctx context.Context, mux *http.ServeMux, bot *lineplatform.
 	}
 	key, model, queue, target, email := os.Getenv(keyName), os.Getenv("SUMMARY_MODEL"), os.Getenv("SUMMARY_TASK_QUEUE"), os.Getenv("SUMMARY_TASK_URL"), os.Getenv("SUMMARY_TASK_SERVICE_ACCOUNT")
 	if provider == "" && key == "" && model == "" && queue == "" && target == "" && email == "" {
-		return nil, nil
+		return nil, nil, nil
 	}
 	if key == "" || !regexp.MustCompile(`^[A-Za-z0-9.-]+$`).MatchString(model) || !regexp.MustCompile(`^projects/[a-z0-9-]+/locations/[a-z0-9-]+/queues/[A-Za-z0-9_-]+$`).MatchString(queue) || email == "" || !firestoreConfigured || !validChannelID(channel) {
-		return nil, fmt.Errorf("incomplete or invalid summary configuration")
+		return nil, nil, fmt.Errorf("incomplete or invalid summary configuration")
 	}
 	u, e := url.Parse(target)
 	if e != nil || u.Scheme != "https" || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || u.Path != "/internal/summary" {
-		return nil, fmt.Errorf("SUMMARY_TASK_URL must be the HTTPS /internal/summary URL")
+		return nil, nil, fmt.Errorf("SUMMARY_TASK_URL must be the HTTPS /internal/summary URL")
 	}
 	modelClient := &http.Client{Transport: httptransport.TraceTransport{}, Timeout: 45 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	modelAdapter, err := summarizer.New(provider, key, model, modelClient)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	db, e := getFirestore()
 	if e != nil {
-		return nil, e
+		return nil, nil, e
 	}
 	auth, e := google.DefaultClient(ctx, "https://www.googleapis.com/auth/cloud-platform")
 	if e != nil {
-		return nil, e
+		return nil, nil, e
 	}
 	auth.Timeout = 4 * time.Second
 	auth.CheckRedirect = modelClient.CheckRedirect
 	if bot == nil {
-		return nil, fmt.Errorf("summary requires a LINE messaging token")
+		return nil, nil, fmt.Errorf("summary requires a LINE messaging token")
 	}
 	store := &storage.Summary{Client: db, ChannelID: channel}
 	service := &summaryApplicationSummarization.Service{Store: store, Model: modelAdapter, Sender: lineadapter.SummaryDelivery{Bot: bot}}
 	mux.HandleFunc("POST /internal/summary", httpadapter.SummaryWorker(service, &identitygoogle.Verifier{Audience: target, Email: email}))
-	return &lineadapter.Summary{Store: store, Queue: &cloudtasks.Queue{Client: auth, Name: queue, URL: target, ServiceAccount: email}}, nil
+	return &lineadapter.Summary{Store: store, Queue: &cloudtasks.Queue{Client: auth, Name: queue, URL: target, ServiceAccount: email}}, func(ctx context.Context) error { return store.RecoverPending(ctx, service.Run) }, nil
 }

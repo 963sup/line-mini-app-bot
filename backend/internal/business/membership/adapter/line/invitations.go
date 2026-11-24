@@ -15,6 +15,7 @@ import (
 
 func Handler(service *application.Service) transport.Handler {
 	return transport.Handler{
+		Owner: "membership", Commands: []string{"邀請加入", "接受邀請", "撤銷邀請"},
 		Failure: "membership temporarily unavailable", RetryOnSendFailure: true,
 		Handle: func(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
 			m, ok := event.(webhook.MessageEvent)

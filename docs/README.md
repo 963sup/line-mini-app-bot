@@ -1,6 +1,6 @@
 # Documentation
 
-本目錄是專案目前有效的工程文件入口。文件依「規範、架構、設計、決策、工作流程、維運與參考資料」分類；歷史文件保存在 [docs-old](../docs-old/)。
+本目錄是專案目前有效的工程文件入口。文件依「規範、架構、設計、決策、工作流程、維運與參考資料」分類。
 
 ## 建議閱讀順序
 
@@ -12,6 +12,11 @@
 
 ## 規範
 
+- [強制要求（MUST）](standards/must.md)
+- [禁止行為（MUST NOT）](standards/must-not.md)
+- [推薦實踐（SHOULD）](standards/should.md)
+- [不推薦實踐（SHOULD NOT）](standards/should-not.md)
+- [選擇性實踐（MAY）](standards/may.md)
 - [文件規範](standards/documentation.md)
 - [架構規範](standards/architecture.md)
 - [後端規範](standards/backend.md)
@@ -36,6 +41,7 @@
 ## 設計
 
 - [業務領域規則](design/domain-rules.md)
+- [Explore 跨領域搜尋設計（草案）](design/explore.md)
 - [打卡預檢、出勤月報與補正](design/attendance-punches.md)
 - [物件範本版本與套用](design/object-templates.md)
 - [授權設計](design/authorization.md)

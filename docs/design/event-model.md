@@ -49,3 +49,7 @@ Cloud Tasks、Jobs、Pub/Sub 或 Workflows 依工作特性選擇。每個工作�
   }
 }
 ```
+
+數量事件分頁依文件 ID 輪巡，在嘗試發布前保存目前頻道的游標。單筆內容損壞、發布失敗或確認遺失時保留該筆，繼續其他事件；游標走到底後再從頭重試。同一事件重送沿用相同 eventId。可依「quantity event pending」的事件識別碼定位積壓，修復資料或 IAM 後觀察該筆成功移除。
+
+Summary 以原 job 作為持久化的工作意圖。正常請求經 Cloud Tasks；伺服器另輪巡本頻道既有工作，對超過兩分鐘且沒有有效租約的 pending 工作沿用原 Claim、版本檢查與 Push retry key 執行。重啟後沿用 Firestore 游標。過期未完成的工作在 Claim 時標記 expired；未遭處理即被 TTL 移除的工作仍須依外部監控辨識。重複收到相同訊息收回事件時，既有 tombstone 阻止群組版本重複增加，交易後仍會重試清除來源快取。

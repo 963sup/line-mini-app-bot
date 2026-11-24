@@ -773,7 +773,8 @@ test("batch import only retries unknown selected rows with their original keys",
     });
     await f.click("辨識候選");
     const all = document.querySelector<HTMLButtonElement>('button[role="checkbox"]')!;
-    const confirm = () => [...document.querySelectorAll("button")].find((b) => b.textContent?.startsWith("確認匯入"))!;
+    const confirm = () =>
+      [...document.querySelectorAll("button")].find((b) => b.textContent?.startsWith("確認匯入"))!;
     assert.equal(confirm().disabled, true);
     await act(async () => all.click());
     assert.equal(confirm().textContent, "確認匯入 3 筆");
@@ -801,6 +802,37 @@ test("batch import only retries unknown selected rows with their original keys",
       2,
     );
   } finally {
+    await f.dispose();
+  }
+});
+
+test("pending import resumes after remount only for the original actor and repository", async () => {
+  const key = JSON.stringify(["object-import", "A", rid]);
+  const row = { id: "batch-0", key: "saved-original-key", body: { name: "配管" } };
+  window.sessionStorage.setItem(key, JSON.stringify([row]));
+  const requests: Request[] = [];
+  const f = await fixture(
+    async (request) => {
+      if (request.method === "POST") {
+        requests.push(request);
+        return Response.json(resource({ id: oid }));
+      }
+      return Response.json({ items: [], nextCursor: "" });
+    },
+    false,
+    true,
+  );
+  try {
+    await f.verifyAs("B");
+    assert.ok(!document.body.textContent?.includes("重試 1 筆未確認結果"));
+    await f.verifyAs("A");
+    await f.click("重試 1 筆未確認結果");
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].headers.get("Idempotency-Key"), row.key);
+    assert.deepEqual(await requests[0].json(), row.body);
+    assert.equal(window.sessionStorage.getItem(key), null);
+  } finally {
+    window.sessionStorage.removeItem(key);
     await f.dispose();
   }
 });

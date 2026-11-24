@@ -2,7 +2,7 @@
 
 This file adds backend-specific rules to the [repository rules](../AGENTS.md). Directory purposes belong in the [root README](../README.md).
 
-- **MCP tools.** Contributors SHOULD use `gopls` for Go symbol definitions, references, package APIs and diagnostics.
+- **gopls MCP.** Before editing existing Go symbols, contributors MUST use `gopls` to inspect applicable definitions, references and package APIs. After editing Go code, contributors MUST request `gopls` diagnostics for the changed packages before running the required format, test and architecture checks. Direct source search MAY supplement but MUST NOT replace symbol-aware analysis when `gopls` is available. If the `gopls` MCP server is unavailable, contributors MUST report the limitation and use `go doc`, `go list`, targeted source search and Go checks as the fallback.
 
 ## Hexagonal architecture
 

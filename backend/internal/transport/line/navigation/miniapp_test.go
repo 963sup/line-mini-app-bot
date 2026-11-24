@@ -12,7 +12,7 @@ import (
 )
 
 func (trigger Menu) ReplyForEvent(event webhook.EventInterface, appURL, endpointURL string) transport.Reply {
-	return trigger.parseMenu(event).reply(appURL, endpointURL)
+	return trigger.parseMenu(event, trigger.routes()).reply(trigger, appURL, endpointURL)
 }
 func TestMiniAppPostbackReturnsDualEntryFlex(t *testing.T) {
 	t.Setenv("LINE_MINI_APP_WEB_URL", "https://attacker.example/miniapp")
