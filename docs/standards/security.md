@@ -38,11 +38,14 @@ Session cookie 必須使用 Secure、HttpOnly、Path=/、SameSite 與 host-only 
 - MUST authenticate actors through trusted identity sources.
 - MUST enforce authorization at the backend operation boundary.
 - MUST validate resource ownership, membership, and access scope.
+- MUST resolve and validate the resource owner, tenant, Repository, or other authorization scope before executing a scoped operation.
 - MUST apply least privilege and deny unauthorized operations.
 - MUST protect credentials, secrets, tokens, and sensitive data.
 
 - MUST NOT bypass authentication, authorization, signature verification, or resource-scope validation.
 - MUST NOT trust client-supplied identities or permission decisions without verification.
+- MUST NOT infer business resource scope solely from a route, LINE group, request parameter, or client-selected identifier.
+- MUST NOT treat LINE group or room membership as a business permission grant.
 - MUST NOT treat frontend visibility or disabled controls as authorization.
 - MUST NOT expose credentials, secrets, tokens, or sensitive data.
 - MUST NOT introduce insecure fallback behavior that permits unauthorized access.
