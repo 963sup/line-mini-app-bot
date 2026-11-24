@@ -53,6 +53,8 @@
 
 - [開發流程](workflows/development.md)
 - [重構流程](workflows/refactoring.md)
+- [shadcn MCP 元件實作](workflows/shadcn-mcp.md)
+- [Next.js MCP 診斷](workflows/nextjs-mcp.md)
 - [驗證流程](workflows/verification.md)
 - [發布流程](workflows/release.md)
 
