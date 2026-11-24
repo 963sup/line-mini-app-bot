@@ -1,6 +1,6 @@
 # LINE MINI App 身分交換
 
-MINI App 初始化 LIFF 後，將原始 ID token 放在 Authorization Bearer，透過 POST /api/v1/session 交換 Session，JSON body 必須是空物件。Go 向 LINE 驗證 issuer、audience、subject、exp，不接受前端自行提供的 user ID 或 decoded profile。成功回 SessionResponse（user、csrfToken、expiresAt）與 Cookie。
+MINI App 初始化 LIFF 後，將原始 ID token 放在 Authorization Bearer，透過 `POST /api/v1/session` 交換 Session。Go 向 LINE 驗證 issuer、audience、subject、exp，不接受前端自行提供的 user ID 或 decoded profile。請求、回應與 Cookie 的 HTTP 契約以 [OpenAPI 身分契約](../../../api/contract/identity/identity.yaml)為準。
 
 Messaging API Webhook 使用 LINE 簽章；MINI App 登入使用環境所選 Channel 的 token。公開設定、靜態資產及登入頁不授予業務權限。
 

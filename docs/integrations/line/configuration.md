@@ -2,7 +2,7 @@
 
 <a id="line-環境變數規格"></a>
 
-[所有名稱使用全大寫與底線。依產品區分前綴，不共用模糊的 LINE_CHANNEL_* 名稱。 > Messaging API 三項與 MINI App 環境選擇已供接入能力讀取與檢查。 > Service Message token 尚未使用。](setup.md)
+環境變數使用全大寫與底線，依產品區分前綴，不共用模糊的 `LINE_CHANNEL_*` 名稱。Messaging API 三項與 MINI App 環境選擇已供接入能力讀取與檢查；Service Message token 尚未使用。接入與部署見 [LINE 設定指南](setup.md)。
 
 <a id="1-命名與來源"></a>
 

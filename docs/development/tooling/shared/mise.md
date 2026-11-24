@@ -1,5 +1,11 @@
 # mise ownership
 
+## 環境初始化與工作目錄
+
+從儲存庫根目錄執行 `bash scripts/bootstrap.sh`（預設 Cloud 模式）或 `bash scripts/bootstrap.sh core`（本機開發），再以 `bash scripts/tooling/tool-exec.sh mise run check-config` 檢查設定。兩種初始化只準備該模式的工具與 workspace 依賴；套件下載及遠端 MCP 需要網路。按需使用的 MCP 另以本頁任務安裝，並依[MCP 診斷](../../environment/troubleshooting.md#設定與-mcp-診斷)確認聊天實際載入。`GITHUB_MCP_TOKEN` 由主機於執行期安全注入。[Codex Cloud 手冊](../../environment/codex-cloud.md)維護 Install script、更新與新聊天驗收。
+
+前端、契約與 `pnpm` 從儲存庫根目錄執行；直接執行 `go` 前進入 `backend/`。Go race 檢查需要 C 編譯器，容器建置需要 Docker daemon。VS Code 的 Go／gopls 工作使用專案 wrapper，開啟 Go 檔前執行 `Go: setup`。[驗收矩陣](../testing/commands.md)決定本次應跑哪些檢查。
+
 ## Go development loop
 
 Go 工具準備與開發操作見[後端指南](../backend/go-development.md#go-development-loop)。

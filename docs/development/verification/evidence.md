@@ -28,6 +28,6 @@ Report LINE iOS/Android and external-browser acceptance separately; mocks do not
 - 依風險提供成功、越權、非法狀態及重要寫入的重送／併發證據，說明失敗不應改變的資料。
 - 分別記錄 Graphify 範圍、Repomix 遺漏、Context7／官方文件來源與版本，以及實際執行、跳過或待確認項目。
 
-測試與回歸證據依[工程決策與交付要求](../../../AGENTS.md#工程決策與交付要求)。文件與設定變更所需檢查統一依[驗收矩陣](../tooling/testing/commands.md#變更驗收矩陣)，不以連結與 whitespace 檢查取代 Markdown 格式與語法驗證。
+測試與回歸證據依[工程決策與交付要求](../../../AGENTS.md#工程決策與交付要求)。文件與設定變更依[驗收矩陣](../tooling/testing/commands.md#變更驗收矩陣)選擇適用檢查；連結與 whitespace 檢查的結果不代表 Markdown 格式與語法已驗證。
 
 [驗收矩陣](../tooling/testing/commands.md#變更驗收矩陣) · [驗收索引](./)

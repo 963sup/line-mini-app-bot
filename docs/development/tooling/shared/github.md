@@ -1,6 +1,8 @@
 # GitHub 共用操作
 
-查閱儲存庫、分支、提交、Issue、PR 與 CI，並核對本地與已發布的狀態。MCP 接線及工具限制見 [GitHub MCP](../agents/github.md)；提交、推送與授權由[發布流程](../../workflow/publication.md#repository-publication)統一維護。
+查閱儲存庫、分支、提交、Issue、PR 與 CI 時，優先使用當前聊天曝光的 GitHub MCP。專案服務透過 `GITHUB_MCP_TOKEN` 驗證，實際能力須依主機工具 schema 與目標儲存庫權限核對。提交、推送與授權依[發布流程](../../workflow/publication.md#repository-publication)。
+
+需保留已驗證的本地 SHA 時，先確認遠端已有該提交，再使用可指定 SHA 的 ref 更新工具。重新寫檔或建立提交可能產生不同 SHA。使用快轉更新；競爭更新保護如 `expected_sha` 須核對實際工具 schema。[GitHub REST ref 更新](https://docs.github.com/en/rest/git/refs#update-a-reference) · [MCP 診斷](../../environment/troubleshooting.md#設定與-mcp-診斷)
 
 ## 確認來源與交付狀態
 
@@ -13,7 +15,7 @@ Git CLI 的本地狀態與遠端資料不能互相替代；工具回傳成功也
 
 ## GitHub Actions／PR 檢查失敗
 
-使用者要求「修理紅燈」、「CI 失敗」或「PR 檢查失敗」時，MUST 優先使用當前聊天可用的 GitHub MCP 查證，再依[除錯流程](../../workflow/debugging.md)修正。
+使用者要求「修理紅燈」、「CI 失敗」或「PR 檢查失敗」時，MUST 優先使用當前聊天可用的 GitHub MCP 查證，再依[除錯流程](../../workflow/implementation.md#diagnostic-loop)修正。
 
 1. 確認儲存庫、PR／分支、失敗提交 SHA、workflow run／attempt、job 與 step。讀取對應檢查結果及失敗日誌，不以舊提交的失敗推斷目前狀態。
 2. 依日誌區分程式回歸、測試、建置、設定、權限或外部服務問題；對照該提交的來源與工作區差異，定位根因後做最小必要修正。不得以停用檢查、削弱測試或反覆重跑掩蓋失敗。

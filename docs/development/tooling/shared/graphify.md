@@ -1,6 +1,6 @@
-# Graphify CLI
+# Graphify 圖譜查詢與更新
 
-通用建圖、查詢與更新由本頁維護；代理選用與 MCP 診斷見 [Graphify MCP](../agents/graphify.md)。
+關係不清楚時優先使用已曝光的 Graphify MCP；使用其他主機的圖譜時，先核對儲存庫與索引版本。AST 可能省略 TOML 或執行期關係，查得路徑後用原碼或 gopls 核對。CLI 查詢成功而 MCP 初始化逾時時，先確認本機服務回傳 JSON-RPC，再依[MCP 診斷](../../environment/troubleshooting.md#設定與-mcp-診斷)核對主機與索引。
 
 ## 安裝與設定
 

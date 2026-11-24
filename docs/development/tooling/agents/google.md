@@ -39,7 +39,9 @@ CLI 登入、ADC 與執行環境設定見 [Google Cloud CLI](../shared/gcloud.md
 
 依[共用登入流程](../shared/gcloud.md#gcloud-sign-in)執行；由目前代理持有同一程序並呈現驗證網址，不啟動子代理處理 OAuth。
 
-## Verification at installation
+## Historical installation evidence
+
+The following records an earlier installation check. It does not describe the current account, credentials, host exposure or cloud permissions; verify those for the current task.
 
 - gcloud MCP: initialization and tools/list passed; one tool exposed.
 - gcloud: installed; no active authenticated account was found.

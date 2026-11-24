@@ -15,25 +15,7 @@ Use six fields rather than forwarding the full conversation or raw logs:
 | Checks      | Exact commands already run, actual results and required checks still pending                                                      |
 | Open issues | Missing evidence, conflicts, failures, and the next executable step or decision owner                                             |
 
-**開發與維運指引**
-
-```mermaid
-flowchart TB
-  E["收到來源、查證、工具或檢查證據"] --> VALID{"版本、工作樹、涵蓋範圍、依賴與工具設定仍適用，且無衝突？"}
-  VALID -->|是，分析報告| HASH{"commit、dirty state、來源 SHA 與契約及產物雜湊仍匹配？"}
-  HASH -->|是| REUSE
-  HASH -->|否| REFRESH
-  VALID -->|是，其他證據| REUSE["沿用證據；不因換人重讀、重查或重跑整套檢查"]
-  VALID -->|否| REFRESH["只更新失效或缺少的證據"]
-  REFRESH --> TOOL{"工具操作失敗？"}
-  TOOL -->|否| USE["記錄來源、範圍、實際結果與限制"]
-  TOOL -->|是| DIAG["記錄 host、環境、server 設定與失敗階段"]
-  DIAG --> RETRY{"相關條件改變，或已明確指派有界診斷？"}
-  RETRY -->|是| REFRESH
-  RETRY -->|否| FALLBACK["沿用已診斷失敗與文件 fallback；不重複逾時"]
-  REUSE --> USE
-  FALLBACK --> USE
-```
+沿用版本、工作樹、範圍及工具設定仍適用的證據；分析報告另核對來源與產物雜湊。只更新失效或缺少的證據；工具失敗時記錄環境與失敗階段，條件未變時不反覆重試。
 
 適用邊界：
 
@@ -75,7 +57,7 @@ Open issues｜先讀 NeedsDecision 對既有核准紀錄的判斷，再對照交
 ## Sidebar handoff
 
 1. **交出去。** 使用者要求交接時，直接在目前聊天輸出[可複製的六欄摘要](#六欄交接範本)。Goal 寫完成條件，Open issues 以接手後第一個動作收尾；已完成就寫「無待辦」。發送到另一個聊天需有使用者指定的目標及主機支援；只產生摘要時，交付狀態寫「摘要已備妥」。
-2. **按需附原始碼。** 附上接手所需的路徑與符號。需要跨檔來源包時，按 [Repomix 主題打包流程](../tooling/agents/repomix-skills.md#按需打包任務來源)產生並核對內容。在 Evidence 填實際產物位置及涵蓋範圍。工具受阻時仍交付六欄，將缺口列在 Open issues。
+2. **按需附原始碼。** 附上接手所需的路徑與符號。需要跨檔來源包時，按 [Repomix 主題打包流程](../tooling/shared/repomix.md#產生任務專用參考包)產生並核對內容。在 Evidence 填實際產物位置及涵蓋範圍。工具受阻時仍交付六欄，將缺口列在 Open issues。
 3. **接手。** 先核對工作區、分支、提交及相關已修改和未追蹤檔案。不同 checkout 須確認內容已帶到，參考包也須可讀；只收到 SHA 或另一台機器的本機路徑時，標記缺少的內容。沿用仍有效的證據，從 Open issues 的第一個動作開始。接手者依本次指示確認範圍與授權。
 
 ## Reading and handoff

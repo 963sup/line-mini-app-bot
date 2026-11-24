@@ -50,7 +50,7 @@ Samber 技能依目前專案需求保留通用 Go 開發指引。已移除目前
 CLI 來源／內容 hash 記錄在根目錄 skills-lock.json。golang-gopls 早期手動安裝的 revision 為 bb1d43d98a3f8ab639a0042f90d0ec524e39a477，現行安裝以鎖檔內容雜湊為準。
 `--all` 同時選擇其他 agent 目標；本 repo 提交 canonical .agents/skills，Claude/Eve 額外副本留在本機。
 
-本機使用者層已安裝（不隨 Git 複製；當前聊天載入與實際功能尚未驗收）：
+先前使用者層安裝紀錄如下；不隨 Git 複製，亦不表示目前環境仍已安裝或聊天已載入：
 
 ```bash
 codex plugin marketplace add wshobson/agents

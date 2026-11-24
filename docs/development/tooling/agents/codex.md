@@ -15,3 +15,9 @@
 Skills 與 MCP 由 [.codex/config.toml](../../../../.codex/config.toml) 維護；工具版本與任務由 [mise.toml](../../../../mise.toml) 維護。設定影響後續載入此 checkout 的工作階段；目前聊天的工具曝光仍須依[載入檢查](../../environment/troubleshooting.md#設定與-mcp-診斷)核對。執行 `bash scripts/tooling/tool-exec.sh python3 scripts/check/check-config.py` 驗證專案設定及能力指引。
 
 VS Code 從儲存庫根目錄開啟，使用「Tasks: Run Task」執行[工作區任務](../../../../.vscode/tasks.json)：Go 環境準備、環境診斷、Go 應用檢查與儲存庫設定檢查。
+
+## Codex 與 OpenAI 文件查證
+
+查 Codex agent、MCP、設定或 OpenAI API 行為時，使用目前聊天可用的 `openaiDeveloperDocs` `search_openai_docs`、`fetch_openai_doc`。此遠端服務需要網路；網站回應 403 不代表 MCP 無法使用。工具未曝光時，依[MCP 載入診斷](../../environment/troubleshooting.md#設定與-mcp-診斷)處理，不把服務設定或安裝視為聊天已載入。
+
+主機提供的 MCP 與權限仍適用；可選服務失敗時記錄實際限制。設定語法依[官方 MCP 文件](https://developers.openai.com/codex/mcp)查證。

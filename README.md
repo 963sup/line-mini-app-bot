@@ -66,7 +66,7 @@ bash scripts/tooling/tool-exec.sh pnpm test
 bash scripts/tooling/tool-exec.sh pnpm dev
 ```
 
-For Cloud and MCP installation details and limitations, see the [toolchain setup guide](docs/development/tooling/shared/toolchain-setup.md). Set the Codex Cloud install script to `scripts/bootstrap.sh`; without arguments, it uses cloud mode. The local commands above use core mode to install Go, web dependencies and the Mermaid CLI. Optional MCP tools are installed separately from bootstrap. Firestore Toolbox requires Google ADC; GKE MCP requires the local gke-mcp executable.
+For Cloud and MCP installation details and limitations, see the [mise toolchain guide](docs/development/tooling/shared/mise.md#環境初始化與工作目錄). Set the Codex Cloud install script to `scripts/bootstrap.sh`; without arguments, it uses cloud mode. The local commands above use core mode to install Go, web dependencies and the Mermaid CLI. Optional MCP tools are installed separately from bootstrap. Firestore Toolbox requires Google ADC; GKE MCP requires the local gke-mcp executable.
 
 Verify tool installation, MCP handshakes and availability to the chat host separately. Cached artifacts do not establish that a fresh environment has been verified. Tool versions and non-secret environment settings are maintained in `mise.toml`; use `scripts/tooling/tool-exec.sh` for routine commands.
 
@@ -146,7 +146,7 @@ When inconsistencies are found, follow the [Graphify/Repomix/Context7 compliance
 
 ## Select capabilities by task
 
-The current agent selects and reads applicable guidance below for each chat. [Root AGENTS.md](AGENTS.md#從這裡開始) owns mandatory reading. Tasks may use multiple capabilities without reading all guides or starting subagents.
+Select guidance below when it helps with the task. [Root AGENTS.md](AGENTS.md#從這裡開始) defines the common rules; module instructions apply to their paths.
 
 | Task                                        | Guidance                                                                                                                                   |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |

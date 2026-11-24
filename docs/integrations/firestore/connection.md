@@ -10,7 +10,7 @@ Go server SDK 使用應用身分及 IAM，不能依賴瀏覽器 Security Rules �
 
 每個程序明確選擇專案與 database，沿組裝入口共用適當作用域的 client，傳遞取消及期限，由建立者負責關閉。唯讀連線檢查只能證明指定讀取路徑，不能證明寫入權限、交易、索引或恢復能力。
 
-Cloud Run 使用附加至服務的執行身分與對應 IAM 權限。出勤持久化由[出勤 Firestore adapter](../../../backend/internal/business/attendance/adapter/firestore/)負責；需要原子讀改寫時使用交易，callback 可能重跑，外部副作用須放在交易外。瀏覽器 Session 另依[持久化規格](browser-session.md)與[續期契約](../../contracts/identity.md)維護。
+Cloud Run 使用附加至服務的執行身分與對應 IAM 權限。出勤持久化由[出勤 Firestore adapter](../../../backend/internal/business/attendance/adapter/firestore/)負責；交易與外部副作用依[交易規則](consistency.md#firestore-交易約束)。瀏覽器 Session 另依[持久化規格](browser-session.md)與[續期契約](../../contracts/identity.md)維護。
 
 <a id="既有整合說明"></a>
 
@@ -22,9 +22,7 @@ Cloud Run 使用附加至服務的執行身分與對應 IAM 權限。出勤持�
 
 ## 索引宣告
 
-- [部署用索引集中於 firestore.indexes.json。搬移設定檔不會建立索引或切換讀取模式；套用到目標資料庫仍依發布與資料回填流程執行。](../../../firestore.indexes.json)
-
-- [未來的通用資料模型見資料契約提案。](../../proposals/firestore-data-contracts.md#邏輯關係非資料庫外鍵)
+索引宣告、部署與資料回填的限制由[查詢與索引](querying.md#索引與部署)維護。未來的通用資料模型見[資料契約提案](../../proposals/firestore-data-contracts.md#邏輯關係非資料庫外鍵)。
 
 ## 官方來源與驗證範圍
 

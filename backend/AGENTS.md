@@ -2,7 +2,7 @@
 
 This file adds backend-specific rules to the [repository rules](../AGENTS.md). Directory purposes belong in the [root README](../README.md#巢狀目錄導覽). Detailed path constraints are indexed in [module constraints](../docs/standards/module-constraints.md).
 
-- **MCP tools.** Contributors SHOULD use `gopls` for Go symbol definitions, references, package APIs and diagnostics. If a required server is unavailable, contributors MUST follow the [MCP registration and recovery steps](../AGENTS.md#mcp-selection-and-registration).
+- **MCP tools.** Contributors SHOULD use `gopls` for Go symbol definitions, references, package APIs and diagnostics.
 
 ## Hexagonal architecture
 

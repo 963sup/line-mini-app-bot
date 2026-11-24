@@ -16,7 +16,9 @@ Web 業務操作遵循 **Frontend → API → Backend**。每個 API 操作以�
 
 ## 模型與語意
 
-開發與維運指引
+每個業務操作 MUST 說明誰（Actor）對哪個資源（Resource）執行什麼操作（Action），以及系統依據哪些條件允許或拒絕（Authorization）。
+
+若操作取決於資源狀態或會改變狀態，MUST 說明適用的前置狀態與執行後狀態（State）。若需記錄或通知已發生的業務事實，MUST 指明對應的領域事件（Event）。
 
 ```mermaid
 flowchart LR

@@ -50,7 +50,7 @@
 
   - [ADR 0002](../../decisions/0002-baseline.md)
 
-  - [分階段落地](../../development/environment/verification.md)
+  - [環境與整合驗收](../../development/environment/verification.md)
 
   - [基礎出勤](../../domains/attendance/design.md)
 

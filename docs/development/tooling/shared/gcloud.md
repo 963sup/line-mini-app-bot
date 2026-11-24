@@ -4,7 +4,7 @@
 
 ## 安裝與設定
 
-工具版本及環境由根目錄 `mise.toml` 維護。從儲存庫根目錄透過 wrapper 執行 `mise run install-cloud` 準備工具；初始化模式見[工具鏈指南](toolchain-setup.md)。登入及 ADC 依任務需要準備，不因安裝完成就宣稱帳號、IAM 或部署驗收成功。
+工具版本及環境由根目錄 `mise.toml` 維護。從儲存庫根目錄透過 wrapper 執行 `mise run install-cloud` 準備工具；初始化模式見[mise 工具鏈](mise.md#環境初始化與工作目錄)。登入及 ADC 依任務需要準備，不因安裝完成就宣稱帳號、IAM 或部署驗收成功。
 
 ## 操作與憑證邊界
 

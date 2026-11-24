@@ -1,53 +1,11 @@
-# context7
+# Context7 文件查證
 
-Primary roles: Explorer, Implementer, Tester.
+查套件、語言、框架、SDK 或工具行為時，先對照 `go.mod`、套件 manifest、鎖檔或 `mise.toml` 的版本，再選目前聊天實際曝光的工具與 schema。沿用版本和範圍仍適用的既有證據；查詢時不傳機密或私人原始碼。
 
-## When to use
-
-Look up version-matched library, language, framework, SDK and tool documentation.
-
-## Prerequisites and configuration
-
-Remote service; check current schemas in tools/list. Compare documentation versions with the relevant package manifest, lockfile, go.mod or mise.toml.
-
-## Operation
-
-Reuse applicable answers from earlier handoffs. Check the documented behavior against the repository manifest and current source before applying it.
-
-Call resolve-library-id first, then query-docs with its exact library ID and a focused version-aware question. Return source URLs, documented versions and applicability limits. If the installed version is unavailable, state the mismatch rather than treating another version as verified. Do not send secrets or private source in queries.
+先呼叫 `resolve-library-id`，再以精確 library ID 和聚焦的版本問題呼叫 `query-docs`。記錄來源 URL、文件版本與適用限制；找不到已安裝版本時明列落差，不把其他版本當成已驗證。文件結論還須回到目前來源及實際行為核對。
 
 ## Anonymous fallback
 
-This procedure addresses a quota error returned by an exposed tool. If the native tool is missing, follow the [root exposure procedure](../../../../AGENTS.md).
+優先使用主機 plugin。它因配額失敗或未提供時，若主機已曝光專案的匿名 Context7 服務，先在該連線重新解析 library ID，再重試一次；再次限流即停止並記錄阻塞。兩個連線彼此獨立，專案服務不使用 API key 或憑證標頭。工具未曝光時依[MCP 診斷](../../environment/troubleshooting.md#設定與-mcp-診斷)處理，不把配額失敗當成設定缺失。
 
-**開發與維運指引**
-
-```mermaid
-flowchart TB
-  P{"Host plugin available?"} -->|Yes| Q["Use plugin"]
-  Q -->|Quota exhausted| H{"Project server exposed by host?"}
-  P -->|No| H
-  H -->|Yes| A["Use anonymous server, retry once after plugin quota failure"]
-  H -->|No| M["Report missing project connection and required host configuration"]
-  A -->|Rate limited| S["Stop and report blocker"]
-```
-
-The two connections are separate. The project server uses no API key or credential header. Resolve the library ID on the selected connection before querying documentation.
-
-## Verification and failures
-
-Follow [MCP diagnostics](../../environment/troubleshooting.md#設定與-mcp-診斷) with the service name `context7`.
-
-## Source routing and evidence
-
-Follow the [root source-verification policy](../../../../AGENTS.md#mandatory-documentation-verification),
-including its Codex, LINE and Google Cloud official-source routes. Context7 does
-not replace those sources or define product requirements. Role handoffs follow
-[the agent workflow](../../workflow/task-start.md#delegation-depth-and-role-selection).
-If the service or required evidence is unavailable, report the blocker and leave
-the affected decision pending. A successful query does not prove application
-behavior or host loading.
-
-## 歷史查證範圍
-
-2026-11-07 曾透過 Context7 核對 Go 命名與建構函數、LINE 事件來源、模式、retry key 與 Reply，以及 Firestore 交易重試與刪除。當時來源 ID 為 `/websites/go_dev_doc`、`/line/line-openapi`、`/websites/cloud_google_firestore_native`。目前的版本、資格及期限須依適用文件與實測重查。
+官方來源路由依[根指引](../../../../AGENTS.md#mandatory-documentation-verification)。Context7 不定義產品需求；查詢成功也不代表主機載入或應用行為已驗證。缺少必要證據時，記錄阻塞並保留受影響決策待確認。

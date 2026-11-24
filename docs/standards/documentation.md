@@ -2,19 +2,6 @@
 
 此規範適用於所有角色編寫、修改或審查的自有 Markdown，含 README、AGENTS 與專題文件。先確認讀者需要做什麼，以及哪一份規格、實作或測試能回答問題。
 
-開發與維運指引
-
-```mermaid
-flowchart TB
-  I["Identify：確認目的、讀者、範圍、權威來源與檔案所有權"]
-  I --> A["Analyze：辨識重複、歧義、矛盾、過時內容與缺少證據的敘述"]
-  A --> C["Consolidate：合併重複至權威位置、統一術語、更新必要引用"]
-  C --> S["Simplify：移除冗餘文字與結構，保留完整意圖"]
-  S --> O["Organize：依重要性與操作順序組織；分離背景、範例與參考"]
-  O --> V["Validate：核對語意、相對連結、錨點、指令、來源與完整性；記錄實際檢查"]
-  V --> P["Preserve：對照原文與來源，確認有效知識、必要資訊與重要限制均保留"]
-```
-
 ## 適用範圍與要求等級
 
 MUST 表示必要，MUST NOT 表示禁止，SHOULD 表示有具體理由才可偏離，MAY 表示可選。偏離 SHOULD 時 MUST 說明理由及影響。
@@ -23,7 +10,7 @@ MUST 表示必要，MUST NOT 表示禁止，SHOULD 表示有具體理由才可�
 
 ## 分類、命名與權威
 
-依[目錄責任](../)選擇存放位置。跨模組文件放在對應分類，模組入口和局部指引與程式碼同目錄。每頁由對應模組或分類的維護者負責；跨模組規則的文件變更由受影響模組共同審閱。
+依[目錄責任](../)選擇存放位置。跨模組文件放在對應分類，模組入口和局部指引與程式碼同目錄。每項規則有唯一權威位置，其他文件引用該來源。每頁由對應模組或分類的維護者負責；跨模組規則的文件變更由受影響模組共同審閱。
 
 | 文件類型   | 權威與存放位置                                                                                                                                                             |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -81,8 +68,6 @@ Mermaid 圖 MUST 使用主題 Markdown 內的 `mermaid` 程式碼區塊保存。
 
 ## 增量驗證
 
-1. 用 `git diff --name-only` 找出已追蹤的變更，用 `git status --short` 補查新增頁面。核對相對連結、標題錨點、來源路徑與引用。搬移頁面或更名時搜尋舊目的地，再從分類索引走一次。
-2. [文件圖](../development/tooling/shared/graphify.md#docs-only-graph)可查標題與本機連結，錨點需另查。程式 AST 用於定位實作。更改 Mermaid 原始內容時，以[專案鎖定的 CLI](../development/tooling/shared/mermaid.md)渲染到暫存檔，再用 handler、契約或 ADR 核對條件與方向。
-3. 從根目錄執行 `bash scripts/tooling/tool-exec.sh pnpm docs:format` 套用排版，並執行 `bash scripts/tooling/tool-exec.sh pnpm docs:check` 檢查格式與語法。CI 亦執行現有的本地連結及錨點檢查。工具範圍含版本控制內及新增的自有 Markdown，上游技能、快照、授權原文及 `docs/references/ddd/` 排除於排版與 lint。
-4. 審閱本次 diff 並執行 `git diff --check`。涉及設定時執行 `bash scripts/tooling/tool-exec.sh python3 scripts/check/check-config.py`。配置檢查只涵蓋它明定的項目。
-5. 對照來源檢查命令語法、參數及前置條件。文件驗證不觸發需要憑證的外部寫入或部署。交付時分清「已核對來源」與「已執行」，列明修正範圍、證據、實際檢查與剩餘限制。
+依變更核對受影響的連結、錨點、來源與命令。文件搬移時搜尋舊路徑；修改 Mermaid 時依[圖表工具指南](../development/tooling/shared/mermaid.md)驗證。按需使用 `pnpm docs:check` 與 `git diff --check`；設定變更依[驗收矩陣](../development/tooling/testing/commands.md)檢查。交付時記錄實際檢查與限制。
+
+CI 的[版本庫檢查](../../.github/workflows/check.yml)執行文件格式、markdownlint 與設定檢查；本機檢查依變更範圍選擇。自動化涵蓋範圍與排除項目以[檢查腳本](../../scripts/check/markdown.py)和設定檢查實作為準，不以執行成功推定所有規格或外部連結均已驗證。
