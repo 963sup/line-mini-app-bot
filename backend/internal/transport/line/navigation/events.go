@@ -21,7 +21,6 @@ type menuRequest struct {
 type Menu struct {
 	StickerPackageID, StickerID string
 	PrivateActions              []PrivateAction
-	Help                        func(bool, string, string, ...string) messaging_api.MessageInterface
 	QuickMenu                   func(bool, string, ...string) messaging_api.MessageInterface
 }
 
@@ -113,16 +112,12 @@ func (trigger Menu) parseMenu(event webhook.EventInterface, menuRoutes routes) m
 func (m menuRequest) reply(menu Menu, appURL, endpointURL string, ids ...string) transport.Reply {
 	reply := transport.Reply{Token: m.token}
 	switch m.command {
-	case "/menu":
+	case "/menu", "/help", "private-help":
 		if menu.QuickMenu != nil {
 			reply.Message = menu.QuickMenu(m.groupID != "", appURL, ids...)
 		}
 	case "/miniapp":
 		reply.Message = MiniApp(appURL, endpointURL, ids...)
-	case "/help", "private-help":
-		if menu.Help != nil {
-			reply.Message = menu.Help(m.groupID != "", appURL, endpointURL, ids...)
-		}
 	default:
 		if m.textReply != "" {
 			reply.Message = &messaging_api.TextMessage{Text: m.textReply}

@@ -125,8 +125,12 @@ func TestHistorySingleGroupAndPostbackAuthorization(t *testing.T) {
 	if err != nil || !handled || s.queriedGroup != "" {
 		t.Fatalf("single group: %v %v %s", err, handled, s.queriedGroup)
 	}
-	if _, ok := reply.Message.(*messaging_api.FlexMessage); !ok {
-		t.Fatal("expected result card")
+	message, ok := reply.Message.(*messaging_api.TemplateMessage)
+	if !ok {
+		t.Fatal("expected month selection template")
+	}
+	if _, ok := message.Template.(*messaging_api.CarouselTemplate); !ok {
+		t.Fatal("expected month selection carousel")
 	}
 	for _, group := range []string{"group-a", "forbidden"} {
 		s.queriedGroup = ""

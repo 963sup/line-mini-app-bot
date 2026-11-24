@@ -15,9 +15,13 @@ func TestTemplateCommand(t *testing.T) {
 	if err != nil || !handled || reply.Token != "token" {
 		t.Fatal(reply, handled, err)
 	}
-	text, ok := reply.Message.(*messaging_api.TextMessage)
-	if !ok || text.Text != "開啟物件範本：https://miniapp.line.me/123-example/object-templates" {
+	message, ok := reply.Message.(*messaging_api.TemplateMessage)
+	if !ok {
 		t.Fatal(reply.Message)
+	}
+	action := message.Template.(*messaging_api.ButtonsTemplate).Actions[0].(*messaging_api.UriAction)
+	if action.Label != "開啟物件範本" || action.Uri != "https://miniapp.line.me/123-example/object-templates" {
+		t.Fatal(action)
 	}
 	msg.DeliveryContext = &webhook.DeliveryContext{IsRedelivery: true}
 	if _, handled, _ := handler.Handle(context.Background(), msg); handled {

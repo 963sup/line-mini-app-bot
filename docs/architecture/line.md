@@ -1,5 +1,7 @@
 # LINE 後端責任與驗收
 
+互動呈現、名稱、Action、私聊／群組適用規則與 Flex 例外，以 [LINE 互動標準](../standards/line-interactions.md) 為唯一權威來源；本文件只定義後端所有權與驗收邊界。
+
 ## 修改入口
 
 | 需求                                 | 權威實作                                                               | 行為與驗收                                                                                                                                                                                                   |
@@ -38,6 +40,17 @@
 - **間接引用**包含 Enterprise、Membership、Organization、Project、Repository、Team 的 ID 驗證、查詢與 Firestore 程式。格式由 `lineid` 提供，判斷誰能操作資源由領域維護。共用 OpenAPI 產物及 HTTP 契約只描述欄位；文字生成提示中出現 LINE 字樣也不構成 LINE API 整合。
 
 ## 結構與量測
+
+### 持續架構驗收
+
+`backend/line_interaction_architecture_test.go` 將下列邊界固定為自動驗收：
+
+- LINE 回覆、推送與 Rich Menu 發布操作只能位於 `platform/line`。
+- Postback query 只能由 `transport/line/postback.go` 解析。
+- `platform/line` 不得反向依賴 transport 或 business；`transport/line` 不得依賴 business。
+- 各業務領域的 `adapter/line` 不得直接依賴另一個業務領域。
+
+這些檢查只限制責任越界，不建立 Message、Action、Handler 或業務模型的第二套抽象。
 
 ### Channel Adapter 擴充驗收
 

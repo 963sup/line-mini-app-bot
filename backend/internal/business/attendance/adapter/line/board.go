@@ -36,7 +36,12 @@ func (b *Attendance) groupStatus(ctx context.Context, group, user, command strin
 		if err != nil {
 			return nil, err
 		}
-		return text(fmt.Sprintf("本群出勤（%s）\n上班中：%d 人\n休息中：%d 人\n今日已下班：%d 人\n更新：%s\n依打卡紀錄計算；跨日未結束班次仍算上班／休息中。未打卡不代表缺勤。\n輸入「漏下班」檢查本人未結束班次。", day.Format("2006-01-02"), board.Working, board.Resting, board.Finished, board.AsOf.In(zone).Format("2006-01-02 15:04:05"))), nil
+		return &messaging_api.FlexMessage{AltText: "群組出勤看板", Contents: &messaging_api.FlexBubble{Body: &messaging_api.FlexBox{Layout: "vertical", Contents: []messaging_api.FlexComponentInterface{
+			&messaging_api.FlexText{Text: "群組出勤看板", Weight: "bold", Size: "xl"},
+			&messaging_api.FlexText{Text: day.Format("2006-01-02") + "｜臺灣時間", Color: "#666666", Margin: "sm"},
+			&messaging_api.FlexText{Text: fmt.Sprintf("上班中　%d 人\n休息中　%d 人\n今日已下班　%d 人", board.Working, board.Resting, board.Finished), Wrap: true, Margin: "md"},
+			&messaging_api.FlexText{Text: "更新：" + board.AsOf.In(zone).Format("2006-01-02 15:04:05") + "\n依打卡紀錄計算；跨日未結束班次仍算上班／休息中。未打卡不代表缺勤。輸入「漏下班」檢查本人未結束班次。", Wrap: true, Size: "sm", Color: "#666666", Margin: "md"},
+		}}}}, nil
 	}
 	active, err := store.CurrentShift(ctx, group, user)
 	if err != nil {

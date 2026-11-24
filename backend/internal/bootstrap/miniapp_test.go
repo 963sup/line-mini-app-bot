@@ -62,8 +62,8 @@ func TestMiniAppProfiles(t *testing.T) {
 			if err != nil || !handled {
 				t.Fatalf("mini app navigation: %v", err)
 			}
-			card := reply.Message.(*messaging_api.FlexMessage)
-			action := card.Contents.(*messaging_api.FlexBubble).Footer.Contents[0].(*messaging_api.FlexButton).Action.(*messaging_api.UriAction)
+			card := reply.Message.(*messaging_api.TemplateMessage)
+			action := card.Template.(*messaging_api.ButtonsTemplate).Actions[0].(*messaging_api.UriAction)
 			if action.Uri != link || action.AltUri == nil || action.AltUri.Desktop != endpoint {
 				t.Fatal("each profile must keep its permalink and use the selected desktop endpoint")
 			}

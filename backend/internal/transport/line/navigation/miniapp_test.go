@@ -14,16 +14,16 @@ import (
 func (trigger Menu) ReplyForEvent(event webhook.EventInterface, appURL, endpointURL string) transport.Reply {
 	return trigger.parseMenu(event, trigger.routes()).reply(trigger, appURL, endpointURL)
 }
-func TestMiniAppPostbackReturnsDualEntryFlex(t *testing.T) {
+
+func TestMiniAppPostbackReturnsDualEntryButtonsTemplate(t *testing.T) {
 	t.Setenv("LINE_MINI_APP_WEB_URL", "https://attacker.example/miniapp")
 	e := webhook.PostbackEvent{Mode: "active", ReplyToken: "reply", Source: webhook.GroupSource{GroupId: "group"}, Postback: &webhook.PostbackContent{Data: "action=miniapp"}}
 	reply := (Menu{}).ReplyForEvent(e, "https://miniapp.line.me/123-test?route=projects", "https://app.example/miniapp?view=desktop")
-	card, ok := reply.Message.(*messaging_api.FlexMessage)
+	card, ok := reply.Message.(*messaging_api.TemplateMessage)
 	if !ok || reply.Token != "reply" {
-		t.Fatal("MINI App postback must return a Flex card")
+		t.Fatal("MINI App postback must return a buttons template")
 	}
-	bubble := card.Contents.(*messaging_api.FlexBubble)
-	action := bubble.Footer.Contents[0].(*messaging_api.FlexButton).Action.(*messaging_api.UriAction)
+	action := card.Template.(*messaging_api.ButtonsTemplate).Actions[0].(*messaging_api.UriAction)
 	if action.Uri != "https://miniapp.line.me/123-test?route=projects" || action.AltUri == nil || action.AltUri.Desktop != "https://app.example/miniapp?view=desktop" {
 		t.Fatal("mobile and desktop destinations must remain separate")
 	}

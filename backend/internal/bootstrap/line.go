@@ -56,7 +56,7 @@ func registerLINE(mux *http.ServeMux, config messagingConfig, bot *lineplatform.
 			punches.Handler(),
 			weather.Handler(client),
 			objectline.Handler(appURL),
-			navigation.Menu{StickerPackageID: os.Getenv("LINE_MENU_STICKER_PACKAGE_ID"), StickerID: os.Getenv("LINE_MENU_STICKER_ID"), Help: helpMenu, QuickMenu: quickMenu, PrivateActions: attendance.NavigationActions()}.Handler(appURL, endpointURL, repositoryID),
+			navigation.Menu{StickerPackageID: os.Getenv("LINE_MENU_STICKER_PACKAGE_ID"), StickerID: os.Getenv("LINE_MENU_STICKER_ID"), QuickMenu: quickMenu, PrivateActions: attendance.NavigationActions()}.Handler(appURL, endpointURL, repositoryID),
 		},
 	}
 	if repositories != nil {

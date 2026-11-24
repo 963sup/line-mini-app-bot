@@ -43,10 +43,11 @@ func CreationHandler(store Conversation, appURL string) transport.Handler {
 		if e != nil || res == nil {
 			return transport.Reply{}, false, e
 		}
-		message := &messaging_api.TextMessage{Text: res.Text}
+		var message messaging_api.MessageInterface = &messaging_api.TextMessage{Text: res.Text}
 		if res.ID != "" {
+			resultText := res.Text
 			if res.Kind == "organization" {
-				message.Text += "\n\n邀請成員時，請傳送：\n邀請加入 " + res.ID
+				resultText += "\n\n邀請成員時，請傳送：\n邀請加入 " + res.ID
 			}
 			link, e := url.Parse(appURL)
 			if e == nil && link.Scheme == "https" && link.Host != "" {
@@ -57,7 +58,9 @@ func CreationHandler(store Conversation, appURL string) transport.Handler {
 				if res.Kind == "enterprise" {
 					label = "開啟企業"
 				}
-				message.QuickReply = &messaging_api.QuickReply{Items: []messaging_api.QuickReplyItem{{Type: "action", Action: &messaging_api.UriAction{Label: label, Uri: link.String()}}}}
+				message = &messaging_api.TemplateMessage{AltText: label, Template: &messaging_api.ButtonsTemplate{Text: resultText, Actions: []messaging_api.ActionInterface{&messaging_api.UriAction{Label: label, Uri: link.String()}}}}
+			} else {
+				message = &messaging_api.TextMessage{Text: resultText}
 			}
 		}
 		return transport.Reply{Token: m.ReplyToken, Message: message}, true, nil

@@ -35,9 +35,10 @@ func TestMyEngineeringUsesPrivateIdentityAndCurrentMembership(t *testing.T) {
 	if err != nil || !handled {
 		t.Fatal(err, handled)
 	}
-	body := reply.Message.(*messaging_api.TextMessage).Text
-	if !strings.Contains(body, "工程 A") || strings.Contains(body, "工程 B") {
-		t.Fatal(body)
+	message := reply.Message.(*messaging_api.TemplateMessage)
+	columns := message.Template.(*messaging_api.CarouselTemplate).Columns
+	if len(columns) != 1 || columns[0].Text != "工程 A" {
+		t.Fatal(columns)
 	}
 	msg.Source = webhook.GroupSource{GroupId: "A", UserId: "member"}
 	if _, handled, err = MyEngineering(context.Background(), msg, "https://example.org", nil); handled || err != nil {
