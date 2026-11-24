@@ -41,6 +41,17 @@
 
 ## 結構與量測
 
+### 持續架構驗收
+
+`backend/line_interaction_architecture_test.go` 將下列邊界固定為自動驗收：
+
+- LINE 回覆、推送與 Rich Menu 發布操作只能位於 `platform/line`。
+- Postback query 只能由 `transport/line/postback.go` 解析。
+- `platform/line` 不得反向依賴 transport 或 business；`transport/line` 不得依賴 business。
+- 各業務領域的 `adapter/line` 不得直接依賴另一個業務領域。
+
+這些檢查只限制責任越界，不建立 Message、Action、Handler 或業務模型的第二套抽象。
+
 ### Channel Adapter 擴充驗收
 
 從組裝端提供一個 `transport.Handler`，宣告其文字指令、別名與 Postback，並在 Adapter 判斷事件是否屬於該能力。現行宣告用於啟動衝突檢查，實際路由仍取決於 Handler 的匹配程式。[簽章 Webhook 擴充測試](../../backend/internal/bootstrap/line_extension_test.go) 用一個新增的測試檔完成註冊、送出簽章 HTTP 請求並核對三個回覆，且確認未知文字沒有回覆。這個案例修改了零個既有核心檔；實際部署新領域仍要將其依賴和 Handler 接入 Bootstrap。

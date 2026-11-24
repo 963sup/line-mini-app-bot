@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-root=$(cd "$(dirname "$0")/../.." && pwd)
-path_line='export PATH="$HOME/.local/bin:$HOME/.local/go/bin:$HOME/go/bin:$PATH"'
-touch "$HOME/.bashrc"
-grep -Fqx "$path_line" "$HOME/.bashrc" || printf '%s\n' "$path_line" >> "$HOME/.bashrc"
-export PATH="$HOME/.local/bin:$HOME/.local/go/bin:$HOME/go/bin:$PATH"
-hash -r
-
-"$root/scripts/setup/install-gopls.sh"
+export PATH="$HOME/.local/bin:$PATH"
+if ! gopls help mcp >/dev/null 2>&1; then
+	echo 'gopls MCP support is required. Run scripts/setup/install-gopls.sh first.' >&2
+	exit 1
+fi
 codex mcp add gopls -- gopls mcp
 
 codex mcp add openaiDeveloperDocs --url https://developers.openai.com/mcp
