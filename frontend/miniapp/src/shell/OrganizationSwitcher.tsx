@@ -24,7 +24,9 @@ export function OrganizationSwitcher() {
           <SidebarMenuButton size="lg" asChild>
             <div role="status" aria-label="組織切換狀態" aria-busy={session?.busy ?? false}>
               <Building2 aria-hidden="true" />
-              <span>{session?.busy ? "正在驗證身分…" : (session?.status ?? "尚未驗證身分")}</span>
+              <span className="group-data-[collapsible=icon]:hidden">
+                {session?.busy ? "正在驗證身分…" : (session?.status ?? "尚未驗證身分")}
+              </span>
             </div>
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -51,7 +53,7 @@ function Switcher() {
   const label = (
     <>
       <Building2 />
-      <span className="grid min-w-0 text-left">
+      <span className="grid min-w-0 text-left group-data-[collapsible=icon]:hidden">
         <span className="truncate">
           {context?.selected?.name ??
             (context ? "尚無可用組織" : error ? "無法載入組織" : "載入組織中…")}
@@ -68,7 +70,10 @@ function Switcher() {
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton size="lg" aria-label="切換組織" disabled={saving}>
                 {label}
-                <ChevronsUpDown />
+                <ChevronsUpDown
+                  className="ml-auto group-data-[collapsible=icon]:hidden"
+                  aria-hidden="true"
+                />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent side={isMobile ? "bottom" : "right"} align="start">
@@ -126,7 +131,7 @@ function Switcher() {
           </SidebarMenuButton>
         )}
         {context?.enterprises?.map((ent) => (
-          <SidebarMenuButton key={ent.id} asChild>
+          <SidebarMenuButton key={ent.id} className="group-data-[collapsible=icon]:hidden" asChild>
             <Link href={"/miniapp?" + new URLSearchParams({ enterprise: ent.id })}>
               <Building2 />
               {ent.name}
@@ -134,12 +139,20 @@ function Switcher() {
           </SidebarMenuButton>
         ))}
         {context?.canCreateEnterprise && (
-          <SidebarMenuButton asChild>
+          <SidebarMenuButton className="group-data-[collapsible=icon]:hidden" asChild>
             <Link href="/miniapp?enterprise=new">建立企業</Link>
           </SidebarMenuButton>
         )}
-        {failedHref && <Link href={failedHref}>重試開啟組織頁面</Link>}
-        {error && <span role="alert">{error}</span>}
+        {failedHref && (
+          <Link className="group-data-[collapsible=icon]:hidden" href={failedHref}>
+            重試開啟組織頁面
+          </Link>
+        )}
+        {error && (
+          <span className="group-data-[collapsible=icon]:hidden" role="alert">
+            {error}
+          </span>
+        )}
       </SidebarMenuItem>
     </SidebarMenu>
   );
