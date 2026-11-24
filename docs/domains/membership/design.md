@@ -6,7 +6,23 @@ Membership 管理成員關係與資格判定。Organization、Enterprise 和 Tea
 
 - Team 的空值或 `legacy` 模式沿用既有 LINE 群組資格。`membership` 模式只採獨立關係。未知模式、停用的 Team 或缺少有效資格時拒絕存取。團隊管理歸屬和候選來源見 [Team 規格](../team/design.md#獨立-membership-的讀取邊界)。
 - 獨立模式須有有效的 Team `member` 或 `maintainer` 關係。成員關係記錄的上層類型、資源 ID 與世代須符合管理歸屬指定的有效 Organization 或 Enterprise 資格。查詢沿用呼叫端的 Firestore 交易。上層撤權使衍生 Team 資格失效，重新加入後也須重新授予。[資格讀取實作](../../../backend/internal/business/membership/adapter/firestore/qualification.go) · [世代判定](../../../backend/internal/business/membership/domain/qualification.go)
-- Organization 的 Bot 私聊邀請及現行成員操作沿用既有 Organization 授權模式。[LINE 邀請入口](../../../backend/internal/business/membership/adapter/line/invitations.go) · [HTTP 成員入口](../../../backend/internal/business/membership/adapter/http/members.go) · [組織邀請操作](../../proposals/membership.md#首版-bot-私聊入口)
+- Organization 的 Bot 私聊邀請及現行成員操作沿用既有 Organization 授權模式。[LINE 邀請入口](../../../backend/internal/business/membership/adapter/line/invitations.go) · [HTTP 成員入口](../../../backend/internal/business/membership/adapter/http/members.go)
+
+### 首版 Bot 私聊入口
+
+1. A 建立組織後，向官方帳號傳送 `邀請加入 <組織 ID>`。Bot 建立邀請後回傳可直接轉傳的指令。
+2. A 私下把 `接受邀請 <邀請碼>` 傳給 B。B 開啟自己的官方帳號私聊，送出該指令即可加入。有效期為 24 小時。A 也可傳送 `撤銷邀請 <邀請碼>`。
+3. LINE Adapter 使用已驗簽私聊事件的 Actor 與事件 ID。Membership Application 核對目前 Owner、效期和接受資格。Firestore Adapter 在同一交易消耗邀請、寫入稽核並更新現行 `memberUserIds` 權威。Organization Owner 移轉在原交易中遞增 Owner 版本。
+
+邀請碼依渠道、Actor 與事件 ID 經服務端密鑰產生；同一發邀事件可重建同一邀請碼，儲存只保留摘要。接受結果以同一已驗簽事件重送為準。Bot 在交易提交後才回覆。此相容切片僅可在 legacy 模式執行，未建立第二套成員權威，Organization 獨立資格切換仍待交付。
+
+### MINI App 組織頁
+
+組織頁預設開啟成員分頁，另有組織團隊與組織管理分頁。首版成員名單只對當前成員開放，使用組織範圍內的成員代碼供辨識。使用者可分享自己的代碼供 Owner 核對；原始 LINE 使用者 ID 不回傳。一般成員可退出，Owner 可移除他人，現任 Owner 必須先移轉才能退出。
+
+現行 HTTP 契約為 `GET /api/v1/organizations/{organizationId}/members`、`DELETE /api/v1/organizations/{organizationId}/membership`（本人退出）及 `DELETE /api/v1/organizations/{organizationId}/members/{memberId}`（Owner 移除）。兩個異動都要求 `Idempotency-Key`。交易中以同一組織文件重新判斷權限，原子更新 `memberUserIds`、記錄最近退出時間並保存稽核與重送收據。最近退出時間阻擋之前簽發、尚未兌換的邀請重新開權。退出後重載組織選單，移除後重載名單。
+
+來源：[組織成員 HTTP 契約](../../../api/contract/organization/membership.yaml) · [成員交易](../../../backend/internal/business/membership/adapter/firestore/members.go) · [組織頁](../../../frontend/miniapp/src/business/organization/OrganizationPage.tsx)
 
 ## 現行資格驗收
 

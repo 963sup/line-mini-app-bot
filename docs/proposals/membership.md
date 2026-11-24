@@ -1,14 +1,12 @@
 # Membership 統一成員關係設計
 
-狀態：Bot 私聊邀請已接入既有 Organization 授權模式，待真實 LINE／Firestore 驗收。下述獨立 Membership 儲存與切換仍屬未來設計。需求方向為新增 `membership` 業務領域，統一管理使用者與資源的成員關係；下列角色、API 與遷移方案為本次提出的設計基線，尚不改變現行契約。
-
-目前接線與讀取邊界見 [Membership 領域規格](../domains/membership/design.md)。
+Organization 目前沿用既有成員欄位；Team 已有獨立資格讀取與開通路徑。現行行為及驗收依據見 [Membership 領域規格](../domains/membership/design.md)。本提案描述各資源全面切換的目標模型，組織邀請仍待真實 LINE／Firestore 驗收。
 
 原始來源基準：2026-11-21，`work`／`fe571ab`，下述圖譜與封裝結果屬當時查證。此次規格一致性修訂以 `b046fa5` 及目前工作區文件為準；工作區另有未提交業務變更，不將歷史原碼查證視為目前完整實作或環境驗收證據。
 
 ## 目標與範圍
 
-新增 `backend/internal/business/membership`，集中保存、查詢及異動成員關係，其他領域不再各自維護可授權的使用者陣列。使用者先透過 Identity 獨立登入，可以沒有任何 Membership。
+目標是由既有的 `backend/internal/business/membership` 集中保存、查詢及異動成員關係，其他領域不再各自維護可授權的使用者陣列。使用者先透過 Identity 獨立登入，可以沒有任何 Membership。
 
 第一階段交付 Organization People 的邀請、接受、Owner 移轉、離開與移除；共同模型支援 Enterprise、Organization、Team、Repository，依階段接入。新資源種類須明確註冊政策與識別碼驗證，不能只傳任意 `resourceType` 就建立關係。
 
@@ -16,7 +14,7 @@ Bot 邀請切片沿用現有 webhook 與 Organization 資料。獨立儲存切�
 
 ## 現況與需要替換的來源
 
-| 現行位置                                                                                       | 原碼核對結果                                                                      | 接入後責任                                                   |
+| 基準版本位置                                                                                   | 原碼核對結果                                                                      | 接入後責任                                                   |
 | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | [Organization store](../../backend/internal/business/organization/adapter/firestore/store.go)  | `Context` 查 `ownerUserId`／`memberUserIds`；`Transfer` 核對現任 Owner 與既有成員 | 可見組織與角色查 Membership；建立組織時一併建立 Owner        |
 | [Enterprise store](../../backend/internal/business/enterprise/adapter/firestore/store.go)      | 使用 `ownerUserId`／`ownerUserIds`／`managerUserIds`；People 可見性還讀組織成員   | 企業直接成員由 Membership 管理；旗下 People 可另做聚合讀模型 |
@@ -25,7 +23,7 @@ Bot 邀請切片沿用現有 webhook 與 Organization 資料。獨立儲存切�
 | [Repository service](../../backend/internal/business/repository/application/repository.go)     | 個人庫比對 Owner；群組庫經 Port 即時查 LINE Membership                            | 保留既有個人／群組模式；組織庫另接 Membership 與 Grant       |
 | [LINE Membership](../../backend/internal/platform/line/membership.go)                          | LINE 群組資格的外部查詢能力                                                       | 保留技術整合；不作為內部邀請或組織成員的保存位置             |
 
-Graphify `explain` 找到 Team、Organization store 與 bootstrap 的依賴；`path --undirected` 找到 Repository Application → bootstrap → LINE Membership 的兩跳連線。廣泛 query 有截斷，後續以精確 explain/path 及原碼補查，不能把圖中 import 路徑視為完整執行時序。
+在上述歷史基準中，Graphify `explain` 找到 Team、Organization store 與 bootstrap 的依賴；`path --undirected` 找到 Repository Application → bootstrap → LINE Membership 的兩跳連線。廣泛 query 有截斷，後續以精確 explain/path 及原碼補查，不能把圖中 import 路徑視為完整執行時序。
 
 ## 領域邊界
 
@@ -141,19 +139,10 @@ flowchart LR
 
 每個邀請只能成功兌換一次。Owner 移轉，使舊邀請即使原 Owner 日後回任仍不可用。獨立 Membership 模式接入重新加入前，還須以最近一次退出或撤權為下限，拒絕在該次異動前發出的舊邀請。
 
-### 首版 Bot 私聊入口
+<a id="首版-bot-私聊入口"></a>
+<a id="mini-app-組織頁"></a>
 
-1. A 建立組織後，向官方帳號傳送 `邀請加入 <組織 ID>`。Bot 建立邀請後回傳可直接轉傳的指令。
-2. A 私下把 `接受邀請 <邀請碼>` 傳給 B。B 開啟自己的官方帳號私聊，送出該指令即可加入。有效期為 24 小時。A 也可傳送 `撤銷邀請 <邀請碼>`。
-3. LINE Adapter 使用已驗簽私聊事件的 Actor 與事件 ID。Membership Application 核對目前 Owner、效期和接受資格。Firestore Adapter 在同一交易消耗邀請、寫入稽核並更新現行 `memberUserIds` 權威。Organization Owner 移轉在原交易中遞增 Owner 版本。
-
-邀請碼依渠道、Actor 與事件 ID 經服務端密鑰產生；同一發邀事件可重建同一邀請碼，儲存只保留摘要。接受結果以同一已驗簽事件重送為準。Bot 在交易提交後才回覆。此相容切片僅可在 legacy 模式執行，未建立第二套成員權威，獨立 Membership 模式仍待交付。
-
-### MINI App 組織頁
-
-選取組織後，同一頁呈現概況、成員、原有團隊列表及儲存庫狀態。首版成員名單只對當前成員開放，使用組織範圍內的成員代碼供辨識。使用者可分享自己的代碼供 Owner 核對；原始 LINE 使用者 ID 不回傳。一般成員可退出，Owner 可移除他人，現任 Owner 必須先移轉才能退出。
-
-現行 HTTP 契約為 `GET /api/v1/organizations/{organizationId}/members`、`DELETE /api/v1/organizations/{organizationId}/membership`（本人退出）及 `DELETE /api/v1/organizations/{organizationId}/members/{memberId}`（Owner 移除）。兩個異動都要求 `Idempotency-Key`。交易中以同一組織文件重新判斷權限，原子更新 `memberUserIds`、記錄最近退出時間並保存稽核與重送收據。最近退出時間阻擋之前簽發、尚未兌換的邀請重新開權。退出後重載組織選單，移除後重載名單。儲存庫區塊目前顯示尚未支援。
+現行 Organization 的[私聊邀請](../domains/membership/design.md#首版-bot-私聊入口)與[成員操作](../domains/membership/design.md#mini-app-組織頁)由 Membership 領域規格維護。
 
 ### 成員狀態
 
@@ -171,7 +160,7 @@ suspended 關係只能經恢復流程重新生效。上層資格失效時下層�
 
 所有操作以可信 Actor、服務端解析的 ResourceRef、明確 Action、目前版本與時間為 Context。Membership 協調 Authority、ResourcePolicy 及結果；HTTP／LINE adapter 不自行決定權限。資源不可見時沿用既有隱藏資源的錯誤慣例，避免洩漏成員資料。
 
-下表為候選路徑，尚未寫入 OpenAPI；類型複數及 ID 的對應表由服務端固定解析，不能任意映射 collection 名稱。
+下表描述跨資源的候選介面。現行組織端點及成員代碼以[組織成員 OpenAPI](../../api/contract/organization/membership.yaml)為準。提案中的資源類型與 ID 對應表由服務端固定解析，不能任意映射 collection 名稱。
 
 | 操作       | 候選 HTTP 路徑                                              | Authority／Policy 與成功結果                                                     |
 | ---------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------- |
@@ -193,7 +182,7 @@ People 的 `Member` 是 Membership 與允許公開的個人資料投影，不新
 
 ### 首版檔案與用例入口
 
-以 `backend/internal/business/membership/` 為根。以下是責任配置，依實際用例落地：
+以下為獨立模式的候選檔案與責任配置。現有入口見 [Membership 領域規格](../domains/membership/design.md)。
 
 | 檔案                                                               | 查找入口                                                                     |
 | ------------------------------------------------------------------ | ---------------------------------------------------------------------------- |

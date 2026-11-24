@@ -27,7 +27,7 @@ flowchart TB
 | PUT /api/v1/teams/{teamId}/management                                          | 為已自動建立的 Team 指定管理歸屬。 |
 | PUT 或 DELETE /api/v1/organizations/{organizationId}/enterprise-teams/{teamId} | 新增或移除同企業內的 Team 指派。   |
 
-組織的 memberUserIds 代表有效成員；管理歸屬操作讀取服務端維護的 managerUserIds。企業自助開通與組織加入流程見[企業規格](../domains/enterprise/design.md)。既有 LINE 群組在下一筆可信事件時以 groupId 補齊 Team；事件只更新群組名稱與狀態，保留既有管理範圍與權限。
+現行 Organization legacy 模式以 `memberUserIds` 維護成員；其他資格模式依 [Membership 規格](../domains/membership/design.md#現行讀取與授權)。Team 管理歸屬及授權依 [Team 規格](../domains/team/design.md#獨立-membership-的讀取邊界)：獨立模式不得沿用舊管理者欄位。企業自助開通與組織加入流程見[企業規格](../domains/enterprise/design.md)。既有 LINE 群組在下一筆可信事件時以 groupId 補齊 Team；事件只更新群組名稱與狀態，保留既有管理範圍與權限。
 
 ## LINE 一對一建立入口
 
