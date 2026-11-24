@@ -9,6 +9,15 @@
 3. 執行必要的共用檢查。
 4. 需要外部系統或裝置時，分開取得環境證據。
 
+## 用 GitHub MCP 處理 PR 紅燈
+
+1. 用 `fetch_pr` 確認儲存庫、PR 來源分支與最新 head SHA。用 `fetch_commit_workflow_runs` 找到對應的執行紀錄，核對 workflow、事件與提交。若是 PR 合併測試提交，另核對它對應的 PR 與 head。
+2. 用 `fetch_workflow_run_jobs` 找出失敗的 job，再用 `fetch_workflow_job_steps` 和 `fetch_workflow_job_logs` 讀取第一個失敗步驟的錯誤。若 job 在準備階段即終止而沒有步驟日誌，查看該次執行摘要的錯誤註記。
+3. 依錯誤修正根因，在來源分支提交並執行受影響的檢查。例如 PR #78 的 Action 無法解析時，從官方儲存庫核對同一主版本的完整 commit SHA，再更新 workflow。建置引用缺少的腳本時，核對呼叫端與 Git 歷史，還原後實際執行腳本。只有確認是暫時性故障時，才用 `rerun_failed_workflow_run_jobs` 重跑。
+4. 再讀取 PR 的最新 head，追蹤對應的新 run，直到必要檢查完成。若仍失敗，從該次失敗步驟繼續排查。回報修正提交、檢查結論與 run 連結。若無法讀取日誌或取得最終結果，明列缺少的證據。
+
+[PR #78](https://github.com/963sup/line-mini-app-bot/pull/78) · [修正後的 CI 紀錄](https://github.com/963sup/line-mini-app-bot/actions/runs/45341591099)
+
 ## 常用命令
 
 ```bash
