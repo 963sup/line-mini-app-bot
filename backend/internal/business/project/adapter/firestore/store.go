@@ -14,6 +14,7 @@ import (
 	"time"
 
 	orgstore "github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
+	repostore "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 
 	"github.com/963sup/line-mini-app-bot/internal/platform/grpcstatus"
 
@@ -106,22 +107,19 @@ func (s *Store) checkProjectOwner(tx *db.Transaction, r projectApplicationPort.S
 		}
 		return nil
 	}
+	if projectDomainEntity.IsOrganizationOwner(r.OwnerID) {
+		visible, err := orgstore.OrganizationVisible(tx, parent, r.Actor)
+		if status.Code(err) == codes.NotFound || err == nil && !visible {
+			return projectDomainEntity.ErrNotFound
+		}
+		return err
+	}
 	snap, e := tx.Get(parent)
 	if e != nil {
 		if status.Code(e) == codes.NotFound {
 			return projectDomainEntity.ErrNotFound
 		}
 		return e
-	}
-	if projectDomainEntity.IsOrganizationOwner(r.OwnerID) {
-		var org orgstore.Document
-		if err := snap.DataTo(&org); err != nil {
-			return err
-		}
-		if !org.VisibleLegacyOrganization(r.Actor) {
-			return projectDomainEntity.ErrNotFound
-		}
-		return nil
 	}
 	var d struct {
 		ID, GroupID, Status string
@@ -387,15 +385,11 @@ func (w projectUpdateWork) RepositoryLinked(id string) (bool, error) {
 }
 
 func (w projectUpdateWork) CheckLinkSource(id string) error {
-	repo, err := w.tx.Get(w.store.repositoryRef(id))
+	ok, err := repostore.ActiveOwner(w.tx, w.store.Client.Collection("channels").Doc(w.store.ChannelID), id, w.scope.SelectedSource.OwnerID)
 	if err != nil {
 		return err
 	}
-	var src struct{ ID, OwnerID, Status string }
-	if err = repo.DataTo(&src); err != nil {
-		return err
-	}
-	if src.ID != id || src.OwnerID != w.scope.SelectedSource.OwnerID || src.Status != "ACTIVE" {
+	if !ok {
 		return projectDomainEntity.ErrForbidden
 	}
 	return nil

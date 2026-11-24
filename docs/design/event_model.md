@@ -15,6 +15,8 @@
 
 ## 提交與發布
 
+Object 的 `object.quantity_changed` 以 Pub/Sub 屬性傳遞 `eventId`、`type` 與 `schemaVersion=1`。payload 的 `Version` 是物件版本，`OccurredAt` 是該次修訂時間。舊待送紀錄缺少時間時使用與修訂同一交易建立的 outbox 文件建立時間。既有訊息可能缺少版本屬性與時間，讀取端應按舊格式處理。訂閱者依事件 ID 去重；需要追查操作者時，依資源與版本查閱受授權的變更歷程，事件本身省略個人身分。
+
 資料提交與外部發布不是天然原子。若業務要求「寫入成功後最終一定發布」，應使用持久化工作或 outbox 類模式；沒有該要求時，不預先建立通用事件平台。Firestore transaction callback 內不得直接發布外部事件。
 
 ## LINE Webhook

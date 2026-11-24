@@ -12,27 +12,11 @@ import (
 type Service struct {
 	Store      port.Store
 	Membership port.Membership
-	Teams      TeamQualification
-}
-
-// TeamQualification checks product membership for a group-backed team.
-type TeamQualification interface {
-	IsTeamMember(context.Context, string, string) (bool, error)
 }
 
 func (s *Service) Get(ctx context.Context, user, id string) (entity.Group, error) {
 	if !lineid.ValidGroup(id) || user == "" {
 		return entity.Group{}, entity.ErrNotFound
-	}
-	if s.Teams != nil {
-		ok, err := s.Teams.IsTeamMember(ctx, id, user)
-		if err != nil {
-			return entity.Group{}, err
-		}
-		if !ok {
-			return entity.Group{}, entity.ErrNotFound
-		}
-		return entity.Group{ID: id, GroupID: id}, nil
 	}
 	r, err := s.Store.GetByID(ctx, id)
 	if err != nil {

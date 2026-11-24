@@ -12,6 +12,7 @@ func QuantityChange(before, beforeUnit, after, afterUnit string) (QuantityChange
 
 // Revision identifies a quantity change without disclosing actor or document text.
 type Revision struct {
+	OccurredAt   string
 	ChannelID    string
 	RepositoryID string
 	ObjectID     string

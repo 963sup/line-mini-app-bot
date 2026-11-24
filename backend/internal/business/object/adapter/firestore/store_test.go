@@ -356,7 +356,7 @@ func TestQuantityOutboxRetriesCommittedRevision(t *testing.T) {
 
 func TestOutboxProgressesPastMalformedAndRejectedEvents(t *testing.T) {
 	ctx, s, _ := emulatorStore(t)
-	for id, rev := range map[string]any{"a": map[string]any{"Version": "wrong"}, "b": event.Revision{ChannelID: s.ChannelID, Version: 1, ObjectID: "b", RepositoryID: "r"}, "c": event.Revision{ChannelID: s.ChannelID, Version: 1, ObjectID: "c", RepositoryID: "r"}} {
+	for id, rev := range map[string]any{"a": map[string]any{"Version": "wrong"}, "b": event.Revision{ChannelID: s.ChannelID, Version: 1, ObjectID: "b", RepositoryID: "r"}, "c": map[string]any{"ChannelID": s.ChannelID, "Version": 1, "ObjectID": "c", "RepositoryID": "r"}} {
 		if _, err := s.quantityOutbox().Doc(id).Set(ctx, rev); err != nil {
 			t.Fatal(err)
 		}
@@ -365,6 +365,10 @@ func TestOutboxProgressesPastMalformedAndRejectedEvents(t *testing.T) {
 	err := objectcommand.DeliverQuantityEvents(ctx, s, func(ctx context.Context, id string, rev event.Revision) error {
 		if id == "b" {
 			return context.DeadlineExceeded
+		}
+		doc, err := s.quantityOutbox().Doc(id).Get(ctx)
+		if err != nil || rev.OccurredAt != doc.CreateTime.UTC().Format(time.RFC3339Nano) {
+			t.Fatalf("legacy event time %q, snapshot error %v", rev.OccurredAt, err)
 		}
 		delivered = id
 		return nil

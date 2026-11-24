@@ -69,10 +69,7 @@ func (s *Service) AddReference(ctx context.Context, actor, ownerID, pid string, 
 	}
 	ref.SourceRepositoryID = sourceID
 	result, e := s.Store.ChangeReference(ctx, r, actor, pid, ref, true, version)
-	if e == nil {
-		e = s.progress(ctx, r, &result)
-	}
-	return result, e
+	return s.committed(ctx, r, result, e)
 }
 
 func (s *Service) RemoveReference(ctx context.Context, actor, ownerID, pid, itemID string, version int64) (projectDomainEntity.Project, error) {
@@ -87,10 +84,7 @@ func (s *Service) RemoveReference(ctx context.Context, actor, ownerID, pid, item
 		return projectDomainEntity.Project{}, projectDomainEntity.ErrInput
 	}
 	result, e := s.Store.ChangeReference(ctx, r, actor, pid, projectDomainEntity.Reference{ID: itemID}, false, version)
-	if e == nil {
-		e = s.progress(ctx, r, &result)
-	}
-	return result, e
+	return s.committed(ctx, r, result, e)
 }
 
 // ReferenceState checks the current state, not the outcome of a past request.

@@ -52,6 +52,7 @@
 - MUST reuse authoritative types, contracts, components, and configurations where applicable.
 - MUST keep implementation, contracts, tests, and documentation synchronized.
 - MUST preserve supported runtime and deployment compatibility.
+- MUST NOT add a platform capability, interaction type, endpoint, abstraction, or extension point solely for completeness or symmetry.
 
 - SHOULD apply KISS, YAGNI, DRY, and separation of concerns.
 - SHOULD prefer composition over inheritance or unnecessary indirection.

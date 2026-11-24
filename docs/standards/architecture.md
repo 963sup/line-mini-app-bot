@@ -37,11 +37,14 @@
 - MUST NOT violate approved bounded-context boundaries or dependency directions.
 - MUST NOT introduce circular dependencies.
 - MUST NOT access another bounded context's internal implementation or persistence directly.
+- MUST NOT write data owned by another bounded context; cross-context changes MUST use an explicit capability contract owned by the responsible context.
 - MUST NOT introduce competing architectures for existing capabilities.
 - MUST NOT relocate responsibilities without preserving their ownership and contracts.
 - MUST NOT introduce infrastructure, transport, framework, or external SDK dependencies into domain models.
 - MUST NOT place authoritative business rules in transport adapters or infrastructure.
 - MUST NOT create parallel implementations of authoritative business rules.
+- MUST NOT couple adapters through another adapter's internal types, persistence models, or provider-specific behavior.
+- MUST NOT implement separate authoritative business rules for HTTP, LINE chat, LINE group, MINI App, or other delivery channels.
 
 - SHOULD organize business capabilities around bounded contexts and ownership.
 - SHOULD use ubiquitous language consistently across implementation and documentation.
@@ -69,6 +72,7 @@
 ## 業務與資源建模
 
 - MUST identify the Actor, Resource, Action, Authorization, State, and Event where applicable.
+- MUST model concepts with different authority, lifecycle, or semantics separately.
 - MUST assign each business rule to its owning bounded context.
 - MUST enforce business invariants before changing resource state.
 - MUST define valid state transitions, preconditions, outcomes, and side effects.
@@ -79,6 +83,8 @@
 - MUST NOT allow non-owning modules to independently redefine resource behavior.
 - MUST NOT reuse resource identifiers with incompatible semantics.
 - MUST NOT publish events representing uncommitted or nonexistent business facts.
+- MUST NOT equate Actor with Role, Identity with Membership, Resource with Capability, Action with Event, State with Permission, or Projection with Aggregate.
+- MUST NOT use an external platform identifier as canonical domain identity unless the owning domain explicitly defines and controls that identity's meaning and lifecycle.
 
 - SHOULD NOT create orphaned or cyclic relationships in hierarchical resource models.
 - SHOULD NOT mutate published template revisions in place.

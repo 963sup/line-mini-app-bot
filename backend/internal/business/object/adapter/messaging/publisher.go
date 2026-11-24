@@ -20,6 +20,6 @@ func (p Publisher) Publish(ctx context.Context, id string, change event.Revision
 	if err != nil {
 		return err
 	}
-	_, err = p.Client.Projects.Topics.Publish(p.Topic, &pubsub.PublishRequest{Messages: []*pubsub.PubsubMessage{{Data: base64.StdEncoding.EncodeToString(data), Attributes: map[string]string{"eventId": id, "type": "object.quantity_changed"}}}}).Context(ctx).Do()
+	_, err = p.Client.Projects.Topics.Publish(p.Topic, &pubsub.PublishRequest{Messages: []*pubsub.PubsubMessage{{Data: base64.StdEncoding.EncodeToString(data), Attributes: map[string]string{"schemaVersion": "1", "eventId": id, "type": "object.quantity_changed"}}}}).Context(ctx).Do()
 	return err
 }

@@ -243,7 +243,7 @@ func TestReferenceRedactionCoversBothDays(t *testing.T) {
 	work := journalentity.Work{Name: "task", Reference: &ref, ObjectName: "private"}
 	draft := journalentity.Draft{Today: []journalentity.Work{work}, Tomorrow: []journalentity.Work{work}}
 	cache := map[journalentity.Reference]error{ref: journalentity.ErrNotFound}
-	if err := (&Store{}).checkRefs(t.Context(), "reader", draft, true, cache); err != nil {
+	if err := (&Store{}).checkRefs(t.Context(), "reader", draft.GroupID, draft, true, cache); err != nil {
 		t.Fatal(err)
 	}
 	for _, row := range []journalentity.Work{draft.Today[0], draft.Tomorrow[0]} {

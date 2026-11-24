@@ -44,6 +44,8 @@
 - MUST define idempotency, retry, and recovery behavior where applicable.
 - MUST preserve persisted data compatibility or provide an explicit migration.
 - MUST publish business events only after the corresponding state change succeeds.
+- MUST bound reads over growing collections by resource scope and an explicit result limit; paginated reads MUST use stable ordering.
+- MUST assign a stable operation or delivery identity to retryable external side effects.
 
 - MUST NOT bypass required transaction or consistency boundaries.
 - MUST NOT separate consistency-sensitive checks from their protected writes.
@@ -52,6 +54,8 @@
 - MUST NOT silently discard persistence failures.
 - MUST NOT modify persisted identifiers or encodings without compatibility handling.
 - MUST NOT interpret an unknown operation outcome as confirmed success or failure.
+- MUST NOT load an unbounded Firestore collection into memory; growing result sets MUST use pagination or bounded batch processing.
+- MUST NOT emit duplicate business notifications for the same committed business event and audience.
 
 - SHOULD NOT introduce repositories or services that merely duplicate lower-level interfaces.
 - SHOULD NOT use generic repositories when domain-specific access semantics are required.
