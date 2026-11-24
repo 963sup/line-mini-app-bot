@@ -2,7 +2,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
 import { FormField } from "@/shared/FormField";
-import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native_select";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
 import { ReadFeedback } from "@/shared/ReadFeedback";

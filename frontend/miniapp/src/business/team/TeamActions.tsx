@@ -5,7 +5,7 @@ import { errorMessage, rejectedAttempt, useLatestRequest } from "@/shared/http/l
 import { FormField } from "@/shared/FormField";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native_select";
 
 async function teamWrite(operation: Promise<{ response: Response; error?: unknown }>) {
   const result = await operation;

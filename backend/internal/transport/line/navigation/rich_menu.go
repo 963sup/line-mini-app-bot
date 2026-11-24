@@ -7,7 +7,7 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 )
 
-//go:embed attendance-rich-menu.json
+//go:embed rich_menu.json
 var attendanceMenuJSON []byte
 
 var attendanceMenu = loadAttendanceMenu()

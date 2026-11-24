@@ -73,7 +73,7 @@ steps:
   - id: firestore
     name: python:3.12-slim
     entrypoint: python3
-    args: ["scripts/db/ensure-firestore.py", "$PROJECT_ID"]
+    args: ["scripts/db/ensure_firestore.py", "$PROJECT_ID"]
 
   - id: deploy
     name: gcr.io/google.com/cloudsdktool/google-cloud-cli:592.0.0-slim
@@ -116,7 +116,7 @@ steps:
       - -ceu
       - |
         gcloud run services describe "${_SERVICE}" --region="${_REGION}" --project="$PROJECT_ID" --format=json > /workspace/service.json
-        python3 scripts/release/verify-candidate.py /workspace/service.json "candidate-$BUILD_ID" /workspace/candidate-revision
+        python3 scripts/release/verify_candidate.py /workspace/service.json "candidate-$BUILD_ID" /workspace/candidate-revision
 
   # A separate job publishes once per build, before exposing the new service.
   # Each build has its own immutable job template; channel publications share a lease.

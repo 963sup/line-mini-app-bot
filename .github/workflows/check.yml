@@ -28,7 +28,7 @@ jobs:
       - run: npm install --global pnpm@12.18.0
       - run: pnpm install --frozen-lockfile
       - run: pnpm api:check
-      - run: python3 scripts/check/check-config.py
+      - run: python3 scripts/check/check_config.py
       - run: pnpm --filter @repo/miniapp check
       - run: pnpm --filter @repo/miniapp test
       - run: pnpm --filter @repo/miniapp build
@@ -44,8 +44,8 @@ jobs:
         run: |
           set -euo pipefail
           go -C backend list ./... > "$RUNNER_TEMP/packages"
-          bash scripts/test/firestore-emulator.sh -json ./... | tee "$RUNNER_TEMP/go-results"
-          python3 scripts/check/check-go-test-results.py "$RUNNER_TEMP/go-results" "$RUNNER_TEMP/packages"
+          bash scripts/test/firestore_emulator.sh -json ./... | tee "$RUNNER_TEMP/go-results"
+          python3 scripts/check/check_go_test_results.py "$RUNNER_TEMP/go-results" "$RUNNER_TEMP/packages"
       - run: go -C backend vet ./...
       - run: go -C backend build ./...
       - run: pnpm docs:check

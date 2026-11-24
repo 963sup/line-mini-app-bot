@@ -11,6 +11,12 @@ MINI App 使用 Next.js Pages Router、React 與靜態輸出。前端負責呈�
 - `shell/` 擁有共用頁框與導航。
 - `pages/` 只負責路由組裝。
 
+## 命名
+
+- TypeScript 變數、函式與屬性識別字使用 `camelCase`，例如 `repositoryId`。
+- React 元件使用 `PascalCase`，例如 `ServiceSidebar`。
+- 外部契約欄位與框架約定的名稱依各自的來源，例如 Next.js 的頁面路徑。
+
 ## 資料與狀態
 
 - 使用產生的 API client，不自行維護第二份 DTO 或錯誤碼。

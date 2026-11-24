@@ -1,6 +1,6 @@
 # LINE 後端責任與驗收
 
-互動呈現、名稱、Action、私聊／群組適用規則與 Flex 例外，以 [LINE 互動標準](../standards/line-interactions.md) 為唯一權威來源；本文件只定義後端所有權與驗收邊界。
+互動呈現、名稱、Action、私聊／群組適用規則與 Flex 例外，以 [LINE 互動標準](../standards/line_interactions.md) 為唯一權威來源；本文件只定義後端所有權與驗收邊界。
 
 ## 修改入口
 
@@ -109,5 +109,5 @@
 
 ```bash
 MINIAPP_BROWSER_EXPORT="$PWD/frontend/miniapp/out" \
-  scripts/test/firestore-emulator.sh -race -p 4 ./...
+  scripts/test/firestore_emulator.sh -race -p 4 ./...
 ```

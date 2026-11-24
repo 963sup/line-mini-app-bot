@@ -13,9 +13,9 @@
 ## 規範
 
 - [強制要求（MUST）](standards/must.md)
-- [禁止行為（MUST NOT）](standards/must-not.md)
+- [禁止行為（MUST NOT）](standards/must_not.md)
 - [推薦實踐（SHOULD）](standards/should.md)
-- [不推薦實踐（SHOULD NOT）](standards/should-not.md)
+- [不推薦實踐（SHOULD NOT）](standards/should_not.md)
 - [選擇性實踐（MAY）](standards/may.md)
 - [文件規範](standards/documentation.md)
 - [架構規範](standards/architecture.md)
@@ -24,7 +24,7 @@
 - [API 規範](standards/api.md)
 - [安全規範](standards/security.md)
 - [測試規範](standards/testing.md)
-- [LINE 互動標準](standards/line-interactions.md)
+- [LINE 互動標準](standards/line_interactions.md)
 
 ## 架構
 
@@ -37,32 +37,32 @@
 
 ## DDD 與 Hexagonal Architecture
 
-- [DDD 與 Hexagonal Architecture](ddd-hexagonal/README.md)
+- [DDD 與 Hexagonal Architecture](ddd_hexagonal/README.md)
 
 ## 設計
 
-- [業務領域規則](design/domain-rules.md)
-- [LINE 互動介面模型（草案）](design/line-interaction-model.md)
+- [業務領域規則](design/domain_rules.md)
+- [LINE 互動介面模型（草案）](design/line_interaction_model.md)
 - [Explore 跨領域搜尋設計（草案）](design/explore.md)
-- [打卡預檢、出勤月報與補正](design/attendance-punches.md)
-- [物件範本版本與套用](design/object-templates.md)
+- [打卡預檢、出勤月報與補正](design/attendance_punches.md)
+- [物件範本版本與套用](design/object_templates.md)
 - [授權設計](design/authorization.md)
-- [資源模型](design/resource-model.md)
-- [狀態轉換模型](design/state-transition.md)
-- [事件模型](design/event-model.md)
-- [資料模型](design/data-model.md)
+- [資源模型](design/resource_model.md)
+- [狀態轉換模型](design/state_transition.md)
+- [事件模型](design/event_model.md)
+- [資料模型](design/data_model.md)
 
 ## 架構決策
 
 - [決策索引](decisions/README.md)
-- [0001：決策範例](decisions/0001-example.md)
+- [0001：決策範例](decisions/0001_example.md)
 
 ## 工作流程
 
 - [開發流程](workflows/development.md)
 - [重構流程](workflows/refactoring.md)
-- [shadcn MCP 元件實作](workflows/shadcn-mcp.md)
-- [Next.js MCP 診斷](workflows/nextjs-mcp.md)
+- [shadcn MCP 元件實作](workflows/shadcn_mcp.md)
+- [Next.js MCP 診斷](workflows/nextjs_mcp.md)
 - [驗證流程](workflows/verification.md)
 - [發布流程](workflows/release.md)
 
@@ -74,8 +74,8 @@
 
 ## 參考資料
 
-- [LINE Bot 聊天指令](references/line-commands.md)
-- [外部系統](references/external-systems.md)
+- [LINE Bot 聊天指令](references/line_commands.md)
+- [外部系統](references/external_systems.md)
 
 ## 文件狀態
 

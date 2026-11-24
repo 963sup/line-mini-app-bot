@@ -16,6 +16,9 @@
 
 ## Go 慣例
 
+- 套件名稱使用 `lowercase`，例如 `navigation`、`richmenu`。
+- 匯出識別字使用 `PascalCase`，例如 `AttendanceRichMenus`。
+- 非匯出識別字使用 `camelCase`，例如 `loadAttendanceMenu`。
 - 優先使用標準庫與小介面；介面由使用端定義。
 - 傳遞 request `context.Context`，外部呼叫必須有期限並正確釋放資源。
 - 錯誤保留操作上下文，但不得記錄 secret、access token、原始身分 token 或不必要個資。
@@ -28,7 +31,7 @@
 
 ## 設定
 
-環境變數只在 bootstrap 或專用設定載入器解析。必填值、型別、允許值與安全預設必須在載入邊界驗證；診斷只能列出設定名稱，不能輸出秘密值。
+專案自定義環境變數使用 `SCREAMING_SNAKE_CASE`，例如 `LINE_MINI_APP_ENV`。環境變數只在 bootstrap 或專用設定載入器解析。必填值、型別、允許值與安全預設必須在載入邊界驗證；診斷只能列出設定名稱，不能輸出秘密值。
 
 ## 驗證
 

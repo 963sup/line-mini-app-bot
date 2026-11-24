@@ -7,7 +7,7 @@ import { FormField } from "@/shared/FormField";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { Status } from "@/shared/Status";
 import { Button } from "@/shared/ui/button";
-import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native_select";
 
 type Repository = components["schemas"]["Repository"];
 export function SourcePicker({

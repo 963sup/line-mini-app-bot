@@ -3,7 +3,7 @@ import {
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-} from "@/shared/ui/input-group";
+} from "@/shared/ui/input_group";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useRepositoryGuard } from "../repository/NavigationGuard";
 import { useDiscardChanges } from "@/shared/useDiscardChanges";

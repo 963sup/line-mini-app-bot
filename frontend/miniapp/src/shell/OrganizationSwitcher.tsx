@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-} from "@/shared/ui/dropdown-menu";
+} from "@/shared/ui/dropdown_menu";
 
 export function OrganizationSwitcher() {
   const session = useOptionalSession();

@@ -18,11 +18,11 @@ import {
   ClipboardPenLine,
 } from "lucide-react";
 import { RepositoryProvider, useRepositories } from "../business/repository/RepositoryContext";
-import { repositoryNavigation } from "./repository-navigation";
-import { NavMain, type NavItem } from "./sidebar-07/nav-main";
+import { repositoryNavigation } from "./repository_navigation";
+import { NavMain, type NavItem } from "./sidebar_07/nav_main";
 import { Button } from "@/shared/ui/button";
-import { NavProjects } from "./sidebar-07/nav-projects";
-import { NavUser, type AccountMenu } from "./sidebar-07/nav-user";
+import { NavProjects } from "./sidebar_07/nav_projects";
+import { NavUser, type AccountMenu } from "./sidebar_07/nav_user";
 import { OrganizationSwitcher } from "@/shell/OrganizationSwitcher";
 import {
   Sidebar,

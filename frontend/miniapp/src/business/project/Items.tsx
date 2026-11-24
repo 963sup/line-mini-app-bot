@@ -12,9 +12,9 @@ import { PagePanel } from "@/shared/PagePanel";
 import { FormField } from "@/shared/FormField";
 import { Status } from "@/shared/Status";
 import { Button } from "@/shared/ui/button";
-import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native_select";
 import { Item, ItemGroup, ItemContent, ItemTitle } from "@/shared/ui/item";
-import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
+import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio_group";
 import { FieldGroup, FieldSet, FieldLegend, Field, FieldLabel } from "@/shared/ui/field";
 
 import { Inspections } from "./Inspections";

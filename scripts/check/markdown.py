@@ -23,17 +23,17 @@ GITHUB_TEMPLATES = {
     ".github/ISSUE_TEMPLATE/feature_request.md",
     ".github/pull_request_template.md",
 }
-KEBAB_CASE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
-ADR = re.compile(r"[0-9]{4}-[a-z0-9]+(?:-[a-z0-9]+)*")
+SNAKE_CASE = re.compile(r"[a-z0-9]+(?:_[a-z0-9]+)*")
+ADR = re.compile(r"[0-9]{4}_[a-z0-9]+(?:_[a-z0-9]+)*")
 
 
 def valid_name(name):
     parts = Path(name).parts
-    if parts[0] == "docs" and not all(KEBAB_CASE.fullmatch(part) for part in parts[1:-1]):
+    if parts[0] == "docs" and not all(SNAKE_CASE.fullmatch(part) for part in parts[1:-1]):
         return False
     if parts[-1] in CONVENTIONAL_NAMES or name in GITHUB_TEMPLATES:
         return True
-    pattern = ADR if parts[:2] == ("docs", "decisions") else KEBAB_CASE
+    pattern = ADR if parts[:2] == ("docs", "decisions") else SNAKE_CASE
     return pattern.fullmatch(Path(name).stem) is not None
 
 

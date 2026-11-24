@@ -9,7 +9,7 @@ Explore 讓已登入的 Mini App 使用者以名稱尋找站內資源。目標�
 
 ## 領域與依賴
 
-Explore 是獨立的唯讀查詢模組，負責搜尋入口、類型選擇及結果摘要。資源所屬領域擁有名稱、生命週期與可見性。第一版每次只查一種類型，採同步查詢，無須跨類型排名、聚合根或獨立索引。[查詢指引](../ddd-hexagonal/query.md)與[上下文整合指引](../ddd-hexagonal/bounded-context-integration.md)說明此分工。
+Explore 是獨立的唯讀查詢模組，負責搜尋入口、類型選擇及結果摘要。資源所屬領域擁有名稱、生命週期與可見性。第一版每次只查一種類型，採同步查詢，無須跨類型排名、聚合根或獨立索引。[查詢指引](../ddd_hexagonal/query.md)與[上下文整合指引](../ddd_hexagonal/bounded_context_integration.md)說明此分工。
 
 ### 擁有者控制探索曝光
 
@@ -60,7 +60,7 @@ frontend/miniapp/
 
 ### 六邊形邊界與函數
 
-依[六邊形架構](../ddd-hexagonal/hexagonal-architecture.md)，公開用例方法就是入站 port。出站介面由 Explore application 定義；Repository adapter 匯入該介面所使用的型別，並依賴 Repository 公開用例。[組裝根](../ddd-hexagonal/composition-root.md)負責把實作傳入建構子。HTTP DTO、Firestore 文件與 Repository entity 都在各自 adapter 邊界完成轉換。
+依[六邊形架構](../ddd_hexagonal/hexagonal_architecture.md)，公開用例方法就是入站 port。出站介面由 Explore application 定義；Repository adapter 匯入該介面所使用的型別，並依賴 Repository 公開用例。[組裝根](../ddd_hexagonal/composition_root.md)負責把實作傳入建構子。HTTP DTO、Firestore 文件與 Repository entity 都在各自 adapter 邊界完成轉換。
 
 | 位置與提案函數                                                                       | 實作責任                                                                                                                                                |
 | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -69,7 +69,7 @@ frontend/miniapp/
 | Application 出站 port · `ListVisible(ctx, actor, sourceCursor) (VisiblePage, error)` | 只回傳可見資源的 ID、名稱與來源續頁位置。名稱比對集中於 Search，故出站 port 無須關鍵字。傳遞呼叫者的 context 以支援取消。                               |
 | Repository 出站 adapter · `ListVisible`                                              | 呼叫 Repository 提供的 `ListDiscoverable`，投影符合曝光條件的 ID 與名稱，保留來源游標與錯誤。                                                           |
 | Application 私有函數 · `encodeCursor`、`decodeCursor`                                | 封裝版本、搜尋範圍摘要與來源游標；範圍含 actor、類型與正規化關鍵字。檢查版本、長度、範圍及來源位置；Repository 仍逐頁複核可見性。來源耗盡時回傳空字串。 |
-| 前端 · `View`                                                                        | 使用同一個 API client 送出與續頁；以既有 [Repository 導覽](../../frontend/miniapp/src/shell/repository-navigation.ts)使用的 href 能力開啟詳情。         |
+| 前端 · `View`                                                                        | 使用同一個 API client 送出與續頁；以既有 [Repository 導覽](../../frontend/miniapp/src/shell/repository_navigation.ts)使用的 href 能力開啟詳情。         |
 
 組裝時沿用 [newRepositories](../../backend/internal/bootstrap/repository.go) 建立的服務。來源未設定時仍應讓已驗證的搜尋請求取得契約中的 unavailable 回應。第一版只需一個來源；加入第二種類型時再擴充來源選擇。
 

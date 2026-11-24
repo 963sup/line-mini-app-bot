@@ -8,7 +8,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "./ui/alert-dialog";
+} from "./ui/alert_dialog";
 
 /** Keep a single pending navigation; never submit or replace it while confirming. */
 export function useDiscardChanges(dirty: boolean, focusEditor: () => void) {

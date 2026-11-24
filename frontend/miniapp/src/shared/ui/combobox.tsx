@@ -11,7 +11,7 @@ import {
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-} from "@/shared/ui/input-group"
+} from "@/shared/ui/input_group"
 
 const Combobox = ComboboxPrimitive.Root
 

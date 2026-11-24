@@ -19,4 +19,4 @@ This file adds API-specific rules to the [repository rules](../AGENTS.md). Direc
 - **Operation semantics.** Business operations MUST define required authentication, scoped resource identifiers, request validation, the observable success result, and applicable denial or conflict responses. Follow the [security standard](../docs/standards/security.md) and [shared error envelope](contract/common/transport.yaml) for applicable operations. Safe HTTP methods MUST NOT request a business state change. When a write can be retried or can race with another write, its contract MUST state the supported retry and concurrency behavior.
 - **Verification.** API changes MUST validate the OpenAPI documents, regenerate affected outputs using the current repository entry point, and verify affected adapters and consumers. Published contract changes MUST compare against a named baseline and update capability entries or documentation whose references or behavior changed.
 
-Business operations follow the [resource model](../docs/design/resource-model.md).
+Business operations follow the [resource model](../docs/design/resource_model.md).

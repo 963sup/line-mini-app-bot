@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useRepositories } from "./RepositoryContext";
 import { FormField } from "@/shared/FormField";
-import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native_select";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { Button } from "@/shared/ui/button";
 
