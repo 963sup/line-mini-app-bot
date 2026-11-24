@@ -50,6 +50,11 @@ func RegisterRepositories(public *http.ServeMux, handler RepositoryServer) {
 	public.Handle("GET /api/v1/repositories/{id}", routes)
 }
 
+func RegisterExplore(public *http.ServeMux, handler ExploreServer) {
+	routes := routeHandler(contractServer{ExploreServer: handler})
+	public.Handle("GET /api/v1/explore", routes)
+}
+
 func RegisterLabels(public *http.ServeMux, handler LabelServer, wrap func(http.Handler) http.Handler) {
 	routes := withMiddleware(routeHandler(contractServer{LabelServer: handler}), wrap)
 	public.Handle("GET /api/v1/repositories/{repositoryId}/labels", routes)

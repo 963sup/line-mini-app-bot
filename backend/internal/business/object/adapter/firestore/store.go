@@ -380,15 +380,32 @@ func (s *Store) quantityOutbox() *db.CollectionRef {
 }
 
 func (s *Store) PendingQuantityEvents(ctx context.Context) ([]event.PendingRevision, error) {
-	docs, err := s.quantityOutbox().Limit(50).Documents(ctx).GetAll()
+	query := s.quantityOutbox().OrderBy(db.DocumentID, db.Asc).Limit(50)
+	bookmark, err := s.quantityCursor().Get(ctx)
+	if err != nil && status.Code(err) != codes.NotFound {
+		return nil, err
+	}
+	page := query
+	if err == nil {
+		id, err := bookmark.DataAt("lastId")
+		if err != nil {
+			return nil, err
+		}
+		page = query.StartAfter(id)
+	}
+	docs, err := page.Documents(ctx).GetAll()
+	if err == nil && bookmark != nil && len(docs) == 0 {
+		docs, err = query.Documents(ctx).GetAll()
+	}
 	if err != nil {
 		return nil, err
 	}
 	pending := make([]event.PendingRevision, 0, len(docs))
 	for _, doc := range docs {
 		var rev event.Revision
-		if err := doc.DataTo(&rev); err != nil {
-			return nil, err
+		if err := doc.DataTo(&rev); err != nil || rev.ChannelID != s.ChannelID {
+			// Keep malformed records pending and continue the scan past their IDs.
+			rev = event.Revision{}
 		}
 		pending = append(pending, event.PendingRevision{ID: doc.Ref.ID, Revision: rev})
 	}
@@ -397,5 +414,13 @@ func (s *Store) PendingQuantityEvents(ctx context.Context) ([]event.PendingRevis
 
 func (s *Store) AcknowledgeQuantityEvent(ctx context.Context, id string) error {
 	_, err := s.quantityOutbox().Doc(id).Delete(ctx)
+	return err
+}
+
+func (s *Store) quantityCursor() *db.DocumentRef {
+	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("deliveryCursors").Doc("objectQuantity")
+}
+func (s *Store) MarkQuantityEventAttempt(ctx context.Context, id string) error {
+	_, err := s.quantityCursor().Set(ctx, map[string]any{"lastId": id})
 	return err
 }

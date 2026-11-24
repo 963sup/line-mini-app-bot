@@ -1,0 +1,144 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Explore API design draft",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/explore": {
+      "get": {
+        "operationId": "searchExplore",
+        "summary": "Search visible resources by display name",
+        "description": "Scan one bounded page in ascending resource ID order. Return only active repositories whose owner currently permits discovery. Recheck this preference on each page. Discovery grants no access to repository details.",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "repository"
+              ]
+            },
+            "description": "Resource type."
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Trim surrounding whitespace and reject a blank value. Match the display name by case-insensitive substring."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "description": "Omit for the first page. Opaque continuation scoped to actor, type and normalized query."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A visible result page, possibly empty.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "no-store"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExplorePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request: invalid input or mismatched cursor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized: valid session or bearer token required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "unavailable: discovery source unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ExploreItem": {
+        "type": "object",
+        "required": ["type", "id", "displayName"],
+        "properties": {
+          "type": { "type": "string", "enum": ["repository"] },
+          "id": { "type": "string", "minLength": 1 },
+          "displayName": { "type": "string" }
+        }
+      },
+      "ExplorePage": {
+        "type": "object",
+        "required": ["items", "nextCursor"],
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/ExploreItem" } },
+          "nextCursor": {
+            "type": "string",
+            "description": "Empty string at end. Otherwise continue even if items is empty."
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "$ref": "../common/transport.yaml#/components/securitySchemes/bearerAuth"
+      },
+      "sessionCookie": {
+        "$ref": "../common/transport.yaml#/components/securitySchemes/sessionCookie"
+      }
+    }
+  }
+}

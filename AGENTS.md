@@ -10,6 +10,18 @@ Follow rule 18 to start a task. See the [nested directory guide](README.md#%E5%B
 - On the first user message in every new conversation, use the `repomix-explorer` skill to generate a fresh Repomix snapshot of the current local working tree. Consult that snapshot when handling the request. On later turns, refresh it as needed.
 - This project does not use Codex hooks. Use Graphify or source documents as needed for the task.
 
+## Normative engineering requirements
+
+All contributors and agents MUST read and comply with the repository-wide
+[MUST](docs/standards/must.md), [MUST NOT](docs/standards/must-not.md),
+[SHOULD](docs/standards/should.md), [SHOULD NOT](docs/standards/should-not.md), and
+[MAY](docs/standards/may.md) standards before performing engineering work.
+These keywords use the RFC 2119 and RFC 8174 meanings. A SHOULD or SHOULD NOT
+may be overridden only when the exception, rationale, impact, and selected
+alternative are recorded. MAY does not grant authority or override a MUST or
+MUST NOT requirement. Nearer module instructions may add constraints but MUST
+NOT weaken these repository-wide standards.
+
 <a id="&#20849;&#36890;&#24037;&#31243;&#35215;&#21063;"></a>
 
 ## Common engineering rules

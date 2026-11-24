@@ -12,7 +12,7 @@ import (
 
 // Handler opens the existing template library; authorization stays in the Mini App.
 func Handler(appURL string) transport.Handler {
-	return transport.Handler{Handle: func(_ context.Context, e webhook.EventInterface) (transport.Reply, bool, error) {
+	return transport.Handler{Owner: "object", Commands: []string{"物件範本"}, Handle: func(_ context.Context, e webhook.EventInterface) (transport.Reply, bool, error) {
 		msg, ok := e.(webhook.MessageEvent)
 		if !ok || !transport.CanReply(msg.Mode, msg.ReplyToken, msg.DeliveryContext) {
 			return transport.Reply{}, false, nil

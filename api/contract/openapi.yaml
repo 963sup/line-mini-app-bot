@@ -83,6 +83,9 @@
     "/api/v1/repositories/{id}": {
       "$ref": "./repository/repositories.yaml#/paths/~1api~1v1~1repositories~1{id}"
     },
+    "/api/v1/explore": {
+      "$ref": "./explore/draft.yaml#/paths/~1api~1v1~1explore"
+    },
     "/api/v1/repositories/{repositoryId}/issues": {
       "$ref": "./issue/issues.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1issues"
     },

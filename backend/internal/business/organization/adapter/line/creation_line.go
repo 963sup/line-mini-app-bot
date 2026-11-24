@@ -12,12 +12,17 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
+const (
+	CreateOrganizationCommand = "建立組織"
+	CreateEnterpriseCommand   = "建立企業"
+)
+
 type Conversation interface {
 	Conversation(context.Context, string, string, string, time.Time) (*dto.CreationReply, error)
 }
 
 func CreationHandler(store Conversation, appURL string) transport.Handler {
-	return transport.Handler{Failure: "creation temporarily unavailable", RetryOnSendFailure: true, Handle: func(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
+	return transport.Handler{Owner: "organization", Commands: []string{CreateEnterpriseCommand, CreateOrganizationCommand}, Failure: "creation temporarily unavailable", RetryOnSendFailure: true, Handle: func(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
 		m, ok := event.(webhook.MessageEvent)
 		if !ok || m.Mode != "active" || m.ReplyToken == "" || m.WebhookEventId == "" {
 			return transport.Reply{}, false, nil
@@ -29,7 +34,7 @@ func CreationHandler(store Conversation, appURL string) transport.Handler {
 		}
 		if store == nil {
 			command := strings.TrimSpace(text.Text)
-			if command != "建立企業" && command != "建立組織" {
+			if command != CreateEnterpriseCommand && command != CreateOrganizationCommand {
 				return transport.Reply{}, false, nil
 			}
 			return transport.Reply{Token: m.ReplyToken, Message: &messaging_api.TextMessage{Text: "建立服務目前無法使用，請稍後再試。"}}, true, nil

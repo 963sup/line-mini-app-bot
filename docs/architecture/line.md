@@ -13,6 +13,12 @@
 | 環境設定、HTTP client、依賴注入      | [bootstrap](../../backend/internal/bootstrap/)                         | LINE 登入、Messaging API、Rich Menu 發布使用各自的憑證與啟用條件。查核不得把部分設定當成完整啟用。                                                                                                           |
 | 領域指令與用例轉換                   | [business](../../backend/internal/business/) 下各領域的 `adapter/line` | Attendance 處理打卡、看板與紀錄；Membership 處理邀請；Organization 處理建立對話；Object 處理物件入口；Repository 處理工程入口與觀測；Team 處理團隊觀測；Summary 處理收集、指令與交付；Weather 處理地點預報。 |
 
+## 指令註冊與重送
+
+有固定指令或 Postback 的業務 Adapter 在 `transport.Handler` 填入 `Owner`、`Commands` 與 `Postbacks`。別名也列入 `Commands`。建立 Webhook 時會跨優先與一般指令檢查宣告，指令以去除首尾空白並轉成小寫的鍵比對，Postback 的 action 採精確比對。帶參數指令與多步驟對話仍由領域 Adapter 判斷參數、來源及狀態。
+
+優先指令認領事件後，該事件略過 Team、Repository 觀測及後續的一般指令。未被認領的事件先交給觀測者，再交給一般指令。任一事件的可重試錯誤都可能讓整批重送，因此每個寫入用例必須能重放。例如 Membership 接受邀請時，在同一筆 Firestore 交易更新成員與稽核紀錄，重送相同接受事件時沿用既有結果。
+
 ## 前後目錄與任務
 
 | 優先級 | 原位置                                                                           | 現行位置                                                                     | 驗收重點                                                        |
@@ -32,6 +38,20 @@
 - **間接引用**包含 Enterprise、Membership、Organization、Project、Repository、Team 的 ID 驗證、查詢與 Firestore 程式。格式由 `lineid` 提供，判斷誰能操作資源由領域維護。共用 OpenAPI 產物及 HTTP 契約只描述欄位；文字生成提示中出現 LINE 字樣也不構成 LINE API 整合。
 
 ## 結構與量測
+
+### Channel Adapter 擴充驗收
+
+從組裝端提供一個 `transport.Handler`，宣告其文字指令、別名與 Postback，並在 Adapter 判斷事件是否屬於該能力。現行宣告用於啟動衝突檢查，實際路由仍取決於 Handler 的匹配程式。[簽章 Webhook 擴充測試](../../backend/internal/bootstrap/line_extension_test.go) 用一個新增的測試檔完成註冊、送出簽章 HTTP 請求並核對三個回覆，且確認未知文字沒有回覆。這個案例修改了零個既有核心檔；實際部署新領域仍要將其依賴和 Handler 接入 Bootstrap。
+
+以 `252da76` 對照本輪工作區，計算 LINE 平台、Transport、各領域 LINE Adapter 與 Bootstrap 中檔名以 line 開頭的正式 Go 檔，排除測試。依賴邊以來源套件目錄與直接 import 路徑的唯一組合計數，包含標準庫。
+
+| 指標                      | 基準 | 重構後 |
+| ------------------------- | ---: | -----: |
+| 正式 Go 檔                |   34 |     38 |
+| 實體行數（含空行與註解）  | 2415 |   2575 |
+| 套件目錄                  |   14 |     14 |
+| 直接 import 邊            |  152 |    159 |
+| `url.ParseQuery` 呼叫位置 |    2 |      1 |
 
 以下列出有移動或影響依賴方向的路徑，皆相對於 `backend/internal/`。
 

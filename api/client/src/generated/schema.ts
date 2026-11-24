@@ -423,6 +423,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/explore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search visible resources by display name
+         * @description Scan one bounded page in ascending resource ID order. Return only active repositories whose owner currently permits discovery. Recheck this preference on each page. Discovery grants no access to repository details.
+         */
+        get: operations["searchExplore"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/repositories/{repositoryId}/issues": {
         parameters: {
             query?: never;
@@ -2359,6 +2379,17 @@ export interface components {
         CorrectionDecisionResult: {
             /** @enum {string} */
             status: "rejected" | "cancelled";
+        };
+        ExploreItem: {
+            /** @enum {string} */
+            type: "repository";
+            id: string;
+            displayName: string;
+        };
+        ExplorePage: {
+            items: components["schemas"]["ExploreItem"][];
+            /** @description Empty string at end. Otherwise continue even if items is empty. */
+            nextCursor: string;
         };
         ProjectField: {
             id: string;
@@ -4608,6 +4639,61 @@ export interface operations {
                 };
             };
             /** @description Request failed */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    searchExplore: {
+        parameters: {
+            query: {
+                /** @description Resource type. */
+                type: "repository";
+                /** @description Trim surrounding whitespace and reject a blank value. Match the display name by case-insensitive substring. */
+                q: string;
+                /** @description Omit for the first page. Opaque continuation scoped to actor, type and normalized query. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A visible result page, possibly empty. */
+            200: {
+                headers: {
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExplorePage"];
+                };
+            };
+            /** @description invalid_request: invalid input or mismatched cursor. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description unauthorized: valid session or bearer token required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description unavailable: discovery source unavailable. */
             503: {
                 headers: {
                     [name: string]: unknown;

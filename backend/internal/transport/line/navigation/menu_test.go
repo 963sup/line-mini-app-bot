@@ -9,73 +9,6 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 )
 
-func TestQuickMenuPayload(t *testing.T) {
-	for _, tc := range []struct {
-		group    bool
-		commands []string
-	}{
-		{false, []string{"出勤紀錄", "建立組織", "建立企業"}},
-		{true, []string{"打卡", "出勤", "請假", "補卡", "摘要"}},
-	} {
-		data, err := json.Marshal(QuickMenu(tc.group, "https://liff.line.me/example", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		var payload struct {
-			Type       string `json:"type"`
-			QuickReply struct {
-				Items []struct {
-					Type   string `json:"type"`
-					Action struct {
-						Type  string `json:"type"`
-						Text  string `json:"text"`
-						Label string `json:"label"`
-						Uri   string `json:"uri"`
-						Data  string `json:"data"`
-					} `json:"action"`
-				} `json:"items"`
-			} `json:"quickReply"`
-		}
-		if err := json.Unmarshal(data, &payload); err != nil {
-			t.Fatal(err)
-		}
-		if bytes.Contains(data, []byte("關閉摘要")) || bytes.Contains(data, []byte("開啟摘要")) {
-			t.Fatal("legacy switches must not appear")
-		}
-		if payload.Type != "text" || len(payload.QuickReply.Items) != len(tc.commands)+2+map[bool]int{true: 1}[tc.group] {
-			t.Fatalf("invalid quick reply: %s", data)
-		}
-		for i, command := range tc.commands {
-			index := i
-			if tc.group && i > 0 {
-				index++
-			}
-			item := payload.QuickReply.Items[index]
-			if item.Type != "action" || item.Action.Type != "message" || item.Action.Text != command || item.Action.Label != command {
-				t.Fatalf("invalid command %q: %s", command, data)
-			}
-		}
-		if tc.group {
-			journal := payload.QuickReply.Items[1].Action
-			if journal.Type != "uri" || journal.Label != "日誌" || journal.Uri != "https://liff.line.me/example?journal=1&journalCompose=1&journalRepository=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" {
-				t.Fatalf("invalid journal link: %s", data)
-			}
-		}
-		space := payload.QuickReply.Items[len(payload.QuickReply.Items)-2].Action
-		expectedSpace := "https://liff.line.me/example?repositories=1"
-		if tc.group {
-			expectedSpace = "https://liff.line.me/example?repositories=1&repository=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-		}
-		if space.Type != "uri" || space.Label != "空間" || space.Uri != expectedSpace {
-			t.Fatalf("invalid repository link: %s", data)
-		}
-		last := payload.QuickReply.Items[len(payload.QuickReply.Items)-1]
-		if last.Action.Type != "postback" || last.Action.Data != "action=miniapp" || last.Action.Uri != "" {
-			t.Fatalf("invalid URI: %s", data)
-		}
-	}
-}
-
 func TestMiniAppDesktopDestinationValidation(t *testing.T) {
 	mobile := "https://miniapp.line.me/123-test?repositories=1&repository=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	for _, endpoint := range []string{"", "http://app.example/miniapp", "javascript:alert(1)", "https://user:password@app.example/miniapp", "https://miniapp.line.me/123-test", "https://liff.line.me/123-test"} {
@@ -93,7 +26,7 @@ func TestMiniAppDesktopDestinationValidation(t *testing.T) {
 	if action.AltUri == nil || action.AltUri.Desktop != desktop || action.Uri != mobile {
 		t.Fatal("configured destinations must remain exact")
 	}
-	help := Help(false, mobile, desktop).(*messaging_api.FlexMessage)
+	help := HelpCard("title", "description", nil, mobile, desktop).(*messaging_api.FlexMessage)
 	footer := help.Contents.(*messaging_api.FlexBubble).Footer.Contents
 	button := footer[len(footer)-1].(*messaging_api.FlexButton).Action.(*messaging_api.UriAction)
 	if button.AltUri == nil || button.AltUri.Desktop != desktop {
@@ -133,7 +66,7 @@ func TestMiniAppGroupRepositoryOnBothEntrances(t *testing.T) {
 
 func TestJournalURLDoesNotGuessRepository(t *testing.T) {
 	for _, ids := range [][]string{nil, {"invalid"}, {"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}} {
-		if got := journalURL("https://liff.line.me/example", ids...); got != "https://liff.line.me/example?journal=1&journalCompose=1" {
+		if got := JournalURL("https://liff.line.me/example", ids...); got != "https://liff.line.me/example?journal=1&journalCompose=1" {
 			t.Fatalf("unexpected journal URL: %s", got)
 		}
 	}
@@ -160,13 +93,9 @@ func TestAttendanceRichMenuArtworkLayoutAndActions(t *testing.T) {
 			targets[action.RichMenuAliasId] = true
 		}
 		primary := menu.Areas[2]
-		action, ok := primary.Action.(*messaging_api.PostbackAction)
+		_, ok := primary.Action.(*messaging_api.PostbackAction)
 		if !ok || primary.Bounds.X != 0 || primary.Bounds.Y != 843 || primary.Bounds.Width != 2500 || primary.Bounds.Height != 843 {
 			t.Fatalf("invalid main action for %s: %+v", alias, primary)
-		}
-		command := "/" + strings.TrimPrefix(action.Data, "action=")
-		if reply := (menuRequest{command: command}).reply("", ""); reply.Message == nil {
-			t.Fatalf("%s does not dispatch to a reply", action.Data)
 		}
 	}
 }

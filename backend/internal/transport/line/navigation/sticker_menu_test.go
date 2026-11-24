@@ -8,7 +8,9 @@ import (
 )
 
 func TestStickerMenuExactMatch(t *testing.T) {
-	trigger := Menu{StickerPackageID: "123", StickerID: "456"}
+	trigger := Menu{QuickMenu: func(bool, string, ...string) messaging_api.MessageInterface {
+		return &messaging_api.TextMessage{Text: "menu"}
+	}, StickerPackageID: "123", StickerID: "456"}
 	makeEvent := func(pkg, id string) webhook.MessageEvent {
 		return webhook.MessageEvent{Mode: "active", ReplyToken: "reply", Source: webhook.GroupSource{GroupId: "group"}, Message: webhook.StickerMessageContent{PackageId: pkg, StickerId: id}}
 	}

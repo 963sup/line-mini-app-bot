@@ -28,15 +28,16 @@ type Store struct {
 }
 
 type document struct {
-	ID        string    `firestore:"id"`
-	OwnerID   string    `firestore:"ownerId"`
-	Name      string    `firestore:"name"`
-	Status    string    `firestore:"status"`
-	Version   int64     `firestore:"version"`
-	CreatedAt time.Time `firestore:"createdAt"`
-	UpdatedAt time.Time `firestore:"updatedAt"`
-	EventAt   time.Time `firestore:"eventAt"`
-	EventID   string    `firestore:"eventId"`
+	Discoverable bool      `firestore:"discoverable,omitempty"`
+	ID           string    `firestore:"id"`
+	OwnerID      string    `firestore:"ownerId"`
+	Name         string    `firestore:"name"`
+	Status       string    `firestore:"status"`
+	Version      int64     `firestore:"version"`
+	CreatedAt    time.Time `firestore:"createdAt"`
+	UpdatedAt    time.Time `firestore:"updatedAt"`
+	EventAt      time.Time `firestore:"eventAt"`
+	EventID      string    `firestore:"eventId"`
 }
 
 func (d document) model() repositoryDomainEntity.Repository {

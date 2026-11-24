@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -23,7 +24,12 @@ type Attendance struct {
 	GroupName func(context.Context, string) string
 }
 
-// reply handles attendance before the prototype's redelivery filter.
+var attendanceCommands = []string{"補卡", "出勤", "漏下班", "下班提醒", "請假", "打卡", "上班", "下班", "休息開始", "休息結束", "確認休息", "出勤紀錄"}
+
+func (b *Attendance) Handler() transport.Handler {
+	return transport.Handler{Owner: "attendance", Commands: attendanceCommands, Postbacks: []string{"attendance-history"}, Handle: b.Reply, Failure: "attendance unavailable; retry safely", RetryOnSendFailure: true}
+}
+
 func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
 	var source webhook.SourceInterface
 	var command, token, eventID, selectedGroup string
@@ -44,8 +50,8 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 		if e.Mode != "active" || e.ReplyToken == "" || e.Postback == nil {
 			return transport.Reply{}, false, nil
 		}
-		values, err := url.ParseQuery(e.Postback.Data)
-		if err != nil || len(values["action"]) != 1 {
+		values, ok := transport.ParsePostback(e.Postback.Data)
+		if !ok {
 			return transport.Reply{}, false, nil
 		}
 		action := values.Get("action")
@@ -89,7 +95,7 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 		return transport.Reply{}, false, nil
 	}
 	history := command == "出勤紀錄" || strings.HasPrefix(command, "出勤紀錄 ")
-	if command != "補卡" && command != "出勤" && command != "漏下班" && command != "下班提醒" && command != "請假" && command != "打卡" && command != "上班" && command != "下班" && command != "休息開始" && command != "休息結束" && command != "確認休息" && !history {
+	if !history && !slices.Contains(attendanceCommands, command) {
 		return transport.Reply{}, false, nil
 	}
 	respond := func(text string) (transport.Reply, bool, error) {

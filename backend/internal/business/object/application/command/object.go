@@ -2,7 +2,10 @@ package command
 
 import (
 	"context"
+	"errors"
+	"log/slog"
 	"regexp"
+	"time"
 
 	"github.com/963sup/line-mini-app-bot/internal/business/object/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
@@ -35,13 +38,29 @@ func DeliverQuantityEvents(ctx context.Context, store port.QuantityEvents, publi
 	if err != nil {
 		return err
 	}
+	var firstErr error
 	for _, item := range pending {
-		if err := publish(ctx, item.ID, item.Revision); err != nil {
+		if err := ctx.Err(); err != nil {
 			return err
 		}
-		if err := store.AcknowledgeQuantityEvent(ctx, item.ID); err != nil {
+		if err := store.MarkQuantityEventAttempt(ctx, item.ID); err != nil {
 			return err
+		}
+		attempt, cancel := context.WithTimeout(ctx, 8*time.Second)
+		err := errors.New("invalid stored quantity revision")
+		if item.Revision.Version > 0 && item.Revision.RepositoryID != "" && item.Revision.ObjectID != "" {
+			err = publish(attempt, item.ID, item.Revision)
+		}
+		if err == nil {
+			err = store.AcknowledgeQuantityEvent(attempt, item.ID)
+		}
+		cancel()
+		if err != nil {
+			slog.WarnContext(ctx, "quantity event pending", "event_id", item.ID, "version", item.Revision.Version)
+			if firstErr == nil {
+				firstErr = err
+			}
 		}
 	}
-	return nil
+	return firstErr
 }

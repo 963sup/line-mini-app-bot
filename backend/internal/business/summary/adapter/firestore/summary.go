@@ -117,12 +117,25 @@ func (s *Summary) unsendOperation(ctx context.Context, g, id string) error {
 		if e != nil {
 			return e
 		}
+		ref := root.Collection("summaryMessages").Doc(firestorekey.Encode(id))
+		doc, err := tx.Get(ref)
+		if err == nil {
+			var msg messageDocument
+			if err := doc.DataTo(&msg); err != nil {
+				return err
+			}
+			if msg.Deleted {
+				return nil
+			}
+		} else if status.Code(err) != codes.NotFound {
+			return err
+		}
 		st.Revision++
 		if e := tx.Set(root, st); e != nil {
 			return e
 		}
 		// A tombstone prevents a delayed original message from restoring content.
-		return tx.Set(root.Collection("summaryMessages").Doc(firestorekey.Encode(id)), messageDocument{ID: id, Deleted: true, Epoch: st.Epoch, ExpireAt: time.Now().Add(48 * time.Hour)})
+		return tx.Set(ref, messageDocument{ID: id, Deleted: true, Epoch: st.Epoch, ExpireAt: time.Now().Add(48 * time.Hour)})
 	})
 	if err != nil {
 		return err
@@ -200,11 +213,11 @@ func (s *Summary) claimOperation(ctx context.Context, g, id string) (summaryDoma
 		if e = decodeJob(d, &j); e != nil {
 			return e
 		}
-		if j.Status == "done" || j.Status == "disabled" {
+		if j.Status == "done" || j.Status == "disabled" || j.Status == "expired" {
 			return nil
 		}
 		if !j.ExpireAt.After(now) {
-			return tx.Update(ref, []db.Update{{Path: "Status", Value: "done"}, {Path: "Result", Value: ""}})
+			return tx.Update(ref, []db.Update{{Path: "Status", Value: "expired"}, {Path: "Result", Value: ""}})
 		}
 		if j.LeaseUntil.After(now) {
 			return errors.New("summary job busy")

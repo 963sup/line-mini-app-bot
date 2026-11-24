@@ -8,6 +8,7 @@ import {
   Layers,
   MapPin,
   NotebookPen,
+  Search,
 } from "lucide-react";
 import { NavMain, type NavItem } from "./nav-main";
 import { NavProjects } from "./nav-projects";
@@ -49,6 +50,12 @@ export function AppSidebar({
     { ...(repositoryItem || {
       title: "空間", url: "/miniapp/repositories", isActive: workflow === "repositories",
     }), icon: FolderOpen },
+    {
+      title: "Explore",
+      url: "/miniapp/explore",
+      icon: Search,
+      isActive: workflow === "explore",
+    },
     {
       title: "出勤服務",
       icon: ClipboardList,

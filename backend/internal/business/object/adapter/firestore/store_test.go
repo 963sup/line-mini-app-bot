@@ -353,3 +353,27 @@ func TestQuantityOutboxRetriesCommittedRevision(t *testing.T) {
 		t.Fatal(count)
 	}
 }
+
+func TestOutboxProgressesPastMalformedAndRejectedEvents(t *testing.T) {
+	ctx, s, _ := emulatorStore(t)
+	for id, rev := range map[string]any{"a": map[string]any{"Version": "wrong"}, "b": event.Revision{ChannelID: s.ChannelID, Version: 1, ObjectID: "b", RepositoryID: "r"}, "c": event.Revision{ChannelID: s.ChannelID, Version: 1, ObjectID: "c", RepositoryID: "r"}} {
+		if _, err := s.quantityOutbox().Doc(id).Set(ctx, rev); err != nil {
+			t.Fatal(err)
+		}
+	}
+	delivered := ""
+	err := objectcommand.DeliverQuantityEvents(ctx, s, func(ctx context.Context, id string, rev event.Revision) error {
+		if id == "b" {
+			return context.DeadlineExceeded
+		}
+		delivered = id
+		return nil
+	})
+	if err == nil || delivered != "c" {
+		t.Fatalf("failure isolation: delivered=%q err=%v", delivered, err)
+	}
+	rows, err := s.PendingQuantityEvents(ctx)
+	if err != nil || len(rows) != 2 {
+		t.Fatalf("restart scan: %+v %v", rows, err)
+	}
+}

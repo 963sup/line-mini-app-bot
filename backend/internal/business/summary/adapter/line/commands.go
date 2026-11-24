@@ -10,6 +10,12 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
+const SummaryCommand = "摘要"
+
+func (b *Summary) Handler() transport.Handler {
+	return transport.Handler{Owner: "summary", Commands: []string{SummaryCommand}, Handle: b.Reply, Failure: "summary temporarily unavailable"}
+}
+
 func (b *Summary) Reply(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
 	if b == nil {
 		return transport.Reply{}, false, nil
@@ -27,7 +33,7 @@ func (b *Summary) Reply(ctx context.Context, event webhook.EventInterface) (tran
 		return transport.Reply{}, false, nil
 	}
 	command := strings.TrimSpace(m.Text)
-	if command == "摘要" {
+	if command == SummaryCommand {
 		if time.Since(time.UnixMilli(e.Timestamp)) > 24*time.Hour || time.UnixMilli(e.Timestamp).After(time.Now().Add(time.Minute)) {
 			return transport.Reply{}, true, nil
 		}
@@ -38,7 +44,7 @@ func (b *Summary) Reply(ctx context.Context, event webhook.EventInterface) (tran
 		if err != nil {
 			return transport.Reply{}, true, err
 		}
-		if j.Status == "done" {
+		if j.Status == "expired" || j.Status == "done" {
 			return transport.Reply{}, true, nil
 		}
 		if err := b.Queue.Enqueue(ctx, j); err != nil {

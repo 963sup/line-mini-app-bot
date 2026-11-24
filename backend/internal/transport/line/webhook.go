@@ -3,8 +3,10 @@ package line
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
@@ -35,6 +37,9 @@ func RegisterWebhook(mux *http.ServeMux, channel, secret string, send SendReply,
 }
 
 func WebhookHandler(secret string, send SendReply, dispatch Dispatch) http.HandlerFunc {
+	if err := dispatch.validate(); err != nil {
+		panic(err)
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
 		callback, err := webhook.ParseRequest(secret, r)
@@ -84,6 +89,28 @@ func WebhookHandler(secret string, send SendReply, dispatch Dispatch) http.Handl
 		}
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+func (d Dispatch) validate() error {
+	commands, actions := map[string]string{}, map[string]string{}
+	for _, phase := range [][]Handler{d.EarlyCommands, d.Commands} {
+		for _, h := range phase {
+			for _, name := range h.Commands {
+				key := strings.ToLower(strings.TrimSpace(name))
+				if prev, ok := commands[key]; ok {
+					return fmt.Errorf("LINE command %q registered by %s and %s", name, prev, h.Owner)
+				}
+				commands[key] = h.Owner
+			}
+			for _, key := range h.Postbacks {
+				if prev, ok := actions[key]; ok {
+					return fmt.Errorf("LINE postback %q registered by %s and %s", key, prev, h.Owner)
+				}
+				actions[key] = h.Owner
+			}
+		}
+	}
+	return nil
 }
 
 // runCommands reports whether a command claimed the event and whether the

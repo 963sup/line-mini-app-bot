@@ -30,5 +30,6 @@ type QuantityHistory interface {
 // QuantityEvents reads and acknowledges committed revisions in the configured channel.
 type QuantityEvents interface {
 	PendingQuantityEvents(context.Context) ([]event.PendingRevision, error)
+	MarkQuantityEventAttempt(context.Context, string) error
 	AcknowledgeQuantityEvent(context.Context, string) error
 }

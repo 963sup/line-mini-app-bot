@@ -10,6 +10,11 @@
 !api/
 !api/**
 !scripts/
+!scripts/release/
+!scripts/release/verify-candidate.py
+!scripts/db/
+!scripts/db/ensure-firestore.py
+!firestore.indexes.json
 !scripts/generate/
 !scripts/generate/prepare-miniapp-assets.mts
 !assets/
