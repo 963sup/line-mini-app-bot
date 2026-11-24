@@ -10,7 +10,7 @@
 
 ## Secret Manager 與環境變數
 
-[Secret Manager 與兩條部署路徑的關係如下。cloudbuild.yaml 的「部署檔參照」只在手動或 自訂 Trigger 真正執行該檔時生效；「歷史快照」記錄 2026-11-08 revision line-mini-app-bot-00027-695 的 metadata，不包含 Secret payload。此表不是現行服務宣告； 部署前使用發布 snapshot重新讀取 serving revision、 流量、執行帳戶及 Secret references，另核對必要非機密 env 值：](release-acceptance.md#發布證據與前置條件)
+Secret Manager 與兩條部署路徑的關係如下。cloudbuild.yaml 的「部署檔參照」只在手動或自訂 Trigger 真正執行該檔時生效；「歷史快照」記錄 2026-11-08 revision line-mini-app-bot-00027-695 的 metadata，不包含 Secret payload。此表不是現行服務宣告；部署前依[發布證據與前置條件](release-acceptance.md#發布證據與前置條件)，使用發布 snapshot 重新讀取 serving revision、流量、執行帳戶及 Secret references，另核對必要非機密 env 值：
 
 | Secret Manager 名稱                     | 容器環境變數                            | 部署檔參照           | 2026-11-08 歷史快照／用途                                                |
 | --------------------------------------- | --------------------------------------- | -------------------- | ------------------------------------------------------------------------ |
@@ -38,7 +38,7 @@
 
 - 使用版本 1 前須確認已存在且 enabled；若實際版本不同，明確覆寫。 目前 preflight 對全部六個 Secret 綁定檢查正整數版本；Gemini 沒有預設版本，提交建置時必填 _GEMINI_API_KEY_VERSION。 手動發布前須核對所有綁定並使用明確數字版本；不能把 preflight 通過視為全部機密已就緒。 輪替時新增 secret version，再帶新的數字版本部署；保留舊版本供回滾使用。
 
-- [GOOGLE_CLOUD_PROJECT 自動設為此次 Build 的 project。MINI App 兩個 ID 全空時停用身分功能； 只提供其中一個會在建置前失敗。Channel、LIFF ID 都不是機密，但必須符合實際環境。 Service Message token、MCP API key、使用者 ID token 與 ADC 憑證不屬於本部署的 substitutions。 應用設定命名仍依 LINE 契約。](../integrations/line/configuration.md)
+- GOOGLE_CLOUD_PROJECT 自動設為此次 Build 的 project。MINI App 兩個 ID 全空時停用身分功能；只提供其中一個會在建置前失敗。Channel、LIFF ID 都不是機密，但必須符合實際環境。Service Message token、MCP API key、使用者 ID token 與 ADC 憑證不屬於本部署的 substitutions。應用設定命名仍依 [LINE 環境設定](../integrations/line/configuration.md)。
 
 - cloudbuild.yaml 使用 set-env-vars／set-secrets 宣告完整集合，會移除未列出的手動 env／secret 綁定； 新增功能時先更新檔案，不能只在 Console 臨時補值。這些值都在執行期注入，沒有 bake 進映像。
 

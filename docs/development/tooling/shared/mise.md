@@ -22,7 +22,7 @@ Do not change platform HOME/CODEX_HOME or copy authentication files.
 - `graphify-update` / `repomix`: refresh analysis artifacts.
 - `check-config` / `doctor`: configuration and Go environment verification.
 - `firestore-emulator`：按需準備固定版本的 Java 25，啟動本機 Firestore emulator。見[操作與測試](../testing/firestore-emulator.md#firestore-emulator)。
-- `install-cloud`: pinned gcloud CLI and local gcloud MCP installation.
+- `install-cloud`: 依 mise 任務安裝 Node、gcloud CLI、Firebase CLI 與本機 gcloud MCP。
 - `check` / `build`: application checks; require an existing Go module.
 
 Use `mise tasks` to discover current tasks. Bootstrap needs system Python 3.11+,
