@@ -47,7 +47,7 @@ LINE MINI App Bot 是 Go 與 Next.js monorepo，整合 LINE Messaging API、MINI
 
 - [設定管理](docs/operations/configuration.md)
 - [安全規範](docs/standards/security.md)
-- [外部系統](docs/references/external-systems.md)
+- [外部系統](docs/references/external_systems.md)
 
 ## 開發與驗證
 

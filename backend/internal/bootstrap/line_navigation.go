@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	firestoreplatform "github.com/963sup/line-mini-app-bot/internal/platform/firestore"
@@ -35,7 +36,7 @@ func SyncLINENavigation(parent context.Context) (result error) {
 	definitions := navigation.AttendanceRichMenus()
 	menus := make([]richmenu.Menu, 0, len(definitions))
 	for _, alias := range navigation.AttendanceRichMenuAliases() {
-		image, err := os.ReadFile(filepath.Join(dir, alias+".JPG"))
+		image, err := os.ReadFile(filepath.Join(dir, strings.ReplaceAll(alias, "-", "_")+".JPG"))
 		if err != nil {
 			return fmt.Errorf("read rich menu image %s: %w", alias, err)
 		}

@@ -3,7 +3,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { FormField } from "@/shared/FormField";
-import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native_select";
 
 type Settings = components["schemas"]["ProjectSettings"];
 const newId = () => crypto.randomUUID().replaceAll("-", "");

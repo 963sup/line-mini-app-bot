@@ -36,7 +36,7 @@ OpenAI、Gemini、CWA 及文件處理能力由 adapter 封裝。輸入需最小�
 - 敏感資料與 log 邊界；
 - 本機、測試環境與正式環境各自需要的證據。
 
-外部系統清單與權威來源見[參考資料](../references/external-systems.md)。
+外部系統清單與權威來源見[參考資料](../references/external_systems.md)。
 
 ## LINE 群組成員查核
 

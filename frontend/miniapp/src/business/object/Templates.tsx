@@ -16,7 +16,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { FieldError, FieldGroup, FieldSet, FieldLegend } from "@/shared/ui/field";
-import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native_select";
 
 type Snapshot = components["schemas"]["ObjectTemplate"];
 type Creation = components["schemas"]["ObjectTemplateCreation"];

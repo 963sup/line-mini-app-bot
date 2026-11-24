@@ -2,8 +2,8 @@ import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import test from "node:test";
 import assert from "node:assert/strict";
-import "./sidebar-dom";
-import { Shell } from "./shell-fixture";
+import "./sidebar_dom";
+import { Shell } from "./shell_fixture";
 import { Workspace } from "../src/business/project/Workspace";
 
 const sa = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",

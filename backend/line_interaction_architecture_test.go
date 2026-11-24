@@ -37,7 +37,7 @@ func TestLINEFlexUsesAreDocumentedExceptions(t *testing.T) {
 			}
 			selector, ok := literal.Type.(*ast.SelectorExpr)
 			if ok && selector.Sel.Name == "FlexMessage" && !allowed[rel] {
-				t.Errorf("%s creates an undocumented Flex message; use a native template or record the concrete limitation in docs/standards/line-interactions.md", rel)
+				t.Errorf("%s creates an undocumented Flex message; use a native template or record the concrete limitation in docs/standards/line_interactions.md", rel)
 			}
 			return true
 		})

@@ -1,5 +1,5 @@
 import { FieldSet } from "@/shared/ui/field";
-import { ButtonGroup, ButtonGroupText } from "@/shared/ui/button-group";
+import { ButtonGroup, ButtonGroupText } from "@/shared/ui/button_group";
 import {
   Table,
   TableHeader,

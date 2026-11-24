@@ -13,10 +13,10 @@ Follow rule 18 to start a task. See the [nested directory guide](README.md#%E5%B
 ## Normative engineering requirements
 
 All contributors and agents MUST read and comply with the repository-wide
-[MUST](docs/standards/must.md), [MUST NOT](docs/standards/must-not.md),
-[SHOULD](docs/standards/should.md), [SHOULD NOT](docs/standards/should-not.md), and
+[MUST](docs/standards/must.md), [MUST NOT](docs/standards/must_not.md),
+[SHOULD](docs/standards/should.md), [SHOULD NOT](docs/standards/should_not.md), and
 [MAY](docs/standards/may.md) standards before performing engineering work. LINE
-interaction changes MUST also follow the [LINE interaction standard](docs/standards/line-interactions.md).
+interaction changes MUST also follow the [LINE interaction standard](docs/standards/line_interactions.md).
 These keywords use the RFC 2119 and RFC 8174 meanings. A SHOULD or SHOULD NOT
 may be overridden only when the exception, rationale, impact, and selected
 alternative are recorded. MAY does not grant authority or override a MUST or
@@ -86,7 +86,7 @@ NOT weaken these repository-wide standards.
 
 ### Mandatory documentation verification
 
-- **External behavior**: Choose version-matched official sources according to the [external systems reference](docs/references/external-systems.md). For Context7, resolve the library ID first, then query for the project's dependency version.
+- **External behavior**: Choose version-matched official sources according to the [external systems reference](docs/references/external_systems.md). For Context7, resolve the library ID first, then query for the project's dependency version.
 
 <a id="&#21934;&#19968;&#20195;&#29702;&#33287;&#33021;&#21147;&#36984;&#29992;"></a>
 
@@ -156,7 +156,7 @@ When the user asks to follow the GitHub MCP push workflow (「走 GitHub MCP 推
 
 ## Common verification and delivery
 
-For Mini App component work, follow the [shadcn MCP workflow](docs/workflows/shadcn-mcp.md). For Next.js runtime and routing diagnostics, follow the [Next.js MCP workflow](docs/workflows/nextjs-mcp.md).
+For Mini App component work, follow the [shadcn MCP workflow](docs/workflows/shadcn_mcp.md). For Next.js runtime and routing diagnostics, follow the [Next.js MCP workflow](docs/workflows/nextjs_mcp.md).
 
 For failing pull request checks, use GitHub MCP and follow the [PR verification workflow](docs/workflows/verification.md#用-github-mcp-處理-pr-紅燈) through the final check result.
 

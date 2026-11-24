@@ -11,7 +11,7 @@ import {
   ComboboxList,
 } from "@/shared/ui/combobox";
 import { Field, FieldLabel, FieldLegend, FieldSet } from "@/shared/ui/field";
-import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native_select";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { FormField } from "@/shared/FormField";
 import { Status } from "@/shared/Status";

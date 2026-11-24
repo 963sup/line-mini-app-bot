@@ -135,16 +135,16 @@
       "$ref": "./group/groups.yaml#/paths/~1api~1v1~1groups~1{id}"
     },
     "/api/v1/owners/{ownerId}/projects": {
-      "$ref": "./project/owner-projects.yaml#/paths/~1api~1v1~1owners~1{ownerId}~1projects"
+      "$ref": "./project/owner_projects.yaml#/paths/~1api~1v1~1owners~1{ownerId}~1projects"
     },
     "/api/v1/owners/{ownerId}/projects/{id}": {
-      "$ref": "./project/owner-projects.yaml#/paths/~1api~1v1~1owners~1{ownerId}~1projects~1{id}"
+      "$ref": "./project/owner_projects.yaml#/paths/~1api~1v1~1owners~1{ownerId}~1projects~1{id}"
     },
     "/api/v1/owners/{ownerId}/projects/{id}/items": {
-      "$ref": "./project/owner-projects.yaml#/paths/~1api~1v1~1owners~1{ownerId}~1projects~1{id}~1items"
+      "$ref": "./project/owner_projects.yaml#/paths/~1api~1v1~1owners~1{ownerId}~1projects~1{id}~1items"
     },
     "/api/v1/owners/{ownerId}/projects/{id}/items/{itemId}": {
-      "$ref": "./project/owner-projects.yaml#/paths/~1api~1v1~1owners~1{ownerId}~1projects~1{id}~1items~1{itemId}"
+      "$ref": "./project/owner_projects.yaml#/paths/~1api~1v1~1owners~1{ownerId}~1projects~1{id}~1items~1{itemId}"
     },
     "/api/v1/repositories/{repositoryId}/objects": {
       "$ref": "./object/objects.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1objects"
@@ -171,7 +171,7 @@
       "$ref": "./journal/journals.yaml#/paths/~1api~1v1~1journals~1{journalId}"
     },
     "/api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection-submissions": {
-      "$ref": "./project/inspection-submissions.yaml#/paths/~1api~1v1~1owners~1{ownerId}~1projects~1{id}~1references~1{itemId}~1inspection-submissions"
+      "$ref": "./project/inspection_submissions.yaml#/paths/~1api~1v1~1owners~1{ownerId}~1projects~1{id}~1references~1{itemId}~1inspection-submissions"
     },
     "/api/v1/repositories/{repositoryId}/labels/{id}": {
       "$ref": "./repository/labels.yaml#/paths/~1api~1v1~1repositories~1{repositoryId}~1labels~1{id}"
@@ -360,7 +360,7 @@
         "$ref": "./group/groups.yaml#/components/schemas/EngineeringGroupPage"
       },
       "OwnerProjectCreation": {
-        "$ref": "./project/owner-projects.yaml#/components/schemas/OwnerProjectCreation"
+        "$ref": "./project/owner_projects.yaml#/components/schemas/OwnerProjectCreation"
       },
       "Object": {
         "$ref": "./object/objects.yaml#/components/schemas/Object"
@@ -414,10 +414,10 @@
         "$ref": "./journal/journals.yaml#/components/schemas/JournalPage"
       },
       "InspectionSubmission": {
-        "$ref": "./project/inspection-submissions.yaml#/components/schemas/InspectionSubmission"
+        "$ref": "./project/inspection_submissions.yaml#/components/schemas/InspectionSubmission"
       },
       "InspectionInput": {
-        "$ref": "./project/inspection-submissions.yaml#/components/schemas/InspectionInput"
+        "$ref": "./project/inspection_submissions.yaml#/components/schemas/InspectionInput"
       },
       "LabelRename": {
         "$ref": "./repository/labels.yaml#/components/schemas/LabelRename"

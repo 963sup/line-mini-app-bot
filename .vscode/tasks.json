@@ -42,7 +42,7 @@
       "type": "process",
       "command": "python3",
       "args": [
-        "scripts/check/check-config.py"
+        "scripts/check/check_config.py"
       ],
       "options": {
         "cwd": "${workspaceFolder}"

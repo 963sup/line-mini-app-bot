@@ -13,7 +13,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { FieldGroup, FieldSet, FieldLegend } from "@/shared/ui/field";
-import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle_group";
 import { Badge } from "@/shared/ui/badge";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
 import { Item, ItemGroup, ItemContent, ItemTitle, ItemActions, ItemFooter } from "@/shared/ui/item";

@@ -4,7 +4,7 @@ import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Field, FieldLabel, FieldGroup, FieldSet } from "@/shared/ui/field";
-import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native_select";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { Status } from "@/shared/Status";

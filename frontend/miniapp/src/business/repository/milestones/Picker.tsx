@@ -6,7 +6,7 @@ import { useLatestRequest, errorMessage, isTemporaryReadError } from "@/shared/h
 import { FormField } from "@/shared/FormField";
 import { Button } from "@/shared/ui/button";
 import { FieldGroup } from "@/shared/ui/field";
-import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native_select";
 export function Picker({
   repositoryId,
   value,

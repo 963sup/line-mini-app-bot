@@ -11,12 +11,12 @@
 !api/**
 !scripts/
 !scripts/release/
-!scripts/release/verify-candidate.py
+!scripts/release/verify_candidate.py
 !scripts/db/
-!scripts/db/ensure-firestore.py
+!scripts/db/ensure_firestore.py
 !firestore.indexes.json
 !scripts/generate/
-!scripts/generate/prepare-miniapp-assets.mts
+!scripts/generate/prepare_miniapp_assets.mts
 !assets/
 !assets/line/
 !assets/line/richmenu/
@@ -44,7 +44,7 @@
 !firestore.indexes.json
 
 !scripts/db/
-!scripts/db/ensure-firestore.py
+!scripts/db/ensure_firestore.py
 !firebase.json
 
 # Local artifacts inside otherwise allowed application directories

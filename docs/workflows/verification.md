@@ -52,7 +52,7 @@ go -C backend test -count=1 architecture_test.go architecture_regression_test.go
 
 ## Firestore emulator 整合測試
 
-在 Linux x86_64 的新環境，從專案根目錄執行 `scripts/test/firestore-emulator.sh`。腳本需要專案指定版本的 Go、Bash、curl、tar、sha256sum 與 flock。首次執行會下載並驗證固定版本的 Java 25 JRE 與 Firestore emulator JAR，之後重用本機快取。腳本啟動獨立模擬器，預設執行 Team 與群組整合測試，回傳測試退出碼並關閉模擬器。自動化可傳入其他 Go 測試，例如 `scripts/test/firestore-emulator.sh -run '^TestWikiMembershipAndRevisions$' ./internal/business/repository/adapter/http/wiki`。預設埠 18080 被占用時，可用 `FIRESTORE_TEST_PORT` 指定空閒埠。唯讀環境可將 `FIRESTORE_TOOL_CACHE` 指向可寫目錄。
+在 Linux x86_64 的新環境，從專案根目錄執行 `scripts/test/firestore_emulator.sh`。腳本需要專案指定版本的 Go、Bash、curl、tar、sha256sum 與 flock。首次執行會下載並驗證固定版本的 Java 25 JRE 與 Firestore emulator JAR，之後重用本機快取。腳本啟動獨立模擬器，預設執行 Team 與群組整合測試，回傳測試退出碼並關閉模擬器。自動化可傳入其他 Go 測試，例如 `scripts/test/firestore_emulator.sh -run '^TestWikiMembershipAndRevisions$' ./internal/business/repository/adapter/http/wiki`。預設埠 18080 被占用時，可用 `FIRESTORE_TEST_PORT` 指定空閒埠。唯讀環境可將 `FIRESTORE_TOOL_CACHE` 指向可寫目錄。
 
 等本機端點可達後，在另一個終端機指定 `FIRESTORE_EMULATOR_HOST`，用受影響的案例驗證。例如：
 

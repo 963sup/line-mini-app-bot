@@ -6,11 +6,11 @@ import { createRoot } from "react-dom/client";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { Enterprise } from "../src/business/enterprise/Enterprise";
-import { Shell } from "./shell-fixture";
+import { Shell } from "./shell_fixture";
 import { Shell as ProductionShell } from "../src/shell/Shell";
 import { useSession } from "../src/identity/Session";
 
-import "./sidebar-dom";
+import "./sidebar_dom";
 
 function PrivateContent() {
   const { user, pictureUrl } = useSession();

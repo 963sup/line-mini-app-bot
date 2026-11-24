@@ -1,7 +1,7 @@
 import { QuantityHistory } from "../src/business/object/QuantityHistory";
 import { OrganizationPage } from "../src/business/organization/OrganizationPage";
 import { OrganizationTeams } from "../src/business/team/OrganizationTeams";
-import { pressButton } from "./sidebar-dom";
+import { pressButton } from "./sidebar_dom";
 import { Enterprise } from "../src/business/enterprise/Enterprise";
 import React from "react";
 import { test } from "node:test";
@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { act, StrictMode, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { SessionProvider, useSession } from "../src/identity/Session";
-import { SessionControls } from "./session-controls";
+import { SessionControls } from "./session_controls";
 import { attendanceLaunchToken } from "../src/business/attendance/launchToken";
 import { View as Punch } from "../src/business/attendance/punch/View";
 import { View as Leave } from "../src/business/attendance/leave/View";

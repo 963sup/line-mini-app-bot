@@ -17,7 +17,7 @@ This file adds frontend-specific rules to the [repository rules](../AGENTS.md). 
 
 ## UI and verification
 
-- **UI compatibility.** Existing shadcn primitives, `shared/ui`, `shared/hooks/use-mobile.ts` and `shell/sidebar-07` MUST be composed through public APIs. Direct upstream-style changes require explicit task scope and MUST preserve accessibility fixes, aliases and client directives.
+- **UI compatibility.** Existing shadcn primitives, `shared/ui`, `shared/hooks/use_mobile.ts` and `shell/sidebar_07` MUST be composed through public APIs. Direct upstream-style changes require explicit task scope and MUST preserve accessibility fixes, aliases and client directives.
 - **Theme.** MINI App components MUST use the shared Tailwind theme tokens in `miniapp/src/styles/globals.css` for existing color and spacing roles. Shared components SHOULD expose the stable behavior common to their callers and keep feature-specific state in the owning feature.
 - **Interaction states.** Changed flows MUST follow the [frontend standard](../docs/standards/frontend.md) and distinguish loading, empty, success, denied, failed and unknown outcomes where applicable. Changes MUST preserve accessible names, keyboard and focus behavior, and responsive layouts.
 - **Verification.** Frontend changes MUST run `pnpm --filter @repo/miniapp check`, relevant tests and any static build required by the [verification workflow](../docs/workflows/verification.md). Changed operation flows MUST verify success and any applicable denial, unknown write outcome, or stale response after an actor or resource change.

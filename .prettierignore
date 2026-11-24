@@ -3,5 +3,5 @@ api/client/src/generated/
 frontend/miniapp/next-env.d.ts
 # Protected upstream shadcn primitives, hooks and Sidebar template.
 frontend/miniapp/src/shared/ui/
-frontend/miniapp/src/shared/hooks/use-mobile.ts
-frontend/miniapp/src/shell/sidebar-07/
+frontend/miniapp/src/shared/hooks/use_mobile.ts
+frontend/miniapp/src/shell/sidebar_07/

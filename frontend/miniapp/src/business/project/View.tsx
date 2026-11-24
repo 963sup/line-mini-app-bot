@@ -29,7 +29,7 @@ import { SettingsEditor } from "./SettingsEditor";
 import { Items } from "./Items";
 import { SourcePicker } from "./SourcePicker";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/shared/ui/empty";
-import { NativeSelect, NativeSelectOption } from "@/shared/ui/native-select";
+import { NativeSelect, NativeSelectOption } from "@/shared/ui/native_select";
 import { Item, ItemGroup } from "@/shared/ui/item";
 
 type Project = components["schemas"]["Project"];

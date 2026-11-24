@@ -259,7 +259,7 @@ func TestContractDTOPreservesLegacyWireValues(t *testing.T) {
 		if empty {
 			name = "empty"
 		}
-		original, err := os.ReadFile("testdata/legacy-monthly-" + name + ".json")
+		original, err := os.ReadFile("testdata/legacy_monthly_" + name + ".json")
 		if err != nil {
 			t.Fatal(err)
 		}
