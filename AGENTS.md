@@ -143,4 +143,6 @@ See the [release workflow](docs/workflows/release.md) for repository publication
 
 ## Common verification and delivery
 
+For failing pull request checks, use GitHub MCP and follow the [PR verification workflow](docs/workflows/verification.md#用-github-mcp-處理-pr-紅燈) through the final check result.
+
 Documentation-only and configuration-only changes do not require unrelated application tests. Behavior changes require the corresponding checks.
