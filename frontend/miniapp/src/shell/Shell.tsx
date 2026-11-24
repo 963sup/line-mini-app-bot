@@ -82,12 +82,9 @@ function Content({
         target.set("repositoryId", journalRepository);
       location.replace("/miniapp/feed" + (target.size ? "?" + target : ""));
     } else if (correction)
-      location.replace(
-        "/miniapp/attendance?tab=correction&" + new URLSearchParams({ group: correction }),
-      );
+      location.replace("/miniapp/correction?" + new URLSearchParams({ group: correction }));
     else if (leave) {
-      params.set("tab", "leave");
-      location.replace("/miniapp/attendance?" + params);
+      location.replace("/miniapp/leave?" + params);
     } else if (params.has("launch") || params.has("liff.state"))
       location.replace("/miniapp/punch" + location.search);
   }, [workflow, ready]);

@@ -36,7 +36,7 @@ export function OrganizationTeams({ organizationId }: { organizationId: string }
   const error = typeof result === "string" ? result : undefined;
   const data = typeof result === "string" ? null : result;
   return (
-    <PagePanel heading="組織團隊">
+    <PagePanel heading="團隊">
       <ReadFeedback
         busy={result === null}
         label="載入團隊中…"
@@ -50,7 +50,7 @@ export function OrganizationTeams({ organizationId }: { organizationId: string }
               <li key={team.teamId}>
                 <TeamSummary
                   name={team.name || team.teamId}
-                  management={team.managementScope === "enterprise" ? "企業團隊" : "組織團隊"}
+                  management={team.managementScope === "enterprise" ? "企業團隊" : "團隊"}
                   auditStatus={team.auditHistoryStatus}
                 />
               </li>

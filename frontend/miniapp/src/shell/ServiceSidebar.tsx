@@ -5,6 +5,8 @@ import * as React from "react";
 import {
   type LucideIcon,
   ClipboardList,
+  CalendarOff,
+  ClipboardCheck,
   FolderOpen,
   Home,
   Layers,
@@ -38,7 +40,7 @@ import {
   SidebarRail,
 } from "@/shared/ui/sidebar";
 
-export type Shortcut = "compose" | "correction";
+export type Shortcut = "compose";
 
 type Destination = { name: string; url: string; icon: LucideIcon; isActive?: boolean };
 
@@ -136,15 +138,33 @@ function NavigationSidebar({
       icon: FolderOpen,
     },
     {
-      title: "出勤服務",
+      title: "出勤紀錄",
       icon: ClipboardList,
       url: "/miniapp/attendance",
-      isActive: (workflow === "attendance" || workflow === "punch") && !shortcut,
+      isActive: workflow === "attendance" || workflow === "punch",
+    },
+    {
+      title: "請假登記",
+      icon: CalendarOff,
+      url: "/miniapp/leave",
+      isActive: workflow === "leave",
+    },
+    {
+      title: "申請補卡",
+      icon: ClipboardPenLine,
+      url: "/miniapp/correction",
+      isActive: workflow === "correction",
+    },
+    {
+      title: "補卡審核",
+      icon: ClipboardCheck,
+      url: "/miniapp/review",
+      isActive: workflow === "review",
     },
   ];
   const tools = [
     {
-      name: "從文件辨識物件",
+      name: "文件辨識",
       url: "/miniapp/object-recognition",
       icon: FileText,
       isActive: workflow === "object-recognition",
@@ -156,7 +176,7 @@ function NavigationSidebar({
       isActive: workflow === "object-templates",
     },
     {
-      name: "PDF 文字擷取",
+      name: "PDF 擷取",
       url: "/miniapp/poppler",
       icon: FileText,
       isActive: workflow === "poppler",
@@ -198,12 +218,6 @@ function NavigationSidebar({
               url: "/miniapp/feed?compose=1",
               icon: SquarePen,
               isActive: shortcut === "compose",
-            },
-            {
-              name: "申請補卡",
-              url: "/miniapp/attendance?tab=correction",
-              icon: ClipboardPenLine,
-              isActive: shortcut === "correction",
             },
           ]}
         />

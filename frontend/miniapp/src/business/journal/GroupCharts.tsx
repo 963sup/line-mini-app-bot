@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { PagePanel } from "@/shared/PagePanel";
 import {
@@ -29,15 +28,7 @@ const config = {
   tomorrow: { label: "明日預計" },
 } satisfies ChartConfig;
 
-export default function RepositoryChart({
-  entries,
-  name,
-  renderEntry,
-}: {
-  entries: Journal[];
-  name: string;
-  renderEntry: (entry: Journal) => ReactNode;
-}) {
+export default function RepositoryChart({ entries, name }: { entries: Journal[]; name: string }) {
   if (!entries.length) return null;
   const rows = entries.flatMap((journal) => journal.progress ?? []);
   return (
@@ -144,20 +135,10 @@ export default function RepositoryChart({
         <Empty>
           <EmptyHeader>
             <EmptyTitle>尚無工作進度資料</EmptyTitle>
-            <EmptyDescription>仍可展開日誌明細，查看已填寫的內容。</EmptyDescription>
+            <EmptyDescription>目前日誌尚未提供可彙整的進度資料。</EmptyDescription>
           </EmptyHeader>
         </Empty>
       )}
-      <Collapsible>
-        <CollapsibleTrigger asChild>
-          <Button type="button" variant="outline">
-            日誌明細
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="flex min-w-0 flex-col gap-4 pt-4">{entries.map(renderEntry)}</div>
-        </CollapsibleContent>
-      </Collapsible>
     </PagePanel>
   );
 }

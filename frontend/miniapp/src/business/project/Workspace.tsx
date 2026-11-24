@@ -109,7 +109,7 @@ function AuthenticatedWorkspace() {
 
   const owners = user
     ? [
-        { id: user.userId, name: "我的個人專案" },
+        { id: user.userId, name: "我的" },
         ...organizations.map((org) => ({ id: org.organizationId, name: org.name })),
       ]
     : [];
@@ -120,8 +120,8 @@ function AuthenticatedWorkspace() {
   );
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <PagePanel heading="專案擁有者">
-        <nav aria-label="專案擁有者" className="flex flex-wrap gap-2">
+      <PagePanel heading="擁有者">
+        <nav aria-label="擁有者" className="flex flex-wrap gap-2">
           {owners.map((owner) => {
             const current = owner.id === route.owner;
             return (

@@ -39,7 +39,9 @@ func TestMiniAppAttendanceGetsDedicatedPage(t *testing.T) {
 		{"/miniapp?launch=token", true, "確認並完成打卡"},
 		{"/miniapp?liff.state=%3Flaunch%3Dtoken", true, "確認並完成打卡"},
 		{"/miniapp/attendance", false, "出勤紀錄"},
-		{"/miniapp/attendance?tab=review", false, "補卡審核"},
+		{"/miniapp/leave", false, "請假登記"},
+		{"/miniapp/correction", false, "申請補卡"},
+		{"/miniapp/review", false, "補卡審核"},
 	} {
 		recorder := httptest.NewRecorder()
 		serveMiniApp(recorder, httptest.NewRequest("GET", tc.url, nil))
@@ -80,11 +82,11 @@ func TestLegacyAttendanceLinksPreserveQuery(t *testing.T) {
 		t.Fatal(err)
 	}
 	for source, target := range map[string]string{
-		"/miniapp/history?month=2026-11":       "/miniapp/attendance?month=2026-11&tab=history",
-		"/miniapp/correction?group=g&record=r": "/miniapp/attendance?group=g&record=r&tab=correction",
-		"/miniapp/review?id=r":                 "/miniapp/attendance?id=r&tab=review",
-		"/miniapp/leave?leave=token":           "/miniapp/attendance?leave=token&tab=leave",
-		"/miniapp?liff.state=%3Fleave%3Dtoken": "/miniapp/attendance?liff.state=%3Fleave%3Dtoken&tab=leave",
+		"/miniapp/history?month=2026-11":             "/miniapp/attendance?month=2026-11",
+		"/miniapp/attendance?tab=correction&group=g": "/miniapp/correction?group=g",
+		"/miniapp/attendance?tab=review&id=r":        "/miniapp/review?id=r",
+		"/miniapp/attendance?tab=leave&leave=token":  "/miniapp/leave?leave=token",
+		"/miniapp?liff.state=%3Fleave%3Dtoken":       "/miniapp/leave?liff.state=%3Fleave%3Dtoken",
 	} {
 		recorder := httptest.NewRecorder()
 		mux.ServeHTTP(recorder, httptest.NewRequest("GET", source, nil))

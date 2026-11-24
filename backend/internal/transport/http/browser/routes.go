@@ -6,12 +6,16 @@ import (
 	"strings"
 )
 
-func redirectAttendance(w http.ResponseWriter, r *http.Request, tab string) {
+func redirectMiniAppPath(w http.ResponseWriter, r *http.Request, path string) {
 	query := r.URL.Query()
-	query.Set("tab", tab)
+	query.Del("tab")
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Referrer-Policy", "no-referrer")
-	http.Redirect(w, r, "/miniapp/attendance?"+query.Encode(), http.StatusTemporaryRedirect)
+	target := path
+	if queryString := query.Encode(); queryString != "" {
+		target += "?" + queryString
+	}
+	http.Redirect(w, r, target, http.StatusTemporaryRedirect)
 }
 
 func serveMiniApp(w http.ResponseWriter, r *http.Request) {
@@ -29,15 +33,29 @@ func serveMiniApp(w http.ResponseWriter, r *http.Request) {
 		} else if journal {
 			page = "miniapp/feed.html"
 		} else if leave {
-			redirectAttendance(w, r, "leave")
+			redirectMiniAppPath(w, r, "/miniapp/leave")
 			return
 		} else if query.Has("launch") || query.Has("liff.state") {
 			page = "miniapp/punch.html"
 		}
-	case "/miniapp/history", "/miniapp/leave", "/miniapp/correction", "/miniapp/review":
-		redirectAttendance(w, r, strings.TrimPrefix(r.URL.Path, "/miniapp/"))
+	case "/miniapp/history":
+		redirectMiniAppPath(w, r, "/miniapp/attendance")
 		return
-	case "/miniapp/attendance", "/miniapp/object-recognition", "/miniapp/object-templates", "/miniapp/poppler", "/miniapp/punch", "/miniapp/repositories", "/miniapp/projects", "/miniapp/dashboard", "/miniapp/feed":
+	case "/miniapp/attendance":
+		if tab := r.URL.Query().Get("tab"); tab != "" {
+			path := map[string]string{
+				"history":    "/miniapp/attendance",
+				"leave":      "/miniapp/leave",
+				"correction": "/miniapp/correction",
+				"review":     "/miniapp/review",
+			}[tab]
+			if path != "" {
+				redirectMiniAppPath(w, r, path)
+				return
+			}
+		}
+		page = "miniapp/attendance.html"
+	case "/miniapp/leave", "/miniapp/correction", "/miniapp/review", "/miniapp/object-recognition", "/miniapp/object-templates", "/miniapp/poppler", "/miniapp/punch", "/miniapp/repositories", "/miniapp/projects", "/miniapp/dashboard", "/miniapp/feed":
 		page = strings.TrimPrefix(r.URL.Path, "/") + ".html"
 	default:
 		http.NotFound(w, r)

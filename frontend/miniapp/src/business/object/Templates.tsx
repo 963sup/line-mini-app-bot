@@ -319,7 +319,7 @@ export function Templates({ onApplied }: Props) {
                 : method === "document"
                   ? "從文件建立範本"
                   : method === "procedure"
-                    ? "從工項推導工序"
+                    ? "推導工序"
                     : "我的物件範本"
         }
         description={plan?.name}
@@ -350,7 +350,7 @@ export function Templates({ onApplied }: Props) {
                 從文件建立
               </Button>
               <Button variant="outline" onClick={() => setMethod("procedure")}>
-                從工項推導工序
+                推導工序
               </Button>
             </div>
           )}

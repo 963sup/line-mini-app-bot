@@ -62,7 +62,7 @@ func (h *Handler) ExtractPopplerText(w http.ResponseWriter, r *http.Request, _ g
 	case errors.Is(err, context.Canceled):
 		return
 	case errors.Is(err, operations.ErrExtractorUnavailable):
-		status, code, message = 503, "tool_unavailable", "PDF 文字擷取工具尚未安裝。"
+		status, code, message = 503, "tool_unavailable", "PDF 擷取工具尚未安裝。"
 	case errors.Is(err, operations.ErrTextLimit):
 		status, code, message = 422, "output_limit", "擷取文字超過 8 MiB 上限。"
 	case errors.Is(err, operations.ErrDocumentPermission):

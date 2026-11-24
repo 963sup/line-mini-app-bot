@@ -512,7 +512,7 @@ test("standalone procedure suggestions remain drafts until reviewed and explicit
   }, true);
   try {
     await f.click("新增範本");
-    await f.click("從工項推導工序");
+    await f.click("推導工序");
     await f.fill("工項名稱", "浴室防水");
     await f.fill("施工條件", "水泥基面");
     await f.click("推導工序");
@@ -543,7 +543,7 @@ test("cancelled preparation keeps input and ignores a late result", async () => 
   }, true);
   try {
     await f.click("新增範本");
-    await f.click("從工項推導工序");
+    await f.click("推導工序");
     await f.fill("工項名稱", "測試工項");
     await f.click("推導工序");
     await f.click("取消等待");

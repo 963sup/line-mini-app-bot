@@ -921,7 +921,7 @@ test("personal projects use the signed-in owner without looking up a group", asy
   const f = await fixture("/miniapp/projects", normal);
   try {
     await f.verifyAs(owner);
-    await f.click("我的個人專案");
+    await f.click("我的");
     const paths = f.requests.map((request) => new URL(request.url).pathname);
     assert.ok(paths.includes(`/api/v1/owners/${owner}/projects`));
     assert.ok(!paths.includes(`/api/v1/groups/${owner}`));

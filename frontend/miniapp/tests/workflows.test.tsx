@@ -1355,7 +1355,7 @@ for (const scope of ["企業", "組織"]) {
         document.body.textContent!,
         new RegExp("測試" + scope + "的修改歷史尚未開放查詢"),
       );
-      await clickTab(scope + "功能", scope + "團隊");
+      await clickTab(scope + "功能", scope === "組織" ? "團隊" : "企業團隊");
       document.querySelector("details")!.open = true;
       await clickTab("排班組團隊功能", "稽核");
       assert.match(document.body.textContent!, /排班組的修改歷史尚未開放查詢/);

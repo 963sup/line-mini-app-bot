@@ -37,16 +37,16 @@ export function View() {
     [busy, setBusy] = useState(false),
     [refreshVersion, setRefreshVersion] = useState(0),
     [status, setStatus] = useState("請先完成身分驗證。"),
-    [back, setBack] = useState("/miniapp/attendance?tab=history");
+    [back, setBack] = useState("/miniapp/attendance");
   const lock = useRef(false),
     attempt = useRef<{ body: S["CorrectionSubmission"]; key: string } | null>(null);
   useEffect(() => {
     const params = new URLSearchParams(location.search),
       group = params.get("group") || "",
       record = params.get("record") || "",
-      query = new URLSearchParams({ tab: "history" });
+      query = new URLSearchParams();
     if (params.get("month")) query.set("month", params.get("month")!);
-    setBack("/miniapp/attendance?" + query);
+    setBack("/miniapp/attendance" + (query.size ? "?" + query : ""));
     setGroup(group);
     setGroups([]);
     setGroupCursor("");

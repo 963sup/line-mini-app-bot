@@ -3,7 +3,7 @@ import { Poppler } from "@/business/object/Poppler";
 
 export default function Page() {
   return (
-    <Shell title="PDF 文字擷取" workflow="poppler">
+    <Shell title="PDF 擷取" workflow="poppler">
       <Poppler />
     </Shell>
   );

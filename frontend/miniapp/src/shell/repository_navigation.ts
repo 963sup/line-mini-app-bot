@@ -12,7 +12,7 @@ export function repositoryNavigation(
     onExpand: spaces.ensure,
     items: [
       {
-        title: "儲存庫總覽",
+        title: "總覽",
         url: "/miniapp/repositories",
         isActive: workflow === "repositories" && !spaces.selectedID && !spaces.scope,
       },

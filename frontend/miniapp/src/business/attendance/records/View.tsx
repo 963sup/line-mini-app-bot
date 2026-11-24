@@ -90,14 +90,11 @@ export function View() {
   }, [user, request]);
 
   return (
-    <PagePanel id="history" heading="我的出勤紀錄">
+    <PagePanel id="history" heading="出勤紀錄">
       <p>
         <a
           className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
-          href={
-            "/miniapp/attendance?" +
-            new URLSearchParams({ tab: "correction", ...(month ? { month } : {}) })
-          }
+          href={"/miniapp/correction?" + new URLSearchParams(month ? { month } : {})}
         >
           申請補卡
         </a>
@@ -162,7 +159,7 @@ export function View() {
                   <Button asChild variant="link">
                     <a
                       href={
-                        "/miniapp/attendance?tab=correction&" +
+                        "/miniapp/correction?" +
                         new URLSearchParams({
                           group: record.GroupID,
                           month,

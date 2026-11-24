@@ -127,6 +127,28 @@ async function fixture(
 const repositoryRequests = (requests: Request[]) =>
   requests.filter((request) => new URL(request.url).pathname.startsWith("/api/v1/repositories"));
 
+test("attendance workflows are separate sidebar destinations", async () => {
+  const f = await fixture("/miniapp/attendance", async (request) => {
+    throw new Error("unexpected request: " + request.url);
+  });
+  try {
+    for (const [label, href] of [
+      ["出勤紀錄", "/miniapp/attendance"],
+      ["請假登記", "/miniapp/leave"],
+      ["申請補卡", "/miniapp/correction"],
+      ["補卡審核", "/miniapp/review"],
+    ]) {
+      const links = [...document.querySelectorAll<HTMLAnchorElement>(`a[href="${href}"]`)].filter(
+        (link) => link.textContent === label,
+      );
+      assert.equal(links.length, 1, `${label} must have one direct sidebar destination`);
+    }
+    assert.doesNotMatch(document.body.textContent!, /出勤服務/);
+  } finally {
+    await f.dispose();
+  }
+});
+
 test("spaces lazy-load authorized entries, retain empty-page continuation and use distinct clean links for duplicate names", async () => {
   const f = await fixture("/miniapp/review?id=correction-id&launch=old", async (request) => {
     const url = new URL(request.url);
@@ -175,7 +197,7 @@ test("sidebar selection retains general catalog but reauthorizes the selected re
     );
     assert.match(document.body.textContent!, /選取空間/);
     assert.ok(document.querySelector(`a[href="/miniapp/repositories?selected=${a}"]`));
-    assert.ok(document.querySelector(`a[href="/miniapp/attendance?tab=history&group=C${b}"]`));
+    assert.ok(document.querySelector(`a[href="/miniapp/attendance?group=C${b}"]`));
     assert.equal(
       document.querySelectorAll('a[href*="selected="]').length,
       2,
@@ -192,7 +214,7 @@ test("repository without a group ID has no attendance entry", async () => {
   );
   try {
     assert.match(document.body.textContent!, /空間資料/);
-    assert.equal(document.querySelector('a[href*="/miniapp/attendance?tab=history&group="]'), null);
+    assert.equal(document.querySelector('a[href*="/miniapp/attendance?group="]'), null);
   } finally {
     await f.dispose();
   }
