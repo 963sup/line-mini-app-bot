@@ -11,7 +11,7 @@
 | Repository                          | 工作空間、分類、里程碑、wiki 與統計 |
 | Project／Issue／Discussion／Journal | 專案協作與記錄                      |
 | Attendance                          | 打卡、紀錄、請假、更正與審核        |
-| Object                              | 文件候選、物件範本與 PDF 文字擷取   |
+| Object                              | 文件候選、物件範本與 PDF 擷取       |
 | Summary／Weather                    | 衍生摘要與外部天氣資料              |
 
 ## 識別與歸屬

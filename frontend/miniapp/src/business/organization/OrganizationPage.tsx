@@ -220,8 +220,8 @@ export function OrganizationPage({
           <Tabs key={organizationId} defaultValue="members">
             <TabsList aria-label="組織功能" className="h-auto w-full flex-wrap">
               <TabsTrigger value="members">成員</TabsTrigger>
-              <TabsTrigger value="teams">組織團隊</TabsTrigger>
-              <TabsTrigger value="management">組織管理</TabsTrigger>
+              <TabsTrigger value="teams">團隊</TabsTrigger>
+              <TabsTrigger value="management">管理</TabsTrigger>
               {roster.auditHistoryStatus === "unavailable" && <AuditTab />}
             </TabsList>
             <TabsContent value="members">
@@ -267,7 +267,7 @@ export function OrganizationPage({
             </TabsContent>
             <TabsContent value="teams">{children}</TabsContent>
             <TabsContent value="management">
-              <PagePanel heading="組織管理">
+              <PagePanel heading="管理">
                 <div className="grid gap-4">
                   {roster.canTransferOwnership &&
                     (candidates.length ? (

@@ -73,7 +73,7 @@ export function Poppler() {
 
   return (
     <PagePanel
-      heading="PDF 文字擷取"
+      heading="PDF 擷取"
       description="上傳 PDF 測試文字擷取與標準化。文件只用於本次處理，不儲存，也不送至 AI。"
     >
       <form onSubmit={extract}>

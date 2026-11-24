@@ -33,7 +33,7 @@ function Workspace() {
 function Tool() {
   const { user, epoch } = useSession();
   return (
-    <PagePanel heading="從文件辨識物件">
+    <PagePanel heading="文件辨識">
       {user ? <Workspace key={user.userId + ":" + epoch} /> : <p>請先登入以辨識文件。</p>}
     </PagePanel>
   );
@@ -41,7 +41,7 @@ function Tool() {
 
 export default function Page() {
   return (
-    <Shell title="從文件辨識物件" workflow="object-recognition">
+    <Shell title="文件辨識" workflow="object-recognition">
       <Tool />
     </Shell>
   );

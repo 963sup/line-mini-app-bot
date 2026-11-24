@@ -147,7 +147,7 @@ export function View() {
 
   return (
     <>
-      <PagePanel heading="群組請假登記">
+      <PagePanel heading="請假登記">
         <p>
           填寫原群組的請假資料，時間均為臺灣時間。第一版僅登記，不會自動核准、扣假或變更打卡紀錄。
         </p>

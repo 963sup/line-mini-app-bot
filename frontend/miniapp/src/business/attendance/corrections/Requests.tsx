@@ -142,7 +142,7 @@ export function Requests({
             !(Date.parse(item.reviewedAt || item.createdAt || "") < cutoff),
         );
   return (
-    <PagePanel heading={review ? "待我審核" : "補卡申請進度"}>
+    <PagePanel heading={review ? "補卡審核" : "補卡申請進度"}>
       <FieldSet
         className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
         disabled={!user || busy || disabled}

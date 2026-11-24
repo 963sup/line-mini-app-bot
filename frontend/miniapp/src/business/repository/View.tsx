@@ -188,7 +188,7 @@ function Content() {
                       <dd>{displayTime(selected.updatedAt)}</dd>
                     </dl>
                   </PagePanel>
-                  <PagePanel heading="工程日誌">
+                  <PagePanel heading="動態">
                     <div className="flex flex-wrap gap-2">
                       <Button asChild>
                         <a
@@ -216,8 +216,7 @@ function Content() {
                       <a
                         className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
                         href={
-                          "/miniapp/attendance?tab=history&" +
-                          new URLSearchParams({ group: selected.groupId })
+                          "/miniapp/attendance?" + new URLSearchParams({ group: selected.groupId })
                         }
                       >
                         查看本人出勤

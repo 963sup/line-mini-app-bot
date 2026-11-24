@@ -193,7 +193,7 @@ function View({
   }, [date, detail, dashboard, request, repositoryId]);
   const repositoryName = repositories?.find((repo) => repo.id === repositoryId)?.name;
   const renderEntry = (j: Journal) => (
-    <PagePanel key={j.id} heading={j.workDate + " · " + (repositoryName || "工程日誌")}>
+    <PagePanel key={j.id} heading={j.workDate + " · " + (repositoryName || "動態")}>
       <dl className="grid gap-3 text-sm sm:grid-cols-3">
         {Object.entries(roles).map(([key, label]) => (
           <div key={key} className="min-w-0">
@@ -282,7 +282,7 @@ function View({
   );
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <PagePanel heading={repositoryId ? "工程日誌" : dashboard ? "工作概況" : "工作牆"}>
+      <PagePanel heading={dashboard ? "工程概況" : repositoryId ? "動態" : "工作牆"}>
         {detail ? (
           <Button asChild variant="outline" className="self-start">
             <a
@@ -350,11 +350,7 @@ function View({
         </Empty>
       )}
       {dashboard ? (
-        <RepositoryChart
-          entries={entries}
-          name={repositoryName || repositoryId}
-          renderEntry={renderEntry}
-        />
+        <RepositoryChart entries={entries} name={repositoryName || repositoryId} />
       ) : (
         entries.map(renderEntry)
       )}

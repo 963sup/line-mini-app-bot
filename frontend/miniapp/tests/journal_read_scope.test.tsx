@@ -45,7 +45,19 @@ for (const dashboard of [false, true])
           items: ["a", "b"].map((id) => ({ id, name: id, status: "ACTIVE" })),
           nextCursor: "",
         });
-      return Response.json({ items: [], nextCursor: "" });
+      return Response.json({
+        items: [
+          {
+            id: "journal-1",
+            workDate: "2026-11-24",
+            personnel: { management: [], workers: [], control: [] },
+            todayItems: [],
+            tomorrowItems: [],
+            progress: [{ name: "基礎工程", today: 40, tomorrow: 55 }],
+          },
+        ],
+        nextCursor: "",
+      });
     };
     const root = createRoot(document.getElementById("root")!);
     try {
@@ -77,6 +89,10 @@ for (const dashboard of [false, true])
       assert.ok(
         paths.every((url) => !url.pathname.includes("/groups") && !url.searchParams.has("groupId")),
       );
+      if (dashboard) {
+        assert.match(document.body.textContent!, /工程概況/);
+        assert.doesNotMatch(document.body.textContent!, /日誌明細|查看原文/);
+      }
     } finally {
       await act(async () => root.unmount());
       globalThis.fetch = original;
