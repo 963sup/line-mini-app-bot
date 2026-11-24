@@ -39,7 +39,7 @@ Follow rule 18 to start a task. See the [nested directory guide](README.md#%E5%B
 23. **Regression Verification**: Rerun the original case after a fix and follow the [verification workflow](docs/workflows/verification.md). For cross-directory moves, check the source, destination and callers. For Firestore transactions, concurrency, retries or persisted-data compatibility, proactively prepare and rerun applicable emulator tests. Choose verification by risk: unit tests for domain rules, integration or contract tests for storage and service boundaries, and end-to-end tests for critical user flows.
 24. **Failure Isolation**: If tools are unavailable, graphs are stale or packages omit content, verify against available sources and record limitations. Defer only decisions dependent on missing evidence; continue independent work.
 25. **Verified Delivery**: At delivery, compare results with specifications and acceptance criteria. Report implementation locations, capabilities used, actual checks, results and applicable versions. Distinguish completed changes, verified behavior and remaining limitations.
-26. **Verified Publication**: Develop on `main` by default. Each commit must be a complete, verified and independently reviewable milestone. Push only within the authorized scope and follow publication workflows and branch protection. Review staged changes before committing, confirm acceptance criteria and describe concrete changes in the commit message.
+26. **Verified Publication**: Use `work` for changes submitted to `main` through the repository publication workflow. Each commit must be a complete, verified and independently reviewable milestone. Push only within the authorized scope and follow publication workflows and branch protection. Review staged changes before committing, confirm acceptance criteria and describe concrete changes in the commit message.
 27. **Explicit Handoff**: When the user requests a handoff, takeover or transfer to another sidebar chat, provide a concise summary of the goal, current state, decisions, changed files, verification evidence and remaining work, plus the sources needed to take over.
 28. **Configuration Boundaries**: Define configuration sources, precedence, required values and safe defaults. Parse and validate types at the loading boundary. Clearly identify missing required configuration by name; never include secret values in diagnostics.
 29. **UI & Form Consistency**: Reuse components and interaction conventions from the [frontend standard](docs/standards/frontend.md). Map form fields to API contracts, distinguishing unfilled, cleared and unchanged values. Present immediate validation and backend field errors consistently; preserve correctable input after submission failures.
@@ -129,7 +129,7 @@ For implementation handoffs, preserve the goal, decisions, changed files, verifi
 
 ## Repository publication default
 
-See the [release workflow](docs/workflows/release.md) for repository publication and deployment stages.
+When the user asks to follow the GitHub MCP push workflow (「走 GitHub MCP 推送流程」), follow the [release workflow](docs/workflows/release.md) through its branch synchronization check. Honor any narrower endpoint the user specifies.
 
 <a id="&#24037;&#31243;&#27770;&#31574;&#33287;&#20132;&#20184;&#35201;&#27714;"></a>
 
