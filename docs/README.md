@@ -12,11 +12,8 @@
 
 ## 規範
 
-- [強制要求（MUST）](standards/must.md)
-- [禁止行為（MUST NOT）](standards/must_not.md)
-- [推薦實踐（SHOULD）](standards/should.md)
-- [不推薦實踐（SHOULD NOT）](standards/should_not.md)
-- [選擇性實踐（MAY）](standards/may.md)
+- [規範治理](standards/AGENTS.md)
+- [工程執行規範](standards/engineering.md)
 - [文件規範](standards/documentation.md)
 - [架構規範](standards/architecture.md)
 - [後端規範](standards/backend.md)

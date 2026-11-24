@@ -27,3 +27,41 @@
 測試必須確認案例實際執行；套件成功但案例被 skip、filter 沒選中或只命中快取，不算該行為的證據。失敗或環境阻塞時，記錄命令、失敗點與尚未驗證的行為，不宣稱整合通過。
 
 Firestore emulator 不證明正式 IAM、索引、TTL 或負載；本機 HTTP smoke 不證明 LINE 真實渠道與裝置；成功建置不證明部署成功。
+
+## 驗證責任
+
+- MUST select verification methods according to the impact and risk of each change.
+- MUST execute applicable formatting, linting, type, architecture, contract, and regression checks.
+- MUST verify changed behavior against the original requirements and acceptance criteria.
+- MUST verify applicable authorized, denied, invalid, and failure scenarios.
+- MUST inspect generated changes and affected dependencies.
+- MUST record actual verification results and material limitations.
+
+- MUST NOT disable, bypass, or weaken required tests, lint rules, architecture checks, or CI checks.
+- MUST NOT modify expected test results merely to match incorrect implementation behavior.
+- MUST NOT use mocks or stubs to claim verification of untested integration behavior.
+- MUST NOT treat stale generated artifacts as authoritative evidence.
+- MUST NOT claim that an unexecuted check passed.
+- MUST NOT substitute superficial validation for applicable behavioral verification.
+
+- MAY introduce benchmarks for measurable performance requirements.
+- MAY introduce property-based tests for complex invariants.
+- MAY introduce fuzz testing for relevant input boundaries.
+- MAY use emulator-based integration tests for local service verification.
+- MAY introduce end-to-end tests for critical cross-system flows.
+- MAY expand verification beyond the minimum required checks when risk justifies the additional cost.
+
+## 驗證與效益
+
+- SHOULD automate recurring mechanical verification.
+- SHOULD prioritize regression checks for high-risk business behavior.
+- SHOULD establish measurable baselines before optimization.
+- SHOULD compare results before and after material changes.
+- SHOULD prioritize removing complexity before introducing optimization mechanisms.
+- SHOULD stop further optimization when additional changes lack demonstrated value.
+
+- SHOULD NOT run unrelated expensive checks when narrower verification provides sufficient evidence.
+- SHOULD NOT rely only on snapshots, type checks, or mocks for behavior requiring integration evidence.
+- SHOULD NOT optimize without a measurable baseline and acceptance target.
+- SHOULD NOT retain an optimization whose complexity exceeds its demonstrated value.
+- SHOULD NOT expand a fix into unrelated cleanup without authorization or a shared root cause.

@@ -24,3 +24,64 @@
 ## 變更準則
 
 架構變更必須說明問題、較簡單方案為何不足、依賴方向、相容性、回退方式及驗證證據。跨越多個模組或難以逆轉的決策記錄於 [ADR](../decisions/README.md)。
+
+## 架構與所有權
+
+- MUST preserve approved bounded contexts, ownership, and dependency directions.
+- MUST maintain Single Source of Truth for every business rule, contract, data model, and configuration.
+- MUST preserve the approved DDD and Hexagonal Architecture boundaries.
+- MUST define cross-context interactions through explicit capability boundaries.
+- MUST follow the authoritative architecture specifications.
+- MUST document material architectural decisions and their trade-offs.
+
+- MUST NOT violate approved bounded-context boundaries or dependency directions.
+- MUST NOT introduce circular dependencies.
+- MUST NOT access another bounded context's internal implementation or persistence directly.
+- MUST NOT introduce competing architectures for existing capabilities.
+- MUST NOT relocate responsibilities without preserving their ownership and contracts.
+- MUST NOT introduce infrastructure, transport, framework, or external SDK dependencies into domain models.
+- MUST NOT place authoritative business rules in transport adapters or infrastructure.
+- MUST NOT create parallel implementations of authoritative business rules.
+
+- SHOULD organize business capabilities around bounded contexts and ownership.
+- SHOULD use ubiquitous language consistently across implementation and documentation.
+- SHOULD model business behavior through explicit commands, queries, policies, and events where appropriate.
+- SHOULD introduce aggregates, entities, and value objects when domain semantics require them.
+- SHOULD keep bounded contexts internally cohesive and externally loosely coupled.
+- SHOULD use the smallest interface that satisfies the caller's requirements.
+
+- SHOULD NOT split cohesive business capabilities into unnecessarily small modules.
+- SHOULD NOT merge unrelated capabilities solely to reduce package counts.
+- SHOULD NOT introduce shared business packages without clear ownership.
+- SHOULD NOT introduce intermediate services that merely forward calls without adding boundary responsibilities.
+- SHOULD NOT create cross-context abstractions that obscure business semantics.
+- SHOULD NOT introduce distributed services when an existing modular deployment satisfies requirements.
+- SHOULD NOT introduce hidden dependencies through global mutable state or service locators.
+- SHOULD NOT move domain-specific behavior into shared packages merely to avoid bounded-context ownership.
+- SHOULD NOT expose internal domain implementations as cross-context contracts when an explicit capability contract is sufficient.
+
+- MAY introduce additional domain layers when required by demonstrated business semantics.
+- MAY extract shared capabilities when stable ownership and genuine reuse are established.
+- MAY introduce new bounded contexts when independently owned business capabilities emerge.
+- MAY introduce new architectural patterns when existing patterns cannot adequately satisfy validated requirements.
+- MAY use feature flags to support reversible rollout or migration.
+
+## 業務與資源建模
+
+- MUST identify the Actor, Resource, Action, Authorization, State, and Event where applicable.
+- MUST assign each business rule to its owning bounded context.
+- MUST enforce business invariants before changing resource state.
+- MUST define valid state transitions, preconditions, outcomes, and side effects.
+- MUST preserve resource identity and lifecycle consistency.
+
+- MUST NOT bypass business invariants or legal state transitions.
+- MUST NOT perform state-changing operations through read-only queries.
+- MUST NOT allow non-owning modules to independently redefine resource behavior.
+- MUST NOT reuse resource identifiers with incompatible semantics.
+- MUST NOT publish events representing uncommitted or nonexistent business facts.
+
+- SHOULD NOT create orphaned or cyclic relationships in hierarchical resource models.
+- SHOULD NOT mutate published template revisions in place.
+- SHOULD NOT retroactively modify instantiated objects solely because their source template changed.
+- SHOULD NOT infer missing quantities, units, or contractual requirements as verified source facts.
+- SHOULD NOT remove source provenance from derived business objects without an explicit retention decision.

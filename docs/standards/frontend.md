@@ -36,3 +36,87 @@ React Strict Mode 下 effect 必須可清理且不重送副作用。離頁、登
 ## 驗證
 
 前端變更至少執行 TypeScript 檢查與相關測試。路由、靜態資產或建置設定變更需驗證 production build；LINE 登入、瀏覽器權限與真實裝置行為須另外驗收。
+
+## 前端實作邊界
+
+### Components
+
+- SHOULD reuse existing shadcn components and shared UI primitives.
+- MUST NOT modify the source of installed official shadcn/ui components. Implement project-specific behavior and styling at the call site or in a project-owned component using the official component's public API.
+- SHOULD prefer accessible, responsive, and consistent interactions.
+- SHOULD NOT create custom components when existing components satisfy the requirement.
+- MAY introduce reusable UI components when multiple consumers share stable behavior.
+- MAY use additional frontend libraries when existing capabilities are insufficient and authorization requirements are satisfied.
+- MUST NOT create custom UI primitives when shadcn/ui provides an equivalent component.
+- MUST NOT recreate functionality already provided by installed shadcn/ui components.
+- MUST NOT duplicate existing components or component variants with equivalent behavior.
+- MUST NOT introduce wrapper components without distinct responsibilities.
+- MUST NOT introduce alternative UI component libraries without authorization.
+- MUST NOT modify shared UI primitives to satisfy feature-specific requirements.
+
+### Styling
+
+- SHOULD NOT introduce independent design tokens for existing semantic roles.
+- MUST NOT introduce custom CSS when existing Tailwind CSS utilities satisfy the requirement.
+- MUST NOT hardcode colors, spacing, typography, or border values when corresponding shared theme tokens exist.
+- MUST NOT introduce parallel design systems or theme definitions.
+- MUST NOT duplicate styles already provided by shadcn/ui.
+- MUST NOT introduce inline styles for static styling requirements covered by existing utilities.
+
+### State
+
+- SHOULD keep feature-specific state within its owning feature and derive display values from existing state.
+- SHOULD NOT introduce global state for feature-local behavior or use Effects for values directly derivable during rendering.
+- SHOULD NOT introduce client-side caching or synchronization mechanisms without demonstrated need.
+- SHOULD NOT introduce unnecessary client dependencies or state-management frameworks.
+- MAY use optimistic UI when operation semantics and recovery behavior support it.
+- MUST NOT store values that can be derived directly from existing state, props, or query results.
+- MUST NOT duplicate server state across independent client state stores.
+- MUST NOT promote feature-local state to global state without a demonstrated cross-feature requirement.
+- MUST NOT use Effects solely to synchronize derived state.
+- MUST NOT introduce additional state-management libraries without authorization.
+- MUST NOT maintain multiple authoritative representations of the same state.
+- MUST NOT allow stale responses to overwrite current actor-scoped or resource-scoped state.
+- MUST NOT retain private resource data across unauthorized scope changes.
+
+### API and Business Logic
+
+- SHOULD maintain a thin-client architecture and use generated API types.
+- SHOULD use explicit feature-level view models where necessary.
+- MAY introduce feature-specific view models when generated transport types are insufficient for presentation.
+- MUST NOT implement authoritative business rules in the frontend.
+- MUST NOT duplicate backend authorization, calculations, or state transitions.
+- MUST NOT manually recreate OpenAPI-generated types or API clients.
+- MUST NOT bypass the established generated API client.
+- MUST NOT introduce redundant API forwarding layers without distinct boundary responsibilities.
+- MUST NOT expose persistence-specific models to presentation components.
+- MUST NOT maintain independent frontend business models without distinct presentation requirements.
+
+### Abstractions
+
+- MUST NOT introduce abstraction layers without distinct responsibilities.
+- MUST NOT create hooks that merely forward existing functions.
+- MUST NOT create utility functions that merely rename existing functionality.
+- MUST NOT introduce interfaces or types that duplicate existing contracts without semantic differences.
+- MUST NOT introduce directories or modules solely to satisfy a reference structure.
+- MUST NOT retain unused components, hooks, types, imports, or dependencies.
+- MUST NOT introduce speculative extension points without approved requirements.
+
+### Runtime
+
+- MUST NOT introduce per-request server-side execution into the Next.js application.
+- MUST NOT introduce Next.js API routes as alternative backend endpoints.
+- MUST NOT introduce frontend-owned persistence.
+- MUST NOT introduce server-side business logic into the Next.js application.
+- MUST NOT introduce runtime dependencies or behavior incompatible with the Pages Router static-export deployment model.
+
+### Minimal Implementation
+
+- MUST NOT introduce new code that duplicates an existing capability without a distinct and necessary responsibility.
+- MUST NOT introduce new implementations when existing implementations satisfy the requirements.
+- MUST NOT add functionality outside approved requirements.
+- MUST NOT increase architectural complexity without demonstrated necessity.
+- MUST NOT retain superseded implementations after their consumers have migrated.
+- MUST NOT introduce new dependencies when existing dependencies provide equivalent capabilities.
+- MUST NOT sacrifice correctness, accessibility, security, or maintainability solely to reduce code size.
+- MUST NOT disable required TypeScript strictness or suppress type errors to bypass validation.

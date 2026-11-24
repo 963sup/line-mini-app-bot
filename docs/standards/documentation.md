@@ -28,7 +28,7 @@ README 只負責導覽，不複製專題規格。歷史文件位於 `docs-old/`�
 
 ## 撰寫方式
 
-- 規則使用「必須、不得、應、可以」表達強度。
+- 工程規範使用[規範關鍵字](AGENTS.md#normative-language)表達約束強度。其他文件可使用對應的中文用語。
 - 區分現行事實、提案、範例與待確認事項。
 - 步驟使用清單，比較使用表格，可執行內容使用有語言標記的程式碼區塊。
 - 圖只用於狀態、時序或依賴比文字更清楚的情況；圖前標示它描述現行實作或目標設計。
@@ -52,3 +52,39 @@ README 只負責導覽，不複製專題規格。歷史文件位於 `docs-old/`�
 ## 第三方文件查證
 
 先呼叫 `resolve-library-id`，再以精確 library ID 和聚焦的版本問題呼叫 `query-docs`。記錄來源 URL、文件版本與適用限制；找不到已安裝版本時明列落差，不把其他版本當成已驗證。文件結論還須回到目前來源及實際行為核對。
+
+## 文件維護與證據
+
+- MUST preserve valid requirements, constraints, semantics, and decision rationale during documentation changes.
+- MUST update affected references when files or responsibilities change.
+- MUST distinguish implemented behavior, approved specifications, proposals, and assumptions.
+
+- MUST NOT silently change business semantics during documentation consolidation.
+- MUST NOT discard valid constraints, requirements, exceptions, or decision rationale.
+- MUST NOT present assumptions, drafts, or proposals as approved specifications.
+- MUST NOT describe unimplemented functionality as implemented.
+- MUST NOT overwrite historical architectural decisions to conceal subsequent changes.
+- MUST NOT leave superseded specifications active as competing authority.
+
+- SHOULD organize specifications by authority, responsibility, and subject.
+- SHOULD prefer concise, declarative, and verifiable requirements.
+- SHOULD use references instead of duplicating authoritative content.
+- SHOULD use diagrams when they materially improve understanding.
+- SHOULD consolidate related documentation without losing semantics.
+
+- SHOULD NOT duplicate authoritative requirements in navigation or overview documents.
+- SHOULD NOT create documents without distinct ownership, purpose, and audience.
+- SHOULD NOT use diagrams when concise prose communicates the same relationship more clearly.
+- SHOULD NOT retain superseded guidance after its references and consumers have migrated.
+- SHOULD NOT mix approved requirements, proposals, examples, and historical notes without clear labels.
+
+- SHOULD NOT introduce local exceptions that weaken repository-wide guidance without recording their scope, rationale, impact, owner, and approval.
+- SHOULD NOT modify governing rules merely to legitimize a noncompliant implementation.
+- SHOULD NOT introduce contradictory requirements without explicitly resolving their authority.
+- SHOULD NOT treat examples, generated artifacts, or implementation details as overriding authoritative specifications.
+
+- MAY use Mermaid diagrams when they clarify architecture, relationships, flows, or states.
+- MAY create ADRs for material decisions requiring durable rationale.
+- MAY use YAML front matter for documents requiring independent lifecycle tracking.
+- MAY consolidate closely related documents when their authority and semantics remain intact.
+- MAY create reference examples when they improve reproducibility.

@@ -32,3 +32,18 @@ Session cookie 必須使用 Secure、HttpOnly、Path=/、SameSite 與 host-only 
 ## 驗證
 
 安全相關變更需涵蓋無效憑證、過期、錯誤 audience、CSRF、越權、跨租戶、重送及敏感資料不外洩。mock 或編譯不能代替真實 IAM、LINE channel 或瀏覽器 Cookie 驗收。
+
+## 授權與保護
+
+- MUST authenticate actors through trusted identity sources.
+- MUST enforce authorization at the backend operation boundary.
+- MUST validate resource ownership, membership, and access scope.
+- MUST apply least privilege and deny unauthorized operations.
+- MUST protect credentials, secrets, tokens, and sensitive data.
+
+- MUST NOT bypass authentication, authorization, signature verification, or resource-scope validation.
+- MUST NOT trust client-supplied identities or permission decisions without verification.
+- MUST NOT treat frontend visibility or disabled controls as authorization.
+- MUST NOT expose credentials, secrets, tokens, or sensitive data.
+- MUST NOT introduce insecure fallback behavior that permits unauthorized access.
+- MUST NOT weaken security controls to make implementation or verification pass.

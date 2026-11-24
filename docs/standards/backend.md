@@ -36,3 +36,60 @@
 ## 驗證
 
 修改 Go 行為時，至少執行受影響套件測試，並依風險補上 `go test`、`go vet`、建置、race、漏洞或 Firestore emulator 驗證。格式化範圍只限本次擁有的檔案。
+
+## 資料一致性
+
+- MUST define transaction and consistency requirements for state-changing operations.
+- MUST protect consistency-sensitive reads and writes against concurrent modification.
+- MUST define idempotency, retry, and recovery behavior where applicable.
+- MUST preserve persisted data compatibility or provide an explicit migration.
+- MUST publish business events only after the corresponding state change succeeds.
+
+- MUST NOT bypass required transaction or consistency boundaries.
+- MUST NOT separate consistency-sensitive checks from their protected writes.
+- MUST NOT execute external side effects inside retried transaction callbacks.
+- MUST NOT retry non-idempotent writes without duplicate-effect protection.
+- MUST NOT silently discard persistence failures.
+- MUST NOT modify persisted identifiers or encodings without compatibility handling.
+- MUST NOT interpret an unknown operation outcome as confirmed success or failure.
+
+- SHOULD NOT introduce repositories or services that merely duplicate lower-level interfaces.
+- SHOULD NOT use generic repositories when domain-specific access semantics are required.
+- SHOULD NOT introduce caching before identifying a measurable performance bottleneck.
+- SHOULD NOT introduce denormalized data without demonstrated query or consistency requirements.
+- SHOULD NOT introduce asynchronous messaging for operations adequately served by synchronous execution.
+- SHOULD NOT introduce distributed transactions when simpler consistency boundaries are sufficient.
+
+## Go 實作與介面
+
+- SHOULD prefer idiomatic Go and the standard library.
+- SHOULD prefer concrete types until an actual abstraction boundary exists.
+- SHOULD define interfaces from the consumer's perspective.
+- SHOULD use explicit constructors and dependency injection.
+- SHOULD keep transport adapters thin and focused on translation.
+- SHOULD preserve explicit error semantics and cancellation behavior.
+- SHOULD use Firestore transactions or version conditions according to consistency requirements.
+
+## 整合與背景工作
+
+- SHOULD isolate provider-specific behavior behind explicit integration boundaries.
+- SHOULD translate external events into domain-specific commands or messages.
+- SHOULD prefer existing Google Cloud managed services when they satisfy operational requirements.
+- SHOULD use asynchronous processing when justified by latency, reliability, or delivery requirements.
+
+- SHOULD NOT assume events or background jobs are delivered exactly once or in order unless the infrastructure provides an enforceable guarantee.
+- SHOULD NOT regenerate an operation identity when retrying the same business operation.
+- SHOULD NOT acknowledge durable work before its required persistence or processing guarantee is satisfied.
+- SHOULD NOT introduce unbounded retries, polling, or recursive execution.
+- SHOULD NOT rely on process-local memory or instance-local locks as the sole authority for durable distributed state or invariants.
+- SHOULD NOT rely on a continuously running service instance for required durable execution.
+- SHOULD NOT allow stale workers to overwrite results produced by newer operation versions.
+- SHOULD NOT remove recovery records while an operation outcome remains unresolved.
+- SHOULD NOT silently discard permanently failed background operations.
+
+- MAY introduce caching when measurable performance requirements justify it.
+- MAY introduce denormalized projections for validated query requirements.
+- MAY introduce asynchronous processing for operations with distinct latency or delivery requirements.
+- MAY use Cloud Tasks, Pub/Sub, or Cloud Scheduler according to the operation's execution semantics.
+- MAY introduce outbox or inbox patterns when reliable event delivery requires them.
+- MAY use batch processing where it preserves required consistency and recovery behavior.
