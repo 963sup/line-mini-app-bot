@@ -34,26 +34,26 @@ owner: LINE integration
 
 ### Messaging API 功能矩陣
 
-| 功能                | 1：1 入口 | 群組入口 | 呈現效果與條件                       |
-| ------------------- | --------- | -------- | ------------------------------------ |
-| Text Message        | ✓         | ✓        | 文字泡泡                             |
-| Text Message v2     | ✓         | ✓        | 文字中插入提及等替換內容             |
-| Image Message       | ✓         | ✓        | 可展開的圖片                         |
-| Video Message       | ✓         | ✓        | 影片預覽與播放                       |
-| Audio Message       | ✓         | ✓        | 語音播放列                           |
-| Sticker Message     | ✓         | ✓        | LINE 貼圖                            |
-| Location Message    | ✓         | ✓        | 地圖位置卡                           |
-| Imagemap Message    | ✓         | ✓        | 圖片上的可點擊區域                   |
-| Template Message    | ✓         | ✓        | 固定格式卡片，可呈現按鈕、確認或輪播 |
-| Flex Message        | ✓         | ✓        | 依資料排版的卡片或看板               |
-| Quick Reply         | ✓         | ✓        | 手機輸入區上方的暫時操作列           |
-| Rich Menu           | ✓         | —        | 私聊底部的圖文選單                   |
-| Rich Menu Switch    | ✓         | —        | 點選後切換私聊的圖文選單頁           |
-| Reply Message       | ✓         | ✓        | 回覆觸發事件，外觀取決於訊息內容     |
-| Push Message        | ✓         | ✓        | 主動送達指定對象，群組須已加入 Bot   |
-| Postback Event      | ✓         | ✓        | 點擊後由 Webhook 收到操作資料        |
-| LIFF／MINI App Link | ✓         | ✓        | 點選連結開啟應用頁面                 |
-| Coupon Message      | ✓         | ✓        | 優惠券訊息                           |
+| 功能                | 1：1 入口         | 群組入口    | 呈現效果與條件                                                                                                                     |
+| ------------------- | ----------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Text Message        | ✓                 | ✓           | 文字泡泡                                                                                                                           |
+| Text Message v2     | ✓（一般文字替換） | ✓（含提及） | mention 僅限群組／多人聊天的 Reply 或 Push；官方帳號與被提及者須在同一聊天室，每則最多 20 次提及。本專案支援的業務情境見盤點範圍。 |
+| Image Message       | ✓                 | ✓           | 可展開的圖片                                                                                                                       |
+| Video Message       | ✓                 | ✓           | 影片預覽與播放                                                                                                                     |
+| Audio Message       | ✓                 | ✓           | 語音播放列                                                                                                                         |
+| Sticker Message     | ✓                 | ✓           | LINE 貼圖                                                                                                                          |
+| Location Message    | ✓                 | ✓           | 地圖位置卡                                                                                                                         |
+| Imagemap Message    | ✓                 | ✓           | 圖片上的可點擊區域                                                                                                                 |
+| Template Message    | ✓                 | ✓           | 固定格式卡片，可呈現按鈕、確認或輪播                                                                                               |
+| Flex Message        | ✓                 | ✓           | 依資料排版的卡片或看板                                                                                                             |
+| Quick Reply         | ✓                 | ✓           | 手機輸入區上方的暫時操作列                                                                                                         |
+| Rich Menu           | ✓                 | —           | 私聊底部的圖文選單                                                                                                                 |
+| Rich Menu Switch    | ✓                 | —           | 點選後切換私聊的圖文選單頁                                                                                                         |
+| Reply Message       | ✓                 | ✓           | 回覆觸發事件，外觀取決於訊息內容                                                                                                   |
+| Push Message        | ✓                 | ✓           | 主動送達指定對象，群組須已加入 Bot                                                                                                 |
+| Postback Event      | ✓                 | ✓           | 點擊後由 Webhook 收到操作資料                                                                                                      |
+| LIFF／MINI App Link | ✓                 | ✓           | 點選連結開啟應用頁面                                                                                                               |
+| Coupon Message      | ✓                 | ✓           | 優惠券訊息                                                                                                                         |
 
 ### Messaging API 實際呈現效果
 
@@ -88,6 +88,21 @@ Reply 與 Push 決定訊息如何送達；畫面取決於送出的訊息類型�
 
 官方呈現範例與元件限制見 [訊息類型](https://developers.line.biz/en/docs/messaging-api/message-types/)、[Action 規格](https://developers.line.biz/en/reference/messaging-api/#action-objects) 與 [LINE MINI App](https://developers.line.biz/en/docs/line-mini-app/)。
 
+#### 從畫面反查可用 Action
+
+| 元件                              | 可配置的 Action                                                                   | 版面或執行限制                                                                               |
+| --------------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Quick Reply                       | Postback、Message、URI、Datetime Picker、Camera、Camera Roll、Location、Clipboard | iOS／Android；每則最多 13 項。一次送出多則訊息時，只顯示最後一則的 Quick Reply。             |
+| Buttons／Confirm Template         | Postback、Message、URI、Datetime Picker、Clipboard                                | Buttons 最多 4 個操作；Confirm 固定 2 個。                                                   |
+| Carousel／Image Carousel Template | Postback、Message、URI、Datetime Picker、Clipboard                                | 最多 10 欄；Carousel 每欄最多 3 個操作，各欄操作數須一致；Image Carousel 每張圖片 1 個操作。 |
+| Flex Message                      | Postback、Message、URI、Datetime Picker、Clipboard                                | 掛在支援 action 的元件，例如 button；可先用官方模擬器預覽版面。                              |
+| Rich Menu                         | Postback、Message、URI、Datetime Picker、Clipboard、Rich Menu Switch              | 每個點擊區設定一個操作；以 alias 切頁。                                                      |
+| Imagemap                          | 專用的 Message、URI、Clipboard 區域物件                                           | 每個操作要有 area（x、y、width、height）；開啟網址的欄位是 linkUri。                         |
+
+Clipboard 需 iOS／Android 的 LINE 14.0.0 以上。設計有複製操作的卡片時，可同時顯示要複製的文字。[Action 規格](https://developers.line.biz/en/reference/messaging-api/#action-objects)、[Quick Reply](https://developers.line.biz/en/docs/messaging-api/using-quick-reply/)、[Template 規格](https://developers.line.biz/en/reference/messaging-api/#template-messages)、[Imagemap](https://developers.line.biz/en/reference/messaging-api/#imagemap-message)。
+
+設計預覽可直接看 [Template 與 Imagemap 的官方畫面範例](https://developers.line.biz/en/docs/messaging-api/message-types/)、[Flex Message Simulator](https://developers.line.biz/flex-simulator/) 及 [Rich Menu 分頁示例](https://developers.line.biz/en/docs/messaging-api/switch-rich-menus/)。
+
 ### Messaging API 實作速查
 
 在 Go 後端，沿用 `platform/line` 的 `(*Messaging).Reply(ctx, token, message)` 回覆單則訊息，或用 `(*Messaging).PushText(ctx, group, text, retryKey)` 推送群組文字。下表列出平台 JSON 欄位；選好內容後再決定如何發送。
@@ -102,6 +117,25 @@ Reply 與 Push 決定訊息如何送達；畫面取決於送出的訊息類型�
 | Quick Reply            | 加在訊息的 `quickReply.items[]`，每項為 `{"type":"action","action":{"type":"message","label":"打卡","text":"打卡"}}`                                                                                         |
 | Rich Menu              | 建立 `POST /v2/bot/richmenu`，上傳圖片至 `api-data.line.me/v2/bot/richmenu/{richMenuId}/content`（POST），設為預設用 `POST /v2/bot/user/all/richmenu/{richMenuId}`；專案發布由 `platform/line/richmenu` 負責 |
 | 回覆、推送、接收事件   | `POST /v2/bot/message/reply` 傳 `replyToken` 與 `messages`；`POST /v2/bot/message/push` 傳 `to` 與 `messages`。Webhook 收到 `type: postback` 時由既有解析器讀取 `postback.data`                              |
+
+#### Rich Menu 交付與發布
+
+- 圖稿使用 JPEG 或 PNG，寬 800–2500 px、高至少 250 px、寬高比至少 1.45，檔案最大 1 MB。建立選單時，`size` 填圖稿尺寸，`areas[].bounds` 填各點擊區的像素座標與尺寸。每頁最多 20 個點擊區，聊天室底部的 `chatBarText` 最多 14 字元，`selected` 決定預設是否展開。
+- 多頁切換需要先建立目標選單與 alias。使用 `POST /v2/bot/richmenu/alias`，傳入 `richMenuAliasId` 與 `richMenuId`，切換按鈕再引用該 alias。已上傳的圖片無法原地替換。換圖需建立新選單、上傳新圖，再更新預設設定或 alias。
+- 顯示優先順序由高到低為 Messaging API 的個人選單、Messaging API 的預設選單、LINE Official Account Manager 的預設選單。驗收預設選單時，應確認測試帳號是否已有個人選單。
+
+[選單物件](https://developers.line.biz/en/reference/messaging-api/#rich-menu-object)、[圖片規格](https://developers.line.biz/en/reference/messaging-api/#upload-rich-menu-image)、[建立 alias](https://developers.line.biz/en/reference/messaging-api/#create-rich-menu-alias)、[顯示優先順序](https://developers.line.biz/en/docs/messaging-api/rich-menus-overview/#rich-menu-display)。
+
+#### 發送對象、時限與設計驗證
+
+| 需求           | 平台條件與專案邊界                                                                                                                                                                                                                    |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 回覆當前操作   | Webhook 的 replyToken 只能使用一次，應在收到事件後 1 分鐘內使用。重送事件可從收到重送時起算 1 分鐘，但原 token 已使用或事件已發生 20 分鐘時不可用。平台 Reply／Push 每次最多 5 個訊息物件；本專案的 Reply 每次接收 1 個物件。         |
+| 主動通知個人   | 可 Push 給好友，或在非好友於私聊傳訊後的 7 天內推送給該人。使用者封鎖官方帳號或刪除帳號時，API 仍可能回傳 HTTP 200 而使用者未收到。避免以 HTTP 200 更新「已讀」或「已送達」狀態。                                                     |
+| 主動通知群組   | 官方帳號須在目標群組，Push 的 to 填群組 ID。一次要通知多個個人帳號可用 multicast，按受眾篩選用 narrowcast，對所有好友發送用 broadcast。這三種是平台的個人受眾發送能力；本專案的 PushText 入口以單一群組為目標。                       |
+| 送出前驗證卡片 | 後端使用 channel access token 作為 Bearer，將 `{"messages":[...]}` 傳至 `POST https://api.line.me/v2/bot/message/validate/reply` 或 `/v2/bot/message/validate/push`。驗證對象只有 messages；收件人、replyToken 與手機畫面需另外驗收。 |
+
+官方參考：[Reply 與 token 時限](https://developers.line.biz/en/reference/messaging-api/#send-reply-message)、[Push 對象與送達條件](https://developers.line.biz/en/reference/messaging-api/#send-push-message)、[發送方式比較](https://developers.line.biz/en/docs/messaging-api/sending-messages/)、[Reply 訊息物件驗證](https://developers.line.biz/en/reference/messaging-api/#validate-message-objects-of-a-reply-message)。
 
 ### LINE MINI App 功能列表
 
@@ -139,14 +173,29 @@ MINI App 是 Web 應用。✓ 表示可從該聊天室入口開啟應用並設�
 | 分享到聊天室                 | `await liff.sendMessages(messages)` 傳回啟動應用的聊天，須符合啟動情境並取得 chat_message.write scope；讓使用者選擇分享對象可先檢查 `liff.isApiAvailable('shareTargetPicker')` 再呼叫 `await liff.shareTargetPicker(messages)`                                          |
 | 個人服務通知                 | 已驗證 MINI App 使用核准範本。前端以 `liff.getAccessToken()` 取得使用者 token，後端以 channel access token 呼叫 `POST /message/v3/notifier/token`（liffAccessToken），再呼叫 `POST /message/v3/notifier/send?target=service`（notificationToken、templateName、params） |
 
+#### 分享條件與專案入口
+
+Service Message 以一次服務操作取得的 notificationToken 管理後續通知。每個 token 自核發起有效 1 年，最多可發 5 則。成功發送後若還能續發，後端須保存回應中更新的 notificationToken，並讀取 expiresIn 與 remainingCount；兩者為 0 代表本次已發送、無法再續發。[官方 token 與發送回應](https://developers.line.biz/en/reference/line-mini-app/)。
+
+`liff.sendMessages()` 須由聊天室開啟 LIFF browser，並取得 `chat_message.write` 授權。從「最近使用的服務」重新載入後無法傳回原聊天。設計指定收件對象的流程時，可提供分享對象選擇器，由使用者選擇並確認。[sendMessages](https://developers.line.biz/en/reference/liff/#send-messages)、[shareTargetPicker](https://developers.line.biz/en/reference/liff/#share-target-picker)、[Service Message 端點](https://developers.line.biz/en/reference/line-mini-app/)。
+
+| 已實作畫面       | 前端入口與元件                                                                                                                                                                                                      |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 本人出勤紀錄     | [/miniapp/attendance](../../frontend/miniapp/src/pages/miniapp/attendance.tsx) 載入 [Records](../../frontend/miniapp/src/business/attendance/records/View.tsx)，以月份選擇與分頁瀏覽。                              |
+| 儀表板           | [/miniapp/dashboard](../../frontend/miniapp/src/pages/miniapp/dashboard.tsx) 將 repositoryId 傳給 [JournalWorkspace](../../frontend/miniapp/src/business/journal/Workspace.tsx)。                                   |
+| 請假、補卡、審核 | 對應 [leave](../../frontend/miniapp/src/pages/miniapp/leave.tsx)、[correction](../../frontend/miniapp/src/pages/miniapp/correction.tsx)、[review](../../frontend/miniapp/src/pages/miniapp/review.tsx) 的頁面入口。 |
+
+Calendar、Kanban、Tabs、Dialog、Sheet 等是 Web 設計選項，畫面與資料操作由前端元件和業務 API 提供。設計資源見 [LINE MINI App 官方設計文件原始碼](https://github.com/line/line-developers-docs-source/tree/main/docs/en/docs/line-mini-app/design)。
+
 ### 業務流程設計示例
 
-| 功能       | 私聊入口的設計目的     | 群組入口的設計目的               |
-| ---------- | ---------------------- | -------------------------------- |
-| 打卡、日誌 | 個人打卡、填寫日誌     | 出勤回報、分享工作成果           |
-| 請假、紀錄 | 提交申請、查個人歷史   | 顯示必要的狀態通知、團隊統計     |
-| 任務、審核 | 查看個人待辦與申請進度 | 指派任務、開啟具權限的主管審核頁 |
-| 公告       | 個人通知               | 團隊廣播                         |
+| 功能       | 私聊入口的設計目的                                     | 群組入口的設計目的                               |
+| ---------- | ------------------------------------------------------ | ------------------------------------------------ |
+| 打卡、日誌 | 個人打卡、填寫日誌                                     | 出勤回報、分享工作成果                           |
+| 請假、紀錄 | 提交申請、查個人歷史                                   | 顯示必要的狀態通知、團隊統計                     |
+| 任務、審核 | 查看個人待辦與申請進度                                 | 指派任務、開啟具權限的主管審核頁                 |
+| 公告       | 個人通知                                               | 團隊廣播                                         |
+| 選單       | Rich Menu 提供常駐入口，Quick Reply 提供當下可用的操作 | Quick Reply 提供選項，群組出勤 Flex 看板呈現統計 |
 
 例如，群組出勤看板可呈現應到、已打卡與未打卡人數，再由按鈕開啟詳細資料。私聊、群組與 MINI App 共用業務 API，由後端驗證資源權限與狀態轉移，再透過既有持久化層存取 Firestore。以上示例供設計選擇，已上線項目請查本文件的現況與登錄表。
 
@@ -211,7 +260,7 @@ MINI App 是 Web 應用。✓ 表示可從該聊天室入口開啟應用並設�
 | summary      | 否             | 群聊摘要                       | `摘要`                                        | Text                                       |
 | weather      | 否             | 位置訊息                       | location event                                | Text                                       |
 
-所有 postback 仍由 `ParsePostback` 驗證為單一 `action`；所有資源 ID 與授權在 Adapter／用例重新驗證。介面可見性不構成授權。
+業務 postback 的 `data` 使用本專案約定的 query 格式。`ParsePostback` 要求恰有一個非空的 `action` 值，各 Adapter／用例再驗證參數、資源 ID 與授權。Rich Menu 切頁則由 LINE 依 alias 執行，專案在回傳資料使用 `tab=<alias>`；導航處理器不將這個事件當作業務指令。介面可見性不構成授權。
 
 ## 已消除的不一致
 
