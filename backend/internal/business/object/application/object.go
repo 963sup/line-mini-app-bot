@@ -9,18 +9,17 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/object/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/application/query"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
-	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
 	repository "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
 type Service struct {
-	QuantityHistory    port.QuantityHistory
-	TemplatePreparer   TemplatePreparer
-	Templates          port.TemplateStore
-	PersonalTemplates  port.PersonalTemplateStore
-	CandidateExtractor operations.CandidateExtractor
-	Repositories       port.Repositories
-	Store              port.Store
+	QuantityHistory   port.QuantityHistory
+	TemplatePreparer  TemplatePreparer
+	Templates         port.TemplateStore
+	PersonalTemplates port.PersonalTemplateStore
+	CandidatePreparer port.CandidatePreparer
+	Repositories      port.Repositories
+	Store             port.Store
 }
 
 func (s *Service) scope(ctx context.Context, actor, id string) (repository.Repository, error) {
@@ -44,11 +43,14 @@ func (s *Service) scope(ctx context.Context, actor, id string) (repository.Repos
 	return r, nil
 }
 
-func (s *Service) ExtractCandidates(ctx context.Context, actor, repositoryID string, document operations.Document) (operations.Extraction, error) {
+func (s *Service) ExtractCandidates(ctx context.Context, actor, repositoryID string, document dto.Document) (dto.CandidateResult, error) {
 	if _, err := s.scope(ctx, actor, repositoryID); err != nil {
-		return operations.Extraction{}, err
+		return dto.CandidateResult{}, err
 	}
-	return query.ExtractCandidates(ctx, s.CandidateExtractor, document)
+	if s.CandidatePreparer == nil {
+		return dto.CandidateResult{}, entity.ErrUnavailable
+	}
+	return s.CandidatePreparer.PrepareCandidates(ctx, actor, repositoryID, document)
 }
 
 func (s *Service) List(ctx context.Context, actor, id, cursor string, parent ...string) (dto.Page, error) {

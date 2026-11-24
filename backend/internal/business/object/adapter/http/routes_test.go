@@ -1,7 +1,6 @@
 package objecthttp
 
 import (
-	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
@@ -168,9 +167,12 @@ func TestHTTPSpaceAssignmentOmissionAndClear(t *testing.T) {
 
 type candidateProbe struct{ calls int }
 
-func (p *candidateProbe) ExtractCandidates(_ context.Context, d operations.Document) (operations.Extraction, error) {
+func (p *candidateProbe) PrepareCandidates(_ context.Context, actor, repository string, d objectApplicationDto.Document) (objectApplicationDto.CandidateResult, error) {
+	if actor == "" || repository == "" {
+		panic("lost authorized scope")
+	}
 	p.calls++
-	return operations.Extraction{Candidates: []operations.Candidate{{Name: d.Filename, Quote: string(d.Data)}}}, nil
+	return objectApplicationDto.CandidateResult{Candidates: []objectApplicationDto.Candidate{{Name: d.Filename, Quote: string(d.Data)}}}, nil
 }
 
 func TestCandidateRouteChecksScopeAndDoesNotCreate(t *testing.T) {
@@ -178,7 +180,7 @@ func TestCandidateRouteChecksScopeAndDoesNotCreate(t *testing.T) {
 		probe := &candidateProbe{}
 		st := &store{}
 		mux := http.NewServeMux()
-		Register(mux, &objectApplication.Service{Repositories: repositories{deny: deny}, Store: st, CandidateExtractor: probe}, auth{})
+		Register(mux, &objectApplication.Service{Repositories: repositories{deny: deny}, Store: st, CandidatePreparer: probe}, auth{})
 		r := httptest.NewRequest("POST", "/api/v1/repositories/"+strings.Repeat("a", 32)+"/objects/candidates", strings.NewReader(`{"filename":"test.txt","data":"YWJj"}`))
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()

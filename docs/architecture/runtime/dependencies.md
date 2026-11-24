@@ -102,7 +102,7 @@ flowchart LR
 | 使用端                    | 被引用的權威契約                                              | 保留理由與限制                                                                                                                                                                                                                                               |
 | ------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Issue、Discussion、Object | Repository 的資源範圍與領域值；Issue／Discussion 使用其標籤值 | 這些能力屬於 Repository 容器；各自的內容與狀態仍由原領域維護。[容器與能力](../../domains/repository/design.md)                                                                                                                                               |
-| Object application        | Operations 的文件處理介面                                     | 經使用案例契約取得候選資訊，不直接依賴模型 SDK。[操作邊界](../../domains/operations/design.md)                                                                                                                                                               |
+| Object application        | Object 自有的文件準備介面                                     | bootstrap 注入轉接器並轉譯跨領域型別與錯誤。[後端邊界](backend-boundaries.md)                                                                                                                                                                                |
 | Organization application  | Membership 的成員識別值                                       | 所有權移轉解析既有成員引用；不把 Membership 模式切換或成員資格決策搬進 Organization。[移轉實作](../../../backend/internal/business/organization/application/transfer.go)                                                                                     |
 | Enterprise command        | Enterprise 自有操作錯誤                                       | 核心不再引用 Organization 錯誤；[HTTP adapter](../../../backend/internal/business/enterprise/adapter/http/responses.go) 於既有傳輸邊界翻譯，保留公共 status／code 與儲存錯誤相容。[核心錯誤](../../../backend/internal/business/enterprise/domain/errors.go) |
 
@@ -126,7 +126,7 @@ flowchart LR
 
 ## Graphify 與 Repomix 工作流
 
-- [共用的定位、核對與驗收順序見業務操作符合性流程。Graphify 查不到節點時查當前程式，再以 go list -deps ./... 或 gopls 核對 import。程式改動後執行 mise run graphify-update。AST 可能遺漏 Go 隱式介面、動態 dispatch、TOML 與 Markdown。上方 Mermaid 描述尚未實作的目標架構。](../../development/workflow/implementation.md#business-operation-compliance)
+- 業務操作依[操作契約](../../contracts/business-operations.md)核對；Graphify 使用及更新條件由[根指引](../../../AGENTS.md#graphify)維護。AST 可能遺漏 Go 隱式介面、動態 dispatch、TOML 與 Markdown，需以目前程式和適用工具補查。上方 Mermaid 描述尚未實作的目標架構。
 
 - 全局審查使用完整 Repomix 包。日常審查限定所需文件與 Go 原始碼，排除生成技能與 binary。保持安全掃描開啟，逐項核對排除提示及敏感內容。
 

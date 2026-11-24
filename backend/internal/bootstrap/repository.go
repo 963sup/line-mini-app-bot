@@ -16,6 +16,7 @@ import (
 	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/firestore"
 	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
 	candidateai "github.com/963sup/line-mini-app-bot/internal/business/operations/adapter/openai"
+	"github.com/963sup/line-mini-app-bot/internal/business/operations/adapter/poppler"
 	repositorydb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 	businessspacedb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore/space"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
@@ -86,8 +87,9 @@ func newObjects(r *repositoryApplication.Service, store *repositorydb.Store) *ob
 	if key, model := os.Getenv("OPENAI_API_KEY"), os.Getenv("AI_DOCUMENT_MODEL"); key != "" && model != "" {
 		client := openai.NewClient(option.WithAPIKey(key), option.WithBaseURL("https://api.openai.com/v1/"), option.WithMaxRetries(0), option.WithHTTPClient(&http.Client{Transport: httptransport.TraceTransport{}, Timeout: 2 * time.Minute, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}))
 		extractor := &candidateai.Extractor{Responses: client.Responses, Model: model}
-		service.CandidateExtractor = extractor
-		service.TemplatePreparer = templatePreparation{operations: extractor}
+		bridge := &objectPreparation{Extract: extractor, Text: &poppler.Extractor{}, Procedures: extractor}
+		service.CandidatePreparer = bridge
+		service.TemplatePreparer = bridge
 	}
 	return service
 }

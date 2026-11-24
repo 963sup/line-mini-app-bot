@@ -7,7 +7,7 @@ import (
 	"time"
 
 	object "github.com/963sup/line-mini-app-bot/internal/business/object/application"
-	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
+	objectport "github.com/963sup/line-mini-app-bot/internal/business/object/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
@@ -27,15 +27,15 @@ func (s *objectServer) PrepareObjectTemplateDraft(w http.ResponseWriter, r *http
 	result, err := s.service.PrepareTemplateDraft(ctx, identity.UserID(ctx), object.DraftPreparation{Source: string(in.Source), Filename: value(in.Filename), Data: data, Name: value(in.Name), Conditions: value(in.Conditions)})
 	if err != nil {
 		switch {
-		case errors.Is(err, operations.ErrInvalidDocument):
+		case errors.Is(err, objectport.ErrPreparationInvalidDocument):
 			transport.WriteAPIError(w, 400, "invalid_document", "文件格式或大小無效。")
-		case errors.Is(err, operations.ErrProvider):
+		case errors.Is(err, objectport.ErrPreparationProvider):
 			transport.WriteAPIError(w, 503, "provider_error", "草稿產生失敗，請稍後再試。")
-		case errors.Is(err, operations.ErrIncomplete):
+		case errors.Is(err, objectport.ErrPreparationIncomplete):
 			transport.WriteAPIError(w, 503, "incomplete", "回應不完整，請縮小範圍後再試。")
-		case errors.Is(err, operations.ErrRefused):
+		case errors.Is(err, objectport.ErrPreparationRefused):
 			transport.WriteAPIError(w, 400, "refused", "模型拒絕此請求。")
-		case errors.Is(err, operations.ErrInvalidOutput):
+		case errors.Is(err, objectport.ErrPreparationInvalidOutput), errors.Is(err, objectport.ErrInvalidCandidate):
 			transport.WriteAPIError(w, 400, "invalid_output", "沒有可用的草稿，請補充條件或更換文件。")
 		default:
 			writeTemplateError(w, err)

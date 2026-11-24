@@ -1,7 +1,6 @@
 package application
 
 import (
-	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
@@ -143,7 +142,7 @@ func TestServiceScopesEveryOperation(t *testing.T) {
 		_, e2 := s.Get(ctx, "A", id, id)
 		_, e3 := s.Create(ctx, "A", id, strings.Repeat("k", 16), content())
 		_, e4 := s.Update(ctx, "A", id, id, objectDomainEntity.Update{})
-		_, e5 := s.ExtractCandidates(ctx, "A", id, operations.Document{})
+		_, e5 := s.ExtractCandidates(ctx, "A", id, objectApplicationDto.Document{})
 		for _, e := range []error{e1, e2, e3, e4, e5} {
 			if !errors.Is(e, objectDomainEntity.ErrNotFound) {
 				t.Error(e)
@@ -155,23 +154,26 @@ func TestServiceScopesEveryOperation(t *testing.T) {
 	}
 }
 
-type captureDocument struct{ received operations.Document }
+type captureDocument struct{ received objectApplicationDto.Document }
 
-func (c *captureDocument) ExtractCandidates(_ context.Context, d operations.Document) (operations.Extraction, error) {
+func (c *captureDocument) PrepareCandidates(_ context.Context, actor, repository string, d objectApplicationDto.Document) (objectApplicationDto.CandidateResult, error) {
+	if actor != "A" || repository == "" {
+		panic("lost authorized scope")
+	}
 	c.received = d
-	return operations.Extraction{Candidates: []operations.Candidate{{Name: "工項"}}}, nil
+	return objectApplicationDto.CandidateResult{Candidates: []objectApplicationDto.Candidate{{Name: "工項"}}}, nil
 }
 
 func TestExtractCandidatesDelegatesWithoutWriting(t *testing.T) {
 	id := strings.Repeat("a", 32)
 	store := &stubStore{}
 	s := Service{Repositories: repositories{r: repositoryDomainEntity.Repository{ID: id, OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}}, Store: store}
-	doc := operations.Document{Filename: "清單.pdf", Data: []byte("document")}
+	doc := objectApplicationDto.Document{Filename: "清單.pdf", Data: []byte("document")}
 	if _, err := s.ExtractCandidates(t.Context(), "A", id, doc); !errors.Is(err, objectDomainEntity.ErrUnavailable) {
 		t.Fatal(err)
 	}
 	extractor := &captureDocument{}
-	s.CandidateExtractor = extractor
+	s.CandidatePreparer = extractor
 	result, err := s.ExtractCandidates(t.Context(), "A", id, doc)
 	if err != nil || len(result.Candidates) != 1 || extractor.received.Filename != doc.Filename || string(extractor.received.Data) != string(doc.Data) || store.calls != 0 {
 		t.Fatalf("extraction=%v writes=%d error=%v", result, store.calls, err)

@@ -77,6 +77,7 @@ internal/business/
 - 目錄：transport/http、transport/line<br>責任與允許依賴：共用 HTTP 格式與 LINE 傳輸；不依賴功能
 
 - 目錄：bootstrap<br>責任與允許依賴：設定、外部 client 建立、手動注入、路由與生命週期
+- Object 文件準備由 [bootstrap 轉接器](../../../backend/internal/bootstrap/object_preparation.go)實作 Object 定義的介面，翻譯候選與作業錯誤。現行同步入口使用[共用文件準備流程](../../proposals/domain-collaboration.md#現行同步接線)；Object 保留目標授權、草稿規則與正式寫入。Workflow 尚未接管這兩個入口的確認與恢復。Object 套件不得匯入 Workflow、Knowledge、Agent 或 Operations。
 
 - HTTP adapter 不建立 Firestore／LINE／Google client，也不讀 gRPC 狀態碼。出勤、摘要、事項與討論的資料層在 output port 邊界將技術錯誤轉成所屬 ErrUnavailable 或既有業務錯誤；context cancellation 保留 Go 標準錯誤語意。技術原因保存在 adapter 的私有錯誤值，Unwrap 只公開領域類別，不讓上層依賴 SDK 錯誤。
 

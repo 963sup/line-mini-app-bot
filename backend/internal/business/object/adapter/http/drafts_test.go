@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	object "github.com/963sup/line-mini-app-bot/internal/business/object/application"
-	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
+	"github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
 )
 
 type prepareTemplates struct {
@@ -17,13 +17,13 @@ type prepareTemplates struct {
 	size  int
 }
 
-func (p *prepareTemplates) PrepareTemplate(_ context.Context, actor string, in object.DraftPreparation) ([]operations.Candidate, error) {
+func (p *prepareTemplates) PrepareTemplate(_ context.Context, actor string, in object.DraftPreparation) ([]dto.Candidate, error) {
 	if actor != "A" {
 		panic("missing trusted actor")
 	}
 	p.calls++
 	p.size = len(in.Data)
-	return []operations.Candidate{{Name: "基面處理", Quote: "推導建議"}}, nil
+	return []dto.Candidate{{Name: "基面處理", Quote: "推導建議"}}, nil
 }
 
 func TestPrepareTemplateHTTP(t *testing.T) {

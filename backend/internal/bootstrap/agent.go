@@ -11,7 +11,7 @@ import (
 
 	agentmodel "github.com/963sup/line-mini-app-bot/internal/business/agent/adapter/genai"
 	agent "github.com/963sup/line-mini-app-bot/internal/business/agent/application"
-	"github.com/963sup/line-mini-app-bot/internal/genai"
+	"github.com/963sup/line-mini-app-bot/internal/platform/textgeneration"
 )
 
 // NewInvestigator is opt-in: the caller supplies the authorized source reader.
@@ -28,13 +28,13 @@ func NewInvestigator(pages agent.PageReader) (*agent.Investigator, error) {
 		if key == "" {
 			return nil, errors.New("OPENAI_API_KEY is missing")
 		}
-		generator = &genai.OpenAI{Key: key, Model: model, HTTP: client}
+		generator = &textgeneration.OpenAI{Key: key, Model: model, HTTP: client}
 	case "gemini":
 		key := os.Getenv("GEMINI_API_KEY")
 		if key == "" {
 			return nil, errors.New("GEMINI_API_KEY is missing")
 		}
-		generator = &genai.Gemini{Key: key, Model: model, HTTP: client}
+		generator = &textgeneration.Gemini{Key: key, Model: model, HTTP: client}
 	default:
 		return nil, errors.New("AGENT_PROVIDER must be openai or gemini")
 	}

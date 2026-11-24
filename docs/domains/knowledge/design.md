@@ -6,6 +6,21 @@ Knowledge 管理可跨用例使用的知識條目、來源、範圍、版本與�
 
 [Domain guidance](../../AGENTS.md)
 
+## 核心契約
+
+以下為領域責任與概念範圍；現行讀取接線及提案狀態依頁首與後端分層結構區分。Knowledge 負責知識管理與檢索。
+
+- 知識庫（Knowledge Base）
+- 文件管理（Document）
+- 資料來源（Data Source）
+- 索引（Index）
+- 檢索（Retrieval）
+- 語意搜尋（Semantic Search）
+- 知識版本與存取權限
+- RAG 知識檢索
+
+**輸出**為相關知識、證據與上下文。
+
 ## Knowledge 領域設計
 
 以下知識生命週期與發布契約為提案；現行讀取接線見本頁後段。[領域導覽](../../../backend/internal/business/knowledge/)
@@ -32,11 +47,13 @@ flowchart TD
     publish -->|撤回| stopUse["停止供新任務引用，保留歷史紀錄"]
 ```
 
+文件流程由 Workflow 發出具可信授權範圍的檢索請求，Knowledge 回傳規則版本與來源供 Agent 推理。文件流程首版僅查明確提供且已授權的來源。範本發布後的收錄與索引另行設計；既有組織規則讀取接線見下節。
+
 新版發布時取代同一條目先前的有效版本。使用案例保存實際引用的版本，以便事後查明依據。
 
 ### 與其他領域協作
 
-[Operations](../operations/design.md) 可提供查詢入口，Knowledge 依可信身分、組織、版型及發布狀態選出可引用的版本。[Workflow](../workflow/design.md) 可在使用者確認後提出知識草稿；確認單筆匯入不等於核准跨文件套用。[Agent](../agent/design.md) 可檢索已發布的規則，和當前頁面一起交給模型判讀。若規則與原文衝突，回到人工確認。
+[Operations](../operations/design.md) 可提供查詢入口，Knowledge 依可信身分、組織、版型及發布狀態選出可引用的版本。[Workflow](../workflow/design.md) 可在使用者確認後提出知識草稿；確認單筆匯入不等於核准跨文件套用。[Agent](../agent/design.md) 使用 Workflow 提供的已發布規則與當前頁面進行判讀。若規則與原文衝突，回到人工確認。
 
 ### 驗收情境
 
@@ -71,4 +88,19 @@ flowchart TD
 
 ## 後端分層結構
 
-[knowledge 模組原始碼](../../../backend/internal/business/knowledge/) · [代表測試](../../../backend/internal/business/knowledge/adapter/firestore/search_test.go) · [六邊形分層與依賴方向](../../architecture/runtime/backend-boundaries.md#六邊形分層參考)
+現行檔案樹；只列出已實作的正式程式碼：
+
+```text
+backend/internal/
+├── business/knowledge/
+│   ├── application/port/
+│   │   ├── retrieve.go   # 已發布規則的查詢輸入、結果與 Reader 出站契約
+│   │   └── search.go     # 向量證據搜尋輸入與 EvidenceSearcher 出站契約
+│   └── adapter/firestore/
+│       ├── rules.go      # 依組織資格讀取已發布規則投影
+│       └── search.go     # 搜尋向量並核對目前發布投影
+```
+
+Firestore Adapter 實作查詢端所需契約；呼叫端負責提供可信的操作者與範圍。兩個 Object 上傳入口依[共用文件準備流程](../../proposals/domain-collaboration.md#現行同步接線)查找本次 PDF 的引文；已發布規則查詢尚未接入。現行模組沒有發布、撤回用例或獨立 Domain 層；上方知識生命週期仍是提案。
+
+[knowledge 模組原始碼](../../../backend/internal/business/knowledge/) · [代表測試](../../../backend/internal/business/knowledge/adapter/firestore/search_test.go) · [六邊形架構參考](../../references/ddd/hexagonal-architecture.md)

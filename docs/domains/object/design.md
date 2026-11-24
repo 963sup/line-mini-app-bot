@@ -35,13 +35,15 @@ backend/internal/business/
     │   │   └── templates.go           # 建立、發布及套用範本
     │   ├── query/                     # 查詢物件、範本、數量異動，以及準備草稿
     │   │   ├── drafts.go              # 依文件或施工條件準備草稿
-    │   │   ├── object.go              # 物件清單、詳情、數量歷史與文件候選
+    │   │   ├── object.go              # 物件清單、詳情與數量歷史
     │   │   └── templates.go           # 查詢本庫與個人範本
-    │   ├── port/                      # 用例所需的儲存、查詢與草稿準備介面
+    │   ├── port/                      # 用例所需的儲存、查詢與文件準備介面
+    │   │   ├── candidates.go          # 已授權文件候選的準備介面
     │   │   ├── drafts.go              # 草稿準備介面與輸入
     │   │   ├── object.go              # 儲存庫查詢、物件保存與數量歷史介面
     │   │   └── template.go            # 範本保存與套用介面
     │   ├── dto/                       # 用例輸入與結果
+    │   │   ├── candidate.go           # Object 自有的文件與候選結果
     │   │   ├── draft.go               # 草稿、警告與候選對照
     │   │   ├── object.go              # 物件分頁與數量異動結果
     │   │   └── template.go            # 範本建立、分頁與實例化結果
@@ -231,7 +233,7 @@ HTTP 請求與回應以 [Object OpenAPI 契約](../../../api/contract/object/obj
 
 ## 從文件辨識候選
 
-成員可在物件清單選取文件，確認將文件傳送至 OpenAI 後執行辨識。選檔器不以副檔名篩選，格式由 Responses API 判定；每份原檔最多 8 MiB。API 契約及 HTTP 接收上限容納對應的 Base64 與 JSON。物件 API 核對儲存庫權限，再透過 Operations 呼叫模型；沒有配置辨識模型時，手動建立仍可使用。
+成員可在物件清單選取文件，確認將文件傳送至 OpenAI 後執行辨識。選檔器不以副檔名篩選，格式由 Responses API 判定；每份原檔最多 8 MiB。API 契約及 HTTP 接收上限容納對應的 Base64 與 JSON。Object 先核對儲存庫權限，再透過自己的準備 Port 與組裝層執行[共用文件準備流程](../../proposals/domain-collaboration.md#現行同步接線)；沒有配置辨識模型時，手動建立仍可使用。
 
 辨識只回傳候選、引文、來源位置與模型回應。畫面列出每筆候選，讓使用者核對原件、補正數量與單位、選擇類型，再透過既有物件建立操作確認寫入。試算表每張工作表最多處理前 1,000 列，其他文件也可能漏列。候選留在當前畫面，重新辨識會產生新的結果。
 
@@ -241,27 +243,11 @@ HTTP 請求與回應以 [Object OpenAPI 契約](../../../api/contract/object/obj
 
 未來設計。沿用「從文件辨識物件」入口與目前支援的檔案格式。來源定位依格式呈現，例如文件頁碼、圖片區域、文字段落或工作表列號。缺少定位或引文時，畫面標示待確認。掃描文件與照片需使用能辨識影像內容的處理方式，實際支援能力以代表性原件驗收。
 
-```mermaid
-flowchart TD
-    A["選擇目標儲存庫，上傳檔案並確認傳送"] --> B{"格式、大小與辨識權限符合？"}
-    B -->|否| X["說明原因，可重新選擇"]
-    B -->|是| C["Operations 依檔案內容產生候選與來源"]
-    K["Knowledge 提供可引用的已發布規則版本"] -.-> C
-    C --> D["Workflow 呈現候選、原文與待確認欄位"]
-    D -->|要求補查| E["Agent 唯讀補查已授權的來源"]
-    E -->|附上證據或標記缺證| D
-    D -->|修正、勾選並確認| F{"Object 重新核對寫入權限與資料"}
-    F -->|拒絕| G["顯示原因，回到覆核"]
-    G --> D
-    F -->|通過| H["Object 以穩定的建立識別碼寫入所選物件"]
-    H --> I["顯示逐筆結果與物件連結"]
-    H -->|結果未知| J["沿用原識別碼查回結果或重試"]
-    J --> H
-```
+兩條文件入口的目標協作流程見[文件辨識與建立物件範本](../../proposals/domain-collaboration.md#document-workflows)。
 
-首版接通 Operations 的候選辨識與 Workflow 的覆核、確認流程。確認綁定操作者、目標儲存庫、候選版本及選取內容。修改候選或更換儲存庫後須重新確認。正式寫入沿用 Object 的建立規則及逐筆建立識別碼；重試只重送結果未知的項目。跨頁或跨工作階段續作有實際需求時，再保存流程和候選。
+現行接線執行[共用文件準備流程](../../proposals/domain-collaboration.md#現行同步接線)；候選覆核與逐筆確認仍由前端當前畫面執行，未使用 Workflow 的持久化確認與恢復。未來確認應綁定操作者、目標儲存庫、候選版本及選取內容；修改候選或更換儲存庫後須重新確認。正式寫入沿用 Object 的建立規則及逐筆建立識別碼；重試只重送結果未知的項目。跨頁或跨工作階段續作有實際需求時，再保存流程和候選。
 
-Agent 與 Knowledge 按需求接入。Agent 只補查本次授權的來源，回傳證據或待確認事項。Knowledge 只提供有權引用且已發布的規則，候選須標明採用的版本；先以有重複使用需求的文件版型驗證。
+目前 PDF 的引文查找使用本次上傳的來源，已發布規則及其版本尚未納入公開覆核結果。後續接入時，Agent 只補查本次授權的來源，回傳證據或待確認事項；Knowledge 只提供有權引用且已發布的規則，候選須標明採用的版本。先以有重複使用需求的文件版型驗證。
 
 首版驗收：
 
@@ -346,25 +332,25 @@ ObjectTemplate 是 Object 領域內的獨立聚合。本庫範本歸屬單一儲
 
 現行實作；模型辨識與推導品質仍待代表性原件及工法案例驗收。
 
-登入使用者呼叫 `POST /api/v1/object-template-drafts`，選擇文件辨識或提供單一工項與施工條件。這是個人範本的唯讀準備操作，不要求儲存庫，也不授予任何儲存庫寫入權。Object 應用層驗證輸入，透過自己定義的準備介面，由 bootstrap 組裝 Workflow 的同步準備步驟與 Operations 模型適配器。Object 不 import Workflow、Agent 或模型 SDK。
+登入使用者呼叫 `POST /api/v1/object-template-drafts`，選擇文件辨識或提供單一工項與施工條件。這是個人範本的唯讀準備操作，不要求儲存庫，也不授予任何儲存庫寫入權。Object 應用層驗證輸入，透過自己定義的準備介面，由組裝層執行[共用文件準備流程](../../proposals/domain-collaboration.md#現行同步接線)或呼叫 Operations 產生工序建議。Object 核心不 import Workflow、Knowledge、Agent、Operations 或模型 SDK。
 
 分類合併、節點 ID、父子結構及範本限制由 Object 後端處理。草稿不帶數量；文件數量留在候選供核對。超出正式範本限制時回傳可編修草稿與警告，確認建立時仍重新驗證。前端只提交來源、顯示候選、編修草稿與確認建立，沿用既有建立 API 與防重鍵。
 
 工序推導為一次有界模型操作，不呼叫工具、不查未授權知識、不寫入正式資料。推導說明不是文件引文；畫面區分原文與推導說明，提醒核對工法、順序與條件。節點排序只表達建議顯示順序，不構成可執行的前置依賴。Agent 動態補查、Knowledge 規範檢索及跨請求 Workflow 恢復不在此同步切片內。
 
-現行實作的呼叫方向；虛線為使用者確認後的獨立命令。
+下圖只列現行同步接線。使用者確認後另行呼叫 Object 的建立命令。
 
 ```mermaid
 flowchart LR
     UI["前端：上傳與覆核"] --> API["Object API／應用層"]
     API --> Port["Object 準備介面"]
-    Port --> Wire["bootstrap 組裝"]
-    Wire --> Workflow["Workflow 唯讀準備"]
-    Workflow --> Operations["Operations 辨識／工序建議"]
+    Port --> Adapter["組裝層的轉接器"]
+    Adapter -->|文件| Workflow["Workflow：協調擷取、查找引文與頁碼判讀"]
+    Adapter -->|工序| Operations["Operations：工序建議"]
     UI -.->|"確認建立"| Save["Object 既有範本建立命令"]
 ```
 
-實作入口見[草稿應用層](../../../backend/internal/business/object/application/drafts.go)、[組裝](../../../backend/internal/bootstrap/template_drafts.go)、[前端入口](../../../frontend/miniapp/src/business/object/TemplatePreparation.tsx)。驗收涵蓋未登入及無效輸入不呼叫模型、辨識不寫入、分類與同名工項保留、數量排除、推導失敗可重試，以及使用者確認前不建立範本。
+實作入口見[草稿應用層](../../../backend/internal/business/object/application/drafts.go)、[跨領域 Adapter](../../../backend/internal/bootstrap/object_preparation.go)、[組裝](../../../backend/internal/bootstrap/repository.go)與[前端入口](../../../frontend/miniapp/src/business/object/TemplatePreparation.tsx)。驗收涵蓋未登入及無效輸入不呼叫模型、辨識不寫入、分類與同名工項保留、數量排除、推導失敗可重試，以及使用者確認前不建立範本。
 
 <a id="template-使用範本與建立物件"></a>
 

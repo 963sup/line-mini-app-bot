@@ -70,11 +70,11 @@ func TestDependencyBoundaries(t *testing.T) {
 		"business/issue":                                  {"business/repository/application", "business/repository/application/dto", "business/repository/application/dto/labels", "business/repository/application/labels", "business/repository/application/port", "business/repository/application/port/labels", "business/repository/domain/entity", "business/repository/domain/entity/labels"},
 		"business/knowledge/application/port":             {},
 
-		"business/object/application":         {"business/object/application/command", "business/object/application/dto", "business/object/application/port", "business/object/application/query", "business/object/domain/entity", "business/object/domain/template", "business/operations/application", "business/repository/domain/entity"},
+		"business/object/application":         {"business/object/application/command", "business/object/application/dto", "business/object/application/port", "business/object/application/query", "business/object/domain/entity", "business/object/domain/template", "business/repository/domain/entity"},
 		"business/object/application/command": {"business/object/domain/event", "business/object/application/dto", "business/object/application/port", "business/object/domain/entity", "business/object/domain/service", "business/object/domain/template", "business/repository/domain/entity"},
-		"business/object/application/query":   {"business/object/application/dto", "business/object/application/port", "business/object/domain/entity", "business/object/domain/service", "business/object/domain/template", "business/operations/application", "business/repository/domain/entity"},
-		"business/object/application/dto":     {"business/object/domain/entity", "business/object/domain/template", "business/operations/application"},
-		"business/object/application/port":    {"business/object/domain/event", "business/object/application/dto", "business/object/domain/entity", "business/object/domain/template", "business/operations/application", "business/repository/domain/entity"},
+		"business/object/application/query":   {"business/object/application/dto", "business/object/application/port", "business/object/domain/entity", "business/object/domain/service", "business/object/domain/template", "business/repository/domain/entity"},
+		"business/object/application/dto":     {"business/object/domain/entity", "business/object/domain/template"},
+		"business/object/application/port":    {"business/object/domain/event", "business/object/application/dto", "business/object/domain/entity", "business/object/domain/template", "business/repository/domain/entity"},
 		"business/object/domain/template":     {},
 		"business/object/domain/policy":       {},
 		"business/object/domain/valueobject":  {},
@@ -127,6 +127,13 @@ func TestDependencyBoundaries(t *testing.T) {
 			dependency, err := strconv.Unquote(spec.Path.Value)
 			if err != nil {
 				return err
+			}
+			if strings.HasPrefix(dir, "business/object/") {
+				for _, capability := range []string{"workflow", "operations", "knowledge", "agent"} {
+					if strings.HasPrefix(dependency, module+"business/"+capability+"/") {
+						t.Errorf("Object package %s imports %s; compose document preparation outside Object", rel, dependency)
+					}
+				}
 			}
 			if dir == "business/operations/application" && strings.HasPrefix(dependency, module) {
 				t.Errorf("operation contract %s depends on business implementation %s", rel, dependency)

@@ -16,6 +16,11 @@ type Candidate struct {
 	Version, Target, Command string
 }
 
+// Scope comes from a trusted caller that has already established identity.
+type Scope struct {
+	Actor, Target string
+}
+
 type Run struct {
 	Version     uint64
 	Candidate   Candidate
@@ -40,6 +45,24 @@ type Command interface {
 type Service struct {
 	Runs    RunStore
 	Command Command
+}
+
+// Stage replaces a candidate only when the caller still holds the current version.
+func (s Service) Stage(ctx context.Context, scope Scope, runID string, version uint64, candidate Candidate) error {
+	if scope.Actor == "" || runID == "" || scope.Target == "" || candidate.Target != scope.Target ||
+		candidate.Version == "" || candidate.Command == "" {
+		return ErrConflict
+	}
+	run, err := s.Runs.Load(ctx, scope.Actor, runID)
+	if err != nil {
+		return err
+	}
+	if run.Version != version || run.WriteKey != "" || run.Receipt != "" {
+		return ErrConflict
+	}
+	run.Version++
+	run.Candidate = candidate
+	return s.Runs.CompareAndSave(ctx, scope.Actor, runID, version, run)
 }
 
 func (s Service) Confirm(ctx context.Context, actor, runID string, candidate Candidate, writeKey string) error {

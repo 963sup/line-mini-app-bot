@@ -12,7 +12,6 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/service"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/template"
-	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
 )
 
 func PrepareTemplateDraft(ctx context.Context, preparer port.TemplatePreparer, actor string, in port.DraftPreparation) (dto.TemplateDraft, error) {
@@ -40,7 +39,7 @@ func PrepareTemplateDraft(ctx context.Context, preparer port.TemplatePreparer, a
 		return dto.TemplateDraft{}, err
 	}
 	if len(candidates) == 0 {
-		return dto.TemplateDraft{}, operations.ErrInvalidOutput
+		return dto.TemplateDraft{}, port.ErrInvalidCandidate
 	}
 	name := in.Name
 	if in.Source == "document" {

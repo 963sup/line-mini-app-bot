@@ -7,7 +7,7 @@ import (
 
 	agentmodel "github.com/963sup/line-mini-app-bot/internal/business/agent/adapter/genai"
 	"github.com/963sup/line-mini-app-bot/internal/business/agent/application/port"
-	"github.com/963sup/line-mini-app-bot/internal/genai"
+	"github.com/963sup/line-mini-app-bot/internal/platform/textgeneration"
 )
 
 type agentPages struct {
@@ -46,11 +46,11 @@ func TestAgentProviderAndEvidenceBoundary(t *testing.T) {
 				t.Fatal(err)
 			}
 			switch a.Model.(agentmodel.EvidenceModel).Generator.(type) {
-			case *genai.OpenAI:
+			case *textgeneration.OpenAI:
 				if provider != "openai" {
 					t.Fatal(provider)
 				}
-			case *genai.Gemini:
+			case *textgeneration.Gemini:
 				if provider != "gemini" {
 					t.Fatal(provider)
 				}

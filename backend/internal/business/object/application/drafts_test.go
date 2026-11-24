@@ -7,18 +7,19 @@ import (
 	"testing"
 
 	"github.com/963sup/line-mini-app-bot/internal/business/object/application/command"
+	"github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
+	"github.com/963sup/line-mini-app-bot/internal/business/object/application/port"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
-	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
 )
 
 type draftPreparer struct {
 	calls      int
 	input      DraftPreparation
-	candidates []operations.Candidate
+	candidates []dto.Candidate
 	err        error
 }
 
-func (p *draftPreparer) PrepareTemplate(_ context.Context, actor string, in DraftPreparation) ([]operations.Candidate, error) {
+func (p *draftPreparer) PrepareTemplate(_ context.Context, actor string, in DraftPreparation) ([]dto.Candidate, error) {
 	p.calls++
 	p.input = in
 	if actor != "A" {
@@ -29,7 +30,7 @@ func (p *draftPreparer) PrepareTemplate(_ context.Context, actor string, in Draf
 
 func TestTemplateDraftPreparation(t *testing.T) {
 	quantity, unit := "12", "式"
-	p := &draftPreparer{candidates: []operations.Candidate{
+	p := &draftPreparer{candidates: []dto.Candidate{
 		{Name: "地板保護", CategoryPath: []string{"電力", "配電"}, Quantity: &quantity, Unit: &unit},
 		{Name: "地板保護", CategoryPath: []string{"電力", "接地"}, Quantity: &quantity, Unit: &unit},
 		{Name: "搬運（6組）", CategoryPath: []string{"電力", "接地"}, Quantity: &quantity, Unit: &unit},
@@ -82,7 +83,7 @@ func TestTemplateDraftRejectsBeforeProvider(t *testing.T) {
 		t.Fatal(err)
 	}
 	p.err = nil
-	if _, err := s.PrepareTemplateDraft(t.Context(), "A", DraftPreparation{Source: "procedure", Name: "x"}); !errors.Is(err, operations.ErrInvalidOutput) {
+	if _, err := s.PrepareTemplateDraft(t.Context(), "A", DraftPreparation{Source: "procedure", Name: "x"}); !errors.Is(err, port.ErrInvalidCandidate) {
 		t.Fatal(err)
 	}
 }

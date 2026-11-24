@@ -3,11 +3,11 @@ package summarizer
 import (
 	"context"
 
-	"github.com/963sup/line-mini-app-bot/internal/genai"
+	"github.com/963sup/line-mini-app-bot/internal/platform/textgeneration"
 )
 
-type Gemini genai.Gemini
+type Gemini textgeneration.Gemini
 
 func (g *Gemini) Summarize(ctx context.Context, input string) (string, error) {
-	return (*genai.Gemini)(g).Generate(ctx, summaryInstruction, input)
+	return (*textgeneration.Gemini)(g).Generate(ctx, summaryInstruction, input)
 }

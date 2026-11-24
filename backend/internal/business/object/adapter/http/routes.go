@@ -2,6 +2,7 @@ package objecthttp
 
 import (
 	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
+	objectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
 	objectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/object/domain/entity"
 )
 
@@ -12,7 +13,7 @@ import (
 	"net/http"
 	"time"
 
-	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
+	objectport "github.com/963sup/line-mini-app-bot/internal/business/object/application/port"
 
 	"github.com/963sup/line-mini-app-bot/internal/identity"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
@@ -210,7 +211,7 @@ func (s *objectServer) ExtractObjectCandidates(w http.ResponseWriter, r *http.Re
 		transport.WriteAPIError(w, 400, "invalid_document", "請選擇 8 MiB 以內的非空文件。")
 		return
 	}
-	result, err := s.service.ExtractCandidates(r.Context(), identity.UserID(r.Context()), rid, operations.Document{Filename: in.Filename, Data: in.Data})
+	result, err := s.service.ExtractCandidates(r.Context(), identity.UserID(r.Context()), rid, objectApplicationDto.Document{Filename: in.Filename, Data: in.Data})
 	out := generated.ObjectCandidateResult{Status: "completed", Candidates: []generated.ObjectCandidate{}, RawResponse: string(result.RawResponse)}
 	switch {
 	case err == nil:
@@ -221,19 +222,19 @@ func (s *objectServer) ExtractObjectCandidates(w http.ResponseWriter, r *http.Re
 			}
 			out.Candidates = append(out.Candidates, candidate)
 		}
-	case errors.Is(err, operations.ErrInvalidDocument):
+	case errors.Is(err, objectport.ErrPreparationInvalidDocument):
 		transport.WriteAPIError(w, 400, "invalid_document", "不支援此文件格式。")
 		return
 	case errors.Is(err, objectDomainEntity.ErrUnavailable):
 		transport.WriteAPIError(w, 503, "not_configured", "文件辨識尚未啟用。")
 		return
-	case errors.Is(err, operations.ErrIncomplete):
+	case errors.Is(err, objectport.ErrPreparationIncomplete):
 		out.Status = "incomplete"
-	case errors.Is(err, operations.ErrRefused):
+	case errors.Is(err, objectport.ErrPreparationRefused):
 		out.Status = "refused"
-	case errors.Is(err, operations.ErrInvalidOutput):
+	case errors.Is(err, objectport.ErrPreparationInvalidOutput):
 		out.Status = "invalid_output"
-	case errors.Is(err, operations.ErrProvider):
+	case errors.Is(err, objectport.ErrPreparationProvider):
 		out.Status = "provider_error"
 	default:
 		writeError(w, err)

@@ -1,4 +1,4 @@
-package genai
+package textgeneration
 
 import (
 	"bytes"
