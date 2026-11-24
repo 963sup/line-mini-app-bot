@@ -744,14 +744,14 @@ function Content({ repositoryId, initialObjectId, documentTool }: Props) {
         <Button
           type="button"
           variant="ghost"
-          size="sm"
+          size="icon"
           className="self-start"
           title="新增物件"
+          aria-label="新增物件"
           disabled={!user || locked || mode === "create"}
           onClick={(event) => openCreateForm(event.currentTarget)}
         >
           <Plus aria-hidden="true" />
-          新增物件
         </Button>
       </div>
       {discard.dialog}

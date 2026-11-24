@@ -150,7 +150,7 @@ test("repository objects expose object creation and the sidebar link only", asyn
   const f = await fixture(async () => Response.json({ items: [], nextCursor: "" }));
   try {
     assert.ok(
-      [...document.querySelectorAll("button")].some((button) => button.textContent === "新增物件"),
+      document.querySelector('button[aria-label="新增物件"]') !== null,
     );
     assert.ok(
       ![...document.querySelectorAll("button")].some((button) => button.textContent === "物件範本"),

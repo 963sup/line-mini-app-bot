@@ -83,7 +83,7 @@ export function ObjectRows({
                 </CollapsibleTrigger>
                 <Button
                   variant="link"
-                  aria-label={item.name}
+                  aria-label={branch && item.canEdit ? `編輯子物件：${item.name}` : item.name}
                   title={item.canEdit ? `編輯物件：${item.name}` : "物件詳情"}
                   className="h-auto min-w-0 max-w-full justify-start whitespace-normal text-left [overflow-wrap:anywhere]"
                   disabled={tree.locked}
@@ -92,16 +92,6 @@ export function ObjectRows({
                   {item.canEdit ? <Pencil aria-hidden="true" className="size-3.5" /> : "詳情"}
                   <span className="sr-only">名稱：{item.name}</span>
                 </Button>
-                {branch && item.canEdit && (
-                  <Button
-                    variant="outline"
-                    aria-label={`編輯子物件：${item.name}`}
-                    disabled={tree.locked}
-                    onClick={(event) => tree.open(item.id, event.currentTarget, "name", branch)}
-                  >
-                    編輯
-                  </Button>
-                )}
                 <Button
                   type="button"
                   variant="ghost"
@@ -115,7 +105,7 @@ export function ObjectRows({
                     )
                   }
                 >
-                  <Plus />
+                  <Plus aria-hidden="true" />
                 </Button>
               </ItemTitle>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 ps-2 text-xs text-muted-foreground sm:ps-12">

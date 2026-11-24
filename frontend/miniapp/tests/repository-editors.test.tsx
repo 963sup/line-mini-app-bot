@@ -256,7 +256,7 @@ for (const name of ["討論", "標籤"] as const)
       await f.click("放棄修改");
       assert.equal(writes, 0);
       assert.ok(
-        [...document.querySelectorAll("button")].some((node) => node.textContent === "新增物件"),
+        document.querySelector('button[aria-label="新增物件"]') !== null,
       );
     } finally {
       await f.dispose();

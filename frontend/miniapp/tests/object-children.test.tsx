@@ -254,9 +254,7 @@ test("unknown child create freezes exact identity, blocks parent navigation and 
         true,
       );
     assert.equal(
-      [...document.querySelectorAll<HTMLButtonElement>("button")].find(
-        (button) => button.textContent === "新增物件",
-      )!.disabled,
+      document.querySelector<HTMLButtonElement>('button[aria-label="新增物件"]')!.disabled,
       true,
     );
     await f.click("子物件：測試物件");
@@ -526,7 +524,7 @@ test("temporary type selection preserves unsaved child completion", async () => 
   }
 });
 
-test("child name opens a fresh inline editor; failure retains draft and cancel does not write", async () => {
+test("child pencil opens a fresh inline editor; failure retains draft and cancel does not write", async () => {
   let reads = 0,
     writes = 0;
   const f = await fixture(async (request) => {
@@ -549,8 +547,10 @@ test("child name opens a fresh inline editor; failure retains draft and cancel d
   });
   try {
     await f.click("子物件：測試物件");
-    await f.click("測試工序");
-    const row = document.querySelector('[aria-label="測試工序"]')!.closest('[data-slot="item"]')!;
+    await f.click("編輯子物件：測試工序");
+    const row = document
+      .querySelector('[aria-label="編輯子物件：測試工序"]')!
+      .closest('[data-slot="item"]')!;
     assert.ok(row.querySelector("form"));
     assert.equal(reads, 1);
     await f.fill("子物件名稱", "尚未儲存");
@@ -673,10 +673,10 @@ test("expanding a child reads its own branch and collapsing hides the grandchild
     assert.deepEqual(parents, [oid]);
     await f.click("子物件：測試工序");
     assert.deepEqual(parents, [oid, sid]);
-    assert.ok(document.querySelector('[aria-label="導通測試"]'));
+    assert.ok(document.querySelector('[aria-label="編輯子物件：導通測試"]'));
     await f.click("子物件：測試工序");
-    assert.equal(document.querySelector('[aria-label="導通測試"]'), null);
-    assert.ok(document.querySelector('[aria-label="測試工序"]'));
+    assert.equal(document.querySelector('[aria-label="編輯子物件：導通測試"]'), null);
+    assert.ok(document.querySelector('[aria-label="編輯子物件：測試工序"]'));
   } finally {
     await f.dispose();
   }
@@ -691,9 +691,9 @@ test("root list shows imported children only beneath their parent", async () => 
     });
   });
   try {
-    assert.equal(document.querySelectorAll('[aria-label="測試工序"]').length, 0);
+    assert.equal(document.querySelectorAll('[aria-label="編輯子物件：測試工序"]').length, 0);
     await f.click("子物件：測試物件");
-    assert.equal(document.querySelectorAll('[aria-label="測試工序"]').length, 1);
+    assert.equal(document.querySelectorAll('[aria-label="編輯子物件：測試工序"]').length, 1);
   } finally {
     await f.dispose();
   }
@@ -721,7 +721,7 @@ for (const nested of [false, true]) {
     try {
       if (nested) await f.click("子物件：測試物件");
       await f.click(nested ? "載入更多子物件" : "載入更多物件");
-      const row = () => document.querySelector(`button[aria-label="${item.name}"]`);
+      const row = () => document.querySelector(`button[aria-label="子物件：${item.name}"]`);
       assert.ok(row(), "temporary failure should keep loaded rows");
       await f.click("重試讀取");
       assert.ok(!row(), "access denial should clear loaded rows");
