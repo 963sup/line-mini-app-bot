@@ -30,7 +30,8 @@ func TestCreationRepliesOnlyToPrivateMessages(t *testing.T) {
 	if !ok || e != nil || store.calls != 1 {
 		t.Fatal("lost redelivery", e)
 	}
-	action := reply.Message.(*messaging_api.TextMessage).QuickReply.Items[0].Action.(*messaging_api.UriAction)
+	message := reply.Message.(*messaging_api.TemplateMessage)
+	action := message.Template.(*messaging_api.ButtonsTemplate).Actions[0].(*messaging_api.UriAction)
 	if action.Uri != "https://miniapp.line.me/example?organization=org1" || action.Label != "開啟組織" {
 		t.Fatal(action)
 	}

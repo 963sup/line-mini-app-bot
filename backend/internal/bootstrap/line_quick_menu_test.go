@@ -48,7 +48,18 @@ func TestQuickMenuPayload(t *testing.T) {
 				index++
 			}
 			item := payload.QuickReply.Items[index]
-			if item.Type != "action" || item.Action.Type != "message" || item.Action.Text != command || item.Action.Label != command {
+			label := command
+			switch command {
+			case "出勤紀錄":
+				label = "本人出勤紀錄"
+			case "請假":
+				label = "請假登記"
+			case "補卡":
+				label = "補卡申請"
+			case "摘要":
+				label = "群聊摘要"
+			}
+			if item.Type != "action" || item.Action.Type != "message" || item.Action.Text != command || item.Action.Label != label {
 				t.Fatalf("invalid command %q: %s", command, data)
 			}
 		}

@@ -25,6 +25,6 @@ func Handler(appURL string) transport.Handler {
 		if err != nil || appURL == "" {
 			return transport.Reply{}, false, nil
 		}
-		return transport.Reply{Token: msg.ReplyToken, Message: &messaging_api.TextMessage{Text: "開啟物件範本：" + target}}, true, nil
+		return transport.Reply{Token: msg.ReplyToken, Message: &messaging_api.TemplateMessage{AltText: "開啟物件範本", Template: &messaging_api.ButtonsTemplate{Text: "在 MINI App 查詢、建立或編輯物件範本。", Actions: []messaging_api.ActionInterface{&messaging_api.UriAction{Label: "開啟物件範本", Uri: target}}}}}, true, nil
 	}}
 }

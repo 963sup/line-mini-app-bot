@@ -35,24 +35,26 @@ func MyEngineering(ctx context.Context, event webhook.EventInterface, appURL str
 	if err != nil {
 		return transport.Reply{}, true, err
 	}
-	lines := []string{"我的工程"}
+	columns := []messaging_api.CarouselColumn{}
 	for _, repo := range page.Items[:min(len(page.Items), 5)] {
 		name := repo.Name
 		if name == "" {
 			name = "工程儲存庫"
 		}
 		if link := navigation.RepositoryURL(appURL, true, repo.ID); link != "" {
-			name += "\n" + link
+			columns = append(columns, messaging_api.CarouselColumn{Title: "我的工程", Text: name, Actions: []messaging_api.ActionInterface{&messaging_api.UriAction{Label: "開啟工程", Uri: link}}})
 		}
-		lines = append(lines, name)
 	}
 	if len(page.Items) == 0 && page.NextCursor == "" {
-		lines = append(lines, "目前沒有可開啟的工程。")
+		return transport.Reply{Token: msg.ReplyToken, Message: &messaging_api.TextMessage{Text: "目前沒有可開啟的工程。"}}, true, nil
 	}
 	if len(page.Items) > 5 || page.NextCursor != "" {
 		if link := navigation.RepositoryURL(appURL, false); link != "" {
-			lines = append(lines, "查看完整清單："+link)
+			columns = append(columns, messaging_api.CarouselColumn{Title: "我的工程", Text: "還有更多可開啟的工程", Actions: []messaging_api.ActionInterface{&messaging_api.UriAction{Label: "查看完整清單", Uri: link}}})
 		}
 	}
-	return transport.Reply{Token: msg.ReplyToken, Message: &messaging_api.TextMessage{Text: strings.Join(lines, "\n\n")}}, true, nil
+	if len(columns) == 0 {
+		return transport.Reply{Token: msg.ReplyToken, Message: &messaging_api.TextMessage{Text: "工程入口目前無法使用。"}}, true, nil
+	}
+	return transport.Reply{Token: msg.ReplyToken, Message: &messaging_api.TemplateMessage{AltText: "選擇我的工程", Template: &messaging_api.CarouselTemplate{Columns: columns}}}, true, nil
 }

@@ -20,18 +20,15 @@ func MenuActions(group bool, journalLink string, quick bool) []messaging_api.Act
 		for _, entry := range []struct{ label, command string }{
 			{"打卡", "打卡"}, {"出勤", "出勤"}, {"請假登記", "請假"}, {"補卡申請", "補卡"},
 		} {
-			if quick {
-				entry.label = entry.command
-			}
 			actions = append(actions, &messaging_api.MessageAction{Label: entry.label, Text: entry.command})
 			if entry.command == "打卡" && journalLink != "" {
 				actions = append(actions, &messaging_api.UriAction{Label: "日誌", Uri: journalLink})
 			}
 		}
 	} else if quick {
-		actions = append(actions, &messaging_api.MessageAction{Label: "出勤紀錄", Text: "出勤紀錄"})
+		actions = append(actions, &messaging_api.MessageAction{Label: "本人出勤紀錄", Text: "出勤紀錄"})
 	} else {
-		actions = append(actions, &messaging_api.PostbackAction{Label: "出勤紀錄", Data: "action=attendance-history"})
+		actions = append(actions, &messaging_api.PostbackAction{Label: "本人出勤紀錄", Data: "action=attendance-history"})
 	}
 	return actions
 }

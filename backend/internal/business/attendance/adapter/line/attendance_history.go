@@ -26,7 +26,7 @@ func historyButton(label, data string) messaging_api.FlexComponentInterface {
 	return &messaging_api.FlexButton{Action: &messaging_api.PostbackAction{Label: label, Data: data}}
 }
 
-func historyCard(title, text string, buttons []messaging_api.FlexComponentInterface) messaging_api.MessageInterface {
+func historyResultCard(title, text string, buttons []messaging_api.FlexComponentInterface) messaging_api.MessageInterface {
 	return &messaging_api.FlexMessage{AltText: title, Contents: &messaging_api.FlexBubble{
 		Body: &messaging_api.FlexBox{Layout: "vertical", Contents: []messaging_api.FlexComponentInterface{
 			&messaging_api.FlexText{Text: title, Weight: "bold", Wrap: true},
@@ -44,22 +44,18 @@ func (b *Attendance) historyGroups(ctx context.Context, groups []string, page in
 	if end > len(groups) {
 		end = len(groups)
 	}
-	buttons := []messaging_api.FlexComponentInterface{}
-	var text strings.Builder
-	text.WriteString("點選按鈕，接著選擇月份，再查看本人紀錄。\n")
+	columns := []messaging_api.CarouselColumn{}
 	for i := page * size; i < end; i++ {
-		fmt.Fprintf(&text, "\n%d. %s", i+1, b.HistoryGroupName(ctx, groups[i]))
 		data := url.Values{"action": {"attendance-history"}, "group": {groups[i]}}.Encode()
-		buttons = append(buttons, historyButton(fmt.Sprintf("查看群組 %d", i+1), data))
+		columns = append(columns, messaging_api.CarouselColumn{Title: fmt.Sprintf("群組 %d", i+1), Text: b.HistoryGroupName(ctx, groups[i]), Actions: []messaging_api.ActionInterface{&messaging_api.PostbackAction{Label: "選擇群組", Data: data}}})
 	}
-	text.WriteString("\n\n也可輸入「出勤紀錄 編號」。")
 	if page > 0 {
-		buttons = append(buttons, historyButton("上一頁", fmt.Sprintf("action=attendance-history&page=%d", page-1)))
+		columns = append(columns, messaging_api.CarouselColumn{Text: "查看更多群組", Actions: []messaging_api.ActionInterface{&messaging_api.PostbackAction{Label: "上一頁", Data: fmt.Sprintf("action=attendance-history&page=%d", page-1)}}})
 	}
 	if end < len(groups) {
-		buttons = append(buttons, historyButton("下一頁", fmt.Sprintf("action=attendance-history&page=%d", page+1)))
+		columns = append(columns, messaging_api.CarouselColumn{Text: "查看更多群組", Actions: []messaging_api.ActionInterface{&messaging_api.PostbackAction{Label: "下一頁", Data: fmt.Sprintf("action=attendance-history&page=%d", page+1)}}})
 	}
-	return historyCard("選擇出勤群組", text.String(), buttons)
+	return &messaging_api.TemplateMessage{AltText: "選擇出勤群組", Template: &messaging_api.CarouselTemplate{Columns: columns}}
 }
 
 func (b *Attendance) historyResult(ctx context.Context, group string, report attendancedto.MonthlyReport, page int) messaging_api.MessageInterface {
@@ -114,7 +110,7 @@ func (b *Attendance) historyResult(ctx context.Context, group string, report att
 		buttons = append(buttons, historyButton("下一頁", action(start, page+1)))
 	}
 	buttons = append(buttons, historyButton("上個月", action(start.AddDate(0, -1, 0), 0)), historyButton("下個月", action(start.AddDate(0, 1, 0), 0)), historyButton("選擇月份", url.Values{"action": {"attendance-history"}, "group": {group}}.Encode()), historyButton("切換群組", "action=attendance-history&page=0"))
-	return historyCard(b.HistoryGroupName(ctx, group)+"｜本人月度出勤", text.String(), buttons)
+	return historyResultCard(b.HistoryGroupName(ctx, group)+"｜本人月度出勤", text.String(), buttons)
 }
 
 func (b *Attendance) historyMonths(ctx context.Context, group string, page int) messaging_api.MessageInterface {
@@ -127,21 +123,21 @@ func (b *Attendance) historyMonths(ctx context.Context, group string, page int) 
 	}
 	now := time.Now().In(zone)
 	current := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, zone)
-	buttons := []messaging_api.FlexComponentInterface{}
+	columns := []messaging_api.CarouselColumn{}
 	for i := 0; i < 6; i++ {
 		month := current.AddDate(0, -page*6-i, 0)
 		data := url.Values{"action": {"attendance-history"}, "group": {group}, "month": {month.Format("2006-01")}}.Encode()
-		buttons = append(buttons, historyButton(month.Format("2006年01月"), data))
+		columns = append(columns, messaging_api.CarouselColumn{Text: month.Format("2006年01月"), Actions: []messaging_api.ActionInterface{&messaging_api.PostbackAction{Label: "查看本人紀錄", Data: data}}})
 	}
 	pageData := func(p int) string {
 		return url.Values{"action": {"attendance-history"}, "group": {group}, "page": {fmt.Sprint(p)}}.Encode()
 	}
 	if page > 0 {
-		buttons = append(buttons, historyButton("較新月份", pageData(page-1)))
+		columns = append(columns, messaging_api.CarouselColumn{Text: "查看更多月份", Actions: []messaging_api.ActionInterface{&messaging_api.PostbackAction{Label: "較新月份", Data: pageData(page - 1)}}})
 	}
 	if page < 199 {
-		buttons = append(buttons, historyButton("更早月份", pageData(page+1)))
+		columns = append(columns, messaging_api.CarouselColumn{Text: "查看更多月份", Actions: []messaging_api.ActionInterface{&messaging_api.PostbackAction{Label: "更早月份", Data: pageData(page + 1)}}})
 	}
-	buttons = append(buttons, historyButton("切換群組", "action=attendance-history&page=0"))
-	return historyCard(b.HistoryGroupName(ctx, group)+"｜選擇月份", "請選擇要查詢的月份，僅顯示本人的出勤紀錄。", buttons)
+	columns = append(columns, messaging_api.CarouselColumn{Text: "查詢其他出勤群組", Actions: []messaging_api.ActionInterface{&messaging_api.PostbackAction{Label: "切換群組", Data: "action=attendance-history&page=0"}}})
+	return &messaging_api.TemplateMessage{AltText: b.HistoryGroupName(ctx, group) + "｜選擇月份", Template: &messaging_api.CarouselTemplate{Columns: columns}}
 }

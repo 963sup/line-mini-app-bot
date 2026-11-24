@@ -11,15 +11,15 @@ import (
 
 func TestHelpMenuViaWebhookHandler(t *testing.T) {
 	const mobile, desktop = "https://miniapp.line.me/example", "https://example.org/desktop"
-	handler := navigation.Menu{Help: helpMenu}.Handler(mobile, desktop, nil)
+	handler := navigation.Menu{QuickMenu: quickMenu}.Handler(mobile, desktop, nil)
 	for _, tc := range []struct {
 		name, input string
 		source      webhook.SourceInterface
 		labels      []string
 	}{
-		{"private", "/help", webhook.UserSource{UserId: "u"}, []string{"出勤紀錄", "空間", "開啟 MINI App"}},
-		{"private fallback", "unknown", webhook.UserSource{UserId: "u"}, []string{"出勤紀錄", "空間", "開啟 MINI App"}},
-		{"group", "/help", webhook.GroupSource{GroupId: "g"}, []string{"打卡", "日誌", "出勤", "請假登記", "補卡申請", "開啟 MINI App"}},
+		{"private", "/help", webhook.UserSource{UserId: "u"}, []string{"本人出勤紀錄", "建立組織", "建立企業", "空間", "MINI App"}},
+		{"private fallback", "unknown", webhook.UserSource{UserId: "u"}, []string{"本人出勤紀錄", "建立組織", "建立企業", "空間", "MINI App"}},
+		{"group", "/help", webhook.GroupSource{GroupId: "g"}, []string{"打卡", "日誌", "出勤", "請假登記", "補卡申請", "群聊摘要", "MINI App"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			event := webhook.MessageEvent{Source: tc.source, Mode: "active", ReplyToken: "reply", Message: webhook.TextMessageContent{Text: tc.input}}
@@ -27,21 +27,15 @@ func TestHelpMenuViaWebhookHandler(t *testing.T) {
 			if err != nil || !handled || reply.Token != "reply" {
 				t.Fatalf("handle: %+v %v", reply, err)
 			}
-			card := reply.Message.(*messaging_api.FlexMessage)
+			message := reply.Message.(*messaging_api.TextMessage)
 			var labels []string
-			for _, component := range card.Contents.(*messaging_api.FlexBubble).Footer.Contents {
-				switch a := component.(*messaging_api.FlexButton).Action.(type) {
+			for _, item := range message.QuickReply.Items {
+				switch a := item.Action.(type) {
 				case *messaging_api.MessageAction:
 					labels = append(labels, a.Label)
 				case *messaging_api.PostbackAction:
-					if a.Data != "action=attendance-history" {
-						t.Fatal(a.Data)
-					}
 					labels = append(labels, a.Label)
 				case *messaging_api.UriAction:
-					if a.Label == "開啟 MINI App" && (a.Uri != mobile || a.AltUri == nil || a.AltUri.Desktop != desktop) {
-						t.Fatal(a)
-					}
 					labels = append(labels, a.Label)
 				}
 			}

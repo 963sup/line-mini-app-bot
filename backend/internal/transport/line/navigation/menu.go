@@ -49,28 +49,6 @@ func RepositoryURL(appURL string, group bool, ids ...string) string {
 	return u.String()
 }
 
-func HelpCard(title, description string, buttons []messaging_api.FlexComponentInterface, appURL, desktopURL string) messaging_api.MessageInterface {
-	if appURL != "" {
-		buttons = append(buttons, &messaging_api.FlexButton{
-			Style:  "primary",
-			Action: miniAppAction(appURL, desktopURL),
-		})
-	}
-	return &messaging_api.FlexMessage{
-		AltText: title,
-		Contents: &messaging_api.FlexBubble{
-			Body: &messaging_api.FlexBox{
-				Layout: "vertical",
-				Contents: []messaging_api.FlexComponentInterface{
-					&messaging_api.FlexText{Text: title, Weight: "bold", Size: "xl", Wrap: true},
-					&messaging_api.FlexText{Text: description, Wrap: true, Margin: "md"},
-				},
-			},
-			Footer: &messaging_api.FlexBox{Layout: "vertical", Contents: buttons},
-		},
-	}
-}
-
 // miniAppAction uses only the configured endpoint, never a request host or postback URL.
 func miniAppAction(appURL, desktopURL string) *messaging_api.UriAction {
 	action := &messaging_api.UriAction{Label: "開啟 MINI App", Uri: appURL}
@@ -81,7 +59,7 @@ func miniAppAction(appURL, desktopURL string) *messaging_api.UriAction {
 	return action
 }
 
-// MiniApp opens the same mobile MINI App through a Flex-supported desktop alternate.
+// MiniApp opens one configured form or resource through the native buttons template.
 func MiniApp(appURL, desktopURL string, repositoryIDs ...string) messaging_api.MessageInterface {
 	action := miniAppAction(appURL, desktopURL)
 	if link := RepositoryURL(appURL, true, repositoryIDs...); link != "" {
@@ -99,8 +77,7 @@ func MiniApp(appURL, desktopURL string, repositoryIDs ...string) messaging_api.M
 	if appURL == "" {
 		return &messaging_api.TextMessage{Text: "MINI App 尚未設定。"}
 	}
-	return &messaging_api.FlexMessage{AltText: "開啟 MINI App", Contents: &messaging_api.FlexBubble{
-		Body:   &messaging_api.FlexBox{Layout: "vertical", Contents: []messaging_api.FlexComponentInterface{&messaging_api.FlexText{Text: text, Wrap: true}}},
-		Footer: &messaging_api.FlexBox{Layout: "vertical", Contents: []messaging_api.FlexComponentInterface{&messaging_api.FlexButton{Style: "primary", Action: action}}},
+	return &messaging_api.TemplateMessage{AltText: "開啟 MINI App", Template: &messaging_api.ButtonsTemplate{
+		Text: text, Actions: []messaging_api.ActionInterface{action},
 	}}
 }

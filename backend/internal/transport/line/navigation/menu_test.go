@@ -26,9 +26,8 @@ func TestMiniAppDesktopDestinationValidation(t *testing.T) {
 	if action.AltUri == nil || action.AltUri.Desktop != desktop || action.Uri != mobile {
 		t.Fatal("configured destinations must remain exact")
 	}
-	help := HelpCard("title", "description", nil, mobile, desktop).(*messaging_api.FlexMessage)
-	footer := help.Contents.(*messaging_api.FlexBubble).Footer.Contents
-	button := footer[len(footer)-1].(*messaging_api.FlexButton).Action.(*messaging_api.UriAction)
+	message := MiniApp(mobile, desktop).(*messaging_api.TemplateMessage)
+	button := message.Template.(*messaging_api.ButtonsTemplate).Actions[0].(*messaging_api.UriAction)
 	if button.AltUri == nil || button.AltUri.Desktop != desktop {
 		t.Fatal("Help and standalone card must share desktop routing")
 	}
@@ -55,9 +54,8 @@ func TestMiniAppGroupRepositoryOnBothEntrances(t *testing.T) {
 	const id = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	const mobile = "https://miniapp.line.me/example"
 	const desktop = "https://app.example.com/miniapp"
-	message := MiniApp(mobile, desktop, id).(*messaging_api.FlexMessage)
-	button := message.Contents.(*messaging_api.FlexBubble).Footer.Contents[0].(*messaging_api.FlexButton)
-	action := button.Action.(*messaging_api.UriAction)
+	message := MiniApp(mobile, desktop, id).(*messaging_api.TemplateMessage)
+	action := message.Template.(*messaging_api.ButtonsTemplate).Actions[0].(*messaging_api.UriAction)
 	const query = "?repositories=1&repository=" + id
 	if action.Uri != mobile+query || action.AltUri == nil || action.AltUri.Desktop != desktop+query {
 		t.Fatalf("group repository was lost between entry points: %+v", action)

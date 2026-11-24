@@ -24,6 +24,7 @@
 - [API 規範](standards/api.md)
 - [安全規範](standards/security.md)
 - [測試規範](standards/testing.md)
+- [LINE 互動標準](standards/line-interactions.md)
 
 ## 架構
 
@@ -41,6 +42,7 @@
 ## 設計
 
 - [業務領域規則](design/domain-rules.md)
+- [LINE 互動介面模型（草案）](design/line-interaction-model.md)
 - [Explore 跨領域搜尋設計（草案）](design/explore.md)
 - [打卡預檢、出勤月報與補正](design/attendance-punches.md)
 - [物件範本版本與套用](design/object-templates.md)
