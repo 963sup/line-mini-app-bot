@@ -149,9 +149,7 @@ async function fixture(handle: (r: Request) => Promise<Response>, standalone = f
 test("repository objects expose object creation and the sidebar link only", async () => {
   const f = await fixture(async () => Response.json({ items: [], nextCursor: "" }));
   try {
-    assert.ok(
-      document.querySelector('button[aria-label="新增物件"]') !== null,
-    );
+    assert.ok(document.querySelector('button[aria-label="新增物件"]') !== null);
     assert.ok(
       ![...document.querySelectorAll("button")].some((button) => button.textContent === "物件範本"),
     );

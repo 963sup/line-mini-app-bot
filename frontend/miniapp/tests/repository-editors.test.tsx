@@ -255,9 +255,7 @@ for (const name of ["討論", "標籤"] as const)
       assert.ok(document.querySelector("[role=alertdialog]"));
       await f.click("放棄修改");
       assert.equal(writes, 0);
-      assert.ok(
-        document.querySelector('button[aria-label="新增物件"]') !== null,
-      );
+      assert.ok(document.querySelector('button[aria-label="新增物件"]') !== null);
     } finally {
       await f.dispose();
     }
