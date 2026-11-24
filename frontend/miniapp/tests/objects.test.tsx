@@ -772,12 +772,20 @@ test("batch import only retries unknown selected rows with their original keys",
       input.dispatchEvent(new window.Event("change", { bubbles: true }));
     });
     await f.click("辨識候選");
+    const all = document.querySelector<HTMLButtonElement>('button[role="checkbox"]')!;
+    const confirm = () => [...document.querySelectorAll("button")].find((b) => b.textContent?.startsWith("確認匯入"))!;
+    assert.equal(confirm().disabled, true);
+    await act(async () => all.click());
+    assert.equal(confirm().textContent, "確認匯入 3 筆");
+    await act(async () => all.click());
+    assert.equal(confirm().disabled, true);
     await act(async () => {
       const boxes = document.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
       boxes[0].click();
       boxes[1].click();
     });
     assert.equal(posts.length, 0);
+    assert.equal(all.getAttribute("aria-checked"), "mixed");
     await f.click("確認匯入 2 筆");
     assert.deepEqual(
       posts.map(({ body }) => body.name),

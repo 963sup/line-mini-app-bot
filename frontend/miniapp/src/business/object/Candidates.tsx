@@ -4,6 +4,7 @@ import { useSession } from "@/identity/Session";
 import { errorMessage, rejectedAttempt, useLatestRequest } from "@/shared/http/lifecycle";
 import { useRepositoryGuard } from "../repository/NavigationGuard";
 import { Button } from "@/shared/ui/button";
+import { Checkbox } from "@/shared/ui/checkbox";
 import { Input } from "@/shared/ui/input";
 
 type ImportRow = {
@@ -183,6 +184,12 @@ export function Candidates({
     );
   }
 
+  const available = (result?.candidates ?? []).flatMap((candidate, index) => {
+    const id = `${batch}-${index}`;
+    return created?.has(id) || outcomes.get(id)?.objectId ? [] : [{ id, name: candidate.name }];
+  });
+  const showBatch = !!choose && available.length > 0;
+
   return (
     <section aria-label="文件辨識" className="grid gap-3">
       <p>
@@ -221,6 +228,24 @@ export function Candidates({
           覆核候選
         </h3>
       ) : null}
+      {showBatch && (
+        <div className="grid gap-2">
+          <label className="flex items-center gap-2">
+            <Checkbox
+              checked={selected.size === available.length || (selected.size > 0 && "indeterminate")}
+              disabled={disabled || recovery}
+              onCheckedChange={(checked) =>
+                setSelected((previous) =>
+                  checked ? new Map(available.map(({ id, name }) => [id, previous.get(id) ?? name])) : new Map(),
+                )
+              }
+            />
+            全選
+          </label>
+          <p role="status">已選 {selected.size}／{available.length} 筆可匯入候選</p>
+          <p>批次匯入會儲存名稱、引文、來源檔名與頁面位置。需要填寫數量、單位或分類時，請使用單筆覆核表單。</p>
+        </div>
+      )}
       {result?.candidates.map((candidate, index) => {
         const id = `${batch}-${index}`;
         const outcome = outcomes.get(id);
@@ -294,13 +319,13 @@ export function Candidates({
           </article>
         );
       })}
-      {(selected.size > 0 || recovery) && (
+      {(showBatch || recovery) && (
         <Button
           type="button"
           disabled={
             disabled ||
             importing ||
-            (!pending.length && [...selected.values()].some((name) => !name.trim()))
+            (!pending.length && (!selected.size || [...selected.values()].some((name) => !name.trim())))
           }
           onClick={importRows}
         >
