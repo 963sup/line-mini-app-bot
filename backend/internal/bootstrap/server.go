@@ -26,12 +26,12 @@ import (
 	membershipapp "github.com/963sup/line-mini-app-bot/internal/business/membership/application"
 	objectevents "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/firestore"
 	objecthttp "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/http"
+	operationshttp "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/http/document"
 	objectmessages "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/messaging"
+	poppler "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/poppler"
 	objectscheduler "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/scheduler"
 	objectcommand "github.com/963sup/line-mini-app-bot/internal/business/object/application/command"
-	operationshttp "github.com/963sup/line-mini-app-bot/internal/business/operations/adapter/http"
-	poppler "github.com/963sup/line-mini-app-bot/internal/business/operations/adapter/poppler"
-	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
+	operations "github.com/963sup/line-mini-app-bot/internal/business/object/application/document"
 	organizationdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
 	organizationhttp "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/http"
 	organizationline "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/line"
@@ -46,8 +46,8 @@ import (
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/line"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http"
-	grouphttp "github.com/963sup/line-mini-app-bot/internal/linegroup/adapter/http"
-	groupline "github.com/963sup/line-mini-app-bot/internal/linegroup/adapter/line"
+	grouphttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http/group"
+	groupline "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/line"
 	firestoreplatform "github.com/963sup/line-mini-app-bot/internal/platform/firestore"
 	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
 	httptransport "github.com/963sup/line-mini-app-bot/internal/transport/http"
@@ -101,16 +101,18 @@ func Run() (resultErr error) {
 			}
 		}
 	}()
-	sessions, sessionStore, err := newSessions(firestoreConfigured, getFirestore, auth.ChannelID)
+	sessions, err := newSessions(firestoreConfigured, getFirestore, auth.ChannelID)
 	if err != nil {
 		return err
 	}
 	auth.Sessions = sessions
-	appURL, err := auth.Register(mux)
-	if err != nil {
+	auth.Register(mux)
+	appURL := lineplatform.MiniAppURL(auth.LIFFID)
+	lineConfig := messagingEnvironment()
+	if err := lineConfig.validate(); err != nil {
 		return err
 	}
-	attendance, err := newAttendance(firestoreConfigured, getFirestore, os.Getenv("LINE_MESSAGING_API_CHANNEL_ID"))
+	attendance, err := newAttendance(firestoreConfigured, getFirestore, lineConfig.channel)
 	if err != nil {
 		return err
 	}
@@ -126,7 +128,7 @@ func Run() (resultErr error) {
 	if attendance != nil {
 		punches = &attendanceline.Attendance{Store: attendance.store, Zone: attendance.zone, GroupName: lookup}
 		punches.AppURL = appURL
-		membership := &lineplatform.Membership{Timeout: 5 * time.Second, Token: os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN"), Client: &http.Client{Timeout: 5 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}
+		membership := lineMembership(lineConfig.token, 5*time.Second)
 		browserAttendance = attendancehttp.NewAttendance(attendance.store, attendance.zone, membership, func(ctx context.Context, group string) string {
 			return presentation.GroupName(group, lookup(ctx, group))
 		})
@@ -134,15 +136,23 @@ func Run() (resultErr error) {
 
 	attendancehttp.RegisterAttendanceAPI(mux, browserAttendance, auth)
 	operationshttp.Register(mux, &operations.DocumentTextService{Extractor: &poppler.Extractor{}}, auth)
-	summaries, err := registerSummary(context.Background(), mux, firestoreConfigured, getFirestore)
+	var messaging *lineplatform.Messaging
+	if token := lineConfig.token; token != "" {
+		messaging, err = lineplatform.NewMessaging(token, &http.Client{Transport: httptransport.TraceTransport{}, Timeout: 10 * time.Second})
+		if err != nil {
+			return err
+		}
+	}
+	summaries, err := registerSummary(context.Background(), mux, messaging, lineConfig.channel, firestoreConfigured, getFirestore)
 	if err != nil {
 		return err
 	}
-	repositories, repositoryStore, err := newRepositories(firestoreConfigured, getFirestore)
+	membershipLookup := lineMembership(lineConfig.token, time.Second)
+	repositories, repositoryStore, err := newRepositories(firestoreConfigured, getFirestore, lineConfig.channel, membershipLookup)
 	if err != nil {
 		return err
 	}
-	groups, groupStore, err := newGroups(firestoreConfigured, getFirestore)
+	groups, groupStore, err := newGroups(firestoreConfigured, getFirestore, lineConfig.channel, membershipLookup)
 	if err != nil {
 		return err
 	}
@@ -157,22 +167,22 @@ func Run() (resultErr error) {
 	organizationHandler := organizationhttp.Handler{Auth: auth}
 	enterpriseHandler := enterprisehttp.Handler{Auth: auth}
 	teamHandler := teamhttp.Handler{Auth: auth}
-	if sessionStore != nil && os.Getenv("LINE_MESSAGING_API_CHANNEL_ID") != "" {
-		channel := os.Getenv("LINE_MESSAGING_API_CHANNEL_ID")
+	if sessions != nil && lineConfig.channel != "" {
+		channel := lineConfig.channel
 		organizationStore := organizationdb.Store{
-			DB: sessionStore.Client, Channel: channel,
+			DB: db, Channel: channel,
 			EnterpriseNavigation: enterprisedb.NavigationFacts,
 			CanCreateEnterprise:  enterprisedb.CanStartCreation,
 			CreateEnterprise:     enterprisedb.CreateFromConversation,
 		}
 		organizationHandler.Store = organizationStore
 		enterpriseStore := enterprisedb.Store{
-			DB: sessionStore.Client, Channel: channel,
+			DB: db, Channel: channel,
 			OrganizationMember: membershipdb.OrganizationMember,
 			TeamMember:         membershipdb.TeamMember,
 		}
 		teamStore := teamdb.Store{
-			DB: sessionStore.Client, Channel: channel,
+			DB: db, Channel: channel,
 			OrganizationMember: membershipdb.OrganizationMember,
 			TeamMember:         membershipdb.TeamMember,
 			OpenMembership:     membershipdb.OpenTeamMembership,
@@ -185,7 +195,7 @@ func Run() (resultErr error) {
 		enterpriseHandler.Store = enterpriseStore
 		teamHandler.Store = teamStore
 		creation = organizationStore
-		invitations = membershipInvitations(sessionStore.Client, channel, os.Getenv("LINE_MESSAGING_API_CHANNEL_SECRET"))
+		invitations = membershipInvitations(db, channel, lineConfig.secret)
 	}
 	httpapi.RegisterOrganizations(mux, organizationHandler)
 	httpapi.RegisterMembership(mux, membershiphttp.Handler{Service: invitations, Auth: auth})
@@ -199,8 +209,8 @@ func Run() (resultErr error) {
 		groupCatalog = teamdb.GroupCatalog{Store: teamStore}
 	}
 	var projects *projectApplication.Service
-	if sessionStore != nil {
-		projects = newProjects(sessionStore.Client, os.Getenv("LINE_MESSAGING_API_CHANNEL_ID"), repositories)
+	if sessions != nil {
+		projects = newProjects(db, lineConfig.channel, repositories)
 	}
 	journalhttp.Register(mux, newJournals(groupCatalog, groupStore, repositories, projects), auth)
 	grouphttp.Register(mux, groupCatalog, auth)
@@ -222,10 +232,7 @@ func Run() (resultErr error) {
 	if lineTeams != nil {
 		groupObserver = &groupline.Observer{Store: lineTeams}
 	}
-	groupLookup, err = registerLINE(mux, appURL, endpointURL, punches, summaries, repositoryObserver, groupObserver, repositories, creation, invitations)
-	if err != nil {
-		return err
-	}
+	groupLookup = registerLINE(mux, lineConfig, messaging, appURL, endpointURL, punches, summaries, repositoryObserver, groupObserver, repositories, creation, invitations)
 	server := &http.Server{
 		Addr: net.JoinHostPort("", port), Handler: httptransport.RequestDiagnostics(mux),
 		ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second,

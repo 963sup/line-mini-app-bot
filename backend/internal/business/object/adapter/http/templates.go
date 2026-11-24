@@ -8,7 +8,7 @@ import (
 
 	"github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/template"
-	"github.com/963sup/line-mini-app-bot/internal/identity"
+	"github.com/963sup/line-mini-app-bot/internal/platform/identity"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )

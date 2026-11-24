@@ -10,7 +10,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/identity"
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
@@ -27,7 +27,7 @@ func (o *Observer) Observe(ctx context.Context, event webhook.EventInterface, gr
 		return nil
 	}
 	if follow, ok := event.(webhook.FollowEvent); ok && follow.Mode == "active" && follow.Timestamp > 0 && follow.WebhookEventId != "" {
-		if person, ok := follow.Source.(webhook.UserSource); ok && identity.IsUserOwnerID(person.UserId) {
+		if person, ok := follow.Source.(webhook.UserSource); ok && lineid.ValidUser(person.UserId) {
 			err := o.Store.Observe(ctx, repositoryDomainEntity.Observation{OwnerID: person.UserId, Name: "個人儲存庫", Status: "ACTIVE", EventID: follow.WebhookEventId, At: time.UnixMilli(follow.Timestamp), Users: []string{person.UserId}})
 			return err
 		}

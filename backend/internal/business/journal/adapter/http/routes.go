@@ -14,7 +14,7 @@ import (
 	journaldto "github.com/963sup/line-mini-app-bot/internal/business/journal/application/dto"
 	journalport "github.com/963sup/line-mini-app-bot/internal/business/journal/application/port"
 	journalentity "github.com/963sup/line-mini-app-bot/internal/business/journal/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/identity"
+	"github.com/963sup/line-mini-app-bot/internal/platform/identity"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"

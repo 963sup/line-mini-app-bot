@@ -6,7 +6,6 @@ import (
 
 import (
 	"context"
-	"regexp"
 	"slices"
 
 	"cloud.google.com/go/firestore"
@@ -43,7 +42,6 @@ type Document struct {
 	Manager           string   `firestore:"managementId"`
 }
 
-var UserID = regexp.MustCompile("^U[0-9a-f]{32}$")
 
 func Read(tx *firestore.Transaction, ref *firestore.DocumentRef) (Document, error) {
 	snap, e := tx.Get(ref)

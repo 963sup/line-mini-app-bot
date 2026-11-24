@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	projectmodel "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
-	groupquery "github.com/963sup/line-mini-app-bot/internal/linegroup/application/query"
-	groupmodel "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
+	groupquery "github.com/963sup/line-mini-app-bot/internal/business/team/application/query"
+	groupmodel "github.com/963sup/line-mini-app-bot/internal/business/team/domain/entity"
 )
 
 type Access struct {

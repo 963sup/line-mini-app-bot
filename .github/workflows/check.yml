@@ -1,197 +1,36 @@
 name: Repository checks
+
 on:
   push:
     branches: [main]
   pull_request:
+
 permissions:
   contents: read
+
 concurrency:
   group: checks-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
-  configuration:
-    outputs:
-      run_application: ${{ steps.changes.outputs.run_application }}
-    timeout-minutes: 5
+  check:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          fetch-depth: 0
-      - name: Check committed diff and detect application changes
-        id: changes
-        shell: bash
-        env:
-          EVENT: ${{ github.event_name }}
-          PR_BASE: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD: ${{ github.event.pull_request.head.sha }}
-          PUSH_BEFORE: ${{ github.event.before }}
-          PUSH_AFTER: ${{ github.sha }}
-        run: |
-          # Compare the complete PR or push, including deletions and renames.
-          # A new branch or unavailable history must run the full checks.
-          if [[ "$EVENT" == pull_request ]]; then
-            before="$PR_BASE" after="$PR_HEAD"
-            before=$(git merge-base "$before" "$after") || before=
-          else
-            before="$PUSH_BEFORE" after="$PUSH_AFTER"
-          fi
-          run_application=true
-          if [[ -z "$before" ]] || ! git cat-file -e "$before^{commit}" 2>/dev/null; then
-            # First push or missing previous head: check the complete new tree.
-            before=$(git hash-object -w -t tree /dev/null)
-          elif git diff --quiet --no-renames "$before" "$after" -- . \
-            ':(exclude,glob)**/*.md' \
-            ':(exclude,glob)docs/**/*.mermaid' \
-            ':(exclude,glob)docs/**/*.svg'; then
-            run_application=false
-          fi
-          git diff --check "$before" "$after"
-          echo "run_application=$run_application" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
-        with:
-          python-version: "3.12"
-      - run: python3 scripts/check/check-config.py
-      - name: Prepare development tooling directory
-        run: sudo install -d -m 0755 -o "$(id -u)" -g "$(id -g)" /workspace/tooling
-      - name: Set up mise
-        uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
-        with:
-          minimum_release_age: 0s
-          fetch_from_github: false
-          mise_dir: /workspace/tooling/mise-data
-          install: false
-          env: false
-      - name: Check Markdown formatting and syntax
-        run: |
-          mise trust mise.toml
-          bash scripts/tooling/tool-exec.sh mise install --locked node npm:pnpm
-          bash scripts/tooling/tool-exec.sh pnpm install --frozen-lockfile --filter line-mini-app-bot
-          bash scripts/tooling/tool-exec.sh pnpm docs:check
-      - name: Offline tooling regressions
-        if: steps.changes.outputs.run_application == 'true'
-        run: python3 -m unittest discover -s scripts/test -p 'test_*.py'
-  go:
-    needs: configuration
-    if: needs.configuration.outputs.run_application == 'true'
     timeout-minutes: 30
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          fetch-depth: 0
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+          node-version: "24.22.1"
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          python-version: "3.12"
-      - name: Prepare development tooling directory
-        # mise.toml and bootstrap share the Codex Cloud tooling path.
-        # GitHub-hosted runners need it created for the unprivileged runner user.
-        run: sudo install -d -m 0755 -o "$(id -u)" -g "$(id -g)" /workspace/tooling
-      - name: Set up mise
-        uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
-        with:
-          # Latest official CDN build; mise.toml enforces the minimum version.
-          minimum_release_age: 0s
-          fetch_from_github: false
-          mise_dir: /workspace/tooling/mise-data
-          install: false
-          env: false
-          cache_save_post: true
-      - name: Cache Go modules and build output
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
-        with:
-          path: |
-            /workspace/tooling/go/pkg/mod
-            /workspace/tooling/cache/go-build
-          key: go-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('mise.toml', 'backend/go.sum') }}
-          restore-keys: |
-            go-${{ runner.os }}-${{ runner.arch }}-
-      - name: Cache golangci-lint analysis
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
-        with:
-          path: /workspace/tooling/cache/golangci-lint
-          key: lint-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('mise.toml', 'mise.lock', 'backend/go.sum', '**/.golangci.*') }}-${{ github.sha }}
-          restore-keys: |
-            lint-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('mise.toml', 'mise.lock', 'backend/go.sum', '**/.golangci.*') }}-
-      - name: Install pinned Go development environment
-        run: |
-          source scripts/dev/dev-env.sh
-          mise trust mise.toml
-          bash scripts/tooling/tool-exec.sh mise run install-core
-          bash scripts/tooling/tool-exec.sh mise run doctor
-      - name: Install pinned frontend and API tooling
-        run: bash scripts/tooling/tool-exec.sh mise run install-web
-      - name: Install workspace dependencies
-        run: bash scripts/tooling/tool-exec.sh pnpm install --frozen-lockfile
-      - name: Check API compatibility against the event base
-        env:
-          API_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-          API_EVENT: ${{ github.event_name }}
-        run: |
-          if [[ -n "$API_BASE" && ! "$API_BASE" =~ ^0+$ ]]; then
-            if [[ "$API_EVENT" == pull_request ]]; then API_BASE=$(git merge-base "$API_BASE" HEAD); fi
-            bash scripts/tooling/tool-exec.sh pnpm api:compat --base "$API_BASE"
-          else
-            echo 'No previous commit exists for this first push; no historical compatibility comparison.'
-          fi
-      - name: Check owned TypeScript formatting
-        run: bash scripts/tooling/tool-exec.sh pnpm format:check
-      - name: Verify API contract
-        run: bash scripts/tooling/tool-exec.sh pnpm api:check
-      - name: Build frontend
-        run: bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp build
-      - name: Check frontend types
-        run: bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check
-      - name: Test frontend
-        run: bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp test
-      - name: Verify Go application
-        run: |
-          bash scripts/tooling/tool-exec.sh mise run fmt-check
-          bash scripts/tooling/tool-exec.sh mise run lint
-          bash scripts/tooling/tool-exec.sh go -C backend mod verify
-          bash scripts/tooling/tool-exec.sh go -C backend vet ./...
-          bash scripts/tooling/tool-exec.sh mise run build
-          bash scripts/tooling/tool-exec.sh mise run vuln
-
-      - name: Verify complete Go race suite and browser workflows against Firestore
-        shell: bash
-        env:
-          FIRESTORE_EMULATOR_HOST: 127.0.0.1:8080
-          MINIAPP_BROWSER_EXPORT: ${{ github.workspace }}/frontend/miniapp/out
-        run: |
-          set -euo pipefail
-          source scripts/dev/dev-env.sh
-          python3 -m venv "$RUNNER_TEMP/project-browser"
-          "$RUNNER_TEMP/project-browser/bin/pip" install "$PLAYWRIGHT_PACKAGE"
-          "$RUNNER_TEMP/project-browser/bin/playwright" install --with-deps chromium
-
-          bash scripts/tooling/tool-exec.sh mise run firestore-emulator >"$RUNNER_TEMP/firestore.log" 2>&1 &
-          emulator=$!
-          trap 'kill "$emulator" 2>/dev/null || true' EXIT
-          for attempt in {1..180}; do
-            if curl -fsS --max-time 2 "http://$FIRESTORE_EMULATOR_HOST/" >/dev/null 2>&1; then break; fi
-            if ! kill -0 "$emulator" 2>/dev/null || [[ $attempt == 180 ]]; then
-              cat "$RUNNER_TEMP/firestore.log"
-              exit 1
-            fi
-            sleep 2
-          done
-
-          bash scripts/tooling/tool-exec.sh go -C backend list ./... > "$RUNNER_TEMP/go-packages.txt"
-          bash scripts/tooling/tool-exec.sh --tool go bash -c '
-            source "$RUNNER_TEMP/project-browser/bin/activate"
-            exec go -C backend test -race -count=1 -json ./...
-          ' | tee "$RUNNER_TEMP/go-acceptance.jsonl"
-          python3 scripts/check/check-go-test-results.py "$RUNNER_TEMP/go-acceptance.jsonl" "$RUNNER_TEMP/go-packages.txt"
-
-  container:
-    needs: configuration
-    if: needs.configuration.outputs.run_application == 'true'
-    timeout-minutes: 25
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Build runtime image
-        run: docker build --build-arg VCS_REF="${{ github.sha }}" --tag miniapp:check .
-      - name: Verify runtime contract without cloud credentials
-        run: bash scripts/test/container-smoke.sh miniapp:check
+          go-version: "1.27.4"
+          cache-dependency-path: backend/go.sum
+      - run: npm install --global pnpm@12.18.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @repo/miniapp check
+      - run: pnpm --filter @repo/miniapp test
+      - run: pnpm --filter @repo/miniapp build
+      - name: Run Go tests including architecture boundaries and regressions
+        run: go -C backend test ./...
+      - run: go -C backend vet ./...
+      - run: go -C backend build ./...

@@ -11,7 +11,7 @@ import (
 	issueapplication "github.com/963sup/line-mini-app-bot/internal/business/issue/application"
 	issuedto "github.com/963sup/line-mini-app-bot/internal/business/issue/application/dto"
 	issueentity "github.com/963sup/line-mini-app-bot/internal/business/issue/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/identity"
+	"github.com/963sup/line-mini-app-bot/internal/platform/identity"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"

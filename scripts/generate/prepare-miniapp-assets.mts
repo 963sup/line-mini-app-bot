@@ -1,8 +1,7 @@
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 const root = fileURLToPath(new URL("../../frontend/miniapp/", import.meta.url));
-await rm(path.join(root, "public/assets"), { recursive: true, force: true });
 await mkdir(path.join(root, "public/assets"), { recursive: true });
 // Historical asset URLs remain inert; React owns every workflow.
 for (const name of [

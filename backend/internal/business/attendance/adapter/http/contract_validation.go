@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/963sup/line-mini-app-bot/internal/identity"
+	"github.com/963sup/line-mini-app-bot/internal/platform/identity"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
 	"github.com/getkin/kin-openapi/openapi3"

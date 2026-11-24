@@ -3,7 +3,6 @@ package navigation
 import (
 	"context"
 	"net/url"
-	"os"
 	"strings"
 
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
@@ -17,7 +16,9 @@ type menuRequest struct {
 	groupID string
 }
 
-func parseMenu(event webhook.EventInterface) menuRequest {
+type Menu struct{ StickerPackageID, StickerID string }
+
+func (trigger Menu) parseMenu(event webhook.EventInterface) menuRequest {
 	var source webhook.SourceInterface
 	var command, token string
 	switch e := event.(type) {
@@ -34,7 +35,7 @@ func parseMenu(event webhook.EventInterface) menuRequest {
 		if sticker, ok := e.Message.(webhook.StickerMessageContent); ok {
 			g, group := e.Source.(webhook.GroupSource)
 			if !group || g.GroupId == "" || sticker.PackageId == "" || sticker.StickerId == "" ||
-				sticker.PackageId != os.Getenv("LINE_MENU_STICKER_PACKAGE_ID") || sticker.StickerId != os.Getenv("LINE_MENU_STICKER_ID") {
+				sticker.PackageId != trigger.StickerPackageID || sticker.StickerId != trigger.StickerID {
 				return menuRequest{}
 			}
 			return menuRequest{token: e.ReplyToken, command: "/menu", groupID: g.GroupId}
@@ -117,13 +118,9 @@ func (m menuRequest) reply(appURL, endpointURL string, ids ...string) transport.
 	return reply
 }
 
-func ReplyForEvent(event webhook.EventInterface, appURL, endpointURL string, ids ...string) transport.Reply {
-	return parseMenu(event).reply(appURL, endpointURL, ids...)
-}
-
-func Handler(appURL, endpointURL string, lookup func(context.Context, string) (string, error)) transport.Handler {
+func (trigger Menu) Handler(appURL, endpointURL string, lookup func(context.Context, string) (string, error)) transport.Handler {
 	return transport.Handler{Handle: func(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
-		menu := parseMenu(event)
+		menu := trigger.parseMenu(event)
 		if menu.groupID != "" && lookup != nil {
 			id, err := lookup(ctx, menu.groupID)
 			if err != nil {

@@ -2,7 +2,7 @@ package application
 
 import (
 	"context"
-	"regexp"
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 	"slices"
 
 	membership "github.com/963sup/line-mini-app-bot/internal/business/membership/domain"
@@ -19,8 +19,6 @@ type OwnershipStore interface {
 	RunOwnershipTransfer(ctx context.Context, organizationID string, transfer func(OwnershipWork) (*entity.Organization, error)) (*entity.Organization, error)
 }
 
-var lineUserID = regexp.MustCompile("^U[0-9a-f]{32}$")
-
 func TransferOwnership(ctx context.Context, store OwnershipStore, actor, organizationID, target string) (*entity.Organization, error) {
 	return store.RunOwnershipTransfer(ctx, organizationID, func(work OwnershipWork) (*entity.Organization, error) {
 		org, members, legacyEnabled, err := work.Load()
@@ -31,10 +29,10 @@ func TransferOwnership(ctx context.Context, store OwnershipStore, actor, organiz
 			return nil, entity.ErrNotFound
 		}
 		successor := target
-		if !lineUserID.MatchString(successor) {
+		if !lineid.ValidUser(successor) {
 			successor = ""
 			for _, member := range members {
-				if lineUserID.MatchString(member) && membership.MemberRef(organizationID, member) == target {
+				if lineid.ValidUser(member) && membership.MemberRef(organizationID, member) == target {
 					successor = member
 					break
 				}

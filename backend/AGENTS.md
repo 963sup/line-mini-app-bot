@@ -1,6 +1,6 @@
 # Backend module rules
 
-This file adds backend-specific rules to the [repository rules](../AGENTS.md). Directory purposes belong in the [root README](../README.md#巢狀目錄導覽). Detailed path constraints are indexed in [module constraints](../docs/standards/module-constraints.md).
+This file adds backend-specific rules to the [repository rules](../AGENTS.md). Directory purposes belong in the [root README](../README.md).
 
 - **MCP tools.** Contributors SHOULD use `gopls` for Go symbol definitions, references, package APIs and diagnostics.
 
@@ -23,8 +23,13 @@ bootstrap
 - **Consistency.** Consistency-sensitive authorization, version checks and state transitions MUST share the required transaction boundary. External effects MUST stay outside retried storage callbacks. Writes MUST define idempotency, partial-failure and recovery semantics.
 - **Data compatibility.** Resource IDs, stored encodings and historical readers MUST remain compatible during model or serialization changes unless a migration explicitly handles them.
 - **Contract order.** Public HTTP formats MUST change in OpenAPI first and generated files MUST NOT be edited manually.
-- **Go conventions.** Go code SHOULD use standard library primitives where they meet the use case and follow the [Go development rules](../docs/standards/go.md). I/O MUST propagate the caller's `context.Context`. Outbound adapters MUST bound calls and translate SDK errors at their boundary while preserving cancellation and the caller's documented error semantics.
+- **Go conventions.** Go code SHOULD use standard library primitives where they meet the use case and follow the [backend standard](../docs/standards/backend.md). I/O MUST propagate the caller's `context.Context`. Outbound adapters MUST bound calls and translate SDK errors at their boundary while preserving cancellation and the caller's documented error semantics.
 - **Observability.** Secrets and sensitive payloads MUST stay out of logs. Metric labels MUST remain bounded.
-- **Verification.** Go changes MUST run the checks selected by the [acceptance matrix](../docs/development/tooling/testing/commands.md#變更驗收矩陣). Changes to module dependencies MUST run the [architecture checks](internal/architecture/). Changes to policy or transitions MUST verify applicable allowed and denied actions and illegal transitions, including a resource outside the authorized scope and unchanged persisted state after a rejected write where applicable. Firestore transaction, retry or persistence changes MUST run the emulator integration workflow.
 
-Current package responsibilities and allowed dependencies are authoritative in [backend boundaries](../docs/architecture/runtime/backend-boundaries.md).
+## Verification
+
+For LINE changes, use the [LINE ownership map](../docs/architecture/line.md). Add outbound Messaging API operations under `internal/platform/line`, signature verification and dispatch under `internal/transport/line`, and feature-specific event translation under that context's `adapter/line`. Read deployment settings and inject clients in bootstrap. Business core must use its own types. Keep current delivery deadlines, retry keys, webhook ordering and historical Rich Menu aliases covered by tests.
+
+- Go changes MUST run the checks selected by the [verification workflow](../docs/workflows/verification.md). Changes to module dependencies MUST run the module-root [architecture boundary test](architecture_test.go) and its [regression test](architecture_regression_test.go). Changes to policy or transitions MUST verify applicable allowed and denied actions and illegal transitions, including a resource outside the authorized scope and unchanged persisted state after a rejected write where applicable. Firestore transaction, retry or persistence changes MUST run the emulator integration workflow.
+
+Current package responsibilities and allowed dependencies are authoritative in [architecture boundaries](../docs/architecture/boundaries.md).

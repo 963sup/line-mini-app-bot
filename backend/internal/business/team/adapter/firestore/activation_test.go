@@ -11,7 +11,7 @@ import (
 	"cloud.google.com/go/firestore"
 	membershipdb "github.com/963sup/line-mini-app-bot/internal/business/membership/adapter/firestore"
 	organization "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
-	groupevent "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/event"
+	groupevent "github.com/963sup/line-mini-app-bot/internal/business/team/domain/event"
 	firestorekey "github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 )
 

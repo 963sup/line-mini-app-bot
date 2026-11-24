@@ -5,14 +5,19 @@ import (
 	"errors"
 	"testing"
 
+	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
+
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
 
+func (trigger Menu) ReplyForEvent(event webhook.EventInterface, appURL, endpointURL string) transport.Reply {
+	return trigger.parseMenu(event).reply(appURL, endpointURL)
+}
 func TestMiniAppPostbackReturnsDualEntryFlex(t *testing.T) {
 	t.Setenv("LINE_MINI_APP_WEB_URL", "https://attacker.example/miniapp")
 	e := webhook.PostbackEvent{Mode: "active", ReplyToken: "reply", Source: webhook.GroupSource{GroupId: "group"}, Postback: &webhook.PostbackContent{Data: "action=miniapp"}}
-	reply := ReplyForEvent(e, "https://miniapp.line.me/123-test?route=projects", "https://app.example/miniapp?view=desktop")
+	reply := (Menu{}).ReplyForEvent(e, "https://miniapp.line.me/123-test?route=projects", "https://app.example/miniapp?view=desktop")
 	card, ok := reply.Message.(*messaging_api.FlexMessage)
 	if !ok || reply.Token != "reply" {
 		t.Fatal("MINI App postback must return a Flex card")
@@ -27,12 +32,12 @@ func TestMiniAppPostbackReturnsDualEntryFlex(t *testing.T) {
 func TestMiniAppPostbackValidation(t *testing.T) {
 	for _, data := range []string{"action=unknown", "action=miniapp&action=help", "action=miniapp&desktop=https://attacker.example"} {
 		e := webhook.PostbackEvent{Mode: "active", ReplyToken: "reply", Source: webhook.UserSource{UserId: "user"}, Postback: &webhook.PostbackContent{Data: data}}
-		if ReplyForEvent(e, "https://miniapp.line.me/123-test", "https://app.example/miniapp").Message != nil {
+		if (Menu{}).ReplyForEvent(e, "https://miniapp.line.me/123-test", "https://app.example/miniapp").Message != nil {
 			t.Fatal("only the exact supported postback is allowed")
 		}
 	}
 	e := webhook.PostbackEvent{Mode: "standby", ReplyToken: "reply", Source: webhook.UserSource{UserId: "user"}, Postback: &webhook.PostbackContent{Data: "action=miniapp"}}
-	if ReplyForEvent(e, "https://miniapp.line.me/123-test", "https://app.example/miniapp").Message != nil {
+	if (Menu{}).ReplyForEvent(e, "https://miniapp.line.me/123-test", "https://app.example/miniapp").Message != nil {
 		t.Fatal("standby event must remain silent")
 	}
 }
@@ -41,7 +46,7 @@ func TestGroupMenuLookup(t *testing.T) {
 	event := webhook.PostbackEvent{Mode: "active", ReplyToken: "reply", Source: webhook.GroupSource{GroupId: "group"}, Postback: &webhook.PostbackContent{Data: "action=miniapp"}}
 	unavailable := errors.New("repository unavailable")
 	calls := 0
-	handler := Handler("https://example.org/miniapp", "", func(_ context.Context, group string) (string, error) {
+	handler := (Menu{}).Handler("https://example.org/miniapp", "", func(_ context.Context, group string) (string, error) {
 		calls++
 		if group != "group" {
 			t.Fatalf("unexpected group %q", group)

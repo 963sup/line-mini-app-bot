@@ -3,6 +3,7 @@ package enterprisedb
 import (
 	"github.com/963sup/line-mini-app-bot/internal/business/enterprise/application/port"
 	organizationDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 )
 
 import (
@@ -17,8 +18,8 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/enterprise/application/dto"
 
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
-	groupport "github.com/963sup/line-mini-app-bot/internal/linegroup/application/port"
-	groupentity "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
+	groupport "github.com/963sup/line-mini-app-bot/internal/business/team/application/port"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/business/team/domain/entity"
 
 	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 	"github.com/google/uuid"
@@ -240,7 +241,7 @@ func (s Store) Enterprise(ctx context.Context, user, id string) (*dto.Detail, er
 }
 
 func (s Store) RunOwnerChange(ctx context.Context, id, owner string, apply func(port.OwnerChange) (*dto.Link, error)) (*dto.Link, error) {
-	if uuid.Validate(id) != nil || !orgstore.UserID.MatchString(owner) {
+	if uuid.Validate(id) != nil || !lineid.ValidUser(owner) {
 		return nil, organizationDomainEntity.ErrInvalid
 	}
 	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*dto.Link, error) {

@@ -1,11 +1,16 @@
-# Documentation module rules
+# docs 文件維護指引
 
-This file adds documentation-specific rules to the [repository rules](../AGENTS.md). Follow the [documentation standard](standards/documentation.md).
+本指引適用於本目錄及其子目錄。先讀[根層代理指引](../AGENTS.md)與[文件規範](standards/documentation.md)。更深層的 AGENTS.md 僅在其子樹內優先適用。共通規則回到權威文件更新，本頁只補充 docs 的執行要求。
 
-- **MCP tools.** Contributors SHOULD use `graphify` with a verified documentation graph for heading and link navigation, `repomix` to compare scoped source documents, and `mermaid` for diagram work when the diagram is suitable for the configured service. Contributors MUST use the pinned local Mermaid CLI for rendering and validation.
-- **Placement.** Domain specifications MUST live with the owning domain in `domains/`. Cross-domain material MUST use the [classification for its responsibility](standards/documentation.md#分類命名與權威) and link to each applicable domain specification using relative links.
-- **Evidence and status.** Descriptions of current behavior MUST cite the relevant implementation or contract. OpenAPI owns HTTP fields, status codes and error shapes. Documents MUST distinguish current implementation, accepted decisions, proposals, historical behavior and unknowns. A conflict MUST be resolved against its authoritative evidence or marked unresolved.
-- **Business operation specs.** New or changed operation specs MUST follow the [business operation model](contracts/business-operations.md). Describe the Actor, Resource, Action and Authorization, including scope and conditions. State the observable result and any applicable State transition or Event. Event requirements MUST describe an occurred fact, and the six concepts MUST be used as checks without requiring six sections or code modules.
-- **Consolidation.** Moved or merged documents MUST preserve applicable rationale, constraints, exceptions and risks. Existing anchors MUST remain valid at the destination or all affected links MUST be updated.
-- **Markdown and diagrams.** Owned Markdown MUST follow the [format conventions](standards/documentation.md#呈現與生命週期). Mermaid diagrams MUST live in fenced blocks in their owning Markdown page. Shared diagrams MUST be linked at their section, and rendered SVGs MUST NOT be stored with the documentation.
-- **Verification.** Documentation changes MUST verify affected links, anchors and sources as applicable. Report checks performed and unverified scenarios. Business behavior reported as verified MUST have behavioral evidence.
+## 撰寫與歸檔
+
+- 依文件規範的權威來源表選定目錄。規格描述必須滿足的條件，設計文件解釋設計與取捨，教學在 workflows 以可重現步驟引導讀者，查詢型資料放在 references 或其專屬契約位置。
+- 命名、目錄、標題層級、帶語言標記的圍欄程式碼區塊，以及 OpenAPI 與 schema 的引用，依文件規範辦理。領域術語與所屬 bounded context 的模型及契約一致。
+- 採 CommonMark 與 GitHub Flavored Markdown（GFM），站內引用優先使用相對連結。可用文字描述的流程、時序與關係圖採用帶有 mermaid 語言標記的圍欄區塊。
+
+## 版本與審查
+
+- 文件隨實作以 Git 追蹤，重大架構取捨依[決策紀錄索引](decisions/README.md)新增 ADR。
+- 需要獨立追蹤的規格或設計文件使用 YAML front matter，以 status 記錄 draft、active 或 deprecated，以 owner 記錄負責的團隊或角色。既有 ADR 依其決策狀態管理。
+- 所屬模組維護者負責審查文件與來源是否一致。草案經審查後轉為 active，停用時標記 deprecated 並連到替代文件。契約、行為或責任變更時，在同一個 PR 更新文件並請相關維護者審查。
+- 提交前以專案的 Prettier 與 markdownlint 設定檢查 Markdown，並驗證內部連結的檔案與標題錨點。PR 的 CI 應自動執行這三項檢查；檢查缺失或無法執行時，在驗證結果中明列。

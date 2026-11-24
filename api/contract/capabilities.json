@@ -3,8 +3,8 @@
   "capabilities": {
     "identity": {
       "contract": "identity/identity.yaml",
-      "adapter": "backend/internal/identity/http/identity.go",
-      "core": "backend/internal/identity/session/session.go",
+      "adapter": "backend/internal/transport/http/identity/identity.go",
+      "core": "backend/internal/platform/identity/session/session.go",
       "specification": "docs/contracts/identity.md"
     },
     "repository": {
@@ -53,13 +53,13 @@
       "contract": "summary/worker.yaml",
       "adapter": "backend/internal/business/summary/adapter/http/summarization/summary.go",
       "core": "backend/internal/business/summary/domain/entity/summarization/summary.go",
-      "specification": "docs/domains/summary/summary.md"
+      "specification": "docs/design/domain-rules.md"
     },
     "summary.messagecollection": {
       "kind": "event",
-      "document": "docs/domains/summary/summary.md",
+      "document": "docs/design/domain-rules.md",
       "core": "backend/internal/business/summary/domain/entity/messagecollection/message.go",
-      "specification": "docs/domains/summary/summary.md"
+      "specification": "docs/design/domain-rules.md"
     },
     "weather.forecast": {
       "kind": "event",
@@ -153,7 +153,7 @@
     },
     "group": {
       "contract": "group/groups.yaml",
-      "adapter": "backend/internal/linegroup/adapter/http/routes.go",
+      "adapter": "backend/internal/business/team/adapter/http/group/routes.go",
       "core": "backend/internal/business/team/adapter/firestore/group_catalog.go",
       "specification": "docs/domains/project/project.md"
     },
@@ -221,11 +221,11 @@
       "core": "backend/internal/business/team/adapter/firestore/store.go",
       "specification": "docs/domains/team/design.md"
     },
-    "operations.poppler": {
-      "contract": "operations/poppler.yaml",
-      "adapter": "backend/internal/business/operations/adapter/http/poppler.go",
-      "core": "backend/internal/business/operations/application/document.go",
-      "specification": "docs/domains/operations/design.md"
+    "object.poppler": {
+      "contract": "object/poppler.yaml",
+      "adapter": "backend/internal/business/object/adapter/http/document/poppler.go",
+      "core": "backend/internal/business/object/application/document/document.go",
+      "specification": "docs/architecture/integration.md"
     },
     "membership": {
       "contract": "organization/membership.yaml",
@@ -241,9 +241,9 @@
       "method": "GET",
       "path": "/api/v1/miniapp/config",
       "owner": "identity",
-      "adapter": "backend/internal/identity/http/identity.go",
+      "adapter": "backend/internal/transport/http/identity/identity.go",
       "handler": "GetMiniAppConfig",
-      "core": "backend/internal/identity/session/session.go",
+      "core": "backend/internal/platform/identity/session/session.go",
       "specification": "docs/contracts/identity.md",
       "consumers": [
         "frontend/miniapp/src/identity/Session.tsx"
@@ -256,9 +256,9 @@
       "method": "GET",
       "path": "/api/v1/me",
       "owner": "identity",
-      "adapter": "backend/internal/identity/http/identity.go",
+      "adapter": "backend/internal/transport/http/identity/identity.go",
       "handler": "GetCurrentUser",
-      "core": "backend/internal/identity/session/session.go",
+      "core": "backend/internal/platform/identity/session/session.go",
       "specification": "docs/contracts/identity.md",
       "consumers": [],
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
@@ -269,9 +269,9 @@
       "method": "POST",
       "path": "/api/v1/session",
       "owner": "identity",
-      "adapter": "backend/internal/identity/http/identity.go",
+      "adapter": "backend/internal/transport/http/identity/identity.go",
       "handler": "CreateSession",
-      "core": "backend/internal/identity/session/session.go",
+      "core": "backend/internal/platform/identity/session/session.go",
       "specification": "docs/contracts/identity.md",
       "consumers": [
         "frontend/miniapp/src/identity/Session.tsx"
@@ -284,9 +284,9 @@
       "method": "DELETE",
       "path": "/api/v1/session",
       "owner": "identity",
-      "adapter": "backend/internal/identity/http/identity.go",
+      "adapter": "backend/internal/transport/http/identity/identity.go",
       "handler": "DeleteSession",
-      "core": "backend/internal/identity/session/session.go",
+      "core": "backend/internal/platform/identity/session/session.go",
       "specification": "docs/contracts/identity.md",
       "consumers": [
         "frontend/miniapp/src/identity/Session.tsx"
@@ -299,9 +299,9 @@
       "method": "POST",
       "path": "/api/v1/session/refresh",
       "owner": "identity",
-      "adapter": "backend/internal/identity/http/identity.go",
+      "adapter": "backend/internal/transport/http/identity/identity.go",
       "handler": "RefreshSession",
-      "core": "backend/internal/identity/session/session.go",
+      "core": "backend/internal/platform/identity/session/session.go",
       "specification": "docs/contracts/identity.md",
       "consumers": [
         "frontend/miniapp/src/identity/Session.tsx"
@@ -636,7 +636,7 @@
       "adapter": "backend/internal/business/summary/adapter/http/summarization/summary.go",
       "handler": "SummaryWorker",
       "core": "backend/internal/business/summary/domain/entity/summarization/summary.go",
-      "specification": "docs/domains/summary/summary.md",
+      "specification": "docs/design/domain-rules.md",
       "consumers": [
         "backend/internal/business/summary/adapter/messaging/cloudtasks/summarization/queue.go"
       ],
@@ -1001,7 +1001,7 @@
       "method": "GET",
       "path": "/api/v1/groups",
       "owner": "group",
-      "adapter": "backend/internal/linegroup/adapter/http/routes.go",
+      "adapter": "backend/internal/business/team/adapter/http/group/routes.go",
       "handler": "ListGroups",
       "core": "backend/internal/business/team/adapter/firestore/group_catalog.go",
       "specification": "docs/domains/project/project.md",
@@ -1015,7 +1015,7 @@
       "method": "GET",
       "path": "/api/v1/groups/{id}",
       "owner": "group",
-      "adapter": "backend/internal/linegroup/adapter/http/routes.go",
+      "adapter": "backend/internal/business/team/adapter/http/group/routes.go",
       "handler": "GetGroup",
       "core": "backend/internal/business/team/adapter/firestore/group_catalog.go",
       "specification": "docs/domains/project/project.md",
@@ -1588,13 +1588,13 @@
       "audience": "public",
       "method": "POST",
       "path": "/api/v1/tools/poppler/extractions",
-      "owner": "operations.poppler",
-      "adapter": "backend/internal/business/operations/adapter/http/poppler.go",
+      "owner": "object.poppler",
+      "adapter": "backend/internal/business/object/adapter/http/document/poppler.go",
       "handler": "ExtractPopplerText",
-      "core": "backend/internal/business/operations/application/document.go",
-      "specification": "docs/domains/operations/design.md",
+      "core": "backend/internal/business/object/application/document/document.go",
+      "specification": "docs/architecture/integration.md",
       "consumers": [
-        "frontend/miniapp/src/business/operations/Poppler.tsx"
+        "frontend/miniapp/src/business/object/Poppler.tsx"
       ]
     },
     {
@@ -1758,16 +1758,16 @@
     {
       "owner": "summary.messagecollection",
       "action": "Collect/Edit/Recall",
-      "contract": "docs/domains/summary/summary.md",
-      "adapter": "backend/internal/business/summary/adapter/line/messagecollection/collection.go",
-      "handler": "Observe",
+      "contract": "docs/design/domain-rules.md",
+      "adapter": "backend/internal/business/summary/adapter/line/collection.go",
+      "handler": "Collect",
       "note": "LINE event contract, not a browser HTTP operation."
     },
     {
       "owner": "summary.summarization",
       "action": "Request summary",
-      "contract": "docs/domains/summary/summary.md",
-      "adapter": "backend/internal/business/summary/adapter/line/summarization/commands.go",
+      "contract": "docs/design/domain-rules.md",
+      "adapter": "backend/internal/business/summary/adapter/line/commands.go",
       "handler": "Reply",
       "note": "LINE command schedules the internal HTTP operation."
     },
@@ -1941,7 +1941,7 @@
       "entity": "PopplerText",
       "collection": "extractions",
       "path": "/api/v1/tools/poppler/extractions",
-      "owner": "operations.poppler",
+      "owner": "object.poppler",
       "kind": "command-result"
     },
     {

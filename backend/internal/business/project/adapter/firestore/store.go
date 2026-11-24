@@ -17,7 +17,7 @@ import (
 
 	"github.com/963sup/line-mini-app-bot/internal/platform/grpcstatus"
 
-	"github.com/963sup/line-mini-app-bot/internal/identity"
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 
 	db "cloud.google.com/go/firestore"
 
@@ -55,7 +55,7 @@ func encodeProject(i projectDomainEntity.Project) projectDocument {
 // Repository-scoped API callers additionally
 // restrict results to projects created with that default repository.
 func (d projectDocument) belongsTo(scope projectApplicationPort.Scope) bool {
-	return (identity.ValidOwner(d.OwnerID) || projectDomainEntity.IsOrganizationOwner(d.OwnerID)) && d.OwnerID == scope.OwnerID && ((!scope.Legacy && d.DefaultRepositoryID == "") || projectDomainEntity.ValidID(d.DefaultRepositoryID)) &&
+	return (projectDomainEntity.ValidLegacyOwner(d.OwnerID) || projectDomainEntity.IsOrganizationOwner(d.OwnerID)) && d.OwnerID == scope.OwnerID && ((!scope.Legacy && d.DefaultRepositoryID == "") || projectDomainEntity.ValidID(d.DefaultRepositoryID)) &&
 		(!scope.Legacy || scope.SourceRepositoryID == "" || scope.SourceRepositoryID == d.DefaultRepositoryID)
 }
 
@@ -82,7 +82,7 @@ func (s *Store) ownerDoc(id string) *db.DocumentRef {
 	if projectDomainEntity.IsOrganizationOwner(id) {
 		collection = "organizations"
 	}
-	if identity.IsUserOwnerID(id) {
+	if lineid.ValidUser(id) {
 		collection = "users"
 	}
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection(collection).Doc(id)
@@ -100,7 +100,7 @@ func (s *Store) AuthorizeOrganization(ctx context.Context, actor, owner string) 
 }
 
 func (s *Store) checkProjectOwner(tx *db.Transaction, r projectApplicationPort.Scope, parent *db.DocumentRef) error {
-	if identity.IsUserOwnerID(r.OwnerID) {
+	if lineid.ValidUser(r.OwnerID) {
 		if r.OwnerID != r.Actor {
 			return projectDomainEntity.ErrForbidden
 		}

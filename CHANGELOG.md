@@ -31,7 +31,6 @@
 - 文件同步 Session、React 與部署設定，補齊故障排查、歷史快照標示及舊版本清理規則。
 
 - 應用部署目標統一為 Cloud Run；Cloud Tasks 摘要入口已有實作，常駐 Worker 不在目前範圍。ADC／IAM 與真實整合驗收依目標環境另行確認。
-- Repomix 採用 `.repomixignore`，XML 輸出選項由 mise 任務管理，不再維護 JSON 配置。
 - Graphify／Repomix 與部署 ignore 明確排除 `.agents`、`.claude`、`agent` 及 `skills-lock.json`；分析保留 `.codex`。
 - 根目錄文件補齊 Codex Cloud 工具入口、分析限制及產物處理；Go EditorConfig 明確設定 tab 寬度。
 

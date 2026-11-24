@@ -6,7 +6,6 @@ import (
 	repositoryApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/repository/application/dto"
 	repositoryApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/repository/application/port"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/identity"
 )
 
 type Service struct {
@@ -33,7 +32,7 @@ func (s *Service) Get(ctx context.Context, user, id string) (repositoryDomainEnt
 }
 
 func (s *Service) List(ctx context.Context, user, cursor, ownerID string) (repositoryApplicationDto.Page, error) {
-	if user == "" || (ownerID != "" && !identity.ValidOwner(ownerID)) {
+	if user == "" || (ownerID != "" && !repositoryDomainEntity.ValidOwner(ownerID)) {
 		return repositoryApplicationDto.Page{}, repositoryDomainEntity.ErrNotFound
 	}
 	page, err := s.Store.Candidates(ctx, user, cursor, ownerID)
@@ -61,7 +60,7 @@ func (s *Service) allowed(ctx context.Context, user string, r repositoryDomainEn
 	if r.Status != "ACTIVE" {
 		return false, nil
 	}
-	if !identity.ValidOwner(r.OwnerID) {
+	if !repositoryDomainEntity.ValidOwner(r.OwnerID) {
 		return false, nil
 	}
 	if r.OwnerID[0] == 'U' {

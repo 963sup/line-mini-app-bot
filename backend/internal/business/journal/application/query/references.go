@@ -3,8 +3,8 @@ package query
 import (
 	"context"
 
-	groupdto "github.com/963sup/line-mini-app-bot/internal/linegroup/application/dto"
-	groupentity "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
+	groupdto "github.com/963sup/line-mini-app-bot/internal/business/team/application/dto"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/business/team/domain/entity"
 )
 
 // GroupCatalog supplies the current product membership for both reads and listings.

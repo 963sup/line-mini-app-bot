@@ -16,9 +16,9 @@ import (
 	journalentity "github.com/963sup/line-mini-app-bot/internal/business/journal/domain/entity"
 	project "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	repository "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
-	groupdb "github.com/963sup/line-mini-app-bot/internal/linegroup/adapter/firestore"
-	groupdto "github.com/963sup/line-mini-app-bot/internal/linegroup/application/dto"
-	groupentity "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
+	groupdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore/group"
+	groupdto "github.com/963sup/line-mini-app-bot/internal/business/team/application/dto"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/business/team/domain/entity"
 )
 
 type journalGroups struct {

@@ -21,9 +21,9 @@ import (
 	"cloud.google.com/go/firestore"
 
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
-	groupport "github.com/963sup/line-mini-app-bot/internal/linegroup/application/port"
-	groupentity "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
-	groupvalueobject "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/valueobject"
+	groupport "github.com/963sup/line-mini-app-bot/internal/business/team/application/port"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/business/team/domain/entity"
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -79,7 +79,7 @@ func assignmentAuthority(target orgstore.Document, owner bool, user string) team
 
 func (s Store) Manage(ctx context.Context, user string, teamId, scope, managementId string) error {
 	_, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*struct{}, error) {
-		if !groupvalueobject.ValidID(teamId) || uuid.Validate(managementId) != nil || (scope != "organization" && scope != "enterprise") {
+		if !lineid.ValidGroup(teamId) || uuid.Validate(managementId) != nil || (scope != "organization" && scope != "enterprise") {
 			return nil, organizationDomainEntity.ErrInvalid
 		}
 		target, e := orgstore.Read(tx, root.Collection(scope+"s").Doc(managementId))
@@ -114,8 +114,8 @@ func (s Store) Manage(ctx context.Context, user string, teamId, scope, managemen
 
 // Activate opens an observed, unbound Team with independent Membership.
 func (s Store) Activate(ctx context.Context, actor, teamID, scope, managementID, maintainer string) error {
-	if !groupvalueobject.ValidID(teamID) || len(managementID) != 36 || uuid.Validate(managementID) != nil ||
-		(scope != "organization" && scope != "enterprise") || !orgstore.UserID.MatchString(maintainer) {
+	if !lineid.ValidGroup(teamID) || len(managementID) != 36 || uuid.Validate(managementID) != nil ||
+		(scope != "organization" && scope != "enterprise") || !lineid.ValidUser(maintainer) {
 		return organizationDomainEntity.ErrInvalid
 	}
 	if s.OpenMembership == nil {
@@ -181,7 +181,7 @@ func (s Store) Activate(ctx context.Context, actor, teamID, scope, managementID,
 
 func (s Store) RunAssignment(ctx context.Context, organizationID, teamID string, apply func(teamapp.AssignmentWork) error) error {
 	_, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*struct{}, error) {
-		if uuid.Validate(organizationID) != nil || !groupvalueobject.ValidID(teamID) {
+		if uuid.Validate(organizationID) != nil || !lineid.ValidGroup(teamID) {
 			return nil, organizationDomainEntity.ErrInvalid
 		}
 		return nil, apply(assignmentWork{tx: tx, root: root, organization: root.Collection("organizations").Doc(organizationID), teamID: teamID})

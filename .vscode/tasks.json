@@ -18,12 +18,7 @@
       "label": "Environment: doctor",
       "type": "process",
       "command": "bash",
-      "args": [
-        "scripts/tooling/tool-exec.sh",
-        "mise",
-        "run",
-        "doctor"
-      ],
+      "args": ["scripts/tooling/doctor.sh"],
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -32,13 +27,8 @@
     {
       "label": "Go: check application",
       "type": "process",
-      "command": "bash",
-      "args": [
-        "scripts/tooling/tool-exec.sh",
-        "mise",
-        "run",
-        "check"
-      ],
+      "command": "pnpm",
+      "args": ["--filter", "@repo/backend", "check"],
       "options": {
         "cwd": "${workspaceFolder}"
       },

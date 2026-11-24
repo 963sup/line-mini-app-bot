@@ -26,6 +26,8 @@ __pycache__/
 !/.agents/skills/next-bundle-optimizer/**
 !/.agents/skills/next-dev-loop/
 !/.agents/skills/next-dev-loop/**
+!/.agents/skills/repomix-explorer/
+!/.agents/skills/repomix-explorer/**
 /.claude/
 /agent/
 /server

@@ -2,7 +2,6 @@
 /.agents/**
 /.claude/
 /agent/
-/.mise/
 
 # Generated analysis outputs
 /graphify-out/
