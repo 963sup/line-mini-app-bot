@@ -165,6 +165,10 @@ for (const width of [1024, 375])
         document.querySelector('[aria-label="組織切換狀態"]')!.textContent!,
         /初始化暫時失敗/,
       );
+      assert.match(
+        document.querySelector('[aria-label="組織切換狀態"] span')!.className,
+        /group-data-\[collapsible=icon\]:hidden/,
+      );
       await openMenu();
       assert.equal(document.getElementById("verify")!.textContent, "重試初始化");
       await click("verify");
@@ -191,6 +195,15 @@ for (const width of [1024, 375])
       });
       assert.ok(document.querySelector('a[href="/miniapp?enterprise=hq"]'));
       assert.ok(document.querySelector('a[href="/miniapp?enterprise=new"]'));
+      const organizationSwitcher = document.querySelector<HTMLElement>('[aria-label="切換組織"]')!;
+      assert.match(
+        organizationSwitcher.querySelector("span.grid")!.className,
+        /group-data-\[collapsible=icon\]:hidden/,
+      );
+      assert.match(
+        organizationSwitcher.querySelector("svg:last-child")!.getAttribute("class")!,
+        /group-data-\[collapsible=icon\]:hidden/,
+      );
       assert.equal(organizationReads, 1);
       assert.match(document.body.textContent!, /建立企業/);
       const choices = [...document.querySelectorAll<HTMLElement>('[role="menuitemradio"]')];
