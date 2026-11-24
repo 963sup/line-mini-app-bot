@@ -1,5 +1,5 @@
 import type { useRepositories } from "../business/repository/RepositoryContext";
-import type { NavItem } from "./sidebar_07/nav_main";
+import type { NavItem } from "./navigation/nav_main";
 
 export function repositoryNavigation(
   spaces: ReturnType<typeof useRepositories>,

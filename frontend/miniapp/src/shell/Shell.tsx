@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { RepositoryProvider, useRepositories } from "../business/repository/RepositoryContext";
 import { AppFrame } from "./AppFrame";
 import { repositoryNavigation } from "./repository_navigation";
-import type { NavItem } from "./sidebar_07/nav_main";
+import type { NavItem } from "./navigation/nav_main";
 import { Button } from "../shared/ui/button";
 import { Status } from "../shared/Status";
 import type { Shortcut } from "./ServiceSidebar";

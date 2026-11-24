@@ -4,7 +4,7 @@ import { useSession } from "@/identity/Session";
 import { errorMessage, rejectedAttempt, useLatestRequest } from "@/shared/http/lifecycle";
 import { useRepositoryGuard } from "../repository/NavigationGuard";
 import { Button } from "@/shared/ui/button";
-import { Checkbox } from "@/shared/ui/checkbox";
+import { Checkbox } from "./SelectionCheckbox";
 import { Input } from "@/shared/ui/input";
 
 type ImportRow = {

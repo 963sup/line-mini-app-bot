@@ -1,32 +1,40 @@
-"use client";
+"use client"
 
-import { ChevronsUpDown, type LucideIcon } from "lucide-react";
+import * as React from "react"
+import { ChevronsUpDown, Plus } from "lucide-react"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from "@/shared/ui/dropdown_menu";
+} from "@/shared/ui/dropdown_menu"
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/shared/ui/sidebar";
+} from "@/shared/ui/sidebar"
 
-type Team = {
-  name: string;
-  logo: LucideIcon;
-  plan: string;
-  url: string;
-  isActive: boolean;
-};
-export function TeamSwitcher({ teams }: { teams: Team[] }) {
-  const { isMobile, setOpenMobile } = useSidebar();
-  const activeTeam = teams.find((team) => team.isActive) || teams[0];
-  if (!activeTeam) return null;
+export function TeamSwitcher({
+  teams,
+}: {
+  teams: {
+    name: string
+    logo: React.ElementType
+    plan: string
+  }[]
+}) {
+  const { isMobile } = useSidebar()
+  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+
+  if (!activeTeam) {
+    return null
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -34,7 +42,6 @@ export function TeamSwitcher({ teams }: { teams: Team[] }) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              aria-label="切換工作區"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
@@ -53,29 +60,32 @@ export function TeamSwitcher({ teams }: { teams: Team[] }) {
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs text-muted-foreground">
-                工作區
-              </DropdownMenuLabel>
-              {teams.map((team) => (
-                <DropdownMenuItem
-                  asChild
-                  key={team.name}
-                  className="gap-2 p-2"
-                  onSelect={() => setOpenMobile(false)}
-                >
-                  <a href={team.url}>
-                    <div className="flex size-6 items-center justify-center rounded-md border">
-                      <team.logo className="size-3.5 shrink-0" />
-                    </div>
-                    {team.name}
-                  </a>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuGroup>
+            <DropdownMenuLabel className="text-xs text-muted-foreground">
+              Teams
+            </DropdownMenuLabel>
+            {teams.map((team, index) => (
+              <DropdownMenuItem
+                key={team.name}
+                onClick={() => setActiveTeam(team)}
+                className="gap-2 p-2"
+              >
+                <div className="flex size-6 items-center justify-center rounded-md border">
+                  <team.logo className="size-3.5 shrink-0" />
+                </div>
+                {team.name}
+                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="gap-2 p-2">
+              <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
+                <Plus className="size-4" />
+              </div>
+              <div className="font-medium text-muted-foreground">Add team</div>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  );
+  )
 }

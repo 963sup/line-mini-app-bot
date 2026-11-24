@@ -1,9 +1,9 @@
 import React from "react";
 import Head from "next/head";
 import Link from "next/link";
-import type { NavItem } from "./sidebar_07/nav_main";
+import type { NavItem } from "./navigation/nav_main";
 import { ServiceSidebar, type Shortcut } from "./ServiceSidebar";
-import type { AccountMenu } from "./sidebar_07/nav_user";
+import type { AccountMenu } from "./navigation/nav_user";
 import {
   Breadcrumb,
   BreadcrumbItem,

@@ -1,108 +1,175 @@
-"use client";
+"use client"
 
-import * as React from "react";
+import * as React from "react"
 import {
-  ClipboardList,
-  FolderOpen,
-  Home,
-  Layers,
-  MapPin,
-  NotebookPen,
-  Search,
-} from "lucide-react";
-import { NavMain, type NavItem } from "./nav_main";
-import { NavProjects } from "./nav_projects";
-import { NavUser, type AccountMenu } from "./nav_user";
-import { OrganizationSwitcher } from "@/shell/OrganizationSwitcher";
+  AudioWaveform,
+  BookOpen,
+  Bot,
+  Command,
+  Frame,
+  GalleryVerticalEnd,
+  Map,
+  PieChart,
+  Settings2,
+  SquareTerminal,
+} from "lucide-react"
+
+import { NavMain } from "./nav_main"
+import { NavProjects } from "./nav_projects"
+import { NavUser } from "./nav_user"
+import { TeamSwitcher } from "./team_switcher"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/shared/ui/sidebar";
+} from "@/shared/ui/sidebar"
 
-export function AppSidebar({
-  workflow,
-  contextItems,
-  account,
-  repositoryItem,
-  ...props
-}: React.ComponentProps<typeof Sidebar> & {
-  workflow: string;
-  contextItems?: NavItem[];
-  account: AccountMenu;
-  repositoryItem?: NavItem;
-}) {
-  const attendance = [
-    { title: "出勤", url: "/miniapp/history", workflow: "history" },
-    { title: "請假", url: "/miniapp/leave", workflow: "leave" },
-    { title: "補登", url: "/miniapp/correction", workflow: "correction" },
-    { title: "審核", url: "/miniapp/review", workflow: "review" },
-  ].map((item) => ({ ...item, isActive: item.workflow === workflow }));
-  const items: NavItem[] = [
+// This is sample data.
+const data = {
+  user: {
+    name: "shadcn",
+    email: "m@example.com",
+    avatar: "/avatars/shadcn.jpg",
+  },
+  teams: [
     {
-      title: "首頁",
-      url: "/miniapp",
-      icon: Home,
-      isActive: workflow === "home",
-    },
-    { ...(repositoryItem || {
-      title: "空間", url: "/miniapp/repositories", isActive: workflow === "repositories",
-    }), icon: FolderOpen },
-    {
-      title: "Explore",
-      url: "/miniapp/explore",
-      icon: Search,
-      isActive: workflow === "explore",
+      name: "Acme Inc",
+      logo: GalleryVerticalEnd,
+      plan: "Enterprise",
     },
     {
-      title: "出勤服務",
-      icon: ClipboardList,
-      isActive:
-        attendance.some((item) => item.isActive) || workflow === "punch",
-      items: attendance,
+      name: "Acme Corp.",
+      logo: AudioWaveform,
+      plan: "Startup",
     },
     {
-      title: "Feed",
-      url: "/miniapp/feed",
-      icon: NotebookPen,
-      isActive: workflow === "feed",
+      name: "Evil Corp.",
+      logo: Command,
+      plan: "Free",
     },
-    ...(contextItems
-      ? [
-          {
-            title: "示範空間",
-            icon: Layers,
-            isActive: true,
-            items: contextItems,
-          },
-        ]
-      : []),
-  ];
+  ],
+  navMain: [
+    {
+      title: "Playground",
+      url: "#",
+      icon: SquareTerminal,
+      isActive: true,
+      items: [
+        {
+          title: "History",
+          url: "#",
+        },
+        {
+          title: "Starred",
+          url: "#",
+        },
+        {
+          title: "Settings",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Models",
+      url: "#",
+      icon: Bot,
+      items: [
+        {
+          title: "Genesis",
+          url: "#",
+        },
+        {
+          title: "Explorer",
+          url: "#",
+        },
+        {
+          title: "Quantum",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Documentation",
+      url: "#",
+      icon: BookOpen,
+      items: [
+        {
+          title: "Introduction",
+          url: "#",
+        },
+        {
+          title: "Get Started",
+          url: "#",
+        },
+        {
+          title: "Tutorials",
+          url: "#",
+        },
+        {
+          title: "Changelog",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Settings",
+      url: "#",
+      icon: Settings2,
+      items: [
+        {
+          title: "General",
+          url: "#",
+        },
+        {
+          title: "Team",
+          url: "#",
+        },
+        {
+          title: "Billing",
+          url: "#",
+        },
+        {
+          title: "Limits",
+          url: "#",
+        },
+      ],
+    },
+  ],
+  projects: [
+    {
+      name: "Design Engineering",
+      url: "#",
+      icon: Frame,
+    },
+    {
+      name: "Sales & Marketing",
+      url: "#",
+      icon: PieChart,
+    },
+    {
+      name: "Travel",
+      url: "#",
+      icon: Map,
+    },
+  ],
+}
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <OrganizationSwitcher />
+        <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={items} />
-        <noscript><a href={repositoryItem?.url || "/miniapp/repositories"}>空間（請啟用 JavaScript 載入清單）</a></noscript>
-        <NavProjects
-          projects={[
-            {
-              name: "定位測試",
-              url: "/location",
-              icon: MapPin,
-              isActive: workflow === "location",
-            },
-          ]}
-        />
+        <NavMain items={data.navMain} />
+        <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={account} />
+        <NavUser user={data.user} />
       </SidebarFooter>
-      <SidebarRail aria-label="切換側欄邊界" title="切換側欄" />
+      <SidebarRail />
     </Sidebar>
-  );
+  )
 }
