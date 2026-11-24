@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	object "github.com/963sup/line-mini-app-bot/internal/business/object/application"
-	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
+	operations "github.com/963sup/line-mini-app-bot/internal/business/object/application/document"
 )
 
 type draftOps struct {
@@ -32,7 +32,7 @@ func (p *draftOps) SuggestProcedures(_ context.Context, name, conditions string)
 
 func TestTemplatePreparationDispatch(t *testing.T) {
 	ops := &draftOps{}
-	p := &objectPreparation{Extract: ops, Procedures: ops}
+	p := &operations.Preparation{Extract: ops, Procedures: ops}
 	doc, err := p.PrepareTemplate(t.Context(), "A", object.DraftPreparation{Source: "document", Filename: "estimate.pdf"})
 	if err != nil || len(doc) != 1 || doc[0].Name != "來源工項" || ops.documents != 1 || ops.procedures != 0 {
 		t.Fatal(doc, err)

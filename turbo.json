@@ -1,7 +1,6 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "globalDependencies": [
-    "mise.toml",
     "api/contract/**",
     "api/codegen/**"
   ],
@@ -49,7 +48,6 @@
     "GOFLAGS",
     "GOTOOLCHAIN",
     "TMPDIR",
-    "MISE_*",
     "XDG_*",
     "NEXT_TELEMETRY_DISABLED"
   ]

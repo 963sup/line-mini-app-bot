@@ -3,7 +3,7 @@ package line
 import (
 	"time"
 
-	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
@@ -57,7 +57,7 @@ func DecodeGroupEvent(event webhook.EventInterface) (GroupEvent, bool) {
 		return GroupEvent{}, false
 	}
 	g, ok := source.(webhook.GroupSource)
-	if !ok || mode != "active" || at <= 0 || result.EventID == "" || !lineplatform.ValidGroupID(g.GroupId) {
+	if !ok || mode != "active" || at <= 0 || result.EventID == "" || !lineid.ValidGroup(g.GroupId) {
 		return GroupEvent{}, false
 	}
 	result.GroupID = g.GroupId

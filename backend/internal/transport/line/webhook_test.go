@@ -13,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
@@ -23,19 +24,19 @@ func (f replyTransport) RoundTrip(r *http.Request) (*http.Response, error) { ret
 
 func TestRedeliveredBatchContinuesAfterSpentReplyToken(t *testing.T) {
 	sends := 0
-	bot, err := messaging_api.NewMessagingApiAPI("test", messaging_api.WithHTTPClient(&http.Client{Transport: replyTransport(func(*http.Request) (*http.Response, error) {
+	bot, err := lineplatform.NewMessaging("test", &http.Client{Transport: replyTransport(func(*http.Request) (*http.Response, error) {
 		sends++
 		status, body := 200, "{}"
 		if sends == 2 {
 			status, body = 400, `{"message":"Invalid reply token"}`
 		}
 		return &http.Response{StatusCode: status, Body: io.NopCloser(strings.NewReader(body))}, nil
-	})}))
+	})})
 	if err != nil {
 		t.Fatal(err)
 	}
 	second := 0
-	handler := WebhookHandler("secret", bot, Dispatch{Commands: []Handler{{RetryOnSendFailure: true, Handle: func(_ context.Context, event webhook.EventInterface) (Reply, bool, error) {
+	handler := WebhookHandler("secret", bot.Reply, Dispatch{Commands: []Handler{{RetryOnSendFailure: true, Handle: func(_ context.Context, event webhook.EventInterface) (Reply, bool, error) {
 		e := event.(webhook.MessageEvent)
 		if e.WebhookEventId == "second" {
 			second++
@@ -66,7 +67,7 @@ func TestRedeliveredBatchContinuesAfterSpentReplyToken(t *testing.T) {
 }
 
 func TestWebhookDispatchPrecedenceAndObservationFailure(t *testing.T) {
-	bot, err := messaging_api.NewMessagingApiAPI("test")
+	bot, err := lineplatform.NewMessaging("test", http.DefaultClient)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +82,7 @@ func TestWebhookDispatchPrecedenceAndObservationFailure(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var calls []string
-			handler := WebhookHandler("secret", bot, Dispatch{
+			handler := WebhookHandler("secret", bot.Reply, Dispatch{
 				EarlyCommands: []Handler{{Handle: func(context.Context, webhook.EventInterface) (Reply, bool, error) {
 					calls = append(calls, "early")
 					return Reply{}, tc.name == "early command", nil

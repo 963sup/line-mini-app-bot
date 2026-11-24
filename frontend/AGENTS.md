@@ -1,17 +1,23 @@
 # Frontend module rules
 
-This file adds frontend-specific rules to the [repository rules](../AGENTS.md). Directory purposes belong in the [root README](../README.md#巢狀目錄導覽). Detailed path constraints are indexed in [module constraints](../docs/standards/module-constraints.md).
+This file adds frontend-specific rules to the [repository rules](../AGENTS.md). Directory purposes belong in the [root README](../README.md).
 
 - **MCP tools.** Contributors SHOULD use `shadcn` for registry items and component examples, and `next-devtools` to inspect a running local Next.js development server when diagnosing routes or runtime errors.
 - **Runtime.** The MINI App MUST remain compatible with its installed Next.js Pages Router and static export. Before changing framework behavior, read the matching installed documentation under `frontend/miniapp/node_modules/next/dist/docs/`. Pages MUST NOT depend on per-request server execution.
-- **Naming.** New components, functions, hooks and files MUST follow the [frontend naming conventions](../docs/standards/naming.md#前端命名).
+- **Naming.** New components, functions, hooks and files MUST use consistent feature language and idiomatic React/TypeScript naming according to the [frontend standard](../docs/standards/frontend.md).
 - **TypeScript.** The MINI App MUST keep `strict` enabled. New code MUST narrow `unknown` inputs before use and MUST NOT use `any`, unchecked assertions, or suppression comments to bypass contract or state checks.
+
+## Client boundaries and state
+
 - **Thin client.** API reads and writes MUST use `@repo/api-client` and generated types. The browser owns presentation, interaction and local UI state. It MUST NOT duplicate authorization, authoritative calculations, transitions or transport DTOs.
 - **Boundaries.** Pages compose Shell and feature modules. Identity, Platform, Business and Shared dependencies MUST retain their existing direction. Provider profiles and hidden controls MUST NOT be treated as business authorization.
 - **State.** Server data, local UI state and derived values MUST remain distinct. Obsolete requests and watchers MUST be cancelled or ignored. Actor or resource changes MUST clear scoped private data while preserving unresolved-write protection.
 - **Recovery.** Unknown writes MUST retain their original request and idempotency identity. A timeout or cancellation MUST NOT be interpreted as confirmed failure.
 - **Operation outcomes.** The owning feature MUST explicitly map generated API data to any distinct UI view model and stable error codes to UI states. Shared UI components MUST receive display data and callbacks through their public interface. A successful list refresh or a client-side prediction MUST NOT confirm the outcome of an earlier write. Feature-local state SHOULD stay within the feature unless another consumer needs the same state.
+
+## UI and verification
+
 - **UI compatibility.** Existing shadcn primitives, `shared/ui`, `shared/hooks/use-mobile.ts` and `shell/sidebar-07` MUST be composed through public APIs. Direct upstream-style changes require explicit task scope and MUST preserve accessibility fixes, aliases and client directives.
 - **Theme.** MINI App components MUST use the shared Tailwind theme tokens in `miniapp/src/styles/globals.css` for existing color and spacing roles. Shared components SHOULD expose the stable behavior common to their callers and keep feature-specific state in the owning feature.
-- **Interaction states.** Changed flows MUST follow the [MINI App UI standard](../docs/standards/miniapp-ui.md) and distinguish loading, empty, success, denied, failed and unknown outcomes where applicable. Changes MUST preserve accessible names, keyboard and focus behavior, and responsive layouts.
-- **Verification.** Frontend changes MUST run `bash scripts/tooling/tool-exec.sh pnpm --filter @repo/miniapp check`, relevant tests and any static build required by the [acceptance matrix](../docs/development/tooling/testing/commands.md#變更驗收矩陣). Changed operation flows MUST verify success and any applicable denial, unknown write outcome, or stale response after an actor or resource change.
+- **Interaction states.** Changed flows MUST follow the [frontend standard](../docs/standards/frontend.md) and distinguish loading, empty, success, denied, failed and unknown outcomes where applicable. Changes MUST preserve accessible names, keyboard and focus behavior, and responsive layouts.
+- **Verification.** Frontend changes MUST run `pnpm --filter @repo/miniapp check`, relevant tests and any static build required by the [verification workflow](../docs/workflows/verification.md). Changed operation flows MUST verify success and any applicable denial, unknown write outcome, or stale response after an actor or resource change.

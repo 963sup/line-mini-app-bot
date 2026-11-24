@@ -1,0 +1,180 @@
+{
+  "paths": {
+    "/api/v1/tools/poppler/extractions": {
+      "post": {
+        "operationId": "ExtractPopplerText",
+        "tags": [
+          "object"
+        ],
+        "summary": "Extract standardized PDF text without saving",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required for cookie sessions."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PopplerDocument"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Standardized text; empty text does not imply OCR is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PopplerText"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request rejected or extraction failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request rejected or extraction failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request rejected or extraction failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request rejected or extraction failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request rejected or extraction failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request rejected or extraction failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Request rejected or extraction failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request rejected or extraction failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request rejected or extraction failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PopplerDocument": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "filename",
+          "data"
+        ],
+        "properties": {
+          "filename": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "data": {
+            "type": "string",
+            "format": "byte",
+            "maxLength": 11184812
+          }
+        }
+      },
+      "PopplerText": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "text"
+        ],
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "x-owner": "operations"
+}

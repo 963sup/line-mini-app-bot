@@ -7,7 +7,11 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 )
+
+func ValidLegacyOwner(id string) bool { return lineid.ValidUser(id) || lineid.ValidGroup(id) }
 
 // Organization owners use the canonical UUID stored by the organization domain.
 var organizationID = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)

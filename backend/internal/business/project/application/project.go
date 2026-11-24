@@ -8,7 +8,7 @@ import (
 	projectApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/project/application/dto"
 	projectApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/project/application/port"
 	projectDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/project/domain/entity"
-	"github.com/963sup/line-mini-app-bot/internal/identity"
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 )
 
 var creationKey = regexp.MustCompile(`^[A-Za-z0-9_-]{16,128}$`)
@@ -31,7 +31,7 @@ func (s *Service) resolveProjectScope(ctx context.Context, actor, id string) (pr
 		}
 		return scope, s.AuthorizeOrganization(ctx, actor, id)
 	}
-	if !identity.ValidOwner(id) {
+	if !projectDomainEntity.ValidLegacyOwner(id) {
 		// Repository-scoped routes resolve and authorize their source first.
 		if !projectDomainEntity.ValidID(id) {
 			return projectApplicationPort.Scope{}, projectDomainEntity.ErrNotFound
@@ -42,7 +42,7 @@ func (s *Service) resolveProjectScope(ctx context.Context, actor, id string) (pr
 		}
 		scope.OwnerID, scope.SourceRepositoryID, scope.Legacy = source.OwnerID, source.ID, true
 	}
-	if identity.IsUserOwnerID(scope.OwnerID) {
+	if lineid.ValidUser(scope.OwnerID) {
 		if actor != scope.OwnerID {
 			return projectApplicationPort.Scope{}, projectDomainEntity.ErrNotFound
 		}
@@ -124,7 +124,7 @@ func (s *Service) Create(ctx context.Context, actor, rid, key string, c projectD
 		return projectDomainEntity.Project{}, e
 	}
 	if c.CopyOwnerID != "" || c.CopyProjectID != "" {
-		if r.Legacy || c.SourceRepositoryID != "" || !projectDomainEntity.ValidID(c.CopyProjectID) || !identity.IsUserOwnerID(c.CopyOwnerID) && !projectDomainEntity.IsOrganizationOwner(c.CopyOwnerID) {
+		if r.Legacy || c.SourceRepositoryID != "" || !projectDomainEntity.ValidID(c.CopyProjectID) || !lineid.ValidUser(c.CopyOwnerID) && !projectDomainEntity.IsOrganizationOwner(c.CopyOwnerID) {
 			return projectDomainEntity.Project{}, projectDomainEntity.ErrInput
 		}
 		if _, err := s.resolveProjectScope(ctx, actor, c.CopyOwnerID); err != nil {

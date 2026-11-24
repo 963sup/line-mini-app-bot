@@ -6,16 +6,6 @@ import (
 	summaryApplicationPortSummarization "github.com/963sup/line-mini-app-bot/internal/business/summary/application/port/summarization"
 )
 
-import (
-	"context"
-
-	collection "github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/line/messagecollection"
-
-	commands "github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/line/summarization"
-	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
-	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
-)
-
 type Store interface {
 	summaryApplicationPortMessagecollection.Store
 	summaryApplicationPortSummarization.CommandStore
@@ -24,21 +14,4 @@ type Store interface {
 type Summary struct {
 	Store Store
 	Queue summaryApplicationPortSummarization.Queue
-}
-
-func (b *Summary) Reply(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
-	if b == nil {
-		return transport.Reply{}, false, nil
-	}
-	handler := commands.Commands{Store: b.Store, Queue: b.Queue}
-	return handler.Reply(ctx, event)
-}
-
-// Collect observes messages that were not claimed by an earlier handler.
-func (b *Summary) Collect(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
-	if b == nil {
-		return transport.Reply{}, false, nil
-	}
-	collector := collection.Collection{Store: b.Store}
-	return collector.Observe(ctx, event)
 }

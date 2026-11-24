@@ -2,12 +2,12 @@ package line
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
 	"time"
 
+	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
 )
@@ -26,7 +26,15 @@ type Dispatch struct {
 	Commands      []Handler
 }
 
-func WebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, dispatch Dispatch) http.HandlerFunc {
+type SendReply func(context.Context, string, messaging_api.MessageInterface) error
+
+func RegisterWebhook(mux *http.ServeMux, channel, secret string, send SendReply, dispatch Dispatch) {
+	path := "/webhooks/line/" + channel
+	mux.HandleFunc("POST "+path, WebhookHandler(secret, send, dispatch))
+	slog.Info("LINE webhook enabled", "path", path)
+}
+
+func WebhookHandler(secret string, send SendReply, dispatch Dispatch) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
 		callback, err := webhook.ParseRequest(secret, r)
@@ -45,9 +53,6 @@ func WebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, dispatch 
 		// One deadline bounds the whole batch, not five seconds per event.
 		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 		defer cancel()
-		// SDK WithContext mutates its receiver; never mutate the shared client.
-		client := *bot
-		client.WithContext(ctx)
 		for _, event := range callback.Events {
 			if e, ok := event.(webhook.MessageEvent); ok && e.Mode == "active" {
 				if g, ok := e.Source.(webhook.GroupSource); ok && g.GroupId != "" {
@@ -56,7 +61,7 @@ func WebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, dispatch 
 					}
 				}
 			}
-			if handled, ok := runCommands(ctx, w, &client, event, dispatch.EarlyCommands); !ok {
+			if handled, ok := runCommands(ctx, w, send, event, dispatch.EarlyCommands); !ok {
 				return
 			} else if handled {
 				continue
@@ -73,7 +78,7 @@ func WebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, dispatch 
 					return
 				}
 			}
-			if _, ok := runCommands(ctx, w, &client, event, dispatch.Commands); !ok {
+			if _, ok := runCommands(ctx, w, send, event, dispatch.Commands); !ok {
 				return
 			}
 		}
@@ -83,7 +88,7 @@ func WebhookHandler(secret string, bot *messaging_api.MessagingApiAPI, dispatch 
 
 // runCommands reports whether a command claimed the event and whether the
 // webhook may continue processing the batch.
-func runCommands(ctx context.Context, w http.ResponseWriter, client *messaging_api.MessagingApiAPI, event webhook.EventInterface, commands []Handler) (handled, ok bool) {
+func runCommands(ctx context.Context, w http.ResponseWriter, send SendReply, event webhook.EventInterface, commands []Handler) (handled, ok bool) {
 	for _, command := range commands {
 		reply, handled, err := command.Handle(ctx, event)
 		if err != nil {
@@ -94,8 +99,8 @@ func runCommands(ctx context.Context, w http.ResponseWriter, client *messaging_a
 			continue
 		}
 		if reply.Message != nil {
-			response, _, sendErr := client.ReplyMessageWithHttpInfo(&messaging_api.ReplyMessageRequest{ReplyToken: reply.Token, Messages: []messaging_api.MessageInterface{reply.Message}})
-			if sendErr != nil && command.RetryOnSendFailure && !spentRedeliveryToken(event, response) {
+			sendErr := send(ctx, reply.Token, reply.Message)
+			if sendErr != nil && command.RetryOnSendFailure && !spentRedeliveryToken(event, sendErr) {
 				http.Error(w, "LINE reply unavailable", http.StatusServiceUnavailable)
 				return true, false
 			}
@@ -109,7 +114,7 @@ func runCommands(ctx context.Context, w http.ResponseWriter, client *messaging_a
 }
 
 // A token rejected on redelivery cannot recover by retrying the same reply.
-func spentRedeliveryToken(event webhook.EventInterface, response *http.Response) bool {
+func spentRedeliveryToken(event webhook.EventInterface, err error) bool {
 	var delivery *webhook.DeliveryContext
 	switch e := event.(type) {
 	case webhook.MessageEvent:
@@ -117,11 +122,5 @@ func spentRedeliveryToken(event webhook.EventInterface, response *http.Response)
 	case webhook.PostbackEvent:
 		delivery = e.DeliveryContext
 	}
-	if delivery == nil || !delivery.IsRedelivery || response == nil || response.StatusCode != http.StatusBadRequest {
-		return false
-	}
-	var rejection struct {
-		Message string `json:"message"`
-	}
-	return json.NewDecoder(response.Body).Decode(&rejection) == nil && rejection.Message == "Invalid reply token"
+	return delivery != nil && delivery.IsRedelivery && errors.Is(err, lineplatform.ErrInvalidReplyToken)
 }

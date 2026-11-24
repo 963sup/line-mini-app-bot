@@ -1,55 +1,52 @@
-# 正式環境故障排查
+# 疑難排解
 
-<a id="troubleshooting"></a>
+## 診斷順序
 
-從失敗通知、build ID、revision 或來源提交開始，確認目標專案、區域、服務與實際 trigger。工具安裝、Go 及 MCP 問題見[開發環境排查](../development/environment/troubleshooting.md)。
+1. 記錄時間、環境、revision、入口、actor／resource 範圍與預期結果。
+2. 重現最小案例，區分客戶端、契約、後端、資料庫與外部供應端。
+3. 以 correlation ID 串起 request、transaction、task 與外部呼叫。
+4. 檢查最近部署、設定、Secret reference、IAM、索引與資料版本。
+5. 確認失敗是否可重試，以及重試是否需沿用 operation ID。
 
-<a id="cloud-buildcloud-run-與部署後同步"></a>
+## 常見分類
 
-| 失敗位置      | 先查證的內容                                                         |
-| ------------- | -------------------------------------------------------------------- |
-| 建置或推送    | build ID、commit、第一個失敗步驟、映像、entrypoint、實際建置身分     |
-| 部署          | 映像 digest、目標服務、revision 建立狀態、身分、IAM 與必要機密的引用 |
-| 執行          | 最新 revision 的 Ready 狀態、目前流量、受影響路由與應用日誌          |
-| LINE 導航同步 | 實際執行入口、目標渠道及同步前置條件                                 |
+| 症狀           | 優先檢查                                                |
+| -------------- | ------------------------------------------------------- |
+| 401／403       | token／Session、Origin／CSRF、audience、資源授權        |
+| 409            | 資源版本、idempotency key、狀態轉換                     |
+| 5xx            | 下游分類、timeout、Firestore、設定缺失                  |
+| LINE 無回覆    | Webhook 簽章、事件處理、reply token、重送               |
+| 前端顯示舊資料 | 身分世代、取消、遲到回應、BFCache                       |
+| 部署後異常     | revision、traffic、runtime env、secret、service account |
 
-取得第一個失敗步驟的原始錯誤，核對同一提交的程式、映像與入口。若問題與執行環境有關，以同一映像或執行身分查證，並區分實際 trigger、Dockerfile 與手動 YAML 的作用。
+## 安全處理
 
-## Cloud Build、Cloud Run 與部署後同步
+排查過程不輸出 token、cookie、secret payload 或使用者內容。需要檢查憑證時，只驗證能否取得或使用，將敏感 stdout 丟棄。正式資料修復、重新部署、IAM 或流量變更都需要獨立授權。
 
-- [先記錄 project、region、build ID、來源 commit 與查詢時間，再依下圖定位。 部署前後 metadata 的取得方式見發布證據。 只保存必要 metadata 與匿名化錯誤，不輸出 Secret payload 或登入 token。](release-acceptance.md#發布證據與前置條件)
+## 完成條件
 
-- 開發與維運指引
+修復後重跑原始案例與相鄰拒絕案例，說明根因、必要修改、驗證結果及尚未覆蓋的環境。只找到暫時 workaround 時，保留根因與移除條件。
 
-```mermaid
-flowchart TB
-  B{"新版映像建置成功？"} -->|否| F["查第一個失敗步驟與來源 SHA"]
-  B -->|是| D{"部署成功且 revision Ready？"}
-  D -->|否| L["查該 revision 的啟動日誌與實際設定"]
-  D -->|是| M{"SyncRichMenus 失敗？"}
-  M -->|是| S["分別核對 Deploy 結果、目前流量與圖片權限"]
-  M -->|否| E["有功能錯誤時，依請求對應 revision 查執行期"]
+## Firestore 唯讀連線檢查
+
+設定 `GOOGLE_CLOUD_PROJECT`；`FIRESTORE_DATABASE_ID` 預設為 `(default)`。本機使用應用程式預設憑證（ADC），Cloud Run 使用執行服務帳戶。從儲存庫根目錄執行，將 `COLLECTION/DOCUMENT` 換成一份已存在的文件：
+
+```bash
+go -C backend run . check-firestore -document COLLECTION/DOCUMENT
 ```
 
-- [建置失敗：遇到 --mount option requires BuildKit 表示新版尚未推送或部署。核對實際 Build step 的 DOCKER_BUILDKIT；若需修正雲端 Trigger，保存前後 metadata 並核對差異。](container-build.md#buildkit-與建置機密)
+[檢查程式](../../backend/internal/bootstrap/firestore_check.go)對指定文件執行一次 `Get`。成功代表目前身分可讀該文件；程式不印出文件內容，也不寫入資料。若收到 `NotFound`，請核對資料庫和文件路徑，讀取權限仍待確認。
 
-- 部署失敗或未 Ready：核對映像 digest、PORT、runtime service account 與 Secret references。以實際 revision 與前版 metadata 比對。
+## Rich Menu 發布互斥與重試
 
-- [選單同步失敗：整體 Build 失敗後仍須查流量確認部署結果。核對部署 Job 的圖片目錄 /assets/line/richmenu，確認同一映像內的目錄可穿越且 JPEG 可由 nonroot 讀取。圖片路徑與權限](cloud-run.md#managed-trigger-的-rich-menu-圖片路徑)
+Firestore 的 line_navigation_publication_leases/{channelID} 保存暫時 owner 與 expiresAt，與業務資料分開。Job 最多運行八分鐘，租約十分鐘，LINE 請求共用較短 context；取得租約前不發布，等待也計入工作時限。釋放時核對 owner，避免刪除別人的租約。程序崩潰後須待租約過期才能接手。此租約假設執行環境時鐘同步，不是 LINE API 支援的 fencing token。
 
-- 登入、出勤或摘要失敗：核對 Session、Firestore、Cloud Tasks、模型與 LINE 訊息流程。端到端驗收須以真實功能結果為準。
+同步依選單定義與圖片的 SHA-256 判定是否需要寫入，並讀取遠端圖片、Alias 與預設選單以偵測外部變更。租約仍用於互斥；重複同步行為由[發布測試](../../backend/internal/platform/line/richmenu/publication_test.go)驗證。
 
-- managed trigger 使用 inline build；修改 repository YAML 不會修正該 Trigger。 修正後以新 Build 的來源 SHA、每個步驟結果、Ready revision、traffic 及真實功能結果驗收。 Rich Menu 同步會修改 LINE 外部狀態，重跑前先確認既有選單與目標帳號； Cloud Run 回滾不會撤銷已同步的 LINE 選單。
+單次工作最多重試一次，每次皆重新核對遠端內容。圖片失敗不修改 live Alias；Alias 部分更新會保留已準備完成的目標，下一次同步收斂。只有成功遷移使用者後才刪除舊 managed 選單。同步完成後 HTTP 部署失敗不會自動回滾選單；不同 Build 仍可能先後發布不同版本，租約只保證同時一個發布者，不保證提交順序。
 
-<a id="歷史快照與查證界線"></a>
+## Rich Menu 舊選單遷移
 
-## 歷史快照與查證界線
+新版明確對應 `attendance-in → rich-menu-clock-in`、`attendance-out → rich-menu-clock-out`。發布前核對已存在的舊 Alias 確實指向本流程管理的選單。新圖與新 Alias 就緒後，將已存在的舊 Alias 保留為轉向入口，並讀回確認。缺少的舊 Alias 不新增。
 
-文件中的 revision、Secret 綁定與 IAM 紀錄只代表其標示日期，不能當作即時現況。執行命令前，依安裝版本的 leaf help 核對語法；回復與清理另參照官方文件：
-
-- [Cloud Run 回滾](https://docs.cloud.google.com/run/docs/rollouts-rollbacks-traffic-migration)
-- [Artifact Registry 映像管理](https://docs.cloud.google.com/artifact-registry/docs/docker/manage-images)
-
-## 診斷交付與修復驗收
-
-記錄失敗步驟與原始證據、受影響提交、目前承接流量的 revision、服務影響與下一步。缺少雲端讀取權限時，列出缺少的[驗證證據](../development/verification/evidence.md#cloud-run-and-browser-location)。修復後依[驗收矩陣](../development/tooling/testing/commands.md)執行設定或容器檢查，再按[發布驗收](release-acceptance.md)記錄正式環境結果。
+已綁定個別使用者的舊選單須另外透過 LINE 批次遷移；只有遷移成功且無 Alias 仍引用舊選單才刪除。失敗保留舊選單，重跑同步可繼續。驗收須在測試渠道涵蓋仍綁舊頁的使用者，並保留管理權衝突時的停止行為。

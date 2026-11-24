@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	groupport "github.com/963sup/line-mini-app-bot/internal/linegroup/application/port"
-	groupentity "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
-	groupevent "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/event"
-	groupid "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/valueobject"
+	groupport "github.com/963sup/line-mini-app-bot/internal/business/team/application/port"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/business/team/domain/entity"
+	groupevent "github.com/963sup/line-mini-app-bot/internal/business/team/domain/event"
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -43,7 +43,7 @@ func (s LINEObservation) GetByID(ctx context.Context, id string) (groupentity.Gr
 
 // Get supports legacy team visibility using current LINE membership and Team state.
 func (s LINEObservation) Get(ctx context.Context, actor, id string) (groupentity.Group, error) {
-	if !groupid.ValidID(id) || actor == "" {
+	if !lineid.ValidGroup(id) || actor == "" {
 		return groupentity.Group{}, groupentity.ErrNotFound
 	}
 	group, err := s.GetByID(ctx, id)
@@ -67,7 +67,7 @@ func (s LINEObservation) Get(ctx context.Context, actor, id string) (groupentity
 }
 
 func (s LINEObservation) Observe(ctx context.Context, event groupevent.Observation) error {
-	if !groupid.ValidID(event.GroupID) || event.EventID == "" || event.At.IsZero() ||
+	if !lineid.ValidGroup(event.GroupID) || event.EventID == "" || event.At.IsZero() ||
 		(event.Status != "ACTIVE" && event.Status != "INACTIVE") {
 		return groupport.ErrUnavailable
 	}

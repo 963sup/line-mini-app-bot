@@ -7,11 +7,11 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
-	groupdto "github.com/963sup/line-mini-app-bot/internal/linegroup/application/dto"
-	groupport "github.com/963sup/line-mini-app-bot/internal/linegroup/application/port"
-	groupentity "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/entity"
-	groupid "github.com/963sup/line-mini-app-bot/internal/linegroup/domain/valueobject"
+	groupdto "github.com/963sup/line-mini-app-bot/internal/business/team/application/dto"
+	groupport "github.com/963sup/line-mini-app-bot/internal/business/team/application/port"
+	groupentity "github.com/963sup/line-mini-app-bot/internal/business/team/domain/entity"
 	firestorekey "github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -20,7 +20,7 @@ import (
 type GroupCatalog struct{ Store }
 
 func (s GroupCatalog) Get(ctx context.Context, actor, id string) (groupentity.Group, error) {
-	if actor == "" || !groupid.ValidID(id) {
+	if actor == "" || !lineid.ValidGroup(id) {
 		return groupentity.Group{}, groupentity.ErrNotFound
 	}
 	result, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*groupentity.Group, error) {
@@ -100,7 +100,7 @@ func (s GroupCatalog) List(ctx context.Context, actor, cursor string) (groupdto.
 			if err := doc.DataTo(&candidate); err != nil {
 				return nil, err
 			}
-			if candidate.Kind != "team" || !groupid.ValidID(candidate.ID) {
+			if candidate.Kind != "team" || !lineid.ValidGroup(candidate.ID) {
 				continue
 			}
 			group, err := s.readGroup(tx, root, actor, candidate.ID)

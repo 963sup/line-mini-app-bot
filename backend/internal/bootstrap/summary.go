@@ -15,16 +15,15 @@ import (
 	storage "github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/firestore"
 	httpadapter "github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/http/summarization"
 	lineadapter "github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/line"
-	delivery "github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/line/summarization"
 	"github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/messaging/cloudtasks/summarization"
 	"github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/summarizer/summarization"
 	summaryApplicationSummarization "github.com/963sup/line-mini-app-bot/internal/business/summary/application/summarization"
-	identitygoogle "github.com/963sup/line-mini-app-bot/internal/identity/google"
-	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
+	identitygoogle "github.com/963sup/line-mini-app-bot/internal/platform/google"
+	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
 	"golang.org/x/oauth2/google"
 )
 
-func registerSummary(ctx context.Context, mux *http.ServeMux, firestoreConfigured bool, getFirestore func() (*firestore.Client, error)) (*lineadapter.Summary, error) {
+func registerSummary(ctx context.Context, mux *http.ServeMux, bot *lineplatform.Messaging, channel string, firestoreConfigured bool, getFirestore func() (*firestore.Client, error)) (*lineadapter.Summary, error) {
 	provider := os.Getenv("SUMMARY_PROVIDER")
 	keyName := "GEMINI_API_KEY"
 	if provider == "openai" {
@@ -34,8 +33,7 @@ func registerSummary(ctx context.Context, mux *http.ServeMux, firestoreConfigure
 	if provider == "" && key == "" && model == "" && queue == "" && target == "" && email == "" {
 		return nil, nil
 	}
-	channel := os.Getenv("LINE_MESSAGING_API_CHANNEL_ID")
-	if key == "" || !regexp.MustCompile(`^[A-Za-z0-9.-]+$`).MatchString(model) || !regexp.MustCompile(`^projects/[a-z0-9-]+/locations/[a-z0-9-]+/queues/[A-Za-z0-9_-]+$`).MatchString(queue) || email == "" || !firestoreConfigured || !regexp.MustCompile(`^[0-9]+$`).MatchString(channel) {
+	if key == "" || !regexp.MustCompile(`^[A-Za-z0-9.-]+$`).MatchString(model) || !regexp.MustCompile(`^projects/[a-z0-9-]+/locations/[a-z0-9-]+/queues/[A-Za-z0-9_-]+$`).MatchString(queue) || email == "" || !firestoreConfigured || !validChannelID(channel) {
 		return nil, fmt.Errorf("incomplete or invalid summary configuration")
 	}
 	u, e := url.Parse(target)
@@ -57,12 +55,11 @@ func registerSummary(ctx context.Context, mux *http.ServeMux, firestoreConfigure
 	}
 	auth.Timeout = 4 * time.Second
 	auth.CheckRedirect = modelClient.CheckRedirect
-	line, e := messaging_api.NewMessagingApiAPI(os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN"), messaging_api.WithHTTPClient(&http.Client{Transport: httptransport.TraceTransport{}, Timeout: 10 * time.Second}))
-	if e != nil {
-		return nil, e
+	if bot == nil {
+		return nil, fmt.Errorf("summary requires a LINE messaging token")
 	}
 	store := &storage.Summary{Client: db, ChannelID: channel}
-	service := &summaryApplicationSummarization.Service{Store: store, Model: modelAdapter, Sender: delivery.SummaryDelivery{Bot: line}}
+	service := &summaryApplicationSummarization.Service{Store: store, Model: modelAdapter, Sender: lineadapter.SummaryDelivery{Bot: bot}}
 	mux.HandleFunc("POST /internal/summary", httpadapter.SummaryWorker(service, &identitygoogle.Verifier{Audience: target, Email: email}))
 	return &lineadapter.Summary{Store: store, Queue: &cloudtasks.Queue{Client: auth, Name: queue, URL: target, ServiceAccount: email}}, nil
 }

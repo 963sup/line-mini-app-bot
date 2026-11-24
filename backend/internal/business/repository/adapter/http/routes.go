@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/identity"
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
@@ -24,7 +24,7 @@ type Authenticator interface {
 
 func view(r repositoryDomainEntity.Repository) generated.Repository {
 	response := generated.Repository{Id: r.ID, OwnerId: r.OwnerID, Name: r.Name, Status: generated.RepositoryStatus(r.Status), Version: r.Version, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
-	if identity.IsGroupOwnerID(r.OwnerID) {
+	if lineid.ValidGroup(r.OwnerID) {
 		response.GroupId = &r.OwnerID
 	}
 	return response
@@ -87,7 +87,7 @@ func (s *repositoryServer) read(w http.ResponseWriter, r *http.Request, id, curs
 	}
 	ownerID := ""
 	if owner != nil {
-		if len(r.URL.Query()["ownerId"]) != 1 || !identity.ValidOwner(*owner) {
+		if len(r.URL.Query()["ownerId"]) != 1 || !repositoryDomainEntity.ValidOwner(*owner) {
 			transport.WriteAPIError(w, 400, "invalid_input", "來源擁有者格式無效。")
 			return
 		}

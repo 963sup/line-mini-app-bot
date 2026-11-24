@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "go run .",
     "build": "go build -o bin/server .",
-    "check": "bash ../scripts/tooling/tool-exec.sh mise run fmt-check && bash ../scripts/tooling/tool-exec.sh mise run lint && go vet ./...",
+    "check": "files=\"$(gofumpt -l .)\"; test -z \"$files\" || { printf '%s\\n' \"$files\"; exit 1; }; golangci-lint run ./... && go vet ./...",
     "test": "go test -race ./..."
   },
   "devDependencies": {

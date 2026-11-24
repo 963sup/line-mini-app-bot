@@ -5,11 +5,12 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
-	identityhttp "github.com/963sup/line-mini-app-bot/internal/identity/http"
-	identityline "github.com/963sup/line-mini-app-bot/internal/identity/line"
+	identityline "github.com/963sup/line-mini-app-bot/internal/platform/line"
+	identityhttp "github.com/963sup/line-mini-app-bot/internal/transport/http/identity"
 )
 
 // Only the selected environment supplies the public configuration and audience.
@@ -24,10 +25,10 @@ func newMiniAppAuthenticator(environment string) (*identityhttp.Authenticator, s
 	}
 	prefix := "LINE_MINI_APP_" + strings.ToUpper(environment) + "_"
 	channelID, liffID, endpoint := os.Getenv(prefix+"CHANNEL_ID"), os.Getenv(prefix+"LIFF_ID"), os.Getenv(prefix+"ENDPOINT_URL")
-	if channelID == "" || strings.IndexFunc(channelID, func(r rune) bool { return r < '0' || r > '9' }) >= 0 {
+	if !validChannelID(channelID) {
 		return nil, "", fmt.Errorf("%sCHANNEL_ID must contain only digits", prefix)
 	}
-	if !strings.HasPrefix(liffID, channelID+"-") || len(liffID) <= len(channelID)+1 || strings.TrimSpace(liffID) != liffID {
+	if !strings.HasPrefix(liffID, channelID+"-") || !regexp.MustCompile(`^[0-9]+-[A-Za-z0-9]+$`).MatchString(liffID) {
 		return nil, "", fmt.Errorf("%sLIFF_ID must be nonempty and match the selected Channel ID", prefix)
 	}
 	parsed, err := url.Parse(endpoint)

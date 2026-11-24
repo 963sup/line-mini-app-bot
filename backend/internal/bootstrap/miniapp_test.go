@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/identity"
-	identityline "github.com/963sup/line-mini-app-bot/internal/identity/line"
+	"github.com/963sup/line-mini-app-bot/internal/platform/identity"
+	identityline "github.com/963sup/line-mini-app-bot/internal/platform/line"
 	navigation "github.com/963sup/line-mini-app-bot/internal/transport/line/navigation"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 	"github.com/line/line-bot-sdk-go/v8/linebot/webhook"
@@ -52,12 +52,17 @@ func TestMiniAppProfiles(t *testing.T) {
 				t.Fatalf("mixed profile: channel=%s LIFF=%s", auth.ChannelID, auth.LIFFID)
 			}
 			mux := http.NewServeMux()
-			link, err := auth.Register(mux)
-			if err != nil || link != "https://miniapp.line.me/"+test.liffID {
-				t.Fatalf("unexpected permanent link %q: %v", link, err)
+			auth.Register(mux)
+			link := identityline.MiniAppURL(auth.LIFFID)
+			if link != "https://miniapp.line.me/"+test.liffID {
+				t.Fatalf("unexpected permanent link %q", link)
 			}
 			event := webhook.PostbackEvent{Mode: "active", ReplyToken: "reply", Source: webhook.UserSource{UserId: "user"}, Postback: &webhook.PostbackContent{Data: "action=miniapp"}}
-			card := navigation.ReplyForEvent(event, link, endpointURL).Message.(*messaging_api.FlexMessage)
+			reply, handled, err := (navigation.Menu{}).Handler(link, endpointURL, nil).Handle(t.Context(), event)
+			if err != nil || !handled {
+				t.Fatalf("mini app navigation: %v", err)
+			}
+			card := reply.Message.(*messaging_api.FlexMessage)
 			action := card.Contents.(*messaging_api.FlexBubble).Footer.Contents[0].(*messaging_api.FlexButton).Action.(*messaging_api.UriAction)
 			if action.Uri != link || action.AltUri == nil || action.AltUri.Desktop != endpoint {
 				t.Fatal("each profile must keep its permalink and use the selected desktop endpoint")

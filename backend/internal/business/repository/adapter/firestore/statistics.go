@@ -11,7 +11,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/identity"
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 
 	db "cloud.google.com/go/firestore"
 )
@@ -29,7 +29,7 @@ func (s *Store) Statistics(ctx context.Context, r repositoryDomainEntity.Reposit
 			return e
 		}
 		parent := s.repositoryRef(r.ID)
-		personal := identity.IsUserOwnerID(r.OwnerID)
+		personal := lineid.ValidUser(r.OwnerID)
 		collection := "groups"
 		if personal {
 			collection = "users"

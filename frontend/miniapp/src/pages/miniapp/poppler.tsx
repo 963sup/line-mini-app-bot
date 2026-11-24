@@ -1,5 +1,5 @@
 import { Shell } from "@/shell/Shell";
-import { Poppler } from "@/business/operations/Poppler";
+import { Poppler } from "@/business/object/Poppler";
 
 export default function Page() {
   return (

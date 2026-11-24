@@ -152,21 +152,21 @@ func publicationFixture(t *testing.T) (*publication, *messaging_api.MessagingApi
 func TestSyncStagesAllImagesAndConvergesWithoutFurtherWrites(t *testing.T) {
 	p, api, blob, menus := publicationFixture(t)
 	p.failUpload = true
-	if err := Sync(context.Background(), api, blob, menus); err == nil {
+	if err := Sync(context.Background(), api, blob, menus, nil); err == nil {
 		t.Fatal("upload failure accepted")
 	}
 	if len(p.aliases) != 0 || p.defaultID != "" {
 		t.Fatal("failed staging changed live navigation")
 	}
 	p.failUpload = false
-	if err := Sync(context.Background(), api, blob, menus); err != nil {
+	if err := Sync(context.Background(), api, blob, menus, nil); err != nil {
 		t.Fatal(err)
 	}
 	writes := p.writes
 	if p.defaultID != p.aliases["tab-one"] || !p.images[p.aliases["tab-two"]] {
 		t.Fatal("publication incomplete")
 	}
-	if err := Sync(context.Background(), api, blob, menus); err != nil {
+	if err := Sync(context.Background(), api, blob, menus, nil); err != nil {
 		t.Fatal(err)
 	}
 	if p.writes != writes || p.creates != 2 {
@@ -180,11 +180,11 @@ func TestSyncStagesAllImagesAndConvergesWithoutFurtherWrites(t *testing.T) {
 func TestSyncAliasFailureCanConvergeAndDefaultLookupFailureStops(t *testing.T) {
 	p, api, blob, menus := publicationFixture(t)
 	p.failAlias = true
-	if err := Sync(context.Background(), api, blob, menus); err == nil || p.defaultID != "" || len(p.aliases) != 1 {
+	if err := Sync(context.Background(), api, blob, menus, nil); err == nil || p.defaultID != "" || len(p.aliases) != 1 {
 		t.Fatal("partial alias failure did not preserve the old default")
 	}
 	p.failAlias = false
-	if err := Sync(context.Background(), api, blob, menus); err != nil {
+	if err := Sync(context.Background(), api, blob, menus, nil); err != nil {
 		t.Fatal(err)
 	}
 	if p.creates != 2 {
@@ -192,7 +192,7 @@ func TestSyncAliasFailureCanConvergeAndDefaultLookupFailureStops(t *testing.T) {
 	}
 	p.defaultStatus = 500
 	writes := p.writes
-	if err := Sync(context.Background(), api, blob, menus); err == nil {
+	if err := Sync(context.Background(), api, blob, menus, nil); err == nil {
 		t.Fatal("default lookup failure ignored")
 	}
 	if p.writes != writes {
@@ -203,7 +203,7 @@ func TestSyncAliasFailureCanConvergeAndDefaultLookupFailureStops(t *testing.T) {
 func TestSyncRejectsRequestSizeMismatchBeforePublishing(t *testing.T) {
 	p, api, blob, menus := publicationFixture(t)
 	menus[1].Request.Size.Height = 843
-	if err := Sync(context.Background(), api, blob, menus); err == nil {
+	if err := Sync(context.Background(), api, blob, menus, nil); err == nil {
 		t.Fatal("accepted a request whose size differs from its image")
 	}
 	if p.writes != 0 {
@@ -217,7 +217,7 @@ func TestSyncMigratesRetiredAliasesAndRetriesSafely(t *testing.T) {
 	p.aliases["attendance-in"] = "legacy"
 	p.migrationPhase = "failed"
 	legacy := map[string]string{"attendance-in": "tab-one", "attendance-out": "tab-two"}
-	if err := SyncWithLegacyAliases(context.Background(), api, blob, menus, legacy); err == nil {
+	if err := Sync(context.Background(), api, blob, menus, legacy); err == nil {
 		t.Fatal("failed migration was accepted")
 	}
 	target := p.aliases["tab-one"]
@@ -228,18 +228,18 @@ func TestSyncMigratesRetiredAliasesAndRetriesSafely(t *testing.T) {
 		t.Fatal("created an unused retired alias")
 	}
 	p.migrationPhase = "succeeded"
-	if err := SyncWithLegacyAliases(context.Background(), api, blob, menus, legacy); err != nil || p.menus["legacy"] != "" {
+	if err := Sync(context.Background(), api, blob, menus, legacy); err != nil || p.menus["legacy"] != "" {
 		t.Fatalf("retry did not finish the migration: %v", err)
 	}
 	menus[0].Request.Name = "new revision"
-	if err := SyncWithLegacyAliases(context.Background(), api, blob, menus, legacy); err != nil {
+	if err := Sync(context.Background(), api, blob, menus, legacy); err != nil {
 		t.Fatalf("later publication failed to keep the retired alias current: %v", err)
 	}
 	if p.aliases["attendance-in"] != p.aliases["tab-one"] || p.migrations[target] != p.aliases["tab-one"] {
 		t.Fatal("compatibility alias or existing users remained on the previous release")
 	}
 	writes := p.writes
-	if err := SyncWithLegacyAliases(context.Background(), api, blob, menus, legacy); err != nil || p.writes != writes {
+	if err := Sync(context.Background(), api, blob, menus, legacy); err != nil || p.writes != writes {
 		t.Fatalf("converged publication wrote again: %v", err)
 	}
 }
@@ -248,7 +248,7 @@ func TestSyncDoesNotRedirectUnmanagedLegacyAlias(t *testing.T) {
 	p, api, blob, menus := publicationFixture(t)
 	p.menus["foreign"] = "managed-by-another-tool"
 	p.aliases["attendance-in"] = "foreign"
-	err := SyncWithLegacyAliases(context.Background(), api, blob, menus, map[string]string{"attendance-in": "tab-one"})
+	err := Sync(context.Background(), api, blob, menus, map[string]string{"attendance-in": "tab-one"})
 	if err == nil || p.aliases["attendance-in"] != "foreign" || p.menus["foreign"] == "" || p.writes != 0 {
 		t.Fatal("unmanaged legacy alias was overridden")
 	}

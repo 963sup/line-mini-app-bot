@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
+	operations "github.com/963sup/line-mini-app-bot/internal/business/object/application/document"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/application/dto"
 	object "github.com/963sup/line-mini-app-bot/internal/business/object/application/port"
-	operations "github.com/963sup/line-mini-app-bot/internal/business/operations/application"
 )
 
 type extraction func(context.Context, operations.Document) (operations.Extraction, error)
@@ -25,7 +25,7 @@ func (f documentText) ExtractText(ctx context.Context, doc operations.Document) 
 func TestDocumentEntrypointsReturnOnlyUnambiguousSourceLocations(t *testing.T) {
 	provided := "原本位置"
 	textCalls := 0
-	bridge := &objectPreparation{
+	bridge := &operations.Preparation{
 		Extract: extraction(func(context.Context, operations.Document) (operations.Extraction, error) {
 			return operations.Extraction{Candidates: []operations.Candidate{
 				{Name: "Pump", Quote: "Pump 12 units"},
@@ -64,7 +64,7 @@ func TestDocumentEntrypointsReturnOnlyUnambiguousSourceLocations(t *testing.T) {
 
 func TestObjectPreparationReturnsOnlyDeliveredCandidates(t *testing.T) {
 	var calls int
-	b := &objectPreparation{Extract: extraction(func(_ context.Context, doc operations.Document) (operations.Extraction, error) {
+	b := &operations.Preparation{Extract: extraction(func(_ context.Context, doc operations.Document) (operations.Extraction, error) {
 		calls++
 		if doc.Filename != "estimate.pdf" || string(doc.Data) != "source" {
 			t.Fatalf("lost document: %+v", doc)
@@ -92,7 +92,7 @@ func TestObjectPreparationReturnsOnlyDeliveredCandidates(t *testing.T) {
 }
 
 func TestObjectPreparationPreservesProviderFailureDetails(t *testing.T) {
-	b := &objectPreparation{Extract: extraction(func(context.Context, operations.Document) (operations.Extraction, error) {
+	b := &operations.Preparation{Extract: extraction(func(context.Context, operations.Document) (operations.Extraction, error) {
 		return operations.Extraction{RawResponse: []byte("incomplete")}, operations.ErrIncomplete
 	})}
 	result, err := b.PrepareCandidates(t.Context(), "actor", "repository", dto.Document{Filename: "estimate.pdf"})

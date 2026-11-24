@@ -7,13 +7,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"regexp"
 	"time"
+
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 )
-
-var groupID = regexp.MustCompile(`^C[0-9a-f]{32}$`)
-
-func ValidGroupID(id string) bool { return groupID.MatchString(id) }
 
 var ErrMembershipUnavailable = errors.New("group membership unavailable")
 
@@ -27,7 +24,7 @@ type Membership struct {
 // A historical interaction only helps discovery. Every response checks current
 // membership through the Bot's group-member endpoint, without caching profiles.
 func (m *Membership) IsMember(ctx context.Context, group, user string) (bool, error) {
-	if m == nil || m.Client == nil || m.Token == "" || !ValidGroupID(group) || user == "" {
+	if m == nil || m.Client == nil || m.Token == "" || !lineid.ValidGroup(group) || user == "" {
 		return false, ErrMembershipUnavailable
 	}
 	timeout := m.Timeout

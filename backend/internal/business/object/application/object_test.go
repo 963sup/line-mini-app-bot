@@ -137,12 +137,17 @@ func TestServiceScopesEveryOperation(t *testing.T) {
 	}
 	for _, rr := range []repositories{{r: r, e: repositoryDomainEntity.ErrNotFound}, {r: repositoryDomainEntity.Repository{ID: id, Status: "INACTIVE"}}, {r: repositoryDomainEntity.Repository{ID: strings.Repeat("b", 32), OwnerID: r.OwnerID, Status: "ACTIVE"}}} {
 		s.Repositories = rr
+		preparer := &captureDocument{}
+		s.CandidatePreparer = preparer
 		before := store.calls
 		_, e1 := s.List(ctx, "A", id, "")
 		_, e2 := s.Get(ctx, "A", id, id)
 		_, e3 := s.Create(ctx, "A", id, strings.Repeat("k", 16), content())
 		_, e4 := s.Update(ctx, "A", id, id, objectDomainEntity.Update{})
-		_, e5 := s.ExtractCandidates(ctx, "A", id, objectApplicationDto.Document{})
+		_, e5 := s.ExtractCandidates(ctx, "A", id, objectApplicationDto.Document{Filename: "private.pdf"})
+		if preparer.received.Filename != "" {
+			t.Fatal("unauthorized document reached candidate preparation")
+		}
 		for _, e := range []error{e1, e2, e3, e4, e5} {
 			if !errors.Is(e, objectDomainEntity.ErrNotFound) {
 				t.Error(e)

@@ -13,8 +13,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/identity"
 	"github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 
 	db "cloud.google.com/go/firestore"
 
@@ -54,7 +54,7 @@ func (s *Store) repositoryRef(id string) *db.DocumentRef {
 // Observe commits the independent ID and unique group binding together. Event
 // ordering prevents old deliveries from reactivating a departed group.
 func (s *Store) Observe(ctx context.Context, o repositoryDomainEntity.Observation) error {
-	if !identity.ValidOwner(o.OwnerID) || o.At.IsZero() || o.EventID == "" || (o.Status != "ACTIVE" && o.Status != "INACTIVE") {
+	if !repositoryDomainEntity.ValidOwner(o.OwnerID) || o.At.IsZero() || o.EventID == "" || (o.Status != "ACTIVE" && o.Status != "INACTIVE") {
 		return repositoryDomainEntity.ErrUnavailable
 	}
 	var random [16]byte
@@ -144,7 +144,7 @@ func decode(snap *db.DocumentSnapshot, err error) (repositoryDomainEntity.Reposi
 	if err := snap.DataTo(&d); err != nil {
 		return repositoryDomainEntity.Repository{}, err
 	}
-	if !repositoryDomainEntity.ValidID(d.ID) || d.ID != snap.Ref.ID || !identity.ValidOwner(d.OwnerID) || d.Version < 1 {
+	if !repositoryDomainEntity.ValidID(d.ID) || d.ID != snap.Ref.ID || !repositoryDomainEntity.ValidOwner(d.OwnerID) || d.Version < 1 {
 		return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrUnavailable
 	}
 	return d.model(), nil
@@ -158,7 +158,7 @@ func (s *Store) GetByID(ctx context.Context, id string) (repositoryDomainEntity.
 }
 
 func (s *Store) GetByGroupID(ctx context.Context, group string) (repositoryDomainEntity.Repository, error) {
-	if !identity.IsGroupOwnerID(group) {
+	if !lineid.ValidGroup(group) {
 		return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrNotFound
 	}
 	snap, err := s.channel().Collection("repositoryOwnerBindings").Doc(group).Get(ctx)

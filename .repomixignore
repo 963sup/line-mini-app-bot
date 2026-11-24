@@ -10,9 +10,7 @@
 **/__tests__/
 
 # Pinned tool copies and generated API types are available from their sources.
-/.mise/
 /pnpm-lock.yaml
-/mise.lock
 /api/client/src/generated/
 /backend/internal/transport/http/api/generated/
 

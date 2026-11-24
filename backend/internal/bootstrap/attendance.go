@@ -2,7 +2,6 @@ package bootstrap
 
 import (
 	"fmt"
-	"regexp"
 	"time"
 	_ "time/tzdata"
 
@@ -20,7 +19,7 @@ func newAttendance(firestoreConfigured bool, getFirestore func() (*firestore.Cli
 	if !firestoreConfigured || channel == "" {
 		return nil, nil
 	}
-	if !regexp.MustCompile(`^[0-9]+$`).MatchString(channel) {
+	if !validChannelID(channel) {
 		return nil, fmt.Errorf("attendance requires LINE_MESSAGING_API_CHANNEL_ID")
 	}
 	client, err := getFirestore()

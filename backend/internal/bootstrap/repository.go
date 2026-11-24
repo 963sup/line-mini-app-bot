@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"fmt"
+	operations "github.com/963sup/line-mini-app-bot/internal/business/object/application/document"
 	"net/http"
 	"os"
 	"time"
@@ -14,9 +15,9 @@ import (
 	issuedb "github.com/963sup/line-mini-app-bot/internal/business/issue/adapter/firestore"
 	issueapplication "github.com/963sup/line-mini-app-bot/internal/business/issue/application"
 	objectdb "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/firestore"
+	candidateai "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/openai"
+	"github.com/963sup/line-mini-app-bot/internal/business/object/adapter/poppler"
 	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
-	candidateai "github.com/963sup/line-mini-app-bot/internal/business/operations/adapter/openai"
-	"github.com/963sup/line-mini-app-bot/internal/business/operations/adapter/poppler"
 	repositorydb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 	businessspacedb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore/space"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
@@ -51,9 +52,8 @@ func newDiscussions(repositories *repositoryApplication.Service, store *reposito
 	return discussionapp.New(repositories, &discussiondb.Store{Client: store.Client, ChannelID: store.ChannelID, Numbers: store, Labels: store})
 }
 
-func newRepositories(firestoreConfigured bool, getFirestore func() (*firestore.Client, error)) (*repositoryApplication.Service, *repositorydb.Store, error) {
-	channel, token := os.Getenv("LINE_MESSAGING_API_CHANNEL_ID"), os.Getenv("LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN")
-	if !firestoreConfigured || channel == "" || token == "" {
+func newRepositories(firestoreConfigured bool, getFirestore func() (*firestore.Client, error), channel string, membership *lineplatform.Membership) (*repositoryApplication.Service, *repositorydb.Store, error) {
+	if !firestoreConfigured || channel == "" || membership == nil {
 		return nil, nil, nil
 	}
 	client, err := getFirestore()
@@ -61,7 +61,7 @@ func newRepositories(firestoreConfigured bool, getFirestore func() (*firestore.C
 		return nil, nil, fmt.Errorf("cannot initialize repository database")
 	}
 	store := &repositorydb.Store{Client: client, ChannelID: channel}
-	return &repositoryApplication.Service{Store: store, Membership: &lineplatform.Membership{Token: token, Client: &http.Client{Transport: httptransport.TraceTransport{}, Timeout: time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}}, store, nil
+	return &repositoryApplication.Service{Store: store, Membership: membership}, store, nil
 }
 
 func newMilestones(r *repositoryApplication.Service, store *repositorydb.Store) *repositoryApplicationMilestones.Service {
@@ -87,7 +87,7 @@ func newObjects(r *repositoryApplication.Service, store *repositorydb.Store) *ob
 	if key, model := os.Getenv("OPENAI_API_KEY"), os.Getenv("AI_DOCUMENT_MODEL"); key != "" && model != "" {
 		client := openai.NewClient(option.WithAPIKey(key), option.WithBaseURL("https://api.openai.com/v1/"), option.WithMaxRetries(0), option.WithHTTPClient(&http.Client{Transport: httptransport.TraceTransport{}, Timeout: 2 * time.Minute, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}))
 		extractor := &candidateai.Extractor{Responses: client.Responses, Model: model}
-		bridge := &objectPreparation{Extract: extractor, Text: &poppler.Extractor{}, Procedures: extractor}
+		bridge := &operations.Preparation{Extract: extractor, Text: &poppler.Extractor{}, Procedures: extractor}
 		service.CandidatePreparer = bridge
 		service.TemplatePreparer = bridge
 	}

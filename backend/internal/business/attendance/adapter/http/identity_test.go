@@ -3,8 +3,8 @@ package attendancehttp
 import (
 	"net/http"
 
-	identityhttp "github.com/963sup/line-mini-app-bot/internal/identity/http"
-	identityline "github.com/963sup/line-mini-app-bot/internal/identity/line"
+	identityline "github.com/963sup/line-mini-app-bot/internal/platform/line"
+	identityhttp "github.com/963sup/line-mini-app-bot/internal/transport/http/identity"
 )
 
 func testAuthenticator(client *http.Client) *identityhttp.Authenticator {

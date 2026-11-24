@@ -2,7 +2,7 @@ package membershipdb
 
 import (
 	"context"
-	"regexp"
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 
 	"cloud.google.com/go/firestore"
 	"github.com/963sup/line-mini-app-bot/internal/business/membership/application"
@@ -12,10 +12,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var teamID = regexp.MustCompile("^C[0-9a-f]{32}$")
-
 func (s Store) ChangeTeamMember(ctx context.Context, cmd application.TeamMemberChange, decide func(application.TeamMemberFacts, bool) (domain.TeamMembership, error)) error {
-	if !teamID.MatchString(cmd.TeamID) {
+	if !lineid.ValidGroup(cmd.TeamID) {
 		return domain.ErrInvalidQualification
 	}
 	root := s.DB.Collection("channels").Doc(s.Channel)

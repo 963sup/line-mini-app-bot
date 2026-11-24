@@ -33,13 +33,8 @@ var (
 // Sync stages every image before switching aliases. The caller must serialize
 // publications for the channel; aliases are separate, non-atomic LINE calls.
 // menus[0] becomes the default. Clients are copied before setting their context.
-func Sync(ctx context.Context, api *messaging_api.MessagingApiAPI, blob *messaging_api.MessagingApiBlobAPI, menus []Menu) error {
-	return SyncWithLegacyAliases(ctx, api, blob, menus, nil)
-}
-
-// SyncWithLegacyAliases maps retired aliases to current aliases. Existing retired
-// aliases remain usable while their individually linked users migrate.
-func SyncWithLegacyAliases(ctx context.Context, api *messaging_api.MessagingApiAPI, blob *messaging_api.MessagingApiBlobAPI, menus []Menu, legacy map[string]string) error {
+// The legacy map retains aliases referenced by already-linked LINE users.
+func Sync(ctx context.Context, api *messaging_api.MessagingApiAPI, blob *messaging_api.MessagingApiBlobAPI, menus []Menu, legacy map[string]string) error {
 	if api == nil || blob == nil || len(menus) == 0 {
 		return errors.New("rich menu clients and menus are required")
 	}

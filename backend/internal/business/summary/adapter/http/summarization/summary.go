@@ -2,6 +2,7 @@ package summaryhttp
 
 import (
 	summaryApplicationSummarization "github.com/963sup/line-mini-app-bot/internal/business/summary/application/summarization"
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 )
 
 import (
@@ -23,7 +24,7 @@ type WorkerVerifier interface {
 }
 
 func SummaryWorker(service *summaryApplicationSummarization.Service, verifier WorkerVerifier) http.HandlerFunc {
-	groupIDPattern := regexp.MustCompile(`^C[0-9a-f]{32}$`)
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 80*time.Second)
 		defer cancel()
@@ -39,7 +40,7 @@ func SummaryWorker(service *summaryApplicationSummarization.Service, verifier Wo
 		var input generatedinternal.SummaryJob
 		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 2048))
 		decoder.DisallowUnknownFields()
-		if e := decoder.Decode(&input); e != nil || !groupIDPattern.MatchString(input.Group) || !requestIDPattern.MatchString(input.Id) {
+		if e := decoder.Decode(&input); e != nil || !lineid.ValidGroup(input.Group) || !requestIDPattern.MatchString(input.Id) {
 			http.Error(w, "invalid job", http.StatusBadRequest)
 			return
 		}
