@@ -17,6 +17,7 @@
 使用者指定「走 GitHub MCP 推送流程」即啟動從推送到分支同步的完整流程。若使用者指定「只推到 work」或「只開 PR」，以指定階段為終點。正式部署另依部署授權處理。
 
 1. 推送後，用 GitHub MCP 查詢來源為 `work`、目標為 `main` 的開啟中 PR。有則沿用，沒有就建立。核對變更檔案與預期範圍，持續追蹤最新 head SHA 的必要檢查直到通過。若 CI 失敗，依[驗證流程](verification.md)修正並追蹤新一輪檢查。
+   GitHub MCP 寫入若顯示確認表單，必須等待使用者提交後再查詢遠端狀態；表單取消或未回傳結果時，不得視為成功。重新查詢確認仍無 PR 後，可使用同一個已驗證 GitHub 身分的 `gh` CLI 完成該次寫入，再由 GitHub MCP 核對結果並繼續流程。
 2. 使用 **Create a merge commit**。呼叫 `merge_pull_request` 時指定 `merge_method: "merge"`，並將 `expected_head_sha` 設為已驗證的提交。若 head 已更新，重新確認檢查結果。這樣 `main` 會保留 `work` 原有的提交與 SHA。
 3. 確認 PR 已合併後，從儲存庫執行下列命令同步長期使用的 `work`。先確認遠端 `work` 可以快轉至 `main`，再以一般 push 更新遠端分支。
 
