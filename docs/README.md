@@ -57,6 +57,7 @@
 ## 工作流程
 
 - [開發流程](workflows/development.md)
+- [Google Cloud CLI 安裝與登入](workflows/gcloud.md)
 - [重構流程](workflows/refactoring.md)
 - [shadcn MCP 元件實作](workflows/shadcn_mcp.md)
 - [Next.js MCP 診斷](workflows/nextjs_mcp.md)

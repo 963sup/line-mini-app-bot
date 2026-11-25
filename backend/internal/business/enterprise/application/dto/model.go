@@ -14,3 +14,8 @@ type Detail struct {
 	AssignableOrganizations []Link
 	Teams                   []Link
 }
+
+type TeamCandidate struct {
+	Link
+	CheckLINE bool
+}

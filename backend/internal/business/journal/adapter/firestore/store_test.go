@@ -37,6 +37,10 @@ func (membership) IsMember(_ context.Context, _, actor string) (bool, error) {
 	return actor == "writer", nil
 }
 
+func (membership) CanAccessOwner(_ context.Context, _, _, actor string) (bool, error) {
+	return actor == "writer", nil
+}
+
 func TestPublishingAndScopedPagination(t *testing.T) {
 	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
 		t.Skip("requires Firestore emulator")
@@ -61,11 +65,12 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	store := Store{Client: client, Channel: channel, ReferenceCatalog: journalquery.ReferenceCatalog{Groups: &groupquery.Service{Store: groups, Membership: membership{}}}}
 	rid := strings.Repeat("b", 32)
 	repo := client.Collection("channels").Doc(channel).Collection("repositories").Doc(rid)
-	_, e = repo.Set(ctx, map[string]any{"id": rid, "ownerId": g, "status": "ACTIVE", "version": int64(1)})
+	owner := "11111111-1111-4111-8111-111111111111"
+	_, e = repo.Set(ctx, map[string]any{"id": rid, "ownerType": "ORGANIZATION", "ownerId": owner, "groupId": g, "status": "ACTIVE", "version": int64(1)})
 	if e != nil {
 		t.Fatal(e)
 	}
-	repositories := &repositoryApplication.Service{Store: &repodb.Store{Client: client, ChannelID: channel}, Membership: membership{}}
+	repositories := &repositoryApplication.Service{Store: &repodb.Store{Client: client, ChannelID: channel}, OwnerAccess: membership{}}
 	store.RepositoryOwner = repositories.OwnerID
 	draft := journalentity.Draft{RepositoryID: rid, WorkDate: time.Date(2026, 11, 18, 0, 0, 0, 0, time.UTC), Today: []journalentity.Work{{Name: "鋪設", Percent: 40}}}
 	entry, e := store.Create(ctx, "writer", "key", draft)

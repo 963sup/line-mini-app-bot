@@ -12,7 +12,6 @@ import (
 
 	attendancecommand "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/command"
 	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
-	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
 	attendancequery "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/query"
 	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
@@ -37,11 +36,6 @@ func (s *attendanceServer) correct(w http.ResponseWriter, r *http.Request, id st
 		transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")
 		return
 	}
-	store, ok := bot.store.(attendanceport.CorrectionStore)
-	if !ok {
-		transport.WriteAPIError(w, 503, "not_configured", "更正尚未啟用。")
-		return
-	}
 	user, name, ok := app.Authenticate(w, r)
 	if !ok {
 		return
@@ -50,12 +44,11 @@ func (s *attendanceServer) correct(w http.ResponseWriter, r *http.Request, id st
 	defer cancel()
 	var err error
 	if approve {
-
 		if !correctionIDPattern.MatchString(id) {
 			transport.WriteAPIError(w, 400, "invalid_input", "申請編號無效。")
 			return
 		}
-		err = attendancecommand.ApproveCorrection(ctx, store, user, id, time.Now().UTC())
+		err = attendancecommand.ApproveCorrection(ctx, bot.store, user, id, time.Now().UTC())
 	} else {
 		media, _, e := mime.ParseMediaType(r.Header.Get("Content-Type"))
 		if e != nil || media != "application/json" {
@@ -83,18 +76,13 @@ func (s *attendanceServer) correct(w http.ResponseWriter, r *http.Request, id st
 		key := optionalString(idempotencyKey)
 		if idempotencyKey == nil {
 			// Existing clients remain compatible; they have no cross-request retry guarantee.
-			id, err = store.ProposeCorrection(ctx, user, c, time.Now().UTC())
+			id, err = bot.store.ProposeCorrection(ctx, user, c, time.Now().UTC())
 		} else {
 			if len(r.Header.Values("Idempotency-Key")) != 1 || !attendancevalueobject.ValidCorrectionKey(key) {
 				transport.WriteAPIError(w, 400, "invalid_idempotency_key", "重試識別碼無效。")
 				return
 			}
-			once, ok := bot.store.(attendanceport.IdempotentCorrectionStore)
-			if !ok {
-				transport.WriteAPIError(w, 503, "not_configured", "安全重試尚未啟用。")
-				return
-			}
-			id, err = once.ProposeCorrectionOnce(ctx, user, key, c, time.Now().UTC())
+			id, err = bot.store.ProposeCorrectionOnce(ctx, user, key, c, time.Now().UTC())
 		}
 		if err == nil {
 			transport.WriteJSON(w, 202, generated.CorrectionAccepted{Id: id, Status: generated.Accepted})
@@ -122,11 +110,7 @@ func (s *attendanceServer) GetAttendanceMonthlyReport(w http.ResponseWriter, r *
 	if !ok {
 		return
 	}
-	store, ok := bot.store.(attendanceport.MonthlyReader)
-	if !ok {
-		transport.WriteAPIError(w, 503, "not_configured", "月查詢尚未啟用。")
-		return
-	}
+	store := bot.store
 	zone := bot.zone
 	if zone == nil {
 		zone = time.FixedZone("Asia/Taipei", 28800)
@@ -159,11 +143,7 @@ func (s *attendanceServer) ListAttendanceGroups(w http.ResponseWriter, r *http.R
 	if !ok {
 		return
 	}
-	store, ok := bot.store.(attendanceport.GroupHistoryReader)
-	if !ok {
-		transport.WriteAPIError(w, 503, "not_configured", "查詢尚未啟用。")
-		return
-	}
+	store := bot.store
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 	groups, err := store.Groups(ctx, user)
@@ -226,12 +206,7 @@ func (s *attendanceServer) getCorrectionDetails(w http.ResponseWriter, r *http.R
 	s.correction(w, r, id, func(ctx context.Context, user string) {
 		bot := s.bot
 
-		store, ok := bot.store.(attendanceport.CorrectionReader)
-		if !ok {
-			transport.WriteAPIError(w, 503, "not_configured", "申請查詢尚未啟用。")
-			return
-		}
-		details, err := store.CorrectionDetails(ctx, user, id, review)
+		details, err := bot.store.CorrectionDetails(ctx, user, id, review)
 		if correctionHTTPError(w, err) {
 			return
 		}
@@ -251,12 +226,7 @@ func (s *attendanceServer) ListAttendanceReviewerGroups(w http.ResponseWriter, r
 	s.correction(w, r, "", func(ctx context.Context, user string) {
 		bot := s.bot
 
-		store, ok := bot.store.(attendanceport.ReviewerGroupReader)
-		if !ok {
-			transport.WriteAPIError(w, 503, "not_configured", "審核尚未啟用。")
-			return
-		}
-		groups, err := store.ReviewerGroups(ctx, user)
+		groups, err := bot.store.ReviewerGroups(ctx, user)
 		if correctionHTTPError(w, err) {
 			return
 		}
@@ -272,11 +242,6 @@ func (s *attendanceServer) ListAttendanceCorrections(w http.ResponseWriter, r *h
 	s.correction(w, r, "", func(ctx context.Context, user string) {
 		bot := s.bot
 
-		store, ok := bot.store.(attendanceport.CorrectionPageReader)
-		if !ok {
-			transport.WriteAPIError(w, 503, "not_configured", "申請查詢尚未啟用。")
-			return
-		}
 		size, cursor, ok := attendancePageInput(w, params.PageSize, params.Cursor)
 		if !ok {
 			return
@@ -287,7 +252,7 @@ func (s *attendanceServer) ListAttendanceCorrections(w http.ResponseWriter, r *h
 			transport.WriteAPIError(w, 400, "invalid_input", "審核群組格式不正確。")
 			return
 		}
-		page, err := store.CorrectionsPage(ctx, user, group, cursor, review, size)
+		page, err := bot.store.CorrectionsPage(ctx, user, group, cursor, review, size)
 		if correctionHTTPError(w, err) {
 			return
 		}
@@ -313,11 +278,6 @@ func (s *attendanceServer) decideCorrection(w http.ResponseWriter, r *http.Reque
 
 		var err error
 		if action == "reject" {
-			store, ok := bot.store.(attendanceport.CorrectionReviewRunner)
-			if !ok {
-				transport.WriteAPIError(w, 503, "not_configured", "駁回尚未啟用。")
-				return
-			}
 			dec := json.NewDecoder(http.MaxBytesReader(w, r.Body, 16384))
 			dec.DisallowUnknownFields()
 			var input generated.CorrectionDecision
@@ -325,14 +285,9 @@ func (s *attendanceServer) decideCorrection(w http.ResponseWriter, r *http.Reque
 				transport.WriteAPIError(w, 400, "invalid_input", "請填寫駁回理由。")
 				return
 			}
-			err = attendancecommand.RejectCorrection(ctx, store, user, id, input.Reason, time.Now().UTC())
+			err = attendancecommand.RejectCorrection(ctx, bot.store, user, id, input.Reason, time.Now().UTC())
 		} else {
-			store, ok := bot.store.(attendanceport.CorrectionReviewRunner)
-			if !ok {
-				transport.WriteAPIError(w, 503, "not_configured", "撤回尚未啟用。")
-				return
-			}
-			err = attendancecommand.CancelCorrection(ctx, store, user, id, time.Now().UTC())
+			err = attendancecommand.CancelCorrection(ctx, bot.store, user, id, time.Now().UTC())
 		}
 		if correctionHTTPError(w, err) {
 			return

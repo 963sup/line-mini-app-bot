@@ -21,7 +21,11 @@ func TestRevocationAndExpiry(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	t.Cleanup(func() {
+		if err := client.Close(); err != nil {
+			t.Error(err)
+		}
+	})
 	store := &storage.Store{Client: client}
 	svc := session.New(store, "channel")
 	now := time.Now().UTC().Truncate(time.Second)

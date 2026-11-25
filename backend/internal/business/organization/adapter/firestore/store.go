@@ -9,6 +9,7 @@ import (
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"cloud.google.com/go/firestore"
@@ -22,12 +23,77 @@ import (
 )
 
 type Store struct {
-	DB      *firestore.Client
-	Channel string
+	OrganizationMember func(*firestore.Transaction, *firestore.DocumentRef, string, string) (bool, error)
+	DB                 *firestore.Client
+	Channel            string
 	// EnterpriseNavigation reads facts using the current Firestore transaction.
 	EnterpriseNavigation func(*firestore.Transaction, *firestore.DocumentRef, string) (map[string]string, bool, error)
 	CanCreateEnterprise  func(*firestore.Transaction, *firestore.DocumentRef, string) (bool, error)
 	CreateEnterprise     func(*firestore.Transaction, *firestore.DocumentRef, string, string, string) error
+}
+
+// CanAccessOwner exposes only the organization membership decision required by
+// another bounded context; repository ownership rules remain in Repository.
+func (s Store) CanAccessOwner(ctx context.Context, ownerType, ownerID, actor string) (bool, error) {
+	if ownerType != "ORGANIZATION" || uuid.Validate(ownerID) != nil || actor == "" {
+		return false, nil
+	}
+	result, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*bool, error) {
+		doc, err := orgstore.Read(tx, root.Collection("organizations").Doc(ownerID))
+		if err != nil {
+			return nil, err
+		}
+		allowed := doc.VisibleLegacyOrganization(actor)
+		return &allowed, nil
+	})
+	if errors.Is(err, organizationDomainEntity.ErrNotFound) {
+		return false, nil
+	}
+	return result != nil && *result, err
+}
+
+// ResolveRepositoryOwner returns the actor's explicit, still-visible
+// organization preference; absence falls back to personal ownership.
+func (s Store) ResolveRepositoryOwner(ctx context.Context, actor string) (string, string, error) {
+	if actor == "" {
+		return "", "", organizationDomainEntity.ErrInvalid
+	}
+	selected, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*string, error) {
+		pref, err := tx.Get(root.Collection("organizationPreferences").Doc(firestorekey.Digest([]byte(actor))))
+		if status.Code(err) == codes.NotFound {
+			value := ""
+			return &value, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		value, err := pref.DataAt("organizationId")
+		if err != nil {
+			return nil, err
+		}
+		organizationID, _ := value.(string)
+		if uuid.Validate(organizationID) != nil {
+			return nil, organizationDomainEntity.ErrInvalid
+		}
+		doc, err := orgstore.Read(tx, root.Collection("organizations").Doc(organizationID))
+		if err != nil {
+			return nil, err
+		}
+		if !doc.VisibleLegacyOrganization(actor) {
+			return nil, organizationDomainEntity.ErrNotFound
+		}
+		return &organizationID, nil
+	})
+	if errors.Is(err, organizationDomainEntity.ErrNotFound) {
+		return "USER", actor, nil
+	}
+	if err != nil {
+		return "", "", err
+	}
+	if selected == nil || *selected == "" {
+		return "USER", actor, nil
+	}
+	return "ORGANIZATION", *selected, nil
 }
 
 func (s Store) Context(ctx context.Context, user string, preference string, write bool) (*organizationApplicationDto.Context, error) {

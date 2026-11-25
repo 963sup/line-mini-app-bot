@@ -30,7 +30,7 @@ func (s *observerStore) Observe(_ context.Context, o repositoryDomainEntity.Obse
 
 func (s *observerStore) GetByGroupID(context.Context, string) (repositoryDomainEntity.Repository, error) {
 	s.lookups++
-	return repositoryDomainEntity.Repository{Name: s.name}, s.lookupErr
+	return repositoryDomainEntity.Repository{OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: "U" + strings.Repeat("1", 32), Name: s.name}, s.lookupErr
 }
 
 func (*observerStore) GetByID(context.Context, string) (repositoryDomainEntity.Repository, error) {
@@ -43,7 +43,8 @@ func (*observerStore) Candidates(context.Context, string, string, string) (repos
 
 func TestObserverPreservesDomainNameLifecycleAndFailures(t *testing.T) {
 	gid := "C" + strings.Repeat("a", 32)
-	source := webhook.GroupSource{GroupId: gid, UserId: "actor"}
+	actor := "U" + strings.Repeat("1", 32)
+	source := webhook.GroupSource{GroupId: gid, UserId: actor}
 	message := webhook.MessageEvent{Source: source, Timestamp: 1700000000123, Mode: "active", WebhookEventId: "message"}
 	join := webhook.JoinEvent{Source: source, Timestamp: message.Timestamp, Mode: "active", WebhookEventId: "join"}
 	leave := webhook.LeaveEvent{Source: source, Timestamp: message.Timestamp, Mode: "active", WebhookEventId: "leave"}
@@ -60,7 +61,7 @@ func TestObserverPreservesDomainNameLifecycleAndFailures(t *testing.T) {
 		{"join refreshes name", join, "stored", nil, nil, 0, 1, 1, "ACTIVE", false},
 		{"message retains name", message, "stored", nil, nil, 1, 0, 1, "ACTIVE", false},
 		{"new group looks up name", message, "", repositoryDomainEntity.ErrNotFound, nil, 1, 1, 1, "ACTIVE", false},
-		{"leave never looks up name", leave, "stored", nil, nil, 0, 0, 1, "INACTIVE", false},
+		{"leave resolves binding owner without looking up name", leave, "stored", nil, nil, 1, 0, 1, "INACTIVE", false},
 		{"lookup failure propagates", message, "", failure, nil, 1, 0, 0, "", true},
 		{"save failure propagates", message, "stored", nil, failure, 1, 0, 1, "ACTIVE", true},
 	} {
@@ -84,7 +85,7 @@ func TestObserverPreservesDomainNameLifecycleAndFailures(t *testing.T) {
 			}
 			if tc.saves > 0 {
 				got := store.saved[0]
-				if got.OwnerID != gid || got.Status != tc.state || !got.At.Equal(time.UnixMilli(message.Timestamp)) || len(got.Users) != 1 || got.Users[0] != "actor" {
+				if got.OwnerType != repositoryDomainEntity.OwnerUser || got.OwnerID != actor || got.GroupID != gid || got.Status != tc.state || !got.At.Equal(time.UnixMilli(message.Timestamp)) || len(got.Users) != 1 || got.Users[0] != actor {
 					t.Fatalf("domain observation changed: %+v", got)
 				}
 				if (got.Name == "current name") != (tc.names > 0) {
@@ -105,7 +106,28 @@ func TestFollowCreatesPersonalRepositoryObservation(t *testing.T) {
 		t.Fatalf("follow: %v %v", store.saved, err)
 	}
 	saved := store.saved[0]
-	if saved.OwnerID != owner || len(saved.Users) != 1 || saved.Users[0] != owner || store.lookups != 0 {
+	if saved.OwnerType != repositoryDomainEntity.OwnerUser || saved.OwnerID != owner || len(saved.Users) != 1 || saved.Users[0] != owner || store.lookups != 0 {
 		t.Fatal(saved)
+	}
+}
+
+func TestGroupObservationUsesResolvedOrganizationOwner(t *testing.T) {
+	groupID := "C" + strings.Repeat("2", 32)
+	actor := "U" + strings.Repeat("3", 32)
+	organizationID := "11111111-1111-4111-8111-111111111111"
+	event := webhook.MessageEvent{Source: webhook.GroupSource{GroupId: groupID, UserId: actor}, Timestamp: 1700000000123, Mode: "active", WebhookEventId: "message"}
+	group, ok := transport.DecodeGroupEvent(event)
+	if !ok {
+		t.Fatal("invalid group event")
+	}
+	store := &observerStore{lookupErr: repositoryDomainEntity.ErrNotFound}
+	observer := Observer{Store: store, ResolveOwner: func(context.Context, string) (string, string, error) {
+		return string(repositoryDomainEntity.OwnerOrganization), organizationID, nil
+	}}
+	if err := observer.Observe(t.Context(), event, &group); err != nil {
+		t.Fatal(err)
+	}
+	if len(store.saved) != 1 || store.saved[0].OwnerType != repositoryDomainEntity.OwnerOrganization || store.saved[0].OwnerID != organizationID || store.saved[0].GroupID != groupID {
+		t.Fatalf("observation = %+v", store.saved)
 	}
 }

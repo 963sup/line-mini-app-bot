@@ -24,11 +24,7 @@ func (s *attendanceServer) ExchangeAttendanceLaunch(w http.ResponseWriter, r *ht
 		transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")
 		return
 	}
-	store, ok := bot.store.(attendanceport.LaunchStore)
-	if !ok {
-		transport.WriteAPIError(w, 503, "not_configured", "打卡連結尚未啟用。")
-		return
-	}
+	store := bot.store
 	user, _, ok := app.Authenticate(w, r)
 	if !ok {
 		return

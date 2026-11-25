@@ -420,7 +420,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** Update the address of an active repository after current access and version checks */
+        patch: operations["updateRepositoryAddress"];
         trace?: never;
     };
     "/api/v1/explore": {
@@ -1442,8 +1443,11 @@ export interface components {
         };
         Repository: {
             id: string;
+            /** @description User ID for USER owners or UUID for ORGANIZATION owners */
             ownerId: string;
-            /** @description LINE group ID for group-owned repositories. Omitted for personal repositories. */
+            /** @enum {string} */
+            ownerType: "USER" | "ORGANIZATION";
+            /** @description Optional LINE interaction binding. It is not the repository owner or an authorization grant. */
             groupId?: string;
             name: string;
             /** @enum {string} */
@@ -1454,6 +1458,7 @@ export interface components {
             updatedAt: string;
             /** Format: int64 */
             version: number;
+            address?: components["schemas"]["RepositoryAddress"];
         };
         RepositoryPage: {
             items: components["schemas"]["Repository"][];
@@ -2379,6 +2384,16 @@ export interface components {
         CorrectionDecisionResult: {
             /** @enum {string} */
             status: "rejected" | "cancelled";
+        };
+        RepositoryAddress: {
+            countryCode: string;
+            postalCode: string;
+            addressLine: string;
+        };
+        RepositoryAddressUpdate: {
+            address: components["schemas"]["RepositoryAddress"];
+            /** Format: int64 */
+            expectedVersion: number;
         };
         ExploreItem: {
             /** @enum {string} */
@@ -4631,6 +4646,86 @@ export interface operations {
             };
             /** @description Request failed */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+        };
+    };
+    updateRepositoryAddress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RepositoryAddressUpdate"];
+            };
+        };
+        responses: {
+            /** @description Address updated; retry only with the returned version */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Repository"];
+                };
+            };
+            /** @description Request failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIError"];
+                };
+            };
+            /** @description Request failed */
+            415: {
                 headers: {
                     [name: string]: unknown;
                 };

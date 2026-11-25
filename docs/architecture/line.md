@@ -33,7 +33,7 @@
 ## 保留項目
 
 - **SDK 的事件與訊息型別**留在 webhook、導航與業務 LINE adapter 的邊界。Flex 卡片、位置及 postback 已有具型別的 SDK 表示，重新定義整套鏡像 DTO 會讓每次 SDK 升級多一份映射。共同群組觀測才解碼成共用 `GroupEvent`；業務核心只接收自己的值與命令。
-- **Team 與 Repository 的觀測者**各自讀寫其領域文件。Repository 另處理個人 follow，兩者使用不同的查找條件與 not-found 錯誤。共用的是已驗簽事件與群名查詢；合併寫入會改變重送時各領域的狀態邊界。
+- **Team 與 Repository 的觀測者**各自讀寫其領域文件。Repository 另處理個人 follow；群組觀測建立獨立 LINE Binding，首次建立的 Repository 使用已驗證 Actor 當下有效的組織選擇，否則由 Actor 個人擁有。Bot 離群只停用 Binding，不停用 Repository。共用的是已驗簽事件與群名查詢；合併寫入會改變重送時各領域的狀態邊界。
 - **各消費者的小型 Membership port**表達各自的授權需求，Go 的隱式介面讓同一平台實作可直接注入。將 port 提升為全域授權服務會把「是 LINE 群組成員」誤作「能操作特定業務資源」。
 - **能力專屬期限**來自原有行為。群名最多 400 ms，Webhook 整批五秒，摘要推送的 HTTP 上限十秒，Rich Menu 每次 HTTP 呼叫上限二十秒。發布工作額外持有八分鐘的總期限。這些用途共用標準 context 取消機制。
 - **Rich Menu 舊 alias**可能已連結至個別使用者，保留遷移與擁有權檢查。群組、Session、摘要與 Rich Menu 的 Firestore 路徑、欄位及序列化維持原格式。

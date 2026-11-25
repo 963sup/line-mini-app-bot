@@ -41,20 +41,14 @@ export function NavProjects({
                 isActive={item.isActive}
                 onClick={() => setOpenMobile(false)}
               >
-                <a
-                  href={item.url}
-                  aria-current={item.isActive ? "page" : undefined}
-                >
+                <a href={item.url} aria-current={item.isActive ? "page" : undefined}>
                   <item.icon aria-hidden="true" />
                   <span>{item.name}</span>
                 </a>
               </SidebarMenuButton>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <SidebarMenuAction
-                    showOnHover
-                    aria-label={item.name + "選項"}
-                  >
+                  <SidebarMenuAction showOnHover aria-label={item.name + "選項"}>
                     <MoreHorizontal />
                     <span className="sr-only">更多</span>
                   </SidebarMenuAction>
@@ -66,11 +60,7 @@ export function NavProjects({
                 >
                   <DropdownMenuGroup>
                     <DropdownMenuItem asChild>
-                      <a
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                      <a href={item.url} target="_blank" rel="noopener noreferrer">
                         <ExternalLink />
                         <span>在新分頁開啟</span>
                       </a>

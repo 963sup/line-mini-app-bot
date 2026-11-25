@@ -17,8 +17,9 @@ import (
 )
 
 type Observer struct {
-	Store     repositoryApplicationPort.Store
-	GroupName func(context.Context, string) string
+	Store        repositoryApplicationPort.Store
+	GroupName    func(context.Context, string) string
+	ResolveOwner func(context.Context, string) (string, string, error)
 }
 
 // Observe uses the group facts parsed by the webhook dispatcher.
@@ -28,11 +29,14 @@ func (o *Observer) Observe(ctx context.Context, event webhook.EventInterface, gr
 	}
 	if follow, ok := event.(webhook.FollowEvent); ok && follow.Mode == "active" && follow.Timestamp > 0 && follow.WebhookEventId != "" {
 		if person, ok := follow.Source.(webhook.UserSource); ok && lineid.ValidUser(person.UserId) {
-			err := o.Store.Observe(ctx, repositoryDomainEntity.Observation{OwnerID: person.UserId, Name: "個人儲存庫", Status: "ACTIVE", EventID: follow.WebhookEventId, At: time.UnixMilli(follow.Timestamp), Users: []string{person.UserId}})
+			err := o.Store.Observe(ctx, repositoryDomainEntity.Observation{OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: person.UserId, Name: "個人儲存庫", Status: "ACTIVE", EventID: follow.WebhookEventId, At: time.UnixMilli(follow.Timestamp), Users: []string{person.UserId}})
 			return err
 		}
 	}
 	if group == nil {
+		return nil
+	}
+	if !lineid.ValidUser(group.ActorID) && group.Kind != transport.GroupBotLeft {
 		return nil
 	}
 	// Preserve the existing lifecycle: supported group activity records an
@@ -60,6 +64,26 @@ func (o *Observer) Observe(ctx context.Context, event webhook.EventInterface, gr
 			name = o.GroupName(ctx, group.GroupID)
 		}
 	}
-	err := o.Store.Observe(ctx, repositoryDomainEntity.Observation{OwnerID: group.GroupID, Name: name, Status: status, EventID: group.EventID, At: group.At, Users: group.Users})
+	owner := group.ActorID
+	ownerType := repositoryDomainEntity.OwnerUser
+	if status == "ACTIVE" && o.ResolveOwner != nil {
+		resolvedType, resolvedID, resolveErr := o.ResolveOwner(ctx, group.ActorID)
+		if resolveErr != nil {
+			return resolveErr
+		}
+		ownerType, owner = repositoryDomainEntity.OwnerType(resolvedType), resolvedID
+	}
+	if status == "INACTIVE" {
+		current, lookupErr := o.Store.GetByGroupID(ctx, group.GroupID)
+		if errors.Is(lookupErr, repositoryDomainEntity.ErrNotFound) {
+			return nil
+		}
+		if lookupErr != nil {
+			return lookupErr
+		}
+		owner = current.OwnerID
+		ownerType = current.OwnerType
+	}
+	err := o.Store.Observe(ctx, repositoryDomainEntity.Observation{OwnerType: ownerType, OwnerID: owner, GroupID: group.GroupID, Name: name, Status: status, EventID: group.EventID, At: group.At, Users: group.Users})
 	return err
 }

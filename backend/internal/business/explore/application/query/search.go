@@ -10,8 +10,10 @@ import (
 	"unicode/utf8"
 )
 
-var ErrInput = errors.New("invalid explore query")
-var ErrUnavailable = errors.New("explore source unavailable")
+var (
+	ErrInput       = errors.New("invalid explore query")
+	ErrUnavailable = errors.New("explore source unavailable")
+)
 
 type Item struct {
 	ID, DisplayName string

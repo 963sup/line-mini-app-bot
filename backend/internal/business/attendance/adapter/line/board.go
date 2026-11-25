@@ -8,15 +8,13 @@ import (
 	"time"
 
 	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
-	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/line"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 )
 
 func (b *Attendance) groupStatus(ctx context.Context, group, user, command string) (messaging_api.MessageInterface, error) {
 	text := func(value string) messaging_api.MessageInterface { return &messaging_api.TextMessage{Text: value} }
-	store, ok := b.Store.(attendanceport.BoardStore)
-	if !ok {
+	if b.Store == nil {
 		return text("出勤查詢與漏下班檢查尚未啟用。"), nil
 	}
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
@@ -29,7 +27,7 @@ func (b *Attendance) groupStatus(ctx context.Context, group, user, command strin
 		}
 		day := now.In(zone)
 		start := time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, zone)
-		board, err := store.GroupBoard(ctx, group, start, now)
+		board, err := b.Store.GroupBoard(ctx, group, start, now)
 		if errors.Is(err, attendancedto.ErrBoardLimit) {
 			return text("資料超出目前看板讀取上限，無法取得完整人數；本次不顯示不完整統計。"), nil
 		}
@@ -43,18 +41,17 @@ func (b *Attendance) groupStatus(ctx context.Context, group, user, command strin
 			&messaging_api.FlexText{Text: "更新：" + board.AsOf.In(zone).Format("2006-01-02 15:04:05") + "\n依打卡紀錄計算；跨日未結束班次仍算上班／休息中。未打卡不代表缺勤。輸入「漏下班」檢查本人未結束班次。", Wrap: true, Size: "sm", Color: "#666666", Margin: "md"},
 		}}}}, nil
 	}
-	active, err := store.CurrentShift(ctx, group, user)
+	active, err := b.Store.CurrentShift(ctx, group, user)
 	if err != nil {
 		return nil, err
 	}
 	if active == nil {
 		return text("本次查詢者在本群沒有未結束班次。"), nil
 	}
-	launchStore, ok := b.Store.(attendanceport.LaunchStore)
-	if !ok || b.AppURL == "" {
+	if b.AppURL == "" {
 		return text("本次查詢者仍有未結束班次。現在下班請回群組輸入「打卡」；過去漏打請私訊「出勤紀錄」提出更正。"), nil
 	}
-	launch, err := launchStore.CreateLaunch(ctx, group, "clock-out")
+	launch, err := b.Store.CreateLaunch(ctx, group, "clock-out")
 	if err != nil {
 		return nil, err
 	}

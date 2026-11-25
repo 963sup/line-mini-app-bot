@@ -46,9 +46,8 @@ type RecordQueries interface {
 	MonthlyReader
 }
 
-type CorrectionStore interface {
+type CorrectionSubmitter interface {
 	ProposeCorrection(context.Context, string, attendanceentity.Correction, time.Time) (string, error)
-	CorrectionReviewRunner
 }
 
 type IdempotentCorrectionStore interface {

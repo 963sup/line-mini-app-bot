@@ -11,13 +11,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
-
 	db "cloud.google.com/go/firestore"
 )
 
 func (s *Store) Statistics(ctx context.Context, r repositoryDomainEntity.Repository) (result repositoryDomainEntityStatistics.Statistics, err error) {
-	if !s.ready() {
+	if !s.ready() || s.CountIssues == nil || s.CountDiscussions == nil || s.CountProjects == nil {
 		return result, repositoryDomainEntityStatistics.ErrUnavailable
 	}
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
@@ -29,77 +27,33 @@ func (s *Store) Statistics(ctx context.Context, r repositoryDomainEntity.Reposit
 			return e
 		}
 		parent := s.repositoryRef(r.ID)
-		personal := lineid.ValidUser(r.OwnerID)
-		collection := "groups"
-		if personal {
-			collection = "users"
+		issues, err := s.CountIssues(func(q db.Query) *db.DocumentIterator { return tx.Documents(q) }, parent, "")
+		if err != nil {
+			return err
 		}
-		owner := s.channel().Collection(collection).Doc(r.OwnerID)
-		for _, kind := range []string{"issues", "discussions", "milestones", "projects"} {
-			query := parent.Collection(kind).Query
-			if kind == "projects" {
-				query = owner.Collection("projects").Where("defaultRepositoryId", "==", r.ID)
+		result.OpenIssues, result.InProgressIssues, result.CompletedIssues = issues.Open, issues.InProgress, issues.Completed
+		result.Discussions, err = s.CountDiscussions(tx, parent)
+		if err != nil {
+			return err
+		}
+		result.Projects, err = s.CountProjects(tx, r.OwnerID, r.ID)
+		if err != nil {
+			return err
+		}
+		rows, err := tx.Documents(parent.Collection("milestones").Select("id", "repositoryId", "schemaVersion")).GetAll()
+		if err != nil {
+			return err
+		}
+		for _, row := range rows {
+			var doc milestoneDocument
+			if err := row.DataTo(&doc); err != nil {
+				return err
 			}
-			snaps, e := tx.Documents(query).GetAll()
-			if e != nil {
-				return e
-			}
-			if kind == "projects" && !personal && len(snaps) > 0 {
-				snapshot, err := tx.Get(owner)
-				if err != nil {
-					return err
-				}
-				var space struct{ ID, GroupID, Status string }
-				if err = snapshot.DataTo(&space); err != nil {
-					return err
-				}
-				if space.ID != r.OwnerID || space.GroupID != r.OwnerID || space.Status != "ACTIVE" {
-					return repositoryDomainEntityStatistics.ErrUnavailable
-				}
-			}
-			for _, snap := range snaps {
-				var d struct {
-					SchemaVersion       int64  `firestore:"schemaVersion"`
-					ID                  string `firestore:"id"`
-					RepositoryID        string `firestore:"repositoryId"`
-					OwnerID             string `firestore:"ownerId"`
-					DefaultRepositoryID string `firestore:"defaultRepositoryId"`
-					State               string `firestore:"state"`
-				}
-				if e := snap.DataTo(&d); e != nil {
-					return e
-				}
-				if d.SchemaVersion != 1 || d.ID != snap.Ref.ID {
-					return repositoryDomainEntityStatistics.ErrUnavailable
-				}
-				if kind == "projects" {
-					if d.OwnerID != r.OwnerID || d.DefaultRepositoryID != r.ID {
-						return repositoryDomainEntityStatistics.ErrUnavailable
-					}
-				} else if d.RepositoryID != r.ID {
-					return repositoryDomainEntityStatistics.ErrUnavailable
-				}
-				switch kind {
-				case "issues":
-					switch d.State {
-					case "open":
-						result.OpenIssues++
-					case "in_progress":
-						result.InProgressIssues++
-					case "completed":
-						result.CompletedIssues++
-					default:
-						return repositoryDomainEntityStatistics.ErrUnavailable
-					}
-				case "discussions":
-					result.Discussions++
-				case "milestones":
-					result.Milestones++
-				case "projects":
-					result.Projects++
-				}
+			if doc.SchemaVersion != 1 || row.Ref.ID != doc.ID || doc.RepositoryID != r.ID {
+				return repositoryDomainEntityStatistics.ErrUnavailable
 			}
 		}
+		result.Milestones = int64(len(rows))
 		return nil
 	}, db.ReadOnly)
 	if err != nil {

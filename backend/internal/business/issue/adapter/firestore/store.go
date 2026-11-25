@@ -280,3 +280,35 @@ func (w updateWork) Save(actor string, previous, updated issueentity.Issue) erro
 	}
 	return w.tx.Create(w.ref.Collection("changes").Doc(strconv.FormatInt(updated.Version, 10)), change{actor, previous.State, updated.State, updated.Version, updated.UpdatedAt})
 }
+
+func CountRepositoryIssues(documents func(db.Query) *db.DocumentIterator, repository *db.DocumentRef, milestoneID string) (issuedto.StateCounts, error) {
+	q := repository.Collection("issues").Select("id", "schemaVersion", "repositoryId", "state")
+	if milestoneID != "" {
+		q = q.Where("milestoneId", "==", milestoneID)
+	}
+	rows, err := documents(q).GetAll()
+	if err != nil {
+		return issuedto.StateCounts{}, err
+	}
+	var counts issuedto.StateCounts
+	for _, row := range rows {
+		var doc document
+		if err := row.DataTo(&doc); err != nil {
+			return issuedto.StateCounts{}, err
+		}
+		if doc.SchemaVersion != 1 || doc.ID != row.Ref.ID || doc.RepositoryID != repository.ID {
+			return issuedto.StateCounts{}, issueport.ErrUnavailable
+		}
+		switch doc.State {
+		case "open":
+			counts.Open++
+		case "in_progress":
+			counts.InProgress++
+		case "completed":
+			counts.Completed++
+		default:
+			return issuedto.StateCounts{}, issueport.ErrUnavailable
+		}
+	}
+	return counts, nil
+}

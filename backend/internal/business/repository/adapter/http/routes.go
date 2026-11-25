@@ -8,10 +8,9 @@ import (
 import (
 	"context"
 	"errors"
+	"mime"
 	"net/http"
 	"time"
-
-	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 
 	transport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api"
@@ -23,11 +22,48 @@ type Authenticator interface {
 }
 
 func view(r repositoryDomainEntity.Repository) generated.Repository {
-	response := generated.Repository{Id: r.ID, OwnerId: r.OwnerID, Name: r.Name, Status: generated.RepositoryStatus(r.Status), Version: r.Version, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
-	if lineid.ValidGroup(r.OwnerID) {
-		response.GroupId = &r.OwnerID
+	response := generated.Repository{Id: r.ID, OwnerType: generated.RepositoryOwnerType(r.OwnerType), OwnerId: r.OwnerID, Name: r.Name, Status: generated.RepositoryStatus(r.Status), Version: r.Version, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt}
+	if r.Address != nil {
+		response.Address = &generated.RepositoryAddress{CountryCode: r.Address.CountryCode, PostalCode: r.Address.PostalCode, AddressLine: r.Address.AddressLine}
+	}
+	if r.GroupID != "" {
+		response.GroupId = &r.GroupID
 	}
 	return response
+}
+
+func (s *repositoryServer) UpdateRepositoryAddress(w http.ResponseWriter, r *http.Request, id string) {
+	w.Header().Set("Cache-Control", "no-store")
+	user, _, ok := s.auth.Authenticate(w, r)
+	if !ok {
+		return
+	}
+	if s.service == nil {
+		transport.WriteAPIError(w, 503, "not_configured", "空間尚未啟用。")
+		return
+	}
+	media, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil || media != "application/json" {
+		transport.WriteAPIError(w, 415, "invalid_content_type", "請使用 JSON。")
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, 4096)
+	var input generated.RepositoryAddressUpdate
+	if !transport.ReadJSON(w, r, &input, "地址內容無效。") {
+		return
+	}
+	address, err := repositoryDomainEntity.NewAddress(input.Address.CountryCode, input.Address.PostalCode, input.Address.AddressLine)
+	if err != nil || !repositoryDomainEntity.ValidID(id) {
+		transport.WriteAPIError(w, 400, "invalid_input", "地址內容無效。")
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 12*time.Second)
+	defer cancel()
+	updated, err := s.service.UpdateAddress(ctx, user, id, input.ExpectedVersion, address, time.Now().UTC())
+	if writeError(w, err) {
+		return
+	}
+	transport.WriteJSON(w, 200, view(updated))
 }
 
 type repositoryServer struct {
@@ -87,7 +123,7 @@ func (s *repositoryServer) read(w http.ResponseWriter, r *http.Request, id, curs
 	}
 	ownerID := ""
 	if owner != nil {
-		if len(r.URL.Query()["ownerId"]) != 1 || !repositoryDomainEntity.ValidOwner(*owner) {
+		if len(r.URL.Query()["ownerId"]) != 1 || !repositoryDomainEntity.ValidOwnerID(*owner) {
 			transport.WriteAPIError(w, 400, "invalid_input", "來源擁有者格式無效。")
 			return
 		}
@@ -113,6 +149,10 @@ func writeError(w http.ResponseWriter, err error) bool {
 		transport.WriteServiceError(w, 404, "not_found", "找不到此空間。", err)
 	case errors.Is(err, repositoryDomainEntity.ErrCursor):
 		transport.WriteServiceError(w, 400, "invalid_cursor", "分頁已失效，請重新查詢。", err)
+	case errors.Is(err, repositoryDomainEntity.ErrInput):
+		transport.WriteServiceError(w, 400, "invalid_input", "地址內容無效。", err)
+	case errors.Is(err, repositoryDomainEntity.ErrConflict):
+		transport.WriteServiceError(w, 409, "conflict", "空間資料已更新，請重新載入。", err)
 	default:
 		transport.WriteServiceError(w, 503, "unavailable", "暫時無法讀取空間，請重試。", err)
 	}

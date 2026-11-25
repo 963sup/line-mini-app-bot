@@ -6,6 +6,26 @@ import (
 	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 )
 
+func TestCanReview(t *testing.T) {
+	for _, tc := range []struct {
+		name                    string
+		groups                  []string
+		actor, applicant, group string
+		want                    bool
+	}{
+		{"authorized independent reviewer", []string{"group-a"}, "reviewer", "employee", "group-a", true},
+		{"self review", []string{"group-a"}, "employee", "employee", "group-a", false},
+		{"different group", []string{"group-b"}, "reviewer", "employee", "group-a", false},
+		{"no reviewer scope", nil, "reviewer", "employee", "group-a", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := CanReview(tc.groups, tc.actor, tc.applicant, tc.group); got != tc.want {
+				t.Fatalf("CanReview() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestDecisionRetries(t *testing.T) {
 	rejected := Decision{"rejected", "missing evidence"}
 	approved := Decision{Status: "approved"}

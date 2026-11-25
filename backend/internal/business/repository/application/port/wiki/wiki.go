@@ -18,6 +18,10 @@ type WriteState struct {
 
 type DecideWrite func(WriteState) (page repositoryDomainEntityWiki.Page, changed bool, err error)
 
+type Repositories interface {
+	Get(context.Context, string, string) (repositoryDomainEntity.Repository, error)
+}
+
 type Store interface {
 	GetWiki(context.Context, repositoryDomainEntity.Repository, string) (repositoryDomainEntityWiki.Page, error)
 	ListWiki(context.Context, repositoryDomainEntity.Repository, string, string, string) ([]repositoryDomainEntityWiki.Page, string, error)

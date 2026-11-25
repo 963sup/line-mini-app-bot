@@ -57,7 +57,7 @@ async function fixture(
         csrfToken: "c".repeat(43),
         expiresAt: new Date(Date.now() + 1800000).toISOString(),
       });
-    if (path === `/api/v1/repositories/${rid}`)
+    if (path === `/api/v1/repositories/${rid}` && request.method === "GET")
       return Response.json({
         id: rid,
         ownerId: "C" + rid,
@@ -118,6 +118,38 @@ async function fixture(
     },
   };
 }
+
+test("repository address uses generated PATCH contract and authoritative response", async () => {
+  let body: Record<string, unknown> | undefined;
+  const f = await fixture(async (request) => {
+    if (
+      request.method !== "PATCH" ||
+      new URL(request.url).pathname !== `/api/v1/repositories/${rid}`
+    )
+      return;
+    body = await request.json();
+    return Response.json({
+      id: rid,
+      ownerId: "C" + rid,
+      name: "測試儲存庫",
+      status: "ACTIVE",
+      version: 2,
+      address: { countryCode: "TW", postalCode: "100", addressLine: "臺北市中正區" },
+    });
+  });
+  try {
+    await f.fill("郵遞區號", "100");
+    await f.fill("地址", "臺北市中正區");
+    await f.click("儲存地址");
+    assert.deepEqual(body, {
+      expectedVersion: 1,
+      address: { countryCode: "TW", postalCode: "100", addressLine: "臺北市中正區" },
+    });
+    assert.match(document.body.textContent!, /地址已更新/);
+  } finally {
+    await f.dispose();
+  }
+});
 
 test("issue status selection stays selected and fetches only on apply", async () => {
   const queries: URLSearchParams[] = [];

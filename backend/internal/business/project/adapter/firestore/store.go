@@ -414,3 +414,21 @@ func (w projectUpdateWork) Save(actor string, previous, updated projectDomainEnt
 	}
 	return writeProjectChange(w.tx, w.ref, previous, updated, actor, "update")
 }
+
+func (s *Store) CountRepositoryProjects(tx *db.Transaction, ownerID, repositoryID string) (int64, error) {
+	q := s.ownerDoc(ownerID).Collection("projects").Where("defaultRepositoryId", "==", repositoryID).Select("id", "schemaVersion", "ownerId", "defaultRepositoryId")
+	rows, err := tx.Documents(q).GetAll()
+	if err != nil {
+		return 0, err
+	}
+	for _, row := range rows {
+		var doc projectDocument
+		if err := row.DataTo(&doc); err != nil {
+			return 0, err
+		}
+		if doc.SchemaVersion != 1 || doc.ID != row.Ref.ID || doc.OwnerID != ownerID || doc.DefaultRepositoryID != repositoryID {
+			return 0, projectDomainEntity.ErrUnavailable
+		}
+	}
+	return int64(len(rows)), nil
+}

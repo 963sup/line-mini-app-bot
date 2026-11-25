@@ -2,8 +2,9 @@ package application
 
 import (
 	"context"
-	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 	"slices"
+
+	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
 
 	membership "github.com/963sup/line-mini-app-bot/internal/business/membership/domain"
 	"github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"

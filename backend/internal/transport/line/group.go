@@ -20,10 +20,10 @@ const (
 
 // GroupEvent contains LINE protocol facts. Consumers decide their business state.
 type GroupEvent struct {
-	GroupID, EventID string
-	Kind             GroupEventKind
-	At               time.Time
-	Users            []string
+	GroupID, ActorID, EventID string
+	Kind                      GroupEventKind
+	At                        time.Time
+	Users                     []string
 }
 
 // DecodeGroupEvent is called only after the webhook transport verifies signature.
@@ -61,6 +61,7 @@ func DecodeGroupEvent(event webhook.EventInterface) (GroupEvent, bool) {
 		return GroupEvent{}, false
 	}
 	result.GroupID = g.GroupId
+	result.ActorID = g.UserId
 	result.At = time.UnixMilli(at).UTC()
 	result.Users = append(result.Users, g.UserId)
 	return result, true

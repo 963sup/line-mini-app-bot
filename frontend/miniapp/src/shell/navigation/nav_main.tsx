@@ -2,11 +2,7 @@
 
 import { useState } from "react";
 import { ChevronRight, type LucideIcon } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/shared/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/ui/collapsible";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -85,20 +81,28 @@ export function NavMain({ items }: { items: NavItem[] }) {
                     <SidebarMenuSub>
                       {item.items.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.url || subItem.title}>
-                          {subItem.status ? <p role="status" className="px-2 py-1 text-xs text-muted-foreground">{subItem.title}</p> : <SidebarMenuSubButton
-                            asChild
-                            isActive={subItem.isActive}
-                            aria-current={subItem.isActive ? "page" : undefined}
-                            onClick={() => select(subItem)}
-                          >
-                            {subItem.url ? (
-                              <a href={subItem.url}>
-                                <span>{subItem.title}</span>
-                              </a>
-                            ) : (
-                              <button type="button" disabled={subItem.disabled}>{subItem.title}</button>
-                            )}
-                          </SidebarMenuSubButton>}
+                          {subItem.status ? (
+                            <p role="status" className="px-2 py-1 text-xs text-muted-foreground">
+                              {subItem.title}
+                            </p>
+                          ) : (
+                            <SidebarMenuSubButton
+                              asChild
+                              isActive={subItem.isActive}
+                              aria-current={subItem.isActive ? "page" : undefined}
+                              onClick={() => select(subItem)}
+                            >
+                              {subItem.url ? (
+                                <a href={subItem.url}>
+                                  <span>{subItem.title}</span>
+                                </a>
+                              ) : (
+                                <button type="button" disabled={subItem.disabled}>
+                                  {subItem.title}
+                                </button>
+                              )}
+                            </SidebarMenuSubButton>
+                          )}
                         </SidebarMenuSubItem>
                       ))}
                     </SidebarMenuSub>
@@ -113,10 +117,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
                   tooltip={item.title}
                   onClick={() => select(item)}
                 >
-                  <a
-                    href={item.url}
-                    aria-current={item.isActive ? "page" : undefined}
-                  >
+                  <a href={item.url} aria-current={item.isActive ? "page" : undefined}>
                     {item.icon && <item.icon aria-hidden="true" />}
                     <span>{item.title}</span>
                   </a>

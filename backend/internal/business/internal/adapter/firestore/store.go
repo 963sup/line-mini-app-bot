@@ -60,7 +60,7 @@ func (e Document) IsOwner(user string) bool {
 // own model. Enterprise owner arrays never confer Organization ownership.
 func (d Document) LegacyOrganization() organizationDomainEntity.Organization {
 	return organizationDomainEntity.Organization{
-		Name: d.Name, OwnerUserID: d.Owner, MemberUserIDs: d.Members,
+		Name: d.Name, EnterpriseID: d.Enterprise, OwnerUserID: d.Owner, MemberUserIDs: d.Members,
 		Disabled: d.Disabled, MembershipMode: d.MembershipMode,
 	}
 }

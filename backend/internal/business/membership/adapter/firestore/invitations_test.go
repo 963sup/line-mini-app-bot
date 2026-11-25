@@ -18,7 +18,11 @@ func TestAcceptRedeliveryPreservesMembershipAndAudit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer db.Close()
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Error(err)
+		}
+	})
 	store := Store{DB: db, Channel: uuid.NewString()}
 	root := db.Collection("channels").Doc(store.Channel)
 	org := root.Collection("organizations").Doc(uuid.NewString())

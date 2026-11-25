@@ -33,7 +33,9 @@ func (a *actorAuth) Authenticate(http.ResponseWriter, *http.Request) (string, st
 
 type members map[string]bool
 
-func (m members) IsMember(_ context.Context, _, user string) (bool, error) { return m[user], nil }
+func (m members) CanAccessOwner(_ context.Context, _, _, user string) (bool, error) {
+	return m[user], nil
+}
 
 func TestWikiMembershipAndRevisions(t *testing.T) {
 	host := os.Getenv("FIRESTORE_EMULATOR_HOST")
@@ -58,14 +60,14 @@ func TestWikiMembershipAndRevisions(t *testing.T) {
 	store := &repoDB.Store{Client: client, ChannelID: channel.ID}
 	rid := strings.Repeat("a", 32)
 	scope := channel.Collection("repositories").Doc(rid)
-	_, err = scope.Set(ctx, map[string]any{"id": rid, "ownerId": "C" + rid, "version": 1, "status": "ACTIVE"})
+	_, err = scope.Set(ctx, map[string]any{"id": rid, "ownerType": "ORGANIZATION", "ownerId": "11111111-1111-4111-8111-111111111111", "groupId": "C" + rid, "version": 1, "status": "ACTIVE"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	membership := members{"alpha": true, "beta": true}
 	auth := &actorAuth{"alpha"}
 	mux := http.NewServeMux()
-	wikihttp.Register(mux, &repositoryApplicationWiki.Service{Repositories: &repositoryApplication.Service{Store: store, Membership: membership}, Store: store}, auth)
+	wikihttp.Register(mux, &repositoryApplicationWiki.Service{Repositories: &repositoryApplication.Service{Store: store, OwnerAccess: membership}, Store: store}, auth)
 	request := func(method, path, body, key string) *httptest.ResponseRecorder {
 		req := httptest.NewRequest(method, "/api/v1/repositories/"+rid+"/wiki-pages"+path, strings.NewReader(body))
 		if body != "" {
@@ -178,7 +180,7 @@ func TestWikiMembershipAndRevisions(t *testing.T) {
 	// The same title in a different repository is independent.
 	original := rid
 	rid = strings.Repeat("b", 32)
-	_, err = channel.Collection("repositories").Doc(rid).Set(ctx, map[string]any{"id": rid, "ownerId": "C" + rid, "version": 1, "status": "ACTIVE"})
+	_, err = channel.Collection("repositories").Doc(rid).Set(ctx, map[string]any{"id": rid, "ownerType": "ORGANIZATION", "ownerId": "11111111-1111-4111-8111-111111111111", "groupId": "C" + rid, "version": 1, "status": "ACTIVE"})
 	if err != nil {
 		t.Fatal(err)
 	}

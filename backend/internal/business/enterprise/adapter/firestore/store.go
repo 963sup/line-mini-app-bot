@@ -33,8 +33,9 @@ type Store struct {
 	Groups  interface {
 		Get(context.Context, string, string) (groupentity.Group, error)
 	}
-	OrganizationMember func(*firestore.Transaction, *firestore.DocumentRef, string, string) (bool, error)
-	TeamMember         func(*firestore.Transaction, *firestore.DocumentRef, string, string, string, string) (bool, error)
+	AttachOrganization func(tx *firestore.Transaction, root *firestore.DocumentRef, actor, organizationID, enterpriseID string) error
+	Organizations      func(*firestore.Transaction, *firestore.DocumentRef, string, string, bool) ([]dto.Link, []dto.Link, error)
+	Teams              func(*firestore.Transaction, *firestore.DocumentRef, string, string, bool, []dto.Link) ([]dto.TeamCandidate, error)
 }
 
 type grant struct {
@@ -140,7 +141,14 @@ func (s Store) Enterprise(ctx context.Context, user, id string) (*dto.Detail, er
 	if uuid.Validate(id) != nil {
 		return nil, organizationDomainEntity.ErrInvalid
 	}
-	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*dto.Detail, error) {
+	if s.Organizations == nil || s.Teams == nil {
+		return nil, errors.New("enterprise directory unavailable")
+	}
+	type snapshot struct {
+		detail     dto.Detail
+		candidates []dto.TeamCandidate
+	}
+	data, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*snapshot, error) {
 		ent, e := orgstore.Read(tx, root.Collection("enterprises").Doc(id))
 		if e != nil {
 			return nil, e
@@ -152,92 +160,38 @@ func (s Store) Enterprise(ctx context.Context, user, id string) (*dto.Detail, er
 		owner := legacy && ent.IsOwner(user)
 		admin := owner || (legacy && slices.Contains(ent.Managers, user))
 		view := dto.Detail{ID: id, Name: ent.Name, CanManage: owner, CanManageTeams: admin, Organizations: []dto.Link{}, Teams: []dto.Link{}}
-		docs, e := tx.Documents(root.Collection("organizations").Where("enterpriseId", "==", id)).GetAll()
+		view.Organizations, view.AssignableOrganizations, e = s.Organizations(tx, root, user, id, admin)
 		if e != nil {
 			return nil, e
-		}
-		for _, d := range docs {
-			var org orgstore.Document
-			if e := d.DataTo(&org); e != nil {
-				return nil, e
-			}
-			visible := admin || org.VisibleLegacyOrganization(user)
-			if !visible && org.MembershipMode == "membership" && !org.Disabled && s.OrganizationMember != nil {
-				visible, e = s.OrganizationMember(tx, root, d.Ref.ID, user)
-				if e != nil {
-					return nil, e
-				}
-			}
-			if view.CanManageTeams && org.LegacyOrganizationEnabled() {
-				view.AssignableOrganizations = append(view.AssignableOrganizations, dto.Link{ID: d.Ref.ID, Name: org.Name})
-			}
-			if visible {
-				view.Organizations = append(view.Organizations, dto.Link{ID: d.Ref.ID, Name: org.Name})
-			}
 		}
 		if !admin && len(view.Organizations) == 0 {
 			return nil, organizationDomainEntity.ErrNotFound
 		}
-		assigned := map[string]bool{}
-		if !admin {
-			for _, org := range view.Organizations {
-				links, err := tx.Documents(root.Collection("organizations").Doc(org.ID).Collection("enterpriseTeams").Query).GetAll()
-				if err != nil {
-					return nil, err
-				}
-				for _, link := range links {
-					assigned[link.Ref.ID] = true
-				}
-			}
+		teams, err := s.Teams(tx, root, user, id, admin, view.Organizations)
+		if err != nil {
+			return nil, err
 		}
-		docs, e = tx.Documents(root.Collection("teams").Where("managementId", "==", id)).GetAll()
-		if e != nil {
-			return nil, e
-		}
-		for _, d := range docs {
-			var team orgstore.Document
-			if e := d.DataTo(&team); e != nil {
-				return nil, e
-			}
-			if team.Scope != "enterprise" || team.Disabled {
-				continue
-			}
-			switch team.MembershipMode {
-			case "membership":
-				if (!admin && !assigned[d.Ref.ID]) || team.Status != "ACTIVE" || s.TeamMember == nil {
-					continue
-				}
-				allowed, err := s.TeamMember(tx, root, d.Ref.ID, team.Scope, team.Manager, user)
-				if err != nil {
-					return nil, err
-				}
-				if allowed {
-					view.Teams = append(view.Teams, dto.Link{ID: d.Ref.ID, Name: team.Name})
-				}
-				continue
-			case "", "legacy":
-			default:
-				continue
-			}
-			if !admin {
-				if !assigned[d.Ref.ID] {
-					continue
-				}
-				if s.Groups == nil {
-					return nil, groupport.ErrUnavailable
-				}
-				_, e := s.Groups.Get(ctx, user, d.Ref.ID)
-				if e != nil {
-					if errors.Is(e, groupentity.ErrNotFound) {
-						continue
-					}
-					return nil, e
-				}
-			}
-			view.Teams = append(view.Teams, dto.Link{ID: d.Ref.ID, Name: team.Name})
-		}
-		return &view, nil
+		return &snapshot{view, teams}, nil
 	})
+	if err != nil {
+		return nil, err
+	}
+	for _, candidate := range data.candidates {
+		if candidate.CheckLINE {
+			if s.Groups == nil {
+				return nil, groupport.ErrUnavailable
+			}
+			_, err := s.Groups.Get(ctx, user, candidate.ID)
+			if errors.Is(err, groupentity.ErrNotFound) {
+				continue
+			}
+			if err != nil {
+				return nil, err
+			}
+		}
+		data.detail.Teams = append(data.detail.Teams, candidate.Link)
+	}
+	return &data.detail, nil
 }
 
 func (s Store) RunOwnerChange(ctx context.Context, id, owner string, apply func(port.OwnerChange) (*dto.Link, error)) (*dto.Link, error) {
@@ -254,7 +208,15 @@ func (s Store) RunOrganizationLink(ctx context.Context, id, organization string,
 		return nil, organizationDomainEntity.ErrInvalid
 	}
 	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*dto.Link, error) {
-		return apply(organizationLink{enterpriseWork{tx: tx, ref: root.Collection("enterprises").Doc(id)}, root.Collection("organizations").Doc(organization)})
+		return apply(organizationLink{
+			enterpriseWork: enterpriseWork{tx: tx, ref: root.Collection("enterprises").Doc(id)},
+			attach: func(actor string) error {
+				if s.AttachOrganization == nil {
+					return errors.New("organization attachment unavailable")
+				}
+				return s.AttachOrganization(tx, root, actor, organization, id)
+			},
+		})
 	})
 }
 
@@ -282,17 +244,7 @@ func (w ownerChange) AddOwner() error {
 
 type organizationLink struct {
 	enterpriseWork
-	organization *firestore.DocumentRef
+	attach func(actor string) error
 }
 
-func (w organizationLink) Organization(actor string) (port.OrganizationFacts, error) {
-	org, err := orgstore.Read(w.tx, w.organization)
-	if err != nil {
-		return port.OrganizationFacts{}, err
-	}
-	return port.OrganizationFacts{Active: org.LegacyOrganizationEnabled(), ActorIsOwner: org.Owner == actor, EnterpriseID: org.Enterprise}, nil
-}
-
-func (w organizationLink) Attach() error {
-	return w.tx.Update(w.organization, []firestore.Update{{Path: "enterpriseId", Value: w.ref.ID}})
-}
+func (w organizationLink) AttachForOwner(actor string) error { return w.attach(actor) }

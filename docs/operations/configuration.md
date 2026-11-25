@@ -18,6 +18,10 @@
 
 完整名稱與實際讀取條件以 `backend/internal/bootstrap/`、`cloudbuild.yaml` 與 `.env.example` 為準。
 
+## Google Cloud 目標
+
+正式環境使用 Google Cloud project `bubbly-area-513305-s0`。Firestore 使用該專案的 `(default)` database；部署與維運指令仍須明確指定 project ID，避免依賴本機 `gcloud` 預設值。
+
 ## 秘密
 
 Token、channel secret 與 API key 只透過 Secret Manager 或受控本機環境注入。部署使用明確數字版本，不使用不受控的 `latest`。輪替流程先新增版本、建立 Ready revision、驗證後切流量，再依回退窗口停用舊版本。

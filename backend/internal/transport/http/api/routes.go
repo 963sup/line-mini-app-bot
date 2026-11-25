@@ -48,6 +48,7 @@ func RegisterRepositories(public *http.ServeMux, handler RepositoryServer) {
 	routes := routeHandler(contractServer{RepositoryServer: handler})
 	public.Handle("GET /api/v1/repositories", routes)
 	public.Handle("GET /api/v1/repositories/{id}", routes)
+	public.Handle("PATCH /api/v1/repositories/{id}", routes)
 }
 
 func RegisterExplore(public *http.ServeMux, handler ExploreServer) {

@@ -415,6 +415,7 @@ func (s *Store) AcknowledgeQuantityEvent(ctx context.Context, id string) error {
 func (s *Store) quantityCursor() *db.DocumentRef {
 	return s.Client.Collection("channels").Doc(s.ChannelID).Collection("deliveryCursors").Doc("objectQuantity")
 }
+
 func (s *Store) MarkQuantityEventAttempt(ctx context.Context, id string) error {
 	_, err := s.quantityCursor().Set(ctx, map[string]any{"lastId": id})
 	return err

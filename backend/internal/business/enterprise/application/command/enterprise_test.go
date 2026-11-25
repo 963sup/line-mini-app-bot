@@ -12,9 +12,9 @@ import (
 
 type commandStore struct {
 	port.Store
-	enterprise   port.EnterpriseFacts
-	organization port.OrganizationFacts
-	writes       int
+	enterprise port.EnterpriseFacts
+	attachErr  error
+	writes     int
 }
 
 func (s *commandStore) RunOwnerChange(_ context.Context, _, _ string, apply func(port.OwnerChange) (*dto.Link, error)) (*dto.Link, error) {
@@ -29,31 +29,35 @@ type commandWork struct{ store *commandStore }
 
 func (w commandWork) Enterprise(string) (port.EnterpriseFacts, error) { return w.store.enterprise, nil }
 
-func (w commandWork) Organization(string) (port.OrganizationFacts, error) {
-	return w.store.organization, nil
+func (w commandWork) AttachForOwner(actor string) error {
+	if actor != "actor" {
+		return errors.New("wrong actor")
+	}
+	if w.store.attachErr != nil {
+		return w.store.attachErr
+	}
+	w.store.writes++
+	return nil
 }
 func (w commandWork) AddOwner() error { w.store.writes++; return nil }
-func (w commandWork) Attach() error   { w.store.writes++; return nil }
 
 func TestEnterpriseCommandsOwnErrorsAndRejectWithoutWrites(t *testing.T) {
 	for _, tc := range []struct {
-		name                                       string
-		attach, active, owner, orgActive, orgOwner bool
-		linked                                     string
-		want                                       error
+		name                  string
+		attach, active, owner bool
+		attachErr             error
+		want                  error
 	}{
 		{name: "inactive owner change", owner: true, want: enterprise.ErrNotFound},
 		{name: "non-owner change", active: true, want: enterprise.ErrNotFound},
 		{name: "owner change", active: true, owner: true},
-		{name: "inactive enterprise link", attach: true, owner: true, orgActive: true, orgOwner: true, want: enterprise.ErrNotFound},
-		{name: "inactive organization link", attach: true, active: true, owner: true, orgOwner: true, want: enterprise.ErrNotFound},
-		{name: "organization owner required", attach: true, active: true, owner: true, orgActive: true, want: enterprise.ErrNotFound},
-		{name: "foreign enterprise", attach: true, active: true, owner: true, orgActive: true, orgOwner: true, linked: "other", want: enterprise.ErrConflict},
-		{name: "attach organization", attach: true, active: true, owner: true, orgActive: true, orgOwner: true},
-		{name: "repeat organization link", attach: true, active: true, owner: true, orgActive: true, orgOwner: true, linked: "enterprise"},
+		{name: "inactive enterprise link", attach: true, owner: true, want: enterprise.ErrNotFound},
+		{attachErr: enterprise.ErrNotFound, name: "inactive organization link", attach: true, active: true, owner: true, want: enterprise.ErrNotFound},
+		{name: "foreign enterprise", attach: true, active: true, owner: true, attachErr: enterprise.ErrConflict, want: enterprise.ErrConflict},
+		{name: "attach organization", attach: true, active: true, owner: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			store := &commandStore{enterprise: port.EnterpriseFacts{Name: "HQ", Active: tc.active, ActorIsOwner: tc.owner}, organization: port.OrganizationFacts{Active: tc.orgActive, ActorIsOwner: tc.orgOwner, EnterpriseID: tc.linked}}
+			store := &commandStore{enterprise: port.EnterpriseFacts{Name: "HQ", Active: tc.active, ActorIsOwner: tc.owner}, attachErr: tc.attachErr}
 			var value *dto.Link
 			var err error
 			if tc.attach {

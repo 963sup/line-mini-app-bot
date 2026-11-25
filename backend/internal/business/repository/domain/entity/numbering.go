@@ -30,7 +30,7 @@ type NumberedCreation struct {
 }
 
 func (c NumberedCreation) Valid() bool {
-	return ValidID(c.RepositoryID) && ValidOwner(c.OwnerID) && c.ActorID != "" && len(c.ActorID) <= 256 &&
+	return ValidID(c.RepositoryID) && ValidOwnerID(c.OwnerID) && c.ActorID != "" && len(c.ActorID) <= 256 &&
 		resourceTypePattern.MatchString(c.ResourceType) && creationKeyPattern.MatchString(c.IdempotencyKey) && payloadHashPattern.MatchString(c.PayloadHash)
 }
 

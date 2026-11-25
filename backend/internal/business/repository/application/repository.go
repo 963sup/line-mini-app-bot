@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"time"
 
 	repositoryApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/repository/application/dto"
 	repositoryApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/repository/application/port"
@@ -9,8 +10,24 @@ import (
 )
 
 type Service struct {
-	Store      repositoryApplicationPort.Store
-	Membership repositoryApplicationPort.Membership
+	Store         repositoryApplicationPort.Store
+	AddressWriter repositoryApplicationPort.AddressWriter
+	OwnerAccess   repositoryApplicationPort.OwnerAccess
+}
+
+func (s *Service) UpdateAddress(ctx context.Context, actor, id string, expectedVersion int64, address repositoryDomainEntity.Address, now time.Time) (repositoryDomainEntity.Repository, error) {
+	current, err := s.Get(ctx, actor, id)
+	if err != nil {
+		return repositoryDomainEntity.Repository{}, err
+	}
+	updated, err := current.ChangeAddress(expectedVersion, address, now)
+	if err != nil {
+		return repositoryDomainEntity.Repository{}, err
+	}
+	if s.AddressWriter == nil {
+		return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrUnavailable
+	}
+	return s.AddressWriter.UpdateAddress(ctx, current, updated)
 }
 
 func (s *Service) Get(ctx context.Context, user, id string) (repositoryDomainEntity.Repository, error) {
@@ -32,7 +49,7 @@ func (s *Service) Get(ctx context.Context, user, id string) (repositoryDomainEnt
 }
 
 func (s *Service) List(ctx context.Context, user, cursor, ownerID string) (repositoryApplicationDto.Page, error) {
-	if user == "" || (ownerID != "" && !repositoryDomainEntity.ValidOwner(ownerID)) {
+	if user == "" || (ownerID != "" && !repositoryDomainEntity.ValidOwnerID(ownerID)) {
 		return repositoryApplicationDto.Page{}, repositoryDomainEntity.ErrNotFound
 	}
 	page, err := s.Store.Candidates(ctx, user, cursor, ownerID)
@@ -60,16 +77,16 @@ func (s *Service) allowed(ctx context.Context, user string, r repositoryDomainEn
 	if r.Status != "ACTIVE" {
 		return false, nil
 	}
-	if !repositoryDomainEntity.ValidOwner(r.OwnerID) {
+	if !repositoryDomainEntity.ValidTypedOwner(r.OwnerType, r.OwnerID) {
 		return false, nil
 	}
-	if r.OwnerID[0] == 'U' {
+	if r.OwnerType == repositoryDomainEntity.OwnerUser {
 		return r.OwnerID == user, nil
 	}
-	if s.Membership == nil {
+	if s.OwnerAccess == nil {
 		return false, repositoryDomainEntity.ErrUnavailable
 	}
-	return s.Membership.IsMember(ctx, r.OwnerID, user)
+	return s.OwnerAccess.CanAccessOwner(ctx, string(r.OwnerType), r.OwnerID, user)
 }
 
 // OwnerID returns the owner visible to the actor through the normal read path.

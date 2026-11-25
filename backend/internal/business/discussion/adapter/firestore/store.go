@@ -271,3 +271,21 @@ func maxTime(a, b time.Time) time.Time {
 	}
 	return a
 }
+
+func CountRepositoryDiscussions(tx *db.Transaction, repository *db.DocumentRef) (int64, error) {
+	q := repository.Collection("discussions").Select("id", "schemaVersion", "repositoryId")
+	rows, err := tx.Documents(q).GetAll()
+	if err != nil {
+		return 0, err
+	}
+	for _, row := range rows {
+		var doc document
+		if err := row.DataTo(&doc); err != nil {
+			return 0, err
+		}
+		if doc.SchemaVersion != 1 || doc.ID != row.Ref.ID || doc.RepositoryID != repository.ID {
+			return 0, discussionport.ErrUnavailable
+		}
+	}
+	return int64(len(rows)), nil
+}

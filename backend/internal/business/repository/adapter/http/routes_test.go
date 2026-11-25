@@ -10,11 +10,11 @@ import (
 func TestViewGroupID(t *testing.T) {
 	suffix := strings.Repeat("a", 32)
 	group := "C" + suffix
-	if got := view(entity.Repository{OwnerID: group}).GroupId; got == nil || *got != group {
+	if got := view(entity.Repository{OwnerType: entity.OwnerUser, OwnerID: "U" + strings.Repeat("a", 32), GroupID: group}).GroupId; got == nil || *got != group {
 		t.Fatal("group-owned repository must expose its group ID")
 	}
 	for _, owner := range []string{"U" + suffix, "", "C-invalid"} {
-		if view(entity.Repository{OwnerID: owner}).GroupId != nil {
+		if view(entity.Repository{OwnerType: entity.OwnerUser, OwnerID: owner}).GroupId != nil {
 			t.Errorf("unexpected group ID for owner %q", owner)
 		}
 	}

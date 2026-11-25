@@ -36,10 +36,10 @@ func TestDependencyBoundaries(t *testing.T) {
 		"business/team/application/dto":                   {"business/team/domain/entity"},
 		"business/team/application/port":                  {"business/team/application/dto", "business/team/domain/entity", "business/team/domain/event"},
 		"business/team/application/query":                 {"business/team/application/dto", "business/team/application/port", "business/team/domain/entity", "platform/line/lineid"},
-		"business/repository/application":                 {"business/repository/application/dto", "business/repository/application/port", "business/repository/domain/entity", "platform/line/lineid"},
-		"business/repository/application/dto":             {"business/repository/application", "business/repository/application/port", "business/repository/domain/entity", "platform/line/lineid"},
-		"business/repository/application/port":            {"business/repository/application", "business/repository/application/dto", "business/repository/domain/entity", "platform/line/lineid"},
-		"business/repository/domain/entity":               {"platform/line/lineid"},
+		"business/repository/application":                 {"business/repository/application/dto", "business/repository/application/port", "business/repository/domain/entity"},
+		"business/repository/application/dto":             {"business/repository/application", "business/repository/application/port", "business/repository/domain/entity"},
+		"business/repository/application/port":            {"business/repository/application", "business/repository/application/dto", "business/repository/domain/entity"},
+		"business/repository/domain/entity":               {},
 		"business/repository/domain/entity/wiki":          {"business/repository/domain/entity"},
 		"business/repository/application/dto/space":       {"business/repository/application", "business/repository/application/dto", "business/repository/application/port", "business/repository/application/port/space", "business/repository/application/space", "business/repository/domain/entity", "business/repository/domain/entity/space"},
 		"business/repository/application/port/space":      {"business/repository/application", "business/repository/application/dto", "business/repository/application/dto/space", "business/repository/application/port", "business/repository/application/space", "business/repository/domain/entity", "business/repository/domain/entity/space"},
@@ -53,8 +53,8 @@ func TestDependencyBoundaries(t *testing.T) {
 		"business/repository/application/statistics":      {"business/repository/application", "business/repository/application/dto", "business/repository/application/port", "business/repository/application/port/statistics", "business/repository/domain/entity", "business/repository/domain/entity/statistics"},
 		"business/repository/domain/entity/statistics":    {"business/repository/domain/entity"},
 		"business/project/application":                    {"business/project/application/dto", "business/project/application/port", "business/project/domain/entity", "platform/line/lineid"},
-		"business/project/application/dto":                {"business/project/application", "business/project/application/port", "business/project/domain/entity", "platform/line/lineid"},
-		"business/project/application/port":               {"business/project/application", "business/project/application/dto", "business/project/domain/entity", "platform/line/lineid"},
+		"business/project/application/dto":                {"business/project/application", "business/project/application/port", "business/project/domain/entity"},
+		"business/project/application/port":               {"business/project/application", "business/project/application/dto", "business/project/domain/entity"},
 		"business/project/domain/entity":                  {"business/team/domain/entity", "platform/line/lineid"},
 		"business/repository/application/dto/labels":      {"business/repository/application", "business/repository/application/dto", "business/repository/application/labels", "business/repository/application/port", "business/repository/application/port/labels", "business/repository/domain/entity", "business/repository/domain/entity/labels"},
 		"business/repository/application/labels":          {"business/repository/application", "business/repository/application/dto", "business/repository/application/dto/labels", "business/repository/application/port", "business/repository/application/port/labels", "business/repository/domain/entity", "business/repository/domain/entity/labels"},
@@ -129,11 +129,12 @@ func TestDependencyBoundaries(t *testing.T) {
 			if err != nil {
 				return err
 			}
-			if strings.HasPrefix(dependency, "github.com/line/line-bot-sdk-go/") && parts[0] != "bootstrap" && !strings.HasPrefix(dir+"/", "platform/line/") && !strings.HasPrefix(dir+"/", "transport/line/") && !(parts[0] == "business" && len(parts) >= 4 && parts[2] == "adapter" && parts[3] == "line") {
+			lineFeatureAdapter := len(parts) >= 4 && parts[0] == "business" && parts[2] == "adapter" && parts[3] == "line"
+			if strings.HasPrefix(dependency, "github.com/line/line-bot-sdk-go/") && parts[0] != "bootstrap" && !strings.HasPrefix(dir+"/", "platform/line/") && !strings.HasPrefix(dir+"/", "transport/line/") && !lineFeatureAdapter {
 				t.Errorf("%s imports LINE SDK outside its adapter boundary", rel)
 			}
 			if businessCore {
-				if !strings.HasPrefix(dependency, module) && (strings.Contains(strings.Split(dependency, "/")[0], ".") || dependency == "net/http" || dependency == "database/sql") {
+				if !strings.HasPrefix(dependency, module) && (strings.Contains(strings.Split(dependency, "/")[0], ".") || strings.HasPrefix(dependency+"/", "net/http/") || strings.HasPrefix(dependency+"/", "database/sql/")) {
 					t.Errorf("%s imports infrastructure %s", rel, dependency)
 				}
 				target := strings.TrimPrefix(dependency, module)
@@ -142,7 +143,8 @@ func TestDependencyBoundaries(t *testing.T) {
 					t.Errorf("%s imports unapproved cross-domain dependency %s", rel, dependency)
 				}
 				// The LINE group ID format is a pure protocol value with no I/O.
-				platformAdapter := strings.HasPrefix(target, "platform/") && target != "platform/line/lineid"
+				approvedProtocolValue := target == "platform/line/lineid" && slices.Contains(core[dir], target)
+				platformAdapter := strings.HasPrefix(target, "platform/") && !approvedProtocolValue
 				if strings.HasPrefix(dependency, module) && (strings.Contains(target+"/", "/adapter/") || platformAdapter || strings.HasPrefix(target+"/", "transport/") || parts[2] == "domain" && strings.Contains(target+"/", "/application/")) {
 					t.Errorf("%s imports outer layer %s", rel, dependency)
 				}
@@ -163,7 +165,7 @@ func TestDependencyBoundaries(t *testing.T) {
 					internal = internal || strings.HasPrefix(dependency, module+attendance+"application/")
 				}
 				external := strings.Contains(strings.Split(dependency, "/")[0], ".")
-				if external && !internal || dependency == "net/http" || dependency == "database/sql" {
+				if external && !internal || strings.HasPrefix(dependency+"/", "net/http/") || strings.HasPrefix(dependency+"/", "database/sql/") {
 					t.Errorf("%s imports %s outside the attendance %s boundary", rel, dependency, layer)
 				}
 			}

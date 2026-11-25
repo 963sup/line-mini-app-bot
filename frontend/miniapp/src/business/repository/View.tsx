@@ -1,18 +1,25 @@
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Empty, EmptyHeader, EmptyTitle } from "@/shared/ui/empty";
 import { FormField } from "@/shared/FormField";
 import { NativeSelect, NativeSelectOption } from "@/shared/ui/native_select";
 import { PagePanel } from "@/shared/PagePanel";
 import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
 import { ReadFeedback } from "@/shared/ReadFeedback";
 import { useSession } from "@/identity/Session";
-import { RepositoryNavigationContext, useRepositoryNavigation } from "./NavigationGuard";
+import {
+  RepositoryNavigationContext,
+  useRepositoryGuard,
+  useRepositoryNavigation,
+} from "./NavigationGuard";
 import { QuantityHistory } from "../object/QuantityHistory";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { useRepositories } from "./RepositoryContext";
 import { navigation } from "./navigation";
 import { displayTime } from "../../shared/time/time";
+import { errorMessage, rejectedAttempt, useLatestRequest } from "../../shared/http/lifecycle";
+import type { components } from "@repo/api-client";
 const Objects = dynamic(() => import("../object/View").then((module) => module.View), {
   loading: Loading,
 });
@@ -43,6 +50,116 @@ function Loading() {
   return <ReadFeedback busy label="正在載入功能……" />;
 }
 
+type Repository = components["schemas"]["Repository"];
+
+function AddressEditor({
+  repository,
+  onUpdated,
+}: {
+  repository: Repository;
+  onUpdated: (value: Repository) => void;
+}) {
+  const { request } = useSession();
+  const write = useLatestRequest();
+  const form = useRef<HTMLFormElement>(null);
+  const [countryCode, setCountryCode] = useState(repository.address?.countryCode || "TW");
+  const [postalCode, setPostalCode] = useState(repository.address?.postalCode || "");
+  const [addressLine, setAddressLine] = useState(repository.address?.addressLine || "");
+  const [busy, setBusy] = useState(false);
+  const [uncertain, setUncertain] = useState(false);
+  const [status, setStatus] = useState("");
+  const dirty =
+    countryCode !== (repository.address?.countryCode || "TW") ||
+    postalCode !== (repository.address?.postalCode || "") ||
+    addressLine !== (repository.address?.addressLine || "");
+  const guard = useRepositoryGuard(dirty, () => form.current?.querySelector("input")?.focus(), {
+    busy,
+    uncertain,
+  });
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    if (busy || uncertain || !guard.canWrite()) return;
+    setBusy(true);
+    setStatus("正在儲存地址……");
+    guard.block(true);
+    void write.run(
+      (signal) =>
+        request(
+          (client, s) =>
+            client.PATCH("/api/v1/repositories/{id}", {
+              signal: s,
+              params: { path: { id: repository.id } },
+              body: {
+                expectedVersion: repository.version,
+                address: {
+                  countryCode: countryCode.trim().toUpperCase(),
+                  postalCode: postalCode.trim(),
+                  addressLine: addressLine.trim(),
+                },
+              },
+            }),
+          { signal },
+        ),
+      (updated) => {
+        setBusy(false);
+        setUncertain(false);
+        setStatus("地址已更新。");
+        guard.block(false);
+        onUpdated(updated);
+      },
+      (error) => {
+        setBusy(false);
+        const unknown = !rejectedAttempt(error, ["invalid_input", "conflict"]);
+        setUncertain(unknown);
+        guard.block(unknown);
+        setStatus(
+          errorMessage(error) + (unknown ? " 結果尚未確認，請重新開啟儲存庫確認後再操作。" : ""),
+        );
+      },
+    );
+  }
+  return (
+    <PagePanel heading="地址">
+      <form ref={form} className="grid gap-3" onSubmit={submit}>
+        <FormField>
+          國家代碼
+          <Input
+            value={countryCode}
+            maxLength={2}
+            required
+            onChange={(event) => setCountryCode(event.target.value)}
+          />
+        </FormField>
+        <FormField>
+          郵遞區號
+          <Input
+            value={postalCode}
+            maxLength={32}
+            onChange={(event) => setPostalCode(event.target.value)}
+          />
+        </FormField>
+        <FormField>
+          地址
+          <Input
+            value={addressLine}
+            maxLength={500}
+            required
+            onChange={(event) => setAddressLine(event.target.value)}
+          />
+        </FormField>
+        <Button type="submit" disabled={busy || uncertain}>
+          儲存地址
+        </Button>
+        {status && (
+          <p role="status" className="text-sm text-muted-foreground">
+            {status}
+          </p>
+        )}
+      </form>
+    </PagePanel>
+  );
+}
+
 export function View() {
   const { user, epoch } = useSession();
   const { selectedID } = useRepositories();
@@ -51,7 +168,8 @@ export function View() {
 
 function Content() {
   const repositories = useRepositories();
-  const { selected, selectedID, detailBusy, detailStatus, reloadDetail, canLoad } = repositories;
+  const { selected, selectedID, detailBusy, detailStatus, reloadDetail, acceptDetail, canLoad } =
+    repositories;
   const [wikiId] = useState(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(location.search);
@@ -178,6 +296,8 @@ function Content() {
                       <dd>{selected.id}</dd>
                       <dt>擁有者 ID</dt>
                       <dd>{selected.ownerId}</dd>
+                      <dt>擁有者類型</dt>
+                      <dd>{selected.ownerType === "ORGANIZATION" ? "組織" : "使用者"}</dd>
                       <dt>狀態</dt>
                       <dd>{selected.status === "ACTIVE" ? "啟用" : "停用"}</dd>
                       <dt>版本</dt>
@@ -211,6 +331,7 @@ function Content() {
                       </Button>
                     </div>
                   </PagePanel>
+                  <AddressEditor repository={selected} onUpdated={acceptDetail} />
                   {selected.groupId && (
                     <PagePanel heading="出勤與群組服務">
                       <a

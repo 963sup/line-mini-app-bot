@@ -5,7 +5,7 @@ owner: LINE integration
 
 # LINE 互動介面盤點
 
-本文件保存盤點、遷移矩陣與驗證證據。互動分配、詞彙、Action、私聊／群組規則與禁止事項只以 [LINE 互動標準](../standards/line_interactions.md) 為權威；後端所有權見 [LINE 後端責任與驗收](../architecture/line.md)。
+本文件保存盤點、遷移矩陣與驗證證據。互動分配、詞彙、Action、私聊／群組規則與禁止事項只以 [LINE 互動標準](../standards/line_interactions.md) 為權威；業務分析使用[用例設計概念](domain_rules.md#用例設計概念)，後端所有權見 [LINE 後端責任與驗收](../architecture/line.md)。
 
 ## 盤點範圍
 
@@ -366,6 +366,8 @@ Confirm、Image Carousel 與 Imagemap 沒有目前需求，因此維持零實作
 ### 矩陣判讀
 
 - Chat、Group 與 App 是同一業務用例的互動介面，不是三套業務能力；新增介面入口不得複製規則或狀態轉移。
+- 每個入口只解析互動情境並映射 Actor、Resource 與 Action 或 Query；Authorization、State、結果及 Event 仍由既有業務用例負責，不建立通用 Interaction Domain 或跨領域處理器。
+- Messaging API 與 MINI App 的 Command、Query、結果訊息及純導航都必須依 [LINE 互動標準](../standards/line_interactions.md) 保留可追溯語意；沒有業務寫入時不虛構狀態轉移或事件。
 - 上班、下班、休息開始、休息結束與休息確認是不同操作及狀態轉移；「定位」只是打卡流程的驗證條件，不是涵蓋請假、支援或補卡的業務用例。
 - 「支援」只提供作業指引；不得暗示系統會自動轉移、結束或新增班次。既有選單的舊 alias 與 `action=transfer` postback 僅保留讀取相容，不得成為顯示詞或新發布 action。
 - 請假、補卡與更正由聊天導流、MINI App 完成表單；請假不需要定位，補卡與更正雖共用補正審核核心，仍是兩個入口與使用者目的，且不得共用打卡寫入語意。

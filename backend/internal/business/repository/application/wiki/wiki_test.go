@@ -16,6 +16,29 @@ type writeStore struct {
 	writes int
 }
 
+type repositoriesStub struct{ err error }
+
+func (s repositoriesStub) Get(context.Context, string, string) (entity.Repository, error) {
+	return entity.Repository{ID: "repository", Status: "ACTIVE"}, s.err
+}
+
+func TestUseCasesAuthorizeBeforeAccessingWikiStore(t *testing.T) {
+	store := &writeStore{}
+	service := Service{Repositories: repositoriesStub{err: entity.ErrNotFound}, Store: store}
+	if _, err := service.Get(context.Background(), "actor", "repository", "page"); !errors.Is(err, entity.ErrNotFound) {
+		t.Fatalf("get authorization error = %v", err)
+	}
+	if _, _, err := service.List(context.Background(), "actor", "repository", "", ""); !errors.Is(err, entity.ErrNotFound) {
+		t.Fatalf("list authorization error = %v", err)
+	}
+	if _, err := service.Save(context.Background(), "actor", "repository", "", "key", 0, "title", "body"); !errors.Is(err, entity.ErrNotFound) {
+		t.Fatalf("save authorization error = %v", err)
+	}
+	if store.writes != 0 {
+		t.Fatal("unauthorized use case reached the wiki store")
+	}
+}
+
 func (s *writeStore) WriteWiki(_ context.Context, _ entity.Repository, _ wikiport.WriteTarget, decide wikiport.DecideWrite) (wikimodel.Page, error) {
 	next, changed, err := decide(s.state)
 	if err != nil {
@@ -33,9 +56,9 @@ func (s *writeStore) WriteWiki(_ context.Context, _ entity.Repository, _ wikipor
 
 func TestCreateReplayAfterEditDoesNotAddRevision(t *testing.T) {
 	store := &writeStore{state: wikiport.WriteState{ID: "page"}}
-	service := Service{Store: store}
+	service := Service{Repositories: repositoriesStub{}, Store: store}
 	save := func(id string, expected int64, title string) (wikimodel.Page, error) {
-		return service.Save(context.Background(), entity.Repository{}, "actor", id, "key", expected, title, "body")
+		return service.Save(context.Background(), "actor", "repository", id, "key", expected, title, "body")
 	}
 	created, err := save("", 0, " Original ")
 	if err != nil || created.ID != "page" || created.Version != 1 || created.Title != "Original" {

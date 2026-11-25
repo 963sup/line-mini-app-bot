@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"regexp"
+	"sync"
 	"syscall"
 	"time"
 
@@ -47,6 +48,7 @@ import (
 	wikihttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/wiki"
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/line"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
+	repositoryApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/repository/application/port"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http"
 	grouphttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http/group"
@@ -58,7 +60,6 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/browser"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/geolocation"
 	"google.golang.org/api/pubsub/v1"
-	"sync"
 )
 
 func Run() (resultErr error) {
@@ -152,7 +153,14 @@ func Run() (resultErr error) {
 		return err
 	}
 	membershipLookup := lineMembership(lineConfig.token, time.Second)
-	repositories, repositoryStore, err := newRepositories(firestoreConfigured, getFirestore, lineConfig.channel, membershipLookup)
+	var repositoryOwners repositoryApplicationPort.OwnerAccess
+	var resolveRepositoryOwner func(context.Context, string) (string, string, error)
+	if sessions != nil && lineConfig.channel != "" {
+		ownerContext := organizationdb.Store{DB: db, Channel: lineConfig.channel}
+		repositoryOwners = ownerContext
+		resolveRepositoryOwner = ownerContext.ResolveRepositoryOwner
+	}
+	repositories, repositoryStore, err := newRepositories(firestoreConfigured, getFirestore, lineConfig.channel, repositoryOwners)
 	if err != nil {
 		return err
 	}
@@ -176,14 +184,15 @@ func Run() (resultErr error) {
 		organizationStore := organizationdb.Store{
 			DB: db, Channel: channel,
 			EnterpriseNavigation: enterprisedb.NavigationFacts,
+			OrganizationMember:   membershipdb.OrganizationMember,
 			CanCreateEnterprise:  enterprisedb.CanStartCreation,
 			CreateEnterprise:     enterprisedb.CreateFromConversation,
 		}
 		organizationHandler.Store = organizationStore
 		enterpriseStore := enterprisedb.Store{
-			DB: db, Channel: channel,
-			OrganizationMember: membershipdb.OrganizationMember,
-			TeamMember:         membershipdb.TeamMember,
+			AttachOrganization: organizationdb.AttachEnterprise,
+			DB:                 db, Channel: channel,
+			Organizations: organizationStore.EnterpriseOrganizations,
 		}
 		teamStore := teamdb.Store{
 			DB: db, Channel: channel,
@@ -196,6 +205,7 @@ func Run() (resultErr error) {
 			teamStore.Groups = lineTeams
 			teamStore.LINEActivationMember = lineTeams.Membership
 		}
+		enterpriseStore.Teams = teamStore.EnterpriseTeams
 		enterpriseHandler.Store = enterpriseStore
 		teamHandler.Store = teamStore
 		creation = organizationStore
@@ -231,7 +241,7 @@ func Run() (resultErr error) {
 	discussionhttp.Register(mux, newDiscussions(repositories, repositoryStore), auth)
 	var repositoryObserver *repositoryline.Observer
 	if repositories != nil {
-		repositoryObserver = &repositoryline.Observer{Store: repositories.Store}
+		repositoryObserver = &repositoryline.Observer{Store: repositories.Store, ResolveOwner: resolveRepositoryOwner}
 	}
 	var groupObserver *groupline.Observer
 	if lineTeams != nil {

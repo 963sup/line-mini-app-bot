@@ -2,10 +2,11 @@ package bootstrap
 
 import (
 	"fmt"
-	operations "github.com/963sup/line-mini-app-bot/internal/business/object/application/document"
 	"net/http"
 	"os"
 	"time"
+
+	operations "github.com/963sup/line-mini-app-bot/internal/business/object/application/document"
 
 	httptransport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 
@@ -18,15 +19,16 @@ import (
 	candidateai "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/openai"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/adapter/poppler"
 	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
+	projectdb "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/firestore"
 	repositorydb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 	businessspacedb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore/space"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
 	repositoryApplicationLabels "github.com/963sup/line-mini-app-bot/internal/business/repository/application/labels"
 	repositoryApplicationMilestones "github.com/963sup/line-mini-app-bot/internal/business/repository/application/milestones"
+	repositoryApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/repository/application/port"
 	repositoryApplicationSpace "github.com/963sup/line-mini-app-bot/internal/business/repository/application/space"
 	repositoryApplicationStatistics "github.com/963sup/line-mini-app-bot/internal/business/repository/application/statistics"
 	repositoryApplicationWiki "github.com/963sup/line-mini-app-bot/internal/business/repository/application/wiki"
-	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
 )
@@ -52,16 +54,17 @@ func newDiscussions(repositories *repositoryApplication.Service, store *reposito
 	return discussionapp.New(repositories, &discussiondb.Store{Client: store.Client, ChannelID: store.ChannelID, Numbers: store, Labels: store})
 }
 
-func newRepositories(firestoreConfigured bool, getFirestore func() (*firestore.Client, error), channel string, membership *lineplatform.Membership) (*repositoryApplication.Service, *repositorydb.Store, error) {
-	if !firestoreConfigured || channel == "" || membership == nil {
+func newRepositories(firestoreConfigured bool, getFirestore func() (*firestore.Client, error), channel string, ownerAccess repositoryApplicationPort.OwnerAccess) (*repositoryApplication.Service, *repositorydb.Store, error) {
+	if !firestoreConfigured || channel == "" || ownerAccess == nil {
 		return nil, nil, nil
 	}
 	client, err := getFirestore()
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot initialize repository database")
 	}
-	store := &repositorydb.Store{Client: client, ChannelID: channel}
-	return &repositoryApplication.Service{Store: store, Membership: membership}, store, nil
+	projects := &projectdb.Store{Client: client, ChannelID: channel}
+	store := &repositorydb.Store{Client: client, ChannelID: channel, CountIssues: issuedb.CountRepositoryIssues, CountDiscussions: discussiondb.CountRepositoryDiscussions, CountProjects: projects.CountRepositoryProjects}
+	return &repositoryApplication.Service{Store: store, AddressWriter: store, OwnerAccess: ownerAccess}, store, nil
 }
 
 func newMilestones(r *repositoryApplication.Service, store *repositorydb.Store) *repositoryApplicationMilestones.Service {
