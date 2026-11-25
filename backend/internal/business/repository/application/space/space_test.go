@@ -42,7 +42,7 @@ func (f *storeFake) Create(_ context.Context, _ repositoryDomainEntity.Repositor
 }
 
 func TestServiceAuthorityAndInput(t *testing.T) {
-	r := repositoryDomainEntity.Repository{ID: strings.Repeat("a", 32), OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
+	r := repositoryDomainEntity.Repository{ID: strings.Repeat("a", 32), OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: "U" + strings.Repeat("b", 32), GroupID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
 	for _, tc := range []struct {
 		name, actor, key, title string
 		repo                    repositoryDomainEntity.Repository
@@ -51,7 +51,7 @@ func TestServiceAuthorityAndInput(t *testing.T) {
 		{"valid", "actor", "creation-key-12345", "  一樓  ", r, nil, nil},
 		{"missing actor", "", "creation-key-12345", "name", r, nil, repositoryDomainEntitySpace.ErrNotFound},
 		{"not member", "actor", "creation-key-12345", "name", r, repositoryDomainEntity.ErrNotFound, repositoryDomainEntitySpace.ErrNotFound},
-		{"inactive", "actor", "creation-key-12345", "name", repositoryDomainEntity.Repository{ID: r.ID, OwnerID: r.OwnerID, Status: "INACTIVE"}, nil, repositoryDomainEntitySpace.ErrNotFound},
+		{"inactive", "actor", "creation-key-12345", "name", repositoryDomainEntity.Repository{ID: r.ID, OwnerType: r.OwnerType, OwnerID: r.OwnerID, Status: "INACTIVE"}, nil, repositoryDomainEntitySpace.ErrNotFound},
 		{"blank", "actor", "creation-key-12345", " ", r, nil, repositoryDomainEntitySpace.ErrInput},
 		{"long", "actor", "creation-key-12345", strings.Repeat("字", 121), r, nil, repositoryDomainEntitySpace.ErrInput},
 		{"key", "actor", "short", "name", r, nil, repositoryDomainEntitySpace.ErrInput},

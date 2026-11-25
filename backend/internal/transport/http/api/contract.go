@@ -76,6 +76,7 @@ type IdentityServer interface {
 type RepositoryServer interface {
 	ListRepositories(w http.ResponseWriter, r *http.Request, params generated.ListRepositoriesParams)
 	GetRepository(w http.ResponseWriter, r *http.Request, id string)
+	UpdateRepositoryAddress(w http.ResponseWriter, r *http.Request, id string)
 }
 
 // ExploreServer owns the cross-context, read-only discovery query.

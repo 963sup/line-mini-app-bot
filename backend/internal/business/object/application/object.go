@@ -37,7 +37,7 @@ func (s *Service) scope(ctx context.Context, actor, id string) (repository.Repos
 		return repository.Repository{}, err
 	}
 	// Membership is checked by Repositories.Get; active identity/scope is still explicit here.
-	if r.ID != id || r.Status != "ACTIVE" || !repository.ValidOwner(r.OwnerID) {
+	if r.ID != id || r.Status != "ACTIVE" || !repository.ValidTypedOwner(r.OwnerType, r.OwnerID) {
 		return repository.Repository{}, entity.ErrNotFound
 	}
 	return r, nil

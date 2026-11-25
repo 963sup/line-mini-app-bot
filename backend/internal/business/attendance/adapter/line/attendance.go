@@ -18,10 +18,20 @@ import (
 )
 
 type Attendance struct {
-	Store     attendanceport.Store
+	Store     Backend
 	Zone      *time.Location
 	AppURL    string
 	GroupName func(context.Context, string) string
+}
+
+// Backend is the complete driven-port contract required by the LINE adapter.
+type Backend interface {
+	attendanceport.Store
+	attendanceport.GroupHistoryReader
+	attendanceport.MonthlyReader
+	attendanceport.LeaveStore
+	attendanceport.LaunchStore
+	attendanceport.BoardStore
 }
 
 var attendanceCommands = []string{"補卡", "更正", "出勤", "漏下班", "下班提醒", "請假", "打卡", "上班", "下班", "休息開始", "休息結束", "確認休息", "出勤紀錄"}
@@ -117,8 +127,8 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 		if user.UserId == "" {
 			return respond("無法確認本人身分。")
 		}
-		if store, ok := b.Store.(attendanceport.GroupHistoryReader); ok {
-			groups, err := store.Groups(ctx, user.UserId)
+		if b.Store != nil {
+			groups, err := b.Store.Groups(ctx, user.UserId)
 			if err != nil {
 				return transport.Reply{}, true, err
 			}
@@ -157,11 +167,7 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 			if month == "" {
 				return transport.Reply{Token: token, Message: b.historyMonths(ctx, selectedGroup, page)}, true, nil
 			}
-			monthly, ok := b.Store.(attendanceport.MonthlyReader)
-			if !ok {
-				return respond("月度出勤查詢尚未啟用。")
-			}
-			report, err := attendancequery.ReadMonthlyReport(ctx, monthly, user.UserId, selectedGroup, start)
+			report, err := attendancequery.ReadMonthlyReport(ctx, b.Store, user.UserId, selectedGroup, start)
 			if err != nil {
 				return transport.Reply{}, true, err
 			}
@@ -208,11 +214,10 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 		return b.replyGroupStatus(ctx, group.GroupId, group.UserId, command, token)
 	}
 	if command == "請假" {
-		store, ok := b.Store.(attendanceport.LeaveStore)
-		if !ok || b.AppURL == "" {
+		if b.Store == nil || b.AppURL == "" {
 			return respond("請假尚未啟用。")
 		}
-		launch, err := store.CreateLeaveLaunch(ctx, group.GroupId)
+		launch, err := b.Store.CreateLeaveLaunch(ctx, group.GroupId)
 		if err != nil {
 			return transport.Reply{}, true, err
 		}
@@ -225,14 +230,13 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 	if command != "打卡" {
 		return respond("請重新輸入「打卡」取得最新操作選單。")
 	}
-	store, ok := b.Store.(attendanceport.LaunchStore)
-	if !ok || b.AppURL == "" || eventID == "" {
+	if b.Store == nil || b.AppURL == "" || eventID == "" {
 		return respond("定位打卡頁尚未設定，未執行打卡。")
 	}
 	actions := []string{"clock-in", "clock-out", "break-start", "break-end", "confirm-rest"}
 	links := make([]string, 0, len(actions))
 	for _, action := range actions {
-		launch, err := store.CreateLaunch(ctx, group.GroupId, action)
+		launch, err := b.Store.CreateLaunch(ctx, group.GroupId, action)
 		if err != nil {
 			return transport.Reply{}, true, err
 		}

@@ -14,6 +14,10 @@ type Store interface {
 	Candidates(context.Context, string, string, string) (repositoryApplicationDto.Page, error)
 }
 
-type Membership interface {
-	IsMember(context.Context, string, string) (bool, error)
+type AddressWriter interface {
+	UpdateAddress(context.Context, repositoryDomainEntity.Repository, repositoryDomainEntity.Repository) (repositoryDomainEntity.Repository, error)
+}
+
+type OwnerAccess interface {
+	CanAccessOwner(context.Context, string, string, string) (bool, error)
 }

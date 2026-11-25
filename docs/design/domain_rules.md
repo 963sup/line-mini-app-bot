@@ -1,5 +1,44 @@
 # 業務領域規則
 
+## 用例設計概念
+
+所有業務領域以相同概念檢查用例是否完整，但各 bounded context 仍擁有自己的模型、規則、授權與狀態轉移。這組概念不是新的領域、共用資料模型或通用互動框架，也不要求建立對應的共用型別、介面或服務。
+
+| 概念          | 設計問題                         | 責任邊界                                                                  |
+| ------------- | -------------------------------- | ------------------------------------------------------------------------- |
+| Actor         | 誰正在提出操作或查詢？           | 行為主體由可信身分解析；Role、Membership 只可作為授權事實，不等同 Actor。 |
+| Resource      | 操作或查詢的業務對象是什麼？     | 由所屬 bounded context 定義身分、生命週期與權威資料。                     |
+| Action        | Actor 想執行什麼業務操作？       | 表達意圖；不等同操作成功後才成立的 Event。                                |
+| Authorization | Actor 是否可以對 Resource 操作？ | 由後端依操作、資源與目前關係明確判定，不接受客戶端自行宣告。              |
+| State         | Resource 目前是否允許這項操作？  | 描述業務狀態與合法轉移；不等同 Actor 的 Permission。                      |
+| Event         | 哪個已提交的業務事實值得記錄？   | 只描述已成立的事實；唯讀查詢或無事件需求的操作不必為形式完整而產生事件。  |
+
+狀態變更用例依下列順序分析：
+
+```text
+Actor + Resource + Action
+          ↓
+Authorization + Current State
+          ↓
+      Business Rules
+          ↓
+Resulting State + Event（需要時）
+```
+
+唯讀用例不修改資源，也不為符合模型而產生事件：
+
+```text
+Actor + Resource + Query
+          ↓
+     Authorization
+          ↓
+       Projection
+```
+
+用例設計至少應能回答 Actor、Resource、Action 或 Query、Authorization、相關 State、結果，以及適用時的 Event。此要求適用於 HTTP、LINE Messaging API、LINE MINI App、背景工作及其他 delivery channel。Delivery channel、Handler、Controller、LINE 群組或 MINI App 畫面只提供互動情境，不得取代資源歸屬、授權或狀態判斷。相同用例從不同入口觸發時共用業務規則，由各 Adapter 轉譯輸入與呈現結果。
+
+下列概念不得混同：Actor 與 Role、Identity 與 Membership、Resource 與 Capability、Action 與 Event、State 與 Permission、Projection 與 Aggregate、External ID 與 Domain Identity、Authentication 與 Authorization。這些區分用於審查設計，不要求以一套跨領域基底型別實作。
+
 ## Attendance
 
 | Term                            | Meaning here                                                                                                           |
@@ -154,6 +193,12 @@ GET／POST /api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection
 ## Repository
 
 成員可讀取所屬儲存庫的事項狀態、討論、里程碑與相容專案數。此數量只計入以該庫為初始來源（`defaultRepositoryId`）的專案；後來才連結此庫的跨庫專案不計入。Project 由個人或組織擁有，這項統計不表示 Repository 擁有 Project。
+
+Repository Owner 只能是 User 或 Organization。LINE Group 是可選的互動綁定，不是 Owner；群組成員資格不直接等於 Repository 權限。首次有效群組事件以已驗證 Actor 當下明確選定且仍具資格的 Organization 作為 Owner，沒有有效組織選擇時才由 Actor 個人擁有，並建立獨立 Group Binding。Bot 離群只停用 Binding，Repository 本身維持啟用。Organization-owned Repository 依組織成員資格授權。資料直接採新欄位與新 Binding 集合，不讀取舊 `OwnerID=GroupID` 或 `repositoryOwnerBindings` 格式。
+
+### 地址
+
+地址是 Repository 擁有的可選 Value Object，由 ISO 兩碼國家代碼、郵遞區號及地址行組成。成員僅能修改當下有權存取且仍啟用的儲存庫；寫入須帶目前版本，Firestore 交易再次核對儲存庫身分、擁有者、狀態與版本，過期寫入回 409 且不改變資料。OpenAPI 是傳輸契約，Go 是驗證與狀態轉移的權威，前端只使用產生的 API client 編輯及呈現。
 
 ### Wiki 頁面與修訂
 

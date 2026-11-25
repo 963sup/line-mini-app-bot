@@ -84,9 +84,10 @@ Space 是 Repository 內的業務分類空間，具有獨立的 32 位小寫十�
 
 | 識別碼       | 權威與責任                                                                                                                          |
 | ------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| GroupID      | 簽章驗證的 LINE 群組上下文與目前成員資格；C 加 32 位十六進位。                                                                      |
+| GroupID      | 簽章驗證的 LINE 群組互動綁定；C 加 32 位十六進位。它不是 Owner，也不直接授予 Repository 權限。                                      |
 | UserID       | 後端驗證 LINE 身分取得的 actor，不接受 body 宣告。LINE User ID 以 provider 為範圍；同 provider 的相關 channels 才能對應同一使用者。 |
 | RepositoryID | 伺服器管理的資料來源容器，與 LINE GroupID 分開。                                                                                    |
+| Owner        | Repository 的業務擁有者，只能是 User 或 Organization；授權由 Owner 所屬領域判定。                                                   |
 | SpaceID      | 本功能的 repository-owned 業務空間 ID；同一空間不能掛到其他 repository 或 channel。                                                 |
 
 [工區契約](../../api/contract/repository/spaces.yaml)

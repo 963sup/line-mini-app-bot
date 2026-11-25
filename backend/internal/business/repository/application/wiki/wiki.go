@@ -2,22 +2,53 @@ package wiki
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 	wikimodel "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity/wiki"
 
-	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
 	repositoryApplicationPortWiki "github.com/963sup/line-mini-app-bot/internal/business/repository/application/port/wiki"
 )
 
 type Service struct {
-	Repositories *repositoryApplication.Service
+	Repositories repositoryApplicationPortWiki.Repositories
 	Store        repositoryApplicationPortWiki.Store
 }
 
-func (s *Service) Save(ctx context.Context, repo repositoryDomainEntity.Repository, actor, id, key string, expected int64, title, body string) (wikimodel.Page, error) {
-	title, err := wikimodel.Validate(title, body)
+func (s *Service) scope(ctx context.Context, actor, id string) (repositoryDomainEntity.Repository, error) {
+	if s == nil || s.Repositories == nil || s.Store == nil {
+		return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrUnavailable
+	}
+	repo, err := s.Repositories.Get(ctx, actor, id)
+	if errors.Is(err, repositoryDomainEntity.ErrNotFound) {
+		return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrNotFound
+	}
+	return repo, err
+}
+
+func (s *Service) Get(ctx context.Context, actor, repositoryID, pageID string) (wikimodel.Page, error) {
+	repo, err := s.scope(ctx, actor, repositoryID)
+	if err != nil {
+		return wikimodel.Page{}, err
+	}
+	return s.Store.GetWiki(ctx, repo, pageID)
+}
+
+func (s *Service) List(ctx context.Context, actor, repositoryID, pageID, cursor string) ([]wikimodel.Page, string, error) {
+	repo, err := s.scope(ctx, actor, repositoryID)
+	if err != nil {
+		return nil, "", err
+	}
+	return s.Store.ListWiki(ctx, repo, actor, pageID, cursor)
+}
+
+func (s *Service) Save(ctx context.Context, actor, repositoryID, id, key string, expected int64, title, body string) (wikimodel.Page, error) {
+	repo, err := s.scope(ctx, actor, repositoryID)
+	if err != nil {
+		return wikimodel.Page{}, err
+	}
+	title, err = wikimodel.Validate(title, body)
 	if err != nil {
 		return wikimodel.Page{}, err
 	}

@@ -345,6 +345,20 @@
       "consumerNote": "Existing consumers listed; empty means a retained public/legacy operation, not a new UI capability."
     },
     {
+      "operationId": "updateRepositoryAddress",
+      "audience": "public",
+      "method": "PATCH",
+      "path": "/api/v1/repositories/{id}",
+      "owner": "repository",
+      "adapter": "backend/internal/business/repository/adapter/http/routes.go",
+      "handler": "UpdateRepositoryAddress",
+      "core": "backend/internal/business/repository/domain/entity/repository.go",
+      "specification": "docs/design/domain_rules.md",
+      "consumers": [
+        "frontend/miniapp/src/business/repository/View.tsx"
+      ]
+    },
+    {
       "operationId": "searchExplore",
       "audience": "public",
       "method": "GET",

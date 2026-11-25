@@ -219,6 +219,8 @@ function useRepositoryState(workflow: string) {
     loadMore: () => loadPage(currentCatalog.cursor),
     retryCatalog: () => loadPage(),
     reloadDetail: loadDetail,
+    acceptDetail: (item: Repository) =>
+      setDetail({ owner, id: item.id, item, busy: false, status: "", failed: false }),
     href: (id: string) =>
       "/miniapp/repositories?" + new URLSearchParams({ [route.scope ? "id" : "selected"]: id }),
   };

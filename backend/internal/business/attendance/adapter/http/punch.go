@@ -24,11 +24,7 @@ func (s *attendanceServer) SubmitAttendancePunch(w http.ResponseWriter, r *http.
 		transport.WriteAPIError(w, 503, "not_configured", "出勤尚未啟用。")
 		return
 	}
-	store, ok := bot.store.(attendanceport.PunchSubmitter)
-	if !ok {
-		transport.WriteAPIError(w, 503, "not_configured", "定位打卡尚未啟用。")
-		return
-	}
+	store := bot.store
 	user, _, ok := app.Authenticate(w, r)
 	if !ok {
 		return

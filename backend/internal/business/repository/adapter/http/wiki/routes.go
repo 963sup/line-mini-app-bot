@@ -127,17 +127,8 @@ func page(p repositoryDomainEntityWiki.Page) generated.WikiPage {
 	return generated.WikiPage{Id: p.ID, Title: p.Title, Body: p.Body, Version: p.Version, AuthorId: p.AuthorID, UpdatedAt: p.UpdatedAt}
 }
 
-func (s *wikiServer) scope(w http.ResponseWriter, r *http.Request, rid string) (repositoryDomainEntity.Repository, bool) {
-	repo, e := s.service.Repositories.Get(r.Context(), identity.UserID(r.Context()), rid)
-	return repo, !handleError(w, e)
-}
-
 func (s *wikiServer) GetWikiPage(w http.ResponseWriter, r *http.Request, rid, id string) {
-	repo, ok := s.scope(w, r, rid)
-	if !ok {
-		return
-	}
-	p, e := s.service.Store.GetWiki(r.Context(), repo, id)
+	p, e := s.service.Get(r.Context(), identity.UserID(r.Context()), rid, id)
 	if !handleError(w, e) {
 		transport.WriteJSON(w, 200, page(p))
 	}
@@ -152,15 +143,11 @@ func (s *wikiServer) ListWikiRevisions(w http.ResponseWriter, r *http.Request, r
 }
 
 func (s *wikiServer) list(w http.ResponseWriter, r *http.Request, rid, id string, cursor *string) {
-	repo, ok := s.scope(w, r, rid)
-	if !ok {
-		return
-	}
 	token := ""
 	if cursor != nil {
 		token = *cursor
 	}
-	items, next, e := s.service.Store.ListWiki(r.Context(), repo, identity.UserID(r.Context()), id, token)
+	items, next, e := s.service.List(r.Context(), identity.UserID(r.Context()), rid, id, token)
 	if handleError(w, e) {
 		return
 	}
@@ -196,11 +183,7 @@ func (s *wikiServer) UpdateWikiPage(w http.ResponseWriter, r *http.Request, rid,
 }
 
 func (s *wikiServer) save(w http.ResponseWriter, r *http.Request, rid, id, key string, v int64, title, body string) {
-	repo, ok := s.scope(w, r, rid)
-	if !ok {
-		return
-	}
-	p, e := s.service.Save(r.Context(), repo, identity.UserID(r.Context()), id, key, v, title, body)
+	p, e := s.service.Save(r.Context(), identity.UserID(r.Context()), rid, id, key, v, title, body)
 	if !handleError(w, e) {
 		transport.WriteJSON(w, 200, page(p))
 	}

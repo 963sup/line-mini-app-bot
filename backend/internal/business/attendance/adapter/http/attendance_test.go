@@ -9,6 +9,7 @@ import (
 	"time"
 
 	attendancedto "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/dto"
+	attendanceport "github.com/963sup/line-mini-app-bot/internal/business/attendance/application/port"
 	attendanceentity "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/entity"
 	attendancevalueobject "github.com/963sup/line-mini-app-bot/internal/business/attendance/domain/valueobject"
 )
@@ -26,6 +27,17 @@ func TestAttendanceBrowserRequiresAuthentication(t *testing.T) {
 }
 
 type attendanceStub struct {
+	attendanceport.LeaveStore
+	attendanceport.DailyHeadcountReader
+	attendanceport.RecordQueries
+	attendanceport.CorrectionSubmitter
+	attendanceport.IdempotentCorrectionStore
+	attendanceport.CorrectionReader
+	attendanceport.ReviewerGroupReader
+	attendanceport.CorrectionPageReader
+	attendanceport.CorrectionReviewRunner
+	attendanceport.PunchResolver
+	attendanceport.LaunchStore
 	calls              int
 	err                error
 	group, user, event string

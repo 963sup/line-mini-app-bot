@@ -71,7 +71,7 @@
 
 ## 業務與資源建模
 
-- MUST identify the Actor, Resource, Action, Authorization, State, and Event where applicable.
+- MUST identify the Actor, Resource, Action or Query, Authorization, relevant State, result, and Event where applicable according to the [use-case design concepts](../design/domain_rules.md#用例設計概念).
 - MUST model concepts with different authority, lifecycle, or semantics separately.
 - MUST assign each business rule to its owning bounded context.
 - MUST enforce business invariants before changing resource state.

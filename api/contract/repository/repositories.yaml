@@ -160,6 +160,111 @@
             }
           }
         }
+      },
+      "patch": {
+        "operationId": "updateRepositoryAddress",
+        "summary": "Update the address of an active repository after current access and version checks",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RepositoryAddressUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Address updated; retry only with the returned version",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Repository"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Request failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "./../common/transport.yaml#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -169,6 +274,7 @@
         "type": "object",
         "required": [
           "id",
+          "ownerType",
           "ownerId",
           "name",
           "status",
@@ -183,12 +289,19 @@
           },
           "ownerId": {
             "type": "string",
-            "pattern": "^[UC][a-f0-9]{32}$"
+            "description": "User ID for USER owners or UUID for ORGANIZATION owners"
+          },
+          "ownerType": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "ORGANIZATION"
+            ]
           },
           "groupId": {
             "type": "string",
             "pattern": "^C[a-f0-9]{32}$",
-            "description": "LINE group ID for group-owned repositories. Omitted for personal repositories."
+            "description": "Optional LINE interaction binding. It is not the repository owner or an authorization grant."
           },
           "name": {
             "type": "string"
@@ -209,6 +322,49 @@
             "format": "date-time"
           },
           "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "address": {
+            "$ref": "#/components/schemas/RepositoryAddress"
+          }
+        }
+      },
+      "RepositoryAddress": {
+        "type": "object",
+        "required": [
+          "countryCode",
+          "postalCode",
+          "addressLine"
+        ],
+        "properties": {
+          "countryCode": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "postalCode": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "addressLine": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        }
+      },
+      "RepositoryAddressUpdate": {
+        "type": "object",
+        "required": [
+          "address",
+          "expectedVersion"
+        ],
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/RepositoryAddress"
+          },
+          "expectedVersion": {
             "type": "integer",
             "format": "int64",
             "minimum": 1

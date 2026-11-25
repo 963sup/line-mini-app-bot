@@ -2,6 +2,16 @@
 
 本標準是 LINE 一對一私聊、群組、Room 與 LINE MINI App 互動分配的唯一權威來源。業務領域擁有規則與資料；本標準擁有呈現方式、名稱、Action、路由與錯誤回覆的一致性。
 
+LINE Adapter 必須將互動情境轉譯成既有業務用例；用例的 Actor、Resource、Action 或 Query、Authorization、State、結果與 Event 遵循[用例設計概念](../design/domain_rules.md#用例設計概念)。LINE 使用者、群組、Message、Postback、畫面可見性及客戶端輸入本身都不是業務授權證據。
+
+每個 Messaging API Webhook、Message、Template、Quick Reply、Rich Menu、Postback、LIFF 或 MINI App 入口都必須能追溯到其互動目的與用例結果：
+
+- 業務 Command 必須辨識 Actor、Resource 與 Action，由後端判斷 Authorization 與 State，成功提交後才記錄適用的 Event。
+- 業務 Query 必須辨識 Actor、Resource 與 Query，由後端判斷 Authorization；不得為形式完整而修改 State 或產生 Event。
+- Push、Reply 與畫面結果必須源自用例結果或已成立的 Event；Message 本身不得冒充業務 Event。
+- Rich Menu 切換、返回及頁面導覽必須明列為互動操作；沒有業務狀態轉移時不得虛構 Resource 變更或領域 Event。
+- 同一用例經私聊、群組或 MINI App 觸發時必須共用業務規則，只允許呈現與互動情境不同。
+
 ## 互動分配
 
 選擇介面時必須先判斷互動目的，再選擇 LINE SDK 原生型別。

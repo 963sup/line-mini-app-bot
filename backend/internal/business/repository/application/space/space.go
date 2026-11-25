@@ -32,7 +32,7 @@ func (s *Service) scope(ctx context.Context, actor, rid string) (repositoryDomai
 	if e != nil {
 		return repositoryDomainEntity.Repository{}, e
 	}
-	if r.ID != rid || r.Status != "ACTIVE" || !repositoryDomainEntity.ValidOwner(r.OwnerID) {
+	if r.ID != rid || r.Status != "ACTIVE" || !repositoryDomainEntity.ValidTypedOwner(r.OwnerType, r.OwnerID) {
 		return repositoryDomainEntity.Repository{}, repositoryDomainEntitySpace.ErrNotFound
 	}
 	return r, nil

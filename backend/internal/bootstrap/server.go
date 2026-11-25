@@ -47,6 +47,7 @@ import (
 	wikihttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/wiki"
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/line"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
+	repositoryApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/repository/application/port"
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http"
 	grouphttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http/group"
@@ -152,7 +153,14 @@ func Run() (resultErr error) {
 		return err
 	}
 	membershipLookup := lineMembership(lineConfig.token, time.Second)
-	repositories, repositoryStore, err := newRepositories(firestoreConfigured, getFirestore, lineConfig.channel, membershipLookup)
+	var repositoryOwners repositoryApplicationPort.OwnerAccess
+	var resolveRepositoryOwner func(context.Context, string) (string, string, error)
+	if sessions != nil && lineConfig.channel != "" {
+		ownerContext := organizationdb.Store{DB: db, Channel: lineConfig.channel}
+		repositoryOwners = ownerContext
+		resolveRepositoryOwner = ownerContext.ResolveRepositoryOwner
+	}
+	repositories, repositoryStore, err := newRepositories(firestoreConfigured, getFirestore, lineConfig.channel, repositoryOwners)
 	if err != nil {
 		return err
 	}
@@ -231,7 +239,7 @@ func Run() (resultErr error) {
 	discussionhttp.Register(mux, newDiscussions(repositories, repositoryStore), auth)
 	var repositoryObserver *repositoryline.Observer
 	if repositories != nil {
-		repositoryObserver = &repositoryline.Observer{Store: repositories.Store}
+		repositoryObserver = &repositoryline.Observer{Store: repositories.Store, ResolveOwner: resolveRepositoryOwner}
 	}
 	var groupObserver *groupline.Observer
 	if lineTeams != nil {

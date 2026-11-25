@@ -11,8 +11,30 @@ import (
 )
 
 type attendanceDependencies struct {
-	store attendanceport.Store
+	store attendanceBackend
 	zone  *time.Location
+}
+
+// attendanceBackend is the composition-root contract for a fully enabled
+// attendance installation. Feature adapters still consume their narrow ports;
+// bootstrap must not erase capabilities and force them to rediscover those
+// capabilities during a request.
+type attendanceBackend interface {
+	attendanceport.Store
+	attendanceport.GroupHistoryReader
+	attendanceport.LeaveStore
+	attendanceport.BoardStore
+	attendanceport.DailyHeadcountReader
+	attendanceport.RecordQueries
+	attendanceport.CorrectionSubmitter
+	attendanceport.IdempotentCorrectionStore
+	attendanceport.CorrectionReader
+	attendanceport.ReviewerGroupReader
+	attendanceport.CorrectionPageReader
+	attendanceport.CorrectionReviewRunner
+	attendanceport.PunchSubmitter
+	attendanceport.PunchResolver
+	attendanceport.LaunchStore
 }
 
 func newAttendance(firestoreConfigured bool, getFirestore func() (*firestore.Client, error), channel string) (*attendanceDependencies, error) {

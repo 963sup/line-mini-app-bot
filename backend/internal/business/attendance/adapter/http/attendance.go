@@ -12,12 +12,31 @@ import (
 // Attendance contains the dependencies needed by browser attendance handlers.
 type Attendance struct {
 	membership attendanceport.Membership
-	store      attendanceport.Store
+	store      Backend
 	zone       *time.Location
 	groupName  func(context.Context, string) string
 }
 
-func NewAttendance(store attendanceport.Store, zone *time.Location, membership attendanceport.Membership, groupName func(context.Context, string) string) *Attendance {
+// Backend is the complete driven-port contract required by the attendance HTTP adapter.
+// Individual application use cases continue to receive their narrow ports.
+type Backend interface {
+	attendanceport.Store
+	attendanceport.GroupHistoryReader
+	attendanceport.LeaveStore
+	attendanceport.DailyHeadcountReader
+	attendanceport.RecordQueries
+	attendanceport.CorrectionSubmitter
+	attendanceport.IdempotentCorrectionStore
+	attendanceport.CorrectionReader
+	attendanceport.ReviewerGroupReader
+	attendanceport.CorrectionPageReader
+	attendanceport.CorrectionReviewRunner
+	attendanceport.PunchSubmitter
+	attendanceport.PunchResolver
+	attendanceport.LaunchStore
+}
+
+func NewAttendance(store Backend, zone *time.Location, membership attendanceport.Membership, groupName func(context.Context, string) string) *Attendance {
 	return &Attendance{membership: membership, store: store, zone: zone, groupName: groupName}
 }
 

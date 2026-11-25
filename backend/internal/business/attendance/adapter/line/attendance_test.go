@@ -17,6 +17,9 @@ import (
 )
 
 type attendanceStub struct {
+	attendanceport.LeaveStore
+	attendanceport.LaunchStore
+	attendanceport.BoardStore
 	calls              int
 	err                error
 	group, user, event string
@@ -52,7 +55,7 @@ func (s *attendanceStub) Recent(_ context.Context, user string) ([]attendanceent
 	return s.records, s.err
 }
 
-func TestAttendanceLegacyHistory(t *testing.T) {
+func TestAttendanceRecordsText(t *testing.T) {
 	zone, err := time.LoadLocation("Asia/Taipei")
 	if err != nil {
 		t.Fatal(err)
@@ -68,13 +71,9 @@ func TestAttendanceLegacyHistory(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			s := &attendanceStub{records: tc.records}
-			// Expose the legacy Store contract without the optional GroupHistoryReader methods.
-			b := &Attendance{Store: struct{ attendanceport.Store }{s}, Zone: zone}
-			e := webhook.MessageEvent{Mode: "active", ReplyToken: "reply", Source: webhook.UserSource{UserId: "actor"}, Message: webhook.TextMessageContent{Text: "出勤紀錄"}}
-			reply, handled, err := b.Reply(context.Background(), e)
-			text, ok := reply.Message.(*messaging_api.TextMessage)
-			if err != nil || !handled || !ok || text.Text != tc.want || s.queriedUser != "actor" || s.calls != 0 {
-				t.Fatalf("unexpected history response: message=%+v handled=%v err=%v", reply.Message, handled, err)
+			b := &Attendance{Store: s, Zone: zone}
+			if got := b.recordsText(tc.records); got != tc.want {
+				t.Fatalf("recordsText() = %q, want %q", got, tc.want)
 			}
 		})
 	}

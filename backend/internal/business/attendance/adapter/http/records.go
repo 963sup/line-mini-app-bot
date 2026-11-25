@@ -34,11 +34,7 @@ func (s *attendanceServer) query(w http.ResponseWriter, r *http.Request, serve f
 	if !ok {
 		return
 	}
-	store, ok := bot.store.(attendanceport.RecordQueries)
-	if !ok {
-		transport.WriteAPIError(w, 503, "not_configured", "出勤查詢尚未啟用。")
-		return
-	}
+	store := bot.store
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 	serve(ctx, store, user)
@@ -193,11 +189,7 @@ func (s *attendanceServer) GetAttendanceDailyHeadcount(w http.ResponseWriter, r 
 		transport.WriteAPIError(w, 403, "not_member", "無法確認你是此群組成員。")
 		return
 	}
-	reader, ok := s.bot.store.(attendanceport.DailyHeadcountReader)
-	if !ok {
-		transport.WriteAPIError(w, 503, "not_configured", "出勤人數查詢尚未啟用。")
-		return
-	}
+	reader := s.bot.store
 	zone := time.FixedZone("Asia/Taipei", 8*60*60)
 	year, month, day := params.Date.Date()
 	start := time.Date(year, month, day, 0, 0, 0, 0, zone)

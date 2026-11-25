@@ -11,8 +11,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/963sup/line-mini-app-bot/internal/platform/line/lineid"
-
 	db "cloud.google.com/go/firestore"
 )
 
@@ -29,10 +27,9 @@ func (s *Store) Statistics(ctx context.Context, r repositoryDomainEntity.Reposit
 			return e
 		}
 		parent := s.repositoryRef(r.ID)
-		personal := lineid.ValidUser(r.OwnerID)
-		collection := "groups"
-		if personal {
-			collection = "users"
+		collection := "users"
+		if r.OwnerType == repositoryDomainEntity.OwnerOrganization {
+			collection = "organizations"
 		}
 		owner := s.channel().Collection(collection).Doc(r.OwnerID)
 		for _, kind := range []string{"issues", "discussions", "milestones", "projects"} {
@@ -43,19 +40,6 @@ func (s *Store) Statistics(ctx context.Context, r repositoryDomainEntity.Reposit
 			snaps, e := tx.Documents(query).GetAll()
 			if e != nil {
 				return e
-			}
-			if kind == "projects" && !personal && len(snaps) > 0 {
-				snapshot, err := tx.Get(owner)
-				if err != nil {
-					return err
-				}
-				var space struct{ ID, GroupID, Status string }
-				if err = snapshot.DataTo(&space); err != nil {
-					return err
-				}
-				if space.ID != r.OwnerID || space.GroupID != r.OwnerID || space.Status != "ACTIVE" {
-					return repositoryDomainEntityStatistics.ErrUnavailable
-				}
 			}
 			for _, snap := range snaps {
 				var d struct {
