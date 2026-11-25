@@ -57,7 +57,7 @@ export function QuantityHistory({ repositoryId }: { repositoryId: string }) {
     return cancel;
   }, [load, user, epoch, cancel]);
   return (
-    <PagePanel heading="物件數量修改歷史">
+    <PagePanel heading="數量歷史">
       <ReadFeedback
         busy={busy}
         message={error}

@@ -201,7 +201,7 @@ export function View({ repositoryId, initialId }: { repositoryId: string; initia
     );
   }
   return (
-    <PagePanel heading="知識庫 Wiki" description="整理儲存庫的共用知識，並保留每次編輯的版本紀錄。">
+    <PagePanel heading="知識庫" description="整理儲存庫的共用知識，並保留每次編輯的版本紀錄。">
       {message && <Status role="status">{message}</Status>}
       {!draft && !id && (
         <>

@@ -62,7 +62,7 @@ Firestore adapter 在交易內重新檢查 Repository 的有效容器、範本�
 
 [範本交易](../../backend/internal/business/object/adapter/firestore/templates.go)
 
-## 群組出勤看板的讀取範圍
+## 群組出勤統計的讀取範圍
 
 - 讀取既有 channels/{channel}/users 子集合資料，使用 DocumentRefs 包含只有子集合、沒有父文件的歷史使用者；不新增投影、資料回填、排程或環境變數。
 

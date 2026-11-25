@@ -309,7 +309,7 @@ function Composer({
     );
   }
   return (
-    <PagePanel heading={"寫日誌 · " + repository.name}>
+    <PagePanel heading={"日誌 · " + repository.name}>
       <Questionnaire
         item={step}
         onItemChange={setStep}

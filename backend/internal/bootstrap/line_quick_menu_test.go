@@ -12,7 +12,7 @@ func TestQuickMenuPayload(t *testing.T) {
 		commands []string
 	}{
 		{false, []string{"出勤紀錄", "建立組織", "建立企業"}},
-		{true, []string{"打卡", "出勤", "請假", "補卡", "摘要"}},
+		{true, []string{"打卡", "出勤", "請假", "補卡", "更正", "摘要"}},
 	} {
 		data, err := json.Marshal(quickMenu(tc.group, "https://liff.line.me/example", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
 		if err != nil {
@@ -51,13 +51,15 @@ func TestQuickMenuPayload(t *testing.T) {
 			label := command
 			switch command {
 			case "出勤紀錄":
-				label = "本人出勤紀錄"
+				label = "我的出勤"
 			case "請假":
-				label = "請假登記"
+				label = "請假"
 			case "補卡":
-				label = "補卡申請"
+				label = "補卡"
+			case "更正":
+				label = "更正"
 			case "摘要":
-				label = "群聊摘要"
+				label = "摘要"
 			}
 			if item.Type != "action" || item.Action.Type != "message" || item.Action.Text != command || item.Action.Label != label {
 				t.Fatalf("invalid command %q: %s", command, data)

@@ -117,7 +117,7 @@ export function View() {
           setStatus("請確認原資料與申報內容。");
         }}
       />
-      <PagePanel heading="授權審核者">
+      <PagePanel heading="審核者">
         <p>取得員工提供的申請編號後，先讀取內容再核准。權限由伺服器確認，不能審核自己的申請。</p>
         <FieldSet
           className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"

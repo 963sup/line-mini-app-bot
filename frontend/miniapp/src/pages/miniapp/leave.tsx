@@ -4,8 +4,8 @@ import { Shell } from "@/shell/Shell";
 
 export default function Page() {
   return (
-    <Shell title="請假登記" workflow="leave">
-      <RouteContent label="正在開啟請假登記……">
+    <Shell title="請假" workflow="leave">
+      <RouteContent label="正在開啟請假……">
         <Leave />
       </RouteContent>
     </Shell>

@@ -33,3 +33,13 @@ func TestPublishedAttendanceActionsDispatch(t *testing.T) {
 		}
 	}
 }
+
+func TestLegacyTransferActionDispatchesAsSupport(t *testing.T) {
+	h := navigation.Menu{PrivateActions: NavigationActions()}.Handler("", "", nil)
+	e := webhook.PostbackEvent{Mode: "active", ReplyToken: "reply", Source: webhook.UserSource{UserId: "user"}, Postback: &webhook.PostbackContent{Data: "action=transfer"}}
+	reply, handled, err := h.Handle(t.Context(), e)
+	message, ok := reply.Message.(*messaging_api.TextMessage)
+	if err != nil || !handled || !ok || !strings.Contains(message.Text, "支援") {
+		t.Fatalf("legacy transfer postback: %+v, %v", reply, err)
+	}
+}

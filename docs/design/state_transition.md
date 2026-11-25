@@ -44,7 +44,7 @@
 
 契約見 [references.yaml](../../api/contract/project/references.yaml)，核心見 [references.go](../../backend/internal/business/project/domain/entity/references.go)。既有引用授權、HTTP 與前端流程檢查涵蓋此路徑；真實 Firestore 交易與 LINE 裝置驗收仍需另行執行。
 
-## 群聊摘要重送與訊息收回
+## 摘要重送與訊息收回
 
 - 模型呼叫完成但結果尚未保存時若程序中斷，可能重新呼叫模型；不宣稱模型費用 exactly-once。不同摘要指令是不同工作，第一版沒有跨請求快取或頻率限制。
 

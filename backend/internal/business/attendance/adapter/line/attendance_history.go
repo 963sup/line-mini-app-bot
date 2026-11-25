@@ -127,7 +127,7 @@ func (b *Attendance) historyMonths(ctx context.Context, group string, page int) 
 	for i := 0; i < 6; i++ {
 		month := current.AddDate(0, -page*6-i, 0)
 		data := url.Values{"action": {"attendance-history"}, "group": {group}, "month": {month.Format("2006-01")}}.Encode()
-		columns = append(columns, messaging_api.CarouselColumn{Text: month.Format("2006年01月"), Actions: []messaging_api.ActionInterface{&messaging_api.PostbackAction{Label: "查看本人紀錄", Data: data}}})
+		columns = append(columns, messaging_api.CarouselColumn{Text: month.Format("2006年01月"), Actions: []messaging_api.ActionInterface{&messaging_api.PostbackAction{Label: "查看紀錄", Data: data}}})
 	}
 	pageData := func(p int) string {
 		return url.Values{"action": {"attendance-history"}, "group": {group}, "page": {fmt.Sprint(p)}}.Encode()

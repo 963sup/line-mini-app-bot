@@ -6,9 +6,11 @@ import (
 )
 
 func NavigationActions() []navigation.PrivateAction {
+	const supportReply = "請先確認支援作業是否仍計入原班次。需要結束原班次時，請回原群組操作。此入口不會結束或新增班次。"
 	return []navigation.PrivateAction{
 		{Action: "clock-in", Reply: "請在上班的群組輸入「打卡」，再選擇「上班」。"},
-		{Action: "transfer", Reply: "請先確認支援作業是否仍計入原班次。需要結束原班次時，請回原群組操作。此入口不會結束或新增班次。"},
+		{Action: "support", Reply: supportReply},
+		{Action: "transfer", Reply: supportReply},
 		{Action: "clock-out", Reply: "請在要結束班次的原群組輸入「打卡」，再選擇「下班」。可在這裡輸入「出勤紀錄」查詢本人紀錄。"},
 	}
 }
@@ -18,7 +20,7 @@ func MenuActions(group bool, journalLink string, quick bool) []messaging_api.Act
 	var actions []messaging_api.ActionInterface
 	if group {
 		for _, entry := range []struct{ label, command string }{
-			{"打卡", "打卡"}, {"出勤", "出勤"}, {"請假登記", "請假"}, {"補卡申請", "補卡"},
+			{"打卡", "打卡"}, {"出勤", "出勤"}, {"請假", "請假"}, {"補卡", "補卡"}, {"更正", "更正"},
 		} {
 			actions = append(actions, &messaging_api.MessageAction{Label: entry.label, Text: entry.command})
 			if entry.command == "打卡" && journalLink != "" {
@@ -26,9 +28,9 @@ func MenuActions(group bool, journalLink string, quick bool) []messaging_api.Act
 			}
 		}
 	} else if quick {
-		actions = append(actions, &messaging_api.MessageAction{Label: "本人出勤紀錄", Text: "出勤紀錄"})
+		actions = append(actions, &messaging_api.MessageAction{Label: "我的出勤", Text: "出勤紀錄"})
 	} else {
-		actions = append(actions, &messaging_api.PostbackAction{Label: "本人出勤紀錄", Data: "action=attendance-history"})
+		actions = append(actions, &messaging_api.PostbackAction{Label: "我的出勤", Data: "action=attendance-history"})
 	}
 	return actions
 }

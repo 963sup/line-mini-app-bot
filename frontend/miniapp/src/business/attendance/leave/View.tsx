@@ -47,7 +47,7 @@ export function View() {
     if (!user) return;
     setHistoryFailed(false);
     setHistoryLoaded(false);
-    setListStatus("正在讀取本人最近20筆請假登記……");
+    setListStatus("正在讀取本人最近20筆請假紀錄……");
     void read.run(
       (signal) =>
         request((c, s) => c.GET("/api/v1/attendance/leaves", { signal: s }), {
@@ -56,7 +56,7 @@ export function View() {
       (data) => {
         setRecords(data);
         setHistoryLoaded(true);
-        setListStatus(data.length ? "本人最近20筆請假登記（跨群組）。" : "目前沒有請假登記。");
+        setListStatus(data.length ? "本人最近20筆請假紀錄（跨群組）。" : "目前沒有請假紀錄。");
       },
       (error) => {
         setRecords([]);
@@ -113,7 +113,7 @@ export function View() {
               setUncertain(false);
               attempt.current = null;
             }
-            setStatus(errorMessage(error) + (uncertain ? " 前次結果待確認，請查看本人紀錄。" : ""));
+            setStatus(errorMessage(error) + (uncertain ? " 前次結果待確認，請查看請假紀錄。" : ""));
             loadLeaveHistory();
             return;
           }
@@ -123,7 +123,7 @@ export function View() {
             return;
           }
           setStatus(
-            errorMessage(error) + " 請查看本人紀錄確認結果；若仍未確認，可沿用原內容重試。",
+            errorMessage(error) + " 請查看請假紀錄確認結果；若仍未確認，可沿用原內容重試。",
           );
           loadLeaveHistory();
         },
@@ -147,7 +147,7 @@ export function View() {
 
   return (
     <>
-      <PagePanel heading="請假登記">
+      <PagePanel heading="請假">
         <p>
           填寫原群組的請假資料，時間均為臺灣時間。第一版僅登記，不會自動核准、扣假或變更打卡紀錄。
         </p>
@@ -201,7 +201,7 @@ export function View() {
                 </FormField>
               </FieldSet>
               <Button type="submit" disabled={!user || !launch || busy || sent}>
-                {uncertain ? "重試原申請" : "送出請假登記"}
+                {uncertain ? "重試原申請" : "送出請假"}
               </Button>
             </FieldGroup>
           </form>
@@ -209,7 +209,7 @@ export function View() {
         {sent && <Button onClick={startAnotherLeave}>填寫另一筆</Button>}
         <Status role="status">{user ? status : "請先完成 LINE 身分驗證。"}</Status>
       </PagePanel>
-      <PagePanel heading="本人請假紀錄">
+      <PagePanel heading="我的請假">
         <Status role="status">{listStatus}</Status>
         {user && historyFailed && (
           <Button type="button" variant="outline" onClick={loadLeaveHistory}>
@@ -259,7 +259,7 @@ export function View() {
         {historyLoaded && !records.length && (
           <Empty>
             <EmptyHeader>
-              <EmptyTitle>目前沒有請假登記</EmptyTitle>
+              <EmptyTitle>目前沒有請假紀錄</EmptyTitle>
             </EmptyHeader>
           </Empty>
         )}

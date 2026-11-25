@@ -54,7 +54,7 @@ export function View({ repositoryId }: { repositoryId: string }) {
     return cancel;
   }, [load, cancel]);
   return (
-    <PagePanel heading="現況總覽" description="查看這個儲存庫的問題狀態與協作項目數量。">
+    <PagePanel heading="總覽" description="查看這個儲存庫的問題狀態與協作項目數量。">
       <ReadFeedback
         busy={busy}
         message={status}

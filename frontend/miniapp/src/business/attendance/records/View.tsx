@@ -167,7 +167,7 @@ export function View() {
                         })
                       }
                     >
-                      查看／補卡
+                      {record.ClockInAt && record.ClockOutAt ? "更正" : "補卡"}
                     </a>
                   </Button>
                 </TableCell>

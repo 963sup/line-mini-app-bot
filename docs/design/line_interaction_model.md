@@ -11,20 +11,44 @@ owner: LINE integration
 
 已逐一檢查 `bootstrap/line*`、`transport/line`、`platform/line`、所有 `business/*/adapter/line`、Webhook 指令與 postback 登錄、Messaging 發送、Rich Menu 與 `frontend/miniapp`。Room 沒有核准的業務規則，維持不支援；MINI App 的 DDD、授權、OpenAPI 與資料模型未變更。
 
+## 現行入口總覽
+
+本表登錄 LINE 平台可直接觸發的 Chat、Group 與 App 入口，以及沒有畫面的 observer 與背景交付。MINI App 內部頁面跳轉、一般業務 API 與前端元件事件不重複算成 LINE 入口。
+
+| Interaction | Trigger                                          | Context | Owner                                                                | 行為                                                | 回覆或輸出                        |
+| ----------- | ------------------------------------------------ | ------- | -------------------------------------------------------------------- | --------------------------------------------------- | --------------------------------- |
+| Transport   | `POST /webhooks/line/{channel}`                  | 全部    | `transport/line`                                                     | 限制 body、驗簽、設定批次期限並依序分派             | HTTP 狀態                         |
+| Chat        | `FollowEvent`                                    | 私聊    | Repository                                                           | 觀測個人身分並建立或恢復個人 Repository             | 無                                |
+| Chat        | 已登錄文字指令                                   | 私聊    | Navigation、Attendance、Organization、Membership、Repository、Object | 執行對應用例或產生入口                              | Text／Quick Reply／Template／Flex |
+| Chat        | 未知文字                                         | 私聊    | Navigation                                                           | 顯示目前可用功能                                    | Quick Reply                       |
+| Chat        | `help`、`miniapp`、`attendance-history` postback | 私聊    | Navigation、Attendance                                               | 顯示選單、MINI App 入口或我的出勤                   | Quick Reply／Template／Flex       |
+| Group       | `JoinEvent`                                      | 群組    | Team、Repository、Navigation                                         | 建立群組觀測、解析資源並顯示功能                    | Quick Reply                       |
+| Group       | `LeaveEvent`                                     | 群組    | Team、Repository                                                     | 將群組觀測標記為非啟用                              | 無                                |
+| Group       | `MemberJoinedEvent`                              | 群組    | Team、Repository                                                     | 更新群組成員觀測                                    | 無                                |
+| Group       | 一般文字訊息                                     | 群組    | Team、Repository、Summary                                            | 更新群組觀測並靜默收集可摘要訊息                    | 無                                |
+| Group       | 已登錄文字指令                                   | 群組    | Navigation、Attendance、Summary、Object                              | 執行對應用例或產生入口                              | Text／Quick Reply／Template／Flex |
+| Group       | 位置訊息                                         | 群組    | Weather                                                              | 查詢位置預報                                        | Text                              |
+| Group       | 符合設定的貼圖                                   | 群組    | Navigation                                                           | 顯示目前可用功能                                    | Quick Reply                       |
+| Group       | Postback                                         | 群組    | Team、Repository、Navigation                                         | 更新觀測；已登錄 action 另執行對應互動              | 無或對應 Message                  |
+| Delivery    | 摘要背景工作完成                                 | 群組    | Summary、`platform/line.Messaging`                                   | 使用原 operation retry key 推送摘要                 | Push Text                         |
+| Publication | Rich Menu 部署工作                               | 私聊    | Navigation、`platform/line/richmenu`                                 | 組合定義、圖片、alias，取得租約後同步並設定預設選單 | 三頁 Rich Menu                    |
+
+文字指令的完整字面值與用途見 [LINE Bot 聊天指令](../references/line_commands.md)。Observer 只記錄已驗簽的平台事實，不宣稱 LINE 群組、成員資格或外部 ID 是業務授權。
+
 ## 十種介面現況
 
-| 介面                    | 重構後用途                     | 現行案例                                           |
-| ----------------------- | ------------------------------ | -------------------------------------------------- |
-| Text                    | 通知、結果、拒絕、錯誤、無資料 | membership、summary、weather、出勤結果與錯誤       |
-| Quick Reply             | 當前對話的暫時選項             | 功能選單、打卡操作                                 |
-| Buttons Template        | 單一資源或表單入口             | MINI App、請假、補卡、漏下班、組織／企業、物件範本 |
-| Confirm Template        | 二元決策                       | 尚無核准案例；不得為了使用介面而新增流程           |
-| Carousel Template       | 多筆同類資源                   | 本人出勤群組、月份、我的工程                       |
-| Image Carousel Template | 圖片是辨識主體的多筆資源       | 尚無核准案例                                       |
-| Flex                    | 結構化資訊或統計               | 本人月度出勤、群組出勤看板                         |
-| Rich Menu               | 固定入口                       | 出勤三頁：上班、轉場支援、下班                     |
-| LINE MINI App           | 複雜表單、查詢、編輯           | 現有 `frontend/miniapp` 路由與表單                 |
-| Imagemap                | 圖片區域操作                   | 尚無核准案例                                       |
+| 介面                    | 重構後用途                     | 現行案例                                                 |
+| ----------------------- | ------------------------------ | -------------------------------------------------------- |
+| Text                    | 通知、結果、拒絕、錯誤、無資料 | membership、summary、weather、出勤結果與錯誤             |
+| Quick Reply             | 當前對話的暫時選項             | 功能選單、打卡操作                                       |
+| Buttons Template        | 單一資源或表單入口             | MINI App、請假、補卡、更正、漏下班、組織／企業、物件範本 |
+| Confirm Template        | 二元決策                       | 尚無核准案例；不得為了使用介面而新增流程                 |
+| Carousel Template       | 多筆同類資源                   | 本人出勤群組、月份、我的工程                             |
+| Image Carousel Template | 圖片是辨識主體的多筆資源       | 尚無核准案例                                             |
+| Flex                    | 結構化資訊或統計               | 個人月度出勤、群組出勤統計                               |
+| Rich Menu               | 固定入口                       | 出勤三頁：上班、支援、下班                               |
+| LINE MINI App           | 複雜表單、查詢、編輯           | 現有 `frontend/miniapp` 路由與表單                       |
+| Imagemap                | 圖片區域操作                   | 尚無核准案例                                             |
 
 `TemplateMessage` 只是 Buttons、Confirm、Carousel 與 Image Carousel 的外殼，不另算互動目的。
 
@@ -72,7 +96,7 @@ owner: LINE integration
 
 | Action           | 元件範例或限制 | 點擊效果                                                               | Action 物件範例                                                                                               |
 | ---------------- | -------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Postback         | Buttons 按鈕   | 回傳 postback.data，供後端處理                                         | `{"type":"postback","label":"本人出勤紀錄","data":"action=attendance-history"}`                               |
+| Postback         | Buttons 按鈕   | 回傳 postback.data，供後端處理                                         | `{"type":"postback","label":"我的出勤","data":"action=attendance-history"}`                                   |
 | Message          | Quick Reply    | 以使用者身分送出文字，Bot 收到文字訊息                                 | `{"type":"message","label":"打卡","text":"打卡"}`                                                             |
 | URI              | Buttons 按鈕   | 開啟 HTTPS 網頁或 MINI App，部署時代入正式網址                         | `{"type":"uri","label":"開啟表單","uri":"https://example.com/form"}`                                          |
 | Datetime Picker  | Buttons 按鈕   | 選日期、時間或日期時間；結果在 postback.params，識別值在 postback.data | `{"type":"datetimepicker","label":"選日期","data":"field=date","mode":"date"}`                                |
@@ -179,11 +203,19 @@ Service Message 以一次服務操作取得的 notificationToken 管理後續通
 
 `liff.sendMessages()` 須由聊天室開啟 LIFF browser，並取得 `chat_message.write` 授權。從「最近使用的服務」重新載入後無法傳回原聊天。設計指定收件對象的流程時，可提供分享對象選擇器，由使用者選擇並確認。[sendMessages](https://developers.line.biz/en/reference/liff/#send-messages)、[shareTargetPicker](https://developers.line.biz/en/reference/liff/#share-target-picker)、[Service Message 端點](https://developers.line.biz/en/reference/line-mini-app/)。
 
-| 已實作畫面       | 前端入口與元件                                                                                                                                                                                                      |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 本人出勤紀錄     | [/miniapp/attendance](../../frontend/miniapp/src/pages/miniapp/attendance.tsx) 載入 [Records](../../frontend/miniapp/src/business/attendance/records/View.tsx)，以月份選擇與分頁瀏覽。                              |
-| 儀表板           | [/miniapp/dashboard](../../frontend/miniapp/src/pages/miniapp/dashboard.tsx) 將 repositoryId 傳給 [JournalWorkspace](../../frontend/miniapp/src/business/journal/Workspace.tsx)。                                   |
-| 請假、補卡、審核 | 對應 [leave](../../frontend/miniapp/src/pages/miniapp/leave.tsx)、[correction](../../frontend/miniapp/src/pages/miniapp/correction.tsx)、[review](../../frontend/miniapp/src/pages/miniapp/review.tsx) 的頁面入口。 |
+| 已實作畫面       | 前端入口                                                                                                                                                                                                                                                             |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 應用首頁         | `/` 與 [/miniapp](../../frontend/miniapp/src/pages/miniapp/index.tsx)                                                                                                                                                                                                |
+| 動態與日誌       | [/miniapp/feed](../../frontend/miniapp/src/pages/miniapp/feed.tsx)                                                                                                                                                                                                   |
+| 探索             | [/miniapp/explore](../../frontend/miniapp/src/pages/miniapp/explore.tsx)                                                                                                                                                                                             |
+| 儀表板           | [/miniapp/dashboard](../../frontend/miniapp/src/pages/miniapp/dashboard.tsx)                                                                                                                                                                                         |
+| 專案             | [/miniapp/projects](../../frontend/miniapp/src/pages/miniapp/projects.tsx)                                                                                                                                                                                           |
+| Repository       | [/miniapp/repositories](../../frontend/miniapp/src/pages/miniapp/repositories.tsx)                                                                                                                                                                                   |
+| 我的出勤         | [/miniapp/attendance](../../frontend/miniapp/src/pages/miniapp/attendance.tsx)                                                                                                                                                                                       |
+| 定位打卡         | [/miniapp/punch](../../frontend/miniapp/src/pages/miniapp/punch.tsx)                                                                                                                                                                                                 |
+| 定位診斷         | [/location](../../frontend/miniapp/src/pages/location.tsx)                                                                                                                                                                                                           |
+| 請假、補卡、審核 | [/miniapp/leave](../../frontend/miniapp/src/pages/miniapp/leave.tsx)、[/miniapp/correction](../../frontend/miniapp/src/pages/miniapp/correction.tsx)、[/miniapp/review](../../frontend/miniapp/src/pages/miniapp/review.tsx)                                         |
+| 物件辨識與範本   | [/miniapp/object-recognition](../../frontend/miniapp/src/pages/miniapp/object-recognition.tsx)、[/miniapp/object-templates](../../frontend/miniapp/src/pages/miniapp/object-templates.tsx)、[/miniapp/poppler](../../frontend/miniapp/src/pages/miniapp/poppler.tsx) |
 
 Calendar、Kanban、Tabs、Dialog、Sheet 等是 Web 設計選項，畫面與資料操作由前端元件和業務 API 提供。設計資源見 [LINE MINI App 官方設計文件原始碼](https://github.com/line/line-developers-docs-source/tree/main/docs/en/docs/line-mini-app/design)。
 
@@ -197,7 +229,7 @@ Calendar、Kanban、Tabs、Dialog、Sheet 等是 Web 設計選項，畫面與資
 | 公告       | 個人通知                                               | 團隊廣播                                         |
 | 選單       | Rich Menu 提供常駐入口，Quick Reply 提供當下可用的操作 | Quick Reply 提供選項，群組出勤 Flex 看板呈現統計 |
 
-例如，群組出勤看板可呈現應到、已打卡與未打卡人數，再由按鈕開啟詳細資料。私聊、群組與 MINI App 共用業務 API，由後端驗證資源權限與狀態轉移，再透過既有持久化層存取 Firestore。以上示例供設計選擇，已上線項目請查本文件的現況與登錄表。
+例如，群組「出勤」可呈現應到、已打卡與未打卡人數，再由按鈕開啟詳細資料。私聊、群組與 MINI App 共用業務 API，由後端驗證資源權限與狀態轉移，再透過既有持久化層存取 Firestore。以上示例供設計選擇，已上線項目請查本文件的現況與登錄表。
 
 ## Quick Reply 完整登錄
 
@@ -205,30 +237,31 @@ Calendar、Kanban、Tabs、Dialog、Sheet 等是 Web 設計選項，畫面與資
 
 ### 一對一聊天室
 
-| 順序 | 功能 ID               | 顯示名稱     | Action   | Payload／目的地         | 出現條件              |
-| ---: | --------------------- | ------------ | -------- | ----------------------- | --------------------- |
-|    1 | `attendance-history`  | 本人出勤紀錄 | Message  | `出勤紀錄`              | 一對一選單固定顯示    |
-|    2 | `create-organization` | 建立組織     | Message  | `建立組織`              | 一對一選單固定顯示    |
-|    3 | `create-enterprise`   | 建立企業     | Message  | `建立企業`              | 一對一選單固定顯示    |
-|    4 | `repository-space`    | 空間         | URI      | `appURL?repositories=1` | `appURL` 是有效 HTTPS |
-|    5 | `open-mini-app`       | MINI App     | Postback | `action=miniapp`        | `appURL` 非空         |
+| 順序 | 功能 ID               | 顯示名稱 | Action   | Payload／目的地         | 出現條件              |
+| ---: | --------------------- | -------- | -------- | ----------------------- | --------------------- |
+|    1 | `attendance-history`  | 我的出勤 | Message  | `出勤紀錄`              | 一對一選單固定顯示    |
+|    2 | `create-organization` | 建立組織 | Message  | `建立組織`              | 一對一選單固定顯示    |
+|    3 | `create-enterprise`   | 建立企業 | Message  | `建立企業`              | 一對一選單固定顯示    |
+|    4 | `repository-space`    | 空間     | URI      | `appURL?repositories=1` | `appURL` 是有效 HTTPS |
+|    5 | `open-mini-app`       | MINI App | Postback | `action=miniapp`        | `appURL` 非空         |
 
 ### 群組聊天室
 
-| 順序 | 功能 ID                | 顯示名稱 | Action   | Payload／目的地                                                | 出現條件                                                                              |
-| ---: | ---------------------- | -------- | -------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-|    1 | `attendance-punch`     | 打卡     | Message  | `打卡`                                                         | 群組選單固定顯示                                                                      |
-|    2 | `journal-compose`      | 日誌     | URI      | `appURL` + `journal=1&journalCompose=1&journalRepository=<ID>` | `appURL` 是有效 HTTPS；只有恰好一個有效 repository ID 時附 ID，否則仍可開啟未綁定日誌 |
-|    3 | `attendance-board`     | 出勤     | Message  | `出勤`                                                         | 群組選單固定顯示                                                                      |
-|    4 | `leave-registration`   | 請假登記 | Message  | `請假`                                                         | 群組選單固定顯示                                                                      |
-|    5 | `correction-request`   | 補卡申請 | Message  | `補卡`                                                         | 群組選單固定顯示                                                                      |
-|    6 | `conversation-summary` | 群聊摘要 | Message  | `摘要`                                                         | 群組選單固定顯示                                                                      |
-|    7 | `repository-space`     | 空間     | URI      | `appURL?repositories=1&repository=<ID>`                        | `appURL` 是有效 HTTPS，且恰好一個 ID 符合 32 位小寫十六進位格式                       |
-|    8 | `open-mini-app`        | MINI App | Postback | `action=miniapp`                                               | `appURL` 非空                                                                         |
+| 順序 | 功能 ID                 | 顯示名稱 | Action   | Payload／目的地                                                | 出現條件                                                                              |
+| ---: | ----------------------- | -------- | -------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+|    1 | `attendance-punch`      | 打卡     | Message  | `打卡`                                                         | 群組選單固定顯示                                                                      |
+|    2 | `journal-compose`       | 日誌     | URI      | `appURL` + `journal=1&journalCompose=1&journalRepository=<ID>` | `appURL` 是有效 HTTPS；只有恰好一個有效 repository ID 時附 ID，否則仍可開啟未綁定日誌 |
+|    3 | `attendance-board`      | 出勤     | Message  | `出勤`                                                         | 群組選單固定顯示                                                                      |
+|    4 | `leave-registration`    | 請假     | Message  | `請假`                                                         | 群組選單固定顯示                                                                      |
+|    5 | `missing-punch-request` | 補卡     | Message  | `補卡`                                                         | 群組選單固定顯示                                                                      |
+|    6 | `time-correction`       | 更正     | Message  | `更正`                                                         | 群組選單固定顯示                                                                      |
+|    7 | `conversation-summary`  | 摘要     | Message  | `摘要`                                                         | 群組選單固定顯示                                                                      |
+|    8 | `repository-space`      | 空間     | URI      | `appURL?repositories=1&repository=<ID>`                        | `appURL` 是有效 HTTPS，且恰好一個 ID 符合 32 位小寫十六進位格式                       |
+|    9 | `open-mini-app`         | MINI App | Postback | `action=miniapp`                                               | `appURL` 非空                                                                         |
 
 ### 打卡流程
 
-群組輸入「打卡」後回覆 Text + Quick Reply，依序為「上班」「下班」「休息開始」「休息結束」「確認本班休息紀錄」。五項皆為 URI Action，目的地是後端建立的短效 launch token 對應 `appURL?launch=<token>`；缺少群組、使用者、`appURL` 或 launch store 時不產生此選單，改以 Text 說明錯誤。
+群組輸入「打卡」後回覆 Text + Quick Reply，依序為「上班」「下班」「休息開始」「休息結束」「確認休息」。五項皆為 URI Action，目的地是後端建立的短效 launch token 對應 `appURL?launch=<token>`；缺少群組、使用者、`appURL` 或 launch store 時不產生此選單，改以 Text 說明錯誤。
 
 ## 重構前後分配矩陣
 
@@ -243,29 +276,30 @@ Calendar、Kanban、Tabs、Dialog、Sheet 等是 Web 設計選項，畫面與資
 | 物件範本入口                      | 含裸 URL 的 Text        | Buttons Template  | 單一資源入口                 |
 | 組織／企業建立結果入口            | Text + 單項 Quick Reply | Buttons Template  | 單一新建資源入口             |
 | 我的工程                          | 含多個裸 URL 的 Text    | Carousel Template | 多筆同類資源                 |
-| 請假、補卡、漏下班表單            | Buttons Template        | Buttons Template  | 原分配正確                   |
+| 請假、補卡、更正與漏下班入口      | 混用單一補正入口        | Buttons Template  | 依使用者目的拆分入口與引導   |
 | 通知、摘要、天氣、邀請、錯誤      | Text                    | Text              | 原分配正確                   |
 | 固定出勤入口                      | Rich Menu               | Rich Menu         | 原分配正確                   |
 
 ## 指令、Postback 與適用規則
 
-| 領域         | 私聊           | 群組                           | 指令／Action                                  | 結果介面                                   |
-| ------------ | -------------- | ------------------------------ | --------------------------------------------- | ------------------------------------------ |
-| navigation   | 是             | 是                             | `/help`、`/menu`、`/miniapp`、別名、`miniapp` | Quick Reply／Buttons／Text error           |
-| attendance   | 本人紀錄       | 打卡、看板、請假、補卡、漏下班 | `attendance-history` postback                 | Quick Reply／Buttons／Carousel／Flex／Text |
-| organization | 建立組織／企業 | 否                             | 文字指令                                      | Buttons 或 Text                            |
-| membership   | 邀請管理       | 依既有授權                     | 文字指令                                      | Text                                       |
-| repository   | 我的工程       | 觀測與群組資源解析             | 文字指令                                      | Carousel 或 Text                           |
-| object       | 物件範本       | 依現有 handler                 | 文字指令                                      | Buttons                                    |
-| summary      | 否             | 群聊摘要                       | `摘要`                                        | Text                                       |
-| weather      | 否             | 位置訊息                       | location event                                | Text                                       |
+| 領域         | 私聊                  | 群組                                 | 指令／Action                                  | 結果介面                                   |
+| ------------ | --------------------- | ------------------------------------ | --------------------------------------------- | ------------------------------------------ |
+| navigation   | 是                    | 是                                   | `/help`、`/menu`、`/miniapp`、別名、`miniapp` | Quick Reply／Buttons／Text error           |
+| attendance   | 本人紀錄              | 打卡、看板、請假、補卡、更正、漏下班 | `attendance-history` postback                 | Quick Reply／Buttons／Carousel／Flex／Text |
+| organization | 建立組織／企業        | 否                                   | 文字指令                                      | Buttons 或 Text                            |
+| membership   | 邀請管理              | 否                                   | 文字指令                                      | Text                                       |
+| team         | 否                    | 群組生命週期與成員觀測               | Join／Leave／MemberJoined／Message／Postback  | 無                                         |
+| repository   | Follow 觀測、我的工程 | 觀測與群組資源解析                   | Follow／群組事件／文字指令                    | 無／Carousel／Text                         |
+| object       | 物件範本              | 依現有 handler                       | 文字指令                                      | Buttons                                    |
+| summary      | 否                    | 靜默收集與摘要                       | 一般文字／`摘要`                              | 無／Reply Text／背景 Push Text             |
+| weather      | 否                    | 位置訊息                             | location event                                | Text                                       |
 
 業務 postback 的 `data` 使用本專案約定的 query 格式。`ParsePostback` 要求恰有一個非空的 `action` 值，各 Adapter／用例再驗證參數、資源 ID 與授權。Rich Menu 切頁則由 LINE 依 alias 執行，專案在回傳資料使用 `tab=<alias>`；導航處理器不將這個事件當作業務指令。介面可見性不構成授權。
 
 ## 已消除的不一致
 
 - 移除 Help 專用 Flex 與 `HelpCard`，避免 `/help`、`/menu` 與未知文字產生兩套功能標準。
-- 顯示詞固定為「本人出勤紀錄」「請假登記」「補卡申請」「群聊摘要」；Message payload 維持既有短指令，未破壞路由。
+- 顯示詞固定為「我的出勤」「請假」「補卡」「更正」「摘要」；Message payload 使用各自登錄的短指令。
 - 單一 URI 不再塞入 Text 或單項 Quick Reply；多筆資源不再用裸 URL Text。
 - 出勤群組與月份選擇不再由同一個通用 Flex helper 假裝成不同互動目的。
 - 領域直接使用 LINE SDK 原生型別，沒有新增 Message、Template、Action 或路由鏡像層，也沒有新增依賴。
@@ -275,9 +309,76 @@ Calendar、Kanban、Tabs、Dialog、Sheet 等是 Web 設計選項，畫面與資
 | 例外                  | 原因                                     | 保護方式                               |
 | --------------------- | ---------------------------------------- | -------------------------------------- |
 | 本人月度出勤使用 Flex | 同時呈現月統計、逐日明細、狀態與分頁     | 標準登記；架構 allowlist；具體回覆測試 |
-| 群組出勤看板使用 Flex | 同時呈現三種狀態人數、資料時間與計算說明 | 標準登記；架構 allowlist；具體回覆測試 |
+| 群組出勤統計使用 Flex | 同時呈現三種狀態人數、資料時間與計算說明 | 標準登記；架構 allowlist；具體回覆測試 |
 
 Confirm、Image Carousel 與 Imagemap 沒有目前需求，因此維持零實作；這不是缺漏，也不得建立示範性流程。
+
+## Use Case × Interaction Context
+
+本矩陣以使用者目的盤點現行責任，不以 LINE 元件或業務領域分組。欄位描述各介面在同一用例中的呈現責任；業務規則、授權與狀態轉移仍由所屬領域負責，不因入口不同而複製。
+
+| 標記 | 定義                                       |
+| ---- | ------------------------------------------ |
+| 入口 | 使用者可從該介面發起用例                   |
+| 導流 | 該介面只提供前往完成介面的連結或操作引導   |
+| 完成 | 使用者可在該介面完成主要操作或取得主要結果 |
+| 結果 | 該介面只接收完成結果、通知或摘要           |
+| 禁止 | 因隱私、資源歸屬或互動語意不得在該介面提供 |
+| 無   | 現行沒有核准入口；不代表缺漏或待辦         |
+
+同一格可以有兩個標記，例如「入口、完成」。平台事件、observer、背景交付與 Rich Menu 發布不是使用者用例，已由「現行入口總覽」登錄，不重複列入。
+
+| 使用者目的       | 業務能力     | LINE 私聊        | LINE 群組        | MINI App   | 現行呈現或入口                                                      |
+| ---------------- | ------------ | ---------------- | ---------------- | ---------- | ------------------------------------------------------------------- |
+| 查看可用功能     | Navigation   | 入口、完成       | 入口、完成       | 無         | 私聊／群組 Quick Reply；私聊另有 Rich Menu                          |
+| 開啟 MINI App    | Navigation   | 入口、導流       | 入口、導流       | 完成       | Quick Reply postback 或 `/miniapp` → Buttons Template               |
+| 建立組織         | Organization | 入口、完成、導流 | 禁止             | 結果       | 私聊對話收集名稱並建立；Buttons Template 開啟建立後資源             |
+| 建立企業         | Enterprise   | 入口、完成、導流 | 禁止             | 結果       | 私聊對話收集名稱並檢查開通資格；Buttons Template 開啟建立後資源     |
+| 產生組織邀請     | Membership   | 入口、完成       | 禁止             | 無         | 私聊「邀請加入 組織ID」→ Text 邀請碼                                |
+| 接受組織邀請     | Membership   | 入口、完成       | 禁止             | 無         | 私聊「接受邀請 邀請碼」→ Text 結果                                  |
+| 撤銷組織邀請     | Membership   | 入口、完成       | 禁止             | 無         | 私聊「撤銷邀請 邀請碼」→ Text 結果                                  |
+| 查看我的出勤     | Attendance   | 入口、完成       | 禁止             | 入口、完成 | 私聊 Carousel／Flex；MINI App 出勤頁                                |
+| 開始上班         | Attendance   | 入口、導流       | 入口、導流       | 完成       | 私聊 Rich Menu 提示；群組「打卡」→「上班」；MINI App 驗證定位後寫入 |
+| 結束下班         | Attendance   | 入口、導流       | 入口、導流       | 完成       | 私聊 Rich Menu 提示；群組「打卡」→「下班」；MINI App 驗證定位後寫入 |
+| 開始休息         | Attendance   | 導流             | 入口、導流       | 完成       | 群組「打卡」→「休息開始」；MINI App 完成狀態轉移                    |
+| 結束休息         | Attendance   | 導流             | 入口、導流       | 完成       | 群組「打卡」→「休息結束」；MINI App 完成狀態轉移                    |
+| 確認本班休息紀錄 | Attendance   | 導流             | 入口、導流       | 完成       | 群組「打卡」→「確認休息」；MINI App 完成確認                        |
+| 取得支援作業指引 | Attendance   | 入口、完成       | 無               | 無         | 私聊 Rich Menu 回覆指引，不結束、不新增也不轉移班次                 |
+| 查看群組出勤統計 | Attendance   | 無               | 入口、完成       | 入口、完成 | 群組 Flex；MINI App 出勤頁依授權查詢                                |
+| 登記請假         | Attendance   | 導流             | 入口、導流       | 完成       | 私聊提示回原群組；群組 Buttons Template → 請假表單；不需要定位      |
+| 補卡             | Attendance   | 導流             | 入口、導流       | 完成       | 私聊提示回原群組；群組 Buttons Template → 補卡表單；一律人工審核    |
+| 申請更正         | Attendance   | 導流             | 入口、導流       | 完成       | 私聊提示回原群組；群組 Buttons Template → 出勤紀錄 → 既有班次更正   |
+| 查詢漏下班       | Attendance   | 無               | 入口、完成、導流 | 完成       | 群組查詢結果；需要處理時開啟補正表單                                |
+| 審核出勤申請     | Attendance   | 無               | 禁止             | 入口、完成 | MINI App 審核頁；不得在群組公開個人申請內容                         |
+| 查看可存取工程   | Repository   | 入口、完成、導流 | 無               | 入口、完成 | 私聊 Carousel；MINI App Repository 頁                               |
+| 開啟目前群組空間 | Repository   | 無               | 入口、導流       | 完成       | 群組 Quick Reply URI；只有唯一有效資源 ID 時預選                    |
+| 建立工作日誌     | Journal      | 無               | 入口、導流       | 入口、完成 | 群組 Quick Reply URI；MINI App 日誌表單                             |
+| 查看工作日誌     | Journal      | 無               | 無               | 入口、完成 | MINI App 動態與日誌列表                                             |
+| 管理物件範本     | Object       | 入口、導流       | 入口、導流       | 入口、完成 | Buttons Template → 物件範本頁                                       |
+| 辨識物件         | Object       | 無               | 無               | 入口、完成 | 物件辨識頁；聊天未核准複雜檔案流程                                  |
+| 擷取文件內容     | Object       | 無               | 無               | 入口、完成 | Poppler 頁；聊天未核准複雜檔案流程                                  |
+| 搜尋跨領域資源   | Explore      | 無               | 無               | 入口、完成 | MINI App 探索頁                                                     |
+| 管理專案         | Project      | 無               | 無               | 入口、完成 | MINI App 專案頁；聊天沒有核准操作                                   |
+| 執行專案驗收     | Project      | 無               | 無               | 入口、完成 | MINI App 專案驗收流程；聊天沒有核准操作                             |
+| 取得摘要         | Summary      | 禁止             | 入口、完成、結果 | 無         | 群組 Reply Text 回應受理；背景 Push Text 交付摘要                   |
+| 查詢位置天氣     | Weather      | 無               | 入口、完成       | 無         | 群組位置訊息 → Text                                                 |
+
+### 矩陣判讀
+
+- Chat、Group 與 App 是同一業務用例的互動介面，不是三套業務能力；新增介面入口不得複製規則或狀態轉移。
+- 上班、下班、休息開始、休息結束與休息確認是不同操作及狀態轉移；「定位」只是打卡流程的驗證條件，不是涵蓋請假、支援或補卡的業務用例。
+- 「支援」只提供作業指引；不得暗示系統會自動轉移、結束或新增班次。既有選單的舊 alias 與 `action=transfer` postback 僅保留讀取相容，不得成為顯示詞或新發布 action。
+- 請假、補卡與更正由聊天導流、MINI App 完成表單；請假不需要定位，補卡與更正雖共用補正審核核心，仍是兩個入口與使用者目的，且不得共用打卡寫入語意。
+- 日誌與物件操作需要表單或檔案能力時，由聊天導流、MINI App 完成；不得在聊天重建複雜表單。
+- 個人出勤、邀請、審核與摘要已有明確的私密或群組邊界；介面對稱不是目標。不同命令造成不同寫入或狀態轉移時，即使同屬一個領域也必須分列。
+- Explore、Project 與物件辨識目前是 App-only；沒有已核准的聊天入口，因此不列為缺漏。
+- 下一輪只需逐列核對「同一用例是否共用同一應用服務」及「入口是否符合本矩陣」；無須先建立新的 LINE 核心框架。
+
+## 完整性與下一步
+
+現行入口以「現行入口總覽」、Quick Reply 完整登錄、Rich Menu、MINI App 畫面與指令矩陣共同構成盤點基線。新增或移除 LINE 入口時，必須同步登錄 Trigger、Context、Owner、行為及輸出；只改程式或只補視覺介面都不算完成。
+
+下一步只來自兩類差距：已核准用例尚未具有合適入口，或現行入口與 [LINE 互動標準](../standards/line_interactions.md) 的分配不一致。Confirm、Image Carousel、Imagemap、Room、Service Message、multicast、narrowcast 與 broadcast 目前都沒有核准用例，不因平台提供能力而列入實作待辦。
 
 ## 驗證與量測
 
