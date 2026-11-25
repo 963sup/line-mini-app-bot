@@ -30,7 +30,7 @@ Token、channel secret 與 API key 只透過 Secret Manager 或受控本機環�
 
 不得把 secret payload、OAuth URL、驗證碼或 ADC 檔寫入文件、提交或一般 log。公開 channel／LIFF ID 雖非秘密，仍需按環境一致配置，不能當授權證據。
 
-## 群聊摘要啟用條件
+## 摘要啟用條件
 
 沿用 GOOGLE_CLOUD_PROJECT、LINE_MESSAGING_API_CHANNEL_ID、LINE_MESSAGING_API_CHANNEL_SECRET、LINE_MESSAGING_API_CHANNEL_ACCESS_TOKEN、FIRESTORE_DATABASE_ID 與 runtime ADC。 以下 provider、選用的 API key、模型與三項 task 設定全部未設定時，摘要模組不啟用；設定任何一項後則檢查完整性。這是模組部署條件，群組使用時無需再逐一開啟。
 

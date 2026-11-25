@@ -21,7 +21,7 @@ func quickMenu(group bool, appURL string, repositoryIDs ...string) messaging_api
 	for _, command := range commands {
 		label := command
 		if command == summary.SummaryCommand {
-			label = "群聊摘要"
+			label = "摘要"
 		}
 		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.MessageAction{Label: label, Text: command}})
 	}

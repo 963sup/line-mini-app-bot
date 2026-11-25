@@ -46,6 +46,7 @@ function Content({
     const params = new URLSearchParams(location.search);
     let leave = params.has("leave"),
       correction = params.get("correction"),
+      attendance = params.has("attendance"),
       journal = params.has("journal"),
       journalCompose = params.get("journalCompose") === "1",
       journalRepository = params.get("journalRepository") || "",
@@ -69,6 +70,7 @@ function Content({
         journalRepository ||= query.get("journalRepository") || "";
         leave ||= query.has("leave");
         correction ||= query.get("correction");
+        attendance ||= query.has("attendance");
       }
     } catch {}
     if (repositories)
@@ -83,6 +85,7 @@ function Content({
       location.replace("/miniapp/feed" + (target.size ? "?" + target : ""));
     } else if (correction)
       location.replace("/miniapp/correction?" + new URLSearchParams({ group: correction }));
+    else if (attendance) location.replace("/miniapp/attendance");
     else if (leave) {
       location.replace("/miniapp/leave?" + params);
     } else if (params.has("launch") || params.has("liff.state"))

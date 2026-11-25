@@ -7,13 +7,13 @@ const destinations = [
   { title: "動態", href: "/miniapp/feed", icon: List },
   { title: "儲存庫", href: "/miniapp/repositories", icon: FolderOpen },
   { title: "專案", href: "/miniapp/projects", icon: Layers },
-  { title: "出勤紀錄", href: "/miniapp/attendance", icon: ClipboardList },
+  { title: "我的出勤", href: "/miniapp/attendance", icon: ClipboardList },
 ];
 
 export function View() {
   return (
-    <PagePanel heading="常用功能">
-      <nav aria-label="首頁常用功能">
+    <PagePanel heading="功能">
+      <nav aria-label="首頁功能">
         <ul className="grid gap-2 sm:grid-cols-2">
           {destinations.map(({ title, href, icon: Icon }) => (
             <li key={href}>

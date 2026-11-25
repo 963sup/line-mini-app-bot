@@ -30,6 +30,9 @@ const statusLabels = {
 export function correctionStatus(status: S["CorrectionReview"]["status"]) {
   return (status && statusLabels[status]) || "狀態無法確認";
 }
+function correctionPurpose(item: S["CorrectionReview"]) {
+  return item.newRecord || !item.before?.ClockInAt || !item.before.ClockOutAt ? "補卡" : "更正";
+}
 export function Requests({
   review = false,
   refreshVersion = 0,
@@ -91,7 +94,7 @@ export function Requests({
           onClearReview?.();
           setStatus(
             review && (error as { httpStatus?: number }).httpStatus === 403
-              ? "目前沒有補卡審核權限。請聯絡管理員確認審核群組設定。"
+              ? "目前沒有出勤審核權限。請聯絡管理員確認審核群組設定。"
               : errorMessage(error),
           );
         },
@@ -142,7 +145,7 @@ export function Requests({
             !(Date.parse(item.reviewedAt || item.createdAt || "") < cutoff),
         );
   return (
-    <PagePanel heading={review ? "補卡審核" : "補卡申請進度"}>
+    <PagePanel heading={review ? "出勤審核" : "調整紀錄"}>
       <FieldSet
         className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
         disabled={!user || busy || disabled}
@@ -163,7 +166,9 @@ export function Requests({
             <Item key={item.id} role="listitem" variant="outline">
               <ItemContent className="min-w-0">
                 <ItemTitle>
-                  {review ? item.applicantName || "姓名未留存，請依申請編號核對" : "補卡／時間更正"}
+                  {review
+                    ? item.applicantName || "姓名未留存，請依申請編號核對"
+                    : correctionPurpose(item)}
                 </ItemTitle>
                 <ItemDescription className="line-clamp-none break-words">
                   {displayTime(item.start)} ～ {displayTime(item.end)}

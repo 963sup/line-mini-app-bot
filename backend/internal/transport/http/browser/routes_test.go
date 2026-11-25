@@ -32,16 +32,16 @@ func TestMiniAppAttendanceGetsDedicatedPage(t *testing.T) {
 		attendance bool
 		content    string
 	}{
-		{"/miniapp", false, `aria-label="首頁常用功能"`},
+		{"/miniapp", false, `aria-label="首頁功能"`},
 		{"/miniapp/feed", false, `"page":"/miniapp/feed"`},
 		{"/miniapp?journal=1", false, `"page":"/miniapp/feed"`},
 		{"/miniapp?liff.state=%3Fjournal%3D1", false, `"page":"/miniapp/feed"`},
 		{"/miniapp?launch=token", true, "確認並完成打卡"},
 		{"/miniapp?liff.state=%3Flaunch%3Dtoken", true, "確認並完成打卡"},
-		{"/miniapp/attendance", false, "出勤紀錄"},
-		{"/miniapp/leave", false, "請假登記"},
-		{"/miniapp/correction", false, "申請補卡"},
-		{"/miniapp/review", false, "補卡審核"},
+		{"/miniapp/attendance", false, "我的出勤"},
+		{"/miniapp/leave", false, "請假"},
+		{"/miniapp/correction", false, "補卡"},
+		{"/miniapp/review", false, "出勤審核"},
 	} {
 		recorder := httptest.NewRecorder()
 		serveMiniApp(recorder, httptest.NewRequest("GET", tc.url, nil))

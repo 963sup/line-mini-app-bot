@@ -4,8 +4,8 @@ import { Shell } from "@/shell/Shell";
 
 export default function Page() {
   return (
-    <Shell title="申請補卡" workflow="correction">
-      <RouteContent label="正在開啟申請補卡……">
+    <Shell title="補卡" workflow="correction">
+      <RouteContent label="正在開啟補卡……">
         <Correction />
       </RouteContent>
     </Shell>

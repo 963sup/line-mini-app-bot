@@ -61,7 +61,7 @@ func (s *Service) Run(ctx context.Context, group, id string) error {
 			if err != nil {
 				return err
 			}
-			j.Result = fmt.Sprintf("群聊摘要｜最近24小時，採用%d則（最多100則）\n%s\n\n僅整理群聊說法，未做事實查核。", len(sources), j.Result)
+			j.Result = fmt.Sprintf("摘要｜最近24小時，採用%d則（最多100則）\n%s\n\n僅整理群聊說法，未做事實查核。", len(sources), j.Result)
 		}
 		if err := s.Store.SaveResult(ctx, j, j.Result, sources); err != nil {
 			return err

@@ -24,7 +24,7 @@ type Attendance struct {
 	GroupName func(context.Context, string) string
 }
 
-var attendanceCommands = []string{"補卡", "出勤", "漏下班", "下班提醒", "請假", "打卡", "上班", "下班", "休息開始", "休息結束", "確認休息", "出勤紀錄"}
+var attendanceCommands = []string{"補卡", "更正", "出勤", "漏下班", "下班提醒", "請假", "打卡", "上班", "下班", "休息開始", "休息結束", "確認休息", "出勤紀錄"}
 
 func (b *Attendance) Handler() transport.Handler {
 	return transport.Handler{Owner: "attendance", Commands: attendanceCommands, Postbacks: []string{"attendance-history"}, Handle: b.Reply, Failure: "attendance unavailable; retry safely", RetryOnSendFailure: true}
@@ -106,8 +106,8 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 	}
 	if user, ok := source.(webhook.UserSource); ok {
 		if !history {
-			if command == "補卡" {
-				return respond("請回原群組輸入「補卡」取得申請入口。")
+			if command == "補卡" || command == "更正" {
+				return respond("請回原群組輸入「" + command + "」取得申請入口。")
 			}
 			if command == "出勤" || command == "漏下班" || command == "下班提醒" {
 				return respond("請回原群組輸入「出勤」或「漏下班」。")
@@ -178,23 +178,30 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 		return respond("請在群組打卡，或私訊查詢本人紀錄。")
 	}
 	if history {
-		return respond("請私訊輸入「出勤紀錄」，查看本人紀錄。")
+		return respond("請私訊輸入「出勤紀錄」，查看紀錄。")
 	}
 	if group.UserId == "" || group.GroupId == "" {
 		return respond("無法確認群組或操作人員，未執行打卡。")
 	}
-	if command == "補卡" {
+	if command == "補卡" || command == "更正" {
 		if b.AppURL == "" {
-			return respond("補卡申請尚未啟用。")
+			return respond(command + "申請尚未啟用。")
 		}
 		target, err := url.Parse(b.AppURL)
 		if err != nil {
 			return transport.Reply{}, true, err
 		}
 		query := target.Query()
-		query.Set("correction", group.GroupId)
+		if command == "補卡" {
+			query.Set("correction", group.GroupId)
+		} else {
+			query.Set("attendance", "1")
+		}
 		target.RawQuery = query.Encode()
-		return transport.Reply{Token: token, Message: &messaging_api.TemplateMessage{AltText: "補卡／時間更正申請：一律須人工審核。", Template: &messaging_api.ButtonsTemplate{Text: "漏上班、漏下班或整班皆漏，請申報已結束班次的實際時間。核准前有效紀錄不變。", Actions: []messaging_api.ActionInterface{&messaging_api.UriAction{Label: "補卡／時間更正", Uri: target.String()}}}}}, true, nil
+		if command == "補卡" {
+			return transport.Reply{Token: token, Message: &messaging_api.TemplateMessage{AltText: "補卡：一律須人工審核。", Template: &messaging_api.ButtonsTemplate{Text: "漏上班、漏下班或整班皆漏時提出補卡。核准前有效紀錄不變。", Actions: []messaging_api.ActionInterface{&messaging_api.UriAction{Label: "申請補卡", Uri: target.String()}}}}}, true, nil
+		}
+		return transport.Reply{Token: token, Message: &messaging_api.TemplateMessage{AltText: "更正：選擇既有班次提出申請。", Template: &messaging_api.ButtonsTemplate{Text: "已有班次但時間不正確時，先選擇出勤紀錄再提出更正；一律須人工審核。", Actions: []messaging_api.ActionInterface{&messaging_api.UriAction{Label: "選擇出勤紀錄", Uri: target.String()}}}}}, true, nil
 	}
 
 	if command == "出勤" || command == "漏下班" || command == "下班提醒" {
@@ -211,8 +218,8 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 		}
 		link := b.AppURL + "?leave=" + url.QueryEscape(launch)
 		return transport.Reply{Token: token, Message: &messaging_api.TemplateMessage{
-			AltText:  "請假登記：開啟表單填寫，送出不代表核准。",
-			Template: &messaging_api.ButtonsTemplate{Text: "請假登記（30分鐘內開啟並送出）。理由不會發送到群組；送出不代表核准。", Actions: []messaging_api.ActionInterface{&messaging_api.UriAction{Label: "填寫請假", Uri: link}}},
+			AltText:  "請假：開啟表單填寫，送出不代表核准。",
+			Template: &messaging_api.ButtonsTemplate{Text: "請假（30分鐘內開啟並送出）。理由不會發送到群組；送出不代表核准。", Actions: []messaging_api.ActionInterface{&messaging_api.UriAction{Label: "填寫請假", Uri: link}}},
 		}}, true, nil
 	}
 	if command != "打卡" {

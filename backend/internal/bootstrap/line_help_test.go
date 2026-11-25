@@ -17,9 +17,9 @@ func TestHelpMenuViaWebhookHandler(t *testing.T) {
 		source      webhook.SourceInterface
 		labels      []string
 	}{
-		{"private", "/help", webhook.UserSource{UserId: "u"}, []string{"本人出勤紀錄", "建立組織", "建立企業", "空間", "MINI App"}},
-		{"private fallback", "unknown", webhook.UserSource{UserId: "u"}, []string{"本人出勤紀錄", "建立組織", "建立企業", "空間", "MINI App"}},
-		{"group", "/help", webhook.GroupSource{GroupId: "g"}, []string{"打卡", "日誌", "出勤", "請假登記", "補卡申請", "群聊摘要", "MINI App"}},
+		{"private", "/help", webhook.UserSource{UserId: "u"}, []string{"我的出勤", "建立組織", "建立企業", "空間", "MINI App"}},
+		{"private fallback", "unknown", webhook.UserSource{UserId: "u"}, []string{"我的出勤", "建立組織", "建立企業", "空間", "MINI App"}},
+		{"group", "/help", webhook.GroupSource{GroupId: "g"}, []string{"打卡", "日誌", "出勤", "請假", "補卡", "更正", "摘要", "MINI App"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			event := webhook.MessageEvent{Source: tc.source, Mode: "active", ReplyToken: "reply", Message: webhook.TextMessageContent{Text: tc.input}}
