@@ -159,4 +159,6 @@ For Mini App component work, follow the [shadcn MCP workflow](docs/workflows/sha
 
 For failing pull request checks, use GitHub MCP and follow the [PR verification workflow](docs/workflows/verification.md#用-github-mcp-處理-pr-紅燈) through the final check result.
 
+For tasks requiring Google Cloud CLI or local Google Cloud credentials, follow the [Google Cloud CLI workflow](docs/workflows/gcloud.md). Run the installer when the CLI is missing and request browser authorization when required.
+
 Documentation-only and configuration-only changes do not require unrelated application tests. Behavior changes require the corresponding checks.
