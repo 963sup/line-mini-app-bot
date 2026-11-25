@@ -16,9 +16,11 @@
 
 消費端定義所需的最小介面，由 composition root 注入提供端 adapter。不得匯入另一領域的 Firestore document、HTTP handler 或內部 entity 以繞過公開語意。跨領域 DTO 必須轉譯，避免形成 shared mutable model。
 
-`platform/identity` 提供可信 actor。Repository 判定儲存庫所有者，Project 判定個人、群組與組織的專案存取資格。兩者共用 `platform/line/lineid` 的格式檢查。HTTP 處理器經 Session 服務執行建立、讀取、續期與撤銷，Firestore 交易由持久化轉接器負責。[身分、平台與傳輸的套件位置](../standards/backend.md)
+`platform/identity` 提供可信 actor。Repository 判定儲存庫所有者，Project 判定個人、群組與組織的專案存取資格。Repository 核心驗證擁有者類型與識別碼，Project 在既有的 LINE 範圍使用 `platform/line/lineid` 驗證格式。HTTP 處理器經 Session 服務執行建立、讀取、續期與撤銷，Firestore 交易由持久化轉接器負責。[身分、平台與傳輸的套件位置](../standards/backend.md)
 
-Repository、Organization、Team、Enterprise 與 Membership 的合作必須透過具名查詢或操作契約，不得直接修改彼此文件。
+Repository、Organization、Team、Enterprise 與 Membership 透過具名查詢或操作契約合作，資源擁有者負責寫入。企業連結組織時，Enterprise 驗證企業擁有者，Organization 在同一筆交易驗證組織擁有者、現有歸屬並保存連結。企業目錄透過 Organization、Team 查詢可見項目，LINE 成員檢查在 Firestore 讀取交易結束後執行。
+
+Repository 統計在同一份交易快照中向 Issue、Discussion 及 Project 取得各自的計數；Project 負責選擇擁有者的儲存路徑。
 
 ## 前端邊界
 

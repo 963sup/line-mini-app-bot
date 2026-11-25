@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"regexp"
+	"sync"
 	"syscall"
 	"time"
 
@@ -59,7 +60,6 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/browser"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/geolocation"
 	"google.golang.org/api/pubsub/v1"
-	"sync"
 )
 
 func Run() (resultErr error) {
@@ -184,14 +184,15 @@ func Run() (resultErr error) {
 		organizationStore := organizationdb.Store{
 			DB: db, Channel: channel,
 			EnterpriseNavigation: enterprisedb.NavigationFacts,
+			OrganizationMember:   membershipdb.OrganizationMember,
 			CanCreateEnterprise:  enterprisedb.CanStartCreation,
 			CreateEnterprise:     enterprisedb.CreateFromConversation,
 		}
 		organizationHandler.Store = organizationStore
 		enterpriseStore := enterprisedb.Store{
-			DB: db, Channel: channel,
-			OrganizationMember: membershipdb.OrganizationMember,
-			TeamMember:         membershipdb.TeamMember,
+			AttachOrganization: organizationdb.AttachEnterprise,
+			DB:                 db, Channel: channel,
+			Organizations: organizationStore.EnterpriseOrganizations,
 		}
 		teamStore := teamdb.Store{
 			DB: db, Channel: channel,
@@ -204,6 +205,7 @@ func Run() (resultErr error) {
 			teamStore.Groups = lineTeams
 			teamStore.LINEActivationMember = lineTeams.Membership
 		}
+		enterpriseStore.Teams = teamStore.EnterpriseTeams
 		enterpriseHandler.Store = enterpriseStore
 		teamHandler.Store = teamStore
 		creation = organizationStore

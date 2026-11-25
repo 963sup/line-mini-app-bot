@@ -39,9 +39,9 @@ func indexRoutes(entries ...route) routes {
 }
 
 var commonRoutes = []route{
-	route{command: "/menu", aliases: []string{"選單", "功能"}},
-	route{command: "/help", action: "help"},
-	route{command: "/miniapp", action: "miniapp"},
+	{command: "/menu", aliases: []string{"選單", "功能"}},
+	{command: "/help", action: "help"},
+	{command: "/miniapp", action: "miniapp"},
 }
 
 // PrivateAction serves a private postback and its existing slash command.

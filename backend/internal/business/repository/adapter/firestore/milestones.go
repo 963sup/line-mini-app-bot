@@ -249,24 +249,15 @@ func (s *Store) UpdateMilestone(ctx context.Context, r repositoryDomainEntity.Re
 }
 
 func (s *Store) loadMilestoneIssueCounts(ctx context.Context, r repositoryDomainEntity.Repository, result *repositoryDomainEntityMilestones.Milestone) error {
-	snaps, e := s.repositoryRef(r.ID).Collection("issues").Where("milestoneId", "==", result.ID).Select("state").Documents(ctx).GetAll()
-	if e != nil {
-		return e
+	if s.CountIssues == nil {
+		return repositoryDomainEntityMilestones.ErrUnavailable
 	}
-	result.IssueCount = int64(len(snaps))
-	for _, snap := range snaps {
-		state, e := snap.DataAt("state")
-		if e != nil {
-			return e
-		}
-		switch state {
-		case "completed":
-			result.CompletedIssueCount++
-		case "open", "in_progress":
-		default:
-			return repositoryDomainEntityMilestones.ErrUnavailable
-		}
+	counts, err := s.CountIssues(func(q db.Query) *db.DocumentIterator { return q.Documents(ctx) }, s.repositoryRef(r.ID), result.ID)
+	if err != nil {
+		return err
 	}
+	result.IssueCount = counts.Open + counts.InProgress + counts.Completed
+	result.CompletedIssueCount = counts.Completed
 	return nil
 }
 

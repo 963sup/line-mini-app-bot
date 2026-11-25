@@ -35,16 +35,9 @@ func AttachOrganization(ctx context.Context, store port.Store, actor, id, organi
 		if !ent.Active || !ent.ActorIsOwner {
 			return nil, enterprise.ErrNotFound
 		}
-		org, err := work.Organization(actor)
-		if err != nil {
+		if err := work.AttachForOwner(actor); err != nil {
 			return nil, err
 		}
-		if !org.Active || !org.ActorIsOwner {
-			return nil, enterprise.ErrNotFound
-		}
-		if org.EnterpriseID != "" && org.EnterpriseID != id {
-			return nil, enterprise.ErrConflict
-		}
-		return &dto.Link{ID: id, Name: ent.Name}, work.Attach()
+		return &dto.Link{ID: id, Name: ent.Name}, nil
 	})
 }

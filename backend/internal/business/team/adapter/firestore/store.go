@@ -224,7 +224,11 @@ func (w assignmentWork) Save(assigned bool) error {
 }
 
 func (s Store) List(ctx context.Context, user string, organizationId string) (*teamApplicationDto.Listing, error) {
-	return orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*teamApplicationDto.Listing, error) {
+	type listing struct {
+		result  teamApplicationDto.Listing
+		pending []teamApplicationDto.Option
+	}
+	snapshot, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*listing, error) {
 		if uuid.Validate(organizationId) != nil {
 			return nil, organizationDomainEntity.ErrInvalid
 		}
@@ -276,6 +280,7 @@ func (s Store) List(ctx context.Context, user string, organizationId string) (*t
 			}
 		}
 		result := teamApplicationDto.Listing{Teams: []teamApplicationDto.Option{}, CanBindTeam: org.LegacyOrganizationEnabled() && assignmentAuthority(org, org.Owner == user, user).AllowsAssignment()}
+		var pending []teamApplicationDto.Option
 		for id, team := range candidates {
 			switch team.MembershipMode {
 			case "membership":
@@ -297,19 +302,28 @@ func (s Store) List(ctx context.Context, user string, organizationId string) (*t
 			default:
 				continue
 			}
-			if s.Groups == nil {
-				return nil, groupport.ErrUnavailable
-			}
-			g, e := s.Groups.Get(ctx, user, id)
-			if errors.Is(e, groupentity.ErrNotFound) {
-				continue
-			}
-			if e != nil {
-				return nil, e
-			}
-			result.Teams = append(result.Teams, teamApplicationDto.Option{ID: id, Name: g.Name, ManagementScope: team.Scope})
+			pending = append(pending, teamApplicationDto.Option{ID: id, ManagementScope: team.Scope})
 		}
-		slices.SortFunc(result.Teams, func(a, b teamApplicationDto.Option) int { return strings.Compare(a.ID, b.ID) })
-		return &result, nil
+		return &listing{result, pending}, nil
 	})
+	if err != nil {
+		return nil, err
+	}
+	result := snapshot.result
+	for _, candidate := range snapshot.pending {
+		if s.Groups == nil {
+			return nil, groupport.ErrUnavailable
+		}
+		group, err := s.Groups.Get(ctx, user, candidate.ID)
+		if errors.Is(err, groupentity.ErrNotFound) {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		candidate.Name = group.Name
+		result.Teams = append(result.Teams, candidate)
+	}
+	slices.SortFunc(result.Teams, func(a, b teamApplicationDto.Option) int { return strings.Compare(a.ID, b.ID) })
+	return &result, nil
 }

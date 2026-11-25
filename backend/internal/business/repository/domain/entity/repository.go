@@ -21,8 +21,10 @@ var idPattern = regexp.MustCompile(`^[0-9a-f]{32}$`)
 // ownerPattern is the persisted owner-reference contract. Repository identity
 // remains the independent ID validated by ValidID; an owner reference only
 // scopes authorization and the external binding maintained by adapters.
-var userOwnerPattern = regexp.MustCompile(`^U[0-9a-f]{32}$`)
-var organizationOwnerPattern = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
+var (
+	userOwnerPattern         = regexp.MustCompile(`^U[0-9a-f]{32}$`)
+	organizationOwnerPattern = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
+)
 
 type OwnerType string
 

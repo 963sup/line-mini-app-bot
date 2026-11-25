@@ -9,3 +9,5 @@ type Page struct {
 	NextCursor string
 }
 type Filter struct{ Cursor, State, Query string }
+
+type StateCounts struct{ Open, InProgress, Completed int64 }

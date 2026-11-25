@@ -66,7 +66,7 @@ func TestWorkspaceLifecycle(t *testing.T) {
 	}
 	httpapi.RegisterMembership(mux, membershiphttp.Handler{Auth: &owner, Service: invitations})
 	httpapi.RegisterOrganizations(mux, Handler{Auth: &owner, Store: orgdb.Store{DB: db, Channel: channel, EnterpriseNavigation: enterprisedb.NavigationFacts}})
-	httpapi.RegisterEnterprises(mux, enterprisehttp.Handler{Auth: &owner, Store: enterprisedb.Store{DB: db, Channel: channel, Groups: groups}})
+	httpapi.RegisterEnterprises(mux, enterprisehttp.Handler{Auth: &owner, Store: enterprisedb.Store{DB: db, Channel: channel, Groups: groups, Organizations: (orgdb.Store{}).EnterpriseOrganizations, Teams: (teamdb.Store{}).EnterpriseTeams, AttachOrganization: orgdb.AttachEnterprise}})
 	httpapi.RegisterTeams(mux, teamhttp.Handler{Auth: &owner, Store: teamdb.Store{DB: db, Channel: channel, Groups: groups}})
 	call := func(method, path, body string, code int) []byte {
 		t.Helper()
@@ -115,6 +115,16 @@ func TestWorkspaceLifecycle(t *testing.T) {
 	call("POST", ep+"/owners", `{"userId":"`+other+`"}`, 404)
 	owner = original
 	call("POST", ep+"/organizations", `{"organizationId":"`+id+`"}`, 200)
+	linked := root.Collection("organizations").Doc(id)
+	before, err := linked.Get(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	call("POST", ep+"/organizations", `{"organizationId":"`+id+`"}`, 200)
+	after, err := linked.Get(ctx)
+	if err != nil || !before.UpdateTime.Equal(after.UpdateTime) {
+		t.Fatalf("replayed attachment changed the organization: %v", err)
+	}
 	code, err := invitations.Invite(ctx, string(owner), "join-organization", id)
 	if err != nil {
 		t.Fatal(err)

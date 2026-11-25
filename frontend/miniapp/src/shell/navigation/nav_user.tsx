@@ -11,12 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown_menu";
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/shared/ui/sidebar";
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/shared/ui/sidebar";
 
 export type AccountMenu = {
   name: string;
@@ -95,11 +90,7 @@ export function NavUser({ user }: { user: AccountMenu }) {
                   onSelect={action.onSelect}
                   asChild={!!action.url}
                 >
-                  {action.url ? (
-                    <a href={action.url}>{action.label}</a>
-                  ) : (
-                    action.label
-                  )}
+                  {action.url ? <a href={action.url}>{action.label}</a> : action.label}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuGroup>

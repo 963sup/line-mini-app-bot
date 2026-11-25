@@ -83,7 +83,11 @@ func TestDuplicateUnsendKeepsSubsequentJobCurrent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	t.Cleanup(func() {
+		if err := client.Close(); err != nil {
+			t.Error(err)
+		}
+	})
 	s := Summary{Client: client, ChannelID: "test"}
 	group := fmt.Sprint(time.Now().UnixNano())
 	if err := s.Unsend(ctx, group, "source"); err != nil {
@@ -110,7 +114,11 @@ func TestRecoverPendingJobAfterMissingQueueDispatch(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	t.Cleanup(func() {
+		if err := client.Close(); err != nil {
+			t.Error(err)
+		}
+	})
 	s := Summary{Client: client, ChannelID: fmt.Sprint(time.Now().UnixNano())}
 	job, err := s.Command(ctx, "group", "event", "摘要", time.Now().UnixMilli())
 	if err != nil {

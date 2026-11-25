@@ -27,3 +27,26 @@ func TestLegacyOrganizationVisibility(t *testing.T) {
 		})
 	}
 }
+
+func TestAttachEnterprise(t *testing.T) {
+	for _, tc := range []struct {
+		name, actor, mode, current string
+		disabled                   bool
+		want                       error
+	}{
+		{name: "owner", actor: "owner"},
+		{name: "replay", actor: "owner", current: "enterprise"},
+		{name: "foreign enterprise", actor: "owner", current: "other", want: ErrConflict},
+		{name: "member", actor: "member", want: ErrNotFound},
+		{name: "disabled", actor: "owner", disabled: true, want: ErrNotFound},
+		{name: "formal membership", actor: "owner", mode: "membership", want: ErrNotFound},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			org := Organization{OwnerUserID: "owner", EnterpriseID: tc.current, MembershipMode: tc.mode, Disabled: tc.disabled}
+			got, err := org.AttachEnterprise(tc.actor, "enterprise")
+			if err != tc.want || err == nil && got.EnterpriseID != "enterprise" || err != nil && got.EnterpriseID != tc.current {
+				t.Fatalf("enterprise ID %q, error %v", got.EnterpriseID, err)
+			}
+		})
+	}
+}

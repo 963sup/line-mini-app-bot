@@ -28,6 +28,8 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
+	discussiondb "github.com/963sup/line-mini-app-bot/internal/business/discussion/adapter/firestore"
+	issuedb "github.com/963sup/line-mini-app-bot/internal/business/issue/adapter/firestore"
 	spaceDB "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore/group"
 	groupquery "github.com/963sup/line-mini-app-bot/internal/business/team/application/query"
 	groupevent "github.com/963sup/line-mini-app-bot/internal/business/team/domain/event"
@@ -216,7 +218,7 @@ func TestOwnerProjectStorageRightsAndLegacyAlias(t *testing.T) {
 	if _, err = root.Collection("groups").Doc(gid).Collection("projects").Doc(created.ID).Get(ctx); err != nil {
 		t.Fatal(err)
 	}
-	repoStore := &repoDB.Store{Client: client, ChannelID: channel}
+	repoStore := &repoDB.Store{Client: client, ChannelID: channel, CountIssues: issuedb.CountRepositoryIssues, CountDiscussions: discussiondb.CountRepositoryDiscussions, CountProjects: store.CountRepositoryProjects}
 	counts, err := repoStore.Statistics(ctx, repositoryDomainEntity.Repository{ID: rid, OwnerID: gid, Status: "ACTIVE"})
 	if err != nil || counts.Projects != 1 {
 		t.Fatalf("statistics must count new canonical project without legacy copy: %+v %v", counts, err)
@@ -373,7 +375,7 @@ func TestPersonalRepositoryAndProject(t *testing.T) {
 	root := client.Collection("channels").Doc(channel)
 	owner, other := "U"+strings.Repeat("a", 32), "U"+strings.Repeat("b", 32)
 	repos := &repoDB.Store{Client: client, ChannelID: channel}
-	seen := repositoryDomainEntity.Observation{OwnerID: owner, Name: "個人儲存庫", Status: "ACTIVE", EventID: "follow", At: time.Now(), Users: []string{owner}}
+	seen := repositoryDomainEntity.Observation{OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: owner, Name: "個人儲存庫", Status: "ACTIVE", EventID: "follow", At: time.Now(), Users: []string{owner}}
 	for range 2 {
 		if err := repos.Observe(ctx, seen); err != nil {
 			t.Fatal(err)

@@ -9,8 +9,10 @@ import (
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 )
 
-var ErrInvalidReplyToken = errors.New("invalid LINE reply token")
-var errSend = errors.New("LINE message delivery unavailable")
+var (
+	ErrInvalidReplyToken = errors.New("invalid LINE reply token")
+	errSend              = errors.New("LINE message delivery unavailable")
+)
 
 // Messaging shares the SDK's HTTP connection pool across webhook and worker requests.
 type Messaging struct {

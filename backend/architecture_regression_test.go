@@ -24,6 +24,7 @@ func TestUnregisteredBusinessContextBoundaries(t *testing.T) {
 		{"existing unlisted domain cannot import another domain", "business/membership/domain", "business/organization/domain/entity", true},
 		{"approved issue repository scope", "business/issue/domain/entity", "business/repository/domain/entity/labels", false},
 		{"known package cannot add another context", "business/issue/domain/entity", "business/organization/domain/entity", true},
+		{"new domain cannot import LINE identifiers", "business/future/domain", "platform/line/lineid", true},
 		{"same context remains local", "business/future/application", "business/future/domain", false},
 		{"approved ownership member reference", "business/organization/application", "business/membership/domain", false},
 		{"enterprise cannot borrow organization core errors", "business/enterprise/application/command", "business/organization/domain/entity", true},
@@ -49,7 +50,8 @@ func TestUnregisteredBusinessContextBoundaries(t *testing.T) {
 			cmd.Dir = root
 			output, err := cmd.CombinedOutput()
 			if tc.denied {
-				if err == nil || !strings.Contains(string(output), "unapproved cross-domain dependency") {
+				boundaryViolation := strings.Contains(string(output), "unapproved cross-domain dependency") || strings.Contains(string(output), "imports outer layer")
+				if err == nil || !boundaryViolation {
 					t.Fatalf("expected boundary rejection, got %v:\n%s", err, output)
 				}
 			} else if err != nil {

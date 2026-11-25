@@ -23,8 +23,9 @@ import (
 )
 
 type Store struct {
-	DB      *firestore.Client
-	Channel string
+	OrganizationMember func(*firestore.Transaction, *firestore.DocumentRef, string, string) (bool, error)
+	DB                 *firestore.Client
+	Channel            string
 	// EnterpriseNavigation reads facts using the current Firestore transaction.
 	EnterpriseNavigation func(*firestore.Transaction, *firestore.DocumentRef, string) (map[string]string, bool, error)
 	CanCreateEnterprise  func(*firestore.Transaction, *firestore.DocumentRef, string) (bool, error)

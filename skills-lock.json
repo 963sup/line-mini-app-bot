@@ -7,6 +7,55 @@
       "sourceType": "github",
       "skillPath": "skills/repomix-explorer/SKILL.md",
       "computedHash": "49ec67789d56ac024840d681ab7fd7a10a8e49fe01b8c21db11c434f19fbb5fa"
+    },
+    "finding-google-skills": {
+      "source": "google/skills",
+      "commit": "401f4700237d99f612696d99b56d7d03dc2f4458",
+      "sourceType": "github",
+      "skillPath": "skills/developers/finding-google-skills/SKILL.md",
+      "computedHash": "e0a5b85fcbe5626a71b07c853e215c109eab2fbe75e2edcefd6e921e62184752"
+    },
+    "retrieving-developer-knowledge": {
+      "source": "google/skills",
+      "commit": "401f4700237d99f612696d99b56d7d03dc2f4458",
+      "sourceType": "github",
+      "skillPath": "skills/developers/retrieving-developer-knowledge/SKILL.md",
+      "computedHash": "66b5eb52bacc6b60efd80034ff58fb0e22977ea9db685628e1681301490d82ca"
+    },
+    "cloud-run-basics": {
+      "source": "google/skills",
+      "commit": "401f4700237d99f612696d99b56d7d03dc2f4458",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/cloud-run-basics/SKILL.md",
+      "computedHash": "83f13114e493276c91dae5462494c1334f0a2456a049aebd0c5ff0be93898fac"
+    },
+    "cloud-build-basics": {
+      "source": "google/skills",
+      "commit": "401f4700237d99f612696d99b56d7d03dc2f4458",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/cloud-build-basics/SKILL.md",
+      "computedHash": "5b1f3f7b5cce5370fb07780d83f6eafd229eb70a8c51dc81ec81aac8a16e3db9"
+    },
+    "google-cloud-storage-basics": {
+      "source": "google/skills",
+      "commit": "401f4700237d99f612696d99b56d7d03dc2f4458",
+      "sourceType": "github",
+      "skillPath": "skills/cloud/google-cloud-storage-basics/SKILL.md",
+      "computedHash": "39237e81a513efaa3427eac2a20de9a1e9da43861aa8f460d0207eb915e77478"
+    },
+    "gcloud": {
+      "source": "google/skills",
+      "commit": "401f4700237d99f612696d99b56d7d03dc2f4458",
+      "sourceType": "github",
+      "skillPath": "plugins/cloud/google-cloud-developer/skills/gcloud/SKILL.md",
+      "computedHash": "927749e2ea1576b54ee97af3c32d3cdcbfed023639482c51b45067859a7c98be"
+    },
+    "google-cloud-recipe-auth": {
+      "source": "google/skills",
+      "commit": "401f4700237d99f612696d99b56d7d03dc2f4458",
+      "sourceType": "github",
+      "skillPath": "plugins/cloud/google-cloud-developer/skills/google-cloud-recipe-auth/SKILL.md",
+      "computedHash": "0a949753349eea30c17e1f0a81b9ea5597979f9cbd5a2c08590be36830086231"
     }
   }
 }

@@ -18,11 +18,6 @@ type EnterpriseFacts struct {
 	Active, ActorIsOwner bool
 }
 
-type OrganizationFacts struct {
-	EnterpriseID         string
-	Active, ActorIsOwner bool
-}
-
 type OwnerChange interface {
 	Enterprise(actor string) (EnterpriseFacts, error)
 	AddOwner() error
@@ -30,6 +25,5 @@ type OwnerChange interface {
 
 type OrganizationLink interface {
 	Enterprise(actor string) (EnterpriseFacts, error)
-	Organization(actor string) (OrganizationFacts, error)
-	Attach() error
+	AttachForOwner(actor string) error
 }

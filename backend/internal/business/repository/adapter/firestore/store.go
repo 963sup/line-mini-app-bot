@@ -1,6 +1,7 @@
 package firestore
 
 import (
+	issuedto "github.com/963sup/line-mini-app-bot/internal/business/issue/application/dto"
 	repositoryApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/repository/application/dto"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
@@ -23,8 +24,11 @@ import (
 )
 
 type Store struct {
-	Client    *db.Client
-	ChannelID string
+	CountIssues      func(func(db.Query) *db.DocumentIterator, *db.DocumentRef, string) (issuedto.StateCounts, error)
+	CountDiscussions func(*db.Transaction, *db.DocumentRef) (int64, error)
+	CountProjects    func(*db.Transaction, string, string) (int64, error)
+	Client           *db.Client
+	ChannelID        string
 }
 
 type document struct {

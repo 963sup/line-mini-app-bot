@@ -2,10 +2,11 @@ package bootstrap
 
 import (
 	"fmt"
-	operations "github.com/963sup/line-mini-app-bot/internal/business/object/application/document"
 	"net/http"
 	"os"
 	"time"
+
+	operations "github.com/963sup/line-mini-app-bot/internal/business/object/application/document"
 
 	httptransport "github.com/963sup/line-mini-app-bot/internal/transport/http"
 
@@ -18,6 +19,7 @@ import (
 	candidateai "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/openai"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/adapter/poppler"
 	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
+	projectdb "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/firestore"
 	repositorydb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 	businessspacedb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore/space"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
@@ -60,7 +62,8 @@ func newRepositories(firestoreConfigured bool, getFirestore func() (*firestore.C
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot initialize repository database")
 	}
-	store := &repositorydb.Store{Client: client, ChannelID: channel}
+	projects := &projectdb.Store{Client: client, ChannelID: channel}
+	store := &repositorydb.Store{Client: client, ChannelID: channel, CountIssues: issuedb.CountRepositoryIssues, CountDiscussions: discussiondb.CountRepositoryDiscussions, CountProjects: projects.CountRepositoryProjects}
 	return &repositoryApplication.Service{Store: store, AddressWriter: store, OwnerAccess: ownerAccess}, store, nil
 }
 

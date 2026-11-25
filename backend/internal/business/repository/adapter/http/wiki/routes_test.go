@@ -180,7 +180,7 @@ func TestWikiMembershipAndRevisions(t *testing.T) {
 	// The same title in a different repository is independent.
 	original := rid
 	rid = strings.Repeat("b", 32)
-	_, err = channel.Collection("repositories").Doc(rid).Set(ctx, map[string]any{"id": rid, "ownerId": "C" + rid, "version": 1, "status": "ACTIVE"})
+	_, err = channel.Collection("repositories").Doc(rid).Set(ctx, map[string]any{"id": rid, "ownerType": "ORGANIZATION", "ownerId": "11111111-1111-4111-8111-111111111111", "groupId": "C" + rid, "version": 1, "status": "ACTIVE"})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -36,8 +36,8 @@ func TestRenameLabelPreservesIdentityAndCreationReplay(t *testing.T) {
 		}
 	})
 	s := Store{Client: c, ChannelID: c.Collection("channels").NewDoc().ID}
-	r := repositoryDomainEntity.Repository{ID: strings.Repeat("1", 32), OwnerID: "C" + strings.Repeat("2", 32), Status: "ACTIVE", Version: 1}
-	if _, err = s.repositoryRef(r.ID).Set(ctx, document{ID: r.ID, OwnerID: r.OwnerID, Status: r.Status, Version: 1}); err != nil {
+	r := repositoryDomainEntity.Repository{ID: strings.Repeat("1", 32), OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: "U" + strings.Repeat("2", 32), Status: "ACTIVE", Version: 1}
+	if _, err = s.repositoryRef(r.ID).Set(ctx, document{ID: r.ID, OwnerType: string(r.OwnerType), OwnerID: r.OwnerID, Status: r.Status, Version: 1}); err != nil {
 		t.Fatal(err)
 	}
 	create := func(key, name string) repositoryDomainEntityLabels.Label {

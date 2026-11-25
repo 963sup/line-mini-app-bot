@@ -24,7 +24,6 @@ type WorkerVerifier interface {
 }
 
 func SummaryWorker(service *summaryApplicationSummarization.Service, verifier WorkerVerifier) http.HandlerFunc {
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 80*time.Second)
 		defer cancel()
