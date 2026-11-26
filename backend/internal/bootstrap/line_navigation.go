@@ -34,27 +34,22 @@ func SyncLINENavigation(parent context.Context) (result error) {
 	if dir == "" {
 		dir = "/assets/line/richmenu"
 	}
-	alias := navigation.PrivateRichMenuAlias
-	image, err := os.ReadFile(filepath.Join(dir, "rich_menu_private.JPG"))
-	if err != nil {
-		return fmt.Errorf("read rich menu image %s: %w", alias, err)
-	}
-	menus := []richmenu.Menu{{Alias: alias, Request: navigation.PrivateRichMenu(lineplatform.MiniAppURL(auth.LIFFID)), Image: image}}
-	attendance := navigation.AttendanceRichMenus(lineplatform.MiniAppURL(auth.LIFFID))
-	if attendance == nil {
+	requests := navigation.ChatRichMenus(lineplatform.MiniAppURL(auth.LIFFID))
+	if requests == nil {
 		return errors.New("LINE navigation job requires a valid MINI App URL")
 	}
-	for _, attendanceAlias := range navigation.AttendanceRichMenuAliases() {
-		suffix, ok := strings.CutPrefix(attendanceAlias, "rich-menu-")
+	menus := make([]richmenu.Menu, 0, len(requests))
+	for _, alias := range navigation.ChatRichMenuAliases() {
+		suffix, ok := strings.CutPrefix(alias, "rich-menu-")
 		if !ok {
-			return fmt.Errorf("invalid attendance rich menu alias %q", attendanceAlias)
+			return fmt.Errorf("invalid chat rich menu alias %q", alias)
 		}
 		filename := "rich_menu_" + strings.ReplaceAll(suffix, "-", "_") + ".png"
 		image, err := os.ReadFile(filepath.Join(dir, filename))
 		if err != nil {
-			return fmt.Errorf("read rich menu image %s: %w", attendanceAlias, err)
+			return fmt.Errorf("read rich menu image %s: %w", alias, err)
 		}
-		menus = append(menus, richmenu.Menu{Alias: attendanceAlias, Request: attendance[attendanceAlias], Image: image})
+		menus = append(menus, richmenu.Menu{Alias: alias, Request: requests[alias], Image: image})
 	}
 	database := os.Getenv("FIRESTORE_DATABASE_ID")
 	db, err := firestoreplatform.NewClient(ctx, project, database)
@@ -79,7 +74,8 @@ func SyncLINENavigation(parent context.Context) (result error) {
 		return err
 	}
 	return richmenu.Sync(ctx, api, blob, menus, map[string]string{
-		"attendance-in":  "rich-menu-clock-in",
-		"attendance-out": "rich-menu-clock-out",
+		"attendance-in":     "rich-menu-clock-in",
+		"attendance-out":    "rich-menu-clock-out",
+		"rich-menu-private": "rich-menu-functions",
 	})
 }
