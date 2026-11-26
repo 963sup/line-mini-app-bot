@@ -76,6 +76,9 @@ func TestChatRichMenuArtworkLayoutAndActions(t *testing.T) {
 	if len(aliases) != 4 || aliases[0] != "rich-menu-functions" || len(menus) != len(aliases) {
 		t.Fatalf("invalid private menu set: %v, %v", aliases, menus)
 	}
+	if menus[aliases[0]].ChatBarText != "收合／展開" {
+		t.Fatalf("chat bar must describe its client-owned control: %q", menus[aliases[0]].ChatBarText)
+	}
 	for i, alias := range aliases[1:] {
 		menu := menus[alias]
 		if menu.Size.Width != 2500 || menu.Size.Height != 1686 || len(menu.Areas) != 5 {
