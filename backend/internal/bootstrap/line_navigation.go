@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	firestoreplatform "github.com/963sup/line-mini-app-bot/internal/platform/firestore"
@@ -39,6 +40,22 @@ func SyncLINENavigation(parent context.Context) (result error) {
 		return fmt.Errorf("read rich menu image %s: %w", alias, err)
 	}
 	menus := []richmenu.Menu{{Alias: alias, Request: navigation.PrivateRichMenu(lineplatform.MiniAppURL(auth.LIFFID)), Image: image}}
+	attendance := navigation.AttendanceRichMenus(lineplatform.MiniAppURL(auth.LIFFID))
+	if attendance == nil {
+		return errors.New("LINE navigation job requires a valid MINI App URL")
+	}
+	for _, attendanceAlias := range navigation.AttendanceRichMenuAliases() {
+		suffix, ok := strings.CutPrefix(attendanceAlias, "rich-menu-")
+		if !ok {
+			return fmt.Errorf("invalid attendance rich menu alias %q", attendanceAlias)
+		}
+		filename := "rich_menu_" + strings.ReplaceAll(suffix, "-", "_") + ".png"
+		image, err := os.ReadFile(filepath.Join(dir, filename))
+		if err != nil {
+			return fmt.Errorf("read rich menu image %s: %w", attendanceAlias, err)
+		}
+		menus = append(menus, richmenu.Menu{Alias: attendanceAlias, Request: attendance[attendanceAlias], Image: image})
+	}
 	database := os.Getenv("FIRESTORE_DATABASE_ID")
 	db, err := firestoreplatform.NewClient(ctx, project, database)
 	if err != nil {
@@ -62,10 +79,7 @@ func SyncLINENavigation(parent context.Context) (result error) {
 		return err
 	}
 	return richmenu.Sync(ctx, api, blob, menus, map[string]string{
-		"attendance-in":       alias,
-		"attendance-out":      alias,
-		"rich-menu-clock-in":  alias,
-		"rich-menu-transfer":  alias,
-		"rich-menu-clock-out": alias,
+		"attendance-in":  "rich-menu-clock-in",
+		"attendance-out": "rich-menu-clock-out",
 	})
 }

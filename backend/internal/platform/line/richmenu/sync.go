@@ -86,11 +86,15 @@ func Sync(ctx context.Context, api *messaging_api.MessagingApiAPI, blob *messagi
 	// Refuse an unmanaged retired alias before staging or changing the default.
 	for _, existing := range aliases.Aliases {
 		old := existing.RichMenuAliasId
+		if seen[old] && !ownsDesiredManagedMenu(list, seen, existing.RichMenuId) {
+			return fmt.Errorf("desired rich menu alias %q points to an unmanaged menu", old)
+		}
 		target, retired := legacy[old]
 		if !retired {
 			continue
 		}
-		if !ownsManagedMenu(list, old, existing.RichMenuId) && !ownsManagedMenu(list, target, existing.RichMenuId) {
+		if !ownsManagedMenu(list, old, existing.RichMenuId) && !ownsManagedMenu(list, target, existing.RichMenuId) &&
+			!ownsDesiredManagedMenu(list, seen, existing.RichMenuId) {
 			return fmt.Errorf("legacy rich menu alias %q points to an unmanaged menu", old)
 		}
 	}
@@ -194,6 +198,15 @@ func ownsManagedMenu(list *messaging_api.RichMenuListResponse, alias, id string)
 		if menu.RichMenuId == id {
 			match := managedMenuName.FindStringSubmatch(menu.Name)
 			return match != nil && match[1] == alias
+		}
+	}
+	return false
+}
+
+func ownsDesiredManagedMenu(list *messaging_api.RichMenuListResponse, desired map[string]bool, id string) bool {
+	for alias := range desired {
+		if ownsManagedMenu(list, alias, id) {
+			return true
 		}
 	}
 	return false
