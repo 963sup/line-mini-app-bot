@@ -4,40 +4,9 @@
   "tabHeight": 360,
   "footerHeight": 360,
   "tabWidths": [833, 834, 833],
-  "chatBarText": "收合／展開",
+  "chatBarText": "開啟選單",
+  "privateLabel": "功能選單",
   "miniAppLabel": "開啟 MINI App",
-  "functionPage": {
-    "alias": "rich-menu-functions",
-    "label": "功能選單",
-    "hint": "選擇要使用的功能"
-  },
-  "features": [
-    {
-      "label": "補卡",
-      "feature": "missing-punch",
-      "bounds": { "x": 0, "y": 360, "width": 833, "height": 483 }
-    },
-    {
-      "label": "更正",
-      "feature": "correction",
-      "bounds": { "x": 833, "y": 360, "width": 834, "height": 483 }
-    },
-    {
-      "label": "請假",
-      "feature": "leave",
-      "bounds": { "x": 1667, "y": 360, "width": 833, "height": 483 }
-    },
-    {
-      "label": "審核",
-      "feature": "review",
-      "bounds": { "x": 0, "y": 843, "width": 1250, "height": 483 }
-    },
-    {
-      "label": "儲存庫",
-      "feature": "repositories",
-      "bounds": { "x": 1250, "y": 843, "width": 1250, "height": 483 }
-    }
-  ],
   "pages": [
     {
       "alias": "rich-menu-clock-in",

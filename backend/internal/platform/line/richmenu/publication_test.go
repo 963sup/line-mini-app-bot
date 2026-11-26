@@ -281,27 +281,3 @@ func TestSyncMigratesLegacyAliasFromAnotherDesiredMenu(t *testing.T) {
 		t.Fatalf("managed private-menu migration failed: %v, %+v", err, p.aliases)
 	}
 }
-
-func TestSyncMigratesAttendanceAliasesFromRetiredPrivateMenu(t *testing.T) {
-	p, api, blob, menus := publicationFixture(t)
-	p.menus["private"] = "managed-rich-menu-private-" + strings.Repeat("a", 64)
-	p.images["private"] = true
-	p.aliases["rich-menu-private"] = "private"
-	p.aliases["attendance-in"] = "private"
-	p.aliases["attendance-out"] = "private"
-	p.migrationPhase = "succeeded"
-
-	err := Sync(context.Background(), api, blob, menus, map[string]string{
-		"attendance-in":     "tab-one",
-		"attendance-out":    "tab-two",
-		"rich-menu-private": "tab-one",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if p.aliases["attendance-in"] != p.aliases["tab-one"] ||
-		p.aliases["attendance-out"] != p.aliases["tab-two"] ||
-		p.aliases["rich-menu-private"] != p.aliases["tab-one"] {
-		t.Fatalf("retired private-menu aliases did not converge: %+v", p.aliases)
-	}
-}
