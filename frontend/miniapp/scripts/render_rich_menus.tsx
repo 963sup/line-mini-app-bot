@@ -1,9 +1,21 @@
 import assert from "node:assert/strict";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { Grid3X3, LogIn, LogOut, Repeat2, Smartphone } from "lucide-react";
+import {
+  Archive,
+  CalendarDays,
+  CalendarPlus,
+  ClipboardCheck,
+  Clock3,
+  Grid3X3,
+  LogIn,
+  LogOut,
+  Repeat2,
+  Smartphone,
+  type LucideIcon,
+} from "lucide-react";
 import { ImageResponse } from "next/og";
-import React from "react";
+import React, { type CSSProperties, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import layout from "../../../backend/internal/transport/line/navigation/rich_menu.json";
@@ -13,6 +25,51 @@ const icons = {
   "rich-menu-transfer": Repeat2,
   "rich-menu-clock-out": LogOut,
 };
+
+const featureIcons: Record<string, LucideIcon> = {
+  "missing-punch": CalendarPlus,
+  correction: Clock3,
+  leave: CalendarDays,
+  review: ClipboardCheck,
+  repositories: Archive,
+};
+
+type Palette = Record<"primary" | "background" | "foreground" | "secondary" | "border", string>;
+
+function iconData(Icon: LucideIcon, size: number, color: string) {
+  return `data:image/svg+xml;base64,${Buffer.from(
+    renderToStaticMarkup(<Icon size={size} color={color} />),
+  ).toString("base64")}`;
+}
+
+function MenuCell({
+  children,
+  palette,
+  style,
+  active = false,
+}: {
+  children: ReactNode;
+  palette: Palette;
+  style: CSSProperties;
+  active?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        position: "absolute",
+        alignItems: "center",
+        justifyContent: "center",
+        border: `3px solid ${palette.border}`,
+        background: active ? palette.secondary : palette.background,
+        color: palette.foreground,
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
 
 async function main() {
   const [fontPath] = process.argv.slice(2);
@@ -32,13 +89,13 @@ async function main() {
   }
   const palette = {
     primary: token("primary"),
-    primaryForeground: token("primary-foreground"),
     background: token("background"),
     foreground: token("foreground"),
     secondary: token("secondary"),
     border: token("border"),
   };
   assert.equal(layout.pages.length, 3);
+  assert.equal(layout.features.length, 5);
   assert.equal(layout.tabWidths.length, layout.pages.length);
   assert.equal(
     layout.tabWidths.reduce((sum, width) => sum + width, 0),
@@ -46,9 +103,11 @@ async function main() {
   );
   await mkdir(output, { recursive: true });
 
-  for (const current of layout.pages) {
-    const Icon = Object.entries(icons).find(([alias]) => alias === current.alias)?.[1];
-    assert(Icon, `Missing Lucide icon for ${current.alias}`);
+  const variants = [layout.functionPage, ...layout.pages];
+  for (const current of variants) {
+    const Icon = icons[current.alias as keyof typeof icons];
+    const functions = current.alias === layout.functionPage.alias;
+    assert(functions || Icon, `Missing Lucide icon for ${current.alias}`);
     const footerY = layout.height - layout.footerHeight;
     const image = new ImageResponse(
       <div
@@ -61,87 +120,92 @@ async function main() {
         }}
       >
         {layout.pages.map((page, index) => (
-          <div
+          <MenuCell
             key={page.alias}
+            palette={palette}
+            active={current.alias === page.alias}
             style={{
-              display: "flex",
-              position: "absolute",
               left: layout.tabWidths.slice(0, index).reduce((sum, width) => sum + width, 0),
               top: 0,
               width: layout.tabWidths[index],
               height: layout.tabHeight,
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              border: `3px solid ${palette.border}`,
-              background: current.alias === page.alias ? palette.secondary : palette.background,
-              color: palette.foreground,
             }}
           >
             <span style={{ fontSize: 72, fontWeight: current.alias === page.alias ? 700 : 500 }}>
               {page.label}
             </span>
-          </div>
+          </MenuCell>
         ))}
-        <div
-          style={{
-            display: "flex",
-            position: "absolute",
-            left: 0,
-            top: layout.tabHeight,
-            width: layout.width,
-            height: footerY - layout.tabHeight,
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 36,
-            border: `3px solid ${palette.border}`,
-            background: palette.background,
-            color: palette.foreground,
-          }}
-        >
-          <img
-            alt=""
-            width={180}
-            height={180}
-            src={`data:image/svg+xml;base64,${Buffer.from(
-              renderToStaticMarkup(<Icon size={180} color={palette.primary} />),
-            ).toString("base64")}`}
-          />
-          <span style={{ fontSize: 104, fontWeight: 700 }}>{current.label}</span>
-          <span style={{ fontSize: 44 }}>{current.hint}</span>
-        </div>
+        {functions
+          ? layout.features.map((feature) => {
+              const FeatureIcon = featureIcons[feature.feature];
+              assert(FeatureIcon, `Missing Lucide icon for ${feature.feature}`);
+              return (
+                <MenuCell
+                  key={feature.feature}
+                  palette={palette}
+                  style={{
+                    left: feature.bounds.x,
+                    top: feature.bounds.y,
+                    width: feature.bounds.width,
+                    height: feature.bounds.height,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 24,
+                    }}
+                  >
+                    <img
+                      alt=""
+                      width={112}
+                      height={112}
+                      src={iconData(FeatureIcon, 112, palette.primary)}
+                    />
+                    <span style={{ fontSize: 68, fontWeight: 600 }}>{feature.label}</span>
+                  </div>
+                </MenuCell>
+              );
+            })
+          : Icon && (
+              <MenuCell
+                palette={palette}
+                style={{
+                  left: 0,
+                  top: layout.tabHeight,
+                  width: layout.width,
+                  height: footerY - layout.tabHeight,
+                  flexDirection: "column",
+                  gap: 36,
+                }}
+              >
+                <img alt="" width={180} height={180} src={iconData(Icon, 180, palette.primary)} />
+                <span style={{ fontSize: 104, fontWeight: 700 }}>{current.label}</span>
+                <span style={{ fontSize: 44 }}>{current.hint}</span>
+              </MenuCell>
+            )}
         {[
-          { label: layout.privateLabel, Icon: Grid3X3 },
+          { label: layout.functionPage.label, Icon: Grid3X3 },
           { label: layout.miniAppLabel, Icon: Smartphone },
         ].map((item, index) => (
-          <div
+          <MenuCell
             key={item.label}
+            palette={palette}
+            active={index === 0 && functions}
             style={{
-              display: "flex",
-              position: "absolute",
               left: index * (layout.width / 2),
               top: footerY,
               width: layout.width / 2,
               height: layout.footerHeight,
-              alignItems: "center",
-              justifyContent: "center",
               gap: 36,
-              border: `3px solid ${palette.border}`,
-              background: palette.secondary,
-              color: palette.foreground,
             }}
           >
-            <img
-              alt=""
-              width={88}
-              height={88}
-              src={`data:image/svg+xml;base64,${Buffer.from(
-                renderToStaticMarkup(<item.Icon size={88} color={palette.primary} />),
-              ).toString("base64")}`}
-            />
+            <img alt="" width={88} height={88} src={iconData(item.Icon, 88, palette.primary)} />
             <span style={{ fontSize: 58 }}>{item.label}</span>
-          </div>
+          </MenuCell>
         ))}
       </div>,
       { width: layout.width, height: layout.height, fonts: [{ name: "Menu", data: font }] },
