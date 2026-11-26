@@ -141,7 +141,7 @@ For implementation handoffs, preserve the goal, decisions, changed files, verifi
 
 ## Repository publication default
 
-When the user asks to follow the GitHub MCP push workflow (「走 GitHub MCP 推送流程」), follow the [release workflow](docs/workflows/release.md) through its branch synchronization check. Honor any narrower endpoint the user specifies.
+When the user asks to follow the GitHub MCP push workflow (「走 GitHub MCP 推送流程」), follow the [release workflow](docs/workflows/release.md) from a short-lived task branch through verification of the squash commit on `main`. Use GitHub MCP for pull request operations and follow the documented CLI fallback conditions. Honor any narrower endpoint the user specifies.
 
 <a id="&#24037;&#31243;&#27770;&#31574;&#33287;&#20132;&#20184;&#35201;&#27714;"></a>
 
