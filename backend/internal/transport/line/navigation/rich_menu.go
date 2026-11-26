@@ -17,10 +17,10 @@ type menuPage struct {
 }
 
 type menuLayout struct {
-	Width, Height, TabHeight int64
-	TabWidths                []int64
-	ChatBarText              string
-	Pages                    []menuPage
+	Width, Height, TabHeight, FooterHeight  int64
+	TabWidths                               []int64
+	ChatBarText, PrivateLabel, MiniAppLabel string
+	Pages                                   []menuPage
 }
 
 func loadAttendanceMenu() menuLayout {
@@ -28,7 +28,8 @@ func loadAttendanceMenu() menuLayout {
 	if err := json.Unmarshal(attendanceMenuJSON, &layout); err != nil {
 		panic(err)
 	}
-	if layout.Width != 2500 || layout.Height != 1686 || layout.TabHeight <= 0 || layout.TabHeight >= layout.Height ||
+	if layout.Width != 2500 || layout.Height != 1686 || layout.TabHeight <= 0 || layout.FooterHeight <= 0 ||
+		layout.TabHeight+layout.FooterHeight >= layout.Height || layout.PrivateLabel == "" || layout.MiniAppLabel == "" ||
 		len(layout.Pages) != 3 || len(layout.TabWidths) != len(layout.Pages) {
 		panic("invalid attendance rich menu layout")
 	}
@@ -56,8 +57,12 @@ func AttendanceRichMenuAliases() []string {
 	return aliases
 }
 
-func AttendanceRichMenus() map[string]*messaging_api.RichMenuRequest {
+func AttendanceRichMenus(appURL string) map[string]*messaging_api.RichMenuRequest {
 	layout := attendanceMenu
+	miniAppURL := featureURL(appURL, "attendance", "")
+	if miniAppURL == "" {
+		return nil
+	}
 	menus := make(map[string]*messaging_api.RichMenuRequest, len(layout.Pages))
 	for i, page := range layout.Pages {
 		menu := &messaging_api.RichMenuRequest{
@@ -75,10 +80,21 @@ func AttendanceRichMenus() map[string]*messaging_api.RichMenuRequest {
 			}
 			x += width
 		}
-		menu.Areas = append(menu.Areas, messaging_api.RichMenuArea{
-			Bounds: &messaging_api.RichMenuBounds{Y: layout.TabHeight, Width: layout.Width, Height: layout.Height - layout.TabHeight},
-			Action: &messaging_api.PostbackAction{Label: page.Label, Data: page.Postback},
-		})
+		footerY := layout.Height - layout.FooterHeight
+		menu.Areas = append(menu.Areas,
+			messaging_api.RichMenuArea{
+				Bounds: &messaging_api.RichMenuBounds{Y: layout.TabHeight, Width: layout.Width, Height: footerY - layout.TabHeight},
+				Action: &messaging_api.PostbackAction{Label: page.Label, Data: page.Postback},
+			},
+			messaging_api.RichMenuArea{
+				Bounds: &messaging_api.RichMenuBounds{Y: footerY, Width: layout.Width / 2, Height: layout.FooterHeight},
+				Action: &messaging_api.RichMenuSwitchAction{Label: layout.PrivateLabel, RichMenuAliasId: PrivateRichMenuAlias, Data: "tab=" + PrivateRichMenuAlias},
+			},
+			messaging_api.RichMenuArea{
+				Bounds: &messaging_api.RichMenuBounds{X: layout.Width / 2, Y: footerY, Width: layout.Width / 2, Height: layout.FooterHeight},
+				Action: &messaging_api.UriAction{Label: layout.MiniAppLabel, Uri: miniAppURL},
+			},
+		)
 		menus[page.Alias] = menu
 	}
 	return menus

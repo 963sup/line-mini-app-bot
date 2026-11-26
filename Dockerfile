@@ -47,7 +47,7 @@ COPY --from=frontend /src/frontend/miniapp/out/ /app/frontend/
 # Image-only resources must not invalidate Go compilation.
 # Pre-create traversable directories: COPY --chmod also affects new parents.
 RUN install -d -m 755 /assets/line/richmenu
-COPY --chmod=644 assets/line/richmenu/*.JPG /assets/line/richmenu/
+COPY --chmod=644 assets/line/richmenu/ /assets/line/richmenu/
 # Keep the existing fallback until every deployment provides an explicit model.
 ENV PORT=8080 FRONTEND_DIR=/app/frontend AI_DOCUMENT_MODEL=gpt-4.1-mini
 EXPOSE 8080

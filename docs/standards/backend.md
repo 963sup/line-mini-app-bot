@@ -17,7 +17,7 @@
 ## Go 慣例
 
 - 套件名稱使用 `lowercase`，例如 `navigation`、`richmenu`。
-- 匯出識別字使用 `PascalCase`，例如 `AttendanceRichMenus`。
+- 匯出識別字使用 `PascalCase`，例如 `PrivateRichMenu`。
 - 非匯出識別字使用 `camelCase`，例如 `loadAttendanceMenu`。
 - 優先使用標準庫與小介面；介面由使用端定義。
 - 傳遞 request `context.Context`，外部呼叫必須有期限並正確釋放資源。
