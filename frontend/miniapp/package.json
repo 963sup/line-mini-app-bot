@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "rich-menu:generate": "tsx scripts/render_rich_menus.tsx",
     "prepare-assets": "node ../../scripts/generate/prepare_miniapp_assets.mts",
     "dev": "pnpm prepare-assets && next dev --port 3000",
     "build": "pnpm prepare-assets && next build",
