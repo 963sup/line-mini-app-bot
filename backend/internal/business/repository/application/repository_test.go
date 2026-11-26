@@ -23,9 +23,8 @@ func (p candidatePage) Candidates(context.Context, string, string, string) (dto.
 
 func TestListForOwnerPreservesAuthorizationAndContinuation(t *testing.T) {
 	user := "U" + strings.Repeat("a", 32)
-	group := "C" + strings.Repeat("b", 32)
 	service := Service{Store: candidatePage{Page: dto.Page{Items: []entity.Repository{
-		{ID: "group", OwnerType: entity.OwnerUser, OwnerID: user, GroupID: group, Status: "ACTIVE"}, {ID: "inactive", OwnerType: entity.OwnerUser, OwnerID: user, Status: "INACTIVE"}, {ID: "personal", OwnerType: entity.OwnerUser, OwnerID: user, Status: "ACTIVE"},
+		{ID: "group", OwnerType: entity.OwnerUser, OwnerID: user, Status: "ACTIVE"}, {ID: "inactive", OwnerType: entity.OwnerUser, OwnerID: user, Status: "INACTIVE"}, {ID: "personal", OwnerType: entity.OwnerUser, OwnerID: user, Status: "ACTIVE"},
 	}, NextCursor: "more"}}}
 	page, err := service.List(t.Context(), user, "", user)
 	if err != nil || len(page.Items) != 2 || page.Items[0].ID != "group" || page.Items[1].ID != "personal" || page.NextCursor != "more" {
@@ -47,9 +46,12 @@ func (s singleRepository) GetByID(context.Context, string) (entity.Repository, e
 	return s.item, nil
 }
 
-func (s *singleRepository) UpdateAddress(_ context.Context, _, after entity.Repository) (entity.Repository, error) {
-	s.updated = after
-	return after, nil
+func (s *singleRepository) RunAddressChange(_ context.Context, _ string, change port.AddressChange) (entity.Repository, error) {
+	updated, err := change(s.item, nil)
+	if err == nil {
+		s.updated = updated
+	}
+	return updated, err
 }
 
 func TestGetRejectsInactiveRepositoryForItsOwner(t *testing.T) {

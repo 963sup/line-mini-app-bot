@@ -15,8 +15,8 @@ import (
 	journaldto "github.com/963sup/line-mini-app-bot/internal/business/journal/application/dto"
 	journalentity "github.com/963sup/line-mini-app-bot/internal/business/journal/domain/entity"
 	project "github.com/963sup/line-mini-app-bot/internal/business/project/application"
+	repodb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 	repository "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
-	groupdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore/group"
 	groupdto "github.com/963sup/line-mini-app-bot/internal/business/team/application/dto"
 	groupentity "github.com/963sup/line-mini-app-bot/internal/business/team/domain/entity"
 )
@@ -48,7 +48,7 @@ func TestJournalCatalogWiring(t *testing.T) {
 	for _, date := range []string{"", "2026-11-22"} {
 		t.Run("workDate="+date, func(t *testing.T) {
 			groups := &journalGroups{}
-			service := newJournals(groups, &groupdb.Store{}, &repository.Service{}, &project.Service{})
+			service := newJournals(groups, &repodb.Store{}, &repository.Service{}, &project.Service{})
 			page, err := service.List(t.Context(), "reader", journaldto.Filter{WorkDate: date})
 			if err != nil || len(page.Items) != 0 || page.NextCursor != "" {
 				t.Fatalf("empty authorized catalog: %+v, %v", page, err)
@@ -66,7 +66,7 @@ func TestJournalCatalogWiring(t *testing.T) {
 			}
 		})
 	}
-	if service := newJournals(nil, &groupdb.Store{}, &repository.Service{}, &project.Service{}); service != nil {
+	if service := newJournals(nil, &repodb.Store{}, &repository.Service{}, &project.Service{}); service != nil {
 		t.Fatal("missing catalog must disable journals")
 	}
 }
@@ -94,7 +94,7 @@ func TestJournalTeamCatalogIntegration(t *testing.T) {
 	catalog := teamdb.GroupCatalog{Store: teamdb.Store{DB: client, Channel: root.ID, TeamMember: func(*firestore.Transaction, *firestore.DocumentRef, string, string, string, string) (bool, error) {
 		return allowed, nil
 	}}}
-	service := newJournals(catalog, &groupdb.Store{Client: client, ChannelID: root.ID}, &repository.Service{}, &project.Service{})
+	service := newJournals(catalog, &repodb.Store{Client: client, ChannelID: root.ID}, &repository.Service{}, &project.Service{})
 	date := time.Date(2026, 11, 22, 0, 0, 0, 0, time.UTC)
 	entry := journalentity.Entry{ID: strings.Repeat("b", 32), CreatorID: "reader", CreatedAt: date, Draft: journalentity.Draft{
 		GroupID: id, WorkDate: date, Today: []journalentity.Work{{Name: "工作", Percent: 40}},

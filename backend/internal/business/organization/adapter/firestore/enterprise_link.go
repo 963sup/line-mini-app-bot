@@ -31,9 +31,9 @@ func (s Store) EnterpriseOrganizations(tx *firestore.Transaction, root *firestor
 		if e := d.DataTo(&org); e != nil {
 			return nil, nil, e
 		}
-		canView := admin || org.VisibleLegacyOrganization(actor)
-		if !canView && org.MembershipMode == "membership" && !org.Disabled && s.OrganizationMember != nil {
-			canView, e = s.OrganizationMember(tx, root, d.Ref.ID, actor)
+		canView := admin
+		if !canView {
+			canView, e = s.organizationVisible(tx, root, d.Ref.ID, actor, org)
 			if e != nil {
 				return nil, nil, e
 			}

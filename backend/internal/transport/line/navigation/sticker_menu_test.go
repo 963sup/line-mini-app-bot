@@ -8,13 +8,11 @@ import (
 )
 
 func TestStickerMenuExactMatch(t *testing.T) {
-	trigger := Menu{QuickMenu: func(bool, string, ...string) messaging_api.MessageInterface {
-		return &messaging_api.TextMessage{Text: "menu"}
-	}, StickerPackageID: "123", StickerID: "456"}
+	trigger := Menu{StickerPackageID: "123", StickerID: "456"}
 	makeEvent := func(pkg, id string) webhook.MessageEvent {
 		return webhook.MessageEvent{Mode: "active", ReplyToken: "reply", Source: webhook.GroupSource{GroupId: "group"}, Message: webhook.StickerMessageContent{PackageId: pkg, StickerId: id}}
 	}
-	if _, ok := trigger.ReplyForEvent(makeEvent("123", "456"), "", "").Message.(*messaging_api.TextMessage); !ok {
+	if _, ok := trigger.ReplyForEvent(makeEvent("123", "456"), "https://miniapp.line.me/example", "").Message.(*messaging_api.TextMessage); !ok {
 		t.Fatal("matching sticker must show quick menu")
 	}
 	for _, tc := range [][2]string{{"123", "999"}, {"999", "456"}, {"", ""}} {
@@ -23,7 +21,7 @@ func TestStickerMenuExactMatch(t *testing.T) {
 		}
 	}
 	trigger.StickerID = ""
-	if trigger.ReplyForEvent(makeEvent("123", "456"), "", "").Message != nil {
+	if trigger.ReplyForEvent(makeEvent("123", "456"), "https://miniapp.line.me/example", "").Message != nil {
 		t.Fatal("unconfigured sticker must stay silent")
 	}
 }

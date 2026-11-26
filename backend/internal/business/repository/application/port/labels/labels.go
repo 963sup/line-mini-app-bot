@@ -14,6 +14,6 @@ type Repositories interface {
 
 type Store interface {
 	ListLabels(context.Context, repositoryDomainEntity.Repository, string, string) (repositoryApplicationDtoLabels.Page, error)
-	RenameLabel(context.Context, repositoryDomainEntity.Repository, string, string, string) (repositoryDomainEntityLabels.Label, error)
+	RenameLabel(context.Context, repositoryDomainEntity.Repository, string, string, string, string) (repositoryDomainEntityLabels.Label, error)
 	CreateLabel(context.Context, repositoryDomainEntity.Repository, string, string, string) (repositoryDomainEntityLabels.Label, error)
 }

@@ -81,11 +81,11 @@ func (s *Store) CreateNumberedResource(ctx context.Context, command repositoryDo
 	var result repositoryDomainEntity.NumberedResource
 	err = s.Client.RunTransaction(ctx, func(ctx context.Context, tx *db.Transaction) error {
 		result = repositoryDomainEntity.NumberedResource{}
-		container, err := decode(tx.Get(parent))
+		allowed, err := s.Writable(tx, command.RepositoryID, command.OwnerID, command.ActorID)
 		if err != nil {
 			return err
 		}
-		if container.OwnerID != command.OwnerID || container.Status != "ACTIVE" {
+		if !allowed {
 			return repositoryDomainEntity.ErrNotFound
 		}
 		prior, err := tx.Get(receipt)

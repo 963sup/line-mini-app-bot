@@ -20,9 +20,9 @@ owner: LINE integration
 | Transport   | `POST /webhooks/line/{channel}`                  | 全部    | `transport/line`                                                     | 限制 body、驗簽、設定批次期限並依序分派             | HTTP 狀態                         |
 | Chat        | `FollowEvent`                                    | 私聊    | Repository                                                           | 觀測個人身分並建立或恢復個人 Repository             | 無                                |
 | Chat        | 已登錄文字指令                                   | 私聊    | Navigation、Attendance、Organization、Membership、Repository、Object | 執行對應用例或產生入口                              | Text／Quick Reply／Template／Flex |
-| Chat        | 未知文字                                         | 私聊    | Navigation                                                           | 顯示目前可用功能                                    | Quick Reply                       |
-| Chat        | `help`、`miniapp`、`attendance-history` postback | 私聊    | Navigation、Attendance                                               | 顯示選單、MINI App 入口或我的出勤                   | Quick Reply／Template／Flex       |
-| Group       | `JoinEvent`                                      | 群組    | Team、Repository、Navigation                                         | 建立群組觀測、解析資源並顯示功能                    | Quick Reply                       |
+| Chat        | 未知文字                                         | 私聊    | Navigation                                                           | 保持安靜                                            | 無                                |
+| Chat        | `help`、`miniapp`、`attendance-history` postback | 私聊    | Navigation、Attendance                                               | 提示使用 Rich Menu、提供 MINI App 入口或我的出勤    | Text／Template／Flex              |
+| Group       | `JoinEvent`                                      | 群組    | Team、Repository                                                     | 建立群組觀測                                        | 無                                |
 | Group       | `LeaveEvent`                                     | 群組    | Team、Repository                                                     | 將群組觀測標記為非啟用                              | 無                                |
 | Group       | `MemberJoinedEvent`                              | 群組    | Team、Repository                                                     | 更新群組成員觀測                                    | 無                                |
 | Group       | 一般文字訊息                                     | 群組    | Team、Repository、Summary                                            | 更新群組觀測並靜默收集可摘要訊息                    | 無                                |
@@ -31,7 +31,7 @@ owner: LINE integration
 | Group       | 符合設定的貼圖                                   | 群組    | Navigation                                                           | 顯示目前可用功能                                    | Quick Reply                       |
 | Group       | Postback                                         | 群組    | Team、Repository、Navigation                                         | 更新觀測；已登錄 action 另執行對應互動              | 無或對應 Message                  |
 | Delivery    | 摘要背景工作完成                                 | 群組    | Summary、`platform/line.Messaging`                                   | 使用原 operation retry key 推送摘要                 | Push Text                         |
-| Publication | Rich Menu 部署工作                               | 私聊    | Navigation、`platform/line/richmenu`                                 | 組合定義、圖片、alias，取得租約後同步並設定預設選單 | 三頁 Rich Menu                    |
+| Publication | Rich Menu 部署工作                               | 私聊    | Navigation、`platform/line/richmenu`                                 | 組合定義、圖片、alias，取得租約後同步並設定預設選單 | 六格 Rich Menu                    |
 
 文字指令的完整字面值與用途見 [LINE Bot 聊天指令](../references/line_commands.md)。Observer 只記錄已驗簽的平台事實，不宣稱 LINE 群組、成員資格或外部 ID 是業務授權。
 
@@ -40,13 +40,13 @@ owner: LINE integration
 | 介面                    | 重構後用途                     | 現行案例                                                 |
 | ----------------------- | ------------------------------ | -------------------------------------------------------- |
 | Text                    | 通知、結果、拒絕、錯誤、無資料 | membership、summary、weather、出勤結果與錯誤             |
-| Quick Reply             | 當前對話的暫時選項             | 功能選單、打卡操作                                       |
+| Quick Reply             | 當前對話的暫時選項             | 群組功能入口、打卡操作                                   |
 | Buttons Template        | 單一資源或表單入口             | MINI App、請假、補卡、更正、漏下班、組織／企業、物件範本 |
 | Confirm Template        | 二元決策                       | 尚無核准案例；不得為了使用介面而新增流程                 |
 | Carousel Template       | 多筆同類資源                   | 本人出勤群組、月份、我的工程                             |
 | Image Carousel Template | 圖片是辨識主體的多筆資源       | 尚無核准案例                                             |
 | Flex                    | 結構化資訊或統計               | 個人月度出勤、群組出勤統計                               |
-| Rich Menu               | 固定入口                       | 出勤三頁：上班、支援、下班                               |
+| Rich Menu               | 固定入口                       | 出勤、補卡、更正、請假、審核、儲存庫                     |
 | LINE MINI App           | 複雜表單、查詢、編輯           | 現有 `frontend/miniapp` 路由與表單                       |
 | Imagemap                | 圖片區域操作                   | 尚無核准案例                                             |
 
@@ -203,19 +203,20 @@ Service Message 以一次服務操作取得的 notificationToken 管理後續通
 
 `liff.sendMessages()` 須由聊天室開啟 LIFF browser，並取得 `chat_message.write` 授權。從「最近使用的服務」重新載入後無法傳回原聊天。設計指定收件對象的流程時，可提供分享對象選擇器，由使用者選擇並確認。[sendMessages](https://developers.line.biz/en/reference/liff/#send-messages)、[shareTargetPicker](https://developers.line.biz/en/reference/liff/#share-target-picker)、[Service Message 端點](https://developers.line.biz/en/reference/line-mini-app/)。
 
-| 已實作畫面       | 前端入口                                                                                                                                                                                                                                                             |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 應用首頁         | `/` 與 [/miniapp](../../frontend/miniapp/src/pages/miniapp/index.tsx)                                                                                                                                                                                                |
-| 動態與日誌       | [/miniapp/feed](../../frontend/miniapp/src/pages/miniapp/feed.tsx)                                                                                                                                                                                                   |
-| 探索             | [/miniapp/explore](../../frontend/miniapp/src/pages/miniapp/explore.tsx)                                                                                                                                                                                             |
-| 儀表板           | [/miniapp/dashboard](../../frontend/miniapp/src/pages/miniapp/dashboard.tsx)                                                                                                                                                                                         |
-| 專案             | [/miniapp/projects](../../frontend/miniapp/src/pages/miniapp/projects.tsx)                                                                                                                                                                                           |
-| Repository       | [/miniapp/repositories](../../frontend/miniapp/src/pages/miniapp/repositories.tsx)                                                                                                                                                                                   |
-| 我的出勤         | [/miniapp/attendance](../../frontend/miniapp/src/pages/miniapp/attendance.tsx)                                                                                                                                                                                       |
-| 定位打卡         | [/miniapp/punch](../../frontend/miniapp/src/pages/miniapp/punch.tsx)                                                                                                                                                                                                 |
-| 定位診斷         | [/location](../../frontend/miniapp/src/pages/location.tsx)                                                                                                                                                                                                           |
-| 請假、補卡、審核 | [/miniapp/leave](../../frontend/miniapp/src/pages/miniapp/leave.tsx)、[/miniapp/correction](../../frontend/miniapp/src/pages/miniapp/correction.tsx)、[/miniapp/review](../../frontend/miniapp/src/pages/miniapp/review.tsx)                                         |
-| 物件辨識與範本   | [/miniapp/object-recognition](../../frontend/miniapp/src/pages/miniapp/object-recognition.tsx)、[/miniapp/object-templates](../../frontend/miniapp/src/pages/miniapp/object-templates.tsx)、[/miniapp/poppler](../../frontend/miniapp/src/pages/miniapp/poppler.tsx) |
+| 已實作畫面     | 前端入口                                                                                                                                                                                                                                                             |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 應用首頁       | `/` 與 [/miniapp](../../frontend/miniapp/src/pages/miniapp/index.tsx)                                                                                                                                                                                                |
+| 動態與日誌     | [/miniapp/feed](../../frontend/miniapp/src/pages/miniapp/feed.tsx)                                                                                                                                                                                                   |
+| 探索           | [/miniapp/explore](../../frontend/miniapp/src/pages/miniapp/explore.tsx)                                                                                                                                                                                             |
+| 儀表板         | [/miniapp/dashboard](../../frontend/miniapp/src/pages/miniapp/dashboard.tsx)                                                                                                                                                                                         |
+| 專案           | [/miniapp/projects](../../frontend/miniapp/src/pages/miniapp/projects.tsx)                                                                                                                                                                                           |
+| Repository     | [/miniapp/repositories](../../frontend/miniapp/src/pages/miniapp/repositories.tsx)                                                                                                                                                                                   |
+| 出勤           | [/miniapp/attendance](../../frontend/miniapp/src/pages/miniapp/attendance.tsx)                                                                                                                                                                                       |
+| 定位打卡       | [/miniapp/punch](../../frontend/miniapp/src/pages/miniapp/punch.tsx)                                                                                                                                                                                                 |
+| 定位診斷       | [/location](../../frontend/miniapp/src/pages/location.tsx)                                                                                                                                                                                                           |
+| 請假、補卡     | [/miniapp/leave](../../frontend/miniapp/src/pages/miniapp/leave.tsx)、[/miniapp/missing-punch](../../frontend/miniapp/src/pages/miniapp/missing-punch.tsx)                                                                                                           |
+| 更正、審核     | [/miniapp/correction](../../frontend/miniapp/src/pages/miniapp/correction.tsx)、[/miniapp/review](../../frontend/miniapp/src/pages/miniapp/review.tsx)                                                                                                               |
+| 物件辨識與範本 | [/miniapp/object-recognition](../../frontend/miniapp/src/pages/miniapp/object-recognition.tsx)、[/miniapp/object-templates](../../frontend/miniapp/src/pages/miniapp/object-templates.tsx)、[/miniapp/poppler](../../frontend/miniapp/src/pages/miniapp/poppler.tsx) |
 
 Calendar、Kanban、Tabs、Dialog、Sheet 等是 Web 設計選項，畫面與資料操作由前端元件和業務 API 提供。設計資源見 [LINE MINI App 官方設計文件原始碼](https://github.com/line/line-developers-docs-source/tree/main/docs/en/docs/line-mini-app/design)。
 
@@ -299,7 +300,7 @@ Calendar、Kanban、Tabs、Dialog、Sheet 等是 Web 設計選項，畫面與資
 ## 已消除的不一致
 
 - 移除 Help 專用 Flex 與 `HelpCard`，避免 `/help`、`/menu` 與未知文字產生兩套功能標準。
-- 顯示詞固定為「我的出勤」「請假」「補卡」「更正」「摘要」；Message payload 使用各自登錄的短指令。
+- LINE 私聊顯示詞固定為「我的出勤」「請假」「補卡」「更正」「摘要」；MINI App 側欄使用「出勤」「補卡」「更正」「審核」。Message payload 使用各自登錄的短指令。
 - 單一 URI 不再塞入 Text 或單項 Quick Reply；多筆資源不再用裸 URL Text。
 - 出勤群組與月份選擇不再由同一個通用 Flex helper 假裝成不同互動目的。
 - 領域直接使用 LINE SDK 原生型別，沒有新增 Message、Template、Action 或路由鏡像層，也沒有新增依賴。

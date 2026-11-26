@@ -38,10 +38,11 @@ func TestMiniAppAttendanceGetsDedicatedPage(t *testing.T) {
 		{"/miniapp?liff.state=%3Fjournal%3D1", false, `"page":"/miniapp/feed"`},
 		{"/miniapp?launch=token", true, "確認並完成打卡"},
 		{"/miniapp?liff.state=%3Flaunch%3Dtoken", true, "確認並完成打卡"},
-		{"/miniapp/attendance", false, "我的出勤"},
+		{"/miniapp/attendance", false, `"page":"/miniapp/attendance"`},
 		{"/miniapp/leave", false, "請假"},
-		{"/miniapp/correction", false, "補卡"},
-		{"/miniapp/review", false, "出勤審核"},
+		{"/miniapp/correction", false, `"page":"/miniapp/correction"`},
+		{"/miniapp/missing-punch", false, `"page":"/miniapp/missing-punch"`},
+		{"/miniapp/review", false, `"page":"/miniapp/review"`},
 	} {
 		recorder := httptest.NewRecorder()
 		serveMiniApp(recorder, httptest.NewRequest("GET", tc.url, nil))
@@ -82,11 +83,14 @@ func TestLegacyAttendanceLinksPreserveQuery(t *testing.T) {
 		t.Fatal(err)
 	}
 	for source, target := range map[string]string{
-		"/miniapp/history?month=2026-11":             "/miniapp/attendance?month=2026-11",
-		"/miniapp/attendance?tab=correction&group=g": "/miniapp/correction?group=g",
-		"/miniapp/attendance?tab=review&id=r":        "/miniapp/review?id=r",
-		"/miniapp/attendance?tab=leave&leave=token":  "/miniapp/leave?leave=token",
-		"/miniapp?liff.state=%3Fleave%3Dtoken":       "/miniapp/leave?liff.state=%3Fleave%3Dtoken",
+		"/miniapp?menu=missing-punch":                          "/miniapp/missing-punch",
+		"/miniapp?menu=review":                                 "/miniapp/review",
+		"/miniapp?liff.state=%3Fmenu%3Dattendance%26group%3Dg": "/miniapp/attendance?attendanceGroup=g&liff.state=%3Fmenu%3Dattendance%26group%3Dg",
+		"/miniapp/history?month=2026-11":                       "/miniapp/attendance?month=2026-11",
+		"/miniapp/attendance?tab=correction&group=g":           "/miniapp/correction?group=g",
+		"/miniapp/attendance?tab=review&id=r":                  "/miniapp/review?id=r",
+		"/miniapp/attendance?tab=leave&leave=token":            "/miniapp/leave?leave=token",
+		"/miniapp?liff.state=%3Fleave%3Dtoken":                 "/miniapp/leave?liff.state=%3Fleave%3Dtoken",
 	} {
 		recorder := httptest.NewRecorder()
 		mux.ServeHTTP(recorder, httptest.NewRequest("GET", source, nil))

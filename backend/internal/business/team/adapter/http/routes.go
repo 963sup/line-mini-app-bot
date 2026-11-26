@@ -9,19 +9,21 @@ import (
 	organizationmodel "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
 	teamapp "github.com/963sup/line-mini-app-bot/internal/business/team/application"
 	teamApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/team/application/dto"
+	teamdomain "github.com/963sup/line-mini-app-bot/internal/business/team/domain"
 	"github.com/963sup/line-mini-app-bot/internal/transport/http/api/generated"
 )
 
 type Store interface {
-	Activate(ctx context.Context, actor, teamID, scope, managementID, maintainer string) error
+	teamapp.ActivationStore
 	Manage(ctx context.Context, user string, teamId, scope, managementId string) error
 	teamapp.AssignmentStore
 	List(ctx context.Context, user string, organizationId string) (*teamApplicationDto.Listing, error)
 }
 
 type Handler struct {
-	Store Store
-	Auth  orghttp.Authenticator
+	VerifyGroupMember teamapp.MembershipCheck
+	Store             Store
+	Auth              orghttp.Authenticator
 }
 
 func (h Handler) SetTeamManagement(w http.ResponseWriter, r *http.Request, teamId string) {
@@ -31,7 +33,15 @@ func (h Handler) SetTeamManagement(w http.ResponseWriter, r *http.Request, teamI
 			return nil, err
 		}
 		if input.InitialMaintainerUserId != nil {
-			return nil, h.Store.Activate(ctx, user, teamId, string(input.ManagementScope), input.ManagementId, *input.InitialMaintainerUserId)
+			err := teamapp.Activate(ctx, h.Store, h.VerifyGroupMember, teamdomain.Activation{Actor: user, TeamID: teamId, Scope: string(input.ManagementScope), ManagementID: input.ManagementId, Maintainer: *input.InitialMaintainerUserId})
+			switch {
+			case errors.Is(err, teamdomain.ErrActivationDenied):
+				return nil, organizationmodel.ErrNotFound
+			case errors.Is(err, teamdomain.ErrActivationConflict):
+				return nil, organizationmodel.ErrConflict
+			default:
+				return nil, err
+			}
 		}
 		return nil, h.Store.Manage(ctx, user, teamId, string(input.ManagementScope), input.ManagementId)
 	})

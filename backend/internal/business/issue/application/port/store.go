@@ -43,7 +43,7 @@ func (s *Access) Scope(ctx context.Context, actor, repositoryID string) (reposit
 }
 
 type UpdateWork interface {
-	Repository() (id, owner, status string, err error)
+	CheckRepository(actor string) error
 	Current() (entity.Issue, error)
 	ValidateLabels([]string) error
 	ValidateMilestone(string) error

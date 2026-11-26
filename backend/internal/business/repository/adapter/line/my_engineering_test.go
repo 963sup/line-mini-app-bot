@@ -21,7 +21,7 @@ func (engineeringCatalog) Candidates(_ context.Context, user, cursor, _ string) 
 	if user != "member" {
 		return repositoryApplicationDto.Page{}, repositoryDomainEntity.ErrNotFound
 	}
-	return repositoryApplicationDto.Page{Items: []repositoryDomainEntity.Repository{{ID: strings.Repeat("a", 32), OwnerType: repositoryDomainEntity.OwnerOrganization, OwnerID: "11111111-1111-4111-8111-111111111111", GroupID: "C" + strings.Repeat("a", 32), Name: "工程 A", Status: "ACTIVE"}, {ID: strings.Repeat("b", 32), OwnerType: repositoryDomainEntity.OwnerOrganization, OwnerID: "22222222-2222-4222-8222-222222222222", GroupID: "C" + strings.Repeat("b", 32), Name: "工程 B", Status: "ACTIVE"}}}, nil
+	return repositoryApplicationDto.Page{Items: []repositoryDomainEntity.Repository{{ID: strings.Repeat("a", 32), OwnerType: repositoryDomainEntity.OwnerOrganization, OwnerID: "11111111-1111-4111-8111-111111111111", Name: "工程 A", Status: "ACTIVE"}, {ID: strings.Repeat("b", 32), OwnerType: repositoryDomainEntity.OwnerOrganization, OwnerID: "22222222-2222-4222-8222-222222222222", Name: "工程 B", Status: "ACTIVE"}}}, nil
 }
 
 func (engineeringCatalog) CanAccessOwner(_ context.Context, _, owner, user string) (bool, error) {

@@ -103,11 +103,11 @@ func (s *Store) WriteWiki(ctx context.Context, r repositoryDomainEntity.Reposito
 	doc := root.Collection("wikiPages").Doc(id)
 	names := root.Collection("wikiTitles")
 	err := s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		scope, e := decode(tx.Get(root))
-		if e != nil {
-			return e
+		allowed, err := s.Writable(tx, r.ID, r.OwnerID, target.Actor)
+		if err != nil {
+			return err
 		}
-		if !r.MatchesActive(r.ID, scope.OwnerID, scope.Status) {
+		if !allowed {
 			return repositoryDomainEntity.ErrNotFound
 		}
 		snap, e := tx.Get(doc)

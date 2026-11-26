@@ -4,11 +4,11 @@
 
 ## 私聊與群組
 
-| 指令                    | 用途                                                                  |
-| ----------------------- | --------------------------------------------------------------------- |
-| `選單`、`功能`、`/menu` | 回覆當前聊天可用的 Quick Reply 快捷選單。群組也可用已設定的選單貼圖。 |
-| `/help`                 | 回覆與 `/menu` 相同、符合聊天範圍的 Quick Reply，避免兩套功能選單。   |
-| `/miniapp`              | 取得 MINI App Buttons Template。已設定網頁入口時支援桌面替代連結。    |
+| 指令                    | 用途                                                               |
+| ----------------------- | ------------------------------------------------------------------ |
+| `選單`、`功能`、`/menu` | 私聊提示使用 Rich Menu。群組顯示本群組出勤及已綁定的儲存庫。       |
+| `/help`                 | 依聊天來源提供與「功能」相同的說明或入口。                         |
+| `/miniapp`              | 取得 MINI App Buttons Template。已設定網頁入口時支援桌面替代連結。 |
 
 [導航指令實作](../../backend/internal/transport/line/navigation/events.go) · [訊息與快捷選單實作](../../backend/internal/transport/line/navigation/menu.go)
 
@@ -43,16 +43,10 @@
 
 「物件範本」回覆個人範本庫的 Mini App 連結。開啟後沿用登入流程，套用時核對目標儲存庫權限。[物件範本規格](../design/domain_rules.md#object)
 
-## Rich Menu 分頁與操作
+## 私聊 Rich Menu
 
-三張 **2500 × 1686 px JPG**。上班為預設頁。上排固定為「上班｜支援｜下班」，當前分頁只顯示選中樣式。另兩個分頁可切換。下排三格合併成一個主操作熱區，在私訊回覆指引。
+使用一張 **2500 × 1686 px JPG**，上排為「出勤、補卡、更正」，下排為「請假、審核、儲存庫」。每格直接開啟對應的 MINI App 頁面。審核資料依既有權限提供。請假頁可查詢本人紀錄，提出申請仍需從群組取得請假入口。
 
-| 圖片                      | 上排可切換 | 下排主操作                |
-| ------------------------- | ---------- | ------------------------- |
-| `rich_menu_clock_in.JPG`  | 支援、下班 | 上班 → `action=clock-in`  |
-| `rich_menu_transfer.JPG`  | 上班、下班 | 支援 → `action=support`   |
-| `rich_menu_clock_out.JPG` | 上班、支援 | 下班 → `action=clock-out` |
+群組一般聊天與 Bot 入群保持安靜。明確輸入「功能」或使用已設定的選單貼圖才顯示本群組入口。群組專用的「打卡」等指令仍可直接使用。
 
-`rich-menu-transfer`、對應圖片檔名及舊 `action=transfer` postback 只為既有發布相容而保留；新選單一律發布 `action=support`，舊值不是顯示詞或新功能的業務 action。
-
-[選單定義](../../backend/internal/transport/line/navigation/rich_menu.json)
+[選單定義](../../backend/internal/transport/line/navigation/rich_menu.go)

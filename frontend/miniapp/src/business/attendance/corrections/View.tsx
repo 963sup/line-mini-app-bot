@@ -15,7 +15,9 @@ import { rejectedAttempt, useLatestRequest, errorMessage } from "../../../shared
 import { taiwan, displayTime, timestamp } from "../../../shared/time/time";
 import { Requests } from "./Requests";
 type S = components["schemas"];
-export function View() {
+type Mode = "missing-punch" | "correction";
+
+export function View({ mode }: { mode: Mode }) {
   const { user, request } = useSession(),
     recordRead = useLatestRequest(),
     submissionRequest = useLatestRequest(),
@@ -50,7 +52,7 @@ export function View() {
     setGroup(group);
     setGroups([]);
     setGroupCursor("");
-    setNewShift(!record);
+    setNewShift(mode === "missing-punch" && !record);
     setSelected(null);
     setStart("");
     setEnd("");
@@ -63,6 +65,10 @@ export function View() {
     setStatus(user ? "" : "請先完成身分驗證。");
     if (!user) return;
     if (!record) {
+      if (mode === "correction") {
+        setStatus("請從出勤紀錄選擇要更正的班次。");
+        return;
+      }
       if (!group) loadGroups();
       return groupsRead.cancel;
     }
@@ -82,6 +88,15 @@ export function View() {
           { signal },
         ),
       (data) => {
+        const complete = !!taiwan(data.ClockInAt) && !!taiwan(data.ClockOutAt);
+        if (mode === "missing-punch" && complete) {
+          setStatus("這筆班次已有完整上下班時間，請使用更正。");
+          return;
+        }
+        if (mode === "correction" && !complete) {
+          setStatus("這筆班次缺少上下班時間，請使用補卡。");
+          return;
+        }
         setSelected(data);
         setStart(taiwan(data.ClockInAt));
         setEnd(taiwan(data.ClockOutAt));
@@ -96,7 +111,7 @@ export function View() {
       (error) => setStatus(errorMessage(error)),
     );
     return recordRead.cancel;
-  }, [user, request]);
+  }, [user, request, mode]);
   function submitCorrection(event: FormEvent) {
     event.preventDefault();
     if (lock.current || !user || (!selected && !newShift) || !group) return;
@@ -196,7 +211,7 @@ export function View() {
   const needsGroupPicker = newShift && (!group || groups.length > 1 || !!groupCursor);
   return (
     <>
-      <PagePanel heading={newShift ? "申請補卡" : "更正出勤紀錄"}>
+      <PagePanel heading={mode === "missing-punch" ? "補卡" : "更正"}>
         <p>班次結束後申請，核准後生效。</p>
         <p>
           <a

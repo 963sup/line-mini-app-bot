@@ -182,11 +182,11 @@ func (s *Store) CreateLabel(ctx context.Context, scope repositoryDomainEntity.Re
 	binding := parent.Collection("labelNames").Doc(firestorekey.Digest([]byte(nameKey)))
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = repositoryDomainEntityLabels.Label{}
-		container, err := decode(tx.Get(parent))
+		allowed, err := s.Writable(tx, scope.ID, scope.OwnerID, actor)
 		if err != nil {
 			return err
 		}
-		if container.OwnerID != scope.OwnerID || container.Status != "ACTIVE" {
+		if !allowed {
 			return repositoryDomainEntityLabels.ErrNotFound
 		}
 		snap, err := tx.Get(receipt)
@@ -267,7 +267,7 @@ func (s *Store) CreateLabel(ctx context.Context, scope repositoryDomainEntity.Re
 	return result, nil
 }
 
-func (s *Store) RenameLabel(ctx context.Context, scope repositoryDomainEntity.Repository, id, expected, name string) (result repositoryDomainEntityLabels.Label, err error) {
+func (s *Store) RenameLabel(ctx context.Context, scope repositoryDomainEntity.Repository, actor, id, expected, name string) (result repositoryDomainEntityLabels.Label, err error) {
 	defer func() { err = labelError(err) }()
 	if !s.ready() {
 		return result, repositoryDomainEntityLabels.ErrUnavailable
@@ -275,11 +275,11 @@ func (s *Store) RenameLabel(ctx context.Context, scope repositoryDomainEntity.Re
 	parent := s.repositoryRef(scope.ID)
 	item := parent.Collection("labels").Doc(id)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		container, e := decode(tx.Get(parent))
-		if e != nil {
-			return e
+		allowed, err := s.Writable(tx, scope.ID, scope.OwnerID, actor)
+		if err != nil {
+			return err
 		}
-		if container.Status != "ACTIVE" || container.OwnerID != scope.OwnerID {
+		if !allowed {
 			return repositoryDomainEntityLabels.ErrNotFound
 		}
 		snap, e := tx.Get(item)

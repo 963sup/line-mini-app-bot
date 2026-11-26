@@ -246,7 +246,7 @@ func TestEmulatorPersonalTemplateAcrossRepositories(t *testing.T) {
 	}
 	r2 := r
 	r2.ID = strings.Repeat("b", 32)
-	if _, err := store.repositoryRef(r2.ID).Set(ctx, map[string]any{"id": r2.ID, "ownerType": r2.OwnerType, "ownerId": r2.OwnerID, "status": r2.Status}); err != nil {
+	if _, err := store.repositoryRef(r2.ID).Set(ctx, map[string]any{"id": r2.ID, "ownerType": r2.OwnerType, "ownerId": r2.OwnerID, "version": 1, "status": r2.Status}); err != nil {
 		t.Fatal(err)
 	}
 	nodes[1].Quantity = "6400"

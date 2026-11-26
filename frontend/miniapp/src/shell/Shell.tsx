@@ -84,7 +84,7 @@ function Content({
         target.set("repositoryId", journalRepository);
       location.replace("/miniapp/feed" + (target.size ? "?" + target : ""));
     } else if (correction)
-      location.replace("/miniapp/correction?" + new URLSearchParams({ group: correction }));
+      location.replace("/miniapp/missing-punch?" + new URLSearchParams({ group: correction }));
     else if (attendance) location.replace("/miniapp/attendance");
     else if (leave) {
       location.replace("/miniapp/leave?" + params);

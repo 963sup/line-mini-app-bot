@@ -81,3 +81,32 @@ func MiniApp(appURL, desktopURL string, repositoryIDs ...string) messaging_api.M
 		Text: text, Actions: []messaging_api.ActionInterface{action},
 	}}
 }
+
+func featureURL(appURL, feature, groupID string) string {
+	u, err := url.Parse(appURL)
+	if err != nil || u.Scheme != "https" || u.Hostname() == "" || u.User != nil {
+		return ""
+	}
+	q := u.Query()
+	q.Set("menu", feature)
+	q.Del("group")
+	if groupID != "" {
+		q.Set("group", groupID)
+	}
+	u.RawQuery = q.Encode()
+	return u.String()
+}
+
+func groupMenu(appURL, groupID string, repositoryIDs ...string) messaging_api.MessageInterface {
+	attendance := featureURL(appURL, "attendance", groupID)
+	if attendance == "" {
+		return &messaging_api.TextMessage{Text: "MINI App 尚未設定。"}
+	}
+	items := []messaging_api.QuickReplyItem{
+		{Type: "action", Action: &messaging_api.UriAction{Label: "本群組出勤", Uri: attendance}},
+	}
+	if link := RepositoryURL(appURL, true, repositoryIDs...); link != "" {
+		items = append(items, messaging_api.QuickReplyItem{Type: "action", Action: &messaging_api.UriAction{Label: "本群組儲存庫", Uri: link}})
+	}
+	return &messaging_api.TextMessage{Text: "本群組可用功能", QuickReply: &messaging_api.QuickReply{Items: items}}
+}

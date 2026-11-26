@@ -2,6 +2,7 @@ package firestore
 
 import (
 	journalquery "github.com/963sup/line-mini-app-bot/internal/business/journal/application/query"
+	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
 	projectdb "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/firestore"
 	projectgroup "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/group"
 	projectsources "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/repository"
@@ -37,10 +38,6 @@ func (membership) IsMember(_ context.Context, _, actor string) (bool, error) {
 	return actor == "writer", nil
 }
 
-func (membership) CanAccessOwner(_ context.Context, _, _, actor string) (bool, error) {
-	return actor == "writer", nil
-}
-
 func TestPublishingAndScopedPagination(t *testing.T) {
 	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
 		t.Skip("requires Firestore emulator")
@@ -70,7 +67,13 @@ func TestPublishingAndScopedPagination(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	repositories := &repositoryApplication.Service{Store: &repodb.Store{Client: client, ChannelID: channel}, OwnerAccess: membership{}}
+	organizations := orgdb.Store{DB: client, Channel: channel}
+	if _, err := client.Collection("channels").Doc(channel).Collection("organizations").Doc(owner).Set(ctx, map[string]any{"ownerUserId": "writer"}); err != nil {
+		t.Fatal(err)
+	}
+	repoStore := &repodb.Store{Client: client, ChannelID: channel, OrganizationVisible: organizations.VisibleTo}
+	repositories := &repositoryApplication.Service{Store: repoStore, OwnerAccess: organizations}
+	store.RepositoryWritable = repoStore.Writable
 	store.RepositoryOwner = repositories.OwnerID
 	draft := journalentity.Draft{RepositoryID: rid, WorkDate: time.Date(2026, 11, 18, 0, 0, 0, 0, time.UTC), Today: []journalentity.Work{{Name: "鋪設", Percent: 40}}}
 	entry, e := store.Create(ctx, "writer", "key", draft)

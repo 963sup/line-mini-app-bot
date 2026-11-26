@@ -25,6 +25,27 @@ func serveMiniApp(w http.ResponseWriter, r *http.Request) {
 		page = "miniapp.html"
 		query := r.URL.Query()
 		nested, _ := url.Parse(query.Get("liff.state"))
+		menu := query.Get("menu")
+		if menu == "" && nested != nil {
+			menu = nested.Query().Get("menu")
+		}
+		switch menu {
+		case "attendance", "missing-punch", "correction", "leave", "review", "repositories":
+			query.Del("menu")
+			if menu == "attendance" {
+				group := query.Get("group")
+				if group == "" && nested != nil {
+					group = nested.Query().Get("group")
+				}
+				query.Del("group")
+				if group != "" {
+					query.Set("attendanceGroup", group)
+				}
+			}
+			r.URL.RawQuery = query.Encode()
+			redirectMiniAppPath(w, r, "/miniapp/"+menu)
+			return
+		}
 		leave := query.Has("leave") || (nested != nil && nested.Query().Has("leave"))
 		journal := query.Has("journal") || (nested != nil && nested.Query().Has("journal"))
 		repositories := query.Has("repositories") || (nested != nil && nested.Query().Has("repositories"))
@@ -55,7 +76,7 @@ func serveMiniApp(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		page = "miniapp/attendance.html"
-	case "/miniapp/leave", "/miniapp/correction", "/miniapp/review", "/miniapp/object-recognition", "/miniapp/object-templates", "/miniapp/poppler", "/miniapp/punch", "/miniapp/repositories", "/miniapp/projects", "/miniapp/dashboard", "/miniapp/feed":
+	case "/miniapp/leave", "/miniapp/missing-punch", "/miniapp/correction", "/miniapp/review", "/miniapp/object-recognition", "/miniapp/object-templates", "/miniapp/poppler", "/miniapp/punch", "/miniapp/repositories", "/miniapp/projects", "/miniapp/dashboard", "/miniapp/feed":
 		page = strings.TrimPrefix(r.URL.Path, "/") + ".html"
 	default:
 		http.NotFound(w, r)
@@ -79,7 +100,7 @@ func Register(mux *http.ServeMux) error {
 	if err := Validate(); err != nil {
 		return err
 	}
-	for _, route := range []string{"/miniapp/object-recognition", "/miniapp/object-templates", "/miniapp/poppler", "/miniapp", "/miniapp/attendance", "/miniapp/history", "/miniapp/correction", "/miniapp/review", "/miniapp/punch", "/miniapp/leave", "/miniapp/repositories", "/miniapp/projects", "/miniapp/dashboard", "/miniapp/feed"} {
+	for _, route := range []string{"/miniapp/object-recognition", "/miniapp/object-templates", "/miniapp/poppler", "/miniapp", "/miniapp/attendance", "/miniapp/history", "/miniapp/missing-punch", "/miniapp/correction", "/miniapp/review", "/miniapp/punch", "/miniapp/leave", "/miniapp/repositories", "/miniapp/projects", "/miniapp/dashboard", "/miniapp/feed"} {
 		mux.HandleFunc("GET "+route, serveMiniApp)
 	}
 	mux.Handle("GET /assets/", Assets())

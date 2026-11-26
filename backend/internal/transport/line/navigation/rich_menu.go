@@ -83,3 +83,30 @@ func AttendanceRichMenus() map[string]*messaging_api.RichMenuRequest {
 	}
 	return menus
 }
+
+const PrivateRichMenuAlias = "rich-menu-private"
+
+func PrivateRichMenu(appURL string) *messaging_api.RichMenuRequest {
+	entries := [...]struct{ label, feature string }{
+		{"出勤", "attendance"}, {"補卡", "missing-punch"}, {"更正", "correction"},
+		{"請假", "leave"}, {"審核", "review"}, {"儲存庫", "repositories"},
+	}
+	const width, height int64 = 2500, 1686
+	menu := &messaging_api.RichMenuRequest{
+		Size: &messaging_api.RichMenuSize{Width: width, Height: height},
+		Name: "個人功能", ChatBarText: "開啟選單",
+	}
+	for i, entry := range entries {
+		link := featureURL(appURL, entry.feature, "")
+		if link == "" {
+			return nil
+		}
+		column := int64(i % 3)
+		x := column * width / 3
+		menu.Areas = append(menu.Areas, messaging_api.RichMenuArea{
+			Bounds: &messaging_api.RichMenuBounds{X: x, Y: int64(i/3) * height / 2, Width: (column+1)*width/3 - x, Height: height / 2},
+			Action: &messaging_api.UriAction{Label: entry.label, Uri: link},
+		})
+	}
+	return menu
+}

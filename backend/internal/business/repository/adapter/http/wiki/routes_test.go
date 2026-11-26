@@ -1,6 +1,7 @@
 package wikihttp_test
 
 import (
+	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
 	repositoryApplicationWiki "github.com/963sup/line-mini-app-bot/internal/business/repository/application/wiki"
 )
@@ -31,12 +32,6 @@ func (a *actorAuth) Authenticate(http.ResponseWriter, *http.Request) (string, st
 	return a.actor, a.actor, true
 }
 
-type members map[string]bool
-
-func (m members) CanAccessOwner(_ context.Context, _, _, user string) (bool, error) {
-	return m[user], nil
-}
-
 func TestWikiMembershipAndRevisions(t *testing.T) {
 	host := os.Getenv("FIRESTORE_EMULATOR_HOST")
 	if host == "" {
@@ -57,17 +52,21 @@ func TestWikiMembershipAndRevisions(t *testing.T) {
 		}
 	})
 	channel := client.Collection("channels").NewDoc()
-	store := &repoDB.Store{Client: client, ChannelID: channel.ID}
+	organizations := orgdb.Store{DB: client, Channel: channel.ID}
+	store := &repoDB.Store{Client: client, ChannelID: channel.ID, OrganizationVisible: organizations.VisibleTo}
 	rid := strings.Repeat("a", 32)
 	scope := channel.Collection("repositories").Doc(rid)
-	_, err = scope.Set(ctx, map[string]any{"id": rid, "ownerType": "ORGANIZATION", "ownerId": "11111111-1111-4111-8111-111111111111", "groupId": "C" + rid, "version": 1, "status": "ACTIVE"})
+	_, err = scope.Set(ctx, map[string]any{"id": rid, "ownerType": "ORGANIZATION", "ownerId": "11111111-1111-4111-8111-111111111111", "version": 1, "status": "ACTIVE"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	membership := members{"alpha": true, "beta": true}
+	org := channel.Collection("organizations").Doc("11111111-1111-4111-8111-111111111111")
+	if _, err := org.Set(ctx, map[string]any{"ownerUserId": "beta", "memberUserIds": []string{"alpha"}}); err != nil {
+		t.Fatal(err)
+	}
 	auth := &actorAuth{"alpha"}
 	mux := http.NewServeMux()
-	wikihttp.Register(mux, &repositoryApplicationWiki.Service{Repositories: &repositoryApplication.Service{Store: store, OwnerAccess: membership}, Store: store}, auth)
+	wikihttp.Register(mux, &repositoryApplicationWiki.Service{Repositories: &repositoryApplication.Service{Store: store, OwnerAccess: organizations}, Store: store}, auth)
 	request := func(method, path, body, key string) *httptest.ResponseRecorder {
 		req := httptest.NewRequest(method, "/api/v1/repositories/"+rid+"/wiki-pages"+path, strings.NewReader(body))
 		if body != "" {
@@ -180,14 +179,16 @@ func TestWikiMembershipAndRevisions(t *testing.T) {
 	// The same title in a different repository is independent.
 	original := rid
 	rid = strings.Repeat("b", 32)
-	_, err = channel.Collection("repositories").Doc(rid).Set(ctx, map[string]any{"id": rid, "ownerType": "ORGANIZATION", "ownerId": "11111111-1111-4111-8111-111111111111", "groupId": "C" + rid, "version": 1, "status": "ACTIVE"})
+	_, err = channel.Collection("repositories").Doc(rid).Set(ctx, map[string]any{"id": rid, "ownerType": "ORGANIZATION", "ownerId": "11111111-1111-4111-8111-111111111111", "version": 1, "status": "ACTIVE"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	call("POST", "", `{"title":"Pump SOP","body":"second repository"}`, "other-repository-key", 200)
 	call("GET", path, "", "", 404)
 	rid = original
-	delete(membership, "alpha")
+	if _, err := org.Update(ctx, []db.Update{{Path: "memberUserIds", Value: []string{}}}); err != nil {
+		t.Fatal(err)
+	}
 	call("GET", path, "", "", 404)
 	call("GET", path+"/revisions", "", "", 404)
 	call("PATCH", path, edit, "", 404)

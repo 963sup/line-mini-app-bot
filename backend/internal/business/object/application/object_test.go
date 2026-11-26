@@ -125,7 +125,7 @@ func (s *stubStore) Update(_ context.Context, r repositoryDomainEntity.Repositor
 
 func TestServiceScopesEveryOperation(t *testing.T) {
 	id := strings.Repeat("a", 32)
-	r := repositoryDomainEntity.Repository{ID: id, OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: "U" + strings.Repeat("b", 32), GroupID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
+	r := repositoryDomainEntity.Repository{ID: id, OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: "U" + strings.Repeat("b", 32), Status: "ACTIVE"}
 	store := &stubStore{}
 	s := Service{Repositories: repositories{r: r}, Store: store}
 	ctx := context.Background()
@@ -172,7 +172,7 @@ func (c *captureDocument) PrepareCandidates(_ context.Context, actor, repository
 func TestExtractCandidatesDelegatesWithoutWriting(t *testing.T) {
 	id := strings.Repeat("a", 32)
 	store := &stubStore{}
-	s := Service{Repositories: repositories{r: repositoryDomainEntity.Repository{ID: id, OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: "U" + strings.Repeat("b", 32), GroupID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}}, Store: store}
+	s := Service{Repositories: repositories{r: repositoryDomainEntity.Repository{ID: id, OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: "U" + strings.Repeat("b", 32), Status: "ACTIVE"}}, Store: store}
 	doc := objectApplicationDto.Document{Filename: "清單.pdf", Data: []byte("document")}
 	if _, err := s.ExtractCandidates(t.Context(), "A", id, doc); !errors.Is(err, objectDomainEntity.ErrUnavailable) {
 		t.Fatal(err)

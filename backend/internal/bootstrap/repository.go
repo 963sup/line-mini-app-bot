@@ -19,13 +19,13 @@ import (
 	candidateai "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/openai"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/adapter/poppler"
 	objectApplication "github.com/963sup/line-mini-app-bot/internal/business/object/application"
+	organizationdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
 	projectdb "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/firestore"
 	repositorydb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 	businessspacedb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore/space"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
 	repositoryApplicationLabels "github.com/963sup/line-mini-app-bot/internal/business/repository/application/labels"
 	repositoryApplicationMilestones "github.com/963sup/line-mini-app-bot/internal/business/repository/application/milestones"
-	repositoryApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/repository/application/port"
 	repositoryApplicationSpace "github.com/963sup/line-mini-app-bot/internal/business/repository/application/space"
 	repositoryApplicationStatistics "github.com/963sup/line-mini-app-bot/internal/business/repository/application/statistics"
 	repositoryApplicationWiki "github.com/963sup/line-mini-app-bot/internal/business/repository/application/wiki"
@@ -37,7 +37,7 @@ func newIssues(repositories *repositoryApplication.Service, store *repositorydb.
 	if store == nil {
 		return nil
 	}
-	return issueapplication.New(repositories, &issuedb.Store{Client: store.Client, ChannelID: store.ChannelID, Numbers: store, Labels: store, Milestones: store})
+	return issueapplication.New(repositories, &issuedb.Store{RepositoryWritable: store.Writable, Client: store.Client, ChannelID: store.ChannelID, Numbers: store, Labels: store, Milestones: store})
 }
 
 func newLabels(repositories *repositoryApplication.Service, store *repositorydb.Store) *repositoryApplicationLabels.Service {
@@ -51,10 +51,10 @@ func newDiscussions(repositories *repositoryApplication.Service, store *reposito
 	if store == nil {
 		return nil
 	}
-	return discussionapp.New(repositories, &discussiondb.Store{Client: store.Client, ChannelID: store.ChannelID, Numbers: store, Labels: store})
+	return discussionapp.New(repositories, &discussiondb.Store{RepositoryWritable: store.Writable, Client: store.Client, ChannelID: store.ChannelID, Numbers: store, Labels: store})
 }
 
-func newRepositories(firestoreConfigured bool, getFirestore func() (*firestore.Client, error), channel string, ownerAccess repositoryApplicationPort.OwnerAccess) (*repositoryApplication.Service, *repositorydb.Store, error) {
+func newRepositories(firestoreConfigured bool, getFirestore func() (*firestore.Client, error), channel string, ownerAccess *organizationdb.Store) (*repositoryApplication.Service, *repositorydb.Store, error) {
 	if !firestoreConfigured || channel == "" || ownerAccess == nil {
 		return nil, nil, nil
 	}
@@ -63,7 +63,7 @@ func newRepositories(firestoreConfigured bool, getFirestore func() (*firestore.C
 		return nil, nil, fmt.Errorf("cannot initialize repository database")
 	}
 	projects := &projectdb.Store{Client: client, ChannelID: channel}
-	store := &repositorydb.Store{Client: client, ChannelID: channel, CountIssues: issuedb.CountRepositoryIssues, CountDiscussions: discussiondb.CountRepositoryDiscussions, CountProjects: projects.CountRepositoryProjects}
+	store := &repositorydb.Store{OrganizationVisible: ownerAccess.VisibleTo, Client: client, ChannelID: channel, CountIssues: issuedb.CountRepositoryIssues, CountDiscussions: discussiondb.CountRepositoryDiscussions, CountProjects: projects.CountRepositoryProjects}
 	return &repositoryApplication.Service{Store: store, AddressWriter: store, OwnerAccess: ownerAccess}, store, nil
 }
 
@@ -85,7 +85,7 @@ func newObjects(r *repositoryApplication.Service, store *repositorydb.Store) *ob
 	if store == nil {
 		return nil
 	}
-	objects := &objectdb.Store{QueueQuantityEvents: os.Getenv("OBJECT_QUANTITY_PUBSUB_TOPIC") != "", Client: store.Client, ChannelID: store.ChannelID}
+	objects := &objectdb.Store{RepositoryWritable: store.Writable, QueueQuantityEvents: os.Getenv("OBJECT_QUANTITY_PUBSUB_TOPIC") != "", Client: store.Client, ChannelID: store.ChannelID}
 	service := &objectApplication.Service{QuantityHistory: objects, Templates: objects, PersonalTemplates: objects, Repositories: r, Store: objects}
 	if key, model := os.Getenv("OPENAI_API_KEY"), os.Getenv("AI_DOCUMENT_MODEL"); key != "" && model != "" {
 		client := openai.NewClient(option.WithAPIKey(key), option.WithBaseURL("https://api.openai.com/v1/"), option.WithMaxRetries(0), option.WithHTTPClient(&http.Client{Transport: httptransport.TraceTransport{}, Timeout: 2 * time.Minute, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}))
@@ -101,7 +101,7 @@ func newRepositorySpaces(r *repositoryApplication.Service, store *repositorydb.S
 	if store == nil {
 		return nil
 	}
-	return &repositoryApplicationSpace.Service{Repositories: r, Store: &businessspacedb.Store{Client: store.Client, ChannelID: store.ChannelID}}
+	return &repositoryApplicationSpace.Service{Repositories: r, Store: &businessspacedb.Store{RepositoryWritable: store.Writable, Client: store.Client, ChannelID: store.ChannelID}}
 }
 
 func newWiki(repositories *repositoryApplication.Service, store *repositorydb.Store) *repositoryApplicationWiki.Service {

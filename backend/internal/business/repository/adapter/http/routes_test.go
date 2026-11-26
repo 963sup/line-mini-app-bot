@@ -7,15 +7,14 @@ import (
 	"github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
-func TestViewGroupID(t *testing.T) {
-	suffix := strings.Repeat("a", 32)
-	group := "C" + suffix
-	if got := view(entity.Repository{OwnerType: entity.OwnerUser, OwnerID: "U" + strings.Repeat("a", 32), GroupID: group}).GroupId; got == nil || *got != group {
-		t.Fatal("group-owned repository must expose its group ID")
+func TestViewKeepsOwnerIdentityAndInteractionProjection(t *testing.T) {
+	owner := "U" + strings.Repeat("a", 32)
+	group := "C" + strings.Repeat("b", 32)
+	got := view(entity.Repository{OwnerType: entity.OwnerUser, OwnerID: owner, InteractionGroupID: group})
+	if got.OwnerId != owner || got.OwnerType != "USER" {
+		t.Fatalf("owner = %q %q", got.OwnerType, got.OwnerId)
 	}
-	for _, owner := range []string{"U" + suffix, "", "C-invalid"} {
-		if view(entity.Repository{OwnerType: entity.OwnerUser, OwnerID: owner}).GroupId != nil {
-			t.Errorf("unexpected group ID for owner %q", owner)
-		}
+	if got.GroupId == nil || *got.GroupId != group {
+		t.Fatalf("interaction group = %v", got.GroupId)
 	}
 }

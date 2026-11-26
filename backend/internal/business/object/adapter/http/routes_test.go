@@ -34,7 +34,7 @@ func (r repositories) Get(_ context.Context, _, id string) (repositoryDomainEnti
 	if r.deny {
 		return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrNotFound
 	}
-	return repositoryDomainEntity.Repository{ID: id, OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: "U" + strings.Repeat("b", 32), GroupID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}, nil
+	return repositoryDomainEntity.Repository{ID: id, OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: "U" + strings.Repeat("b", 32), Status: "ACTIVE"}, nil
 }
 
 type store struct {

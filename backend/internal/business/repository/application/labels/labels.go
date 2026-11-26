@@ -64,5 +64,5 @@ func (s *Service) Rename(ctx context.Context, actor, rid, id, expected, name str
 	if original, e := repositoryDomainEntityLabels.NormalizeName(expected); e != nil || original != expected {
 		return repositoryDomainEntityLabels.Label{}, repositoryDomainEntityLabels.ErrInput
 	}
-	return s.Store.RenameLabel(ctx, r, id, expected, name)
+	return s.Store.RenameLabel(ctx, r, actor, id, expected, name)
 }

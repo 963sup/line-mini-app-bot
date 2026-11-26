@@ -1,7 +1,7 @@
 package line
 
 import (
-	repositoryApplicationDto "github.com/963sup/line-mini-app-bot/internal/business/repository/application/dto"
+	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
@@ -20,25 +20,23 @@ type observerStore struct {
 	name               string
 	lookupErr, saveErr error
 	lookups            int
-	saved              []repositoryDomainEntity.Observation
+	saved              []repositoryDomainEntity.GroupObservation
+	personal           []repositoryDomainEntity.PersonalObservation
 }
 
-func (s *observerStore) Observe(_ context.Context, o repositoryDomainEntity.Observation) error {
+func (s *observerStore) ObserveGroup(_ context.Context, o repositoryDomainEntity.GroupObservation) error {
 	s.saved = append(s.saved, o)
+	return s.saveErr
+}
+
+func (s *observerStore) ObservePersonal(_ context.Context, o repositoryDomainEntity.PersonalObservation) error {
+	s.personal = append(s.personal, o)
 	return s.saveErr
 }
 
 func (s *observerStore) GetByGroupID(context.Context, string) (repositoryDomainEntity.Repository, error) {
 	s.lookups++
 	return repositoryDomainEntity.Repository{OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: "U" + strings.Repeat("1", 32), Name: s.name}, s.lookupErr
-}
-
-func (*observerStore) GetByID(context.Context, string) (repositoryDomainEntity.Repository, error) {
-	return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrNotFound
-}
-
-func (*observerStore) Candidates(context.Context, string, string, string) (repositoryApplicationDto.Page, error) {
-	return repositoryApplicationDto.Page{}, nil
 }
 
 func TestObserverPreservesDomainNameLifecycleAndFailures(t *testing.T) {
@@ -61,14 +59,14 @@ func TestObserverPreservesDomainNameLifecycleAndFailures(t *testing.T) {
 		{"join refreshes name", join, "stored", nil, nil, 0, 1, 1, "ACTIVE", false},
 		{"message retains name", message, "stored", nil, nil, 1, 0, 1, "ACTIVE", false},
 		{"new group looks up name", message, "", repositoryDomainEntity.ErrNotFound, nil, 1, 1, 1, "ACTIVE", false},
-		{"leave resolves binding owner without looking up name", leave, "stored", nil, nil, 1, 0, 1, "INACTIVE", false},
+		{"leave updates binding without resolving repository owner", leave, "stored", nil, nil, 0, 0, 1, "INACTIVE", false},
 		{"lookup failure propagates", message, "", failure, nil, 1, 0, 0, "", true},
 		{"save failure propagates", message, "stored", nil, failure, 1, 0, 1, "ACTIVE", true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			store := &observerStore{name: tc.current, lookupErr: tc.lookupErr, saveErr: tc.saveErr}
 			names := 0
-			o := Observer{Store: store, GroupName: func(_ context.Context, id string) string {
+			o := Observer{Bindings: &repositoryApplication.Bindings{Store: store}, GroupName: func(_ context.Context, id string) string {
 				names++
 				if id != gid {
 					t.Fatal("wrong group")
@@ -85,7 +83,9 @@ func TestObserverPreservesDomainNameLifecycleAndFailures(t *testing.T) {
 			}
 			if tc.saves > 0 {
 				got := store.saved[0]
-				if got.OwnerType != repositoryDomainEntity.OwnerUser || got.OwnerID != actor || got.GroupID != gid || got.Status != tc.state || !got.At.Equal(time.UnixMilli(message.Timestamp)) || len(got.Users) != 1 || got.Users[0] != actor {
+				activeOwner := got.OwnerType == repositoryDomainEntity.OwnerUser && got.OwnerID == actor
+				inactiveOwner := got.OwnerType == "" && got.OwnerID == ""
+				if (got.Status == "ACTIVE" && !activeOwner || got.Status == "INACTIVE" && !inactiveOwner) || got.GroupID != gid || got.Status != tc.state || !got.At.Equal(time.UnixMilli(message.Timestamp)) || len(got.Users) != 1 || got.Users[0] != actor {
 					t.Fatalf("domain observation changed: %+v", got)
 				}
 				if (got.Name == "current name") != (tc.names > 0) {
@@ -99,14 +99,14 @@ func TestObserverPreservesDomainNameLifecycleAndFailures(t *testing.T) {
 func TestFollowCreatesPersonalRepositoryObservation(t *testing.T) {
 	owner := "U" + strings.Repeat("1", 32)
 	store := &observerStore{}
-	observer := Observer{Store: store}
+	observer := Observer{Bindings: &repositoryApplication.Bindings{Store: store}}
 	event := webhook.FollowEvent{Source: webhook.UserSource{UserId: owner}, Mode: "active", Timestamp: 123, WebhookEventId: "follow"}
 	err := observer.Observe(context.Background(), event, nil)
-	if err != nil || len(store.saved) != 1 {
-		t.Fatalf("follow: %v %v", store.saved, err)
+	if err != nil || len(store.personal) != 1 {
+		t.Fatalf("follow: %v %v", store.personal, err)
 	}
-	saved := store.saved[0]
-	if saved.OwnerType != repositoryDomainEntity.OwnerUser || saved.OwnerID != owner || len(saved.Users) != 1 || saved.Users[0] != owner || store.lookups != 0 {
+	saved := store.personal[0]
+	if saved.OwnerID != owner || store.lookups != 0 {
 		t.Fatal(saved)
 	}
 }
@@ -121,9 +121,9 @@ func TestGroupObservationUsesResolvedOrganizationOwner(t *testing.T) {
 		t.Fatal("invalid group event")
 	}
 	store := &observerStore{lookupErr: repositoryDomainEntity.ErrNotFound}
-	observer := Observer{Store: store, ResolveOwner: func(context.Context, string) (string, string, error) {
+	observer := Observer{Bindings: &repositoryApplication.Bindings{Store: store, ResolveOwner: func(context.Context, string) (string, string, error) {
 		return string(repositoryDomainEntity.OwnerOrganization), organizationID, nil
-	}}
+	}}}
 	if err := observer.Observe(t.Context(), event, &group); err != nil {
 		t.Fatal(err)
 	}

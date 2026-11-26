@@ -42,7 +42,7 @@ func (f *storeFake) Create(_ context.Context, _ repositoryDomainEntity.Repositor
 }
 
 func TestServiceAuthorityAndInput(t *testing.T) {
-	r := repositoryDomainEntity.Repository{ID: strings.Repeat("a", 32), OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: "U" + strings.Repeat("b", 32), GroupID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
+	r := repositoryDomainEntity.Repository{ID: strings.Repeat("a", 32), OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: "U" + strings.Repeat("b", 32), Status: "ACTIVE"}
 	for _, tc := range []struct {
 		name, actor, key, title string
 		repo                    repositoryDomainEntity.Repository

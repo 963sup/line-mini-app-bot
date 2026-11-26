@@ -1,6 +1,7 @@
 package firestore
 
 import (
+	repodb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 	repositoryDomainEntitySpace "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity/space"
 )
@@ -45,15 +46,16 @@ func TestEmulatorSpaceReceiptsScopeAndPagination(t *testing.T) {
 		}
 	})
 	s := &Store{Client: c, ChannelID: "isolated-space-test"}
-	r := repositoryDomainEntity.Repository{ID: strings.Repeat("a", 32), OwnerID: "C" + strings.Repeat("b", 32), Status: "ACTIVE"}
-	if _, e = s.repositoryRef(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "status": "ACTIVE"}); e != nil {
+	r := repositoryDomainEntity.Repository{ID: strings.Repeat("a", 32), OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: "U" + strings.Repeat("b", 32), Status: "ACTIVE"}
+	s.RepositoryWritable = (&repodb.Store{Client: c, ChannelID: s.ChannelID}).Writable
+	if _, e = s.repositoryRef(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerId": r.OwnerID, "ownerType": r.OwnerType, "version": 1, "status": "ACTIVE"}); e != nil {
 		t.Fatal(e)
 	}
 	var wg sync.WaitGroup
 	results := make([]repositoryDomainEntitySpace.Space, 3)
 	errs := make([]error, 3)
 	for i := range 3 {
-		wg.Go(func() { results[i], errs[i] = s.Create(ctx, r, "actor", "same-space-key-12345", "一樓") })
+		wg.Go(func() { results[i], errs[i] = s.Create(ctx, r, r.OwnerID, "same-space-key-12345", "一樓") })
 	}
 	wg.Wait()
 	for i, e := range errs {
@@ -64,7 +66,7 @@ func TestEmulatorSpaceReceiptsScopeAndPagination(t *testing.T) {
 			t.Fatal("duplicate spaces")
 		}
 	}
-	if _, e = s.Create(ctx, r, "actor", "same-space-key-12345", "different"); !errors.Is(e, repositoryDomainEntitySpace.ErrCreationConflict) {
+	if _, e = s.Create(ctx, r, r.OwnerID, "same-space-key-12345", "different"); !errors.Is(e, repositoryDomainEntitySpace.ErrCreationConflict) {
 		t.Fatalf("conflict=%v", e)
 	}
 	if _, e = s.Get(ctx, r, results[0].ID); e != nil {
@@ -119,7 +121,7 @@ func TestEmulatorSpaceReceiptsScopeAndPagination(t *testing.T) {
 	if _, e = s.repositoryRef(r.ID).Update(ctx, []db.Update{{Path: "status", Value: "INACTIVE"}}); e != nil {
 		t.Fatal(e)
 	}
-	if _, e = s.Create(ctx, r, "actor", "same-space-key-12345", "一樓"); !errors.Is(e, repositoryDomainEntitySpace.ErrNotFound) {
+	if _, e = s.Create(ctx, r, r.OwnerID, "same-space-key-12345", "一樓"); !errors.Is(e, repositoryDomainEntitySpace.ErrNotFound) {
 		t.Fatalf("inactive replay=%v", e)
 	}
 }

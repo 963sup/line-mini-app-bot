@@ -194,7 +194,7 @@ GET／POST /api/v1/owners/{ownerId}/projects/{id}/references/{itemId}/inspection
 
 成員可讀取所屬儲存庫的事項狀態、討論、里程碑與相容專案數。此數量只計入以該庫為初始來源（`defaultRepositoryId`）的專案；後來才連結此庫的跨庫專案不計入。Project 由個人或組織擁有，這項統計不表示 Repository 擁有 Project。
 
-Repository Owner 只能是 User 或 Organization。LINE Group 是可選的互動綁定，不是 Owner；群組成員資格不直接等於 Repository 權限。首次有效群組事件以已驗證 Actor 當下明確選定且仍具資格的 Organization 作為 Owner，沒有有效組織選擇時才由 Actor 個人擁有，並建立獨立 Group Binding。Bot 離群只停用 Binding，Repository 本身維持啟用。Organization-owned Repository 依組織成員資格授權。資料直接採新欄位與新 Binding 集合，不讀取舊 `OwnerID=GroupID` 或 `repositoryOwnerBindings` 格式。
+Repository Owner 只能是 User 或 Organization。LINE Group 是可選的互動綁定，不是 Owner；群組成員資格不直接等於 Repository 權限。`repositoryLineBindings` 是 Group 與 Repository 關係的唯一權威來源，Repository 本身不保存 GroupID；API 如需 `groupId`，必須由有效 Binding 即時建立唯讀投影。首次有效群組事件以已驗證 Actor 當下明確選定且仍具資格的 Organization 作為 Owner，沒有有效組織選擇時才由 Actor 個人擁有，並建立獨立 Group Binding。Bot 離群只停用 Binding，Repository 本身維持啟用。Organization-owned Repository 依組織成員資格授權。資料直接採新欄位與新 Binding 集合，不讀取舊 `OwnerID=GroupID` 或 `repositoryOwnerBindings` 格式。
 
 ### 地址
 

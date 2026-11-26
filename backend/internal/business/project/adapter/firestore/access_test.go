@@ -34,6 +34,7 @@ import (
 	groupquery "github.com/963sup/line-mini-app-bot/internal/business/team/application/query"
 	groupevent "github.com/963sup/line-mini-app-bot/internal/business/team/domain/event"
 
+	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
 	projectDB "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/firestore"
 	projectHTTP "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/http"
 
@@ -375,9 +376,9 @@ func TestPersonalRepositoryAndProject(t *testing.T) {
 	root := client.Collection("channels").Doc(channel)
 	owner, other := "U"+strings.Repeat("a", 32), "U"+strings.Repeat("b", 32)
 	repos := &repoDB.Store{Client: client, ChannelID: channel}
-	seen := repositoryDomainEntity.Observation{OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: owner, Name: "個人儲存庫", Status: "ACTIVE", EventID: "follow", At: time.Now(), Users: []string{owner}}
+	seen := repositoryDomainEntity.PersonalObservation{OwnerID: owner, Name: "個人儲存庫", EventID: "follow", At: time.Now()}
 	for range 2 {
-		if err := repos.Observe(ctx, seen); err != nil {
+		if err := repos.ObservePersonal(ctx, seen); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -496,7 +497,7 @@ func TestCopyPersonalProjectToOrganization(t *testing.T) {
 			t.Errorf("close Firestore client: %v", err)
 		}
 	})
-	store := &projectDB.Store{Client: client, ChannelID: "copy-" + strconv.FormatInt(time.Now().UnixNano(), 10)}
+	store := &projectDB.Store{Client: client, ChannelID: "copy-" + strconv.FormatInt(time.Now().UnixNano(), 10), OrganizationVisible: (orgdb.Store{}).VisibleTo}
 	root := client.Collection("channels").Doc(store.ChannelID)
 	actor := "U" + strings.Repeat("a", 32)
 	org := "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"

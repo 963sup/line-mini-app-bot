@@ -72,7 +72,7 @@ func TestTemplateValidationAndAuthority(t *testing.T) {
 		t.Fatal(e)
 	}
 	store := &templateStoreStub{snapshot: dto.Template{ID: rid, RepositoryID: rid, Version: 1, Nodes: normalized.Nodes}}
-	repo := repository.Repository{ID: rid, OwnerType: repository.OwnerUser, OwnerID: "U" + rid, GroupID: "C" + rid, Status: "ACTIVE"}
+	repo := repository.Repository{ID: rid, OwnerType: repository.OwnerUser, OwnerID: "U" + rid, Status: "ACTIVE"}
 	service := Service{Repositories: repositories{r: repo}, Store: &stubStore{}, Templates: store}
 	if _, e := service.InstantiateTemplate(t.Context(), "actor", rid, rid, strings.Repeat("k", 16), ""); e != nil {
 		t.Fatal(e)

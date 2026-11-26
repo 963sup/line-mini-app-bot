@@ -4,7 +4,6 @@ package firestore
 import (
 	journalquery "github.com/963sup/line-mini-app-bot/internal/business/journal/application/query"
 	objectstore "github.com/963sup/line-mini-app-bot/internal/business/object/adapter/firestore"
-	repostore "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 	spacestore "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore/space"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
@@ -34,8 +33,9 @@ import (
 )
 
 type Store struct {
-	Client  *db.Client
-	Channel string
+	RepositoryWritable func(*db.Transaction, string, string, string) (bool, error)
+	Client             *db.Client
+	Channel            string
 	journalquery.ReferenceCatalog
 }
 type record struct {
@@ -155,6 +155,9 @@ func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d jo
 	if d.GroupID != "" || !repositoryDomainEntity.ValidID(d.RepositoryID) {
 		return journalentity.Entry{}, journalentity.ErrInput
 	}
+	if s.RepositoryWritable == nil {
+		return journalentity.Entry{}, repositoryDomainEntity.ErrUnavailable
+	}
 	owner, e := s.RepositoryOwner(ctx, actorID, d.RepositoryID)
 	if e != nil {
 		return journalentity.Entry{}, missing(e)
@@ -173,6 +176,13 @@ func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d jo
 	target := s.repositoryEntries(d.RepositoryID).Doc(entryID)
 	locator := s.root().Collection("journalReceipts").Doc(entryID)
 	e = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
+		active, err := s.RepositoryWritable(tx, d.RepositoryID, owner, actorID)
+		if err != nil {
+			return missing(err)
+		}
+		if !active {
+			return journalentity.ErrNotFound
+		}
 		prev, e := tx.Get(locator)
 		if e == nil {
 			var saved receipt
@@ -191,13 +201,6 @@ func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d jo
 		}
 		if status.Code(e) != codes.NotFound {
 			return e
-		}
-		active, err := repostore.ActiveOwner(tx, s.root(), d.RepositoryID, owner)
-		if err != nil {
-			return missing(err)
-		}
-		if !active {
-			return journalentity.ErrNotFound
 		}
 		// Copy rows so retries never mutate the caller's draft or its request hash.
 		entry.Today = append([]journalentity.Work(nil), d.Today...)
@@ -218,7 +221,10 @@ func (s *Store) Create(ctx context.Context, actorID, idempotencyKey string, d jo
 		}
 		return tx.Create(target, record{Payload: string(payload), Order: order})
 	})
-	return entry, e
+	if e != nil {
+		return journalentity.Entry{}, e
+	}
+	return entry, nil
 }
 
 func decode(snap *db.DocumentSnapshot) (journalentity.Entry, string, error) {

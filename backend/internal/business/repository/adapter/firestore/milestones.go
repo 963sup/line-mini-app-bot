@@ -167,8 +167,12 @@ func (s *Store) CreateMilestone(ctx context.Context, r repositoryDomainEntity.Re
 	parent := s.repositoryRef(r.ID)
 	receipt := parent.Collection("milestonesCreationReceipts").Doc(firestorekey.JSONDigest([]string{actor, key}))
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		if e := s.checkActiveRepository(tx, r); e != nil {
-			return e
+		allowed, err := s.Writable(tx, r.ID, r.OwnerID, actor)
+		if err != nil {
+			return err
+		}
+		if !allowed {
+			return repositoryDomainEntityMilestones.ErrNotFound
 		}
 		snap, e := tx.Get(receipt)
 		if e == nil {
@@ -228,8 +232,12 @@ func (s *Store) UpdateMilestone(ctx context.Context, r repositoryDomainEntity.Re
 	}
 	ref := s.repositoryRef(r.ID).Collection("milestones").Doc(id)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
-		if e := s.checkActiveRepository(tx, r); e != nil {
-			return e
+		allowed, err := s.Writable(tx, r.ID, r.OwnerID, actor)
+		if err != nil {
+			return err
+		}
+		if !allowed {
+			return repositoryDomainEntityMilestones.ErrNotFound
 		}
 		snap, e := tx.Get(ref)
 		current, e := decodeMilestone(snap, e, r.ID)

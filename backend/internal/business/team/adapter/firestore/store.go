@@ -16,7 +16,6 @@ import (
 	"errors"
 	"slices"
 	"strings"
-	"sync"
 
 	"cloud.google.com/go/firestore"
 
@@ -36,10 +35,9 @@ type Store struct {
 	Groups  interface {
 		Get(context.Context, string, string) (groupentity.Group, error)
 	}
-	LINEActivationMember groupport.Membership
-	OrganizationMember   func(*firestore.Transaction, *firestore.DocumentRef, string, string) (bool, error)
-	TeamMember           func(*firestore.Transaction, *firestore.DocumentRef, string, string, string, string) (bool, error)
-	OpenMembership       func(*firestore.Transaction, *firestore.DocumentRef, string, string, string, string, string, bool) error
+	OrganizationMember func(*firestore.Transaction, *firestore.DocumentRef, string, string) (bool, error)
+	TeamMember         func(*firestore.Transaction, *firestore.DocumentRef, string, string, string, string) (bool, error)
+	OpenMembership     func(*firestore.Transaction, *firestore.DocumentRef, string, string, string, string, string, bool) error
 }
 
 // ApplyGroupObservation keeps the existing Team lifecycle linked to the accepted
@@ -112,52 +110,26 @@ func (s Store) Manage(ctx context.Context, user string, teamId, scope, managemen
 	return err
 }
 
-// Activate opens an observed, unbound Team with independent Membership.
-func (s Store) Activate(ctx context.Context, actor, teamID, scope, managementID, maintainer string) error {
-	if !lineid.ValidGroup(teamID) || len(managementID) != 36 || uuid.Validate(managementID) != nil ||
-		(scope != "organization" && scope != "enterprise") || !lineid.ValidUser(maintainer) {
+// CommitActivation checks current Team and Membership facts on each transaction attempt.
+func (s Store) CommitActivation(ctx context.Context, cmd teamdomain.Activation, verifiedGroupMember bool) error {
+	if !lineid.ValidGroup(cmd.TeamID) || len(cmd.ManagementID) != 36 || uuid.Validate(cmd.ManagementID) != nil || (cmd.Scope != "organization" && cmd.Scope != "enterprise") || !lineid.ValidUser(cmd.Maintainer) {
 		return organizationDomainEntity.ErrInvalid
 	}
 	if s.OpenMembership == nil {
 		return groupport.ErrUnavailable
 	}
-	checkLINE := sync.OnceValues(func() (bool, error) {
-		if s.LINEActivationMember == nil {
-			return false, groupport.ErrUnavailable
-		}
-		return s.LINEActivationMember.IsMember(ctx, teamID, actor)
-	})
 	_, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*struct{}, error) {
-		ref := root.Collection("teams").Doc(teamID)
+		ref := root.Collection("teams").Doc(cmd.TeamID)
 		team, err := orgstore.Read(tx, ref)
 		if err != nil {
 			return nil, err
 		}
-		if team.Disabled || team.Status != "ACTIVE" {
-			return nil, organizationDomainEntity.ErrNotFound
+		state := teamdomain.ActivationState{Active: !team.Disabled && team.Status == "ACTIVE", Scope: team.Scope, ManagementID: team.Manager, Mode: team.MembershipMode, InitialMaintainer: team.InitialMaintainer, Managers: team.Managers}
+		replay, err := state.Check(cmd, verifiedGroupMember)
+		if err != nil {
+			return nil, err
 		}
-		replay := team.MembershipMode == "membership" && team.Scope == scope &&
-			team.Manager == managementID && team.InitialMaintainer == maintainer
-		unbound := team.Scope == "" && team.Manager == "" &&
-			(team.MembershipMode == "" || team.MembershipMode == "legacy")
-		if !slices.Contains(team.Managers, actor) {
-			if len(team.Managers) != 0 || (!unbound && !replay) {
-				return nil, organizationDomainEntity.ErrNotFound
-			}
-			if !replay {
-				allowed, err := checkLINE()
-				if err != nil {
-					return nil, err
-				}
-				if !allowed {
-					return nil, organizationDomainEntity.ErrNotFound
-				}
-			}
-		}
-		if !unbound && !replay {
-			return nil, organizationDomainEntity.ErrConflict
-		}
-		if err := s.OpenMembership(tx, root, teamID, scope, managementID, actor, maintainer, replay); err != nil {
+		if err := s.OpenMembership(tx, root, cmd.TeamID, cmd.Scope, cmd.ManagementID, cmd.Actor, cmd.Maintainer, replay); err != nil {
 			if errors.Is(err, membershipapp.ErrForbidden) {
 				return nil, organizationDomainEntity.ErrNotFound
 			}
@@ -167,10 +139,10 @@ func (s Store) Activate(ctx context.Context, actor, teamID, scope, managementID,
 			return nil, nil
 		}
 		return nil, tx.Update(ref, []firestore.Update{
-			{Path: "managementScope", Value: scope},
-			{Path: "managementId", Value: managementID},
+			{Path: "managementScope", Value: cmd.Scope},
+			{Path: "managementId", Value: cmd.ManagementID},
 			{Path: "membershipMode", Value: "membership"},
-			{Path: "initialMaintainerUserId", Value: maintainer},
+			{Path: "initialMaintainerUserId", Value: cmd.Maintainer},
 		})
 	})
 	if status.Code(err) == codes.AlreadyExists {

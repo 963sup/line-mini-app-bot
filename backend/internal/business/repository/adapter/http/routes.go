@@ -26,8 +26,8 @@ func view(r repositoryDomainEntity.Repository) generated.Repository {
 	if r.Address != nil {
 		response.Address = &generated.RepositoryAddress{CountryCode: r.Address.CountryCode, PostalCode: r.Address.PostalCode, AddressLine: r.Address.AddressLine}
 	}
-	if r.GroupID != "" {
-		response.GroupId = &r.GroupID
+	if r.InteractionGroupID != "" {
+		response.GroupId = &r.InteractionGroupID
 	}
 	return response
 }

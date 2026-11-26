@@ -25,8 +25,9 @@ import (
 )
 
 type Store struct {
-	Client    *db.Client
-	ChannelID string
+	RepositoryWritable func(*db.Transaction, string, string, string) (bool, error)
+	Client             *db.Client
+	ChannelID          string
 }
 
 var _ repositoryApplicationPortSpace.Store = (*Store)(nil)
@@ -120,23 +121,15 @@ func (s *Store) List(ctx context.Context, r repositoryDomainEntity.Repository, a
 	return result, nil
 }
 
-func container(tx *db.Transaction, parent *db.DocumentRef, r repositoryDomainEntity.Repository) error {
-	snap, e := tx.Get(parent)
-	if status.Code(e) == codes.NotFound {
-		return repositoryDomainEntitySpace.ErrNotFound
+func (s *Store) checkWrite(tx *db.Transaction, r repositoryDomainEntity.Repository, actor string) error {
+	if s.RepositoryWritable == nil {
+		return repositoryDomainEntitySpace.ErrUnavailable
 	}
-	if e != nil {
-		return e
+	allowed, err := s.RepositoryWritable(tx, r.ID, r.OwnerID, actor)
+	if err != nil {
+		return err
 	}
-	var d struct {
-		ID      string `firestore:"id"`
-		OwnerID string `firestore:"ownerId"`
-		Status  string `firestore:"status"`
-	}
-	if e = snap.DataTo(&d); e != nil {
-		return e
-	}
-	if !r.MatchesActive(d.ID, d.OwnerID, d.Status) {
+	if !allowed {
 		return repositoryDomainEntitySpace.ErrNotFound
 	}
 	return nil
@@ -166,7 +159,7 @@ func (s *Store) Create(ctx context.Context, r repositoryDomainEntity.Repository,
 	payload := firestorekey.JSONDigest(struct{ Name string }{name})
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = repositoryDomainEntitySpace.Space{}
-		if e := container(tx, parent, r); e != nil {
+		if e := s.checkWrite(tx, r, actor); e != nil {
 			return e
 		}
 		prior, e := tx.Get(rec)
