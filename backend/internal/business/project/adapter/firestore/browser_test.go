@@ -52,7 +52,7 @@ func TestProjectSettingsBrowserRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	store := &projectdb.Store{Client: client, ChannelID: channel}
+	store := &projectdb.Store{Client: client, ChannelID: channel, OrganizationVisible: orgs.VisibleTo}
 	repos := &repoapp.Service{Store: &repodb.Store{Client: client, ChannelID: channel}}
 	mux := http.NewServeMux()
 	projecthttp.Register(mux, &projectapp.Service{AuthorizeOrganization: store.AuthorizeOrganization, Store: store, Sources: sources.Sources{Repositories: repos}}, auth{})

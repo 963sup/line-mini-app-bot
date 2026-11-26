@@ -23,6 +23,7 @@ import (
 
 	db "cloud.google.com/go/firestore"
 
+	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
 	projectDB "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/firestore"
 	projectHTTP "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/http"
 )
@@ -71,7 +72,7 @@ func TestEmulatorProjectTypedReferencesLatestAndRevokedSources(t *testing.T) {
 		}
 	}
 	access := &sourceAccess{root: root}
-	store := &projectDB.Store{Client: client, ChannelID: root.ID}
+	store := &projectDB.Store{Client: client, ChannelID: root.ID, OrganizationVisible: (orgdb.Store{}).VisibleTo}
 	svc := &projectApplication.Service{AuthorizeOrganization: store.AuthorizeOrganization, Sources: access, Store: store}
 	project, e := svc.Create(ctx, "owner", gid, "typed-reference-project", projectDomainEntity.Content{Title: "Existing project", SourceRepositoryID: rid})
 	if e != nil {

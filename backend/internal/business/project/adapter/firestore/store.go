@@ -13,7 +13,6 @@ import (
 	"strconv"
 	"time"
 
-	orgstore "github.com/963sup/line-mini-app-bot/internal/business/internal/adapter/firestore"
 	repostore "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 
 	"github.com/963sup/line-mini-app-bot/internal/platform/grpcstatus"
@@ -30,8 +29,9 @@ import (
 
 type (
 	Store struct {
-		Client    *db.Client
-		ChannelID string
+		OrganizationVisible func(*db.Transaction, *db.DocumentRef, string, string) (bool, error)
+		Client              *db.Client
+		ChannelID           string
 	}
 	projectDocument struct {
 		Settings      projectDomainEntity.Settings `firestore:"settings"`
@@ -108,7 +108,10 @@ func (s *Store) checkProjectOwner(tx *db.Transaction, r projectApplicationPort.S
 		return nil
 	}
 	if projectDomainEntity.IsOrganizationOwner(r.OwnerID) {
-		visible, err := orgstore.OrganizationVisible(tx, parent, r.Actor)
+		if s.OrganizationVisible == nil {
+			return projectDomainEntity.ErrUnavailable
+		}
+		visible, err := s.OrganizationVisible(tx, parent.Parent.Parent, r.OwnerID, r.Actor)
 		if status.Code(err) == codes.NotFound || err == nil && !visible {
 			return projectDomainEntity.ErrNotFound
 		}

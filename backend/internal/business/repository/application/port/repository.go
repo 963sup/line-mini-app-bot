@@ -8,14 +8,24 @@ import (
 )
 
 type Store interface {
-	Observe(context.Context, repositoryDomainEntity.Observation) error
 	GetByID(context.Context, string) (repositoryDomainEntity.Repository, error)
-	GetByGroupID(context.Context, string) (repositoryDomainEntity.Repository, error)
 	Candidates(context.Context, string, string, string) (repositoryApplicationDto.Page, error)
 }
 
+type BindingStore interface {
+	ObservePersonal(context.Context, repositoryDomainEntity.PersonalObservation) error
+	ObserveGroup(context.Context, repositoryDomainEntity.GroupObservation) error
+	GetByGroupID(context.Context, string) (repositoryDomainEntity.Repository, error)
+}
+
+// CheckOrganization reads membership from the same snapshot as the repository.
+type (
+	CheckOrganization func(organizationID, actor string) (bool, error)
+	AddressChange     func(repositoryDomainEntity.Repository, CheckOrganization) (repositoryDomainEntity.Repository, error)
+)
+
 type AddressWriter interface {
-	UpdateAddress(context.Context, repositoryDomainEntity.Repository, repositoryDomainEntity.Repository) (repositoryDomainEntity.Repository, error)
+	RunAddressChange(context.Context, string, AddressChange) (repositoryDomainEntity.Repository, error)
 }
 
 type OwnerAccess interface {

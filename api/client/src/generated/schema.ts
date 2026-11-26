@@ -1447,7 +1447,7 @@ export interface components {
             ownerId: string;
             /** @enum {string} */
             ownerType: "USER" | "ORGANIZATION";
-            /** @description Optional LINE interaction binding. It is not the repository owner or an authorization grant. */
+            /** @description Optional read projection from the authoritative LINE interaction binding. It is not repository state, the owner, or an authorization grant. */
             groupId?: string;
             name: string;
             /** @enum {string} */

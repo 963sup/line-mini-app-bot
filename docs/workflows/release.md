@@ -7,29 +7,24 @@
 - 先完成適用驗證並審閱 staged diff。
 - 一筆提交應完整、可獨立審查與回退，包含相關契約、程式、設定、測試與文件。
 - 提交訊息描述具體結果；未完成或未驗證事項不要包裝成完成。
+- 接到發布請求時，一次核對工作樹、暫存區、未追蹤檔案及遠端 `main`、`work` 的提交差異。「全部本地」涵蓋版控檔案的變更及待納入版控的新檔。PR 同時包含遠端 `work` 已有且尚未進入 `main` 的提交。
+- 依變更範圍選擇[本機檢查](verification.md#選擇檢查)，並行執行互不依賴的項目。相同內容與環境已有通過結果時可以沿用。遇到唯讀家目錄，第一次執行 Go 測試或含 Go 產生器的 API 檢查前，確認 `GOCACHE`、`GOMODCACHE` 與 `GOPATH` 下的 checksum 資料目錄可寫，並沿用可寫的既有快取。
 
 ## 推送
 
 推送前核對分支、remote、待推送提交與遠端是否前進。遠端有新提交時，整合後重新執行受影響檢查。只有使用者明確授權時才推送；不得重寫已發布歷史，除非取得單次明確授權與回復方案。
 
-## 從 work 合併到 main
+用 GitHub MCP 發布工作樹變更時，可直接使用已驗證的 `create_tree` → `create_commit` → `update_ref` 路徑。以遠端 `work` head 的 tree 為基底，並以同一個 head 當 commit parent 和 `update_ref` 的 `expected_sha`，指定 `force: false`。更新後核對遠端 SHA 與提交檔案範圍。若 `push_files` 在建立 tree 時回傳權限 403，確認遠端 head 後改走上述 GitHub MCP 路徑。
 
-使用者指定「走 GitHub MCP 推送流程」即啟動從推送到分支同步的完整流程。若使用者指定「只推到 work」或「只開 PR」，以指定階段為終點。正式部署另依部署授權處理。
+## 從 work 壓縮後送 main
 
-1. 推送後，用 GitHub MCP 查詢來源為 `work`、目標為 `main` 的開啟中 PR。有則沿用，沒有就建立。核對變更檔案與預期範圍，持續追蹤最新 head SHA 的必要檢查直到通過。若 CI 失敗，依[驗證流程](verification.md)修正並追蹤新一輪檢查。
-   GitHub MCP 寫入若顯示確認表單，必須等待使用者提交後再查詢遠端狀態；表單取消或未回傳結果時，不得視為成功。重新查詢確認仍無 PR 後，可使用同一個已驗證 GitHub 身分的 `gh` CLI 完成該次寫入，再由 GitHub MCP 核對結果並繼續流程。
-2. 使用 **Create a merge commit**。呼叫 `merge_pull_request` 時指定 `merge_method: "merge"`，並將 `expected_head_sha` 設為已驗證的提交。若 head 已更新，重新確認檢查結果。這樣 `main` 會保留 `work` 原有的提交與 SHA。
-3. 確認 PR 已合併後，從儲存庫執行下列命令同步長期使用的 `work`。先確認遠端 `work` 可以快轉至 `main`，再以一般 push 更新遠端分支。
+收到完整發布流程的要求時，先完成 `work` 的提交與推送，再從遠端 `main` 建立獨立發布分支。若使用者指定只推 `work` 或只開 PR，以指定階段為終點。正式部署另依部署授權處理。
 
-```bash
-git fetch origin refs/heads/work:refs/remotes/origin/work refs/heads/main:refs/remotes/origin/main &&
-  git merge-base --is-ancestor origin/work origin/main &&
-  git push origin refs/remotes/origin/main:refs/heads/work
-```
-
-4. 再次以上述明確的兩個 refspec 抓取分支 與 `git rev-list --left-right --count origin/work...origin/main`。兩個計數皆為零表示已對齊。若祖先檢查失敗、推送被拒或遠端又有新提交，保留分支歷史，重新取得遠端狀態並回報差異。不得用 force push 覆蓋他人的提交。
-
-完整流程的完成回報須包含 PR 連結、該 PR 最新提交的 CI 結果、合併提交 SHA 與遠端兩支的 ahead／behind 計數。CI 執行中須繼續追蹤；遇到權限或分支保護阻擋時，回報阻擋原因與尚未完成的階段。
+1. 抓取 `origin/main` 與 `origin/work`，記下 SHA。使用乾淨的工作區，從 `origin/main` 建立 `release/work-<work SHA 短碼>`，執行 `git merge --squash origin/work`。若有衝突，先釐清並解決，再檢查暫存區。若沒有差異，結束發布流程。
+2. 檢查暫存區與測試結果，提交一次。用 `git rev-list --count origin/main..HEAD` 確認分支只有一筆提交，再推送發布分支並開啟以 `main` 為目標的 PR。重跑時可沿用來源、目標與內容都相同的現有 PR。
+3. 核對 PR 的 head SHA 與 CI run，等所有必要檢查通過。如果 `main` 或發布分支前進，先重新驗證合併結果。以 GitHub 的 **Squash and merge** 合併並指定已驗證的 head SHA，讓 `main` 新增一筆發布提交。
+4. 重新抓取遠端分支。若 `work` 仍是本次發布的 SHA，且 `git diff --quiet origin/work origin/main` 確認兩邊內容相同，可在隔離副本從 `origin/work` 合併 `origin/main`，再一般推送到 `work`。這會保留原始工作提交並讓最新 `main` 成為下次發布的基準。如果 `work` 已前進或內容不同，保留遠端分支並回報差異，避免覆蓋後續工作。
+5. 用 `git merge-base --is-ancestor origin/main origin/work` 檢查祖先關係，並用 `git diff --exit-code origin/main origin/work` 確認已同步時的內容一致。回報 PR、CI 結果、`main` 發布 SHA 與 `work` 同步結果。
 
 ## 候選部署
 

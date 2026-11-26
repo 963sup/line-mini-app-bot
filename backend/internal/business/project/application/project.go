@@ -25,22 +25,19 @@ func (s *Service) resolveProjectScope(ctx context.Context, actor, id string) (pr
 		return projectApplicationPort.Scope{}, projectDomainEntity.ErrUnavailable
 	}
 	scope := projectApplicationPort.Scope{OwnerID: id, Actor: actor}
-	if projectDomainEntity.IsOrganizationOwner(id) {
-		if s.AuthorizeOrganization == nil {
-			return scope, projectDomainEntity.ErrUnavailable
-		}
-		return scope, s.AuthorizeOrganization(ctx, actor, id)
-	}
-	if !projectDomainEntity.ValidLegacyOwner(id) {
-		// Repository-scoped routes resolve and authorize their source first.
-		if !projectDomainEntity.ValidID(id) {
-			return projectApplicationPort.Scope{}, projectDomainEntity.ErrNotFound
-		}
+	if projectDomainEntity.ValidID(id) {
+		// Resolve the repository before choosing its owner authorization policy.
 		source, err := s.Sources.Authorize(ctx, actor, id, "")
 		if err != nil {
 			return projectApplicationPort.Scope{}, err
 		}
 		scope.OwnerID, scope.SourceRepositoryID, scope.Legacy = source.OwnerID, source.ID, true
+	}
+	if projectDomainEntity.IsOrganizationOwner(scope.OwnerID) {
+		if s.AuthorizeOrganization == nil {
+			return scope, projectDomainEntity.ErrUnavailable
+		}
+		return scope, s.AuthorizeOrganization(ctx, actor, scope.OwnerID)
 	}
 	if lineid.ValidUser(scope.OwnerID) {
 		if actor != scope.OwnerID {
@@ -48,7 +45,7 @@ func (s *Service) resolveProjectScope(ctx context.Context, actor, id string) (pr
 		}
 		return scope, nil
 	}
-	if s.Groups == nil {
+	if !lineid.ValidGroup(scope.OwnerID) || s.Groups == nil {
 		return scope, projectDomainEntity.ErrNotFound
 	}
 	ownerID, err := s.Groups.AuthorizeGroup(ctx, actor, scope.OwnerID)

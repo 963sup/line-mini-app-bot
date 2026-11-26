@@ -25,6 +25,7 @@ export function View() {
   const { user, request } = useSession();
   const monthRead = useLatestRequest();
   const [month, setMonth] = useState("");
+  const [group, setGroup] = useState("");
   const [records, setRecords] = useState<S["AttendanceRecord"][]>([]);
   const [page, setPage] = useState(0);
   const [cursors, setCursors] = useState([""]);
@@ -44,7 +45,12 @@ export function View() {
     setFailure(undefined);
   }
 
-  function loadRecords(selectedMonth: string, target = 0, cursor = cursors[target] || "") {
+  function loadRecords(
+    selectedMonth: string,
+    target = 0,
+    cursor = cursors[target] || "",
+    selectedGroup = group,
+  ) {
     if (!user || !/^\d{4}-(0[1-9]|1[0-2])$/.test(selectedMonth)) return;
     setBusy(true);
     setFailure(undefined);
@@ -58,7 +64,14 @@ export function View() {
           (c, s) =>
             c.GET("/api/v1/attendance/records", {
               signal: s,
-              params: { query: { month: selectedMonth, pageSize: 20, cursor } },
+              params: {
+                query: {
+                  month: selectedMonth,
+                  group: selectedGroup || undefined,
+                  pageSize: 20,
+                  cursor,
+                },
+              },
             }),
           { signal },
         ),
@@ -79,22 +92,28 @@ export function View() {
   }
 
   useEffect(() => {
-    const requestedMonth = new URLSearchParams(location.search).get("month") || "";
+    const params = new URLSearchParams(location.search);
+    const requestedMonth = params.get("month") || "";
+    const requestedGroup = params.get("attendanceGroup") || "";
     const initialMonth = /^\d{4}-(0[1-9]|1[0-2])$/.test(requestedMonth)
       ? requestedMonth
       : taiwan(new Date().toISOString()).slice(0, 7);
     clear();
     setMonth(initialMonth);
-    loadRecords(initialMonth, 0, "");
+    setGroup(requestedGroup);
+    loadRecords(initialMonth, 0, "", requestedGroup);
     return () => monthRead.cancel();
   }, [user, request]);
 
   return (
-    <PagePanel id="history" heading="出勤紀錄">
+    <PagePanel id="history" heading={group ? "本群組出勤紀錄" : "出勤紀錄"}>
       <p>
         <a
           className="break-words text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
-          href={"/miniapp/correction?" + new URLSearchParams(month ? { month } : {})}
+          href={
+            "/miniapp/missing-punch?" +
+            new URLSearchParams({ ...(month && { month }), ...(group && { group }) })
+          }
         >
           申請補卡
         </a>
@@ -159,7 +178,9 @@ export function View() {
                   <Button asChild variant="link">
                     <a
                       href={
-                        "/miniapp/correction?" +
+                        (taiwan(record.ClockInAt) && taiwan(record.ClockOutAt)
+                          ? "/miniapp/correction?"
+                          : "/miniapp/missing-punch?") +
                         new URLSearchParams({
                           group: record.GroupID,
                           month,
@@ -167,7 +188,7 @@ export function View() {
                         })
                       }
                     >
-                      {record.ClockInAt && record.ClockOutAt ? "更正" : "補卡"}
+                      {taiwan(record.ClockInAt) && taiwan(record.ClockOutAt) ? "更正" : "補卡"}
                     </a>
                   </Button>
                 </TableCell>

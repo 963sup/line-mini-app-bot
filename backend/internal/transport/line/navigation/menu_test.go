@@ -97,3 +97,25 @@ func TestAttendanceRichMenuArtworkLayoutAndActions(t *testing.T) {
 		}
 	}
 }
+
+func TestPrivateRichMenuRoutesAndBounds(t *testing.T) {
+	const app = "https://miniapp.line.me/example"
+	menu := PrivateRichMenu(app)
+	pages := []string{"attendance", "missing-punch", "correction", "leave", "review", "repositories"}
+	labels := []string{"出勤", "補卡", "更正", "請假", "審核", "儲存庫"}
+	if menu == nil || len(menu.Areas) != len(pages) {
+		t.Fatalf("invalid private menu: %+v", menu)
+	}
+	for i, page := range pages {
+		area := menu.Areas[i]
+		action, ok := area.Action.(*messaging_api.UriAction)
+		if !ok || action.Uri != app+"?menu="+page || action.Label != labels[i] {
+			t.Fatalf("area %d link: %+v", i, area.Action)
+		}
+		column := int64(i % 3)
+		if area.Bounds.X != column*2500/3 || area.Bounds.Y != int64(i/3)*843 ||
+			area.Bounds.X+area.Bounds.Width != (column+1)*2500/3 || area.Bounds.Height != 843 {
+			t.Fatalf("area %d bounds: %+v", i, area.Bounds)
+		}
+	}
+}

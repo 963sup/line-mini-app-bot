@@ -53,11 +53,14 @@ func ValidOwner(id string) bool { return ValidOwnerID(id) }
 func ValidID(id string) bool { return idPattern.MatchString(id) }
 
 type Repository struct {
-	ID, OwnerID, GroupID, Name, Status string
-	OwnerType                          OwnerType
-	Address                            *Address
-	Version                            int64
-	CreatedAt, UpdatedAt               time.Time
+	ID, OwnerID, Name, Status string
+	// InteractionGroupID is a read projection from the LINE binding authority.
+	// It is never persisted as Repository state or used for authorization.
+	InteractionGroupID   string
+	OwnerType            OwnerType
+	Address              *Address
+	Version              int64
+	CreatedAt, UpdatedAt time.Time
 }
 
 func (r Repository) ChangeAddress(expectedVersion int64, address Address, now time.Time) (Repository, error) {
@@ -76,9 +79,15 @@ func (r Repository) MatchesActive(id, ownerID, status string) bool {
 	return r.ID == id && r.OwnerID == ownerID && status == "ACTIVE"
 }
 
-// Observation is accepted only from the signature-verified webhook adapter.
-// Users are discovery candidates, never an authorization grant.
-type Observation struct {
+// PersonalObservation creates the repository owned by a verified LINE user.
+type PersonalObservation struct {
+	OwnerID, Name, EventID string
+	At                     time.Time
+}
+
+// GroupObservation records a LINE interaction binding. Users are discovery
+// candidates, never an authorization grant.
+type GroupObservation struct {
 	OwnerID, GroupID, Name, Status, EventID string
 	OwnerType                               OwnerType
 	At                                      time.Time

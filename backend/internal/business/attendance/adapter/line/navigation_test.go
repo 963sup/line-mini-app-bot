@@ -27,8 +27,7 @@ func TestPublishedAttendanceActionsDispatch(t *testing.T) {
 		command := "/" + strings.ToUpper(strings.TrimPrefix(data, "action="))
 		text := webhook.MessageEvent{Mode: "active", ReplyToken: "reply", Source: e.Source, Message: webhook.TextMessageContent{Text: command}}
 		group, handled, err = h.Handle(t.Context(), text)
-		got, ok := group.Message.(*messaging_api.TextMessage)
-		if err != nil || !handled || !ok || got.Text != message.Text {
+		if err != nil || handled || group.Message != nil {
 			t.Fatalf("group command %s: %+v, %v", command, group, err)
 		}
 	}

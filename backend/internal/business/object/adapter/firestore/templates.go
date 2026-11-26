@@ -121,7 +121,7 @@ func (s *Store) createTemplate(ctx context.Context, r repository.Repository, act
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = dto.Template{}
 		if r.ID != "" {
-			if e := container(tx, parent, r); e != nil {
+			if e := s.checkWrite(tx, r, actor); e != nil {
 				return e
 			}
 		}
@@ -329,7 +329,7 @@ func (s *Store) instantiateTemplate(ctx context.Context, r repository.Repository
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = dto.TemplateInstance{}
-		if e := container(tx, parent, r); e != nil {
+		if e := s.checkWrite(tx, r, actor); e != nil {
 			return e
 		}
 		old, e := tx.Get(rec)

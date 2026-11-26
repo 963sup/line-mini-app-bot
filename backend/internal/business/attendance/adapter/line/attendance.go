@@ -116,11 +116,11 @@ func (b *Attendance) Reply(ctx context.Context, event webhook.EventInterface) (t
 	}
 	if user, ok := source.(webhook.UserSource); ok {
 		if !history {
-			if command == "補卡" || command == "更正" {
-				return respond("請回原群組輸入「" + command + "」取得申請入口。")
-			}
-			if command == "出勤" || command == "漏下班" || command == "下班提醒" {
-				return respond("請回原群組輸入「出勤」或「漏下班」。")
+			switch command {
+			case "出勤", "補卡", "更正":
+				return respond("請點聊天室下方選單的「" + command + "」。")
+			case "漏下班", "下班提醒":
+				return respond("請回原群組輸入「漏下班」。")
 			}
 			return respond("請在群組輸入「打卡」或「請假」，取得操作入口。")
 		}

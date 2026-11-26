@@ -30,10 +30,11 @@ type Numberer interface {
 	CreateNumberedResource(context.Context, repositoryDomainEntity.NumberedCreation, func(context.Context, *db.Transaction, repositoryDomainEntity.NumberedResource) error) (repositoryDomainEntity.NumberedResource, error)
 }
 type Store struct {
-	Client    *db.Client
-	ChannelID string
-	Numbers   Numberer
-	Labels    LabelValidator
+	RepositoryWritable func(*db.Transaction, string, string, string) (bool, error)
+	Client             *db.Client
+	ChannelID          string
+	Numbers            Numberer
+	Labels             LabelValidator
 }
 
 type LabelValidator interface {
@@ -229,21 +230,22 @@ type updateWork struct {
 	parent, ref *db.DocumentRef
 }
 
-func (w updateWork) Repository() (string, string, string, error) {
-	snap, err := w.tx.Get(w.parent)
-	if status.Code(err) == codes.NotFound {
-		return "", "", "", discussionentity.ErrNotFound
+func (w updateWork) CheckRepository(actor string) error {
+	return w.store.checkWrite(w.tx, w.scope, actor)
+}
+
+func (s *Store) checkWrite(tx *db.Transaction, r repositoryDomainEntity.Repository, actor string) error {
+	if s.RepositoryWritable == nil {
+		return discussionport.ErrUnavailable
 	}
+	allowed, err := s.RepositoryWritable(tx, r.ID, r.OwnerID, actor)
 	if err != nil {
-		return "", "", "", err
+		return err
 	}
-	var container struct {
-		ID      string `firestore:"id"`
-		OwnerID string `firestore:"ownerId"`
-		Status  string `firestore:"status"`
+	if !allowed {
+		return discussionentity.ErrNotFound
 	}
-	err = snap.DataTo(&container)
-	return container.ID, container.OwnerID, container.Status, err
+	return nil
 }
 
 func (w updateWork) Current() (discussionentity.Discussion, error) {

@@ -40,12 +40,8 @@ func (s *Service) Update(ctx context.Context, actor, repositoryID, id string, in
 	}
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	return s.Store.RunUpdate(ctx, r, id, func(work port.UpdateWork) (entity.Discussion, error) {
-		repoID, owner, status, err := work.Repository()
-		if err != nil {
+		if err := work.CheckRepository(actor); err != nil {
 			return entity.Discussion{}, err
-		}
-		if !r.MatchesActive(repoID, owner, status) {
-			return entity.Discussion{}, entity.ErrNotFound
 		}
 		current, err := work.Current()
 		if err != nil {

@@ -138,7 +138,7 @@ function NavigationSidebar({
       icon: FolderOpen,
     },
     {
-      title: "我的出勤",
+      title: "出勤",
       icon: ClipboardList,
       url: "/miniapp/attendance",
       isActive: workflow === "attendance" || workflow === "punch",
@@ -152,11 +152,17 @@ function NavigationSidebar({
     {
       title: "補卡",
       icon: ClipboardPenLine,
+      url: "/miniapp/missing-punch",
+      isActive: workflow === "missing-punch",
+    },
+    {
+      title: "更正",
+      icon: ClipboardPenLine,
       url: "/miniapp/correction",
       isActive: workflow === "correction",
     },
     {
-      title: "出勤審核",
+      title: "審核",
       icon: ClipboardCheck,
       url: "/miniapp/review",
       isActive: workflow === "review",

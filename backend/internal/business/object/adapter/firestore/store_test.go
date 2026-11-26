@@ -3,6 +3,8 @@ package firestore
 import (
 	objectcommand "github.com/963sup/line-mini-app-bot/internal/business/object/application/command"
 	"github.com/963sup/line-mini-app-bot/internal/business/object/domain/event"
+	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
+	repodb "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/firestore"
 	repositoryDomainEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 )
 
@@ -55,8 +57,14 @@ func emulatorStore(t *testing.T) (context.Context, *Store, repositoryDomainEntit
 		}
 	})
 	store := &Store{Client: client, ChannelID: "isolated-object-tests"}
-	r := repositoryDomainEntity.Repository{ID: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", OwnerType: repositoryDomainEntity.OwnerUser, OwnerID: "Ubbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", Status: "ACTIVE"}
-	if _, err := store.repositoryRef(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerType": r.OwnerType, "ownerId": r.OwnerID, "status": r.Status}); err != nil {
+	r := repositoryDomainEntity.Repository{ID: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", OwnerType: repositoryDomainEntity.OwnerOrganization, OwnerID: "11111111-1111-4111-8111-111111111111", Status: "ACTIVE"}
+	root := client.Collection("channels").Doc(store.ChannelID)
+	if _, err := root.Collection("organizations").Doc(r.OwnerID).Set(ctx, map[string]any{"ownerUserId": "actor-a", "memberUserIds": []string{"actor-b", "actor", "alice", "bob"}}); err != nil {
+		t.Fatal(err)
+	}
+	repositories := &repodb.Store{Client: client, ChannelID: store.ChannelID, OrganizationVisible: (orgdb.Store{}).VisibleTo}
+	store.RepositoryWritable = repositories.Writable
+	if _, err := store.repositoryRef(r.ID).Set(ctx, map[string]any{"id": r.ID, "ownerType": r.OwnerType, "ownerId": r.OwnerID, "version": 1, "status": r.Status}); err != nil {
 		t.Fatal(err)
 	}
 	return ctx, store, r
@@ -124,7 +132,7 @@ func TestEmulatorConcurrentCreationAndReceiptReplay(t *testing.T) {
 	}
 	other := r
 	other.ID = "cccccccccccccccccccccccccccccccc"
-	if _, err := store.repositoryRef(other.ID).Set(ctx, map[string]any{"id": other.ID, "ownerType": other.OwnerType, "ownerId": other.OwnerID, "status": "ACTIVE"}); err != nil {
+	if _, err := store.repositoryRef(other.ID).Set(ctx, map[string]any{"id": other.ID, "ownerType": other.OwnerType, "ownerId": other.OwnerID, "version": 1, "status": "ACTIVE"}); err != nil {
 		t.Fatal(err)
 	}
 	independent, err := store.Create(ctx, other, "actor-a", "same-creation-key-0001", content)
@@ -137,8 +145,8 @@ func TestEmulatorContainerAndReceiptFailuresDoNotWrite(t *testing.T) {
 	ctx, store, r := emulatorStore(t)
 	parent := store.repositoryRef(r.ID)
 	for _, mutation := range []map[string]any{
-		{"id": r.ID, "ownerType": r.OwnerType, "ownerId": r.OwnerID, "status": "INACTIVE"},
-		{"id": r.ID, "ownerId": "Cdddddddddddddddddddddddddddddddd", "status": "ACTIVE"},
+		{"id": r.ID, "ownerType": r.OwnerType, "ownerId": r.OwnerID, "version": 1, "status": "INACTIVE"},
+		{"id": r.ID, "ownerType": "USER", "ownerId": "Udddddddddddddddddddddddddddddddd", "version": 1, "status": "ACTIVE"},
 	} {
 		if _, err := parent.Set(ctx, mutation); err != nil {
 			t.Fatal(err)
@@ -150,7 +158,7 @@ func TestEmulatorContainerAndReceiptFailuresDoNotWrite(t *testing.T) {
 			t.Fatal("rejected creation left resource or receipt")
 		}
 	}
-	if _, err := parent.Set(ctx, map[string]any{"id": r.ID, "ownerType": r.OwnerType, "ownerId": r.OwnerID, "status": "ACTIVE"}); err != nil {
+	if _, err := parent.Set(ctx, map[string]any{"id": r.ID, "ownerType": r.OwnerType, "ownerId": r.OwnerID, "version": 1, "status": "ACTIVE"}); err != nil {
 		t.Fatal(err)
 	}
 	rec := parent.Collection("objectCreationReceipts").Doc(firestorekey.JSONDigest([]string{"actor-a", "corrupt-receipt-key"}))
@@ -267,13 +275,13 @@ func TestEmulatorListPaginatesWithoutMissingOrDuplicateObjects(t *testing.T) {
 func TestQuantityHistoryReadsCommittedVersions(t *testing.T) {
 	ctx, s, r := emulatorStore(t)
 	c := testContent()
-	obj, err := s.Create(ctx, r, "author", "history-create-0001", c)
+	obj, err := s.Create(ctx, r, "actor-a", "history-create-0001", c)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for i := range 27 {
 		c.Quantity = strconv.Itoa(12 + i)
-		obj, err = s.Update(ctx, r, "author", obj.ID, objectDomainEntity.Update{Content: c, ExpectedVersion: obj.Version, ActorDisplayName: "測試成員"})
+		obj, err = s.Update(ctx, r, "actor-a", obj.ID, objectDomainEntity.Update{Content: c, ExpectedVersion: obj.Version, ActorDisplayName: "測試成員"})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -281,24 +289,24 @@ func TestQuantityHistoryReadsCommittedVersions(t *testing.T) {
 	// A later edit to another field, a no-op, and a rejected stale write
 	// must not appear in quantity history.
 	c.Name = "renamed after quantity change"
-	obj, err = s.Update(ctx, r, "author", obj.ID, objectDomainEntity.Update{Content: c, ExpectedVersion: obj.Version})
+	obj, err = s.Update(ctx, r, "actor-a", obj.ID, objectDomainEntity.Update{Content: c, ExpectedVersion: obj.Version})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = s.Update(ctx, r, "author", obj.ID, objectDomainEntity.Update{Content: c, ExpectedVersion: obj.Version}); err != nil {
+	if _, err = s.Update(ctx, r, "actor-a", obj.ID, objectDomainEntity.Update{Content: c, ExpectedVersion: obj.Version}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = s.Update(ctx, r, "author", obj.ID, objectDomainEntity.Update{Content: c, ExpectedVersion: 1}); !errors.Is(err, objectDomainEntity.ErrConflict) {
+	if _, err = s.Update(ctx, r, "actor-a", obj.ID, objectDomainEntity.Update{Content: c, ExpectedVersion: 1}); !errors.Is(err, objectDomainEntity.ErrConflict) {
 		t.Fatal(err)
 	}
-	page, err := s.ListQuantityChanges(ctx, r, "author", "")
+	page, err := s.ListQuantityChanges(ctx, r, "actor-a", "")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(page.Items) != 25 || page.Items[0].AfterQuantity != "38" || page.Items[0].Actor != "測試成員" || page.Items[0].At.IsZero() || page.Items[0].Name != testContent().Name {
 		t.Fatalf("unexpected first page: %+v", page)
 	}
-	next, err := s.ListQuantityChanges(ctx, r, "author", page.NextCursor)
+	next, err := s.ListQuantityChanges(ctx, r, "actor-a", page.NextCursor)
 	if err != nil || len(next.Items) != 2 || next.Items[1].BeforeQuantity != "11" || next.NextCursor != "" {
 		t.Fatalf("unexpected next page: %+v %v", next, err)
 	}
@@ -307,7 +315,7 @@ func TestQuantityHistoryReadsCommittedVersions(t *testing.T) {
 	}
 	other := *s
 	other.ChannelID = "different-channel"
-	foreign, err := other.ListQuantityChanges(ctx, r, "author", "")
+	foreign, err := other.ListQuantityChanges(ctx, r, "actor-a", "")
 	if err != nil || len(foreign.Items) != 0 {
 		t.Fatalf("channel isolation: %+v %v", foreign, err)
 	}

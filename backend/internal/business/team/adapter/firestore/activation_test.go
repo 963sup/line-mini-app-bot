@@ -10,16 +10,11 @@ import (
 
 	"cloud.google.com/go/firestore"
 	membershipdb "github.com/963sup/line-mini-app-bot/internal/business/membership/adapter/firestore"
-	organization "github.com/963sup/line-mini-app-bot/internal/business/organization/domain/entity"
+	teamapp "github.com/963sup/line-mini-app-bot/internal/business/team/application"
+	teamdomain "github.com/963sup/line-mini-app-bot/internal/business/team/domain"
 	groupevent "github.com/963sup/line-mini-app-bot/internal/business/team/domain/event"
 	firestorekey "github.com/963sup/line-mini-app-bot/internal/platform/firestore/key"
 )
-
-type activationMembership func(context.Context, string, string) (bool, error)
-
-func (f activationMembership) IsMember(ctx context.Context, group, user string) (bool, error) {
-	return f(ctx, group, user)
-}
 
 func TestObservedTeamCanOpenWithLINEAndParentAuthority(t *testing.T) {
 	if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
@@ -39,9 +34,10 @@ func TestObservedTeamCanOpenWithLINEAndParentAuthority(t *testing.T) {
 	lineMember := false
 	store := Store{
 		DB: db, Channel: root.ID, OpenMembership: membershipdb.OpenTeamMembership, TeamMember: membershipdb.TeamMember,
-		LINEActivationMember: activationMembership(func(_ context.Context, group, user string) (bool, error) {
-			return lineMember && group == teamID && user == actor, nil
-		}),
+	}
+	cmd := teamdomain.Activation{Actor: actor, TeamID: teamID, Scope: "enterprise", ManagementID: parent, Maintainer: actor}
+	check := func(_ context.Context, group, user string) (bool, error) {
+		return lineMember && group == teamID && user == actor, nil
 	}
 	if err := (LINEObservation{Store: store}).Observe(ctx, groupevent.Observation{GroupID: teamID, Status: "ACTIVE", EventID: "join", At: time.Now()}); err != nil {
 		t.Fatal(err)
@@ -57,11 +53,22 @@ func TestObservedTeamCanOpenWithLINEAndParentAuthority(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer func() { _, _ = qual.Delete(context.Background()) }()
-	if err := store.Activate(ctx, actor, teamID, "enterprise", parent, actor); !errors.Is(err, organization.ErrNotFound) {
+	if err := teamapp.Activate(ctx, store, check, cmd); !errors.Is(err, teamdomain.ErrActivationDenied) {
 		t.Fatalf("actor outside LINE group could open Team: %v", err)
 	}
+	teamRef := root.Collection("teams").Doc(teamID)
+	changeDuringLookup := func(ctx context.Context, _, _ string) (bool, error) {
+		_, err := teamRef.Update(ctx, []firestore.Update{{Path: "disabled", Value: true}})
+		return true, err
+	}
+	if err := teamapp.Activate(ctx, store, changeDuringLookup, cmd); !errors.Is(err, teamdomain.ErrActivationDenied) {
+		t.Fatalf("disabled during membership check: %v", err)
+	}
+	if _, err := teamRef.Update(ctx, []firestore.Update{{Path: "disabled", Value: false}}); err != nil {
+		t.Fatal(err)
+	}
 	lineMember = true
-	if err := store.Activate(ctx, actor, teamID, "enterprise", parent, actor); err != nil {
+	if err := teamapp.Activate(ctx, store, check, cmd); err != nil {
 		t.Fatalf("qualified actor could not open observed Team: %v", err)
 	}
 	defer func() {
@@ -71,6 +78,9 @@ func TestObservedTeamCanOpenWithLINEAndParentAuthority(t *testing.T) {
 		_, _ = root.Collection("membershipAudits").Doc(firestorekey.Encode("team_opened", teamID)).Delete(context.Background())
 	}()
 	lineMember = false
+	if err := teamapp.Activate(ctx, store, nil, cmd); err != nil {
+		t.Fatalf("exact replay required LINE: %v", err)
+	}
 	if ok, err := store.IsTeamMember(ctx, teamID, actor); err != nil || !ok {
 		t.Fatalf("formal qualification missing: %v %v", ok, err)
 	}

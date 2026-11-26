@@ -41,7 +41,7 @@ func TestRenameLabelPreservesIdentityAndCreationReplay(t *testing.T) {
 		t.Fatal(err)
 	}
 	create := func(key, name string) repositoryDomainEntityLabels.Label {
-		l, e := s.CreateLabel(ctx, r, "member", key, name)
+		l, e := s.CreateLabel(ctx, r, r.OwnerID, key, name)
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -49,13 +49,13 @@ func TestRenameLabelPreservesIdentityAndCreationReplay(t *testing.T) {
 	}
 	first := create("first-create", "old")
 	create("second-create", "occupied")
-	if _, err = s.RenameLabel(ctx, r, first.ID, "old", "Occupied"); !errors.Is(err, repositoryDomainEntityLabels.ErrNameConflict) {
+	if _, err = s.RenameLabel(ctx, r, r.OwnerID, first.ID, "old", "Occupied"); !errors.Is(err, repositoryDomainEntityLabels.ErrNameConflict) {
 		t.Fatal(err)
 	}
-	if _, err = s.RenameLabel(ctx, r, first.ID, "old", "new"); err != nil {
+	if _, err = s.RenameLabel(ctx, r, r.OwnerID, first.ID, "old", "new"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = s.RenameLabel(ctx, r, first.ID, "old", "other"); !errors.Is(err, repositoryDomainEntityLabels.ErrStaleName) {
+	if _, err = s.RenameLabel(ctx, r, r.OwnerID, first.ID, "old", "other"); !errors.Is(err, repositoryDomainEntityLabels.ErrStaleName) {
 		t.Fatal(err)
 	}
 	create("third-create", "old")

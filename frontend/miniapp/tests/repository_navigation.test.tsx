@@ -133,10 +133,11 @@ test("attendance workflows are separate sidebar destinations", async () => {
   });
   try {
     for (const [label, href] of [
-      ["我的出勤", "/miniapp/attendance"],
+      ["出勤", "/miniapp/attendance"],
       ["請假", "/miniapp/leave"],
-      ["補卡", "/miniapp/correction"],
-      ["出勤審核", "/miniapp/review"],
+      ["補卡", "/miniapp/missing-punch"],
+      ["更正", "/miniapp/correction"],
+      ["審核", "/miniapp/review"],
     ]) {
       const links = [...document.querySelectorAll<HTMLAnchorElement>(`a[href="${href}"]`)].filter(
         (link) => link.textContent === label,

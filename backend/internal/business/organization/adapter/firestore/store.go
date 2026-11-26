@@ -39,17 +39,32 @@ func (s Store) CanAccessOwner(ctx context.Context, ownerType, ownerID, actor str
 		return false, nil
 	}
 	result, err := orgstore.Run(ctx, s.DB, s.Channel, func(tx *firestore.Transaction, root *firestore.DocumentRef) (*bool, error) {
-		doc, err := orgstore.Read(tx, root.Collection("organizations").Doc(ownerID))
-		if err != nil {
-			return nil, err
-		}
-		allowed := doc.VisibleLegacyOrganization(actor)
-		return &allowed, nil
+		allowed, err := s.VisibleTo(tx, root, ownerID, actor)
+		return &allowed, err
 	})
 	if errors.Is(err, organizationDomainEntity.ErrNotFound) {
 		return false, nil
 	}
 	return result != nil && *result, err
+}
+
+// VisibleTo can participate in a repository read or write transaction.
+func (s Store) VisibleTo(tx *firestore.Transaction, root *firestore.DocumentRef, organizationID, actor string) (bool, error) {
+	doc, err := orgstore.Read(tx, root.Collection("organizations").Doc(organizationID))
+	if status.Code(err) == codes.NotFound {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return s.organizationVisible(tx, root, organizationID, actor, doc)
+}
+
+func (s Store) organizationVisible(tx *firestore.Transaction, root *firestore.DocumentRef, id, actor string, doc orgstore.Document) (bool, error) {
+	if !doc.Disabled && doc.MembershipMode == "membership" && s.OrganizationMember != nil {
+		return s.OrganizationMember(tx, root, id, actor)
+	}
+	return doc.VisibleLegacyOrganization(actor), nil
 }
 
 // ResolveRepositoryOwner returns the actor's explicit, still-visible
@@ -75,11 +90,11 @@ func (s Store) ResolveRepositoryOwner(ctx context.Context, actor string) (string
 		if uuid.Validate(organizationID) != nil {
 			return nil, organizationDomainEntity.ErrInvalid
 		}
-		doc, err := orgstore.Read(tx, root.Collection("organizations").Doc(organizationID))
+		visible, err := s.VisibleTo(tx, root, organizationID, actor)
 		if err != nil {
 			return nil, err
 		}
-		if !doc.VisibleLegacyOrganization(actor) {
+		if !visible {
 			return nil, organizationDomainEntity.ErrNotFound
 		}
 		return &organizationID, nil

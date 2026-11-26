@@ -94,7 +94,7 @@ export function Requests({
           onClearReview?.();
           setStatus(
             review && (error as { httpStatus?: number }).httpStatus === 403
-              ? "目前沒有出勤審核權限。請聯絡管理員確認審核群組設定。"
+              ? "目前沒有審核權限。請聯絡管理員確認審核群組設定。"
               : errorMessage(error),
           );
         },
@@ -145,7 +145,7 @@ export function Requests({
             !(Date.parse(item.reviewedAt || item.createdAt || "") < cutoff),
         );
   return (
-    <PagePanel heading={review ? "出勤審核" : "調整紀錄"}>
+    <PagePanel heading={review ? "審核" : "調整紀錄"}>
       <FieldSet
         className="grid min-w-0 gap-4 rounded-xl border p-4 disabled:opacity-60"
         disabled={!user || busy || disabled}

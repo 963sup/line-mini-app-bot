@@ -47,6 +47,6 @@ Firestore 的 line_navigation_publication_leases/{channelID} 保存暫時 owner 
 
 ## Rich Menu 舊選單遷移
 
-新版明確對應 `attendance-in → rich-menu-clock-in`、`attendance-out → rich-menu-clock-out`。發布前核對已存在的舊 Alias 確實指向本流程管理的選單。新圖與新 Alias 就緒後，將已存在的舊 Alias 保留為轉向入口，並讀回確認。缺少的舊 Alias 不新增。
+新版將既有上班、支援、下班及 `attendance-in`、`attendance-out` 的 Alias 指向六格私聊選單 `rich-menu-private`。發布前核對已存在的舊 Alias 確實指向本流程管理的選單。新圖與新 Alias 就緒後，將已存在的舊 Alias 保留為轉向入口，並讀回確認。缺少的舊 Alias 不新增。
 
 已綁定個別使用者的舊選單須另外透過 LINE 批次遷移；只有遷移成功且無 Alias 仍引用舊選單才刪除。失敗保留舊選單，重跑同步可繼續。驗收須在測試渠道涵蓋仍綁舊頁的使用者，並保留管理權衝突時的停止行為。

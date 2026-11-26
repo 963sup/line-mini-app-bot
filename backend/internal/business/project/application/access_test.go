@@ -232,3 +232,26 @@ func TestPersonalProjectOwner(t *testing.T) {
 		t.Fatalf("foreign personal owner: %v", err)
 	}
 }
+
+func TestRepositoryRouteAuthorizesResolvedOrganization(t *testing.T) {
+	org := "11111111-1111-4111-8111-111111111111"
+	repositoryID := strings.Repeat("f", 32)
+	eligible := true
+	svc := application.Service{Sources: &sources{space: org}, Store: &store{}, AuthorizeOrganization: func(_ context.Context, actor, owner string) error {
+		if actor != "reader" || owner != org || !eligible {
+			return projectDomainEntity.ErrNotFound
+		}
+		return nil
+	}}
+	for _, scope := range []string{org, repositoryID} {
+		if _, err := svc.List(t.Context(), "reader", scope, ""); err != nil {
+			t.Fatalf("permitted scope %s: %v", scope, err)
+		}
+	}
+	eligible = false
+	for _, scope := range []string{org, repositoryID} {
+		if _, err := svc.List(t.Context(), "reader", scope, ""); !errors.Is(err, projectDomainEntity.ErrNotFound) {
+			t.Fatalf("revoked scope %s: %v", scope, err)
+		}
+	}
+}

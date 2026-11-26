@@ -2,16 +2,17 @@ package bootstrap
 
 import (
 	"cloud.google.com/go/firestore"
+	orgdb "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/firestore"
 	projectdb "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/firestore"
 	source "github.com/963sup/line-mini-app-bot/internal/business/project/adapter/repository"
 	projectApplication "github.com/963sup/line-mini-app-bot/internal/business/project/application"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
 )
 
-func newProjects(client *firestore.Client, channel string, repositories *repositoryApplication.Service) *projectApplication.Service {
-	if client == nil || channel == "" {
+func newProjects(client *firestore.Client, channel string, repositories *repositoryApplication.Service, organizations *orgdb.Store) *projectApplication.Service {
+	if client == nil || channel == "" || organizations == nil {
 		return nil
 	}
-	projects := &projectdb.Store{Client: client, ChannelID: channel}
+	projects := &projectdb.Store{Client: client, ChannelID: channel, OrganizationVisible: organizations.VisibleTo}
 	return &projectApplication.Service{AuthorizeOrganization: projects.AuthorizeOrganization, Sources: source.Sources{Repositories: repositories}, Store: projects}
 }

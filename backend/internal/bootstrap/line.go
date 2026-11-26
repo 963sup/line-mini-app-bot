@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"os"
@@ -14,6 +15,7 @@ import (
 	organizationline "github.com/963sup/line-mini-app-bot/internal/business/organization/adapter/line"
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/line"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
+	repositoryEntity "github.com/963sup/line-mini-app-bot/internal/business/repository/domain/entity"
 	summary "github.com/963sup/line-mini-app-bot/internal/business/summary/adapter/line"
 	groupline "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/line"
 	"github.com/963sup/line-mini-app-bot/internal/business/weather/adapter/cwa/forecast"
@@ -36,7 +38,10 @@ func registerLINE(mux *http.ServeMux, config messagingConfig, bot *lineplatform.
 	var repositoryID func(context.Context, string) (string, error)
 	if repositories != nil {
 		repositoryID = func(ctx context.Context, group string) (string, error) {
-			repo, err := repositories.Store.GetByGroupID(ctx, group)
+			repo, err := repositories.Bindings.Repository(ctx, group)
+			if errors.Is(err, repositoryEntity.ErrNotFound) {
+				return "", nil
+			}
 			return repo.ID, err
 		}
 	}
@@ -56,7 +61,7 @@ func registerLINE(mux *http.ServeMux, config messagingConfig, bot *lineplatform.
 			punches.Handler(),
 			weather.Handler(client),
 			objectline.Handler(appURL),
-			navigation.Menu{StickerPackageID: os.Getenv("LINE_MENU_STICKER_PACKAGE_ID"), StickerID: os.Getenv("LINE_MENU_STICKER_ID"), QuickMenu: quickMenu, PrivateActions: attendance.NavigationActions()}.Handler(appURL, endpointURL, repositoryID),
+			navigation.Menu{StickerPackageID: os.Getenv("LINE_MENU_STICKER_PACKAGE_ID"), StickerID: os.Getenv("LINE_MENU_STICKER_ID"), PrivateActions: attendance.NavigationActions()}.Handler(appURL, endpointURL, repositoryID),
 		},
 	}
 	if repositories != nil {

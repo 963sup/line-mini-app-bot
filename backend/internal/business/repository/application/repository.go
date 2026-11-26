@@ -16,18 +16,22 @@ type Service struct {
 }
 
 func (s *Service) UpdateAddress(ctx context.Context, actor, id string, expectedVersion int64, address repositoryDomainEntity.Address, now time.Time) (repositoryDomainEntity.Repository, error) {
-	current, err := s.Get(ctx, actor, id)
-	if err != nil {
-		return repositoryDomainEntity.Repository{}, err
-	}
-	updated, err := current.ChangeAddress(expectedVersion, address, now)
-	if err != nil {
-		return repositoryDomainEntity.Repository{}, err
+	if !repositoryDomainEntity.ValidID(id) || actor == "" {
+		return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrNotFound
 	}
 	if s.AddressWriter == nil {
 		return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrUnavailable
 	}
-	return s.AddressWriter.UpdateAddress(ctx, current, updated)
+	return s.AddressWriter.RunAddressChange(ctx, id, func(current repositoryDomainEntity.Repository, check repositoryApplicationPort.CheckOrganization) (repositoryDomainEntity.Repository, error) {
+		allowed, err := CanAccess(actor, current, check)
+		if err != nil {
+			return repositoryDomainEntity.Repository{}, err
+		}
+		if !allowed {
+			return repositoryDomainEntity.Repository{}, repositoryDomainEntity.ErrNotFound
+		}
+		return current.ChangeAddress(expectedVersion, address, now)
+	})
 }
 
 func (s *Service) Get(ctx context.Context, user, id string) (repositoryDomainEntity.Repository, error) {
@@ -74,7 +78,17 @@ func (s *Service) List(ctx context.Context, user, cursor, ownerID string) (repos
 }
 
 func (s *Service) allowed(ctx context.Context, user string, r repositoryDomainEntity.Repository) (bool, error) {
-	if r.Status != "ACTIVE" {
+	return CanAccess(user, r, func(id, actor string) (bool, error) {
+		if s.OwnerAccess == nil {
+			return false, repositoryDomainEntity.ErrUnavailable
+		}
+		return s.OwnerAccess.CanAccessOwner(ctx, string(repositoryDomainEntity.OwnerOrganization), id, actor)
+	})
+}
+
+// CanAccess checks current ownership and obtains organization membership from the caller's read snapshot.
+func CanAccess(user string, r repositoryDomainEntity.Repository, check repositoryApplicationPort.CheckOrganization) (bool, error) {
+	if user == "" || r.Status != "ACTIVE" {
 		return false, nil
 	}
 	if !repositoryDomainEntity.ValidTypedOwner(r.OwnerType, r.OwnerID) {
@@ -83,10 +97,10 @@ func (s *Service) allowed(ctx context.Context, user string, r repositoryDomainEn
 	if r.OwnerType == repositoryDomainEntity.OwnerUser {
 		return r.OwnerID == user, nil
 	}
-	if s.OwnerAccess == nil {
+	if check == nil {
 		return false, repositoryDomainEntity.ErrUnavailable
 	}
-	return s.OwnerAccess.CanAccessOwner(ctx, string(r.OwnerType), r.OwnerID, user)
+	return check(r.OwnerID, user)
 }
 
 // OwnerID returns the owner visible to the actor through the normal read path.

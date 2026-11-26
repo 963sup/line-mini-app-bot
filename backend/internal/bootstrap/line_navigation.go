@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	firestoreplatform "github.com/963sup/line-mini-app-bot/internal/platform/firestore"
+	lineplatform "github.com/963sup/line-mini-app-bot/internal/platform/line"
 	"github.com/963sup/line-mini-app-bot/internal/platform/line/richmenu"
 	"github.com/963sup/line-mini-app-bot/internal/transport/line/navigation"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
@@ -20,7 +20,7 @@ import (
 func SyncLINENavigation(parent context.Context) (result error) {
 	ctx, cancel := context.WithTimeout(parent, 8*time.Minute)
 	defer cancel()
-	_, _, err := newMiniAppAuthenticator(os.Getenv("LINE_MINI_APP_ENV"))
+	auth, _, err := newMiniAppAuthenticator(os.Getenv("LINE_MINI_APP_ENV"))
 	if err != nil {
 		return err
 	}
@@ -33,15 +33,12 @@ func SyncLINENavigation(parent context.Context) (result error) {
 	if dir == "" {
 		dir = "/assets/line/richmenu"
 	}
-	definitions := navigation.AttendanceRichMenus()
-	menus := make([]richmenu.Menu, 0, len(definitions))
-	for _, alias := range navigation.AttendanceRichMenuAliases() {
-		image, err := os.ReadFile(filepath.Join(dir, strings.ReplaceAll(alias, "-", "_")+".JPG"))
-		if err != nil {
-			return fmt.Errorf("read rich menu image %s: %w", alias, err)
-		}
-		menus = append(menus, richmenu.Menu{Alias: alias, Request: definitions[alias], Image: image})
+	alias := navigation.PrivateRichMenuAlias
+	image, err := os.ReadFile(filepath.Join(dir, "rich_menu_private.JPG"))
+	if err != nil {
+		return fmt.Errorf("read rich menu image %s: %w", alias, err)
 	}
+	menus := []richmenu.Menu{{Alias: alias, Request: navigation.PrivateRichMenu(lineplatform.MiniAppURL(auth.LIFFID)), Image: image}}
 	database := os.Getenv("FIRESTORE_DATABASE_ID")
 	db, err := firestoreplatform.NewClient(ctx, project, database)
 	if err != nil {
@@ -65,7 +62,10 @@ func SyncLINENavigation(parent context.Context) (result error) {
 		return err
 	}
 	return richmenu.Sync(ctx, api, blob, menus, map[string]string{
-		"attendance-in":  "rich-menu-clock-in",
-		"attendance-out": "rich-menu-clock-out",
+		"attendance-in":       alias,
+		"attendance-out":      alias,
+		"rich-menu-clock-in":  alias,
+		"rich-menu-transfer":  alias,
+		"rich-menu-clock-out": alias,
 	})
 }

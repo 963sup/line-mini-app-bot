@@ -20,6 +20,8 @@
 
 Repository、Organization、Team、Enterprise 與 Membership 透過具名查詢或操作契約合作，資源擁有者負責寫入。企業連結組織時，Enterprise 驗證企業擁有者，Organization 在同一筆交易驗證組織擁有者、現有歸屬並保存連結。企業目錄透過 Organization、Team 查詢可見項目，LINE 成員檢查在 Firestore 讀取交易結束後執行。
 
+儲存庫內容寫入與重送會在同一筆交易讀取目前的 Repository、擁有者及組織成員資格，再執行業務操作。Team 啟用如需向 LINE 查驗群組資格，由應用層在交易外查驗，提交時重新確認團隊狀態、管理者及上層組織資格。
+
 Repository 統計在同一份交易快照中向 Issue、Discussion 及 Project 取得各自的計數；Project 負責選擇擁有者的儲存路徑。
 
 ## 前端邊界

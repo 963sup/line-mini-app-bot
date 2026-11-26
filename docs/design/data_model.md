@@ -88,12 +88,13 @@ Firestore adapter 在交易內重新檢查 Repository 的有效容器、範本�
 
 - 四種引用共用 items 文件格式，將來源庫、來源類型、父物件及來源 ID 納入決定性鍵；不同庫的同名識別可獨立收錄。
 
-| 位置               | Project 路徑                                                                                                                      |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| HTTP               | /api/v1/owners/{ownerId}/projects/{id}                                                                                            |
-| Firestore 個人專案 | channels/{channelId}/users/{userId}/projects/{projectId}                                                                          |
-| Firestore 組織專案 | channels/{channelId}/organizations/{organizationId}/projects/{projectId}                                                          |
-| 舊群組專案相容資料 | channels/{channelId}/groups/{groupId}/projects/{projectId}；由既有 legacy adapter 隔離處理，不代表 canonical API 接受 Group Owner |
+| 位置                 | Project 路徑                                                                                                                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HTTP                 | /api/v1/owners/{ownerId}/projects/{id}                                                                                                                                                            |
+| Firestore 個人專案   | channels/{channelId}/users/{userId}/projects/{projectId}                                                                                                                                          |
+| Firestore 組織專案   | channels/{channelId}/organizations/{organizationId}/projects/{projectId}                                                                                                                          |
+| 舊群組專案相容資料   | channels/{channelId}/groups/{groupId}/projects/{projectId}；由既有 legacy adapter 隔離處理，不代表 canonical API 接受 Group Owner                                                                 |
+| 儲存庫 LINE 群組綁定 | `channels/{channelId}/repositoryLineBindings/{digest(groupId)}`；保存 `groupId`、`repositoryId`、狀態及最後事件。它是 Group 與 Repository 關係的唯一權威來源，Repository 文件不重複保存 GroupID。 |
 
 - Project 文件保存 ownerId；沒有初始來源時，對外回應省略 defaultRepositoryId。同一擁有者底下的 projectCreationScopes 保存建立收據，Project 底下的 linkedRepositories 保存庫連結；每筆引用以 sourceRepositoryId 定位來源。
 

@@ -63,26 +63,11 @@ func (s *Store) topic(scope repositoryDomainEntity.Repository, id string) *db.Do
 }
 
 // Every comment write rechecks the container and topic within the same transaction.
-func (s *Store) checkThread(tx *db.Transaction, scope repositoryDomainEntity.Repository, id string) error {
-	snap, err := tx.Get(s.repositoryRef(scope.ID))
-	if status.Code(err) == codes.NotFound {
-		return discussionentity.ErrNotFound
-	}
-	if err != nil {
+func (s *Store) checkThread(tx *db.Transaction, scope repositoryDomainEntity.Repository, actor, id string) error {
+	if err := s.checkWrite(tx, scope, actor); err != nil {
 		return err
 	}
-	var container struct {
-		ID      string `firestore:"id"`
-		OwnerID string `firestore:"ownerId"`
-		Status  string `firestore:"status"`
-	}
-	if err := snap.DataTo(&container); err != nil {
-		return err
-	}
-	if !scope.MatchesActive(container.ID, container.OwnerID, container.Status) {
-		return discussionentity.ErrNotFound
-	}
-	snap, err = tx.Get(s.topic(scope, id))
+	snap, err := tx.Get(s.topic(scope, id))
 	_, err = decode(snap, err, scope.ID)
 	return err
 }
@@ -175,7 +160,7 @@ func (s *Store) CreateComment(ctx context.Context, scope repositoryDomainEntity.
 	receipt := parent.Collection("commentCreationReceipts").Doc(firestorekey.Digest(keyScope))
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = discussionentity.Comment{}
-		if err := s.checkThread(tx, scope, id); err != nil {
+		if err := s.checkThread(tx, scope, actor, id); err != nil {
 			return err
 		}
 		snap, err := tx.Get(receipt)
@@ -227,7 +212,7 @@ func (s *Store) UpdateComment(ctx context.Context, scope repositoryDomainEntity.
 	now := time.Now().UTC().Truncate(time.Microsecond)
 	err = s.Client.RunTransaction(ctx, func(_ context.Context, tx *db.Transaction) error {
 		result = discussionentity.Comment{}
-		if err := s.checkThread(tx, scope, id); err != nil {
+		if err := s.checkThread(tx, scope, actor, id); err != nil {
 			return err
 		}
 		snap, err := tx.Get(ref)

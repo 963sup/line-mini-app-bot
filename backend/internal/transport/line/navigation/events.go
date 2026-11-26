@@ -21,7 +21,6 @@ type menuRequest struct {
 type Menu struct {
 	StickerPackageID, StickerID string
 	PrivateActions              []PrivateAction
-	QuickMenu                   func(bool, string, ...string) messaging_api.MessageInterface
 }
 
 func (trigger Menu) routes() routes {
@@ -36,12 +35,6 @@ func (trigger Menu) parseMenu(event webhook.EventInterface, menuRoutes routes) m
 	var source webhook.SourceInterface
 	var command, token string
 	switch e := event.(type) {
-	case webhook.JoinEvent:
-		g, ok := e.Source.(webhook.GroupSource)
-		if !ok || g.GroupId == "" || !transport.CanReply(e.Mode, e.ReplyToken, e.DeliveryContext) {
-			return menuRequest{}
-		}
-		return menuRequest{token: e.ReplyToken, command: "/help", groupID: g.GroupId}
 	case webhook.MessageEvent:
 		if !transport.CanReply(e.Mode, e.ReplyToken, e.DeliveryContext) {
 			return menuRequest{}
@@ -98,23 +91,21 @@ func (trigger Menu) parseMenu(event webhook.EventInterface, menuRoutes routes) m
 		return menuRequest{}
 	}
 
-	if entry, ok := menuRoutes.text[command]; ok {
-		command = entry.command
-	} else {
-		if groupID != "" {
-			return menuRequest{}
-		}
-		command = "private-help"
+	entry, ok := menuRoutes.text[command]
+	if !ok || (groupID != "" && entry.privatePostback) {
+		return menuRequest{}
 	}
-	return menuRequest{token: token, command: command, groupID: groupID, textReply: menuRoutes.text[command].textReply}
+	return menuRequest{token: token, command: entry.command, groupID: groupID, textReply: entry.textReply}
 }
 
-func (m menuRequest) reply(menu Menu, appURL, endpointURL string, ids ...string) transport.Reply {
+func (m menuRequest) reply(appURL, endpointURL string, ids ...string) transport.Reply {
 	reply := transport.Reply{Token: m.token}
 	switch m.command {
-	case "/menu", "/help", "private-help":
-		if menu.QuickMenu != nil {
-			reply.Message = menu.QuickMenu(m.groupID != "", appURL, ids...)
+	case "/menu", "/help":
+		if m.groupID == "" {
+			reply.Message = &messaging_api.TextMessage{Text: "請使用聊天室下方的選單開啟所需功能。"}
+		} else {
+			reply.Message = groupMenu(appURL, m.groupID, ids...)
 		}
 	case "/miniapp":
 		reply.Message = MiniApp(appURL, endpointURL, ids...)
@@ -130,13 +121,16 @@ func (trigger Menu) Handler(appURL, endpointURL string, lookup func(context.Cont
 	menuRoutes := trigger.routes()
 	return transport.Handler{Owner: "navigation", Commands: slices.Sorted(maps.Keys(menuRoutes.text)), Postbacks: slices.Sorted(maps.Keys(menuRoutes.postback)), Handle: func(ctx context.Context, event webhook.EventInterface) (transport.Reply, bool, error) {
 		menu := trigger.parseMenu(event, menuRoutes)
+		if menu.token == "" {
+			return transport.Reply{}, false, nil
+		}
 		if menu.groupID != "" && lookup != nil {
 			id, err := lookup(ctx, menu.groupID)
 			if err != nil {
 				return transport.Reply{}, false, err
 			}
-			return menu.reply(trigger, appURL, endpointURL, id), true, nil
+			return menu.reply(appURL, endpointURL, id), true, nil
 		}
-		return menu.reply(trigger, appURL, endpointURL), true, nil
+		return menu.reply(appURL, endpointURL), true, nil
 	}}
 }

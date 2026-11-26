@@ -48,7 +48,7 @@ import (
 	wikihttp "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/http/wiki"
 	repositoryline "github.com/963sup/line-mini-app-bot/internal/business/repository/adapter/line"
 	repositoryApplication "github.com/963sup/line-mini-app-bot/internal/business/repository/application"
-	repositoryApplicationPort "github.com/963sup/line-mini-app-bot/internal/business/repository/application/port"
+
 	teamdb "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/firestore"
 	teamhttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http"
 	grouphttp "github.com/963sup/line-mini-app-bot/internal/business/team/adapter/http/group"
@@ -153,10 +153,10 @@ func Run() (resultErr error) {
 		return err
 	}
 	membershipLookup := lineMembership(lineConfig.token, time.Second)
-	var repositoryOwners repositoryApplicationPort.OwnerAccess
+	var repositoryOwners *organizationdb.Store
 	var resolveRepositoryOwner func(context.Context, string) (string, string, error)
 	if sessions != nil && lineConfig.channel != "" {
-		ownerContext := organizationdb.Store{DB: db, Channel: lineConfig.channel}
+		ownerContext := &organizationdb.Store{DB: db, Channel: lineConfig.channel, OrganizationMember: membershipdb.OrganizationMember}
 		repositoryOwners = ownerContext
 		resolveRepositoryOwner = ownerContext.ResolveRepositoryOwner
 	}
@@ -203,7 +203,9 @@ func Run() (resultErr error) {
 		if lineTeams != nil {
 			enterpriseStore.Groups = lineTeams
 			teamStore.Groups = lineTeams
-			teamStore.LINEActivationMember = lineTeams.Membership
+			if lineTeams.Membership != nil {
+				teamHandler.VerifyGroupMember = lineTeams.Membership.IsMember
+			}
 		}
 		enterpriseStore.Teams = teamStore.EnterpriseTeams
 		enterpriseHandler.Store = enterpriseStore
@@ -224,9 +226,9 @@ func Run() (resultErr error) {
 	}
 	var projects *projectApplication.Service
 	if sessions != nil {
-		projects = newProjects(db, lineConfig.channel, repositories)
+		projects = newProjects(db, lineConfig.channel, repositories, repositoryOwners)
 	}
-	journalhttp.Register(mux, newJournals(groupCatalog, groupStore, repositories, projects), auth)
+	journalhttp.Register(mux, newJournals(groupCatalog, repositoryStore, repositories, projects), auth)
 	grouphttp.Register(mux, groupCatalog, auth)
 	repositoryhttp.Register(mux, repositories, auth)
 	explorehttp.Register(mux, explorequery.Service{Repositories: explorerepository.Source{Discovery: repositoryApplication.Discovery{Store: repositoryStore}}}, auth)
@@ -240,8 +242,8 @@ func Run() (resultErr error) {
 	objecthttp.Register(mux, newObjects(repositories, repositoryStore), auth)
 	discussionhttp.Register(mux, newDiscussions(repositories, repositoryStore), auth)
 	var repositoryObserver *repositoryline.Observer
-	if repositories != nil {
-		repositoryObserver = &repositoryline.Observer{Store: repositories.Store, ResolveOwner: resolveRepositoryOwner}
+	if repositories != nil && repositoryStore != nil {
+		repositoryObserver = &repositoryline.Observer{Bindings: &repositoryApplication.Bindings{Store: repositoryStore, ResolveOwner: resolveRepositoryOwner}}
 	}
 	var groupObserver *groupline.Observer
 	if lineTeams != nil {

@@ -416,6 +416,20 @@ test("personal history ignores legacy group filters and switches months automati
     await f.dispose();
   }
 });
+test("group attendance restricts the record query and missing punch link", async () => {
+  const group = "C" + "a".repeat(32);
+  const f = await fixture(<History />, `?attendanceGroup=${group}&month=2026-11`);
+  try {
+    const read = f.requests.find((r) => new URL(r.url).pathname.endsWith("/records"))!;
+    assert.equal(new URL(read.url).searchParams.get("group"), group);
+    assert.match(f.node("history").textContent!, /本群組出勤紀錄/);
+    assert.ok(
+      f.node("history").querySelector(`a[href*="missing-punch?month=2026-11&group=${group}"]`),
+    );
+  } finally {
+    await f.dispose();
+  }
+});
 test("review controls and details clear on logout", async () => {
   const f = await fixture(<Review />);
   try {
@@ -458,12 +472,15 @@ test("personal history navigates with cursors without loading a group summary", 
   }
 });
 test("correction double submit and ambiguous retry retain the original key and body", async () => {
-  const f = await fixture(<Correction />, "?group=g1&record=r1", async (r, next) =>
-    new URL(r.url).pathname.endsWith("/records/r1")
-      ? Response.json({ ...record, ClockOutAt: "0001-01-01T00:00:00Z" })
-      : r.url.endsWith("/corrections")
-        ? Promise.reject(new TypeError("network"))
-        : next(r),
+  const f = await fixture(
+    <Correction mode="missing-punch" />,
+    "?group=g1&record=r1",
+    async (r, next) =>
+      new URL(r.url).pathname.endsWith("/records/r1")
+        ? Response.json({ ...record, ClockOutAt: "0001-01-01T00:00:00Z" })
+        : r.url.endsWith("/corrections")
+          ? Promise.reject(new TypeError("network"))
+          : next(r),
   );
   try {
     assert.equal(document.getElementById("correction-start"), null);
@@ -502,27 +519,31 @@ test("correction double submit and ambiguous retry retain the original key and b
     await f.dispose();
   }
   // Exercise the same submission flow without an original shift.
-  const missing = await fixture(<Correction />, "?group=g1", async (r, next) => {
-    if (new URL(r.url).pathname.endsWith("/corrections")) {
-      if (r.method === "POST") return Response.json({ id: "missing1", status: "accepted" });
-      return Response.json({
-        items: [
-          {
-            id: "missing1",
-            groupId: "g1",
-            recordId: "correction-missing1",
-            start: record.ClockInAt,
-            end: record.ClockOutAt,
-            reason: "整班漏卡",
-            status: "rejected",
-            decisionReason: "請提供出勤佐證",
-          },
-        ],
-        nextCursor: "",
-      });
-    }
-    return next(r);
-  });
+  const missing = await fixture(
+    <Correction mode="missing-punch" />,
+    "?group=g1",
+    async (r, next) => {
+      if (new URL(r.url).pathname.endsWith("/corrections")) {
+        if (r.method === "POST") return Response.json({ id: "missing1", status: "accepted" });
+        return Response.json({
+          items: [
+            {
+              id: "missing1",
+              groupId: "g1",
+              recordId: "correction-missing1",
+              start: record.ClockInAt,
+              end: record.ClockOutAt,
+              reason: "整班漏卡",
+              status: "rejected",
+              decisionReason: "請提供出勤佐證",
+            },
+          ],
+          nextCursor: "",
+        });
+      }
+      return next(r);
+    },
+  );
   try {
     await missing.input("correction-start", "2026-11-01T09:00");
     await missing.input("correction-end", "2026-11-01T18:00");
@@ -866,7 +887,7 @@ test("review without a reported status never offers approval or rejection", asyn
 });
 
 test("new-shift corrections discover membership groups before any attendance records exist", async () => {
-  const f = await fixture(<Correction />, "", async (r, next) =>
+  const f = await fixture(<Correction mode="missing-punch" />, "", async (r, next) =>
     new URL(r.url).pathname === "/api/v1/groups"
       ? Response.json({ items: [{ id: "g1", groupId: "g1", name: "First group" }], nextCursor: "" })
       : next(r),
@@ -961,7 +982,7 @@ test("expired leave launch offers history instead of retrying an unusable link",
 });
 
 test("personal corrections load automatically and distinguish older results from pending requests", async () => {
-  const f = await fixture(<Correction />, "?group=g1", async (r, next) =>
+  const f = await fixture(<Correction mode="missing-punch" />, "?group=g1", async (r, next) =>
     new URL(r.url).pathname.endsWith("/corrections")
       ? Response.json({
           items: [
@@ -1000,7 +1021,7 @@ test("personal corrections load automatically and distinguish older results from
 });
 
 test("a denied corrections page clears previously readable requests", async () => {
-  const f = await fixture(<Correction />, "?group=g1", async (r, next) => {
+  const f = await fixture(<Correction mode="missing-punch" />, "?group=g1", async (r, next) => {
     const url = new URL(r.url);
     if (!url.pathname.endsWith("/corrections")) return next(r);
     return url.searchParams.get("cursor")
