@@ -25,6 +25,7 @@ type publication struct {
 	defaultStatus         int
 	migrationPhase        string
 	migrations            map[string]string
+	batchLimited          bool
 }
 
 func (p *publication) RoundTrip(r *http.Request) (*http.Response, error) {
@@ -50,6 +51,10 @@ func (p *publication) RoundTrip(r *http.Request) (*http.Response, error) {
 		data, _ := json.Marshal(map[string]any{"aliases": aliases})
 		body = string(data)
 	case path == "richmenu/batch":
+		if p.batchLimited {
+			code = http.StatusTooManyRequests
+			break
+		}
 		var batch struct {
 			Operations []struct{ From, To string }
 		}
@@ -241,6 +246,25 @@ func TestSyncMigratesRetiredAliasesAndRetriesSafely(t *testing.T) {
 	writes := p.writes
 	if err := Sync(context.Background(), api, blob, menus, legacy); err != nil || p.writes != writes {
 		t.Fatalf("converged publication wrote again: %v", err)
+	}
+}
+
+func TestSyncDefersCleanupWhenLINEBatchIsRateLimited(t *testing.T) {
+	p, api, blob, menus := publicationFixture(t)
+	p.menus["legacy"] = "managed-attendance-in-" + strings.Repeat("a", 64)
+	p.aliases["attendance-in"] = "legacy"
+	p.batchLimited = true
+	legacy := map[string]string{"attendance-in": "tab-one"}
+	if err := Sync(context.Background(), api, blob, menus, legacy); err != nil {
+		t.Fatalf("published navigation should survive deferred cleanup: %v", err)
+	}
+	if p.aliases["attendance-in"] != p.aliases["tab-one"] || p.defaultID != p.aliases["tab-one"] || p.menus["legacy"] == "" {
+		t.Fatal("rate limit did not retain the old menu after publishing new aliases")
+	}
+	p.batchLimited = false
+	p.migrationPhase = "succeeded"
+	if err := Sync(context.Background(), api, blob, menus, legacy); err != nil || p.menus["legacy"] != "" {
+		t.Fatalf("later sync did not finish deferred cleanup: %v", err)
 	}
 }
 
