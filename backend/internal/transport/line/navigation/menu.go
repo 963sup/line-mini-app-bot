@@ -88,7 +88,11 @@ func featureURL(appURL, feature, groupID string) string {
 		return ""
 	}
 	q := u.Query()
-	q.Set("menu", feature)
+	if feature == "" {
+		q.Del("menu")
+	} else {
+		q.Set("menu", feature)
+	}
 	q.Del("group")
 	if groupID != "" {
 		q.Set("group", groupID)

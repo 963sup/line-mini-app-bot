@@ -11,7 +11,7 @@ import (
 
 func TestPublishedAttendanceActionsDispatch(t *testing.T) {
 	h := navigation.Menu{PrivateActions: NavigationActions()}.Handler("", "", nil)
-	for _, menu := range navigation.AttendanceRichMenus("https://miniapp.line.me/example") {
+	for _, menu := range navigation.ChatRichMenus("https://miniapp.line.me/example") {
 		for _, area := range menu.Areas {
 			action, ok := area.Action.(*messaging_api.PostbackAction)
 			if !ok {
