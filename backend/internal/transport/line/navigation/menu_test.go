@@ -70,16 +70,10 @@ func TestJournalURLDoesNotGuessRepository(t *testing.T) {
 	}
 }
 
-func TestChatRichMenuArtworkLayoutAndActions(t *testing.T) {
-	aliases := ChatRichMenuAliases()
-	menus := ChatRichMenus("https://miniapp.line.me/example")
-	if len(aliases) != 4 || aliases[0] != "rich-menu-functions" || len(menus) != len(aliases) {
-		t.Fatalf("invalid private menu set: %v, %v", aliases, menus)
-	}
-	if menus[aliases[0]].ChatBarText != "收合／展開" {
-		t.Fatalf("chat bar must describe its client-owned control: %q", menus[aliases[0]].ChatBarText)
-	}
-	for i, alias := range aliases[1:] {
+func TestAttendanceRichMenuArtworkLayoutAndActions(t *testing.T) {
+	aliases := AttendanceRichMenuAliases()
+	menus := AttendanceRichMenus("https://miniapp.line.me/example")
+	for i, alias := range aliases {
 		menu := menus[alias]
 		if menu.Size.Width != 2500 || menu.Size.Height != 1686 || len(menu.Areas) != 5 {
 			t.Fatalf("invalid full-height layout for %s: %+v", alias, menu)
@@ -97,41 +91,37 @@ func TestChatRichMenuArtworkLayoutAndActions(t *testing.T) {
 			t.Fatalf("invalid main action for %s: %+v", alias, menu.Areas[2])
 		}
 		private, ok := menu.Areas[3].Action.(*messaging_api.RichMenuSwitchAction)
-		if !ok || private.RichMenuAliasId != "rich-menu-functions" || menu.Areas[3].Bounds.Y != 1326 || menu.Areas[3].Bounds.Width != 1250 {
+		if !ok || private.RichMenuAliasId != PrivateRichMenuAlias || menu.Areas[3].Bounds.Y != 1326 || menu.Areas[3].Bounds.Width != 1250 {
 			t.Fatalf("invalid private menu exit: %+v", menu.Areas[3])
 		}
 		app, ok := menu.Areas[4].Action.(*messaging_api.UriAction)
-		if !ok || app.Uri != "https://miniapp.line.me/example" || menu.Areas[4].Bounds.X != 1250 || menu.Areas[4].Bounds.Y != 1326 {
+		if !ok || app.Uri != "https://miniapp.line.me/example?menu=attendance" || menu.Areas[4].Bounds.X != 1250 || menu.Areas[4].Bounds.Y != 1326 {
 			t.Fatalf("invalid MINI App exit: %+v", menu.Areas[4])
 		}
 	}
-	if ChatRichMenus("") != nil {
+	if AttendanceRichMenus("") != nil {
 		t.Fatal("invalid MINI App URL must not publish attendance menus")
 	}
 }
 
-func TestFunctionRichMenuRoutesAndBounds(t *testing.T) {
+func TestPrivateRichMenuRoutesAndBounds(t *testing.T) {
 	const app = "https://miniapp.line.me/example"
-	menu := ChatRichMenus(app)["rich-menu-functions"]
-	pages := []string{"missing-punch", "correction", "leave", "review", "repositories"}
-	labels := []string{"補卡", "更正", "請假", "審核", "儲存庫"}
-	if menu == nil || len(menu.Areas) != 9 {
-		t.Fatalf("invalid function menu: %+v", menu)
-	}
-	for _, area := range menu.Areas[:3] {
-		if _, ok := area.Action.(*messaging_api.RichMenuSwitchAction); !ok || area.Bounds.Y != 0 || area.Bounds.Height != 360 {
-			t.Fatalf("invalid attendance tab: %+v", area)
-		}
+	menu := PrivateRichMenu(app)
+	pages := []string{"attendance", "missing-punch", "correction", "leave", "review", "repositories"}
+	labels := []string{"出勤", "補卡", "更正", "請假", "審核", "儲存庫"}
+	if menu == nil || len(menu.Areas) != len(pages) {
+		t.Fatalf("invalid private menu: %+v", menu)
 	}
 	for i, page := range pages {
-		area := menu.Areas[i+3]
+		area := menu.Areas[i]
 		action, ok := area.Action.(*messaging_api.UriAction)
 		if !ok || action.Uri != app+"?menu="+page || action.Label != labels[i] {
 			t.Fatalf("area %d link: %+v", i, area.Action)
 		}
-	}
-	appAction, ok := menu.Areas[8].Action.(*messaging_api.UriAction)
-	if !ok || appAction.Uri != "https://miniapp.line.me/example" || menu.Areas[8].Bounds.X != 1250 || menu.Areas[8].Bounds.Y != 1326 {
-		t.Fatalf("invalid MINI App action: %+v", menu.Areas[8])
+		column := int64(i % 3)
+		if area.Bounds.X != column*2500/3 || area.Bounds.Y != int64(i/3)*843 ||
+			area.Bounds.X+area.Bounds.Width != (column+1)*2500/3 || area.Bounds.Height != 843 {
+			t.Fatalf("area %d bounds: %+v", i, area.Bounds)
+		}
 	}
 }
