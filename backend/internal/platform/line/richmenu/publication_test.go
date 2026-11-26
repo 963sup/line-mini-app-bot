@@ -253,3 +253,31 @@ func TestSyncDoesNotRedirectUnmanagedLegacyAlias(t *testing.T) {
 		t.Fatal("unmanaged legacy alias was overridden")
 	}
 }
+
+func TestSyncDoesNotRedirectUnmanagedDesiredAlias(t *testing.T) {
+	p, api, blob, menus := publicationFixture(t)
+	p.menus["foreign"] = "managed-by-another-tool"
+	p.aliases["tab-one"] = "foreign"
+
+	err := Sync(context.Background(), api, blob, menus, nil)
+	if err == nil || p.aliases["tab-one"] != "foreign" || p.menus["foreign"] == "" || p.writes != 0 {
+		t.Fatal("unmanaged desired alias was overridden")
+	}
+}
+
+func TestSyncMigratesLegacyAliasFromAnotherDesiredMenu(t *testing.T) {
+	p, api, blob, menus := publicationFixture(t)
+	private := menus[0]
+	private.Alias = "rich-menu-private"
+	menus = append(menus, private)
+	p.menus["private"] = "managed-rich-menu-private-" + strings.Repeat("a", 64)
+	p.images["private"] = true
+	p.aliases["rich-menu-private"] = "private"
+	p.aliases["attendance-in"] = "private"
+	p.migrationPhase = "succeeded"
+
+	err := Sync(context.Background(), api, blob, menus, map[string]string{"attendance-in": "tab-one"})
+	if err != nil || p.aliases["attendance-in"] != p.aliases["tab-one"] {
+		t.Fatalf("managed private-menu migration failed: %v, %+v", err, p.aliases)
+	}
+}

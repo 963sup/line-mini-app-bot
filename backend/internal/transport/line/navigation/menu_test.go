@@ -72,29 +72,35 @@ func TestJournalURLDoesNotGuessRepository(t *testing.T) {
 
 func TestAttendanceRichMenuArtworkLayoutAndActions(t *testing.T) {
 	aliases := AttendanceRichMenuAliases()
-	menus := AttendanceRichMenus()
-	for _, alias := range aliases {
+	menus := AttendanceRichMenus("https://miniapp.line.me/example")
+	for i, alias := range aliases {
 		menu := menus[alias]
-		if menu.Size.Width != 2500 || menu.Size.Height != 1686 || len(menu.Areas) != 3 {
+		if menu.Size.Width != 2500 || menu.Size.Height != 1686 || len(menu.Areas) != 5 {
 			t.Fatalf("invalid full-height layout for %s: %+v", alias, menu)
 		}
 		targets := map[string]bool{}
 		for _, area := range menu.Areas[:2] {
 			action, ok := area.Action.(*messaging_api.RichMenuSwitchAction)
-			if !ok || action.RichMenuAliasId == alias || targets[action.RichMenuAliasId] {
-				t.Fatalf("invalid tab for %s: %+v", alias, area)
-			}
-			target := menus[action.RichMenuAliasId]
-			if target == nil || target.Name != "出勤："+action.Label || area.Bounds.Y != 0 || area.Bounds.Height != 843 {
-				t.Fatalf("tab does not match its destination: %+v", area)
+			if !ok || action.RichMenuAliasId == alias || targets[action.RichMenuAliasId] || area.Bounds.Y != 0 || area.Bounds.Height != 360 {
+				t.Fatalf("invalid attendance tab for %s: %+v", alias, area)
 			}
 			targets[action.RichMenuAliasId] = true
 		}
-		primary := menu.Areas[2]
-		_, ok := primary.Action.(*messaging_api.PostbackAction)
-		if !ok || primary.Bounds.X != 0 || primary.Bounds.Y != 843 || primary.Bounds.Width != 2500 || primary.Bounds.Height != 843 {
-			t.Fatalf("invalid main action for %s: %+v", alias, primary)
+		main, ok := menu.Areas[2].Action.(*messaging_api.PostbackAction)
+		if !ok || main.Data != []string{"action=clock-in", "action=support", "action=clock-out"}[i] || menu.Areas[2].Bounds.Y != 360 || menu.Areas[2].Bounds.Height != 966 {
+			t.Fatalf("invalid main action for %s: %+v", alias, menu.Areas[2])
 		}
+		private, ok := menu.Areas[3].Action.(*messaging_api.RichMenuSwitchAction)
+		if !ok || private.RichMenuAliasId != PrivateRichMenuAlias || menu.Areas[3].Bounds.Y != 1326 || menu.Areas[3].Bounds.Width != 1250 {
+			t.Fatalf("invalid private menu exit: %+v", menu.Areas[3])
+		}
+		app, ok := menu.Areas[4].Action.(*messaging_api.UriAction)
+		if !ok || app.Uri != "https://miniapp.line.me/example?menu=attendance" || menu.Areas[4].Bounds.X != 1250 || menu.Areas[4].Bounds.Y != 1326 {
+			t.Fatalf("invalid MINI App exit: %+v", menu.Areas[4])
+		}
+	}
+	if AttendanceRichMenus("") != nil {
+		t.Fatal("invalid MINI App URL must not publish attendance menus")
 	}
 }
 
