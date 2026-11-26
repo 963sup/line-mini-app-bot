@@ -131,7 +131,7 @@ async function main() {
               height: layout.tabHeight,
             }}
           >
-            <span style={{ fontSize: 72, fontWeight: current.alias === page.alias ? 700 : 500 }}>
+            <span style={{ fontSize: 84, fontWeight: current.alias === page.alias ? 700 : 500 }}>
               {page.label}
             </span>
           </MenuCell>
@@ -156,16 +156,16 @@ async function main() {
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
-                      gap: 24,
+                      gap: 28,
                     }}
                   >
                     <img
                       alt=""
-                      width={112}
-                      height={112}
-                      src={iconData(FeatureIcon, 112, palette.primary)}
+                      width={156}
+                      height={156}
+                      src={iconData(FeatureIcon, 156, palette.primary)}
                     />
-                    <span style={{ fontSize: 68, fontWeight: 600 }}>{feature.label}</span>
+                    <span style={{ fontSize: 84, fontWeight: 600 }}>{feature.label}</span>
                   </div>
                 </MenuCell>
               );
@@ -203,8 +203,8 @@ async function main() {
               gap: 36,
             }}
           >
-            <img alt="" width={88} height={88} src={iconData(item.Icon, 88, palette.primary)} />
-            <span style={{ fontSize: 58 }}>{item.label}</span>
+            <img alt="" width={112} height={112} src={iconData(item.Icon, 112, palette.primary)} />
+            <span style={{ fontSize: 72, fontWeight: 600 }}>{item.label}</span>
           </MenuCell>
         ))}
       </div>,

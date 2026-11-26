@@ -4,7 +4,7 @@
   "tabHeight": 360,
   "footerHeight": 360,
   "tabWidths": [833, 834, 833],
-  "chatBarText": "開啟選單",
+  "chatBarText": "收合／展開",
   "miniAppLabel": "開啟 MINI App",
   "functionPage": {
     "alias": "rich-menu-functions",
