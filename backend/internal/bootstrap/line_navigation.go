@@ -79,7 +79,8 @@ func SyncLINENavigation(parent context.Context) (result error) {
 		return err
 	}
 	return richmenu.Sync(ctx, api, blob, menus, map[string]string{
-		"attendance-in":  "rich-menu-clock-in",
-		"attendance-out": "rich-menu-clock-out",
+		"attendance-in":      "rich-menu-clock-in",
+		"attendance-out":     "rich-menu-clock-out",
+		"rich-menu-functions": "rich-menu-private",
 	})
 }
