@@ -26,6 +26,7 @@ type publication struct {
 	migrationPhase        string
 	migrations            map[string]string
 	batchLimited          bool
+	progressLimited       bool
 }
 
 func (p *publication) RoundTrip(r *http.Request) (*http.Response, error) {
@@ -68,7 +69,11 @@ func (p *publication) RoundTrip(r *http.Request) (*http.Response, error) {
 		p.migrations[op.From] = op.To
 		header.Set("X-Line-Request-Id", "migration-test")
 	case path == "richmenu/progress/batch":
-		body = `{"phase":"` + p.migrationPhase + `"}`
+		if p.progressLimited {
+			code = http.StatusTooManyRequests
+		} else {
+			body = `{"phase":"` + p.migrationPhase + `"}`
+		}
 	case r.Method == "DELETE" && strings.HasPrefix(path, "richmenu/"):
 		id := strings.TrimPrefix(path, "richmenu/")
 		if p.migrationPhase != "succeeded" || p.migrations[id] == "" {
@@ -262,6 +267,25 @@ func TestSyncDefersCleanupWhenLINEBatchIsRateLimited(t *testing.T) {
 		t.Fatal("rate limit did not retain the old menu after publishing new aliases")
 	}
 	p.batchLimited = false
+	p.migrationPhase = "succeeded"
+	if err := Sync(context.Background(), api, blob, menus, legacy); err != nil || p.menus["legacy"] != "" {
+		t.Fatalf("later sync did not finish deferred cleanup: %v", err)
+	}
+}
+
+func TestSyncDefersCleanupWhenLINEProgressIsRateLimited(t *testing.T) {
+	p, api, blob, menus := publicationFixture(t)
+	p.menus["legacy"] = "managed-attendance-in-" + strings.Repeat("a", 64)
+	p.aliases["attendance-in"] = "legacy"
+	p.progressLimited = true
+	legacy := map[string]string{"attendance-in": "tab-one"}
+	if err := Sync(context.Background(), api, blob, menus, legacy); err != nil {
+		t.Fatalf("published navigation should survive deferred cleanup: %v", err)
+	}
+	if p.aliases["attendance-in"] != p.aliases["tab-one"] || p.defaultID != p.aliases["tab-one"] || p.menus["legacy"] == "" {
+		t.Fatal("progress rate limit did not retain the old menu after publishing new aliases")
+	}
+	p.progressLimited = false
 	p.migrationPhase = "succeeded"
 	if err := Sync(context.Background(), api, blob, menus, legacy); err != nil || p.menus["legacy"] != "" {
 		t.Fatalf("later sync did not finish deferred cleanup: %v", err)

@@ -269,8 +269,12 @@ func cleanupMenus(ctx context.Context, api *messaging_api.MessagingApiAPI, curre
 		}
 		deadline := time.Now().Add(3 * time.Minute)
 		for {
-			progress, err := api.GetRichMenuBatchProgress(requestID)
+			progressResponse, progress, err := api.GetRichMenuBatchProgressWithHttpInfo(requestID)
 			if err != nil {
+				if progressResponse != nil && progressResponse.StatusCode == http.StatusTooManyRequests {
+					slog.Warn("rich menu cleanup deferred by LINE progress rate limit", "id", menu.RichMenuId)
+					return nil
+				}
 				return err
 			}
 			if progress.Phase == "succeeded" {
@@ -282,7 +286,7 @@ func cleanupMenus(ctx context.Context, api *messaging_api.MessagingApiAPI, curre
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
-			case <-time.After(time.Second):
+			case <-time.After(5 * time.Second):
 			}
 		}
 		if _, err := api.DeleteRichMenu(menu.RichMenuId); err != nil {
