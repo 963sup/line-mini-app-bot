@@ -247,6 +247,10 @@ func cleanupMenus(ctx context.Context, api *messaging_api.MessagingApiAPI, curre
 		// Rich-menu switching can leave per-user links; migrate all of them first.
 		response, _, err := api.RichMenuBatchWithHttpInfo(&messaging_api.RichMenuBatchRequest{Operations: []messaging_api.RichMenuBatchOperationInterface{&messaging_api.RichMenuBatchLinkOperation{From: menu.RichMenuId, To: target}}})
 		if err != nil {
+			if response != nil && response.StatusCode == http.StatusTooManyRequests {
+				slog.Warn("rich menu cleanup deferred by LINE batch rate limit", "id", menu.RichMenuId)
+				return nil
+			}
 			return err
 		}
 		requestID := response.Header.Get("x-line-request-id")

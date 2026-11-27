@@ -3,6 +3,7 @@ package navigation
 import (
 	"bytes"
 	"encoding/json"
+	"slices"
 	"strings"
 	"testing"
 
@@ -72,6 +73,10 @@ func TestJournalURLDoesNotGuessRepository(t *testing.T) {
 
 func TestAttendanceRichMenuArtworkLayoutAndActions(t *testing.T) {
 	aliases := AttendanceRichMenuAliases()
+	wantAliases := []string{"rich-menu-clock-in", "rich-menu-support", "rich-menu-clock-out"}
+	if !slices.Equal(aliases, wantAliases) {
+		t.Fatalf("attendance menu aliases do not match their actions: %v", aliases)
+	}
 	menus := AttendanceRichMenus("https://miniapp.line.me/example")
 	for i, alias := range aliases {
 		menu := menus[alias]

@@ -15,7 +15,7 @@
       "hint": "前往上班群組打卡"
     },
     {
-      "alias": "rich-menu-transfer",
+      "alias": "rich-menu-support",
       "label": "支援",
       "postback": "action=support",
       "hint": "確認支援作業與原班次規則"

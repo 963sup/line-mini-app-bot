@@ -10,7 +10,7 @@ import layout from "../../../backend/internal/transport/line/navigation/rich_men
 
 const icons = {
   "rich-menu-clock-in": LogIn,
-  "rich-menu-transfer": Repeat2,
+  "rich-menu-support": Repeat2,
   "rich-menu-clock-out": LogOut,
 };
 
