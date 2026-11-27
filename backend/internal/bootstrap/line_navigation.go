@@ -34,16 +34,11 @@ func SyncLINENavigation(parent context.Context) (result error) {
 	if dir == "" {
 		dir = "/assets/line/richmenu"
 	}
-	alias := navigation.PrivateRichMenuAlias
-	image, err := os.ReadFile(filepath.Join(dir, "rich_menu_private.JPG"))
-	if err != nil {
-		return fmt.Errorf("read rich menu image %s: %w", alias, err)
-	}
-	menus := []richmenu.Menu{{Alias: alias, Request: navigation.PrivateRichMenu(lineplatform.MiniAppURL(auth.LIFFID)), Image: image}}
 	attendance := navigation.AttendanceRichMenus(lineplatform.MiniAppURL(auth.LIFFID))
 	if attendance == nil {
 		return errors.New("LINE navigation job requires a valid MINI App URL")
 	}
+	var menus []richmenu.Menu
 	for _, attendanceAlias := range navigation.AttendanceRichMenuAliases() {
 		suffix, ok := strings.CutPrefix(attendanceAlias, "rich-menu-")
 		if !ok {
@@ -56,6 +51,12 @@ func SyncLINENavigation(parent context.Context) (result error) {
 		}
 		menus = append(menus, richmenu.Menu{Alias: attendanceAlias, Request: attendance[attendanceAlias], Image: image})
 	}
+	alias := navigation.PrivateRichMenuAlias
+	image, err := os.ReadFile(filepath.Join(dir, "rich_menu_private.JPG"))
+	if err != nil {
+		return fmt.Errorf("read rich menu image %s: %w", alias, err)
+	}
+	menus = append(menus, richmenu.Menu{Alias: alias, Request: navigation.PrivateRichMenu(lineplatform.MiniAppURL(auth.LIFFID)), Image: image})
 	database := os.Getenv("FIRESTORE_DATABASE_ID")
 	db, err := firestoreplatform.NewClient(ctx, project, database)
 	if err != nil {
