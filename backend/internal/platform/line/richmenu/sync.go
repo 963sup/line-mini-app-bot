@@ -267,7 +267,7 @@ func cleanupMenus(ctx context.Context, api *messaging_api.MessagingApiAPI, curre
 		if requestID == "" {
 			return errors.New("migration returned no request ID; old menu retained")
 		}
-		deadline := time.Now().Add(45 * time.Second)
+		deadline := time.Now().Add(3 * time.Minute)
 		for {
 			progress, err := api.GetRichMenuBatchProgress(requestID)
 			if err != nil {
