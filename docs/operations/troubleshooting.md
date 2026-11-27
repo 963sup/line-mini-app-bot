@@ -49,6 +49,6 @@ Firestore 的 line_navigation_publication_leases/{channelID} 保存暫時 owner 
 
 `rich-menu-clock-in`、`rich-menu-support` 與 `rich-menu-clock-out` 是正式出勤選單；`attendance-in`、`attendance-out`、`rich-menu-transfer` 僅保留為既有選單的舊 Alias。發布前核對已存在的舊 Alias 確實指向本流程管理的選單。新圖與新 Alias 就緒後，將已存在的舊 Alias 保留為轉向入口，並讀回確認。缺少的舊 Alias 不新增。
 
-圖片由根目錄執行 `pnpm rich-menu:generate TC_FONT_OTF_OR_TTF` 重新產生。腳本以 `rich_menu.json`、MINI App 共用主題 Token 與指定繁中字型為輸入，直接覆寫 `assets/line/richmenu/` 的三張 PNG；Go 使用同一份 JSON 組裝 LINE SDK 點擊區域。上方在上班、支援、下班情境間切換，中間執行當前情境的唯一主要操作；底部左側返回個人功能選單，右側開啟出勤 MINI App。當前情境不建立無效的自我切換區域。
+圖片由根目錄執行 `pnpm rich-menu:generate TC_FONT_OTF_OR_TTF` 重新產生。腳本以 `rich_menu.json`、MINI App 共用主題 Token 與指定繁中字型為輸入，直接覆寫 `assets/line/richmenu/` 的三張 PNG；Go 使用同一份 JSON 組裝 LINE SDK 點擊區域。預設為上班頁；上方在上班、支援、下班情境間切換，中間執行當前情境的唯一主要操作；底部左側進入個人功能選單，右側開啟出勤 MINI App。個人功能選單的「出勤」返回上班頁。當前情境不建立無效的自我切換區域。
 
 已綁定個別使用者的舊選單須另外透過 LINE 批次遷移；只有遷移成功且無 Alias 仍引用舊選單才刪除。失敗保留舊選單，重跑同步可繼續。驗收須在測試渠道涵蓋仍綁舊頁的使用者，並保留管理權衝突時的停止行為。

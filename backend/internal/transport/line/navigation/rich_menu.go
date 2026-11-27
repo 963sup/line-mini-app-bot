@@ -113,15 +113,22 @@ func PrivateRichMenu(appURL string) *messaging_api.RichMenuRequest {
 		Name: "個人功能", ChatBarText: "開啟選單",
 	}
 	for i, entry := range entries {
-		link := featureURL(appURL, entry.feature, "")
-		if link == "" {
-			return nil
-		}
 		column := int64(i % 3)
 		x := column * width / 3
+		var action messaging_api.ActionInterface
+		if i == 0 {
+			alias := attendanceMenu.Pages[0].Alias
+			action = &messaging_api.RichMenuSwitchAction{Label: entry.label, RichMenuAliasId: alias, Data: "tab=" + alias}
+		} else {
+			link := featureURL(appURL, entry.feature, "")
+			if link == "" {
+				return nil
+			}
+			action = &messaging_api.UriAction{Label: entry.label, Uri: link}
+		}
 		menu.Areas = append(menu.Areas, messaging_api.RichMenuArea{
 			Bounds: &messaging_api.RichMenuBounds{X: x, Y: int64(i/3) * height / 2, Width: (column+1)*width/3 - x, Height: height / 2},
-			Action: &messaging_api.UriAction{Label: entry.label, Uri: link},
+			Action: action,
 		})
 	}
 	return menu

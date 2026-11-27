@@ -119,9 +119,16 @@ func TestPrivateRichMenuRoutesAndBounds(t *testing.T) {
 	}
 	for i, page := range pages {
 		area := menu.Areas[i]
-		action, ok := area.Action.(*messaging_api.UriAction)
-		if !ok || action.Uri != app+"?menu="+page || action.Label != labels[i] {
-			t.Fatalf("area %d link: %+v", i, area.Action)
+		if i == 0 {
+			action, ok := area.Action.(*messaging_api.RichMenuSwitchAction)
+			if !ok || action.RichMenuAliasId != "rich-menu-clock-in" || action.Label != labels[i] {
+				t.Fatalf("area %d return to attendance: %+v", i, area.Action)
+			}
+		} else {
+			action, ok := area.Action.(*messaging_api.UriAction)
+			if !ok || action.Uri != app+"?menu="+page || action.Label != labels[i] {
+				t.Fatalf("area %d link: %+v", i, area.Action)
+			}
 		}
 		column := int64(i % 3)
 		if area.Bounds.X != column*2500/3 || area.Bounds.Y != int64(i/3)*843 ||
